@@ -287,6 +287,8 @@ export default {
         beginningOfChatHistoryDomainRoomPartTwo: ' para chatear con compañeros, compartir consejos o hacer una pregunta.',
         beginningOfChatHistoryAdminRoomPartOne: ({workspaceName}) => `Este es el lugar para que los administradores de ${workspaceName} colaboren! 🎉\nUsa `,
         beginningOfChatHistoryAdminRoomPartTwo: ' para chatear sobre temas como la configuración del espacio de trabajo y mas.',
+        beginningOfChatHistoryAdminOnlyPostingRoomPartOne: 'Utiliza ',
+        beginningOfChatHistoryAdminOnlyPostingRoomPartTwo: ({workspaceName}) => ` para enterarte de anuncios importantes relacionados con ${workspaceName}`,
         beginningOfChatHistoryAnnounceRoomPartOne: ({workspaceName}) => `Este es el lugar para que todos los miembros de ${workspaceName} colaboren! 🎉\nUsa `,
         beginningOfChatHistoryAnnounceRoomPartTwo: ({workspaceName}) => ` para chatear sobre cualquier cosa relacionada con ${workspaceName}.`,
         beginningOfChatHistoryUserRoomPartOne: 'Este es el lugar para colaborar! 🎉\nUsa este espacio para chatear sobre cualquier cosa relacionada con ',
@@ -340,16 +342,39 @@ export default {
         listOfChatMessages: 'Lista de mensajes del chat',
         listOfChats: 'lista de chats',
     },
+    tabSelector: {
+        manual: 'Manual',
+        scan: 'Escanear',
+    },
+    receipt: {
+        upload: 'Subir recibo',
+        dragReceiptBeforeEmail: 'Arrastra un recibo a esta página, reenvíalo a ',
+        dragReceiptAfterEmail: ' o elije un archivo para subir a continuación.',
+        chooseReceipt: 'Elige un recibo para subir o reenvía un recibo a ',
+        chooseFile: 'Elegir archivo',
+        givePermission: 'Permitir',
+        takePhoto: 'Haz una foto',
+        cameraAccess: 'Se requiere acceso a la cámara para hacer fotos de los recibos.',
+        cameraErrorTitle: 'Error en la cámara',
+        cameraErrorMessage: 'Se produjo un error al hacer una foto, Por favor, inténtalo de nuevo.',
+        dropTitle: 'Suéltalo',
+        dropMessage: 'Suelta tu archivo aquí',
+        flash: 'flash',
+        shutter: 'obturador',
+        gallery: 'galería',
+    },
     iou: {
         amount: 'Importe',
         cash: 'Efectivo',
         split: 'Dividir',
+        request: 'Solicitar',
         participants: 'Participantes',
         splitBill: 'Dividir factura',
         requestMoney: 'Pedir dinero',
         sendMoney: 'Enviar dinero',
         pay: 'Pagar',
         viewDetails: 'Ver detalles',
+        pending: 'Pendiente',
         settledExpensify: 'Pagado',
         settledElsewhere: 'Pagado de otra forma',
         settledPaypalMe: 'Pagado con PayPal.me',
@@ -364,6 +389,8 @@ export default {
         payerPaidAmount: ({payer, amount}) => `${payer} pagó ${amount}`,
         payerPaid: ({payer}) => `${payer} pagó: `,
         payerSettled: ({amount}) => `pagó ${amount}`,
+        waitingOnBankAccount: ({submitterDisplayName}) => `inicio el pago, pero no se procesará hasta que ${submitterDisplayName} agregue una Cuenta bancaria`,
+        settledAfterAddedBankAccount: ({submitterDisplayName, amount}) => `${submitterDisplayName} agregó una cuenta bancaria. El pago de ${amount} se ha realizado.`,
         paidElsewhereWithAmount: ({amount}) => `pagó ${amount} de otra forma`,
         paidUsingPaypalWithAmount: ({amount}) => `pagó ${amount} con PayPal.me`,
         paidUsingExpensifyWithAmount: ({amount}) => `pagó ${amount} con Expensify`,
@@ -395,7 +422,6 @@ export default {
         uploadPhoto: 'Subir foto',
         removePhoto: 'Eliminar foto',
         editImage: 'Editar foto',
-        imageUploadFailed: 'Error al cargar la imagen',
         deleteWorkspaceError: 'Lo sentimos, hubo un problema eliminando el avatar de su espacio de trabajo.',
         sizeExceeded: ({maxUploadSizeInMB}) => `La imagen supera el tamaño máximo de ${maxUploadSizeInMB}MB.`,
         resolutionConstraints: ({minHeightInPx, minWidthInPx, maxHeightInPx, maxWidthInPx}) =>
@@ -923,6 +949,7 @@ export default {
     messages: {
         errorMessageInvalidPhone: `Por favor, introduce un número de teléfono válido sin paréntesis o guiones. Si reside fuera de Estados Unidos, por favor incluye el prefijo internacional (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
         errorMessageInvalidEmail: 'Email inválido',
+        userIsAlreadyMemberOfWorkspace: ({login, workspace}) => `${login} ya es miembro de ${workspace}`,
     },
     onfidoStep: {
         acceptTerms: 'Al continuar con la solicitud para activar su billetera Expensify, confirma que ha leído, comprende y acepta ',
@@ -1134,6 +1161,11 @@ export default {
         emptyWorkspace: {
             title: 'Crear un nuevo espacio de trabajo',
             subtitle: 'En los espacios de trabajo es donde puedes chatear con tu equipo, reembolsar gastos, emitir tarjetas, enviar y pagar facturas y mas — todo en un mismo lugar',
+            features: {
+                trackAndCollect: 'Organiza recibos',
+                companyCards: 'Tarjetas de crédito corporativas',
+                reimbursements: 'Reembolsos fáciles',
+            },
         },
         new: {
             newWorkspace: 'Nuevo espacio de trabajo',
@@ -1462,7 +1494,7 @@ export default {
         expenseManagement: 'Gestión de Gastos',
         spendManagement: 'Control de Gastos',
         expenseReports: 'Informes de Gastos',
-        companyCreditCard: 'Tarjeta de Crédito de Empresa',
+        companyCreditCard: 'Tarjeta de Crédito Corporativa',
         receiptScanningApp: 'Aplicación de Escaneado de Recibos',
         billPay: 'Pago de Facturas',
         invoicing: 'Facturación',
@@ -1963,11 +1995,14 @@ export default {
     },
     parentReportAction: {
         deletedMessage: '[Mensaje eliminado]',
+        deletedRequest: '[Pedido eliminado]',
         hiddenMessage: '[Mensaje oculto]',
     },
     threads: {
         replies: 'Respuestas',
         reply: 'Respuesta',
+        from: 'De',
+        in: 'en',
         parentNavigationSummary: ({rootReportName, workspaceName}) => `De ${rootReportName}${workspaceName ? ` en ${workspaceName}` : ''}`,
     },
     qrCodes: {
@@ -1995,5 +2030,11 @@ export default {
         levelOneResult: 'Envia una advertencia anónima y el mensaje es reportado para revisión.',
         levelTwoResult: 'Mensaje ocultado del canal, más advertencia anónima y mensaje reportado para revisión.',
         levelThreeResult: 'Mensaje eliminado del canal, más advertencia anónima y mensaje reportado para revisión.',
+    },
+    countrySelectorModal: {
+        placeholderText: 'Buscar para ver opciones',
+    },
+    stateSelectorModal: {
+        placeholderText: 'Buscar para ver opciones',
     },
 };

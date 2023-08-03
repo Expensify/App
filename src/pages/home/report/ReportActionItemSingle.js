@@ -1,5 +1,5 @@
 import lodashGet from 'lodash/get';
-import React, {useCallback} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -142,6 +142,11 @@ function ReportActionItemSingle(props) {
         }
     }, [isWorkspaceActor, props.report.reportID, actorAccountID, props.action.delegateAccountID]);
 
+    const shouldDisableDetailPage = useMemo(
+        () => !isWorkspaceActor && ReportUtils.isOptimisticPersonalDetail(props.action.delegateAccountID ? props.action.delegateAccountID : actorAccountID),
+        [props.action, isWorkspaceActor, actorAccountID],
+    );
+
     const getAvatar = () => {
         if (displayAllActors) {
             return (
@@ -192,6 +197,7 @@ function ReportActionItemSingle(props) {
                 onPressIn={ControlSelection.block}
                 onPressOut={ControlSelection.unblock}
                 onPress={showActorDetails}
+                disabled={shouldDisableDetailPage}
                 accessibilityLabel={actorHint}
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
             >
@@ -205,6 +211,7 @@ function ReportActionItemSingle(props) {
                             onPressIn={ControlSelection.block}
                             onPressOut={ControlSelection.unblock}
                             onPress={showActorDetails}
+                            disabled={shouldDisableDetailPage}
                             accessibilityLabel={actorHint}
                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         >
@@ -217,6 +224,7 @@ function ReportActionItemSingle(props) {
                                     isLoading={props.action.isLoading}
                                     delegateAccountID={props.action.delegateAccountID}
                                     isSingleLine
+                                    actorIcon={icon}
                                 />
                             ))}
                         </PressableWithoutFeedback>

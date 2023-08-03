@@ -9,13 +9,13 @@ import compose from '../../libs/compose';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import MenuItemWithTopDescription from '../MenuItemWithTopDescription';
+import Hoverable from '../Hoverable';
 import MenuItem from '../MenuItem';
 import styles from '../../styles/styles';
 import * as ReportUtils from '../../libs/ReportUtils';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import * as StyleUtils from '../../styles/StyleUtils';
 import * as Task from '../../libs/actions/Task';
-import * as PolicyUtils from '../../libs/PolicyUtils';
 import CONST from '../../CONST';
 import Checkbox from '../Checkbox';
 import convertToLTR from '../../libs/convertToLTR';
@@ -47,59 +47,62 @@ function TaskView(props) {
     const isCompleted = ReportUtils.isCompletedTaskReport(props.report);
     const isOpen = ReportUtils.isOpenTaskReport(props.report);
     const isCanceled = ReportUtils.isCanceledTaskReport(props.report);
-    const policy = ReportUtils.getPolicy(props.report.policyID);
-    const canEdit = PolicyUtils.isPolicyAdmin(policy) || Task.isTaskAssigneeOrTaskOwner(props.report, props.currentUserPersonalDetails.accountID);
-    const disableState = !canEdit || !isOpen;
+    const canModifyTask = Task.canModifyTask(props.report, props.currentUserPersonalDetails.accountID);
+    const disableState = !canModifyTask || !isOpen;
     return (
         <View>
-            <PressableWithSecondaryInteraction
-                onPress={Session.checkIfActionIsAllowed((e) => {
-                    if (e && e.type === 'click') {
-                        e.currentTarget.blur();
-                    }
+            <Hoverable>
+                {(hovered) => (
+                    <PressableWithSecondaryInteraction
+                        onPress={Session.checkIfActionIsAllowed((e) => {
+                            if (e && e.type === 'click') {
+                                e.currentTarget.blur();
+                            }
 
-                    Navigation.navigate(ROUTES.getTaskReportTitleRoute(props.report.reportID));
-                })}
-                style={({hovered, pressed}) => [styles.ph5, styles.pv2, StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, false, disableState), true)]}
-                ref={props.forwardedRef}
-                disabled={disableState}
-                accessibilityLabel={taskTitle || props.translate('task.task')}
-            >
-                {({hovered, pressed}) => (
-                    <>
-                        <Text style={styles.taskTitleDescription}>{props.translate('task.title')}</Text>
-                        <View style={[styles.flexRow, styles.alignItemsTop, styles.flex1]}>
-                            <Checkbox
-                                onPress={() => (isCompleted ? Task.reopenTask(props.report.reportID, taskTitle) : Task.completeTask(props.report.reportID, taskTitle))}
-                                isChecked={isCompleted}
-                                style={styles.taskMenuItemCheckbox}
-                                containerSize={24}
-                                containerBorderRadius={8}
-                                caretSize={16}
-                                accessibilityLabel={taskTitle || props.translate('task.task')}
-                                disabled={isCanceled || !canEdit}
-                            />
-                            <View style={[styles.flexRow, styles.flex1]}>
-                                <Text
-                                    numberOfLines={3}
-                                    style={styles.taskTitleMenuItem}
-                                >
-                                    {taskTitle}
-                                </Text>
-                            </View>
-                            {isOpen && (
-                                <View style={styles.taskRightIconContainer}>
-                                    <Icon
-                                        additionalStyles={[styles.alignItemsCenter]}
-                                        src={Expensicons.ArrowRight}
-                                        fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, false, disableState))}
+                            Navigation.navigate(ROUTES.getTaskReportTitleRoute(props.report.reportID));
+                        })}
+                        style={({pressed}) => [styles.ph5, styles.pv2, StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, false, disableState), true)]}
+                        ref={props.forwardedRef}
+                        disabled={disableState}
+                        accessibilityLabel={taskTitle || props.translate('task.task')}
+                    >
+                        {({pressed}) => (
+                            <>
+                                <Text style={styles.taskTitleDescription}>{props.translate('task.title')}</Text>
+                                <View style={[styles.flexRow, styles.alignItemsTop, styles.flex1]}>
+                                    <Checkbox
+                                        onPress={() => (isCompleted ? Task.reopenTask(props.report.reportID, taskTitle) : Task.completeTask(props.report.reportID, taskTitle))}
+                                        isChecked={isCompleted}
+                                        style={styles.taskMenuItemCheckbox}
+                                        containerSize={24}
+                                        containerBorderRadius={8}
+                                        caretSize={16}
+                                        accessibilityLabel={taskTitle || props.translate('task.task')}
+                                        disabled={isCanceled || !canModifyTask}
                                     />
+                                    <View style={[styles.flexRow, styles.flex1]}>
+                                        <Text
+                                            numberOfLines={3}
+                                            style={styles.taskTitleMenuItem}
+                                        >
+                                            {taskTitle}
+                                        </Text>
+                                    </View>
+                                    {isOpen && (
+                                        <View style={styles.taskRightIconContainer}>
+                                            <Icon
+                                                additionalStyles={[styles.alignItemsCenter]}
+                                                src={Expensicons.ArrowRight}
+                                                fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, false, disableState))}
+                                            />
+                                        </View>
+                                    )}
                                 </View>
-                            )}
-                        </View>
-                    </>
+                            </>
+                        )}
+                    </PressableWithSecondaryInteraction>
                 )}
-            </PressableWithSecondaryInteraction>
+            </Hoverable>
             <MenuItemWithTopDescription
                 description={props.translate('task.description')}
                 title={props.report.description || ''}
