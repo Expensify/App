@@ -30,6 +30,7 @@ import KeyboardShortcutsModal from './components/KeyboardShortcutsModal';
 import AppleAuthWrapper from './components/SignInButtons/AppleAuthWrapper';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
 import * as EmojiPickerAction from './libs/actions/EmojiPickerAction';
+import DeeplinkWrapper from './components/DeeplinkWrapper';
 
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
 // eslint-disable-next-line no-unused-vars
@@ -182,7 +183,7 @@ function Expensify(props) {
     }
 
     return (
-        <>
+        <DeeplinkWrapper isAuthenticated={isAuthenticated}>
             {shouldInit && (
                 <>
                     <KeyboardShortcutsModal />
@@ -214,7 +215,7 @@ function Expensify(props) {
             )}
 
             {shouldHideSplash && <SplashScreenHider onHide={onSplashHide} />}
-        </>
+        </DeeplinkWrapper>
     );
 }
 

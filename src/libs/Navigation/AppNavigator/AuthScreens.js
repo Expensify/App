@@ -138,8 +138,8 @@ class AuthScreens extends React.Component {
             App.reconnectApp();
         }
 
-        App.redirectThirdPartyDesktopSignIn();
         App.setUpPoliciesAndNavigate(this.props.session, !this.props.isSmallScreenWidth);
+        App.redirectThirdPartyDesktopSignIn();
 
         if (this.props.lastOpenedPublicRoomID) {
             // Re-open the last opened public room if the user logged in from a public room link

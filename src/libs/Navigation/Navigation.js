@@ -199,6 +199,22 @@ function getActiveRoute() {
     return '';
 }
 
+/** Returns the active route name from a state event from the navigationRef
+ * @returns {String | undefined}
+ * */
+
+function getRouteNameFromStateEvent(event) {
+    if (!event.data.state) {
+        return;
+    }
+    const currentRouteName = event.data.state.routes.slice(-1).name;
+
+    // Check to make sure we have a route name
+    if (currentRouteName) {
+        return currentRouteName;
+    }
+}
+
 /**
  * Check whether the passed route is currently Active or not.
  *
@@ -250,6 +266,7 @@ export default {
     isNavigationReady,
     setIsNavigationReady,
     getTopmostReportId,
+    getRouteNameFromStateEvent,
 };
 
 export {navigationRef};
