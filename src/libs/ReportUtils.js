@@ -169,12 +169,16 @@ function isOpenTaskReport(report) {
  * @param {Object} parentReportAction
  * @returns {Boolean}
  */
-function isCanceledTaskReport(report, parentReportAction = {}) {
-    if (parentReportAction && ReportActionsUtils.isMessageDeleted(parentReportAction)) {
+function isCanceledTaskReport(report = {}, parentReportAction = {}) {
+    if (!_.isEmpty(parentReportAction) && ReportActionsUtils.isMessageDeleted(parentReportAction)) {
         return true;
     }
 
-    return isTaskReport(report) && report.isDeletedParentAction;
+    if (!_.isEmpty(report) && report.isDeletedParentAction) {
+        return true;
+    }
+
+    return false;
 }
 
 /**

@@ -95,13 +95,13 @@ function HeaderView(props) {
     const isAutomatedExpensifyAccount = ReportUtils.hasSingleParticipant(props.report) && ReportUtils.hasAutomatedExpensifyAccountIDs(participants);
     const guideCalendarLink = lodashGet(props.account, 'guideCalendarLink');
     const parentReportAction = ReportActionsUtils.getParentReportAction(props.report);
-    const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(parentReportAction);
+    const isCanceledTaskReport = ReportUtils.isCanceledTaskReport(props.report, parentReportAction);
 
     // We hide the button when we are chatting with an automated Expensify account since it's not possible to contact
     // these users via alternative means. It is possible to request a call with Concierge so we leave the option for them.
     const shouldShowCallButton = (isConcierge && guideCalendarLink) || (!isAutomatedExpensifyAccount && !isTaskReport);
     const threeDotMenuItems = [];
-    if (isTaskReport && !isDeletedParentAction) {
+    if (isTaskReport && !isCanceledTaskReport) {
         const canModifyTask = Task.canModifyTask(props.report, props.session.accountID);
         if (ReportUtils.isOpenTaskReport(props.report) && canModifyTask) {
             threeDotMenuItems.push({

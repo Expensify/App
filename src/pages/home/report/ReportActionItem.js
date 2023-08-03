@@ -460,7 +460,7 @@ function ReportActionItem(props) {
             );
         }
         if (ReportUtils.isTaskReport(props.report)) {
-            if (ReportActionsUtils.isDeletedParentAction(parentReportAction)) {
+            if (ReportUtils.isCanceledTaskReport(props.taskReport, parentReportAction)) {
                 return (
                     <ReportActionItemParentAction
                         shouldHideThreadDividerLine={false}
