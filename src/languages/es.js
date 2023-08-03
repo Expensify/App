@@ -149,7 +149,7 @@ export default {
         total: 'Total',
         edit: 'Editar',
         showMore: 'Mostrar más',
-        merchant: 'comerciante',
+        merchant: 'Comerciante',
     },
     anonymousReportFooter: {
         logoTagline: 'Únete a la discussion.',
