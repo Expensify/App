@@ -4,13 +4,11 @@ import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import Navigation from '../../libs/Navigation/Navigation';
 
-const propTypes = {
-};
+const propTypes = {};
 
-const defaultProps = {
-};
+const defaultProps = {};
 
-function SignInModal(props) {
+function SignInModal() {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -18,11 +16,10 @@ function SignInModal(props) {
             onEntryTransitionEnd={() =>{}}
         >
             <HeaderWithBackButton
-                title=''//{props.translate('common.description')}
                 onBackButtonPress={() => Navigation.goBack()}
             />
             <SignInPage 
-                isInModal={true}
+                isInModal
             />
         </ScreenWrapper>
 

@@ -35,7 +35,7 @@ const propTypes = {
     /** Whether to show welcome header on a particular page */
     shouldShowWelcomeHeader: PropTypes.bool.isRequired,
 
-    isInModal: PropTypes.bool,
+    isInModal: PropTypes.bool.isRequired,
     
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
