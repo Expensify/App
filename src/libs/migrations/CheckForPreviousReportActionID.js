@@ -20,6 +20,16 @@ function getReportActionsFromOnyx() {
 }
 
 /**
+ * Checks if the input object is not null, empty or undefined.
+ *
+ * @param {Object} data
+ * @returns {Boolean}
+ */
+function isValid(data) {
+    return data !== null && !_.isEmpty(data) && !_.isUndefined(data);
+}
+
+/**
  * Migrate Onyx data for reportActions. If the first reportAction of a reportActionsForReport
  * does not contain a 'previousReportActionID', all reportActions for all reports are removed from Onyx.
  *
@@ -27,25 +37,32 @@ function getReportActionsFromOnyx() {
  */
 export default function () {
     return getReportActionsFromOnyx().then((allReportActions) => {
-        if (_.isEmpty(allReportActions)) {
+        if (!isValid(allReportActions)) {
             Log.info(`[Migrate Onyx] Skipped migration CheckForPreviousReportActionID because there were no reportActions`);
             return;
         }
 
-        const firstReportActionID = _.keys(allReportActions)[0];
-        const firstReportAction = allReportActions[firstReportActionID];
-        const firstValueOfReportAction = _.values(firstReportAction)[0];
+        const firstValidReportAction = _.find(_.values(allReportActions), (reportAction) => isValid(reportAction));
+        const firstValidValue = _.find(_.values(firstValidReportAction), (reportActionData) => isValid(reportActionData));
 
-        if (_.has(firstValueOfReportAction, 'previousReportActionID')) {
+        if (_.isUndefined(firstValidValue)) {
+            Log.info(`[Migrate Onyx] Skipped migration CheckForPreviousReportActionID because there were no valid reportActions`);
+            return;
+        }
+
+        if (_.has(firstValidValue, 'previousReportActionID')) {
             Log.info(`[Migrate Onyx] CheckForPreviousReportActionID Migration: previousReportActionID found. Migration complete`);
             return;
         }
 
         // If previousReportActionID not found:
-        Log.info(`[Migrate Onyx] CheckForPreviousReportActionID Migration: removing all reportActions because previousReportActionID not found in the first reportAction`);
+        Log.info(`[Migrate Onyx] CheckForPreviousReportActionID Migration: removing all reportActions because previousReportActionID not found in the first valid reportAction`);
 
         const onyxData = {};
         _.each(allReportActions, (reportAction, onyxKey) => {
+            if (!isValid(reportAction)) {
+                return;
+            }
             onyxData[onyxKey] = {};
         });
 
