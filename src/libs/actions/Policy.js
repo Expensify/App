@@ -404,8 +404,9 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID,
     const params = {
         employees: JSON.stringify(_.map(logins, (login) => ({email: login}))),
 
-        // Escape HTML special chars to enable them to appear in the invite email
-        welcomeNote: _.escape(welcomeNote),
+        // Do not escape HTML special chars for welcomeNote as this will be handled in the backend.
+        // See https://github.com/Expensify/App/issues/20081 for more details.
+        welcomeNote,
         policyID,
     };
     if (!_.isEmpty(membersChats.reportCreationData)) {
@@ -746,6 +747,9 @@ function clearDeleteMemberError(policyID, accountID) {
  */
 function clearAddMemberError(policyID, accountID) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`, {
+        [accountID]: null,
+    });
+    Onyx.merge(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
         [accountID]: null,
     });
 }
@@ -1103,6 +1107,14 @@ function setWorkspaceInviteMembersDraft(policyID, invitedEmailsToAccountIDs) {
     Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`, invitedEmailsToAccountIDs);
 }
 
+/**
+ * @param {String} policyID
+ */
+function clearErrors(policyID) {
+    setWorkspaceErrors(policyID, {});
+    hideWorkspaceAlertMessage(policyID);
+}
+
 export {
     removeMembers,
     addMembersToWorkspace,
@@ -1131,4 +1143,5 @@ export {
     removeWorkspace,
     setWorkspaceInviteMembersDraft,
     isPolicyOwner,
+    clearErrors,
 };

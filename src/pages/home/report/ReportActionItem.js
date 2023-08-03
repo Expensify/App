@@ -60,6 +60,10 @@ import MoneyReportView from '../../../components/ReportActionItem/MoneyReportVie
 import * as Session from '../../../libs/actions/Session';
 import MoneyRequestView from '../../../components/ReportActionItem/MoneyRequestView';
 import {hideContextMenu} from './ContextMenu/ReportActionContextMenu';
+import * as PersonalDetailsUtils from '../../../libs/PersonalDetailsUtils';
+import ReportActionItemBasicMessage from './ReportActionItemBasicMessage';
+import * as store from '../../../libs/actions/ReimbursementAccount/store';
+import * as BankAccounts from '../../../libs/actions/BankAccounts';
 
 const propTypes = {
     ...windowDimensionsPropTypes,
@@ -158,17 +162,25 @@ function ReportActionItem(props) {
 
     // Hide the message if it is being moderated for a higher offense, or is hidden by a moderator
     // Removed messages should not be shown anyway and should not need this flow
-    const decisions = lodashGet(props, ['action', 'message', 0, 'moderationDecisions'], []);
-    const latestDecision = lodashGet(_.last(decisions), 'decision', '');
+    const latestDecision = lodashGet(props, ['action', 'message', 0, 'moderationDecision', 'decision'], '');
     useEffect(() => {
-        if (props.action.actionName !== CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT || _.isEmpty(latestDecision)) {
+        if (props.action.actionName !== CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT) {
             return;
         }
 
-        if (_.contains([CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE, CONST.MODERATION.MODERATOR_DECISION_HIDDEN], latestDecision)) {
-            setIsHidden(true);
+        // Hide reveal message button and show the message if latestDecision is changed to empty
+        if (_.isEmpty(latestDecision)) {
+            setModerationDecision(CONST.MODERATION.MODERATOR_DECISION_APPROVED);
+            setIsHidden(false);
+            return;
         }
+
         setModerationDecision(latestDecision);
+        if (!_.contains([CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING], latestDecision)) {
+            setIsHidden(true);
+            return;
+        }
+        setIsHidden(false);
     }, [latestDecision, props.action.actionName]);
 
     const toggleContextMenuFromActiveReportAction = useCallback(() => {
@@ -252,6 +264,7 @@ function ReportActionItem(props) {
                 <ReportPreview
                     iouReportID={ReportActionsUtils.getIOUReportIDFromReportActionPreview(props.action)}
                     chatReportID={props.report.reportID}
+                    containerStyles={props.displayAsGroup ? [] : [styles.mt2]}
                     action={props.action}
                     isHovered={hovered}
                     contextMenuAnchor={popoverAnchorRef}
@@ -276,6 +289,24 @@ function ReportActionItem(props) {
                     action={props.action}
                     isHovered={hovered}
                 />
+            );
+        } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTQUEUED) {
+            const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(props.personalDetailsList, [props.report.ownerAccountID, 'displayName'], props.report.ownerEmail);
+            const shouldShowAddCreditBankAccountButton =
+                ReportUtils.isCurrentUserSubmitter(props.report.reportID) && !store.hasCreditBankAccount() && !ReportUtils.isSettled(props.report.reportID);
+
+            children = (
+                <ReportActionItemBasicMessage message={props.translate('iou.waitingOnBankAccount', {submitterDisplayName})}>
+                    {shouldShowAddCreditBankAccountButton ? (
+                        <Button
+                            success
+                            style={[styles.w100, styles.requestPreviewBox]}
+                            text={props.translate('bankAccount.addBankAccount')}
+                            onPress={() => BankAccounts.openPersonalBankAccountSetupView(props.report.reportID)}
+                            pressOnEnter
+                        />
+                    ) : null}
+                </ReportActionItemBasicMessage>
             );
         } else {
             const message = _.last(lodashGet(props.action, 'message', [{}]));
@@ -350,23 +381,25 @@ function ReportActionItem(props) {
                         <LinkPreviewer linkMetadata={_.filter(props.action.linkMetadata, (item) => !_.isEmpty(item))} />
                     </View>
                 )}
-                <View style={draftMessageRightAlign}>
-                    <ReportActionItemEmojiReactions
-                        reportActionID={props.action.reportActionID}
-                        emojiReactions={props.emojiReactions}
-                        toggleReaction={(emoji) => {
-                            if (Session.isAnonymousUser()) {
-                                hideContextMenu(false);
+                {!ReportActionsUtils.isMessageDeleted(props.action) && (
+                    <View style={draftMessageRightAlign}>
+                        <ReportActionItemEmojiReactions
+                            reportActionID={props.action.reportActionID}
+                            emojiReactions={props.emojiReactions}
+                            toggleReaction={(emoji) => {
+                                if (Session.isAnonymousUser()) {
+                                    hideContextMenu(false);
 
-                                InteractionManager.runAfterInteractions(() => {
-                                    Session.signOutAndRedirectToSignIn();
-                                });
-                            } else {
-                                toggleReaction(emoji);
-                            }
-                        }}
-                    />
-                </View>
+                                    InteractionManager.runAfterInteractions(() => {
+                                        Session.signOutAndRedirectToSignIn();
+                                    });
+                                } else {
+                                    toggleReaction(emoji);
+                                }
+                            }}
+                        />
+                    </View>
+                )}
 
                 {shouldDisplayThreadReplies && (
                     <View style={draftMessageRightAlign}>
