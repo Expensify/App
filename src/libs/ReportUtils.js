@@ -411,9 +411,15 @@ function isOptimisticPersonalDetail(accountID) {
  * @returns {Boolean}
  */
 function shouldDisableDetailPage(report) {
-    const participants = lodashGet(report, 'participantAccountIDs', []);
-    const isMultipleParticipant = participants.length > 1;
-    return !isMultipleParticipant && isOptimisticPersonalDetail(participants[0]) && !report.parentReportID;
+    const participantAccountIDs = lodashGet(report, 'participantAccountIDs', []);
+
+    if (isChatRoom(report) || isPolicyExpenseChat(report) || isChatThread(report)) {
+        return false;
+    }
+    if (participantAccountIDs.length === 1) {
+        return isOptimisticPersonalDetail(participantAccountIDs[0]);
+    }
+    return false;
 }
 
 /**
