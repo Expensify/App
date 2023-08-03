@@ -28,6 +28,7 @@ const propTypes = {
     iou: PropTypes.shape({
         id: PropTypes.string,
         amount: PropTypes.number,
+        receiptPath: PropTypes.string,
         currency: PropTypes.string,
         comment: PropTypes.string,
         participants: PropTypes.arrayOf(
@@ -89,14 +90,14 @@ function MoneyRequestConfirmPage(props) {
             IOU.resetMoneyRequestInfo(moneyRequestId);
         }
 
-        if (_.isEmpty(props.iou.participants) || props.iou.amount === 0 || shouldReset) {
+        if (_.isEmpty(props.iou.participants) || (props.iou.amount === 0 && !props.iou.receiptPath) || shouldReset) {
             Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current), true);
         }
 
         return () => {
             prevMoneyRequestId.current = props.iou.id;
         };
-    }, [props.iou.participants, props.iou.amount, props.iou.id]);
+    }, [props.iou.participants, props.iou.amount, props.iou.id, props.iou.receiptPath]);
 
     const navigateBack = () => {
         let fallback;
@@ -206,6 +207,8 @@ function MoneyRequestConfirmPage(props) {
                             });
                             IOU.setMoneyRequestParticipants(newParticipants);
                         }}
+                        receiptPath={props.iou.receiptPath}
+                        receiptSource={props.iou.receiptSource}
                         iouType={iouType.current}
                         reportID={reportID.current}
                         // The participants can only be modified when the action is initiated from directly within a group chat and not the floating-action-button.

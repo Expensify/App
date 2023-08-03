@@ -33,7 +33,7 @@ build/
 .gradle
 local.properties
 *.iml
-android/*.hprof
+*.hprof
 android/app/src/main/java/com/expensify/chat/generated/
 .cxx/
 
@@ -95,6 +95,9 @@ storybook-static
 # E2E test reports
 tests/e2e/results/
 .reassure
+
+# Temporary files created by Metro to check the health of the file watcher
+.metro-health-check*
 
 # Typescript
 tsconfig.tsbuildinfo
