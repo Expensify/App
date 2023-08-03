@@ -61,13 +61,13 @@ class RequestorOnfidoStep extends React.Component {
                             sdkToken={this.props.onfidoToken}
                             onUserExit={() => {
                                 BankAccounts.clearOnfidoToken();
-                                BankAccounts.goToWithdrawalAccountSetupStep(policyID, CONST.BANK_ACCOUNT.STEP.REQUESTOR);
+                                BankAccounts.goToWithdrawalAccountSetupStep(this.props.policyID, CONST.BANK_ACCOUNT.STEP.REQUESTOR);
                             }}
                             onError={() => {
                                 // In case of any unexpected error we log it to the server, show a growl, and return the user back to the requestor step so they can try again.
                                 Growl.error(this.props.translate('onfidoStep.genericError'), 10000);
                                 BankAccounts.clearOnfidoToken();
-                                BankAccounts.goToWithdrawalAccountSetupStep(policyID, CONST.BANK_ACCOUNT.STEP.REQUESTOR);
+                                BankAccounts.goToWithdrawalAccountSetupStep(this.props.policyID, CONST.BANK_ACCOUNT.STEP.REQUESTOR);
                             }}
                             onSuccess={(onfidoData) => {
                                 this.submit(onfidoData);

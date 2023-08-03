@@ -97,7 +97,7 @@ function ACHContractStep(props) {
     const removeBeneficialOwner = (ownerKey) => {
         setBeneficialOwners((previousBeneficialOwners) => {
             const newBeneficialOwners = _.without(previousBeneficialOwners, ownerKey);
-            FormActions.setDraftValues(`${ONYXKEYS.COLLECTION.REIMBURSEMENT_ACCOUNT_DRAFT}${policyID}`, {beneficialOwners: newBeneficialOwners}, true);
+            FormActions.setDraftValues(`${ONYXKEYS.COLLECTION.REIMBURSEMENT_ACCOUNT_DRAFT}${props.policyID}`, {beneficialOwners: newBeneficialOwners}, true);
             return newBeneficialOwners;
         });
     };
@@ -107,7 +107,7 @@ function ACHContractStep(props) {
         // That way we can dynamically render each Identity Form based on which keys are present in the beneficial owners array.
         setBeneficialOwners((previousBeneficialOwners) => {
             const newBeneficialOwners = [...previousBeneficialOwners, Str.guid()];
-            FormActions.setDraftValues(`${ONYXKEYS.COLLECTION.REIMBURSEMENT_ACCOUNT_DRAFT}${policyID}`, {beneficialOwners: newBeneficialOwners}, true);
+            FormActions.setDraftValues(`${ONYXKEYS.COLLECTION.REIMBURSEMENT_ACCOUNT_DRAFT}${props.policyID}`, {beneficialOwners: newBeneficialOwners}, true);
             return newBeneficialOwners;
         });
     };

@@ -42,8 +42,8 @@ function WorkspaceResetBankAccountModal(props) {
                 )
             }
             danger
-            onCancel={() => BankAccounts.cancelResetFreePlanBankAccount(policyID)}
-            onConfirm={() => BankAccounts.resetFreePlanBankAccount(policyID, bankAccountID)}
+            onCancel={() => BankAccounts.cancelResetFreePlanBankAccount(props.policyID)}
+            onConfirm={() => BankAccounts.resetFreePlanBankAccount(props.policyID, bankAccountID)}
             shouldShowCancelButton
             isVisible
         />
