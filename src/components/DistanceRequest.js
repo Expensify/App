@@ -36,5 +36,5 @@ DistanceRequest.displayName = 'DistanceRequest';
 DistanceRequest.propTypes = propTypes;
 DistanceRequest.defaultProps = defaultProps;
 export default withOnyx({
-    transactionID: {key: ONYXKEYS.IOU, selector: (iou) => iou.transactionID},
+    transactionID: {key: ONYXKEYS.IOU, selector: (iou) => iou.transactionID || ''},
 })(DistanceRequest);
