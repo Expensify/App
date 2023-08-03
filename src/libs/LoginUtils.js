@@ -1,6 +1,4 @@
 import Onyx from 'react-native-onyx';
-import Str from 'expensify-common/lib/str';
-import _ from 'underscore';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 
@@ -30,15 +28,4 @@ function appendCountryCode(phone) {
     return phone.startsWith('+') ? phone : `+${countryCodeByIP}${phone}`;
 }
 
-/**
- * Check if logged-in email is from public domain or not
- *
- * @param {String} login
- * @return {Boolean}
- */
-function isEmailPublicDomain(login) {
-    const emailDomain = Str.extractEmailDomain(login);
-    return _.includes(CONST.PUBLIC_DOMAIN_EMAILS, emailDomain.toLowerCase(), false);
-}
-
-export {getPhoneNumberWithoutSpecialChars, appendCountryCode, isEmailPublicDomain};
+export {getPhoneNumberWithoutSpecialChars, appendCountryCode};

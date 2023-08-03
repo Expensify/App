@@ -16,10 +16,10 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import compose from '../../libs/compose';
 
 const propTypes = {
-    /** The details about the user that is signed in */
+    /** Object with various information about the user */
     user: PropTypes.shape({
-        /** Whether or not the user is subscribed to news updates */
-        isSubscribedToNewsletter: PropTypes.bool,
+        /** Whether or not the user is on a public domain email account or not */
+        isFromPublicDomain: PropTypes.bool,
     }),
     ...withLocalizePropTypes,
 };
@@ -30,7 +30,7 @@ const defaultProps = {
 
 function SaveTheWorldPage(props) {
     const {translate} = useLocalize();
-    const isLoggedInEmailPublicDomain = props.isEmailPublicDomain();
+    const isLoggedInEmailPublicDomain = props.user.isFromPublicDomain;
 
     return (
         <IllustratedHeaderPageLayout
