@@ -130,13 +130,12 @@ function ReportScreen({
     isComposerFullSize,
     errors,
 }) {
-    const reportActionsListViewHeightRef = useRef(0);
     const firstRenderRef = useRef(true);
     const flatListRef = useRef();
     const reactionListRef = useRef();
-    const prevReport = useRef();
+    const prevReportRef = useRef();
 
-    const [skeletonViewContainerHeight, setSkeletonViewContainerHeight] = useState(reportActionsListViewHeightRef.current);
+    const [skeletonViewContainerHeight, setSkeletonViewContainerHeight] = useState(0);
     const [isBannerVisible, setIsBannerVisible] = useState(true);
     const [isReportRemoved, setIsReportRemoved] = useState(false);
 
@@ -154,7 +153,7 @@ function ReportScreen({
 
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
     const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(parentReportAction);
-    const isSingleTransactionView = ReportActionsUtils.isTransactionThread(parentReportAction);
+    const isSingleTransactionView = ReportUtils.isMoneyRequest(report);
 
     const policy = policies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
 
@@ -262,6 +261,8 @@ function ReportScreen({
             }
             unsubscribeVisibilityListener();
         };
+        // disabling the warning, as it expects to use exhaustive deps, even though we want this useEffect to run only on the first render.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
@@ -270,7 +271,7 @@ function ReportScreen({
             EmojiPickerAction.hideEmojiPicker(true);
         }
         const onyxReportID = report.reportID;
-        const prevOnyxReportID = prevReport.reportID;
+        const prevOnyxReportID = prevReportRef.current.reportID;
 
         const routeReportID = getReportID(route);
 
@@ -283,7 +284,7 @@ function ReportScreen({
             // non-optimistic case
             (_.isEqual(report, defaultProps.report) ||
                 // optimistic case
-                (prevReport.statusNum === CONST.REPORT.STATUS.OPEN && report.statusNum === CONST.REPORT.STATUS.CLOSED))
+                (prevReportRef.current.statusNum === CONST.REPORT.STATUS.OPEN && report.statusNum === CONST.REPORT.STATUS.CLOSED))
         ) {
             Navigation.goBack();
             Report.navigateToConciergeChat();
@@ -302,7 +303,7 @@ function ReportScreen({
 
         fetchReportIfNeeded();
         ComposerActions.setShouldShowComposeInput(true);
-        prevReport.current = report;
+        prevReportRef.current = report;
     }, [route, report, errors, fetchReportIfNeeded]);
 
     return (
@@ -357,15 +358,11 @@ function ReportScreen({
                                 // Rounding this value for comparison because they can look like this: 411.9999694824219
                                 const newSkeletonViewContainerHeight = Math.round(event.nativeEvent.layout.height);
 
-                                // Only set state when the height changes to avoid unnecessary renders
-                                if (reportActionsListViewHeightRef.current === newSkeletonViewContainerHeight) return;
-
                                 // The height can be 0 if the component unmounts - we are not interested in this value and want to know how much space it
                                 // takes up so we can set the skeleton view container height.
                                 if (newSkeletonViewContainerHeight === 0) {
                                     return;
                                 }
-                                reportActionsListViewHeightRef.current = newSkeletonViewContainerHeight;
                                 setSkeletonViewContainerHeight(newSkeletonViewContainerHeight);
                             }}
                         >
