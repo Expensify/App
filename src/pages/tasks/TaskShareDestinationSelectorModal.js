@@ -49,7 +49,7 @@ function TaskShareDestinationSelectorModal(props) {
     const filteredReports = useMemo(() => {
         const reports = {};
         _.keys(props.reports).forEach((reportKey) => {
-            if (!ReportUtils.isAllowedToComment(props.reports[reportKey])) {
+            if (!ReportUtils.isAllowedToComment(props.reports[reportKey]) || ReportUtils.isArchivedRoom(props.reports[reportKey])) {
                 return;
             }
             reports[reportKey] = props.reports[reportKey];
