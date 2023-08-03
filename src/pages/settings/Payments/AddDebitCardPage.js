@@ -120,6 +120,7 @@ function DebitCardPage(props) {
                     accessibilityLabel={translate('addDebitCardPage.nameOnCard')}
                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                     ref={(ref) => (nameOnCardRef.current = ref)}
+                    spellCheck={false}
                 />
                 <TextInput
                     inputID="cardNumber"
