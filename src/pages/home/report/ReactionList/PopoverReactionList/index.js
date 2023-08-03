@@ -3,11 +3,11 @@ import PropTypes from 'prop-types';
 import BasePopoverReactionList from './BasePopoverReactionList';
 
 const propTypes = {
-    ref: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
+    innerRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
 };
 
 const defaultProps = {
-    ref: () => {},
+    innerRef: () => {},
 };
 
 function PopoverReactionList(props) {
@@ -25,7 +25,7 @@ function PopoverReactionList(props) {
         innerReactionListRef.current.showReactionList(event, reactionListAnchor, emojiName);
     };
 
-    useImperativeHandle(props.ref, () => ({showReactionList, setReactionListReportActionID}), []);
+    useImperativeHandle(props.innerRef, () => ({showReactionList, setReactionListReportActionID}), []);
 
     return (
         <BasePopoverReactionList
@@ -43,6 +43,6 @@ export default forwardRef((props, ref) => (
     <PopoverReactionList
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
-        ref={ref}
+        innerRef={ref}
     />
 ));
