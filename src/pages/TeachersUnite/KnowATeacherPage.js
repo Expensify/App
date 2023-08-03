@@ -27,14 +27,6 @@ const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
-function getPhoneLogin(phoneOrEmail) {
-    if (_.isEmpty(phoneOrEmail)) {
-        return '';
-    }
-
-    return LoginUtils.appendCountryCode(LoginUtils.getPhoneNumberWithoutSpecialChars(phoneOrEmail));
-}
-
 function KnowATeacherPage() {
     const {translate} = useLocalize();
     /**
@@ -57,7 +49,7 @@ function KnowATeacherPage() {
     const validate = useCallback(
         (values) => {
             const errors = {};
-            const phoneLogin = getPhoneLogin(values.phoneOrEmail);
+            const phoneLogin = LoginUtils.appendCountryCode(LoginUtils.getPhoneNumberWithoutSpecialChars(values.phoneOrEmail));
 
             if (_.isEmpty(values.firstName)) {
                 ErrorUtils.addErrorMessage(errors, 'firstName', translate('teachersUnitePage.error.enterName'));
