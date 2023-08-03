@@ -79,7 +79,7 @@ function BaseValidateCodeForm(props) {
 
     useImperativeHandle(props.innerRef, () => ({
         focus() {
-            if (!(inputValidateCodeRef.current && inputValidateCodeRef.current.focus)) {
+            if (!inputValidateCodeRef.current) {
                 return;
             }
             inputValidateCodeRef.current.focus();
