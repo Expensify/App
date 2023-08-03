@@ -50,7 +50,7 @@ function EditRequestPage({report, route}) {
         // eslint-disable-next-line no-console
         console.log({changes});
 
-        IOU.editIOUTransaction(transactionID, report.reportID, changes);
+        IOU.editMoneyRequest(transactionID, report.reportID, changes);
 
         // Note: The "modal" we are dismissing is the MoneyRequestAmountPage
         Navigation.dismissModal();

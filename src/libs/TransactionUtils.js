@@ -63,11 +63,15 @@ function buildOptimisticTransaction(amount, currency, reportID, comment = '', so
  * @param {Object} transactionChanges
  * @returns {Object}
  */
-function updateTransaction(transaction, transactionChanges) {
+function getUpdatedTransaction(transaction, transactionChanges) {
     const updatedTransaction = {...transaction};
 
+    // The comment property does not have its modifiedComment counterpart
     if (_.has(transactionChanges, 'comment')) {
-        updatedTransaction['comment'] = {'comment': transactionChanges.comment};
+        updatedTransaction['comment'] = {
+            ...updatedTransaction.comment,
+            'comment': transactionChanges.comment,
+        };
     }
     if (_.has(transactionChanges, 'created')) {
         updatedTransaction['modifiedCreated'] = transactionChanges.created;
@@ -147,7 +151,7 @@ function getCreated(transaction) {
 
 export {
     buildOptimisticTransaction,
-    updateTransaction,
+    getUpdatedTransaction,
     getTransaction,
     getDescription,
     getAmount,

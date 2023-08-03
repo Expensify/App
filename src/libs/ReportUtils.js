@@ -1923,8 +1923,7 @@ function buildOptimisticModifiedExpenseReportAction(transactionThread, oldTransa
         isAttachment: false,
         message: [
             {
-                // Currently we are composing the message from the originalMessage and message is only used in OldDot,
-                // so this message is not used in the App
+                // Currently we are composing the message from the originalMessage and message is only used in OldDot and not in the App
                 text: 'You',
                 style: 'strong',
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
