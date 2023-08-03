@@ -85,6 +85,7 @@ function DistanceRequest({transactionID, transaction, translate}) {
                             <View
                                 onLayout={index === 0 ? measureMenuItemHeight : null}
                                 ref={index === 0 ? firstMenuItem : null}
+                                key={key}
                             >
                                 <MenuItemWithTopDescription
                                     description={translate(descriptionKey)}
