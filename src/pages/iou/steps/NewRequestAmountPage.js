@@ -84,14 +84,6 @@ function NewRequestAmountPage({route, iou, report, currentUserPersonalDetails, e
     const {amount, participants} = iou;
     const currency = currentCurrency || iou.currency;
 
-    const title = {
-        [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST]: translate('iou.requestMoney'),
-        [CONST.IOU.MONEY_REQUEST_TYPE.SEND]: translate('iou.sendMoney'),
-        [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT]: translate('iou.splitBill'),
-    };
-
-    const titleForStep = isEditing ? translate('iou.amount') : title[iouType];
-
     /**
      * Focus text input
      */
@@ -224,7 +216,7 @@ function NewRequestAmountPage({route, iou, report, currentUserPersonalDetails, e
                 <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType)}>
                     <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                         <HeaderWithBackButton
-                            title={titleForStep}
+                            title={translate('iou.amount')}
                             onBackButonBackButtonPress={navigateBack}
                         />
                         {content}
