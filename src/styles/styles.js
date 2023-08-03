@@ -1542,7 +1542,7 @@ const styles = {
     chatContentScrollView: {
         flexGrow: 1,
         justifyContent: 'flex-start',
-        paddingVertical: 16,
+        paddingBottom: 16,
     },
 
     // Chat Item
@@ -2586,14 +2586,21 @@ const styles = {
         lineHeight: variables.inputHeight,
     },
 
-    magicCodeInputTransparent: {
+    // Manually style transparent, in iOS Safari, an input in a container with its opacity set to
+    // 0 (completely transparent) cannot handle user interaction, hence the Paste option is never shown
+    inputTransparent: {
         color: 'transparent',
-        caretColor: 'transparent',
-        WebkitTextFillColor: 'transparent',
-        // After setting the input text color to transparent, it acquires the background-color.
-        // However, it is not possible to override the background-color directly as explained in this resource: https://developer.mozilla.org/en-US/docs/Web/CSS/:autofill
-        // Therefore, the transition effect needs to be delayed.
-        transitionDelay: '99999s',
+        // These properties are available in browser only
+        ...(Browser.getBrowser()
+            ? {
+                  caretColor: 'transparent',
+                  WebkitTextFillColor: 'transparent',
+                  // After setting the input text color to transparent, it acquires the background-color.
+                  // However, it is not possible to override the background-color directly as explained in this resource: https://developer.mozilla.org/en-US/docs/Web/CSS/:autofill
+                  // Therefore, the transition effect needs to be delayed.
+                  transitionDelay: '99999s',
+              }
+            : {}),
     },
 
     iouAmountText: {

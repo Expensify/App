@@ -608,6 +608,8 @@ export default compose(
             prevProps.shouldDisplayNewMarker === nextProps.shouldDisplayNewMarker &&
             _.isEqual(prevProps.emojiReactions, nextProps.emojiReactions) &&
             _.isEqual(prevProps.action, nextProps.action) &&
+            _.isEqual(prevProps.report.pendingFields, nextProps.report.pendingFields) &&
+            _.isEqual(prevProps.report.errorFields, nextProps.report.errorFields) &&
             lodashGet(prevProps.report, 'statusNum') === lodashGet(nextProps.report, 'statusNum') &&
             lodashGet(prevProps.report, 'stateNum') === lodashGet(nextProps.report, 'stateNum') &&
             prevProps.translate === nextProps.translate &&

@@ -14,7 +14,6 @@ import ReportActionItem from './ReportActionItem';
 import ReportActionItemParentAction from './ReportActionItemParentAction';
 import ReportActionsSkeletonView from '../../../components/ReportActionsSkeletonView';
 import variables from '../../../styles/variables';
-import participantPropTypes from '../../../components/participantPropTypes';
 import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 import reportActionPropTypes from './reportActionPropTypes';
 import CONST from '../../../CONST';
@@ -26,9 +25,6 @@ import useReportScrollManager from '../../../hooks/useReportScrollManager';
 const propTypes = {
     /** Position of the "New" line marker */
     newMarkerReportActionID: PropTypes.string,
-
-    /** Personal details of all the users */
-    personalDetailsList: PropTypes.objectOf(participantPropTypes),
 
     /** The report currently being looked at */
     report: reportPropTypes.isRequired,
@@ -162,21 +158,19 @@ function ReportActionsList(props) {
     // Native mobile does not render updates flatlist the changes even though component did update called.
     // To notify there something changes we can use extraData prop to flatlist
     const extraData = [props.isSmallScreenWidth ? props.newMarkerReportActionID : undefined, ReportUtils.isArchivedRoom(props.report)];
-    const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(props.personalDetailsList, props.report, props.currentUserPersonalDetails.accountID);
-
     const errors = lodashGet(props.report, 'errorFields.addWorkspaceRoom') || lodashGet(props.report, 'errorFields.createChat');
-    const isArchivedRoom = ReportUtils.isArchivedRoom(props.report);
     const hideComposer = ReportUtils.shouldHideComposer(props.report, errors);
-    const shouldOmitBottomSpace = hideComposer || isArchivedRoom;
+    const shouldShowReportRecipientLocalTime =
+        ReportUtils.canShowReportRecipientLocalTime(props.personalDetails, props.report, props.currentUserPersonalDetails.accountID) && !props.isComposerFullSize;
 
     return (
-        <Animated.View style={[animatedStyles, styles.flex1]}>
+        <Animated.View style={[animatedStyles, styles.flex1, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}]}>
             <InvertedFlatList
                 accessibilityLabel={props.translate('sidebarScreen.listOfChatMessages')}
                 ref={reportScrollManager.ref}
                 data={props.sortedReportActions}
                 renderItem={renderItem}
-                contentContainerStyle={[styles.chatContentScrollView, shouldShowReportRecipientLocalTime || shouldOmitBottomSpace ? styles.pt0 : {}]}
+                contentContainerStyle={styles.chatContentScrollView}
                 keyExtractor={keyExtractor}
                 initialRowHeight={32}
                 initialNumToRender={calculateInitialNumToRender()}

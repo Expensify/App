@@ -161,6 +161,7 @@ function ReportDetailsPage(props) {
                             </View>
                             {isPolicyAdmin ? (
                                 <PressableWithoutFeedback
+                                    disabled={policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
                                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                     accessibilityLabel={chatRoomSubtitle}
                                     onPress={() => {
