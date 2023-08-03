@@ -25,7 +25,10 @@ import FullscreenLoadingIndicator from '../../../../components/FullscreenLoading
 
 const propTypes = {
     /* Onyx Props */
+
+    // The user's country based on IP address
     country: PropTypes.string,
+
     /** User's private personal details */
     privatePersonalDetails: PropTypes.shape({
         /** User's home address */
@@ -40,7 +43,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    country: '',
+    country: '', 
     privatePersonalDetails: {
         address: {
             street: '',
