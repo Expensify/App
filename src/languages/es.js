@@ -2039,7 +2039,7 @@ export default {
     teachersUnitePage: {
         teachersUnite: '¡Profesores unidos!',
         joinExpensifyOrg: 'Únete a Expensify.org para eliminar la injusticia en todo el mundo y ayuda a los profesores a dividir sus gastos para las aulas más necesitadas.',
-        iKnowATeacher: 'yo conozco a un maestro',
+        iKnowATeacher: 'Yo conozco a un profesor',
         iAmATeacher: 'Soy profesor',
         getInTouch: '¡Excelente! Por favor, comparte su información para que podamos ponernos en contacto con ellos.',
         introSchoolPrincipal: 'Introducción al director del colegio',
