@@ -1,6 +1,7 @@
 /* eslint-disable es/no-optional-chaining */
 import React, {useState, useEffect, useMemo, useCallback} from 'react';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -49,7 +50,13 @@ function TaskShareDestinationSelectorModal(props) {
     const filteredReports = useMemo(() => {
         const reports = {};
         _.keys(props.reports).forEach((reportKey) => {
-            if (!ReportUtils.isAllowedToComment(props.reports[reportKey]) || ReportUtils.isArchivedRoom(props.reports[reportKey])) {
+            console.log('reportKey', props);
+            if (
+                !ReportUtils.isAllowedToComment(props.reports[reportKey]) ||
+                ReportUtils.isArchivedRoom(props.reports[reportKey]) ||
+                (lodashGet(props.reports[reportKey], 'participantAccountIDs', []).length === 1 &&
+                    _.some(props.reports[reportKey].participantAccountIDs, (accountID) => _.contains(CONST.EXPENSIFY_ACCOUNT_IDS, accountID)))
+            ) {
                 return;
             }
             reports[reportKey] = props.reports[reportKey];
