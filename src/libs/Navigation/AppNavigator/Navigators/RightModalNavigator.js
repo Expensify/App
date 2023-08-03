@@ -95,7 +95,6 @@ function RigthModalNavigator() {
             />
             <Stack.Screen
                 name="SignIn"
-                options={defaultModalScreenOptions}
                 component={ModalStackNavigators.SignInModalStackNavigator}
             />
         </Stack.Navigator>

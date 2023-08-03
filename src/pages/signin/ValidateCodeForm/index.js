@@ -1,5 +1,6 @@
 import React from 'react';
 import BaseValidateCodeForm from './BaseValidateCodeForm';
+import PropTypes from 'prop-types';
 
 const defaultProps = {
     isInModal: false,
