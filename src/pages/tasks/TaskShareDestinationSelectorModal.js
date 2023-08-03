@@ -5,7 +5,6 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import OptionsSelector from '../../components/OptionsSelector';
-
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/styles';
