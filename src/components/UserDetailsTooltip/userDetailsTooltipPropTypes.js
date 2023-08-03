@@ -25,6 +25,10 @@ const propTypes = {
 
     /** The accountID of the copilot who took this action on behalf of the user */
     delegateAccountID: PropTypes.number,
+
+    /** Any additional amount to manually adjust the horizontal position of the tooltip.
+     A positive value shifts the tooltip to the right, and a negative value shifts it to the left. */
+    shiftHorizontal: PropTypes.oneOfType([PropTypes.number, PropTypes.func]),
 };
 
 const defaultProps = {
@@ -33,6 +37,7 @@ const defaultProps = {
     personalDetailsList: {},
     delegateAccountID: 0,
     icon: undefined,
+    shiftHorizontal: 0,
 };
 
 export {propTypes, defaultProps};

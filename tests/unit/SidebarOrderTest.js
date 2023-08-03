@@ -2,6 +2,7 @@ import Onyx from 'react-native-onyx';
 import {cleanup, screen} from '@testing-library/react-native';
 import lodashGet from 'lodash/get';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
+import wrapOnyxWithWaitForPromisesToResolve from '../utils/wrapOnyxWithWaitForPromisesToResolve';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import CONST from '../../src/CONST';
 import DateUtils from '../../src/libs/DateUtils';
@@ -28,11 +29,16 @@ describe('Sidebar', () => {
         Onyx.init({
             keys: ONYXKEYS,
             registerStorageEventListener: () => {},
+            safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         }),
     );
 
-    // Initialize the network key for OfflineWithFeedback
-    beforeEach(() => Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false}));
+    beforeEach(() => {
+        // Wrap Onyx each onyx action with waitForPromiseToResolve
+        wrapOnyxWithWaitForPromisesToResolve(Onyx);
+        // Initialize the network key for OfflineWithFeedback
+        return Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+    });
 
     // Clear out Onyx after each test so that each test starts with a clean slate
     afterEach(() => {

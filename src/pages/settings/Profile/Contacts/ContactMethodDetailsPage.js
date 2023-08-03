@@ -25,6 +25,7 @@ import themeColors from '../../../../styles/themes/default';
 import NotFoundPage from '../../../ErrorPage/NotFoundPage';
 import ValidateCodeForm from './ValidateCodeForm';
 import ROUTES from '../../../../ROUTES';
+import FullscreenLoadingIndicator from '../../../../components/FullscreenLoadingIndicator';
 
 const propTypes = {
     /* Onyx Props */
@@ -68,6 +69,9 @@ const propTypes = {
         }),
     }),
 
+    /** Indicated whether the report data is loading */
+    isLoadingReportData: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
@@ -83,6 +87,7 @@ const defaultProps = {
             contactMethod: '',
         },
     },
+    isLoadingReportData: true,
 };
 
 class ContactMethodDetailsPage extends Component {
@@ -100,6 +105,10 @@ class ContactMethodDetailsPage extends Component {
         };
     }
 
+    componentDidMount() {
+        User.resetContactMethodValidateCodeSentState(this.getContactMethod());
+    }
+
     componentDidUpdate(prevProps) {
         const errorFields = lodashGet(this.props.loginList, [this.getContactMethod(), 'errorFields'], {});
         const prevPendingFields = lodashGet(prevProps.loginList, [this.getContactMethod(), 'pendingFields'], {});
@@ -107,7 +116,7 @@ class ContactMethodDetailsPage extends Component {
         // Navigate to methods page on successful magic code verification
         // validateLogin property of errorFields & prev pendingFields is responsible to decide the status of the magic code verification
         if (!errorFields.validateLogin && prevPendingFields.validateLogin === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE) {
-            Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
+            Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS);
         }
     }
 
@@ -193,6 +202,10 @@ class ContactMethodDetailsPage extends Component {
 
         // Replacing spaces with "hard spaces" to prevent breaking the number
         const formattedContactMethod = Str.isSMSLogin(contactMethod) ? this.props.formatPhoneNumber(contactMethod).replace(/ /g, '\u00A0') : contactMethod;
+
+        if (this.props.isLoadingReportData && _.isEmpty(this.props.loginList)) {
+            return <FullscreenLoadingIndicator />;
+        }
 
         const loginData = this.props.loginList[contactMethod];
         if (!contactMethod || !loginData) {
@@ -301,6 +314,9 @@ export default compose(
         },
         securityGroups: {
             key: `${ONYXKEYS.COLLECTION.SECURITY_GROUP}`,
+        },
+        isLoadingReportData: {
+            key: `${ONYXKEYS.IS_LOADING_REPORT_DATA}`,
         },
     }),
 )(ContactMethodDetailsPage);

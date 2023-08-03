@@ -1,6 +1,6 @@
 import React, {useCallback, useRef, useState} from 'react';
 import PropTypes from 'prop-types';
-import _ from 'underscore';
+import {withOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import compose from '../libs/compose';
@@ -17,9 +17,13 @@ import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
 import Form from '../components/Form';
+import * as PolicyUtils from '../libs/PolicyUtils';
+import {policyPropTypes, policyDefaultProps} from './workspace/withPolicy';
+import focusAndUpdateMultilineInputRange from '../libs/focusAndUpdateMultilineInputRange';
 
 const propTypes = {
     ...withLocalizePropTypes,
+    ...policyPropTypes,
 
     /** The report currently being looked at */
     report: reportPropTypes.isRequired,
@@ -31,6 +35,10 @@ const propTypes = {
             reportID: PropTypes.string,
         }),
     }).isRequired,
+};
+
+const defaultProps = {
+    ...policyDefaultProps,
 };
 
 function ReportWelcomeMessagePage(props) {
@@ -52,40 +60,63 @@ function ReportWelcomeMessagePage(props) {
                 if (!welcomeMessageInputRef.current) {
                     return;
                 }
-                welcomeMessageInputRef.current.focus();
+                focusAndUpdateMultilineInputRange(welcomeMessageInputRef.current);
             }}
         >
-            <FullPageNotFoundView shouldShow={_.isEmpty(props.report)}>
-                <HeaderWithBackButton title={props.translate('welcomeMessagePage.welcomeMessage')} />
-                <Form
-                    style={[styles.flexGrow1, styles.ph5]}
-                    formID={ONYXKEYS.FORMS.WELCOME_MESSAGE_FORM}
-                    onSubmit={submitForm}
-                    submitButtonText={props.translate('common.save')}
-                    enabledWhenOffline
-                >
-                    <Text style={[styles.mb5]}>{props.translate('welcomeMessagePage.explainerText')}</Text>
-                    <View style={[styles.mb6]}>
-                        <TextInput
-                            inputID="welcomeMessage"
-                            label={props.translate('welcomeMessagePage.welcomeMessage')}
-                            accessibilityLabel={props.translate('welcomeMessagePage.welcomeMessage')}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                            autoGrowHeight
-                            maxLength={CONST.MAX_COMMENT_LENGTH}
-                            ref={(el) => (welcomeMessageInputRef.current = el)}
-                            value={welcomeMessage}
-                            onChangeText={handleWelcomeMessageChange}
-                            autoCapitalize="none"
-                            textAlignVertical="top"
-                            containerStyles={[styles.autoGrowHeightMultilineInput]}
-                        />
-                    </View>
-                </Form>
-            </FullPageNotFoundView>
+            {({didScreenTransitionEnd}) => (
+                <FullPageNotFoundView shouldShow={!PolicyUtils.isPolicyAdmin(props.policy)}>
+                    <HeaderWithBackButton title={props.translate('welcomeMessagePage.welcomeMessage')} />
+                    <Form
+                        style={[styles.flexGrow1, styles.ph5]}
+                        formID={ONYXKEYS.FORMS.WELCOME_MESSAGE_FORM}
+                        onSubmit={submitForm}
+                        submitButtonText={props.translate('common.save')}
+                        enabledWhenOffline
+                    >
+                        <Text style={[styles.mb5]}>{props.translate('welcomeMessagePage.explainerText')}</Text>
+                        <View style={[styles.mb6]}>
+                            <TextInput
+                                inputID="welcomeMessage"
+                                label={props.translate('welcomeMessagePage.welcomeMessage')}
+                                accessibilityLabel={props.translate('welcomeMessagePage.welcomeMessage')}
+                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                                autoGrowHeight
+                                maxLength={CONST.MAX_COMMENT_LENGTH}
+                                ref={(el) => {
+                                    // Before updating the DOM, React sets the affected ref.current values to null. After updating the DOM, React immediately sets them to the corresponding DOM nodes
+                                    // to avoid focus multiple time, we should early return if el is null.
+                                    if (!el) {
+                                        return;
+                                    }
+                                    if (!welcomeMessageInputRef.current && didScreenTransitionEnd) {
+                                        focusAndUpdateMultilineInputRange(el);
+                                    }
+                                    welcomeMessageInputRef.current = el;
+                                }}
+                                value={welcomeMessage}
+                                onChangeText={handleWelcomeMessageChange}
+                                autoCapitalize="none"
+                                textAlignVertical="top"
+                                containerStyles={[styles.autoGrowHeightMultilineInput]}
+                            />
+                        </View>
+                    </Form>
+                </FullPageNotFoundView>
+            )}
         </ScreenWrapper>
     );
 }
 
+ReportWelcomeMessagePage.displayName = 'ReportWelcomeMessagePage';
 ReportWelcomeMessagePage.propTypes = propTypes;
-export default compose(withLocalize, withReportOrNotFound)(ReportWelcomeMessagePage);
+ReportWelcomeMessagePage.defaultProps = defaultProps;
+
+export default compose(
+    withLocalize,
+    withReportOrNotFound,
+    withOnyx({
+        policy: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`,
+        },
+    }),
+)(ReportWelcomeMessagePage);

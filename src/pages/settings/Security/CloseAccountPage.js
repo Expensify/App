@@ -100,7 +100,7 @@ function CloseAccountPage(props) {
                         containerStyles={[styles.mt5, styles.autoGrowHeightMultilineInput]}
                     />
                     <Text style={[styles.mt5]}>
-                        {props.translate('closeAccountPage.enterDefaultContactToConfirm')} <Text style={[styles.textStrong]}>{userEmailOrPhone}</Text>.
+                        {props.translate('closeAccountPage.enterDefaultContactToConfirm')} <Text style={[styles.textStrong]}>{userEmailOrPhone}</Text>
                     </Text>
                     <TextInput
                         inputID="phoneOrEmail"
@@ -121,6 +121,7 @@ function CloseAccountPage(props) {
                         prompt={props.translate('closeAccountPage.closeAccountPermanentlyDeleteData')}
                         confirmText={props.translate('common.yesContinue')}
                         cancelText={props.translate('common.cancel')}
+                        shouldDisableConfirmButtonWhenOffline
                         shouldShowCancelButton
                     />
                 </View>

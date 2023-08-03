@@ -55,6 +55,7 @@ function SubscriptAvatar(props) {
             >
                 <View>
                     <Avatar
+                        containerStyles={StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(props.size || CONST.AVATAR_SIZE.DEFAULT))}
                         source={props.mainAvatar.source}
                         size={props.size || CONST.AVATAR_SIZE.DEFAULT}
                         name={props.mainAvatar.name}
@@ -68,7 +69,7 @@ function SubscriptAvatar(props) {
             >
                 <View style={props.size === CONST.AVATAR_SIZE.SMALL_NORMAL ? styles.flex1 : {}}>
                     <Avatar
-                        containerStyles={[props.size === CONST.AVATAR_SIZE.SMALL ? styles.secondAvatarSubscriptCompact : subscriptSyle]}
+                        containerStyles={[isSmall ? styles.secondAvatarSubscriptCompact : subscriptSyle]}
                         iconAdditionalStyles={[
                             StyleUtils.getAvatarBorderWidth(isSmall ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : CONST.AVATAR_SIZE.SUBSCRIPT),
                             StyleUtils.getBorderColorStyle(props.backgroundColor),

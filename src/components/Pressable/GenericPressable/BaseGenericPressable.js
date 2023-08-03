@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState, useMemo, forwardRef} from 'react';
+import React, {useCallback, useEffect, useMemo, forwardRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Pressable} from 'react-native';
 import _ from 'underscore';
@@ -34,6 +34,7 @@ const GenericPressable = forwardRef((props, ref) => {
         onPress,
         onLongPress,
         onKeyPress,
+        onKeyDown,
         disabled,
         style,
         shouldUseHapticsOnLongPress,
@@ -42,6 +43,7 @@ const GenericPressable = forwardRef((props, ref) => {
         keyboardShortcut,
         shouldUseAutoHitSlop,
         enableInScreenReaderStates,
+        isExecuting,
         onPressIn,
         onPressOut,
         ...rest
@@ -63,7 +65,7 @@ const GenericPressable = forwardRef((props, ref) => {
         return props.disabled || shouldBeDisabledByScreenReader;
     }, [isScreenReaderActive, enableInScreenReaderStates, props.disabled]);
 
-    const [shouldUseDisabledCursor, setShouldUseDisabledCursor] = useState(isDisabled);
+    const shouldUseDisabledCursor = useMemo(() => isDisabled && !isExecuting, [isDisabled, isExecuting]);
 
     const onLongPressHandler = useCallback(
         (event) => {
@@ -118,14 +120,6 @@ const GenericPressable = forwardRef((props, ref) => {
     );
 
     useEffect(() => {
-        if (isDisabled) {
-            const timer = setTimeout(() => setShouldUseDisabledCursor(true), 1000);
-            return () => clearTimeout(timer);
-        }
-        setShouldUseDisabledCursor(false);
-    }, [isDisabled]);
-
-    useEffect(() => {
         if (!keyboardShortcut) {
             return () => {};
         }
@@ -141,6 +135,7 @@ const GenericPressable = forwardRef((props, ref) => {
             onPress={!isDisabled ? onPressHandler : undefined}
             onLongPress={!isDisabled && onLongPress ? onLongPressHandler : undefined}
             onKeyPress={!isDisabled ? onKeyPressHandler : undefined}
+            onKeyDown={!isDisabled ? onKeyDown : undefined}
             onPressIn={!isDisabled ? onPressIn : undefined}
             onPressOut={!isDisabled ? onPressOut : undefined}
             style={(state) => [

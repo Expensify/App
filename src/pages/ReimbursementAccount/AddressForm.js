@@ -121,12 +121,13 @@ function AddressForm(props) {
                 errorText={props.errors.city ? props.translate('bankAccount.error.addressCity') : ''}
                 containerStyles={[styles.mt4]}
             />
-            <View style={styles.mt4}>
+
+            <View style={[styles.mt4, styles.mhn5]}>
                 <StatePicker
                     inputID={props.inputKeys.state}
                     shouldSaveDraft={props.shouldSaveDraft}
                     value={props.values.state}
-                    defaultValue={props.defaultValues.state}
+                    defaultValue={props.defaultValues.state || ''}
                     onInputChange={(value) => props.onFieldChange({state: value})}
                     errorText={props.errors.state ? props.translate('bankAccount.error.addressState') : ''}
                 />
@@ -137,7 +138,6 @@ function AddressForm(props) {
                 label={props.translate('common.zip')}
                 accessibilityLabel={props.translate('common.zip')}
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                containerStyles={[styles.mt4]}
                 keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                 value={props.values.zipCode}
                 defaultValue={props.defaultValues.zipCode}
