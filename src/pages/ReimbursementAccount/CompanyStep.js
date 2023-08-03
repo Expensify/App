@@ -41,7 +41,7 @@ const propTypes = {
         isFromPublicDomain: PropTypes.bool,
     }),
 
-    /* The workspace policyID */
+    /** The workspace policy ID */
     policyID: PropTypes.string,
 };
 
@@ -148,7 +148,7 @@ class CompanyStep extends React.Component {
             companyPhone: parsePhoneNumber(values.companyPhone, {regionCode: CONST.COUNTRY.US}).number.significant,
         };
 
-        BankAccounts.updateCompanyInformationForBankAccount(bankAccount, this.props.policyID);
+        BankAccounts.updateCompanyInformationForBankAccount(this.props.policyID, bankAccount);
     }
 
     render() {
@@ -166,7 +166,7 @@ class CompanyStep extends React.Component {
                     onBackButtonPress={this.props.onBackButtonPress}
                 />
                 <Form
-                    formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
+                    formID={`${ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}${this.props.policyID}`}
                     validate={this.validate}
                     onSubmit={this.submit}
                     scrollContextEnabled

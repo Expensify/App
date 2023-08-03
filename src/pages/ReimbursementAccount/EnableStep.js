@@ -32,6 +32,9 @@ const propTypes = {
     /** Onyx Props */
     user: userPropTypes,
 
+    /** The workspace policy ID */
+    policyID: PropTypes.string.isRequired,
+
     /** The workspace name */
     policyName: PropTypes.string,
 
@@ -72,7 +75,7 @@ function EnableStep(props) {
                         pendingAction={pendingAction}
                         errors={errors}
                         shouldShowErrorMessage
-                        onClose={BankAccounts.resetReimbursementAccount}
+                        onClose={() => BankAccounts.resetReimbursementAccount(props.policyID)}
                     >
                         <MenuItem
                             title={bankName}
@@ -105,7 +108,7 @@ function EnableStep(props) {
                         <MenuItem
                             title={props.translate('workspace.bankAccount.disconnectBankAccount')}
                             icon={Expensicons.Close}
-                            onPress={BankAccounts.requestResetFreePlanBankAccount}
+                            onPress={() => BankAccounts.requestResetFreePlanBankAccount(props.policyID)}
                             wrapperStyle={[styles.cardMenuItem, styles.mv3]}
                             disabled={Boolean(pendingAction) || !_.isEmpty(errors)}
                         />
@@ -113,7 +116,12 @@ function EnableStep(props) {
                 </Section>
                 {Boolean(props.user.isCheckingDomain) && <Text style={[styles.formError, styles.mh5]}>{props.translate('workspace.card.checkingDomain')}</Text>}
             </ScrollView>
-            {props.reimbursementAccount.shouldShowResetModal && <WorkspaceResetBankAccountModal reimbursementAccount={props.reimbursementAccount} />}
+            {props.reimbursementAccount.shouldShowResetModal && (
+                <WorkspaceResetBankAccountModal
+                    reimbursementAccount={props.reimbursementAccount}
+                    policyID={props.policyID}
+                />
+            )}
         </ScreenWrapper>
     );
 }

@@ -26,6 +26,9 @@ const propTypes = {
     /** Callback to continue to the next step of the setup */
     continue: PropTypes.func.isRequired,
 
+    /** The workspace policy ID */
+    policyID: PropTypes.string.isRequired,
+
     /* The workspace name */
     policyName: PropTypes.string,
 
@@ -53,7 +56,7 @@ function ContinueBankAccountSetup(props) {
                     <OfflineWithFeedback
                         errors={errors}
                         shouldShowErrorMessage
-                        onClose={BankAccounts.resetReimbursementAccount}
+                        onClose={() => BankAccounts.resetReimbursementAccount(props.policyID)}
                     >
                         <Text>{props.translate('workspace.bankAccount.youreAlmostDone')}</Text>
                         <Button
@@ -70,7 +73,7 @@ function ContinueBankAccountSetup(props) {
                         <MenuItem
                             title={props.translate('workspace.bankAccount.startOver')}
                             icon={Expensicons.RotateLeft}
-                            onPress={() => BankAccounts.requestResetFreePlanBankAccount()}
+                            onPress={() => BankAccounts.requestResetFreePlanBankAccount(props.policyID)}
                             shouldShowRightIcon
                             wrapperStyle={[styles.cardMenuItem]}
                             disabled={Boolean(pendingAction) || !_.isEmpty(errors)}
@@ -78,8 +81,12 @@ function ContinueBankAccountSetup(props) {
                     </OfflineWithFeedback>
                 </Section>
             </ScrollView>
-
-            {props.reimbursementAccount.shouldShowResetModal && <WorkspaceResetBankAccountModal reimbursementAccount={props.reimbursementAccount} />}
+            {props.reimbursementAccount.shouldShowResetModal && (
+                <WorkspaceResetBankAccountModal
+                    reimbursementAccount={props.reimbursementAccount}
+                    policyID={props.policyID}
+                />
+            )}
         </ScreenWrapper>
     );
 }

@@ -15,19 +15,22 @@ function setPersonalBankAccountFormValidationErrorFields(errorFields) {
 /**
  * Set the current fields with errors.
  *
+ * @param {String} policyID
  * @param {Object} errorFields
  */
-function setBankAccountFormValidationErrors(errorFields) {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {errorFields: null});
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {errorFields});
+function setBankAccountFormValidationErrors(policyID, errorFields) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REIMBURSEMENT_ACCOUNT}${policyID}`, {errorFields: null});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REIMBURSEMENT_ACCOUNT}${policyID}`, {errorFields});
 }
 
 /**
  * Clear validation messages from reimbursement account
+ *
+ * @param {String} policyID
  */
-function resetReimbursementAccount() {
-    setBankAccountFormValidationErrors({});
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {
+function resetReimbursementAccount(policyID) {
+    setBankAccountFormValidationErrors(policyID, {});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REIMBURSEMENT_ACCOUNT}${policyID}`, {
         errors: null,
         pendingAction: null,
     });

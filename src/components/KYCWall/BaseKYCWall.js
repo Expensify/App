@@ -170,8 +170,12 @@ export default withOnyx({
     bankAccountList: {
         key: ONYXKEYS.BANK_ACCOUNT_LIST,
     },
+    /**
+     * The reimbursementAccount is only relevant if this is an expense report, in which case
+     * we should be able to pay using the reimbursementAccount of the associated workspace
+     */
     reimbursementAccount: {
-        key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+        key: ({iouReport}) => `${ONYXKEYS.COLLECTION.REIMBURSEMENT_ACCOUNT}${lodashGet(iouReport, 'policyID', '')}`,
     },
     chatReport: {
         key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,

@@ -6,11 +6,12 @@ import Navigation from '../../Navigation/Navigation';
 /**
  * Navigate to a specific step in the VBA flow
  *
+ * @param {String} policyID
  * @param {String} stepID
  * @param {Object} newAchData
  */
-function goToWithdrawalAccountSetupStep(stepID, newAchData) {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {...newAchData, currentStep: stepID}});
+function goToWithdrawalAccountSetupStep(policyID, stepID, newAchData) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REIMBURSEMENT_ACCOUNT}${policyID}`, {achData: {...newAchData, currentStep: stepID}});
 }
 
 /**

@@ -21,6 +21,9 @@ const propTypes = {
 
     /** The token required to initialize the Onfido SDK */
     onfidoToken: PropTypes.string,
+
+    /** The workspace policy ID */
+    policyID: PropTypes.string.isRequired,
 };
 
 const defaultProps = {
@@ -34,9 +37,9 @@ class RequestorOnfidoStep extends React.Component {
     }
 
     submit(onfidoData) {
-        BankAccounts.verifyIdentityForBankAccount(lodashGet(this.props.reimbursementAccount, 'achData.bankAccountID') || 0, onfidoData);
+        BankAccounts.verifyIdentityForBankAccount(this.props.policyID, lodashGet(this.props.reimbursementAccount, 'achData.bankAccountID') || 0, onfidoData);
 
-        BankAccounts.updateReimbursementAccountDraft({isOnfidoSetupComplete: true});
+        BankAccounts.updateReimbursementAccountDraft(this.props.policyID, {isOnfidoSetupComplete: true});
     }
 
     render() {
@@ -58,13 +61,13 @@ class RequestorOnfidoStep extends React.Component {
                             sdkToken={this.props.onfidoToken}
                             onUserExit={() => {
                                 BankAccounts.clearOnfidoToken();
-                                BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
+                                BankAccounts.goToWithdrawalAccountSetupStep(policyID, CONST.BANK_ACCOUNT.STEP.REQUESTOR);
                             }}
                             onError={() => {
                                 // In case of any unexpected error we log it to the server, show a growl, and return the user back to the requestor step so they can try again.
                                 Growl.error(this.props.translate('onfidoStep.genericError'), 10000);
                                 BankAccounts.clearOnfidoToken();
-                                BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
+                                BankAccounts.goToWithdrawalAccountSetupStep(policyID, CONST.BANK_ACCOUNT.STEP.REQUESTOR);
                             }}
                             onSuccess={(onfidoData) => {
                                 this.submit(onfidoData);

@@ -299,7 +299,7 @@ export default compose(
             key: ONYXKEYS.COLLECTION.REPORT,
         },
         reimbursementAccount: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+            key: ({policy}) => `${ONYXKEYS.COLLECTION.REIMBURSEMENT_ACCOUNT}${lodashGet(policy, 'id', '')}`,
         },
     }),
 )(WorkspaceInitialPage);

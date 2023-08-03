@@ -38,8 +38,8 @@ const propTypes = {
     /** The user's wallet (coming from Onyx) */
     userWallet: userWalletPropTypes,
 
-    /** Bank account attached to free plan */
-    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes,
+    /** Bank accounts attached to free plan */
+    allReimbursementAccounts: PropTypes.objectOf(ReimbursementAccountProps.reimbursementAccountPropTypes),
 
     /** Information about the user accepting the terms for payments */
     walletTerms: walletTermsPropTypes,
@@ -55,7 +55,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    reimbursementAccount: {},
+    allReimbursementAccounts: {},
     allPolicyMembers: {},
     policies: {},
     bankAccountList: {},
@@ -83,7 +83,7 @@ function Indicator(props) {
         () => _.some(cleanPolicies, PolicyUtils.hasPolicyError),
         () => _.some(cleanPolicies, PolicyUtils.hasCustomUnitsError),
         () => _.some(cleanAllPolicyMembers, PolicyUtils.hasPolicyMemberError),
-        () => !_.isEmpty(props.reimbursementAccount.errors),
+        () => _.some(cleanPolicies, (policy) => PolicyUtils.hasPolicyReimbursementAccountError(policy, props.allReimbursementAccounts)),
         () => UserUtils.hasLoginListError(props.loginList),
 
         // Wallet term errors that are not caused by an IOU (we show the red brick indicator for those in the LHN instead)
@@ -113,8 +113,8 @@ export default withOnyx({
     bankAccountList: {
         key: ONYXKEYS.BANK_ACCOUNT_LIST,
     },
-    reimbursementAccount: {
-        key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+    allReimbursementAccounts: {
+        key: ONYXKEYS.COLLECTION.REIMBURSEMENT_ACCOUNT,
     },
     cardList: {
         key: ONYXKEYS.CARD_LIST,

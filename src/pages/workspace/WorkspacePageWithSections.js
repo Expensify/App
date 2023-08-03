@@ -135,13 +135,13 @@ WorkspacePageWithSections.propTypes = propTypes;
 WorkspacePageWithSections.defaultProps = defaultProps;
 
 export default compose(
+    withPolicyAndFullscreenLoading,
     withOnyx({
         user: {
             key: ONYXKEYS.USER,
         },
         reimbursementAccount: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+            key: ({policy}) => `${ONYXKEYS.COLLECTION.REIMBURSEMENT_ACCOUNT}${lodashGet(policy, 'id', '')}`,
         },
     }),
-    withPolicyAndFullscreenLoading,
 )(WorkspacePageWithSections);

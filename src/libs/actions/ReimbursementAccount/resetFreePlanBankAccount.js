@@ -8,9 +8,11 @@ import * as ReimbursementAccountProps from '../../../pages/ReimbursementAccount/
 
 /**
  * Reset user's reimbursement account. This will delete the bank account.
+ * 
+ * @param {string} policyID
  * @param {number} bankAccountID
  */
-function resetFreePlanBankAccount(bankAccountID) {
+function resetFreePlanBankAccount(policyID, bankAccountID) {
     if (!bankAccountID) {
         throw new Error('Missing bankAccountID when attempting to reset free plan bank account');
     }
@@ -28,7 +30,7 @@ function resetFreePlanBankAccount(bankAccountID) {
             optimisticData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                    key: `${ONYXKEYS.COLLECTION.REIMBURSEMENT_ACCOUNT}${policyID}`,
                     value: {
                         shouldShowResetModal: false,
                         isLoading: true,
@@ -54,19 +56,19 @@ function resetFreePlanBankAccount(bankAccountID) {
                 },
                 {
                     onyxMethod: Onyx.METHOD.SET,
-                    key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                    key: `${ONYXKEYS.COLLECTION.REIMBURSEMENT_ACCOUNT}${policyID}`,
                     value: ReimbursementAccountProps.reimbursementAccountDefaultProps,
                 },
                 {
                     onyxMethod: Onyx.METHOD.SET,
-                    key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
+                    key: `${ONYXKEYS.COLLECTION.REIMBURSEMENT_ACCOUNT_DRAFT}${policyID}`,
                     value: {},
                 },
             ],
             failureData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                    key: `${ONYXKEYS.COLLECTION.REIMBURSEMENT_ACCOUNT}${policyID}`,
                     value: {isLoading: false, pendingAction: null},
                 },
             ],

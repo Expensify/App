@@ -31,6 +31,9 @@ const propTypes = {
 
     /** During the OAuth flow we need to use the plaidLink token that we initially connected with */
     plaidLinkOAuthToken: PropTypes.string,
+
+    /** The workspace policy ID */
+    policyID: PropTypes.string.isRequired,
 };
 
 const defaultProps = {
@@ -40,7 +43,7 @@ const defaultProps = {
 };
 
 function BankAccountPlaidStep(props) {
-    const {plaidData, receivedRedirectURI, plaidLinkOAuthToken, reimbursementAccount, reimbursementAccountDraft, onBackButtonPress, getDefaultStateForField, translate} = props;
+    const {plaidData, receivedRedirectURI, plaidLinkOAuthToken, reimbursementAccount, reimbursementAccountDraft, onBackButtonPress, getDefaultStateForField, translate, policyID} = props;
 
     const validate = useCallback((values) => {
         const errorFields = {};
@@ -65,10 +68,10 @@ function BankAccountPlaidStep(props) {
             plaidAccountID: selectedPlaidBankAccount.plaidAccountID,
             plaidAccessToken: lodashGet(plaidData, 'plaidAccessToken') || '',
         };
-        ReimbursementAccount.updateReimbursementAccountDraft(bankAccountData);
+        ReimbursementAccount.updateReimbursementAccountDraft(policyID, bankAccountData);
 
         const bankAccountID = lodashGet(reimbursementAccount, 'achData.bankAccountID') || 0;
-        BankAccounts.connectBankAccountWithPlaid(bankAccountID, bankAccountData);
+        BankAccounts.connectBankAccountWithPlaid(policyID, bankAccountID, bankAccountData);
     }, [reimbursementAccount, reimbursementAccountDraft, plaidData]);
 
     const bankAccountID = lodashGet(reimbursementAccount, 'achData.bankAccountID') || 0;
@@ -88,7 +91,7 @@ function BankAccountPlaidStep(props) {
                 onBackButtonPress={onBackButtonPress}
             />
             <Form
-                formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
+                formID={`${ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}${policyID}`}
                 validate={validate}
                 onSubmit={submit}
                 scrollContextEnabled
@@ -99,10 +102,10 @@ function BankAccountPlaidStep(props) {
                 <AddPlaidBankAccount
                     text={translate('bankAccount.plaidBodyCopy')}
                     onSelect={(plaidAccountID) => {
-                        ReimbursementAccount.updateReimbursementAccountDraft({plaidAccountID});
+                        ReimbursementAccount.updateReimbursementAccountDraft(policyID, {plaidAccountID});
                     }}
                     plaidData={plaidData}
-                    onExitPlaid={() => BankAccounts.setBankAccountSubStep(null)}
+                    onExitPlaid={() => BankAccounts.setBankAccountSubStep(policyID, null)}
                     receivedRedirectURI={receivedRedirectURI}
                     plaidLinkOAuthToken={plaidLinkOAuthToken}
                     allowDebit

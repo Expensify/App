@@ -1085,7 +1085,7 @@ function openWorkspaceReimburseView(policyID) {
         successData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                key: `${ONYXKEYS.COLLECTION.REIMBURSEMENT_ACCOUNT}${policyID}`,
                 value: {
                     isLoading: false,
                 },
@@ -1094,7 +1094,7 @@ function openWorkspaceReimburseView(policyID) {
         failureData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                key: `${ONYXKEYS.COLLECTION.REIMBURSEMENT_ACCOUNT}${policyID}`,
                 value: {
                     isLoading: false,
                 },

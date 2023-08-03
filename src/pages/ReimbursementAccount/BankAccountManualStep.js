@@ -1,6 +1,7 @@
 import React, {useCallback} from 'react';
 import _ from 'underscore';
 import {Image} from 'react-native';
+import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import CONST from '../../CONST';
@@ -22,11 +23,14 @@ import StepPropTypes from './StepPropTypes';
 
 const propTypes = {
     ..._.omit(StepPropTypes, _.keys(withLocalizePropTypes)),
+
+    /** The workspace policy ID */
+    policyID: PropTypes.string.isRequired,
 };
 
 function BankAccountManualStep(props) {
     const {translate, preferredLocale} = useLocalize();
-    const {reimbursementAccount, reimbursementAccountDraft} = props;
+    const {reimbursementAccount, reimbursementAccountDraft, policyID} = props;
     /**
      * @param {Object} values - form input values passed by the Form component
      * @returns {Object}
@@ -59,6 +63,7 @@ function BankAccountManualStep(props) {
     const submit = useCallback(
         (values) => {
             BankAccounts.connectBankAccountManually(
+                policyID,
                 lodashGet(reimbursementAccount, 'achData.bankAccountID') || 0,
                 values.accountNumber,
                 values.routingNumber,
@@ -80,7 +85,7 @@ function BankAccountManualStep(props) {
                 onBackButtonPress={props.onBackButtonPress}
             />
             <Form
-                formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
+                formID={`${ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}${policyID}`}
                 onSubmit={submit}
                 validate={validate}
                 submitButtonText={translate('common.continue')}

@@ -87,7 +87,7 @@ const propTypes = {
     fundList: PropTypes.objectOf(cardPropTypes),
 
     /** Bank account attached to free plan */
-    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes,
+    allReimbursementAccounts: PropTypes.objectOf(ReimbursementAccountProps.reimbursementAccountPropTypes),
 
     /** List of betas available to current user */
     betas: PropTypes.arrayOf(PropTypes.string),
@@ -117,7 +117,7 @@ const defaultProps = {
     userWallet: {
         currentBalance: 0,
     },
-    reimbursementAccount: {},
+    allReimbursementAccounts: {},
     betas: [],
     walletTerms: {},
     bankAccountList: {},
@@ -159,6 +159,8 @@ function InitialSettingsPage(props) {
         [props.network.isOffline],
     );
 
+    const reimbursementAccountsErrors = _.mapObject(props.allReimbursementAccounts, (reimbursementAccount) => !_.isEmpty(lodashGet(reimbursementAccount, 'errors', {})));
+
     /**
      * Retuns a list of default menu items
      * @returns {Array} the default menu items
@@ -174,14 +176,12 @@ function InitialSettingsPage(props) {
             }))
             .value();
 
-        const policyBrickRoadIndicator =
-            !_.isEmpty(props.reimbursementAccount.errors) ||
-            _.chain(props.policies)
-                .filter((policy) => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN)
-                .some((policy) => PolicyUtils.hasPolicyError(policy) || PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, props.allPolicyMembers))
-                .value()
-                ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                : null;
+        const policyBrickRoadIndicator = _.chain(props.policies)
+            .filter((policy) => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN)
+            .some((policy) => PolicyUtils.hasPolicyError(policy) || PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, props.allPolicyMembers, props.allReimbursementAccounts))
+            .value()
+            ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+            : null;
         const profileBrickRoadIndicator = UserUtils.getLoginListBrickRoadIndicator(props.loginList);
 
         const paymentCardList = props.fundList || props.cardList || {};
@@ -271,9 +271,9 @@ function InitialSettingsPage(props) {
         props.loginList,
         props.network.isOffline,
         props.policies,
-        props.reimbursementAccount.errors,
         props.userWallet.errors,
         props.walletTerms.errors,
+        reimbursementAccountsErrors,
         signOut,
     ]);
 
@@ -426,8 +426,8 @@ export default compose(
         bankAccountList: {
             key: ONYXKEYS.BANK_ACCOUNT_LIST,
         },
-        reimbursementAccount: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+        allReimbursementAccounts: {
+            key: ONYXKEYS.COLLECTION.REIMBURSEMENT_ACCOUNT,
         },
         cardList: {
             key: ONYXKEYS.CARD_LIST,

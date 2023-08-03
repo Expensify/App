@@ -123,6 +123,12 @@ export default {
         SECURITY_GROUP: 'securityGroup_',
         TRANSACTION: 'transactions_',
 
+        // Stores information about the active reimbursement account being set up
+        REIMBURSEMENT_ACCOUNT: 'reimbursementAccount_',
+
+        // Stores draft information about the active reimbursement account being set up
+        REIMBURSEMENT_ACCOUNT_DRAFT: 'reimbursementAccountDraft_',
+
         // This is deprecated, but needed for a migration, so we still need to include it here so that it will be initialized in Onyx.init
         DEPRECATED_POLICY_MEMBER_LIST: 'policyMemberList_',
     },
@@ -160,12 +166,6 @@ export default {
     // Stores information about the active personal bank account being set up
     PERSONAL_BANK_ACCOUNT: 'personalBankAccount',
 
-    // Stores information about the active reimbursement account being set up
-    REIMBURSEMENT_ACCOUNT: 'reimbursementAccount',
-
-    // Stores draft information about the active reimbursement account being set up
-    REIMBURSEMENT_ACCOUNT_DRAFT: 'reimbursementAccountDraft',
-
     // Store preferred skintone for emoji
     PREFERRED_EMOJI_SKIN_TONE: 'preferredEmojiSkinTone',
 
@@ -193,7 +193,7 @@ export default {
     // List of Form ids
     FORMS: {
         ADD_DEBIT_CARD_FORM: 'addDebitCardForm',
-        REIMBURSEMENT_ACCOUNT_FORM: 'reimbursementAccount',
+        REIMBURSEMENT_ACCOUNT_FORM: 'reimbursementAccount_',
         WORKSPACE_SETTINGS_FORM: 'workspaceSettingsForm',
         WORKSPACE_RATE_AND_UNIT_FORM: 'workspaceRateAndUnitForm',
         CLOSE_ACCOUNT_FORM: 'closeAccount',

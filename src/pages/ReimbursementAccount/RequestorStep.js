@@ -23,6 +23,9 @@ const propTypes = {
 
     /** If we should show Onfido flow */
     shouldShowOnfido: PropTypes.bool.isRequired,
+
+    /** The workspace policy ID */
+    policyID: PropTypes.string.isRequired,
 };
 
 class RequestorStep extends React.Component {
@@ -97,7 +100,7 @@ class RequestorStep extends React.Component {
             ...values,
         };
 
-        BankAccounts.updatePersonalInformationForBankAccount(payload);
+        BankAccounts.updatePersonalInformationForBankAccount(this.props.policyID, payload);
     }
 
     render() {
@@ -108,6 +111,7 @@ class RequestorStep extends React.Component {
                     reimbursementAccountDraft={this.props.reimbursementAccountDraft}
                     onBackButtonPress={this.props.onBackButtonPress}
                     getDefaultStateForField={this.props.getDefaultStateForField}
+                    policyID={this.props.policyID}
                 />
             );
         }
@@ -122,7 +126,7 @@ class RequestorStep extends React.Component {
                     onBackButtonPress={this.props.onBackButtonPress}
                 />
                 <Form
-                    formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
+                    formID={`${ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}${this.props.policyID}`}
                     submitButtonText={this.props.translate('common.saveAndContinue')}
                     validate={this.validate}
                     scrollContextEnabled

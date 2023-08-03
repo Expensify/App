@@ -1,5 +1,6 @@
 import lodashGet from 'lodash/get';
 import React from 'react';
+import PropTypes from 'prop-types';
 import ConfirmModal from '../../components/ConfirmModal';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -11,6 +12,9 @@ import BankAccount from '../../libs/models/BankAccount';
 const propTypes = {
     /** Reimbursement account data */
     reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes.isRequired,
+
+    /** The workspace policy ID */
+    policyID: PropTypes.string.isRequired,
 
     ...withLocalizePropTypes,
 };
@@ -38,8 +42,8 @@ function WorkspaceResetBankAccountModal(props) {
                 )
             }
             danger
-            onCancel={BankAccounts.cancelResetFreePlanBankAccount}
-            onConfirm={() => BankAccounts.resetFreePlanBankAccount(bankAccountID)}
+            onCancel={() => BankAccounts.cancelResetFreePlanBankAccount(policyID)}
+            onConfirm={() => BankAccounts.resetFreePlanBankAccount(policyID, bankAccountID)}
             shouldShowCancelButton
             isVisible
         />

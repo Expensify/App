@@ -25,6 +25,9 @@ const propTypes = {
 
     /** Name of the company */
     companyName: PropTypes.string.isRequired,
+
+    /** The workspace policy ID */
+    policyID: PropTypes.string.isRequired,
 };
 
 function ACHContractStep(props) {
@@ -94,7 +97,7 @@ function ACHContractStep(props) {
     const removeBeneficialOwner = (ownerKey) => {
         setBeneficialOwners((previousBeneficialOwners) => {
             const newBeneficialOwners = _.without(previousBeneficialOwners, ownerKey);
-            FormActions.setDraftValues(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {beneficialOwners: newBeneficialOwners});
+            FormActions.setDraftValues(`${ONYXKEYS.COLLECTION.REIMBURSEMENT_ACCOUNT}${policyID}`, {beneficialOwners: newBeneficialOwners});
             return newBeneficialOwners;
         });
     };
@@ -104,7 +107,7 @@ function ACHContractStep(props) {
         // That way we can dynamically render each Identity Form based on which keys are present in the beneficial owners array.
         setBeneficialOwners((previousBeneficialOwners) => {
             const newBeneficialOwners = [...previousBeneficialOwners, Str.guid()];
-            FormActions.setDraftValues(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {beneficialOwners: newBeneficialOwners});
+            FormActions.setDraftValues(`${ONYXKEYS.COLLECTION.REIMBURSEMENT_ACCOUNT}${policyID}`, {beneficialOwners: newBeneficialOwners});
             return newBeneficialOwners;
         });
     };
@@ -134,7 +137,7 @@ function ACHContractStep(props) {
                   zipCode: lodashGet(values, `beneficialOwner_${ownerKey}_zipCode`),
               }));
 
-        BankAccounts.updateBeneficialOwnersForBankAccount({
+        BankAccounts.updateBeneficialOwnersForBankAccount(props.policyID, {
             ownsMoreThan25Percent: values.ownsMoreThan25Percent,
             hasOtherBeneficialOwners: values.hasOtherBeneficialOwners,
             acceptTermsAndConditions: values.acceptTermsAndConditions,
@@ -154,7 +157,7 @@ function ACHContractStep(props) {
                 guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
             />
             <Form
-                formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
+                formID={`${ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}${props.policyID}`}
                 validate={validate}
                 onSubmit={submit}
                 submitButtonText={props.translate('common.saveAndContinue')}

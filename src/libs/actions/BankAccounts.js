@@ -28,8 +28,8 @@ function clearPlaid() {
     return Onyx.set(ONYXKEYS.PLAID_DATA, PlaidDataProps.plaidDataDefaultProps);
 }
 
-function openPlaidView() {
-    clearPlaid().then(() => ReimbursementAccount.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID));
+function openPlaidView(policyID) {
+    clearPlaid().then(() => ReimbursementAccount.setBankAccountSubStep(policyID, CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID));
 }
 
 /**
@@ -57,14 +57,15 @@ function clearOnfidoToken() {
 /**
  * Helper method to build the Onyx data required during setup of a Verified Business Bank Account
  *
+ * @param {String} policyID
  * @returns {Object}
  */
-function getVBBADataForOnyx() {
+function getVBBADataForOnyx(policyID) {
     return {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                key: `${ONYXKEYS.COLLECTION.REIMBURSEMENT_ACCOUNT}${policyID}`,
                 value: {
                     isLoading: true,
                     errors: null,
@@ -74,7 +75,7 @@ function getVBBADataForOnyx() {
         successData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                key: `${ONYXKEYS.COLLECTION.REIMBURSEMENT_ACCOUNT}${policyID}`,
                 value: {
                     isLoading: false,
                     errors: null,
@@ -84,7 +85,7 @@ function getVBBADataForOnyx() {
         failureData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                key: `${ONYXKEYS.COLLECTION.REIMBURSEMENT_ACCOUNT}${policyID}`,
                 value: {
                     isLoading: false,
                     errors: ErrorUtils.getMicroSecondOnyxError('paymentsPage.addBankAccountFailure'),
@@ -97,10 +98,11 @@ function getVBBADataForOnyx() {
 /**
  * Submit Bank Account step with Plaid data so php can perform some checks.
  *
+ * @param {String} policyID
  * @param {Number} bankAccountID
  * @param {Object} selectedPlaidBankAccount
  */
-function connectBankAccountWithPlaid(bankAccountID, selectedPlaidBankAccount) {
+function connectBankAccountWithPlaid(policyID, bankAccountID, selectedPlaidBankAccount) {
     const commandName = 'ConnectBankAccountWithPlaid';
 
     const parameters = {
@@ -112,7 +114,7 @@ function connectBankAccountWithPlaid(bankAccountID, selectedPlaidBankAccount) {
         plaidAccessToken: selectedPlaidBankAccount.plaidAccessToken,
     };
 
-    API.write(commandName, parameters, getVBBADataForOnyx());
+    API.write(commandName, parameters, getVBBADataForOnyx(policyID));
 }
 
 /**
@@ -206,6 +208,7 @@ function deletePaymentBankAccount(bankAccountID) {
  *
  * This action is called by the requestor step in the Verified Bank Account flow
  *
+ * @param {String} policyID
  * @param {Object} params
  *
  * @param {String} [params.dob]
@@ -220,15 +223,16 @@ function deletePaymentBankAccount(bankAccountID) {
  * @param {Object} [params.onfidoData]
  * @param {Boolean} [params.isOnfidoSetupComplete]
  */
-function updatePersonalInformationForBankAccount(params) {
-    API.write('UpdatePersonalInformationForBankAccount', params, getVBBADataForOnyx());
+function updatePersonalInformationForBankAccount(policyID, params) {
+    API.write('UpdatePersonalInformationForBankAccount', params, getVBBADataForOnyx(policyID));
 }
 
 /**
+ * @param {String} policyID
  * @param {Number} bankAccountID
  * @param {String} validateCode
  */
-function validateBankAccount(bankAccountID, validateCode) {
+function validateBankAccount(policyID, bankAccountID, validateCode) {
     API.write(
         'ValidateBankAccountWithTransactions',
         {
@@ -239,7 +243,7 @@ function validateBankAccount(bankAccountID, validateCode) {
             optimisticData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                    key: `${ONYXKEYS.COLLECTION.REIMBURSEMENT_ACCOUNT}${policyID}`,
                     value: {
                         isLoading: true,
                         errors: null,
@@ -249,7 +253,7 @@ function validateBankAccount(bankAccountID, validateCode) {
             successData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                    key: `${ONYXKEYS.COLLECTION.REIMBURSEMENT_ACCOUNT}${policyID}`,
                     value: {
                         isLoading: false,
                     },
@@ -258,7 +262,7 @@ function validateBankAccount(bankAccountID, validateCode) {
             failureData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                    key: `${ONYXKEYS.COLLECTION.REIMBURSEMENT_ACCOUNT}${policyID}`,
                     value: {
                         isLoading: false,
                     },
@@ -268,12 +272,18 @@ function validateBankAccount(bankAccountID, validateCode) {
     );
 }
 
-function openReimbursementAccountPage(stepToOpen, subStep, localCurrentStep) {
+/**
+ * @param {String} policyID
+ * @param {String} stepToOpen
+ * @param {String} subStep
+ * @param {String} localCurrentStep
+ */
+function openReimbursementAccountPage(policyID, stepToOpen, subStep, localCurrentStep) {
     const onyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                key: `${ONYXKEYS.COLLECTION.REIMBURSEMENT_ACCOUNT}${policyID}`,
                 value: {
                     isLoading: true,
                 },
@@ -282,7 +292,7 @@ function openReimbursementAccountPage(stepToOpen, subStep, localCurrentStep) {
         successData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                key: `${ONYXKEYS.COLLECTION.REIMBURSEMENT_ACCOUNT}${policyID}`,
                 value: {
                     isLoading: false,
                 },
@@ -291,7 +301,7 @@ function openReimbursementAccountPage(stepToOpen, subStep, localCurrentStep) {
         failureData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                key: `${ONYXKEYS.COLLECTION.REIMBURSEMENT_ACCOUNT}${policyID}`,
                 value: {
                     isLoading: false,
                 },
@@ -311,6 +321,7 @@ function openReimbursementAccountPage(stepToOpen, subStep, localCurrentStep) {
 /**
  * Updates the bank account in the database with the company step data
  *
+ * @param {String} policyID
  * @param {Object} bankAccount
  * @param {Number} [bankAccount.bankAccountID]
  *
@@ -335,15 +346,15 @@ function openReimbursementAccountPage(stepToOpen, subStep, localCurrentStep) {
  * @param {String} [bankAccount.incorporationState]
  * @param {String} [bankAccount.incorporationDate]
  * @param {Boolean} [bankAccount.hasNoConnectionToCannabis]
- * @param {String} policyID
  */
-function updateCompanyInformationForBankAccount(bankAccount, policyID) {
-    API.write('UpdateCompanyInformationForBankAccount', {...bankAccount, policyID}, getVBBADataForOnyx());
+function updateCompanyInformationForBankAccount(policyID, bankAccount) {
+    API.write('UpdateCompanyInformationForBankAccount', {...bankAccount, policyID}, getVBBADataForOnyx(policyID));
 }
 
 /**
  * Add beneficial owners for the bank account, accept the ACH terms and conditions and verify the accuracy of the information provided
  *
+ * @param {String} policyID
  * @param {Object} params
  *
  * // ACH Contract Step
@@ -353,20 +364,21 @@ function updateCompanyInformationForBankAccount(bankAccount, policyID) {
  * @param {Boolean} [params.certifyTrueInformation]
  * @param {String}  [params.beneficialOwners]
  */
-function updateBeneficialOwnersForBankAccount(params) {
-    API.write('UpdateBeneficialOwnersForBankAccount', {...params}, getVBBADataForOnyx());
+function updateBeneficialOwnersForBankAccount(policyID, params) {
+    API.write('UpdateBeneficialOwnersForBankAccount', {...params}, getVBBADataForOnyx(policyID));
 }
 
 /**
  * Create the bank account with manually entered data.
  *
- * @param {number} [bankAccountID]
+ * @param {String} policyID
+ * @param {Number} [bankAccountID]
  * @param {String} [accountNumber]
  * @param {String} [routingNumber]
  * @param {String} [plaidMask]
  *
  */
-function connectBankAccountManually(bankAccountID, accountNumber, routingNumber, plaidMask) {
+function connectBankAccountManually(policyID, bankAccountID, accountNumber, routingNumber, plaidMask) {
     API.write(
         'ConnectBankAccountManually',
         {
@@ -375,24 +387,25 @@ function connectBankAccountManually(bankAccountID, accountNumber, routingNumber,
             routingNumber,
             plaidMask,
         },
-        getVBBADataForOnyx(),
+        getVBBADataForOnyx(policyID),
     );
 }
 
 /**
  * Verify the user's identity via Onfido
  *
+ * @param {Number} policyID
  * @param {Number} bankAccountID
  * @param {Object} onfidoData
  */
-function verifyIdentityForBankAccount(bankAccountID, onfidoData) {
+function verifyIdentityForBankAccount(policyID, bankAccountID, onfidoData) {
     API.write(
         'VerifyIdentityForBankAccount',
         {
             bankAccountID,
             onfidoData: JSON.stringify(onfidoData),
         },
-        getVBBADataForOnyx(),
+        getVBBADataForOnyx(policyID),
     );
 }
 
@@ -403,10 +416,11 @@ function openWorkspaceView() {
 /**
  * Set the reimbursement account loading so that it happens right away, instead of when the API command is processed.
  *
+ * @param {String} policyID
  * @param {Boolean} isLoading
  */
-function setReimbursementAccountLoading(isLoading) {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isLoading});
+function setReimbursementAccountLoading(policyID, isLoading) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REIMBURSEMENT_ACCOUNT}${policyID}`, {isLoading});
 }
 
 export {

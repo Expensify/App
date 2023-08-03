@@ -46,7 +46,10 @@ const propTypes = {
     /** If the plaid button has been disabled */
     isPlaidDisabled: PropTypes.bool,
 
-    /* The workspace name */
+    /** The workspace policy ID */
+    policyID: PropTypes.string,
+
+    /** The workspace name */
     policyName: PropTypes.string,
 };
 
@@ -55,6 +58,7 @@ const defaultProps = {
     plaidLinkOAuthToken: '',
     user: {},
     isPlaidDisabled: false,
+    policyID: '',
     policyName: '',
 };
 
@@ -74,6 +78,7 @@ function BankAccountStep(props) {
                 reimbursementAccountDraft={props.reimbursementAccountDraft}
                 onBackButtonPress={props.onBackButtonPress}
                 getDefaultStateForField={props.getDefaultStateForField}
+                policyID={props.policyID}
             />
         );
     }
@@ -85,6 +90,7 @@ function BankAccountStep(props) {
                 reimbursementAccountDraft={props.reimbursementAccountDraft}
                 onBackButtonPress={props.onBackButtonPress}
                 getDefaultStateForField={props.getDefaultStateForField}
+                policyID={props.policyID}
             />
         );
     }
@@ -116,7 +122,7 @@ function BankAccountStep(props) {
                         <Button
                             icon={Expensicons.Bank}
                             text={props.translate('bankAccount.connectOnlineWithPlaid')}
-                            onPress={() => BankAccounts.openPlaidView()}
+                            onPress={() => BankAccounts.openPlaidView(props.policyID)}
                             disabled={props.isPlaidDisabled || !props.user.validated}
                             style={[styles.mt4]}
                             iconStyles={[styles.buttonCTAIcon]}
@@ -130,7 +136,7 @@ function BankAccountStep(props) {
                                 icon={Expensicons.Connect}
                                 title={props.translate('bankAccount.connectManually')}
                                 disabled={!props.user.validated}
-                                onPress={() => BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL)}
+                                onPress={() => BankAccounts.setBankAccountSubStep(props.policyID, CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL)}
                                 shouldShowRightIcon
                                 wrapperStyle={[styles.cardMenuItem]}
                             />

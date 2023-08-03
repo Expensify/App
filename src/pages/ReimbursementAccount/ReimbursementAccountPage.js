@@ -156,6 +156,7 @@ class ReimbursementAccountPage extends React.Component {
         }
 
         const currentStepRouteParam = this.getStepToOpenFromRouteParams();
+        const policyID = lodashGet(this.props.route.params, 'policyID');
         if (currentStepRouteParam === currentStep) {
             // The route is showing the correct step, no need to update the route param or clear errors.
             return;
@@ -164,13 +165,13 @@ class ReimbursementAccountPage extends React.Component {
             // When we click "Connect bank account", we load the page without the current step param, if there
             // was an error when we tried to disconnect or start over, we want the user to be able to see the error,
             // so we don't clear it. We only want to clear the errors if we are moving between steps.
-            BankAccounts.hideBankAccountErrors();
+            BankAccounts.hideBankAccountErrors(policyID);
         }
 
         // When the step changes we will navigate to update the route params. This is mostly cosmetic as we only use
         // the route params when the component first mounts to jump to a specific route instead of picking up where the
         // user left off in the flow.
-        Navigation.navigate(ROUTES.getBankAccountRoute(this.getRouteForCurrentStep(currentStep), lodashGet(this.props.route.params, 'policyID')));
+        Navigation.navigate(ROUTES.getBankAccountRoute(this.getRouteForCurrentStep(currentStep), policyID));
     }
 
     /*
@@ -256,8 +257,10 @@ class ReimbursementAccountPage extends React.Component {
      * @param {boolean} ignoreLocalCurrentStep Pass true if you want the last "updated" view (from db), not the last "viewed" view (from onyx).
      */
     fetchData(ignoreLocalCurrentStep) {
+        const policyID = lodashGet(this.props.route.params, 'policyID');
+
         // Show loader right away, as optimisticData might be set only later in case multiple calls are in the queue
-        BankAccounts.setReimbursementAccountLoading(true);
+        BankAccounts.setReimbursementAccountLoading(policyID, true);
 
         // We can specify a step to navigate to by using route params when the component mounts.
         // We want to use the same stepToOpen variable when the network state changes because we can be redirected to a different step when the account refreshes.
@@ -265,7 +268,7 @@ class ReimbursementAccountPage extends React.Component {
         const achData = lodashGet(this.props.reimbursementAccount, 'achData', {});
         const subStep = achData.subStep || '';
         const localCurrentStep = achData.currentStep || '';
-        BankAccounts.openReimbursementAccountPage(stepToOpen, subStep, ignoreLocalCurrentStep ? '' : localCurrentStep);
+        BankAccounts.openReimbursementAccountPage(policyID, stepToOpen, subStep, ignoreLocalCurrentStep ? '' : localCurrentStep);
     }
 
     continue() {
@@ -280,34 +283,35 @@ class ReimbursementAccountPage extends React.Component {
         const currentStep = achData.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
         const subStep = achData.subStep;
         const shouldShowOnfido = this.props.onfidoToken && !achData.isOnfidoSetupComplete;
+        const policyID = lodashGet(this.props.route.params, 'policyID');
         switch (currentStep) {
             case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
                 if (this.hasInProgressVBBA()) {
                     this.setState({shouldShowContinueSetupButton: true});
                 }
                 if (subStep) {
-                    BankAccounts.setBankAccountSubStep(null);
+                    BankAccounts.setBankAccountSubStep(policyID, null);
                 } else {
                     Navigation.goBack();
                 }
                 break;
             case CONST.BANK_ACCOUNT.STEP.COMPANY:
-                BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT, {subStep: CONST.BANK_ACCOUNT.SUBSTEP.MANUAL});
+                BankAccounts.goToWithdrawalAccountSetupStep(policyID, CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT, {subStep: CONST.BANK_ACCOUNT.SUBSTEP.MANUAL});
                 break;
             case CONST.BANK_ACCOUNT.STEP.REQUESTOR:
                 if (shouldShowOnfido) {
                     BankAccounts.clearOnfidoToken();
                 } else {
-                    BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COMPANY);
+                    BankAccounts.goToWithdrawalAccountSetupStep(policyID, CONST.BANK_ACCOUNT.STEP.COMPANY);
                 }
                 break;
             case CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT:
                 BankAccounts.clearOnfidoToken();
-                BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
+                BankAccounts.goToWithdrawalAccountSetupStep(policyID, CONST.BANK_ACCOUNT.STEP.REQUESTOR);
                 break;
             case CONST.BANK_ACCOUNT.STEP.VALIDATION:
                 if (_.contains([BankAccount.STATE.VERIFYING, BankAccount.STATE.SETUP], achData.state)) {
-                    BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT);
+                    BankAccounts.goToWithdrawalAccountSetupStep(policyID, CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT);
                 } else if (!this.props.network.isOffline && achData.state === BankAccount.STATE.PENDING) {
                     this.setState({
                         shouldShowContinueSetupButton: true,
@@ -398,6 +402,7 @@ class ReimbursementAccountPage extends React.Component {
                 <ContinueBankAccountSetup
                     reimbursementAccount={this.props.reimbursementAccount}
                     continue={this.continue}
+                    policyID={policyID}
                     policyName={policyName}
                 />
             );
@@ -412,6 +417,7 @@ class ReimbursementAccountPage extends React.Component {
                     receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
                     plaidLinkOAuthToken={this.props.plaidLinkToken}
                     getDefaultStateForField={this.getDefaultStateForField}
+                    policyID={policyID}
                     policyName={policyName}
                 />
             );
@@ -438,6 +444,7 @@ class ReimbursementAccountPage extends React.Component {
                     onBackButtonPress={this.goBack}
                     shouldShowOnfido={Boolean(shouldShowOnfido)}
                     getDefaultStateForField={this.getDefaultStateForField}
+                    policyID={policyID}
                 />
             );
         }
@@ -450,6 +457,7 @@ class ReimbursementAccountPage extends React.Component {
                     onBackButtonPress={this.goBack}
                     companyName={achData.companyName}
                     getDefaultStateForField={this.getDefaultStateForField}
+                    policyID={policyID}
                 />
             );
         }
@@ -458,6 +466,7 @@ class ReimbursementAccountPage extends React.Component {
             return (
                 <ValidationStep
                     reimbursementAccount={this.props.reimbursementAccount}
+                    policyID={policyID}
                     onBackButtonPress={this.goBack}
                 />
             );
@@ -467,6 +476,7 @@ class ReimbursementAccountPage extends React.Component {
             return (
                 <EnableStep
                     reimbursementAccount={this.props.reimbursementAccount}
+                    policyID={policyID}
                     policyName={policyName}
                 />
             );
@@ -479,12 +489,14 @@ ReimbursementAccountPage.defaultProps = defaultProps;
 
 export default compose(
     withNetwork(),
+    withLocalize,
+    withPolicy,
     withOnyx({
         reimbursementAccount: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+            key: ({policy}) => `${ONYXKEYS.COLLECTION.REIMBURSEMENT_ACCOUNT}${lodashGet(policy, 'id', '')}`,
         },
         reimbursementAccountDraft: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
+            key: ({policy}) => `${ONYXKEYS.COLLECTION.REIMBURSEMENT_ACCOUNT_DRAFT}${lodashGet(policy, 'id', '')}`,
         },
         session: {
             key: ONYXKEYS.SESSION,
@@ -502,6 +514,4 @@ export default compose(
             key: ONYXKEYS.ACCOUNT,
         },
     }),
-    withLocalize,
-    withPolicy,
 )(ReimbursementAccountPage);

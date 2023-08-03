@@ -36,6 +36,9 @@ const propTypes = {
     /** Bank account currently in setup */
     reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes.isRequired,
 
+    /** The workspace policy ID */
+    policyID: PropTypes.string.isRequired,
+
     onBackButtonPress: PropTypes.func.isRequired,
 
     /** User's account who is setting up bank account */
@@ -120,7 +123,7 @@ class ValidationStep extends React.Component {
 
         // If a user tries to navigate directly to the validate page we'll show them the EnableStep
         if (state === BankAccount.STATE.OPEN) {
-            return <EnableStep />;
+            return <EnableStep policyID={this.props.policyID} />;
         }
 
         const maxAttemptsReached = lodashGet(this.props.reimbursementAccount, 'maxAttemptsReached');
@@ -149,7 +152,7 @@ class ValidationStep extends React.Component {
                 )}
                 {!maxAttemptsReached && state === BankAccount.STATE.PENDING && (
                     <Form
-                        formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
+                        formID={`${ONYXKEYS.COLLECTION.REIMBURSEMENT_ACCOUNT}${this.props.policyID}`}
                         submitButtonText={this.props.translate('validationStep.buttonText')}
                         onSubmit={this.submit}
                         validate={this.validate}
@@ -212,12 +215,17 @@ class ValidationStep extends React.Component {
                             <MenuItem
                                 title={this.props.translate('workspace.bankAccount.noLetsStartOver')}
                                 icon={Expensicons.RotateLeft}
-                                onPress={BankAccounts.requestResetFreePlanBankAccount}
+                                onPress={() => BankAccounts.requestResetFreePlanBankAccount(this.props.policyID)}
                                 shouldShowRightIcon
                                 wrapperStyle={[styles.cardMenuItem, styles.mv3]}
                             />
                         </Section>
-                        {this.props.reimbursementAccount.shouldShowResetModal && <WorkspaceResetBankAccountModal reimbursementAccount={this.props.reimbursementAccount} />}
+                        {this.props.reimbursementAccount.shouldShowResetModal && (
+                            <WorkspaceResetBankAccountModal
+                                reimbursementAccount={this.props.reimbursementAccount}
+                                policyID={this.props.policyID}
+                            />
+                        )}
                         {!requiresTwoFactorAuth && <Enable2FAPrompt />}
                     </ScrollView>
                 )}

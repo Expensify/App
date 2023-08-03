@@ -58,16 +58,40 @@ function hasCustomUnitsError(policy) {
 }
 
 /**
- * Get the brick road indicator status for a policy. The policy has an error status if there is a policy member error, a custom unit error or a field error.
+ * Get the reimbursement account associated with the policy
+ *
+ * @param {String} policyID
+ * @param {Object} reimbursementAccountsCollection
+ */
+function getPolicyReimbursementAccount(policyID, reimbursementAccountsCollection) {
+    return lodashGet(reimbursementAccountsCollection, `${ONYXKEYS.COLLECTION.REIMBURSEMENT_ACCOUNT}${policyID}`, {});
+}
+
+/**
+ * Check if the reimbursement account associated with the policy has any errors
+ *
+ * @param {Object} policy
+ * @param {String} policy.id
+ * @param {Object} policy.errors
+ * @return {Boolean}
+ */
+function hasPolicyReimbursementAccountError(policy, reimbursementAccountsCollection) {
+    const reimbursementAccount = getPolicyReimbursementAccount(policy.id, reimbursementAccountsCollection);
+    return !_.isEmpty(lodashGet(reimbursementAccount, 'errors', {}));
+}
+
+/**
+ * Get the brick road indicator status for a policy. The policy has an error status if
+ * there is a policy member error, a custom unit error, a field error or a reimbursement account error.
  *
  * @param {Object} policy
  * @param {String} policy.id
  * @param {Object} policyMembersCollection
  * @returns {String}
  */
-function getPolicyBrickRoadIndicatorStatus(policy, policyMembersCollection) {
+function getPolicyBrickRoadIndicatorStatus(policy, policyMembersCollection, reimbursementAccountsCollection) {
     const policyMembers = lodashGet(policyMembersCollection, `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policy.id}`, {});
-    if (hasPolicyMemberError(policyMembers) || hasCustomUnitsError(policy) || hasPolicyErrorFields(policy)) {
+    if (hasPolicyMemberError(policyMembers) || hasCustomUnitsError(policy) || hasPolicyErrorFields(policy) || hasPolicyReimbursementAccountError(policy, reimbursementAccountsCollection)) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     }
     return '';
@@ -172,6 +196,8 @@ export {
     hasPolicyError,
     hasPolicyErrorFields,
     hasCustomUnitsError,
+    getPolicyReimbursementAccount,
+    hasPolicyReimbursementAccountError,
     getPolicyBrickRoadIndicatorStatus,
     shouldShowPolicy,
     isExpensifyTeam,

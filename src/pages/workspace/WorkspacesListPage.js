@@ -1,6 +1,7 @@
 import React, {useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
+import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
@@ -53,7 +54,7 @@ const propTypes = {
     ),
 
     /** Bank account attached to free plan */
-    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes,
+    allReimbursementAccounts: PropTypes.objectOf(ReimbursementAccountProps.reimbursementAccountPropTypes),
 
     /** A collection of objects for all policies which key policy member objects by accountIDs */
     allPolicyMembers: PropTypes.objectOf(PropTypes.objectOf(policyMemberPropType)),
@@ -68,7 +69,7 @@ const propTypes = {
 const defaultProps = {
     policies: {},
     allPolicyMembers: {},
-    reimbursementAccount: {},
+    allReimbursementAccounts: {},
     userWallet: {
         currentBalance: 0,
     },
@@ -108,11 +109,12 @@ function dismissWorkspaceError(policyID, pendingAction) {
     throw new Error('Not implemented');
 }
 
-function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, userWallet}) {
+function WorkspacesListPage({policies, allPolicyMembers, allReimbursementAccounts, userWallet}) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {canUseWallet} = usePermissions();
     const {isSmallScreenWidth} = useWindowDimensions();
+    const reimbursementAccountsErrors = _.mapObject(allReimbursementAccounts, (reimbursementAccount) => !_.isEmpty(lodashGet(reimbursementAccount, 'errors', {})));
 
     /**
      * @param {Boolean} isPaymentItem whether the item being rendered is the payments menu item
@@ -163,7 +165,6 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, u
      * @returns {Array} the menu item list
      */
     const workspaces = useMemo(() => {
-        const reimbursementAccountBrickRoadIndicator = !_.isEmpty(reimbursementAccount.errors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
         return _.chain(policies)
             .filter((policy) => PolicyUtils.shouldShowPolicy(policy, isOffline))
             .map((policy) => ({
@@ -173,7 +174,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, u
                 action: () => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policy.id)),
                 iconFill: themeColors.textLight,
                 fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
-                brickRoadIndicator: reimbursementAccountBrickRoadIndicator || PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, allPolicyMembers),
+                brickRoadIndicator: PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, allPolicyMembers, allReimbursementAccounts),
                 pendingAction: policy.pendingAction,
                 errors: policy.errors,
                 dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
@@ -181,7 +182,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, u
             }))
             .sortBy((policy) => policy.title.toLowerCase())
             .value();
-    }, [reimbursementAccount.errors, policies, isOffline, allPolicyMembers]);
+    }, [reimbursementAccountsErrors, policies, isOffline, allPolicyMembers]);
 
     return (
         <IllustratedHeaderPageLayout
@@ -223,8 +224,8 @@ export default compose(
         allPolicyMembers: {
             key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
         },
-        reimbursementAccount: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+        allReimbursementAccounts: {
+            key: ONYXKEYS.COLLECTION.REIMBURSEMENT_ACCOUNT,
         },
         userWallet: {
             key: ONYXKEYS.USER_WALLET,
