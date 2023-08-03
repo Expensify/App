@@ -170,7 +170,7 @@ function isOpenTaskReport(report) {
  * @returns {Boolean}
  */
 function isCanceledTaskReport(report = {}, parentReportAction = {}) {
-    if (!_.isEmpty(parentReportAction) && ReportActionsUtils.isMessageDeleted(parentReportAction)) {
+    if (!_.isEmpty(parentReportAction) && lodashGet(parentReportAction, ['message', 0, 'isDeletedParentAction'], false)) {
         return true;
     }
 
@@ -1328,7 +1328,7 @@ function getReportName(report, policy = undefined) {
         return parentReportActionMessage || Localize.translateLocal('parentReportAction.deletedMessage');
     }
 
-    if (isTaskReport(report) && ReportActionsUtils.isDeletedParentAction(parentReportAction)) {
+    if (isTaskReport(report) && isCanceledTaskReport(report, parentReportAction)) {
         return Localize.translateLocal('parentReportAction.deletedTask');
     }
 

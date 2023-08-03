@@ -218,7 +218,7 @@ function HeaderView(props) {
                             )}
                         </PressableWithoutFeedback>
                         <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
-                            {isTaskReport && !props.isSmallScreenWidth && ReportUtils.isOpenTaskReport(props.report) && <TaskHeaderActionButton report={props.report} />}
+                            {isTaskReport && !props.isSmallScreenWidth && ReportUtils.isOpenTaskReport(props.report) && !isCanceledTaskReport && <TaskHeaderActionButton report={props.report} />}
                             {shouldShowCallButton && (
                                 <VideoChatButtonAndMenu
                                     isConcierge={isConcierge}
