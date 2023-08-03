@@ -221,8 +221,8 @@ function AttachmentModal(props) {
         (_data) => {
             if (typeof _data.webkitGetAsEntry === 'function' && _data.webkitGetAsEntry().isDirectory) {
                 setIsAttachmentInvalid(true);
-                setAttachmentInvalidReasonTitle(translate('attachmentPicker.attachmentError'));
-                setAttachmentInvalidReason(translate('attachmentPicker.folderNotAllowedMessage'));
+                setAttachmentInvalidReasonTitle('attachmentPicker.attachmentError');
+                setAttachmentInvalidReason('attachmentPicker.folderNotAllowedMessage');
                 return false;
             }
             return true;
@@ -385,12 +385,12 @@ function AttachmentModal(props) {
             </Modal>
 
             <ConfirmModal
-                title={attachmentInvalidReasonTitle ? props.translate(attachmentInvalidReasonTitle) : ''}
+                title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
                 onConfirm={closeConfirmModal}
                 onCancel={closeConfirmModal}
                 isVisible={isAttachmentInvalid}
-                prompt={attachmentInvalidReason ? props.translate(attachmentInvalidReason) : ''}
-                confirmText={props.translate('common.close')}
+                prompt={attachmentInvalidReason ? translate(attachmentInvalidReason) : ''}
+                confirmText={translate('common.close')}
                 shouldShowCancelButton={false}
             />
 
