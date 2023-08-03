@@ -125,7 +125,7 @@ function DistanceRequest({transactionID, transaction, translate}) {
                 {shouldShowGradient && (
                     <LinearGradient
                         style={[styles.pAbsolute, styles.b0, styles.l0, styles.r0, {height: halfMenuItemHeight}]}
-                        colors={[theme.transparent, theme.shadow]}
+                        colors={[theme.transparent, theme.modalBackground]}
                     />
                 )}
             </View>
