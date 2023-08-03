@@ -8,7 +8,7 @@ import * as ReimbursementAccountProps from '../../../pages/ReimbursementAccount/
 
 /**
  * Reset user's reimbursement account. This will delete the bank account.
- * 
+ *
  * @param {string} policyID
  * @param {number} bankAccountID
  */
