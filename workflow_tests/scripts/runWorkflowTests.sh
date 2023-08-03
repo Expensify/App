@@ -42,7 +42,7 @@ info 'ACT_BINARY environment variable set'
 
 if ! eval '${ACT_BINARY} --version' > /dev/null 2>&1; then
   error 'ACT_BINARY variable not set properly'
-  info 'ACT_BINARY environment variable should be set to the path to your Act executable. Please set the variable correctly (try running `which act` to check the path)'
+  info 'ACT_BINARY environment variable should be set to the path to your Act executable. Please set the variable correctly (try running "which act" to check the path)'
   exit 1
 fi
 info 'ACT_BINARY environment variable set to an Act executable'
