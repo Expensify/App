@@ -12,8 +12,7 @@ const CONST = require('../src/CONST').default;
 const Localize = require('../src/libs/Localize');
 
 const port = process.env.PORT || 8080;
-const PASTE_AS_PLAIN_TEXT_ACCELERATOR = 'CmdOrCtrl+Shift+V';
-const PASTE_AND_MATCH_STYLE_ACCELERATOR = 'Option+Shift+CmdOrCtrl+V';
+const {DESKTOP_SHORTCUT_ACCELERATOR} = CONST;
 
 app.setName('New Expensify');
 
@@ -37,16 +36,6 @@ function pasteAsPlainText(browserWindow) {
     browserWindow.webContents.insertText(text);
 }
 
-/**
- * Checks if the clipboard contains text.
- *
- * @returns {boolean} - Returns `true` if the clipboard contains text, otherwise returns `false`.
- */
-function clipboardHasText() {
-    const clipboardText = clipboard.readText();
-    return clipboardText.length > 0;
-}
-
 // Initialize the right click menu
 // See https://github.com/sindresorhus/electron-context-menu
 // Add the Paste and Match Style command to the context menu
@@ -56,12 +45,12 @@ contextMenu({
             // Only enable the menu item for Editable context which supports paste
             visible: parameters.isEditable && parameters.editFlags.canPaste,
             role: 'pasteAndMatchStyle',
-            accelerator: PASTE_AND_MATCH_STYLE_ACCELERATOR,
+            accelerator: DESKTOP_SHORTCUT_ACCELERATOR.PASTE_AND_MATCH_STYLE,
         }),
         new MenuItem({
             label: Localize.translate(CONST.LOCALES.DEFAULT, 'desktopApplicationMenu.pasteAsPlainText'),
-            visible: parameters.isEditable && parameters.editFlags.canPaste && clipboardHasText(),
-            accelerator: PASTE_AS_PLAIN_TEXT_ACCELERATOR,
+            visible: parameters.isEditable && parameters.editFlags.canPaste && clipboard.readText().length > 0,
+            accelerator: DESKTOP_SHORTCUT_ACCELERATOR.PASTE_AS_PLAIN_TEXT,
             click: () => pasteAsPlainText(browserWindow),
         }),
     ],
@@ -310,8 +299,6 @@ const mainWindow = () => {
                     browserWindow.setTitle('New Expensify');
                 }
 
-                const PASTE_AS_PLAIN_TEXT_EDIT_MENU_ID = 'pasteAsPlainText';
-
                 const initialMenuTemplate = [
                     {
                         id: 'mainMenu',
@@ -356,11 +343,11 @@ const mainWindow = () => {
                             {
                                 id: 'pasteAndMatchStyle',
                                 role: 'pasteAndMatchStyle',
-                                accelerator: PASTE_AND_MATCH_STYLE_ACCELERATOR,
+                                accelerator: DESKTOP_SHORTCUT_ACCELERATOR.PASTE_AND_MATCH_STYLE,
                             },
                             {
-                                id: PASTE_AS_PLAIN_TEXT_EDIT_MENU_ID,
-                                accelerator: PASTE_AS_PLAIN_TEXT_ACCELERATOR,
+                                id: 'pasteAsPlainText',
+                                accelerator: DESKTOP_SHORTCUT_ACCELERATOR.PASTE_AS_PLAIN_TEXT,
                                 click: () => pasteAsPlainText(browserWindow),
                             },
                             {id: 'delete', role: 'delete'},
