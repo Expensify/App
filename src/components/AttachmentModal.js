@@ -137,6 +137,7 @@ function AttachmentModal(props) {
                 : CONST.MODAL.MODAL_TYPE.CENTERED,
         [translate],
     );
+
     /**
      * Download the currently viewed attachment.
      */
@@ -177,6 +178,7 @@ function AttachmentModal(props) {
     const closeConfirmModal = useCallback(() => {
         setIsAttachmentInvalid(false);
     }, []);
+
     /**
      * @param {Object} _file
      * @returns {Boolean}
@@ -185,24 +187,25 @@ function AttachmentModal(props) {
         (_file) => {
             const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(_file, 'name', ''));
             if (_.contains(CONST.API_ATTACHMENT_VALIDATIONS.UNALLOWED_EXTENSIONS, fileExtension.toLowerCase())) {
-                const invalidReason = translate('attachmentPicker.notAllowedExtension');
+                const invalidReason = 'attachmentPicker.notAllowedExtension';
+
                 setIsAttachmentInvalid(true);
-                setAttachmentInvalidReasonTitle(translate('attachmentPicker.wrongFileType'));
+                setAttachmentInvalidReasonTitle('attachmentPicker.wrongFileType');
                 setAttachmentInvalidReason(invalidReason);
                 return false;
             }
 
             if (lodashGet(_file, 'size', 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
                 setIsAttachmentInvalid(true);
-                setAttachmentInvalidReasonTitle(translate('attachmentPicker.attachmentTooLarge'));
-                setAttachmentInvalidReason(translate('attachmentPicker.sizeExceeded'));
+                setAttachmentInvalidReasonTitle('attachmentPicker.attachmentTooLarge');
+                setAttachmentInvalidReason('attachmentPicker.sizeExceeded');
                 return false;
             }
 
             if (lodashGet(_file, 'size', 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
                 setIsAttachmentInvalid(true);
-                setAttachmentInvalidReasonTitle(translate('attachmentPicker.attachmentTooSmall'));
-                setAttachmentInvalidReason(translate('attachmentPicker.sizeNotMet'));
+                setAttachmentInvalidReasonTitle('attachmentPicker.attachmentTooSmall');
+                setAttachmentInvalidReason('attachmentPicker.sizeNotMet');
                 return false;
             }
 
@@ -226,6 +229,7 @@ function AttachmentModal(props) {
         },
         [translate],
     );
+
     /**
      * @param {Object} _data
      */
@@ -381,12 +385,12 @@ function AttachmentModal(props) {
             </Modal>
 
             <ConfirmModal
-                title={attachmentInvalidReasonTitle}
+                title={attachmentInvalidReasonTitle ? props.translate(attachmentInvalidReasonTitle) : ''}
                 onConfirm={closeConfirmModal}
                 onCancel={closeConfirmModal}
                 isVisible={isAttachmentInvalid}
-                prompt={attachmentInvalidReason}
-                confirmText={translate('common.close')}
+                prompt={attachmentInvalidReason ? props.translate(attachmentInvalidReason) : ''}
+                confirmText={props.translate('common.close')}
                 shouldShowCancelButton={false}
             />
 
