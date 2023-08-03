@@ -75,7 +75,7 @@ function ProfilePage(props) {
         },
         {
             description: props.translate('statusPage.status'),
-            title: '', // TODO: Get the status from onyx
+            title: `${props.currentUserPersonalDetails?.status?.emojiCode ?? ''} ${props.currentUserPersonalDetails?.status?.text ?? ''}`,
             pageRoute: ROUTES.SETTINGS_STATUS,
         },
         {
