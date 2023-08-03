@@ -1113,7 +1113,7 @@ class ReportActionCompose extends React.Component {
                                                     anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM}}
                                                     menuItems={[
                                                         ...this.getMoneyRequestOptions(reportParticipants),
-                                                        ...this.getTaskOption(reportParticipants),
+                                                        ...this.getTaskOption(),
                                                         {
                                                             icon: Expensicons.Paperclip,
                                                             text: this.props.translate('reportActionCompose.addAttachment'),
