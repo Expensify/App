@@ -18,7 +18,6 @@ import * as ReportUtils from '../../libs/ReportUtils';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import * as StyleUtils from '../../styles/StyleUtils';
 import * as Task from '../../libs/actions/Task';
-import * as PolicyUtils from '../../libs/PolicyUtils';
 import CONST from '../../CONST';
 import Checkbox from '../Checkbox';
 import convertToLTR from '../../libs/convertToLTR';
@@ -50,14 +49,13 @@ function TaskView(props) {
     const isCompleted = ReportUtils.isCompletedTaskReport(props.report);
     const isOpen = ReportUtils.isOpenTaskReport(props.report);
     const isCanceled = ReportUtils.isCanceledTaskReport(props.report);
-    const policy = ReportUtils.getPolicy(props.report.policyID);
-    const canEdit = PolicyUtils.isPolicyAdmin(policy) || Task.isTaskAssigneeOrTaskOwner(props.report, props.currentUserPersonalDetails.accountID);
-    const disableState = !canEdit || !isOpen;
+    const canModifyTask = Task.canModifyTask(props.report, props.currentUserPersonalDetails.accountID);
+    const disableState = !canModifyTask || !isOpen;
     return (
         <View>
             <OfflineWithFeedback
                 shouldShowErrorMessages
-                errors={lodashGet(props, 'report.errorFields')}
+                errors={lodashGet(props, 'report.errorFields.editTask')}
                 onClose={() => Task.clearEditTaskErrors(props.report.reportID)}
                 errorRowStyles={styles.ph5}
             >
@@ -88,7 +86,7 @@ function TaskView(props) {
                                             containerBorderRadius={8}
                                             caretSize={16}
                                             accessibilityLabel={taskTitle || props.translate('task.task')}
-                                            disabled={isCanceled || !canEdit}
+                                            disabled={isCanceled || !canModifyTask}
                                         />
                                         <View style={[styles.flexRow, styles.flex1]}>
                                             <Text

@@ -38,28 +38,25 @@ const defaultProps = {
 function TaskAction(props) {
     const taskReportName = props.taskReport.reportName || '';
 
-    let messageLinkText = '';
+    let taskStatusText = '';
     switch (props.actionName) {
         case CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED:
-            messageLinkText = props.translate('task.messages.completed');
+            taskStatusText = props.translate('task.messages.completed');
             break;
         case CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED:
-            messageLinkText = props.translate('task.messages.canceled');
+            taskStatusText = props.translate('task.messages.canceled');
             break;
         case CONST.REPORT.ACTIONS.TYPE.TASKREOPENED:
-            messageLinkText = props.translate('task.messages.reopened');
+            taskStatusText = props.translate('task.messages.reopened');
             break;
         default:
-            messageLinkText = props.translate('task.task');
+            taskStatusText = props.translate('task.task');
     }
 
     return (
         <>
             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                <Text>
-                    <Text style={styles.chatItemMessageLink}>{messageLinkText}</Text>
-                    <Text style={[styles.chatItemMessage]}>{` ${taskReportName}`}</Text>
-                </Text>
+                <Text style={[styles.chatItemMessage, styles.colorMuted]}>{`${taskStatusText} ${taskReportName}`}</Text>
             </View>
         </>
     );

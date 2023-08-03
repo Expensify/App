@@ -136,6 +136,7 @@ function AttachmentModal(props) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [props.translate],
     );
+
     /**
      * Download the currently viewed attachment.
      */
@@ -176,6 +177,7 @@ function AttachmentModal(props) {
     const closeConfirmModal = useCallback(() => {
         setIsAttachmentInvalid(false);
     }, []);
+
     /**
      * @param {Object} _file
      * @returns {Boolean}
@@ -184,25 +186,25 @@ function AttachmentModal(props) {
         (_file) => {
             const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(_file, 'name', ''));
             if (_.contains(CONST.API_ATTACHMENT_VALIDATIONS.UNALLOWED_EXTENSIONS, fileExtension.toLowerCase())) {
-                const invalidReason = props.translate('attachmentPicker.notAllowedExtension');
+                const invalidReason = 'attachmentPicker.notAllowedExtension';
 
                 setIsAttachmentInvalid(true);
-                setAttachmentInvalidReasonTitle(props.translate('attachmentPicker.wrongFileType'));
+                setAttachmentInvalidReasonTitle('attachmentPicker.wrongFileType');
                 setAttachmentInvalidReason(invalidReason);
                 return false;
             }
 
             if (lodashGet(_file, 'size', 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
                 setIsAttachmentInvalid(true);
-                setAttachmentInvalidReasonTitle(props.translate('attachmentPicker.attachmentTooLarge'));
-                setAttachmentInvalidReason(props.translate('attachmentPicker.sizeExceeded'));
+                setAttachmentInvalidReasonTitle('attachmentPicker.attachmentTooLarge');
+                setAttachmentInvalidReason('attachmentPicker.sizeExceeded');
                 return false;
             }
 
             if (lodashGet(_file, 'size', 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
                 setIsAttachmentInvalid(true);
-                setAttachmentInvalidReasonTitle(props.translate('attachmentPicker.attachmentTooSmall'));
-                setAttachmentInvalidReason(props.translate('attachmentPicker.sizeNotMet'));
+                setAttachmentInvalidReasonTitle('attachmentPicker.attachmentTooSmall');
+                setAttachmentInvalidReason('attachmentPicker.sizeNotMet');
                 return false;
             }
 
@@ -211,6 +213,7 @@ function AttachmentModal(props) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [props.translate],
     );
+
     /**
      * @param {Object} _file
      */
@@ -359,11 +362,11 @@ function AttachmentModal(props) {
             </Modal>
 
             <ConfirmModal
-                title={attachmentInvalidReasonTitle}
+                title={attachmentInvalidReasonTitle ? props.translate(attachmentInvalidReasonTitle) : ''}
                 onConfirm={closeConfirmModal}
                 onCancel={closeConfirmModal}
                 isVisible={isAttachmentInvalid}
-                prompt={attachmentInvalidReason}
+                prompt={attachmentInvalidReason ? props.translate(attachmentInvalidReason) : ''}
                 confirmText={props.translate('common.close')}
                 shouldShowCancelButton={false}
             />

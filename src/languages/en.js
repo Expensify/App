@@ -343,10 +343,32 @@ export default {
         listOfChatMessages: 'List of chat messages',
         listOfChats: 'List of chats',
     },
+    tabSelector: {
+        manual: 'Manual',
+        scan: 'Scan',
+    },
+    receipt: {
+        upload: 'Upload receipt',
+        dragReceiptBeforeEmail: 'Drag a receipt onto this page, forward a receipt to ',
+        dragReceiptAfterEmail: ' or choose a file to upload below.',
+        chooseReceipt: 'Choose a receipt to upload or forward a receipt to ',
+        chooseFile: 'Choose File',
+        givePermission: 'Give permission',
+        takePhoto: 'Take a photo',
+        cameraAccess: 'Camera access is required to take pictures of receipts.',
+        cameraErrorTitle: 'Camera Error',
+        cameraErrorMessage: 'An error occurred while taking a photo, please try again',
+        dropTitle: 'Let it go',
+        dropMessage: 'Drop your file here',
+        flash: 'flash',
+        shutter: 'shutter',
+        gallery: 'gallery',
+    },
     iou: {
         amount: 'Amount',
         cash: 'Cash',
         split: 'Split',
+        request: 'Request',
         participants: 'Participants',
         splitBill: 'Split bill',
         requestMoney: 'Request money',
@@ -401,7 +423,6 @@ export default {
         uploadPhoto: 'Upload photo',
         removePhoto: 'Remove photo',
         editImage: 'Edit photo',
-        imageUploadFailed: 'Image upload failed',
         deleteWorkspaceError: 'Sorry, there was an unexpected problem deleting your workspace avatar.',
         sizeExceeded: ({maxUploadSizeInMB}) => `The selected image exceeds the maximum upload size of ${maxUploadSizeInMB}MB.`,
         resolutionConstraints: ({minHeightInPx, minWidthInPx, maxHeightInPx, maxWidthInPx}) =>
@@ -921,6 +942,7 @@ export default {
     messages: {
         errorMessageInvalidPhone: `Please enter a valid phone number without brackets or dashes. If you're outside the US please include your country code (e.g. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
         errorMessageInvalidEmail: 'Invalid email',
+        userIsAlreadyMemberOfWorkspace: ({login, workspace}) => `${login} is already a member of ${workspace}`,
     },
     onfidoStep: {
         acceptTerms: 'By continuing with the request to activate your Expensify wallet, you confirm that you have read, understand and accept ',
@@ -1508,6 +1530,8 @@ export default {
     threads: {
         replies: 'Replies',
         reply: 'Reply',
+        from: 'From',
+        in: 'In',
         parentNavigationSummary: ({rootReportName, workspaceName}) => `From ${rootReportName}${workspaceName ? ` in ${workspaceName}` : ''}`,
     },
     qrCodes: {

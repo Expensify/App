@@ -110,6 +110,7 @@ function MoneyRequestAction(props) {
                 false,
                 '',
                 undefined,
+                undefined,
                 CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
                 props.action.reportActionID,
                 props.requestReportID,

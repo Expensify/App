@@ -590,10 +590,12 @@ function clearOutTaskInfoAndNavigate(reportID) {
 /**
  * Get the assignee data
  *
- * @param {Object} details
+ * @param {Number} assigneeAccountID
+ * @param {Object} personalDetails
  * @returns {Object}
  */
-function getAssignee(details) {
+function getAssignee(assigneeAccountID, personalDetails) {
+    const details = personalDetails[assigneeAccountID];
     if (!details) {
         return {
             icons: [],
@@ -601,9 +603,8 @@ function getAssignee(details) {
             subtitle: '',
         };
     }
-    const source = UserUtils.getAvatar(lodashGet(details, 'avatar', ''), lodashGet(details, 'accountID', -1));
     return {
-        icons: [{source, type: 'avatar', name: details.login}],
+        icons: ReportUtils.getIconsForParticipants([details.accountID], personalDetails),
         displayName: details.displayName,
         subtitle: details.login,
     };
@@ -741,14 +742,21 @@ function getTaskOwnerAccountID(taskReport) {
 }
 
 /**
- * Check if current user is either task assignee or task owner
- *
+ * Check if you're allowed to modify the task - anyone that has write access to the report can modify the task
  * @param {Object} taskReport
  * @param {Number} sessionAccountID
  * @returns {Boolean}
  */
-function isTaskAssigneeOrTaskOwner(taskReport, sessionAccountID) {
-    return sessionAccountID === getTaskOwnerAccountID(taskReport) || sessionAccountID === getTaskAssigneeAccountID(taskReport);
+function canModifyTask(taskReport, sessionAccountID) {
+    if (sessionAccountID === getTaskOwnerAccountID(taskReport) || sessionAccountID === getTaskAssigneeAccountID(taskReport)) {
+        return true;
+    }
+
+    // If you don't have access to the task report (maybe haven't opened it yet), check if you can access the parent report
+    // - If the parent report is an #admins only room
+    // - If you are a policy admin
+    const parentReport = ReportUtils.getParentReport(taskReport);
+    return ReportUtils.isAllowedToComment(parentReport);
 }
 
 /**
@@ -781,4 +789,5 @@ export {
     getTaskAssigneeAccountID,
     isTaskAssigneeOrTaskOwner,
     clearEditTaskErrors,
+    canModifyTask,
 };
