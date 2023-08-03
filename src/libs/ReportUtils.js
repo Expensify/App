@@ -1295,7 +1295,13 @@ function getReportPreviewMessage(report, reportAction = {}) {
  */
 function getModifiedExpenseMessage(reportAction) {
     const reportActionOriginalMessage = lodashGet(reportAction, 'originalMessage', {});
-    if (!_.isEmpty(reportActionOriginalMessage) && reportActionOriginalMessage.oldAmount && reportActionOriginalMessage.oldCurrency && reportActionOriginalMessage.amount && reportActionOriginalMessage.currency) {
+    if (
+        !_.isEmpty(reportActionOriginalMessage) &&
+        reportActionOriginalMessage.oldAmount &&
+        reportActionOriginalMessage.oldCurrency &&
+        reportActionOriginalMessage.amount &&
+        reportActionOriginalMessage.currency
+    ) {
         const oldCurrency = reportActionOriginalMessage.oldCurrency;
         const oldCurrencyUnit = CurrencyUtils.getCurrencyUnit(oldCurrency);
         const oldAmount = NumberFormatUtils.format(preferredLocale, Math.abs(reportActionOriginalMessage.oldAmount) / oldCurrencyUnit, {style: 'currency', oldCurrency});
@@ -1312,7 +1318,7 @@ function getModifiedExpenseMessage(reportAction) {
 /**
  * Given the updates user made to the request, compose the originalMessage
  * object of the modified expense action.
- * 
+ *
  * At the moment, we only allow changing one transaction field at the time.
  *
  * @param {Object} oldTransaction
@@ -1943,7 +1949,6 @@ function buildOptimisticModifiedExpenseReportAction(transactionThread, oldTransa
         shouldShow: true,
     };
 }
-
 
 /**
  * Updates a report preview action that exists for an IOU report.

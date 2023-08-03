@@ -790,41 +790,13 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
     const transactionThread = allReports[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`];
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const iouReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
-    const reportPreviewAction = ReportActionsUtils.getReportPreviewAction(iouReport.chatReportID, iouReport.reportID);
-    const chatReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${iouReport.chatReportID}`];
 
     // STEP 2: Build new modified expense report action.
     const updatedReportAction = ReportUtils.buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges);
-    
     const updatedTransaction = TransactionUtils.getUpdatedTransaction(transaction, transactionChanges);
+    // STEP 3: Compute the IOU total and update the report preview message so LHN amount owed is correct
 
-    let updatedIOUReport = null;
-    let updatedReportPreviewAction = null;
-    // In case the amount or currency being edited, we need to update the IOU report total
-    // and report preview message accordingly.
-    if (_.has(transactionChanges, 'amount') || _.has(transactionChanges, 'currency')) {
-        if (ReportUtils.isExpenseReport(iouReport.reportID)) {
-            updatedIOUReport = {...iouReport};
-
-            // Because of the Expense reports are stored as negative values, we add the total from the amount
-            updatedIOUReport.total += reportAction.originalMessage.amount;
-        } else {
-            updatedIOUReport = IOUUtils.updateIOUOwnerAndTotal(iouReport, reportAction.actorAccountID, reportAction.originalMessage.amount, reportAction.originalMessage.currency, true);
-        }
-
-        updatedIOUReport.lastMessageText = iouReportLastMessageText;
-        updatedIOUReport.lastVisibleActionCreated = lastVisibleAction.created;
-
-        updatedReportPreviewAction = {...reportPreviewAction};
-        const messageText = Localize.translateLocal('iou.payerOwesAmount', {
-            payer: updatedIOUReport.managerEmail,
-            amount: CurrencyUtils.convertToDisplayString(updatedIOUReport.total, updatedIOUReport.currency),
-        });
-        updatedReportPreviewAction.message[0].text = messageText;
-        updatedReportPreviewAction.message[0].html = messageText;
-    }
-
-    // STEP 3: Compose the data for the API command
+    // STEP 4: Compose the optimistic data
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -836,9 +808,7 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: {
-                [transactionID]: updatedTransaction,
-            },
+            value: {updatedTransaction},
         },
     ];
 
@@ -849,6 +819,11 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
             value: {
                 [reportAction.reportActionID]: {pendingAction: null},
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {pendingAction: null},
         },
     ];
 
@@ -874,7 +849,7 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
                 iouReport,
             },
         },
-    ]
+    ];
 
     // STEP 6: Call the API endpoint
     API.write(

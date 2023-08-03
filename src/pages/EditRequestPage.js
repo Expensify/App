@@ -37,7 +37,7 @@ const defaultProps = {
 
 function EditRequestPage({report, route}) {
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
-    const transactionID = ReportActionsUtils.getLinkedTransactionID(ReportUtils.getParentReport(report), parentReportAction)
+    const transactionID = ReportActionsUtils.getLinkedTransactionID(ReportUtils.getParentReport(report), parentReportAction);
     const transaction = TransactionUtils.getTransaction(transactionID);
     const transactionDescription = TransactionUtils.getDescription(transaction);
     const transactionAmount = TransactionUtils.getAmount(transaction);

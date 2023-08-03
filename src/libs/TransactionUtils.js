@@ -70,7 +70,7 @@ function getUpdatedTransaction(transaction, transactionChanges) {
     if (_.has(transactionChanges, 'comment')) {
         updatedTransaction['comment'] = {
             ...updatedTransaction.comment,
-            'comment': transactionChanges.comment,
+            comment: transactionChanges.comment,
         };
     }
     if (_.has(transactionChanges, 'created')) {
@@ -82,7 +82,8 @@ function getUpdatedTransaction(transaction, transactionChanges) {
     if (_.has(transactionChanges, 'currency')) {
         updatedTransaction['modifiedCurrency'] = transactionChanges.currency;
     }
-    
+    updatedTransaction['pendingAction'] = CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
+
     return updatedTransaction;
 }
 
@@ -149,12 +150,4 @@ function getCreated(transaction) {
     return lodashGet(transaction, 'created', '');
 }
 
-export {
-    buildOptimisticTransaction,
-    getUpdatedTransaction,
-    getTransaction,
-    getDescription,
-    getAmount,
-    getCurrency,
-    getCreated,
-};
+export {buildOptimisticTransaction, getUpdatedTransaction, getTransaction, getDescription, getAmount, getCurrency, getCreated};

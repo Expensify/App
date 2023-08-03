@@ -72,9 +72,8 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, polic
 
     const moneyRequestReport = parentReport;
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
-    const isPayer =
-    Policy.isAdminOfFreePolicy([policy]) || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(session, 'accountID', null) === moneyRequestReport.managerID);
-    const canEdit = !isSettled && (ReportUtils.isExpenseReport(moneyRequestReport) || (ReportUtils.isIOUReport(moneyRequestReport) && !isPayer))
+    const isPayer = Policy.isAdminOfFreePolicy([policy]) || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(session, 'accountID', null) === moneyRequestReport.managerID);
+    const canEdit = !isSettled && (ReportUtils.isExpenseReport(moneyRequestReport) || (ReportUtils.isIOUReport(moneyRequestReport) && !isPayer));
 
     let description = `${translate('iou.amount')} • ${translate('iou.cash')}`;
     if (isSettled) {
