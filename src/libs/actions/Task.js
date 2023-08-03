@@ -269,7 +269,9 @@ function completeTask(taskReport, taskTitle) {
     const optimisticParentReportData = ReportUtils.getOptimisticDataForParentReportAction(taskReportID, completedTaskReportAction.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
     if (!_.isEmpty(optimisticParentReportData)) {
         optimisticData.push(optimisticParentReportData);
+        // Get assignee report from participantAccountIDs as in creating task
         const assigneeChatReportID = lodashGet(ReportUtils.getChatByParticipants(taskReport.participantAccountIDs), 'reportID');
+        // We don't need to create optmistic report action for assignee report if assignee and shareDestination are the same
         if (assigneeChatReportID && `${assigneeChatReportID}` !== `${taskReport.parentReportID}`) {
             const parentReportAction = ReportActionsUtils.getParentReportActionForTask(taskReportID, assigneeChatReportID);
             if (parentReportAction) {
@@ -277,16 +279,8 @@ function completeTask(taskReport, taskTitle) {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
                     value: {
+                        // Copy optimistic report action data from shareDestination
                         [parentReportAction.reportActionID]: _.values(optimisticParentReportData.value)[0],
-                    },
-                });
-                failureData.push({
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
-                    value: {
-                        [parentReportAction.reportActionID]: {
-                            errors: ErrorUtils.getMicroSecondOnyxError('task.messages.error'),
-                        },
                     },
                 });
             }
@@ -368,7 +362,9 @@ function reopenTask(taskReport, taskTitle) {
     const optimisticParentReportData = ReportUtils.getOptimisticDataForParentReportAction(taskReportID, reopenedTaskReportAction.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
     if (!_.isEmpty(optimisticParentReportData)) {
         optimisticData.push(optimisticParentReportData);
+        // Get assignee report from participantAccountIDs as in creating task
         const assigneeChatReportID = lodashGet(ReportUtils.getChatByParticipants(taskReport.participantAccountIDs), 'reportID');
+        // We don't need to create optmistic report action for assignee report if assignee and shareDestination are the same
         if (assigneeChatReportID && `${assigneeChatReportID}` !== `${taskReport.parentReportID}`) {
             const parentReportAction = ReportActionsUtils.getParentReportActionForTask(taskReportID, assigneeChatReportID);
             if (parentReportAction) {
@@ -376,16 +372,8 @@ function reopenTask(taskReport, taskTitle) {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
                     value: {
+                        // Copy optimistic report action data from shareDestination
                         [parentReportAction.reportActionID]: _.values(optimisticParentReportData.value)[0],
-                    },
-                });
-                failureData.push({
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
-                    value: {
-                        [parentReportAction.reportActionID]: {
-                            errors: ErrorUtils.getMicroSecondOnyxError('task.messages.error'),
-                        },
                     },
                 });
             }
