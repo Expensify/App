@@ -122,8 +122,8 @@ AppState.addEventListener('change', (nextAppState) => {
 });
 
 /**
- * Gets the policy IDs that are passed to the server in the OpenApp and ReconnectApp API commands. This includes a full list of policy IDs the client knows about as well as when they were last modified.
- * @returns {Object}
+ * Gets the policy params that are passed to the server in the OpenApp and ReconnectApp API commands. This includes a full list of policy IDs the client knows about as well as when they were last modified.
+ * @returns {Promise}
  */
 function getPolicyParamsForOpenOrReconnect() {
     return new Promise((resolve) => {
