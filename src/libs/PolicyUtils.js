@@ -62,6 +62,7 @@ function hasCustomUnitsError(policy) {
  *
  * @param {String} policyID
  * @param {Object} reimbursementAccountsCollection
+ * @return {Object}
  */
 function getPolicyReimbursementAccount(policyID, reimbursementAccountsCollection) {
     return lodashGet(reimbursementAccountsCollection, `${ONYXKEYS.COLLECTION.REIMBURSEMENT_ACCOUNT}${policyID}`, {});
@@ -73,6 +74,7 @@ function getPolicyReimbursementAccount(policyID, reimbursementAccountsCollection
  * @param {Object} policy
  * @param {String} policy.id
  * @param {Object} policy.errors
+ * @param {Object} reimbursementAccountsCollection
  * @return {Boolean}
  */
 function hasPolicyReimbursementAccountError(policy, reimbursementAccountsCollection) {
@@ -87,6 +89,7 @@ function hasPolicyReimbursementAccountError(policy, reimbursementAccountsCollect
  * @param {Object} policy
  * @param {String} policy.id
  * @param {Object} policyMembersCollection
+ * @param {Object} reimbursementAccountsCollection
  * @returns {String}
  */
 function getPolicyBrickRoadIndicatorStatus(policy, policyMembersCollection, reimbursementAccountsCollection) {
