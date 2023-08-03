@@ -108,6 +108,13 @@ function TaskAssigneeSelectorModal(props) {
         setSearchValue(newSearchTerm);
     };
 
+    const report = useMemo(() => {
+        if (!props.route.params || !props.route.params.reportID) {
+            return null;
+        }
+        return lodashGet(props.reports, `${ONYXKEYS.COLLECTION.REPORT}${props.route.params.reportID}`, undefined);
+    }, [props.reports, props.route.params]);
+
     const sections = useMemo(() => {
         const sectionsList = [];
         let indexOffset = 0;
@@ -164,13 +171,13 @@ function TaskAssigneeSelectorModal(props) {
         }
 
         // Check to see if we're editing a task and if so, update the assignee
-        if (props.route.params.reportID) {
+        if (report) {
             // There was an issue where sometimes a new assignee didn't have a DM thread
             // This would cause the app to crash, so we need to make sure we have a DM thread
             Task.setAssigneeValue(option.login, option.accountID, props.route.params.reportID, OptionsListUtils.isCurrentUser(option));
 
             // Pass through the selected assignee
-            Task.editTaskAndNavigate(lodashGet(props.reports, `report_${props.route.params.reportID}`, {}), props.session.accountID, {
+            Task.editTaskAndNavigate(report, props.session.accountID, {
                 assignee: option.login,
                 assigneeAccountID: option.accountID,
             });
@@ -183,11 +190,7 @@ function TaskAssigneeSelectorModal(props) {
                 <>
                     <HeaderWithBackButton
                         title={props.translate('task.assignee')}
-                        onBackButtonPress={() =>
-                            props.route.params.reportID && lodashGet(props.reports, `report_${props.route.params.reportID}`, undefined)
-                                ? Navigation.dismissModal()
-                                : Navigation.goBack(ROUTES.NEW_TASK)
-                        }
+                        onBackButtonPress={() => (report ? Navigation.dismissModal() : Navigation.goBack(ROUTES.NEW_TASK))}
                     />
                     <View style={[styles.flex1, styles.w100, styles.pRelative]}>
                         <OptionsSelector
