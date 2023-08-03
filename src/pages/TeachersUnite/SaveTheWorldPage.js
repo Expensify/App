@@ -12,8 +12,6 @@ import MenuItem from '../../components/MenuItem';
 import IllustratedHeaderPageLayout from '../../components/IllustratedHeaderPageLayout';
 import * as LottieAnimations from '../../components/LottieAnimations';
 import useLocalize from '../../hooks/useLocalize';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import compose from '../../libs/compose';
 
 const propTypes = {
     /** Object with various information about the user */
@@ -21,7 +19,6 @@ const propTypes = {
         /** Whether or not the user is on a public domain email account or not */
         isFromPublicDomain: PropTypes.bool,
     }),
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -64,11 +61,8 @@ SaveTheWorldPage.propTypes = propTypes;
 SaveTheWorldPage.defaultProps = defaultProps;
 SaveTheWorldPage.displayName = 'SaveTheWorldPage';
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        user: {
-            key: ONYXKEYS.USER,
-        },
-    }),
-)(SaveTheWorldPage);
+export default withOnyx({
+    user: {
+        key: ONYXKEYS.USER,
+    },
+})(SaveTheWorldPage);
