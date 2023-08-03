@@ -152,6 +152,8 @@ export default {
         someone: 'Someone',
         total: 'Total',
         edit: 'Edit',
+        showMore: 'Show more',
+        merchant: 'Merchant',
     },
     anonymousReportFooter: {
         logoTagline: 'Join in on the discussion.',
@@ -360,10 +362,32 @@ export default {
         listOfChatMessages: 'List of chat messages',
         listOfChats: 'List of chats',
     },
+    tabSelector: {
+        manual: 'Manual',
+        scan: 'Scan',
+    },
+    receipt: {
+        upload: 'Upload receipt',
+        dragReceiptBeforeEmail: 'Drag a receipt onto this page, forward a receipt to ',
+        dragReceiptAfterEmail: ' or choose a file to upload below.',
+        chooseReceipt: 'Choose a receipt to upload or forward a receipt to ',
+        chooseFile: 'Choose File',
+        givePermission: 'Give permission',
+        takePhoto: 'Take a photo',
+        cameraAccess: 'Camera access is required to take pictures of receipts.',
+        cameraErrorTitle: 'Camera Error',
+        cameraErrorMessage: 'An error occurred while taking a photo, please try again',
+        dropTitle: 'Let it go',
+        dropMessage: 'Drop your file here',
+        flash: 'flash',
+        shutter: 'shutter',
+        gallery: 'gallery',
+    },
     iou: {
         amount: 'Amount',
         cash: 'Cash',
         split: 'Split',
+        request: 'Request',
         participants: 'Participants',
         splitBill: 'Split bill',
         requestMoney: 'Request money',
@@ -621,7 +645,7 @@ export default {
         growlMessageOnSave: 'Your debit card was successfully added',
         expensifyPassword: 'Expensify password',
         error: {
-            invalidName: 'Name can only include latin letters and numbers.',
+            invalidName: 'Name can only include letters.',
             addressZipCode: 'Please enter a valid zip code',
             debitCardNumber: 'Please enter a valid debit card number',
             expirationDate: 'Please select a valid expiration date',
@@ -800,7 +824,7 @@ export default {
         error: {
             dateShouldBeBefore: ({dateString}) => `Date should be before ${dateString}.`,
             dateShouldBeAfter: ({dateString}) => `Date should be after ${dateString}.`,
-            hasInvalidCharacter: 'Name can only include latin letters and numbers.',
+            hasInvalidCharacter: 'Name can only include letters.',
             incorrectZipFormat: ({zipFormat}) => `Incorrect zip code format.${zipFormat ? ` Acceptable format: ${zipFormat}` : ''}`,
         },
     },
@@ -1525,6 +1549,8 @@ export default {
     threads: {
         replies: 'Replies',
         reply: 'Reply',
+        from: 'From',
+        in: 'In',
         parentNavigationSummary: ({rootReportName, workspaceName}) => `From ${rootReportName}${workspaceName ? ` in ${workspaceName}` : ''}`,
     },
     qrCodes: {
