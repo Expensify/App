@@ -36,7 +36,7 @@ const propTypes = {
     shouldShowWelcomeHeader: PropTypes.bool.isRequired,
 
     isInModal: PropTypes.bool.isRequired,
-    
+
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
 };

@@ -187,5 +187,5 @@ export default {
             isSubReportPageRoute: pathSegments.length > 2,
         };
     },
-    SIGNINMODAL: 'signinmodal'
+    SIGNINMODAL: 'signinmodal',
 };

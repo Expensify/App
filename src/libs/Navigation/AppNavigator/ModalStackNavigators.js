@@ -717,8 +717,8 @@ const SignInModalStackNavigator = createModalStackNavigator([
             const SignInModal = require('../../../pages/signin/SignInModal').default;
             return SignInModal;
         },
-        name: 'SignIn_Root', 
-    }
+        name: 'SignIn_Root',
+    },
 ]);
 
 export {

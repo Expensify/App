@@ -13,16 +13,11 @@ function SignInModal() {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
-            onEntryTransitionEnd={() =>{}}
+            onEntryTransitionEnd={() => {}}
         >
-            <HeaderWithBackButton
-                onBackButtonPress={() => Navigation.goBack()}
-            />
-            <SignInPage 
-                isInModal
-            />
+            <HeaderWithBackButton onBackButtonPress={() => Navigation.goBack()} />
+            <SignInPage isInModal />
         </ScreenWrapper>
-
     );
 }
 
@@ -30,4 +25,4 @@ SignInModal.propTypes = propTypes;
 SignInModal.defaultProps = defaultProps;
 SignInModal.displayName = 'SignInModal';
 
-export default (SignInModal);
+export default SignInModal;

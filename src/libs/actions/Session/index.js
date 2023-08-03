@@ -94,8 +94,7 @@ function signOutAndRedirectToSignIn() {
     if (!isAnonymousUser()) {
         signOut();
         redirectToSignIn();
-    }
-    else {
+    } else {
         Navigation.navigate(ROUTES.SIGNINMODAL);
         Linking.getInitialURL().then((url) => {
             const reportID = ReportUtils.getReportIDFromLink(url);
@@ -786,7 +785,7 @@ function signInAnonymousAccount(validateCode, preferredLocale = CONST.LOCALES.DE
             value: {
                 authTokenType: '',
             },
-        }
+        },
     ];
 
     const failureData = [
