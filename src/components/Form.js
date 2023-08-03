@@ -337,11 +337,7 @@ function Form(props) {
                         });
 
                         if (child.props.shouldSaveDraft) {
-                            FormActions.setDraftValues(
-                                props.draftFormID || props.formID,
-                                {[inputKey]: value},
-                                !_.isEmpty(props.draftFormID)
-                            );
+                            FormActions.setDraftValues(props.draftFormID || props.formID, {[inputKey]: value}, !_.isEmpty(props.draftFormID));
                         }
 
                         if (child.props.onValueChange) {
