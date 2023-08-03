@@ -641,7 +641,7 @@ describe('Migrations', () => {
                 }));
     });
 
-    describe('CheckPreviousReportActionID', () => {
+    describe('CheckForPreviousReportActionID', () => {
         // Note: this test has to come before the others in this suite because Onyx.clear leaves traces and keys with null values aren't cleared out between tests
         it("Should work even if there's no reportAction data in Onyx", () =>
             CheckForPreviousReportActionID().then(() =>
@@ -652,10 +652,10 @@ describe('Migrations', () => {
             Onyx.multiSet({
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: {
                     1: {
-                        actorEmail: 'sample_email@example.com',
+                        reportActionID: 1,
                     },
                     2: {
-                        actorEmail: 'another_sample_email@example.com',
+                        reportActionID: 2,
                     },
                 },
             })
@@ -679,9 +679,11 @@ describe('Migrations', () => {
             Onyx.multiSet({
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: {
                     1: {
+                        reportActionID: 1,
                         previousReportActionID: 0,
                     },
                     2: {
+                        reportActionID: 2,
                         previousReportActionID: 1,
                     },
                 },
@@ -696,9 +698,11 @@ describe('Migrations', () => {
                             Onyx.disconnect(connectionID);
                             const expectedReportAction = {
                                 1: {
+                                    reportActionID: 1,
                                     previousReportActionID: 0,
                                 },
                                 2: {
+                                    reportActionID: 2,
                                     previousReportActionID: 1,
                                 },
                             };
@@ -714,10 +718,10 @@ describe('Migrations', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}3`]: null,
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}4`]: {
                     1: {
-                        actorEmail: 'sample_email@example.com',
+                        reportActionID: 1,
                     },
                     2: {
-                        actorEmail: 'another_sample_email@example.com',
+                        reportActionID: 2,
                     },
                 },
             })
@@ -747,11 +751,11 @@ describe('Migrations', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}3`]: null,
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}4`]: {
                     1: {
-                        actorEmail: 'sample_email@example.com',
+                        reportActionID: 1,
                         previousReportActionID: 10,
                     },
                     2: {
-                        actorEmail: 'another_sample_email@example.com',
+                        reportActionID: 2,
                         previousReportActionID: 23,
                     },
                 },
@@ -767,11 +771,11 @@ describe('Migrations', () => {
                             const expectedReportAction1 = {};
                             const expectedReportAction4 = {
                                 1: {
-                                    actorEmail: 'sample_email@example.com',
+                                    reportActionID: 1,
                                     previousReportActionID: 10,
                                 },
                                 2: {
-                                    actorEmail: 'another_sample_email@example.com',
+                                    reportActionID: 2,
                                     previousReportActionID: 23,
                                 },
                             };
