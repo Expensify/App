@@ -32,8 +32,17 @@ export default function () {
             return;
         }
 
-        const firstValidReportAction = _.find(_.values(allReportActions), (reportActions) => !_.isEmpty(reportActions));
-        const firstValidValue = _.find(_.values(firstValidReportAction), (reportActionData) => _.has(reportActionData, 'reportActionID'));
+        let firstValidValue;
+        _.some(_.values(allReportActions), (reportActions) =>
+            _.some(_.values(reportActions), (reportActionData) => {
+                if (_.has(reportActionData, 'reportActionID')) {
+                    firstValidValue = reportActionData;
+                    return true;
+                }
+
+                return false;
+            }),
+        );
 
         if (_.isUndefined(firstValidValue)) {
             Log.info(`[Migrate Onyx] Skipped migration CheckForPreviousReportActionID because there were no valid reportActions`);
