@@ -741,87 +741,6 @@ function validateTwoFactorAuth(twoFactorAuthCode) {
     API.write('TwoFactorAuth_Validate', {twoFactorAuthCode}, {optimisticData, successData, failureData});
 }
 
-function signInAnonymousAccount(validateCode, preferredLocale = CONST.LOCALES.DEFAULT) {
-    const optimisticData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                ...CONST.DEFAULT_ACCOUNT_DATA,
-                isLoading: true,
-                loadingForm: CONST.FORMS.VALIDATE_CODE_FORM,
-            },
-        },
-        {
-            // We need to clean the authToken so the app is refreshed
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.SESSION,
-            value: {
-                authToken: '',
-            },
-        },
-    ];
-
-    const successData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: false,
-                loadingForm: null,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.CREDENTIALS,
-            value: {
-                validateCode,
-            },
-        },
-        {
-            // We need to manually set the authTokenType to NOT be anonymous
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.SESSION,
-            value: {
-                authTokenType: '',
-            },
-        },
-    ];
-
-    const failureData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: false,
-                loadingForm: null,
-            },
-        },
-    ];
-
-    const params = {
-        email: credentials.login,
-        preferredLocale,
-        validateCode: validateCode || credentials.validateCode,
-    };
-
-    // TODO: Switch to ClaimAnonymousAccount command, when backend is ready
-    Device.getDeviceInfoWithID().then((deviceInfo) => {
-        API.write(
-            'SigninUser',
-            {
-                ...params,
-                deviceInfo,
-            },
-            {
-                optimisticData,
-                successData,
-                failureData,
-            },
-        );
-    });
-}
-
 export {
     beginSignIn,
     setSupportAuthToken,
@@ -847,5 +766,4 @@ export {
     isAnonymousUser,
     toggleTwoFactorAuth,
     validateTwoFactorAuth,
-    signInAnonymousAccount,
 };

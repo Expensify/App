@@ -226,11 +226,6 @@ function BaseValidateCodeForm(props) {
         }
         setFormError({});
 
-        if (props.isInModal) {
-            Session.signInAnonymousAccount(validateCode, props.preferredLocale);
-            return;
-        }
-
         const accountID = lodashGet(props.credentials, 'accountID');
         if (accountID) {
             Session.signInWithValidateCode(accountID, validateCode, props.preferredLocale, twoFactorAuthCode);

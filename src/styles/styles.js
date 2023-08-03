@@ -1189,6 +1189,10 @@ const styles = {
         width: 300,
     },
 
+    signInModal: {
+        backgroundColor: themeColors.highlightBG
+    },
+
     changeExpensifyLoginLinkContainer: {
         flexDirection: 'row',
         flexWrap: 'wrap',

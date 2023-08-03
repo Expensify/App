@@ -3,6 +3,7 @@ import SignInPage from './SignInPage';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import Navigation from '../../libs/Navigation/Navigation';
+import styles from '../../styles/styles';
 
 const propTypes = {};
 
@@ -11,6 +12,7 @@ const defaultProps = {};
 function SignInModal() {
     return (
         <ScreenWrapper
+            style={[styles.signInModal]}
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
             onEntryTransitionEnd={() => {}}
