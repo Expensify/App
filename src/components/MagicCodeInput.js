@@ -281,6 +281,7 @@ function MagicCodeInput(props) {
                         >
                             <Text style={[styles.magicCodeInput, styles.textAlignCenter]}>{decomposeString(props.value, props.maxLength)[index] || ''}</Text>
                         </View>
+                        {/* Hide the input above the text. Cannot set opacity to 0 as it would break pasting on iOS Safari. */}
                         <View style={[StyleSheet.absoluteFillObject, styles.w100, styles.bgTransparent]}>
                             <TextInput
                                 ref={(ref) => (inputRefs.current[index] = ref)}
