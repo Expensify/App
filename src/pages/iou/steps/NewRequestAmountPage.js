@@ -8,14 +8,12 @@ import _ from 'underscore';
 import ONYXKEYS from '../../../ONYXKEYS';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
-import compose from '../../../libs/compose';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import * as CurrencyUtils from '../../../libs/CurrencyUtils';
 import CONST from '../../../CONST';
 import reportPropTypes from '../../reportPropTypes';
 import * as IOU from '../../../libs/actions/IOU';
 import useLocalize from '../../../hooks/useLocalize';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../../components/withCurrentUserPersonalDetails';
 import MoneyRequestAmountForm from './MoneyRequestAmountForm';
 import * as IOUUtils from '../../../libs/IOUUtils';
 import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
@@ -50,7 +48,8 @@ const propTypes = {
         ),
     }),
 
-    ...withCurrentUserPersonalDetailsPropTypes,
+    // eslint-disable-next-line react/forbid-prop-types
+    errors: PropTypes.object,
 };
 
 const defaultProps = {
@@ -67,10 +66,10 @@ const defaultProps = {
         currency: CONST.CURRENCY.USD,
         participants: [],
     },
-    ...withCurrentUserPersonalDetailsDefaultProps,
+    errors: {},
 };
 
-function NewRequestAmountPage({route, iou, report, currentUserPersonalDetails, errors}) {
+function NewRequestAmountPage({route, iou, report, errors}) {
     const {translate} = useLocalize();
 
     const prevMoneyRequestID = useRef(iou.id);
@@ -81,7 +80,6 @@ function NewRequestAmountPage({route, iou, report, currentUserPersonalDetails, e
     const isEditing = lodashGet(route, 'path', '').includes('amount');
     const currentCurrency = lodashGet(route, 'params.currency', '');
 
-    const {amount, participants} = iou;
     const currency = currentCurrency || iou.currency;
 
     /**
@@ -161,40 +159,14 @@ function NewRequestAmountPage({route, iou, report, currentUserPersonalDetails, e
             return;
         }
 
-        const moneyRequestID = `${iouType}${reportID}`;
-        const shouldReset = iou.id !== moneyRequestID;
-        // If the money request ID in Onyx does not match the ID from params, we want to start a new request
-        // with the ID from params. We need to clear the participants in case the new request is initiated from FAB.
-        if (shouldReset) {
-            IOU.setMoneyRequestId(moneyRequestID);
-            IOU.setMoneyRequestDescription('');
-            IOU.setMoneyRequestParticipants([]);
-        }
-
-        // If a request is initiated on a report, skip the participants selection step and navigate to the confirmation page.
-        if (report.reportID) {
-            // Reinitialize the participants when the money request ID in Onyx does not match the ID from params
-            if (_.isEmpty(participants)) {
-                const currentUserAccountID = currentUserPersonalDetails.accountID;
-                const iouParticipants = ReportUtils.isPolicyExpenseChat(report)
-                    ? [{reportID: report.reportID, isPolicyExpenseChat: true, selected: true}]
-                    : _.chain(report.participantAccountIDs)
-                          .filter((accountID) => currentUserAccountID !== accountID)
-                          .map((accountID) => ({accountID, selected: true}))
-                          .value();
-                IOU.setMoneyRequestParticipants(iouParticipants);
-            }
-            Navigation.navigate(ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID));
-            return;
-        }
-        Navigation.navigate(ROUTES.getMoneyRequestParticipantsRoute(iouType));
+        IOU.navigateToNextPage(iou, iouType, reportID, report);
     };
 
     const content = (
         <MoneyRequestAmountForm
             isEditing={isEditing}
             currency={currency}
-            amount={amount}
+            amount={iou.amount}
             ref={(e) => (textInput.current = e)}
             onCurrencyButtonPress={navigateToCurrencySelectionPage}
             onSubmitButtonPress={navigateToNextPage}
@@ -231,12 +203,9 @@ NewRequestAmountPage.propTypes = propTypes;
 NewRequestAmountPage.defaultProps = defaultProps;
 NewRequestAmountPage.displayName = 'NewRequestAmountPage';
 
-export default compose(
-    withCurrentUserPersonalDetails,
-    withOnyx({
-        iou: {key: ONYXKEYS.IOU},
-        report: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '')}`,
-        },
-    }),
-)(NewRequestAmountPage);
+export default withOnyx({
+    iou: {key: ONYXKEYS.IOU},
+    report: {
+        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '')}`,
+    },
+})(NewRequestAmountPage);
