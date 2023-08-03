@@ -1,7 +1,16 @@
 import React, {forwardRef, useImperativeHandle, useRef, useState} from 'react';
+import PropTypes from "prop-types";
 import BasePopoverReactionList from './BasePopoverReactionList';
 
-const PopoverReactionList = forwardRef((props, ref) => {
+const propTypes = {
+    ref: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
+}
+
+const defaultProps = {
+    ref: () => {},
+}
+
+function PopoverReactionList(props) {
     const innerReactionListRef = useRef();
     const [reactionListReportActionID, setReactionListReportActionID] = useState('');
 
@@ -11,14 +20,12 @@ const PopoverReactionList = forwardRef((props, ref) => {
      * @param {Object} [event] - A press event.
      * @param {Element} reactionListAnchor - reactionListAnchor
      * @param {String} emojiName - Name of emoji
-     * @param {String} reportActionID
      */
-    const showReactionList = (event, reactionListAnchor, emojiName, reportActionID) => {
-        setReactionListReportActionID(reportActionID);
+    const showReactionList = (event, reactionListAnchor, emojiName) => {
         innerReactionListRef.current.showReactionList(event, reactionListAnchor, emojiName);
     };
 
-    useImperativeHandle(ref, () => ({showReactionList, setReactionListReportActionID}), []);
+    useImperativeHandle(props.ref, () => ({showReactionList, setReactionListReportActionID}), []);
 
     return (
         <BasePopoverReactionList
@@ -26,8 +33,16 @@ const PopoverReactionList = forwardRef((props, ref) => {
             reportActionID={reactionListReportActionID}
         />
     );
-});
+}
 
+PopoverReactionList.propTypes = propTypes;
+PopoverReactionList.defaultProps = defaultProps;
 PopoverReactionList.displayName = 'PopoverReactionList';
 
-export default PopoverReactionList;
+export default forwardRef((props, ref) => (
+    <PopoverReactionList
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        ref={ref}
+    />
+));
