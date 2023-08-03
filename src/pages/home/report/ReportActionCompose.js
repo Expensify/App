@@ -281,7 +281,7 @@ class ReportActionCompose extends React.Component {
 
         // As the report IDs change, make sure to update the composer comment as we need to make sure
         // we do not show incorrect data in there (ie. draft of message from other report).
-        if (this.props.report.reportID === prevProps.report.reportID && !shouldSyncComment) {
+        if (this.props.preferredLocale === prevProps.preferredLocale && this.props.report.reportID === prevProps.report.reportID && !shouldSyncComment) {
             return;
         }
 
@@ -1188,8 +1188,8 @@ class ReportActionCompose extends React.Component {
                                             if (this.state.isAttachmentPreviewActive) {
                                                 return;
                                             }
-                                            const file = lodashGet(e, ['dataTransfer', 'files', 0]);
-                                            displayFileInModal(file);
+                                            const data = lodashGet(e, ['dataTransfer', 'items', 0]);
+                                            displayFileInModal(data);
                                         }}
                                     />
                                 </>
