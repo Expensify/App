@@ -50,7 +50,7 @@ function EditRequestPage({report, route}) {
         // eslint-disable-next-line no-console
         console.log({changes});
 
-        IOU.editIOUTransaction(transactionID, report.reportID, );
+        IOU.editIOUTransaction(transactionID, report.reportID, changes);
 
         // Note: The "modal" we are dismissing is the MoneyRequestAmountPage
         Navigation.dismissModal();
@@ -68,7 +68,7 @@ function EditRequestPage({report, route}) {
     } else if (field === CONST.EDIT_REQUEST_FIELD.DATE) {
         return (
             <EditRequestCreatedPage
-                defaultCreated={transactionDescription}
+                defaultCreated={transactionCreated}
                 onSubmit={(changes) => {
                     updateTransactionWithChanges(changes);
                 }}

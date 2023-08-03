@@ -13,6 +13,7 @@ import ROUTES from '../ROUTES';
 import * as NumberUtils from './NumberUtils';
 import * as NumberFormatUtils from './NumberFormatUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
+import * as TransactionUtils from '../libs/TransactionUtils';
 import Permissions from './Permissions';
 import DateUtils from './DateUtils';
 import linkingConfig from './Navigation/linkingConfig';
@@ -1324,19 +1325,19 @@ function getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges) {
     // Remark: Comment field is the only one which has new/old prefixes for the keys (newComment/ oldComment),
     // all others have old/- pattern such as oldCreated/created
     if (_.has(transactionChanges, 'comment')) {
-        originalMessage['oldComment'] = oldTransaction.comment.comment;
+        originalMessage['oldComment'] = TransactionUtils.getDescription(oldTransaction);
         originalMessage['newComment'] = transactionChanges.comment;
     }
     if (_.has(transactionChanges, 'created')) {
-        originalMessage['oldCreated'] = oldTransaction.created;
+        originalMessage['oldCreated'] = TransactionUtils.getCreated(oldTransaction);
         originalMessage['created'] = transactionChanges.created;
     }
     if (_.has(transactionChanges, 'amount')) {
-        originalMessage['oldAmount'] = oldTransaction.amount;
+        originalMessage['oldAmount'] = TransactionUtils.getAmount(oldTransaction);
         originalMessage['amount'] = transactionChanges.amount;
     }
     if (_.has(transactionChanges, 'currency')) {
-        originalMessage['oldCurrency'] = oldTransaction.currency;
+        originalMessage['oldCurrency'] = TransactionUtils.getCurrency(oldTransaction);
         originalMessage['currency'] = transactionChanges.currency;
     }
 
@@ -1903,7 +1904,7 @@ function buildOptimisticReportPreview(chatReport, iouReport) {
 }
 
 /**
- * Builds an optimistic report preview action with a randomly generated reportActionID.
+ * Builds an optimistic modified expense action with a randomly generated reportActionID.
  *
  * @param {Object} transactionThread
  * @param {Object} oldTransaction

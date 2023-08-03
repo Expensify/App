@@ -57,6 +57,32 @@ function buildOptimisticTransaction(amount, currency, reportID, comment = '', so
 }
 
 /**
+ * Given the edit made to the money request, return an updated transaction object.
+ *
+ * @param {Object} transaction
+ * @param {Object} transactionChanges
+ * @returns {Object}
+ */
+function updateTransaction(transaction, transactionChanges) {
+    const updatedTransaction = {...transaction};
+
+    if (_.has(transactionChanges, 'comment')) {
+        updatedTransaction['comment'] = {'comment': transactionChanges.comment};
+    }
+    if (_.has(transactionChanges, 'created')) {
+        updatedTransaction['modifiedCreated'] = transactionChanges.created;
+    }
+    if (_.has(transactionChanges, 'amount')) {
+        updatedTransaction['modifiedAmount'] = transactionChanges.amount;
+    }
+    if (_.has(transactionChanges, 'currency')) {
+        updatedTransaction['modifiedCurrency'] = transactionChanges.currency;
+    }
+    
+    return updatedTransaction;
+}
+
+/**
  * Retrieve the particular transaction object given its ID.
  *
  * @param {String} transactionID
@@ -74,7 +100,7 @@ function getTransaction(transactionID) {
  * @returns {String}
  */
 function getDescription(transaction) {
-    return lodashGet(transaction, 'comment', '');
+    return lodashGet(transaction, 'comment.comment', '');
 }
 
 /**
@@ -84,7 +110,7 @@ function getDescription(transaction) {
  * @returns {Number}
  */
 function getAmount(transaction) {
-    const amount = lodashGet(transaction, 'modifiedAmount', '');
+    const amount = lodashGet(transaction, 'modifiedAmount', 0);
     if (amount) {
         return amount;
     }
@@ -102,7 +128,7 @@ function getCurrency(transaction) {
     if (currency) {
         return currency;
     }
-    return lodashGet(transaction, 'currency', 0);
+    return lodashGet(transaction, 'currency', '');
 }
 
 /**
@@ -116,11 +142,12 @@ function getCreated(transaction) {
     if (created) {
         return created;
     }
-    return lodashGet(transaction, 'created', 0);
+    return lodashGet(transaction, 'created', '');
 }
 
 export {
     buildOptimisticTransaction,
+    updateTransaction,
     getTransaction,
     getDescription,
     getAmount,

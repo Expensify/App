@@ -796,13 +796,15 @@ function editIOUTransaction(transactionID, transactionThreadReportID, transactio
     // STEP 2: Build new modified expense report action.
     const updatedReportAction = ReportUtils.buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges);
     
+    const updatedTransaction = TransactionUtils.updatedTransaction(transaction, transactionChanges);
+
     // STEP 3: Compose the data for the API command
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThread.reportID}`,
             value: {
-                [reportAction.reportActionID]: {pendingAction: null},
+                [updatedReportAction.reportActionID]: {pendingAction: null},
             },
         },
     ];
