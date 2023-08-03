@@ -198,6 +198,23 @@ function NewRequestAmountPage({route, iou, report, currentUserPersonalDetails, e
         Navigation.navigate(ROUTES.getMoneyRequestParticipantsRoute(iouType));
     };
 
+    const content = (
+        <MoneyRequestAmountForm
+            isEditing={isEditing}
+            currency={currency}
+            amount={amount}
+            ref={(e) => (textInput.current = e)}
+            onCurrencyButtonPress={navigateToCurrencySelectionPage}
+            onSubmitButtonPress={navigateToNextPage}
+        />
+    );
+
+    // ScreenWrapper is only needed in edit mode because we have a dedicated route for the edit amount page (MoneyRequestEditAmountPage).
+    // The rest of the cases this component is rendered through <MoneyRequestSelectorPage /> which has it's own ScreenWrapper
+    if (!isEditing) {
+        return content;
+    }
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -206,20 +223,11 @@ function NewRequestAmountPage({route, iou, report, currentUserPersonalDetails, e
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType)}>
                     <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
-                        {isEditing && (
-                            <HeaderWithBackButton
-                                title={titleForStep}
-                                onBackButonBackButtonPress={navigateBack}
-                            />
-                        )}
-                        <MoneyRequestAmountForm
-                            isEditing={isEditing}
-                            currency={currency}
-                            amount={amount}
-                            ref={(e) => (textInput.current = e)}
-                            onCurrencyButtonPress={navigateToCurrencySelectionPage}
-                            onSubmitButtonPress={navigateToNextPage}
+                        <HeaderWithBackButton
+                            title={titleForStep}
+                            onBackButonBackButtonPress={navigateBack}
                         />
+                        {content}
                     </View>
                 </FullPageNotFoundView>
             )}
