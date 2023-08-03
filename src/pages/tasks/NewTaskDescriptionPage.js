@@ -44,7 +44,7 @@ function NewTaskDescriptionPage(props) {
     // the response
     const onSubmit = (values) => {
         Task.setDescriptionValue(values.taskDescription);
-        Navigation.navigate(ROUTES.NEW_TASK);
+        Navigation.goBack(ROUTES.NEW_TASK);
     };
 
     if (!Permissions.canUseTasks(props.betas)) {
@@ -55,6 +55,7 @@ function NewTaskDescriptionPage(props) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             onEntryTransitionEnd={() => focusAndUpdateMultilineInputRange(inputRef.current)}
+            shouldEnableMaxHeight
         >
             <HeaderWithBackButton
                 title={props.translate('task.description')}

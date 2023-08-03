@@ -174,6 +174,7 @@ const CONST = {
     },
     DATE: {
         MOMENT_FORMAT_STRING: 'YYYY-MM-DD',
+        SQL_DATE_TIME: 'YYYY-MM-DD HH:mm:ss',
         UNIX_EPOCH: '1970-01-01 00:00:00.000',
         MAX_DATE: '9999-12-31',
         MIN_DATE: '0001-01-01',
@@ -474,24 +475,18 @@ const CONST = {
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'http://localhost:',
 
-    SIGN_IN_FORM_WIDTH: 300,
-
-    APPLE_SIGN_IN_SERVICE_ID: 'com.chat.expensify.chat.AppleSignIn',
-    APPLE_SIGN_IN_REDIRECT_URI: 'https://new.expensify.com/appleauth',
-
-    SIGN_IN_METHOD: {
-        APPLE: 'Apple',
-        GOOGLE: 'Google',
-    },
-
     OPTION_TYPE: {
         REPORT: 'report',
         PERSONAL_DETAIL: 'personalDetail',
     },
+    RECEIPT: {
+        ICON_SIZE: 164,
+        PERMISSION_AUTHORIZED: 'authorized',
+        HAND_ICON_HEIGHT: 152,
+        HAND_ICON_WIDTH: 200,
+        SHUTTER_SIZE: 90,
+    },
     REPORT: {
-        DROP_HOST_NAME: 'ReportDropZone',
-        DROP_NATIVE_ID: 'report-dropzone',
-        ACTIVE_DROP_NATIVE_ID: 'report-dropzone',
         MAXIMUM_PARTICIPANTS: 8,
         SPLIT_REPORTID: '-2',
         ACTIONS: {
@@ -503,6 +498,7 @@ const CONST = {
                 TASKEDITED: 'TASKEDITED',
                 TASKCANCELLED: 'TASKCANCELLED',
                 IOU: 'IOU',
+                REIMBURSEMENTQUEUED: 'REIMBURSEMENTQUEUED',
                 RENAMED: 'RENAMED',
                 CHRONOSOOOLIST: 'CHRONOSOOOLIST',
                 TASKCOMPLETED: 'TASKCOMPLETED',
@@ -1065,6 +1061,12 @@ const CONST = {
             DELETE: 'delete',
         },
         AMOUNT_MAX_LENGTH: 10,
+        FILE_TYPES: {
+            HTML: 'html',
+            DOC: 'doc',
+            DOCX: 'docx',
+            SVG: 'svg',
+        },
     },
 
     GROWL: {
@@ -1116,6 +1118,10 @@ const CONST = {
     ICON_TYPE_ICON: 'icon',
     ICON_TYPE_AVATAR: 'avatar',
     ICON_TYPE_WORKSPACE: 'workspace',
+
+    ACTIVITY_INDICATOR_SIZE: {
+        LARGE: 'large',
+    },
 
     AVATAR_SIZE: {
         LARGE: 'large',
@@ -2550,11 +2556,13 @@ const CONST = {
         ADJUSTABLE: 'adjustable',
         IMAGE: 'image',
     },
-    SETTINGS_LOUNGE_ACCESS: {
-        HEADER_IMAGE_ASPECT_RATIO: 0.64,
-    },
     TRANSLATION_KEYS: {
         ATTACHMENT: 'common.attachment',
+    },
+    TAB: {
+        RECEIPT_TAB_ID: 'ReceiptTab',
+        MANUAL: 'manual',
+        SCAN: 'scan',
     },
 };
 
