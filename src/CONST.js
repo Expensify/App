@@ -1061,6 +1061,9 @@ const CONST = {
             DELETE: 'delete',
         },
         AMOUNT_MAX_LENGTH: 10,
+        RECEIPT_STATE: {
+            SCANREADY: 'SCANREADY',
+        },
         FILE_TYPES: {
             HTML: 'html',
             DOC: 'doc',
