@@ -28,8 +28,6 @@ import usePrevious from '../../../hooks/usePrevious';
 import * as StyleUtils from '../../../styles/StyleUtils';
 
 const propTypes = {
-    /** Whether the user is anonymous. True when opening the Sign-In Page from the modal */
-    isInModal: PropTypes.bool,
 
     /* Onyx Props */
 
@@ -67,7 +65,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    isInModal: false,
     account: {},
     credentials: {},
     session: {

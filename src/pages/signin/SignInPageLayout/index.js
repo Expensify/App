@@ -46,11 +46,12 @@ function SignInPageLayout(props) {
     const prevPreferredLocale = usePrevious(props.preferredLocale);
     let containerStyles = [styles.flex1, styles.signInPageInner];
     let contentContainerStyles = [styles.flex1, styles.flexRow];
+    const showSmallScreen = props.isSmallScreenWidth || props.isInModal;
 
     // To scroll on both mobile and web, we need to set the container height manually
     const containerHeight = props.windowHeight - props.insets.top - props.insets.bottom;
 
-    if (props.isSmallScreenWidth || props.isInModal) {
+    if (showSmallScreen) {
         containerStyles = [styles.flex1];
         contentContainerStyles = [styles.flex1, styles.flexColumn];
     }
@@ -72,7 +73,7 @@ function SignInPageLayout(props) {
 
     return (
         <View style={containerStyles}>
-            {!(props.isSmallScreenWidth || props.isInModal) ? (
+            {!(showSmallScreen) ? (
                 <View style={contentContainerStyles}>
                     <SignInPageContent
                         welcomeHeader={props.welcomeHeader}

@@ -155,7 +155,7 @@ function SignInPage({credentials, account, isInModal}) {
                     isVisible={shouldShowLoginForm}
                     blurOnSubmit={account.validated === false}
                 />
-                {shouldShowValidateCodeForm && <ValidateCodeForm isInModal={isInModal} />}
+                {shouldShowValidateCodeForm && <ValidateCodeForm />}
                 {shouldShowUnlinkLoginForm && <UnlinkLoginForm />}
                 {shouldShowEmailDeliveryFailurePage && <EmailDeliveryFailurePage />}
             </SignInPageLayout>
