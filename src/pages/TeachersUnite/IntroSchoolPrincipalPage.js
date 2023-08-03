@@ -68,7 +68,7 @@ function IntroSchoolPrincipalPage(props) {
             <Form
                 enabledWhenOffline
                 style={[styles.flexGrow1, styles.ph5]}
-                formID={ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL}
+                formID={ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM}
                 validate={(values) => validate(values)}
                 onSubmit={(values) => onSubmit(values)}
                 submitButtonText={props.translate('common.letsStart')}

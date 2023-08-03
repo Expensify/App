@@ -80,7 +80,7 @@ function KnowATeacherPage(props) {
             <Form
                 enabledWhenOffline
                 style={[styles.flexGrow1, styles.ph5]}
-                formID={ONYXKEYS.FORMS.I_KNOW_A_TEACHER}
+                formID={ONYXKEYS.FORMS.I_KNOW_A_TEACHER_FORM}
                 validate={(values) => validate(values)}
                 onSubmit={(values) => onSubmit(values)}
                 submitButtonText={props.translate('common.letsDoThis')}
