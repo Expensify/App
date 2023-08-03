@@ -29,6 +29,8 @@ import FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
 import ReimbursementAccount from './ReimbursementAccount';
 import ReimbursementAccountDraft from './ReimbursementAccountDraft';
 import WalletTransfer from './WalletTransfer';
+import ReceiptModal from './ReceiptModal';
+
 import Download from './Download';
 import PolicyMember from './PolicyMember';
 import Policy from './Policy';
@@ -37,6 +39,7 @@ import ReportAction from './ReportAction';
 import ReportActionReactions from './ReportActionReactions';
 import SecurityGroup from './SecurityGroup';
 import Transaction from './Transaction';
+
 import Form, {AddDebitCardForm} from './Form';
 
 export type {
@@ -71,6 +74,7 @@ export type {
     ReimbursementAccountDraft,
     FrequentlyUsedEmoji,
     WalletTransfer,
+    ReceiptModal,
     Download,
     PolicyMember,
     Policy,

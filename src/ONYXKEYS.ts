@@ -196,6 +196,12 @@ const ONYXKEYS = {
     // Experimental memory only Onyx mode flag
     IS_USING_MEMORY_ONLY_KEYS: 'isUsingMemoryOnlyKeys',
 
+    // Manual request tab selector
+    SELECTED_TAB: 'selectedTab',
+
+    // Receipt upload modal
+    RECEIPT_MODAL: 'receiptModal',
+
     /** Collection Keys */
     COLLECTION: {
         DOWNLOAD: 'download_',
@@ -308,6 +314,8 @@ type OnyxValues = {
     [ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID]: string;
     [ONYXKEYS.PREFERRED_THEME]: ValueOf<typeof CONST.THEME>;
     [ONYXKEYS.IS_USING_MEMORY_ONLY_KEYS]: boolean;
+    [ONYXKEYS.SELECTED_TAB]: string;
+    [ONYXKEYS.RECEIPT_MODAL]: OnyxTypes.ReceiptModal;
 
     // Collections
     [ONYXKEYS.COLLECTION.DOWNLOAD]: OnyxTypes.Download;

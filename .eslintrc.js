@@ -132,6 +132,7 @@ module.exports = {
                 '@typescript-eslint/no-non-null-assertion': 'error',
                 '@typescript-eslint/switch-exhaustiveness-check': 'error',
                 '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
+                '@typescript-eslint/no-floating-promises': 'off',
                 'es/no-nullish-coalescing-operators': 'off',
                 'es/no-optional-chaining': 'off',
                 'valid-jsdoc': 'off',
