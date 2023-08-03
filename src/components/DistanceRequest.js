@@ -15,6 +15,7 @@ import Button from './Button';
 import styles from '../styles/styles';
 import LinearGradient from './LinearGradient';
 
+const MAX_WAYPOINTS = 25;
 const propTypes = {
     /** The transactionID of this request */
     transactionID: PropTypes.string,
@@ -109,7 +110,7 @@ function DistanceRequest({transactionID, transaction, translate}) {
                     icon={Expensicons.Plus}
                     onPress={() => Transaction.addStop(transactionID, lastWaypointIndex + 1)}
                     text={translate('distance.addStop')}
-                    isDisabled={false}
+                    isDisabled={_.size(waypoints) === MAX_WAYPOINTS}
                     innerStyles={[styles.ph10]}
                 />
             </View>
