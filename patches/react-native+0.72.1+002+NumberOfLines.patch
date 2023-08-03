@@ -202,7 +202,7 @@ index df89097..3b223ec 100644
          onChange={_onChange}
          onFocus={_onFocus}
 diff --git a/node_modules/react-native/Libraries/Text/Text.js b/node_modules/react-native/Libraries/Text/Text.js
-index df548af..d9ff432 100644
+index df548af..e02f5da 100644
 --- a/node_modules/react-native/Libraries/Text/Text.js
 +++ b/node_modules/react-native/Libraries/Text/Text.js
 @@ -18,7 +18,11 @@ import processColor from '../StyleSheet/processColor';
@@ -226,7 +226,7 @@ index df548af..d9ff432 100644
      ...restProps
    } = props;
  
-@@ -192,14 +197,26 @@ const Text: React.AbstractComponent<
+@@ -192,14 +197,33 @@ const Text: React.AbstractComponent<
      }
    }
  
@@ -240,22 +240,29 @@ index df548af..d9ff432 100644
 +    numberOfLinesValue = 0;
    }
  
-+  const numberOfLinesProps = useMemo((): {maximumNumberOfLines?: ?number, numberOfLines?: ?number } => {
-+    if (CONTAINS_MAX_NUMBER_OF_LINES_RENAME) {
-+      return {
-+        maximumNumberOfLines: numberOfLinesValue,
-+      };
-+    } else {
-+      return {
-+        numberOfLines: numberOfLinesValue,
-+      };
-+    }
++  const numberOfLinesProps = useMemo((): {
++    maximumNumberOfLines?: ?number,
++    numberOfLines?: ?number,
++  } => {
++    // FIXME: Current logic is breaking all Text components.
++    // if (CONTAINS_MAX_NUMBER_OF_LINES_RENAME) {
++    //   return {
++    //     maximumNumberOfLines: numberOfLinesValue,
++    //   };
++    // } else {
++    //   return {
++    //     numberOfLines: numberOfLinesValue,
++    //   };
++    // }
++    return {
++      maximumNumberOfLines: numberOfLinesValue,
++    };
 +  }, [numberOfLinesValue]);
 +
    const hasTextAncestor = useContext(TextAncestor);
  
    const _accessible = Platform.select({
-@@ -241,7 +258,6 @@ const Text: React.AbstractComponent<
+@@ -241,7 +265,6 @@ const Text: React.AbstractComponent<
        isHighlighted={isHighlighted}
        isPressable={isPressable}
        nativeID={id ?? nativeID}
@@ -263,7 +270,7 @@ index df548af..d9ff432 100644
        ref={forwardedRef}
        selectable={_selectable}
        selectionColor={selectionColor}
-@@ -252,6 +268,7 @@ const Text: React.AbstractComponent<
+@@ -252,6 +275,7 @@ const Text: React.AbstractComponent<
        <NativeText
          {...restProps}
          {...eventHandlersForText}
@@ -271,7 +278,7 @@ index df548af..d9ff432 100644
          accessibilityLabel={ariaLabel ?? accessibilityLabel}
          accessibilityRole={
            role ? getAccessibilityRoleFromRole(role) : accessibilityRole
-@@ -267,7 +284,6 @@ const Text: React.AbstractComponent<
+@@ -267,7 +291,6 @@ const Text: React.AbstractComponent<
          ellipsizeMode={ellipsizeMode ?? 'tail'}
          isHighlighted={isHighlighted}
          nativeID={id ?? nativeID}
