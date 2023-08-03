@@ -466,7 +466,7 @@ function isConciergeChatReport(report) {
  * @returns {Boolean}
  */
 
-function canShareTaskInReport(report) {
+function isExpensifyChatReport(report) {
     const reportParticipants = _.without(lodashGet(report, 'participantAccountIDs', []), currentUserAccountID);
     return lodashGet(report, 'participantAccountIDs', []).length === 1 && _.some(reportParticipants, (accountID) => _.contains(CONST.EXPENSIFY_ACCOUNT_IDS, accountID));
 }
@@ -2845,7 +2845,6 @@ export {
     findLastAccessedReport,
     canEditReportAction,
     canFlagReportAction,
-    canShareTaskInReport,
     shouldShowFlagComment,
     canDeleteReportAction,
     canLeaveRoom,
@@ -2860,6 +2859,7 @@ export {
     getPolicyName,
     getPolicyType,
     isArchivedRoom,
+    isExpensifyChatReport,
     isPolicyExpenseChatAdmin,
     isPolicyAdmin,
     isPublicRoom,

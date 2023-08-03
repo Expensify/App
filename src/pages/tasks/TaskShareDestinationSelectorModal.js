@@ -53,7 +53,7 @@ function TaskShareDestinationSelectorModal(props) {
             if (
                 !ReportUtils.isAllowedToComment(props.reports[reportKey]) ||
                 ReportUtils.isArchivedRoom(props.reports[reportKey]) ||
-                ReportUtils.canShareTaskInReport(props.reports[reportKey])
+                ReportUtils.isExpensifyChatReport(props.reports[reportKey])
             ) {
                 return;
             }
