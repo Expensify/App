@@ -52,7 +52,7 @@ function Modal(props) {
                         }
                         props.onClose();
                     }}
-                    style={styles.modalBackdrop}
+                    style={styles.modalBackdropWeb}
                     accessibilityLabel="backdrop"
                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.ADJUSTABLE}
                 />

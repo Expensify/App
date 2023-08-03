@@ -2753,7 +2753,7 @@ const styles = {
         height: '100%',
     },
 
-    modalBackdrop: {
+    modalBackdropWeb: {
         position: 'fixed',
         top: 0,
         bottom: 0,
