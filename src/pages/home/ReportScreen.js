@@ -149,7 +149,6 @@ function ReportScreen({
     const shouldHideReport = !ReportUtils.canAccessReport(report, policies, betas);
 
     const isLoading = !reportID || !isSidebarLoaded || _.isEmpty(personalDetails) || firstRenderRef.current;
-    firstRenderRef.current = false;
 
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
     const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(parentReportAction);
@@ -241,6 +240,7 @@ function ReportScreen({
         },
         [route],
     );
+
     useEffect(() => {
         const unsubscribeVisibilityListener = Visibility.onVisibilityChange(() => {
             // If the report is not fully visible (AKA on small screen devices and LHR is open) or the report is optimistic (AKA not yet created)
@@ -254,6 +254,7 @@ function ReportScreen({
 
         fetchReportIfNeeded();
         ComposerActions.setShouldShowComposeInput(true);
+        prevReportRef.current = report;
 
         return () => {
             if (!unsubscribeVisibilityListener) {
@@ -261,13 +262,19 @@ function ReportScreen({
             }
             unsubscribeVisibilityListener();
         };
-        // disabling the warning, as it expects to use exhaustive deps, even though we want this useEffect to run only on the first render.
+        // I'm disabling the warning, as it expects to use exhaustive deps, even though we want this useEffect to run only on the first render.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
-        // If composer should be hidden, hide emoji picker as well
+        // We don't want this effect to run on the first render.
+        if (firstRenderRef.current) {
+            firstRenderRef.current = false;
+            return;
+        }
+
         if (ReportUtils.shouldHideComposer(report, errors)) {
+            // If composer should be hidden, hide emoji picker as well
             EmojiPickerAction.hideEmojiPicker(true);
         }
         const onyxReportID = report.reportID;
