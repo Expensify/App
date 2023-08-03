@@ -36,8 +36,8 @@ function createModalStackNavigator(screens) {
 const MoneyRequestModalStackNavigator = createModalStackNavigator([
     {
         getComponent: () => {
-            const MoneyRequestAmountPage = require('../../../pages/iou/steps/NewRequestAmountPage').default;
-            return MoneyRequestAmountPage;
+            const MoneyRequestSelectorPage = require('../../../pages/iou/MoneyRequestSelectorPage').default;
+            return MoneyRequestSelectorPage;
         },
         name: 'Money_Request',
     },
