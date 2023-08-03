@@ -1,7 +1,5 @@
 import PropTypes from 'prop-types';
 import walletTransferPropTypes from '../walletTransferPropTypes';
-import {withLocalizePropTypes} from '../../../../components/withLocalize';
-import {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
 import networkPropTypes from '../../../../components/networkPropTypes';
 import bankAccountPropTypes from '../../../../components/bankAccountPropTypes';
 import cardPropTypes from '../../../../components/cardPropTypes';
@@ -34,15 +32,14 @@ const propTypes = {
     /** List of cards */
     cardList: PropTypes.objectOf(cardPropTypes),
 
+    /** List of cards */
+    fundList: PropTypes.objectOf(cardPropTypes),
+
     /** Information about the user accepting the terms for payments */
     walletTerms: walletTermsPropTypes,
 
     /** Account details for PayPal.Me */
     payPalMeData: paypalMeDataPropTypes,
-
-    ...withLocalizePropTypes,
-
-    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
@@ -54,7 +51,8 @@ const defaultProps = {
     shouldListenForResize: false,
     userWallet: {},
     bankAccountList: {},
-    cardList: {},
+    cardList: null,
+    fundList: null,
     walletTerms: {},
     payPalMeData: {},
 };
