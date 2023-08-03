@@ -142,8 +142,8 @@ const CONST = {
     },
 
     DESKTOP_SHORTCUT_ACCELERATOR: {
-        PASTE_AND_MATCH_STYLE: `Option+Shift+CmdOrCtrl+V`,
-        PASTE_AS_PLAIN_TEXT: `CmdOrCtrl+Shift+V`,
+        PASTE_AND_MATCH_STYLE: 'Option+Shift+CmdOrCtrl+V',
+        PASTE_AS_PLAIN_TEXT: 'CmdOrCtrl+Shift+V',
     },
 
     // This is used to enable a rotation/transform style to any component.
