@@ -787,7 +787,6 @@ export {
     cancelTask,
     dismissModalAndClearOutTaskInfo,
     getTaskAssigneeAccountID,
-    isTaskAssigneeOrTaskOwner,
     clearEditTaskErrors,
     canModifyTask,
 };
