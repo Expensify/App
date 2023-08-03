@@ -30,6 +30,7 @@ function DeeplinkWrapper({children}) {
             App.beginDeepLinkRedirectAfterTransition();
             return;
         }
+
         App.beginDeepLinkRedirect();
     }, []);
 
