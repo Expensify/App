@@ -625,6 +625,25 @@ function cancelTask(taskReportID, taskTitle, originalStateNum, originalStatusNum
     const parentReportAction = ReportActionsUtils.getParentReportAction(taskReport);
     const parentReport = ReportUtils.getParentReport(taskReport);
 
+    const optimisticReportActions = {
+        [parentReportAction.reportActionID]: {
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            previousMessage: parentReportAction.message,
+            message: [{
+                translationKey: '',
+                type: 'COMMENT',
+                html: '',
+                text: '',
+                isEdited: true,
+                isDeletedParentAction: true,
+            }],
+            errors: null,
+            linkMetaData: [],
+        },
+    };
+
+    // TODO: Figure out some way to get the previous message to show in the LHN for the parent report
+
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -633,6 +652,7 @@ function cancelTask(taskReportID, taskTitle, originalStateNum, originalStatusNum
                 lastVisibleActionCreated: optimisticCancelReportAction.created,
                 lastMessageText: message,
                 lastActorAccountID: optimisticCancelReportAction.actorAccountID,
+                updateReportInLHN: true,
             },
         },
         {
@@ -645,24 +665,8 @@ function cancelTask(taskReportID, taskTitle, originalStateNum, originalStatusNum
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport.reportID}`,
-            value: {
-                [parentReportAction.reportActionID]: {
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                    previousMessage: parentReportAction.message,
-                    message: {
-                        translationKey: '',
-                        type: 'COMMENT',
-                        html: '',
-                        text: '',
-                        isEdited: true,
-                        isDeletedParentAction: true,
-                    },
-                    errors: null,
-                    linkMetaData: [],
-                },
-            },
-        }
-
+            value: optimisticReportActions,
+        },
     ];
 
     const successData = [
