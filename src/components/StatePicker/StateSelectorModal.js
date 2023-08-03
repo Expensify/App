@@ -43,7 +43,7 @@ function filterOptions(searchValue, data) {
         return [];
     }
 
-    return _.filter(data, (country) => country.searchValue.includes(searchValueWithOnlyAlphabets));
+    return _.filter(data, (countryState) => countryState.searchValue.includes(searchValueWithOnlyAlphabets) || countryState.value.toLowerCase().includes(searchValueWithOnlyAlphabets));
 }
 
 function StateSelectorModal({currentState, isVisible, onClose, onStateSelected, searchValue, setSearchValue, label}) {
