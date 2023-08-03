@@ -12,7 +12,6 @@ import FormHelpMessage from './FormHelpMessage';
 import {withNetwork} from './OnyxProvider';
 import networkPropTypes from './networkPropTypes';
 import useNetwork from '../hooks/useNetwork';
-import * as Browser from '../libs/Browser';
 
 const propTypes = {
     /** Information about the network */
@@ -238,11 +237,6 @@ function MagicCodeInput(props) {
         }
     };
 
-    // We need to check the browser because, in iOS Safari, an input in a container with its opacity set to
-    // 0 (completely transparent) cannot handle user interaction, hence the Paste option is never shown.
-    // Alternate styling will be applied based on this condition.
-    const isMobileSafari = Browser.isMobileSafari();
-
     return (
         <>
             <View style={[styles.magicCodeInputContainer]}>
@@ -261,7 +255,8 @@ function MagicCodeInput(props) {
                         >
                             <Text style={[styles.magicCodeInput, styles.textAlignCenter]}>{decomposeString(props.value, props.maxLength)[index] || ''}</Text>
                         </View>
-                        <View style={[StyleSheet.absoluteFillObject, styles.w100, isMobileSafari ? styles.bgTransparent : styles.opacity0]}>
+                        {/* Hide the input above the text. Cannot set opacity to 0 as it would break pasting on iOS Safari. */}
+                        <View style={[StyleSheet.absoluteFillObject, styles.w100, styles.bgTransparent]}>
                             <TextInput
                                 ref={(ref) => (inputRefs.current[index] = ref)}
                                 autoFocus={index === 0 && props.autoFocus}
@@ -285,8 +280,11 @@ function MagicCodeInput(props) {
                                 }}
                                 onKeyPress={onKeyPress}
                                 onFocus={(event) => onFocus(event, index)}
-                                caretHidden={isMobileSafari}
-                                inputStyle={[isMobileSafari ? styles.magicCodeInputTransparent : undefined]}
+                                // Manually set selectionColor to make caret transparent.
+                                // We cannot use caretHidden as it breaks the pasting function on Android.
+                                selectionColor="transparent"
+                                textInputContainerStyles={[styles.borderNone]}
+                                inputStyle={[styles.inputTransparent]}
                                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                             />
                         </View>
