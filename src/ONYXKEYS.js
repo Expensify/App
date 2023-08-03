@@ -238,4 +238,10 @@ export default {
 
     // Experimental memory only Onyx mode flag
     IS_USING_MEMORY_ONLY_KEYS: 'isUsingMemoryOnlyKeys',
+
+    // Manual request tab selector
+    SELECTED_TAB: 'selectedTab',
+
+    // Receipt upload modal
+    RECEIPT_MODAL: 'receiptModal',
 };
