@@ -98,11 +98,12 @@ function IntroSchoolPrincipalPage(props) {
                 </View>
                 <View>
                     <TextInput
+                        inputID="email"
+                        name="email"
                         label={props.translate('teachersUnitePage.principalWorkEmail')}
                         accessibilityLabel={props.translate('teachersUnitePage.principalWorkEmail')}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         keyboardType={CONST.KEYBOARD_TYPE.EMAIL_ADDRESS}
-                        inputID="email"
                         autoCapitalize="none"
                     />
                 </View>

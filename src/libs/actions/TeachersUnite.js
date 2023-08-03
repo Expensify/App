@@ -29,30 +29,29 @@ Onyx.connect({
  * @param {String} values.phoneOrEmail
  * @param {String} [values.lastName]
  */
-// Will be removed once we start using & remove this comment as well :)
-// eslint-disable-next-line no-unused-vars
+
 function referTeachersUniteVolunteer(reportID, firstName, phoneOrEmail, lastName = '') {
-    // const optimisticData = [
-    //     {
-    //         onyxMethod: Onyx.METHOD.MERGE,
-    //         key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-    //         value: {
-    //             firstName,
-    //             lastName,
-    //             phoneOrEmail,
-    //         },
-    //     },
-    // ];
-    // API.write(
-    //     'ReferTeachersUniteVolunteer',
-    //     {
-    //         reportID,
-    //         firstName,
-    //         lastName,
-    //         phoneOrEmail,
-    //     },
-    //     {optimisticData},
-    // );
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                firstName,
+                lastName,
+                phoneOrEmail,
+            },
+        },
+    ];
+    API.write(
+        'ReferTeachersUniteVolunteer',
+        {
+            reportID,
+            firstName,
+            lastName,
+            phoneOrEmail,
+        },
+        {optimisticData},
+    );
     Navigation.dismissModal(CONST.TEACHER_UNITE.PUBLIC_ROOM_ID);
 }
 
@@ -62,8 +61,7 @@ function referTeachersUniteVolunteer(reportID, firstName, phoneOrEmail, lastName
  * @param {String} email
  * @param {String} [lastName]
  */
-// Will be removed once we start using & remove this comment as well :)
-// eslint-disable-next-line no-unused-vars
+
 function createExpenseChatSchoolPrincipal(firstName, email, lastName = '') {
     const policyName = 'TeacherUniteSchoolPrincipal';
     const policyID = CONST.TEACHER_UNITE.SCHOOL_PRINCIPAL_POLICY_ID;
