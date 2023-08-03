@@ -118,11 +118,11 @@ function ReportParticipantsPage(props) {
                                 }}
                                 hideSectionHeaders
                                 showTitleTooltip
+                                showScrollIndicator
                                 disableFocusOptions
                                 boldStyle
                                 optionHoveredStyle={styles.hoveredComponentBG}
                                 contentContainerStyles={[safeAreaPaddingBottomStyle]}
-                                showScrollIndicator={true}
                             />
                         )}
                     </View>

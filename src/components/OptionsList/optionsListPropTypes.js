@@ -77,7 +77,7 @@ const propTypes = {
     shouldDisableRowInnerPadding: PropTypes.bool,
 
     /** Whether to show the Scrollbar */
-    showScrollIndicator: PropTypes.bool
+    showScrollIndicator: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -100,7 +100,7 @@ const defaultProps = {
     onLayout: undefined,
     shouldHaveOptionSeparator: false,
     shouldDisableRowInnerPadding: false,
-    showScrollIndicator: false
+    showScrollIndicator: false,
 };
 
 export {propTypes, defaultProps};

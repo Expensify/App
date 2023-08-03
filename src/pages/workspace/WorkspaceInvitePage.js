@@ -221,7 +221,7 @@ function WorkspaceInvitePage(props) {
                                 onChangeText={setSearchTerm}
                                 onConfirmSelection={inviteUser}
                                 headerMessage={headerMessage}
-                                showScrollIndicator={true}
+                                showScrollIndicator
                                 hideSectionHeaders
                                 boldStyle
                                 shouldDelayFocus
