@@ -183,52 +183,46 @@ function AttachmentModal(props) {
      * @param {Object} _file
      * @returns {Boolean}
      */
-    const isValidFile = useCallback(
-        (_file) => {
-            const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(_file, 'name', ''));
-            if (_.contains(CONST.API_ATTACHMENT_VALIDATIONS.UNALLOWED_EXTENSIONS, fileExtension.toLowerCase())) {
-                const invalidReason = 'attachmentPicker.notAllowedExtension';
+    const isValidFile = useCallback((_file) => {
+        const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(_file, 'name', ''));
+        if (_.contains(CONST.API_ATTACHMENT_VALIDATIONS.UNALLOWED_EXTENSIONS, fileExtension.toLowerCase())) {
+            const invalidReason = 'attachmentPicker.notAllowedExtension';
 
-                setIsAttachmentInvalid(true);
-                setAttachmentInvalidReasonTitle('attachmentPicker.wrongFileType');
-                setAttachmentInvalidReason(invalidReason);
-                return false;
-            }
+            setIsAttachmentInvalid(true);
+            setAttachmentInvalidReasonTitle('attachmentPicker.wrongFileType');
+            setAttachmentInvalidReason(invalidReason);
+            return false;
+        }
 
-            if (lodashGet(_file, 'size', 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
-                setIsAttachmentInvalid(true);
-                setAttachmentInvalidReasonTitle('attachmentPicker.attachmentTooLarge');
-                setAttachmentInvalidReason('attachmentPicker.sizeExceeded');
-                return false;
-            }
+        if (lodashGet(_file, 'size', 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+            setIsAttachmentInvalid(true);
+            setAttachmentInvalidReasonTitle('attachmentPicker.attachmentTooLarge');
+            setAttachmentInvalidReason('attachmentPicker.sizeExceeded');
+            return false;
+        }
 
-            if (lodashGet(_file, 'size', 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
-                setIsAttachmentInvalid(true);
-                setAttachmentInvalidReasonTitle('attachmentPicker.attachmentTooSmall');
-                setAttachmentInvalidReason('attachmentPicker.sizeNotMet');
-                return false;
-            }
+        if (lodashGet(_file, 'size', 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
+            setIsAttachmentInvalid(true);
+            setAttachmentInvalidReasonTitle('attachmentPicker.attachmentTooSmall');
+            setAttachmentInvalidReason('attachmentPicker.sizeNotMet');
+            return false;
+        }
 
-            return true;
-        },
-        [],
-    );
+        return true;
+    }, []);
     /**
      * @param {Object} _data
      * @returns {Boolean}
      */
-    const isDirectoryCheck = useCallback(
-        (_data) => {
-            if (typeof _data.webkitGetAsEntry === 'function' && _data.webkitGetAsEntry().isDirectory) {
-                setIsAttachmentInvalid(true);
-                setAttachmentInvalidReasonTitle('attachmentPicker.attachmentError');
-                setAttachmentInvalidReason('attachmentPicker.folderNotAllowedMessage');
-                return false;
-            }
-            return true;
-        },
-        [],
-    );
+    const isDirectoryCheck = useCallback((_data) => {
+        if (typeof _data.webkitGetAsEntry === 'function' && _data.webkitGetAsEntry().isDirectory) {
+            setIsAttachmentInvalid(true);
+            setAttachmentInvalidReasonTitle('attachmentPicker.attachmentError');
+            setAttachmentInvalidReason('attachmentPicker.folderNotAllowedMessage');
+            return false;
+        }
+        return true;
+    }, []);
 
     /**
      * @param {Object} _data
