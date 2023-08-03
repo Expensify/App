@@ -421,12 +421,14 @@ function MoneyRequestAmountPage(props) {
     const formattedAmount = replaceAllDigits(amount, toLocaleDigit);
     const buttonText = isEditing.current ? translate('common.save') : translate('common.next');
 
-    return (
-        <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType.current)}>
-            <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
-                onEntryTransitionEnd={focusTextInput}
+    const content = (
+        <>
+            <View
+                nativeID={amountViewID}
+                onMouseDown={(event) => onMouseDown(event, [amountViewID])}
+                style={[styles.flex1, styles.flexRow, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}
             >
+<<<<<<< HEAD:src/pages/iou/steps/MoneyRequestAmountPage.js
                 {({safeAreaPaddingBottomStyle}) => (
                     <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                         <HeaderWithBackButton
@@ -479,9 +481,74 @@ function MoneyRequestAmountPage(props) {
                             />
                         </View>
                     </View>
+=======
+                <TextInputWithCurrencySymbol
+                    formattedAmount={formattedAmount}
+                    onChangeAmount={updateAmount}
+                    onCurrencyButtonPress={navigateToCurrencySelectionPage}
+                    placeholder={numberFormat(0)}
+                    ref={(el) => (textInput.current = el)}
+                    selectedCurrencyCode={selectedCurrencyCode}
+                    selection={selection}
+                    onSelectionChange={(e) => {
+                        if (!shouldUpdateSelection) {
+                            return;
+                        }
+                        setSelection(e.nativeEvent.selection);
+                    }}
+                />
+            </View>
+            <View
+                onMouseDown={(event) => onMouseDown(event, [numPadContainerViewID, numPadViewID])}
+                style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper]}
+                nativeID={numPadContainerViewID}
+            >
+                {DeviceCapabilities.canUseTouchScreen() ? (
+                    <BigNumberPad
+                        nativeID={numPadViewID}
+                        numberPressed={updateAmountNumberPad}
+                        longPressHandlerStateChanged={updateLongPressHandlerState}
+                    />
+                ) : (
+                    <View />
+>>>>>>> 0aaed18 (Merge pull request #24097 from s77rt/no-nested-screenwrappers):src/pages/iou/steps/MoneyRequestAmount.js
                 )}
-            </ScreenWrapper>
-        </FullPageNotFoundView>
+
+                <Button
+                    success
+                    style={[styles.w100, styles.mt5]}
+                    onPress={navigateToNextPage}
+                    pressOnEnter
+                    isDisabled={!amount.length || parseFloat(amount) < 0.01}
+                    text={buttonText}
+                />
+            </View>
+        </>
+    );
+
+    // ScreenWrapper is only needed in edit mode because we have a dedicated route for the edit amount page (MoneyRequestEditAmountPage).
+    // The rest of the cases this component is rendered through <MoneyRequestSelectorPage /> which has it's own ScreenWrapper
+    if (!isEditing.current) {
+        return content;
+    }
+
+    return (
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            onEntryTransitionEnd={focusTextInput}
+        >
+            {({safeAreaPaddingBottomStyle}) => (
+                <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType.current)}>
+                    <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
+                        <HeaderWithBackButton
+                            title={titleForStep}
+                            onBackButtonPress={navigateBack}
+                        />
+                        {content}
+                    </View>
+                </FullPageNotFoundView>
+            )}
+        </ScreenWrapper>
     );
 }
 
