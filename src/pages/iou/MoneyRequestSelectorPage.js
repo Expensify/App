@@ -1,32 +1,32 @@
 import {withOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
-import React, {useRef, useState} from 'react';
+import React from 'react';
 import lodashGet from 'lodash/get';
-import {compose} from 'underscore';
-import {PortalHost} from '@gorhom/portal';
 import PropTypes from 'prop-types';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../components/withCurrentUserPersonalDetails';
 import ONYXKEYS from '../../ONYXKEYS';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import TabSelector from '../../components/TabSelector';
+import TabSelector from '../../components/TabSelector/TabSelector';
 import CONST from '../../CONST';
 import useLocalize from '../../hooks/useLocalize';
 import * as IOUUtils from '../../libs/IOUUtils';
 import Navigation from '../../libs/Navigation/Navigation';
-import ROUTES from '../../ROUTES';
 import styles from '../../styles/styles';
-import MoneyRequestAmountPage from './steps/MoneyRequestAmountPage';
+import MoneyRequestAmount from './steps/MoneyRequestAmount';
 import ReceiptSelector from './ReceiptSelector';
-import DragAndDrop from '../../components/DragAndDrop';
 import * as IOU from '../../libs/actions/IOU';
 import DistanceRequest from '../../components/DistanceRequest';
 import reportPropTypes from '../reportPropTypes';
 import NavigateToNextIOUPage from './NavigateToNextIOUPage';
 import AttachmentUtils from '../../libs/AttachmentUtils';
+import DragAndDropProvider from '../../components/DragAndDrop/Provider';
+import usePermissions from '../../hooks/usePermissions';
+import OnyxTabNavigator, {TopTab} from '../../libs/Navigation/OnyxTabNavigator';
+import participantPropTypes from '../../components/participantPropTypes';
 
 const propTypes = {
+    /** React Navigation route */
     route: PropTypes.shape({
         params: PropTypes.shape({
             iouType: PropTypes.string,
@@ -34,29 +34,16 @@ const propTypes = {
         }),
     }),
 
-    /** The report on which the request is initiated on */
-    report: reportPropTypes,
-
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     iou: PropTypes.shape({
         id: PropTypes.string,
         amount: PropTypes.number,
         currency: PropTypes.string,
-        participants: PropTypes.arrayOf(
-            PropTypes.shape({
-                accountID: PropTypes.number,
-                login: PropTypes.string,
-                isPolicyExpenseChat: PropTypes.bool,
-                isOwnPolicyExpenseChat: PropTypes.bool,
-                selected: PropTypes.bool,
-            }),
-        ),
+        participants: PropTypes.arrayOf(participantPropTypes),
     }),
 
     /** Which tab has been selected */
-    tabSelected: PropTypes.string,
-
-    ...withCurrentUserPersonalDetailsPropTypes,
+    selectedTab: PropTypes.string,
 };
 
 const defaultProps = {
@@ -66,104 +53,77 @@ const defaultProps = {
             reportID: '',
         },
     },
-    report: {},
     iou: {
         id: '',
         amount: 0,
         currency: CONST.CURRENCY.USD,
         participants: [],
     },
-    tabSelected: CONST.TAB.TAB_MANUAL,
-    ...withCurrentUserPersonalDetailsDefaultProps,
+    selectedTab: CONST.TAB.MANUAL,
 };
 
-function MoneyRequestSelectorPage({route, report, tabSelected, iou, currentUserPersonalDetails}) {
-    const iouType = useRef(lodashGet(route, 'params.iouType', ''));
+function MoneyRequestSelectorPage(props) {
+    const iouType = lodashGet(props.route, 'params.iouType', '');
+    const reportID = lodashGet(props.route, 'params.reportID', '');
     const {translate} = useLocalize();
-
-    const isEditing = useRef(lodashGet(route, 'path', '').includes('amount'));
-    const reportID = useRef(lodashGet(route, 'params.reportID', ''));
+    const {canUseScanReceipts} = usePermissions();
 
     const title = {
         [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST]: translate('iou.requestMoney'),
         [CONST.IOU.MONEY_REQUEST_TYPE.SEND]: translate('iou.sendMoney'),
         [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT]: translate('iou.splitBill'),
     };
-    const titleForStep = isEditing.current ? translate('iou.amount') : title[iouType.current];
 
-    const navigateBack = () => {
-        Navigation.goBack(isEditing.current ? ROUTES.getMoneyRequestConfirmationRoute(iouType.current, reportID.current) : null);
+    const resetMoneyRequestInfo = () => {
+        const moneyRequestID = `${iouType}${reportID}`;
+        IOU.resetMoneyRequestInfo(moneyRequestID);
     };
 
-    const selectedTab = tabSelected || CONST.TAB.TAB_MANUAL;
-    const [isDraggingOver, setIsDraggingOver] = useState(false);
-
     return (
-        <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType.current)}>
-            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-                {({safeAreaPaddingBottomStyle}) => (
-                    <DragAndDrop
-                        dropZoneId={CONST.RECEIPT.DROP_NATIVE_ID}
-                        activeDropZoneId={CONST.RECEIPT.ACTIVE_DROP_NATIVE_ID}
-                        onDragEnter={() => {
-                            setIsDraggingOver(true);
-                        }}
-                        onDragLeave={() => {
-                            setIsDraggingOver(false);
-                        }}
-                        onDrop={(e) => {
-                            e.preventDefault();
-                            setIsDraggingOver(false);
-                            const file = lodashGet(e, ['dataTransfer', 'files', 0]);
-
-                            if (!AttachmentUtils.isValidFile(translate, file)) {
-                                return;
-                            }
-
-                            const filePath = URL.createObjectURL(file);
-                            IOU.setMoneyRequestReceipt(filePath, file.name);
-                            NavigateToNextIOUPage(iou, iouType, reportID, report, currentUserPersonalDetails);
-                        }}
-                    >
-                        <View
-                            nativeID={CONST.RECEIPT.DROP_NATIVE_ID}
-                            style={[styles.flex1, safeAreaPaddingBottomStyle]}
-                        >
+        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+            {({safeAreaPaddingBottomStyle}) => (
+                <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType)}>
+                    <DragAndDropProvider isDisabled={props.selectedTab === CONST.TAB.MANUAL}>
+                        <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                             <HeaderWithBackButton
-                                title={titleForStep}
-                                onBackButtonPress={navigateBack}
+                                title={title[iouType]}
+                                onBackButtonPress={Navigation.dismissModal}
                             />
-                            <TabSelector />
-                            {selectedTab === CONST.TAB.TAB_MANUAL && (
-                                <MoneyRequestAmountPage
-                                    route={route}
-                                    report={report}
-                                    iou={iou}
-                                    currentUserPersonalDetails={currentUserPersonalDetails}
-                                />
+                            {canUseScanReceipts && iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST ? (
+                                <OnyxTabNavigator
+                                    id={CONST.TAB.RECEIPT_TAB_ID}
+                                    tabBar={({state, navigation}) => (
+                                        <TabSelector
+                                            state={state}
+                                            navigation={navigation}
+                                            onTabPress={resetMoneyRequestInfo}
+                                        />
+                                    )}
+                                >
+                                    <TopTab.Screen
+                                        name={CONST.TAB.MANUAL}
+                                        component={MoneyRequestAmount}
+                                        initialParams={{reportID, iouType}}
+                                    />
+                                    <TopTab.Screen
+                                        name={CONST.TAB.SCAN}
+                                        component={ReceiptSelector}
+                                        initialParams={{reportID, iouType}}
+                                    />
+                                    <TopTab.Screen
+                                        name={CONST.TAB.DISTANCE}
+                                        component={DistanceRequest}
+                                        initialParams={{route, report, iou}}
+                                    />
+                                </OnyxTabNavigator>
+                            ) : (
+                                <MoneyRequestAmount route={props.route} />
                             )}
-                            {selectedTab === CONST.TAB.TAB_SCAN && (
-                                <ReceiptSelector
-                                    route={route}
-                                    report={report}
-                                    iou={iou}
-                                    isDraggingOver={isDraggingOver}
-                                    currentUserPersonalDetails={currentUserPersonalDetails}
-                                />
-                            )}
-                            {selectedTab === CONST.TAB.TAB_DISTANCE && (
-                                <DistanceRequest
-                                    route={route}
-                                    report={report}
-                                    iou={iou}
-                                />
-                            )}
-                            <PortalHost name={CONST.RECEIPT.DROP_HOST_NAME} />
                         </View>
-                    </DragAndDrop>
-                )}
-            </ScreenWrapper>
-        </FullPageNotFoundView>
+                    </DragAndDropProvider>
+                </FullPageNotFoundView>
+            )}
+        </ScreenWrapper>
     );
 }
 
@@ -171,13 +131,8 @@ MoneyRequestSelectorPage.propTypes = propTypes;
 MoneyRequestSelectorPage.defaultProps = defaultProps;
 MoneyRequestSelectorPage.displayName = 'MoneyRequestSelectorPage';
 
-export default compose(
-    withCurrentUserPersonalDetails,
-    withOnyx({
-        iou: {key: ONYXKEYS.IOU},
-        report: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '')}`,
-        },
-        tabSelected: {key: ONYXKEYS.TAB_SELECTOR},
-    }),
-)(MoneyRequestSelectorPage);
+export default withOnyx({
+    selectedTab: {
+        key: `${ONYXKEYS.SELECTED_TAB}_${CONST.TAB.RECEIPT_TAB_ID}`,
+    },
+})(MoneyRequestSelectorPage);

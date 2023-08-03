@@ -1,13 +1,11 @@
 import {View, Text, PixelRatio} from 'react-native';
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useContext, useState} from 'react';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import * as IOU from '../../../libs/actions/IOU';
 import reportPropTypes from '../../reportPropTypes';
-import personalDetailsPropType from '../../personalDetailsPropType';
 import CONST from '../../../CONST';
-import {withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
 import ReceiptUpload from '../../../../assets/images/receipt-upload.svg';
 import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
 import Button from '../../../components/Button';
@@ -15,13 +13,13 @@ import styles from '../../../styles/styles';
 import CopyTextToClipboard from '../../../components/CopyTextToClipboard';
 import ReceiptDropUI from '../ReceiptDropUI';
 import AttachmentPicker from '../../../components/AttachmentPicker';
-import NavigateToNextIOUPage from '../NavigateToNextIOUPage';
 import ConfirmModal from '../../../components/ConfirmModal';
-import AttachmentUtils from '../../../libs/AttachmentUtils';
 import ONYXKEYS from '../../../ONYXKEYS';
 import Receipt from '../../../libs/actions/Receipt';
 import useWindowDimensions from '../../../hooks/useWindowDimensions';
 import useLocalize from '../../../hooks/useLocalize';
+import {DragAndDropContext} from '../../../components/DragAndDrop/Provider';
+import ReceiptUtils from '../../../libs/ReceiptUtils';
 
 const propTypes = {
     /** Information shown to the user when a receipt is not valid */
@@ -31,16 +29,15 @@ const propTypes = {
         attachmentInvalidReason: PropTypes.string,
     }),
 
-    /** Route params */
+    /** The report on which the request is initiated on */
+    report: reportPropTypes,
+
     route: PropTypes.shape({
         params: PropTypes.shape({
             iouType: PropTypes.string,
             reportID: PropTypes.string,
         }),
     }),
-
-    /** The report on which the request is initiated on */
-    report: reportPropTypes,
 
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     iou: PropTypes.shape({
@@ -57,12 +54,6 @@ const propTypes = {
             }),
         ),
     }),
-
-    /** Current user personal details */
-    currentUserPersonalDetails: personalDetailsPropType,
-
-    /** Used by drag and drop to determine if we have a file dragged over the view */
-    isDraggingOver: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -71,117 +62,106 @@ const defaultProps = {
         attachmentInvalidReasonTitle: '',
         attachmentInvalidReason: '',
     },
+    report: {},
     route: {
         params: {
             iouType: '',
             reportID: '',
         },
     },
-    report: {},
     iou: {
         id: '',
         amount: 0,
         currency: CONST.CURRENCY.USD,
         participants: [],
     },
-    ...withCurrentUserPersonalDetailsDefaultProps,
-    isDraggingOver: false,
 };
 
-function ReceiptSelector({route, currentUserPersonalDetails, isDraggingOver, iou, report, receiptModal}) {
-    const iouType = useRef(lodashGet(route, 'params.iouType', ''));
-    const reportID = useRef(lodashGet(route, 'params.reportID', ''));
-    const isAttachmentInvalid = lodashGet(receiptModal, 'isAttachmentInvalid', false);
-    const attachmentInvalidReasonTitle = lodashGet(receiptModal, 'attachmentInvalidReasonTitle', '');
-    const attachmentInvalidReason = lodashGet(receiptModal, 'attachmentInvalidReason', '');
+function ReceiptSelector(props) {
+    const reportID = lodashGet(props.route, 'params.reportID', '');
+    const iouType = lodashGet(props.route, 'params.iouType', '');
+    const isAttachmentInvalid = lodashGet(props.receiptModal, 'isAttachmentInvalid', false);
+    const attachmentInvalidReasonTitle = lodashGet(props.receiptModal, 'attachmentInvalidReasonTitle', '');
+    const attachmentInvalidReason = lodashGet(props.receiptModal, 'attachmentInvalidReason', '');
     const [receiptImageTopPosition, setReceiptImageTopPosition] = useState(0);
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
+    const {isDraggingOver} = useContext(DragAndDropContext);
 
     /**
-     * Close the confirm modal.
+     * Sets the Receipt objects and navigates the user to the next page
+     * @param {Object} file
+     * @param {Object} iou
+     * @param {Object} report
      */
-    const closeConfirmModal = useCallback(() => {
-        Receipt.clearUploadReceiptError();
-    }, []);
+    const setReceiptAndNavigate = (file, iou, report) => {
+        if (!ReceiptUtils.validateReceipt(file)) {
+            return;
+        }
 
-    const uploadText = () =>
-        isSmallScreenWidth ? (
-            <Text style={[styles.subTextReceiptUpload]}>
-                {translate('receipt.chooseReceiptBeforeEmail')}
-                <View style={{flexDirection: 'row'}}>
-                    <CopyTextToClipboard
-                        text="receipts@expensify.com"
-                        textStyles={[styles.textBlue]}
-                    />
-                </View>
-            </Text>
-        ) : (
-            <Text style={[styles.subTextReceiptUpload]}>
-                {translate('receipt.dragReceiptBeforeEmail')}
-                <View style={{flexDirection: 'row'}}>
-                    <CopyTextToClipboard
-                        text="receipts@expensify.com"
-                        textStyles={[styles.textBlue]}
-                    />
-                </View>
-                {translate('receipt.dragReceiptAfterEmail')}
-            </Text>
-        );
-
-    const defaultView = () => (
-        <>
-            <View
-                onLayout={({nativeEvent}) => {
-                    setReceiptImageTopPosition(PixelRatio.roundToNearestPixel(nativeEvent.layout.top));
-                }}
-            >
-                <ReceiptUpload
-                    width={CONST.RECEIPT.ICON_SIZE}
-                    height={CONST.RECEIPT.ICON_SIZE}
-                />
-            </View>
-            <Text style={[styles.textReceiptUpload]}>{translate('receipt.upload')}</Text>
-            {uploadText()}
-            <AttachmentPicker>
-                {({openPicker}) => (
-                    <PressableWithFeedback
-                        accessibilityLabel={translate('receipt.chooseFile')}
-                        accessibilityRole="button"
-                    >
-                        <Button
-                            medium
-                            success
-                            text={translate('receipt.chooseFile')}
-                            style={[styles.buttonReceiptUpload]}
-                            onPress={() => {
-                                openPicker({
-                                    onPicked: (file) => {
-                                        if (!AttachmentUtils.isValidFile(translate, file)) {
-                                            return;
-                                        }
-
-                                        const filePath = URL.createObjectURL(file);
-                                        IOU.setMoneyRequestReceipt(filePath, file.name);
-                                        NavigateToNextIOUPage(iou, iouType, reportID, report, currentUserPersonalDetails);
-                                    },
-                                });
-                            }}
-                        />
-                    </PressableWithFeedback>
-                )}
-            </AttachmentPicker>
-        </>
-    );
+        const filePath = URL.createObjectURL(file);
+        IOU.setMoneyRequestReceipt(filePath, file.name);
+        IOU.navigateToNextPage(iou, iouType, reportID, report);
+    };
 
     return (
         <View style={[styles.uploadReceiptView(isSmallScreenWidth)]}>
-            {!isDraggingOver ? defaultView() : null}
-            {isDraggingOver && <ReceiptDropUI receiptImageTopPosition={receiptImageTopPosition} />}
+            {!isDraggingOver ? (
+                <>
+                    <View
+                        onLayout={({nativeEvent}) => {
+                            setReceiptImageTopPosition(PixelRatio.roundToNearestPixel(nativeEvent.layout.top));
+                        }}
+                    >
+                        <ReceiptUpload
+                            width={CONST.RECEIPT.ICON_SIZE}
+                            height={CONST.RECEIPT.ICON_SIZE}
+                        />
+                    </View>
+                    <Text style={[styles.textReceiptUpload]}>{translate('receipt.upload')}</Text>
+                    <Text style={[styles.subTextReceiptUpload]}>
+                        {isSmallScreenWidth ? translate('receipt.chooseReceipt') : translate('receipt.dragReceiptBeforeEmail')}
+                        <CopyTextToClipboard
+                            text={CONST.EMAIL.RECEIPTS}
+                            textStyles={[styles.textBlue]}
+                        />
+                        {isSmallScreenWidth ? null : translate('receipt.dragReceiptAfterEmail')}
+                    </Text>
+                    <AttachmentPicker>
+                        {({openPicker}) => (
+                            <PressableWithFeedback
+                                accessibilityLabel={translate('receipt.chooseFile')}
+                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                            >
+                                <Button
+                                    medium
+                                    success
+                                    text={translate('receipt.chooseFile')}
+                                    style={[styles.p9]}
+                                    onPress={() => {
+                                        openPicker({
+                                            onPicked: (file) => {
+                                                setReceiptAndNavigate(file, props.iou, props.report);
+                                            },
+                                        });
+                                    }}
+                                />
+                            </PressableWithFeedback>
+                        )}
+                    </AttachmentPicker>
+                </>
+            ) : null}
+            <ReceiptDropUI
+                onDrop={(e) => {
+                    const file = lodashGet(e, ['dataTransfer', 'files', 0]);
+                    setReceiptAndNavigate(file, props.iou, props.report);
+                }}
+                receiptImageTopPosition={receiptImageTopPosition}
+            />
             <ConfirmModal
                 title={attachmentInvalidReasonTitle}
-                onConfirm={closeConfirmModal}
-                onCancel={closeConfirmModal}
+                onConfirm={Receipt.clearUploadReceiptError}
+                onCancel={Receipt.clearUploadReceiptError}
                 isVisible={isAttachmentInvalid}
                 prompt={attachmentInvalidReason}
                 confirmText={translate('common.close')}
@@ -196,5 +176,9 @@ ReceiptSelector.propTypes = propTypes;
 ReceiptSelector.displayName = 'ReceiptSelector';
 
 export default withOnyx({
+    iou: {key: ONYXKEYS.IOU},
     receiptModal: {key: ONYXKEYS.RECEIPT_MODAL},
+    report: {
+        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '')}`,
+    },
 })(ReceiptSelector);

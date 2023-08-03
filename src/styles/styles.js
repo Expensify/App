@@ -22,10 +22,14 @@ import pointerEventsAuto from './pointerEventsAuto';
 import getPopOverVerticalOffset from './getPopOverVerticalOffset';
 import overflowXHidden from './overflowXHidden';
 import CONST from '../CONST';
+import * as Browser from '../libs/Browser';
 import cursor from './utilities/cursor';
 import userSelect from './utilities/userSelect';
 import textUnderline from './utilities/textUnderline';
 import Colors from './colors';
+
+// touchCallout is an iOS safari only property that controls the display of the callout information when you touch and hold a target
+const touchCalloutNone = Browser.isMobileSafari() ? {WebkitTouchCallout: 'none'} : {};
 
 const picker = {
     backgroundColor: themeColors.transparent,
@@ -131,6 +135,7 @@ const webViewStyles = {
             borderColor: themeColors.border,
             borderRadius: variables.componentBorderRadiusNormal,
             borderWidth: 1,
+            ...touchCalloutNone,
         },
 
         p: {
@@ -199,6 +204,9 @@ const styles = {
     },
     emojiSuggestionsText: {
         fontSize: variables.fontSizeMedium,
+        flex: 1,
+        ...wordBreak.breakWord,
+        ...spacing.pr4,
     },
 
     mentionSuggestionsAvatarContainer: {
@@ -519,6 +527,11 @@ const styles = {
         fontFamily: fontFamily.EXP_NEUE_BOLD,
         fontWeight: fontWeightBold,
         textAlign: 'center',
+    },
+
+    buttonDefaultHovered: {
+        backgroundColor: themeColors.buttonHoveredBG,
+        borderWidth: 0,
     },
 
     buttonSuccess: {
@@ -1110,10 +1123,6 @@ const styles = {
         color: themeColors.textLight,
     },
 
-    buttonReceiptUpload: {
-        padding: 36,
-    },
-
     furtherDetailsText: {
         fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeSmall,
@@ -1595,13 +1604,6 @@ const styles = {
         ...wordBreak.breakWord,
     },
 
-    chatItemMessageLink: {
-        color: themeColors.link,
-        fontSize: variables.fontSizeNormal,
-        fontFamily: fontFamily.EXP_NEUE,
-        lineHeight: variables.lineHeightXLarge,
-    },
-
     chatItemComposeWithFirstRow: {
         minHeight: 90,
     },
@@ -1822,15 +1824,6 @@ const styles = {
         marginRight: 4,
     },
 
-    navigationModalCard: (isSmallScreenWidth) => ({
-        position: 'absolute',
-        top: 0,
-        right: 0,
-        width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
-        backgroundColor: 'transparent',
-        height: '100%',
-    }),
-
     navigationModalOverlay: {
         ...userSelect.userSelectNone,
         position: 'absolute',
@@ -2001,6 +1994,11 @@ const styles = {
         width: variables.avatarSizeSmall,
     },
 
+    emptyAvatarSmaller: {
+        height: variables.avatarSizeSmaller,
+        width: variables.avatarSizeSmaller,
+    },
+
     emptyAvatarMedium: {
         height: variables.avatarSizeMedium,
         width: variables.avatarSizeMedium,
@@ -2016,6 +2014,10 @@ const styles = {
     },
 
     emptyAvatarMarginSmall: {
+        marginRight: variables.avatarChatSpacing - 4,
+    },
+
+    emptyAvatarMarginSmaller: {
         marginRight: variables.avatarChatSpacing - 4,
     },
 
@@ -2399,11 +2401,6 @@ const styles = {
         padding: 20,
     },
 
-    pageWrapperNotCentered: {
-        width: '100%',
-        padding: 20,
-    },
-
     avatarSectionWrapper: {
         width: '100%',
         alignItems: 'center',
@@ -2550,6 +2547,10 @@ const styles = {
         left: 4,
         backgroundColor: themeColors.appBG,
     },
+
+    switchThumbTransformation: (translateX) => ({
+        transform: [{translateX}],
+    }),
 
     radioButtonContainer: {
         backgroundColor: themeColors.componentBG,
@@ -3203,53 +3204,33 @@ const styles = {
         marginLeft: 6,
     },
 
-    fullScreenTransparentOverlay: {
+    fullScreen: {
         position: 'absolute',
-        width: '100%',
-        height: '100%',
         top: 0,
         left: 0,
         right: 0,
         bottom: 0,
+    },
+
+    invisibleOverlay: {
+        backgroundColor: themeColors.transparent,
+        zIndex: 1000,
+    },
+
+    reportDropOverlay: {
         backgroundColor: themeColors.dropUIBG,
         zIndex: 2,
     },
 
-    dropZoneTopInvisibleOverlay: {
-        position: 'absolute',
-        width: '100%',
-        height: '100%',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: themeColors.dropTransparentOverlay,
-        zIndex: 1000,
-    },
-
-    receiptTransparentOverlay: {
-        position: 'absolute',
-        width: '100%',
-        height: '100%',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
+    receiptDropOverlay: {
         backgroundColor: themeColors.receiptDropUIBG,
         zIndex: 2,
     },
 
-    receiptDropZoneTopInvisibleOverlay: {
+    receiptImageWrapper: (receiptImageTopPosition) => ({
         position: 'absolute',
-        width: '100%',
-        height: '100%',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: themeColors.dropTransparentOverlay,
-        zIndex: 1000,
-    },
+        top: receiptImageTopPosition,
+    }),
 
     cardSection: {
         backgroundColor: themeColors.cardBG,
@@ -3502,6 +3483,11 @@ const styles = {
         maxWidth: 375,
     },
 
+    formSpaceVertical: {
+        height: 20,
+        width: 1,
+    },
+
     taskCheckbox: {
         height: 16,
         width: 16,
@@ -3513,6 +3499,11 @@ const styles = {
         ...spacing.flexWrap,
         ...spacing.flex1,
         fontSize: variables.fontSizeXLarge,
+        maxWidth: '100%',
+        ...wordBreak.breakWord,
+    },
+
+    taskDescriptionMenuItem: {
         maxWidth: '100%',
         ...wordBreak.breakWord,
     },
@@ -3600,36 +3591,28 @@ const styles = {
         textAlign: 'center',
     },
 
-    loginButtonRow: {
-        justifyContent: 'center',
-        width: '100%',
-        ...flex.flexRow,
-    },
-
-    loginButtonRowSmallScreen: {
-        justifyContent: 'center',
-        width: '100%',
-        marginBottom: 10,
-        ...flex.flexRow,
-    },
-
-    appleButtonContainer: {
-        width: 40,
+    tabSelectorButton: (isSelected) => ({
         height: 40,
-        marginRight: 20,
-    },
-
-    signInIconButton: {
-        margin: 10,
-        marginTop: 0,
-        padding: 2,
-    },
-
-    tabSelectorButton: {
-        paddingBottom: 16,
-        marginHorizontal: 8,
+        padding: 12,
+        flexDirection: 'row',
         alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: variables.buttonBorderRadius,
+        backgroundColor: isSelected ? themeColors.midtone : themeColors.appBG,
+    }),
+
+    tabSelector: {
+        flexDirection: 'row',
+        paddingHorizontal: 20,
+        paddingBottom: 12,
     },
+
+    tabText: (isSelected) => ({
+        marginHorizontal: 8,
+        fontFamily: isSelected ? fontFamily.EXP_NEUE_BOLD : fontFamily.EXP_NEUE,
+        fontWeight: isSelected ? fontWeightBold : 400,
+        color: isSelected ? themeColors.textLight : themeColors.textSupporting,
+    }),
 
     /**
      * @param {String} backgroundColor
@@ -3646,11 +3629,14 @@ const styles = {
         right: 0,
     }),
 
+    willChangeTransform: {
+        willChange: 'transform',
+    },
+
     moneyRequestImage: {
         height: 200,
         borderRadius: 16,
-        marginHorizontal: 20,
-        marginTop: 20,
+        margin: 20,
     },
 };
 

@@ -32,6 +32,9 @@ const propTypes = {
         /** Whether we should show the view that the bank account was successfully added */
         shouldShowSuccess: PropTypes.bool,
 
+        /** Any reportID we should redirect to at the end of the flow */
+        exitReportID: PropTypes.string,
+
         /** Whether the form is loading */
         isLoading: PropTypes.bool,
 
@@ -47,6 +50,7 @@ const defaultProps = {
         shouldShowSuccess: false,
         isLoading: false,
         plaidAccountID: '',
+        exitReportID: '',
     },
 };
 
@@ -56,6 +60,7 @@ class AddPersonalBankAccountPage extends React.Component {
 
         this.validate = this.validate.bind(this);
         this.submit = this.submit.bind(this);
+        this.exitFlow = this.exitFlow.bind(this);
 
         this.state = {
             selectedPlaidAccountID: '',
@@ -81,6 +86,15 @@ class AddPersonalBankAccountPage extends React.Component {
         BankAccounts.addPersonalBankAccount(selectedPlaidBankAccount);
     }
 
+    exitFlow() {
+        const exitReportID = lodashGet(this.props, 'personalBankAccount.exitReportID');
+        if (exitReportID) {
+            Navigation.dismissModal(exitReportID);
+        } else {
+            Navigation.goBack(ROUTES.SETTINGS_PAYMENTS);
+        }
+    }
+
     render() {
         const shouldShowSuccess = lodashGet(this.props, 'personalBankAccount.shouldShowSuccess', false);
 
@@ -92,7 +106,7 @@ class AddPersonalBankAccountPage extends React.Component {
             >
                 <HeaderWithBackButton
                     title={this.props.translate('bankAccount.addBankAccount')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PAYMENTS)}
+                    onBackButtonPress={this.exitFlow}
                 />
                 {shouldShowSuccess ? (
                     <ConfirmationPage
@@ -100,9 +114,7 @@ class AddPersonalBankAccountPage extends React.Component {
                         description={this.props.translate('addPersonalBankAccountPage.successMessage')}
                         shouldShowButton
                         buttonText={this.props.translate('common.continue')}
-                        onButtonPress={() => {
-                            Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
-                        }}
+                        onButtonPress={this.exitFlow}
                     />
                 ) : (
                     <Form

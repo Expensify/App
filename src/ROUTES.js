@@ -35,7 +35,6 @@ export default {
     SETTINGS_WORKSPACES: 'settings/workspaces',
     SETTINGS_SECURITY: 'settings/security',
     SETTINGS_CLOSE: 'settings/security/closeAccount',
-    SETTINGS_PASSWORD: 'settings/security/password',
     SETTINGS_ABOUT: 'settings/about',
     SETTINGS_APP_DOWNLOAD_LINKS: 'settings/about/app-download-links',
     SETTINGS_PAYMENTS: 'settings/payments',
@@ -86,6 +85,8 @@ export default {
     MONEY_REQUEST_CONFIRMATION: ':iouType/new/confirmation/:reportID?',
     MONEY_REQUEST_CURRENCY: ':iouType/new/currency/:reportID?',
     MONEY_REQUEST_DESCRIPTION: ':iouType/new/description/:reportID?',
+    MONEY_REQUEST_MANUAL_TAB: ':iouType/new/:reportID?/manual',
+    MONEY_REQUEST_SCAN_TAB: ':iouType/new/:reportID?/scan',
     IOU_SEND_ADD_BANK_ACCOUNT: `${IOU_SEND}/add-bank-account`,
     IOU_SEND_ADD_DEBIT_CARD: `${IOU_SEND}/add-debit-card`,
     IOU_SEND_ENABLE_PAYMENTS: `${IOU_SEND}/enable-payments`,
@@ -185,7 +186,7 @@ export default {
         const pathSegments = parsingRoute.split('/');
         return {
             reportID: lodashGet(pathSegments, 1),
-            isSubReportPageRoute: Boolean(lodashGet(pathSegments, 2)),
+            isSubReportPageRoute: pathSegments.length > 2,
         };
     },
 };

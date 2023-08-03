@@ -38,7 +38,7 @@ export default {
                             Settings_Root: {
                                 path: ROUTES.SETTINGS,
                             },
-                            Settings_Workspaces: {
+                            [SCREENS.SETTINGS.WORKSPACES]: {
                                 path: ROUTES.SETTINGS_WORKSPACES,
                                 exact: true,
                             },
@@ -60,10 +60,6 @@ export default {
                             },
                             Settings_Close: {
                                 path: ROUTES.SETTINGS_CLOSE,
-                                exact: true,
-                            },
-                            Settings_Password: {
-                                path: ROUTES.SETTINGS_PASSWORD,
                                 exact: true,
                             },
                             Settings_Security: {
@@ -294,7 +290,20 @@ export default {
                     },
                     MoneyRequest: {
                         screens: {
-                            Money_Request: ROUTES.MONEY_REQUEST,
+                            Money_Request: {
+                                path: ROUTES.MONEY_REQUEST,
+                                exact: true,
+                                screens: {
+                                    manual: {
+                                        path: ROUTES.MONEY_REQUEST_MANUAL_TAB,
+                                        exact: true,
+                                    },
+                                    scan: {
+                                        path: ROUTES.MONEY_REQUEST_SCAN_TAB,
+                                        exact: true,
+                                    },
+                                },
+                            },
                             Money_Request_Amount: ROUTES.MONEY_REQUEST_AMOUNT,
                             Money_Request_Participants: ROUTES.MONEY_REQUEST_PARTICIPANTS,
                             Money_Request_Confirmation: ROUTES.MONEY_REQUEST_CONFIRMATION,

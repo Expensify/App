@@ -292,14 +292,6 @@ function isValidUSPhone(phoneNumber = '', isCountryCodeOptional) {
 }
 
 /**
- * @param {String} password
- * @returns {Boolean}
- */
-function isValidPassword(password) {
-    return password.match(CONST.PASSWORD_COMPLEXITY_REGEX_STRING);
-}
-
-/**
  * @param {string} validateCode
  * @returns {Boolean}
  */
@@ -361,7 +353,7 @@ function isValidDisplayName(name) {
  * @returns {Boolean}
  */
 function isValidLegalName(name) {
-    return CONST.REGEX.ALPHABETIC_CHARS_WITH_NUMBER.test(name);
+    return CONST.REGEX.ALPHABETIC_AND_LATIN_CHARS.test(name);
 }
 
 /**
@@ -461,7 +453,6 @@ export {
     isValidUSPhone,
     isValidWebsite,
     validateIdentity,
-    isValidPassword,
     isValidTwoFactorCode,
     isNumericWithSpecialChars,
     isValidPaypalUsername,

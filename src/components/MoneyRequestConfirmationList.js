@@ -1,9 +1,11 @@
-import React, {useState, useCallback, useMemo} from 'react';
+import React, {useCallback, useMemo, useReducer, useState} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import {View} from 'react-native';
 import Str from 'expensify-common/lib/str';
 import styles from '../styles/styles';
+import * as ReportUtils from '../libs/ReportUtils';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
 import OptionsSelector from './OptionsSelector';
 import ONYXKEYS from '../ONYXKEYS';
@@ -13,12 +15,15 @@ import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import Log from '../libs/Log';
 import SettlementButton from './SettlementButton';
 import ROUTES from '../ROUTES';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from './withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from './withCurrentUserPersonalDetails';
 import * as IOUUtils from '../libs/IOUUtils';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import Navigation from '../libs/Navigation/Navigation';
 import optionPropTypes from './optionPropTypes';
 import * as CurrencyUtils from '../libs/CurrencyUtils';
+import Button from './Button';
+import * as Expensicons from './Icon/Expensicons';
+import themeColors from '../styles/themes/default';
 import Image from './Image';
 import ReceiptHTML from '../../assets/images/receipt-html.png';
 import ReceiptDoc from '../../assets/images/receipt-doc.png';
@@ -52,6 +57,12 @@ const propTypes = {
     /** IOU type */
     iouType: PropTypes.string,
 
+    /** IOU date */
+    iouDate: PropTypes.string,
+
+    /** IOU merchant */
+    iouMerchant: PropTypes.string,
+
     /** Selected participants from MoneyRequestModal with login / accountID */
     selectedParticipants: PropTypes.arrayOf(optionPropTypes).isRequired,
 
@@ -69,8 +80,6 @@ const propTypes = {
 
     ...withCurrentUserPersonalDetailsPropTypes,
 
-    /* Onyx Props */
-
     /** Current user session */
     session: PropTypes.shape({
         email: PropTypes.string.isRequired,
@@ -81,6 +90,12 @@ const propTypes = {
 
     /** The reportID of the request */
     reportID: PropTypes.string,
+
+    /** File path of the receipt */
+    receiptPath: PropTypes.string,
+
+    /** File source of the receipt */
+    receiptSource: PropTypes.string,
 };
 
 const defaultProps = {
@@ -98,6 +113,8 @@ const defaultProps = {
     policyID: '',
     reportID: '',
     ...withCurrentUserPersonalDetailsDefaultProps,
+    receiptPath: '',
+    receiptSource: '',
 };
 
 function MoneyRequestConfirmationList({
@@ -123,6 +140,9 @@ function MoneyRequestConfirmationList({
 }) {
     const {translate} = useLocalize();
 
+    // A flag and a toggler for showing the rest of the form fields
+    const [showAllFields, toggleShowAllFields] = useReducer((state) => !state, false);
+
     /**
      * Returns the participants with amount
      * @param {Array} participants
@@ -139,11 +159,13 @@ function MoneyRequestConfirmationList({
     const [didConfirm, setDidConfirm] = useState(false);
 
     const splitOrRequestOptions = useMemo(() => {
-        const text = receiptPath
-            ? translate('iou.request')
-            : translate(hasMultipleParticipants ? 'iou.splitAmount' : 'iou.requestAmount', {
-                  amount: CurrencyUtils.convertToDisplayString(iouAmount, iouCurrencyCode),
-              });
+        let text;
+        if (props.receiptPath) {
+            text = translate('iou.request');
+        } else {
+            const translationKey = props.hasMultipleParticipants ? 'iou.splitAmount' : 'iou.requestAmount';
+            text = translate(translationKey, {amount: CurrencyUtils.convertToDisplayString(props.iouAmount, props.iouCurrencyCode)});
+        }
         return [
             {
                 text: text[0].toUpperCase() + text.slice(1),
@@ -158,10 +180,17 @@ function MoneyRequestConfirmationList({
 
     const optionSelectorSections = useMemo(() => {
         const sections = [];
-        const unselectedParticipants = _.filter(memoSelectedParticipants, (participant) => !participant.selected);
-        if (hasMultipleParticipants) {
-            const formattedSelectedParticipants = getParticipantsWithAmount(memoSelectedParticipants);
-            const formattedParticipantsList = _.union(formattedSelectedParticipants, unselectedParticipants);
+        const unselectedParticipants = _.filter(props.selectedParticipants, (participant) => !participant.selected);
+        if (props.hasMultipleParticipants) {
+            const formattedSelectedParticipants = getParticipantsWithAmount(selectedParticipants);
+            let formattedParticipantsList = _.union(formattedSelectedParticipants, unselectedParticipants);
+
+            if (!canModifyParticipants) {
+                formattedParticipantsList = _.map(formattedParticipantsList, (participant) => ({
+                    ...participant,
+                    isDisabled: ReportUtils.isOptimisticPersonalDetail(participant.accountID),
+                }));
+            }
 
             const myIOUAmount = IOUUtils.calculateAmount(memoSelectedParticipants.length, iouAmount, true);
             const formattedPayeeOption = OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(
@@ -185,15 +214,30 @@ function MoneyRequestConfirmationList({
                 },
             );
         } else {
+            const formattedSelectedParticipants = _.map(props.selectedParticipants, (participant) => ({
+                ...participant,
+                isDisabled: ReportUtils.isOptimisticPersonalDetail(participant.accountID),
+            }));
             sections.push({
                 title: translate('common.to'),
-                data: memoSelectedParticipants,
+                data: formattedSelectedParticipants,
                 shouldShow: true,
                 indexOffset: 0,
             });
         }
         return sections;
-    }, [memoSelectedParticipants, hasMultipleParticipants, iouAmount, iouCurrencyCode, getParticipantsWithAmount, memoPayeePersonalDetails, translate, shouldDisablePaidBySection]);
+    }, [
+        props.selectedParticipants,
+        props.hasMultipleParticipants,
+        props.iouAmount,
+        props.iouCurrencyCode,
+        getParticipantsWithAmount,
+        selectedParticipants,
+        payeePersonalDetails,
+        translate,
+        shouldDisablePaidBySection,
+        canModifyParticipants,
+    ]);
 
     const selectedOptions = useMemo(() => {
         if (!hasMultipleParticipants) {
@@ -217,14 +261,15 @@ function MoneyRequestConfirmationList({
     );
 
     /**
-     * Navigate to profile of selected user
+     * Navigate to report details or profile of selected user
      * @param {Object} option
      */
-    const navigateToUserDetail = (option) => {
-        if (!option.accountID) {
-            return;
+    const navigateToReportOrUserDetail = (option) => {
+        if (option.accountID) {
+            Navigation.navigate(ROUTES.getProfileRoute(option.accountID));
+        } else if (option.reportID) {
+            Navigation.navigate(ROUTES.getReportDetailsRoute(option.reportID));
         }
-        Navigation.navigate(ROUTES.getProfileRoute(option.accountID));
     };
 
     /**
@@ -299,15 +344,15 @@ function MoneyRequestConfirmationList({
             return receiptPath;
         }
 
-        if (fileExtension === 'html') {
+        if (fileExtension === CONST.IOU.FILE_TYPES.HTML) {
             return ReceiptHTML;
         }
 
-        if (fileExtension === 'doc' || fileExtension === 'docx') {
+        if (fileExtension === CONST.IOU.FILE_TYPES.DOC || fileExtension === CONST.IOU.FILE_TYPES.DOCX) {
             return ReceiptDoc;
         }
 
-        if (fileExtension === 'svg') {
+        if (fileExtension === CONST.IOU.FILE_TYPES.SVG) {
             return ReceiptSVG;
         }
 
@@ -318,7 +363,7 @@ function MoneyRequestConfirmationList({
         <OptionsSelector
             sections={optionSelectorSections}
             value=""
-            onSelectRow={canModifyParticipants ? selectParticipant : navigateToUserDetail}
+            onSelectRow={canModifyParticipants ? selectParticipant : navigateToReportOrUserDetail}
             onConfirmSelection={confirm}
             selectedOptions={selectedOptions}
             canSelectMultipleOptions={canModifyParticipants}
@@ -331,13 +376,12 @@ function MoneyRequestConfirmationList({
             optionHoveredStyle={canModifyParticipants ? styles.hoveredComponentBG : {}}
             footerContent={footerContent}
         >
-            {receiptPath && (
+            {!_.isEmpty(props.receiptPath) ? (
                 <Image
                     style={styles.moneyRequestImage}
                     source={{uri: getImageURI()}}
                 />
-            )}
-            {!receiptPath && (
+            ) : (
                 <MenuItemWithTopDescription
                     shouldShowRightIcon={!isReadOnly}
                     title={formattedAmount}
@@ -356,6 +400,39 @@ function MoneyRequestConfirmationList({
                 style={[styles.moneyRequestMenuItem, styles.mb2]}
                 disabled={didConfirm || isReadOnly}
             />
+            {!showAllFields && (
+                <View style={[styles.flexRow, styles.justifyContentBetween, styles.mh3, styles.alignItemsCenter]}>
+                    <View style={[styles.shortTermsHorizontalRule, styles.flex1, styles.mr0]} />
+                    <Button
+                        small
+                        onPress={toggleShowAllFields}
+                        text={translate('common.showMore')}
+                        shouldShowRightIcon
+                        iconRight={Expensicons.DownArrow}
+                        iconFill={themeColors.icon}
+                        style={styles.mh0}
+                    />
+                    <View style={[styles.shortTermsHorizontalRule, styles.flex1, styles.ml0]} />
+                </View>
+            )}
+            {showAllFields && (
+                <>
+                    <MenuItemWithTopDescription
+                        title={props.iouDate}
+                        description={translate('common.date')}
+                        style={[styles.moneyRequestMenuItem, styles.mb2]}
+                        // Note: This component is disabled until this field is editable in next PR
+                        disabled
+                    />
+                    <MenuItemWithTopDescription
+                        title={props.iouMerchant}
+                        description={translate('common.merchant')}
+                        style={[styles.moneyRequestMenuItem, styles.mb2]}
+                        // Note: This component is disabled until this field is editable in next PR
+                        disabled
+                    />
+                </>
+            )}
         </OptionsSelector>
     );
 }
