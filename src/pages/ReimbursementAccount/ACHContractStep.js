@@ -97,7 +97,7 @@ function ACHContractStep(props) {
     const removeBeneficialOwner = (ownerKey) => {
         setBeneficialOwners((previousBeneficialOwners) => {
             const newBeneficialOwners = _.without(previousBeneficialOwners, ownerKey);
-            FormActions.setDraftValues(`${ONYXKEYS.COLLECTION.REIMBURSEMENT_ACCOUNT}${policyID}`, {beneficialOwners: newBeneficialOwners});
+            FormActions.setDraftValues(`${ONYXKEYS.COLLECTION.REIMBURSEMENT_ACCOUNT_DRAFT}${policyID}`, {beneficialOwners: newBeneficialOwners}, true);
             return newBeneficialOwners;
         });
     };
@@ -107,7 +107,7 @@ function ACHContractStep(props) {
         // That way we can dynamically render each Identity Form based on which keys are present in the beneficial owners array.
         setBeneficialOwners((previousBeneficialOwners) => {
             const newBeneficialOwners = [...previousBeneficialOwners, Str.guid()];
-            FormActions.setDraftValues(`${ONYXKEYS.COLLECTION.REIMBURSEMENT_ACCOUNT}${policyID}`, {beneficialOwners: newBeneficialOwners});
+            FormActions.setDraftValues(`${ONYXKEYS.COLLECTION.REIMBURSEMENT_ACCOUNT_DRAFT}${policyID}`, {beneficialOwners: newBeneficialOwners}, true);
             return newBeneficialOwners;
         });
     };
@@ -157,7 +157,8 @@ function ACHContractStep(props) {
                 guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
             />
             <Form
-                formID={`${ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}${props.policyID}`}
+                formID={`${ONYXKEYS.COLLECTION.REIMBURSEMENT_ACCOUNT}${props.policyID}`}
+                draftFormID={`${ONYXKEYS.COLLECTION.REIMBURSEMENT_ACCOUNT_DRAFT}${props.policyID}`}
                 validate={validate}
                 onSubmit={submit}
                 submitButtonText={props.translate('common.saveAndContinue')}

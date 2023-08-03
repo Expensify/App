@@ -19,6 +19,9 @@ import {withNetwork} from './OnyxProvider';
 import networkPropTypes from './networkPropTypes';
 
 const propTypes = {
+    /** A unique Onyx key identifying the form draft values */
+    draftFormID: PropTypes.string,
+
     /** A unique Onyx key identifying the form */
     formID: PropTypes.string.isRequired,
 
@@ -79,6 +82,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    draftFormID: '',
     isSubmitButtonVisible: true,
     formState: {
         isLoading: false,
@@ -333,7 +337,11 @@ function Form(props) {
                         });
 
                         if (child.props.shouldSaveDraft) {
-                            FormActions.setDraftValues(props.formID, {[inputKey]: value});
+                            FormActions.setDraftValues(
+                                props.draftFormID || props.formID,
+                                {[inputKey]: value},
+                                !_.isEmpty(props.draftFormID)
+                            );
                         }
 
                         if (child.props.onValueChange) {
@@ -363,7 +371,7 @@ function Form(props) {
 
             return childrenElements;
         },
-        [errors, inputRefs, inputValues, onValidate, props.draftValues, props.formID, props.formState, setTouchedInput],
+        [errors, inputRefs, inputValues, onValidate, props.draftValues, props.draftFormID, props.formID, props.formState, setTouchedInput],
     );
 
     const scrollViewContent = useCallback(
@@ -471,7 +479,7 @@ export default compose(
             key: (props) => props.formID,
         },
         draftValues: {
-            key: (props) => `${props.formID}Draft`,
+            key: (props) => props.draftFormID || `${props.formID}Draft`,
         },
     }),
 )(Form);

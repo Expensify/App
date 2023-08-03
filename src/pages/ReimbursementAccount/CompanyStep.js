@@ -166,7 +166,8 @@ class CompanyStep extends React.Component {
                     onBackButtonPress={this.props.onBackButtonPress}
                 />
                 <Form
-                    formID={`${ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}${this.props.policyID}`}
+                    formID={`${ONYXKEYS.COLLECTION.REIMBURSEMENT_ACCOUNT}${this.props.policyID}`}
+                    draftFormID={`${ONYXKEYS.COLLECTION.REIMBURSEMENT_ACCOUNT_DRAFT}${this.props.policyID}`}
                     validate={this.validate}
                     onSubmit={this.submit}
                     scrollContextEnabled

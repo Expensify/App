@@ -27,9 +27,10 @@ function setErrorFields(formID, errorFields) {
 /**
  * @param {String} formID
  * @param {Object} draftValues
+ * @param {Boolean} isDraftFormID
  */
-function setDraftValues(formID, draftValues) {
-    Onyx.merge(`${formID}Draft`, draftValues);
+function setDraftValues(formID, draftValues, isDraftFormID = false) {
+    Onyx.merge(isDraftFormID ? formID : `${formID}Draft`, draftValues);
 }
 
 export {setIsLoading, setErrors, setErrorFields, setDraftValues};
