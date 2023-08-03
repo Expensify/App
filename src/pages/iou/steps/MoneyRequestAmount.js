@@ -12,28 +12,21 @@ import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import compose from '../../../libs/compose';
 import * as ReportUtils from '../../../libs/ReportUtils';
-import * as IOUUtils from '../../../libs/IOUUtils';
 import * as CurrencyUtils from '../../../libs/CurrencyUtils';
 import Button from '../../../components/Button';
 import CONST from '../../../CONST';
 import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
 import TextInputWithCurrencySymbol from '../../../components/TextInputWithCurrencySymbol';
-import ScreenWrapper from '../../../components/ScreenWrapper';
-import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
-import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import reportPropTypes from '../../reportPropTypes';
 import * as IOU from '../../../libs/actions/IOU';
 import useLocalize from '../../../hooks/useLocalize';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../../components/withCurrentUserPersonalDetails';
+import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
+import ScreenWrapper from '../../../components/ScreenWrapper';
+import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
+import * as IOUUtils from '../../../libs/IOUUtils';
 
 const propTypes = {
-    route: PropTypes.shape({
-        params: PropTypes.shape({
-            iouType: PropTypes.string,
-            reportID: PropTypes.string,
-        }),
-    }),
-
     /** The report on which the request is initiated on */
     report: reportPropTypes,
 
@@ -53,22 +46,29 @@ const propTypes = {
         ),
     }),
 
+    route: PropTypes.shape({
+        params: PropTypes.shape({
+            iouType: PropTypes.string,
+            reportID: PropTypes.string,
+        }),
+    }),
+
     ...withCurrentUserPersonalDetailsPropTypes,
 };
 
 const defaultProps = {
-    route: {
-        params: {
-            iouType: '',
-            reportID: '',
-        },
-    },
     report: {},
     iou: {
         id: '',
         amount: 0,
         currency: CONST.CURRENCY.USD,
         participants: [],
+    },
+    route: {
+        params: {
+            iouType: '',
+            reportID: '',
+        },
     },
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
@@ -167,7 +167,7 @@ const replaceAllDigits = (text, convertFn) =>
         .join('')
         .value();
 
-function MoneyRequestAmountPage(props) {
+function MoneyRequestAmount(props) {
     const {translate, toLocaleDigit, fromLocaleDigit, numberFormat} = useLocalize();
     const selectedAmountAsString = props.iou.amount ? CurrencyUtils.convertToWholeUnit(props.iou.currency, props.iou.amount).toString() : '';
 
@@ -178,7 +178,7 @@ function MoneyRequestAmountPage(props) {
     const isEditing = useRef(lodashGet(props.route, 'path', '').includes('amount'));
 
     const [amount, setAmount] = useState(selectedAmountAsString);
-    const [selectedCurrencyCode, setSelectedCurrencyCode] = useState(props.iou.currency);
+    const [selectedCurrencyCode, setSelectedCurrencyCode] = useState(props.iou.currency || CONST.CURRENCY.USD);
     const [shouldUpdateSelection, setShouldUpdateSelection] = useState(true);
     const [selection, setSelection] = useState({start: selectedAmountAsString.length, end: selectedAmountAsString.length});
 
@@ -276,16 +276,14 @@ function MoneyRequestAmountPage(props) {
     }, [props.iou.participants, props.iou.amount, props.iou.id]);
 
     useEffect(() => {
-        if (!props.route.params.currency) {
+        if (props.route.params.currency) {
+            setSelectedCurrencyCode(props.route.params.currency);
             return;
         }
-
-        setSelectedCurrencyCode(props.route.params.currency);
-    }, [props.route.params.currency]);
-
-    useEffect(() => {
-        setSelectedCurrencyCode(props.iou.currency);
-    }, [props.iou.currency]);
+        if (props.iou.currency) {
+            setSelectedCurrencyCode(props.iou.currency);
+        }
+    }, [props.route.params.currency, props.iou.currency]);
 
     useEffect(() => {
         saveAmountToState(props.iou.currency, props.iou.amount);
@@ -421,73 +419,85 @@ function MoneyRequestAmountPage(props) {
     const formattedAmount = replaceAllDigits(amount, toLocaleDigit);
     const buttonText = isEditing.current ? translate('common.save') : translate('common.next');
 
-    return (
-        <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType.current)}>
-            <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
-                onEntryTransitionEnd={focusTextInput}
+    const content = (
+        <>
+            <View
+                nativeID={amountViewID}
+                onMouseDown={(event) => onMouseDown(event, [amountViewID])}
+                style={[styles.flex1, styles.flexRow, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}
             >
-                {({safeAreaPaddingBottomStyle}) => (
+                <TextInputWithCurrencySymbol
+                    formattedAmount={formattedAmount}
+                    onChangeAmount={updateAmount}
+                    onCurrencyButtonPress={navigateToCurrencySelectionPage}
+                    placeholder={numberFormat(0)}
+                    ref={(el) => (textInput.current = el)}
+                    selectedCurrencyCode={selectedCurrencyCode}
+                    selection={selection}
+                    onSelectionChange={(e) => {
+                        if (!shouldUpdateSelection) {
+                            return;
+                        }
+                        setSelection(e.nativeEvent.selection);
+                    }}
+                />
+            </View>
+            <View
+                onMouseDown={(event) => onMouseDown(event, [numPadContainerViewID, numPadViewID])}
+                style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper]}
+                nativeID={numPadContainerViewID}
+            >
+                {DeviceCapabilities.canUseTouchScreen() ? (
+                    <BigNumberPad
+                        nativeID={numPadViewID}
+                        numberPressed={updateAmountNumberPad}
+                        longPressHandlerStateChanged={updateLongPressHandlerState}
+                    />
+                ) : (
+                    <View />
+                )}
+
+                <Button
+                    success
+                    style={[styles.w100, styles.mt5]}
+                    onPress={navigateToNextPage}
+                    pressOnEnter
+                    isDisabled={!amount.length || parseFloat(amount) < 0.01}
+                    text={buttonText}
+                />
+            </View>
+        </>
+    );
+
+    // ScreenWrapper is only needed in edit mode because we have a dedicated route for the edit amount page (MoneyRequestEditAmountPage).
+    // The rest of the cases this component is rendered through <MoneyRequestSelectorPage /> which has it's own ScreenWrapper
+    if (!isEditing.current) {
+        return content;
+    }
+
+    return (
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            onEntryTransitionEnd={focusTextInput}
+        >
+            {({safeAreaPaddingBottomStyle}) => (
+                <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType.current)}>
                     <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                         <HeaderWithBackButton
                             title={titleForStep}
                             onBackButtonPress={navigateBack}
                         />
-                        <View
-                            nativeID={amountViewID}
-                            onMouseDown={(event) => onMouseDown(event, [amountViewID])}
-                            style={[styles.flex1, styles.flexRow, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}
-                        >
-                            <TextInputWithCurrencySymbol
-                                formattedAmount={formattedAmount}
-                                onChangeAmount={updateAmount}
-                                onCurrencyButtonPress={navigateToCurrencySelectionPage}
-                                placeholder={numberFormat(0)}
-                                ref={(el) => (textInput.current = el)}
-                                selectedCurrencyCode={selectedCurrencyCode}
-                                selection={selection}
-                                onSelectionChange={(e) => {
-                                    if (!shouldUpdateSelection) {
-                                        return;
-                                    }
-                                    setSelection(e.nativeEvent.selection);
-                                }}
-                            />
-                        </View>
-                        <View
-                            onMouseDown={(event) => onMouseDown(event, [numPadContainerViewID, numPadViewID])}
-                            style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper]}
-                            nativeID={numPadContainerViewID}
-                        >
-                            {DeviceCapabilities.canUseTouchScreen() ? (
-                                <BigNumberPad
-                                    nativeID={numPadViewID}
-                                    numberPressed={updateAmountNumberPad}
-                                    longPressHandlerStateChanged={updateLongPressHandlerState}
-                                />
-                            ) : (
-                                <View />
-                            )}
-
-                            <Button
-                                success
-                                style={[styles.w100, styles.mt5]}
-                                onPress={navigateToNextPage}
-                                pressOnEnter
-                                isDisabled={!amount.length || parseFloat(amount) < 0.01}
-                                text={buttonText}
-                            />
-                        </View>
+                        {content}
                     </View>
-                )}
-            </ScreenWrapper>
-        </FullPageNotFoundView>
+                </FullPageNotFoundView>
+            )}
+        </ScreenWrapper>
     );
 }
 
-MoneyRequestAmountPage.propTypes = propTypes;
-MoneyRequestAmountPage.defaultProps = defaultProps;
-MoneyRequestAmountPage.displayName = 'MoneyRequestAmountPage';
+MoneyRequestAmount.propTypes = propTypes;
+MoneyRequestAmount.defaultProps = defaultProps;
+MoneyRequestAmount.displayName = 'MoneyRequestAmount';
 
 export default compose(
     withCurrentUserPersonalDetails,
@@ -497,4 +507,4 @@ export default compose(
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '')}`,
         },
     }),
-)(MoneyRequestAmountPage);
+)(MoneyRequestAmount);

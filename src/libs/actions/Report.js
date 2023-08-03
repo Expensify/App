@@ -475,6 +475,7 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
                 accountID,
                 avatar: UserUtils.getDefaultAvatarURL(accountID),
                 displayName: login,
+                isOptimisticPersonalDetail: true,
             };
 
             failurePersonalDetails[accountID] = allPersonalDetails[accountID] || null;
@@ -586,6 +587,7 @@ function navigateToAndOpenChildReport(childReportID = '0', parentReportAction = 
             CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
             false,
             '',
+            undefined,
             undefined,
             CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
             parentReportAction.reportActionID,
@@ -1270,7 +1272,7 @@ function navigateToConciergeChat() {
  * @param {Array<Number>} policyMembersAccountIDs
  * @param {String} writeCapability
  */
-function addPolicyReport(policyID, reportName, visibility, policyMembersAccountIDs, writeCapability) {
+function addPolicyReport(policyID, reportName, visibility, policyMembersAccountIDs, writeCapability = CONST.REPORT.WRITE_CAPABILITIES.ALL) {
     // The participants include the current user (admin), and for restricted rooms, the policy members. Participants must not be empty.
     const members = visibility === CONST.REPORT.VISIBILITY.RESTRICTED ? policyMembersAccountIDs : [];
     const participants = _.unique([currentUserAccountID, ...members]);

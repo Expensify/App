@@ -142,10 +142,10 @@ function WorkspaceReimburseView(props) {
                 ]}
             >
                 <View style={[styles.mv3, styles.flexRow, styles.flexWrap]}>
-                    <Text numberOfLines={100}>
+                    <Text>
                         {translate('workspace.reimburse.captureNoVBACopyBeforeEmail')}
                         <CopyTextToClipboard
-                            text="receipts@expensify.com"
+                            text={CONST.EMAIL.RECEIPTS}
                             textStyles={[styles.textBlue]}
                         />
                         <Text>{translate('workspace.reimburse.captureNoVBACopyAfterEmail')}</Text>

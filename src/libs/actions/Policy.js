@@ -8,14 +8,12 @@ import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import * as NumberUtils from '../NumberUtils';
-import * as LocalePhoneNumber from '../LocalePhoneNumber';
 import * as OptionsListUtils from '../OptionsListUtils';
 import * as ErrorUtils from '../ErrorUtils';
 import * as ReportUtils from '../ReportUtils';
 import * as PersonalDetailsUtils from '../PersonalDetailsUtils';
 import Log from '../Log';
 import Permissions from '../Permissions';
-import * as UserUtils from '../UserUtils';
 
 const allPolicies = {};
 Onyx.connect({
@@ -361,24 +359,6 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID,
     // create onyx data for policy expense chats for each new member
     const membersChats = createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, betas);
 
-    // Optimistic personal details for the new accounts invited
-    const optimisticPersonalDetails = _.chain(invitedEmailsToAccountIDs)
-        .map(
-            (accountID, memberLogin) =>
-                !_.has(allPersonalDetails, accountID) && [
-                    accountID,
-                    {
-                        accountID,
-                        avatar: UserUtils.getDefaultAvatarURL(accountID),
-                        displayName: LocalePhoneNumber.formatPhoneNumber(memberLogin),
-                        login: OptionsListUtils.addSMSDomainIfPhoneNumber(memberLogin),
-                    },
-                ],
-        )
-        .compact()
-        .object()
-        .value();
-
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -389,11 +369,6 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID,
         },
         ...newPersonalDetailsOnyxData.optimisticData,
         ...membersChats.onyxOptimisticData,
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: optimisticPersonalDetails,
-        },
     ];
 
     const successData = [
@@ -407,11 +382,6 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID,
         },
         ...newPersonalDetailsOnyxData.successData,
         ...membersChats.onyxSuccessData,
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: _.object(_.keys(optimisticPersonalDetails), Array(_.size(optimisticPersonalDetails)).fill(null)),
-        },
     ];
 
     const failureData = [
@@ -435,8 +405,9 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID,
     const params = {
         employees: JSON.stringify(_.map(logins, (login) => ({email: login}))),
 
-        // Escape HTML special chars to enable them to appear in the invite email
-        welcomeNote: _.escape(welcomeNote),
+        // Do not escape HTML special chars for welcomeNote as this will be handled in the backend.
+        // See https://github.com/Expensify/App/issues/20081 for more details.
+        welcomeNote,
         policyID,
     };
     if (!_.isEmpty(membersChats.reportCreationData)) {
