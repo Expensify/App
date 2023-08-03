@@ -1188,8 +1188,8 @@ class ReportActionCompose extends React.Component {
                                             if (this.state.isAttachmentPreviewActive) {
                                                 return;
                                             }
-                                            const file = lodashGet(e, ['dataTransfer', 'files', 0]);
-                                            displayFileInModal(file);
+                                            const data = lodashGet(e, ['dataTransfer', 'items', 0]);
+                                            displayFileInModal(data);
                                         }}
                                     />
                                 </>
