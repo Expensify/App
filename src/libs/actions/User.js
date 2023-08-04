@@ -829,9 +829,11 @@ function updateCustomStatus(status) {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.PERSONAL_DETAILS,
+                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                 value: {
-                    status,
+                    [currentUserAccountID]: {
+                        status,
+                    },
                 },
             },
         ],
@@ -846,9 +848,11 @@ function clearCustomStatus() {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.PERSONAL_DETAILS,
+                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                 value: {
-                    status: null, // Clearing the field
+                    [currentUserAccountID]: {
+                        status: null, // Clearing the field
+                    },
                 },
             },
         ],
