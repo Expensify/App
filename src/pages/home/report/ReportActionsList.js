@@ -105,7 +105,6 @@ function ReportActionsList({
     personalDetailsList,
     currentUserPersonalDetails,
     loadMoreChats,
-    network,
     onLayout,
 }) {
     const reportScrollManager = useReportScrollManager();
