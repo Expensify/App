@@ -197,7 +197,7 @@ function AddressPage({privatePersonalDetails}) {
                         label={translate('common.stateOrProvince')}
                         accessibilityLabel={translate('common.stateOrProvince')}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        value={state}
+                        value={state || ''}
                         maxLength={CONST.FORM_CHARACTER_LIMIT}
                         spellCheck={false}
                         onValueChange={handleAddressChange}
