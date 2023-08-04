@@ -224,7 +224,7 @@ class BaseOptionsList extends Component {
                             onScrollBeginDrag={this.props.onScrollBeginDrag}
                             onScroll={this.props.onScroll}
                             contentContainerStyle={this.props.contentContainerStyles}
-                            showsVerticalScrollIndicator={false}
+                            showsVerticalScrollIndicator={this.props.showScrollIndicator}
                             sections={this.props.sections}
                             keyExtractor={this.extractKey}
                             stickySectionHeadersEnabled={false}

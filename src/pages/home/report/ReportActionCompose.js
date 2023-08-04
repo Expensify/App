@@ -450,12 +450,9 @@ class ReportActionCompose extends React.Component {
      * @param {Array} reportParticipants
      * @returns {Boolean}
      */
-    getTaskOption(reportParticipants) {
+    getTaskOption() {
         // We only prevent the task option from showing if it's a DM and the other user is an Expensify default email
-        if (
-            !Permissions.canUseTasks(this.props.betas) ||
-            (lodashGet(this.props.report, 'participantAccountIDs', []).length === 1 && _.some(reportParticipants, (accountID) => _.contains(CONST.EXPENSIFY_ACCOUNT_IDS, accountID)))
-        ) {
+        if (!Permissions.canUseTasks(this.props.betas) || ReportUtils.isExpensifyOnlyParticipantInReport(this.props.report)) {
             return [];
         }
 
@@ -1116,7 +1113,7 @@ class ReportActionCompose extends React.Component {
                                                     anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM}}
                                                     menuItems={[
                                                         ...this.getMoneyRequestOptions(reportParticipants),
-                                                        ...this.getTaskOption(reportParticipants),
+                                                        ...this.getTaskOption(),
                                                         {
                                                             icon: Expensicons.Paperclip,
                                                             text: this.props.translate('reportActionCompose.addAttachment'),
