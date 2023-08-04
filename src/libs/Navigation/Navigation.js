@@ -238,6 +238,14 @@ function setIsNavigationReady() {
     resolveNavigationIsReadyPromise();
 }
 
+function popToLHN() {
+    if (!canNavigate('popToLHN')) {
+        return;
+    }
+    const rootState = navigationRef.getRootState();
+    navigationRef.current.dispatch({...StackActions.popToTop(), target: rootState.key});
+}
+
 export default {
     setShouldPopAllStateOnUP,
     canNavigate,
@@ -250,6 +258,7 @@ export default {
     isNavigationReady,
     setIsNavigationReady,
     getTopmostReportId,
+    popToLHN,
 };
 
 export {navigationRef};
