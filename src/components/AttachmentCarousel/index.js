@@ -19,7 +19,7 @@ import {propTypes, defaultProps} from './attachmentCarouselPropTypes';
 import BlockingView from '../BlockingViews/BlockingView';
 import * as Illustrations from '../Icon/Illustrations';
 import variables from '../../styles/variables';
-import Navigation from "../../libs/Navigation/Navigation"
+import Navigation from '../../libs/Navigation/Navigation';
 import tryResolveUrlFromApiRoot from '../../libs/tryResolveUrlFromApiRoot';
 
 const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
@@ -57,9 +57,9 @@ function AttachmentCarousel(props) {
         const initialState = createInitialState(props);
         // dismiss the modal when deleting an attachment during its display in preview.
         const source = tryResolveUrlFromApiRoot(props.source);
-        if(initialState.page === -1 && _.find(attachments, (a) => a.source === source)) {
+        if (initialState.page === -1 && _.find(attachments, (a) => a.source === source)) {
             Navigation.dismissModal();
-        }else {
+        } else {
             setPage(initialState.page);
             setAttachments(initialState.attachments);
         }
