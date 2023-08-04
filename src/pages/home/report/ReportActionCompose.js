@@ -283,7 +283,7 @@ class ReportActionCompose extends React.Component {
 
         // As the report IDs change, make sure to update the composer comment as we need to make sure
         // we do not show incorrect data in there (ie. draft of message from other report).
-        if (this.props.report.reportID === prevProps.report.reportID && !shouldSyncComment) {
+        if (this.props.preferredLocale === prevProps.preferredLocale && this.props.report.reportID === prevProps.report.reportID && !shouldSyncComment) {
             return;
         }
 
@@ -452,12 +452,9 @@ class ReportActionCompose extends React.Component {
      * @param {Array} reportParticipants
      * @returns {Boolean}
      */
-    getTaskOption(reportParticipants) {
+    getTaskOption() {
         // We only prevent the task option from showing if it's a DM and the other user is an Expensify default email
-        if (
-            !Permissions.canUseTasks(this.props.betas) ||
-            (lodashGet(this.props.report, 'participantAccountIDs', []).length === 1 && _.some(reportParticipants, (accountID) => _.contains(CONST.EXPENSIFY_ACCOUNT_IDS, accountID)))
-        ) {
+        if (!Permissions.canUseTasks(this.props.betas) || ReportUtils.isExpensifyOnlyParticipantInReport(this.props.report)) {
             return [];
         }
 
@@ -1143,7 +1140,26 @@ class ReportActionCompose extends React.Component {
                                                     }}
                                                     anchorPosition={styles.createMenuPositionReportActionCompose(this.props.windowHeight)}
                                                     anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM}}
-                                                    menuItems={menuItems}
+                                                    menuItems={[
+                                                        ...this.getMoneyRequestOptions(reportParticipants),
+                                                        ...this.getTaskOption(),
+                                                        {
+                                                            icon: Expensicons.Paperclip,
+                                                            text: this.props.translate('reportActionCompose.addAttachment'),
+                                                            onSelected: () => {
+                                                                // Set a flag to block suggestion calculation until we're finished using the file picker,
+                                                                // which will stop any flickering as the file picker opens on non-native devices.
+                                                                if (this.willBlurTextInputOnTapOutside) {
+                                                                    this.shouldBlockEmojiCalc = true;
+                                                                    this.shouldBlockMentionCalc = true;
+                                                                }
+
+                                                                openPicker({
+                                                                    onPicked: displayFileInModal,
+                                                                });
+                                                            },
+                                                        },
+                                                    ]}
                                                     withoutOverlay
                                                     anchorRef={this.actionButtonRef}
                                                 />
@@ -1200,8 +1216,8 @@ class ReportActionCompose extends React.Component {
                                             if (this.state.isAttachmentPreviewActive) {
                                                 return;
                                             }
-                                            const file = lodashGet(e, ['dataTransfer', 'files', 0]);
-                                            displayFileInModal(file);
+                                            const data = lodashGet(e, ['dataTransfer', 'items', 0]);
+                                            displayFileInModal(data);
                                         }}
                                     />
                                 </>
