@@ -1,4 +1,4 @@
-import React, {useMemo, useCallback} from 'react';
+import React, {useMemo, useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
@@ -58,6 +58,10 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
             ) : null,
         [hasDraftStatus, localize, updateStatus],
     );
+
+    useEffect(() => {
+        return User.clearDraftCustomStatus;
+    }, []);
 
     return (
         <StaticHeaderPageLayout
