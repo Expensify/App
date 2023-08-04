@@ -61,6 +61,7 @@ function ProfilePage(props) {
     };
     const currentUserDetails = props.currentUserPersonalDetails || {};
     const contactMethodBrickRoadIndicator = UserUtils.getLoginListBrickRoadIndicator(props.loginList);
+    const emojiCode = lodashGet(props, 'currentUserPersonalDetails.status.emojiCode', '');
 
     const profileSettingsOptions = [
         {
@@ -78,7 +79,7 @@ function ProfilePage(props) {
             ? [
                   {
                       description: props.translate('statusPage.status'),
-                      title: `${lodashGet(props, 'currentUserPersonalDetails.status.emojiCode', '')} ${lodashGet(props, 'currentUserPersonalDetails.status.text', '')}`,
+                      title: emojiCode ? `${emojiCode} ${lodashGet(props, 'currentUserPersonalDetails.status.text', '')}` : '',
                       pageRoute: ROUTES.SETTINGS_STATUS,
                   },
               ]
