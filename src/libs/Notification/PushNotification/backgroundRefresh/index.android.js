@@ -27,9 +27,13 @@ export default function backgroundRefresh() {
     }
 
     getLastOnyxUpdateID().then((lastUpdateID) => {
-        // ReconnectApp waits on our isReadyToOpenApp promise to resolve and this normally only resolves when the LHN is rendered.
-        // However, on Android this is run in the background using a HeadlessJS task (https://reactnative.dev/docs/headless-js-android)
-        // which does not render the React UI. So we must manually run confirmReadyToOpenApp here instead
+        /**
+         * ReconnectApp waits on the isReadyToOpenApp promise to resolve and this normally only resolves when the LHN is rendered.
+         * However on Android, this callback is run in the background using a Headless JS task which does not render the React UI,
+         * so we must manually run confirmReadyToOpenApp here instead.
+         *
+         * See more here: https://reactnative.dev/docs/headless-js-android
+         */
         App.confirmReadyToOpenApp();
         App.reconnectApp(lastUpdateID);
     });
