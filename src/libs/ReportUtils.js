@@ -406,24 +406,6 @@ function isOptimisticPersonalDetail(accountID) {
 }
 
 /**
- * Check if the report is a single chat report that isn't a thread
- * and personal detail of participant is optimistic data
- * @param {Object} report
- * @returns {Boolean}
- */
-function shouldDisableDetailPage(report) {
-    const participantAccountIDs = lodashGet(report, 'participantAccountIDs', []);
-
-    if (isChatRoom(report) || isPolicyExpenseChat(report) || isChatThread(report)) {
-        return false;
-    }
-    if (participantAccountIDs.length === 1) {
-        return isOptimisticPersonalDetail(participantAccountIDs[0]);
-    }
-    return false;
-}
-
-/**
  * Checks if a report is a task report from a policy expense chat.
  *
  * @param {Object} report
@@ -468,9 +450,10 @@ function isConciergeChatReport(report) {
 }
 
 /**
- * Check if report is a DM and personal detail of participant is optimistic data
+ * Check if the report is a single chat report that isn't a thread
+ * and personal detail of participant is optimistic data
  * @param {Object} report
- * @param {Array<Number>} report.participantAccountIDs
+ * @param {Array} report.participantAccountIDs
  * @returns {Boolean}
  */
 function shouldDisableDetailPage(report) {
