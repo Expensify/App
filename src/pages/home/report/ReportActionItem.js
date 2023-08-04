@@ -103,8 +103,8 @@ const propTypes = {
     emojiReactions: EmojiReactionsPropTypes,
     personalDetailsList: PropTypes.objectOf(personalDetailsPropType),
 
-    /** Is this the only report action on the report? */
-    isOnlyReportAction: PropTypes.bool,
+    /** Flag to show, hide the thread divider line */
+    shouldHideThreadDividerLine: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -114,7 +114,7 @@ const defaultProps = {
     personalDetailsList: {},
     shouldShowSubscriptAvatar: false,
     hasOutstandingIOU: false,
-    isOnlyReportAction: false,
+    shouldHideThreadDividerLine: false,
 };
 
 function ReportActionItem(props) {
@@ -454,7 +454,7 @@ function ReportActionItem(props) {
             return (
                 <MoneyRequestView
                     report={props.report}
-                    shouldShowHorizontalRule={!props.isOnlyReportAction}
+                    shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
                 />
             );
         }
@@ -462,7 +462,7 @@ function ReportActionItem(props) {
             return (
                 <TaskView
                     report={props.report}
-                    shouldShowHorizontalRule={!props.isOnlyReportAction}
+                    shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
                 />
             );
         }
@@ -470,7 +470,7 @@ function ReportActionItem(props) {
             return (
                 <MoneyReportView
                     report={props.report}
-                    shouldShowHorizontalRule={!props.isOnlyReportAction}
+                    shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
                 />
             );
         }
@@ -608,6 +608,8 @@ export default compose(
             prevProps.shouldDisplayNewMarker === nextProps.shouldDisplayNewMarker &&
             _.isEqual(prevProps.emojiReactions, nextProps.emojiReactions) &&
             _.isEqual(prevProps.action, nextProps.action) &&
+            _.isEqual(prevProps.report.pendingFields, nextProps.report.pendingFields) &&
+            _.isEqual(prevProps.report.errorFields, nextProps.report.errorFields) &&
             lodashGet(prevProps.report, 'statusNum') === lodashGet(nextProps.report, 'statusNum') &&
             lodashGet(prevProps.report, 'stateNum') === lodashGet(nextProps.report, 'stateNum') &&
             prevProps.translate === nextProps.translate &&
@@ -621,6 +623,6 @@ export default compose(
             ReportUtils.isCompletedTaskReport(prevProps.report) === ReportUtils.isCompletedTaskReport(nextProps.report) &&
             prevProps.report.managerID === nextProps.report.managerID &&
             prevProps.report.managerEmail === nextProps.report.managerEmail &&
-            prevProps.isOnlyReportAction === nextProps.isOnlyReportAction,
+            prevProps.shouldHideThreadDividerLine === nextProps.shouldHideThreadDividerLine,
     ),
 );
