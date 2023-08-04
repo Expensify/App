@@ -266,23 +266,32 @@ function completeTask(taskReport, taskTitle) {
     ];
 
     // Update optimistic data and failure data for parent report action
-    const optimisticParentReportData = ReportUtils.getOptimisticDataForParentReportAction(taskReportID, completedTaskReportAction.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-    if (!_.isEmpty(optimisticParentReportData)) {
-        optimisticData.push(optimisticParentReportData);
-        // Get assignee report from participantAccountIDs as in creating task
-        const assigneeChatReportID = lodashGet(ReportUtils.getChatByParticipants(taskReport.participantAccountIDs), 'reportID');
-        // We don't need to create optmistic report action for assignee report if assignee and shareDestination are the same
-        if (assigneeChatReportID && `${assigneeChatReportID}` !== `${taskReport.parentReportID}`) {
-            const parentReportAction = ReportActionsUtils.getParentReportActionForTask(taskReportID, assigneeChatReportID);
-            if (parentReportAction) {
-                optimisticData.push({
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
-                    value: {
-                        // Copy optimistic report action data from shareDestination
-                        [parentReportAction.reportActionID]: _.values(optimisticParentReportData.value)[0],
-                    },
-                });
+    if (taskReport.parentReportActionID) {
+        let parentReportAction = ReportActionsUtils.getParentReportAction(taskReport);
+        if (parentReportAction && parentReportAction.reportActionID) {
+            const optimisticParentReportActionData = ReportUtils.updateOptimisticParentReportAction(parentReportAction, completedTaskReportAction.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReport.parentReportID}`,
+                value: {
+                    [parentReportAction.reportActionID]: optimisticParentReportActionData,
+                },
+            });
+
+            // Get assignee report from participantAccountIDs as in creating task according to https://github.com/Expensify/App/issues/23920#issuecomment-1663092717
+            const assigneeChatReportID = lodashGet(ReportUtils.getChatByParticipants(taskReport.participantAccountIDs), 'reportID');
+            // We don't need to create optmistic report action for assignee report if assignee and shareDestination are the same
+            if (assigneeChatReportID && `${assigneeChatReportID}` !== `${taskReport.parentReportID}`) {
+                parentReportAction = ReportActionsUtils.getParentReportActionForTask(taskReportID, assigneeChatReportID);
+                if (parentReportAction && parentReportAction.reportActionID) {
+                    optimisticData.push({
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
+                        value: {
+                            [parentReportAction.reportActionID]: optimisticParentReportActionData,
+                        },
+                    });
+                }
             }
         }
     }
@@ -358,24 +367,33 @@ function reopenTask(taskReport, taskTitle) {
         },
     ];
 
-    // Update optimistic data and failure data for parent report action
-    const optimisticParentReportData = ReportUtils.getOptimisticDataForParentReportAction(taskReportID, reopenedTaskReportAction.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-    if (!_.isEmpty(optimisticParentReportData)) {
-        optimisticData.push(optimisticParentReportData);
-        // Get assignee report from participantAccountIDs as in creating task
-        const assigneeChatReportID = lodashGet(ReportUtils.getChatByParticipants(taskReport.participantAccountIDs), 'reportID');
-        // We don't need to create optmistic report action for assignee report if assignee and shareDestination are the same
-        if (assigneeChatReportID && `${assigneeChatReportID}` !== `${taskReport.parentReportID}`) {
-            const parentReportAction = ReportActionsUtils.getParentReportActionForTask(taskReportID, assigneeChatReportID);
-            if (parentReportAction) {
-                optimisticData.push({
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
-                    value: {
-                        // Copy optimistic report action data from shareDestination
-                        [parentReportAction.reportActionID]: _.values(optimisticParentReportData.value)[0],
-                    },
-                });
+    // Update optimistic data for parent report action
+    if (taskReport.parentReportActionID) {
+        let parentReportAction = ReportActionsUtils.getParentReportAction(taskReport);
+        if (parentReportAction && parentReportAction.reportActionID) {
+            const optimisticParentReportActionData = ReportUtils.updateOptimisticParentReportAction(parentReportAction, reopenedTaskReportAction.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReport.parentReportID}`,
+                value: {
+                    [parentReportAction.reportActionID]: optimisticParentReportActionData,
+                },
+            });
+
+            // Get assignee report from participantAccountIDs as in creating task according to https://github.com/Expensify/App/issues/23920#issuecomment-1663092717
+            const assigneeChatReportID = lodashGet(ReportUtils.getChatByParticipants(taskReport.participantAccountIDs), 'reportID');
+            // We don't need to create optmistic report action for assignee report if assignee and shareDestination are the same
+            if (assigneeChatReportID && `${assigneeChatReportID}` !== `${taskReport.parentReportID}`) {
+                parentReportAction = ReportActionsUtils.getParentReportActionForTask(taskReportID, assigneeChatReportID);
+                if (parentReportAction && parentReportAction.reportActionID) {
+                    optimisticData.push({
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
+                        value: {
+                            [parentReportAction.reportActionID]: optimisticParentReportActionData,
+                        },
+                    });
+                }
             }
         }
     }
