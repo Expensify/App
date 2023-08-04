@@ -14,7 +14,7 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import compose from '../../libs/compose';
 import reportActionPropTypes from '../home/report/reportActionPropTypes';
 import reportPropTypes from '../reportPropTypes';
-import withReportOrNotFound from '../home/report/withReportOrNotFound';
+import withReportAndReportActionOrNotFound from '../home/report/withReportAndReportActionOrNotFound';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import CONST from '../../CONST';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
@@ -49,18 +49,6 @@ const defaultProps = {
     personalDetails: {},
     reportActions: {},
 };
-
-/**
- * Get the reportID for the associated chatReport
- *
- * @param {Object} route
- * @param {Object} route.params
- * @param {String} route.params.reportID
- * @returns {String}
- */
-function getReportID(route) {
-    return route.params.reportID.toString();
-}
 
 function SplitBillDetailsPage(props) {
     const reportAction = props.reportActions[`${props.route.params.reportActionID.toString()}`];
@@ -108,14 +96,10 @@ SplitBillDetailsPage.displayName = 'SplitBillDetailsPage';
 
 export default compose(
     withLocalize,
-    withReportOrNotFound,
+    withReportAndReportActionOrNotFound,
     withOnyx({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        },
-        reportActions: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`,
-            canEvict: false,
         },
     }),
 )(SplitBillDetailsPage);

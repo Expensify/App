@@ -131,4 +131,35 @@ function appendTimeToFileName(fileName) {
     return newFileName;
 }
 
-export {showGeneralErrorAlert, showSuccessAlert, showPermissionErrorAlert, splitExtensionFromFileName, getAttachmentName, getFileType, cleanFileName, appendTimeToFileName};
+/**
+ * Reads a locally uploaded file
+ *
+ * @param {String} path - the blob url of the locally uplodaded file
+ * @param {String} fileName
+ * @returns {Promise}
+ */
+const readFileAsync = (path, fileName) =>
+    new Promise((resolve) => {
+        if (!path) {
+            resolve();
+        }
+
+        return fetch(path)
+            .then((res) => {
+                if (!res.ok) {
+                    throw Error(res.statusText);
+                }
+                return res.blob();
+            })
+            .then((blob) => {
+                const file = new File([blob], cleanFileName(fileName));
+                file.source = path;
+                resolve(file);
+            })
+            .catch((e) => {
+                console.debug('[FileUtils] Could not read uploaded file', e);
+                resolve();
+            });
+    });
+
+export {showGeneralErrorAlert, showSuccessAlert, showPermissionErrorAlert, splitExtensionFromFileName, getAttachmentName, getFileType, cleanFileName, appendTimeToFileName, readFileAsync};
