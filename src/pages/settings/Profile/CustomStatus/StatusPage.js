@@ -26,12 +26,15 @@ const propTypes = {
 
 function StatusPage({draftStatus, currentUserPersonalDetails}) {
     const localize = useLocalize();
-
-    const defaultEmoji = lodashGet(draftStatus, 'emojiCode') || lodashGet(currentUserPersonalDetails, 'status.emojiCode', '');
-    const defaultText = lodashGet(draftStatus, 'text') || lodashGet(currentUserPersonalDetails, 'status.text', '');
+    const currentUserEmojiCode = lodashGet(currentUserPersonalDetails, 'status.emojiCode', '');
+    const currentUserStatusText = lodashGet(currentUserPersonalDetails, 'status.text', '');
+    const defaultEmoji = lodashGet(draftStatus, 'emojiCode') || currentUserEmojiCode;
+    const defaultText = lodashGet(draftStatus, 'text') || currentUserStatusText;
+    const customStatus = defaultEmoji ? `${defaultEmoji} ${defaultText}` : '';
     const hasDraftStatus = !!defaultEmoji || !!defaultText;
 
     const updateStatus = useCallback(() => {
+      console.log('updateStatus')
         const endOfDay = new Date();
         endOfDay.setHours(23, 59, 59, 999);
         User.updateCustomStatus({text: defaultText, emojiCode: defaultEmoji, clearAfter: endOfDay});
@@ -70,7 +73,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
                 <Text style={[styles.textNormal, styles.mt2]}>{localize.translate('statusPage.statusExplanation')}</Text>
             </View>
             <MenuItemWithTopDescription
-                title={`${defaultEmoji} ${defaultText}`}
+                title={customStatus}
                 description="Status"
                 shouldShowRightIcon
                 inputID="test"
@@ -83,7 +86,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
                 onPress={() => {}}
             />
 
-            {hasDraftStatus && (
+            {(!!currentUserEmojiCode || !!currentUserStatusText) && (
                 <MenuItem
                     title={localize.translate('statusPage.clearStatus')}
                     icon={Expensicons.Close}

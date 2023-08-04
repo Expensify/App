@@ -36,7 +36,7 @@ const INPUT_IDS = {
     STATUS_TEXT: 'statusText',
 };
 
-function StatusSetPage({draftStatus = {}, currentUserPersonalDetails}) {
+function StatusSetPage({draftStatus, currentUserPersonalDetails}) {
     const {translate} = useLocalize();
     const defaultEmoji = lodashGet(draftStatus, 'emojiCode') || lodashGet(currentUserPersonalDetails, 'status.emojiCode', '💬');
     const defaultText = lodashGet(draftStatus, 'text') || lodashGet(currentUserPersonalDetails, 'status.text', '');
