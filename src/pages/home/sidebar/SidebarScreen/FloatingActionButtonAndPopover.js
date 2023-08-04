@@ -36,7 +36,7 @@ const policySelector = (policy) =>
     policy && {
         type: policy.type,
         role: policy.role,
-        isControlWorkspaceEnabled: policy.isControlWorkspaceEnabled,
+        isPolicyExpenseChatEnabled: policy.isPolicyExpenseChatEnabled,
         pendingAction: policy.pendingAction,
     };
 

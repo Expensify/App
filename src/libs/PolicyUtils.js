@@ -14,7 +14,7 @@ function getActivePolicies(policies) {
         console.log(policy);
         return (
             policy &&
-            (policy.type === CONST.POLICY.TYPE.FREE || (policy.type === CONST.POLICY.TYPE.CORPORATE && policy.isControlWorkspaceEnabled)) &&
+            (policy.type === CONST.POLICY.TYPE.FREE || (policy.type === CONST.POLICY.TYPE.CORPORATE && policy.isPolicyExpenseChatEnabled)) &&
             policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
         );
     });
@@ -93,7 +93,7 @@ function getPolicyBrickRoadIndicatorStatus(policy, policyMembersCollection) {
 function shouldShowPolicy(policy, isOffline) {
     return (
         policy &&
-        (policy.type === CONST.POLICY.TYPE.FREE || (policy.type === CONST.POLICY.TYPE.CORPORATE && policy.isControlWorkspaceEnabled)) &&
+        (policy.type === CONST.POLICY.TYPE.FREE || (policy.type === CONST.POLICY.TYPE.CORPORATE && policy.isPolicyExpenseChatEnabled)) &&
         policy.role === CONST.POLICY.ROLE.ADMIN &&
         (isOffline || policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !_.isEmpty(policy.errors))
     );
