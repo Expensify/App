@@ -136,4 +136,14 @@
         </div>
     </div>
 </body>
+<script>
+    function dropDragListener(){
+        event.preventDefault();
+        event.dataTransfer.dropEffect = 'none';
+    }
+    document.addEventListener('dragover', dropDragListener);
+    document.addEventListener('dragenter', dropDragListener);
+    document.addEventListener('dragleave', dropDragListener);
+    document.addEventListener('drop', dropDragListener);
+</script>
 </html>
