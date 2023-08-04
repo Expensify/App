@@ -10,13 +10,7 @@ import Text from './Text';
 import * as Localize from '../libs/Localize';
 
 const propTypes = {
-    /**
-     * In most cases this should just be errors from onxyData
-     * if you are not passing that data then this needs to be in a similar shape like
-     *  {
-     *      timestamp: 'message',
-     *  }
-     */
+    // The error messages to display
     messages: PropTypes.objectOf(PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.object]))])),
 
     // The type of message, 'error' shows a red dot, 'success' shows a green dot

@@ -367,7 +367,7 @@ function WorkspaceMembersPage(props) {
         [selectedEmployees, errors, props.session.accountID, dismissError, toggleUser],
     );
 
-    const invitedSecondaryToPrimaryLogins = _.invert(props.policy.primaryLoginsInvited);
+    const invitedPrimaryToSecondaryLogins = _.invert(props.policy.primaryLoginsInvited);
     const policyOwner = lodashGet(props.policy, 'owner');
     const currentUserLogin = lodashGet(props.currentUserPersonalDetails, 'login');
     const removableMembers = {};
@@ -384,7 +384,9 @@ function WorkspaceMembersPage(props) {
         data.push({
             ...policyMember,
             ...details,
-            invitedSecondaryLogin: invitedSecondaryToPrimaryLogins[details.login] || '',
+
+            // Note which secondary login was used to invite this primary login
+            invitedSecondaryLogin: invitedPrimaryToSecondaryLogins[details.login] || '',
         });
     });
     data = _.sortBy(data, (value) => value.displayName.toLowerCase());
@@ -464,7 +466,7 @@ function WorkspaceMembersPage(props) {
                             />
                             <DotIndicatorMessageWithClose
                                 type="success"
-                                messages={_.isEmpty(invitedSecondaryToPrimaryLogins) ? null : {0: props.translate('workspace.people.addedWithPrimary')}}
+                                messages={_.isEmpty(invitedPrimaryToSecondaryLogins) ? null : {0: props.translate('workspace.people.addedWithPrimary')}}
                                 containerStyles={[styles.pt3]}
                                 onClose={() => Policy.dismissAddedWithPrimaryMessages(props.route.params.policyID)}
                             />

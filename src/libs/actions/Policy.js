@@ -1144,6 +1144,11 @@ function clearErrors(policyID) {
     hideWorkspaceAlertMessage(policyID);
 }
 
+/**
+ * Dismiss the informative messages about which policy members were added with primary logins when invited with their secondary login.
+ *
+ * @param {String} policyID
+ */
 function dismissAddedWithPrimaryMessages(policyID) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {primaryLoginsInvited: null});
 }
