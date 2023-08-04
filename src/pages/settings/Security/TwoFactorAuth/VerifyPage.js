@@ -93,10 +93,12 @@ function VerifyPage(props) {
     }
 
     return (
-        <ScreenWrapper shouldShowOfflineIndicator={false}>
+        <ScreenWrapper
+            shouldShowOfflineIndicator={false}
+            onEntryTransitionEnd={() => formRef.current && formRef.current.focus()}
+        >
             <HeaderWithBackButton
                 title={props.translate('twoFactorAuth.headerTitle')}
-                shouldShowStepCounter
                 stepCounter={{
                     step: 2,
                     text: props.translate('twoFactorAuth.stepVerify'),

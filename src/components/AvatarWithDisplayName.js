@@ -11,15 +11,13 @@ import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
 import SubscriptAvatar from './SubscriptAvatar';
 import * as ReportUtils from '../libs/ReportUtils';
-import Avatar from './Avatar';
+import MultipleAvatars from './MultipleAvatars';
 import DisplayNames from './DisplayNames';
 import compose from '../libs/compose';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
 import Text from './Text';
 import * as StyleUtils from '../styles/StyleUtils';
-import Navigation from '../libs/Navigation/Navigation';
-import ROUTES from '../ROUTES';
-import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
+import ParentNavigationSubtitle from './ParentNavigationSubtitle';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -53,58 +51,48 @@ const defaultProps = {
 };
 
 function AvatarWithDisplayName(props) {
-    const title = props.isAnonymous ? props.report.displayName : ReportUtils.getDisplayNameForParticipant(props.report.ownerAccountID, true);
+    const title = ReportUtils.getReportName(props.report);
     const subtitle = ReportUtils.getChatRoomSubtitle(props.report);
-    const parentNavigationSubtitle = ReportUtils.getParentNavigationSubtitle(props.report);
-    const isExpenseReport = ReportUtils.isExpenseReport(props.report);
-    const icons = ReportUtils.getIcons(props.report, props.personalDetails, props.policies);
+    const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(props.report);
+    const isMoneyRequestOrReport = ReportUtils.isMoneyRequestReport(props.report) || ReportUtils.isMoneyRequest(props.report);
+    const icons = ReportUtils.getIcons(props.report, props.personalDetails, props.policies, true);
     const ownerPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs([props.report.ownerAccountID], props.personalDetails);
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(_.values(ownerPersonalDetails), false);
-    const avatarContainerStyle = StyleUtils.getEmptyAvatarStyle(props.size) || styles.emptyAvatar;
+    const shouldShowSubscriptAvatar = ReportUtils.shouldReportShowSubscript(props.report);
+    const isExpenseRequest = ReportUtils.isExpenseRequest(props.report);
+    const defaultSubscriptSize = isExpenseRequest ? CONST.AVATAR_SIZE.SMALL_NORMAL : props.size;
     return (
         <View style={[styles.appContentHeaderTitle, styles.flex1]}>
             {Boolean(props.report && title) && (
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                    {isExpenseReport ? (
+                    {shouldShowSubscriptAvatar ? (
                         <SubscriptAvatar
                             backgroundColor={themeColors.highlightBG}
                             mainAvatar={icons[0]}
                             secondaryAvatar={icons[1]}
-                            size={props.size}
+                            size={defaultSubscriptSize}
                         />
                     ) : (
-                        <Avatar
+                        <MultipleAvatars
+                            icons={icons}
                             size={props.size}
-                            source={icons[0].source}
-                            type={icons[0].type}
-                            name={icons[0].name}
-                            containerStyles={avatarContainerStyle}
+                            secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(themeColors.highlightBG)]}
                         />
                     )}
-                    <View style={[styles.flex1, styles.flexColumn, styles.ml3]}>
+                    <View style={[styles.flex1, styles.flexColumn, shouldShowSubscriptAvatar && !isExpenseRequest ? styles.ml4 : {}]}>
                         <DisplayNames
                             fullTitle={title}
                             displayNamesWithTooltips={displayNamesWithTooltips}
                             tooltipEnabled
                             numberOfLines={1}
                             textStyles={[props.isAnonymous ? styles.headerAnonymousFooter : styles.headerText, styles.pre]}
-                            shouldUseFullTitle={isExpenseReport || props.isAnonymous}
+                            shouldUseFullTitle={isMoneyRequestOrReport || props.isAnonymous}
                         />
-                        {!_.isEmpty(parentNavigationSubtitle) && (
-                            <PressableWithoutFeedback
-                                onPress={() => {
-                                    Navigation.navigate(ROUTES.getReportRoute(props.report.parentReportID));
-                                }}
-                                accessibilityLabel={subtitle}
-                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
-                            >
-                                <Text
-                                    style={[styles.optionAlternateText, styles.textLabelSupporting, styles.link]}
-                                    numberOfLines={1}
-                                >
-                                    {parentNavigationSubtitle}
-                                </Text>
-                            </PressableWithoutFeedback>
+                        {!_.isEmpty(parentNavigationSubtitleData) && (
+                            <ParentNavigationSubtitle
+                                parentNavigationSubtitleData={parentNavigationSubtitleData}
+                                parentReportID={props.report.parentReportID}
+                            />
                         )}
                         {!_.isEmpty(subtitle) && (
                             <Text

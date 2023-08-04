@@ -13,7 +13,6 @@ import Text from '../../../../components/Text';
 import TextInput from '../../../../components/TextInput';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import Navigation from '../../../../libs/Navigation/Navigation';
-import Permissions from '../../../../libs/Permissions';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import ROUTES from '../../../../ROUTES';
 import styles from '../../../../styles/styles';
@@ -25,9 +24,6 @@ import CONST from '../../../../CONST';
 
 const propTypes = {
     /* Onyx Props */
-
-    /** List of betas available to current user */
-    betas: PropTypes.arrayOf(PropTypes.string),
 
     /** Login list for the user that is signed in */
     loginList: PropTypes.shape({
@@ -50,7 +46,6 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 const defaultProps = {
-    betas: [],
     loginList: {},
 };
 
@@ -65,7 +60,7 @@ const getPhoneLogin = (phoneOrEmail) => {
 const validateNumber = (values) => {
     const parsedPhoneNumber = parsePhoneNumber(values);
 
-    if (parsedPhoneNumber.possible) {
+    if (parsedPhoneNumber.possible && Str.isValidPhone(values.slice(0))) {
         return parsedPhoneNumber.number.e164 + CONST.SMS.DOMAIN;
     }
 
@@ -77,7 +72,7 @@ const addNewContactMethod = (values) => {
     const validateIfnumber = validateNumber(phoneLogin);
     const submitDetail = (validateIfnumber || values.phoneOrEmail).trim().toLowerCase();
 
-    User.addNewContactMethodAndNavigate(submitDetail, values.password);
+    User.addNewContactMethodAndNavigate(submitDetail);
 };
 
 function NewContactMethodPage(props) {
@@ -94,16 +89,12 @@ function NewContactMethodPage(props) {
                 ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', 'contacts.genericFailureMessages.contactMethodRequired');
             }
 
-            if (!_.isEmpty(values.phoneOrEmail) && !((parsePhoneNumber(phoneLogin).possible && Str.isValidPhone(phoneLogin.slice(0))) || Str.isValidEmail(values.phoneOrEmail))) {
+            if (!_.isEmpty(values.phoneOrEmail) && !(validateIfnumber || Str.isValidEmail(values.phoneOrEmail))) {
                 ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', 'contacts.genericFailureMessages.invalidContactMethod');
             }
 
             if (!_.isEmpty(values.phoneOrEmail) && lodashGet(props.loginList, validateIfnumber || values.phoneOrEmail.toLowerCase())) {
                 ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', 'contacts.genericFailureMessages.enteredMethodIsAlreadySubmited');
-            }
-
-            if (!Permissions.canUsePasswordlessLogins(props.betas) && _.isEmpty(values.password)) {
-                errors.password = 'contacts.genericFailureMessages.passwordRequired';
             }
 
             return errors;
@@ -125,6 +116,7 @@ function NewContactMethodPage(props) {
                 loginInputRef.current.focus();
             }}
             includeSafeAreaPaddingBottom={false}
+            shouldEnableMaxHeight
         >
             <HeaderWithBackButton
                 title={props.translate('contacts.newContactMethod')}
@@ -148,20 +140,10 @@ function NewContactMethodPage(props) {
                         ref={(el) => (loginInputRef.current = el)}
                         inputID="phoneOrEmail"
                         autoCapitalize="none"
-                        returnKeyType={Permissions.canUsePasswordlessLogins(props.betas) ? 'done' : 'next'}
+                        returnKeyType="done"
+                        maxLength={CONST.LOGIN_CHARACTER_LIMIT}
                     />
                 </View>
-                {!Permissions.canUsePasswordlessLogins(props.betas) && (
-                    <View style={[styles.mb6]}>
-                        <TextInput
-                            label={props.translate('common.password')}
-                            accessibilityLabel={props.translate('common.password')}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                            inputID="password"
-                            returnKeyType="done"
-                        />
-                    </View>
-                )}
             </Form>
         </ScreenWrapper>
     );
@@ -173,7 +155,6 @@ NewContactMethodPage.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withOnyx({
-        betas: {key: ONYXKEYS.BETAS},
         loginList: {key: ONYXKEYS.LOGIN_LIST},
     }),
 )(NewContactMethodPage);

@@ -30,6 +30,10 @@ export default function () {
                         const reportActionsForReportEntries = Object.entries(reportActionsForReport);
                         for (let j = 0; j < reportActionsForReportEntries.length; j++) {
                             const [reportActionKey, reportAction] = reportActionsForReportEntries[j];
+                            if (!reportAction) {
+                                Log.info('[Migrate Onyx] Skipped migration KeyReportActionsByReportActionID because the reportAction was deleted');
+                                return resolve();
+                            }
                             if (
                                 !_.isNaN(Number(reportActionKey)) &&
                                 Number(reportActionKey) === Number(reportAction.reportActionID) &&

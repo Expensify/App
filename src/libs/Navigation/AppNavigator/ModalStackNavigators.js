@@ -36,14 +36,14 @@ function createModalStackNavigator(screens) {
 const MoneyRequestModalStackNavigator = createModalStackNavigator([
     {
         getComponent: () => {
-            const MoneyRequestAmountPage = require('../../../pages/iou/steps/MoneyRequestAmountPage').default;
-            return MoneyRequestAmountPage;
+            const MoneyRequestSelectorPage = require('../../../pages/iou/MoneyRequestSelectorPage').default;
+            return MoneyRequestSelectorPage;
         },
         name: 'Money_Request',
     },
     {
         getComponent: () => {
-            const MoneyRequestEditAmountPage = require('../../../pages/iou/steps/MoneyRequestAmountPage').default;
+            const MoneyRequestEditAmountPage = require('../../../pages/iou/steps/MoneyRequestAmount').default;
             return MoneyRequestEditAmountPage;
         },
         name: 'Money_Request_Amount',
@@ -316,7 +316,7 @@ const SettingsModalStackNavigator = createModalStackNavigator([
             const SettingsWorkspacesPage = require('../../../pages/workspace/WorkspacesListPage').default;
             return SettingsWorkspacesPage;
         },
-        name: 'Settings_Workspaces',
+        name: SCREENS.SETTINGS.WORKSPACES,
     },
     {
         getComponent: () => {
@@ -431,13 +431,6 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     //     },
     //     name: 'Settings_Preferences_Theme',
     // },
-    {
-        getComponent: () => {
-            const SettingsPasswordPage = require('../../../pages/settings/PasswordPage').default;
-            return SettingsPasswordPage;
-        },
-        name: 'Settings_Password',
-    },
     {
         getComponent: () => {
             const SettingsCloseAccountPage = require('../../../pages/settings/Security/CloseAccountPage').default;
