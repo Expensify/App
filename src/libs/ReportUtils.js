@@ -408,7 +408,7 @@ function isOptimisticPersonalDetail(accountID) {
 /**
  * Check if the report is a single chat report that isn't a thread
  * and personal detail of participant is optimistic data
- * @param {String} report
+ * @param {Object} report
  * @returns {Boolean}
  */
 function shouldDisableDetailPage(report) {
