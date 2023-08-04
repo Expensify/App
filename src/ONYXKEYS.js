@@ -151,6 +151,9 @@ export default {
     // The user's credit cards
     CARD_LIST: 'cardList',
 
+    // The user's credit cards (renamed from cardList)
+    FUND_LIST: 'fundList',
+
     // Stores information about the user's saved statements
     WALLET_STATEMENT: 'walletStatement',
 
@@ -235,4 +238,10 @@ export default {
 
     // Experimental memory only Onyx mode flag
     IS_USING_MEMORY_ONLY_KEYS: 'isUsingMemoryOnlyKeys',
+
+    // Manual request tab selector
+    SELECTED_TAB: 'selectedTab',
+
+    // Receipt upload modal
+    RECEIPT_MODAL: 'receiptModal',
 };
