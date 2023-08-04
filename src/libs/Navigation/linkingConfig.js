@@ -182,7 +182,6 @@ export default {
                             },
                             Settings_Status_Set: {
                                 path: ROUTES.SETTINGS_STATUS_SET,
-                                // exact: true,
                             },
                             Workspace_Initial: {
                                 path: ROUTES.WORKSPACE_INITIAL,
