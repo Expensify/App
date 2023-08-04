@@ -32,7 +32,7 @@ const isTextSelection = () => {
     return false;
 };
 
-function SwipeableView(props) {
+function SwipeableView({onSwipeUp, onSwipeDown, style, children}) {
     const ref = useRef();
     const scrollableChildRef = useRef();
     const startY = useRef(0);
@@ -55,12 +55,12 @@ function SwipeableView(props) {
                 canSwipeDown = scrollableChildRef.current.scrollTop === 0;
             }
 
-            if (deltaY > MIN_DELTA_Y && props.onSwipeDown && !isSelecting && canSwipeDown && !isScrolling.current) {
-                props.onSwipeDown();
+            if (deltaY > MIN_DELTA_Y && onSwipeDown && !isSelecting && canSwipeDown && !isScrolling.current) {
+                onSwipeDown();
             }
 
-            if (deltaY < -MIN_DELTA_Y && props.onSwipeUp && !isSelecting && canSwipeUp && !isScrolling.current) {
-                props.onSwipeUp();
+            if (deltaY < -MIN_DELTA_Y && onSwipeUp && !isSelecting && canSwipeUp && !isScrolling.current) {
+                onSwipeUp();
             }
             isScrolling.current = false;
         };
@@ -80,14 +80,14 @@ function SwipeableView(props) {
             element.removeEventListener('touchend', handleTouchEnd);
             element.removeEventListener('scroll', handleScroll);
         };
-    }, [props]);
+    }, [onSwipeDown, onSwipeUp]);
 
     return (
         <View
             ref={ref}
-            style={props.style}
+            style={style}
         >
-            {props.children}
+            {children}
         </View>
     );
 }
