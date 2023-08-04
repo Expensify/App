@@ -46,7 +46,6 @@ function DistanceRequest({transactionID, transaction, translate}) {
     const [shouldShowGradient, setShouldShowGradient] = useState(false);
     const [scrollContainerHeight, setScrollContainerHeight] = useState(0);
     const [scrollContentHeight, setScrollContentHeight] = useState(0);
-    const scrollContainer = useRef(null);
 
     const waypoints = lodashGet(transaction, 'comment.waypoints', {});
     const numberOfWaypoints = _.size(waypoints);
@@ -54,8 +53,7 @@ function DistanceRequest({transactionID, transaction, translate}) {
 
     // Show up to the max number of waypoints plus 1/2 of one to hint at scrolling
     const halfMenuItemHeight = Math.floor(styles.baseMenuItemHeight / 2);
-    const maxWaypointsHeight = styles.baseMenuItemHeight * MAX_WAYPOINTS_TO_DISPLAY;
-    const scrollContainerMaxHeight = maxWaypointsHeight + halfMenuItemHeight;
+    const scrollContainerMaxHeight = styles.baseMenuItemHeight * MAX_WAYPOINTS_TO_DISPLAY + halfMenuItemHeight;
 
     useEffect(() => {
         if (!transaction.transactionID || !_.isEmpty(waypoints)) {
@@ -64,17 +62,6 @@ function DistanceRequest({transactionID, transaction, translate}) {
         // Create the initial start and stop waypoints
         Transaction.createInitialWaypoints(transaction.transactionID);
     }, [transaction.transactionID, waypoints]);
-
-    // Measure the scroll container height and decide if we need to fade a waypoint
-    const measureScrollContainerHeight = () => {
-        if (!scrollContainer.current) {
-            return;
-        }
-        scrollContainer.current.measure((x, y, width, height) => {
-            setScrollContainerHeight(height);
-        });
-    };
-    useEffect(measureScrollContainerHeight, [scrollContainer])
 
     const updateGradientVisibility = (event = {}) => {
         // If a waypoint extends past the bottom of the visible area show the gradient, else hide it.
@@ -88,8 +75,7 @@ function DistanceRequest({transactionID, transaction, translate}) {
         <>
             <View
                 style={{maxHeight: scrollContainerMaxHeight}}
-                onLayout={measureScrollContainerHeight}
-                ref={scrollContainer}
+                onLayout={(event = {}) => setScrollContainerHeight(lodashGet(event, 'nativeEvent.layout.height', 0))}
             >
                 <ScrollView
                     onContentSizeChange={(width, height) => setScrollContentHeight(height)}
