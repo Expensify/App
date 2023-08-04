@@ -71,6 +71,7 @@ function ThreePaneView(props) {
                                     onPress={() => props.navigation.goBack()}
                                     accessibilityLabel={translate('common.close')}
                                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                    nativeID="no-drag-area"
                                 />
                                 <View style={styles.rightPanelContainer}>{props.descriptors[route.key].render()}</View>
                             </View>
