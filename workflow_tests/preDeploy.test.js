@@ -272,7 +272,9 @@ describe('test workflow preDeploy', () => {
                 logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
                 mockJobs: testMockJobs,
             });
-            expect(result).toEqual(expect.arrayContaining([utils.createStepAssertion('Run typecheck workflow', false, null, 'TYPECHECK', 'Running typecheck workflow - Typecheck workflow failed')]));
+            expect(result).toEqual(
+                expect.arrayContaining([utils.createStepAssertion('Run typecheck workflow', false, null, 'TYPECHECK', 'Running typecheck workflow - Typecheck workflow failed')]),
+            );
             assertions.assertLintJobExecuted(result);
             assertions.assertTestJobExecuted(result);
             assertions.assertIsExpensifyEmployeeJobExecuted(result);
@@ -289,7 +291,7 @@ describe('test workflow preDeploy', () => {
             assertions.assertCreateNewVersionJobExecuted(result, false);
             assertions.assertUpdateStagingJobExecuted(result, false);
         });
-        
+
         it('lint job failed - workflow exits', async () => {
             const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
