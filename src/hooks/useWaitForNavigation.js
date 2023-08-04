@@ -3,10 +3,11 @@ import {useNavigation} from '@react-navigation/native';
 
 /**
  * Returns a promise that resolves when navigation finishes.
+ * Only use when navigating by react-navigation
  *
  * @returns {function}
  */
-export default function useWaitForNavigate() {
+export default function useWaitForNavigation() {
     const navigation = useNavigation();
     const resolvePromises = useRef([]);
 

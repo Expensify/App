@@ -42,7 +42,7 @@ import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import PressableWithoutFeedback from '../../components/Pressable/PressableWithoutFeedback';
 import useLocalize from '../../hooks/useLocalize';
 import useSingleExecution from '../../hooks/useSingleExecution';
-import useWaitForNavigate from '../../hooks/useWaitForNavigate';
+import useWaitForNavigation from '../../hooks/useWaitForNavigation';
 
 const propTypes = {
     /* Onyx Props */
@@ -132,7 +132,7 @@ const defaultProps = {
 
 function InitialSettingsPage(props) {
     const {isExecuting, singleExecution} = useSingleExecution();
-    const waitForNavigate = useWaitForNavigate();
+    const waitForNavigate = useWaitForNavigation();
     const popoverAnchor = useRef(null);
     const {translate} = useLocalize();
 
@@ -245,9 +245,9 @@ function InitialSettingsPage(props) {
             {
                 translationKey: 'initialSettingsPage.help',
                 icon: Expensicons.QuestionMark,
-                action: waitForNavigate(() => {
+                action: () => {
                     Link.openExternalLink(CONST.NEWHELP_URL);
-                }),
+                },
                 shouldShowRightIcon: true,
                 iconRight: Expensicons.NewWindow,
                 link: CONST.NEWHELP_URL,
@@ -262,9 +262,9 @@ function InitialSettingsPage(props) {
             {
                 translationKey: 'initialSettingsPage.signOut',
                 icon: Expensicons.Exit,
-                action: waitForNavigate(() => {
+                action: () => {
                     signOut(false);
-                }),
+                },
             },
         ];
     }, [
