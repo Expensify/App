@@ -113,6 +113,7 @@ function ProfilePage(props) {
                     errors={lodashGet(props.currentUserPersonalDetails, 'errorFields.avatar', null)}
                     errorRowStyles={[styles.mt6]}
                     onErrorClose={PersonalDetails.clearAvatarErrors}
+                    style={[styles.mh5]}
                 />
                 <View style={[styles.mt4]}>
                     {_.map(profileSettingsOptions, (detail, index) => (

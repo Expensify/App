@@ -19,7 +19,15 @@ function addTrailingForwardSlash(url) {
  */
 function getURLObject(href) {
     const urlRegex = new RegExp(URL_WEBSITE_REGEX, 'gi');
-    const match = urlRegex.exec(href);
+    let match;
+    try {
+        if (!href.startsWith('mailto:')) {
+            match = urlRegex.exec(href);
+        }
+    } catch (e) {
+        // eslint-disable-next-line no-console
+        console.warn('Error parsing url in Url.getURLObject', {error: e});
+    }
     if (!match) {
         return {
             href: undefined,
