@@ -17,7 +17,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../compo
 import styles from '../../../../styles/styles';
 import FixedFooter from '../../../../components/FixedFooter';
 import Button from '../../../../components/Button';
-import PressableWithDelayToggle from '../../../../components/PressableWithDelayToggle';
+import PressableWithDelayToggle from '../../../../components/Pressable/PressableWithDelayToggle';
 import Text from '../../../../components/Text';
 import Section from '../../../../components/Section';
 import ONYXKEYS from '../../../../ONYXKEYS';
@@ -25,7 +25,6 @@ import Clipboard from '../../../../libs/Clipboard';
 import themeColors from '../../../../styles/themes/default';
 import localFileDownload from '../../../../libs/localFileDownload';
 import * as TwoFactorAuthActions from '../../../../libs/actions/TwoFactorAuthActions';
-import * as StyleUtils from '../../../../styles/StyleUtils';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -60,7 +59,6 @@ function CodesPage(props) {
         <ScreenWrapper shouldShowOfflineIndicator={false}>
             <HeaderWithBackButton
                 title={props.translate('twoFactorAuth.headerTitle')}
-                shouldShowStepCounter
                 stepCounter={{
                     step: 1,
                     text: props.translate('twoFactorAuth.stepCodes'),
@@ -96,9 +94,9 @@ function CodesPage(props) {
                                                 </Text>
                                             ))}
                                     </View>
-                                    <View style={[styles.twoFactorAuthCodesButtonsContainer, StyleUtils.getWrappingStyle(props.isExtraSmallScreenWidth)]}>
+                                    <View style={[styles.twoFactorAuthCodesButtonsContainer]}>
                                         <PressableWithDelayToggle
-                                            text={props.translate('twoFactorAuth.copyCodes')}
+                                            text={props.translate('twoFactorAuth.copy')}
                                             textChecked={props.translate('common.copied')}
                                             icon={Expensicons.Copy}
                                             inline={false}

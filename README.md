@@ -47,7 +47,10 @@ In order to have more consistent builds, we use a strict `node` and `npm` versio
 ## Running the iOS app 📱
 For an M1 Mac, read this [SO](https://stackoverflow.com/c/expensify/questions/11580) for installing cocoapods.
 
-* To install the iOS dependencies, run: `npm install && cd ios/ && pod install && cd ..`
+* Install project gems, including cocoapods, using bundler to ensure everyone uses the same versions. In the project root, run: `bundle install`
+    * If you get the error `Could not find 'bundler'`, install the bundler gem first: `gem install bundler` and try again.
+    * If you are using MacOS and get the error `Gem::FilePermissionError` when trying to install the bundler gem, you're likely using system Ruby, which requires administrator permission to modify. To get around this, install another version of Ruby with a version manager like [rbenv](https://github.com/rbenv/rbenv#installation).
+* To install the iOS dependencies, run: `npm install && npm run pod-install`
 * If you are an Expensify employee and want to point the emulator to your local VM, follow [this](https://stackoverflow.com/c/expensify/questions/7699)
 * To run a on a **Development Simulator**: `npm run ios`
 * Changes applied to Javascript will be applied automatically, any changes to native code will require a recompile
@@ -384,7 +387,7 @@ The [preDeploy workflow](https://github.com/Expensify/App/blob/main/.github/work
 - If the `StagingDeployCash` is locked, comment on the merged PR that it will be deployed later.
 - Otherwise:
   - Create a new version by triggering the [`createNewVersion` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/createNewVersion.yml)
-  - Use the [`updateProtectedBranch` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/updateProtectedBranch.yml) to update the `staging` branch.
+  - Update the `staging` branch from main.
 - Also, if the pull request has the `CP Staging` label, it will execute the [`cherryPick` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/cherryPick.yml) to deploy the pull request directly to staging, even if the `StagingDeployCash` is locked.
 
 ### deploy

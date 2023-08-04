@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -13,7 +13,9 @@ import Form from '../../components/Form';
 import TextInput from '../../components/TextInput';
 import Permissions from '../../libs/Permissions';
 import ROUTES from '../../ROUTES';
-import * as TaskUtils from '../../libs/actions/Task';
+import * as Task from '../../libs/actions/Task';
+import focusAndUpdateMultilineInputRange from '../../libs/focusAndUpdateMultilineInputRange';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** Beta features list */
@@ -38,22 +40,11 @@ const defaultProps = {
 function NewTaskDescriptionPage(props) {
     const inputRef = useRef(null);
 
-    // The selection will be used to place the cursor at the end if there is prior text in the text input area
-    const [selection, setSelection] = useState({start: 0, end: 0});
-
-    // eslint-disable-next-line rulesdir/prefer-early-return
-    useEffect(() => {
-        if (props.task.description) {
-            const length = props.task.description.length;
-            setSelection({start: length, end: length});
-        }
-    }, [props.task.description]);
-
     // On submit, we want to call the assignTask function and wait to validate
     // the response
     const onSubmit = (values) => {
-        TaskUtils.setDescriptionValue(values.taskDescription);
-        Navigation.navigate(ROUTES.NEW_TASK);
+        Task.setDescriptionValue(values.taskDescription);
+        Navigation.goBack(ROUTES.NEW_TASK);
     };
 
     if (!Permissions.canUseTasks(props.betas)) {
@@ -63,23 +54,18 @@ function NewTaskDescriptionPage(props) {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            onEntryTransitionEnd={() => {
-                if (!inputRef.current) {
-                    return;
-                }
-
-                inputRef.current.focus();
-            }}
+            onEntryTransitionEnd={() => focusAndUpdateMultilineInputRange(inputRef.current)}
+            shouldEnableMaxHeight
         >
             <HeaderWithBackButton
-                title={props.translate('newTaskPage.description')}
-                onCloseButtonPress={() => TaskUtils.dismissModalAndClearOutTaskInfo()}
+                title={props.translate('task.description')}
+                onCloseButtonPress={() => Task.dismissModalAndClearOutTaskInfo()}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.NEW_TASK)}
             />
             <Form
                 formID={ONYXKEYS.FORMS.NEW_TASK_FORM}
                 submitButtonText={props.translate('common.next')}
-                style={[styles.mh5, styles.mt5, styles.flexGrow1]}
+                style={[styles.mh5, styles.flexGrow1]}
                 onSubmit={(values) => onSubmit(values)}
                 enabledWhenOffline
             >
@@ -88,14 +74,13 @@ function NewTaskDescriptionPage(props) {
                         defaultValue={props.task.description}
                         inputID="taskDescription"
                         label={props.translate('newTaskPage.descriptionOptional')}
+                        accessibilityLabel={props.translate('newTaskPage.descriptionOptional')}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         ref={(el) => (inputRef.current = el)}
                         autoGrowHeight
+                        submitOnEnter
                         containerStyles={[styles.autoGrowHeightMultilineInput]}
                         textAlignVertical="top"
-                        selection={selection}
-                        onSelectionChange={(e) => {
-                            setSelection(e.nativeEvent.selection);
-                        }}
                     />
                 </View>
             </Form>

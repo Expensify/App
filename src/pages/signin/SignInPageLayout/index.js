@@ -6,26 +6,27 @@ import compose from '../../../libs/compose';
 import SignInPageContent from './SignInPageContent';
 import Footer from './Footer';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import styles from '../../../styles/styles';
 import SignInPageHero from '../SignInPageHero';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import scrollViewContentContainerStyles from './signInPageStyles';
 import themeColors from '../../../styles/themes/default';
-import SignInHeroBackgroundImage from '../../../../assets/images/home-background--desktop.svg';
-import SignInHeroBackgroundImageMobile from '../../../../assets/images/home-background--mobile.svg';
+import BackgroundImage from './BackgroundImage';
 import SignInGradient from '../../../../assets/images/home-fade-gradient.svg';
 import variables from '../../../styles/variables';
+import usePrevious from '../../../hooks/usePrevious';
 
 const propTypes = {
     /** The children to show inside the layout */
     children: PropTypes.node.isRequired,
 
     /** Welcome text to show in the header of the form, changes depending
-     * on form type (set password, sign in, etc.) */
+     * on form type (for example, sign in) */
     welcomeText: PropTypes.string.isRequired,
 
     /** Welcome header to show in the header of the form, changes depending
-     * on form type (set password, sign in, etc.) and small vs large screens */
+     * on form type (for example, sign in) and small vs large screens */
     welcomeHeader: PropTypes.string.isRequired,
 
     /** Whether to show welcome text on a particular page */
@@ -35,10 +36,12 @@ const propTypes = {
     shouldShowWelcomeHeader: PropTypes.bool.isRequired,
 
     ...windowDimensionsPropTypes,
+    ...withLocalizePropTypes,
 };
 
 function SignInPageLayout(props) {
     const scrollViewRef = useRef();
+    const prevPreferredLocale = usePrevious(props.preferredLocale);
     let containerStyles = [styles.flex1, styles.signInPageInner];
     let contentContainerStyles = [styles.flex1, styles.flexRow];
 
@@ -57,7 +60,13 @@ function SignInPageLayout(props) {
         scrollViewRef.current.scrollTo({y: 0, animated});
     };
 
-    useEffect(scrollPageToTop, [props.welcomeHeader, props.welcomeText]);
+    useEffect(() => {
+        if (prevPreferredLocale !== props.preferredLocale) {
+            return;
+        }
+
+        scrollPageToTop();
+    }, [props.welcomeHeader, props.welcomeText, prevPreferredLocale, props.preferredLocale]);
 
     return (
         <View style={containerStyles}>
@@ -78,7 +87,8 @@ function SignInPageLayout(props) {
                     >
                         <View style={[styles.flex1]}>
                             <View style={styles.signInPageHeroCenter}>
-                                <SignInHeroBackgroundImage
+                                <BackgroundImage
+                                    isSmallScreen={false}
                                     pointerEvents="none"
                                     width={variables.signInHeroBackgroundWidth}
                                 />
@@ -112,7 +122,8 @@ function SignInPageLayout(props) {
                     ref={scrollViewRef}
                 >
                     <View style={[styles.flex1, styles.flexColumn, StyleUtils.getMinimumHeight(Math.max(variables.signInContentMinHeight, containerHeight))]}>
-                        <SignInHeroBackgroundImageMobile
+                        <BackgroundImage
+                            isSmallScreen
                             pointerEvents="none"
                             width={variables.signInHeroBackgroundWidthMobile}
                             style={styles.signInBackgroundMobile}
@@ -138,4 +149,4 @@ function SignInPageLayout(props) {
 SignInPageLayout.propTypes = propTypes;
 SignInPageLayout.displayName = 'SignInPageLayout';
 
-export default compose(withWindowDimensions, withSafeAreaInsets)(SignInPageLayout);
+export default compose(withWindowDimensions, withSafeAreaInsets, withLocalize)(SignInPageLayout);

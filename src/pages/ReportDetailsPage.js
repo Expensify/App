@@ -17,7 +17,6 @@ import * as OptionsListUtils from '../libs/OptionsListUtils';
 import * as ReportUtils from '../libs/ReportUtils';
 import * as PolicyUtils from '../libs/PolicyUtils';
 import * as Report from '../libs/actions/Report';
-import * as Session from '../libs/actions/Session';
 import participantPropTypes from '../components/participantPropTypes';
 import * as Expensicons from '../components/Icon/Expensicons';
 import ROUTES from '../ROUTES';
@@ -61,9 +60,10 @@ const defaultProps = {
 function ReportDetailsPage(props) {
     const policy = useMemo(() => props.policies[`${ONYXKEYS.COLLECTION.POLICY}${props.report.policyID}`], [props.policies, props.report.policyID]);
     const isPolicyAdmin = useMemo(() => PolicyUtils.isPolicyAdmin(policy), [policy]);
-    const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(props.report), [props.report]);
+    const shouldDisableSettings = useMemo(() => ReportUtils.shouldDisableSettings(props.report), [props.report]);
+    const shouldUseFullTitle = !shouldDisableSettings;
     const isChatRoom = useMemo(() => ReportUtils.isChatRoom(props.report), [props.report]);
-    const isThread = useMemo(() => ReportUtils.isThread(props.report), [props.report]);
+    const isThread = useMemo(() => ReportUtils.isChatThread(props.report), [props.report]);
     const isUserCreatedPolicyRoom = useMemo(() => ReportUtils.isUserCreatedPolicyRoom(props.report), [props.report]);
     const isArchivedRoom = useMemo(() => ReportUtils.isArchivedRoom(props.report), [props.report]);
 
@@ -73,18 +73,19 @@ function ReportDetailsPage(props) {
     const participants = useMemo(() => lodashGet(props.report, 'participantAccountIDs', []), [props.report]);
 
     const menuItems = useMemo(() => {
-        if (isArchivedRoom) {
-            return [];
-        }
-
         const items = [
             {
                 key: CONST.REPORT_DETAILS_MENU_ITEM.SHARE_CODE,
                 translationKey: 'common.shareCode',
                 icon: Expensicons.QrCode,
+                isAnonymousAction: true,
                 action: () => Navigation.navigate(ROUTES.getReportShareCodeRoute(props.report.reportID)),
             },
         ];
+
+        if (isArchivedRoom) {
+            return items;
+        }
 
         if (participants.length) {
             items.push({
@@ -92,17 +93,19 @@ function ReportDetailsPage(props) {
                 translationKey: 'common.members',
                 icon: Expensicons.Users,
                 subtitle: participants.length,
+                isAnonymousAction: false,
                 action: () => {
                     Navigation.navigate(ROUTES.getReportParticipantsRoute(props.report.reportID));
                 },
             });
         }
 
-        if (isPolicyExpenseChat || isChatRoom || isThread) {
+        if (!shouldDisableSettings) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS,
                 translationKey: 'common.settings',
                 icon: Expensicons.Gear,
+                isAnonymousAction: false,
                 action: () => {
                     Navigation.navigate(ROUTES.getReportSettingsRoute(props.report.reportID));
                 },
@@ -114,12 +117,13 @@ function ReportDetailsPage(props) {
                 key: CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM,
                 translationKey: isThread ? 'common.leaveThread' : 'common.leaveRoom',
                 icon: Expensicons.Exit,
+                isAnonymousAction: false,
                 action: () => Report.leaveRoom(props.report.reportID),
             });
         }
 
         return items;
-    }, [props.report.reportID, participants, isArchivedRoom, isPolicyExpenseChat, isChatRoom, isThread, isUserCreatedPolicyRoom, canLeaveRoom]);
+    }, [props.report.reportID, participants, isArchivedRoom, shouldDisableSettings, isThread, isUserCreatedPolicyRoom, canLeaveRoom]);
 
     const displayNamesWithTooltips = useMemo(() => {
         const hasMultipleParticipants = participants.length > 1;
@@ -150,14 +154,15 @@ function ReportDetailsPage(props) {
                                     fullTitle={ReportUtils.getReportName(props.report)}
                                     displayNamesWithTooltips={displayNamesWithTooltips}
                                     tooltipEnabled
-                                    numberOfLines={1}
-                                    textStyles={[styles.textHeadline, styles.textAlignCenter, styles.pre]}
-                                    shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || isThread}
+                                    numberOfLines={isChatRoom ? 0 : 1}
+                                    textStyles={[styles.textHeadline, styles.textAlignCenter, isChatRoom ? undefined : styles.pre]}
+                                    shouldUseFullTitle={shouldUseFullTitle}
                                 />
                             </View>
                             {isPolicyAdmin ? (
                                 <PressableWithoutFeedback
-                                    accessibilityRole="button"
+                                    disabled={policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
+                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                     accessibilityLabel={chatRoomSubtitle}
                                     onPress={() => {
                                         Navigation.navigate(ROUTES.getWorkspaceInitialRoute(props.report.policyID));
@@ -179,7 +184,8 @@ function ReportDetailsPage(props) {
                                 title={props.translate(item.translationKey)}
                                 subtitle={item.subtitle}
                                 icon={item.icon}
-                                onPress={Session.checkIfActionIsAllowed(item.action)}
+                                onPress={item.action}
+                                isAnonymousAction={item.isAnonymousAction}
                                 shouldShowRightIcon
                                 brickRoadIndicator={brickRoadIndicator}
                             />

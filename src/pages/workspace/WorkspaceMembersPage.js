@@ -32,7 +32,7 @@ import * as UserUtils from '../../libs/UserUtils';
 import FormHelpMessage from '../../components/FormHelpMessage';
 import TextInput from '../../components/TextInput';
 import KeyboardDismissingFlatList from '../../components/KeyboardDismissingFlatList';
-import withCurrentUserPersonalDetails from '../../components/withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../components/withCurrentUserPersonalDetails';
 import * as PolicyUtils from '../../libs/PolicyUtils';
 import PressableWithFeedback from '../../components/Pressable/PressableWithFeedback';
 import usePrevious from '../../hooks/usePrevious';
@@ -40,7 +40,7 @@ import Log from '../../libs/Log';
 import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
 
 const propTypes = {
-    /** The personal details of the person who is logged in */
+    /** All personal details asssociated with user */
     personalDetails: personalDetailsPropType,
 
     /** URL Route params */
@@ -54,22 +54,24 @@ const propTypes = {
 
     /** Session info for the currently logged in user. */
     session: PropTypes.shape({
-        /** Currently logged in user email */
-        email: PropTypes.string,
+        /** Currently logged in user accountID */
+        accountID: PropTypes.number,
     }),
 
     ...policyPropTypes,
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
+    ...withCurrentUserPersonalDetailsPropTypes,
     network: networkPropTypes.isRequired,
 };
 
 const defaultProps = {
     personalDetails: {},
     session: {
-        email: null,
+        accountID: 0,
     },
     ...policyDefaultProps,
+    ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
 function WorkspaceMembersPage(props) {
@@ -83,7 +85,7 @@ function WorkspaceMembersPage(props) {
      * Get members for the current workspace
      */
     const getWorkspaceMembers = useCallback(() => {
-        Policy.openWorkspaceMembersPage(props.route.params.policyID, _.keys(PolicyUtils.getClientPolicyMemberEmailsToAccountIDs(props.policyMembers, props.personalDetails)));
+        Policy.openWorkspaceMembersPage(props.route.params.policyID, _.keys(PolicyUtils.getMemberAccountIDsForWorkspace(props.policyMembers, props.personalDetails)));
     }, [props.route.params.policyID, props.policyMembers, props.personalDetails]);
 
     /**
@@ -115,7 +117,7 @@ function WorkspaceMembersPage(props) {
         setSelectedEmployees((prevSelected) =>
             _.intersection(
                 prevSelected,
-                _.map(_.values(PolicyUtils.getClientPolicyMemberEmailsToAccountIDs(props.policyMembers, props.personalDetails)), (accountID) => Number(accountID)),
+                _.map(_.values(PolicyUtils.getMemberAccountIDsForWorkspace(props.policyMembers, props.personalDetails)), (accountID) => Number(accountID)),
             ),
         );
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -292,6 +294,7 @@ function WorkspaceMembersPage(props) {
      */
     const renderItem = useCallback(
         ({item}) => {
+            const disabled = props.session.email === item.login || item.role === 'admin';
             const hasError = !_.isEmpty(item.errors) || errors[item.accountID];
             const isChecked = _.contains(selectedEmployees, Number(item.accountID));
             return (
@@ -302,40 +305,44 @@ function WorkspaceMembersPage(props) {
                 >
                     <PressableWithFeedback
                         style={[styles.peopleRow, (_.isEmpty(item.errors) || errors[item.accountID]) && styles.peopleRowBorderBottom, hasError && styles.borderColorDanger]}
+                        disabled={disabled}
                         onPress={() => toggleUser(item.accountID, item.pendingAction)}
-                        accessibilityRole="checkbox"
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
                         accessibilityState={{
                             checked: isChecked,
                         }}
                         accessibilityLabel={props.formatPhoneNumber(item.displayName)}
-                        // disable hover dimming
                         hoverDimmingValue={1}
                         pressDimmingValue={0.7}
                     >
                         <Checkbox
+                            disabled={disabled}
                             isChecked={isChecked}
                             onPress={() => toggleUser(item.accountID, item.pendingAction)}
+                            accessibilityLabel={item.displayName}
                         />
                         <View style={styles.flex1}>
                             <OptionRow
                                 boldStyle
+                                isDisabled={disabled}
                                 option={{
                                     text: props.formatPhoneNumber(item.displayName),
                                     alternateText: props.formatPhoneNumber(item.login),
                                     participantsList: [item],
                                     icons: [
                                         {
+                                            id: item.accountID,
                                             source: UserUtils.getAvatar(item.avatar, item.accountID),
                                             name: item.login,
                                             type: CONST.ICON_TYPE_AVATAR,
                                         },
                                     ],
-                                    keyForList: item.login,
+                                    keyForList: String(item.accountID),
                                 }}
                                 onSelectRow={() => toggleUser(item.accountID, item.pendingAction)}
                             />
                         </View>
-                        {(props.session.email === item.login || item.role === 'admin') && (
+                        {(props.session.accountID === item.accountID || item.role === 'admin') && (
                             <View style={[styles.badge, styles.peopleBadge]}>
                                 <Text style={[styles.peopleBadgeText]}>{props.translate('common.admin')}</Text>
                             </View>
@@ -351,7 +358,7 @@ function WorkspaceMembersPage(props) {
             );
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [selectedEmployees, errors, props.session.email, dismissError, toggleUser],
+        [selectedEmployees, errors, props.session.accountID, dismissError, toggleUser],
     );
 
     const policyOwner = lodashGet(props.policy, 'owner');
@@ -383,7 +390,7 @@ function WorkspaceMembersPage(props) {
     }
 
     _.each(data, (member) => {
-        if (member.login === props.session.email || member.login === props.policy.owner || member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+        if (member.accountID === props.session.accountID || member.login === props.policy.owner || member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             return;
         }
         removableMembers[member.accountID] = member;
@@ -398,7 +405,8 @@ function WorkspaceMembersPage(props) {
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView
-                    shouldShow={_.isEmpty(props.policy)}
+                    shouldShow={_.isEmpty(props.policy) || !Policy.isPolicyOwner(props.policy)}
+                    subtitleKey={_.isEmpty(props.policy) ? undefined : 'workspace.common.notAuthorized'}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
                 >
                     <HeaderWithBackButton
@@ -440,18 +448,35 @@ function WorkspaceMembersPage(props) {
                         </View>
                         <View style={[styles.w100, styles.pv3, styles.ph5]}>
                             <TextInput
+                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                                 value={searchValue}
                                 onChangeText={setSearchValue}
                                 label={props.translate('optionsSelector.findMember')}
+                                accessibilityLabel={props.translate('optionsSelector.findMember')}
+                                spellCheck={false}
                             />
                         </View>
                         {data.length > 0 ? (
                             <View style={[styles.w100, styles.mt4, styles.flex1]}>
                                 <View style={[styles.peopleRow, styles.ph5, styles.pb3]}>
-                                    <Checkbox
-                                        isChecked={!_.isEmpty(removableMembers) && _.every(_.keys(removableMembers), (accountID) => _.contains(selectedEmployees, Number(accountID)))}
+                                    <PressableWithFeedback
+                                        disabled={_.isEmpty(removableMembers)}
                                         onPress={() => toggleAllUsers(removableMembers)}
-                                    />
+                                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
+                                        accessibilityState={{
+                                            checked: !_.isEmpty(removableMembers) && _.every(_.keys(removableMembers), (accountID) => _.contains(selectedEmployees, Number(accountID))),
+                                        }}
+                                        accessibilityLabel={props.translate('workspace.people.selectAll')}
+                                        hoverDimmingValue={1}
+                                        pressDimmingValue={0.7}
+                                    >
+                                        <Checkbox
+                                            disabled={_.isEmpty(removableMembers)}
+                                            isChecked={!_.isEmpty(removableMembers) && _.every(_.keys(removableMembers), (accountID) => _.contains(selectedEmployees, Number(accountID)))}
+                                            onPress={() => toggleAllUsers(removableMembers)}
+                                            accessibilityLabel={props.translate('workspace.people.selectAll')}
+                                        />
+                                    </PressableWithFeedback>
                                     <View style={[styles.flex1]}>
                                         <Text style={[styles.textStrong, styles.ph5]}>{props.translate('workspace.people.selectAll')}</Text>
                                     </View>

@@ -102,11 +102,12 @@ function DetailsPage(props) {
                 avatar: UserUtils.getDefaultAvatar(CONST.ACCOUNT_ID.CONCIERGE),
             };
         } else {
+            const optimisticAccountID = UserUtils.generateAccountID(login);
             details = {
-                accountID: -1,
+                accountID: optimisticAccountID,
                 login,
                 displayName: login,
-                avatar: UserUtils.getDefaultAvatar(),
+                avatar: UserUtils.getDefaultAvatar(optimisticAccountID),
             };
         }
     }
@@ -148,8 +149,10 @@ function DetailsPage(props) {
                                 >
                                     {({show}) => (
                                         <PressableWithoutFocus
-                                            style={styles.noOutline}
+                                            style={[styles.noOutline]}
                                             onPress={show}
+                                            accessibilityLabel={props.translate('common.details')}
+                                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                                         >
                                             <OfflineWithFeedback pendingAction={lodashGet(details, 'pendingFields.avatar', null)}>
                                                 <Avatar
@@ -201,6 +204,7 @@ function DetailsPage(props) {
                             {!isCurrentUser && (
                                 <MenuItem
                                     title={`${props.translate('common.message')}${details.displayName}`}
+                                    titleStyle={styles.flex1}
                                     icon={Expensicons.ChatBubble}
                                     onPress={() => Report.navigateToAndOpenReport([login])}
                                     wrapperStyle={styles.breakAll}

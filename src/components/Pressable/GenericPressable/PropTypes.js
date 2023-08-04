@@ -45,6 +45,9 @@ const pressablePropTypes = {
      */
     shouldUseHapticsOnLongPress: PropTypes.bool,
 
+    /** Whether the button is executing */
+    isExecuting: PropTypes.bool,
+
     /**
      * style for when the component is disabled. Can be a function that receives the component's state (active, disabled, hover, focus, pressed, isScreenReaderActive)
      * @default {}
@@ -121,10 +124,11 @@ const pressablePropTypes = {
 };
 
 const defaultProps = {
-    onPress: undefined,
+    onPress: () => {},
     keyboardShortcut: undefined,
     shouldUseHapticsOnPress: false,
     shouldUseHapticsOnLongPress: false,
+    isExecuting: false,
     disabledStyle: {},
     hoverStyle: {},
     focusStyle: {},
@@ -132,7 +136,7 @@ const defaultProps = {
     screenReaderActiveStyle: {},
     enableInScreenReaderStates: CONST.SCREEN_READER_STATES.ALL,
     nextFocusRef: undefined,
-    shouldUseAutoHitSlop: true,
+    shouldUseAutoHitSlop: false,
     accessible: true,
 };
 

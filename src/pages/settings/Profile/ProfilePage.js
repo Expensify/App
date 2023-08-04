@@ -1,5 +1,5 @@
 import lodashGet from 'lodash/get';
-import React from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -22,6 +22,8 @@ import styles from '../../../styles/styles';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import ONYXKEYS from '../../../ONYXKEYS';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import userPropTypes from '../userPropTypes';
+import * as App from '../../../libs/actions/App';
 
 const propTypes = {
     /* Onyx Props */
@@ -35,6 +37,8 @@ const propTypes = {
         errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
     }),
 
+    user: userPropTypes,
+
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
@@ -42,6 +46,7 @@ const propTypes = {
 
 const defaultProps = {
     loginList: {},
+    user: {},
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
@@ -80,6 +85,10 @@ function ProfilePage(props) {
         },
     ];
 
+    useEffect(() => {
+        App.openProfile(props.currentUserPersonalDetails);
+    }, [props.currentUserPersonalDetails]);
+
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <HeaderWithBackButton
@@ -99,6 +108,7 @@ function ProfilePage(props) {
                     errors={lodashGet(props.currentUserPersonalDetails, 'errorFields.avatar', null)}
                     errorRowStyles={[styles.mt6]}
                     onErrorClose={PersonalDetails.clearAvatarErrors}
+                    style={[styles.mh5]}
                 />
                 <View style={[styles.mt4]}>
                     {_.map(profileSettingsOptions, (detail, index) => (
@@ -118,6 +128,16 @@ function ProfilePage(props) {
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS)}
                     shouldShowRightIcon
                 />
+                {props.user.hasLoungeAccess && (
+                    <MenuItem
+                        title={props.translate('loungeAccessPage.loungeAccess')}
+                        icon={Expensicons.LoungeAccess}
+                        iconWidth={40}
+                        iconHeight={40}
+                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_LOUNGE_ACCESS)}
+                        shouldShowRightIcon
+                    />
+                )}
             </ScrollView>
         </ScreenWrapper>
     );
@@ -134,6 +154,9 @@ export default compose(
     withOnyx({
         loginList: {
             key: ONYXKEYS.LOGIN_LIST,
+        },
+        user: {
+            key: ONYXKEYS.USER,
         },
     }),
 )(ProfilePage);

@@ -12,4 +12,7 @@ export default PropTypes.shape({
 
     /** Whether the form is being submitted */
     loading: PropTypes.bool,
+
+    /** Whether or not the user has lounge access */
+    hasLoungeAccess: PropTypes.bool,
 });

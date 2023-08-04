@@ -1,4 +1,4 @@
-import React, {forwardRef, useEffect, useState} from 'react';
+import React, {forwardRef, useState} from 'react';
 import _ from 'underscore';
 import propTypes from 'prop-types';
 import {InteractionManager} from 'react-native';
@@ -7,7 +7,7 @@ import GenericPressablePropTypes from './GenericPressable/PropTypes';
 import OpacityView from '../OpacityView';
 import variables from '../../styles/variables';
 
-const omittedProps = ['wrapperStyle', 'onHoverIn', 'onHoverOut', 'onPressIn', 'onPressOut'];
+const omittedProps = ['wrapperStyle'];
 
 const PressableWithFeedbackPropTypes = {
     ...GenericPressablePropTypes.pressablePropTypes,
@@ -38,24 +38,24 @@ const PressableWithFeedbackDefaultProps = {
 };
 
 const PressableWithFeedback = forwardRef((props, ref) => {
-    const rest = _.omit(props, omittedProps);
-    const [disabled, setDisabled] = useState(props.disabled);
+    const propsWithoutWrapperStyles = _.omit(props, omittedProps);
+    const [isExecuting, setIsExecuting] = useState(false);
     const [isPressed, setIsPressed] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
-
-    useEffect(() => {
-        setDisabled(props.disabled);
-    }, [props.disabled]);
+    const isDisabled = props.disabled || isExecuting;
 
     return (
         <OpacityView
-            shouldDim={Boolean(!disabled && (isPressed || isHovered))}
+            shouldDim={Boolean(!isDisabled && (isPressed || isHovered))}
             dimmingValue={isPressed ? props.pressDimmingValue : props.hoverDimmingValue}
             style={props.wrapperStyle}
         >
             <GenericPressable
                 ref={ref}
-                disabled={disabled}
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...propsWithoutWrapperStyles}
+                disabled={isDisabled}
+                isExecuting={isExecuting}
                 onHoverIn={() => {
                     setIsHovered(true);
                     if (props.onHoverIn) props.onHoverIn();
@@ -73,20 +73,18 @@ const PressableWithFeedback = forwardRef((props, ref) => {
                     if (props.onPressOut) props.onPressOut();
                 }}
                 onPress={(e) => {
-                    setDisabled(true);
+                    setIsExecuting(true);
                     const onPress = props.onPress(e);
                     InteractionManager.runAfterInteractions(() => {
                         if (!(onPress instanceof Promise)) {
-                            setDisabled(props.disabled);
+                            setIsExecuting(false);
                             return;
                         }
                         onPress.finally(() => {
-                            setDisabled(props.disabled);
+                            setIsExecuting(false);
                         });
                     });
                 }}
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...rest}
             >
                 {(state) => (_.isFunction(props.children) ? props.children(state) : props.children)}
             </GenericPressable>

@@ -1,4 +1,5 @@
 import {defaultStyles as defaultPickerStyles} from 'react-native-picker-select/src/styles';
+import lodashClamp from 'lodash/clamp';
 import fontFamily from './fontFamily';
 import addOutlineWidth from './addOutlineWidth';
 import themeColors from './themes/default';
@@ -21,13 +22,14 @@ import pointerEventsAuto from './pointerEventsAuto';
 import getPopOverVerticalOffset from './getPopOverVerticalOffset';
 import overflowXHidden from './overflowXHidden';
 import CONST from '../CONST';
+import * as Browser from '../libs/Browser';
 import cursor from './utilities/cursor';
 import userSelect from './utilities/userSelect';
 import textUnderline from './utilities/textUnderline';
+import Colors from './colors';
 
-function getTransparentColor(color, transparency = '') {
-    return `${color}${transparency}`;
-}
+// touchCallout is an iOS safari only property that controls the display of the callout information when you touch and hold a target
+const touchCalloutNone = Browser.isMobileSafari() ? {WebkitTouchCallout: 'none'} : {};
 
 const picker = {
     backgroundColor: themeColors.transparent,
@@ -133,6 +135,7 @@ const webViewStyles = {
             borderColor: themeColors.border,
             borderRadius: variables.componentBorderRadiusNormal,
             borderWidth: 1,
+            ...touchCalloutNone,
         },
 
         p: {
@@ -201,6 +204,9 @@ const styles = {
     },
     emojiSuggestionsText: {
         fontSize: variables.fontSizeMedium,
+        flex: 1,
+        ...wordBreak.breakWord,
+        ...spacing.pr4,
     },
 
     mentionSuggestionsAvatarContainer: {
@@ -243,6 +249,14 @@ const styles = {
 
     linkMutedHovered: {
         color: themeColors.textMutedReversed,
+    },
+
+    highlightBG: {
+        backgroundColor: themeColors.highlightBG,
+    },
+
+    appBG: {
+        backgroundColor: themeColors.appBG,
     },
 
     h1: {
@@ -515,6 +529,11 @@ const styles = {
         textAlign: 'center',
     },
 
+    buttonDefaultHovered: {
+        backgroundColor: themeColors.buttonHoveredBG,
+        borderWidth: 0,
+    },
+
     buttonSuccess: {
         backgroundColor: themeColors.success,
         borderWidth: 0,
@@ -549,6 +568,10 @@ const styles = {
         alignSelf: 'stretch',
         backgroundColor: themeColors.appBG,
         marginVertical: 1,
+    },
+
+    noBorderRadius: {
+        borderRadius: 0,
     },
 
     noRightBorderRadius: {
@@ -750,6 +773,39 @@ const styles = {
         borderColor: themeColors.danger,
     },
 
+    uploadReceiptView: (isSmallScreenWidth) => ({
+        borderRadius: variables.componentBorderRadiusLarge,
+        borderWidth: isSmallScreenWidth ? 0 : 2,
+        borderColor: themeColors.borderFocus,
+        borderStyle: 'dotted',
+        marginBottom: 20,
+        marginLeft: 20,
+        marginRight: 20,
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 40,
+        gap: 4,
+        flex: 1,
+    }),
+
+    cameraView: {
+        flex: 1,
+        overflow: 'hidden',
+        padding: 10,
+        borderRadius: 28,
+        borderStyle: 'solid',
+        borderWidth: 8,
+        backgroundColor: Colors.greenHighlightBackground,
+        borderColor: Colors.greenAppBackground,
+    },
+
+    permissionView: {
+        paddingVertical: 108,
+        paddingHorizontal: 61,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+
     headerAnonymousFooter: {
         color: themeColors.heading,
         fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
@@ -823,6 +879,7 @@ const styles = {
         alignItems: 'center',
         paddingHorizontal: 15,
         paddingRight: 5,
+        ...userSelect.userSelectNone,
     },
 
     calendarDayRoot: {
@@ -830,6 +887,7 @@ const styles = {
         height: 45,
         justifyContent: 'center',
         alignItems: 'center',
+        ...userSelect.userSelectNone,
     },
 
     calendarDayContainer: {
@@ -845,9 +903,15 @@ const styles = {
         backgroundColor: themeColors.buttonDefaultBG,
     },
 
-    autoGrowHeightInputContainer: (textInputHeight, maxHeight) => ({
-        height: textInputHeight >= maxHeight ? maxHeight : textInputHeight,
-        minHeight: variables.componentSizeLarge,
+    /**
+     * @param {number} textInputHeight
+     * @param {number} minHeight
+     * @param {number} maxHeight
+     * @returns {object}
+     */
+    autoGrowHeightInputContainer: (textInputHeight, minHeight, maxHeight) => ({
+        height: lodashClamp(textInputHeight, minHeight, maxHeight),
+        minHeight,
     }),
 
     autoGrowHeightHiddenInput: (maxWidth, maxHeight) => ({
@@ -1045,6 +1109,20 @@ const styles = {
         color: themeColors.textSupporting,
     },
 
+    textReceiptUpload: {
+        ...headlineFont,
+        fontSize: variables.fontSizeXLarge,
+        color: themeColors.textLight,
+        textAlign: 'center',
+    },
+
+    subTextReceiptUpload: {
+        fontFamily: fontFamily.EXP_NEUE,
+        lineHeight: variables.lineHeightLarge,
+        textAlign: 'center',
+        color: themeColors.textLight,
+    },
+
     furtherDetailsText: {
         fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeSmall,
@@ -1171,6 +1249,11 @@ const styles = {
         height: '100%',
     },
 
+    sidebarAnimatedWrapperContainer: {
+        height: '100%',
+        position: 'absolute',
+    },
+
     sidebarFooter: {
         alignItems: 'center',
         display: 'flex',
@@ -1274,7 +1357,7 @@ const styles = {
 
     createMenuPositionReportActionCompose: (windowHeight) => ({
         horizontal: 18 + variables.sideBarWidth,
-        vertical: windowHeight - 75,
+        vertical: windowHeight - 83,
     }),
 
     createMenuPositionRightSidepane: {
@@ -1427,8 +1510,6 @@ const styles = {
     },
 
     appContentHeader: {
-        borderBottomWidth: 1,
-        borderColor: themeColors.border,
         height: variables.contentHeaderHeight,
         justifyContent: 'center',
         display: 'flex',
@@ -1461,7 +1542,7 @@ const styles = {
     chatContentScrollView: {
         flexGrow: 1,
         justifyContent: 'flex-start',
-        paddingVertical: 16,
+        paddingBottom: 16,
     },
 
     // Chat Item
@@ -1523,13 +1604,6 @@ const styles = {
         ...wordBreak.breakWord,
     },
 
-    chatItemMessageLink: {
-        color: themeColors.link,
-        fontSize: variables.fontSizeNormal,
-        fontFamily: fontFamily.EXP_NEUE,
-        lineHeight: variables.lineHeightXLarge,
-    },
-
     chatItemComposeWithFirstRow: {
         minHeight: 90,
     },
@@ -1550,7 +1624,7 @@ const styles = {
         backgroundColor: themeColors.componentBG,
         borderWidth: 1,
         borderRadius: variables.componentBorderRadiusRounded,
-        minHeight: variables.componentSizeNormal,
+        minHeight: variables.componentSizeMedium,
     },
 
     chatItemFullComposeBox: {
@@ -1580,6 +1654,10 @@ const styles = {
 
     chatItemReactionsDraftRight: {
         marginLeft: 52,
+    },
+    chatFooterAtTheTop: {
+        flexGrow: 1,
+        justifyContent: 'flex-start',
     },
 
     // Be extremely careful when editing the compose styles, as it is easy to introduce regressions.
@@ -1636,8 +1714,8 @@ const styles = {
         alignSelf: 'flex-end',
         borderRadius: variables.componentBorderRadiusRounded,
         backgroundColor: themeColors.transparent,
-        height: 32,
-        padding: 6,
+        height: 40,
+        padding: 10,
         margin: 3,
         justifyContent: 'center',
     },
@@ -1704,9 +1782,9 @@ const styles = {
     chatItemEmojiButton: {
         alignSelf: 'flex-end',
         borderRadius: variables.buttonBorderRadius,
-        height: 32,
+        height: 40,
         marginVertical: 3,
-        paddingHorizontal: 6,
+        paddingHorizontal: 10,
         justifyContent: 'center',
     },
 
@@ -1727,6 +1805,7 @@ const styles = {
         margin: 3,
         borderRadius: variables.componentBorderRadiusRounded,
         backgroundColor: themeColors.transparent,
+        justifyContent: 'center',
     },
 
     chatItemAttachmentPlaceholder: {
@@ -1744,15 +1823,6 @@ const styles = {
         marginTop: 5,
         marginRight: 4,
     },
-
-    navigationModalCard: (isSmallScreenWidth) => ({
-        position: 'absolute',
-        top: 0,
-        right: 0,
-        width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
-        backgroundColor: 'transparent',
-        height: '100%',
-    }),
 
     navigationModalOverlay: {
         ...userSelect.userSelectNone,
@@ -1835,6 +1905,12 @@ const styles = {
         right: -1,
     },
 
+    secondAvatarSubscriptSmallNormal: {
+        position: 'absolute',
+        bottom: 0,
+        right: 0,
+    },
+
     leftSideLargeAvatar: {
         left: 15,
     },
@@ -1908,9 +1984,19 @@ const styles = {
         width: variables.avatarSizeNormal,
     },
 
+    emptyAvatarSmallNormal: {
+        height: variables.avatarSizeSmallNormal,
+        width: variables.avatarSizeSmallNormal,
+    },
+
     emptyAvatarSmall: {
         height: variables.avatarSizeSmall,
         width: variables.avatarSizeSmall,
+    },
+
+    emptyAvatarSmaller: {
+        height: variables.avatarSizeSmaller,
+        width: variables.avatarSizeSmaller,
     },
 
     emptyAvatarMedium: {
@@ -1928,6 +2014,10 @@ const styles = {
     },
 
     emptyAvatarMarginSmall: {
+        marginRight: variables.avatarChatSpacing - 4,
+    },
+
+    emptyAvatarMarginSmaller: {
         marginRight: variables.avatarChatSpacing - 4,
     },
 
@@ -2164,14 +2254,14 @@ const styles = {
     },
 
     twoFactorAuthCodesBox: ({isExtraSmallScreenWidth, isSmallScreenWidth}) => {
-        let paddingHorizontal = styles.ph15;
+        let paddingHorizontal = styles.ph9;
 
         if (isSmallScreenWidth) {
-            paddingHorizontal = styles.ph10;
+            paddingHorizontal = styles.ph4;
         }
 
         if (isExtraSmallScreenWidth) {
-            paddingHorizontal = styles.ph4;
+            paddingHorizontal = styles.ph2;
         }
 
         return {
@@ -2197,12 +2287,11 @@ const styles = {
         flexDirection: 'row',
         flexWrap: 'wrap',
         gap: 12,
-        height: 148,
     },
 
     twoFactorAuthCode: {
         fontFamily: fontFamily.MONOSPACE,
-        width: 100,
+        width: 112,
         textAlign: 'center',
     },
 
@@ -2211,37 +2300,52 @@ const styles = {
         justifyContent: 'center',
         gap: 12,
         marginTop: 20,
+        flexWrap: 'wrap',
     },
 
     twoFactorAuthCodesButton: {
-        minWidth: 100,
+        minWidth: 112,
     },
 
-    anonymousRoomFooter: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
+    twoFactorAuthCopyCodeButton: {
+        minWidth: 110,
+    },
+
+    anonymousRoomFooter: (isSmallSizeLayout) => ({
+        flexDirection: isSmallSizeLayout ? 'column' : 'row',
+        ...(!isSmallSizeLayout && {
+            alignItems: 'center',
+            justifyContent: 'space-between',
+        }),
         padding: 20,
-        marginBottom: 20,
-        backgroundColor: themeColors.activeComponentBG,
-        flexWrap: 'wrap',
-        gap: 8,
+        backgroundColor: themeColors.sidebar,
         borderRadius: variables.componentBorderRadiusLarge,
         overflow: 'hidden',
-    },
-
+    }),
+    anonymousRoomFooterWordmarkAndLogoContainer: (isSmallSizeLayout) => ({
+        flexDirection: 'row',
+        alignItems: 'center',
+        ...(isSmallSizeLayout && {
+            justifyContent: 'space-between',
+            marginTop: 16,
+        }),
+    }),
     anonymousRoomFooterLogo: {
         width: 88,
         marginLeft: 0,
         height: 20,
     },
-
+    anonymousRoomFooterLogoTaglineText: {
+        fontFamily: fontFamily.EXP_NEUE,
+        fontSize: variables.fontSizeMedium,
+        color: themeColors.textLight,
+    },
     signInButtonAvatar: {
         width: 80,
     },
 
     anonymousRoomFooterSignInButton: {
-        width: 125,
+        width: 110,
     },
 
     roomHeaderAvatarSize: {
@@ -2300,6 +2404,12 @@ const styles = {
     avatarSectionWrapper: {
         width: '100%',
         alignItems: 'center',
+        paddingHorizontal: 20,
+        paddingBottom: 20,
+    },
+
+    avatarSectionWrapperSkeleton: {
+        width: '100%',
         paddingHorizontal: 20,
         paddingBottom: 20,
     },
@@ -2438,6 +2548,10 @@ const styles = {
         backgroundColor: themeColors.appBG,
     },
 
+    switchThumbTransformation: (translateX) => ({
+        transform: [{translateX}],
+    }),
+
     radioButtonContainer: {
         backgroundColor: themeColors.componentBG,
         borderRadius: 10,
@@ -2452,17 +2566,6 @@ const styles = {
     checkboxPressable: {
         borderRadius: 6,
         padding: 2,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-
-    checkboxContainer: {
-        backgroundColor: themeColors.componentBG,
-        borderRadius: 4,
-        height: 20,
-        width: 20,
-        borderColor: themeColors.borderLighter,
-        borderWidth: 2,
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -2483,8 +2586,21 @@ const styles = {
         lineHeight: variables.inputHeight,
     },
 
-    magicCodeInputTransparent: {
+    // Manually style transparent, in iOS Safari, an input in a container with its opacity set to
+    // 0 (completely transparent) cannot handle user interaction, hence the Paste option is never shown
+    inputTransparent: {
         color: 'transparent',
+        // These properties are available in browser only
+        ...(Browser.getBrowser()
+            ? {
+                  caretColor: 'transparent',
+                  WebkitTextFillColor: 'transparent',
+                  // After setting the input text color to transparent, it acquires the background-color.
+                  // However, it is not possible to override the background-color directly as explained in this resource: https://developer.mozilla.org/en-US/docs/Web/CSS/:autofill
+                  // Therefore, the transition effect needs to be delayed.
+                  transitionDelay: '99999s',
+              }
+            : {}),
     },
 
     iouAmountText: {
@@ -2520,14 +2636,14 @@ const styles = {
     },
 
     requestPreviewBox: {
-        marginTop: 8,
+        marginTop: 12,
         maxWidth: variables.sideBarWidth,
     },
 
     iouPreviewBox: {
         backgroundColor: themeColors.cardBG,
-        borderRadius: variables.componentBorderRadiusCard,
-        padding: 20,
+        borderRadius: variables.componentBorderRadiusLarge,
+        padding: 16,
         maxWidth: variables.sideBarWidth,
         width: '100%',
     },
@@ -2832,10 +2948,6 @@ const styles = {
         errorDot: {
             marginRight: 12,
         },
-        menuItemErrorPadding: {
-            paddingLeft: 44,
-            paddingRight: 20,
-        },
     },
 
     dotIndicatorMessage: {
@@ -2991,8 +3103,7 @@ const styles = {
 
     keyboardShortcutModalContainer: {
         maxHeight: '100%',
-        flexShrink: 0,
-        flexGrow: 0,
+        flex: 0,
         flexBasis: 'auto',
     },
 
@@ -3100,41 +3211,33 @@ const styles = {
         marginLeft: 6,
     },
 
-    fullScreenTransparentOverlay: {
+    fullScreen: {
         position: 'absolute',
-        width: '100%',
-        height: '100%',
         top: 0,
         left: 0,
         right: 0,
         bottom: 0,
+    },
+
+    invisibleOverlay: {
+        backgroundColor: themeColors.transparent,
+        zIndex: 1000,
+    },
+
+    reportDropOverlay: {
         backgroundColor: themeColors.dropUIBG,
         zIndex: 2,
     },
 
-    textPill: {
-        backgroundColor: themeColors.border,
-        borderRadius: 10,
-        overflow: 'hidden',
-        paddingVertical: 2,
-        flexShrink: 0,
-        maxWidth: variables.badgeMaxWidth,
-        fontSize: variables.fontSizeSmall,
-        ...whiteSpace.pre,
-        ...spacing.ph2,
+    receiptDropOverlay: {
+        backgroundColor: themeColors.receiptDropUIBG,
+        zIndex: 2,
     },
 
-    dropZoneTopInvisibleOverlay: {
+    receiptImageWrapper: (receiptImageTopPosition) => ({
         position: 'absolute',
-        width: '100%',
-        height: '100%',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: themeColors.dropTransparentOverlay,
-        zIndex: 1000,
-    },
+        top: receiptImageTopPosition,
+    }),
 
     cardSection: {
         backgroundColor: themeColors.cardBG,
@@ -3358,7 +3461,7 @@ const styles = {
     linkPreviewWrapper: {
         marginTop: 16,
         borderLeftWidth: 4,
-        borderLeftColor: getTransparentColor(themeColors.inverse, 33),
+        borderLeftColor: themeColors.border,
         paddingLeft: 12,
     },
 
@@ -3387,9 +3490,64 @@ const styles = {
         maxWidth: 375,
     },
 
+    formSpaceVertical: {
+        height: 20,
+        width: 1,
+    },
+
     taskCheckbox: {
         height: 16,
         width: 16,
+    },
+
+    taskTitleMenuItem: {
+        ...writingDirection.ltr,
+        ...headlineFont,
+        ...spacing.flexWrap,
+        ...spacing.flex1,
+        fontSize: variables.fontSizeXLarge,
+        maxWidth: '100%',
+        ...wordBreak.breakWord,
+    },
+
+    taskDescriptionMenuItem: {
+        maxWidth: '100%',
+        ...wordBreak.breakWord,
+    },
+
+    taskTitleDescription: {
+        fontFamily: fontFamily.EXP_NEUE,
+        fontSize: variables.fontSizeLabel,
+        color: themeColors.textSupporting,
+        lineHeight: variables.lineHeightNormal,
+        ...spacing.mb1,
+    },
+
+    taskMenuItemCheckbox: {
+        height: 27,
+        ...spacing.mr3,
+    },
+
+    reportHorizontalRule: {
+        borderBottomWidth: 1,
+        borderColor: themeColors.border,
+        ...spacing.mh5,
+        ...spacing.mv2,
+    },
+
+    assigneeTextStyle: {
+        fontFamily: fontFamily.EXP_NEUE_BOLD,
+        fontWeight: fontWeightBold,
+        minHeight: variables.avatarSizeSubscript,
+    },
+
+    taskRightIconContainer: {
+        width: variables.componentSizeNormal,
+        marginLeft: 'auto',
+        ...spacing.mt1,
+        ...pointerEventsAuto,
+        ...spacing.dFlex,
+        ...spacing.alignItemsCenter,
     },
 
     shareCodePage: {
@@ -3438,6 +3596,54 @@ const styles = {
     qrShareTitle: {
         marginTop: 15,
         textAlign: 'center',
+    },
+
+    tabSelectorButton: (isSelected) => ({
+        height: 40,
+        padding: 12,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: variables.buttonBorderRadius,
+        backgroundColor: isSelected ? themeColors.midtone : themeColors.appBG,
+    }),
+
+    tabSelector: {
+        flexDirection: 'row',
+        paddingHorizontal: 20,
+        paddingBottom: 12,
+    },
+
+    tabText: (isSelected) => ({
+        marginHorizontal: 8,
+        fontFamily: isSelected ? fontFamily.EXP_NEUE_BOLD : fontFamily.EXP_NEUE,
+        fontWeight: isSelected ? fontWeightBold : 400,
+        color: isSelected ? themeColors.textLight : themeColors.textSupporting,
+    }),
+
+    /**
+     * @param {String} backgroundColor
+     * @param {Number} height
+     * @returns {Object}
+     */
+    overscrollSpacer: (backgroundColor, height) => ({
+        backgroundColor,
+        height,
+        width: '100%',
+        position: 'absolute',
+        top: -height,
+        left: 0,
+        right: 0,
+    }),
+
+    willChangeTransform: {
+        willChange: 'transform',
+    },
+
+    moneyRequestImage: {
+        height: 200,
+        borderRadius: 16,
+        margin: 20,
     },
 };
 

@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-vars */
 import colors from '../colors';
+import SCREENS from '../../SCREENS';
 
 const darkTheme = {
     // Figma keys
@@ -14,8 +15,10 @@ const darkTheme = {
     iconHovered: colors.white,
     iconSuccessFill: colors.green,
     iconReversed: colors.greenAppBackground,
+    iconColorfulBackground: `${colors.ivory}cc`,
     textSupporting: colors.greenSupportingText,
     text: colors.white,
+    textColorfulBackground: colors.ivory,
     link: colors.blueLink,
     linkHover: colors.blueLinkHover,
     buttonDefaultBG: colors.greenDefaultButton,
@@ -62,7 +65,7 @@ const darkTheme = {
     heroCard: colors.blue,
     uploadPreviewActivityIndicator: colors.greenHighlightBackground,
     dropUIBG: 'rgba(6,27,9,0.92)',
-    dropTransparentOverlay: 'rgba(255,255,255,0)',
+    receiptDropUIBG: 'rgba(3, 212, 124, 0.84)',
     checkBox: colors.green,
     pickerOptionsTextColor: colors.white,
     imageCropBackgroundColor: colors.greenIcons,
@@ -75,6 +78,12 @@ const darkTheme = {
     mentionBG: colors.blue600,
     ourMentionText: colors.green100,
     ourMentionBG: colors.green600,
+};
+
+darkTheme.PAGE_BACKGROUND_COLORS = {
+    [SCREENS.HOME]: darkTheme.sidebar,
+    [SCREENS.SETTINGS.PREFERENCES]: colors.blue500,
+    [SCREENS.SETTINGS.WORKSPACES]: colors.pink800,
 };
 
 const oldTheme = {
@@ -114,7 +123,6 @@ const oldTheme = {
     heroCard: colors.blue,
     uploadPreviewActivityIndicator: colors.gray1,
     dropUIBG: 'rgba(6,27,9,0.92)',
-    dropTransparentOverlay: 'rgba(255,255,255,0)',
     cardBG: colors.gray1,
     cardBorder: colors.gray1,
     checkBox: colors.blue,

@@ -1,6 +1,7 @@
-import React, {useCallback, useState, useEffect, useRef} from 'react';
+import React, {useCallback, useState, useEffect, useRef, useImperativeHandle} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
+import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import MagicCodeInput from '../../../../../components/MagicCodeInput';
@@ -16,6 +17,11 @@ import Button from '../../../../../components/Button';
 import DotIndicatorMessage from '../../../../../components/DotIndicatorMessage';
 import * as Session from '../../../../../libs/actions/Session';
 import Text from '../../../../../components/Text';
+import {withNetwork} from '../../../../../components/OnyxProvider';
+import PressableWithFeedback from '../../../../../components/Pressable/PressableWithFeedback';
+import themeColors from '../../../../../styles/themes/default';
+import * as StyleUtils from '../../../../../styles/StyleUtils';
+import CONST from '../../../../../CONST';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -44,6 +50,9 @@ const propTypes = {
         pendingFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
     }).isRequired,
 
+    /** Forwarded inner ref */
+    innerRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
+
     /* Onyx Props */
 
     /** The details about the account that the user is signing in with */
@@ -58,6 +67,7 @@ const propTypes = {
 
 const defaultProps = {
     account: {},
+    innerRef: () => {},
 };
 
 function BaseValidateCodeForm(props) {
@@ -65,6 +75,16 @@ function BaseValidateCodeForm(props) {
     const [validateCode, setValidateCode] = useState('');
     const loginData = props.loginList[props.contactMethod];
     const inputValidateCodeRef = useRef();
+    const validateLoginError = ErrorUtils.getEarliestErrorField(loginData, 'validateLogin');
+
+    useImperativeHandle(props.innerRef, () => ({
+        focus() {
+            if (!inputValidateCodeRef.current) {
+                return;
+            }
+            inputValidateCodeRef.current.focus();
+        },
+    }));
 
     useEffect(() => {
         if (!props.hasMagicCodeBeenSent) {
@@ -128,8 +148,9 @@ function BaseValidateCodeForm(props) {
                 value={validateCode}
                 onChangeText={onTextInput}
                 errorText={formError.validateCode ? props.translate(formError.validateCode) : ErrorUtils.getLatestErrorMessage(props.account)}
+                hasError={!_.isEmpty(validateLoginError)}
                 onFulfill={validateAndSubmitForm}
-                autoFocus
+                autoFocus={false}
             />
             <OfflineWithFeedback
                 pendingAction={lodashGet(loginData, 'pendingFields.validateCodeSent', null)}
@@ -138,12 +159,18 @@ function BaseValidateCodeForm(props) {
                 onClose={() => User.clearContactMethodErrors(props.contactMethod, 'validateCodeSent')}
             >
                 <View style={[styles.mt2, styles.dFlex, styles.flexColumn, styles.alignItemsStart]}>
-                    <Text
-                        style={[styles.link, styles.mr1]}
+                    <PressableWithFeedback
+                        disabled={props.network.isOffline}
+                        style={[styles.mr1]}
                         onPress={resendValidateCode}
+                        underlayColor={themeColors.componentBG}
+                        hoverDimmingValue={1}
+                        pressDimmingValue={0.2}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        accessibilityLabel={props.translate('validateCodeForm.magicCodeNotReceived')}
                     >
-                        {props.translate('contacts.resendMagicCode')}
-                    </Text>
+                        <Text style={[StyleUtils.getDisabledLinkStyles(props.network.isOffline)]}>{props.translate('validateCodeForm.magicCodeNotReceived')}</Text>
+                    </PressableWithFeedback>
                     {props.hasMagicCodeBeenSent && (
                         <DotIndicatorMessage
                             type="success"
@@ -155,11 +182,12 @@ function BaseValidateCodeForm(props) {
             </OfflineWithFeedback>
             <OfflineWithFeedback
                 pendingAction={lodashGet(loginData, 'pendingFields.validateLogin', null)}
-                errors={ErrorUtils.getLatestErrorField(loginData, 'validateLogin')}
+                errors={validateLoginError}
                 errorRowStyles={[styles.mt2]}
                 onClose={() => User.clearContactMethodErrors(props.contactMethod, 'validateLogin')}
             >
                 <Button
+                    isDisabled={props.network.isOffline}
                     text={props.translate('common.verify')}
                     onPress={validateAndSubmitForm}
                     style={[styles.mt4]}
@@ -180,4 +208,5 @@ export default compose(
     withOnyx({
         account: {key: ONYXKEYS.ACCOUNT},
     }),
+    withNetwork(),
 )(BaseValidateCodeForm);

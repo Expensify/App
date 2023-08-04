@@ -103,6 +103,7 @@ class ScreenWrapper extends React.Component {
                             <KeyboardAvoidingView
                                 style={[styles.w100, styles.h100, {maxHeight}]}
                                 behavior={this.props.keyboardAvoidingViewBehavior}
+                                enabled={this.props.shouldEnableKeyboardAvoidingView}
                             >
                                 <PickerAvoidingView
                                     style={styles.flex1}
@@ -121,7 +122,7 @@ class ScreenWrapper extends React.Component {
                                               })
                                             : this.props.children
                                     }
-                                    {this.props.isSmallScreenWidth && this.props.shouldShowOfflineIndicator && <OfflineIndicator />}
+                                    {this.props.isSmallScreenWidth && this.props.shouldShowOfflineIndicator && <OfflineIndicator style={this.props.offlineIndicatorStyle} />}
                                 </PickerAvoidingView>
                             </KeyboardAvoidingView>
                         </View>
