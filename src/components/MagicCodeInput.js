@@ -121,7 +121,7 @@ function MagicCodeInput(props) {
 
     /**
      * Validate the entered code and submit
-     * 
+     *
      * @param {String} value
      */
     const validateAndSubmit = (value) => {
