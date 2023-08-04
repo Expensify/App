@@ -158,7 +158,7 @@ class BasePopoverReactionList extends React.Component {
      */
     showReactionList(event, reactionListAnchor) {
         const nativeEvent = event.nativeEvent || {};
-        this.reactionListAnchor = reactionListAnchor;
+        this.reactionListAnchor.current = reactionListAnchor;
         this.getReactionListMeasuredLocation().then(({x, y}) => {
             this.setState({
                 cursorRelativePosition: {
