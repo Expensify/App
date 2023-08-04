@@ -42,7 +42,6 @@ import withHideKeyboardOnViewportScroll from '../../components/withBlockViewport
 import ReportScreenContext from './ReportScreenContext';
 import TaskHeaderActionButton from '../../components/TaskHeaderActionButton';
 
-
 const propTypes = {
     /** Navigation route context info provided by react navigation */
     route: PropTypes.shape({

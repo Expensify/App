@@ -10,7 +10,7 @@ export default function WithBlockViewportScrollHOC(WrappedComponent) {
 
     PassThroughComponent.displayName = `PassThroughComponent(${getComponentDisplayName(WrappedComponent)})`;
     PassThroughComponent.propTypes = {
-        forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({ current: PropTypes.instanceOf(React.Component) })]),
+        forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
     };
     PassThroughComponent.defaultProps = {
         forwardedRef: undefined,

@@ -25,7 +25,7 @@ import getComponentDisplayName from '../../libs/getComponentDisplayName';
  *  // use ref here
  * ));
  */
-export default function WithBlockViewportScrollHOC (WrappedComponent) {
+export default function WithBlockViewportScrollHOC(WrappedComponent) {
     function WithBlockViewportScroll(props) {
         const optimalScrollY = useRef(0);
         const keyboardShowListenerRef = useRef(() => {});
