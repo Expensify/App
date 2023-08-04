@@ -21,15 +21,13 @@ import reportActionPropTypes from './reportActionPropTypes';
 import CONST from '../../../CONST';
 import reportPropTypes from '../../reportPropTypes';
 import networkPropTypes from '../../../components/networkPropTypes';
-import withLocalize from '../../../components/withLocalize';
+import useLocalize from '../../../hooks/useLocalize';
+import useNetwork from '../../../hooks/useNetwork';
 import DateUtils from '../../../libs/DateUtils';
 import FloatingMessageCounter from './FloatingMessageCounter';
 import useReportScrollManager from '../../../hooks/useReportScrollManager';
 
 const propTypes = {
-    /** Position of the "New" line marker */
-    newMarkerReportActionID: PropTypes.string,
-
     /** Personal details of all the users */
     personalDetailsList: PropTypes.objectOf(participantPropTypes),
 
@@ -71,7 +69,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    newMarkerReportActionID: '',
     personalDetails: {},
     onScroll: () => {},
     mostRecentIOUReportActionID: '',
@@ -102,16 +99,28 @@ function isUnreadMsg(message, lastRead) {
     return message && lastRead && message.created && lastRead < message.created;
 }
 
-function ReportActionsList(props) {
+function ReportActionsList({
+    report,
+    sortedReportActions,
+    windowHeight,
+    onScroll,
+    mostRecentIOUReportActionID,
+    isSmallScreenWidth,
+    personalDetailsList,
+    currentUserPersonalDetails,
+    loadMoreChats,
+    network,
+    onLayout,
+}) {
     const reportScrollManager = useReportScrollManager();
+    const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
     const opacity = useSharedValue(0);
     const userActiveSince = useRef(null);
     const currentUnreadMarker = useRef(null);
     const scrollingVerticalOffset = useRef(0);
-    const report = props.report;
     const readActionSkipped = useRef(false);
     const [messageManuallyMarked, setMessageManuallyMarked] = useState(false);
-    const sortedReportActions = props.sortedReportActions;
     const [isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible] = useState(false);
     const [reportActionSize, setReportActionSize] = useState(sortedReportActions.length);
     const animatedStyles = useAnimatedStyle(() => ({
@@ -122,8 +131,6 @@ function ReportActionsList(props) {
         opacity.value = withTiming(1, {duration: 100});
     }, [opacity]);
     const [skeletonViewHeight, setSkeletonViewHeight] = useState(0);
-
-    const windowHeight = props.windowHeight;
 
     useEffect(() => {
         // If the reportID changes, we reset the userActiveSince to null, we need to do it because
@@ -195,7 +202,7 @@ function ReportActionsList(props) {
     const trackVerticalScrolling = (event) => {
         scrollingVerticalOffset.current = event.nativeEvent.contentOffset.y;
         handleUnreadFloatingButton();
-        props.onScroll(event);
+        onScroll(event);
     };
 
     const scrollToBottomAndMarkReportAsRead = () => {
@@ -215,9 +222,7 @@ function ReportActionsList(props) {
         return Math.ceil(availableHeight / minimumReportActionHeight);
     }, [windowHeight]);
 
-    const hasOutstandingIOU = props.report.hasOutstandingIOU;
-
-    const mostRecentIOUReportActionID = props.mostRecentIOUReportActionID;
+    const hasOutstandingIOU = report.hasOutstandingIOU;
 
     /**
      * @param {Object} args
@@ -281,12 +286,12 @@ function ReportActionsList(props) {
 
     // Native mobile does not render updates flatlist the changes even though component did update called.
     // To notify there something changes we can use extraData prop to flatlist
-    const extraData = [props.isSmallScreenWidth ? props.newMarkerReportActionID : undefined, ReportUtils.isArchivedRoom(props.report)];
-    const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(props.personalDetailsList, props.report, props.currentUserPersonalDetails.accountID);
+    const extraData = [isSmallScreenWidth ? currentUnreadMarker.current : undefined, ReportUtils.isArchivedRoom(report)];
+    const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(personalDetailsList, report, currentUserPersonalDetails.accountID);
 
-    const errors = lodashGet(props.report, 'errorFields.addWorkspaceRoom') || lodashGet(props.report, 'errorFields.createChat');
-    const isArchivedRoom = ReportUtils.isArchivedRoom(props.report);
-    const hideComposer = ReportUtils.shouldHideComposer(props.report, errors);
+    const errors = lodashGet(report, 'errorFields.addWorkspaceRoom') || lodashGet(report, 'errorFields.createChat');
+    const isArchivedRoom = ReportUtils.isArchivedRoom(report);
+    const hideComposer = ReportUtils.shouldHideComposer(report, errors);
     const shouldOmitBottomSpace = hideComposer || isArchivedRoom;
 
     return (
@@ -297,30 +302,30 @@ function ReportActionsList(props) {
             />
             <Animated.View style={[animatedStyles, styles.flex1]}>
                 <InvertedFlatList
-                    accessibilityLabel={props.translate('sidebarScreen.listOfChatMessages')}
+                    accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
                     ref={reportScrollManager.ref}
-                    data={props.sortedReportActions}
+                    data={sortedReportActions}
                     renderItem={renderItem}
                     contentContainerStyle={[styles.chatContentScrollView, shouldShowReportRecipientLocalTime || shouldOmitBottomSpace ? styles.pt0 : {}]}
                     keyExtractor={keyExtractor}
                     initialRowHeight={32}
                     initialNumToRender={initialNumToRender}
-                    onEndReached={props.loadMoreChats}
+                    onEndReached={loadMoreChats}
                     onEndReachedThreshold={0.75}
                     ListFooterComponent={() => {
-                        if (props.report.isLoadingMoreReportActions) {
+                        if (report.isLoadingMoreReportActions) {
                             return <ReportActionsSkeletonView containerHeight={CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT * 3} />;
                         }
 
                         // Make sure the oldest report action loaded is not the first. This is so we do not show the
                         // skeleton view above the created action in a newly generated optimistic chat or one with not
                         // that many comments.
-                        const lastReportAction = _.last(props.sortedReportActions) || {};
-                        if (props.report.isLoadingReportActions && lastReportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED) {
+                        const lastReportAction = _.last(sortedReportActions) || {};
+                        if (report.isLoadingReportActions && lastReportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED) {
                             return (
                                 <ReportActionsSkeletonView
                                     containerHeight={skeletonViewHeight}
-                                    animate={!props.network.isOffline}
+                                    animate={!isOffline}
                                 />
                             );
                         }
@@ -330,7 +335,7 @@ function ReportActionsList(props) {
                     keyboardShouldPersistTaps="handled"
                     onLayout={(event) => {
                         setSkeletonViewHeight(event.nativeEvent.layout.height);
-                        props.onLayout(event);
+                        onLayout(event);
                     }}
                     onScroll={trackVerticalScrolling}
                     extraData={extraData}
@@ -344,4 +349,4 @@ ReportActionsList.propTypes = propTypes;
 ReportActionsList.defaultProps = defaultProps;
 ReportActionsList.displayName = 'ReportActionsList';
 
-export default compose(withWindowDimensions, withLocalize, withPersonalDetails(), withNetwork(), withCurrentUserPersonalDetails)(ReportActionsList);
+export default compose(withWindowDimensions, withPersonalDetails(), withCurrentUserPersonalDetails)(ReportActionsList);
