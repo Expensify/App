@@ -15,7 +15,6 @@ class DisplayNames extends PureComponent {
         this.state = {
             isEllipsisActive: false,
         };
-        this.setContainerLayout = this.setContainerLayout.bind(this);
         this.getTooltipShiftX = this.getTooltipShiftX.bind(this);
     }
 
@@ -23,15 +22,6 @@ class DisplayNames extends PureComponent {
         this.setState({
             isEllipsisActive: this.containerRef && this.containerRef.offsetWidth && this.containerRef.scrollWidth && this.containerRef.offsetWidth < this.containerRef.scrollWidth,
         });
-    }
-
-    /**
-     * Set the container layout for post calculations
-     *
-     * @param {*} {nativeEvent}
-     */
-    setContainerLayout({nativeEvent}) {
-        this.containerLayout = nativeEvent.layout;
     }
 
     /**
@@ -47,11 +37,11 @@ class DisplayNames extends PureComponent {
      * @returns {Number} Distance to shift the tooltip horizontally
      */
     getTooltipShiftX(index) {
-        // Only shift the tooltip in case the containerLayout or Refs to the text node are available
-        if (!this.containerLayout || !this.childRefs[index]) {
+        // Only shift the tooltip in case the container ref or Refs to the text node are available
+        if (!this.containerRef || !this.childRefs[index]) {
             return;
         }
-        const {width: containerWidth, left: containerLeft} = this.containerLayout;
+        const {width: containerWidth, left: containerLeft} = this.containerRef.getBoundingClientRect();
 
         // We have to return the value as Number so we can't use `measureWindow` which takes a callback
         const {width: textNodeWidth, left: textNodeLeft} = this.childRefs[index].getBoundingClientRect();
@@ -81,7 +71,6 @@ class DisplayNames extends PureComponent {
             // Tokenization of string only support prop numberOfLines on Web
             <Text
                 style={[...this.props.textStyles, styles.pRelative]}
-                onLayout={this.setContainerLayout}
                 numberOfLines={this.props.numberOfLines || undefined}
                 ref={(el) => (this.containerRef = el)}
             >

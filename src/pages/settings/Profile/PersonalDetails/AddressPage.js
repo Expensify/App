@@ -167,6 +167,7 @@ function AddressPage({privatePersonalDetails}) {
                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                     defaultValue={street2 || ''}
                     maxLength={CONST.FORM_CHARACTER_LIMIT}
+                    spellCheck={false}
                 />
                 <View style={styles.formSpaceVertical} />
                 <View style={styles.mhn5}>
@@ -192,6 +193,7 @@ function AddressPage({privatePersonalDetails}) {
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         defaultValue={address.state || ''}
                         maxLength={CONST.FORM_CHARACTER_LIMIT}
+                        spellCheck={false}
                     />
                 )}
                 <View style={styles.formSpaceVertical} />
@@ -202,6 +204,7 @@ function AddressPage({privatePersonalDetails}) {
                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                     defaultValue={address.city || ''}
                     maxLength={CONST.FORM_CHARACTER_LIMIT}
+                    spellCheck={false}
                 />
                 <View style={styles.formSpaceVertical} />
                 <TextInput
