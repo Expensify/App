@@ -25,12 +25,16 @@ const propTypes = {
 
     /** Function to call when the user types in the search input */
     setSearchValue: PropTypes.func.isRequired,
+
+    /** Label to display on field */
+    label: PropTypes.string,
 };
 
 const defaultProps = {
     currentState: '',
     onClose: () => {},
     onStateSelected: () => {},
+    label: undefined,
 };
 
 function filterOptions(searchValue, data) {
@@ -42,7 +46,7 @@ function filterOptions(searchValue, data) {
     return _.filter(data, (country) => country.text.toLowerCase().includes(searchValue.toLowerCase()));
 }
 
-function StateSelectorModal({currentState, isVisible, onClose, onStateSelected, searchValue, setSearchValue}) {
+function StateSelectorModal({currentState, isVisible, onClose, onStateSelected, searchValue, setSearchValue, label}) {
     const {translate} = useLocalize();
 
     const countryStates = useMemo(
@@ -69,13 +73,13 @@ function StateSelectorModal({currentState, isVisible, onClose, onStateSelected, 
             useNativeDriver
         >
             <HeaderWithBackButton
-                title={translate('common.state')}
+                title={label || translate('common.state')}
                 shouldShowBackButton
                 onBackButtonPress={onClose}
             />
             <SelectionListRadio
                 headerMessage={headerMessage}
-                textInputLabel={translate('common.state')}
+                textInputLabel={label || translate('common.state')}
                 textInputPlaceholder={translate('stateSelectorModal.placeholderText')}
                 textInputValue={searchValue}
                 sections={[{data: filteredData, indexOffset: 0}]}
