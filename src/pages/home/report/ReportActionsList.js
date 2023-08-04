@@ -22,6 +22,7 @@ import reportPropTypes from '../../reportPropTypes';
 import networkPropTypes from '../../../components/networkPropTypes';
 import withLocalize from '../../../components/withLocalize';
 import useReportScrollManager from '../../../hooks/useReportScrollManager';
+import ReportActionListFrozenScrollContext from "./ReportActionListFrozenScrollContext";
 
 const propTypes = {
     /** Position of the "New" line marker */
@@ -97,6 +98,7 @@ function ReportActionsList(props) {
         opacity.value = withTiming(1, {duration: 100});
     }, [opacity]);
     const [skeletonViewHeight, setSkeletonViewHeight] = useState(0);
+    const [shouldFreezeScroll, setShouldFreezeScroll] = useState(false);
 
     const windowHeight = props.windowHeight;
 
@@ -171,44 +173,50 @@ function ReportActionsList(props) {
 
     return (
         <Animated.View style={[animatedStyles, styles.flex1]}>
-            <InvertedFlatList
-                accessibilityLabel={props.translate('sidebarScreen.listOfChatMessages')}
-                ref={reportScrollManager.ref}
-                data={props.sortedReportActions}
-                renderItem={renderItem}
-                contentContainerStyle={[styles.chatContentScrollView, shouldShowReportRecipientLocalTime || shouldOmitBottomSpace ? styles.pt0 : {}]}
-                keyExtractor={keyExtractor}
-                initialRowHeight={32}
-                initialNumToRender={calculateInitialNumToRender()}
-                onEndReached={props.loadMoreChats}
-                onEndReachedThreshold={0.75}
-                ListFooterComponent={() => {
-                    if (props.report.isLoadingMoreReportActions) {
-                        return <ReportActionsSkeletonView containerHeight={CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT * 3} />;
-                    }
+            <ReportActionListFrozenScrollContext.Provider value={{setShouldFreezeScroll}}>
+                <InvertedFlatList
+                    accessibilityLabel={props.translate('sidebarScreen.listOfChatMessages')}
+                    ref={reportScrollManager.ref}
+                    data={props.sortedReportActions}
+                    renderItem={renderItem}
+                    contentContainerStyle={[styles.chatContentScrollView, shouldShowReportRecipientLocalTime || shouldOmitBottomSpace ? styles.pt0 : {}]}
+                    keyExtractor={keyExtractor}
+                    initialRowHeight={32}
+                    initialNumToRender={calculateInitialNumToRender()}
+                    onEndReached={props.loadMoreChats}
+                    onEndReachedThreshold={0.75}
+                    ListFooterComponent={() => {
+                        if (props.report.isLoadingMoreReportActions) {
+                            return <ReportActionsSkeletonView
+                                containerHeight={CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT * 3}/>;
+                        }
 
-                    // Make sure the oldest report action loaded is not the first. This is so we do not show the
-                    // skeleton view above the created action in a newly generated optimistic chat or one with not
-                    // that many comments.
-                    const lastReportAction = _.last(props.sortedReportActions) || {};
-                    if (props.report.isLoadingReportActions && lastReportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED) {
-                        return (
-                            <ReportActionsSkeletonView
-                                containerHeight={skeletonViewHeight}
-                                animate={!props.network.isOffline}
-                            />
-                        );
-                    }
-                    return null;
-                }}
-                keyboardShouldPersistTaps="handled"
-                onLayout={(event) => {
-                    setSkeletonViewHeight(event.nativeEvent.layout.height);
-                    props.onLayout(event);
-                }}
-                onScroll={props.onScroll}
-                extraData={extraData}
-            />
+                        // Make sure the oldest report action loaded is not the first. This is so we do not show the
+                        // skeleton view above the created action in a newly generated optimistic chat or one with not
+                        // that many comments.
+                        const lastReportAction = _.last(props.sortedReportActions) || {};
+                        if (props.report.isLoadingReportActions && lastReportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED) {
+                            return (
+                                <ReportActionsSkeletonView
+                                    containerHeight={skeletonViewHeight}
+                                    animate={!props.network.isOffline}
+                                />
+                            );
+                        }
+                        return null;
+                    }}
+                    keyboardShouldPersistTaps="handled"
+                    onLayout={(event) => {
+                        setSkeletonViewHeight(event.nativeEvent.layout.height);
+                        props.onLayout(event);
+                    }}
+                    onScroll={props.onScroll}
+                    extraData={extraData}
+                    maintainVisibleContentPosition={shouldFreezeScroll ? {
+                        minIndexForVisible: 1,
+                    } : null}
+                />
+            </ReportActionListFrozenScrollContext.Provider>
         </Animated.View>
     );
 }

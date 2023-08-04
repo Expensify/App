@@ -1,5 +1,5 @@
 import lodashGet from 'lodash/get';
-import React, {useState, useRef, useMemo, useEffect, useCallback} from 'react';
+import React, {useState, useRef, useMemo, useEffect, useCallback, useContext} from 'react';
 import {InteractionManager, Keyboard, View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -36,6 +36,7 @@ import useKeyboardState from '../../../hooks/useKeyboardState';
 import useWindowDimensions from '../../../hooks/useWindowDimensions';
 import useReportScrollManager from '../../../hooks/useReportScrollManager';
 import * as EmojiPickerAction from '../../../libs/actions/EmojiPickerAction';
+import ReportActionListFrozenScrollContext from "./ReportActionListFrozenScrollContext";
 
 const propTypes = {
     /** All the data of the action */
@@ -101,6 +102,8 @@ function ReportActionItemMessageEdit(props) {
     const textInputRef = useRef(null);
     const isFocusedRef = useRef(false);
     const insertedEmojis = useRef([]);
+
+    const {setShouldFreezeScroll} = useContext(ReportActionListFrozenScrollContext)
 
     useEffect(() => {
         // required for keeping last state of isFocused variable
@@ -200,6 +203,7 @@ function ReportActionItemMessageEdit(props) {
      * Delete the draft of the comment being edited. This will take the comment out of "edit mode" with the old content.
      */
     const deleteDraft = useCallback(() => {
+        setShouldFreezeScroll(false);
         debouncedSaveDraft.cancel();
         Report.saveReportActionDraft(props.reportID, props.action.reportActionID, '');
         ComposerActions.setShouldShowComposeInput(true);
@@ -322,11 +326,13 @@ function ReportActionItemMessageEdit(props) {
                             style={[styles.textInputCompose, styles.flex1, styles.bgTransparent]}
                             onFocus={() => {
                                 setIsFocused(true);
-                                reportScrollManager.scrollToIndex({animated: true, index: props.index}, true);
+                                setShouldFreezeScroll(true);
+                                reportScrollManager.scrollToIndex({animated: false, index: props.index}, true);
                                 ComposerActions.setShouldShowComposeInput(false);
                             }}
                             onBlur={(event) => {
                                 setIsFocused(false);
+                                setShouldFreezeScroll(false);
                                 const relatedTargetId = lodashGet(event, 'nativeEvent.relatedTarget.id');
 
                                 // Return to prevent re-render when save/cancel button is pressed which cancels the onPress event by re-rendering
