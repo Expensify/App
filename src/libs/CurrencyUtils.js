@@ -102,12 +102,12 @@ function convertToFrontendAmount(amountAsInt) {
  * Given an amount in the "cents", convert it to a string for display in the UI.
  * The backend always handle things in "cents" (subunit equal to 1/100)
  *
- * @param {Number} amountInSmallestUnit – should be an integer. Anything after a decimal place will be dropped.
+ * @param {Number} amountInCents – should be an integer. Anything after a decimal place will be dropped.
  * @param {String} currency
  * @returns {String}
  */
-function convertToDisplayString(amountInSmallestUnit, currency = CONST.CURRENCY.USD) {
-    const convertedAmount = convertToFrontendAmount(amountInSmallestUnit);
+function convertToDisplayString(amountInCents, currency = CONST.CURRENCY.USD) {
+    const convertedAmount = convertToFrontendAmount(amountInCents);
     return NumberFormatUtils.format(BaseLocaleListener.getPreferredLocale(), convertedAmount, {
         style: 'currency',
         currency,
