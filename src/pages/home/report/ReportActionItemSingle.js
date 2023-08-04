@@ -177,6 +177,7 @@ function ReportActionItemSingle(props) {
                                     isLoading={props.action.isLoading}
                                     delegateAccountID={props.action.delegateAccountID}
                                     isSingleLine
+                                    actorIcon={icon}
                                 />
                             ))}
                         </PressableWithoutFeedback>
