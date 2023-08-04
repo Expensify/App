@@ -175,7 +175,6 @@ function FloatingActionButtonAndPopover(props) {
     }));
 
     const workspaces = PolicyUtils.getActivePolicies(props.allPolicies);
-    console.log('w', workspaces);
 
     return (
         <View>

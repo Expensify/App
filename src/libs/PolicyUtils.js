@@ -10,14 +10,13 @@ import ONYXKEYS from '../ONYXKEYS';
  * @returns {Array}
  */
 function getActivePolicies(policies) {
-    return _.filter(policies, (policy) => {
-        console.log(policy);
-        return (
+    return _.filter(
+        policies,
+        (policy) =>
             policy &&
             (policy.type === CONST.POLICY.TYPE.FREE || (policy.type === CONST.POLICY.TYPE.CORPORATE && policy.isPolicyExpenseChatEnabled)) &&
-            policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
-        );
-    });
+            policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+    );
 }
 
 /**
