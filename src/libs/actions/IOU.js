@@ -466,7 +466,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
 
     // Note: The created action must be optimistically generated before the IOU action so there's no chance that the created action appears after the IOU action in the chat
     const splitCreatedReportAction = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
-    const splitIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(CONST.IOU.REPORT_ACTION_TYPE.SPLIT, amount, currency, comment, participants, groupTransaction.transactionID);
+    const splitIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(CONST.IOU.REPORT_ACTION_TYPE.SPLIT, amount, currency, comment, participants, splitTransaction.transactionID);
 
     splitChatReport.lastReadTime = DateUtils.getDBTime();
     splitChatReport.lastMessageText = splitIOUReportAction.message[0].text;
@@ -497,8 +497,8 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${groupTransaction.transactionID}`,
-            value: groupTransaction,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransaction.transactionID}`,
+            value: splitTransaction,
         },
     ];
 
@@ -513,7 +513,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${groupTransaction.transactionID}`,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransaction.transactionID}`,
             value: {pendingAction: null},
         },
     ];
@@ -529,7 +529,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
     const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${groupTransaction.transactionID}`,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransaction.transactionID}`,
             value: {
                 errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
             },
@@ -604,7 +604,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
         const isNewOneOnOneIOUReport = !oneOnOneChatReport.iouReportID;
         let oneOnOneIOUReport;
         if (!isNewOneOnOneIOUReport) {
-            oneOnOneIOUReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.iouReportID}`];
+            oneOnOneIOUReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.iouReportID}`];
             if (isOwnPolicyExpenseChat) {
                 // Because of the Expense reports are stored as negative values, we substract the total from the amount
                 oneOnOneIOUReport.total -= splitAmount;
@@ -622,7 +622,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
             oneOnOneIOUReport.reportID,
             comment,
             CONST.IOU.MONEY_REQUEST_TYPE.SPLIT,
-            groupTransaction.transactionID,
+            splitTransaction.transactionID,
         );
 
         // STEP 4: Build optimistic reportActions. We need:
@@ -698,13 +698,13 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
 
     const splitData = {
         chatReportID: splitChatReport.reportID,
-        transactionID: groupTransaction.transactionID,
+        transactionID: splitTransaction.transactionID,
         reportActionID: splitIOUReportAction.reportActionID,
         policyID: splitChatReport.policyID,
     };
 
     if (_.isEmpty(existingSplitChatReport)) {
-        groupData.createdReportActionID = splitCreatedReportAction.reportActionID;
+        splitData.createdReportActionID = splitCreatedReportAction.reportActionID;
     }
 
     return {
@@ -756,26 +756,26 @@ function splitBill(participants, currentUserLogin, currentUserAccountID, amount,
  * @param {String} currency
  */
 function splitBillAndOpenReport(participants, currentUserLogin, currentUserAccountID, amount, comment, currency) {
-    const {groupData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency);
+    const {splitData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency);
 
     API.write(
         'SplitBillAndOpenReport',
         {
-            reportID: groupData.chatReportID,
+            reportID: splitData.chatReportID,
             amount,
             splits: JSON.stringify(splits),
             currency,
             comment,
-            transactionID: groupData.transactionID,
-            reportActionID: groupData.reportActionID,
-            createdReportActionID: groupData.createdReportActionID,
+            transactionID: splitData.transactionID,
+            reportActionID: splitData.reportActionID,
+            createdReportActionID: splitData.createdReportActionID,
         },
         onyxData,
     );
 
     resetMoneyRequestInfo();
-    Navigation.dismissModal(groupData.chatReportID);
-    Report.notifyNewAction(groupData.chatReportID, currentUserAccountID);
+    Navigation.dismissModal(splitData.chatReportID);
+    Report.notifyNewAction(splitData.chatReportID, currentUserAccountID);
 }
 
 /**
