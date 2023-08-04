@@ -9,13 +9,9 @@ import CONST from '../CONST';
 import networkPropTypes from './networkPropTypes';
 import stylePropTypes from '../styles/stylePropTypes';
 import styles from '../styles/styles';
-import Tooltip from './Tooltip';
-import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
 import * as StyleUtils from '../styles/StyleUtils';
-import DotIndicatorMessage from './DotIndicatorMessage';
 import shouldRenderOffscreen from '../libs/shouldRenderOffscreen';
-import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
+import DotIndicatorMessageWithClose from './DotIndicatorMessageWithClose';
 
 /**
  * This component should be used when we are using the offline pattern B (offline with feedback).
@@ -116,23 +112,12 @@ function OfflineWithFeedback(props) {
                 </View>
             )}
             {props.shouldShowErrorMessages && hasErrorMessages && (
-                <View style={StyleUtils.combineStyles(styles.offlineFeedback.error, props.errorRowStyles)}>
-                    <DotIndicatorMessage
-                        style={[styles.flex1]}
-                        messages={errorMessages}
-                        type="error"
-                    />
-                    <Tooltip text={props.translate('common.close')}>
-                        <PressableWithoutFeedback
-                            onPress={props.onClose}
-                            style={[styles.touchableButtonImage]}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                            accessibilityLabel={props.translate('common.close')}
-                        >
-                            <Icon src={Expensicons.Close} />
-                        </PressableWithoutFeedback>
-                    </Tooltip>
-                </View>
+                <DotIndicatorMessageWithClose
+                    messages={errorMessages}
+                    type="error"
+                    onClose={props.onClose}
+                    containerStyles={props.errorRowStyles}
+                />
             )}
         </View>
     );
