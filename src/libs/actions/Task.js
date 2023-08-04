@@ -269,7 +269,11 @@ function completeTask(taskReport, taskTitle) {
     if (taskReport.parentReportActionID) {
         let parentReportAction = ReportActionsUtils.getParentReportAction(taskReport);
         if (parentReportAction && parentReportAction.reportActionID) {
-            const optimisticParentReportActionData = ReportUtils.updateOptimisticParentReportAction(parentReportAction, completedTaskReportAction.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+            const optimisticParentReportActionData = ReportUtils.updateOptimisticParentReportAction(
+                parentReportAction,
+                completedTaskReportAction.created,
+                CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            );
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReport.parentReportID}`,
@@ -371,7 +375,11 @@ function reopenTask(taskReport, taskTitle) {
     if (taskReport.parentReportActionID) {
         let parentReportAction = ReportActionsUtils.getParentReportAction(taskReport);
         if (parentReportAction && parentReportAction.reportActionID) {
-            const optimisticParentReportActionData = ReportUtils.updateOptimisticParentReportAction(parentReportAction, reopenedTaskReportAction.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+            const optimisticParentReportActionData = ReportUtils.updateOptimisticParentReportAction(
+                parentReportAction,
+                reopenedTaskReportAction.created,
+                CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            );
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReport.parentReportID}`,
