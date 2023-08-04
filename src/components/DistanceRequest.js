@@ -45,6 +45,7 @@ const defaultProps = {
 function DistanceRequest({transactionID, transaction, translate}) {
     const [shouldShowGradient, setShouldShowGradient] = useState(false);
     const [scrollContainerHeight, setScrollContainerHeight] = useState(0);
+    const [scrollContentHeight, setScrollContentHeight] = useState(0);
     const scrollContainer = useRef(null);
 
     const waypoints = lodashGet(transaction, 'comment.waypoints', {});
@@ -81,14 +82,12 @@ function DistanceRequest({transactionID, transaction, translate}) {
     const updateGradientVisibility = (event = {}) => {
         // If a waypoint extends past the bottom of the visible area show the gradient, else hide it.
         const visibleAreaEnd = lodashGet(event, 'nativeEvent.contentOffset.y', 0) + scrollContainerHeight;
-        const contentSize = lodashGet(event, 'nativeEvent.contentSize.height', 0);
         console.log('scrollContainerHeight', scrollContainerHeight);
-        console.log('contentSize', contentSize);
         console.log('visibleAreaEnd', visibleAreaEnd);
-        setShouldShowGradient(visibleAreaEnd < contentSize);
+        setShouldShowGradient(visibleAreaEnd < scrollContentHeight);
     };
 
-    useEffect(updateGradientVisibility, [scrollContainerHeight]);
+    useEffect(updateGradientVisibility, [scrollContainerHeight, scrollContentHeight]);
 
     return (
         <>
@@ -98,6 +97,7 @@ function DistanceRequest({transactionID, transaction, translate}) {
                 ref={scrollContainer}
             >
                 <ScrollView
+                    onContentSizeChange={(width, height) => setScrollContentHeight(height)}
                     onScroll={updateGradientVisibility}
                     scrollEventThrottle={16}
                 >
