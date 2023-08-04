@@ -82,9 +82,6 @@ function NewRequestAmountPage({route, iou, report, errors}) {
 
     const currency = currentCurrency || iou.currency;
 
-    /**
-     * Focus text input
-     */
     const focusTextInput = () => {
         // Component may not be initialized due to navigation transitions
         // Wait until interactions are complete before trying to focus
@@ -113,14 +110,14 @@ function NewRequestAmountPage({route, iou, report, errors}) {
     }, [errors, report, reportID]);
 
     // Because we use Onyx to store iou info, when we try to make two different money requests from different tabs, it can result in many bugs.
-    // This logic is added to prevent such bugs.
     useEffect(() => {
         if (isEditing) {
             if (prevMoneyRequestID.current !== iou.id) {
                 // The ID is cleared on completing a request. In that case, we will do nothing.
-                if (iou.id) {
-                    Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType, reportID), true);
+                if (!iou.id) {
+                    return;
                 }
+                Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType, reportID), true);
                 return;
             }
             const moneyRequestID = `${iouType}${reportID}`;
