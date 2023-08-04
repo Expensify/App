@@ -32,7 +32,6 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
     const hasDraftStatus = !!defaultEmoji || !!defaultText;
 
     const updateStatus = useCallback(() => {
-        // TODO: part of next PR
         const endOfDay = new Date();
         endOfDay.setHours(23, 59, 59, 999);
         User.updateCustomStatus({text: defaultText, emojiCode: defaultEmoji, clearAfter: endOfDay});
