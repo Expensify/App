@@ -342,7 +342,11 @@ function WorkspaceMembersPage(props) {
                                 }}
                                 onSelectRow={() => toggleUser(item.accountID, item.pendingAction)}
                             />
-                            {Boolean(item.invitedSecondaryLogin) && <Text style={[styles.textLabelSupporting, styles.ph5]}>{props.translate('workspace.people.invitedBySecondaryLogin', {secondaryLogin: item.invitedSecondaryLogin})}</Text>}
+                            {Boolean(item.invitedSecondaryLogin) && (
+                                <Text style={[styles.textLabelSupporting, styles.ph5]}>
+                                    {props.translate('workspace.people.invitedBySecondaryLogin', {secondaryLogin: item.invitedSecondaryLogin})}
+                                </Text>
+                            )}
                         </View>
                         {(props.session.accountID === item.accountID || item.role === 'admin') && (
                             <View style={[styles.badge, styles.peopleBadge]}>
