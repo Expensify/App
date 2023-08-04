@@ -1,10 +1,16 @@
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 
-function onTabPress(tabSelected) {
-    Onyx.merge(ONYXKEYS.TAB_SELECTOR, tabSelected);
+/**
+ * Sets the selected tab for a given tab ID
+ *
+ * @param {String} id
+ * @param {String} index
+ */
+function setSelectedTab(id, index) {
+    Onyx.merge(`${ONYXKEYS.SELECTED_TAB}_${id}`, index);
 }
 
 export default {
-    onTabPress,
+    setSelectedTab,
 };

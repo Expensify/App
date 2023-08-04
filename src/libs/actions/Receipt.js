@@ -1,7 +1,14 @@
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 
-function onUploadReceiptError(isAttachmentInvalid, attachmentInvalidReasonTitle, attachmentInvalidReason) {
+/**
+ * Sets the upload receipt error modal content when an invalid receipt is uploaded
+ *
+ * @param {Boolean} isAttachmentInvalid
+ * @param {String} attachmentInvalidReasonTitle
+ * @param {String} attachmentInvalidReason
+ */
+function setUploadReceiptError(isAttachmentInvalid, attachmentInvalidReasonTitle, attachmentInvalidReason) {
     Onyx.merge(ONYXKEYS.RECEIPT_MODAL, {
         isAttachmentInvalid,
         attachmentInvalidReasonTitle,
@@ -9,13 +16,18 @@ function onUploadReceiptError(isAttachmentInvalid, attachmentInvalidReasonTitle,
     });
 }
 
+/**
+ * Clears the receipt error modal
+ */
 function clearUploadReceiptError() {
     Onyx.merge(ONYXKEYS.RECEIPT_MODAL, {
         isAttachmentInvalid: false,
+        attachmentInvalidReasonTitle: '',
+        attachmentInvalidReason: '',
     });
 }
 
 export default {
-    onUploadReceiptError,
+    setUploadReceiptError,
     clearUploadReceiptError,
 };
