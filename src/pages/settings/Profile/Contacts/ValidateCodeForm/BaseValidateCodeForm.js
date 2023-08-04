@@ -87,6 +87,10 @@ function BaseValidateCodeForm(props) {
     }));
 
     useEffect(() => {
+        Session.clearAccountMessages();
+    }, []);
+
+    useEffect(() => {
         if (!props.hasMagicCodeBeenSent) {
             return;
         }
