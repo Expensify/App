@@ -161,7 +161,7 @@ function Composer({
     forwardedRef,
     navigation,
     defaultValue,
-    onSelectionChange: onSelectionChangeProp,
+    onSelectionChange,
     ...props
 }) {
     const textRef = useRef(null);
@@ -200,7 +200,7 @@ function Composer({
             setCaretContent(getNextChars(value, event.nativeEvent.selection.start));
         });
 
-        onSelectionChangeProp({
+        onSelectionChange({
             nativeEvent: {
                 selection: {
                     start: event.nativeEvent.selection.start,
@@ -379,18 +379,21 @@ function Composer({
      *
      * @param {Element} el
      */
-    const setTextInputRef = useCallback((el) => {
-        textInput.current = el;
+    const setTextInputRef = useCallback(
+        (el) => {
+            textInput.current = el;
 
-        if (_.isFunction(forwardedRef)) {
-            forwardedRef(textInput.current);
-        }
+            if (_.isFunction(forwardedRef)) {
+                forwardedRef(textInput.current);
+            }
 
-        if (textInput.current) {
-            textInput.current.addEventListener('paste', handlePaste);
-            textInput.current.addEventListener('wheel', handleWheel);
-        }
-    }, []);
+            if (textInput.current) {
+                textInput.current.addEventListener('paste', handlePaste);
+                textInput.current.addEventListener('wheel', handleWheel);
+            }
+        },
+        [forwardedRef, handlePaste, handleWheel],
+    );
 
     useEffect(() => {
         // we need to handle listeners on navigation focus/blur as Composer is not unmounting
@@ -439,7 +442,7 @@ function Composer({
             StyleUtils.getComposeTextAreaPadding(numberOfLinesProp),
 
             StyleSheet.flatten([style, {outline: 'none'}]),
-          ],
+        ],
         [style, maxLines, numberOfLinesProp, numberOfLines],
     );
 
