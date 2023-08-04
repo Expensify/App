@@ -51,7 +51,7 @@ function StaticHeaderPageLayout({backgroundColor, children, image: Image, footer
                     />
                     <View style={[styles.flex1, StyleUtils.getBackgroundColorStyle(themeColors.appBG)]}>
                         <ScrollView
-                            contentContainerStyle={StyleSheet.flatten([safeAreaPaddingBottomStyle, style])}
+                            contentContainerStyle={[safeAreaPaddingBottomStyle, style]}
                             showsVerticalScrollIndicator={false}
                         >
                             <View style={styles.overscrollSpacer(backgroundColor, windowHeight)} />

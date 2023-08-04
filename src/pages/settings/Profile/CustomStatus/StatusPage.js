@@ -63,7 +63,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
     return (
         <StaticHeaderPageLayout
             title={localize.translate('statusPage.status')}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PROFILE)}
             backgroundColor={themeColors.midtone}
             image={MobileBackgroundImage}
             footer={footerComponent}

@@ -1,7 +1,8 @@
-import React, {useEffect} from 'react';
+import React, {useRef, useEffect, forwardRef} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import styles from '../../styles/styles';
+import CONST from '../../CONST';
 import * as StyleUtils from '../../styles/StyleUtils';
 import getButtonState from '../../libs/getButtonState';
 import * as Expensicons from '../Icon/Expensicons';
@@ -16,40 +17,31 @@ const propTypes = {
     /** Flag to disable the emoji picker button */
     isDisabled: PropTypes.bool,
 
-    /** Id to use for the emoji picker button */
-    nativeID: PropTypes.string,
-
-    /**
-     * ReportAction for EmojiPicker.
-     */
-    reportAction: PropTypes.shape({
-        reportActionID: PropTypes.string,
-    }),
-
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     isDisabled: false,
-    nativeID: '',
-    reportAction: {},
 };
 
-function EmojiPickerButtonDropdown(props) {
-    let emojiPopoverAnchor = null;
+const EmojiPickerButtonDropdown = (props) => {
+    const emojiPopoverAnchor = useRef(null);
     useEffect(() => EmojiPickerAction.resetEmojiPopoverAnchor, []);
 
-    const onEmojiSelected = (emoji) => {
-        props.onInputChange(emoji);
-    };
+    const onPress = () =>
+        EmojiPickerAction.showEmojiPicker(props.onModalHide, (emoji) => props.onInputChange(emoji), emojiPopoverAnchor.current, {
+            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+        });
+
     return (
         <Tooltip text={props.translate('reportActionCompose.emoji')}>
             <PressableWithoutFeedback
-                ref={(el) => (emojiPopoverAnchor = el)}
+                ref={emojiPopoverAnchor}
                 style={[styles.chatItemEmojiButton, styles.emojiPickerButtonDropdown, props.style]}
                 disabled={props.isDisabled}
-                onPress={() => EmojiPickerAction.showEmojiPicker(props.onModalHide, onEmojiSelected, emojiPopoverAnchor, undefined, () => {}, props.reportAction)}
-                nativeID={props.nativeID}
+                onPress={onPress}
+                nativeID="emojiDropdownButton"
                 accessibilityLabel="statusEmoji"
                 accessibilityRole="text"
             >
@@ -72,7 +64,7 @@ function EmojiPickerButtonDropdown(props) {
             </PressableWithoutFeedback>
         </Tooltip>
     );
-}
+};
 
 EmojiPickerButtonDropdown.propTypes = propTypes;
 EmojiPickerButtonDropdown.defaultProps = defaultProps;
