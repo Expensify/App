@@ -40,3 +40,13 @@ After mergint the PRs:
 - Composer re-renders: ~8x
 
 I know want to check if i can even get the component to re-render less, afterwards i want to optimize the children to not re-render if not necessary.
+
+### Moving the suggestions out
+
+I figured that there are a lot of state updates just for the suggestions. 
+I am moving that to a new component.
+
+When testing to just remove the suggestion logic I get the following:
+
+- ReportActionCompose re-renders: ~4x
+- Composer re-renders: ~6x
