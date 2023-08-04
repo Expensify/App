@@ -17,6 +17,7 @@ import LinearGradient from './LinearGradient';
 
 const MAX_WAYPOINTS = 25;
 const MAX_WAYPOINTS_TO_DISPLAY = 4;
+
 const propTypes = {
     /** The transactionID of this request */
     transactionID: PropTypes.string,
@@ -43,12 +44,18 @@ const defaultProps = {
 
 function DistanceRequest({transactionID, transaction, translate}) {
     const [shouldShowGradient, setShouldShowGradient] = useState(false);
-    const [menuItemHeight, setMenuItemHeight] = useState(0);
-    const firstMenuItem = useRef(null);
+    const [scrollContainerHeight, setScrollContainerHeight] = useState(0);
+    const scrollContainer = useRef(null);
 
     const waypoints = lodashGet(transaction, 'comment.waypoints', {});
     const numberOfWaypoints = _.size(waypoints);
     const lastWaypointIndex = numberOfWaypoints - 1;
+
+    // Show up to the max number of waypoints plus 1/2 of one to hint at scrolling
+    const halfMenuItemHeight = Math.floor(styles.baseMenuItemHeight / 2);
+    const maxWaypointsHeight = styles.baseMenuItemHeight * MAX_WAYPOINTS_TO_DISPLAY;
+    const scrollContainerMaxHeight = maxWaypointsHeight + halfMenuItemHeight;
+    console.log('scrollContainerMaxHeight', scrollContainerMaxHeight);
 
     useEffect(() => {
         if (!transaction.transactionID || !_.isEmpty(waypoints)) {
@@ -58,37 +65,38 @@ function DistanceRequest({transactionID, transaction, translate}) {
         Transaction.createInitialWaypoints(transaction.transactionID);
     }, [transaction.transactionID, waypoints]);
 
-    // Measure the first waypoint to calculate how high the scroll view should be
-    const measureMenuItemHeight = () => {
-        if (!firstMenuItem.current) {
+    // Measure the scroll container height and decide if we need to fade a waypoint
+    const measureScrollContainerHeight = () => {
+        console.log('measureScrollContainerHeight, scrollContainer=', scrollContainer);
+        if (!scrollContainer.current) {
             return;
         }
-        firstMenuItem.current.measure((x, y, width, height) => {
-            setMenuItemHeight(height);
+        scrollContainer.current.measure((x, y, width, height) => {
+            console.log('measure height', height);
+            setScrollContainerHeight(height);
         });
     };
-
-    // The scroll container should be as small as possible and grow as waypoints are added
-    let scrollContainerHeight = menuItemHeight * numberOfWaypoints;
-    const halfMenuItemHeight = Math.floor(menuItemHeight / 2);
-
-    // When there are more than we want to display, show the proper number of waypoints plus 1/2 of one to hint at scrolling
-    if (numberOfWaypoints > MAX_WAYPOINTS_TO_DISPLAY) {
-        scrollContainerHeight = menuItemHeight * MAX_WAYPOINTS_TO_DISPLAY + halfMenuItemHeight;
-    }
+    useEffect(measureScrollContainerHeight, [scrollContainer])
 
     const updateGradientVisibility = (event = {}) => {
-        // If a waypoint extends past the bottom of the scroll container then show the gradient, else hide it.
-        const waypointEnd = numberOfWaypoints * menuItemHeight;
+        // If a waypoint extends past the bottom of the visible area show the gradient, else hide it.
         const visibleAreaEnd = lodashGet(event, 'nativeEvent.contentOffset.y', 0) + scrollContainerHeight;
-        setShouldShowGradient(waypointEnd > visibleAreaEnd);
+        const contentSize = lodashGet(event, 'nativeEvent.contentSize.height', 0);
+        console.log('scrollContainerHeight', scrollContainerHeight);
+        console.log('contentSize', contentSize);
+        console.log('visibleAreaEnd', visibleAreaEnd);
+        setShouldShowGradient(visibleAreaEnd < contentSize);
     };
 
-    useEffect(updateGradientVisibility, [waypoints, numberOfWaypoints, menuItemHeight, scrollContainerHeight]);
+    useEffect(updateGradientVisibility, [scrollContainerHeight]);
 
     return (
         <>
-            <View style={{height: scrollContainerHeight}}>
+            <View
+                style={{maxHeight: scrollContainerMaxHeight}}
+                onLayout={measureScrollContainerHeight}
+                ref={scrollContainer}
+            >
                 <ScrollView
                     onScroll={updateGradientVisibility}
                     scrollEventThrottle={16}
@@ -111,8 +119,6 @@ function DistanceRequest({transactionID, transaction, translate}) {
 
                         return (
                             <View
-                                onLayout={index === 0 ? measureMenuItemHeight : null}
-                                ref={index === 0 ? firstMenuItem : null}
                                 key={key}
                             >
                                 <MenuItemWithTopDescription
