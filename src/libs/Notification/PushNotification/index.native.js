@@ -9,6 +9,8 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import configureForegroundNotifications from './configureForegroundNotifications';
 
 let isUserOptedInToPushNotifications = false;
+let initNotificationStatus = false;
+
 Onyx.connect({
     key: ONYXKEYS.PUSH_NOTIFICATIONS_ENABLED,
     callback: (val) => (isUserOptedInToPushNotifications = val),
@@ -77,6 +79,11 @@ function refreshNotificationOptInStatus() {
  *          DO NOT ALTER UNLESS YOU KNOW WHAT YOU'RE DOING. See this PR for details: https://github.com/Expensify/App/pull/3877
  */
 function init() {
+
+    if (initNotificationStatus) {
+        // if we already init before, we shouldn't do it again.
+        return;
+    }
     // Setup event listeners
     Airship.addListener(EventType.PushReceived, (notification) => {
         // By default, refresh notification opt-in status to true if we receive a notification
@@ -97,6 +104,7 @@ function init() {
     Airship.addListener(EventType.NotificationOptInStatus, refreshNotificationOptInStatus);
 
     configureForegroundNotifications();
+    initNotificationStatus = true;
 }
 
 /**
@@ -136,6 +144,7 @@ function deregister() {
     Airship.contact.reset();
     Airship.removeAllListeners(EventType.PushReceived);
     Airship.removeAllListeners(EventType.NotificationResponse);
+    initNotificationStatus = false;
 }
 
 /**

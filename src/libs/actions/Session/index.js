@@ -27,6 +27,7 @@ import {hideContextMenu} from '../../../pages/home/report/ContextMenu/ReportActi
 
 let currentNotificationId = '';
 let authTokenType = '';
+let shouldForceOffline = false;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (session) => (authTokenType = lodashGet(session, 'authTokenType')),
@@ -49,6 +50,10 @@ Onyx.connect({
     callback: (notificationID) => {
         currentNotificationId = notificationID;
         if (notificationID) {
+            if (shouldForceOffline) {
+                // We shouldn't register for notification if we're force offline.
+                return;
+            }
             PushNotification.register(notificationID);
 
             // Prevent issue where report linking fails after users switch accounts without closing the app
@@ -70,7 +75,7 @@ Onyx.connect({
         if (!network) {
             return;
         }
-        const shouldForceOffline = Boolean(network.shouldForceOffline);
+        shouldForceOffline = Boolean(network.shouldForceOffline);
         if (!shouldForceOffline && currentNotificationId) {
             PushNotification.register(currentNotificationId);
 
@@ -78,7 +83,6 @@ Onyx.connect({
             PushNotification.init();
             subscribeToReportCommentPushNotifications();
         } else {
-            currentNotificationId = null;
             PushNotification.deregister();
         }
     },
