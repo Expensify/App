@@ -5,7 +5,7 @@ import _ from 'underscore';
 import Icon from '../Icon';
 import PopoverMenu from '../PopoverMenu';
 import styles from '../../styles/styles';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+import useLocalize from '../../hooks/useLocalize';
 import Tooltip from '../Tooltip';
 import * as Expensicons from '../Icon/Expensicons';
 import ThreeDotsMenuItemPropTypes from './ThreeDotsMenuItemPropTypes';
@@ -13,8 +13,6 @@ import CONST from '../../CONST';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 
 const propTypes = {
-    ...withLocalizePropTypes,
-
     /** Tooltip for the popup icon */
     iconTooltip: PropTypes.string,
 
@@ -61,9 +59,10 @@ const defaultProps = {
     },
 };
 
-function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, menuItems, anchorPosition, anchorAlignment, translate}) {
+function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, menuItems, anchorPosition, anchorAlignment}) {
     const [isPopupMenuVisible, setPopupMenuVisible] = useState(false);
     const buttonRef = useRef(null);
+    const {translate} = useLocalize();
 
     const showPopoverMenu = () => {
         setPopupMenuVisible(true);
@@ -112,6 +111,6 @@ ThreeDotsMenu.propTypes = propTypes;
 ThreeDotsMenu.defaultProps = defaultProps;
 ThreeDotsMenu.displayName = 'ThreeDotsMenu';
 
-export default withLocalize(ThreeDotsMenu);
+export default ThreeDotsMenu;
 
 export {ThreeDotsMenuItemPropTypes};
