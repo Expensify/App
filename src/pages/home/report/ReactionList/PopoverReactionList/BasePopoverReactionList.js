@@ -48,7 +48,7 @@ class BasePopoverReactionList extends React.Component {
             },
         };
 
-        this.reactionListAnchor = undefined;
+        this.reactionListAnchor = React.createRef();
         this.showReactionList = this.showReactionList.bind(this);
         this.hideReactionList = this.hideReactionList.bind(this);
         this.measureReactionListPosition = this.measureReactionListPosition.bind(this);
@@ -109,8 +109,8 @@ class BasePopoverReactionList extends React.Component {
      */
     getReactionListMeasuredLocation() {
         return new Promise((resolve) => {
-            if (this.reactionListAnchor) {
-                this.reactionListAnchor.measureInWindow((x, y) => resolve({x, y}));
+            if (this.reactionListAnchor.current) {
+                this.reactionListAnchor.current.measureInWindow((x, y) => resolve({x, y}));
             } else {
                 resolve({x: 0, y: 0});
             }
@@ -217,6 +217,8 @@ class BasePopoverReactionList extends React.Component {
                 animationOutTiming={1}
                 shouldSetModalVisibility={false}
                 fullscreen
+                withoutOverlay
+                anchorRef={this.reactionListAnchor}
             >
                 <BaseReactionList
                     type={this.state.type}

@@ -85,7 +85,13 @@ function MiniQuickEmojiReactions(props) {
             ))}
             <BaseMiniContextMenuItem
                 ref={ref}
-                onPress={Session.checkIfActionIsAllowed(openEmojiPicker)}
+                onPress={Session.checkIfActionIsAllowed(() => {
+                    if (!EmojiPickerAction.emojiPickerRef.current.isEmojiPickerVisible) {
+                        openEmojiPicker();
+                    } else {
+                        EmojiPickerAction.emojiPickerRef.current.hideEmojiPicker();
+                    }
+                })}
                 isDelayButtonStateComplete={false}
                 tooltipText={props.translate('emojiReactions.addReactionTooltip')}
             >
