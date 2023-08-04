@@ -451,7 +451,8 @@ function isConciergeChatReport(report) {
 
 /**
  * Check if report is a DM and personal detail of participant is optimistic data
- * @param {String} report
+ * @param {Object} report
+ * @param {Array<Number>} report.participantAccountIDs
  * @returns {Boolean}
  */
 function shouldDisableDetailPage(report) {
