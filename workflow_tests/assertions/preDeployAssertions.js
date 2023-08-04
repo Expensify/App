@@ -1,5 +1,17 @@
 const utils = require('../utils/utils');
 
+const assertTypecheckJobExecuted = (workflowResult, didExecute = true) => {
+    const steps = [utils.createStepAssertion('Run typecheck workflow', true, null, 'TYPECHECK', 'Running typecheck workflow')];
+
+    steps.forEach((expectedStep) => {
+        if (didExecute) {
+            expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
+        } else {
+            expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
+        }
+    });
+};
+
 const assertLintJobExecuted = (workflowResult, didExecute = true) => {
     const steps = [utils.createStepAssertion('Run lint workflow', true, null, 'LINT', 'Running lint workflow')];
 
@@ -200,6 +212,7 @@ const assertUpdateStagingJobFailed = (workflowResult, didFail = false) => {
 };
 
 module.exports = {
+    assertTypecheckJobExecuted,
     assertLintJobExecuted,
     assertTestJobExecuted,
     assertIsExpensifyEmployeeJobExecuted,

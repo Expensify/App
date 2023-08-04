@@ -39,6 +39,8 @@ const assertCherryPickJobExecuted = (workflowResult, user = 'Dummy Author', pull
             [],
         ),
         utils.createStepAssertion('Set up git for OSBotify', true, null, 'CHERRYPICK', 'Setting up git for OSBotify', [{key: 'GPG_PASSPHRASE', value: '***'}], []),
+        utils.createStepAssertion('Get previous app version', true, null, 'CHERRYPICK', 'Get previous app version', [{key: 'SEMVER_LEVEL', value: 'PATCH'}]),
+        utils.createStepAssertion('Fetch history of relevant refs', true, null, 'CHERRYPICK', 'Fetch history of relevant refs'),
         utils.createStepAssertion('Get version bump commit', true, null, 'CHERRYPICK', 'Get version bump commit', [], []),
         utils.createStepAssertion(
             'Get merge commit for pull request to CP',
@@ -53,8 +55,6 @@ const assertCherryPickJobExecuted = (workflowResult, user = 'Dummy Author', pull
             ],
             [],
         ),
-        utils.createStepAssertion('Get previous app version', true, null, 'CHERRYPICK', 'Get previous app version', [{key: 'SEMVER_LEVEL', value: 'PATCH'}]),
-        utils.createStepAssertion('Fetch history of relevant refs', true, null, 'CHERRYPICK', 'Fetch history of relevant refs'),
         utils.createStepAssertion('Cherry-pick the version-bump to staging', true, null, 'CHERRYPICK', 'Cherry-picking the version-bump to staging', [], []),
         utils.createStepAssertion('Cherry-pick the merge commit of target PR', true, null, 'CHERRYPICK', 'Cherry-picking the merge commit of target PR', [], []),
         utils.createStepAssertion('Push changes', true, null, 'CHERRYPICK', 'Pushing changes', [], []),

@@ -1,5 +1,9 @@
 const utils = require('../utils/utils');
 
+// typecheck
+const TYPECHECK_WORKFLOW_MOCK_STEP = utils.createMockStep('Run typecheck workflow', 'Running typecheck workflow', 'TYPECHECK');
+const TYPECHECK_JOB_MOCK_STEPS = [TYPECHECK_WORKFLOW_MOCK_STEP];
+
 // lint
 const LINT_WORKFLOW_MOCK_STEP = utils.createMockStep('Run lint workflow', 'Running lint workflow', 'LINT');
 const LINT_JOB_MOCK_STEPS = [LINT_WORKFLOW_MOCK_STEP];
@@ -187,6 +191,7 @@ const PREDEPLOY__E2EPERFORMANCETESTS__PERFORM_E2E_TESTS__MOCK_STEP = utils.creat
 const PREDEPLOY__E2EPERFORMANCETESTS__MOCK_STEPS = [PREDEPLOY__E2EPERFORMANCETESTS__PERFORM_E2E_TESTS__MOCK_STEP];
 
 module.exports = {
+    TYPECHECK_JOB_MOCK_STEPS,
     LINT_JOB_MOCK_STEPS,
     TEST_JOB_MOCK_STEPS,
     CONFIRM_PASSING_BUILD_JOB_MOCK_STEPS,
