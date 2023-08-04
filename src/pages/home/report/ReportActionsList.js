@@ -126,17 +126,17 @@ function ReportActionsList(props) {
                 reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED &&
                 ReportUtils.isChatThread(report) &&
                 !ReportActionsUtils.isTransactionThread(ReportActionsUtils.getParentReportAction(report));
-            const shouldHideThreadDividerLine =
-                shouldDisplayParentAction && sortedReportActions.length > 1 && sortedReportActions[sortedReportActions.length - 2].reportActionID === newMarkerReportActionID;
+            const shouldHideThreadDividerLine = sortedReportActions.length > 1 && sortedReportActions[sortedReportActions.length - 2].reportActionID === newMarkerReportActionID;
             return shouldDisplayParentAction ? (
                 <ReportActionItemParentAction
-                    shouldHideThreadDividerLine={shouldHideThreadDividerLine}
+                    shouldHideThreadDividerLine={shouldDisplayParentAction && shouldHideThreadDividerLine}
                     reportID={report.reportID}
                     parentReportID={`${report.parentReportID}`}
                     shouldDisplayNewMarker={shouldDisplayNewMarker}
                 />
             ) : (
                 <ReportActionItem
+                    shouldHideThreadDividerLine={shouldHideThreadDividerLine}
                     report={report}
                     action={reportAction}
                     displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(sortedReportActions, index)}
@@ -148,7 +148,6 @@ function ReportActionsList(props) {
                     isMostRecentIOUReportAction={reportAction.reportActionID === mostRecentIOUReportActionID}
                     hasOutstandingIOU={hasOutstandingIOU}
                     index={index}
-                    isOnlyReportAction={sortedReportActions.length === 1}
                 />
             );
         },
