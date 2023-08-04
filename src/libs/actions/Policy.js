@@ -379,7 +379,7 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID,
             // Remove the object, when it is a newly created account.
             value: _.reduce(
                 accountIDs,
-                (memo, accountID) => {
+                (accountIDsWithClearedPendingAction, accountID) => {
                     let value = null;
                     const accountAlreadyExists = !_.isEmpty(allPersonalDetails[accountID]);
 
@@ -388,9 +388,9 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID,
                     }
 
                     // eslint-disable-next-line no-param-reassign
-                    memo[accountID] = value;
+                    accountIDsWithClearedPendingAction[accountID] = value;
 
-                    return memo;
+                    return accountIDsWithClearedPendingAction;
                 },
                 {},
             ),
