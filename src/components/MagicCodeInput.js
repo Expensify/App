@@ -13,7 +13,6 @@ import FormHelpMessage from './FormHelpMessage';
 import {withNetwork} from './OnyxProvider';
 import networkPropTypes from './networkPropTypes';
 import useNetwork from '../hooks/useNetwork';
-import * as Browser from '../libs/Browser';
 
 const TEXT_INPUT_EMPTY_STATE = '';
 
@@ -29,9 +28,6 @@ const propTypes = {
 
     /** Should the input auto focus */
     autoFocus: PropTypes.bool,
-
-    /** Whether we should wait before focusing the TextInput, useful when using transitions  */
-    shouldDelayFocus: PropTypes.bool,
 
     /** Error text to display */
     errorText: PropTypes.string,
@@ -61,7 +57,6 @@ const defaultProps = {
     value: undefined,
     name: '',
     autoFocus: true,
-    shouldDelayFocus: false,
     errorText: '',
     shouldSubmitOnComplete: true,
     innerRef: null,
@@ -158,28 +153,6 @@ function MagicCodeInput(props) {
         // + the props.onFulfill as the dependency because props.onFulfill is changed when the preferred locale changed => avoid auto submit form when preferred locale changed.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props.value, props.shouldSubmitOnComplete]);
-
-    useEffect(() => {
-        if (!props.autoFocus) {
-            return;
-        }
-
-        let focusTimeout = null;
-        if (props.shouldDelayFocus) {
-            focusTimeout = setTimeout(() => inputRefs.current.focus(), CONST.ANIMATED_TRANSITION);
-        } else {
-            inputRefs.current.focus();
-        }
-
-        return () => {
-            if (!focusTimeout) {
-                return;
-            }
-            clearTimeout(focusTimeout);
-        };
-        // We only want this to run on mount
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
 
     /**
      * Focuses on the input when it is pressed.
@@ -313,11 +286,6 @@ function MagicCodeInput(props) {
         }
     };
 
-    // We need to check the browser because, in iOS Safari, an input in a container with its opacity set to
-    // 0 (completely transparent) cannot handle user interaction, hence the Paste option is never shown.
-    // Alternate styling will be applied based on this condition.
-    const isMobileSafari = Browser.isMobileSafari();
-
     return (
         <>
             <View style={[styles.magicCodeInputContainer]}>
@@ -332,13 +300,13 @@ function MagicCodeInput(props) {
                             style={[styles.w100, styles.h100, styles.invisibleOverlay]}
                             collapsable={false}
                         >
-                            <View style={[styles.w100, styles.h100, isMobileSafari ? styles.bgTransparent : styles.opacity0]}>
+                            <View style={[styles.w100, styles.h100, styles.bgTransparent]}>
                                 <TextInput
                                     onLayout={(e) => {
                                         inputWidth.current = e.nativeEvent.layout.width;
                                     }}
                                     ref={(ref) => (inputRefs.current = ref)}
-                                    autoFocus={props.autoFocus && !props.shouldDelayFocus}
+                                    autoFocus={props.autoFocus}
                                     inputMode="numeric"
                                     textContentType="oneTimeCode"
                                     name={props.name}
@@ -357,10 +325,10 @@ function MagicCodeInput(props) {
                                         lastFocusedIndex.current = focusedIndex;
                                         setFocusedIndex(undefined);
                                     }}
-                                    caretHidden={isMobileSafari}
-                                    inputStyle={[isMobileSafari ? styles.magicCodeInputTransparent : undefined]}
+                                    selectionColor="transparent"
+                                    inputStyle={[styles.inputTransparent]}
                                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                                    style={[isMobileSafari ? styles.bgTransparent : styles.opacity0]}
+                                    style={[styles.inputTransparent]}
                                     textInputContainerStyles={[styles.borderNone]}
                                 />
                             </View>

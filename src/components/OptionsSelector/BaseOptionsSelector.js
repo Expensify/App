@@ -326,6 +326,7 @@ class BaseOptionsSelector extends Component {
                 }}
                 selectTextOnFocus
                 blurOnSubmit={Boolean(this.state.allOptions.length)}
+                spellCheck={false}
             />
         );
         const optionsList = (
@@ -355,6 +356,7 @@ class BaseOptionsSelector extends Component {
                 contentContainerStyles={[safeAreaPaddingBottomStyle, ...this.props.contentContainerStyles]}
                 listContainerStyles={this.props.listContainerStyles}
                 isLoading={!this.props.shouldShowOptions}
+                showScrollIndicator={this.props.showScrollIndicator}
             />
         );
         return (

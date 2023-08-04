@@ -120,6 +120,7 @@ function DebitCardPage(props) {
                     accessibilityLabel={translate('addDebitCardPage.nameOnCard')}
                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                     ref={(ref) => (nameOnCardRef.current = ref)}
+                    spellCheck={false}
                 />
                 <TextInput
                     inputID="cardNumber"
@@ -170,7 +171,7 @@ function DebitCardPage(props) {
                     hint={translate('common.zipCodeExampleFormat', {zipSampleFormat: CONST.COUNTRY_ZIP_REGEX_DATA.US.samples})}
                     containerStyles={[styles.mt4]}
                 />
-                <View style={styles.mt4}>
+                <View style={[styles.mt4, styles.mhn5]}>
                     <StatePicker inputID="addressState" />
                 </View>
                 <CheckboxWithLabel
