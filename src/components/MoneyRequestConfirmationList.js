@@ -1,7 +1,8 @@
-import React, {useState, useCallback, useMemo} from 'react';
+import React, {useCallback, useMemo, useReducer, useState} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import {View} from 'react-native';
 import Str from 'expensify-common/lib/str';
 import styles from '../styles/styles';
 import * as ReportUtils from '../libs/ReportUtils';
@@ -14,12 +15,15 @@ import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import Log from '../libs/Log';
 import SettlementButton from './SettlementButton';
 import ROUTES from '../ROUTES';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from './withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from './withCurrentUserPersonalDetails';
 import * as IOUUtils from '../libs/IOUUtils';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import Navigation from '../libs/Navigation/Navigation';
 import optionPropTypes from './optionPropTypes';
 import * as CurrencyUtils from '../libs/CurrencyUtils';
+import Button from './Button';
+import * as Expensicons from './Icon/Expensicons';
+import themeColors from '../styles/themes/default';
 import Image from './Image';
 import ReceiptHTML from '../../assets/images/receipt-html.png';
 import ReceiptDoc from '../../assets/images/receipt-doc.png';
@@ -52,6 +56,12 @@ const propTypes = {
 
     /** IOU type */
     iouType: PropTypes.string,
+
+    /** IOU date */
+    iouDate: PropTypes.string,
+
+    /** IOU merchant */
+    iouMerchant: PropTypes.string,
 
     /** Selected participants from MoneyRequestModal with login / accountID */
     selectedParticipants: PropTypes.arrayOf(optionPropTypes).isRequired,
@@ -112,6 +122,9 @@ function MoneyRequestConfirmationList(props) {
     // Prop functions pass props itself as a "this" value to the function which means they change every time props change.
     const {onSendMoney, onConfirm, onSelectParticipant} = props;
     const {translate} = useLocalize();
+
+    // A flag and a toggler for showing the rest of the form fields
+    const [showAllFields, toggleShowAllFields] = useReducer((state) => !state, false);
 
     /**
      * Returns the participants with amount
@@ -371,6 +384,39 @@ function MoneyRequestConfirmationList(props) {
                 style={[styles.moneyRequestMenuItem, styles.mb2]}
                 disabled={didConfirm || props.isReadOnly}
             />
+            {!showAllFields && (
+                <View style={[styles.flexRow, styles.justifyContentBetween, styles.mh3, styles.alignItemsCenter]}>
+                    <View style={[styles.shortTermsHorizontalRule, styles.flex1, styles.mr0]} />
+                    <Button
+                        small
+                        onPress={toggleShowAllFields}
+                        text={translate('common.showMore')}
+                        shouldShowRightIcon
+                        iconRight={Expensicons.DownArrow}
+                        iconFill={themeColors.icon}
+                        style={styles.mh0}
+                    />
+                    <View style={[styles.shortTermsHorizontalRule, styles.flex1, styles.ml0]} />
+                </View>
+            )}
+            {showAllFields && (
+                <>
+                    <MenuItemWithTopDescription
+                        title={props.iouDate}
+                        description={translate('common.date')}
+                        style={[styles.moneyRequestMenuItem, styles.mb2]}
+                        // Note: This component is disabled until this field is editable in next PR
+                        disabled
+                    />
+                    <MenuItemWithTopDescription
+                        title={props.iouMerchant}
+                        description={translate('common.merchant')}
+                        style={[styles.moneyRequestMenuItem, styles.mb2]}
+                        // Note: This component is disabled until this field is editable in next PR
+                        disabled
+                    />
+                </>
+            )}
         </OptionsSelector>
     );
 }

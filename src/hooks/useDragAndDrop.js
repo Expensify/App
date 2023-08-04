@@ -101,6 +101,7 @@ export default function useDragAndDrop({dropZone, onDrop = () => {}, shouldAllow
 
         // Note that the dragover event needs to be called with `event.preventDefault` in order for the drop event to be fired:
         // https://stackoverflow.com/questions/21339924/drop-event-not-firing-in-chrome
+        dropZoneRef.setAttribute('webkitdirectory', '');
         dropZoneRef.addEventListener(DRAG_OVER_EVENT, dropZoneDragHandler);
         dropZoneRef.addEventListener(DRAG_ENTER_EVENT, dropZoneDragHandler);
         dropZoneRef.addEventListener(DRAG_LEAVE_EVENT, dropZoneDragHandler);
@@ -109,7 +110,7 @@ export default function useDragAndDrop({dropZone, onDrop = () => {}, shouldAllow
             if (!dropZoneRef) {
                 return;
             }
-
+            dropZoneRef.removeAttribute('webkitdirectory');
             dropZoneRef.removeEventListener(DRAG_OVER_EVENT, dropZoneDragHandler);
             dropZoneRef.removeEventListener(DRAG_ENTER_EVENT, dropZoneDragHandler);
             dropZoneRef.removeEventListener(DRAG_LEAVE_EVENT, dropZoneDragHandler);
