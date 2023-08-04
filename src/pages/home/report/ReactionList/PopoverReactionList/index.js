@@ -13,6 +13,7 @@ const defaultProps = {
 function PopoverReactionList(props) {
     const innerReactionListRef = useRef();
     const [reactionListReportActionID, setReactionListReportActionID] = useState('');
+    const [reactionListEmojiName, setReactionListEmojiName] = useState('');
 
     /**
      * Show the ReactionList modal popover.
@@ -24,6 +25,7 @@ function PopoverReactionList(props) {
      */
     const showReactionList = (event, reactionListAnchor, emojiName, reportActionID) => {
         setReactionListReportActionID(reportActionID);
+        setReactionListEmojiName(emojiName);
         innerReactionListRef.current.showReactionList(event, reactionListAnchor, emojiName);
     };
 
@@ -33,6 +35,7 @@ function PopoverReactionList(props) {
         <BasePopoverReactionList
             ref={innerReactionListRef}
             reportActionID={reactionListReportActionID}
+            emojiName={reactionListEmojiName}
         />
     );
 }
@@ -41,10 +44,12 @@ PopoverReactionList.propTypes = propTypes;
 PopoverReactionList.defaultProps = defaultProps;
 PopoverReactionList.displayName = 'PopoverReactionList';
 
-export default forwardRef((props, ref) => (
-    <PopoverReactionList
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        innerRef={ref}
-    />
-));
+export default React.memo(
+    forwardRef((props, ref) => (
+        <PopoverReactionList
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            innerRef={ref}
+        />
+    )),
+);
