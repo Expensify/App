@@ -125,12 +125,6 @@ function LoginForm(props) {
             return;
         }
 
-        // Every input that starts with '+' should be validated as a phone number.
-        if (loginTrim.startsWith('+') && !ValidationUtils.isNumericWithSpecialChars(loginTrim)) {
-            setFormError('common.error.phoneNumber');
-            return;
-        }
-
         const phoneLogin = LoginUtils.appendCountryCode(LoginUtils.getPhoneNumberWithoutSpecialChars(loginTrim));
         const parsedPhoneNumber = parsePhoneNumber(phoneLogin);
 
