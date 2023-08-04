@@ -93,6 +93,7 @@ function DisplayNamePage(props) {
                         defaultValue={lodashGet(currentUserDetails, 'firstName', '')}
                         maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                         autoCapitalize="words"
+                        spellCheck={false}
                     />
                 </View>
                 <View>
@@ -105,6 +106,7 @@ function DisplayNamePage(props) {
                         defaultValue={lodashGet(currentUserDetails, 'lastName', '')}
                         maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                         autoCapitalize="words"
+                        spellCheck={false}
                     />
                 </View>
             </Form>
