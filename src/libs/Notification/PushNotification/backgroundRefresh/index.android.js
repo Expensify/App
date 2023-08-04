@@ -1,5 +1,20 @@
+import Onyx from 'react-native-onyx';
 import * as App from '../../../actions/App';
 import Visibility from '../../../Visibility';
+import ONYXKEYS from '../../../../ONYXKEYS';
+
+function getLastOnyxUpdateID() {
+    return new Promise((resolve) => {
+        const connectionID = Onyx.connect({
+            key: ONYXKEYS.ONYX_UPDATES.LAST_UPDATE_ID,
+            callback: (lastUpdateID) => {
+                Onyx.disconnect(connectionID);
+                resolve(lastUpdateID);
+            },
+        });
+    });
+}
+
 /**
  * Runs our reconnectApp action if the app is in the background.
  *
@@ -11,5 +26,5 @@ export default function backgroundRefresh() {
         return;
     }
 
-    App.reconnectApp();
+    getLastOnyxUpdateID().then((lastUpdateID) => App.reconnectApp(lastUpdateID));
 }
