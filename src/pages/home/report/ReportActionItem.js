@@ -352,7 +352,7 @@ function ReportActionItem(props) {
                         <ReportActionItemMessageEdit
                             action={props.action}
                             draftMessage={props.draftMessage}
-                            // selection={props.selection}
+                            selection={props.selection}
                             reportID={props.report.reportID}
                             index={props.index}
                             ref={textInputRef}

@@ -112,10 +112,10 @@ function ReportActionItemMessageEdit(props) {
         setDraft((prevDraft) => {
             console.log("TEST --- ", props.selection)
             setSelection({
-                // start: props.selection.start,
-                // end: props.selection.end,
-                start: prevDraft.length,
-                end: prevDraft.length,
+                start: props.selection?.start ? props.selection.start: prevDraft.length,
+                end: props.selection?.end ? props.selection.end: prevDraft.length,
+                // start: prevDraft.length,
+                // end: prevDraft.length,
             });
             return prevDraft;
         });
@@ -338,11 +338,11 @@ function ReportActionItemMessageEdit(props) {
                                 setShouldShowComposeInputKeyboardAware(true);
                             }}
                             selection={selection}
-                            onSelectionChange={(e) => setSelection(e.nativeEvent.selection)}
-                            // onSelectionChange={(e) => {
-                            //     setSelection(e.nativeEvent.selection)
-                            //     Report.saveReportActionSelection(props.reportID, props.action.reportActionID, e.nativeEvent.selection);
-                            // }}
+                            // onSelectionChange={(e) => setSelection(e.nativeEvent.selection)}
+                            onSelectionChange={(e) => {
+                                setSelection(e.nativeEvent.selection)
+                                Report.saveReportActionSelection(props.reportID, props.action.reportActionID, e.nativeEvent.selection);
+                            }}
                         />
                     </View>
                     <View style={styles.editChatItemEmojiWrapper}>
