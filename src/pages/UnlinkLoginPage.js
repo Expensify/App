@@ -46,7 +46,7 @@ function UnlinkLoginPage(props) {
         }
 
         Navigation.navigate(ROUTES.HOME);
-    }, [prevIsLoading, props.account.isLoading])
+    }, [prevIsLoading, props.account.isLoading]);
 
     return <FullScreenLoadingIndicator />;
 }
