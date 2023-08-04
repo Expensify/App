@@ -1,26 +1,23 @@
+import React, {useEffect, useRef} from 'react';
 import moment from 'moment';
-import React, {forwardRef, useEffect, useRef} from 'react';
 import _ from 'underscore';
+import TextInput from '../TextInput';
 import CONST from '../../CONST';
 import * as Browser from '../../libs/Browser';
-import TextInput from '../TextInput';
-import {defaultProps, propTypes} from './datepickerPropTypes';
+import {propTypes, defaultProps} from './datepickerPropTypes';
 import './styles.css';
 
-const datePickerPropTypes = {
-    ...propTypes,
-};
-
-function DatePicker({defaultValue, maxDate, minDate, onInputChange, innerRef, label, value, placeholder, errorText, containerStyles, disabled, onBlur}) {
+function DatePicker({maxDate, minDate, onInputChange, innerRef, label, value, placeholder, errorText, containerStyles, disabled, onBlur}) {
     const inputRef = useRef(null);
-    const defaultDateValue = defaultValue ? moment(defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING) : '';
 
     useEffect(() => {
+        // Adds nice native datepicker on web/desktop. Not possible to set this through props
         inputRef.current.setAttribute('type', 'date');
         inputRef.current.setAttribute('max', moment(maxDate).format(CONST.DATE.MOMENT_FORMAT_STRING));
         inputRef.current.setAttribute('min', moment(minDate).format(CONST.DATE.MOMENT_FORMAT_STRING));
         inputRef.current.classList.add('expensify-datepicker');
-    }, [maxDate, minDate]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     /**
      * Trigger the `onChange` handler when the user input has a complete date or is cleared
@@ -67,7 +64,6 @@ function DatePicker({defaultValue, maxDate, minDate, onInputChange, innerRef, la
             accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
             onInputChange={setDate}
             value={value}
-            defaultValue={defaultDateValue}
             placeholder={placeholder}
             errorText={errorText}
             containerStyles={containerStyles}
@@ -77,11 +73,11 @@ function DatePicker({defaultValue, maxDate, minDate, onInputChange, innerRef, la
     );
 }
 
-DatePicker.propTypes = datePickerPropTypes;
-DatePicker.defaultProps = defaultProps;
 DatePicker.displayName = 'DatePicker';
+DatePicker.propTypes = propTypes;
+DatePicker.defaultProps = defaultProps;
 
-export default forwardRef((props, ref) => (
+export default React.forwardRef((props, ref) => (
     <DatePicker
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}

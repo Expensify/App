@@ -57,7 +57,7 @@ class MoneyRequestDescriptionPage extends Component {
             IOU.resetMoneyRequestInfo(moneyRequestId);
         }
 
-        if (_.isEmpty(this.props.iou.participants) || this.props.iou.amount === 0 || shouldReset) {
+        if (_.isEmpty(this.props.iou.participants) || (this.props.iou.amount === 0 && !this.props.iou.receiptPath) || shouldReset) {
             Navigation.goBack(ROUTES.getMoneyRequestRoute(this.iouType, this.reportID), true);
         }
     }
@@ -65,7 +65,7 @@ class MoneyRequestDescriptionPage extends Component {
     // eslint-disable-next-line rulesdir/prefer-early-return
     componentDidUpdate(prevProps) {
         // ID in Onyx could change by initiating a new request in a separate browser tab or completing a request
-        if (_.isEmpty(this.props.iou.participants) || this.props.iou.amount === 0 || prevProps.iou.id !== this.props.iou.id) {
+        if (_.isEmpty(this.props.iou.participants) || (this.props.iou.amount === 0 && !this.props.iou.receiptPath) || prevProps.iou.id !== this.props.iou.id) {
             // The ID is cleared on completing a request. In that case, we will do nothing.
             if (this.props.iou.id) {
                 Navigation.goBack(ROUTES.getMoneyRequestRoute(this.iouType, this.reportID), true);

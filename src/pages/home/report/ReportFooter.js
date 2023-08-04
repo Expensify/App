@@ -44,9 +44,6 @@ const propTypes = {
     /** Whether user interactions should be disabled */
     shouldDisableCompose: PropTypes.bool,
 
-    /** Unique id for nativeId in DragAndDrop */
-    dragAndDropId: PropTypes.string.isRequired,
-
     ...windowDimensionsPropTypes,
 };
 
@@ -71,7 +68,7 @@ function ReportFooter(props) {
     return (
         <>
             {hideComposer && (
-                <View style={[styles.chatFooter, props.isSmallScreenWidth ? styles.mb5 : null]}>
+                <View style={[styles.chatFooter, isArchivedRoom || isAnonymousUser ? styles.mt4 : {}, props.isSmallScreenWidth ? styles.mb5 : null]}>
                     {isAnonymousUser && !isArchivedRoom && (
                         <AnonymousReportFooter
                             report={props.report}
@@ -95,7 +92,6 @@ function ReportFooter(props) {
                             pendingAction={props.pendingAction}
                             isComposerFullSize={props.isComposerFullSize}
                             disabled={props.shouldDisableCompose}
-                            dragAndDropId={props.dragAndDropId}
                         />
                     </SwipeableView>
                 </View>
