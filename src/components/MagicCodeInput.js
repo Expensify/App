@@ -119,18 +119,23 @@ function MagicCodeInput(props) {
         },
     }));
 
-    const validateAndSubmit = () => {
-        const numbers = decomposeString(props.value, props.maxLength);
+    /**
+     * Validate the entered code and submit
+     * 
+     * @param {String} value
+     */
+    const validateAndSubmit = (value) => {
+        const numbers = decomposeString(value, props.maxLength);
         if (!props.shouldSubmitOnComplete || _.filter(numbers, (n) => ValidationUtils.isNumeric(n)).length !== props.maxLength || props.network.isOffline) {
             return;
         }
-        props.onFulfill(props.value);
+        props.onFulfill(value);
     };
 
-    useNetwork({onReconnect: validateAndSubmit});
+    useNetwork({onReconnect: () => validateAndSubmit(props.value)});
 
     useEffect(() => {
-        validateAndSubmit();
+        validateAndSubmit(props.value);
 
         // We have not added:
         // + the editIndex as the dependency because we don't want to run this logic after focusing on an input to edit it after the user has completed the code.
@@ -203,6 +208,11 @@ function MagicCodeInput(props) {
 
         const finalInput = composeToString(numbers);
         props.onChangeText(finalInput);
+
+        // If the same number is pressed, we cannot depend on props.value in useEffect for re-submitting
+        if (props.value === finalInput) {
+            validateAndSubmit(finalInput);
+        }
     };
 
     /**
