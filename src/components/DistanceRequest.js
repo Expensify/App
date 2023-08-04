@@ -98,19 +98,15 @@ function DistanceRequest({transactionID, transaction, translate}) {
                         const index = Number(key.replace('waypoint', ''));
                         let descriptionKey = 'distance.waypointDescription.';
                         let waypointIcon;
-                        let waypointIconFill;
                         if (index === 0) {
                             descriptionKey += 'start';
                             waypointIcon = Expensicons.DotIndicator
-                            waypointIconFill = theme.text;
                         } else if (index === lastWaypointIndex) {
                             descriptionKey += 'finish';
                             waypointIcon = Expensicons.Location;
-                            waypointIconFill = theme.icon;
                         } else {
                             descriptionKey += 'stop';
                             waypointIcon = Expensicons.DotIndicator;
-                            waypointIconFill = theme.icon;
                         }
 
                         return (
@@ -123,7 +119,7 @@ function DistanceRequest({transactionID, transaction, translate}) {
                                     description={translate(descriptionKey)}
                                     icon={Expensicons.DragHandles}
                                     secondaryIcon={waypointIcon}
-                                    secondaryIconFill={waypointIconFill}
+                                    secondaryIconFill={theme.icon}
                                     shouldShowRightIcon
                                 />
                             </View>
