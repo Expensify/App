@@ -7,8 +7,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import {defaultProps, imagePropTypes} from './imagePropTypes';
 import RESIZE_MODES from './resizeModes';
 
-
-function Image (props) {
+function Image(props) {
     /**
      * Check if the image source is a URL - if so the `encryptedAuthToken` is appended
      * to the source.
@@ -26,14 +25,13 @@ function Image (props) {
         }
 
         return imageSource;
-    }, [props])
+    }, [props]);
 
     /**
      * The natural image dimensions are retrieved using the updated source
      * and as a result the `onLoad` event needs to be manually invoked to return these dimensions
      */
-    const configureOnLoad = useCallback(
-        () => {
+    const configureOnLoad = useCallback(() => {
         // If an onLoad callback was specified then manually call it and pass
         // the natural image dimensions to match the native API
         if (props.onLoad == null) {
@@ -44,14 +42,11 @@ function Image (props) {
         RNImage.getSize(imageSource.uri, (width, height) => {
             props.onLoad({nativeEvent: {width, height}});
         });
-    },
-        [getImageSource, props],
-    );
-
+    }, [getImageSource, props]);
 
     useEffect(() => {
-        configureOnLoad()
-    }, [configureOnLoad, props])
+        configureOnLoad();
+    }, [configureOnLoad, props]);
 
     // Omit the props which the underlying RNImage won't use
     const forwardedProps = _.omit(props, ['source', 'onLoad', 'session', 'isAuthTokenRequired']);
