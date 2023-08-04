@@ -20,6 +20,7 @@ import BlockingView from '../BlockingViews/BlockingView';
 import * as Illustrations from '../Icon/Illustrations';
 import variables from '../../styles/variables';
 import Navigation from "../../libs/Navigation/Navigation"
+import tryResolveUrlFromApiRoot from '../../libs/tryResolveUrlFromApiRoot';
 
 const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
 const viewabilityConfig = {
@@ -55,7 +56,8 @@ function AttachmentCarousel(props) {
     useEffect(() => {
         const initialState = createInitialState(props);
         // dismiss the modal when deleting an attachment during its display in preview.
-        if(initialState.page === -1 && _.find(attachments, (a) => a.source === props.source)) {
+        const source = tryResolveUrlFromApiRoot(props.source);
+        if(initialState.page === -1 && _.find(attachments, (a) => a.source === source)) {
             Navigation.dismissModal();
         }else {
             setPage(initialState.page);
