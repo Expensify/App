@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import {View, Keyboard} from 'react-native';
 import CONST from '../../../CONST';
-import ReportActionCompose from './ReportActionCompose';
+import ReportActionCompose from './ReportActionCompose/ReportActionCompose';
 import AnonymousReportFooter from '../../../components/AnonymousReportFooter';
 import SwipeableView from '../../../components/SwipeableView';
 import OfflineIndicator from '../../../components/OfflineIndicator';
