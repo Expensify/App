@@ -15,6 +15,7 @@ import ArrowKeyFocusManager from '../ArrowKeyFocusManager';
 import KeyboardShortcut from '../../libs/KeyboardShortcut';
 import {propTypes as optionsSelectorPropTypes, defaultProps as optionsSelectorDefaultProps} from './optionsSelectorPropTypes';
 import setSelection from '../../libs/setSelection';
+import isNative from '../../libs/useNativeDriver';
 import compose from '../../libs/compose';
 
 const propTypes = {
@@ -50,6 +51,7 @@ class BaseOptionsSelector extends Component {
         this.updateFocusedIndex = this.updateFocusedIndex.bind(this);
         this.scrollToIndex = this.scrollToIndex.bind(this);
         this.selectRow = this.selectRow.bind(this);
+        this.selectFocusedOption = this.selectFocusedOption.bind(this);
         this.relatedTarget = null;
 
         const allOptions = this.flattenSections();
@@ -89,25 +91,16 @@ class BaseOptionsSelector extends Component {
         );
 
         const CTRLEnterConfig = CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER;
-        this.unsubscribeCTRLEnter = KeyboardShortcut.subscribe(
-            CTRLEnterConfig.shortcutKey,
-            () => {
-                if (this.props.canSelectMultipleOptions) {
-                    this.props.onConfirmSelection();
-                    return;
-                }
 
-                const focusedOption = this.state.allOptions[this.state.focusedIndex];
-                if (!focusedOption) {
-                    return;
-                }
-
-                this.selectRow(focusedOption);
-            },
-            CTRLEnterConfig.descriptionKey,
-            CTRLEnterConfig.modifiers,
-            true,
-        );
+        if (!isNative) {
+            this.unsubscribeCTRLEnter = KeyboardShortcut.subscribe(
+                CTRLEnterConfig.shortcutKey,
+                this.selectFocusedOption,
+                CTRLEnterConfig.descriptionKey,
+                CTRLEnterConfig.modifiers,
+                true,
+            );
+        }
 
         this.scrollToIndex(this.props.selectedOptions.length ? 0 : this.state.focusedIndex, false);
 
@@ -204,6 +197,20 @@ class BaseOptionsSelector extends Component {
 
         return defaultIndex;
     }
+
+   selectFocusedOption() {
+        if (this.props.canSelectMultipleOptions) {
+            this.props.onConfirmSelection();
+            return;
+        }
+
+        const focusedOption = this.state.allOptions[this.state.focusedIndex];
+        if (!focusedOption) {
+            return;
+        }
+
+        this.selectRow(focusedOption);
+   }
 
     /**
      * Flattens the sections into a single array of options.
@@ -315,6 +322,7 @@ class BaseOptionsSelector extends Component {
                 accessibilityLabel={this.props.textInputLabel}
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                 onChangeText={this.props.onChangeText}
+                onSubmitEditing={this.selectFocusedOption}
                 placeholder={this.props.placeholderText}
                 maxLength={this.props.maxLength}
                 keyboardType={this.props.keyboardType}
