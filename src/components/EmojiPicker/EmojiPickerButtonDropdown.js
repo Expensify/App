@@ -1,4 +1,4 @@
-import React, {useRef, useEffect, forwardRef} from 'react';
+import React, {useRef, useEffect} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import styles from '../../styles/styles';
@@ -24,7 +24,7 @@ const defaultProps = {
     isDisabled: false,
 };
 
-const EmojiPickerButtonDropdown = (props) => {
+function EmojiPickerButtonDropdown(props) {
     const emojiPopoverAnchor = useRef(null);
     useEffect(() => EmojiPickerAction.resetEmojiPopoverAnchor, []);
 
