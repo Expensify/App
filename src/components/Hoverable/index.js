@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
 import {propTypes, defaultProps} from './hoverablePropTypes';
+import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 
 /**
  * It is necessary to create a Hoverable component instead of relying solely on Pressable support for hover state,
@@ -21,19 +22,6 @@ class Hoverable extends Component {
     }
 
     componentDidMount() {
-        // we like to Block the hover on touch devices but we keep it for Hybrid devices so
-        // following logic blocks hover on touch devices.
-        this.disableHover = () => {
-            this.hoverDisabled = true;
-        };
-        this.enableHover = () => {
-            this.hoverDisabled = false;
-        };
-        document.addEventListener('touchstart', this.disableHover);
-
-        // Remember Touchend fires before `mouse` events so we have to use alternative.
-        document.addEventListener('touchmove', this.enableHover);
-
         document.addEventListener('visibilitychange', this.handleVisibilityChange);
     }
 
@@ -48,8 +36,6 @@ class Hoverable extends Component {
     }
 
     componentWillUnmount() {
-        document.removeEventListener('touchstart', this.disableHover);
-        document.removeEventListener('touchmove', this.enableHover);
         document.removeEventListener('visibilitychange', this.handleVisibilityChange);
     }
 
@@ -63,13 +49,8 @@ class Hoverable extends Component {
             return;
         }
 
-        if (isHovered !== this.state.isHovered && !(isHovered && this.hoverDisabled)) {
+        if (isHovered !== this.state.isHovered) {
             this.setState({isHovered}, isHovered ? this.props.onHoverIn : this.props.onHoverOut);
-        }
-
-        // we reset the Hover block in case touchmove was not first after touctstart
-        if (!isHovered) {
-            this.hoverDisabled = false;
         }
     }
 
@@ -89,6 +70,10 @@ class Hoverable extends Component {
 
         if (_.isFunction(child)) {
             child = child(this.state.isHovered);
+        }
+
+        if (!DeviceCapabilities.hasHoverSupport()) {
+            return child;
         }
 
         return React.cloneElement(React.Children.only(child), {

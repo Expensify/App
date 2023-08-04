@@ -113,6 +113,7 @@ function ProfilePage(props) {
                     previewSource={UserUtils.getFullSizeAvatar(avatarURL, accountID)}
                     originalFileName={currentUserDetails.originalFileName}
                     headerTitle={props.translate('profilePage.profileAvatar')}
+                    style={[styles.mh5]}
                 />
                 <View style={[styles.mt4]}>
                     {_.map(profileSettingsOptions, (detail, index) => (

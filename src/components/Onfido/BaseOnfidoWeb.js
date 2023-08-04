@@ -31,7 +31,8 @@ function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLo
             borderRadiusButton: `${variables.buttonBorderRadius}px`,
             colorBackgroundSurfaceModal: themeColors.appBG,
             colorBorderDocTypeButton: themeColors.border,
-            colorBorderDocTypeButtonHover: themeColors.link,
+            colorBorderDocTypeButtonHover: themeColors.transparent,
+            colorBorderButtonPrimaryHover: themeColors.transparent,
             colorBackgroundButtonPrimary: themeColors.success,
             colorBackgroundButtonPrimaryHover: themeColors.successHover,
             colorBackgroundButtonPrimaryActive: themeColors.successHover,
@@ -62,7 +63,6 @@ function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLo
                     forceCrossDevice: true,
                     hideCountrySelection: true,
                     country: 'USA',
-                    uploadFallback: false,
                     documentTypes: {
                         driving_licence: {
                             country: 'USA',
@@ -75,7 +75,6 @@ function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLo
                 type: CONST.ONFIDO.TYPE.FACE,
                 options: {
                     requestedVariant: CONST.ONFIDO.VARIANT.VIDEO,
-                    uploadFallback: false,
                 },
             },
         ],

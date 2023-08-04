@@ -2,7 +2,7 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {View} from 'react-native';
+import {View, InteractionManager} from 'react-native';
 import Button from '../Button';
 import FixedFooter from '../FixedFooter';
 import OptionsList from '../OptionsList';
@@ -125,6 +125,14 @@ class BaseOptionsSelector extends Component {
     }
 
     componentDidUpdate(prevProps) {
+        if (this.textInput && this.props.autoFocus && !prevProps.isFocused && this.props.isFocused) {
+            InteractionManager.runAfterInteractions(() => {
+                // If we automatically focus on a text input when mounting a component,
+                // let's automatically focus on it when the component updates as well (eg, when navigating back from a page)
+                this.textInput.focus();
+            });
+        }
+
         if (_.isEqual(this.props.sections, prevProps.sections)) {
             return;
         }
@@ -318,6 +326,7 @@ class BaseOptionsSelector extends Component {
                 }}
                 selectTextOnFocus
                 blurOnSubmit={Boolean(this.state.allOptions.length)}
+                spellCheck={false}
             />
         );
         const optionsList = (
@@ -347,6 +356,7 @@ class BaseOptionsSelector extends Component {
                 contentContainerStyles={[safeAreaPaddingBottomStyle, ...this.props.contentContainerStyles]}
                 listContainerStyles={this.props.listContainerStyles}
                 isLoading={!this.props.shouldShowOptions}
+                showScrollIndicator={this.props.showScrollIndicator}
             />
         );
         return (

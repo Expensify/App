@@ -278,6 +278,7 @@ function AddressSearch(props) {
                             }
                         },
                         maxLength: props.maxInputLength,
+                        spellCheck: false,
                     }}
                     styles={{
                         textInputContainer: [styles.flexColumn],
