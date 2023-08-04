@@ -61,7 +61,7 @@ function WorkspaceBillsFirstSection(props) {
             containerStyles={[styles.cardSection]}
         >
             <View style={[styles.mv3]}>
-                <Text numberOfLines={100}>
+                <Text>
                     {props.translate('workspace.bills.askYourVendorsBeforeEmail')}
                     {props.user.isFromPublicDomain ? (
                         <TextLink onPress={() => Link.openExternalLink('https://community.expensify.com/discussion/7500/how-to-pay-your-company-bills-in-expensify/')}>
