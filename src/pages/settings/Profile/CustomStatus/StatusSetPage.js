@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
+import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import Form from '../../../../components/Form';
 import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
@@ -19,6 +20,7 @@ import TextInput from '../../../../components/TextInput';
 
 const propTypes = {
     /** The draft status of the user */
+    // eslint-disable-next-line react/require-default-props
     draftStatus: PropTypes.shape({
         /** The emoji code of the draft status */
         emojiCode: PropTypes.string,
@@ -29,16 +31,15 @@ const propTypes = {
     ...withCurrentUserPersonalDetailsPropTypes,
 };
 
-
 const INPUT_IDS = {
-  EMOJI_CODE: 'emojiCode',
-  STATUS_TEXT: 'statusText'
+    EMOJI_CODE: 'emojiCode',
+    STATUS_TEXT: 'statusText',
 };
 
-function StatusSetPage(props) {
+function StatusSetPage({draftStatus = {}, currentUserPersonalDetails}) {
     const {translate} = useLocalize();
-    const defaultEmoji = props.draftStatus?.emojiCode || props.currentUserPersonalDetails?.status?.emojiCode || '💬';
-    const defaultText = props.draftStatus?.text || props.currentUserPersonalDetails?.status?.text || '';
+    const defaultEmoji = lodashGet(draftStatus, 'emojiCode') || lodashGet(currentUserPersonalDetails, 'status.emojiCode', '💬');
+    const defaultText = lodashGet(draftStatus, 'text' )|| lodashGet(currentUserPersonalDetails, 'status.text', '');
 
     const onSubmit = (v) => {
         User.updateDraftCustomStatus({text: v.statusText, emojiCode: v.emojiCode});

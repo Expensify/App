@@ -1,6 +1,7 @@
 import React, {useMemo, useCallback} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes} from '../../../../components/withCurrentUserPersonalDetails';
 import MenuItemWithTopDescription from '../../../../components/MenuItemWithTopDescription';
 import StaticHeaderPageLayout from '../../../../components/StaticHeaderPageLayout';
@@ -23,11 +24,11 @@ const propTypes = {
     ...withCurrentUserPersonalDetailsPropTypes,
 };
 
-function StatusPage(props) {
+function StatusPage({draftStatus, currentUserPersonalDetails}) {
     const localize = useLocalize();
 
-    const defaultEmoji = props.draftStatus?.emojiCode || props.currentUserPersonalDetails?.status?.emojiCode || '';
-    const defaultText = props.draftStatus?.text || props.currentUserPersonalDetails?.status?.text || '';
+    const defaultEmoji = lodashGet(draftStatus, 'emojiCode') || lodashGet(currentUserPersonalDetails, 'status.emojiCode', '');
+    const defaultText = lodashGet(draftStatus, 'text') || lodashGet(currentUserPersonalDetails, 'status.text', '');
     const hasDraftStatus = !!defaultEmoji || !!defaultText;
 
     const updateStatus = useCallback(() => {
@@ -35,15 +36,15 @@ function StatusPage(props) {
         const endOfDay = new Date();
         endOfDay.setHours(23, 59, 59, 999);
         User.updateCustomStatus({text: defaultText, emojiCode: defaultEmoji, clearAfter: endOfDay});
-        
+
         User.clearDraftCustomStatus();
         Navigation.goBack(ROUTES.SETTINGS);
-      }, [defaultText, defaultEmoji]);
-      
-      const clearStatus = () => {
+    }, [defaultText, defaultEmoji]);
+
+    const clearStatus = () => {
         User.clearCustomStatus();
         User.clearDraftCustomStatus();
-      };
+    };
 
     const footerComponent = useMemo(
         () =>

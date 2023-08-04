@@ -39,16 +39,15 @@ export default PropTypes.shape({
         automatic: PropTypes.oneOfType([PropTypes.bool, PropTypes.string]),
     }),
 
-    // custom status 
+    // custom status
     status: PropTypes.shape({
-      // The emoji code of the draft status 
-      emojiCode: PropTypes.string,
+        // The emoji code of the draft status
+        emojiCode: PropTypes.string,
 
-      // The text of the draft status
-      text: PropTypes.string,
+        // The text of the draft status
+        text: PropTypes.string,
 
-      // The timestamp of when the status should be cleared
-      clearAfter: PropTypes.string // ISO 8601 format
-
+        // The timestamp of when the status should be cleared
+        clearAfter: PropTypes.string, // ISO 8601 format
     }),
 });

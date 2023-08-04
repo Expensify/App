@@ -3654,6 +3654,18 @@ const styles = {
         borderRadius: 16,
         margin: 20,
     },
+
+    staticHeaderImage: {
+        minHeight: 240,
+    },
+
+    emojiPickerButtonDropdownContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    rotate90: {
+        transform: [{rotate: '90deg'}],
+    },
 };
 
 export default styles;

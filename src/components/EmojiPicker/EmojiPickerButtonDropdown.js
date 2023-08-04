@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import styles from '../../styles/styles';
@@ -40,8 +40,8 @@ function EmojiPickerButtonDropdown(props) {
     useEffect(() => EmojiPickerAction.resetEmojiPopoverAnchor, []);
 
     const onEmojiSelected = (emoji) => {
-      props.onInputChange(emoji);
-    }
+        props.onInputChange(emoji);
+    };
     return (
         <Tooltip text={props.translate('reportActionCompose.emoji')}>
             <PressableWithoutFeedback
@@ -54,16 +54,14 @@ function EmojiPickerButtonDropdown(props) {
                 accessibilityRole="text"
             >
                 {({hovered, pressed}) => (
-                    <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                    <View style={styles.emojiPickerButtonDropdownContainer}>
                         <Text
                             style={styles.emojiPickerButtonDropdownIcon}
                             numberOfLines={1}
                         >
                             {props.value}
                         </Text>
-                        <View
-                            style={[styles.popoverMenuIcon, styles.pointerEventsAuto, props.disabled && styles.cursorDisabled, {transform: [{rotate: '90deg'}]}]}
-                        >
+                        <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto, props.disabled && styles.cursorDisabled, styles.rotate90]}>
                             <Icon
                                 src={Expensicons.ArrowRight}
                                 fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}

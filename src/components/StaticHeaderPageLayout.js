@@ -2,7 +2,6 @@ import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
 import {ScrollView, View, StyleSheet} from 'react-native';
-import Lottie from 'lottie-react-native';
 import headerWithBackButtonPropTypes from './HeaderWithBackButton/headerWithBackButtonPropTypes';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import ScreenWrapper from './ScreenWrapper';
@@ -56,15 +55,19 @@ function StaticHeaderPageLayout({backgroundColor, children, image: Image, footer
                             showsVerticalScrollIndicator={false}
                         >
                             <View style={styles.overscrollSpacer(backgroundColor, windowHeight)} />
-                            <View style={[styles.alignItemsCenter, styles.justifyContentEnd, StyleUtils.getBackgroundColorStyle(backgroundColor), imageContainerStyle, { minHeight: 240,}] }>
-                                <Image pointerEvents="none" style={{
-                                //  minHeight: 240
-                                 minHeight: 240,
-                                //  alignSelf: 'center',
-                                //  flex: 'auto'
-
-                                }}
-                                  />
+                            <View
+                                style={[
+                                    styles.alignItemsCenter,
+                                    styles.justifyContentEnd,
+                                    StyleUtils.getBackgroundColorStyle(backgroundColor),
+                                    imageContainerStyle,
+                                    styles.staticHeaderImage,
+                                ]}
+                            >
+                                <Image
+                                    pointerEvents="none"
+                                    style={styles.staticHeaderImage}
+                                />
                             </View>
                             <View style={[styles.pt5]}>{children}</View>
                         </ScrollView>

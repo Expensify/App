@@ -75,7 +75,7 @@ function ProfilePage(props) {
         },
         {
             description: props.translate('statusPage.status'),
-            title: `${props.currentUserPersonalDetails?.status?.emojiCode ?? ''} ${props.currentUserPersonalDetails?.status?.text ?? ''}`,
+            title: `${lodashGet(props, 'currentUserPersonalDetails.status.emojiCode', '')} ${lodashGet(props, 'currentUserPersonalDetails.status.text', '')}`,
             pageRoute: ROUTES.SETTINGS_STATUS,
         },
         {
