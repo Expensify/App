@@ -718,10 +718,7 @@ function ReportActionCompose({translate, animatedRef, ...props}) {
      */
     const taskOption = useMemo(() => {
         // We only prevent the task option from showing if it's a DM and the other user is an Expensify default email
-        if (
-            !Permissions.canUseTasks(props.betas) ||
-            (lodashGet(props.report, 'participantAccountIDs', []).length === 1 && _.some(reportParticipants, (accountID) => _.contains(CONST.EXPENSIFY_ACCOUNT_IDS, accountID)))
-        ) {
+        if (!Permissions.canUseTasks(props.betas) || ReportUtils.isExpensifyOnlyParticipantInReport(props.report)) {
             return [];
         }
 
@@ -732,7 +729,7 @@ function ReportActionCompose({translate, animatedRef, ...props}) {
                 onSelected: () => Task.clearOutTaskInfoAndNavigate(props.reportID),
             },
         ];
-    }, [props.betas, props.report, props.reportID, reportParticipants, translate]);
+    }, [props.betas, props.report, props.reportID, translate]);
 
     /**
      * Replace the code of emoji and update selection
@@ -992,11 +989,22 @@ function ReportActionCompose({translate, animatedRef, ...props}) {
         focus();
     }, [focus, prevIsFocused, prevIsModalVisible, props.isFocused, props.modal.isVisible]);
 
+    const prevCommentProp = usePrevious(props.comment);
+    const prevPreferredLocale = usePrevious(props.preferredLocale);
+    const prevReportId = usePrevious(props.report.reportId);
     useEffect(() => {
-        if (value === props.comment) return;
+        // Value state does not have the same value as comment props when the comment gets changed from another tab.
+        // In this case, we should synchronize the value between tabs.
+        const shouldSyncComment = prevCommentProp !== props.comment && value === props.comment;
+
+        // As the report IDs change, make sure to update the composer comment as we need to make sure
+        // we do not show incorrect data in there (ie. draft of message from other report).
+        if (props.preferredLocale === prevPreferredLocale && props.report.reportID === prevReportId && !shouldSyncComment) {
+            return;
+        }
 
         updateComment(comment.current);
-    }, [props.comment, props.report.reportID, updateComment, value]);
+    }, [prevCommentProp, prevPreferredLocale, prevReportId, props.comment, props.preferredLocale, props.report.reportID, updateComment, value]);
 
     // Prevents focusing and showing the keyboard while the drawer is covering the chat.
     const reportRecipient = props.personalDetails[participantsWithoutExpensifyAccountIDs[0]];
@@ -1196,8 +1204,8 @@ function ReportActionCompose({translate, animatedRef, ...props}) {
                                         if (isAttachmentPreviewActive) {
                                             return;
                                         }
-                                        const file = lodashGet(e, ['dataTransfer', 'files', 0]);
-                                        displayFileInModal(file);
+                                        const data = lodashGet(e, ['dataTransfer', 'items', 0]);
+                                        displayFileInModal(data);
                                     }}
                                 />
                             </>
