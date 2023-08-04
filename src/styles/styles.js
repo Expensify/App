@@ -2425,10 +2425,10 @@ const styles = {
 
     unreadIndicatorContainer: {
         position: 'absolute',
-        top: -10,
+        top: -12,
         left: 0,
         width: '100%',
-        height: 20,
+        height: 16,
         paddingHorizontal: 20,
         flexDirection: 'row',
         alignItems: 'center',
