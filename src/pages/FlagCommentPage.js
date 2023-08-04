@@ -19,7 +19,6 @@ import * as ReportUtils from '../libs/ReportUtils';
 import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 import * as Session from '../libs/actions/Session';
 import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
-import FullscreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 import withReportAndReportActionOrNotFound from './home/report/withReportAndReportActionOrNotFound';
 
 const propTypes = {
@@ -40,16 +39,12 @@ const propTypes = {
         }),
     }).isRequired,
 
-    /** Indicates whether the report data is loading */
-    isLoadingReportData: PropTypes.bool,
-
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     reportActions: {},
     report: {},
-    isLoadingReportData: true,
 };
 
 /**
@@ -156,19 +151,10 @@ function FlagCommentPage(props) {
         />
     ));
 
-    const isLoadingInitialReport = props.isLoadingReportData && _.isEmpty(props.report);
-    const isLoadingInitialReportActions = _.isEmpty(props.reportActions) || (props.report.isLoadingReportActions && _.isEmpty(getActionToFlag()));
-    const isExistReport = isLoadingInitialReport || (!_.isEmpty(props.report) && !!props.report.reportID);
-
-    const shouldShowLoading = (isLoadingInitialReport || isLoadingInitialReportActions) && isExistReport;
-    if (shouldShowLoading) {
-        return <FullscreenLoadingIndicator />;
-    }
-
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             {({safeAreaPaddingBottomStyle}) => (
-                <FullPageNotFoundView shouldShow={!shouldShowLoading && !ReportUtils.shouldShowFlagComment(getActionToFlag(), props.report)}>
+                <FullPageNotFoundView shouldShow={!ReportUtils.shouldShowFlagComment(getActionToFlag(), props.report)}>
                     <HeaderWithBackButton title={props.translate('reportActionContextMenu.flagAsOffensive')} />
                     <ScrollView
                         contentContainerStyle={safeAreaPaddingBottomStyle}
