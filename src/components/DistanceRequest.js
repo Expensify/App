@@ -56,7 +56,6 @@ function DistanceRequest({transactionID, transaction, translate}) {
     const halfMenuItemHeight = Math.floor(styles.baseMenuItemHeight / 2);
     const maxWaypointsHeight = styles.baseMenuItemHeight * MAX_WAYPOINTS_TO_DISPLAY;
     const scrollContainerMaxHeight = maxWaypointsHeight + halfMenuItemHeight;
-    console.log('scrollContainerMaxHeight', scrollContainerMaxHeight);
 
     useEffect(() => {
         if (!transaction.transactionID || !_.isEmpty(waypoints)) {
@@ -68,12 +67,10 @@ function DistanceRequest({transactionID, transaction, translate}) {
 
     // Measure the scroll container height and decide if we need to fade a waypoint
     const measureScrollContainerHeight = () => {
-        console.log('measureScrollContainerHeight, scrollContainer=', scrollContainer);
         if (!scrollContainer.current) {
             return;
         }
         scrollContainer.current.measure((x, y, width, height) => {
-            console.log('measure height', height);
             setScrollContainerHeight(height);
         });
     };
@@ -82,8 +79,6 @@ function DistanceRequest({transactionID, transaction, translate}) {
     const updateGradientVisibility = (event = {}) => {
         // If a waypoint extends past the bottom of the visible area show the gradient, else hide it.
         const visibleAreaEnd = lodashGet(event, 'nativeEvent.contentOffset.y', 0) + scrollContainerHeight;
-        console.log('scrollContainerHeight', scrollContainerHeight);
-        console.log('visibleAreaEnd', visibleAreaEnd);
         setShouldShowGradient(visibleAreaEnd < scrollContentHeight);
     };
 
