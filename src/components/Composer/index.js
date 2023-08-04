@@ -461,7 +461,7 @@ function Composer({
                 defaultValue={defaultValue}
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
                 {...props}
-                onSelectionChange={addCursorPositionToSelectionChange}
+                // onSelectionChange={addCursorPositionToSelectionChange}
                 numberOfLines={numberOfLines}
                 disabled={isDisabled}
                 onKeyPress={handleKeyPress}

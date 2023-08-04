@@ -50,3 +50,8 @@ When testing to just remove the suggestion logic I get the following:
 
 - ReportActionCompose re-renders: ~4x
 - Composer re-renders: ~6x
+
+### Loading further messages
+
+I just made the observation that when we open a new chat the scroll bar on the right gets smaller and smalle. THat probably means we are loading and rendering more and more messages.
+I think we should just reduce the size of initially loaded messages, to improve performance. Because after that the chat input is stable.

@@ -175,11 +175,12 @@ const debouncedBroadcastUserIsTyping = _.debounce((reportID) => {
 // so we need to ensure that it is only updated after focus.
 const isMobileSafari = Browser.isMobileSafari();
 
+const noop = () => {};
 function ReportActionCompose({translate, animatedRef, ...props}) {
     /**
      * Updates the Highlight state of the composer
      */
-    const [isFocused, setIsFocused] = useState(shouldFocusInputOnScreenFocus && !props.modal.isVisible && !props.modal.willAlertModalBecomeVisible && props.shouldShowComposeInput);
+    const [isFocused, setIsFocused] = [true, noop]; // useState(shouldFocusInputOnScreenFocus && !props.modal.isVisible && !props.modal.willAlertModalBecomeVisible && props.shouldShowComposeInput);
     const [isFullComposerAvailable, setIsFullComposerAvailable] = useState(props.isComposerFullSize);
 
     const isEmptyChat = useMemo(() => _.size(props.reportActions) === 1, [props.reportActions]);
@@ -832,7 +833,7 @@ function ReportActionCompose({translate, animatedRef, ...props}) {
                                         textAlignVertical="top"
                                         placeholder={inputPlaceholder}
                                         placeholderTextColor={themeColors.placeholderText}
-                                        onChangeText={(commentValue) => updateComment(commentValue, true)}
+                                        // onChangeText={(commentValue) => updateComment(commentValue, true)}
                                         onKeyPress={triggerHotkeyActions}
                                         style={[styles.textInputCompose, props.isComposerFullSize ? styles.textInputFullCompose : styles.flex4]}
                                         maxLines={maxComposerLines}
@@ -851,7 +852,7 @@ function ReportActionCompose({translate, animatedRef, ...props}) {
                                         isFullComposerAvailable={isFullSizeComposerAvailable}
                                         setIsFullComposerAvailable={setIsFullComposerAvailable}
                                         isComposerFullSize={props.isComposerFullSize}
-                                        value={value}
+                                        // value={value}
                                         numberOfLines={props.numberOfLines}
                                         onNumberOfLinesChange={updateNumberOfLines}
                                         shouldCalculateCaretPosition
@@ -923,7 +924,7 @@ function ReportActionCompose({translate, animatedRef, ...props}) {
                     />
                 </View>
             </OfflineWithFeedback>
-            <Suggestions
+            {/* <Suggestions
                 // Onyx
                 preferredLocale={props.preferredLocale}
                 windowHeight={props.windowHeight}
@@ -941,7 +942,7 @@ function ReportActionCompose({translate, animatedRef, ...props}) {
                 composerHeight={composerHeight}
                 shouldShowReportRecipientLocalTime={shouldShowReportRecipientLocalTime}
                 ref={suggestionsRef}
-            />
+            /> */}
         </View>
     );
 }
