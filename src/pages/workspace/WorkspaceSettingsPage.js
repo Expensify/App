@@ -135,6 +135,7 @@ function WorkspaceSettingsPage(props) {
                             containerStyles={[styles.mt4]}
                             defaultValue={props.policy.name}
                             maxLength={CONST.WORKSPACE_NAME_CHARACTER_LIMIT}
+                            spellCheck={false}
                         />
                         <View style={[styles.mt4]}>
                             <Picker
