@@ -273,6 +273,7 @@ const CONST = {
         TASKS: 'tasks',
         THREADS: 'threads',
         SCAN_RECEIPTS: 'scanReceipts',
+        CUSTOM_STATUS: 'customStatus',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
