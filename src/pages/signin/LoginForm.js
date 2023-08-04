@@ -169,7 +169,7 @@ function LoginForm(props) {
             input.current.blur();
         }
 
-        // Only focus if the form is re-visible again to prevent the keyboard is shown in touchscreen devices after sign out
+        // Only focus the input if the form becomes visible again, to prevent the keyboard from automatically opening on touchscreen devices after signing out
         if (!input.current || prevIsVisible || !props.isVisible) {
             return;
         }
