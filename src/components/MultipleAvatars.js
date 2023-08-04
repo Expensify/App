@@ -71,9 +71,28 @@ const defaultProps = {
     maxAvatarsInRow: CONST.AVATAR_ROW_SIZE.DEFAULT,
 };
 
+function getContainerStyles(size) {
+    let containerStyles;
+
+    switch (size) {
+        case CONST.AVATAR_SIZE.SMALL:
+            containerStyles = [styles.emptyAvatarSmall, styles.emptyAvatarMarginSmall];
+            break;
+        case CONST.AVATAR_SIZE.SMALLER:
+            containerStyles = [styles.emptyAvatarSmaller, styles.emptyAvatarMarginSmaller];
+            break;
+        case CONST.AVATAR_SIZE.MEDIUM:
+            containerStyles = [styles.emptyAvatarMedium, styles.emptyAvatarMargin];
+            break;
+        default:
+            containerStyles = [styles.emptyAvatar, styles.emptyAvatarMargin];
+    }
+
+    return containerStyles;
+}
 function MultipleAvatars(props) {
     const [avatarRows, setAvatarRows] = useState([props.icons]);
-    let avatarContainerStyles = props.size === CONST.AVATAR_SIZE.SMALL ? [styles.emptyAvatarSmall, styles.emptyAvatarMarginSmall] : [styles.emptyAvatar, styles.emptyAvatarMargin];
+    let avatarContainerStyles = getContainerStyles(props.size);
     const singleAvatarStyle = props.size === CONST.AVATAR_SIZE.SMALL ? styles.singleAvatarSmall : styles.singleAvatar;
     const secondAvatarStyles = [props.size === CONST.AVATAR_SIZE.SMALL ? styles.secondAvatarSmall : styles.secondAvatar, ...props.secondAvatarStyle];
     const tooltipTexts = props.shouldShowTooltip ? _.pluck(props.icons, 'name') : [''];
@@ -112,6 +131,10 @@ function MultipleAvatars(props) {
             <UserDetailsTooltip
                 accountID={props.icons[0].id}
                 icon={props.icons[0]}
+                fallbackUserDetails={{
+                    displayName: props.icons[0].name,
+                    avatar: props.icons[0].avatar,
+                }}
             >
                 <View style={avatarContainerStyles}>
                     <Avatar
@@ -131,18 +154,9 @@ function MultipleAvatars(props) {
     const overlapSize = oneAvatarSize.width / 3;
 
     if (props.shouldStackHorizontally) {
-        let width;
-
         // Height of one avatar + border space
         const height = oneAvatarSize.height + 2 * oneAvatarBorderWidth;
-        if (props.icons.length > 4) {
-            const length = avatarRows.length > 1 ? Math.max(avatarRows[0].length, avatarRows[1].length) : avatarRows[0].length;
-            width = oneAvatarSize.width + overlapSize * 2 * (length - 1) + oneAvatarBorderWidth * (length * 2);
-        } else {
-            // one avatar width + overlaping avatar sizes + border space
-            width = oneAvatarSize.width + overlapSize * 2 * (props.icons.length - 1) + oneAvatarBorderWidth * (props.icons.length * 2);
-        }
-        avatarContainerStyles = StyleUtils.combineStyles([styles.alignItemsCenter, styles.flexRow, StyleUtils.getHeight(height), StyleUtils.getWidthStyle(width)]);
+        avatarContainerStyles = StyleUtils.combineStyles([styles.alignItemsCenter, styles.flexRow, StyleUtils.getHeight(height)]);
     }
 
     return (
@@ -158,22 +172,22 @@ function MultipleAvatars(props) {
                                 key={`stackedAvatars-${index}`}
                                 accountID={icon.id}
                                 icon={icon}
+                                fallbackUserDetails={{
+                                    displayName: icon.name,
+                                    avatar: icon.avatar,
+                                }}
                             >
-                                <View
-                                    style={[
-                                        styles.justifyContentCenter,
-                                        styles.alignItemsCenter,
-                                        StyleUtils.getHorizontalStackedAvatarBorderStyle({
-                                            isHovered: props.isHovered,
-                                            isPressed: props.isPressed,
-                                            isInReportAction: props.isInReportAction,
-                                            shouldUseCardBackground: props.shouldUseCardBackground,
-                                        }),
-                                        StyleUtils.getHorizontalStackedAvatarStyle(index, overlapSize, oneAvatarBorderWidth, oneAvatarSize.width),
-                                        icon.type === CONST.ICON_TYPE_WORKSPACE ? StyleUtils.getAvatarBorderRadius(props.size, icon.type) : {},
-                                    ]}
-                                >
+                                <View style={[StyleUtils.getHorizontalStackedAvatarStyle(index, overlapSize), StyleUtils.getAvatarBorderRadius(props.size, icon.type)]}>
                                     <Avatar
+                                        iconAdditionalStyles={[
+                                            StyleUtils.getHorizontalStackedAvatarBorderStyle({
+                                                isHovered: props.isHovered,
+                                                isPressed: props.isPressed,
+                                                isInReportAction: props.isInReportAction,
+                                                shouldUseCardBackground: props.shouldUseCardBackground,
+                                            }),
+                                            StyleUtils.getAvatarBorderWidth(props.size),
+                                        ]}
                                         source={icon.source || props.fallbackIcon}
                                         fill={themeColors.iconSuccessFill}
                                         size={props.size}
@@ -185,8 +199,8 @@ function MultipleAvatars(props) {
                         ))}
                         {avatars.length > props.maxAvatarsInRow && (
                             <Tooltip
-                                // We only want to cap tooltips to only the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
-                                text={tooltipTexts.slice(3, 10).join(', ')}
+                                // We only want to cap tooltips to only 10 users or so since some reports have hundreds of users, causing performance to degrade.
+                                text={tooltipTexts.slice(avatarRows.length * props.maxAvatarsInRow - 1, avatarRows.length * props.maxAvatarsInRow + 9).join(', ')}
                             >
                                 <View
                                     style={[
@@ -213,7 +227,10 @@ function MultipleAvatars(props) {
                                             StyleUtils.getWidthStyle(oneAvatarSize.width),
                                         ]}
                                     >
-                                        <Text style={[styles.avatarInnerTextSmall, StyleUtils.getAvatarExtraFontSizeStyle(props.size)]}>{`+${avatars.length - props.maxAvatarsInRow}`}</Text>
+                                        <Text
+                                            selectable={false}
+                                            style={[styles.avatarInnerTextSmall, StyleUtils.getAvatarExtraFontSizeStyle(props.size)]}
+                                        >{`+${avatars.length - props.maxAvatarsInRow}`}</Text>
                                     </View>
                                 </View>
                             </Tooltip>
@@ -226,6 +243,10 @@ function MultipleAvatars(props) {
                         <UserDetailsTooltip
                             accountID={props.icons[0].id}
                             icon={props.icons[0]}
+                            fallbackUserDetails={{
+                                displayName: props.icons[0].name,
+                                avatar: props.icons[0].avatar,
+                            }}
                         >
                             {/* View is necessary for tooltip to show for multiple avatars in LHN */}
                             <View>
@@ -244,6 +265,10 @@ function MultipleAvatars(props) {
                                 <UserDetailsTooltip
                                     accountID={props.icons[1].id}
                                     icon={props.icons[1]}
+                                    fallbackUserDetails={{
+                                        displayName: props.icons[1].name,
+                                        avatar: props.icons[1].avatar,
+                                    }}
                                 >
                                     <View>
                                         <Avatar

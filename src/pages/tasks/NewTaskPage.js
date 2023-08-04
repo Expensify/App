@@ -17,10 +17,10 @@ import MenuItemWithTopDescription from '../../components/MenuItemWithTopDescript
 import MenuItem from '../../components/MenuItem';
 import reportPropTypes from '../reportPropTypes';
 import * as Task from '../../libs/actions/Task';
-import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import * as ReportUtils from '../../libs/ReportUtils';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
+import * as LocalePhoneNumber from '../../libs/LocalePhoneNumber';
 
 const propTypes = {
     /** Task Creation Data */
@@ -67,6 +67,7 @@ function NewTaskPage(props) {
     const [shareDestination, setShareDestination] = React.useState({});
     const [errorMessage, setErrorMessage] = React.useState('');
     const [parentReport, setParentReport] = React.useState({});
+    const shouldClearOutTaskInfoOnUnmount = React.useRef(false);
 
     const isAllowedToCreateTask = useMemo(() => _.isEmpty(parentReport) || ReportUtils.isAllowedToComment(parentReport), [parentReport]);
 
@@ -76,11 +77,7 @@ function NewTaskPage(props) {
         // If we have an assignee, we want to set the assignee data
         // If there's an issue with the assignee chosen, we want to notify the user
         if (props.task.assignee) {
-            const assigneeDetails = lodashGet(OptionsListUtils.getPersonalDetailsForAccountIDs([props.task.assigneeAccountID], props.personalDetails), props.task.assigneeAccountID);
-            if (!assigneeDetails) {
-                return setErrorMessage(props.translate('task.assigneeError'));
-            }
-            const displayDetails = Task.getAssignee(assigneeDetails);
+            const displayDetails = Task.getAssignee(props.task.assigneeAccountID, props.personalDetails);
             setAssignee(displayDetails);
         }
 
@@ -100,6 +97,16 @@ function NewTaskPage(props) {
         }
     }, [props]);
 
+    useEffect(
+        () => () => {
+            if (!shouldClearOutTaskInfoOnUnmount.current) {
+                return;
+            }
+            Task.clearOutTaskInfo();
+        },
+        [],
+    );
+
     // On submit, we want to call the createTask function and wait to validate
     // the response
     function onSubmit() {
@@ -118,6 +125,7 @@ function NewTaskPage(props) {
             return;
         }
 
+        shouldClearOutTaskInfoOnUnmount.current = true;
         Task.createTaskAndNavigate(parentReport.reportID, props.task.title, props.task.description, props.task.assignee, props.task.assigneeAccountID);
     }
 
@@ -154,11 +162,12 @@ function NewTaskPage(props) {
                             onPress={() => Navigation.navigate(ROUTES.NEW_TASK_DESCRIPTION)}
                             shouldShowRightIcon
                             numberOfLinesTitle={2}
+                            titleStyle={styles.flex1}
                         />
                         <MenuItem
                             label={assignee.displayName ? props.translate('task.assignee') : ''}
                             title={assignee.displayName || ''}
-                            description={assignee.displayName ? assignee.subtitle : props.translate('task.assignee')}
+                            description={assignee.displayName ? LocalePhoneNumber.formatPhoneNumber(assignee.subtitle) : props.translate('task.assignee')}
                             icon={assignee.icons}
                             onPress={() => Navigation.navigate(ROUTES.NEW_TASK_ASSIGNEE)}
                             shouldShowRightIcon

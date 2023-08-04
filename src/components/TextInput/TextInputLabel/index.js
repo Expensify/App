@@ -17,7 +17,7 @@ class TextInputLabel extends PureComponent {
             <Animated.Text
                 ref={(el) => (this.label = el)}
                 pointerEvents="none"
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE_TEXT}
+                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                 style={[styles.textInputLabel, styles.textInputLabelDesktop, styles.textInputLabelTransformation(this.props.labelTranslateY, 0, this.props.labelScale)]}
             >
                 {this.props.label}

@@ -85,7 +85,7 @@ function WorkspaceMembersPage(props) {
      * Get members for the current workspace
      */
     const getWorkspaceMembers = useCallback(() => {
-        Policy.openWorkspaceMembersPage(props.route.params.policyID, _.keys(PolicyUtils.getClientPolicyMemberEmailsToAccountIDs(props.policyMembers, props.personalDetails)));
+        Policy.openWorkspaceMembersPage(props.route.params.policyID, _.keys(PolicyUtils.getMemberAccountIDsForWorkspace(props.policyMembers, props.personalDetails)));
     }, [props.route.params.policyID, props.policyMembers, props.personalDetails]);
 
     /**
@@ -117,7 +117,7 @@ function WorkspaceMembersPage(props) {
         setSelectedEmployees((prevSelected) =>
             _.intersection(
                 prevSelected,
-                _.map(_.values(PolicyUtils.getClientPolicyMemberEmailsToAccountIDs(props.policyMembers, props.personalDetails)), (accountID) => Number(accountID)),
+                _.map(_.values(PolicyUtils.getMemberAccountIDsForWorkspace(props.policyMembers, props.personalDetails)), (accountID) => Number(accountID)),
             ),
         );
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -331,6 +331,7 @@ function WorkspaceMembersPage(props) {
                                     participantsList: [item],
                                     icons: [
                                         {
+                                            id: item.accountID,
                                             source: UserUtils.getAvatar(item.avatar, item.accountID),
                                             name: item.login,
                                             type: CONST.ICON_TYPE_AVATAR,
@@ -404,7 +405,8 @@ function WorkspaceMembersPage(props) {
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView
-                    shouldShow={_.isEmpty(props.policy)}
+                    shouldShow={_.isEmpty(props.policy) || !Policy.isPolicyOwner(props.policy)}
+                    subtitleKey={_.isEmpty(props.policy) ? undefined : 'workspace.common.notAuthorized'}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
                 >
                     <HeaderWithBackButton
@@ -451,6 +453,7 @@ function WorkspaceMembersPage(props) {
                                 onChangeText={setSearchValue}
                                 label={props.translate('optionsSelector.findMember')}
                                 accessibilityLabel={props.translate('optionsSelector.findMember')}
+                                spellCheck={false}
                             />
                         </View>
                         {data.length > 0 ? (

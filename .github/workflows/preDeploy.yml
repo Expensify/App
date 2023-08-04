@@ -6,6 +6,9 @@ on:
       - main
 
 jobs:
+  typecheck:
+    uses: Expensify/App/.github/workflows/typecheck.yml@main
+
   lint:
     uses: Expensify/App/.github/workflows/lint.yml@main
 
@@ -14,18 +17,18 @@ jobs:
 
   confirmPassingBuild:
     runs-on: ubuntu-latest
-    needs: [lint, test]
+    needs: [typecheck, lint, test]
     if: ${{ always() }}
 
     steps:
       - name: Announce failed workflow in Slack
-        if: ${{ needs.lint.result == 'failure' || needs.test.result == 'failure' }}
+        if: ${{ needs.typecheck.result == 'failure' || needs.lint.result == 'failure' || needs.test.result == 'failure' }}
         uses: Expensify/App/.github/actions/composite/announceFailedWorkflowInSlack@main
         with:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
 
       - name: Exit failed workflow
-        if: ${{ needs.lint.result == 'failure' || needs.test.result == 'failure' }}
+        if: ${{ needs.typecheck.result == 'failure' || needs.lint.result == 'failure' || needs.test.result == 'failure' }}
         run: exit 1
 
   chooseDeployActions:

@@ -25,6 +25,12 @@ export default PropTypes.shape({
     /** Indicates if the report is pinned to the LHN or not */
     isPinned: PropTypes.bool,
 
+    /** Whether we're waiting on submitter to add a bank account */
+    isWaitingOnBankAccount: PropTypes.bool,
+
+    /** The email of the last message's actor */
+    lastActorEmail: PropTypes.string,
+
     /** The accountID of the last message's actor */
     lastActorAccountID: PropTypes.number,
 
@@ -50,9 +56,6 @@ export default PropTypes.shape({
     /** The accountID of the report owner */
     ownerAccountID: PropTypes.number,
 
-    /** List of primarylogins of participants of the report */
-    participants: PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.number])),
-
     /** List of accountIDs of participants of the report */
     participantAccountIDs: PropTypes.arrayOf(PropTypes.number),
 
@@ -73,4 +76,7 @@ export default PropTypes.shape({
 
     /** Which user role is capable of posting messages on the report */
     writeCapability: PropTypes.oneOf(_.values(CONST.REPORT.WRITE_CAPABILITIES)),
+
+    /** Field-specific pending states for offline UI status */
+    pendingFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
 });
