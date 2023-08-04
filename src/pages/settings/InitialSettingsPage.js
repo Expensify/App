@@ -83,6 +83,9 @@ const propTypes = {
     /** List of cards */
     cardList: PropTypes.objectOf(cardPropTypes),
 
+    /** List of cards */
+    fundList: PropTypes.objectOf(cardPropTypes),
+
     /** Bank account attached to free plan */
     reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes,
 
@@ -118,7 +121,8 @@ const defaultProps = {
     betas: [],
     walletTerms: {},
     bankAccountList: {},
-    cardList: {},
+    cardList: null,
+    fundList: null,
     loginList: {},
     allPolicyMembers: {},
     ...withCurrentUserPersonalDetailsDefaultProps,
@@ -144,7 +148,7 @@ function InitialSettingsPage(props) {
 
     const signOut = useCallback(
         (shouldForceSignout = false) => {
-            if (props.network.isOffline || shouldForceSignout) {
+            if (!props.network.isOffline || shouldForceSignout) {
                 Session.signOutAndRedirectToSignIn();
                 return;
             }
@@ -179,6 +183,8 @@ function InitialSettingsPage(props) {
                 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
                 : null;
         const profileBrickRoadIndicator = UserUtils.getLoginListBrickRoadIndicator(props.loginList);
+
+        const paymentCardList = props.fundList || props.cardList || {};
 
         return [
             {
@@ -228,7 +234,7 @@ function InitialSettingsPage(props) {
                     Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
                 },
                 brickRoadIndicator:
-                    PaymentMethods.hasPaymentMethodError(props.bankAccountList, props.cardList) || !_.isEmpty(props.userWallet.errors) || !_.isEmpty(props.walletTerms.errors)
+                    PaymentMethods.hasPaymentMethodError(props.bankAccountList, paymentCardList) || !_.isEmpty(props.userWallet.errors) || !_.isEmpty(props.walletTerms.errors)
                         ? 'error'
                         : null,
             },
@@ -261,6 +267,7 @@ function InitialSettingsPage(props) {
         props.allPolicyMembers,
         props.bankAccountList,
         props.cardList,
+        props.fundList,
         props.loginList,
         props.network.isOffline,
         props.policies,
@@ -424,6 +431,9 @@ export default compose(
         },
         cardList: {
             key: ONYXKEYS.CARD_LIST,
+        },
+        fundList: {
+            key: ONYXKEYS.FUND_LIST,
         },
         walletTerms: {
             key: ONYXKEYS.WALLET_TERMS,

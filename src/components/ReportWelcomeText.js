@@ -99,12 +99,16 @@ function ReportWelcomeText(props) {
                         {_.map(displayNamesWithTooltips, ({displayName, pronouns, accountID}, index) => (
                             <Text key={`${displayName}${pronouns}${index}`}>
                                 <UserDetailsTooltip accountID={accountID}>
-                                    <Text
-                                        style={[styles.textStrong]}
-                                        onPress={() => Navigation.navigate(ROUTES.getProfileRoute(accountID))}
-                                    >
-                                        {displayName}
-                                    </Text>
+                                    {ReportUtils.isOptimisticPersonalDetail(accountID) ? (
+                                        <Text style={[styles.textStrong]}>{displayName}</Text>
+                                    ) : (
+                                        <Text
+                                            style={[styles.textStrong]}
+                                            onPress={() => Navigation.navigate(ROUTES.getProfileRoute(accountID))}
+                                        >
+                                            {displayName}
+                                        </Text>
+                                    )}
                                 </UserDetailsTooltip>
                                 {!_.isEmpty(pronouns) && <Text>{` (${pronouns})`}</Text>}
                                 {index === displayNamesWithTooltips.length - 1 && <Text>.</Text>}

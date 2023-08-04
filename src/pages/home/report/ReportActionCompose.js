@@ -41,7 +41,6 @@ import withNavigation from '../../../components/withNavigation';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
 import * as UserUtils from '../../../libs/UserUtils';
 import ReportDropUI from './ReportDropUI';
-import DragAndDrop from '../../../components/DragAndDrop';
 import reportPropTypes from '../../reportPropTypes';
 import EmojiSuggestions from '../../../components/EmojiSuggestions';
 import MentionSuggestions from '../../../components/MentionSuggestions';
@@ -124,9 +123,6 @@ const propTypes = {
 
     /** animated ref from react-native-reanimated */
     animatedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]).isRequired,
-
-    /** Unique id for nativeId in DragAndDrop */
-    dragAndDropId: PropTypes.string.isRequired,
 
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
@@ -232,7 +228,6 @@ class ReportActionCompose extends React.Component {
             textInputShouldClear: false,
             isCommentEmpty: props.comment.length === 0,
             isMenuVisible: false,
-            isDraggingOver: false,
             selection: {
                 start: isMobileSafari && !this.shouldAutoFocus ? 0 : props.comment.length,
                 end: isMobileSafari && !this.shouldAutoFocus ? 0 : props.comment.length,
@@ -286,7 +281,7 @@ class ReportActionCompose extends React.Component {
 
         // As the report IDs change, make sure to update the composer comment as we need to make sure
         // we do not show incorrect data in there (ie. draft of message from other report).
-        if (this.props.report.reportID === prevProps.report.reportID && !shouldSyncComment) {
+        if (this.props.preferredLocale === prevProps.preferredLocale && this.props.report.reportID === prevProps.report.reportID && !shouldSyncComment) {
             return;
         }
 
@@ -455,12 +450,9 @@ class ReportActionCompose extends React.Component {
      * @param {Array} reportParticipants
      * @returns {Boolean}
      */
-    getTaskOption(reportParticipants) {
+    getTaskOption() {
         // We only prevent the task option from showing if it's a DM and the other user is an Expensify default email
-        if (
-            !Permissions.canUseTasks(this.props.betas) ||
-            (lodashGet(this.props.report, 'participantAccountIDs', []).length === 1 && _.some(reportParticipants, (accountID) => _.contains(CONST.EXPENSIFY_ACCOUNT_IDS, accountID)))
-        ) {
+        if (!Permissions.canUseTasks(this.props.betas) || ReportUtils.isExpensifyOnlyParticipantInReport(this.props.report)) {
             return [];
         }
 
@@ -989,7 +981,7 @@ class ReportActionCompose extends React.Component {
         // Prevents focusing and showing the keyboard while the drawer is covering the chat.
         const isBlockedFromConcierge = ReportUtils.chatIncludesConcierge(this.props.report) && User.isBlockedFromConcierge(this.props.blockedFromConcierge);
         const inputPlaceholder = this.getInputPlaceholder();
-        const shouldUseFocusedColor = !isBlockedFromConcierge && !this.props.disabled && (this.state.isFocused || this.state.isDraggingOver);
+        const shouldUseFocusedColor = !isBlockedFromConcierge && !this.props.disabled && this.state.isFocused;
         const hasExceededMaxCommentLength = this.state.hasExceededMaxCommentLength;
         const isFullComposerAvailable = this.state.isFullComposerAvailable && !_.isEmpty(this.state.value);
         const hasReportRecipient = _.isObject(reportRecipient) && !_.isEmpty(reportRecipient);
@@ -1121,7 +1113,7 @@ class ReportActionCompose extends React.Component {
                                                     anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM}}
                                                     menuItems={[
                                                         ...this.getMoneyRequestOptions(reportParticipants),
-                                                        ...this.getTaskOption(reportParticipants),
+                                                        ...this.getTaskOption(),
                                                         {
                                                             icon: Expensicons.Paperclip,
                                                             text: this.props.translate('reportActionCompose.addAttachment'),
@@ -1144,75 +1136,59 @@ class ReportActionCompose extends React.Component {
                                         )}
                                     </AttachmentPicker>
                                     <View style={[containerComposeStyles, styles.textInputComposeBorder]}>
-                                        <DragAndDrop
-                                            dropZoneId={this.props.dragAndDropId}
-                                            activeDropZoneId={CONST.REPORT.ACTIVE_DROP_NATIVE_ID + this.props.reportID}
-                                            onDragEnter={() => {
-                                                this.setState({isDraggingOver: true});
+                                        <Composer
+                                            checkComposerVisibility={() => this.checkComposerVisibility()}
+                                            autoFocus={this.shouldAutoFocus}
+                                            multiline
+                                            ref={this.setTextInputRef}
+                                            textAlignVertical="top"
+                                            placeholder={inputPlaceholder}
+                                            placeholderTextColor={themeColors.placeholderText}
+                                            onChangeText={(comment) => this.updateComment(comment, true)}
+                                            onKeyPress={this.triggerHotkeyActions}
+                                            style={[styles.textInputCompose, this.props.isComposerFullSize ? styles.textInputFullCompose : styles.flex4]}
+                                            maxLines={maxComposerLines}
+                                            onFocus={() => this.setIsFocused(true)}
+                                            onBlur={() => {
+                                                this.setIsFocused(false);
+                                                this.resetSuggestions();
                                             }}
-                                            onDragLeave={() => {
-                                                this.setState({isDraggingOver: false});
+                                            onClick={() => {
+                                                this.shouldBlockEmojiCalc = false;
+                                                this.shouldBlockMentionCalc = false;
                                             }}
-                                            onDrop={(e) => {
-                                                e.preventDefault();
-                                                if (this.state.isAttachmentPreviewActive) {
-                                                    this.setState({isDraggingOver: false});
+                                            onPasteFile={displayFileInModal}
+                                            shouldClear={this.state.textInputShouldClear}
+                                            onClear={() => this.setTextInputShouldClear(false)}
+                                            isDisabled={isBlockedFromConcierge || this.props.disabled}
+                                            selection={this.state.selection}
+                                            onSelectionChange={this.onSelectionChange}
+                                            isFullComposerAvailable={isFullComposerAvailable}
+                                            setIsFullComposerAvailable={this.setIsFullComposerAvailable}
+                                            isComposerFullSize={this.props.isComposerFullSize}
+                                            value={this.state.value}
+                                            numberOfLines={this.props.numberOfLines}
+                                            onNumberOfLinesChange={this.updateNumberOfLines}
+                                            shouldCalculateCaretPosition
+                                            onLayout={(e) => {
+                                                const composerHeight = e.nativeEvent.layout.height;
+                                                if (this.state.composerHeight === composerHeight) {
                                                     return;
                                                 }
-
-                                                const file = lodashGet(e, ['dataTransfer', 'files', 0]);
-
-                                                displayFileInModal(file);
-
-                                                this.setState({isDraggingOver: false});
+                                                this.setState({composerHeight});
                                             }}
-                                            disabled={this.props.disabled}
-                                        >
-                                            <Composer
-                                                checkComposerVisibility={() => this.checkComposerVisibility()}
-                                                autoFocus={this.shouldAutoFocus}
-                                                multiline
-                                                ref={this.setTextInputRef}
-                                                textAlignVertical="top"
-                                                placeholder={inputPlaceholder}
-                                                placeholderTextColor={themeColors.placeholderText}
-                                                onChangeText={(comment) => this.updateComment(comment, true)}
-                                                onKeyPress={this.triggerHotkeyActions}
-                                                style={[styles.textInputCompose, this.props.isComposerFullSize ? styles.textInputFullCompose : styles.flex4]}
-                                                maxLines={maxComposerLines}
-                                                onFocus={() => this.setIsFocused(true)}
-                                                onBlur={() => {
-                                                    this.setIsFocused(false);
-                                                    this.resetSuggestions();
-                                                }}
-                                                onClick={() => {
-                                                    this.shouldBlockEmojiCalc = false;
-                                                    this.shouldBlockMentionCalc = false;
-                                                }}
-                                                onPasteFile={displayFileInModal}
-                                                shouldClear={this.state.textInputShouldClear}
-                                                onClear={() => this.setTextInputShouldClear(false)}
-                                                isDisabled={isBlockedFromConcierge || this.props.disabled}
-                                                selection={this.state.selection}
-                                                onSelectionChange={this.onSelectionChange}
-                                                isFullComposerAvailable={isFullComposerAvailable}
-                                                setIsFullComposerAvailable={this.setIsFullComposerAvailable}
-                                                isComposerFullSize={this.props.isComposerFullSize}
-                                                value={this.state.value}
-                                                numberOfLines={this.props.numberOfLines}
-                                                onNumberOfLinesChange={this.updateNumberOfLines}
-                                                shouldCalculateCaretPosition
-                                                onLayout={(e) => {
-                                                    const composerHeight = e.nativeEvent.layout.height;
-                                                    if (this.state.composerHeight === composerHeight) {
-                                                        return;
-                                                    }
-                                                    this.setState({composerHeight});
-                                                }}
-                                                onScroll={() => this.setShouldShowSuggestionMenuToFalse()}
-                                            />
-                                        </DragAndDrop>
+                                            onScroll={() => this.setShouldShowSuggestionMenuToFalse()}
+                                        />
                                     </View>
+                                    <ReportDropUI
+                                        onDrop={(e) => {
+                                            if (this.state.isAttachmentPreviewActive) {
+                                                return;
+                                            }
+                                            const data = lodashGet(e, ['dataTransfer', 'items', 0]);
+                                            displayFileInModal(data);
+                                        }}
+                                    />
                                 </>
                             )}
                         </AttachmentModal>
@@ -1267,7 +1243,6 @@ class ReportActionCompose extends React.Component {
                         />
                     </View>
                 </OfflineWithFeedback>
-                {this.state.isDraggingOver && <ReportDropUI />}
                 {!_.isEmpty(this.state.suggestedEmojis) && this.state.shouldShowEmojiSuggestionMenu && (
                     <ArrowKeyFocusManager
                         focusedIndex={this.state.highlightedEmojiIndex}
