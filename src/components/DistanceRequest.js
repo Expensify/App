@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {ScrollView, View} from 'react-native';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
@@ -89,7 +89,7 @@ function DistanceRequest({transactionID, transaction, translate}) {
                         let waypointIcon;
                         if (index === 0) {
                             descriptionKey += 'start';
-                            waypointIcon = Expensicons.DotIndicator
+                            waypointIcon = Expensicons.DotIndicator;
                         } else if (index === lastWaypointIndex) {
                             descriptionKey += 'finish';
                             waypointIcon = Expensicons.Location;
@@ -99,17 +99,14 @@ function DistanceRequest({transactionID, transaction, translate}) {
                         }
 
                         return (
-                            <View
+                            <MenuItemWithTopDescription
+                                description={translate(descriptionKey)}
+                                icon={Expensicons.DragHandles}
+                                secondaryIcon={waypointIcon}
+                                secondaryIconFill={theme.icon}
+                                shouldShowRightIcon
                                 key={key}
-                            >
-                                <MenuItemWithTopDescription
-                                    description={translate(descriptionKey)}
-                                    icon={Expensicons.DragHandles}
-                                    secondaryIcon={waypointIcon}
-                                    secondaryIconFill={theme.icon}
-                                    shouldShowRightIcon
-                                />
-                            </View>
+                            />
                         );
                     })}
                 </ScrollView>
