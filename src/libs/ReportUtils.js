@@ -11,7 +11,6 @@ import * as Expensicons from '../components/Icon/Expensicons';
 import Navigation from './Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import * as NumberUtils from './NumberUtils';
-import * as NumberFormatUtils from './NumberFormatUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import Permissions from './Permissions';
 import DateUtils from './DateUtils';
@@ -36,17 +35,6 @@ Onyx.connect({
         currentUserEmail = val.email;
         currentUserAccountID = val.accountID;
         isAnonymousUser = val.authTokenType === 'anonymousAccount';
-    },
-});
-
-let preferredLocale = CONST.LOCALES.DEFAULT;
-Onyx.connect({
-    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    callback: (val) => {
-        if (!val) {
-            return;
-        }
-        preferredLocale = val;
     },
 });
 
