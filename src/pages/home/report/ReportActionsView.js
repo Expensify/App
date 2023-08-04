@@ -203,6 +203,14 @@ function arePropsEqual(oldProps, newProps) {
         return false;
     }
 
+    if (!_.isEqual(oldProps.report.pendingFields, newProps.report.pendingFields)) {
+        return false;
+    }
+
+    if (!_.isEqual(oldProps.report.errorFields, newProps.report.errorFields)) {
+        return false;
+    }
+
     if (lodashGet(oldProps.network, 'isOffline') !== lodashGet(newProps.network, 'isOffline')) {
         return false;
     }

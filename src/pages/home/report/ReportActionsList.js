@@ -10,12 +10,11 @@ import * as ReportUtils from '../../../libs/ReportUtils';
 import * as Report from '../../../libs/actions/Report';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
-import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider';
+import {withPersonalDetails} from '../../../components/OnyxProvider';
 import ReportActionItem from './ReportActionItem';
 import ReportActionItemParentAction from './ReportActionItemParentAction';
 import ReportActionsSkeletonView from '../../../components/ReportActionsSkeletonView';
 import variables from '../../../styles/variables';
-import participantPropTypes from '../../../components/participantPropTypes';
 import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 import reportActionPropTypes from './reportActionPropTypes';
 import CONST from '../../../CONST';
@@ -28,9 +27,6 @@ import FloatingMessageCounter from './FloatingMessageCounter';
 import useReportScrollManager from '../../../hooks/useReportScrollManager';
 
 const propTypes = {
-    /** Personal details of all the users */
-    personalDetailsList: PropTypes.objectOf(participantPropTypes),
-
     /** The report currently being looked at */
     report: reportPropTypes.isRequired,
 
@@ -254,18 +250,18 @@ function ReportActionsList({
                 reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED &&
                 ReportUtils.isChatThread(report) &&
                 !ReportActionsUtils.isTransactionThread(ReportActionsUtils.getParentReportAction(report));
-            const shouldHideThreadDividerLine =
-                shouldDisplayParentAction && sortedReportActions.length > 1 && sortedReportActions[sortedReportActions.length - 2].reportActionID === currentUnreadMarker.current;
+            const shouldHideThreadDividerLine = sortedReportActions.length > 1 && sortedReportActions[sortedReportActions.length - 2].reportActionID === currentUnreadMarker.current;
 
             return shouldDisplayParentAction ? (
                 <ReportActionItemParentAction
-                    shouldHideThreadDividerLine={shouldHideThreadDividerLine}
+                    shouldHideThreadDividerLine={shouldDisplayParentAction && shouldHideThreadDividerLine}
                     reportID={report.reportID}
                     parentReportID={`${report.parentReportID}`}
                     shouldDisplayNewMarker={shouldDisplayNewMarker}
                 />
             ) : (
                 <ReportActionItem
+                    shouldHideThreadDividerLine={shouldHideThreadDividerLine}
                     report={report}
                     action={reportAction}
                     displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(sortedReportActions, index)}
@@ -277,7 +273,6 @@ function ReportActionsList({
                     isMostRecentIOUReportAction={reportAction.reportActionID === mostRecentIOUReportActionID}
                     hasOutstandingIOU={hasOutstandingIOU}
                     index={index}
-                    isOnlyReportAction={sortedReportActions.length === 1}
                 />
             );
         },
@@ -287,12 +282,9 @@ function ReportActionsList({
     // Native mobile does not render updates flatlist the changes even though component did update called.
     // To notify there something changes we can use extraData prop to flatlist
     const extraData = [isSmallScreenWidth ? currentUnreadMarker.current : undefined, ReportUtils.isArchivedRoom(report)];
-    const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(personalDetailsList, report, currentUserPersonalDetails.accountID);
-
     const errors = lodashGet(report, 'errorFields.addWorkspaceRoom') || lodashGet(report, 'errorFields.createChat');
-    const isArchivedRoom = ReportUtils.isArchivedRoom(report);
     const hideComposer = ReportUtils.shouldHideComposer(report, errors);
-    const shouldOmitBottomSpace = hideComposer || isArchivedRoom;
+    const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(personalDetailsList, report, currentUserPersonalDetails.accountID);
 
     return (
         <>
@@ -300,13 +292,13 @@ function ReportActionsList({
                 isActive={isFloatingMessageCounterVisible && !!currentUnreadMarker.current}
                 onClick={scrollToBottomAndMarkReportAsRead}
             />
-            <Animated.View style={[animatedStyles, styles.flex1]}>
+            <Animated.View style={[animatedStyles, styles.flex1, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}]}>
                 <InvertedFlatList
                     accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
                     ref={reportScrollManager.ref}
                     data={sortedReportActions}
                     renderItem={renderItem}
-                    contentContainerStyle={[styles.chatContentScrollView, shouldShowReportRecipientLocalTime || shouldOmitBottomSpace ? styles.pt0 : {}]}
+                    contentContainerStyle={styles.chatContentScrollView}
                     keyExtractor={keyExtractor}
                     initialRowHeight={32}
                     initialNumToRender={initialNumToRender}
