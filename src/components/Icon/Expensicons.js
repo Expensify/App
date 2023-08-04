@@ -34,6 +34,7 @@ import DomainRoomAvatar from '../../../assets/images/avatars/domain-room.svg';
 import DotIndicator from '../../../assets/images/dot-indicator.svg';
 import DownArrow from '../../../assets/images/down.svg';
 import Download from '../../../assets/images/download.svg';
+import DragHandles from '../../../assets/images/drag-handles.svg';
 import Emoji from '../../../assets/images/emoji.svg';
 import Exclamation from '../../../assets/images/exclamation.svg';
 import Exit from '../../../assets/images/exit.svg';
@@ -60,6 +61,7 @@ import Key from '../../../assets/images/key.svg';
 import Keyboard from '../../../assets/images/keyboard.svg';
 import Link from '../../../assets/images/link.svg';
 import LinkCopy from '../../../assets/images/link-copy.svg';
+import Location from '../../../assets/images/location.svg';
 import Lock from '../../../assets/images/lock.svg';
 import LoungeAccess from '../../../assets/images/lounge-access.svg';
 import Luggage from '../../../assets/images/luggage.svg';
@@ -157,6 +159,7 @@ export {
     DownArrow,
     Download,
     DragAndDrop,
+    DragHandles,
     Emoji,
     Exclamation,
     Exit,
@@ -187,6 +190,7 @@ export {
     Keyboard,
     Link,
     LinkCopy,
+    Location,
     Lock,
     LoungeAccess,
     Luggage,
