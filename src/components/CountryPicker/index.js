@@ -40,6 +40,7 @@ function CountryPicker({value, errorText, onInputChange, forwardedRef}) {
     }, [value, allCountries]);
 
     const showPickerModal = () => {
+        setSearchValue(lodashGet(allCountries, value, ''));
         setIsPickerVisible(true);
     };
 

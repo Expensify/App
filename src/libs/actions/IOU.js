@@ -68,6 +68,8 @@ function resetMoneyRequestInfo(id = '') {
         currency: lodashGet(currentUserPersonalDetails, 'localCurrencyCode', CONST.CURRENCY.USD),
         comment: '',
         participants: [],
+        receiptPath: '',
+        receiptSource: '',
     });
 }
 
@@ -377,10 +379,7 @@ function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, part
 
     let reportPreviewAction = isNewIOUReport ? null : ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID);
     if (reportPreviewAction) {
-        reportPreviewAction.created = DateUtils.getDBTime();
-        const message = ReportUtils.getReportPreviewMessage(iouReport, reportPreviewAction);
-        reportPreviewAction.message[0].html = message;
-        reportPreviewAction.message[0].text = message;
+        reportPreviewAction = ReportUtils.updateReportPreview(iouReport, reportPreviewAction);
     } else {
         reportPreviewAction = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport);
     }
@@ -650,10 +649,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
 
         let oneOnOneReportPreviewAction = ReportActionsUtils.getReportPreviewAction(oneOnOneChatReport.reportID, oneOnOneIOUReport.reportID);
         if (oneOnOneReportPreviewAction) {
-            oneOnOneReportPreviewAction.created = DateUtils.getDBTime();
-            const message = ReportUtils.getReportPreviewMessage(oneOnOneIOUReport, oneOnOneReportPreviewAction);
-            oneOnOneReportPreviewAction.message[0].html = message;
-            oneOnOneReportPreviewAction.message[0].text = message;
+            oneOnOneReportPreviewAction = ReportUtils.updateReportPreview(oneOnOneIOUReport, oneOnOneReportPreviewAction);
         } else {
             oneOnOneReportPreviewAction = ReportUtils.buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport);
         }
@@ -1237,11 +1233,7 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
         login: recipient.login,
     };
 
-    const optimisticReportPreviewAction = ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID);
-    optimisticReportPreviewAction.created = DateUtils.getDBTime();
-    const message = ReportUtils.getReportPreviewMessage(iouReport, optimisticReportPreviewAction);
-    optimisticReportPreviewAction.message[0].html = message;
-    optimisticReportPreviewAction.message[0].text = message;
+    const optimisticReportPreviewAction = ReportUtils.updateReportPreview(iouReport, ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID));
 
     const optimisticData = [
         {
@@ -1488,6 +1480,50 @@ function setMoneyRequestParticipants(participants) {
     Onyx.merge(ONYXKEYS.IOU, {participants});
 }
 
+/**
+ * @param {String} receiptPath
+ * @param {String} receiptSource
+ */
+function setMoneyRequestReceipt(receiptPath, receiptSource) {
+    Onyx.merge(ONYXKEYS.IOU, {receiptPath, receiptSource});
+}
+
+/**
+ * Navigates to the next IOU page based on where the IOU request was started
+ *
+ * @param {Object} iou
+ * @param {String} iouType
+ * @param {String} reportID
+ * @param {Object} report
+ */
+function navigateToNextPage(iou, iouType, reportID, report) {
+    const moneyRequestID = `${iouType}${reportID}`;
+    const shouldReset = iou.id !== moneyRequestID;
+    // If the money request ID in Onyx does not match the ID from params, we want to start a new request
+    // with the ID from params. We need to clear the participants in case the new request is initiated from FAB.
+    if (shouldReset) {
+        resetMoneyRequestInfo(moneyRequestID);
+    }
+
+    // If a request is initiated on a report, skip the participants selection step and navigate to the confirmation page.
+    if (report.reportID) {
+        // Reinitialize the participants when the money request ID in Onyx does not match the ID from params
+        if (_.isEmpty(iou.participants) || shouldReset) {
+            const currentUserAccountID = currentUserPersonalDetails.accountID;
+            const participants = ReportUtils.isPolicyExpenseChat(report)
+                ? [{reportID: report.reportID, isPolicyExpenseChat: true, selected: true}]
+                : _.chain(report.participantAccountIDs)
+                      .filter((accountID) => currentUserAccountID !== accountID)
+                      .map((accountID) => ({accountID, selected: true}))
+                      .value();
+            setMoneyRequestParticipants(participants);
+        }
+        Navigation.navigate(ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID));
+        return;
+    }
+    Navigation.navigate(ROUTES.getMoneyRequestParticipantsRoute(iouType));
+}
+
 export {
     deleteMoneyRequest,
     splitBill,
@@ -1504,4 +1540,6 @@ export {
     setMoneyRequestCurrency,
     setMoneyRequestDescription,
     setMoneyRequestParticipants,
+    setMoneyRequestReceipt,
+    navigateToNextPage,
 };
