@@ -25,6 +25,7 @@ import * as ReportUtils from '../../ReportUtils';
 import * as Report from '../Report';
 import {hideContextMenu} from '../../../pages/home/report/ContextMenu/ReportActionContextMenu';
 
+let currentNotificationId = '';
 let authTokenType = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
@@ -46,6 +47,7 @@ Onyx.connect({
 Onyx.connect({
     key: ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID,
     callback: (notificationID) => {
+        currentNotificationId = notificationID;
         if (notificationID) {
             PushNotification.register(notificationID);
 
@@ -55,6 +57,29 @@ Onyx.connect({
         } else {
             PushNotification.deregister();
             PushNotification.clearNotifications();
+        }
+    },
+});
+
+/**
+ * If shouldForceOffline is enable, we should also prevent users from receiving notifications as well.
+ */
+Onyx.connect({
+    key: ONYXKEYS.NETWORK,
+    callback: (network) => {
+        if (!network) {
+            return;
+        }
+        const shouldForceOffline = Boolean(network.shouldForceOffline);
+        if (!shouldForceOffline && currentNotificationId) {
+            PushNotification.register(currentNotificationId);
+
+            // Prevent issue where report linking fails after users switch accounts without closing the app
+            PushNotification.init();
+            subscribeToReportCommentPushNotifications();
+        } else {
+            currentNotificationId = null;
+            PushNotification.deregister();
         }
     },
 });
