@@ -408,6 +408,7 @@ function Composer({
             // eslint-disable-next-line es/no-optional-chaining
             textInput.current?.removeEventListener('wheel', handleWheel);
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const renderElementForCaretPosition = (
