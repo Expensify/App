@@ -1,6 +1,6 @@
 import React from 'react';
-import defaultColors from './default';
+import darkTheme from './dark';
 
-const ThemeContext = React.createContext(defaultColors);
+const ThemeContext = React.createContext(darkTheme);
 
 export default ThemeContext;
