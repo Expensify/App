@@ -159,8 +159,6 @@ function InitialSettingsPage(props) {
         [props.network.isOffline],
     );
 
-    const reimbursementAccountsErrors = _.mapObject(props.allReimbursementAccounts, (reimbursementAccount) => !_.isEmpty(lodashGet(reimbursementAccount, 'errors', {})));
-
     /**
      * Retuns a list of default menu items
      * @returns {Array} the default menu items
@@ -273,7 +271,7 @@ function InitialSettingsPage(props) {
         props.policies,
         props.userWallet.errors,
         props.walletTerms.errors,
-        reimbursementAccountsErrors,
+        props.allReimbursementAccounts,
         signOut,
     ]);
 

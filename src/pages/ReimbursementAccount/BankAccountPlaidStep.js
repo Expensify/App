@@ -72,7 +72,7 @@ function BankAccountPlaidStep(props) {
 
         const bankAccountID = lodashGet(reimbursementAccount, 'achData.bankAccountID') || 0;
         BankAccounts.connectBankAccountWithPlaid(policyID, bankAccountID, bankAccountData);
-    }, [reimbursementAccount, reimbursementAccountDraft, plaidData]);
+    }, [policyID, reimbursementAccount, reimbursementAccountDraft, plaidData]);
 
     const bankAccountID = lodashGet(reimbursementAccount, 'achData.bankAccountID') || 0;
     const selectedPlaidAccountID = lodashGet(reimbursementAccountDraft, 'plaidAccountID', '');

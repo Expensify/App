@@ -70,7 +70,7 @@ function BankAccountManualStep(props) {
                 lodashGet(reimbursementAccountDraft, ['plaidMask']),
             );
         },
-        [reimbursementAccount, reimbursementAccountDraft],
+        [policyID, reimbursementAccount, reimbursementAccountDraft],
     );
 
     const shouldDisableInputs = Boolean(lodashGet(reimbursementAccount, 'achData.bankAccountID'));

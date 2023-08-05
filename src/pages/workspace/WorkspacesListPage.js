@@ -1,7 +1,6 @@
 import React, {useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
@@ -114,7 +113,6 @@ function WorkspacesListPage({policies, allPolicyMembers, allReimbursementAccount
     const {isOffline} = useNetwork();
     const {canUseWallet} = usePermissions();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const reimbursementAccountsErrors = _.mapObject(allReimbursementAccounts, (reimbursementAccount) => !_.isEmpty(lodashGet(reimbursementAccount, 'errors', {})));
 
     /**
      * @param {Boolean} isPaymentItem whether the item being rendered is the payments menu item
@@ -180,7 +178,7 @@ function WorkspacesListPage({policies, allPolicyMembers, allReimbursementAccount
                 disabled: policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             }))
             .sortBy((policy) => policy.title.toLowerCase())
-            .value(), [reimbursementAccountsErrors, policies, isOffline, allPolicyMembers]);
+            .value(), [allReimbursementAccounts, policies, isOffline, allPolicyMembers]);
 
     return (
         <IllustratedHeaderPageLayout
