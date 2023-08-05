@@ -164,8 +164,7 @@ function WorkspacesListPage({policies, allPolicyMembers, allReimbursementAccount
      * Add free policies (workspaces) to the list of menu items and returns the list of menu items
      * @returns {Array} the menu item list
      */
-    const workspaces = useMemo(() => {
-        return _.chain(policies)
+    const workspaces = useMemo(() => _.chain(policies)
             .filter((policy) => PolicyUtils.shouldShowPolicy(policy, isOffline))
             .map((policy) => ({
                 title: policy.name,
@@ -181,8 +180,7 @@ function WorkspacesListPage({policies, allPolicyMembers, allReimbursementAccount
                 disabled: policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             }))
             .sortBy((policy) => policy.title.toLowerCase())
-            .value();
-    }, [reimbursementAccountsErrors, policies, isOffline, allPolicyMembers]);
+            .value(), [reimbursementAccountsErrors, policies, isOffline, allPolicyMembers]);
 
     return (
         <IllustratedHeaderPageLayout
