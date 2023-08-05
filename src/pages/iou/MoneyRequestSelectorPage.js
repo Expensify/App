@@ -86,7 +86,7 @@ function MoneyRequestSelectorPage(props) {
                                 title={title[iouType]}
                                 onBackButtonPress={Navigation.dismissModal}
                             />
-                            {canUseScanReceipts && iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST ? (
+                            {(canUseScanReceipts || canUseDistanceRequests) && iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST ? (
                                 <OnyxTabNavigator
                                     id={CONST.TAB.RECEIPT_TAB_ID}
                                     tabBar={({state, navigation}) => (
@@ -102,11 +102,13 @@ function MoneyRequestSelectorPage(props) {
                                         component={MoneyRequestAmount}
                                         initialParams={{reportID, iouType}}
                                     />
-                                    <TopTab.Screen
-                                        name={CONST.TAB.SCAN}
-                                        component={ReceiptSelector}
-                                        initialParams={{reportID, iouType}}
-                                    />
+                                    {canUseScanReceipts && (
+                                        <TopTab.Screen
+                                            name={CONST.TAB.SCAN}
+                                            component={ReceiptSelector}
+                                            initialParams={{reportID, iouType}}
+                                        />
+                                    )}
                                     {canUseDistanceRequests && (
                                         <TopTab.Screen
                                             name={CONST.TAB.DISTANCE}
