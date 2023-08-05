@@ -2035,6 +2035,14 @@ export default {
         levelTwoResult: 'Mensaje ocultado del canal, más advertencia anónima y mensaje reportado para revisión.',
         levelThreeResult: 'Mensaje eliminado del canal, más advertencia anónima y mensaje reportado para revisión.',
     },
+    distance: {
+        addStop: 'Añadir parada',
+        waypointDescription: {
+            start: 'El comienzo',
+            finish: 'El final',
+            stop: 'La parada',
+        },
+    },
     countrySelectorModal: {
         placeholderText: 'Buscar para ver opciones',
     },
