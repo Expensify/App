@@ -4,7 +4,7 @@ import htmlRendererPropTypes from './htmlRendererPropTypes';
 import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
 import Text from '../../Text';
 import variables from '../../../styles/variables';
-import themeColors from '../../../styles/themes/default';
+import themeColors from '../../../styles/themes/dark';
 import styles from '../../../styles/styles';
 import editedLabelStyles from '../../../styles/editedLabelStyles';
 

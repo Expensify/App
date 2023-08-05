@@ -3,7 +3,7 @@ import React from 'react';
 import {View} from 'react-native';
 import Text from './Text';
 import styles from '../styles/styles';
-import themeColors from '../styles/themes/default';
+import themeColors from '../styles/themes/dark';
 import * as StyleUtils from '../styles/StyleUtils';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';

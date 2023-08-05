@@ -24,7 +24,7 @@ import LHNOptionsList from '../../../components/LHNOptionsList/LHNOptionsList';
 import SidebarUtils from '../../../libs/SidebarUtils';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import Header from '../../../components/Header';
-import defaultTheme from '../../../styles/themes/default';
+import defaultTheme from '../../../styles/themes/dark';
 import OptionsListSkeletonView from '../../../components/OptionsListSkeletonView';
 import variables from '../../../styles/variables';
 import LogoComponent from '../../../../assets/images/expensify-wordmark.svg';

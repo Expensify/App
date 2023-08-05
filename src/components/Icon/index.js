@@ -2,7 +2,7 @@ import React, {PureComponent} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
-import themeColors from '../../styles/themes/default';
+import themeColors from '../../styles/themes/dark';
 import variables from '../../styles/variables';
 import * as StyleUtils from '../../styles/StyleUtils';
 import IconWrapperStyles from './IconWrapperStyles';

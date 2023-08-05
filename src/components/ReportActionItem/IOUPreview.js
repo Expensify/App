@@ -10,7 +10,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import MultipleAvatars from '../MultipleAvatars';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import * as Report from '../../libs/actions/Report';
-import themeColors from '../../styles/themes/default';
+import themeColors from '../../styles/themes/dark';
 import Icon from '../Icon';
 import CONST from '../../CONST';
 import * as Expensicons from '../Icon/Expensicons';

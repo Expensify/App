@@ -8,7 +8,7 @@ import Icon from './Icon';
 import PopoverMenu from './PopoverMenu';
 import * as Expensicons from './Icon/Expensicons';
 import styles from '../styles/styles';
-import themeColors from '../styles/themes/default';
+import themeColors from '../styles/themes/dark';
 import AttachmentPicker from './AttachmentPicker';
 import AvatarCropModal from './AvatarCropModal/AvatarCropModal';
 import OfflineWithFeedback from './OfflineWithFeedback';

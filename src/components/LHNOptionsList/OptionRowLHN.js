@@ -14,7 +14,7 @@ import colors from '../../styles/colors';
 import Text from '../Text';
 import SubscriptAvatar from '../SubscriptAvatar';
 import CONST from '../../CONST';
-import themeColors from '../../styles/themes/default';
+import themeColors from '../../styles/themes/dark';
 import OfflineWithFeedback from '../OfflineWithFeedback';
 import PressableWithSecondaryInteraction from '../PressableWithSecondaryInteraction';
 import * as ReportActionContextMenu from '../../pages/home/report/ContextMenu/ReportActionContextMenu';

@@ -3,7 +3,7 @@ import withWindowDimensions from '../withWindowDimensions';
 import BaseModal from './BaseModal';
 import {propTypes, defaultProps} from './modalPropTypes';
 import * as StyleUtils from '../../styles/StyleUtils';
-import themeColors from '../../styles/themes/default';
+import themeColors from '../../styles/themes/dark';
 import StatusBar from '../../libs/StatusBar';
 import CONST from '../../CONST';
 

@@ -3,7 +3,7 @@ import _ from 'underscore';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import SCREENS from '../../../../SCREENS';
-import themeColors from '../../../../styles/themes/default';
+import themeColors from '../../../../styles/themes/dark';
 import NAVIGATORS from '../../../../NAVIGATORS';
 import * as StyleUtils from '../../../../styles/StyleUtils';
 import {withNavigationPropTypes} from '../../../../components/withNavigation';

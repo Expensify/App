@@ -1,7 +1,7 @@
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {Directions, FlingGestureHandler, State} from 'react-native-gesture-handler';
 import {View, Animated} from 'react-native';
-import themeColors from '../../styles/themes/default';
+import themeColors from '../../styles/themes/dark';
 import Text from '../Text';
 import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';

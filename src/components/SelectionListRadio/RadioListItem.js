@@ -6,7 +6,7 @@ import styles from '../../styles/styles';
 import Text from '../Text';
 import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
-import themeColors from '../../styles/themes/default';
+import themeColors from '../../styles/themes/dark';
 import {radioListItemPropTypes} from './selectionListRadioPropTypes';
 
 const propTypes = {

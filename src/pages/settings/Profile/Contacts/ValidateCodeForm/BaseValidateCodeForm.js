@@ -20,7 +20,7 @@ import shouldDelayFocus from '../../../../../libs/shouldDelayFocus';
 import Text from '../../../../../components/Text';
 import {withNetwork} from '../../../../../components/OnyxProvider';
 import PressableWithFeedback from '../../../../../components/Pressable/PressableWithFeedback';
-import themeColors from '../../../../../styles/themes/default';
+import themeColors from '../../../../../styles/themes/dark';
 import * as StyleUtils from '../../../../../styles/StyleUtils';
 import CONST from '../../../../../CONST';
 

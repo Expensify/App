@@ -5,7 +5,7 @@ import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
-import themeColors from '../styles/themes/default';
+import themeColors from '../styles/themes/dark';
 import Tooltip from './Tooltip';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';

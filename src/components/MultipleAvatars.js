@@ -6,7 +6,7 @@ import styles from '../styles/styles';
 import Avatar from './Avatar';
 import Tooltip from './Tooltip';
 import Text from './Text';
-import themeColors from '../styles/themes/default';
+import themeColors from '../styles/themes/dark';
 import * as StyleUtils from '../styles/StyleUtils';
 import CONST from '../CONST';
 import variables from '../styles/variables';

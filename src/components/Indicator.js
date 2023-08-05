@@ -15,7 +15,7 @@ import * as PolicyUtils from '../libs/PolicyUtils';
 import * as PaymentMethods from '../libs/actions/PaymentMethods';
 import * as ReimbursementAccountProps from '../pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import * as UserUtils from '../libs/UserUtils';
-import themeColors from '../styles/themes/default';
+import themeColors from '../styles/themes/dark';
 
 const propTypes = {
     /* Onyx Props */

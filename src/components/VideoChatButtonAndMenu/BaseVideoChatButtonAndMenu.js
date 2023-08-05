@@ -10,7 +10,7 @@ import ZoomIcon from '../../../assets/images/zoom-icon.svg';
 import GoogleMeetIcon from '../../../assets/images/google-meet.svg';
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
-import themeColors from '../../styles/themes/default';
+import themeColors from '../../styles/themes/dark';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import compose from '../../libs/compose';

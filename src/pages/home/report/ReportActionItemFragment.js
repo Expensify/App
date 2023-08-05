@@ -5,7 +5,7 @@ import Str from 'expensify-common/lib/str';
 import reportActionFragmentPropTypes from './reportActionFragmentPropTypes';
 import styles from '../../../styles/styles';
 import variables from '../../../styles/variables';
-import themeColors from '../../../styles/themes/default';
+import themeColors from '../../../styles/themes/dark';
 import RenderHTML from '../../../components/RenderHTML';
 import Text from '../../../components/Text';
 import * as EmojiUtils from '../../../libs/EmojiUtils';

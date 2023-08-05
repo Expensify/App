@@ -11,7 +11,7 @@ import styles from '../../../styles/styles';
 import SignInPageHero from '../SignInPageHero';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import scrollViewContentContainerStyles from './signInPageStyles';
-import themeColors from '../../../styles/themes/default';
+import themeColors from '../../../styles/themes/dark';
 import BackgroundImage from './BackgroundImage';
 import SignInGradient from '../../../../assets/images/home-fade-gradient.svg';
 import variables from '../../../styles/variables';

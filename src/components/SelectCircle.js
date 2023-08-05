@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
-import themeColors from '../styles/themes/default';
+import themeColors from '../styles/themes/dark';
 
 const propTypes = {
     /** Should we show the checkmark inside the circle */

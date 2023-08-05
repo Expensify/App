@@ -7,7 +7,7 @@ import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Str from 'expensify-common/lib/str';
 import reportActionPropTypes from './reportActionPropTypes';
 import styles from '../../../styles/styles';
-import themeColors from '../../../styles/themes/default';
+import themeColors from '../../../styles/themes/dark';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import containerComposeStyles from '../../../styles/containerComposeStyles';
 import Composer from '../../../components/Composer';

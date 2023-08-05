@@ -4,7 +4,7 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import * as Expensicons from '../Icon/Expensicons';
 import styles from '../../styles/styles';
-import themeColors from '../../styles/themes/default';
+import themeColors from '../../styles/themes/dark';
 import CarouselActions from './CarouselActions';
 import Button from '../Button';
 import AttachmentView from '../AttachmentView';

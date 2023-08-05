@@ -6,7 +6,7 @@ import {useSharedValue, useAnimatedReaction, interpolateColor, withTiming, withD
 import Navigation, {navigationRef} from './Navigation';
 import linkingConfig from './linkingConfig';
 import AppNavigator from './AppNavigator';
-import themeColors from '../../styles/themes/default';
+import themeColors from '../../styles/themes/dark';
 import Log from '../Log';
 import StatusBar from '../StatusBar';
 import useCurrentReportID from '../../hooks/useCurrentReportID';

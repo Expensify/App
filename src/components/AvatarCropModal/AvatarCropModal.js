@@ -6,7 +6,7 @@ import {runOnUI, interpolate, useAnimatedGestureHandler, useSharedValue, useWork
 import CONST from '../../CONST';
 import compose from '../../libs/compose';
 import styles from '../../styles/styles';
-import themeColors from '../../styles/themes/default';
+import themeColors from '../../styles/themes/dark';
 import Button from '../Button';
 import HeaderWithBackButton from '../HeaderWithBackButton';
 import Icon from '../Icon';

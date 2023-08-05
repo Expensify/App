@@ -8,7 +8,7 @@ import participantPropTypes from './participantPropTypes';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import styles from '../styles/styles';
-import themeColors from '../styles/themes/default';
+import themeColors from '../styles/themes/dark';
 import SubscriptAvatar from './SubscriptAvatar';
 import * as ReportUtils from '../libs/ReportUtils';
 import MultipleAvatars from './MultipleAvatars';

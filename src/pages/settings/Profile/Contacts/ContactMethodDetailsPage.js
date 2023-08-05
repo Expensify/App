@@ -21,7 +21,7 @@ import ConfirmModal from '../../../../components/ConfirmModal';
 import * as User from '../../../../libs/actions/User';
 import CONST from '../../../../CONST';
 import * as ErrorUtils from '../../../../libs/ErrorUtils';
-import themeColors from '../../../../styles/themes/default';
+import themeColors from '../../../../styles/themes/dark';
 import NotFoundPage from '../../../ErrorPage/NotFoundPage';
 import ValidateCodeForm from './ValidateCodeForm';
 import ROUTES from '../../../../ROUTES';

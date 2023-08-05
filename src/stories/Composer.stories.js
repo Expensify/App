@@ -5,7 +5,7 @@ import Composer from '../components/Composer';
 import RenderHTML from '../components/RenderHTML';
 import Text from '../components/Text';
 import styles from '../styles/styles';
-import themeColors from '../styles/themes/default';
+import themeColors from '../styles/themes/dark';
 import * as StyleUtils from '../styles/StyleUtils';
 import CONST from '../CONST';
 

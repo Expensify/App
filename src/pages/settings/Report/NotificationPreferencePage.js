@@ -14,7 +14,7 @@ import ROUTES from '../../../ROUTES';
 import * as Report from '../../../libs/actions/Report';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import * as Expensicons from '../../../components/Icon/Expensicons';
-import themeColors from '../../../styles/themes/default';
+import themeColors from '../../../styles/themes/dark';
 
 const propTypes = {
     ...withLocalizePropTypes,

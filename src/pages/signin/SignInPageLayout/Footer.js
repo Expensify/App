@@ -5,7 +5,7 @@ import _ from 'underscore';
 import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
 import * as StyleUtils from '../../../styles/StyleUtils';
-import themeColors from '../../../styles/themes/default';
+import themeColors from '../../../styles/themes/dark';
 import variables from '../../../styles/variables';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import TextLink from '../../../components/TextLink';

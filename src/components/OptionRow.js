@@ -11,7 +11,7 @@ import * as Expensicons from './Icon/Expensicons';
 import MultipleAvatars from './MultipleAvatars';
 import Hoverable from './Hoverable';
 import DisplayNames from './DisplayNames';
-import themeColors from '../styles/themes/default';
+import themeColors from '../styles/themes/dark';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import Text from './Text';
 import SelectCircle from './SelectCircle';

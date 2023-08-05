@@ -28,7 +28,7 @@ import * as PaymentUtils from '../../../../libs/PaymentUtils';
 import OfflineWithFeedback from '../../../../components/OfflineWithFeedback';
 import ConfirmContent from '../../../../components/ConfirmContent';
 import Button from '../../../../components/Button';
-import themeColors from '../../../../styles/themes/default';
+import themeColors from '../../../../styles/themes/dark';
 import variables from '../../../../styles/variables';
 import useLocalize from '../../../../hooks/useLocalize';
 import useWindowDimensions from '../../../../hooks/useWindowDimensions';

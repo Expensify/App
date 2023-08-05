@@ -5,7 +5,7 @@ import Str from 'expensify-common/lib/str';
 import RNTextInput from '../RNTextInput';
 import TextInputLabel from './TextInputLabel';
 import * as baseTextInputPropTypes from './baseTextInputPropTypes';
-import themeColors from '../../styles/themes/default';
+import themeColors from '../../styles/themes/dark';
 import styles from '../../styles/styles';
 import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';

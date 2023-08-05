@@ -8,7 +8,7 @@ import TextLink from '../../../components/TextLink';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import styles from '../../../styles/styles';
 import variables from '../../../styles/variables';
-import themeColors from '../../../styles/themes/default';
+import themeColors from '../../../styles/themes/dark';
 
 const IMAGE_TYPES = ['jpg', 'jpeg', 'png'];
 const MAX_IMAGE_HEIGHT = 180;

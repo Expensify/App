@@ -6,7 +6,7 @@ import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import RNTextInput from '../RNTextInput';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Growl from '../../libs/Growl';
-import themeColors from '../../styles/themes/default';
+import themeColors from '../../styles/themes/dark';
 import updateIsFullComposerAvailable from '../../libs/ComposerUtils/updateIsFullComposerAvailable';
 import * as ComposerUtils from '../../libs/ComposerUtils';
 import * as Browser from '../../libs/Browser';

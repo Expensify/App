@@ -1,6 +1,6 @@
 import CONST from '../../CONST';
 import variables from '../variables';
-import themeColors from '../themes/default';
+import themeColors from '../themes/dark';
 import styles from '../styles';
 
 const getCenteredModalStyles = (windowWidth, isSmallScreenWidth, isFullScreenWhenSmall = false) => ({

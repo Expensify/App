@@ -7,7 +7,7 @@ import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import ONYXKEYS from '../../../ONYXKEYS';
 import styles from '../../../styles/styles';
-import themeColors from '../../../styles/themes/default';
+import themeColors from '../../../styles/themes/dark';
 import Text from '../../../components/Text';
 import CONST from '../../../CONST';
 import * as User from '../../../libs/actions/User';

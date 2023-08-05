@@ -1,6 +1,6 @@
 import React, {useEffect} from 'react';
 import StatusBar from '../../libs/StatusBar';
-import themeColors from '../../styles/themes/default';
+import themeColors from '../../styles/themes/dark';
 
 function CustomStatusBar() {
     useEffect(() => {

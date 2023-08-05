@@ -15,7 +15,7 @@ import reportPropTypes from '../../reportPropTypes';
 import ROUTES from '../../../ROUTES';
 import * as Report from '../../../libs/actions/Report';
 import * as Expensicons from '../../../components/Icon/Expensicons';
-import themeColors from '../../../styles/themes/default';
+import themeColors from '../../../styles/themes/dark';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
 import * as PolicyUtils from '../../../libs/PolicyUtils';

@@ -11,7 +11,7 @@ import Text from './Text';
 import participantPropTypes from './participantPropTypes';
 import Avatar from './Avatar';
 import styles from '../styles/styles';
-import themeColors from '../styles/themes/default';
+import themeColors from '../styles/themes/dark';
 import CONST from '../CONST';
 import withWindowDimensions from './withWindowDimensions';
 import compose from '../libs/compose';

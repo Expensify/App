@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import stylePropTypes from '../styles/stylePropTypes';
 import Icon from './Icon';
-import themeColors from '../styles/themes/default';
+import themeColors from '../styles/themes/dark';
 import CONST from '../CONST';
 import * as StyleUtils from '../styles/StyleUtils';
 import * as Expensicons from './Icon/Expensicons';

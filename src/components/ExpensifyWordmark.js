@@ -8,7 +8,7 @@ import StagingLogo from '../../assets/images/expensify-logo--staging.svg';
 import AdHocLogo from '../../assets/images/expensify-logo--adhoc.svg';
 import CONST from '../CONST';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
-import themeColors from '../styles/themes/default';
+import themeColors from '../styles/themes/dark';
 import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
 import variables from '../styles/variables';

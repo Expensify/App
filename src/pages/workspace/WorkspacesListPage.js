@@ -10,7 +10,7 @@ import styles from '../../styles/styles';
 import compose from '../../libs/compose';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import * as Expensicons from '../../components/Icon/Expensicons';
-import themeColors from '../../styles/themes/default';
+import themeColors from '../../styles/themes/dark';
 import * as PolicyUtils from '../../libs/PolicyUtils';
 import MenuItem from '../../components/MenuItem';
 import * as Policy from '../../libs/actions/Policy';

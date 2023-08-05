@@ -2,7 +2,7 @@ import React, {Component} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import defaultTheme from '../../styles/themes/default';
+import defaultTheme from '../../styles/themes/dark';
 import styles from '../../styles/styles';
 import Text from '../Text';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';

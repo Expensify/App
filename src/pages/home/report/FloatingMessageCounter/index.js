@@ -6,7 +6,7 @@ import Button from '../../../../components/Button';
 import Text from '../../../../components/Text';
 import Icon from '../../../../components/Icon';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
-import themeColors from '../../../../styles/themes/default';
+import themeColors from '../../../../styles/themes/dark';
 import useLocalize from '../../../../hooks/useLocalize';
 import FloatingMessageCounterContainer from './FloatingMessageCounterContainer';
 

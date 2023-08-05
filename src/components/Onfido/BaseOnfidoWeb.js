@@ -6,7 +6,7 @@ import * as OnfidoSDK from 'onfido-sdk-ui';
 import onfidoPropTypes from './onfidoPropTypes';
 import CONST from '../../CONST';
 import variables from '../../styles/variables';
-import themeColors from '../../styles/themes/default';
+import themeColors from '../../styles/themes/dark';
 import fontWeightBold from '../../styles/fontWeight/bold';
 import fontFamily from '../../styles/fontFamily';
 import Log from '../../libs/Log';

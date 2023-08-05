@@ -12,7 +12,7 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import compose from '../libs/compose';
 import Text from './Text';
 import Tooltip from './Tooltip';
-import themeColors from '../styles/themes/default';
+import themeColors from '../styles/themes/dark';
 import variables from '../styles/variables';
 import addEncryptedAuthTokenToURL from '../libs/addEncryptedAuthTokenToURL';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';

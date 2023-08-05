@@ -2,7 +2,7 @@ import React, {Component} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
-import themeColors from '../../styles/themes/default';
+import themeColors from '../../styles/themes/dark';
 import Text from '../Text';
 import KeyboardShortcut from '../../libs/KeyboardShortcut';
 import Icon from '../Icon';

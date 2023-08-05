@@ -7,7 +7,7 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import styles from '../../../styles/styles';
-import themeColors from '../../../styles/themes/default';
+import themeColors from '../../../styles/themes/dark';
 import Composer from '../../../components/Composer';
 import ONYXKEYS from '../../../ONYXKEYS';
 import Icon from '../../../components/Icon';

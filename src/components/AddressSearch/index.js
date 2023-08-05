@@ -6,7 +6,7 @@ import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete'
 import lodashGet from 'lodash/get';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import styles from '../../styles/styles';
-import themeColors from '../../styles/themes/default';
+import themeColors from '../../styles/themes/dark';
 import TextInput from '../TextInput';
 import * as ApiUtils from '../../libs/ApiUtils';
 import * as GooglePlacesUtils from '../../libs/GooglePlacesUtils';

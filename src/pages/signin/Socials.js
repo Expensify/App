@@ -5,7 +5,7 @@ import * as Link from '../../libs/actions/Link';
 import Icon from '../../components/Icon';
 import PressableWithoutFeedback from '../../components/Pressable/PressableWithoutFeedback';
 import * as Expensicons from '../../components/Icon/Expensicons';
-import themeColors from '../../styles/themes/default';
+import themeColors from '../../styles/themes/dark';
 import styles from '../../styles/styles';
 import variables from '../../styles/variables';
 import CONST from '../../CONST';

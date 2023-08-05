@@ -7,7 +7,7 @@ import lodashGet from 'lodash/get';
 import styles from '../../../styles/styles';
 import Button from '../../../components/Button';
 import Text from '../../../components/Text';
-import themeColors from '../../../styles/themes/default';
+import themeColors from '../../../styles/themes/dark';
 import * as Session from '../../../libs/actions/Session';
 import ONYXKEYS from '../../../ONYXKEYS';
 import CONST from '../../../CONST';

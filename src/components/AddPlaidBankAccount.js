@@ -9,7 +9,7 @@ import PlaidLink from './PlaidLink';
 import * as BankAccounts from '../libs/actions/BankAccounts';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
-import themeColors from '../styles/themes/default';
+import themeColors from '../styles/themes/dark';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import Picker from './Picker';

@@ -7,7 +7,7 @@ import variables from '../../styles/variables';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
 import getButtonState from '../../libs/getButtonState';
-import themeColors from '../../styles/themes/default';
+import themeColors from '../../styles/themes/dark';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 import CONST from '../../CONST';
 

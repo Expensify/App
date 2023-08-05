@@ -23,7 +23,7 @@ import optionPropTypes from './optionPropTypes';
 import * as CurrencyUtils from '../libs/CurrencyUtils';
 import Button from './Button';
 import * as Expensicons from './Icon/Expensicons';
-import themeColors from '../styles/themes/default';
+import themeColors from '../styles/themes/dark';
 import Image from './Image';
 import ReceiptHTML from '../../assets/images/receipt-html.png';
 import ReceiptDoc from '../../assets/images/receipt-doc.png';

@@ -4,7 +4,7 @@ import {View} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import styles from '../styles/styles';
-import themeColors from '../styles/themes/default';
+import themeColors from '../styles/themes/dark';
 import Avatar from './Avatar';
 import CONST from '../CONST';
 import * as StyleUtils from '../styles/StyleUtils';

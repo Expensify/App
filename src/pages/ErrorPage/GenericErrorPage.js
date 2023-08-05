@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import Icon from '../../components/Icon';
-import defaultTheme from '../../styles/themes/default';
+import defaultTheme from '../../styles/themes/dark';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import Text from '../../components/Text';
 import Button from '../../components/Button';

@@ -10,7 +10,7 @@ import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Popover from '../Popover';
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
-import themeColors from '../../styles/themes/default';
+import themeColors from '../../styles/themes/dark';
 import {propTypes, defaultProps} from './datepickerPropTypes';
 import withKeyboardState, {keyboardStatePropTypes} from '../withKeyboardState';
 

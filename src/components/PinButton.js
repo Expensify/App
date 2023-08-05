@@ -1,6 +1,6 @@
 import React from 'react';
 import styles from '../styles/styles';
-import themeColors from '../styles/themes/default';
+import themeColors from '../styles/themes/dark';
 import Icon from './Icon';
 import Tooltip from './Tooltip';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';

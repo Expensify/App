@@ -22,7 +22,7 @@ import Text from '../../../../components/Text';
 import Section from '../../../../components/Section';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import Clipboard from '../../../../libs/Clipboard';
-import themeColors from '../../../../styles/themes/default';
+import themeColors from '../../../../styles/themes/dark';
 import localFileDownload from '../../../../libs/localFileDownload';
 import * as TwoFactorAuthActions from '../../../../libs/actions/TwoFactorAuthActions';
 

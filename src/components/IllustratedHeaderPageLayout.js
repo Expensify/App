@@ -7,7 +7,7 @@ import headerWithBackButtonPropTypes from './HeaderWithBackButton/headerWithBack
 import HeaderWithBackButton from './HeaderWithBackButton';
 import ScreenWrapper from './ScreenWrapper';
 import styles from '../styles/styles';
-import themeColors from '../styles/themes/default';
+import themeColors from '../styles/themes/dark';
 import * as StyleUtils from '../styles/StyleUtils';
 import useWindowDimensions from '../hooks/useWindowDimensions';
 import FixedFooter from './FixedFooter';

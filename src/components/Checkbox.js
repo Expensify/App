@@ -2,7 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
-import themeColors from '../styles/themes/default';
+import themeColors from '../styles/themes/dark';
 import stylePropTypes from '../styles/stylePropTypes';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';

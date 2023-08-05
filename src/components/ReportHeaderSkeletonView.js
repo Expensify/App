@@ -8,7 +8,7 @@ import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import variables from '../styles/variables';
-import themeColors from '../styles/themes/default';
+import themeColors from '../styles/themes/dark';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';

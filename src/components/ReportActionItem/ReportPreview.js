@@ -23,7 +23,7 @@ import SettlementButton from '../SettlementButton';
 import * as IOU from '../../libs/actions/IOU';
 import refPropTypes from '../refPropTypes';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
-import themeColors from '../../styles/themes/default';
+import themeColors from '../../styles/themes/dark';
 import reportPropTypes from '../../pages/reportPropTypes';
 
 const propTypes = {

@@ -15,7 +15,7 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import {withNetwork} from '../../components/OnyxProvider';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import ROUTES from '../../ROUTES';
-import themeColors from '../../styles/themes/default';
+import themeColors from '../../styles/themes/dark';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import reportPropTypes from '../reportPropTypes';
 import * as ReportUtils from '../../libs/ReportUtils';

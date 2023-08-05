@@ -8,7 +8,7 @@ import * as Expensicons from '../Icon/Expensicons';
 import FormHelpMessage from '../FormHelpMessage';
 import Text from '../Text';
 import styles from '../../styles/styles';
-import themeColors from '../../styles/themes/default';
+import themeColors from '../../styles/themes/dark';
 import {ScrollContext} from '../ScrollViewWithContext';
 
 const propTypes = {

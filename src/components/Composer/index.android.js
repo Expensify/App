@@ -3,7 +3,7 @@ import {StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import RNTextInput from '../RNTextInput';
-import themeColors from '../../styles/themes/default';
+import themeColors from '../../styles/themes/dark';
 import * as ComposerUtils from '../../libs/ComposerUtils';
 
 const propTypes = {

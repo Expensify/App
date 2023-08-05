@@ -13,7 +13,7 @@ import styles from '../../../styles/styles';
 import Shutter from '../../../../assets/images/shutter.svg';
 import Hand from '../../../../assets/images/hand.svg';
 import * as IOU from '../../../libs/actions/IOU';
-import themeColors from '../../../styles/themes/default';
+import themeColors from '../../../styles/themes/dark';
 import reportPropTypes from '../../reportPropTypes';
 import CONST from '../../../CONST';
 import Button from '../../../components/Button';

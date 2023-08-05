@@ -5,7 +5,7 @@ import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
-import themeColors from '../../../styles/themes/default';
+import themeColors from '../../../styles/themes/dark';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as Illustrations from '../../../components/Icon/Illustrations';
 import Section from '../../../components/Section';
