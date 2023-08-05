@@ -63,6 +63,7 @@ describe('CurrencyUtils', () => {
         test('Currency decimals smaller than or equal 2', () => {
             expect(CurrencyUtils.getCurrencyDecimals('JPY')).toBe(0);
             expect(CurrencyUtils.getCurrencyDecimals('USD')).toBe(2);
+            expect(CurrencyUtils.getCurrencyDecimals('RSD')).toBe(2);
         });
 
         test('Currency decimals larger than 2 should return 2', () => {

@@ -1006,8 +1006,7 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
  * @returns {String}
  */
 function buildPayPalPaymentUrl(amount, submitterPayPalMeAddress, currency) {
-    const currencyUnit = CurrencyUtils.getCurrencyUnit(currency);
-    return `https://paypal.me/${submitterPayPalMeAddress}/${Math.abs(amount) / currencyUnit}${currency}`;
+    return `https://paypal.me/${submitterPayPalMeAddress}/${Math.abs(amount) / 100}${currency}`;
 }
 
 /**
