@@ -127,6 +127,10 @@ describe('CurrencyUtils', () => {
             ['JPY', 2500, '¥25'],
             ['JPY', 250000, '¥2,500'],
             ['JPY', 2500.5, '¥25'],
+            ['RSD', 100, 'RSD\xa01.00'],
+            ['RSD', 145, 'RSD\xa01.45'],
+            ['BHD', 12345, 'BHD\xa0123.450'],
+            ['BHD', 1, 'BHD\xa00.010'],
         ])('Correctly displays %s', (currency, amount, expectedResult) => {
             expect(CurrencyUtils.convertToDisplayString(amount, currency)).toBe(expectedResult);
         });

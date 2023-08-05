@@ -28,7 +28,7 @@ Onyx.connect({
  */
 function getCurrencyDecimals(currency = CONST.CURRENCY.USD) {
     const decimals = lodashGet(currencyList, [currency, 'decimals']);
-    return _.isUndefined(decimals) ? 2 : Math.min(decimals, 2);
+    return _.isUndefined(decimals) ? 2 : decimals;
 }
 
 /**
@@ -114,7 +114,7 @@ function convertToDisplayString(amountInCents, currency = CONST.CURRENCY.USD) {
 
         // We are forcindg the number of decimals because we overridden the default number of decimals in the backend for RSD
         // See: https://github.com/Expensify/PHP-Libs/pull/834
-        minimumFractionDigits: getCurrencyDecimals(currency),
+        minimumFractionDigits: currency === 'RSD' ? getCurrencyDecimals(currency) : undefined,
     });
 }
 
