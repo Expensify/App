@@ -557,7 +557,7 @@ function getIOUReportIDFromReportActionPreview(reportAction) {
 function getParentReportActionForTask(taskReportID, reportID) {
     return _.find(
         allReportActions[reportID],
-        (reportAction) => reportAction && `${reportAction.childReportID}` === `${taskReportID}` && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
+        (reportAction) => reportAction && `${reportAction.childReportID}` === `${taskReportID}`,
     );
 }
 

@@ -265,7 +265,7 @@ function completeTask(taskReport, taskTitle) {
         },
     ];
 
-    // Update optimistic data and failure data for parent report action
+    // Update optimistic data for parent report action
     const parentReportAction = ReportActionsUtils.getParentReportAction(taskReport);
     if (parentReportAction && parentReportAction.reportActionID) {
         const optimisticParentReportActionData = ReportUtils.updateOptimisticParentReportAction(
@@ -285,7 +285,7 @@ function completeTask(taskReport, taskTitle) {
         // We need to find and update the other parent report action (in assignee report). More info https://github.com/Expensify/App/issues/23920#issuecomment-1663092717
         const assigneeChatReportID = lodashGet(ReportUtils.getChatByParticipants(taskReport.participantAccountIDs), 'reportID');
         // We don't need to create optmistic report action for assignee report if assignee and shareDestination are the same
-        if (assigneeChatReportID && assigneeChatReportID !== String(taskReport.parentReportID)) {
+        if (assigneeChatReportID && assigneeChatReportID !== taskReport.parentReportID) {
             const clonedParentReportAction = ReportActionsUtils.getParentReportActionForTask(taskReportID, assigneeChatReportID);
             if (clonedParentReportAction && clonedParentReportAction.reportActionID) {
                 optimisticData.push({
@@ -371,7 +371,6 @@ function reopenTask(taskReport, taskTitle) {
     ];
 
     // Update optimistic data for parent report action
-    // Update optimistic data and failure data for parent report action
     const parentReportAction = ReportActionsUtils.getParentReportAction(taskReport);
     if (parentReportAction && parentReportAction.reportActionID) {
         const optimisticParentReportActionData = ReportUtils.updateOptimisticParentReportAction(
@@ -391,7 +390,7 @@ function reopenTask(taskReport, taskTitle) {
         // We need to find and update the other parent report action (in assignee report). More info https://github.com/Expensify/App/issues/23920#issuecomment-1663092717
         const assigneeChatReportID = lodashGet(ReportUtils.getChatByParticipants(taskReport.participantAccountIDs), 'reportID');
         // We don't need to create optmistic report action for assignee report if assignee and shareDestination are the same
-        if (assigneeChatReportID && assigneeChatReportID !== String(taskReport.parentReportID)) {
+        if (assigneeChatReportID && assigneeChatReportID !== taskReport.parentReportID) {
             const clonedParentReportAction = ReportActionsUtils.getParentReportActionForTask(taskReportID, assigneeChatReportID);
             if (clonedParentReportAction && clonedParentReportAction.reportActionID) {
                 optimisticData.push({
