@@ -111,6 +111,10 @@ function convertToDisplayString(amountInCents, currency = CONST.CURRENCY.USD) {
     return NumberFormatUtils.format(BaseLocaleListener.getPreferredLocale(), convertedAmount, {
         style: 'currency',
         currency,
+
+        // We are forcindg the number of decimals because we overridden the default number of decimals in the backend for RSD
+        // See: https://github.com/Expensify/PHP-Libs/pull/834
+        minimumFractionDigits: getCurrencyDecimals(currency),
     });
 }
 
