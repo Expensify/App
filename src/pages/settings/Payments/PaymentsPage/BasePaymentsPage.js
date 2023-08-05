@@ -269,52 +269,55 @@ function BasePaymentsPage(props) {
         setShouldShowDefaultDeleteMenu(false);
     };
 
-    const listHeaderComponent = () => (
-        <>
-            {Permissions.canUseWallet(props.betas) && (
-                <>
-                    <View style={[styles.mv5]}>
-                        {shouldShowLoadingSpinner ? (
-                            <ActivityIndicator
-                                color={themeColors.spinner}
-                                size="large"
-                            />
-                        ) : (
-                            <OfflineWithFeedback
-                                pendingAction={CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}
-                                errors={props.walletTerms.errors}
-                                onClose={PaymentMethods.clearWalletTermsError}
-                                errorRowStyles={[styles.ml10, styles.mr2]}
-                            >
-                                <CurrentWalletBalance />
-                            </OfflineWithFeedback>
+    const listHeaderComponent = useCallback(
+        () => (
+            <>
+                {Permissions.canUseWallet(props.betas) && (
+                    <View onLayout={setMenuPosition}>
+                        <View style={[styles.mv5]}>
+                            {shouldShowLoadingSpinner ? (
+                                <ActivityIndicator
+                                    color={themeColors.spinner}
+                                    size="large"
+                                />
+                            ) : (
+                                <OfflineWithFeedback
+                                    pendingAction={CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}
+                                    errors={props.walletTerms.errors}
+                                    onClose={PaymentMethods.clearWalletTermsError}
+                                    errorRowStyles={[styles.ml10, styles.mr2]}
+                                >
+                                    <CurrentWalletBalance />
+                                </OfflineWithFeedback>
+                            )}
+                        </View>
+                        {props.userWallet.currentBalance > 0 && (
+                            <View style={styles.mb3}>
+                                <KYCWall
+                                    onSuccessfulKYC={navigateToTransferBalancePage}
+                                    enablePaymentsRoute={ROUTES.SETTINGS_ENABLE_PAYMENTS}
+                                    addBankAccountRoute={ROUTES.SETTINGS_ADD_BANK_ACCOUNT}
+                                    addDebitCardRoute={ROUTES.SETTINGS_ADD_DEBIT_CARD}
+                                    popoverPlacement="bottom"
+                                >
+                                    {(triggerKYCFlow) => (
+                                        <MenuItem
+                                            title={translate('common.transferBalance')}
+                                            icon={Expensicons.Transfer}
+                                            onPress={triggerKYCFlow}
+                                            shouldShowRightIcon
+                                            disabled={props.network.isOffline}
+                                        />
+                                    )}
+                                </KYCWall>
+                            </View>
                         )}
                     </View>
-                    {props.userWallet.currentBalance > 0 && (
-                        <View style={styles.mb3}>
-                            <KYCWall
-                                onSuccessfulKYC={navigateToTransferBalancePage}
-                                enablePaymentsRoute={ROUTES.SETTINGS_ENABLE_PAYMENTS}
-                                addBankAccountRoute={ROUTES.SETTINGS_ADD_BANK_ACCOUNT}
-                                addDebitCardRoute={ROUTES.SETTINGS_ADD_DEBIT_CARD}
-                                popoverPlacement="bottom"
-                            >
-                                {(triggerKYCFlow) => (
-                                    <MenuItem
-                                        title={translate('common.transferBalance')}
-                                        icon={Expensicons.Transfer}
-                                        onPress={triggerKYCFlow}
-                                        shouldShowRightIcon
-                                        disabled={props.network.isOffline}
-                                    />
-                                )}
-                            </KYCWall>
-                        </View>
-                    )}
-                </>
-            )}
-            <Text style={[styles.ph5, styles.textLabelSupporting, styles.mb1]}>{translate('paymentsPage.paymentMethodsTitle')}</Text>
-        </>
+                )}
+                <Text style={[styles.ph5, styles.textLabelSupporting, styles.mb1]}>{translate('paymentsPage.paymentMethodsTitle')}</Text>
+            </>
+        ),
+        [props.betas, props.network.isOffline, props.userWallet.currentBalance, props.walletTerms.errors, shouldShowLoadingSpinner, translate, setMenuPosition],
     );
 
     useEffect(() => {
