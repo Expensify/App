@@ -764,8 +764,6 @@ function ReportActionCompose({
             const emojiCode = emojiObject.types && emojiObject.types[preferredSkinTone] ? emojiObject.types[preferredSkinTone] : emojiObject.code;
             const commentAfterColonWithEmojiNameRemoved = value.slice(selection.end);
 
-            console.log({emojiCode});
-
             updateComment(`${commentBeforeColon}${emojiCode} ${trimLeadingSpace(commentAfterColonWithEmojiNameRemoved)}`, true);
 
             // In some Android phones keyboard, the text to search for the emoji is not cleared
