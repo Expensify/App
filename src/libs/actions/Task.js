@@ -401,10 +401,27 @@ function editTaskAndNavigate(report, ownerAccountID, {title, description, assign
                 description: reportDescription,
                 managerID: assigneeAccountID || report.managerID,
                 managerEmail: assignee || report.managerEmail,
+                pendingFields: {
+                    ...(title && {reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+                    ...(description && {description: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+                    ...(assigneeAccountID && {managerID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+                },
             },
         },
     ];
-    const successData = [];
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
+            value: {
+                pendingFields: {
+                    ...(title && {reportName: null}),
+                    ...(description && {description: null}),
+                    ...(assigneeAccountID && {managerID: null}),
+                },
+            },
+        },
+    ];
     const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -414,7 +431,12 @@ function editTaskAndNavigate(report, ownerAccountID, {title, description, assign
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
-            value: {reportName: report.reportName, description: report.description, assignee: report.managerEmail, assigneeAccountID: report.managerID},
+            value: {
+                reportName: report.reportName,
+                description: report.description,
+                assignee: report.managerEmail,
+                assigneeAccountID: report.managerID,
+            },
         },
     ];
 
@@ -737,6 +759,16 @@ function canModifyTask(taskReport, sessionAccountID) {
     return ReportUtils.isAllowedToComment(parentReport);
 }
 
+/**
+ * @param {String} reportID
+ */
+function clearEditTaskErrors(reportID) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+        pendingFields: null,
+        errorFields: null,
+    });
+}
+
 export {
     createTaskAndNavigate,
     editTaskAndNavigate,
@@ -755,5 +787,6 @@ export {
     cancelTask,
     dismissModalAndClearOutTaskInfo,
     getTaskAssigneeAccountID,
+    clearEditTaskErrors,
     canModifyTask,
 };
