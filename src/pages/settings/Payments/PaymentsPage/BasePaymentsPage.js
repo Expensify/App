@@ -54,13 +54,13 @@ function BasePaymentsPage(props) {
     });
     const addPaymentMethodAnchorRef = useRef(null);
     const deletePaymentMethodAnchorRef = useRef(null);
+    const paymentMethodButtonRef = useRef(null);
     const [anchorPosition, setAnchorPosition] = useState({
         anchorPositionHorizontal: 0,
         anchorPositionVertical: 0,
         anchorPositionTop: 0,
         anchorPositionRight: 0,
     });
-    const [addPaymentMethodButton, setAddPaymentMethodButton] = useState(null);
     const [showConfirmDeleteContent, setShowConfirmDeleteContent] = useState(false);
 
     const updateShouldShowLoadingSpinner = useCallback(() => {
@@ -78,27 +78,20 @@ function BasePaymentsPage(props) {
      *
      * @param {Object} position
      */
-    const setPositionAddPaymentMenu = useCallback(
-        (position) => {
-            setAnchorPosition({
-                anchorPositionTop: position.top + position.height + variables.addPaymentPopoverTopSpacing,
-
-                // We want the position to be 13px to the right of the left border
-                anchorPositionRight: windowWidth - position.right + variables.addPaymentPopoverRightSpacing,
-                anchorPositionHorizontal: position.x,
-                anchorPositionVertical: position.y,
-            });
-        },
-        [windowWidth],
-    );
-
     const setMenuPosition = useCallback(() => {
-        if (!addPaymentMethodButton) {
-            return;
-        }
-        const buttonPosition = getClickedTargetLocation(addPaymentMethodButton);
-        setPositionAddPaymentMenu(buttonPosition);
-    }, [addPaymentMethodButton, setPositionAddPaymentMenu]);
+        if (!paymentMethodButtonRef.current) return;
+
+        const position = getClickedTargetLocation(paymentMethodButtonRef.current);
+
+        setAnchorPosition({
+            anchorPositionTop: position.top + position.height + variables.addPaymentPopoverTopSpacing,
+
+            // We want the position to be 13px to the right of the left border
+            anchorPositionRight: windowWidth - position.right + variables.addPaymentPopoverRightSpacing,
+            anchorPositionHorizontal: position.x,
+            anchorPositionVertical: position.y,
+        });
+    }, [windowWidth]);
 
     const getSelectedPaymentMethodID = useCallback(() => {
         if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PAYPAL) {
@@ -139,8 +132,7 @@ function BasePaymentsPage(props) {
      * @param {String|Number} methodID
      */
     const paymentMethodPressed = (nativeEvent, accountType, account, isDefault, methodID) => {
-        const position = getClickedTargetLocation(nativeEvent.currentTarget);
-        setAddPaymentMethodButton(nativeEvent.currentTarget);
+        paymentMethodButtonRef.current = nativeEvent.currentTarget;
 
         // The delete/default menu
         if (accountType) {
@@ -175,11 +167,11 @@ function BasePaymentsPage(props) {
                 methodID,
             });
             setShouldShowDefaultDeleteMenu(true);
-            setPositionAddPaymentMenu(position);
+            setMenuPosition();
             return;
         }
         setShouldShowAddPaymentMenu(true);
-        setPositionAddPaymentMenu(position);
+        setMenuPosition();
     };
 
     /**
@@ -350,7 +342,7 @@ function BasePaymentsPage(props) {
             return;
         }
         setMenuPosition();
-    }, [props.shouldListenForResize, setMenuPosition, shouldShowLoadingSpinner]);
+    }, [props.shouldListenForResize, setMenuPosition]);
 
     useEffect(() => {
         if (!shouldShowDefaultDeleteMenu && !showPassword.shouldShowPasswordPrompt) {
