@@ -555,10 +555,7 @@ function getIOUReportIDFromReportActionPreview(reportAction) {
  * @returns {Object}
  */
 function getParentReportActionForTask(taskReportID, reportID) {
-    return _.find(
-        allReportActions[reportID],
-        (reportAction) => reportAction && `${reportAction.childReportID}` === `${taskReportID}`,
-    );
+    return _.find(allReportActions[reportID], (reportAction) => reportAction && `${reportAction.childReportID}` === `${taskReportID}`);
 }
 
 function isCreatedTaskReportAction(reportAction) {
