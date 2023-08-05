@@ -26,7 +26,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    parentReportID: 0,
+    parentReportID: '',
     pressableStyles: [],
 };
 

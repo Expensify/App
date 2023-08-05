@@ -266,36 +266,35 @@ function completeTask(taskReport, taskTitle) {
     ];
 
     // Update optimistic data and failure data for parent report action
-    if (taskReport.parentReportActionID) {
-        let parentReportAction = ReportActionsUtils.getParentReportAction(taskReport);
-        if (parentReportAction && parentReportAction.reportActionID) {
-            const optimisticParentReportActionData = ReportUtils.updateOptimisticParentReportAction(
-                parentReportAction,
-                completedTaskReportAction.created,
-                CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            );
-            optimisticData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReport.parentReportID}`,
-                value: {
-                    [parentReportAction.reportActionID]: optimisticParentReportActionData,
-                },
-            });
+    const parentReportAction = ReportActionsUtils.getParentReportAction(taskReport);
+    if (parentReportAction && parentReportAction.reportActionID) {
+        const optimisticParentReportActionData = ReportUtils.updateOptimisticParentReportAction(
+            parentReportAction,
+            completedTaskReportAction.created,
+            CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        );
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReport.parentReportID}`,
+            value: {
+                [parentReportAction.reportActionID]: optimisticParentReportActionData,
+            },
+        });
 
-            // Get assignee report from participantAccountIDs as in creating task according to https://github.com/Expensify/App/issues/23920#issuecomment-1663092717
-            const assigneeChatReportID = lodashGet(ReportUtils.getChatByParticipants(taskReport.participantAccountIDs), 'reportID');
-            // We don't need to create optmistic report action for assignee report if assignee and shareDestination are the same
-            if (assigneeChatReportID && `${assigneeChatReportID}` !== `${taskReport.parentReportID}`) {
-                parentReportAction = ReportActionsUtils.getParentReportActionForTask(taskReportID, assigneeChatReportID);
-                if (parentReportAction && parentReportAction.reportActionID) {
-                    optimisticData.push({
-                        onyxMethod: Onyx.METHOD.MERGE,
-                        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
-                        value: {
-                            [parentReportAction.reportActionID]: optimisticParentReportActionData,
-                        },
-                    });
-                }
+        // Multiple report actions can link to the same child. Both share destination (task parent) and assignee report link to the same report action.
+        // We need to find and update the other parent report action (in assignee report). More info https://github.com/Expensify/App/issues/23920#issuecomment-1663092717
+        const assigneeChatReportID = lodashGet(ReportUtils.getChatByParticipants(taskReport.participantAccountIDs), 'reportID');
+        // We don't need to create optmistic report action for assignee report if assignee and shareDestination are the same
+        if (assigneeChatReportID && assigneeChatReportID !== String(taskReport.parentReportID)) {
+            const clonedParentReportAction = ReportActionsUtils.getParentReportActionForTask(taskReportID, assigneeChatReportID);
+            if (clonedParentReportAction && clonedParentReportAction.reportActionID) {
+                optimisticData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
+                    value: {
+                        [clonedParentReportAction.reportActionID]: optimisticParentReportActionData,
+                    },
+                });
             }
         }
     }
@@ -372,36 +371,36 @@ function reopenTask(taskReport, taskTitle) {
     ];
 
     // Update optimistic data for parent report action
-    if (taskReport.parentReportActionID) {
-        let parentReportAction = ReportActionsUtils.getParentReportAction(taskReport);
-        if (parentReportAction && parentReportAction.reportActionID) {
-            const optimisticParentReportActionData = ReportUtils.updateOptimisticParentReportAction(
-                parentReportAction,
-                reopenedTaskReportAction.created,
-                CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            );
-            optimisticData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReport.parentReportID}`,
-                value: {
-                    [parentReportAction.reportActionID]: optimisticParentReportActionData,
-                },
-            });
+    // Update optimistic data and failure data for parent report action
+    const parentReportAction = ReportActionsUtils.getParentReportAction(taskReport);
+    if (parentReportAction && parentReportAction.reportActionID) {
+        const optimisticParentReportActionData = ReportUtils.updateOptimisticParentReportAction(
+            parentReportAction,
+            reopenedTaskReportAction.created,
+            CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        );
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReport.parentReportID}`,
+            value: {
+                [parentReportAction.reportActionID]: optimisticParentReportActionData,
+            },
+        });
 
-            // Get assignee report from participantAccountIDs as in creating task according to https://github.com/Expensify/App/issues/23920#issuecomment-1663092717
-            const assigneeChatReportID = lodashGet(ReportUtils.getChatByParticipants(taskReport.participantAccountIDs), 'reportID');
-            // We don't need to create optmistic report action for assignee report if assignee and shareDestination are the same
-            if (assigneeChatReportID && `${assigneeChatReportID}` !== `${taskReport.parentReportID}`) {
-                parentReportAction = ReportActionsUtils.getParentReportActionForTask(taskReportID, assigneeChatReportID);
-                if (parentReportAction && parentReportAction.reportActionID) {
-                    optimisticData.push({
-                        onyxMethod: Onyx.METHOD.MERGE,
-                        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
-                        value: {
-                            [parentReportAction.reportActionID]: optimisticParentReportActionData,
-                        },
-                    });
-                }
+        // Multiple report actions can link to the same child. Both share destination (task parent) and assignee report link to the same report action.
+        // We need to find and update the other parent report action (in assignee report). More info https://github.com/Expensify/App/issues/23920#issuecomment-1663092717
+        const assigneeChatReportID = lodashGet(ReportUtils.getChatByParticipants(taskReport.participantAccountIDs), 'reportID');
+        // We don't need to create optmistic report action for assignee report if assignee and shareDestination are the same
+        if (assigneeChatReportID && assigneeChatReportID !== String(taskReport.parentReportID)) {
+            const clonedParentReportAction = ReportActionsUtils.getParentReportActionForTask(taskReportID, assigneeChatReportID);
+            if (clonedParentReportAction && clonedParentReportAction.reportActionID) {
+                optimisticData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
+                    value: {
+                        [clonedParentReportAction.reportActionID]: optimisticParentReportActionData,
+                    },
+                });
             }
         }
     }
