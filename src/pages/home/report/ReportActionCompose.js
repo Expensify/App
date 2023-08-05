@@ -406,7 +406,7 @@ function ReportActionCompose({
             setIsCommentEmpty(!!newComment.match(/^(\s)*$/));
             setValue(newComment);
             if (commentValue !== newComment) {
-                const remainder = ComposerUtils.getCommonSuffixLength(commentRef, newComment);
+                const remainder = ComposerUtils.getCommonSuffixLength(commentRef.current, newComment);
                 setSelection({
                     start: newComment.length - remainder,
                     end: newComment.length - remainder,
@@ -458,7 +458,7 @@ function ReportActionCompose({
         (text, shouldAddTrailSpace = true) => {
             const updatedText = shouldAddTrailSpace ? `${text} ` : text;
             const selectionSpaceLength = shouldAddTrailSpace ? CONST.SPACE_LENGTH : 0;
-            updateComment(ComposerUtils.insertText(commentRef, selection, updatedText));
+            updateComment(ComposerUtils.insertText(commentRef.current, selection, updatedText));
             setSelection((prevSelection) => ({
                 start: prevSelection.start + text.length + selectionSpaceLength,
                 end: prevSelection.start + text.length + selectionSpaceLength,
@@ -763,6 +763,8 @@ function ReportActionCompose({
             const emojiObject = suggestionValues.suggestedEmojis[selectedEmoji];
             const emojiCode = emojiObject.types && emojiObject.types[preferredSkinTone] ? emojiObject.types[preferredSkinTone] : emojiObject.code;
             const commentAfterColonWithEmojiNameRemoved = value.slice(selection.end);
+
+            console.log({emojiCode});
 
             updateComment(`${commentBeforeColon}${emojiCode} ${trimLeadingSpace(commentAfterColonWithEmojiNameRemoved)}`, true);
 
