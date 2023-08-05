@@ -1,8 +1,9 @@
 /* eslint-disable no-unused-vars */
 import colors from '../colors';
 import SCREENS from '../../SCREENS';
+import {HexColor, ThemeColors} from './ThemeColors';
 
-const darkTheme = {
+const darkTheme: ThemeColors = {
     // Figma keys
     appBG: colors.darkAppBackground,
     splashBG: colors.green400,
@@ -15,7 +16,7 @@ const darkTheme = {
     iconHovered: colors.darkPrimaryText,
     iconSuccessFill: colors.green400,
     iconReversed: colors.darkAppBackground,
-    iconColorfulBackground: `${colors.ivory}cc`,
+    iconColorfulBackground: `${colors.ivory as HexColor}cc`,
     textSupporting: colors.darkSupportingText,
     text: colors.darkPrimaryText,
     textColorfulBackground: colors.ivory,
@@ -61,7 +62,7 @@ const darkTheme = {
     placeholderText: colors.darkIcons,
     heroCard: colors.blue400,
     uploadPreviewActivityIndicator: colors.darkHighlightBackground,
-    dropUIBG: 'rgba(6,27,9,0.92)',
+    dropUIBG: 'rgba(6, 27, 9, 0.92)',
     receiptDropUIBG: 'rgba(3, 212, 124, 0.84)',
     checkBox: colors.green400,
     pickerOptionsTextColor: colors.darkPrimaryText,
@@ -80,12 +81,12 @@ const darkTheme = {
     skeletonLHNIn: colors.darkBorders,
     skeletonLHNOut: colors.darkDefaultButton,
     QRLogo: colors.green400,
-};
 
-darkTheme.PAGE_BACKGROUND_COLORS = {
-    [SCREENS.HOME]: darkTheme.sidebar,
-    [SCREENS.SETTINGS.PREFERENCES]: colors.blue500,
-    [SCREENS.SETTINGS.WORKSPACES]: colors.pink800,
+    PAGE_BACKGROUND_COLORS: {
+        [SCREENS.HOME]: colors.darkHighlightBackground,
+        [SCREENS.SETTINGS.PREFERENCES]: colors.blue500,
+        [SCREENS.SETTINGS.WORKSPACES]: colors.pink800,
+    },
 };
 
 export default darkTheme;

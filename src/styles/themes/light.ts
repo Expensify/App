@@ -79,11 +79,11 @@ const lightTheme = {
     skeletonLHNIn: colors.lightBorders,
     skeletonLHNOut: colors.lightDefaultButtonPressed,
     QRLogo: colors.green400,
-};
 
-lightTheme.PAGE_BACKGROUND_COLORS = {
-    [SCREENS.HOME]: lightTheme.sidebar,
-    [SCREENS.SETTINGS.PREFERENCES]: colors.blue500,
+    PAGE_BACKGROUND_COLORS: {
+        [SCREENS.HOME]: colors.lightHighlightBackground,
+        [SCREENS.SETTINGS.PREFERENCES]: colors.blue500,
+    },
 };
 
 export default lightTheme;
