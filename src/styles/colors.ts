@@ -1,7 +1,9 @@
+import {Color} from './themes/ThemeColors';
+
 /**
  * DO NOT import colors.js into files. Use ../themes/default.js instead.
  */
-export default {
+const colors: Record<string, Color> = {
     black: '#000000',
     white: '#FFFFFF',
     ivory: '#fffaf0',
@@ -91,3 +93,5 @@ export default {
     ice700: '#28736D',
     ice800: '#134038',
 };
+
+export default colors;
