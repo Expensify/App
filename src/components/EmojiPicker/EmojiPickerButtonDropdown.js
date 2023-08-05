@@ -32,13 +32,14 @@ function EmojiPickerButtonDropdown(props) {
         EmojiPickerAction.showEmojiPicker(props.onModalHide, (emoji) => props.onInputChange(emoji), emojiPopoverAnchor.current, {
             horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
             vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+            shiftVertical: 4,
         });
 
     return (
         <Tooltip text={props.translate('reportActionCompose.emoji')}>
             <PressableWithoutFeedback
                 ref={emojiPopoverAnchor}
-                style={[styles.chatItemEmojiButton, styles.emojiPickerButtonDropdown, props.style]}
+                style={styles.emojiPickerButtonDropdown}
                 disabled={props.isDisabled}
                 onPress={onPress}
                 nativeID="emojiDropdownButton"
@@ -64,7 +65,7 @@ function EmojiPickerButtonDropdown(props) {
             </PressableWithoutFeedback>
         </Tooltip>
     );
-};
+}
 
 EmojiPickerButtonDropdown.propTypes = propTypes;
 EmojiPickerButtonDropdown.defaultProps = defaultProps;

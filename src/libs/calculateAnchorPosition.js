@@ -18,7 +18,7 @@ export default function calculateAnchorPosition(anchorComponent, anchorOriginVal
                 lodashGet(anchorOriginValue, 'vertical') === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP &&
                 lodashGet(anchorOriginValue, 'horizontal') === CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT
             ) {
-                return resolve({horizontal: x, vertical: y + height});
+                return resolve({horizontal: x, vertical: y + height + lodashGet(anchorOriginValue, 'shiftVertical', 0)});
             }
             return resolve({horizontal: x + width, vertical: y});
         });

@@ -59,9 +59,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
         [hasDraftStatus, localize, updateStatus],
     );
 
-    useEffect(() => {
-        return User.clearDraftCustomStatus;
-    }, []);
+    useEffect(() => () => User.clearDraftCustomStatus(), []);
 
     return (
         <StaticHeaderPageLayout

@@ -3634,6 +3634,7 @@ const styles = {
     },
 
     emojiPickerButtonDropdown: {
+        justifyContent: 'center',
         backgroundColor: themeColors.activeComponentBG,
         width: 86,
         height: 52,
