@@ -70,4 +70,12 @@ function EmojiPickerButtonDropdown(props) {
 EmojiPickerButtonDropdown.propTypes = propTypes;
 EmojiPickerButtonDropdown.defaultProps = defaultProps;
 EmojiPickerButtonDropdown.displayName = 'EmojiPickerButtonDropdown';
-export default withLocalize(EmojiPickerButtonDropdown);
+export default withLocalize(
+    React.forwardRef((props, ref) => (
+        <EmojiPickerButtonDropdown
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            forwardedRef={ref}
+        />
+    )),
+);
