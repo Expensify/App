@@ -155,6 +155,8 @@ const EmojiPicker = forwardRef((props, ref) => {
                 vertical: emojiPopoverAnchorPosition.vertical,
                 horizontal: emojiPopoverAnchorPosition.horizontal,
             }}
+            anchorRef={emojiPopoverAnchor}
+            withoutOverlay
             popoverDimensions={{
                 width: CONST.EMOJI_PICKER_SIZE.WIDTH,
                 height: CONST.EMOJI_PICKER_SIZE.HEIGHT,
