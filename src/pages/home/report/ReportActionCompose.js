@@ -1049,6 +1049,16 @@ function ReportActionCompose({
             runOnJS(submitForm)();
         });
 
+    const menuItems = [
+        ...moneyRequestOptions,
+        ...taskOption,
+        {
+            icon: Expensicons.Paperclip,
+            text: translate('reportActionCompose.addAttachment'),
+            onSelected: () => {},
+        },
+    ];
+
     return (
         <View style={[shouldShowReportRecipientLocalTime && !lodashGet(network, 'isOffline') && styles.chatItemComposeWithFirstRow, isComposerFullSize && styles.chatItemFullComposeRow]}>
             <OfflineWithFeedback
@@ -1130,7 +1140,7 @@ function ReportActionCompose({
 
                                                             // Drop focus to avoid blue focus ring.
                                                             actionButton.current.blur();
-                                                            setMenuVisibility(true);
+                                                            setMenuVisibility(!isMenuVisible);
                                                         }}
                                                         style={styles.composerSizeButton}
                                                         disabled={isBlockedFromConcierge || disabled}
@@ -1145,7 +1155,24 @@ function ReportActionCompose({
                                                 animationInTiming={CONST.ANIMATION_IN_TIMING}
                                                 isVisible={isMenuVisible}
                                                 onClose={() => setMenuVisibility(false)}
-                                                onItemSelected={() => setMenuVisibility(false)}
+                                                onItemSelected={(_item, index) => {
+                                                    setMenuVisibility(false);
+
+                                                    // In order for the file picker to open dynamically, the click
+                                                    // function must be called from within a event handler that was initiated
+                                                    // by the user.
+                                                    if (index === menuItems.length - 1) {
+                                                        // Set a flag to block suggestion calculation until we're finished using the file picker,
+                                                        // which will stop any flickering as the file picker opens on non-native devices.
+                                                        if (willBlurTextInputOnTapOutside) {
+                                                            shouldBlockEmojiCalc.current = true;
+                                                            shouldBlockMentionCalc.current = true;
+                                                        }
+                                                        openPicker({
+                                                            onPicked: displayFileInModal,
+                                                        });
+                                                    }
+                                                }}
                                                 anchorPosition={styles.createMenuPositionReportActionCompose(windowHeight)}
                                                 anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM}}
                                                 menuItems={[
@@ -1168,6 +1195,8 @@ function ReportActionCompose({
                                                         },
                                                     },
                                                 ]}
+                                                withoutOverlay
+                                                anchorRef={actionButton}
                                             />
                                         </>
                                     )}
