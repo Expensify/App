@@ -862,7 +862,7 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
             created: TransactionUtils.getCreated(updatedTransaction),
             amount: TransactionUtils.getAmount(updatedTransaction),
             currency: TransactionUtils.getCurrency(updatedTransaction),
-            comment: TransactionUtils.getComment(updatedTransaction),
+            comment: TransactionUtils.getDescription(updatedTransaction),
         },
         {optimisticData, successData, failureData},
     );
