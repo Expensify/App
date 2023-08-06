@@ -222,6 +222,7 @@ function MoneyRequestConfirmationList(props) {
         shouldDisablePaidBySection,
         canModifyParticipants,
     ]);
+    console.log('p', selectedParticipants);
 
     const selectedOptions = useMemo(() => {
         if (!props.hasMultipleParticipants) {

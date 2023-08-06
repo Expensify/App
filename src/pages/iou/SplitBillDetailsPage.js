@@ -18,6 +18,7 @@ import withReportAndReportActionOrNotFound from '../home/report/withReportAndRep
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import CONST from '../../CONST';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
+import * as ReportUtils from '../../libs/ReportUtils';
 
 const propTypes = {
     /* Onyx Props */
@@ -57,6 +58,13 @@ function SplitBillDetailsPage(props) {
         _.map(participantAccountIDs, (accountID) => ({accountID, selected: true})),
         props.personalDetails,
     );
+
+    // In case this is workspace split bill, we manually add the workspace as the second participant of the split bill
+    // because we don't save any accountID in the report action's originalMessage other than the payee's accountID
+    if (ReportUtils.isPolicyExpenseChat(props.report)) {
+        participants.push(...OptionsListUtils.getPolicyExpenseReportOptions(props.report));
+    }
+    console.log(participants);
     const payeePersonalDetails = props.personalDetails[reportAction.actorAccountID];
     const participantsExcludingPayee = _.filter(participants, (participant) => participant.accountID !== reportAction.actorAccountID);
     const splitAmount = parseInt(lodashGet(reportAction, 'originalMessage.amount', 0), 10);
