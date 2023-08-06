@@ -1,0 +1,20 @@
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/scroll/ReactScrollViewManager.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/scroll/ReactScrollViewManager.java
+index 46e0ccf..53293a4 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/scroll/ReactScrollViewManager.java
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/scroll/ReactScrollViewManager.java
+@@ -379,4 +379,15 @@ public class ReactScrollViewManager extends ViewGroupManager<ReactScrollView>
+   public void setScrollEventThrottle(ReactScrollView view, int scrollEventThrottle) {
+     view.setScrollEventThrottle(scrollEventThrottle);
+   }
++
++  @ReactProp(name = "verticalScrollbarPosition")
++  public void setVerticalScrollbarPosition(ReactScrollView view, String position) {
++    if ("right".equals(position)) {
++      view.setVerticalScrollbarPosition(View.SCROLLBAR_POSITION_RIGHT);
++    } else if ("left".equals(position)) {
++      view.setVerticalScrollbarPosition(View.SCROLLBAR_POSITION_LEFT);
++    } else {
++      view.setVerticalScrollbarPosition(View.SCROLLBAR_POSITION_DEFAULT);
++    }
++  }
+ }

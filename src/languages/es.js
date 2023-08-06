@@ -342,10 +342,32 @@ export default {
         listOfChatMessages: 'Lista de mensajes del chat',
         listOfChats: 'lista de chats',
     },
+    tabSelector: {
+        manual: 'Manual',
+        scan: 'Escanear',
+    },
+    receipt: {
+        upload: 'Subir recibo',
+        dragReceiptBeforeEmail: 'Arrastra un recibo a esta página, reenvíalo a ',
+        dragReceiptAfterEmail: ' o elije un archivo para subir a continuación.',
+        chooseReceipt: 'Elige un recibo para subir o reenvía un recibo a ',
+        chooseFile: 'Elegir archivo',
+        givePermission: 'Permitir',
+        takePhoto: 'Haz una foto',
+        cameraAccess: 'Se requiere acceso a la cámara para hacer fotos de los recibos.',
+        cameraErrorTitle: 'Error en la cámara',
+        cameraErrorMessage: 'Se produjo un error al hacer una foto, Por favor, inténtalo de nuevo.',
+        dropTitle: 'Suéltalo',
+        dropMessage: 'Suelta tu archivo aquí',
+        flash: 'flash',
+        shutter: 'obturador',
+        gallery: 'galería',
+    },
     iou: {
         amount: 'Importe',
         cash: 'Efectivo',
         split: 'Dividir',
+        request: 'Solicitar',
         participants: 'Participantes',
         splitBill: 'Dividir factura',
         requestMoney: 'Pedir dinero',
@@ -400,7 +422,6 @@ export default {
         uploadPhoto: 'Subir foto',
         removePhoto: 'Eliminar foto',
         editImage: 'Editar foto',
-        imageUploadFailed: 'Error al cargar la imagen',
         deleteWorkspaceError: 'Lo sentimos, hubo un problema eliminando el avatar de su espacio de trabajo.',
         sizeExceeded: ({maxUploadSizeInMB}) => `La imagen supera el tamaño máximo de ${maxUploadSizeInMB}MB.`,
         resolutionConstraints: ({minHeightInPx, minWidthInPx, maxHeightInPx, maxWidthInPx}) =>
@@ -928,6 +949,7 @@ export default {
     messages: {
         errorMessageInvalidPhone: `Por favor, introduce un número de teléfono válido sin paréntesis o guiones. Si reside fuera de Estados Unidos, por favor incluye el prefijo internacional (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
         errorMessageInvalidEmail: 'Email inválido',
+        userIsAlreadyMemberOfWorkspace: ({login, workspace}) => `${login} ya es miembro de ${workspace}`,
     },
     onfidoStep: {
         acceptTerms: 'Al continuar con la solicitud para activar su billetera Expensify, confirma que ha leído, comprende y acepta ',
@@ -1979,6 +2001,8 @@ export default {
     threads: {
         replies: 'Respuestas',
         reply: 'Respuesta',
+        from: 'De',
+        in: 'en',
         parentNavigationSummary: ({rootReportName, workspaceName}) => `De ${rootReportName}${workspaceName ? ` en ${workspaceName}` : ''}`,
     },
     qrCodes: {
