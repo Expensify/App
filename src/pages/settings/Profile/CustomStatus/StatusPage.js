@@ -28,10 +28,13 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
     const localize = useLocalize();
     const currentUserEmojiCode = lodashGet(currentUserPersonalDetails, 'status.emojiCode', '');
     const currentUserStatusText = lodashGet(currentUserPersonalDetails, 'status.text', '');
-    const defaultEmoji = lodashGet(draftStatus, 'emojiCode') || currentUserEmojiCode;
-    const defaultText = lodashGet(draftStatus, 'text') || currentUserStatusText;
+    const draftEmojiCode = lodashGet(draftStatus, 'emojiCode');
+    const draftText = lodashGet(draftStatus, 'text');
+
+    const defaultEmoji = draftEmojiCode || currentUserEmojiCode;
+    const defaultText = draftText || currentUserStatusText;
     const customStatus = defaultEmoji ? `${defaultEmoji} ${defaultText}` : '';
-    const hasDraftStatus = !!defaultEmoji || !!defaultText;
+    const hasDraftStatus = !!draftEmojiCode || !!draftText;
 
     const updateStatus = useCallback(() => {
         const endOfDay = new Date();
