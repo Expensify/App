@@ -169,6 +169,7 @@ export default {
         sizeNotMet: 'El archivo adjunto debe ser mas grande que 240 bytes.',
         wrongFileType: 'El tipo del archivo adjunto es incorrecto',
         notAllowedExtension: 'Este tipo de archivo no está permitido',
+        folderNotAllowedMessage: 'Subir una carpeta no está permitido. Prueba con otro archivo.',
     },
     avatarCropModal: {
         title: 'Editar foto',
@@ -1438,6 +1439,7 @@ export default {
         copy: 'Copiar',
         paste: 'Pegar',
         pasteAndMatchStyle: 'Pegar adaptando el estilo',
+        pasteAsPlainText: 'Pegar como texto sin formato',
         delete: 'Eliminar',
         selectAll: 'Seleccionar todo',
         speechSubmenu: 'Voz',

@@ -20,6 +20,7 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../../components/withCurrentUserPersonalDetails';
 import reportPropTypes from '../../reportPropTypes';
 import personalDetailsPropType from '../../personalDetailsPropType';
+import * as FileUtils from '../../../libs/fileDownload/FileUtils';
 
 const propTypes = {
     report: reportPropTypes,
@@ -109,6 +110,27 @@ function MoneyRequestConfirmPage(props) {
         Navigation.goBack(fallback);
     };
 
+    /**
+     * @param {Array} selectedParticipants
+     * @param {String} trimmedComment
+     * @param {File} [receipt]
+     */
+    const requestMoney = useCallback(
+        (selectedParticipants, trimmedComment, receipt) => {
+            IOU.requestMoney(
+                props.report,
+                props.iou.amount,
+                props.iou.currency,
+                props.currentUserPersonalDetails.login,
+                props.currentUserPersonalDetails.accountID,
+                selectedParticipants[0],
+                trimmedComment,
+                receipt,
+            );
+        },
+        [props.report, props.iou.amount, props.iou.currency, props.currentUserPersonalDetails.login, props.currentUserPersonalDetails.accountID],
+    );
+
     const createTransaction = useCallback(
         (selectedParticipants) => {
             const trimmedComment = props.iou.comment.trim();
@@ -141,17 +163,25 @@ function MoneyRequestConfirmPage(props) {
                 return;
             }
 
-            IOU.requestMoney(
-                props.report,
-                props.iou.amount,
-                props.iou.currency,
-                props.currentUserPersonalDetails.login,
-                props.currentUserPersonalDetails.accountID,
-                selectedParticipants[0],
-                trimmedComment,
-            );
+            if (props.iou.receiptPath && props.iou.receiptSource) {
+                FileUtils.readFileAsync(props.iou.receiptPath, props.iou.receiptSource).then((receipt) => {
+                    requestMoney(selectedParticipants, trimmedComment, receipt);
+                });
+                return;
+            }
+
+            requestMoney(selectedParticipants, trimmedComment);
         },
-        [props.iou.amount, props.iou.comment, props.currentUserPersonalDetails.login, props.currentUserPersonalDetails.accountID, props.iou.currency, props.report],
+        [
+            props.iou.amount,
+            props.iou.comment,
+            props.currentUserPersonalDetails.login,
+            props.currentUserPersonalDetails.accountID,
+            props.iou.currency,
+            props.iou.receiptPath,
+            props.iou.receiptSource,
+            requestMoney,
+        ],
     );
 
     /**

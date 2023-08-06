@@ -141,6 +141,11 @@ const CONST = {
         MAX_AGE: 150,
     },
 
+    DESKTOP_SHORTCUT_ACCELERATOR: {
+        PASTE_AND_MATCH_STYLE: 'Option+Shift+CmdOrCtrl+V',
+        PASTE_AS_PLAIN_TEXT: 'CmdOrCtrl+Shift+V',
+    },
+
     // This is used to enable a rotation/transform style to any component.
     DIRECTION: {
         LEFT: 'left',
@@ -175,6 +180,7 @@ const CONST = {
     DATE: {
         MOMENT_FORMAT_STRING: 'YYYY-MM-DD',
         SQL_DATE_TIME: 'YYYY-MM-DD HH:mm:ss',
+        FNS_FORMAT_STRING: 'yyyy-MM-dd',
         UNIX_EPOCH: '1970-01-01 00:00:00.000',
         MAX_DATE: '9999-12-31',
         MIN_DATE: '0001-01-01',
@@ -1062,6 +1068,9 @@ const CONST = {
             DELETE: 'delete',
         },
         AMOUNT_MAX_LENGTH: 10,
+        RECEIPT_STATE: {
+            SCANREADY: 'SCANREADY',
+        },
         FILE_TYPES: {
             HTML: 'html',
             DOC: 'doc',
