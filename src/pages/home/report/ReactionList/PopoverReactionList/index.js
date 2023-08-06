@@ -26,7 +26,7 @@ function PopoverReactionList(props) {
     const showReactionList = (event, reactionListAnchor, emojiName, reportActionID) => {
         setReactionListReportActionID(reportActionID);
         setReactionListEmojiName(emojiName);
-        innerReactionListRef.current.showReactionList(event, reactionListAnchor, emojiName);
+        innerReactionListRef.current.showReactionList(event, reactionListAnchor);
     };
 
     useImperativeHandle(props.innerRef, () => ({showReactionList}), []);

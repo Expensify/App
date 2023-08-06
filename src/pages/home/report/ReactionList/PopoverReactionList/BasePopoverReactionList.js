@@ -69,7 +69,7 @@ class BasePopoverReactionList extends React.Component {
         const previousLocale = lodashGet(this.props, 'preferredLocale', CONST.LOCALES.DEFAULT);
         const nextLocale = lodashGet(nextProps, 'preferredLocale', CONST.LOCALES.DEFAULT);
         const prevReaction = lodashGet(this.props.emojiReactions, this.props.emojiName);
-        const nextReaction = lodashGet(nextProps.emojiReactions, this.props.emojiName);
+        const nextReaction = lodashGet(nextProps.emojiReactions, nextProps.emojiName);
 
         return (
             this.props.reportActionID !== nextProps.reportActionID ||
