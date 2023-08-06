@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState, useRef} from 'react';
 import {ActivityIndicator, View, InteractionManager} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -38,7 +38,7 @@ function BasePaymentsPage(props) {
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
     const [shouldShowAddPaymentMenu, setShouldShowAddPaymentMenu] = useState(false);
     const [shouldShowDefaultDeleteMenu, setShouldShowDefaultDeleteMenu] = useState(false);
-    const [showPassword, setShowPassword] = useState({
+    const [showPassword] = useState({
         shouldShowPasswordPrompt: false,
         passwordButtonText: '',
     });
@@ -52,6 +52,8 @@ function BasePaymentsPage(props) {
         methodID: null,
         selectedPaymentMethodType: null,
     });
+    const addPaymentMethodAnchorRef = useRef(null);
+    const deletePaymentMethodAnchorRef = useRef(null);
     const [anchorPosition, setAnchorPosition] = useState({
         anchorPositionHorizontal: 0,
         anchorPositionVertical: 0,
@@ -413,6 +415,7 @@ function BasePaymentsPage(props) {
                         actionPaymentMethodType={shouldShowDefaultDeleteMenu || showPassword.shouldShowPasswordPrompt ? paymentMethod.selectedPaymentMethodType : ''}
                         activePaymentMethodID={shouldShowDefaultDeleteMenu || showPassword.shouldShowPasswordPrompt ? getSelectedPaymentMethodID() : ''}
                         listHeaderComponent={listHeaderComponent}
+                        buttonRef={addPaymentMethodAnchorRef}
                     />
                 </OfflineWithFeedback>
             </View>
@@ -424,6 +427,7 @@ function BasePaymentsPage(props) {
                     vertical: anchorPosition.anchorPositionVertical - 10,
                 }}
                 onItemSelected={(method) => addPaymentMethodTypePressed(method)}
+                anchorRef={addPaymentMethodAnchorRef}
             />
             <Popover
                 isVisible={shouldShowDefaultDeleteMenu}
@@ -432,6 +436,8 @@ function BasePaymentsPage(props) {
                     top: anchorPosition.anchorPositionTop,
                     right: anchorPosition.anchorPositionRight,
                 }}
+                withoutOverlay
+                anchorRef={deletePaymentMethodAnchorRef}
             >
                 {!showConfirmDeleteContent ? (
                     <View style={[styles.m5, !isSmallScreenWidth ? styles.sidebarPopover : '']}>
@@ -453,14 +459,7 @@ function BasePaymentsPage(props) {
                                     // InteractionManager fires after the currently running animation is completed.
                                     // https://github.com/Expensify/App/issues/7768#issuecomment-1044879541
                                     InteractionManager.runAfterInteractions(() => {
-                                        if (Permissions.canUsePasswordlessLogins(props.betas)) {
-                                            makeDefaultPaymentMethod();
-                                        } else {
-                                            setShowPassword({
-                                                shouldShowPasswordPrompt: true,
-                                                passwordButtonText: translate('paymentsPage.setDefaultConfirmation'),
-                                            });
-                                        }
+                                        makeDefaultPaymentMethod();
                                     });
                                 }}
                                 text={translate('paymentsPage.setDefaultConfirmation')}
@@ -481,6 +480,7 @@ function BasePaymentsPage(props) {
                             style={[shouldShowMakeDefaultButton ? styles.mt4 : {}]}
                             text={translate('common.delete')}
                             danger
+                            ref={deletePaymentMethodAnchorRef}
                         />
                     </View>
                 ) : (

@@ -68,7 +68,7 @@ function ReportFooter(props) {
     return (
         <>
             {hideComposer && (
-                <View style={[styles.chatFooter, props.isSmallScreenWidth ? styles.mb5 : null]}>
+                <View style={[styles.chatFooter, isArchivedRoom || isAnonymousUser ? styles.mt4 : {}, props.isSmallScreenWidth ? styles.mb5 : null]}>
                     {isAnonymousUser && !isArchivedRoom && (
                         <AnonymousReportFooter
                             report={props.report}
