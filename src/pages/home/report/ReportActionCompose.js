@@ -1052,7 +1052,7 @@ class ReportActionCompose extends React.Component {
                                             };
                                             const menuItems = [
                                                 ...this.getMoneyRequestOptions(reportParticipants),
-                                                ...this.getTaskOption(reportParticipants),
+                                                ...this.getTaskOption(),
                                                 {
                                                     icon: Expensicons.Paperclip,
                                                     text: this.props.translate('reportActionCompose.addAttachment'),
