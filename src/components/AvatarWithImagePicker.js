@@ -22,7 +22,7 @@ import * as FileUtils from '../libs/fileDownload/FileUtils';
 import getImageResolution from '../libs/fileDownload/getImageResolution';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import DotIndicatorMessage from './DotIndicatorMessage';
-import {isSafari} from '../libs/Browser';
+import * as Browser from '../libs/Browser';
 
 const propTypes = {
     /** Avatar source to display */
@@ -280,11 +280,12 @@ class AvatarWithImagePicker extends React.Component {
                                     icon: Expensicons.Upload,
                                     text: this.props.translate('avatarWithImagePicker.uploadPhoto'),
                                     onSelected: () => {
-                                        if (!isSafari()) {
-                                            openPicker({
-                                                onPicked: this.showAvatarCropModal,
-                                            });
+                                        if (Browser.isSafari()) {
+                                            return;
                                         }
+                                        openPicker({
+                                            onPicked: this.showAvatarCropModal,
+                                        });
                                     },
                                 },
                             ];
@@ -309,7 +310,7 @@ class AvatarWithImagePicker extends React.Component {
                                         // In order for the file picker to open dynamically, the click
                                         // function must be called from within a event handler that was initiated
                                         // by the user on Safari.
-                                        if (index === 0 && isSafari()) {
+                                        if (index === 0 && Browser.isSafari()) {
                                             openPicker({
                                                 onPicked: this.showAvatarCropModal,
                                             });

@@ -1057,9 +1057,10 @@ class ReportActionCompose extends React.Component {
                                                     icon: Expensicons.Paperclip,
                                                     text: this.props.translate('reportActionCompose.addAttachment'),
                                                     onSelected: () => {
-                                                        if (!Browser.isSafari()) {
-                                                            triggerAttachmentPicker();
+                                                        if (Browser.isSafari()) {
+                                                            return;
                                                         }
+                                                        triggerAttachmentPicker();
                                                     },
                                                 },
                                             ];
