@@ -70,21 +70,21 @@ function getUpdatedTransaction(transaction, transactionChanges) {
 
     // The comment property does not have its modifiedComment counterpart
     if (_.has(transactionChanges, 'comment')) {
-        updatedTransaction['comment'] = {
+        updatedTransaction.comment = {
             ...updatedTransaction.comment,
             comment: transactionChanges.comment,
         };
     }
     if (_.has(transactionChanges, 'created')) {
-        updatedTransaction['modifiedCreated'] = transactionChanges.created;
+        updatedTransaction.modifiedCreated = transactionChanges.created;
     }
     if (_.has(transactionChanges, 'amount')) {
-        updatedTransaction['modifiedAmount'] = transactionChanges.amount;
+        updatedTransaction.modifiedAmount = transactionChanges.amount;
     }
     if (_.has(transactionChanges, 'currency')) {
-        updatedTransaction['modifiedCurrency'] = transactionChanges.currency;
+        updatedTransaction.modifiedCurrency = transactionChanges.currency;
     }
-    updatedTransaction['pendingAction'] = CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
+    updatedTransaction.pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
 
     return updatedTransaction;
 }

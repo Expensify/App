@@ -407,6 +407,17 @@ function isOptimisticPersonalDetail(accountID) {
 }
 
 /**
+ * Check if report is a DM and personal detail of participant is optimistic data
+ * @param {String} report
+ * @returns {Boolean}
+ */
+function shouldDisableDetailPage(report) {
+    const participants = lodashGet(report, 'participantAccountIDs', []);
+    const isMultipleParticipant = participants.length > 1;
+    return !isMultipleParticipant && isOptimisticPersonalDetail(participants[0]) && !report.parentReportID;
+}
+
+/**
  * Checks if a report is a task report from a policy expense chat.
  *
  * @param {Object} report
@@ -448,35 +459,6 @@ function isChatThread(report) {
  */
 function isConciergeChatReport(report) {
     return lodashGet(report, 'participantAccountIDs', []).length === 1 && Number(report.participantAccountIDs[0]) === CONST.ACCOUNT_ID.CONCIERGE && !isChatThread(report);
-}
-
-/**
- * Check if the report is a single chat report that isn't a thread
- * and personal detail of participant is optimistic data
- * @param {Object} report
- * @param {Array} report.participantAccountIDs
- * @returns {Boolean}
- */
-function shouldDisableDetailPage(report) {
-    const participantAccountIDs = lodashGet(report, 'participantAccountIDs', []);
-
-    if (isChatRoom(report) || isPolicyExpenseChat(report) || isChatThread(report)) {
-        return false;
-    }
-    if (participantAccountIDs.length === 1) {
-        return isOptimisticPersonalDetail(participantAccountIDs[0]);
-    }
-    return false;
-}
-
-/**
- * Returns true if this report has only one participant and it's an Expensify account.
- * @param {Object} report
- * @returns {Boolean}
- */
-function isExpensifyOnlyParticipantInReport(report) {
-    const reportParticipants = _.without(lodashGet(report, 'participantAccountIDs', []), currentUserAccountID);
-    return lodashGet(report, 'participantAccountIDs', []).length === 1 && _.some(reportParticipants, (accountID) => _.contains(CONST.EXPENSIFY_ACCOUNT_IDS, accountID));
 }
 
 /**
@@ -1313,22 +1295,34 @@ function getReportPreviewMessage(report, reportAction = {}) {
  */
 function getModifiedExpenseMessage(reportAction) {
     const reportActionOriginalMessage = lodashGet(reportAction, 'originalMessage', {});
-    if (
-        !_.isEmpty(reportActionOriginalMessage) &&
-        reportActionOriginalMessage.oldAmount &&
-        reportActionOriginalMessage.oldCurrency &&
-        reportActionOriginalMessage.amount &&
-        reportActionOriginalMessage.currency
-    ) {
-        const oldCurrency = reportActionOriginalMessage.oldCurrency;
-        const oldCurrencyUnit = CurrencyUtils.getCurrencyUnit(oldCurrency);
-        const oldAmount = NumberFormatUtils.format(preferredLocale, Math.abs(reportActionOriginalMessage.oldAmount) / oldCurrencyUnit, {style: 'currency', oldCurrency});
+    if (!_.isEmpty(reportActionOriginalMessage)) {
+        if (reportActionOriginalMessage.oldAmount &&
+            reportActionOriginalMessage.oldCurrency &&
+            reportActionOriginalMessage.amount &&
+            reportActionOriginalMessage.currency
+        ) {
+            const oldCurrency = reportActionOriginalMessage.oldCurrency;
+            const oldCurrencyUnit = CurrencyUtils.getCurrencyUnit(oldCurrency);
+            const oldAmount = NumberFormatUtils.format(preferredLocale, Math.abs(reportActionOriginalMessage.oldAmount) / oldCurrencyUnit, {style: 'currency', oldCurrency});
 
-        const currency = reportActionOriginalMessage.currency;
-        const currencyUnit = CurrencyUtils.getCurrencyUnit(currency);
-        const amount = NumberFormatUtils.format(preferredLocale, Math.abs(reportActionOriginalMessage.amount) / currencyUnit, {style: 'currency', currency});
+            const currency = reportActionOriginalMessage.currency;
+            const currencyUnit = CurrencyUtils.getCurrencyUnit(currency);
+            const amount = NumberFormatUtils.format(preferredLocale, Math.abs(reportActionOriginalMessage.amount) / currencyUnit, {style: 'currency', currency});
 
-        return `changed the request to ${amount} (previously ${oldAmount})`;
+            return `changed the request to ${amount} (previously ${oldAmount})`;
+        }
+
+        if (reportActionOriginalMessage.oldComment &&
+            reportActionOriginalMessage.newComment
+        ) {
+            return `changed the request description to ${reportActionOriginalMessage.newComment} (previously ${reportActionOriginalMessage.oldComment})`;
+        }
+
+        if (reportActionOriginalMessage.oldCreated &&
+            reportActionOriginalMessage.created
+        ) {
+            return `changed the request date to ${reportActionOriginalMessage.created} (previously ${reportActionOriginalMessage.oldCreated})`;
+        }
     }
     return `changed the request`;
 }
@@ -1349,20 +1343,21 @@ function getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges) {
     // Remark: Comment field is the only one which has new/old prefixes for the keys (newComment/ oldComment),
     // all others have old/- pattern such as oldCreated/created
     if (_.has(transactionChanges, 'comment')) {
-        originalMessage['oldComment'] = TransactionUtils.getDescription(oldTransaction);
-        originalMessage['newComment'] = transactionChanges.comment;
+        originalMessage.oldComment = TransactionUtils.getDescription(oldTransaction);
+        originalMessage.newComment = transactionChanges.comment;
     }
     if (_.has(transactionChanges, 'created')) {
-        originalMessage['oldCreated'] = TransactionUtils.getCreated(oldTransaction);
-        originalMessage['created'] = transactionChanges.created;
+        originalMessage.oldCreated = TransactionUtils.getCreated(oldTransaction);
+        originalMessage.created = transactionChanges.created;
     }
-    if (_.has(transactionChanges, 'amount')) {
-        originalMessage['oldAmount'] = TransactionUtils.getAmount(oldTransaction);
-        originalMessage['amount'] = transactionChanges.amount;
-    }
-    if (_.has(transactionChanges, 'currency')) {
-        originalMessage['oldCurrency'] = TransactionUtils.getCurrency(oldTransaction);
-        originalMessage['currency'] = transactionChanges.currency;
+
+    // The amount is always a combination of the currency and the number value so when one changes we need to store both
+    // to match how we handle the modified expense action in oldDot
+    if (_.has(transactionChanges, 'amount') || _.has(transactionChanges, 'currency')) {
+        originalMessage.oldAmount = TransactionUtils.getAmount(oldTransaction);
+        originalMessage.amount = lodashGet(transactionChanges, 'amount', originalMessage.oldAmount);
+        originalMessage.oldCurrency = TransactionUtils.getCurrency(oldTransaction);
+        originalMessage.currency = lodashGet(transactionChanges, 'currency', originalMessage.oldCurrency);;
     }
 
     return originalMessage;
@@ -1844,22 +1839,9 @@ function getIOUReportActionMessage(type, total, comment, currency, paymentType =
  * @param {String} [iouReportID] - Only required if the IOUReportActions type is oneOf(decline, cancel, pay). Generates a randomID as default.
  * @param {Boolean} [isSettlingUp] - Whether we are settling up an IOU.
  * @param {Boolean} [isSendMoneyFlow] - Whether this is send money flow
- * @param {Object} [receipt]
  * @returns {Object}
  */
-function buildOptimisticIOUReportAction(
-    type,
-    amount,
-    currency,
-    comment,
-    participants,
-    transactionID,
-    paymentType = '',
-    iouReportID = '',
-    isSettlingUp = false,
-    isSendMoneyFlow = false,
-    receipt = {},
-) {
+function buildOptimisticIOUReportAction(type, amount, currency, comment, participants, transactionID, paymentType = '', iouReportID = '', isSettlingUp = false, isSendMoneyFlow = false) {
     const IOUReportID = iouReportID || generateReportID();
 
     const originalMessage = {
@@ -1905,7 +1887,6 @@ function buildOptimisticIOUReportAction(
         shouldShow: true,
         created: DateUtils.getDBTime(),
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        receipt,
     };
 }
 
@@ -2985,7 +2966,6 @@ export {
     getPolicyName,
     getPolicyType,
     isArchivedRoom,
-    isExpensifyOnlyParticipantInReport,
     isPolicyExpenseChatAdmin,
     isPolicyAdmin,
     isPublicRoom,
