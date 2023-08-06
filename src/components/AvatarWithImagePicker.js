@@ -22,7 +22,7 @@ import * as FileUtils from '../libs/fileDownload/FileUtils';
 import getImageResolution from '../libs/fileDownload/getImageResolution';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import DotIndicatorMessage from './DotIndicatorMessage';
-import { isSafari } from '../libs/Browser';
+import {isSafari} from '../libs/Browser';
 
 const propTypes = {
     /** Avatar source to display */
@@ -274,7 +274,7 @@ class AvatarWithImagePicker extends React.Component {
                         </Tooltip>
                     </OfflineWithFeedback>
                     <AttachmentPicker type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}>
-                        {({openPicker}) => { 
+                        {({openPicker}) => {
                             const menuItems = [
                                 {
                                     icon: Expensicons.Upload,
@@ -300,7 +300,7 @@ class AvatarWithImagePicker extends React.Component {
                                     },
                                 });
                             }
-                            return (  
+                            return (
                                 <PopoverMenu
                                     isVisible={this.state.isMenuVisible}
                                     onClose={() => this.setState({isMenuVisible: false})}
