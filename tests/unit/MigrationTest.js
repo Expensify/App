@@ -642,7 +642,6 @@ describe('Migrations', () => {
     });
 
     describe('CheckForPreviousReportActionID', () => {
-        // Note: this test has to come before the others in this suite because Onyx.clear leaves traces and keys with null values aren't cleared out between tests
         it("Should work even if there's no reportAction data in Onyx", () =>
             CheckForPreviousReportActionID().then(() =>
                 expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] Skipped migration CheckForPreviousReportActionID because there were no reportActions'),
