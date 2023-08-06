@@ -39,7 +39,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
     const updateStatus = useCallback(() => {
         const endOfDay = new Date();
         endOfDay.setHours(23, 59, 59, 999);
-        User.updateCustomStatus({text: defaultText, emojiCode: defaultEmoji, clearAfter: endOfDay});
+        User.updateCustomStatus({text: defaultText, emojiCode: defaultEmoji, clearAfter: endOfDay.toISOString()});
 
         User.clearDraftCustomStatus();
         Navigation.goBack(ROUTES.SETTINGS);
