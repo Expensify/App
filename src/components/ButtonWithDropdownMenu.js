@@ -130,6 +130,8 @@ function ButtonWithDropdownMenu(props) {
                     onClose={() => setIsMenuVisible(false)}
                     onItemSelected={() => setIsMenuVisible(false)}
                     anchorPosition={popoverAnchorPosition}
+                    anchorRef={caretButton}
+                    withoutOverlay
                     anchorAlignment={props.anchorAlignment}
                     headerText={props.menuHeaderText}
                     menuItems={_.map(props.options, (item, index) => ({

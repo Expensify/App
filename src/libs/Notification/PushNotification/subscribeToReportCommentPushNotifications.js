@@ -3,13 +3,14 @@ import PushNotification from '.';
 import ROUTES from '../../../ROUTES';
 import Log from '../../Log';
 import Navigation from '../../Navigation/Navigation';
+import Visibility from '../../Visibility';
 
 /**
  * Setup reportComment push notification callbacks.
  */
 export default function subscribeToReportCommentPushNotifications() {
     PushNotification.onReceived(PushNotification.TYPE.REPORT_COMMENT, ({reportID, reportActionID, onyxData}) => {
-        Log.info('[PushNotification] Handled event sent by Airship', false, {reportID, reportActionID});
+        Log.info(`[PushNotification] received report comment notification in the ${Visibility.isVisible() ? 'foreground' : 'background'}`, false, {reportID, reportActionID});
         Onyx.update(onyxData);
     });
 
