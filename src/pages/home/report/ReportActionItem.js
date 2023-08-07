@@ -103,14 +103,12 @@ const propTypes = {
     emojiReactions: EmojiReactionsPropTypes,
     personalDetailsList: PropTypes.objectOf(personalDetailsPropType),
 
-    /** Is this the only report action on the report? */
-    isOnlyReportAction: PropTypes.bool,
-
     /** IOU report for this action, if any */
     iouReport: reportPropTypes,
 
     /** Flag to show, hide the thread divider line */
     shouldHideThreadDividerLine: PropTypes.bool,
+
 };
 
 const defaultProps = {
@@ -120,7 +118,6 @@ const defaultProps = {
     personalDetailsList: {},
     shouldShowSubscriptAvatar: false,
     hasOutstandingIOU: false,
-    isOnlyReportAction: false,
     iouReport: undefined,
     shouldHideThreadDividerLine: false,
 };
