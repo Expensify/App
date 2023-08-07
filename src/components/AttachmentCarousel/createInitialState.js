@@ -48,8 +48,7 @@ function createInitialState(props) {
         attachments.reverse();
     }
 
-    const source = tryResolveUrlFromApiRoot(props.source);
-    const page = _.findIndex(attachments, (a) => a.source === source);
+    const page = _.findIndex(attachments, (a) => a.source === props.source);
 
     if (page !== -1) {
         // Update the parent modal's state with the source and name from the mapped attachments
