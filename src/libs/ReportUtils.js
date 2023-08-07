@@ -1574,9 +1574,11 @@ function updateOptimisticParentReportAction(parentReportAction, lastVisibleActio
  * @param {String} reportID The reportID of the report that is updated
  * @param {String} lastVisibleActionCreated Last visible action created of the child report
  * @param {String} type The type of action in the child report
+ * @param {String} parentReportID Custom reportID to be updated
+ * @param {String} parentReportActionID Custom reportActionID to be updated
  * @returns {Object}
  */
-const getOptimisticDataForParentReportAction = (reportID, lastVisibleActionCreated, type, parentReportID = 0, parentReportActionID = 0) => {
+const getOptimisticDataForParentReportAction = (reportID, lastVisibleActionCreated, type, parentReportID = '', parentReportActionID = '') => {
     const report = getReport(reportID);
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
     if (_.isEmpty(parentReportAction)) {
@@ -1584,19 +1586,11 @@ const getOptimisticDataForParentReportAction = (reportID, lastVisibleActionCreat
     }
 
     const optimisticParentReportAction = updateOptimisticParentReportAction(parentReportAction, lastVisibleActionCreated, type);
-    if (!parentReportID) {
-        parentReportID = report.parentReportID;
-    }
-
-    if (!parentReportActionID) {
-        parentReportActionID = report.parentReportActionID;
-    }
-
     return {
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID || report.parentReportID}`,
         value: {
-            [parentReportActionID]: optimisticParentReportAction,
+            [parentReportActionID || report.parentReportActionID]: optimisticParentReportAction,
         },
     };
 };

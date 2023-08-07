@@ -277,7 +277,13 @@ function completeTask(taskReport, taskTitle) {
     if (assigneeChatReportID && assigneeChatReportID !== taskReport.parentReportID) {
         const clonedParentReportAction = ReportActionsUtils.getParentReportActionInReport(taskReportID, assigneeChatReportID);
         if (clonedParentReportAction && clonedParentReportAction.reportActionID) {
-            const optimisticDataForClonedParentReportAction = ReportUtils.getOptimisticDataForParentReportAction(taskReportID, completedTaskReportAction.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, assigneeChatReportID, clonedParentReportAction.reportActionID);
+            const optimisticDataForClonedParentReportAction = ReportUtils.getOptimisticDataForParentReportAction(
+                taskReportID,
+                completedTaskReportAction.created,
+                CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                assigneeChatReportID,
+                clonedParentReportAction.reportActionID,
+            );
             if (!_.isEmpty(optimisticDataForClonedParentReportAction)) {
                 optimisticData.push(optimisticDataForClonedParentReportAction);
             }
@@ -367,7 +373,13 @@ function reopenTask(taskReport, taskTitle) {
     if (assigneeChatReportID && assigneeChatReportID !== taskReport.parentReportID) {
         const clonedParentReportAction = ReportActionsUtils.getParentReportActionInReport(taskReportID, assigneeChatReportID);
         if (clonedParentReportAction && clonedParentReportAction.reportActionID) {
-            const optimisticDataForClonedParentReportAction = ReportUtils.getOptimisticDataForParentReportAction(taskReportID, reopenedTaskReportAction.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, assigneeChatReportID, clonedParentReportAction.reportActionID);
+            const optimisticDataForClonedParentReportAction = ReportUtils.getOptimisticDataForParentReportAction(
+                taskReportID,
+                reopenedTaskReportAction.created,
+                CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                assigneeChatReportID,
+                clonedParentReportAction.reportActionID,
+            );
             if (!_.isEmpty(optimisticDataForClonedParentReportAction)) {
                 optimisticData.push(optimisticDataForClonedParentReportAction);
             }
