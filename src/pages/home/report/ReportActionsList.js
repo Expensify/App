@@ -87,8 +87,7 @@ function ReportActionsList(props) {
     const reportScrollManager = useReportScrollManager();
     const opacity = useSharedValue(0);
     const animatedStyles = useAnimatedStyle(() => ({
-        // TODO: uncomment when Reanimated switches to using commit hooks for shadow tree operations
-        // opacity: opacity.value,
+        opacity: opacity.value,
     }));
     useEffect(() => {
         opacity.value = withTiming(1, {duration: 100});

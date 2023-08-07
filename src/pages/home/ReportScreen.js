@@ -12,9 +12,7 @@ import ROUTES from '../../ROUTES';
 import * as Report from '../../libs/actions/Report';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as ReportUtils from '../../libs/ReportUtils';
-import ReportActionsView from './report/ReportActionsView';
 import CONST from '../../CONST';
-import ReportActionsSkeletonView from '../../components/ReportActionsSkeletonView';
 import reportActionPropTypes from './report/reportActionPropTypes';
 import {withNetwork} from '../../components/OnyxProvider';
 import compose from '../../libs/compose';
@@ -36,6 +34,7 @@ import MoneyRequestHeader from '../../components/MoneyRequestHeader';
 import MoneyReportHeader from '../../components/MoneyReportHeader';
 import * as ComposerActions from '../../libs/actions/Composer';
 import ReportScreenContext from './ReportScreenContext';
+import ReportActionsViewWithSkeleton from './report/ReportActionsViewWithSkeleton';
 import TaskHeaderActionButton from '../../components/TaskHeaderActionButton';
 import DragAndDropProvider from '../../components/DragAndDrop/Provider';
 
@@ -114,9 +113,6 @@ function getReportID(route) {
     return String(lodashGet(route, 'params.reportID', null));
 }
 
-// Keep a reference to the list view height so we can use it when a new ReportScreen component mounts
-let reportActionsListViewHeight = 0;
-
 class ReportScreen extends React.Component {
     gestureStartListener = null;
 
@@ -128,12 +124,9 @@ class ReportScreen extends React.Component {
         this.dismissBanner = this.dismissBanner.bind(this);
 
         this.state = {
-            skeletonViewContainerHeight: reportActionsListViewHeight,
             isBannerVisible: true,
             isReportRemoved: false,
         };
-        this.firstRenderRef = React.createRef();
-        this.firstRenderRef.current = reportActionsListViewHeight === 0;
 
         this.flatListRef = React.createRef();
         this.reactionListRef = React.createRef();
@@ -259,8 +252,7 @@ class ReportScreen extends React.Component {
 
         const shouldHideReport = !ReportUtils.canAccessReport(this.props.report, this.props.policies, this.props.betas);
 
-        const isLoading = !reportID || !this.props.isSidebarLoaded || _.isEmpty(this.props.personalDetails) || this.firstRenderRef.current;
-        this.firstRenderRef.current = false;
+        const isLoading = !reportID || !this.props.isSidebarLoaded || _.isEmpty(this.props.personalDetails);
 
         const parentReportAction = ReportActionsUtils.getParentReportAction(this.props.report);
         const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(parentReportAction);
@@ -351,37 +343,16 @@ class ReportScreen extends React.Component {
                         <DragAndDropProvider isDisabled={!this.isReportReadyForDisplay()}>
                             <View
                                 style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
-                                onLayout={(event) => {
-                                    // Rounding this value for comparison because they can look like this: 411.9999694824219
-                                    const skeletonViewContainerHeight = Math.round(event.nativeEvent.layout.height);
-
-                                    // Only set state when the height changes to avoid unnecessary renders
-                                    if (reportActionsListViewHeight === skeletonViewContainerHeight) return;
-
-                                    // The height can be 0 if the component unmounts - we are not interested in this value and want to know how much space it
-                                    // takes up so we can set the skeleton view container height.
-                                    if (skeletonViewContainerHeight === 0) {
-                                        return;
-                                    }
-                                    reportActionsListViewHeight = skeletonViewContainerHeight;
-                                    this.setState({skeletonViewContainerHeight});
-                                }}
                             >
-                                {this.isReportReadyForDisplay() && !isLoadingInitialReportActions && !isLoading && (
-                                    <ReportActionsView
-                                        reportActions={this.props.reportActions}
-                                        report={this.props.report}
-                                        isComposerFullSize={this.props.isComposerFullSize}
-                                        parentViewHeight={this.state.skeletonViewContainerHeight}
-                                        policy={policy}
-                                    />
-                                )}
-
-                                {/* Note: The report should be allowed to mount even if the initial report actions are not loaded. If we prevent rendering the report while they are loading then
-                            we'll unnecessarily unmount the ReportActionsView which will clear the new marker lines initial state. */}
-                                {(!this.isReportReadyForDisplay() || isLoadingInitialReportActions || isLoading) && (
-                                    <ReportActionsSkeletonView containerHeight={this.state.skeletonViewContainerHeight} />
-                                )}
+                                <ReportActionsViewWithSkeleton
+                                    isReportReadyForDisplay={this.isReportReadyForDisplay()}
+                                    isLoading={isLoading}
+                                    isLoadingInitialReportActions={isLoadingInitialReportActions}
+                                    report={this.props.report}
+                                    reportActions={this.props.reportActions}
+                                    isComposerFullSize={this.props.isComposerFullSize}
+                                    policy={policy}
+                                />
 
                                 {this.isReportReadyForDisplay() && (
                                     <>
