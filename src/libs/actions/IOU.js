@@ -1431,6 +1431,59 @@ function sendMoneyViaPaypal(report, amount, currency, comment, managerID, recipi
     asyncOpenURL(Promise.resolve(), buildPayPalPaymentUrl(amount, recipient.payPalMeAddress, currency));
 }
 
+function approveMoneyRequest(expenseReport) {
+    const IOUTransactionID = ReportActionsUtils.getReportMostRecentIOUTransactionID(expenseReport.reportID);
+    const optimisticIOUReportAction = ReportUtils.buildOptimisticApprovedReportAction(expenseReport.total, expenseReport.currency, expenseReport.reportID, IOUTransactionID);
+
+    const optimisticReportActionsData = {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
+        value: {
+            [optimisticIOUReportAction.reportActionID]: {
+                ...optimisticIOUReportAction,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            },
+        },
+    };
+    const optimisticIOUReportData = {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
+        value: {
+            ...expenseReport,
+            lastMessageText: optimisticIOUReportAction.message[0].text,
+            lastMessageHtml: optimisticIOUReportAction.message[0].html,
+            statusNum: CONST.REPORT.STATUS.APPROVED,
+        },
+    };
+    const optimisticData = [optimisticIOUReportData, optimisticReportActionsData];
+
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
+            value: {
+                [optimisticIOUReportAction.reportActionID]: {
+                    pendingAction: null,
+                },
+            },
+        },
+    ];
+
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
+            value: {
+                [expenseReport.reportActionID]: {
+                    errors: ErrorUtils.getMicroSecondOnyxError('iou.error.other'),
+                },
+            },
+        },
+    ];
+
+    API.write('ApproveMoneyRequest', {reportID: expenseReport.reportID, approvedReportActionID: optimisticIOUReportAction.reportActionID}, {optimisticData, successData, failureData});
+}
+
 /**
  * @param {String} paymentType
  * @param {Object} chatReport
