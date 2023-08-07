@@ -791,14 +791,13 @@ function splitBillAndOpenReport(participants, currentUserLogin, currentUserAccou
 /**
  * @param {String} transactionID
  * @param {Number} transactionThreadReportID
- * @param {Object} updatedTransaction
  * @param {Object} transactionChanges
  */
 function editMoneyRequest(transactionID, transactionThreadReportID, transactionChanges) {
     // STEP 1: Get all collections we're updating
     const transactionThread = allReports[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`];
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-    const iouReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
+    const iouReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${transactionThread.parentReportID}`];
 
     // STEP 2: Build new modified expense report action.
     const updatedReportAction = ReportUtils.buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges);
@@ -826,7 +825,7 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThread.reportID}`,
             value: {
-                [reportAction.reportActionID]: {pendingAction: null},
+                [updatedReportAction.reportActionID]: {pendingAction: null},
             },
         },
         {
@@ -865,7 +864,7 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
         'EditMoneyRequest',
         {
             transactionID,
-            reportActionID: reportAction.reportActionID,
+            reportActionID: updatedReportAction.reportActionID,
 
             // Using the getter methods here to ensure we pass modified field if present
             created: TransactionUtils.getCreated(updatedTransaction),
