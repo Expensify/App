@@ -606,7 +606,7 @@ function ReportActionCompose({
                 }
             }
         },
-        [props.isKeyboardShown, props.isSmallScreenWidth, props.parentReportActions, props.report, props.reportActions, props.reportID, submitForm, value.length],
+        [isKeyboardShown, isSmallScreenWidth, parentReportActions, report, reportActions, reportID, submitForm, value.length],
     );
 
     /**
@@ -788,7 +788,7 @@ function ReportActionCompose({
                                                             onPress={(e) => {
                                                                 e.preventDefault();
                                                                 suggestionsRef.current.updateShouldShowSuggestionMenuToFalse();
-                                                                Report.setIsComposerFullSize(props.reportID, true);
+                                                                Report.setIsComposerFullSize(reportID, true);
                                                             }}
                                                             // Keep focus on the composer when Expand button is clicked.
                                                             onMouseDown={(e) => e.preventDefault()}
@@ -897,9 +897,9 @@ function ReportActionCompose({
                                         onSelectionChange={onSelectionChange}
                                         isFullComposerAvailable={isFullSizeComposerAvailable}
                                         setIsFullComposerAvailable={setIsFullComposerAvailable}
-                                        isComposerFullSize={props.isComposerFullSize}
+                                        isComposerFullSize={isComposerFullSize}
                                         // value={value}
-                                        numberOfLines={props.numberOfLines}
+                                        numberOfLines={numberOfLines}
                                         onNumberOfLinesChange={updateNumberOfLines}
                                         shouldCalculateCaretPosition
                                         onLayout={(e) => {
@@ -972,18 +972,18 @@ function ReportActionCompose({
             </OfflineWithFeedback>
             {/* <Suggestions
                 // Onyx
-                preferredLocale={props.preferredLocale}
-                windowHeight={props.windowHeight}
-                isSmallScreenWidth={props.isSmallScreenWidth}
-                personalDetails={props.personalDetails}
-                translate={props.translate}
+                preferredLocale={preferredLocale}
+                windowHeight={windowHeight}
+                isSmallScreenWidth={isSmallScreenWidth}
+                personalDetails={personalDetails}
+                translate={translate}
                 // Input
                 value={value}
                 setValue={setValue}
                 selection={selection}
                 setSelection={setSelection}
                 // Esoteric props
-                isComposerFullSize={props.isComposerFullSize}
+                isComposerFullSize={isComposerFullSize}
                 updateComment={updateComment}
                 composerHeight={composerHeight}
                 shouldShowReportRecipientLocalTime={shouldShowReportRecipientLocalTime}
