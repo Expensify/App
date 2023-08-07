@@ -2496,11 +2496,11 @@ const styles = {
         alignSelf: 'flex-start',
     },
 
-    attachmentModalArrowsContainer: {
-        display: 'flex',
-        justifyContent: 'center',
+    attachmentCarouselContainer: {
         height: '100%',
         width: '100%',
+        display: 'flex',
+        justifyContent: 'center',
         ...cursor.cursorUnset,
     },
 
