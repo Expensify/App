@@ -241,6 +241,8 @@ class ReportActionCompose extends React.Component {
             isAttachmentPreviewActive: false,
             ...this.getDefaultSuggestionsValues(),
         };
+
+        this.actionButtonRef = React.createRef();
     }
 
     componentDidMount() {
@@ -1003,6 +1005,16 @@ class ReportActionCompose extends React.Component {
                 runOnJS(submit)();
             });
 
+        const menuItems = [
+            ...this.getMoneyRequestOptions(reportParticipants),
+            ...this.getTaskOption(reportParticipants),
+            {
+                icon: Expensicons.Paperclip,
+                text: this.props.translate('reportActionCompose.addAttachment'),
+                onSelected: () => {},
+            },
+        ];
+
         return (
             <View
                 style={[
@@ -1087,13 +1099,13 @@ class ReportActionCompose extends React.Component {
                                                     )}
                                                     <Tooltip text={this.props.translate('reportActionCompose.addAction')}>
                                                         <PressableWithFeedback
-                                                            ref={(el) => (this.actionButton = el)}
+                                                            ref={this.actionButtonRef}
                                                             onPress={(e) => {
                                                                 e.preventDefault();
 
                                                                 // Drop focus to avoid blue focus ring.
-                                                                this.actionButton.blur();
-                                                                this.setMenuVisibility(true);
+                                                                this.actionButtonRef.current.blur();
+                                                                this.setMenuVisibility(!this.state.isMenuVisible);
                                                             }}
                                                             style={styles.composerSizeButton}
                                                             disabled={isBlockedFromConcierge || this.props.disabled}
@@ -1108,7 +1120,24 @@ class ReportActionCompose extends React.Component {
                                                     animationInTiming={CONST.ANIMATION_IN_TIMING}
                                                     isVisible={this.state.isMenuVisible}
                                                     onClose={() => this.setMenuVisibility(false)}
-                                                    onItemSelected={() => this.setMenuVisibility(false)}
+                                                    onItemSelected={(item, index) => {
+                                                        this.setMenuVisibility(false);
+
+                                                        // In order for the file picker to open dynamically, the click
+                                                        // function must be called from within a event handler that was initiated
+                                                        // by the user.
+                                                        if (index === menuItems.length - 1) {
+                                                            // Set a flag to block suggestion calculation until we're finished using the file picker,
+                                                            // which will stop any flickering as the file picker opens on non-native devices.
+                                                            if (this.willBlurTextInputOnTapOutside) {
+                                                                this.shouldBlockEmojiCalc = true;
+                                                                this.shouldBlockMentionCalc = true;
+                                                            }
+                                                            openPicker({
+                                                                onPicked: displayFileInModal,
+                                                            });
+                                                        }
+                                                    }}
                                                     anchorPosition={styles.createMenuPositionReportActionCompose(this.props.windowHeight)}
                                                     anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM}}
                                                     menuItems={[
@@ -1131,6 +1160,8 @@ class ReportActionCompose extends React.Component {
                                                             },
                                                         },
                                                     ]}
+                                                    withoutOverlay
+                                                    anchorRef={this.actionButtonRef}
                                                 />
                                             </>
                                         )}
