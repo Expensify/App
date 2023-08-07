@@ -6,6 +6,7 @@ import Modal from '../Modal';
 import HeaderWithBackButton from '../HeaderWithBackButton';
 import SelectionListRadio from '../SelectionListRadio';
 import useLocalize from '../../hooks/useLocalize';
+import searchOptions from '../../libs/CountrySelectorUtils';
 
 const propTypes = {
     /** Whether the modal is visible */
@@ -36,18 +37,6 @@ const defaultProps = {
     onStateSelected: () => {},
     label: undefined,
 };
-
-function searchOptions(searchValue, data) {
-    const trimmedSearchValue = searchValue.toLowerCase().replaceAll(CONST.REGEX.NON_ALPHABETIC_AND_NON_LATIN_CHARS, '');
-    if (trimmedSearchValue.length === 0) {
-        return [];
-    }
-
-    const filteredData = _.filter(data, (countryState) => countryState.searchValue.includes(trimmedSearchValue));
-
-    // sort by state code
-    return _.sortBy(filteredData, (countryState) => (countryState.value.toLowerCase() === trimmedSearchValue ? -1 : 1));
-}
 
 function StateSelectorModal({currentState, isVisible, onClose, onStateSelected, searchValue, setSearchValue, label}) {
     const {translate} = useLocalize();
