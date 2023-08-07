@@ -108,7 +108,6 @@ const propTypes = {
 
     /** Flag to show, hide the thread divider line */
     shouldHideThreadDividerLine: PropTypes.bool,
-
 };
 
 const defaultProps = {
