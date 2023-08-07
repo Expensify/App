@@ -270,9 +270,10 @@ function completeTask(taskReport, taskTitle) {
     if (!_.isEmpty(optimisticDataForParentReportAction)) {
         optimisticData.push(optimisticDataForParentReportAction);
     }
+
     // Multiple report actions can link to the same child. Both share destination (task parent) and assignee report link to the same report action.
     // We need to find and update the other parent report action (in assignee report). More info https://github.com/Expensify/App/issues/23920#issuecomment-1663092717
-    const assigneeReportAction = ReportUtils.getAssigneeParentReportAction(taskReport);
+    const assigneeReportAction = ReportUtils.getTaskParentReportActionIDInAssigneeReport(taskReport);
     if (!_.isEmpty(assigneeReportAction)) {
         const optimisticDataForClonedParentReportAction = ReportUtils.getOptimisticDataForParentReportAction(
             taskReportID,
@@ -362,9 +363,10 @@ function reopenTask(taskReport, taskTitle) {
     if (!_.isEmpty(optimisticDataForParentReportAction)) {
         optimisticData.push(optimisticDataForParentReportAction);
     }
+
     // Multiple report actions can link to the same child. Both share destination (task parent) and assignee report link to the same report action.
     // We need to find and update the other parent report action (in assignee report). More info https://github.com/Expensify/App/issues/23920#issuecomment-1663092717
-    const assigneeReportAction = ReportUtils.getAssigneeParentReportAction(taskReport);
+    const assigneeReportAction = ReportUtils.getTaskParentReportActionIDInAssigneeReport(taskReport);
     if (!_.isEmpty(assigneeReportAction)) {
         const optimisticDataForClonedParentReportAction = ReportUtils.getOptimisticDataForParentReportAction(
             taskReportID,

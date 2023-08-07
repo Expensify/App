@@ -2775,18 +2775,18 @@ function getParentReport(report) {
 
 /**
  * Find the parent report action in assignee report for a task report
+ * Returns an empty object if assignee report is the same as the share destination report
  *
  * @param {Object} taskReport
  * @returns {Object}
  */
-function getAssigneeParentReportAction(taskReport) {
+function getTaskParentReportActionIDInAssigneeReport(taskReport) {
     const assigneeChatReportID = lodashGet(getChatByParticipants(taskReport.participantAccountIDs), 'reportID');
-    // No need to go ahead if reports for assignee and shareDestination are the same
     if (!assigneeChatReportID || assigneeChatReportID === taskReport.parentReportID) {
         return {};
     }
 
-    const clonedParentReportActionID = lodashGet(ReportActionsUtils.getParentReportActionInReport(taskReport.reportID, assigneeChatReportID), 'reportActionID', '');
+    const clonedParentReportActionID = lodashGet(ReportActionsUtils.getParentReportActionInReport(taskReport.reportID, assigneeChatReportID), 'reportActionID');
     if (!clonedParentReportActionID) {
         return {};
     }
@@ -2977,7 +2977,7 @@ export {
     getMoneyRequestAction,
     getBankAccountRoute,
     getParentReport,
-    getAssigneeParentReportAction,
+    getTaskParentReportActionIDInAssigneeReport,
     getReportPreviewMessage,
     shouldHideComposer,
     getOriginalReportID,
