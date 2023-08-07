@@ -69,7 +69,12 @@ function isMobileChrome() {
 function openRouteInDesktopApp(shortLivedAuthToken = '', email = '') {
     const params = new URLSearchParams();
     params.set('exitTo', `${window.location.pathname}${window.location.search}${window.location.hash}`);
-    if (email && shortLivedAuthToken) {
+    // Match any magic link (/v/<account id>/<6 digit code>)
+    const isMagicLink = /\/v\/\w+\/[0-9]{6}/.test(window.location.pathname)
+
+    // If the route that is being handled is a magic link, email and shortLivedAuthToken should not be attached to the url 
+    // to prevent signing into the wrong account
+    if (email && shortLivedAuthToken && !isMagicLink) {
         params.set('email', email);
         params.set('shortLivedAuthToken', shortLivedAuthToken);
     }
