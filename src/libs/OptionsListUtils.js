@@ -628,8 +628,6 @@ function getOptions(
         };
     }
 
-    console.log({includeP2P});
-
     // We're only picking personal details that have logins set
     // This is a temporary fix for all the logic that's been breaking because of the new privacy changes
     // See https://github.com/Expensify/Expensify/issues/293465 for more context
