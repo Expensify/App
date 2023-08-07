@@ -15,6 +15,7 @@ import CONST from '../../../CONST';
 import useLocalize from '../../../hooks/useLocalize';
 import styles from '../../../styles/styles';
 import withNavigationFocus from '../../../components/withNavigationFocus';
+import * as SessionUtils from '../../../libs/SessionUtils';
 
 const propTypes = {
     ...basePropTypes,
@@ -39,9 +40,6 @@ const propTypes = {
         ),
     ),
 
-    /** Whether the personal details are loading. When false it means they are ready to be used. */
-    isPersonalDetailsLoading: PropTypes.bool,
-
     /** The chat priority mode */
     priorityMode: PropTypes.string,
 
@@ -56,13 +54,13 @@ const propTypes = {
 const defaultProps = {
     chatReports: {},
     allReportActions: {},
+    isLoadingReportData: true,
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
-    isPersonalDetailsLoading: true,
     betas: [],
     policies: [],
 };
 
-function SidebarLinksData({isFocused, allReportActions, betas, chatReports, currentReportID, insets, isPersonalDetailsLoading, isSmallScreenWidth, onLinkClick, policies, priorityMode}) {
+function SidebarLinksData({isFocused, allReportActions, betas, chatReports, currentReportID, insets, isLoadingReportData, isSmallScreenWidth, onLinkClick, policies, priorityMode}) {
     const {translate} = useLocalize();
 
     const reportIDsRef = useRef([]);
@@ -75,7 +73,7 @@ function SidebarLinksData({isFocused, allReportActions, betas, chatReports, curr
         return reportIDs;
     }, [allReportActions, betas, chatReports, currentReportID, policies, priorityMode]);
 
-    const isLoading = _.isEmpty(chatReports) || isPersonalDetailsLoading;
+    const isLoading = SessionUtils.didUserLogInDuringSession() && isLoadingReportData;
 
     return (
         <View
@@ -177,9 +175,8 @@ export default compose(
             key: ONYXKEYS.COLLECTION.REPORT,
             selector: chatReportSelector,
         },
-        isPersonalDetailsLoading: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            selector: _.isEmpty,
+        isLoadingReportData: {
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA
         },
         priorityMode: {
             key: ONYXKEYS.NVP_PRIORITY_MODE,
