@@ -75,15 +75,17 @@ class PDFView extends Component {
      *
      * @param {Object} pdf - The PDF file instance
      * @param {Number} pdf.numPages - Number of pages of the PDF file
-     * @param {Function} pdf.getPage - A method to get page by its number
+     * @param {Function} pdf.getPage - A method to get page by its number. It requires to have the context. It should be the pdf itself.
      * @memberof PDFView
      */
-    onDocumentLoadSuccess({numPages, getPage}) {
+    onDocumentLoadSuccess(pdf) {
+        const {numPages} = pdf;
+
         Promise.all(
             _.times(numPages, (index) => {
                 const pageNumber = index + 1;
 
-                return getPage(pageNumber).then((page) => page.getViewport({scale: 1}));
+                return pdf.getPage(pageNumber).then((page) => page.getViewport({scale: 1}));
             }),
         ).then((pageViewports) => {
             this.setState({
