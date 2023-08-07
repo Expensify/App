@@ -33,13 +33,16 @@ const defaultProps = {
     onCountrySelected: () => {},
 };
 
-function filterOptions(searchValue, data) {
-    const searchValueWithOnlyAlphabets = searchValue.toLowerCase().replaceAll(CONST.REGEX.COUNTRY_NAME_WITH_ONLY_ALPHABETS, '');
+function searchOptions(searchValue, data) {
+    const searchValueWithOnlyAlphabets = searchValue.toLowerCase().replaceAll(CONST.REGEX.NON_ALPHABETIC_AND_NON_LATIN_CHARS, '');
     if (searchValueWithOnlyAlphabets.length === 0) {
         return [];
     }
 
-    return _.filter(data, (country) => country.searchValue.includes(searchValueWithOnlyAlphabets) || country.value.toLowerCase().includes(searchValueWithOnlyAlphabets));
+    const filteredData = _.filter(data, (country) => country.searchValue.includes(searchValueWithOnlyAlphabets));
+
+    // sort by country code
+    return _.sortBy(filteredData, (country) => (country.value.toLowerCase() === searchValueWithOnlyAlphabets ? -1 : 1));
 }
 
 function CountrySelectorModal({currentCountry, isVisible, onClose, onCountrySelected, setSearchValue, searchValue}) {
@@ -52,13 +55,13 @@ function CountrySelectorModal({currentCountry, isVisible, onClose, onCountrySele
                 keyForList: countryISO,
                 text: countryName,
                 isSelected: currentCountry === countryISO,
-                searchValue: countryName.toLowerCase().replaceAll(CONST.REGEX.COUNTRY_NAME_WITH_ONLY_ALPHABETS, ''),
+                searchValue: `${countryISO}${countryName}`.toLowerCase().replaceAll(CONST.REGEX.NON_ALPHABETIC_AND_NON_LATIN_CHARS, ''),
             })),
         [translate, currentCountry],
     );
 
-    const filteredData = filterOptions(searchValue, countries);
-    const headerMessage = searchValue.trim() && !filteredData.length ? translate('common.noResultsFound') : '';
+    const searchResults = searchOptions(searchValue, countries);
+    const headerMessage = searchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';
 
     return (
         <Modal
@@ -78,7 +81,7 @@ function CountrySelectorModal({currentCountry, isVisible, onClose, onCountrySele
                 textInputLabel={translate('common.country')}
                 textInputPlaceholder={translate('countrySelectorModal.placeholderText')}
                 textInputValue={searchValue}
-                sections={[{data: filteredData, indexOffset: 0}]}
+                sections={[{data: searchResults, indexOffset: 0}]}
                 onSelectRow={onCountrySelected}
                 onChangeText={setSearchValue}
                 shouldFocusOnSelectRow

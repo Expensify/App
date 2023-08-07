@@ -37,13 +37,16 @@ const defaultProps = {
     label: undefined,
 };
 
-function filterOptions(searchValue, data) {
-    const searchValueWithOnlyAlphabets = searchValue.toLowerCase().replaceAll(' ', '');
+function searchOptions(searchValue, data) {
+    const searchValueWithOnlyAlphabets = searchValue.toLowerCase().replaceAll(CONST.REGEX.NON_ALPHABETIC_AND_NON_LATIN_CHARS, '');
     if (searchValueWithOnlyAlphabets.length === 0) {
         return [];
     }
 
-    return _.filter(data, (countryState) => countryState.searchValue.includes(searchValueWithOnlyAlphabets) || countryState.value.toLowerCase().includes(searchValueWithOnlyAlphabets));
+    const filteredData = _.filter(data, (countryState) => countryState.searchValue.includes(searchValueWithOnlyAlphabets));
+
+    // sort by state code
+    return _.sortBy(filteredData, (countryState) => (countryState.value.toLowerCase() === searchValueWithOnlyAlphabets ? -1 : 1));
 }
 
 function StateSelectorModal({currentState, isVisible, onClose, onStateSelected, searchValue, setSearchValue, label}) {
@@ -56,13 +59,13 @@ function StateSelectorModal({currentState, isVisible, onClose, onStateSelected, 
                 keyForList: state.stateISO,
                 text: state.stateName,
                 isSelected: currentState === state.stateISO,
-                searchValue: state.stateName.toLowerCase().replaceAll(' ', ''),
+                searchValue: `${state.stateISO}${state.stateName}`.toLowerCase().replaceAll(CONST.REGEX.NON_ALPHABETIC_AND_NON_LATIN_CHARS, ''),
             })),
         [translate, currentState],
     );
 
-    const filteredData = filterOptions(searchValue, countryStates);
-    const headerMessage = searchValue.trim() && !filteredData.length ? translate('common.noResultsFound') : '';
+    const searchResults = searchOptions(searchValue, countryStates);
+    const headerMessage = searchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';
 
     return (
         <Modal
@@ -83,7 +86,7 @@ function StateSelectorModal({currentState, isVisible, onClose, onStateSelected, 
                 textInputLabel={label || translate('common.state')}
                 textInputPlaceholder={translate('stateSelectorModal.placeholderText')}
                 textInputValue={searchValue}
-                sections={[{data: filteredData, indexOffset: 0}]}
+                sections={[{data: searchResults, indexOffset: 0}]}
                 onSelectRow={onStateSelected}
                 onChangeText={setSearchValue}
                 shouldFocusOnSelectRow
