@@ -14,7 +14,7 @@ import Navigation from '../../../libs/Navigation/Navigation';
  */
 function extractAttachmentsFromReport(report, reportActions, source) {
     // Even an empty chat will have the 'created' report action, if its not there
-    // then we are coming from a deep link and actions are not yet loaded. We should 
+    // then we are coming from a deep link and actions are not yet loaded. We should
     // wait until actions load.
     if (_.isEmpty(reportActions)) {
         return {
@@ -23,7 +23,7 @@ function extractAttachmentsFromReport(report, reportActions, source) {
             initialItem: undefined,
             initialActiveSource: null,
         };
-    } 
+    }
 
     const actions = [ReportActionsUtils.getParentReportAction(report), ...ReportActionsUtils.getSortedReportActions(_.values(reportActions))];
     let attachments = [];
@@ -56,7 +56,7 @@ function extractAttachmentsFromReport(report, reportActions, source) {
 
     attachments = attachments.reverse();
 
-    const initialPage = _.findIndex(attachments, (a) => a.source === source);
+    const initialPage = _.findIndex(attachments, (a) => a.source.includes(source));
     if (initialPage === -1) {
         Navigation.dismissModal();
         return {
