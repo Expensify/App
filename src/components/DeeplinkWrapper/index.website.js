@@ -49,7 +49,7 @@ function DeeplinkWrapper({children, isAuthenticated}) {
         if (isAuthenticated === false) {
             setHasShownPrompt(false);
             Navigation.isNavigationReady().then(() => {
-                // get initial route
+                // Get initial route
                 const initialRoute = navigationRef.current.getCurrentRoute();
                 setCurrentScreen(initialRoute.name);
 
