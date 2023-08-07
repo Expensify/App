@@ -19,6 +19,7 @@ import * as ErrorUtils from '../ErrorUtils';
 import * as Session from './Session';
 import * as PersonalDetails from './PersonalDetails';
 import * as App from './App';
+import Log from '../Log';
 
 let currentUserAccountID = '';
 let currentEmail = '';
@@ -579,6 +580,11 @@ function subscribeToUserEvents() {
                 // ReconnectApp will fetch updates starting from the last update this client got and going to the last update the server sent.
                 if (onyxUpdatesLastUpdateID < pushJSONPreviousUpdateID) {
                     console.debug('[OnyxUpdates] Gap detected in update IDs so fetching incremental updates');
+                    Log.info('Gap detected in update IDs from Pusher so fetching incremental updates', true, {
+                        lastUpdateIDFromPusher: pushJSONLastUpdateID,
+                        previousUpdateIDFromPusher: pushJSONPreviousUpdateID,
+                        lastUpdateIDOnClient: onyxUpdatesLastUpdateID,
+                    });
                     App.reconnectApp(onyxUpdatesLastUpdateID, pushJSONLastUpdateID, true);
                 }
             } else {
