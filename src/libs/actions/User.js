@@ -557,7 +557,7 @@ function subscribeToUserEvents() {
             // Not always we'll have the lastUpdateID and previousUpdateID properties in the pusher update
             // until we finish the migration to reliable updates. So let's check it before actually updating
             // the properties in Onyx
-            if ('lastUpdateID' in pushJSON && 'previousUpdateID' in pushJSON) {
+            if (pushJSON.lastUpdateID && pushJSON.previousUpdateID) {
                 console.debug('[OnyxUpdates] Received lastUpdateID from pusher', pushJSON.lastUpdateID);
                 console.debug('[OnyxUpdates] Received previousUpdateID from pusher', pushJSON.previousUpdateID);
                 // Store these values in Onyx to allow App.reconnectApp() to fetch incremental updates from the server when a previous session is being reconnected to.
