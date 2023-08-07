@@ -202,7 +202,6 @@ function resendValidateCode(login = credentials.login) {
  * Constructs the state object for the BeginSignIn && BeginAppleSignIn API calls.
  *  @returns {Object}
  */
-
 function signInAttemptState() {
     return {
         optimisticData: [
