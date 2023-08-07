@@ -178,8 +178,12 @@ function isCompletedTaskReport(report) {
     return isTaskReport(report) && report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && report.statusNum === CONST.REPORT.STATUS.APPROVED;
 }
 
-function isTaskAssignee(report) {
+function isReportManager(report) {
     return lodashGet(report, 'managerID') === currentUserAccountID;
+}
+
+function isReportApproved(report) {
+    return lodashGet(report, 'stateNum') === CONST.REPORT.STATE_NUM.SUBMITTED && lodashGet(report, 'statusNum') === CONST.REPORT.STATUS.APPROVED;
 }
 
 /**
@@ -1164,7 +1168,7 @@ function isWaitingForIOUActionFromCurrentUser(report, allReportsDict = null) {
 }
 
 function isWaitingForTaskCompleteFromAssignee(report) {
-    return isTaskReport(report) && isTaskAssignee(report) && isOpenTaskReport(report);
+    return isTaskReport(report) && isReportManager(report) && isOpenTaskReport(report);
 }
 
 /**
@@ -2943,7 +2947,7 @@ export {
     isOpenTaskReport,
     isCanceledTaskReport,
     isCompletedTaskReport,
-    isTaskAssignee,
+    isReportManager,
     isMoneyRequestReport,
     isMoneyRequest,
     chatIncludesChronos,

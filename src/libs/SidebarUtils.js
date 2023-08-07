@@ -238,7 +238,7 @@ function getOptionData(report, personalDetails, preferredLocale, policy) {
     result.isTaskReport = ReportUtils.isTaskReport(report);
     if (result.isTaskReport) {
         result.isCompletedTaskReport = ReportUtils.isCompletedTaskReport(report);
-        result.isTaskAssignee = ReportUtils.isTaskAssignee(report);
+        result.isTaskAssignee = ReportUtils.isReportManager(report);
     }
     result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
     result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);

@@ -58,7 +58,28 @@ function MoneyReportHeader(props) {
     const isPayer =
         Policy.isAdminOfFreePolicy([policy]) || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(props.session, 'accountID', null) === moneyRequestReport.managerID);
     const reportTotal = ReportUtils.getMoneyRequestTotal(props.report);
-    const shouldShowSettlementButton = !isSettled && isPayer && !moneyRequestReport.isWaitingOnBankAccount && reportTotal !== 0;
+    const shouldShowSettlementButton = useMemo(() => {
+        if (ReportUtils.getPolicyType(moneyRequestReport, props.policies) === CONST.POLICY.TYPE.CORPORATE) {
+            return Policy.isAdminOfControlPolicy([policy]) && ReportUtils.isReportApproved(moneyRequestReport) && !ReportUtils.isSettled(moneyRequestReport.reportID);
+        }
+
+        return (
+            (Policy.isAdminOfFreePolicy([policy]) ||
+                (ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(props.session, 'accountID', null) === moneyRequestReport.managerID)) &&
+            !ReportUtils.isSettled(moneyRequestReport)
+        );
+    }, [moneyRequestReport, policy, props.policies, props.session]);
+    const shouldShowApprovedButton = useMemo(() => {
+        if (ReportUtils.getPolicyType(moneyRequestReport) !== CONST.POLICY.TYPE.CORPORATE) {
+            return false;
+        }
+
+        return (
+            ReportUtils.isReportManager(moneyRequestReport) &&
+            lodashGet(moneyRequestReport, 'stateNum') === CONST.REPORT.STATE_NUM.PROCESSING &&
+            lodashGet(moneyRequestReport, 'statusNum') === CONST.REPORT.STATUS.SUBMITTED
+        );
+    }, [moneyRequestReport]);
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
     const shouldShowPaypal = Boolean(lodashGet(props.personalDetails, [moneyRequestReport.managerID, 'payPalMeAddress']));
     const formattedAmount = CurrencyUtils.convertToDisplayString(reportTotal, props.report.currency);
@@ -93,6 +114,15 @@ function MoneyReportHeader(props) {
                         />
                     </View>
                 )}
+                {shouldShowApprovedButton && !props.isSmallScreenWidth && (
+                    <View style={[styles.pv2]}>
+                        <Button
+                            success
+                            text="Approve"
+                            onPress={() => IOU.approveMoneyRequest(props.report)}
+                        />
+                    </View>
+                )}
             </HeaderWithBackButton>
             {shouldShowSettlementButton && props.isSmallScreenWidth && (
                 <View style={[styles.ph5, styles.pb2, props.isSmallScreenWidth && styles.borderBottom]}>
@@ -107,6 +137,15 @@ function MoneyReportHeader(props) {
                         addBankAccountRoute={bankAccountRoute}
                         shouldShowPaymentOptions
                         formattedAmount={formattedAmount}
+                    />
+                </View>
+            )}
+            {shouldShowApprovedButton && props.isSmallScreenWidth && (
+                <View style={[styles.ph5, styles.pb2, props.isSmallScreenWidth && styles.borderBottom]}>
+                    <Button
+                        success
+                        text="Approve"
+                        onPress={() => IOU.approveMoneyRequest(props.report)}
                     />
                 </View>
             )}
