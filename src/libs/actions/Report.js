@@ -28,7 +28,6 @@ import * as PersonalDetailsUtils from '../PersonalDetailsUtils';
 import SidebarUtils from '../SidebarUtils';
 import * as OptionsListUtils from '../OptionsListUtils';
 import * as Environment from '../Environment/Environment';
-import * as Localize from '../Localize';
 
 let currentUserAccountID;
 Onyx.connect({
