@@ -9,6 +9,7 @@ import CONST from '../CONST';
 import withWindowDimensions from './withWindowDimensions';
 import Permissions from '../libs/Permissions';
 import PopoverMenu from './PopoverMenu';
+import refPropTypes from './refPropTypes';
 import paypalMeDataPropTypes from './paypalMeDataPropTypes';
 
 const propTypes = {
@@ -33,6 +34,9 @@ const propTypes = {
     /** List of betas available to current user */
     betas: PropTypes.arrayOf(PropTypes.string),
 
+    /** Popover anchor ref */
+    anchorRef: refPropTypes,
+
     ...withLocalizePropTypes,
 };
 
@@ -41,6 +45,7 @@ const defaultProps = {
     payPalMeData: {},
     shouldShowPaypal: true,
     betas: [],
+    anchorRef: () => {},
 };
 
 function AddPaymentMethodMenu(props) {
@@ -49,6 +54,7 @@ function AddPaymentMethodMenu(props) {
             isVisible={props.isVisible}
             onClose={props.onClose}
             anchorPosition={props.anchorPosition}
+            anchorRef={props.anchorRef}
             onItemSelected={props.onClose}
             menuItems={[
                 {
@@ -77,6 +83,7 @@ function AddPaymentMethodMenu(props) {
                       ]
                     : []),
             ]}
+            withoutOverlay
         />
     );
 }
