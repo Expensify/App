@@ -1593,7 +1593,7 @@ function getOptimisticDataForParentReportAction(reportID, lastVisibleActionCreat
             [parentReportActionID || report.parentReportActionID]: optimisticParentReportAction,
         },
     };
-};
+}
 
 /**
  * Builds an optimistic reportAction for the parent report when a task is created
@@ -2775,8 +2775,8 @@ function getParentReport(report) {
 
 /**
  * Find the parent report action in assignee report for a task report
- * 
- * @param {Object} taskReport 
+ *
+ * @param {Object} taskReport
  * @returns {Object}
  */
 function getAssigneeParentReportAction(taskReport) {
