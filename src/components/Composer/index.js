@@ -340,8 +340,8 @@ class Composer extends React.Component {
             if (embeddedImages.length > 0 && embeddedImages[0].src) {
                 // If HTML has emoji, then treat this as plain text.
                 if (embeddedImages[0].dataset && embeddedImages[0].dataset.stringifyType === 'emoji') {
-                  this.handlePastePlainText(event);
-                  return;
+                    this.handlePastePlainText(event);
+                    return;
                 }
             }
 
