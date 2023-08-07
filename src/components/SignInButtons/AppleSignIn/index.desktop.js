@@ -12,7 +12,6 @@ const appleSignInWebRouteForDesktopFlow = `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}
  * Apple Sign In button for desktop flow
  * @returns {React.Component}
  */
-
 function AppleSignIn() {
     return (
         <View style={styles.appleButtonContainer}>
