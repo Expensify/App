@@ -15,7 +15,6 @@ const googleSignInWebRouteForDesktopFlow = `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL
  * Google Sign In button for desktop flow.
  * @returns {React.Component}
  */
-
 function GoogleSignIn() {
     return (
         <View style={styles.appleButtonContainer}>
