@@ -3632,12 +3632,7 @@ const styles = {
         willChange: 'transform',
     },
 
-    dropButtonHeight: {
-        height: variables.componentSizeNormal,
-    },
-
-    cartIconContainer: {
-        height: variables.componentSizeNormal,
+    cartIconContainerPadding: {
         paddingRight: 0,
         paddingLeft: 0,
     },
@@ -3645,7 +3640,6 @@ const styles = {
     cartIconView: {
         borderTopRightRadius: variables.buttonBorderRadius,
         borderBottomRightRadius: variables.buttonBorderRadius,
-        height: variables.componentSizeNormal,
         ...flex.flexRow,
         ...flex.alignItemsCenter,
     },

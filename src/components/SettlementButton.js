@@ -57,6 +57,9 @@ const propTypes = {
     /** Total money amount in form <currency><amount> */
     formattedAmount: PropTypes.string,
 
+    /** Additional styles for button */
+    buttonsizelarge: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
@@ -71,6 +74,7 @@ const defaultProps = {
     iouReport: {},
     policyID: '',
     formattedAmount: '',
+    buttonsizelarge: false,
 };
 
 class SettlementButton extends React.Component {
@@ -178,6 +182,7 @@ class SettlementButton extends React.Component {
                         }}
                         options={this.getButtonOptionsFromProps()}
                         style={this.props.style}
+                        buttonsizelarge={this.props.buttonsizelarge}
                     />
                 )}
             </KYCWall>
