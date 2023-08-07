@@ -34,9 +34,19 @@ info 'Act installed'
 
 # Check if ACT_BINARY is set
 if [[ -z ${ACT_BINARY} ]]; then
-  error 'ACT_BINARY variable not set'
-  info 'To make sure Act behaves in a predictable manner please set the ACT_BINARY environment variable to the path to your Act binary'
-  exit 1
+  info 'ACT_BINARY not set, checking .env file'
+  if [ -f .env ]; then
+    set -a
+    source .env
+    set +a
+  else
+    info '.env file does not exist'
+  fi
+  if [[ -z ${ACT_BINARY} ]]; then
+    error 'ACT_BINARY variable not set'
+    info 'To make sure Act behaves in a predictable manner please set the ACT_BINARY environment variable to the path to your Act binary'
+    exit 1
+  fi
 fi
 info 'ACT_BINARY environment variable set'
 
