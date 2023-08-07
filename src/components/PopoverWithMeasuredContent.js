@@ -50,6 +50,7 @@ const defaultProps = {
         height: 0,
         width: 0,
     },
+    withoutOverlay: false,
 };
 
 /**
