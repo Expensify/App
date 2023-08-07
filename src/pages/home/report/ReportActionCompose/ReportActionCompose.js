@@ -888,7 +888,7 @@ function ReportActionCompose({
                                             setIsFocused(false);
                                             suggestionsRef.current.resetSuggestions();
                                         }}
-                                        onClick={updateShouldShowSuggestionMenuToFalse()}
+                                        onClick={updateShouldShowSuggestionMenuToFalse}
                                         onPasteFile={displayFileInModal}
                                         shouldClear={textInputShouldClear}
                                         onClear={() => setTextInputShouldClear(false)}
