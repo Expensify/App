@@ -200,6 +200,7 @@ function getActiveRoute() {
 }
 
 /** Returns the active route name from a state event from the navigationRef
+ * @param {Object} event
  * @returns {String | undefined}
  * */
 function getRouteNameFromStateEvent(event) {
