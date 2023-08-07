@@ -565,16 +565,19 @@ function subscribeToUserEvents() {
             // until we finish the migration to reliable updates. So let's check it before actually updating
             // the properties in Onyx
             if (pushJSON.lastUpdateID && pushJSON.previousUpdateID) {
-                console.debug('[OnyxUpdates] Received lastUpdateID from pusher', pushJSON.lastUpdateID);
-                console.debug('[OnyxUpdates] Received previousUpdateID from pusher', pushJSON.previousUpdateID);
+                const pushJSONLastUpdateID = Number(pushJSON.lastUpdateID || 0);
+                const pushJSONPreviousUpdateID = Number(pushJSON.previousUpdateID || 0);
+
+                console.debug('[OnyxUpdates] Received lastUpdateID from pusher', pushJSONLastUpdateID);
+                console.debug('[OnyxUpdates] Received previousUpdateID from pusher', pushJSONPreviousUpdateID);
                 // Store these values in Onyx to allow App.reconnectApp() to fetch incremental updates from the server when a previous session is being reconnected to.
                 Onyx.multiSet({
-                    [ONYXKEYS.ONYX_UPDATES.LAST_UPDATE_ID]: Number(pushJSON.lastUpdateID || 0),
-                    [ONYXKEYS.ONYX_UPDATES.PREVIOUS_UPDATE_ID]: Number(pushJSON.previousUpdateID || 0),
+                    [ONYXKEYS.ONYX_UPDATES.LAST_UPDATE_ID]: pushJSONLastUpdateID,
+                    [ONYXKEYS.ONYX_UPDATES.PREVIOUS_UPDATE_ID]: pushJSONPreviousUpdateID,
                 });
 
-                if (pushJSON.lastUpdateID !== onyxUpdatesLastUpdateID) {
-                    App.reconnectApp(onyxUpdatesLastUpdateID, pushJSON.lastUpdateID);
+                if (pushJSONLastUpdateID !== onyxUpdatesLastUpdateID) {
+                    App.reconnectApp(onyxUpdatesLastUpdateID, pushJSONLastUpdateID);
                 }
             } else {
                 console.debug('[OnyxUpdates] No lastUpdateID and previousUpdateID provided');
