@@ -155,7 +155,7 @@ function NewRequestAmountPage({route, iou, report, errors}) {
             return;
         }
 
-        Promise.all(iouUpdates).then(() => IOU.navigateToNextPage(iou, iouType, reportID, report))
+        Promise.all(iouUpdates).then(() => IOU.navigateToNextPage(iou, iouType, reportID, report));
     };
 
     const content = (
