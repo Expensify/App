@@ -272,21 +272,17 @@ function completeTask(taskReport, taskTitle) {
     }
     // Multiple report actions can link to the same child. Both share destination (task parent) and assignee report link to the same report action.
     // We need to find and update the other parent report action (in assignee report). More info https://github.com/Expensify/App/issues/23920#issuecomment-1663092717
-    const assigneeChatReportID = lodashGet(ReportUtils.getChatByParticipants(taskReport.participantAccountIDs), 'reportID');
-    // We don't need to create optmistic report action for assignee report if assignee and shareDestination are the same
-    if (assigneeChatReportID && assigneeChatReportID !== taskReport.parentReportID) {
-        const clonedParentReportAction = ReportActionsUtils.getParentReportActionInReport(taskReportID, assigneeChatReportID);
-        if (clonedParentReportAction && clonedParentReportAction.reportActionID) {
-            const optimisticDataForClonedParentReportAction = ReportUtils.getOptimisticDataForParentReportAction(
-                taskReportID,
-                completedTaskReportAction.created,
-                CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                assigneeChatReportID,
-                clonedParentReportAction.reportActionID,
-            );
-            if (!_.isEmpty(optimisticDataForClonedParentReportAction)) {
-                optimisticData.push(optimisticDataForClonedParentReportAction);
-            }
+    const assigneeReportAction = ReportUtils.getAssigneeParentReportAction(taskReport);
+    if (!_.isEmpty(assigneeReportAction)) {
+        const optimisticDataForClonedParentReportAction = ReportUtils.getOptimisticDataForParentReportAction(
+            taskReportID,
+            completedTaskReportAction.created,
+            CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            assigneeReportAction.reportID,
+            assigneeReportAction.reportActionID,
+        );
+        if (!_.isEmpty(optimisticDataForClonedParentReportAction)) {
+            optimisticData.push(optimisticDataForClonedParentReportAction);
         }
     }
 
@@ -368,21 +364,17 @@ function reopenTask(taskReport, taskTitle) {
     }
     // Multiple report actions can link to the same child. Both share destination (task parent) and assignee report link to the same report action.
     // We need to find and update the other parent report action (in assignee report). More info https://github.com/Expensify/App/issues/23920#issuecomment-1663092717
-    const assigneeChatReportID = lodashGet(ReportUtils.getChatByParticipants(taskReport.participantAccountIDs), 'reportID');
-    // We don't need to create optmistic report action for assignee report if assignee and shareDestination are the same
-    if (assigneeChatReportID && assigneeChatReportID !== taskReport.parentReportID) {
-        const clonedParentReportAction = ReportActionsUtils.getParentReportActionInReport(taskReportID, assigneeChatReportID);
-        if (clonedParentReportAction && clonedParentReportAction.reportActionID) {
-            const optimisticDataForClonedParentReportAction = ReportUtils.getOptimisticDataForParentReportAction(
-                taskReportID,
-                reopenedTaskReportAction.created,
-                CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                assigneeChatReportID,
-                clonedParentReportAction.reportActionID,
-            );
-            if (!_.isEmpty(optimisticDataForClonedParentReportAction)) {
-                optimisticData.push(optimisticDataForClonedParentReportAction);
-            }
+    const assigneeReportAction = ReportUtils.getAssigneeParentReportAction(taskReport);
+    if (!_.isEmpty(assigneeReportAction)) {
+        const optimisticDataForClonedParentReportAction = ReportUtils.getOptimisticDataForParentReportAction(
+            taskReportID,
+            reopenedTaskReportAction.created,
+            CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            assigneeReportAction.reportID,
+            assigneeReportAction.reportActionID,
+        );
+        if (!_.isEmpty(optimisticDataForClonedParentReportAction)) {
+            optimisticData.push(optimisticDataForClonedParentReportAction);
         }
     }
 

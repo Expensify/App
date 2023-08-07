@@ -120,6 +120,17 @@ function getParentReportAction(report, allReportActionsParam = undefined) {
 }
 
 /**
+ * Find the reportAction having the given childReportID in parent report actions
+ *
+ * @param {String} childReportID
+ * @param {String} parentReportID
+ * @returns {Object}
+ */
+function getParentReportActionInReport(childReportID, parentReportID) {
+    return _.find(allReportActions[parentReportID], (reportAction) => reportAction && `${reportAction.childReportID}` === `${childReportID}`);
+}
+
+/**
  * Determines if the given report action is sent money report action by checking for 'pay' type and presence of IOUDetails object.
  *
  * @param {Object} reportAction
@@ -547,17 +558,6 @@ function getIOUReportIDFromReportActionPreview(reportAction) {
     return lodashGet(reportAction, 'originalMessage.linkedReportID', '');
 }
 
-/**
- * Find the reportAction whose childReportID is childReportID in reportActions with reportID
- *
- * @param {String} childReportID
- * @param {String} reportID
- * @returns {Object}
- */
-function getParentReportActionInReport(childReportID, reportID) {
-    return _.find(allReportActions[reportID], (reportAction) => reportAction && `${reportAction.childReportID}` === `${childReportID}`);
-}
-
 function isCreatedTaskReportAction(reportAction) {
     return reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && _.has(reportAction.originalMessage, 'taskReportID');
 }
@@ -594,6 +594,7 @@ export {
     getReportPreviewAction,
     isCreatedTaskReportAction,
     getParentReportAction,
+    getParentReportActionInReport,
     isTransactionThread,
     getFormattedAmount,
     isSentMoneyReportAction,
@@ -604,5 +605,4 @@ export {
     isWhisperAction,
     isPendingRemove,
     getReportAction,
-    getParentReportActionInReport,
 };

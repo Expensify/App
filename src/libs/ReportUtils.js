@@ -1578,7 +1578,7 @@ function updateOptimisticParentReportAction(parentReportAction, lastVisibleActio
  * @param {String} parentReportActionID Custom reportActionID to be updated
  * @returns {Object}
  */
-const getOptimisticDataForParentReportAction = (reportID, lastVisibleActionCreated, type, parentReportID = '', parentReportActionID = '') => {
+function getOptimisticDataForParentReportAction(reportID, lastVisibleActionCreated, type, parentReportID = '', parentReportActionID = '') {
     const report = getReport(reportID);
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
     if (_.isEmpty(parentReportAction)) {
@@ -2774,6 +2774,30 @@ function getParentReport(report) {
 }
 
 /**
+ * Find the parent report action in assignee report for a task report
+ * 
+ * @param {Object} taskReport 
+ * @returns {Object}
+ */
+function getAssigneeParentReportAction(taskReport) {
+    const assigneeChatReportID = lodashGet(getChatByParticipants(taskReport.participantAccountIDs), 'reportID');
+    // No need to go ahead if reports for assignee and shareDestination are the same
+    if (!assigneeChatReportID || assigneeChatReportID === taskReport.parentReportID) {
+        return {};
+    }
+
+    const clonedParentReportActionID = lodashGet(ReportActionsUtils.getParentReportActionInReport(taskReport.reportID, assigneeChatReportID), 'reportActionID', '');
+    if (!clonedParentReportActionID) {
+        return {};
+    }
+
+    return {
+        reportID: assigneeChatReportID,
+        reportActionID: clonedParentReportActionID,
+    };
+}
+
+/**
  * Return true if the composer should be hidden
  * @param {Object} report
  * @param {Object} reportErrors
@@ -2953,6 +2977,7 @@ export {
     getMoneyRequestAction,
     getBankAccountRoute,
     getParentReport,
+    getAssigneeParentReportAction,
     getReportPreviewMessage,
     shouldHideComposer,
     getOriginalReportID,
