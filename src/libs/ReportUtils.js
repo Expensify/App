@@ -2332,8 +2332,8 @@ function canAccessReport(report, policies, betas, allReportActions) {
  * @param {Object} iouReports
  * @param {String[]} betas
  * @param {Object} policies
- * @param {Boolean} excludeEmptyChats
  * @param {Object} allReportActions
+ * @param {Boolean} excludeEmptyChats
  * @returns {boolean}
  */
 function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouReports, betas, policies, allReportActions, excludeEmptyChats = false) {
@@ -2394,6 +2394,16 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouRep
 
     // Exclude policy expense chats if the user isn't in the policy expense chat beta
     if (isPolicyExpenseChat(report) && !Permissions.canUsePolicyExpenseChat(betas)) {
+        return false;
+    }
+
+    // Hide thread reports that haven't been commented on
+    if (isThread(report) && _.isEmpty(report.lastMessageText)) {
+        return false;
+    }
+
+    // Hide chats between two users that haven't been commented on from the LNH
+    if (excludeEmptyChats && _.isEmpty(report.lastMessageText) && isChatReport(report) && !isChatRoom(report)) {
         return false;
     }
 
