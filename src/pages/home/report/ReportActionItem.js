@@ -125,6 +125,7 @@ function ReportActionItem(props) {
     const popoverAnchorRef = useRef();
     const downloadedPreviews = useRef([]);
 
+
     useEffect(
         () => () => {
             // ReportActionContextMenu and EmojiPicker are global component,
@@ -214,6 +215,8 @@ function ReportActionItem(props) {
                 toggleContextMenuFromActiveReportAction,
                 ReportUtils.isArchivedRoom(props.report),
                 ReportUtils.chatIncludesChronos(props.report),
+                lodashGet(props, 'report.isPinned', false),
+                props.shouldDisplayNewMarker,
             );
         },
         [props.draftMessage, props.action, props.report, toggleContextMenuFromActiveReportAction],
@@ -523,6 +526,8 @@ function ReportActionItem(props) {
                             isVisible={hovered && !props.draftMessage && !hasErrors}
                             draftMessage={props.draftMessage}
                             isChronosReport={ReportUtils.chatIncludesChronos(props.report)}
+                            isPinnedChat={lodashGet(props, 'report.isPinned', false)}
+                            isUnreadChat={props.shouldDisplayNewMarker}
                         />
                         <View
                             style={StyleUtils.getReportActionItemStyle(
