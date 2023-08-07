@@ -970,13 +970,14 @@ function ReportActionCompose({
                     />
                 </View>
             </OfflineWithFeedback>
-            {/* <Suggestions
+            <Suggestions
                 // Onyx
                 preferredLocale={preferredLocale}
                 windowHeight={windowHeight}
                 isSmallScreenWidth={isSmallScreenWidth}
                 personalDetails={personalDetails}
                 translate={translate}
+                preferredSkinTone={preferredSkinTone}
                 // Input
                 value={value}
                 setValue={setValue}
@@ -988,7 +989,7 @@ function ReportActionCompose({
                 composerHeight={composerHeight}
                 shouldShowReportRecipientLocalTime={shouldShowReportRecipientLocalTime}
                 ref={suggestionsRef}
-            /> */}
+            />
         </View>
     );
 }
