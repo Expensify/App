@@ -2580,6 +2580,7 @@ const CONST = {
         RECEIPT_TAB_ID: 'ReceiptTab',
         MANUAL: 'manual',
         SCAN: 'scan',
+        DISTANCE: 'distance',
     },
 };
 

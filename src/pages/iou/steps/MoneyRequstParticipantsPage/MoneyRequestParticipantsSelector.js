@@ -50,7 +50,6 @@ class MoneyRequestParticipantsSelector extends Component {
 
         this.addSingleParticipant = this.addSingleParticipant.bind(this);
         this.updateOptionsWithSearchTerm = this.updateOptionsWithSearchTerm.bind(this);
-
         const {recentReports, personalDetails, userToInvite} = this.getRequestOptions();
 
         this.state = {
@@ -85,8 +84,8 @@ class MoneyRequestParticipantsSelector extends Component {
             // sees the option to request money from their admin on their own Workspace Chat.
             this.props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
 
-            // TODO - doesn't seem like this exists yet...
-            this.props.requestType === 'distance' || true,
+            // We don't want to include any P2P options like personal details or reports that are not workspace chats for certain features.
+            this.props.requestType === 'distance' ? false : true,
         );
     }
 
@@ -185,6 +184,9 @@ export default compose(
         },
         betas: {
             key: ONYXKEYS.BETAS,
+        },
+        requestType: {
+            key: `${ONYXKEYS.SELECTED_TAB}_${CONST.TAB.RECEIPT_TAB_ID}`,
         },
     }),
 )(MoneyRequestParticipantsSelector);

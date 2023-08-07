@@ -616,6 +616,7 @@ function getOptions(
         includeTasks = false,
         includeMoneyRequests = false,
         excludeUnknownUsers = false,
+        includeP2P = true,
     },
 ) {
     if (!isPersonalDetailsReady(personalDetails)) {
@@ -627,11 +628,13 @@ function getOptions(
         };
     }
 
+    console.log({includeP2P});
+
     // We're only picking personal details that have logins set
     // This is a temporary fix for all the logic that's been breaking because of the new privacy changes
     // See https://github.com/Expensify/Expensify/issues/293465 for more context
     // eslint-disable-next-line no-param-reassign
-    personalDetails = _.pick(personalDetails, (detail) => Boolean(detail.login));
+    personalDetails = !includeP2P ? {} : _.pick(personalDetails, (detail) => Boolean(detail.login));
 
     let recentReportOptions = [];
     let personalDetailsOptions = [];
@@ -695,6 +698,11 @@ function getOptions(
             reportMapForAccountIDs[accountIDs[0]] = report;
         }
         const isSearchingSomeonesPolicyExpenseChat = !report.isOwnPolicyExpenseChat && searchValue !== '';
+
+        // When passing includeP2P false we are trying to hide features from users that are not ready for P2P and limited to workspace chats only.
+        if (!includeP2P && !isPolicyExpenseChat) {
+            return;
+        }
 
         // Checks to see if the current user is the admin of the policy, if so the policy
         // name preview will be shown.
