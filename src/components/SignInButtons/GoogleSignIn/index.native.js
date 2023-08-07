@@ -9,7 +9,6 @@ import CONST from '../../../CONST';
  * Google Sign In method for iOS and android that returns identityToken.
  * @returns {Promise<string>}
  */
-
 function googleSignInRequest() {
     GoogleSignin.configure({
         webClientId: CONST.GOOGLE_SIGN_IN_WEB_CLIENT_ID,
