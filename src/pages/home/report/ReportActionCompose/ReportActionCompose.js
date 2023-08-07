@@ -175,33 +175,60 @@ const debouncedBroadcastUserIsTyping = _.debounce((reportID) => {
 // so we need to ensure that it is only updated after focus.
 const isMobileSafari = Browser.isMobileSafari();
 
-const noop = () => {};
-function ReportActionCompose({translate, animatedRef, ...props}) {
+function ReportActionCompose({
+    animatedRef,
+    betas,
+    blockedFromConcierge,
+    comment,
+    currentUserPersonalDetails,
+    disabled,
+    isComposerFullSize,
+    isFocused: isFocusedProp,
+    isKeyboardShown,
+    isMediumScreenWidth,
+    isSmallScreenWidth,
+    modal,
+    navigation,
+    network,
+    numberOfLines,
+    onSubmit,
+    parentReportActions,
+    pendingAction,
+    personalDetails,
+    preferredLocale,
+    preferredSkinTone,
+    report,
+    reportActions,
+    reportID,
+    shouldShowComposeInput,
+    translate,
+    windowHeight,
+}) {
     /**
      * Updates the Highlight state of the composer
      */
-    const [isFocused, setIsFocused] = [true, noop]; // useState(shouldFocusInputOnScreenFocus && !props.modal.isVisible && !props.modal.willAlertModalBecomeVisible && props.shouldShowComposeInput);
-    const [isFullComposerAvailable, setIsFullComposerAvailable] = useState(props.isComposerFullSize);
+    const [isFocused, setIsFocused] = useState(shouldFocusInputOnScreenFocus && !modal.isVisible && !modal.willAlertModalBecomeVisible && shouldShowComposeInput);
+    const [isFullComposerAvailable, setIsFullComposerAvailable] = useState(isComposerFullSize);
 
-    const isEmptyChat = useMemo(() => _.size(props.reportActions) === 1, [props.reportActions]);
+    const isEmptyChat = useMemo(() => _.size(reportActions) === 1, [reportActions]);
 
-    const shouldAutoFocus = !props.modal.isVisible && (shouldFocusInputOnScreenFocus || isEmptyChat) && props.shouldShowComposeInput;
+    const shouldAutoFocus = !modal.isVisible && (shouldFocusInputOnScreenFocus || isEmptyChat) && shouldShowComposeInput;
 
     /**
      * Updates the should clear state of the composer
      */
     const [textInputShouldClear, setTextInputShouldClear] = useState(false);
-    const [isCommentEmpty, setIsCommentEmpty] = useState(props.comment.length === 0);
+    const [isCommentEmpty, setIsCommentEmpty] = useState(comment.length === 0);
 
     /**
      * Updates the visibility state of the menu
      */
     const [isMenuVisible, setMenuVisibility] = useState(false);
     const [selection, setSelection] = useState({
-        start: isMobileSafari && !shouldAutoFocus ? 0 : props.comment.length,
-        end: isMobileSafari && !shouldAutoFocus ? 0 : props.comment.length,
+        start: isMobileSafari && !shouldAutoFocus ? 0 : comment.length,
+        end: isMobileSafari && !shouldAutoFocus ? 0 : comment.length,
     });
-    const [value, setValue] = useState(props.comment);
+    const [value, setValue] = useState(comment);
 
     const [composerHeight, setComposerHeight] = useState(0);
     const [isAttachmentPreviewActive, setIsAttachmentPreviewActive] = useState(false);
@@ -223,39 +250,33 @@ function ReportActionCompose({translate, animatedRef, ...props}) {
      */
     const [hasExceededMaxCommentLength, setExceededMaxCommentLength] = useState(false);
 
-    const comment = useRef(props.comment);
+    const commentRef = useRef(comment);
     const textInput = useRef(null);
     const actionButton = useRef(null);
 
     const suggestionsRef = useRef(null);
 
-    const reportParticipants = useMemo(
-        () => _.without(lodashGet(props.report, 'participantAccountIDs', []), props.currentUserPersonalDetails.accountID),
-        [props.currentUserPersonalDetails.accountID, props.report],
-    );
+    const reportParticipants = useMemo(() => _.without(lodashGet(report, 'participantAccountIDs', []), currentUserPersonalDetails.accountID), [currentUserPersonalDetails.accountID, report]);
     const participantsWithoutExpensifyAccountIDs = useMemo(() => _.difference(reportParticipants, CONST.EXPENSIFY_ACCOUNT_IDS), [reportParticipants]);
 
     const shouldShowReportRecipientLocalTime = useMemo(
-        () => ReportUtils.canShowReportRecipientLocalTime(props.personalDetails, props.report, props.currentUserPersonalDetails.accountID) && !props.isComposerFullSize,
-        [props.personalDetails, props.report, props.currentUserPersonalDetails.accountID, props.isComposerFullSize],
+        () => ReportUtils.canShowReportRecipientLocalTime(personalDetails, report, currentUserPersonalDetails.accountID) && !isComposerFullSize,
+        [personalDetails, report, currentUserPersonalDetails.accountID, isComposerFullSize],
     );
 
-    const isBlockedFromConcierge = useMemo(
-        () => ReportUtils.chatIncludesConcierge(props.report) && User.isBlockedFromConcierge(props.blockedFromConcierge),
-        [props.report, props.blockedFromConcierge],
-    );
+    const isBlockedFromConcierge = useMemo(() => ReportUtils.chatIncludesConcierge(report) && User.isBlockedFromConcierge(blockedFromConcierge), [report, blockedFromConcierge]);
 
     // If we are on a small width device then don't show last 3 items from conciergePlaceholderOptions
     const conciergePlaceholderRandomIndex = useMemo(
-        () => _.random(translate('reportActionCompose.conciergePlaceholderOptions').length - (props.isSmallScreenWidth ? 4 : 1)),
+        () => _.random(translate('reportActionCompose.conciergePlaceholderOptions').length - (isSmallScreenWidth ? 4 : 1)),
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [],
     );
 
     // Placeholder to display in the chat input.
     const inputPlaceholder = useMemo(() => {
-        if (ReportUtils.chatIncludesConcierge(props.report)) {
-            if (User.isBlockedFromConcierge(props.blockedFromConcierge)) {
+        if (ReportUtils.chatIncludesConcierge(report)) {
+            if (User.isBlockedFromConcierge(blockedFromConcierge)) {
                 return translate('reportActionCompose.blockedFromConcierge');
             }
 
@@ -263,7 +284,7 @@ function ReportActionCompose({translate, animatedRef, ...props}) {
         }
 
         return translate('reportActionCompose.writeSomething');
-    }, [props.report, props.blockedFromConcierge, translate, conciergePlaceholderRandomIndex]);
+    }, [report, blockedFromConcierge, translate, conciergePlaceholderRandomIndex]);
 
     /**
      * Focus the composer text input
@@ -298,7 +319,7 @@ function ReportActionCompose({translate, animatedRef, ...props}) {
      */
     const updateComment = useCallback(
         (commentValue, shouldDebounceSaveComment) => {
-            const {text: newComment = '', emojis = []} = EmojiUtils.replaceEmojis(commentValue, props.preferredSkinTone, props.preferredLocale);
+            const {text: newComment = '', emojis = []} = EmojiUtils.replaceEmojis(commentValue, preferredSkinTone, preferredLocale);
 
             if (!_.isEmpty(emojis)) {
                 User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(emojis));
@@ -309,7 +330,7 @@ function ReportActionCompose({translate, animatedRef, ...props}) {
             setIsCommentEmpty(!!newComment.match(/^(\s)*$/));
             setValue(newComment);
             if (commentValue !== newComment) {
-                const remainder = ComposerUtils.getCommonSuffixLength(comment, newComment);
+                const remainder = ComposerUtils.getCommonSuffixLength(commentRef.current, newComment);
                 setSelection({
                     start: newComment.length - remainder,
                     end: newComment.length - remainder,
@@ -317,26 +338,26 @@ function ReportActionCompose({translate, animatedRef, ...props}) {
             }
 
             // Indicate that draft has been created.
-            if (comment.current.length === 0 && newComment.length !== 0) {
-                Report.setReportWithDraft(props.reportID, true);
+            if (commentRef.current.length === 0 && newComment.length !== 0) {
+                Report.setReportWithDraft(reportID, true);
             }
 
             // The draft has been deleted.
             if (newComment.length === 0) {
-                Report.setReportWithDraft(props.reportID, false);
+                Report.setReportWithDraft(reportID, false);
             }
 
-            comment.current = newComment;
+            commentRef.current = newComment;
             if (shouldDebounceSaveComment) {
-                debouncedSaveReportComment(props.reportID, newComment);
+                debouncedSaveReportComment(reportID, newComment);
             } else {
-                Report.saveReportComment(props.reportID, newComment || '');
+                Report.saveReportComment(reportID, newComment || '');
             }
             if (newComment) {
-                debouncedBroadcastUserIsTyping(props.reportID);
+                debouncedBroadcastUserIsTyping(reportID);
             }
         },
-        [debouncedUpdateFrequentlyUsedEmojis, props.preferredLocale, props.preferredSkinTone, props.reportID],
+        [debouncedUpdateFrequentlyUsedEmojis, preferredLocale, preferredSkinTone, reportID],
     );
 
     /**
@@ -361,7 +382,7 @@ function ReportActionCompose({translate, animatedRef, ...props}) {
         (text, shouldAddTrailSpace = true) => {
             const updatedText = shouldAddTrailSpace ? `${text} ` : text;
             const selectionSpaceLength = shouldAddTrailSpace ? CONST.SPACE_LENGTH : 0;
-            updateComment(ComposerUtils.insertText(comment, selection, updatedText));
+            updateComment(ComposerUtils.insertText(commentRef.current, selection, updatedText));
             setSelection((prevSelection) => ({
                 start: prevSelection.start + text.length + selectionSpaceLength,
                 end: prevSelection.start + text.length + selectionSpaceLength,
@@ -375,9 +396,9 @@ function ReportActionCompose({translate, animatedRef, ...props}) {
      * @returns {Boolean}
      */
     const checkComposerVisibility = useCallback(() => {
-        const isComposerCoveredUp = EmojiPickerActions.isEmojiPickerVisible() || isMenuVisible || props.modal.isVisible;
+        const isComposerCoveredUp = EmojiPickerActions.isEmojiPickerVisible() || isMenuVisible || modal.isVisible;
         return !isComposerCoveredUp;
-    }, [isMenuVisible, props.modal.isVisible]);
+    }, [isMenuVisible, modal.isVisible]);
 
     const focusComposerOnKeyPress = useCallback(
         (e) => {
@@ -421,13 +442,13 @@ function ReportActionCompose({translate, animatedRef, ...props}) {
         // This callback is used in the contextMenuActions to manage giving focus back to the compose input.
         // TODO: we should clean up this convoluted code and instead move focus management to something like ReportFooter.js or another higher up component
         ReportActionComposeFocusManager.onComposerFocus(() => {
-            if (!willBlurTextInputOnTapOutside || !props.isFocused) {
+            if (!willBlurTextInputOnTapOutside || !isFocusedProp) {
                 return;
             }
 
             focus(false);
         });
-    }, [focus, props.isFocused]);
+    }, [focus, isFocusedProp]);
 
     /**
      * Set the TextInput Ref
@@ -466,11 +487,11 @@ function ReportActionCompose({translate, animatedRef, ...props}) {
             },
         };
 
-        return _.map(ReportUtils.getMoneyRequestOptions(props.report, reportParticipants, props.betas), (option) => ({
+        return _.map(ReportUtils.getMoneyRequestOptions(report, reportParticipants, betas), (option) => ({
             ...options[option],
-            onSelected: () => IOU.startMoneyRequest(option, props.report.reportID),
+            onSelected: () => IOU.startMoneyRequest(option, report.reportID),
         }));
-    }, [props.betas, props.report, reportParticipants, translate]);
+    }, [betas, report, reportParticipants, translate]);
 
     /**
      * Determines if we can show the task option
@@ -478,7 +499,7 @@ function ReportActionCompose({translate, animatedRef, ...props}) {
      */
     const taskOption = useMemo(() => {
         // We only prevent the task option from showing if it's a DM and the other user is an Expensify default email
-        if (!Permissions.canUseTasks(props.betas) || ReportUtils.isExpensifyOnlyParticipantInReport(props.report)) {
+        if (!Permissions.canUseTasks(betas) || ReportUtils.isExpensifyOnlyParticipantInReport(report)) {
             return [];
         }
 
@@ -486,27 +507,27 @@ function ReportActionCompose({translate, animatedRef, ...props}) {
             {
                 icon: Expensicons.Task,
                 text: translate('newTaskPage.assignTask'),
-                onSelected: () => Task.clearOutTaskInfoAndNavigate(props.reportID),
+                onSelected: () => Task.clearOutTaskInfoAndNavigate(reportID),
             },
         ];
-    }, [props.betas, props.report, props.reportID, translate]);
+    }, [betas, report, reportID, translate]);
 
     /**
      * Update the number of lines for a comment in Onyx
      * @param {Number} numberOfLines
      */
     const updateNumberOfLines = useCallback(
-        (numberOfLines) => {
-            Report.saveReportCommentNumberOfLines(props.reportID, numberOfLines);
+        (newNumberOfLines) => {
+            Report.saveReportCommentNumberOfLines(reportID, newNumberOfLines);
         },
-        [props.reportID],
+        [reportID],
     );
 
     /**
      * @returns {String}
      */
     const prepareCommentAndResetComposer = useCallback(() => {
-        const trimmedComment = comment.current.trim();
+        const trimmedComment = commentRef.current.trim();
         const commentLength = ReportUtils.getCommentLength(trimmedComment);
 
         // Don't submit empty comments or comments that exceed the character limit
@@ -516,12 +537,12 @@ function ReportActionCompose({translate, animatedRef, ...props}) {
 
         updateComment('');
         setTextInputShouldClear(true);
-        if (props.isComposerFullSize) {
-            Report.setIsComposerFullSize(props.reportID, false);
+        if (isComposerFullSize) {
+            Report.setIsComposerFullSize(reportID, false);
         }
         setIsFullComposerAvailable(false);
         return trimmedComment;
-    }, [props.reportID, updateComment, props.isComposerFullSize]);
+    }, [reportID, updateComment, isComposerFullSize]);
 
     const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
         if (!suggestionsRef.current) {
@@ -551,14 +572,14 @@ function ReportActionCompose({translate, animatedRef, ...props}) {
                 return;
             }
 
-            props.onSubmit(newComment);
+            onSubmit(newComment);
         },
-        [prepareCommentAndResetComposer, props],
+        [onSubmit, prepareCommentAndResetComposer],
     );
 
     const triggerHotkeyActions = useCallback(
         (e) => {
-            if (!e || ComposerUtils.canSkipTriggerHotkeys(props.isSmallScreenWidth, props.isKeyboardShown)) {
+            if (!e || ComposerUtils.canSkipTriggerHotkeys(isSmallScreenWidth, isKeyboardShown)) {
                 return;
             }
 
@@ -573,15 +594,15 @@ function ReportActionCompose({translate, animatedRef, ...props}) {
             }
 
             // Trigger the edit box for last sent message if ArrowUp is pressed and the comment is empty and Chronos is not in the participants
-            if (e.key === CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey && textInput.current.selectionStart === 0 && value.length === 0 && !ReportUtils.chatIncludesChronos(props.report)) {
+            if (e.key === CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey && textInput.current.selectionStart === 0 && value.length === 0 && !ReportUtils.chatIncludesChronos(report)) {
                 e.preventDefault();
 
-                const parentReportActionID = lodashGet(props.report, 'parentReportActionID', '');
-                const parentReportAction = lodashGet(props.parentReportActions, [parentReportActionID], {});
-                const lastReportAction = _.find([...props.reportActions, parentReportAction], (action) => ReportUtils.canEditReportAction(action));
+                const parentReportActionID = lodashGet(report, 'parentReportActionID', '');
+                const parentReportAction = lodashGet(parentReportActions, [parentReportActionID], {});
+                const lastReportAction = _.find([...reportActions, parentReportAction], (action) => ReportUtils.canEditReportAction(action));
 
                 if (lastReportAction !== -1 && lastReportAction) {
-                    Report.saveReportActionDraft(props.reportID, lastReportAction.reportActionID, _.last(lastReportAction.message).html);
+                    Report.saveReportActionDraft(reportID, lastReportAction.reportActionID, _.last(lastReportAction.message).html);
                 }
             }
         },
@@ -598,10 +619,10 @@ function ReportActionCompose({translate, animatedRef, ...props}) {
             // We need to make sure an empty draft gets saved instead
             debouncedSaveReportComment.cancel();
             const newComment = prepareCommentAndResetComposer();
-            Report.addAttachment(props.reportID, file, newComment);
+            Report.addAttachment(reportID, file, newComment);
             setTextInputShouldClear(false);
         },
-        [props.reportID, prepareCommentAndResetComposer],
+        [reportID, prepareCommentAndResetComposer],
     );
 
     /**
@@ -613,8 +634,8 @@ function ReportActionCompose({translate, animatedRef, ...props}) {
     }, [updateShouldShowSuggestionMenuToFalse]);
 
     useEffect(() => {
-        const unsubscribeNavigationBlur = props.navigation.addListener('blur', () => KeyDownListener.removeKeyDownPressListner(focusComposerOnKeyPress));
-        const unsubscribeNavigationFocus = props.navigation.addListener('focus', () => {
+        const unsubscribeNavigationBlur = navigation.addListener('blur', () => KeyDownListener.removeKeyDownPressListner(focusComposerOnKeyPress));
+        const unsubscribeNavigationFocus = navigation.addListener('focus', () => {
             KeyDownListener.addKeyDownPressListner(focusComposerOnKeyPress);
             setUpComposeFocusManager();
         });
@@ -622,18 +643,18 @@ function ReportActionCompose({translate, animatedRef, ...props}) {
 
         setUpComposeFocusManager();
 
-        updateComment(comment.current);
+        updateComment(commentRef.current);
 
         // Shows Popover Menu on Workspace Chat at first sign-in
-        if (!props.disabled) {
+        if (!disabled) {
             Welcome.show({
-                routes: lodashGet(props.navigation.getState(), 'routes', []),
+                routes: lodashGet(navigation.getState(), 'routes', []),
                 showPopoverMenu,
             });
         }
 
-        if (props.comment.length !== 0) {
-            Report.setReportWithDraft(props.reportID, true);
+        if (comment.length !== 0) {
+            Report.setReportWithDraft(reportID, true);
         }
 
         return () => {
@@ -646,45 +667,45 @@ function ReportActionCompose({translate, animatedRef, ...props}) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const prevIsModalVisible = usePrevious(props.modal.isVisible);
-    const prevIsFocused = usePrevious(props.isFocused);
+    const prevIsModalVisible = usePrevious(modal.isVisible);
+    const prevIsFocused = usePrevious(isFocusedProp);
     useEffect(() => {
         // We want to focus or refocus the input when a modal has been closed or the underlying screen is refocused.
         // We avoid doing this on native platforms since the software keyboard popping
         // open creates a jarring and broken UX.
-        if (!willBlurTextInputOnTapOutside || props.modal.isVisible || !props.isFocused || prevIsModalVisible || !prevIsFocused) {
+        if (!willBlurTextInputOnTapOutside || modal.isVisible || !isFocusedProp || prevIsModalVisible || !prevIsFocused) {
             return;
         }
 
         focus();
-    }, [focus, prevIsFocused, prevIsModalVisible, props.isFocused, props.modal.isVisible]);
+    }, [focus, prevIsFocused, prevIsModalVisible, isFocusedProp, modal.isVisible]);
 
-    const prevCommentProp = usePrevious(props.comment);
-    const prevPreferredLocale = usePrevious(props.preferredLocale);
-    const prevReportId = usePrevious(props.report.reportId);
+    const prevCommentProp = usePrevious(comment);
+    const prevPreferredLocale = usePrevious(preferredLocale);
+    const prevReportId = usePrevious(report.reportId);
     useEffect(() => {
         // Value state does not have the same value as comment props when the comment gets changed from another tab.
         // In this case, we should synchronize the value between tabs.
-        const shouldSyncComment = prevCommentProp !== props.comment && value === props.comment;
+        const shouldSyncComment = prevCommentProp !== comment && value === comment;
 
         // As the report IDs change, make sure to update the composer comment as we need to make sure
         // we do not show incorrect data in there (ie. draft of message from other report).
-        if (props.preferredLocale === prevPreferredLocale && props.report.reportID === prevReportId && !shouldSyncComment) {
+        if (preferredLocale === prevPreferredLocale && report.reportID === prevReportId && !shouldSyncComment) {
             return;
         }
 
-        updateComment(comment.current);
-    }, [prevCommentProp, prevPreferredLocale, prevReportId, props.comment, props.preferredLocale, props.report.reportID, updateComment, value]);
+        updateComment(commentRef.current);
+    }, [prevCommentProp, prevPreferredLocale, prevReportId, comment, preferredLocale, report.reportID, updateComment, value]);
 
     // Prevents focusing and showing the keyboard while the drawer is covering the chat.
-    const reportRecipient = props.personalDetails[participantsWithoutExpensifyAccountIDs[0]];
-    const shouldUseFocusedColor = !isBlockedFromConcierge && !props.disabled && isFocused;
+    const reportRecipient = personalDetails[participantsWithoutExpensifyAccountIDs[0]];
+    const shouldUseFocusedColor = !isBlockedFromConcierge && !disabled && isFocused;
     const isFullSizeComposerAvailable = isFullComposerAvailable && !_.isEmpty(value);
     const hasReportRecipient = _.isObject(reportRecipient) && !_.isEmpty(reportRecipient);
-    const maxComposerLines = props.isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
+    const maxComposerLines = isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
 
     const Tap = Gesture.Tap()
-        .enabled(!(isCommentEmpty || isBlockedFromConcierge || props.disabled || hasExceededMaxCommentLength))
+        .enabled(!(isCommentEmpty || isBlockedFromConcierge || disabled || hasExceededMaxCommentLength))
         .onEnd(() => {
             'worklet';
 
@@ -697,17 +718,22 @@ function ReportActionCompose({translate, animatedRef, ...props}) {
             runOnJS(submitForm)();
         });
 
+    const menuItems = [
+        ...moneyRequestOptions,
+        ...taskOption,
+        {
+            icon: Expensicons.Paperclip,
+            text: translate('reportActionCompose.addAttachment'),
+            onSelected: () => {},
+        },
+    ];
+
     return (
-        <View
-            style={[
-                shouldShowReportRecipientLocalTime && !lodashGet(props.network, 'isOffline') && styles.chatItemComposeWithFirstRow,
-                props.isComposerFullSize && styles.chatItemFullComposeRow,
-            ]}
-        >
+        <View style={[shouldShowReportRecipientLocalTime && !lodashGet(network, 'isOffline') && styles.chatItemComposeWithFirstRow, isComposerFullSize && styles.chatItemFullComposeRow]}>
             <OfflineWithFeedback
-                pendingAction={props.pendingAction}
-                style={props.isComposerFullSize ? styles.chatItemFullComposeRow : {}}
-                contentContainerStyle={props.isComposerFullSize ? styles.flex1 : {}}
+                pendingAction={pendingAction}
+                style={isComposerFullSize ? styles.chatItemFullComposeRow : {}}
+                contentContainerStyle={isComposerFullSize ? styles.flex1 : {}}
             >
                 {shouldShowReportRecipientLocalTime && hasReportRecipient && <ParticipantLocalTime participant={reportRecipient} />}
                 <View
@@ -715,7 +741,7 @@ function ReportActionCompose({translate, animatedRef, ...props}) {
                         shouldUseFocusedColor ? styles.chatItemComposeBoxFocusedColor : styles.chatItemComposeBoxColor,
                         styles.flexRow,
                         styles.chatItemComposeBox,
-                        props.isComposerFullSize && styles.chatItemFullComposeBox,
+                        isComposerFullSize && styles.chatItemFullComposeBox,
                         hasExceededMaxCommentLength && styles.borderColorDanger,
                     ]}
                 >
@@ -734,21 +760,21 @@ function ReportActionCompose({translate, animatedRef, ...props}) {
                                                 style={[
                                                     styles.dFlex,
                                                     styles.flexColumn,
-                                                    isFullSizeComposerAvailable || props.isComposerFullSize ? styles.justifyContentBetween : styles.justifyContentCenter,
+                                                    isFullSizeComposerAvailable || isComposerFullSize ? styles.justifyContentBetween : styles.justifyContentCenter,
                                                 ]}
                                             >
-                                                {props.isComposerFullSize && (
+                                                {isComposerFullSize && (
                                                     <Tooltip text={translate('reportActionCompose.collapse')}>
                                                         <PressableWithFeedback
                                                             onPress={(e) => {
                                                                 e.preventDefault();
                                                                 updateShouldShowSuggestionMenuToFalse();
-                                                                Report.setIsComposerFullSize(props.reportID, false);
+                                                                Report.setIsComposerFullSize(reportID, false);
                                                             }}
                                                             // Keep focus on the composer when Collapse button is clicked.
                                                             onMouseDown={(e) => e.preventDefault()}
                                                             style={styles.composerSizeButton}
-                                                            disabled={isBlockedFromConcierge || props.disabled}
+                                                            disabled={isBlockedFromConcierge || disabled}
                                                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                                             accessibilityLabel={translate('reportActionCompose.collapse')}
                                                         >
@@ -756,7 +782,7 @@ function ReportActionCompose({translate, animatedRef, ...props}) {
                                                         </PressableWithFeedback>
                                                     </Tooltip>
                                                 )}
-                                                {!props.isComposerFullSize && isFullSizeComposerAvailable && (
+                                                {!isComposerFullSize && isFullSizeComposerAvailable && (
                                                     <Tooltip text={translate('reportActionCompose.expand')}>
                                                         <PressableWithFeedback
                                                             onPress={(e) => {
@@ -767,7 +793,7 @@ function ReportActionCompose({translate, animatedRef, ...props}) {
                                                             // Keep focus on the composer when Expand button is clicked.
                                                             onMouseDown={(e) => e.preventDefault()}
                                                             style={styles.composerSizeButton}
-                                                            disabled={isBlockedFromConcierge || props.disabled}
+                                                            disabled={isBlockedFromConcierge || disabled}
                                                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                                             accessibilityLabel={translate('reportActionCompose.expand')}
                                                         >
@@ -783,10 +809,10 @@ function ReportActionCompose({translate, animatedRef, ...props}) {
 
                                                             // Drop focus to avoid blue focus ring.
                                                             actionButton.current.blur();
-                                                            setMenuVisibility(true);
+                                                            setMenuVisibility(!isMenuVisible);
                                                         }}
                                                         style={styles.composerSizeButton}
-                                                        disabled={isBlockedFromConcierge || props.disabled}
+                                                        disabled={isBlockedFromConcierge || disabled}
                                                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                                         accessibilityLabel={translate('reportActionCompose.addAction')}
                                                     >
@@ -798,8 +824,25 @@ function ReportActionCompose({translate, animatedRef, ...props}) {
                                                 animationInTiming={CONST.ANIMATION_IN_TIMING}
                                                 isVisible={isMenuVisible}
                                                 onClose={() => setMenuVisibility(false)}
-                                                onItemSelected={() => setMenuVisibility(false)}
-                                                anchorPosition={styles.createMenuPositionReportActionCompose(props.windowHeight)}
+                                                onItemSelected={(_item, index) => {
+                                                    setMenuVisibility(false);
+
+                                                    // In order for the file picker to open dynamically, the click
+                                                    // function must be called from within a event handler that was initiated
+                                                    // by the user.
+                                                    if (index === menuItems.length - 1) {
+                                                        // Set a flag to block suggestion calculation until we're finished using the file picker,
+                                                        // which will stop any flickering as the file picker opens on non-native devices.
+                                                        if (willBlurTextInputOnTapOutside) {
+                                                            shouldBlockEmojiCalc.current = true;
+                                                            shouldBlockMentionCalc.current = true;
+                                                        }
+                                                        openPicker({
+                                                            onPicked: displayFileInModal,
+                                                        });
+                                                    }
+                                                }}
+                                                anchorPosition={styles.createMenuPositionReportActionCompose(windowHeight)}
                                                 anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM}}
                                                 menuItems={[
                                                     ...moneyRequestOptions,
@@ -811,6 +854,7 @@ function ReportActionCompose({translate, animatedRef, ...props}) {
                                                             // Set a flag to block suggestion calculation until we're finished using the file picker,
                                                             // which will stop any flickering as the file picker opens on non-native devices.
                                                             if (willBlurTextInputOnTapOutside) {
+                                                                shouldBlockEmojiCalc.current = true;
                                                                 shouldBlockMentionCalc.current = true;
                                                             }
 
@@ -820,6 +864,8 @@ function ReportActionCompose({translate, animatedRef, ...props}) {
                                                         },
                                                     },
                                                 ]}
+                                                withoutOverlay
+                                                anchorRef={actionButton}
                                             />
                                         </>
                                     )}
@@ -835,7 +881,7 @@ function ReportActionCompose({translate, animatedRef, ...props}) {
                                         placeholderTextColor={themeColors.placeholderText}
                                         // onChangeText={(commentValue) => updateComment(commentValue, true)}
                                         onKeyPress={triggerHotkeyActions}
-                                        style={[styles.textInputCompose, props.isComposerFullSize ? styles.textInputFullCompose : styles.flex4]}
+                                        style={[styles.textInputCompose, isComposerFullSize ? styles.textInputFullCompose : styles.flex4]}
                                         maxLines={maxComposerLines}
                                         onFocus={() => setIsFocused(true)}
                                         onBlur={() => {
@@ -846,7 +892,7 @@ function ReportActionCompose({translate, animatedRef, ...props}) {
                                         onPasteFile={displayFileInModal}
                                         shouldClear={textInputShouldClear}
                                         onClear={() => setTextInputShouldClear(false)}
-                                        isDisabled={isBlockedFromConcierge || props.disabled}
+                                        isDisabled={isBlockedFromConcierge || disabled}
                                         selection={selection}
                                         onSelectionChange={onSelectionChange}
                                         isFullComposerAvailable={isFullSizeComposerAvailable}
@@ -878,9 +924,9 @@ function ReportActionCompose({translate, animatedRef, ...props}) {
                             </>
                         )}
                     </AttachmentModal>
-                    {DeviceCapabilities.canUseTouchScreen() && props.isMediumScreenWidth ? null : (
+                    {DeviceCapabilities.canUseTouchScreen() && isMediumScreenWidth ? null : (
                         <EmojiPickerButton
-                            isDisabled={isBlockedFromConcierge || props.disabled}
+                            isDisabled={isBlockedFromConcierge || disabled}
                             onModalHide={() => focus(true)}
                             onEmojiSelected={replaceSelectionWithText}
                         />
@@ -895,7 +941,7 @@ function ReportActionCompose({translate, animatedRef, ...props}) {
                                 <PressableWithFeedback
                                     style={[styles.chatItemSubmitButton, isCommentEmpty || hasExceededMaxCommentLength ? undefined : styles.buttonSuccess]}
                                     onPress={submitForm}
-                                    disabled={isCommentEmpty || isBlockedFromConcierge || props.disabled || hasExceededMaxCommentLength}
+                                    disabled={isCommentEmpty || isBlockedFromConcierge || disabled || hasExceededMaxCommentLength}
                                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                     accessibilityLabel={translate('common.send')}
                                 >
@@ -913,13 +959,13 @@ function ReportActionCompose({translate, animatedRef, ...props}) {
                         styles.flexRow,
                         styles.justifyContentBetween,
                         styles.alignItemsCenter,
-                        (!props.isSmallScreenWidth || (props.isSmallScreenWidth && !props.network.isOffline)) && styles.chatItemComposeSecondaryRow,
+                        (!isSmallScreenWidth || (isSmallScreenWidth && !network.isOffline)) && styles.chatItemComposeSecondaryRow,
                     ]}
                 >
-                    {!props.isSmallScreenWidth && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
-                    <ReportTypingIndicator reportID={props.reportID} />
+                    {!isSmallScreenWidth && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
+                    <ReportTypingIndicator reportID={reportID} />
                     <ExceededCommentLength
-                        comment={comment.current}
+                        comment={commentRef.current}
                         onExceededMaxCommentLength={setExceededMaxCommentLength}
                     />
                 </View>
