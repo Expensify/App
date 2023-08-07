@@ -57,7 +57,7 @@ const defaultProps = {
     onIconPress: () => {},
     anchorAlignment: {
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP, // we assume that popover menu opens below the button, anchor is at TOP
     },
 };
 

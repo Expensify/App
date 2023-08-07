@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
 import {View, Dimensions} from 'react-native';
+import 'core-js/features/array/at';
 import {Document, Page, pdfjs} from 'react-pdf/dist/esm/entry.webpack';
 import pdfWorkerSource from 'pdfjs-dist/legacy/build/pdf.worker';
 import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
