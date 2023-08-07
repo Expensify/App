@@ -116,6 +116,9 @@ const propTypes = {
      * It gets strings: "top" and "bottom".
      * */
     expandHoverArea: PropTypes.arrayOf(PropTypes.string),
+
+    /** A value to understand is the previous action a whisper */
+    isPrevActionWhisper: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -128,6 +131,7 @@ const defaultProps = {
     shouldHideThreadDividerLine: false,
     separatorActions: {},
     expandHoverArea: [],
+    isPrevActionWhisper: false,
 };
 
 function ReportActionItem(props) {
@@ -151,7 +155,7 @@ function ReportActionItem(props) {
             return;
         }
 
-        if (isWhisper && props.displayAsGroup) {
+        if (isWhisper && (props.displayAsGroup || props.isPrevActionWhisper)) {
             props.separatorActions.highlight();
         } else {
             props.separatorActions.unhighlight();
@@ -159,7 +163,7 @@ function ReportActionItem(props) {
         // This useEffect should be invoked as less as possible.
         // It still has all dependencies, but tracks directly each value.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isWhisper, props.displayAsGroup, props.separatorActions.highlight, props.separatorActions.unhighlight]);
+    }, [isWhisper, props.displayAsGroup, props.isPrevActionWhisper, props.separatorActions.highlight, props.separatorActions.unhighlight]);
 
     useEffect(
         () => () => {

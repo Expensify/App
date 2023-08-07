@@ -586,6 +586,19 @@ function getExpandHoverArea(reportActions, actionIndex) {
     return expandHoverArea;
 }
 
+/**
+ * A helper function to understand is the previous action a whisper
+ *
+ * @param {Array} reportActions
+ * @param {Number} actionIndex - index of the comment item in state to check
+ * @returns {Array<String>}
+ */
+function isPrevActionWhisper(reportActions, actionIndex) {
+    const prevAction = reportActions[actionIndex + 1];
+
+    return lodashGet(prevAction, 'whisperedToAccountIDs.length', 0) > 0;
+}
+
 export {
     getSortedReportActions,
     getLastVisibleAction,
@@ -619,4 +632,5 @@ export {
     isPendingRemove,
     getReportAction,
     getExpandHoverArea,
+    isPrevActionWhisper,
 };

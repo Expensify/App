@@ -157,6 +157,7 @@ function ReportActionsList(props) {
                         unhighlight: separators.unhighlight,
                     }}
                     expandHoverArea={expandHoverArea}
+                    isPrevActionWhisper={ReportActionsUtils.isPrevActionWhisper(sortedReportActions, index)}
                 />
             );
         },
