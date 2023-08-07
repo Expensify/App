@@ -253,7 +253,6 @@ function signInAttemptState() {
  *
  * @param {String} login
  */
-
 function beginSignIn(login) {
     const {optimisticData, successData, failureData} = signInAttemptState();
     API.read('BeginSignIn', {email: login}, {optimisticData, successData, failureData});
