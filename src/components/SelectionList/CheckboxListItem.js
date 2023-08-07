@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import PressableWithFeedback from '../Pressable/PressableWithFeedback';
 import styles from '../../styles/styles';
 import Text from '../Text';
@@ -9,6 +10,7 @@ import Checkbox from '../Checkbox';
 import Avatar from '../Avatar';
 import OfflineWithFeedback from '../OfflineWithFeedback';
 import useLocalize from '../../hooks/useLocalize';
+import CONST from '../../CONST';
 
 function CheckboxListItem({item, isFocused = false, onSelectRow, onDismissError = () => {}}) {
     const {translate} = useLocalize();
@@ -39,12 +41,12 @@ function CheckboxListItem({item, isFocused = false, onSelectRow, onDismissError 
                     onPress={() => onSelectRow(item)}
                     style={item.isDisabled ? styles.buttonOpacityDisabled : {}}
                 />
-                {item.avatar && (
+                {Boolean(item.avatar) && (
                     <Avatar
                         containerStyles={styles.pl5}
-                        source={item.avatar.source}
-                        name={item.avatar.name}
-                        type={item.avatar.type}
+                        source={lodashGet(item, 'avatar.source', '')}
+                        name={lodashGet(item, 'avatar.name', item.text)}
+                        type={lodashGet(item, 'avatar.type', CONST.ICON_TYPE_AVATAR)}
                     />
                 )}
                 <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStart, styles.pl3, styles.optionRow]}>

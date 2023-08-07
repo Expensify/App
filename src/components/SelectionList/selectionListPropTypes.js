@@ -31,7 +31,7 @@ const checkboxListItemPropTypes = {
 
         /** Avatar for the user */
         avatar: PropTypes.shape({
-            source: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
+            source: PropTypes.oneOfType([PropTypes.string, PropTypes.func]).isRequired,
             name: PropTypes.string,
             type: PropTypes.string,
         }),
