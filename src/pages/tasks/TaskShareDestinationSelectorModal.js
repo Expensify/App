@@ -45,13 +45,15 @@ function TaskShareDestinationSelectorModal(props) {
     const [searchValue, setSearchValue] = useState('');
     const [headerMessage, setHeaderMessage] = useState('');
     const [filteredRecentReports, setFilteredRecentReports] = useState([]);
-    const [filteredPersonalDetails, setFilteredPersonalDetails] = useState([]);
-    const [filteredUserToInvite, setFilteredUserToInvite] = useState(null);
 
     const filteredReports = useMemo(() => {
         const reports = {};
         _.keys(props.reports).forEach((reportKey) => {
-            if (!ReportUtils.isAllowedToComment(props.reports[reportKey])) {
+            if (
+                !ReportUtils.isAllowedToComment(props.reports[reportKey]) ||
+                ReportUtils.isArchivedRoom(props.reports[reportKey]) ||
+                ReportUtils.isExpensifyOnlyParticipantInReport(props.reports[reportKey])
+            ) {
                 return;
             }
             reports[reportKey] = props.reports[reportKey];
@@ -59,21 +61,11 @@ function TaskShareDestinationSelectorModal(props) {
         return reports;
     }, [props.reports]);
     const updateOptions = useCallback(() => {
-        const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getShareDestinationOptions(
-            filteredReports,
-            props.personalDetails,
-            props.betas,
-            searchValue.trim(),
-            [],
-            CONST.EXPENSIFY_EMAILS,
-            true,
-        );
+        const {recentReports} = OptionsListUtils.getShareDestinationOptions(filteredReports, props.personalDetails, props.betas, searchValue.trim(), [], CONST.EXPENSIFY_EMAILS, true);
 
-        setHeaderMessage(OptionsListUtils.getHeaderMessage(recentReports?.length + personalDetails?.length !== 0, Boolean(userToInvite), searchValue));
+        setHeaderMessage(OptionsListUtils.getHeaderMessage(recentReports?.length !== 0, false, searchValue));
 
-        setFilteredUserToInvite(userToInvite);
         setFilteredRecentReports(recentReports);
-        setFilteredPersonalDetails(personalDetails);
     }, [props, searchValue, filteredReports]);
 
     useEffect(() => {
@@ -99,23 +91,6 @@ function TaskShareDestinationSelectorModal(props) {
                 indexOffset,
             });
             indexOffset += filteredRecentReports?.length;
-        }
-
-        if (filteredPersonalDetails?.length > 0) {
-            sections.push({
-                data: filteredPersonalDetails,
-                shouldShow: true,
-                indexOffset,
-            });
-            indexOffset += filteredRecentReports?.length;
-        }
-
-        if (filteredUserToInvite) {
-            sections.push({
-                data: [filteredUserToInvite],
-                shouldShow: true,
-                indexOffset,
-            });
         }
 
         return sections;

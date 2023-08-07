@@ -59,6 +59,12 @@ const propTypes = {
 
     /** Additional styles for button */
     buttonsizelarge: PropTypes.bool,
+    /** The anchor alignment of the popover menu */
+
+    anchorAlignment: PropTypes.shape({
+        horizontal: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL)),
+        vertical: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL)),
+    }),
 
     ...withLocalizePropTypes,
 };
@@ -75,6 +81,10 @@ const defaultProps = {
     policyID: '',
     formattedAmount: '',
     buttonsizelarge: false,
+    anchorAlignment: {
+        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP, // we assume that popover menu opens below the button, anchor is at TOP
+    },
 };
 
 class SettlementButton extends React.Component {
@@ -183,6 +193,7 @@ class SettlementButton extends React.Component {
                         options={this.getButtonOptionsFromProps()}
                         style={this.props.style}
                         buttonsizelarge={this.props.buttonsizelarge}
+                        anchorAlignment={this.props.anchorAlignment}
                     />
                 )}
             </KYCWall>

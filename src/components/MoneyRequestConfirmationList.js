@@ -304,6 +304,10 @@ function MoneyRequestConfirmationList(props) {
                 policyID={props.policyID}
                 shouldShowPaymentOptions
                 buttonsizelarge
+                anchorAlignment={{
+                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                }}
             />
         ) : (
             <ButtonWithDropdownMenu

@@ -1,4 +1,4 @@
-import React, {useCallback, useState, useEffect, useRef} from 'react';
+import React, {useCallback, useState, useEffect, useRef, useImperativeHandle} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -16,7 +16,6 @@ import * as User from '../../../../../libs/actions/User';
 import Button from '../../../../../components/Button';
 import DotIndicatorMessage from '../../../../../components/DotIndicatorMessage';
 import * as Session from '../../../../../libs/actions/Session';
-import shouldDelayFocus from '../../../../../libs/shouldDelayFocus';
 import Text from '../../../../../components/Text';
 import {withNetwork} from '../../../../../components/OnyxProvider';
 import PressableWithFeedback from '../../../../../components/Pressable/PressableWithFeedback';
@@ -51,6 +50,9 @@ const propTypes = {
         pendingFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
     }).isRequired,
 
+    /** Forwarded inner ref */
+    innerRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
+
     /* Onyx Props */
 
     /** The details about the account that the user is signing in with */
@@ -65,6 +67,7 @@ const propTypes = {
 
 const defaultProps = {
     account: {},
+    innerRef: () => {},
 };
 
 function BaseValidateCodeForm(props) {
@@ -73,6 +76,19 @@ function BaseValidateCodeForm(props) {
     const loginData = props.loginList[props.contactMethod];
     const inputValidateCodeRef = useRef();
     const validateLoginError = ErrorUtils.getEarliestErrorField(loginData, 'validateLogin');
+
+    useImperativeHandle(props.innerRef, () => ({
+        focus() {
+            if (!inputValidateCodeRef.current) {
+                return;
+            }
+            inputValidateCodeRef.current.focus();
+        },
+    }));
+
+    useEffect(() => {
+        Session.clearAccountMessages();
+    }, []);
 
     useEffect(() => {
         if (!props.hasMagicCodeBeenSent) {
@@ -138,8 +154,7 @@ function BaseValidateCodeForm(props) {
                 errorText={formError.validateCode ? props.translate(formError.validateCode) : ErrorUtils.getLatestErrorMessage(props.account)}
                 hasError={!_.isEmpty(validateLoginError)}
                 onFulfill={validateAndSubmitForm}
-                autoFocus
-                shouldDelayFocus={shouldDelayFocus}
+                autoFocus={false}
             />
             <OfflineWithFeedback
                 pendingAction={lodashGet(loginData, 'pendingFields.validateCodeSent', null)}
