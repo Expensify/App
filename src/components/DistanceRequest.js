@@ -89,7 +89,7 @@ function DistanceRequest({transactionID, transaction, translate}) {
                         let waypointIcon;
                         if (index === 0) {
                             descriptionKey += 'start';
-                            waypointIcon = Expensicons.DotIndicator;
+                            waypointIcon = Expensicons.DotIndicatorUnfilled;
                         } else if (index === lastWaypointIndex) {
                             descriptionKey += 'finish';
                             waypointIcon = Expensicons.Location;
