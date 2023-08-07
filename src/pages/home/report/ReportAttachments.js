@@ -10,7 +10,7 @@ import * as ReportUtils from '../../../libs/ReportUtils';
 import * as ReportActionUtils from '../../../libs/ReportActionsUtils';
 import ROUTES from '../../../ROUTES';
 import ONYXKEYS from '../../../ONYXKEYS';
-import reportPropTypes from '../../../pages/reportPropTypes';
+import reportPropTypes from '../../reportPropTypes';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
