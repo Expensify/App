@@ -266,7 +266,7 @@ function WorkspaceMembersPage(props) {
      */
     const dismissError = useCallback(
         (item) => {
-            if (item.pendingAction === 'delete') {
+            if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                 Policy.clearDeleteMemberError(props.route.params.policyID, item.accountID);
             } else {
                 Policy.clearAddMemberError(props.route.params.policyID, item.accountID);
@@ -281,7 +281,7 @@ function WorkspaceMembersPage(props) {
      * @param {Object} policyMember
      * @returns {Boolean}
      */
-    const isDeletedPolicyMember = (policyMember) => !props.network.isOffline && policyMember.pendingAction === 'delete' && _.isEmpty(policyMember.errors);
+    const isDeletedPolicyMember = (policyMember) => !props.network.isOffline && policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && _.isEmpty(policyMember.errors);
 
     /**
      * Render a workspace member component
@@ -294,7 +294,7 @@ function WorkspaceMembersPage(props) {
      */
     const renderItem = useCallback(
         ({item}) => {
-            const disabled = props.session.email === item.login || item.role === 'admin';
+            const disabled = props.session.email === item.login || item.role === CONST.POLICY.ROLE.ADMIN || item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
             const hasError = !_.isEmpty(item.errors) || errors[item.accountID];
             const isChecked = _.contains(selectedEmployees, Number(item.accountID));
             return (
@@ -342,7 +342,7 @@ function WorkspaceMembersPage(props) {
                                 onSelectRow={() => toggleUser(item.accountID, item.pendingAction)}
                             />
                         </View>
-                        {(props.session.accountID === item.accountID || item.role === 'admin') && (
+                        {(props.session.accountID === item.accountID || item.role === CONST.POLICY.ROLE.ADMIN) && (
                             <View style={[styles.badge, styles.peopleBadge]}>
                                 <Text style={[styles.peopleBadgeText]}>{props.translate('common.admin')}</Text>
                             </View>
