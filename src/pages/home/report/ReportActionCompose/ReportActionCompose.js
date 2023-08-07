@@ -633,6 +633,21 @@ function ReportActionCompose({
         setIsAttachmentPreviewActive(false);
     }, [updateShouldShowSuggestionMenuToFalse]);
 
+    const onInsertedEmoji = useCallback(
+        (emojiObject) => {
+            insertedEmojisRef.current = [...insertedEmojisRef.current, emojiObject];
+            debouncedUpdateFrequentlyUsedEmojis(emojiObject);
+        },
+        [debouncedUpdateFrequentlyUsedEmojis],
+    );
+
+    const resetKeyboardInput = useCallback(() => {
+        if (!RNTextInputReset) {
+            return;
+        }
+        RNTextInputReset.resetKeyboardInput(findNodeHandle(textInput));
+    }, [textInput]);
+
     useEffect(() => {
         const unsubscribeNavigationBlur = navigation.addListener('blur', () => KeyDownListener.removeKeyDownPressListner(focusComposerOnKeyPress));
         const unsubscribeNavigationFocus = navigation.addListener('focus', () => {
@@ -988,7 +1003,10 @@ function ReportActionCompose({
                 updateComment={updateComment}
                 composerHeight={composerHeight}
                 shouldShowReportRecipientLocalTime={shouldShowReportRecipientLocalTime}
+                // Custom added
                 ref={suggestionsRef}
+                onInsertedEmoji={onInsertedEmoji}
+                resetKeyboardInput={resetKeyboardInput}
             />
         </View>
     );

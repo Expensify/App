@@ -86,6 +86,8 @@ const propTypes = {
     shouldShowReportRecipientLocalTime: PropTypes.bool.isRequired,
     // Custom added
     forwardedRef: PropTypes.object.isRequired,
+    onInsertedEmoji: PropTypes.func.isRequired,
+    resetKeyboardInput: PropTypes.func.isRequired,
 };
 
 // TODO: split between emoji and mention suggestions
@@ -105,6 +107,8 @@ function Suggestions({
     composerHeight,
     shouldShowReportRecipientLocalTime,
     forwardedRef,
+    onInsertedEmoji,
+    resetKeyboardInput,
 }) {
     // TODO: rewrite suggestion logic to some hook or state machine or util or something to not make it depend on ReportActionComposer
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
@@ -140,13 +144,10 @@ function Suggestions({
 
             updateComment(`${commentBeforeColon}${emojiCode} ${trimLeadingSpace(commentAfterColonWithEmojiNameRemoved)}`, true);
 
-            // TODO: i think this should come from the outside
             // In some Android phones keyboard, the text to search for the emoji is not cleared
             // will be added after the user starts typing again on the keyboard. This package is
             // a workaround to reset the keyboard natively.
-            // if (RNTextInputReset) {
-            //     RNTextInputReset.resetKeyboardInput(findNodeHandle(textInput));
-            // }
+            resetKeyboardInput();
 
             setSelection({
                 start: suggestionValues.colonIndex + emojiCode.length + CONST.SPACE_LENGTH,
@@ -154,11 +155,9 @@ function Suggestions({
             });
             setSuggestionValues((prevState) => ({...prevState, suggestedEmojis: []}));
 
-            // TODO: function from the outside
-            // insertedEmojis.current = [...insertedEmojis.current, emojiObject];
-            // debouncedUpdateFrequentlyUsedEmojis(emojiObject);
+            onInsertedEmoji(emojiObject);
         },
-        [preferredSkinTone, selection.end, setSelection, suggestionValues.colonIndex, suggestionValues.suggestedEmojis, updateComment, value],
+        [onInsertedEmoji, preferredSkinTone, resetKeyboardInput, selection.end, setSelection, suggestionValues.colonIndex, suggestionValues.suggestedEmojis, updateComment, value],
     );
 
     /**
