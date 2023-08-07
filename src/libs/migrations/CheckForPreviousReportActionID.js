@@ -59,9 +59,6 @@ export default function () {
 
         const onyxData = {};
         _.each(allReportActions, (reportAction, onyxKey) => {
-            if (_.isEmpty(reportAction)) {
-                return;
-            }
             onyxData[onyxKey] = {};
         });
 
