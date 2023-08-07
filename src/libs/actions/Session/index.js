@@ -10,7 +10,6 @@ import Log from '../../Log';
 import PushNotification from '../../Notification/PushNotification';
 import Timing from '../Timing';
 import CONST from '../../../CONST';
-import * as Localize from '../../Localize';
 import Timers from '../../Timers';
 import * as Pusher from '../../Pusher/pusher';
 import * as Authentication from '../../Authentication';
@@ -633,7 +632,7 @@ function unlinkLogin(accountID, validateCode) {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 isLoading: false,
-                message: Localize.translateLocal('unlinkLoginForm.succesfullyUnlinkedLogin'),
+                message: 'unlinkLoginForm.succesfullyUnlinkedLogin',
             },
         },
         {
