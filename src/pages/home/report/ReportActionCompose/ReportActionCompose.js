@@ -233,15 +233,15 @@ function ReportActionCompose({
     const [composerHeight, setComposerHeight] = useState(0);
     const [isAttachmentPreviewActive, setIsAttachmentPreviewActive] = useState(false);
 
-    const insertedEmojis = useRef([]);
+    const insertedEmojisRef = useRef([]);
 
     /**
      * Update frequently used emojis list. We debounce this method in the constructor so that UpdateFrequentlyUsedEmojis
      * API is not called too often.
      */
     const debouncedUpdateFrequentlyUsedEmojis = useCallback(() => {
-        User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(insertedEmojis));
-        insertedEmojis.current = [];
+        User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(insertedEmojisRef.current));
+        insertedEmojisRef.current = [];
     }, []);
 
     /**
@@ -323,7 +323,7 @@ function ReportActionCompose({
 
             if (!_.isEmpty(emojis)) {
                 User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(emojis));
-                insertedEmojis.current = [...insertedEmojis, ...emojis];
+                insertedEmojisRef.current = [...insertedEmojisRef.current, ...emojis];
                 debouncedUpdateFrequentlyUsedEmojis();
             }
 
