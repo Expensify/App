@@ -1,6 +1,8 @@
 import React, {useEffect} from 'react';
+import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
+import {withOnyx} from 'react-native-onyx';
 import AttachmentModal from '../../../components/AttachmentModal';
 import Navigation from '../../../libs/Navigation/Navigation';
 import * as Report from '../../../libs/actions/Report';
@@ -8,8 +10,7 @@ import * as ReportUtils from '../../../libs/ReportUtils';
 import * as ReportActionUtils from '../../../libs/ReportActionsUtils';
 import ROUTES from '../../../ROUTES';
 import ONYXKEYS from '../../../ONYXKEYS';
-import lodashGet from 'lodash/get';
-import {withOnyx} from 'react-native-onyx';
+import reportPropTypes from '../../../pages/reportPropTypes';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -22,6 +23,13 @@ const propTypes = {
             source: PropTypes.string.isRequired,
         }).isRequired,
     }).isRequired,
+
+    /** The report that has this attachment */
+    report: reportPropTypes,
+};
+
+const defaultProps = {
+    report: {},
 };
 
 /**
@@ -45,7 +53,7 @@ function ReportAttachments(props) {
         const report = ReportUtils.getReport(reportID);
 
         // Case 1 - if we are logged out and use the deep link for attachments and then login, then
-        // the report will not have reportID yet, and we wouldn't have loaded report and report actions 
+        // the report will not have reportID yet, and we wouldn't have loaded report and report actions
         // data yet. call openReport to get both report and report actions data
         if (!report.reportID) {
             Report.openReport(reportID);
@@ -80,6 +88,7 @@ function ReportAttachments(props) {
 }
 
 ReportAttachments.propTypes = propTypes;
+ReportAttachments.defaultProps = defaultProps;
 ReportAttachments.displayName = 'ReportAttachments';
 
 export default withOnyx({
