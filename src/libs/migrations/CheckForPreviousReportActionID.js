@@ -20,8 +20,8 @@ function getReportActionsFromOnyx() {
 }
 
 /**
- * Migrate Onyx data for reportActions. If the first reportAction of a reportActionsForReport
- * does not contain a 'previousReportActionID', all reportActions for all reports are removed from Onyx.
+ * This migration checks for the 'previousReportActionID' key in the first valid reportAction of a report in Onyx.
+ * If the key is not found then all reportActions for all reports are removed from Onyx.
  *
  * @returns {Promise<void>}
  */
