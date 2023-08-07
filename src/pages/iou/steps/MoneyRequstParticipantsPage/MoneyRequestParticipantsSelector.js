@@ -84,6 +84,9 @@ class MoneyRequestParticipantsSelector extends Component {
             // If we are using this component in the "Request money" flow then we pass the includeOwnedWorkspaceChats argument so that the current user
             // sees the option to request money from their admin on their own Workspace Chat.
             this.props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
+
+            // TODO - doesn't seem like this exists yet...
+            this.props.requestType === 'distance' || true,
         );
     }
 

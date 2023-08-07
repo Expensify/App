@@ -941,7 +941,7 @@ function getIOUConfirmationOptionsFromParticipants(participants, amountText) {
  * @param {Boolean} [includeOwnedWorkspaceChats]
  * @returns {Object}
  */
-function getNewChatOptions(reports, personalDetails, betas = [], searchValue = '', selectedOptions = [], excludeLogins = [], includeOwnedWorkspaceChats = false) {
+function getNewChatOptions(reports, personalDetails, betas = [], searchValue = '', selectedOptions = [], excludeLogins = [], includeOwnedWorkspaceChats = false, includeP2P = true) {
     return getOptions(reports, personalDetails, {
         betas,
         searchInputValue: searchValue.trim(),
@@ -951,6 +951,7 @@ function getNewChatOptions(reports, personalDetails, betas = [], searchValue = '
         maxRecentReportsToShow: 5,
         excludeLogins,
         includeOwnedWorkspaceChats,
+        includeP2P,
     });
 }
 
