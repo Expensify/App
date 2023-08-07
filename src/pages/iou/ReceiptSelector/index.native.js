@@ -202,8 +202,7 @@ function ReceiptSelector(props) {
                 flash: flash ? 'on' : 'off',
             })
             .then((photo) => {
-                IOU.setMoneyRequestReceipt(`file://${photo.path}`, photo.path);
-                IOU.navigateToNextPage(props.iou, iouType, reportID, props.report);
+                IOU.setMoneyRequestReceiptAndNavigateToNextPage(`file://${photo.path}`, photo.path, props.iou, iouType, reportID, props.report);
             })
             .catch(() => {
                 showCameraAlert();

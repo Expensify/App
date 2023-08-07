@@ -148,15 +148,14 @@ function NewRequestAmountPage({route, iou, report, errors}) {
 
     const navigateToNextPage = (currentAmount) => {
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToSmallestUnit(currency, Number.parseFloat(currentAmount));
-        IOU.setMoneyRequestAmount(amountInSmallestCurrencyUnits);
-        IOU.setMoneyRequestCurrency(currency);
+        const iouUpdates = [IOU.setMoneyRequestAmount(amountInSmallestCurrencyUnits), IOU.setMoneyRequestCurrency(currency)];
 
         if (isEditing) {
             Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID));
             return;
         }
 
-        IOU.navigateToNextPage(iou, iouType, reportID, report);
+        Promise.all(iouUpdates).then(() => IOU.navigateToNextPage(iou, iouType, reportID, report))
     };
 
     const content = (

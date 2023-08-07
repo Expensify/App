@@ -1512,9 +1512,10 @@ function setMoneyRequestParticipants(participants) {
 /**
  * @param {String} receiptPath
  * @param {String} receiptSource
+ * @returns {Promise}
  */
 function setMoneyRequestReceipt(receiptPath, receiptSource) {
-    Onyx.merge(ONYXKEYS.IOU, {receiptPath, receiptSource});
+    return Onyx.merge(ONYXKEYS.IOU, {receiptPath, receiptSource});
 }
 
 /**
@@ -1528,10 +1529,11 @@ function setMoneyRequestReceipt(receiptPath, receiptSource) {
 function navigateToNextPage(iou, iouType, reportID, report) {
     const moneyRequestID = `${iouType}${reportID}`;
     const shouldReset = iou.id !== moneyRequestID;
+    const promises = [];
     // If the money request ID in Onyx does not match the ID from params, we want to start a new request
     // with the ID from params. We need to clear the participants in case the new request is initiated from FAB.
     if (shouldReset) {
-        resetMoneyRequestInfo(moneyRequestID);
+        promises.push(resetMoneyRequestInfo(moneyRequestID));
     }
 
     // If a request is initiated on a report, skip the participants selection step and navigate to the confirmation page.
@@ -1545,12 +1547,29 @@ function navigateToNextPage(iou, iouType, reportID, report) {
                       .filter((accountID) => currentUserAccountID !== accountID)
                       .map((accountID) => ({accountID, selected: true}))
                       .value();
-            setMoneyRequestParticipants(participants);
+            promises.push(setMoneyRequestParticipants(participants));
         }
-        Navigation.navigate(ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID));
+        Promise.all(promises).then(() => {
+            Navigation.navigate(ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID));
+        });
         return;
     }
-    Navigation.navigate(ROUTES.getMoneyRequestParticipantsRoute(iouType));
+
+    Promise.all(promises).then(() => {
+        Navigation.navigate(ROUTES.getMoneyRequestParticipantsRoute(iouType));
+    });
+}
+
+/**
+ * @param {String} receiptPath
+ * @param {String} receiptSource
+ * @param {String} iouType
+ * @param {String} reportID
+ * @param {Object} report
+ * @returns {Promise}
+ */
+function setMoneyRequestReceiptAndNavigateToNextPage(receiptPath, receiptSource, iouType, reportID, report) {
+    return setMoneyRequestReceipt(receiptPath, receiptSource).then(() => navigateToNextPage(ONYXKEYS.IOU, iouType, reportID, report));
 }
 
 export {
@@ -1571,4 +1590,5 @@ export {
     setMoneyRequestParticipants,
     setMoneyRequestReceipt,
     navigateToNextPage,
+    setMoneyRequestReceiptAndNavigateToNextPage,
 };
