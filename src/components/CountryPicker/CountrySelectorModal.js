@@ -6,7 +6,7 @@ import useLocalize from '../../hooks/useLocalize';
 import HeaderWithBackButton from '../HeaderWithBackButton';
 import SelectionListRadio from '../SelectionListRadio';
 import Modal from '../Modal';
-import searchOptions from '../../libs/searchCountryOptions';
+import searchCountryOptions from '../../libs/searchCountryOptions';
 
 const propTypes = {
     /** Whether the modal is visible */
@@ -49,7 +49,7 @@ function CountrySelectorModal({currentCountry, isVisible, onClose, onCountrySele
         [translate, currentCountry],
     );
 
-    const searchResults = searchOptions(searchValue, countries);
+    const searchResults = searchCountryOptions(searchValue, countries);
     const headerMessage = searchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';
 
     return (
