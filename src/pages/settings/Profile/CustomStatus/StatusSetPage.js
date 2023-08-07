@@ -76,6 +76,7 @@ function StatusSetPage({draftStatus, currentUserPersonalDetails}) {
                             defaultValue={defaultText}
                             maxLength={100}
                             autoFocus
+                            shouldDelayFocus
                         />
                     </View>
                 </View>

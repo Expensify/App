@@ -32,9 +32,13 @@ const defaultProps = {
 function StaticHeaderPageLayout({backgroundColor, children, image: Image, footer, imageContainerStyle, style, ...propsToPassToHeader}) {
     const {windowHeight} = useWindowDimensions();
 
-    const titleColor = useMemo(() => (backgroundColor === themeColors.appBG ? undefined : themeColors.textColorfulBackground), [backgroundColor]);
-
-    const iconFill = useMemo(() => (backgroundColor === themeColors.appBG ? undefined : themeColors.iconColorfulBackground), [backgroundColor]);
+    const {titleColor, iconFill} = useMemo(() => {
+        const isColorfulBackground = backgroundColor !== themeColors.appBG;
+        return {
+            titleColor: isColorfulBackground ? themeColors.textColorfulBackground : undefined,
+            iconFill: isColorfulBackground ? themeColors.iconColorfulBackground : undefined,
+        };
+    }, [backgroundColor]);
 
     return (
         <ScreenWrapper
