@@ -570,15 +570,15 @@ function subscribeToUserEvents() {
 
                 console.debug('[OnyxUpdates] Received lastUpdateID from pusher', pushJSONLastUpdateID);
                 console.debug('[OnyxUpdates] Received previousUpdateID from pusher', pushJSONPreviousUpdateID);
-                // Store these values in Onyx to allow App.reconnectApp() to fetch incremental updates from the server when a previous session is being reconnected to.
-                Onyx.multiSet({
-                    [ONYXKEYS.ONYX_UPDATES.LAST_UPDATE_ID]: pushJSONLastUpdateID,
-                    [ONYXKEYS.ONYX_UPDATES.PREVIOUS_UPDATE_ID]: pushJSONPreviousUpdateID,
-                });
+                console.debug('[OnyxUpdates] The lastUpdateID the client received was', onyxUpdatesLastUpdateID);
+
+                // Store this value in Onyx to allow AuthScreens to fetch incremental updates from the server when a previous session is being reconnected to.
+                Onyx.set(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID, pushJSONLastUpdateID);
 
                 // The previous update from the server does not match the last update the client got which means the client is missing some updates.
                 // ReconnectApp will fetch updates starting from the last update this client got and going to the last update the server sent.
                 if (pushJSONPreviousUpdateID !== onyxUpdatesLastUpdateID) {
+                    console.debug('[OnyxUpdates] Gap detected in update IDs so fetching incremental updates');
                     App.reconnectApp(onyxUpdatesLastUpdateID, pushJSONLastUpdateID);
                 }
             } else {
