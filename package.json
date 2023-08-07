@@ -118,7 +118,7 @@
     "react-native-key-command": "^1.0.1",
     "react-native-localize": "^2.2.6",
     "react-native-modal": "^13.0.0",
-    "react-native-onyx": "1.0.52",
+    "react-native-onyx": "git+https://github.com/Expensify/react-native-onyx#13c81861c679a8635e75c0c8ce3f45514e223e44",
     "react-native-pager-view": "^6.2.0",
     "react-native-pdf": "^6.6.2",
     "react-native-performance": "^4.0.0",
