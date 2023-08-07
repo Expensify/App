@@ -406,17 +406,6 @@ function isOptimisticPersonalDetail(accountID) {
 }
 
 /**
- * Check if report is a DM and personal detail of participant is optimistic data
- * @param {String} report
- * @returns {Boolean}
- */
-function shouldDisableDetailPage(report) {
-    const participants = lodashGet(report, 'participantAccountIDs', []);
-    const isMultipleParticipant = participants.length > 1;
-    return !isMultipleParticipant && isOptimisticPersonalDetail(participants[0]) && !report.parentReportID;
-}
-
-/**
  * Checks if a report is a task report from a policy expense chat.
  *
  * @param {Object} report
@@ -458,6 +447,25 @@ function isChatThread(report) {
  */
 function isConciergeChatReport(report) {
     return lodashGet(report, 'participantAccountIDs', []).length === 1 && Number(report.participantAccountIDs[0]) === CONST.ACCOUNT_ID.CONCIERGE && !isChatThread(report);
+}
+
+/**
+ * Check if the report is a single chat report that isn't a thread
+ * and personal detail of participant is optimistic data
+ * @param {Object} report
+ * @param {Array} report.participantAccountIDs
+ * @returns {Boolean}
+ */
+function shouldDisableDetailPage(report) {
+    const participantAccountIDs = lodashGet(report, 'participantAccountIDs', []);
+
+    if (isChatRoom(report) || isPolicyExpenseChat(report) || isChatThread(report)) {
+        return false;
+    }
+    if (participantAccountIDs.length === 1) {
+        return isOptimisticPersonalDetail(participantAccountIDs[0]);
+    }
+    return false;
 }
 
 /**
@@ -870,7 +878,7 @@ function getIconsForParticipants(participants, personalDetails) {
         const avatarSource = UserUtils.getAvatar(lodashGet(personalDetails, [accountID, 'avatar'], ''), accountID);
         participantDetails.push([
             accountID,
-            lodashGet(personalDetails, [accountID, 'login'], lodashGet(personalDetails, [accountID, 'displayName'], '')),
+            lodashGet(personalDetails, [accountID, 'displayName']) || lodashGet(personalDetails, [accountID, 'login'], ''),
             lodashGet(personalDetails, [accountID, 'firstName'], ''),
             avatarSource,
         ]);
