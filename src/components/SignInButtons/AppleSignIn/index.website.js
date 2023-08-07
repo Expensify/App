@@ -64,7 +64,6 @@ const failureListener = (event) => {
  * Apple Sign In button for Web.
  * @returns {React.Component}
  */
-
 function AppleSignInDiv({isDesktopFlow}) {
     useEffect(() => {
         // `init` renders the button, so it must be called after the div is
