@@ -144,6 +144,9 @@ const propTypes = {
 
     /** Callback to fire when the confirm button is pressed */
     onConfirm: PropTypes.func,
+
+    /** Whether to show the vertical scroll indicator */
+    showScrollIndicator: PropTypes.bool,
 };
 
 export {propTypes, radioListItemPropTypes, checkboxListItemPropTypes};

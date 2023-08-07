@@ -46,6 +46,7 @@ function BaseSelectionList({
     headerMessage = '',
     confirmButtonText = '',
     onConfirm,
+    showScrollIndicator = false,
     isKeyboardShown = false,
 }) {
     const {translate} = useLocalize();
@@ -354,7 +355,7 @@ function BaseSelectionList({
                             extraData={focusedIndex}
                             indicatorStyle="white"
                             keyboardShouldPersistTaps="always"
-                            showsVerticalScrollIndicator={false}
+                            showsVerticalScrollIndicator={showScrollIndicator}
                             initialNumToRender={12}
                             maxToRenderPerBatch={5}
                             windowSize={5}
