@@ -879,7 +879,7 @@ function ReportActionCompose({
                                         textAlignVertical="top"
                                         placeholder={inputPlaceholder}
                                         placeholderTextColor={themeColors.placeholderText}
-                                        // onChangeText={(commentValue) => updateComment(commentValue, true)}
+                                        onChangeText={(commentValue) => updateComment(commentValue, true)}
                                         onKeyPress={triggerHotkeyActions}
                                         style={[styles.textInputCompose, isComposerFullSize ? styles.textInputFullCompose : styles.flex4]}
                                         maxLines={maxComposerLines}
@@ -898,7 +898,7 @@ function ReportActionCompose({
                                         isFullComposerAvailable={isFullSizeComposerAvailable}
                                         setIsFullComposerAvailable={setIsFullComposerAvailable}
                                         isComposerFullSize={isComposerFullSize}
-                                        // value={value}
+                                        value={value}
                                         numberOfLines={numberOfLines}
                                         onNumberOfLinesChange={updateNumberOfLines}
                                         shouldCalculateCaretPosition
