@@ -50,6 +50,7 @@ class MoneyRequestParticipantsSelector extends Component {
 
         this.addSingleParticipant = this.addSingleParticipant.bind(this);
         this.updateOptionsWithSearchTerm = this.updateOptionsWithSearchTerm.bind(this);
+
         const {recentReports, personalDetails, userToInvite} = this.getRequestOptions();
 
         this.state = {
