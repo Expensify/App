@@ -65,6 +65,10 @@ export default {
     // an international code
     COUNTRY_CODE: 'countryCode',
 
+    // The 'country' field in this code represents the return country based on the user's IP address.
+    // It is expected to provide a two-letter country code such as US for United States, and so on.
+    COUNTRY: 'country',
+
     // Contains all the users settings for the Settings page and sub pages
     USER: 'user',
 
