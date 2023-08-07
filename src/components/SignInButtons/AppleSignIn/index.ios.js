@@ -32,7 +32,6 @@ function appleSignInRequest() {
  * Apple Sign In button for iOS.
  * @returns {React.Component}
  */
-
 function AppleSignIn() {
     const handleSignIn = () => {
         appleSignInRequest()
