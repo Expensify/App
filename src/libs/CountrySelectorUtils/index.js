@@ -1,10 +1,11 @@
+import _ from 'underscore';
 import CONST from '../../CONST';
 
 /**
  * Searches the countriesData and returns sorted results based on country code
  * @param {String} searchValue
- * @param {Object} countriesData
- * @returns
+ * @param {Object[]} countriesData - An array of country data objects
+ * @returns {Object[]} An array of sorted country data based on country code
  */
 function searchOptions(searchValue, countriesData) {
     const trimmedSearchValue = searchValue.toLowerCase().replaceAll(CONST.REGEX.NON_ALPHABETIC_AND_NON_LATIN_CHARS, '');
