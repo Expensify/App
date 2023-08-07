@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {propTypes as modalPropTypes, defaultProps as defaultModalProps} from '../Modal/modalPropTypes';
+import refPropTypes from '../refPropTypes';
 import CONST from '../../CONST';
 
 const propTypes = {
@@ -13,6 +14,9 @@ const propTypes = {
         bottom: PropTypes.number,
         left: PropTypes.number,
     }),
+
+    /** The anchor ref of the popover */
+    anchorRef: refPropTypes,
 
     /** A react-native-animatable animation timing for the modal display animation. */
     animationInTiming: PropTypes.number,
@@ -30,6 +34,7 @@ const defaultProps = {
 
     // Anchor position is optional only because it is not relevant on mobile
     anchorPosition: {},
+    anchorRef: () => {},
     disableAnimation: true,
 };
 

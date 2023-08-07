@@ -26,6 +26,9 @@ import FullscreenLoadingIndicator from '../../../../components/FullscreenLoading
 const propTypes = {
     /* Onyx Props */
 
+    // The user's country based on IP address
+    country: PropTypes.string,
+
     /** User's private personal details */
     privatePersonalDetails: PropTypes.shape({
         /** User's home address */
@@ -40,6 +43,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    country: '',
     privatePersonalDetails: {
         address: {
             street: '',
@@ -59,10 +63,10 @@ function updateAddress(values) {
     PersonalDetails.updateAddress(values.addressLine1.trim(), values.addressLine2.trim(), values.city.trim(), values.state.trim(), values.zipPostCode.trim().toUpperCase(), values.country);
 }
 
-function AddressPage({privatePersonalDetails}) {
+function AddressPage({privatePersonalDetails, country}) {
     usePrivatePersonalDetails();
     const {translate} = useLocalize();
-    const [currentCountry, setCurrentCountry] = useState(PersonalDetails.getCountryISO(lodashGet(privatePersonalDetails, 'address.country')) || CONST.COUNTRY.US);
+    const [currentCountry, setCurrentCountry] = useState(PersonalDetails.getCountryISO(lodashGet(privatePersonalDetails, 'address.country')) || country || CONST.COUNTRY.US);
     const isUSAForm = currentCountry === CONST.COUNTRY.US;
     const zipSampleFormat = lodashGet(CONST.COUNTRY_ZIP_REGEX_DATA, [currentCountry, 'samples'], '');
     const zipFormat = translate('common.zipCodeExampleFormat', {zipSampleFormat});
@@ -173,7 +177,7 @@ function AddressPage({privatePersonalDetails}) {
                 <View style={styles.mhn5}>
                     <CountryPicker
                         inputID="country"
-                        defaultValue={PersonalDetails.getCountryISO(address.country)}
+                        defaultValue={currentCountry}
                         onValueChange={handleAddressChange}
                     />
                 </View>
@@ -226,6 +230,9 @@ AddressPage.propTypes = propTypes;
 AddressPage.defaultProps = defaultProps;
 
 export default withOnyx({
+    country: {
+        key: ONYXKEYS.COUNTRY,
+    },
     privatePersonalDetails: {
         key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
     },

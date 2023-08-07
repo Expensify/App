@@ -116,6 +116,7 @@ class AvatarWithImagePicker extends React.Component {
             imageUri: '',
             imageType: '',
         };
+        this.anchorRef = React.createRef();
     }
 
     componentDidMount() {
@@ -225,22 +226,14 @@ class AvatarWithImagePicker extends React.Component {
         this.setState({isAvatarCropModalOpen: false});
     }
 
-    /**
-     * Create menu items list for avatar menu
-     *
-     * @param {Function} openPicker
-     * @returns {Array}
-     */
-    createMenuItems(openPicker) {
+    render() {
+        const DefaultAvatar = this.props.DefaultAvatar;
+        const additionalStyles = _.isArray(this.props.style) ? this.props.style : [this.props.style];
         const menuItems = [
             {
                 icon: Expensicons.Upload,
                 text: this.props.translate('avatarWithImagePicker.uploadPhoto'),
-                onSelected: () => {
-                    openPicker({
-                        onPicked: this.showAvatarCropModal,
-                    });
-                },
+                onSelected: () => {},
             },
         ];
 
@@ -255,17 +248,11 @@ class AvatarWithImagePicker extends React.Component {
                 },
             });
         }
-        return menuItems;
-    }
-
-    render() {
-        const DefaultAvatar = this.props.DefaultAvatar;
-        const additionalStyles = _.isArray(this.props.style) ? this.props.style : [this.props.style];
 
         return (
             <View style={[styles.alignItemsCenter, ...additionalStyles]}>
                 <PressableWithoutFeedback
-                    onPress={() => this.setState({isMenuVisible: true})}
+                    onPress={() => this.setState((prev) => ({isMenuVisible: !prev.isMenuVisible}))}
                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                     accessibilityLabel={this.props.translate('avatarWithImagePicker.editImage')}
                     disabled={this.state.isAvatarCropModalOpen}
@@ -311,9 +298,21 @@ class AvatarWithImagePicker extends React.Component {
                                     <PopoverMenu
                                         isVisible={this.state.isMenuVisible}
                                         onClose={() => this.setState({isMenuVisible: false})}
-                                        onItemSelected={() => this.setState({isMenuVisible: false})}
-                                        menuItems={this.createMenuItems(openPicker)}
+                                        onItemSelected={(item, index) => {
+                                            this.setState({isMenuVisible: false});
+                                            // In order for the file picker to open dynamically, the click
+                                            // function must be called from within a event handler that was initiated
+                                            // by the user.
+                                            if (index === 0) {
+                                                openPicker({
+                                                    onPicked: this.showAvatarCropModal,
+                                                });
+                                            }
+                                        }}
+                                        menuItems={menuItems}
                                         anchorPosition={this.props.anchorPosition}
+                                        withoutOverlay
+                                        anchorRef={this.anchorRef}
                                         anchorAlignment={this.props.anchorAlignment}
                                     />
                                 </>
