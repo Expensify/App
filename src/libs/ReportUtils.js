@@ -2185,7 +2185,6 @@ function buildOptimisticTaskReport(ownerAccountID, assigneeAccountID = 0, parent
         description,
         ownerAccountID,
         managerID: assigneeAccountID,
-        participantAccountIDs: [assigneeAccountID],
         type: CONST.REPORT.TYPE.TASK,
         parentReportID,
         stateNum: CONST.REPORT.STATE_NUM.OPEN,
@@ -2781,7 +2780,7 @@ function getParentReport(report) {
  * @returns {Object}
  */
 function getTaskParentReportActionIDInAssigneeReport(taskReport) {
-    const assigneeChatReportID = lodashGet(getChatByParticipants(taskReport.participantAccountIDs), 'reportID');
+    const assigneeChatReportID = lodashGet(getChatByParticipants(isTaskAssignee(taskReport) ? [taskReport.ownerAccountID] : [taskReport.managerID]), 'reportID');
     if (!assigneeChatReportID || assigneeChatReportID === taskReport.parentReportID) {
         return {};
     }
