@@ -13,7 +13,7 @@ import ROUTES from '../ROUTES';
 import * as NumberUtils from './NumberUtils';
 import * as NumberFormatUtils from './NumberFormatUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
-import * as TransactionUtils from '../libs/TransactionUtils';
+import * as TransactionUtils from './TransactionUtils';
 import Permissions from './Permissions';
 import DateUtils from './DateUtils';
 import linkingConfig from './Navigation/linkingConfig';
@@ -407,17 +407,6 @@ function isOptimisticPersonalDetail(accountID) {
 }
 
 /**
- * Check if report is a DM and personal detail of participant is optimistic data
- * @param {String} report
- * @returns {Boolean}
- */
-function shouldDisableDetailPage(report) {
-    const participants = lodashGet(report, 'participantAccountIDs', []);
-    const isMultipleParticipant = participants.length > 1;
-    return !isMultipleParticipant && isOptimisticPersonalDetail(participants[0]) && !report.parentReportID;
-}
-
-/**
  * Checks if a report is a task report from a policy expense chat.
  *
  * @param {Object} report
@@ -459,6 +448,35 @@ function isChatThread(report) {
  */
 function isConciergeChatReport(report) {
     return lodashGet(report, 'participantAccountIDs', []).length === 1 && Number(report.participantAccountIDs[0]) === CONST.ACCOUNT_ID.CONCIERGE && !isChatThread(report);
+}
+
+/**
+ * Check if the report is a single chat report that isn't a thread
+ * and personal detail of participant is optimistic data
+ * @param {Object} report
+ * @param {Array} report.participantAccountIDs
+ * @returns {Boolean}
+ */
+function shouldDisableDetailPage(report) {
+    const participantAccountIDs = lodashGet(report, 'participantAccountIDs', []);
+
+    if (isChatRoom(report) || isPolicyExpenseChat(report) || isChatThread(report)) {
+        return false;
+    }
+    if (participantAccountIDs.length === 1) {
+        return isOptimisticPersonalDetail(participantAccountIDs[0]);
+    }
+    return false;
+}
+
+/**
+ * Returns true if this report has only one participant and it's an Expensify account.
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isExpensifyOnlyParticipantInReport(report) {
+    const reportParticipants = _.without(lodashGet(report, 'participantAccountIDs', []), currentUserAccountID);
+    return lodashGet(report, 'participantAccountIDs', []).length === 1 && _.some(reportParticipants, (accountID) => _.contains(CONST.EXPENSIFY_ACCOUNT_IDS, accountID));
 }
 
 /**
@@ -2966,6 +2984,7 @@ export {
     getPolicyName,
     getPolicyType,
     isArchivedRoom,
+    isExpensifyOnlyParticipantInReport,
     isPolicyExpenseChatAdmin,
     isPolicyAdmin,
     isPublicRoom,
