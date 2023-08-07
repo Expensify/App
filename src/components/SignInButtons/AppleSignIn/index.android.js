@@ -9,7 +9,6 @@ import CONST from '../../../CONST';
 /**
  * Apple Sign In Configuration for Android.
  */
-
 const config = {
     clientId: CONFIG.APPLE_SIGN_IN.SERVICE_ID,
     redirectUri: CONFIG.APPLE_SIGN_IN.REDIRECT_URI,
