@@ -245,7 +245,7 @@ export default {
 
     // The access token to be used with the Mapbox library
     MAPBOX_ACCESS_TOKEN: 'mapboxAccessToken',
-  
+
     ONYX_UPDATES: {
         // The ID of the last Onyx update that was applied to this client
         LAST_UPDATE_ID: 'onyxUpdatesLastUpdateID',
