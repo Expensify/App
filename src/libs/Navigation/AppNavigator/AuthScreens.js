@@ -330,7 +330,7 @@ export default compose(
             key: ONYXKEYS.IS_USING_MEMORY_ONLY_KEYS,
         },
         onyxUpdatesLastUpdateID: {
-            key: ONYXKEYS.ONYX_UPDATES.LAST_UPDATE_ID,
+            key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID,
         },
     }),
 )(AuthScreens);

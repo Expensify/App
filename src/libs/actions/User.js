@@ -44,7 +44,7 @@ Onyx.connect({
 
 let onyxUpdatesLastUpdateID;
 Onyx.connect({
-    key: ONYXKEYS.ONYX_UPDATES.LAST_UPDATE_ID,
+    key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID,
     callback: (val) => (onyxUpdatesLastUpdateID = val),
 });
 
