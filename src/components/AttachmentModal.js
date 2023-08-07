@@ -338,7 +338,7 @@ function AttachmentModal(props) {
                     onCloseButtonPress={closeModal}
                 />
                 <View style={styles.imageModalImageCenterContainer}>
-                    {!_.isEmpty(props.report) ? (
+                    {!_.isEmpty(props.report) && !props.report.isLoadingReportActions ? (
                         <AttachmentCarousel
                             report={props.report}
                             onNavigate={onNavigate}

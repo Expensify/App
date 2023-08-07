@@ -49,7 +49,7 @@ function createInitialState(props) {
         attachments.reverse();
     }
 
-    const page = _.findIndex(attachments, (a) => a.source === props.source);
+    const page = _.findIndex(attachments, (a) => a.source.includes(props.source));
     if (page === -1) {
         Navigation.dismissModal();
         return;

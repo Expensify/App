@@ -487,6 +487,15 @@ function getReportAction(reportID, reportActionID) {
 }
 
 /**
+ *
+ * @param {String} reportID
+ * @returns {Object}
+ */
+function getReportActions(reportID) {
+    return lodashGet(allReportActions, [reportID], {});
+}
+
+/**
  * @returns {string}
  */
 function getMostRecentReportActionLastModified() {
@@ -593,4 +602,5 @@ export {
     isWhisperAction,
     isPendingRemove,
     getReportAction,
+    getReportActions,
 };

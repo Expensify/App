@@ -49,6 +49,11 @@ function AttachmentCarousel(props) {
     }
 
     useEffect(() => {
+        // Even an empty chat will have the 'created' report action, if its not there
+        // then we are coming from a deep link and actions are not yet loaded. We should 
+        // wait until actions load.
+        if (_.isEmpty(props.reportActions)) return;
+
         const initialState = createInitialState(props);
         if (initialState) {
             setPage(initialState.page);
