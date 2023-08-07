@@ -71,7 +71,7 @@ const init = () => {
 
             // If the token is falsy or an empty object, the token needs to be retrieved from the API.
             // The API sets a token in Onyx with a 30 minute expiration.
-            if (!token || _.size(token) === 0) {
+            if (!token || _.isEmpty(token)) {
                 console.debug('[MapboxToken] Token does not exist so fetching one');
                 API.read('GetMapboxAccessToken');
                 return;
