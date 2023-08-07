@@ -73,17 +73,17 @@ class PDFView extends Component {
      * hide/reset PDF password form, and notify parent component that
      * user input is no longer required.
      *
-     * @param {*} pdf The PDF file instance
+     * @param {Object} pdf - The PDF file instance
+     * @param {Number} pdf.numPages - Number of pages of the PDF file
+     * @param {Function} pdf.getPage - A method to get page by its number
      * @memberof PDFView
      */
-    onDocumentLoadSuccess(pdf) {
-        const numPages = pdf.numPages;
-
+    onDocumentLoadSuccess({numPages, getPage}) {
         Promise.all(
             _.times(numPages, (index) => {
                 const pageNumber = index + 1;
 
-                return pdf.getPage(pageNumber).then((page) => page.getViewport({scale: 1}));
+                return getPage(pageNumber).then((page) => page.getViewport({scale: 1}));
             }),
         ).then((pageViewports) => {
             this.setState({
