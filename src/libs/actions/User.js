@@ -576,7 +576,9 @@ function subscribeToUserEvents() {
                     [ONYXKEYS.ONYX_UPDATES.PREVIOUS_UPDATE_ID]: pushJSONPreviousUpdateID,
                 });
 
-                if (pushJSONLastUpdateID !== onyxUpdatesLastUpdateID) {
+                // The previous update from the server does not match the last update the client got which means the client is missing some updates.
+                // ReconnectApp will fetch updates starting from the last update this client got and going to the last update the server sent.
+                if (pushJSONPreviousUpdateID !== onyxUpdatesLastUpdateID) {
                     App.reconnectApp(onyxUpdatesLastUpdateID, pushJSONLastUpdateID);
                 }
             } else {
