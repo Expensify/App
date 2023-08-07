@@ -1,0 +1,351 @@
+import React, {useState, useCallback, useRef, useImperativeHandle} from 'react';
+import PropTypes from 'prop-types';
+import _ from 'underscore';
+import CONST from '../../../../CONST';
+import useArrowKeyFocusManager from '../../../../hooks/useArrowKeyFocusManager';
+import MentionSuggestions from '../../../../components/MentionSuggestions';
+import * as UserUtils from '../../../../libs/UserUtils';
+import * as Expensicons from '../../../../components/Icon/Expensicons';
+import usePrevious from '../../../../hooks/usePrevious';
+
+/**
+ * Return the max available index for arrow manager.
+ * @param {Number} numRows
+ * @param {Boolean} isAutoSuggestionPickerLarge
+ * @returns {Number}
+ */
+const getMaxArrowIndex = (numRows, isAutoSuggestionPickerLarge) => {
+    // rowCount is number of emoji/mention suggestions. For small screen we can fit 3 items
+    // and for large we show up to 20 items for mentions/emojis
+    const rowCount = isAutoSuggestionPickerLarge
+        ? Math.min(numRows, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS)
+        : Math.min(numRows, CONST.AUTO_COMPLETE_SUGGESTER.MIN_AMOUNT_OF_SUGGESTIONS);
+
+    // -1 because we start at 0
+    return rowCount - 1;
+};
+
+/**
+ * Trims first character of the string if it is a space
+ * @param {String} str
+ * @returns {String}
+ */
+const trimLeadingSpace = (str) => (str.slice(0, 1) === ' ' ? str.slice(1) : str);
+
+/**
+ * Check if this piece of string looks like a mention
+ * @param {String} str
+ * @returns {Boolean}
+ */
+const isMentionCode = (str) => CONST.REGEX.HAS_AT_MOST_TWO_AT_SIGNS.test(str);
+
+const defaultSuggestionsValues = {
+    suggestedMentions: [],
+    atSignIndex: -1,
+    shouldShowSuggestionMenu: false,
+    mentionPrefix: '',
+    isAutoSuggestionPickerLarge: false,
+};
+
+const propTypes = {
+    // Onyx/Hooks
+    preferredSkinTone: PropTypes.number.isRequired,
+    windowHeight: PropTypes.number.isRequired,
+    isSmallScreenWidth: PropTypes.bool.isRequired,
+    preferredLocale: PropTypes.string.isRequired,
+    personalDetails: PropTypes.object.isRequired,
+    translate: PropTypes.func.isRequired,
+    // Input
+    value: PropTypes.string.isRequired,
+    setValue: PropTypes.func.isRequired,
+    selection: PropTypes.shape({
+        start: PropTypes.number.isRequired,
+        end: PropTypes.number.isRequired,
+    }).isRequired,
+    setSelection: PropTypes.func.isRequired,
+    // Esoteric props
+    isComposerFullSize: PropTypes.bool.isRequired,
+    updateComment: PropTypes.func.isRequired,
+    composerHeight: PropTypes.number.isRequired,
+    shouldShowReportRecipientLocalTime: PropTypes.bool.isRequired,
+    // Custom added
+    forwardedRef: PropTypes.object.isRequired,
+    resetKeyboardInput: PropTypes.func.isRequired,
+};
+
+// TODO: split between emoji and mention suggestions
+function SuggestionMention({
+    isComposerFullSize,
+    windowHeight,
+    preferredLocale,
+    isSmallScreenWidth,
+    preferredSkinTone,
+    personalDetails,
+    translate,
+    value,
+    setValue,
+    selection,
+    setSelection,
+    updateComment,
+    composerHeight,
+    shouldShowReportRecipientLocalTime,
+    forwardedRef,
+    resetKeyboardInput,
+}) {
+    // TODO: rewrite suggestion logic to some hook or state machine or util or something to not make it depend on ReportActionComposer
+    const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
+    // TODO: const valueRef = usePrevious(value); (maybe even pass from parent?)
+
+    const isMentionSuggestionsMenuVisible = !_.isEmpty(suggestionValues.suggestedMentions) && suggestionValues.shouldShowSuggestionMenu;
+
+    const [highlightedMentionIndex] = useArrowKeyFocusManager({
+        isActive: isMentionSuggestionsMenuVisible,
+        maxIndex: getMaxArrowIndex(suggestionValues.suggestedMentions.length, suggestionValues.isAutoSuggestionPickerLarge),
+        shouldExcludeTextAreaNodes: false,
+    });
+
+    // These variables are used to decide whether to block the suggestions list from showing to prevent flickering
+    const shouldBlockEmojiCalc = useRef(false);
+    const shouldBlockMentionCalc = useRef(false);
+
+    /**
+     * Replace the code of mention and update selection
+     * @param {Number} highlightedMentionIndex
+     */
+    const insertSelectedMention = useCallback(
+        (highlightedMentionIndexInner) => {
+            const commentBeforeAtSign = value.slice(0, suggestionValues.atSignIndex);
+            const mentionObject = suggestionValues.suggestedMentions[highlightedMentionIndexInner];
+            const mentionCode = mentionObject.text === CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT ? CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT : `@${mentionObject.alternateText}`;
+            const commentAfterAtSignWithMentionRemoved = value.slice(suggestionValues.atSignIndex).replace(CONST.REGEX.MENTION_REPLACER, '');
+
+            updateComment(`${commentBeforeAtSign}${mentionCode} ${trimLeadingSpace(commentAfterAtSignWithMentionRemoved)}`, true);
+            setSelection({
+                start: suggestionValues.atSignIndex + mentionCode.length + CONST.SPACE_LENGTH,
+                end: suggestionValues.atSignIndex + mentionCode.length + CONST.SPACE_LENGTH,
+            });
+            setSuggestionValues((prevState) => ({
+                ...prevState,
+                suggestedMentions: [],
+            }));
+        },
+        [value, suggestionValues.atSignIndex, suggestionValues.suggestedMentions, updateComment, setSelection],
+    );
+
+    /**
+     * Clean data related to EmojiSuggestions
+     */
+    const resetSuggestions = useCallback(() => {
+        setSuggestionValues(defaultSuggestionsValues);
+    }, []);
+
+    /**
+     * Listens for keyboard shortcuts and applies the action
+     *
+     * @param {Object} e
+     */
+    const triggerHotkeyActions = useCallback(
+        (e) => {
+            const suggestionsExist = suggestionValues.suggestedEmojis.length > 0 || suggestionValues.suggestedMentions.length > 0;
+
+            if (((!e.shiftKey && e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) || e.key === CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) && suggestionsExist) {
+                e.preventDefault();
+                if (suggestionValues.suggestedMentions.length > 0) {
+                    insertSelectedMention(highlightedMentionIndex);
+                    return true;
+                }
+            }
+
+            if (e.key === CONST.KEYBOARD_SHORTCUTS.ESCAPE.shortcutKey) {
+                e.preventDefault();
+
+                if (suggestionsExist) {
+                    resetSuggestions();
+                }
+
+                return true;
+            }
+        },
+        [highlightedMentionIndex, insertSelectedMention, resetSuggestions, suggestionValues.suggestedEmojis.length, suggestionValues.suggestedMentions.length],
+    );
+
+    const getMentionOptions = useCallback(
+        (personalDetailsParam, searchValue = '') => {
+            const suggestions = [];
+
+            if (CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT.includes(searchValue.toLowerCase())) {
+                suggestions.push({
+                    text: CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT,
+                    alternateText: translate('mentionSuggestions.hereAlternateText'),
+                    icons: [
+                        {
+                            source: Expensicons.Megaphone,
+                            type: 'avatar',
+                        },
+                    ],
+                });
+            }
+
+            const filteredPersonalDetails = _.filter(_.values(personalDetailsParam), (detail) => {
+                // If we don't have user's primary login, that member is not known to the current user and hence we do not allow them to be mentioned
+                if (!detail.login) {
+                    return false;
+                }
+                if (searchValue && !`${detail.displayName} ${detail.login}`.toLowerCase().includes(searchValue.toLowerCase())) {
+                    return false;
+                }
+                return true;
+            });
+
+            const sortedPersonalDetails = _.sortBy(filteredPersonalDetails, (detail) => detail.displayName || detail.login);
+            _.each(_.first(sortedPersonalDetails, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS - suggestions.length), (detail) => {
+                suggestions.push({
+                    text: detail.displayName,
+                    alternateText: detail.login,
+                    icons: [
+                        {
+                            name: detail.login,
+                            source: UserUtils.getAvatar(detail.avatar, detail.accountID),
+                            type: 'avatar',
+                        },
+                    ],
+                });
+            });
+
+            return suggestions;
+        },
+        [translate],
+    );
+
+    const calculateMentionSuggestion = useCallback(
+        (selectionEnd) => {
+            if (shouldBlockMentionCalc.current) {
+                shouldBlockMentionCalc.current = false;
+                return;
+            }
+
+            const valueAfterTheCursor = value.substring(selectionEnd);
+            const indexOfFirstWhitespaceCharOrEmojiAfterTheCursor = valueAfterTheCursor.search(CONST.REGEX.NEW_LINE_OR_WHITE_SPACE_OR_EMOJI);
+
+            let indexOfLastNonWhitespaceCharAfterTheCursor;
+            if (indexOfFirstWhitespaceCharOrEmojiAfterTheCursor === -1) {
+                // we didn't find a whitespace/emoji after the cursor, so we will use the entire string
+                indexOfLastNonWhitespaceCharAfterTheCursor = value.length;
+            } else {
+                indexOfLastNonWhitespaceCharAfterTheCursor = indexOfFirstWhitespaceCharOrEmojiAfterTheCursor + selectionEnd;
+            }
+
+            const leftString = value.substring(0, indexOfLastNonWhitespaceCharAfterTheCursor);
+            const words = leftString.split(CONST.REGEX.SPECIAL_CHAR_OR_EMOJI);
+            const lastWord = _.last(words);
+
+            let atSignIndex;
+            if (lastWord.startsWith('@')) {
+                atSignIndex = leftString.lastIndexOf(lastWord);
+            }
+
+            const prefix = lastWord.substring(1);
+
+            const nextState = {
+                suggestedMentions: [],
+                atSignIndex,
+                mentionPrefix: prefix,
+            };
+
+            const isCursorBeforeTheMention = valueAfterTheCursor.startsWith(lastWord);
+
+            if (!isCursorBeforeTheMention && isMentionCode(lastWord)) {
+                const suggestions = getMentionOptions(personalDetails, prefix);
+                nextState.suggestedMentions = suggestions;
+                nextState.shouldShowSuggestionMenu = !_.isEmpty(suggestions);
+            }
+
+            setSuggestionValues((prevState) => ({
+                ...prevState,
+                ...nextState,
+            }));
+        },
+        [getMentionOptions, personalDetails, value],
+    );
+
+    const onSelectionChange = useCallback(
+        (e) => {
+            if (!value || e.nativeEvent.selection.end < 1) {
+                resetSuggestions();
+                shouldBlockEmojiCalc.current = false;
+                shouldBlockMentionCalc.current = false;
+                return true;
+            }
+
+            calculateMentionSuggestion(e.nativeEvent.selection.end);
+        },
+        [calculateMentionSuggestion, resetSuggestions, value],
+    );
+
+    // eslint-disable-next-line rulesdir/prefer-early-return
+    const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
+        if (suggestionValues.shouldShowEmojiSuggestionMenu) {
+            setSuggestionValues((prevState) => ({...prevState, shouldShowEmojiSuggestionMenu: false}));
+        }
+        if (suggestionValues.shouldShowSuggestionMenu) {
+            setSuggestionValues((prevState) => ({...prevState, shouldShowSuggestionMenu: false}));
+        }
+    }, [suggestionValues.shouldShowEmojiSuggestionMenu, suggestionValues.shouldShowSuggestionMenu]);
+
+    const setShouldBlockSuggestionCalc = useCallback(
+        (shouldBlockSuggestionCalc) => {
+            shouldBlockEmojiCalc.current = shouldBlockSuggestionCalc;
+            shouldBlockMentionCalc.current = shouldBlockSuggestionCalc;
+        },
+        [shouldBlockEmojiCalc, shouldBlockMentionCalc],
+    );
+
+    const onClose = useCallback(() => {
+        setSuggestionValues((prevState) => ({...prevState, suggestedMentions: []}));
+    }, []);
+
+    useImperativeHandle(
+        forwardedRef,
+        () => ({
+            resetSuggestions,
+            onSelectionChange,
+            triggerHotkeyActions,
+            setShouldBlockSuggestionCalc,
+            updateShouldShowSuggestionMenuToFalse,
+        }),
+        [onSelectionChange, resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse],
+    );
+
+    if (!isMentionSuggestionsMenuVisible) {
+        return null;
+    }
+
+    return (
+        <MentionSuggestions
+            onClose={onClose}
+            highlightedMentionIndex={highlightedMentionIndex}
+            mentions={suggestionValues.suggestedMentions}
+            comment={value}
+            updateComment={(newComment) => setValue(newComment)}
+            colonIndex={suggestionValues.colonIndex}
+            prefix={suggestionValues.mentionPrefix}
+            onSelect={insertSelectedMention}
+            isComposerFullSize={isComposerFullSize}
+            isMentionPickerLarge={suggestionValues.isAutoSuggestionPickerLarge}
+            composerHeight={composerHeight}
+            shouldIncludeReportRecipientLocalTimeHeight={shouldShowReportRecipientLocalTime}
+        />
+    );
+}
+
+SuggestionMention.propTypes = propTypes;
+
+const SuggestionMentionWithRef = React.forwardRef((props, ref) => (
+    <SuggestionMention
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        forwardedRef={ref}
+    />
+));
+
+export default SuggestionMentionWithRef;
