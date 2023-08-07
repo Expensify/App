@@ -264,7 +264,6 @@ function beginSignIn(login) {
  *
  * @param {String} idToken
  */
-
 function beginAppleSignIn(idToken) {
     const {optimisticData, successData, failureData} = signInAttemptState();
     API.write('SignInWithApple', {idToken}, {optimisticData, successData, failureData});
