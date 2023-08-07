@@ -65,6 +65,10 @@ export default {
     // an international code
     COUNTRY_CODE: 'countryCode',
 
+    // The 'country' field in this code represents the return country based on the user's IP address.
+    // It is expected to provide a two-letter country code such as US for United States, and so on.
+    COUNTRY: 'country',
+
     // Contains all the users settings for the Settings page and sub pages
     USER: 'user',
 
@@ -151,6 +155,9 @@ export default {
     // The user's credit cards
     CARD_LIST: 'cardList',
 
+    // The user's credit cards (renamed from cardList)
+    FUND_LIST: 'fundList',
+
     // Stores information about the user's saved statements
     WALLET_STATEMENT: 'walletStatement',
 
@@ -235,4 +242,10 @@ export default {
 
     // Experimental memory only Onyx mode flag
     IS_USING_MEMORY_ONLY_KEYS: 'isUsingMemoryOnlyKeys',
+
+    // Manual request tab selector
+    SELECTED_TAB: 'selectedTab',
+
+    // Receipt upload modal
+    RECEIPT_MODAL: 'receiptModal',
 };

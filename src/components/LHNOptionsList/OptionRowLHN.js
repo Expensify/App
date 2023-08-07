@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {useState} from 'react';
+import React, {useState, useRef} from 'react';
 import PropTypes from 'prop-types';
 import {View, StyleSheet} from 'react-native';
 import * as optionRowStyles from '../../styles/optionRowStyles';
@@ -57,6 +57,8 @@ const defaultProps = {
 };
 
 function OptionRowLHN(props) {
+    const popoverAnchor = useRef(null);
+
     const {translate} = useLocalize();
 
     const optionItem = props.optionItem;
@@ -66,7 +68,11 @@ function OptionRowLHN(props) {
         return null;
     }
 
-    let popoverAnchor = null;
+    const isMuted = optionItem.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE;
+    if (isMuted && !props.isFocused && !optionItem.isPinned) {
+        return null;
+    }
+
     const textStyle = props.isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
     const textUnreadStyle = optionItem.isUnread ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
     const displayNameStyle = StyleUtils.combineStyles([styles.optionDisplayName, styles.optionDisplayNameCompact, styles.pre, ...textUnreadStyle], props.style);
@@ -123,11 +129,12 @@ function OptionRowLHN(props) {
             pendingAction={optionItem.pendingAction}
             errors={optionItem.allReportErrors}
             shouldShowErrorMessages={false}
+            needsOffscreenAlphaCompositing
         >
             <Hoverable>
                 {(hovered) => (
                     <PressableWithSecondaryInteraction
-                        ref={(el) => (popoverAnchor = el)}
+                        ref={popoverAnchor}
                         onPress={(e) => {
                             if (e) {
                                 e.preventDefault();
@@ -231,7 +238,7 @@ function OptionRowLHN(props) {
                                     fill={themeColors.success}
                                 />
                             )}
-                            {optionItem.hasDraftComment && (
+                            {optionItem.hasDraftComment && optionItem.isAllowedToComment && (
                                 <View
                                     style={styles.ml2}
                                     accessibilityLabel={translate('sidebarScreen.draftedMessage')}

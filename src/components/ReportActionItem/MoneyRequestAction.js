@@ -20,6 +20,7 @@ import * as Report from '../../libs/actions/Report';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 import refPropTypes from '../refPropTypes';
+import RenderHTML from '../RenderHTML';
 import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
 import reportPropTypes from '../../pages/reportPropTypes';
 
@@ -109,6 +110,7 @@ function MoneyRequestAction(props) {
                 false,
                 '',
                 undefined,
+                undefined,
                 CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
                 props.action.reportActionID,
                 props.requestReportID,
@@ -124,6 +126,7 @@ function MoneyRequestAction(props) {
     };
 
     let shouldShowPendingConversionMessage = false;
+    const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(props.action);
     if (
         !_.isEmpty(props.iouReport) &&
         !_.isEmpty(props.reportActions) &&
@@ -135,7 +138,9 @@ function MoneyRequestAction(props) {
         shouldShowPendingConversionMessage = IOUUtils.isIOUReportPendingCurrencyConversion(props.reportActions, props.iouReport);
     }
 
-    return (
+    return isDeletedParentAction ? (
+        <RenderHTML html={`<comment>${props.translate('parentReportAction.deletedRequest')}</comment>`} />
+    ) : (
         <IOUPreview
             iouReportID={props.requestReportID}
             chatReportID={props.chatReportID}
