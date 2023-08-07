@@ -57,6 +57,7 @@ class PDFView extends Component {
      * @memberof PDFView
      */
     onDocumentLoadSuccess({numPages}) {
+        this.props.onLoadSuccess()
         this.setState({
             numPages,
             shouldRequestPassword: false,
@@ -120,7 +121,6 @@ class PDFView extends Component {
         const pdfContainerStyle = this.state.shouldRequestPassword
             ? [styles.PDFView, styles.noSelect, this.props.style, styles.invisible]
             : [styles.PDFView, styles.noSelect, this.props.style];
-
         return (
             <View style={outerContainerStyle}>
                 <View
@@ -138,6 +138,7 @@ class PDFView extends Component {
                         }}
                         externalLinkTarget="_blank"
                         onLoadSuccess={this.onDocumentLoadSuccess}
+                        onLoadError={this.props.onLoadError}
                         onPassword={this.initiatePasswordChallenge}
                     >
                         {_.map(_.range(this.state.numPages), (v, index) => (

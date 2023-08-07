@@ -90,6 +90,8 @@ const defaultProps = {
 
 function AttachmentModal(props) {
     const [isModalOpen, setIsModalOpen] = useState(props.defaultOpen);
+    const [isError, setIsError] = useState(true);
+
     const [shouldLoadAttachment, setShouldLoadAttachment] = useState(false);
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
     const [isAuthTokenRequired, setIsAuthTokenRequired] = useState(props.isAuthTokenRequired);
@@ -354,12 +356,14 @@ function AttachmentModal(props) {
                                 isAuthTokenRequired={isAuthTokenRequired}
                                 file={file}
                                 onToggleKeyboard={updateConfirmButtonVisibility}
+                                onLoadError={() => {setIsError(true)}}
+                                onLoadSuccess={() => {setIsError(false)}}
                             />
                         )
                     )}
                 </View>
                 {/* If we have an onConfirm method show a confirmation button */}
-                {Boolean(props.onConfirm) && (
+                {Boolean(props.onConfirm && !isError) && (
                     <SafeAreaConsumer>
                         {({safeAreaPaddingBottomStyle}) => (
                             <Animated.View style={[StyleUtils.fade(confirmButtonFadeAnimation), safeAreaPaddingBottomStyle]}>

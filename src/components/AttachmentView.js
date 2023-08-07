@@ -52,6 +52,10 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     containerStyles: PropTypes.arrayOf(PropTypes.object),
 
+    onLoadSuccess: PropTypes.func,
+    
+    onLoadError: PropTypes.func,
+
     ...withLocalizePropTypes,
 };
 
@@ -64,6 +68,8 @@ const defaultProps = {
     shouldShowLoadingSpinnerIcon: false,
     onPress: undefined,
     onScaleChanged: () => {},
+    onLoadSuccess: () => {},
+    onLoadError: () => {},
     onToggleKeyboard: () => {},
     containerStyles: [],
     isFocused: false,
@@ -98,6 +104,8 @@ function AttachmentView(props) {
                 onToggleKeyboard={props.onToggleKeyboard}
                 onScaleChanged={props.onScaleChanged}
                 onLoadComplete={() => !loadComplete && setLoadComplete(true)}
+                onLoadSuccess={props.onLoadSuccess}
+                onLoadError={props.onLoadError}
             />
         );
     }
