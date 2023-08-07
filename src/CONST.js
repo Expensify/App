@@ -141,6 +141,11 @@ const CONST = {
         MAX_AGE: 150,
     },
 
+    DESKTOP_SHORTCUT_ACCELERATOR: {
+        PASTE_AND_MATCH_STYLE: 'Option+Shift+CmdOrCtrl+V',
+        PASTE_AS_PLAIN_TEXT: 'CmdOrCtrl+Shift+V',
+    },
+
     // This is used to enable a rotation/transform style to any component.
     DIRECTION: {
         LEFT: 'left',
@@ -159,6 +164,9 @@ const CONST = {
             CONTAINER_MINHEIGHT: 500,
             VIEW_HEIGHT: 275,
         },
+        MONEY_REPORT: {
+            MIN_HEIGHT: 280,
+        },
     },
 
     RIGHT_MODAL_BACKGROUND_OVERLAY_OPACITY: 0.4,
@@ -171,6 +179,8 @@ const CONST = {
     },
     DATE: {
         MOMENT_FORMAT_STRING: 'YYYY-MM-DD',
+        SQL_DATE_TIME: 'YYYY-MM-DD HH:mm:ss',
+        FNS_FORMAT_STRING: 'yyyy-MM-dd',
         UNIX_EPOCH: '1970-01-01 00:00:00.000',
         MAX_DATE: '9999-12-31',
         MIN_DATE: '0001-01-01',
@@ -256,7 +266,6 @@ const CONST = {
     BETAS: {
         ALL: 'all',
         CHRONOS_IN_CASH: 'chronosInCash',
-        IOU: 'IOU',
         PAY_WITH_EXPENSIFY: 'payWithExpensify',
         FREE_PLAN: 'freePlan',
         DEFAULT_ROOMS: 'defaultRooms',
@@ -476,10 +485,14 @@ const CONST = {
         REPORT: 'report',
         PERSONAL_DETAIL: 'personalDetail',
     },
+    RECEIPT: {
+        ICON_SIZE: 164,
+        PERMISSION_AUTHORIZED: 'authorized',
+        HAND_ICON_HEIGHT: 152,
+        HAND_ICON_WIDTH: 200,
+        SHUTTER_SIZE: 90,
+    },
     REPORT: {
-        DROP_HOST_NAME: 'ReportDropZone',
-        DROP_NATIVE_ID: 'report-dropzone',
-        ACTIVE_DROP_NATIVE_ID: 'report-dropzone',
         MAXIMUM_PARTICIPANTS: 8,
         SPLIT_REPORTID: '-2',
         ACTIONS: {
@@ -489,8 +502,9 @@ const CONST = {
                 CLOSED: 'CLOSED',
                 CREATED: 'CREATED',
                 TASKEDITED: 'TASKEDITED',
-                TASKCANCELED: 'TASKCANCELED',
+                TASKCANCELLED: 'TASKCANCELLED',
                 IOU: 'IOU',
+                REIMBURSEMENTQUEUED: 'REIMBURSEMENTQUEUED',
                 RENAMED: 'RENAMED',
                 CHRONOSOOOLIST: 'CHRONOSOOOLIST',
                 TASKCOMPLETED: 'TASKCOMPLETED',
@@ -591,6 +605,7 @@ const CONST = {
             OPEN: 0,
             PROCESSING: 1,
             SUBMITTED: 2,
+            BILLING: 3,
         },
         STATUS: {
             OPEN: 0,
@@ -651,6 +666,7 @@ const CONST = {
             CENTER: 'center',
             RIGHT: 'right',
         },
+        POPOVER_MENU_PADDING: 8,
     },
     TIMING: {
         CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION: 'calc_most_recent_last_modified_action',
@@ -671,6 +687,12 @@ const CONST = {
     PRIORITY_MODE: {
         GSD: 'gsd',
         DEFAULT: 'default',
+    },
+    THEME: {
+        DEFAULT: 'dark',
+        LIGHT: 'light',
+        DARK: 'dark',
+        SYSTEM: 'system',
     },
     JSON_CODE: {
         SUCCESS: 200,
@@ -726,6 +748,9 @@ const CONST = {
         MAX_RETRY_WAIT_TIME_MS: 10 * 1000,
         PROCESS_REQUEST_DELAY_MS: 1000,
         MAX_PENDING_TIME_MS: 10 * 1000,
+        COMMAND: {
+            LOG: 'Log',
+        },
     },
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
     DEFAULT_ACCOUNT_DATA: {errors: null, success: '', isLoading: false},
@@ -736,6 +761,7 @@ const CONST = {
         VALIDATE_TFA_CODE_FORM: 'ValidateTfaCodeForm',
         RESEND_VALIDATION_FORM: 'ResendValidationForm',
         UNLINK_LOGIN_FORM: 'UnlinkLoginForm',
+        RESEND_VALIDATE_CODE_FORM: 'ResendValidateCodeForm',
     },
     APP_STATE: {
         ACTIVE: 'active',
@@ -1045,6 +1071,15 @@ const CONST = {
             DELETE: 'delete',
         },
         AMOUNT_MAX_LENGTH: 10,
+        RECEIPT_STATE: {
+            SCANREADY: 'SCANREADY',
+        },
+        FILE_TYPES: {
+            HTML: 'html',
+            DOC: 'doc',
+            DOCX: 'docx',
+            SVG: 'svg',
+        },
     },
 
     GROWL: {
@@ -1084,6 +1119,10 @@ const CONST = {
 
     CUSTOM_UNITS: {
         NAME_DISTANCE: 'Distance',
+        DISTANCE_UNIT_MILES: 'mi',
+        DISTANCE_UNIT_KILOMETERS: 'km',
+        MILEAGE_IRS_RATE: 0.655,
+        DEFAULT_RATE: 'Default Rate',
     },
 
     TERMS: {
@@ -1097,6 +1136,10 @@ const CONST = {
     ICON_TYPE_AVATAR: 'avatar',
     ICON_TYPE_WORKSPACE: 'workspace',
 
+    ACTIVITY_INDICATOR_SIZE: {
+        LARGE: 'large',
+    },
+
     AVATAR_SIZE: {
         LARGE: 'large',
         MEDIUM: 'medium',
@@ -1109,6 +1152,7 @@ const CONST = {
         LARGE_BORDERED: 'large-bordered',
         HEADER: 'header',
         MENTION_ICON: 'mention-icon',
+        SMALL_NORMAL: 'small-normal',
     },
     AVATAR_ROW_SIZE: {
         DEFAULT: 4,
@@ -1121,7 +1165,7 @@ const CONST = {
     REGEX: {
         SPECIAL_CHARS_WITHOUT_NEWLINE: /((?!\n)[()-\s\t])/g,
         DIGITS_AND_PLUS: /^\+?[0-9]*$/,
-        ALPHABETIC_CHARS_WITH_NUMBER: /^[a-zA-ZÀ-ÿ0-9 ]*$/,
+        ALPHABETIC_AND_LATIN_CHARS: /^[a-zA-ZÀ-ÿ ]*$/,
         POSITIVE_INTEGER: /^\d+$/,
         PO_BOX: /\b[P|p]?(OST|ost)?\.?\s*[O|o|0]?(ffice|FFICE)?\.?\s*[B|b][O|o|0]?[X|x]?\.?\s+[#]?(\d+)\b/,
         ANY_VALUE: /^.+$/,
@@ -1134,7 +1178,7 @@ const CONST = {
         CARD_SECURITY_CODE: /^[0-9]{3,4}$/,
         CARD_EXPIRATION_DATE: /^(0[1-9]|1[0-2])([^0-9])?([0-9]{4}|([0-9]{2}))$/,
         PAYPAL_ME_USERNAME: /^[a-zA-Z0-9]{1,20}$/,
-        ROOM_NAME: /^#[a-z0-9-]{1,80}$/,
+        ROOM_NAME: /^#[a-z0-9à-ÿ-]{1,80}$/,
 
         // eslint-disable-next-line max-len, no-misleading-character-class
         EMOJIS: /[\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
@@ -1238,6 +1282,7 @@ const CONST = {
 
     FORM_CHARACTER_LIMIT: 50,
     LEGAL_NAMES_CHARACTER_LIMIT: 150,
+    LOGIN_CHARACTER_LIMIT: 254,
     WORKSPACE_NAME_CHARACTER_LIMIT: 80,
     AVATAR_CROP_MODAL: {
         // The next two constants control what is min and max value of the image crop scale.
@@ -2452,6 +2497,13 @@ const CONST = {
         NUMBER_OF_TAPS: 4,
     },
 
+    MENU_HELP_URLS: {
+        LEARN_MORE: 'https://www.expensify.com',
+        DOCUMENTATION: 'https://github.com/Expensify/App/blob/main/README.md',
+        COMMUNITY_DISCUSSIONS: 'https://expensify.slack.com/archives/C01GTK53T8Q',
+        SEARCH_ISSUES: 'https://github.com/Expensify/App/issues',
+    },
+
     PAYPAL_SUPPORTED_CURRENCIES: [
         'AUD',
         'BRL',
@@ -2521,8 +2573,13 @@ const CONST = {
         ADJUSTABLE: 'adjustable',
         IMAGE: 'image',
     },
-    SETTINGS_LOUNGE_ACCESS: {
-        HEADER_IMAGE_ASPECT_RATIO: 0.64,
+    TRANSLATION_KEYS: {
+        ATTACHMENT: 'common.attachment',
+    },
+    TAB: {
+        RECEIPT_TAB_ID: 'ReceiptTab',
+        MANUAL: 'manual',
+        SCAN: 'scan',
     },
 };
 

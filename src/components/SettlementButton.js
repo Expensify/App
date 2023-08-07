@@ -54,6 +54,15 @@ const propTypes = {
     /** Additional styles to add to the component */
     style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
+    /** Total money amount in form <currency><amount> */
+    formattedAmount: PropTypes.string,
+
+    /** The anchor alignment of the popover menu */
+    anchorAlignment: PropTypes.shape({
+        horizontal: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL)),
+        vertical: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL)),
+    }),
+
     ...withLocalizePropTypes,
 };
 
@@ -67,6 +76,11 @@ const defaultProps = {
     style: [],
     iouReport: {},
     policyID: '',
+    formattedAmount: '',
+    anchorAlignment: {
+        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP, // we assume that popover menu opens below the button, anchor is at TOP
+    },
 };
 
 class SettlementButton extends React.Component {
@@ -79,22 +93,22 @@ class SettlementButton extends React.Component {
         const isExpenseReport = ReportUtils.isExpenseReport(this.props.iouReport);
         const paymentMethods = {
             [CONST.IOU.PAYMENT_TYPE.EXPENSIFY]: {
-                text: this.props.translate('iou.settleExpensify'),
+                text: this.props.translate('iou.settleExpensify', {formattedAmount: this.props.formattedAmount || ''}),
                 icon: Expensicons.Wallet,
                 value: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
             },
             [CONST.IOU.PAYMENT_TYPE.VBBA]: {
-                text: this.props.translate('iou.settleExpensify'),
+                text: this.props.translate('iou.settleExpensify', {formattedAmount: this.props.formattedAmount || ''}),
                 icon: Expensicons.Wallet,
                 value: CONST.IOU.PAYMENT_TYPE.VBBA,
             },
             [CONST.IOU.PAYMENT_TYPE.PAYPAL_ME]: {
-                text: this.props.translate('iou.settlePaypalMe'),
+                text: this.props.translate('iou.settlePaypalMe', {formattedAmount: this.props.formattedAmount || ''}),
                 icon: Expensicons.PayPal,
                 value: CONST.IOU.PAYMENT_TYPE.PAYPAL_ME,
             },
             [CONST.IOU.PAYMENT_TYPE.ELSEWHERE]: {
-                text: isExpenseReport ? this.props.translate('iou.payExpenseElsewhere') : this.props.translate('iou.settleElsewhere'),
+                text: this.props.translate('iou.payElsewhere'),
                 icon: Expensicons.Cash,
                 value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
             },
@@ -104,8 +118,8 @@ class SettlementButton extends React.Component {
 
         // To achieve the one tap pay experience we need to choose the correct payment type as default,
         // if user already paid for some request or expense, let's use the last payment method or use default.
+        let paymentMethod = this.props.nvp_lastPaymentMethod[this.props.policyID] || '';
         if (!this.props.shouldShowPaymentOptions) {
-            let paymentMethod = this.props.nvp_lastPaymentMethod[this.props.policyID];
             if (!paymentMethod) {
                 // In case the user hasn't paid a request yet, let's default to VBBA payment type in case of expense reports
                 if (isExpenseReport) {
@@ -127,7 +141,7 @@ class SettlementButton extends React.Component {
             return [
                 {
                     ...paymentMethods[paymentMethod],
-                    text: paymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE ? this.props.translate('iou.payExpenseElsewhere') : this.props.translate('iou.pay'),
+                    text: paymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE ? this.props.translate('iou.payElsewhere') : this.props.translate('iou.pay'),
                 },
             ];
         }
@@ -141,6 +155,11 @@ class SettlementButton extends React.Component {
             buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.PAYPAL_ME]);
         }
         buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE]);
+
+        // Put the preferred payment method to the front of the array so its shown as default
+        if (paymentMethod) {
+            return _.sortBy(buttonOptions, (method) => (method.value === paymentMethod ? 0 : 1));
+        }
         return buttonOptions;
     }
 
@@ -169,6 +188,7 @@ class SettlementButton extends React.Component {
                         }}
                         options={this.getButtonOptionsFromProps()}
                         style={this.props.style}
+                        anchorAlignment={this.props.anchorAlignment}
                     />
                 )}
             </KYCWall>

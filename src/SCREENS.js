@@ -8,5 +8,9 @@ export default {
     REPORT: 'Report',
     REPORT_ATTACHMENTS: 'ReportAttachments',
     NOT_FOUND: 'not-found',
-    TRANSITION_FROM_OLD_DOT: 'TransitionFromOldDot',
+    TRANSITION_BETWEEN_APPS: 'TransitionBetweenApps',
+    SETTINGS: {
+        PREFERENCES: 'Settings_Preferences',
+        WORKSPACES: 'Settings_Workspaces',
+    },
 };

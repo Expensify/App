@@ -5,17 +5,18 @@ import _ from 'underscore';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import RNTextInput from '../RNTextInput';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import Growl from '../../libs/Growl';
 import themeColors from '../../styles/themes/default';
 import updateIsFullComposerAvailable from '../../libs/ComposerUtils/updateIsFullComposerAvailable';
 import * as ComposerUtils from '../../libs/ComposerUtils';
 import * as Browser from '../../libs/Browser';
+import * as StyleUtils from '../../styles/StyleUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import compose from '../../libs/compose';
 import styles from '../../styles/styles';
 import Text from '../Text';
 import isEnterWhileComposition from '../../libs/KeyboardShortcut/isEnterWhileComposition';
 import CONST from '../../CONST';
+import withNavigation from '../withNavigation';
 
 const propTypes = {
     /** Maximum number of lines in the text input */
@@ -77,6 +78,9 @@ const propTypes = {
     /** Should we calculate the caret position */
     shouldCalculateCaretPosition: PropTypes.bool,
 
+    /** Function to check whether composer is covered up or not */
+    checkComposerVisibility: PropTypes.func,
+
     ...withLocalizePropTypes,
 
     ...windowDimensionsPropTypes,
@@ -104,16 +108,7 @@ const defaultProps = {
     setIsFullComposerAvailable: () => {},
     isComposerFullSize: false,
     shouldCalculateCaretPosition: false,
-};
-
-const IMAGE_EXTENSIONS = {
-    'image/bmp': 'bmp',
-    'image/gif': 'gif',
-    'image/jpeg': 'jpg',
-    'image/png': 'png',
-    'image/svg+xml': 'svg',
-    'image/tiff': 'tiff',
-    'image/webp': 'webp',
+    checkComposerVisibility: () => false,
 };
 
 /**
@@ -143,6 +138,8 @@ class Composer extends React.Component {
         this.shouldCallUpdateNumberOfLines = this.shouldCallUpdateNumberOfLines.bind(this);
         this.addCursorPositionToSelectionChange = this.addCursorPositionToSelectionChange.bind(this);
         this.textRef = React.createRef(null);
+        this.unsubscribeBlur = () => null;
+        this.unsubscribeFocus = () => null;
     }
 
     componentDidMount() {
@@ -159,8 +156,15 @@ class Composer extends React.Component {
         // There is no onPaste or onDrag for TextInput in react-native so we will add event
         // listeners here and unbind when the component unmounts
         if (this.textInput) {
-            this.textInput.addEventListener('paste', this.handlePaste);
             this.textInput.addEventListener('wheel', this.handleWheel);
+
+            // we need to handle listeners on navigation focus/blur as Composer is not unmounting
+            // when navigating away to different report
+            this.unsubscribeFocus = this.props.navigation.addListener('focus', () => document.addEventListener('paste', this.handlePaste));
+            this.unsubscribeBlur = this.props.navigation.addListener('blur', () => document.removeEventListener('paste', this.handlePaste));
+
+            // We need to add paste listener manually as well as navigation focus event is not triggered on component mount
+            document.addEventListener('paste', this.handlePaste);
         }
     }
 
@@ -193,7 +197,9 @@ class Composer extends React.Component {
             return;
         }
 
-        this.textInput.removeEventListener('paste', this.handlePaste);
+        document.removeEventListener('paste', this.handlePaste);
+        this.unsubscribeFocus();
+        this.unsubscribeBlur();
         this.textInput.removeEventListener('wheel', this.handleWheel);
     }
 
@@ -262,6 +268,7 @@ class Composer extends React.Component {
      */
     paste(text) {
         try {
+            this.textInput.focus();
             document.execCommand('insertText', false, text);
             this.updateNumberOfLines();
 
@@ -283,12 +290,33 @@ class Composer extends React.Component {
     }
 
     /**
+     * Paste the plaintext content into Composer.
+     *
+     * @param {ClipboardEvent} event
+     */
+    handlePastePlainText(event) {
+        const plainText = event.clipboardData.getData('text/plain');
+        this.paste(plainText);
+    }
+
+    /**
      * Check the paste event for an attachment, parse the data and call onPasteFile from props with the selected file,
      * Otherwise, convert pasted HTML to Markdown and set it on the composer.
      *
      * @param {ClipboardEvent} event
      */
     handlePaste(event) {
+        const isVisible = this.props.checkComposerVisibility();
+        const isFocused = this.textInput.isFocused();
+
+        if (!(isVisible || isFocused)) {
+            return;
+        }
+
+        if (this.textInput !== event.target) {
+            return;
+        }
+
         event.preventDefault();
 
         const {files, types} = event.clipboardData;
@@ -308,52 +336,20 @@ class Composer extends React.Component {
             const domparser = new DOMParser();
             const embeddedImages = domparser.parseFromString(pastedHTML, TEXT_HTML).images;
 
-            // If HTML has img tag, then fetch images from it.
+            // Exclude parsing img tags in the HTML, as fetching the image via fetch triggers a connect-src Content-Security-Policy error.
             if (embeddedImages.length > 0 && embeddedImages[0].src) {
                 // If HTML has emoji, then treat this as plain text.
                 if (embeddedImages[0].dataset && embeddedImages[0].dataset.stringifyType === 'emoji') {
-                    const plainText = event.clipboardData.getData('text/plain');
-                    this.paste(plainText);
+                    this.handlePastePlainText(event);
                     return;
                 }
-                fetch(embeddedImages[0].src)
-                    .then((response) => {
-                        if (!response.ok) {
-                            throw Error(response.statusText);
-                        }
-                        return response.blob();
-                    })
-                    .then((x) => {
-                        const extension = IMAGE_EXTENSIONS[x.type];
-                        if (!extension) {
-                            throw new Error(this.props.translate('composer.noExtensionFoundForMimeType'));
-                        }
-
-                        return new File([x], `pasted_image.${extension}`, {});
-                    })
-                    .then(this.props.onPasteFile)
-                    .catch(() => {
-                        const errorDesc = this.props.translate('composer.problemGettingImageYouPasted');
-                        Growl.error(errorDesc);
-
-                        /*
-                         * Since we intercepted the user-triggered paste event to check for attachments,
-                         * we need to manually set the value and call the `onChangeText` handler.
-                         * Synthetically-triggered paste events do not affect the document's contents.
-                         * See https://developer.mozilla.org/en-US/docs/Web/API/Element/paste_event for more details.
-                         */
-                        this.handlePastedHTML(pastedHTML);
-                    });
-                return;
             }
 
             this.handlePastedHTML(pastedHTML);
             return;
         }
 
-        const plainText = event.clipboardData.getData('text/plain');
-
-        this.paste(plainText);
+        this.handlePastePlainText(event);
     }
 
     /**
@@ -454,6 +450,7 @@ class Composer extends React.Component {
                         // We are hiding the scrollbar to prevent it from reducing the text input width,
                         // so we can get the correct scroll height while calculating the number of lines.
                         this.state.numberOfLines < this.props.maxLines ? styles.overflowHidden : {},
+                        StyleUtils.getComposeTextAreaPadding(this.props.numberOfLines),
                     ]}
                     /* eslint-disable-next-line react/jsx-props-no-spreading */
                     {...propsWithoutStyles}
@@ -474,6 +471,7 @@ Composer.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withWindowDimensions,
+    withNavigation,
 )(
     React.forwardRef((props, ref) => (
         <Composer

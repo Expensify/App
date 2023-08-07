@@ -58,22 +58,15 @@ function Reauthentication(response, request, isFromSequentialQueue) {
                 // There are some API requests that should not be retried when there is an auth failure like
                 // creating and deleting logins. In those cases, they should handle the original response instead
                 // of the new response created by handleExpiredAuthToken.
-                const shouldRetry = lodashGet(request, 'data.shouldRetry');
+                // If the request was from the sequential queue we don't want to return, we want to run the reauthentication callback and retry the request
                 const apiRequestType = lodashGet(request, 'data.apiRequestType');
-                if (!shouldRetry && !apiRequestType) {
-                    if (isFromSequentialQueue) {
-                        return data;
-                    }
-
+                const isDeprecatedRequest = !apiRequestType;
+                const skipReauthentication = lodashGet(request, 'data.skipReauthentication');
+                if (!isFromSequentialQueue && (isDeprecatedRequest || skipReauthentication)) {
                     if (request.resolve) {
                         request.resolve(data);
+                        return;
                     }
-                    return data;
-                }
-
-                // We are already authenticating and using the DeprecatedAPI so we will replay the request
-                if (!apiRequestType && NetworkStore.isAuthenticating()) {
-                    MainQueue.replay(request);
                     return data;
                 }
 

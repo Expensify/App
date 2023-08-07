@@ -152,7 +152,6 @@ function signInAndGetAppWithUnreadChat() {
                 lastReadTime: reportAction3CreatedDate,
                 lastVisibleActionCreated: reportAction9CreatedDate,
                 lastMessageText: 'Test',
-                participants: [USER_B_EMAIL],
                 participantAccountIDs: [USER_B_ACCOUNT_ID],
                 type: CONST.REPORT.TYPE.CHAT,
             });
@@ -295,47 +294,51 @@ describe('Unread Indicators', () => {
                 const createdReportActionID = NumberUtils.rand64();
                 const commentReportActionID = NumberUtils.rand64();
                 const channel = Pusher.getChannel(`${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}${USER_A_ACCOUNT_ID}${CONFIG.PUSHER.SUFFIX}`);
-                channel.emit(Pusher.TYPE.ONYX_API_UPDATE, [
+                channel.emit(Pusher.TYPE.MULTIPLE_EVENTS, [
                     {
-                        onyxMethod: Onyx.METHOD.MERGE,
-                        key: `${ONYXKEYS.COLLECTION.REPORT}${NEW_REPORT_ID}`,
-                        value: {
-                            reportID: NEW_REPORT_ID,
-                            reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
-                            lastReadTime: '',
-                            lastVisibleActionCreated: DateUtils.getDBTime(NEW_REPORT_FIST_MESSAGE_CREATED_MOMENT.utc().valueOf()),
-                            lastMessageText: 'Comment 1',
-                            participants: [USER_C_EMAIL],
-                            participantAccountIDs: [USER_C_ACCOUNT_ID],
-                        },
-                    },
-                    {
-                        onyxMethod: Onyx.METHOD.MERGE,
-                        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${NEW_REPORT_ID}`,
-                        value: {
-                            [createdReportActionID]: {
-                                actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
-                                automatic: false,
-                                created: NEW_REPORT_CREATED_MOMENT.format(MOMENT_FORMAT),
-                                reportActionID: createdReportActionID,
+                        eventType: Pusher.TYPE.MULTIPLE_EVENT_TYPE.ONYX_API_UPDATE,
+                        data: [
+                            {
+                                onyxMethod: Onyx.METHOD.MERGE,
+                                key: `${ONYXKEYS.COLLECTION.REPORT}${NEW_REPORT_ID}`,
+                                value: {
+                                    reportID: NEW_REPORT_ID,
+                                    reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
+                                    lastReadTime: '',
+                                    lastVisibleActionCreated: DateUtils.getDBTime(NEW_REPORT_FIST_MESSAGE_CREATED_MOMENT.utc().valueOf()),
+                                    lastMessageText: 'Comment 1',
+                                    participantAccountIDs: [USER_C_ACCOUNT_ID],
+                                },
                             },
-                            [commentReportActionID]: {
-                                actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
-                                actorAccountID: USER_C_ACCOUNT_ID,
-                                person: [{type: 'TEXT', style: 'strong', text: 'User C'}],
-                                created: NEW_REPORT_FIST_MESSAGE_CREATED_MOMENT.format(MOMENT_FORMAT),
-                                message: [{type: 'COMMENT', html: 'Comment 1', text: 'Comment 1'}],
-                                reportActionID: commentReportActionID,
+                            {
+                                onyxMethod: Onyx.METHOD.MERGE,
+                                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${NEW_REPORT_ID}`,
+                                value: {
+                                    [createdReportActionID]: {
+                                        actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                                        automatic: false,
+                                        created: NEW_REPORT_CREATED_MOMENT.format(MOMENT_FORMAT),
+                                        reportActionID: createdReportActionID,
+                                    },
+                                    [commentReportActionID]: {
+                                        actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
+                                        actorAccountID: USER_C_ACCOUNT_ID,
+                                        person: [{type: 'TEXT', style: 'strong', text: 'User C'}],
+                                        created: NEW_REPORT_FIST_MESSAGE_CREATED_MOMENT.format(MOMENT_FORMAT),
+                                        message: [{type: 'COMMENT', html: 'Comment 1', text: 'Comment 1'}],
+                                        reportActionID: commentReportActionID,
+                                    },
+                                },
+                                shouldNotify: true,
                             },
-                        },
-                        shouldNotify: true,
-                    },
-                    {
-                        onyxMethod: Onyx.METHOD.MERGE,
-                        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                        value: {
-                            [USER_C_ACCOUNT_ID]: TestHelper.buildPersonalDetails(USER_C_EMAIL, USER_C_ACCOUNT_ID, 'C'),
-                        },
+                            {
+                                onyxMethod: Onyx.METHOD.MERGE,
+                                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                                value: {
+                                    [USER_C_ACCOUNT_ID]: TestHelper.buildPersonalDetails(USER_C_EMAIL, USER_C_ACCOUNT_ID, 'C'),
+                                },
+                            },
+                        ],
                     },
                 ]);
                 return waitForPromisesToResolve();
@@ -521,6 +524,7 @@ describe('Unread Indicators', () => {
                     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
                         lastMessageText: lastReportAction.message[0].text,
                         lastVisibleActionCreated: DateUtils.getDBTime(lastReportAction.timestamp),
+                        lastActorAccountID: lastReportAction.actorAccountID,
                         reportID: REPORT_ID,
                     });
                     return waitForPromisesToResolve();

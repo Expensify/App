@@ -11,7 +11,7 @@ import * as Expensicons from './Icon/Expensicons';
 import Image from './Image';
 import styles from '../styles/styles';
 import * as ReportUtils from '../libs/ReportUtils';
-import useOnNetworkReconnect from '../hooks/useOnNetworkReconnect';
+import useNetwork from '../hooks/useNetwork';
 
 const propTypes = {
     /** Source for the avatar. Can be a URL or an icon. */
@@ -45,7 +45,7 @@ const propTypes = {
     /** Denotes whether it is an avatar or a workspace avatar */
     type: PropTypes.oneOf([CONST.ICON_TYPE_AVATAR, CONST.ICON_TYPE_WORKSPACE]),
 
-    /** Owner of the avatar, typically a login email or workspace name */
+    /** Owner of the avatar. If user, displayName. If workspace, policy name */
     name: PropTypes.string,
 };
 
@@ -64,7 +64,7 @@ const defaultProps = {
 function Avatar(props) {
     const [imageError, setImageError] = useState(false);
 
-    useOnNetworkReconnect(() => setImageError(false));
+    useNetwork({onReconnect: () => setImageError(false)});
 
     if (!props.source) {
         return null;
@@ -76,7 +76,7 @@ function Avatar(props) {
     const imageStyle =
         props.imageStyles && props.imageStyles.length
             ? [StyleUtils.getAvatarStyle(props.size), ...props.imageStyles, StyleUtils.getAvatarBorderRadius(props.size, props.type)]
-            : [StyleUtils.getAvatarStyle(props.size), styles.noBorderRadius];
+            : [StyleUtils.getAvatarStyle(props.size), StyleUtils.getAvatarBorderStyle(props.size, props.type)];
 
     const iconStyle = props.imageStyles && props.imageStyles.length ? [StyleUtils.getAvatarStyle(props.size), styles.bgTransparent, ...props.imageStyles] : undefined;
 

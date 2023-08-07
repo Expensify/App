@@ -3,11 +3,9 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import {propTypes as validateLinkPropTypes, defaultProps as validateLinkDefaultProps} from './validateLinkPropTypes';
-import * as User from '../../libs/actions/User';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Session from '../../libs/actions/Session';
-import usePermissions from '../../hooks/usePermissions';
 import useLocalize from '../../hooks/useLocalize';
 import Navigation from '../../libs/Navigation/Navigation';
 
@@ -37,26 +35,18 @@ const defaultProps = {
 };
 
 function ValidateLoginPage(props) {
-    const {canUsePasswordlessLogins} = usePermissions();
     const {preferredLocale} = useLocalize();
 
     useEffect(() => {
-        const login = lodashGet(props, 'credentials.login', null);
         const accountID = lodashGet(props.route.params, 'accountID', '');
         const validateCode = lodashGet(props.route.params, 'validateCode', '');
 
-        // A fresh session will not have credentials.login and user permission betas available.
-        // In that case, we directly allow users to go through password less flow
-        if (!login || canUsePasswordlessLogins) {
-            if (lodashGet(props, 'session.authToken')) {
-                // If already signed in, do not show the validate code if not on web,
-                // because we don't want to block the user with the interstitial page.
-                Navigation.goBack(false);
-            } else {
-                Session.signInWithValidateCodeAndNavigate(accountID, validateCode, preferredLocale);
-            }
+        if (lodashGet(props, 'session.authToken')) {
+            // If already signed in, do not show the validate code if not on web,
+            // because we don't want to block the user with the interstitial page.
+            Navigation.goBack(false);
         } else {
-            User.validateLogin(accountID, validateCode);
+            Session.signInWithValidateCodeAndNavigate(accountID, validateCode, preferredLocale);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);

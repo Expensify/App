@@ -1,5 +1,5 @@
 import _, {compose} from 'underscore';
-import React from 'react';
+import React, {useCallback} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
@@ -30,12 +30,20 @@ function PriorityModePage(props) {
         value: key,
         text: mode.label,
         alternateText: mode.description,
-
-        // Set max line to undefined to reset line restriction
-        alternateTextMaxLines: undefined,
         keyForList: key,
         isSelected: props.priorityMode === key,
     }));
+
+    const updateMode = useCallback(
+        (mode) => {
+            if (mode.value === props.priorityMode) {
+                Navigation.navigate(ROUTES.SETTINGS_PREFERENCES);
+                return;
+            }
+            User.updateChatPriorityMode(mode.value);
+        },
+        [props.priorityMode],
+    );
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -46,7 +54,7 @@ function PriorityModePage(props) {
             <Text style={[styles.mh5, styles.mv4]}>{props.translate('priorityModePage.explainerText')}</Text>
             <SelectionListRadio
                 sections={[{data: priorityModes}]}
-                onSelectRow={(mode) => User.updateChatPriorityMode(mode.value)}
+                onSelectRow={updateMode}
                 initiallyFocusedOptionKey={_.find(priorityModes, (mode) => mode.isSelected).keyForList}
             />
         </ScreenWrapper>

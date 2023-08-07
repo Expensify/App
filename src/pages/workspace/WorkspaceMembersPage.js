@@ -85,7 +85,7 @@ function WorkspaceMembersPage(props) {
      * Get members for the current workspace
      */
     const getWorkspaceMembers = useCallback(() => {
-        Policy.openWorkspaceMembersPage(props.route.params.policyID, _.keys(PolicyUtils.getClientPolicyMemberEmailsToAccountIDs(props.policyMembers, props.personalDetails)));
+        Policy.openWorkspaceMembersPage(props.route.params.policyID, _.keys(PolicyUtils.getMemberAccountIDsForWorkspace(props.policyMembers, props.personalDetails)));
     }, [props.route.params.policyID, props.policyMembers, props.personalDetails]);
 
     /**
@@ -117,7 +117,7 @@ function WorkspaceMembersPage(props) {
         setSelectedEmployees((prevSelected) =>
             _.intersection(
                 prevSelected,
-                _.map(_.values(PolicyUtils.getClientPolicyMemberEmailsToAccountIDs(props.policyMembers, props.personalDetails)), (accountID) => Number(accountID)),
+                _.map(_.values(PolicyUtils.getMemberAccountIDsForWorkspace(props.policyMembers, props.personalDetails)), (accountID) => Number(accountID)),
             ),
         );
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -266,7 +266,7 @@ function WorkspaceMembersPage(props) {
      */
     const dismissError = useCallback(
         (item) => {
-            if (item.pendingAction === 'delete') {
+            if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                 Policy.clearDeleteMemberError(props.route.params.policyID, item.accountID);
             } else {
                 Policy.clearAddMemberError(props.route.params.policyID, item.accountID);
@@ -281,7 +281,7 @@ function WorkspaceMembersPage(props) {
      * @param {Object} policyMember
      * @returns {Boolean}
      */
-    const isDeletedPolicyMember = (policyMember) => !props.network.isOffline && policyMember.pendingAction === 'delete' && _.isEmpty(policyMember.errors);
+    const isDeletedPolicyMember = (policyMember) => !props.network.isOffline && policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && _.isEmpty(policyMember.errors);
 
     /**
      * Render a workspace member component
@@ -294,7 +294,7 @@ function WorkspaceMembersPage(props) {
      */
     const renderItem = useCallback(
         ({item}) => {
-            const disabled = props.session.email === item.login || item.role === 'admin';
+            const disabled = props.session.email === item.login || item.role === CONST.POLICY.ROLE.ADMIN || item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
             const hasError = !_.isEmpty(item.errors) || errors[item.accountID];
             const isChecked = _.contains(selectedEmployees, Number(item.accountID));
             return (
@@ -331,6 +331,7 @@ function WorkspaceMembersPage(props) {
                                     participantsList: [item],
                                     icons: [
                                         {
+                                            id: item.accountID,
                                             source: UserUtils.getAvatar(item.avatar, item.accountID),
                                             name: item.login,
                                             type: CONST.ICON_TYPE_AVATAR,
@@ -341,7 +342,7 @@ function WorkspaceMembersPage(props) {
                                 onSelectRow={() => toggleUser(item.accountID, item.pendingAction)}
                             />
                         </View>
-                        {(props.session.accountID === item.accountID || item.role === 'admin') && (
+                        {(props.session.accountID === item.accountID || item.role === CONST.POLICY.ROLE.ADMIN) && (
                             <View style={[styles.badge, styles.peopleBadge]}>
                                 <Text style={[styles.peopleBadgeText]}>{props.translate('common.admin')}</Text>
                             </View>
@@ -404,7 +405,8 @@ function WorkspaceMembersPage(props) {
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView
-                    shouldShow={_.isEmpty(props.policy)}
+                    shouldShow={_.isEmpty(props.policy) || !Policy.isPolicyOwner(props.policy)}
+                    subtitleKey={_.isEmpty(props.policy) ? undefined : 'workspace.common.notAuthorized'}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
                 >
                     <HeaderWithBackButton
@@ -446,9 +448,12 @@ function WorkspaceMembersPage(props) {
                         </View>
                         <View style={[styles.w100, styles.pv3, styles.ph5]}>
                             <TextInput
+                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                                 value={searchValue}
                                 onChangeText={setSearchValue}
                                 label={props.translate('optionsSelector.findMember')}
+                                accessibilityLabel={props.translate('optionsSelector.findMember')}
+                                spellCheck={false}
                             />
                         </View>
                         {data.length > 0 ? (

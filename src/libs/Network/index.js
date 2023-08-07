@@ -35,16 +35,8 @@ function post(command, data = {}, type = CONST.NETWORK.METHOD.POST, shouldUseSec
         // (e.g. any requests currently happening when the user logs out are cancelled)
         request.data = {
             ...data,
-            shouldRetry: lodashGet(data, 'shouldRetry', true),
-            canCancel: lodashGet(data, 'canCancel', true),
             appversion: pkg.version,
         };
-
-        const shouldPersist = lodashGet(request, 'data.persist', false);
-        if (shouldPersist) {
-            SequentialQueue.push(request);
-            return;
-        }
 
         // Add promise handlers to any request that we are not persisting
         request.resolve = resolve;
