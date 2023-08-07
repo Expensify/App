@@ -336,7 +336,7 @@ class Composer extends React.Component {
             const domparser = new DOMParser();
             const embeddedImages = domparser.parseFromString(pastedHTML, TEXT_HTML).images;
 
-            // Exclude parsing img tags in the HTML, as fetching the image via fetch triggers a Content-Security-Policy error.
+            // Exclude parsing img tags in the HTML, as fetching the image via fetch triggers a connect-src Content-Security-Policy error.
             if (embeddedImages.length > 0 && embeddedImages[0].src) {
                 // If HTML has emoji, then treat this as plain text.
                 if (embeddedImages[0].dataset && embeddedImages[0].dataset.stringifyType === 'emoji') {
