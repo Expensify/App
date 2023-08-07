@@ -10,6 +10,7 @@ import Icon from '../Icon';
 const propTypes = {
     /** The on press method */
     onPress: PropTypes.func,
+
     /** Which provider you are using to sign in */
     provider: PropTypes.string.isRequired,
 
