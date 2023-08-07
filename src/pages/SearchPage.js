@@ -14,7 +14,6 @@ import HeaderWithBackButton from '../components/HeaderWithBackButton';
 import ScreenWrapper from '../components/ScreenWrapper';
 import Timing from '../libs/actions/Timing';
 import CONST from '../CONST';
-import compose from '../libs/compose';
 import personalDetailsPropType from './personalDetailsPropType';
 import reportPropTypes from './reportPropTypes';
 import Performance from '../libs/Performance';
@@ -33,9 +32,19 @@ const propTypes = {
     reports: PropTypes.objectOf(reportPropTypes),
 };
 
-function SearchPage({betas = [], personalDetails = {}, reports = {}}) {
+const defaultProps = {
+    betas: [],
+    personalDetails: {},
+    reports: {},
+};
+
+function SearchPage(props) {
     // Data for initialization (runs only on the first render)
-    const {recentReports: initialRecentReports, personalDetails: initialPersonalDetails, userToInvite: initialUserToInvite} = useMemo(() => OptionsListUtils.getSearchOptions(reports, personalDetails, '', betas), []);
+    const {
+        recentReports: initialRecentReports,
+        personalDetails: initialPersonalDetails,
+        userToInvite: initialUserToInvite
+    } = useMemo(() => OptionsListUtils.getSearchOptions(props.reports, props.personalDetails, '', props.betas), []);
 
     const [searchValue, setSearchValue] = useState('')
     const [searchOptions, setSearchOptions] = useState({
@@ -47,22 +56,30 @@ function SearchPage({betas = [], personalDetails = {}, reports = {}}) {
     const {translate} = useLocalize();
 
     const updateOptions = useCallback(() => {
-        const {recentReports: localRecentReports, personalDetails: localPersonalDetails, userToInvite: localUserToInvite} = OptionsListUtils.getSearchOptions(
-            reports,
-            personalDetails,
+        const {
+            recentReports: localRecentReports,
+            personalDetails: localPersonalDetails,
+            userToInvite: localUserToInvite
+        } = OptionsListUtils.getSearchOptions(
+            props.reports,
+            props.personalDetails,
             searchValue.trim(),
-            betas,
+            props.betas,
         );
 
-        setSearchOptions({recentReports: localRecentReports, personalDetails: localPersonalDetails, userToInvite: localUserToInvite})
-    }, [reports, personalDetails, searchValue, betas])
+        setSearchOptions({
+            recentReports: localRecentReports,
+            personalDetails: localPersonalDetails,
+            userToInvite: localUserToInvite
+        })
+    }, [props.reports, props.personalDetails, searchValue, props.betas])
 
     const debouncedUpdateOptions = useCallback(_.debounce(updateOptions, 75), [updateOptions]);
 
     useEffect(() => {
         Timing.start(CONST.TIMING.SEARCH_RENDER);
         Performance.markStart(CONST.TIMING.SEARCH_RENDER);
-    },[])
+    }, [])
 
     useEffect(() => {
         debouncedUpdateOptions()
@@ -132,7 +149,7 @@ function SearchPage({betas = [], personalDetails = {}, reports = {}}) {
         }
     }
 
-    const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails);
+    const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(props.personalDetails);
     const headerMessage = OptionsListUtils.getHeaderMessage(
         searchOptions.recentReports.length + searchOptions.personalDetails.length !== 0,
         Boolean(searchOptions.userToInvite),
@@ -142,7 +159,7 @@ function SearchPage({betas = [], personalDetails = {}, reports = {}}) {
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                 <>
-                    <HeaderWithBackButton title={translate('common.search')} />
+                    <HeaderWithBackButton title={translate('common.search')}/>
                     <View style={[styles.flex1, styles.w100, styles.pRelative]}>
                         <OptionsSelector
                             sections={getSections()}
@@ -165,17 +182,16 @@ function SearchPage({betas = [], personalDetails = {}, reports = {}}) {
 }
 
 SearchPage.propTypes = propTypes;
+SearchPage.defaultProps = defaultProps
 SearchPage.displayName = 'SearchPage';
-export default compose(
-    withOnyx({
-        reports: {
-            key: ONYXKEYS.COLLECTION.REPORT,
-        },
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
-    }),
-)(SearchPage);
+export default withOnyx({
+    reports: {
+        key: ONYXKEYS.COLLECTION.REPORT,
+    },
+    personalDetails: {
+        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    },
+    betas: {
+        key: ONYXKEYS.BETAS,
+    },
+})(SearchPage);
