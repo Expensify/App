@@ -34,7 +34,6 @@ function appleSignInRequest() {
  * Apple Sign In button for Android.
  * @returns {React.Component}
  */
-
 function AppleSignIn() {
     const handleSignIn = () => {
         appleSignInRequest()
