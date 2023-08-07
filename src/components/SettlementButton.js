@@ -57,6 +57,12 @@ const propTypes = {
     /** Total money amount in form <currency><amount> */
     formattedAmount: PropTypes.string,
 
+    /** The anchor alignment of the popover menu */
+    anchorAlignment: PropTypes.shape({
+        horizontal: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL)),
+        vertical: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL)),
+    }),
+
     ...withLocalizePropTypes,
 };
 
@@ -71,6 +77,10 @@ const defaultProps = {
     iouReport: {},
     policyID: '',
     formattedAmount: '',
+    anchorAlignment: {
+        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP, // we assume that popover menu opens below the button, anchor is at TOP
+    },
 };
 
 class SettlementButton extends React.Component {
@@ -178,6 +188,7 @@ class SettlementButton extends React.Component {
                         }}
                         options={this.getButtonOptionsFromProps()}
                         style={this.props.style}
+                        anchorAlignment={this.props.anchorAlignment}
                     />
                 )}
             </KYCWall>

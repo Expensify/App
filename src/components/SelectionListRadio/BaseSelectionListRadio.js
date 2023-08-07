@@ -218,7 +218,7 @@ function BaseSelectionListRadio(props) {
                 {({safeAreaPaddingBottomStyle}) => (
                     <View style={[styles.flex1, !props.isKeyboardShown && safeAreaPaddingBottomStyle]}>
                         {shouldShowTextInput && (
-                            <View style={[styles.ph5, styles.pv5]}>
+                            <View style={[styles.ph5, styles.pb3]}>
                                 <TextInput
                                     ref={textInputRef}
                                     label={props.textInputLabel}
@@ -230,6 +230,7 @@ function BaseSelectionListRadio(props) {
                                     onChangeText={props.onChangeText}
                                     keyboardType={props.keyboardType}
                                     selectTextOnFocus
+                                    spellCheck={false}
                                 />
                             </View>
                         )}

@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import {propTypes as validateLinkPropTypes, defaultProps as validateLinkDefaultProps} from './validateLinkPropTypes';
-import * as User from '../../libs/actions/User';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import ValidateCodeModal from '../../components/ValidateCode/ValidateCodeModal';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -11,7 +10,6 @@ import * as Session from '../../libs/actions/Session';
 import useLocalize from '../../hooks/useLocalize';
 import ExpiredValidateCodeModal from '../../components/ValidateCode/ExpiredValidateCodeModal';
 import Navigation from '../../libs/Navigation/Navigation';
-import ROUTES from '../../ROUTES';
 import CONST from '../../CONST';
 import JustSignedInModal from '../../components/ValidateCode/JustSignedInModal';
 
@@ -61,15 +59,9 @@ function ValidateLoginPage(props) {
     const cachedAccountID = lodashGet(props, 'credentials.accountID', null);
 
     useEffect(() => {
-        // A fresh session will not have credentials.login
-        if (login) {
-            User.validateLogin(accountID, validateCode);
-            return;
-        }
-
         if (!login && isSignedIn && (autoAuthState === CONST.AUTO_AUTH_STATE.SIGNING_IN || autoAuthState === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN)) {
             // The user clicked the option to sign in the current tab
-            Navigation.navigate(ROUTES.REPORT);
+            Navigation.navigate();
             return;
         }
         Session.initAutoAuthState(autoAuthState);
@@ -89,7 +81,7 @@ function ValidateLoginPage(props) {
         }
 
         // The user clicked the option to sign in the current tab
-        Navigation.navigate(ROUTES.REPORT);
+        Navigation.navigate();
     }, [login, cachedAccountID, is2FARequired]);
 
     return (
