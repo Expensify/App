@@ -58,27 +58,15 @@ function Reauthentication(response, request, isFromSequentialQueue) {
                 // There are some API requests that should not be retried when there is an auth failure like
                 // creating and deleting logins. In those cases, they should handle the original response instead
                 // of the new response created by handleExpiredAuthToken.
-                const shouldRetry = lodashGet(request, 'data.shouldRetry');
+                // If the request was from the sequential queue we don't want to return, we want to run the reauthentication callback and retry the request
                 const apiRequestType = lodashGet(request, 'data.apiRequestType');
-
-                // For the SignInWithShortLivedAuthToken command, if the short token expires, the server returns a 407 error,
-                // and credentials are still empty at this time, which causes reauthenticate to throw an error (requireParameters),
-                // and the subsequent SaveResponseInOnyx also cannot be executed, so we need this parameter to skip the reauthentication logic.
+                const isDeprecatedRequest = !apiRequestType;
                 const skipReauthentication = lodashGet(request, 'data.skipReauthentication');
-                if ((!shouldRetry && !apiRequestType) || skipReauthentication) {
-                    if (isFromSequentialQueue) {
-                        return data;
-                    }
-
+                if (!isFromSequentialQueue && (isDeprecatedRequest || skipReauthentication)) {
                     if (request.resolve) {
                         request.resolve(data);
+                        return;
                     }
-                    return data;
-                }
-
-                // We are already authenticating and using the DeprecatedAPI so we will replay the request
-                if (!apiRequestType && NetworkStore.isAuthenticating()) {
-                    MainQueue.replay(request);
                     return data;
                 }
 

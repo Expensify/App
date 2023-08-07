@@ -224,6 +224,7 @@ function WorkspaceInvitePage(props) {
                             onChangeText={setSearchTerm}
                             headerMessage={headerMessage}
                             onSelectRow={toggleOption}
+                            showScrollIndicator
                         />
                         <View style={[styles.flexShrink0]}>
                             <FormAlertWithSubmitButton

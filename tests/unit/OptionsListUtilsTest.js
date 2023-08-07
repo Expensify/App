@@ -570,9 +570,8 @@ describe('OptionsListUtils', () => {
         // When we pass an empty search value
         let results = OptionsListUtils.getShareDestinationOptions(REPORTS, PERSONAL_DETAILS, [], '');
 
-        // Then we should expect 5 recent reports to show because we're grabbing DM chats and group chats
-        // because we've limited the number of recent reports to 5
-        expect(results.recentReports.length).toBe(5);
+        // Then we should expect all the recent reports to show but exclude the archived rooms
+        expect(results.recentReports.length).toBe(_.size(REPORTS) - 1);
 
         // When we pass a search value that doesn't match the group chat name
         results = OptionsListUtils.getShareDestinationOptions(REPORTS, PERSONAL_DETAILS, [], 'mutants');
@@ -590,8 +589,8 @@ describe('OptionsListUtils', () => {
         results = OptionsListUtils.getShareDestinationOptions(REPORTS_WITH_WORKSPACE_ROOMS, PERSONAL_DETAILS, [], '');
 
         // Then we should expect the DMS, the group chats and the workspace room to show
-        // We should expect 5 recent reports to show because we've limited the number of recent reports to 5
-        expect(results.recentReports.length).toBe(5);
+        // We should expect all the recent reports to show, excluding the archived rooms
+        expect(results.recentReports.length).toBe(_.size(REPORTS_WITH_WORKSPACE_ROOMS) - 1);
 
         // When we search for a workspace room
         results = OptionsListUtils.getShareDestinationOptions(REPORTS_WITH_WORKSPACE_ROOMS, PERSONAL_DETAILS, [], 'Avengers Room');
