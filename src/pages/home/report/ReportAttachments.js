@@ -67,7 +67,6 @@ function ReportAttachments(props) {
             const reportActions = ReportActionUtils.getReportActions(report.reportID);
             if (_.isEmpty(reportActions)) {
                 Report.openReport(reportID);
-                return;
             }
         }
     }, [reportID]);
