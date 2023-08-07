@@ -9,7 +9,6 @@ import CONST from '../../../CONST';
  * Apple Sign In method for iOS that returns identityToken.
  * @returns {Promise<string>}
  */
-
 function appleSignInRequest() {
     return appleAuth
         .performRequest({
