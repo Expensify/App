@@ -40,6 +40,9 @@ const propTypes = {
         ),
     ),
 
+    /** Whether the reports are loading. When false it means they are ready to be used. */
+    isLoadingReportData: PropTypes.bool,
+
     /** The chat priority mode */
     priorityMode: PropTypes.string,
 
@@ -176,7 +179,7 @@ export default compose(
             selector: chatReportSelector,
         },
         isLoadingReportData: {
-            key: ONYXKEYS.IS_LOADING_REPORT_DATA
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
         },
         priorityMode: {
             key: ONYXKEYS.NVP_PRIORITY_MODE,
