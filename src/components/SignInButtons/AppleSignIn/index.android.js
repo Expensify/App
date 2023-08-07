@@ -20,7 +20,6 @@ const config = {
  * Apple Sign In method for Android that returns authToken.
  * @returns {Promise<string>}
  */
-
 function appleSignInRequest() {
     appleAuthAndroid.configure(config);
     return appleAuthAndroid
