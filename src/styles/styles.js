@@ -3645,6 +3645,13 @@ const styles = {
         borderRadius: 16,
         margin: 20,
     },
+
+    teacherPageContainer: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginHorizontal: 20,
+    },
 };
 
 export default styles;
