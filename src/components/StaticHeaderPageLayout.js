@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React from 'react';
+import React, {useMemo} from 'react';
 import PropTypes from 'prop-types';
 import {ScrollView, View} from 'react-native';
 import headerWithBackButtonPropTypes from './HeaderWithBackButton/headerWithBackButtonPropTypes';
@@ -17,9 +17,6 @@ const propTypes = {
     /** Children to display in the lower half of the page (below the header section w/ an animation) */
     children: PropTypes.node.isRequired,
 
-    /** The illustration to display in the header. Can be either an SVG component or a JSON object representing a Lottie animation. */
-    // illustration: PropTypes.oneOfType([PropTypes.func, PropTypes.object]).isRequired,
-
     /** The background color to apply in the upper half of the screen. */
     backgroundColor: PropTypes.string,
 
@@ -34,6 +31,11 @@ const defaultProps = {
 
 function StaticHeaderPageLayout({backgroundColor, children, image: Image, footer, imageContainerStyle, style, ...propsToPassToHeader}) {
     const {windowHeight} = useWindowDimensions();
+
+    const titleColor = useMemo(() => (backgroundColor === themeColors.appBG ? undefined : themeColors.textColorfulBackground), [backgroundColor]);
+
+    const iconFill = useMemo(() => (backgroundColor === themeColors.appBG ? undefined : themeColors.iconColorfulBackground), [backgroundColor]);
+
     return (
         <ScreenWrapper
             style={[StyleUtils.getBackgroundColorStyle(backgroundColor)]}
@@ -46,8 +48,8 @@ function StaticHeaderPageLayout({backgroundColor, children, image: Image, footer
                     <HeaderWithBackButton
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...propsToPassToHeader}
-                        titleColor={backgroundColor === themeColors.appBG ? undefined : themeColors.textColorfulBackground}
-                        iconFill={backgroundColor === themeColors.appBG ? undefined : themeColors.iconColorfulBackground}
+                        titleColor={titleColor}
+                        iconFill={iconFill}
                     />
                     <View style={[styles.flex1, StyleUtils.getBackgroundColorStyle(themeColors.appBG)]}>
                         <ScrollView
@@ -69,7 +71,7 @@ function StaticHeaderPageLayout({backgroundColor, children, image: Image, footer
                                     style={styles.staticHeaderImage}
                                 />
                             </View>
-                            <View style={[styles.pt5]}>{children}</View>
+                            <View style={styles.pt5}>{children}</View>
                         </ScrollView>
                         {!_.isNull(footer) && <FixedFooter>{footer}</FixedFooter>}
                     </View>
