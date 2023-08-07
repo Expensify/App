@@ -548,14 +548,14 @@ function getIOUReportIDFromReportActionPreview(reportAction) {
 }
 
 /**
- * Find the reportAction whose childReportID is taskReportID in reportActions with reportID
+ * Find the reportAction whose childReportID is childReportID in reportActions with reportID
  *
- * @param {String} taskReportID
+ * @param {String} childReportID
  * @param {String} reportID
  * @returns {Object}
  */
-function getParentReportActionForTask(taskReportID, reportID) {
-    return _.find(allReportActions[reportID], (reportAction) => reportAction && `${reportAction.childReportID}` === `${taskReportID}`);
+function getParentReportActionInReport(childReportID, reportID) {
+    return _.find(allReportActions[reportID], (reportAction) => reportAction && `${reportAction.childReportID}` === `${childReportID}`);
 }
 
 function isCreatedTaskReportAction(reportAction) {
@@ -604,5 +604,5 @@ export {
     isWhisperAction,
     isPendingRemove,
     getReportAction,
-    getParentReportActionForTask,
+    getParentReportActionInReport,
 };

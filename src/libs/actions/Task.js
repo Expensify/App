@@ -266,35 +266,20 @@ function completeTask(taskReport, taskTitle) {
     ];
 
     // Update optimistic data for parent report action
-    const parentReportAction = ReportActionsUtils.getParentReportAction(taskReport);
-    if (parentReportAction && parentReportAction.reportActionID) {
-        const optimisticParentReportActionData = ReportUtils.updateOptimisticParentReportAction(
-            parentReportAction,
-            completedTaskReportAction.created,
-            CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        );
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReport.parentReportID}`,
-            value: {
-                [parentReportAction.reportActionID]: optimisticParentReportActionData,
-            },
-        });
-
-        // Multiple report actions can link to the same child. Both share destination (task parent) and assignee report link to the same report action.
-        // We need to find and update the other parent report action (in assignee report). More info https://github.com/Expensify/App/issues/23920#issuecomment-1663092717
-        const assigneeChatReportID = lodashGet(ReportUtils.getChatByParticipants(taskReport.participantAccountIDs), 'reportID');
-        // We don't need to create optmistic report action for assignee report if assignee and shareDestination are the same
-        if (assigneeChatReportID && assigneeChatReportID !== taskReport.parentReportID) {
-            const clonedParentReportAction = ReportActionsUtils.getParentReportActionForTask(taskReportID, assigneeChatReportID);
-            if (clonedParentReportAction && clonedParentReportAction.reportActionID) {
-                optimisticData.push({
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
-                    value: {
-                        [clonedParentReportAction.reportActionID]: optimisticParentReportActionData,
-                    },
-                });
+    const optimisticDataForParentReportAction = ReportUtils.getOptimisticDataForParentReportAction(taskReportID, completedTaskReportAction.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+    if (!_.isEmpty(optimisticDataForParentReportAction)) {
+        optimisticData.push(optimisticDataForParentReportAction);
+    }
+    // Multiple report actions can link to the same child. Both share destination (task parent) and assignee report link to the same report action.
+    // We need to find and update the other parent report action (in assignee report). More info https://github.com/Expensify/App/issues/23920#issuecomment-1663092717
+    const assigneeChatReportID = lodashGet(ReportUtils.getChatByParticipants(taskReport.participantAccountIDs), 'reportID');
+    // We don't need to create optmistic report action for assignee report if assignee and shareDestination are the same
+    if (assigneeChatReportID && assigneeChatReportID !== taskReport.parentReportID) {
+        const clonedParentReportAction = ReportActionsUtils.getParentReportActionInReport(taskReportID, assigneeChatReportID);
+        if (clonedParentReportAction && clonedParentReportAction.reportActionID) {
+            const optimisticDataForClonedParentReportAction = ReportUtils.getOptimisticDataForParentReportAction(taskReportID, completedTaskReportAction.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, assigneeChatReportID, clonedParentReportAction.reportActionID);
+            if (!_.isEmpty(optimisticDataForClonedParentReportAction)) {
+                optimisticData.push(optimisticDataForClonedParentReportAction);
             }
         }
     }
@@ -371,35 +356,20 @@ function reopenTask(taskReport, taskTitle) {
     ];
 
     // Update optimistic data for parent report action
-    const parentReportAction = ReportActionsUtils.getParentReportAction(taskReport);
-    if (parentReportAction && parentReportAction.reportActionID) {
-        const optimisticParentReportActionData = ReportUtils.updateOptimisticParentReportAction(
-            parentReportAction,
-            reopenedTaskReportAction.created,
-            CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        );
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReport.parentReportID}`,
-            value: {
-                [parentReportAction.reportActionID]: optimisticParentReportActionData,
-            },
-        });
-
-        // Multiple report actions can link to the same child. Both share destination (task parent) and assignee report link to the same report action.
-        // We need to find and update the other parent report action (in assignee report). More info https://github.com/Expensify/App/issues/23920#issuecomment-1663092717
-        const assigneeChatReportID = lodashGet(ReportUtils.getChatByParticipants(taskReport.participantAccountIDs), 'reportID');
-        // We don't need to create optmistic report action for assignee report if assignee and shareDestination are the same
-        if (assigneeChatReportID && assigneeChatReportID !== taskReport.parentReportID) {
-            const clonedParentReportAction = ReportActionsUtils.getParentReportActionForTask(taskReportID, assigneeChatReportID);
-            if (clonedParentReportAction && clonedParentReportAction.reportActionID) {
-                optimisticData.push({
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
-                    value: {
-                        [clonedParentReportAction.reportActionID]: optimisticParentReportActionData,
-                    },
-                });
+    const optimisticDataForParentReportAction = ReportUtils.getOptimisticDataForParentReportAction(taskReportID, reopenedTaskReportAction.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+    if (!_.isEmpty(optimisticDataForParentReportAction)) {
+        optimisticData.push(optimisticDataForParentReportAction);
+    }
+    // Multiple report actions can link to the same child. Both share destination (task parent) and assignee report link to the same report action.
+    // We need to find and update the other parent report action (in assignee report). More info https://github.com/Expensify/App/issues/23920#issuecomment-1663092717
+    const assigneeChatReportID = lodashGet(ReportUtils.getChatByParticipants(taskReport.participantAccountIDs), 'reportID');
+    // We don't need to create optmistic report action for assignee report if assignee and shareDestination are the same
+    if (assigneeChatReportID && assigneeChatReportID !== taskReport.parentReportID) {
+        const clonedParentReportAction = ReportActionsUtils.getParentReportActionInReport(taskReportID, assigneeChatReportID);
+        if (clonedParentReportAction && clonedParentReportAction.reportActionID) {
+            const optimisticDataForClonedParentReportAction = ReportUtils.getOptimisticDataForParentReportAction(taskReportID, reopenedTaskReportAction.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, assigneeChatReportID, clonedParentReportAction.reportActionID);
+            if (!_.isEmpty(optimisticDataForClonedParentReportAction)) {
+                optimisticData.push(optimisticDataForClonedParentReportAction);
             }
         }
     }

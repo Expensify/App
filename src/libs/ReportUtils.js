@@ -1576,21 +1576,29 @@ function updateOptimisticParentReportAction(parentReportAction, lastVisibleActio
  * @param {String} type The type of action in the child report
  * @returns {Object}
  */
-const getOptimisticDataForParentReportAction = (reportID, lastVisibleActionCreated, type) => {
+const getOptimisticDataForParentReportAction = (reportID, lastVisibleActionCreated, type, parentReportID = 0, parentReportActionID = 0) => {
     const report = getReport(reportID);
-    if (report && report.parentReportActionID) {
-        const parentReportAction = ReportActionsUtils.getParentReportAction(report);
-        if (parentReportAction && parentReportAction.reportActionID) {
-            return {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
-                value: {
-                    [parentReportAction.reportActionID]: updateOptimisticParentReportAction(parentReportAction, lastVisibleActionCreated, type),
-                },
-            };
-        }
+    const parentReportAction = ReportActionsUtils.getParentReportAction(report);
+    if (_.isEmpty(parentReportAction)) {
+        return {};
     }
-    return {};
+
+    const optimisticParentReportAction = updateOptimisticParentReportAction(parentReportAction, lastVisibleActionCreated, type);
+    if (!parentReportID) {
+        parentReportID = report.parentReportID;
+    }
+
+    if (!parentReportActionID) {
+        parentReportActionID = report.parentReportActionID;
+    }
+
+    return {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
+        value: {
+            [parentReportActionID]: optimisticParentReportAction,
+        },
+    };
 };
 
 /**
