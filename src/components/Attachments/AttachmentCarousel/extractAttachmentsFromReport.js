@@ -13,6 +13,18 @@ import Navigation from '../../../libs/Navigation/Navigation';
  * @returns {{attachments: Array, initialPage: Number, initialItem: Object, initialActiveSource: String}}
  */
 function extractAttachmentsFromReport(report, reportActions, source) {
+    // Even an empty chat will have the 'created' report action, if its not there
+    // then we are coming from a deep link and actions are not yet loaded. We should 
+    // wait until actions load.
+    if (_.isEmpty(reportActions)) {
+        return {
+            attachments: [],
+            initialPage: 0,
+            initialItem: undefined,
+            initialActiveSource: null,
+        };
+    } 
+
     const actions = [ReportActionsUtils.getParentReportAction(report), ...ReportActionsUtils.getSortedReportActions(_.values(reportActions))];
     let attachments = [];
 
