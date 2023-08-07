@@ -27,6 +27,8 @@ import CONST from '../../CONST';
 import isInputAutoFilled from '../../libs/isInputAutoFilled';
 import * as PolicyUtils from '../../libs/PolicyUtils';
 import Log from '../../libs/Log';
+import withNavigationFocus, {withNavigationFocusPropTypes} from '../../components/withNavigationFocus';
+import usePrevious from '../../hooks/usePrevious';
 
 const propTypes = {
     /** Should we dismiss the keyboard when transitioning away from the page? */
@@ -59,6 +61,8 @@ const propTypes = {
     ...withLocalizePropTypes,
 
     ...toggleVisibilityViewPropTypes,
+
+    ...withNavigationFocusPropTypes,
 };
 
 const defaultProps = {
@@ -78,6 +82,7 @@ function LoginForm(props) {
     const input = useRef();
     const [login, setLogin] = useState('');
     const [formError, setFormError] = useState(false);
+    const prevIsVisible = usePrevious(props.isVisible);
 
     const {translate} = props;
 
@@ -147,7 +152,11 @@ function LoginForm(props) {
     }, [login, props.closeAccount, props.network, setFormError]);
 
     useEffect(() => {
-        Session.clearAccountMessages();
+        // Just call clearAccountMessages on the login page (home route), because when the user is in the transition route and not yet authenticated,
+        // this component will also be mounted, resetting account.isLoading will cause the app to briefly display the session expiration page.
+        if (props.isFocused) {
+            Session.clearAccountMessages();
+        }
         if (!canFocusInputOnScreenFocus() || !input.current || !props.isVisible) {
             return;
         }
@@ -159,11 +168,13 @@ function LoginForm(props) {
         if (props.blurOnSubmit) {
             input.current.blur();
         }
-        if (!input.current || !props.isVisible) {
+
+        // Only focus the input if the form becomes visible again, to prevent the keyboard from automatically opening on touchscreen devices after signing out
+        if (!input.current || prevIsVisible || !props.isVisible) {
             return;
         }
         input.current.focus();
-    }, [props.blurOnSubmit, props.isVisible, input]);
+    }, [props.blurOnSubmit, props.isVisible, prevIsVisible]);
 
     const formErrorText = useMemo(() => (formError ? translate(formError) : ''), [formError, translate]);
     const serverErrorText = useMemo(() => ErrorUtils.getLatestErrorMessage(props.account), [props.account]);
@@ -192,6 +203,7 @@ function LoginForm(props) {
                     keyboardType={CONST.KEYBOARD_TYPE.EMAIL_ADDRESS}
                     errorText={formErrorText}
                     hasError={hasError}
+                    maxLength={CONST.LOGIN_CHARACTER_LIMIT}
                 />
             </View>
             {!_.isEmpty(props.account.success) && <Text style={[styles.formSuccess]}>{props.account.success}</Text>}
@@ -205,7 +217,7 @@ function LoginForm(props) {
             )}
             {
                 // We need to unmount the submit button when the component is not visible so that the Enter button
-                // key handler gets unsubscribed and does not conflict with the Password Form
+                // key handler gets unsubscribed
                 props.isVisible && (
                     <View style={[styles.mt5]}>
                         <FormAlertWithSubmitButton
@@ -228,6 +240,7 @@ LoginForm.defaultProps = defaultProps;
 LoginForm.displayName = 'LoginForm';
 
 export default compose(
+    withNavigationFocus,
     withOnyx({
         account: {key: ONYXKEYS.ACCOUNT},
         closeAccount: {key: ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM},

@@ -1,4 +1,5 @@
 import React from 'react';
+import _ from 'underscore';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -40,6 +41,10 @@ const propTypes = {
     /** chatReport associated with iouReport */
     chatReport: reportPropTypes,
 
+    /** Extra styles to pass to View wrapper */
+    // eslint-disable-next-line react/forbid-prop-types
+    containerStyles: PropTypes.arrayOf(PropTypes.object),
+
     /** Active IOU Report for current report */
     iouReport: PropTypes.shape({
         /** AccountID of the manager in this iou report */
@@ -56,6 +61,9 @@ const propTypes = {
 
         /** Does the iouReport have an outstanding IOU? */
         hasOutstandingIOU: PropTypes.bool,
+
+        /** Is the iouReport waiting for the submitter to add a credit bank account? */
+        isWaitingOnBankAccount: PropTypes.bool,
     }),
 
     /** Session info for the currently logged in user. */
@@ -76,6 +84,7 @@ const propTypes = {
 const defaultProps = {
     contextMenuAnchor: null,
     chatReport: {},
+    containerStyles: [],
     iouReport: {},
     checkIfContextMenuActive: () => {},
     session: {
@@ -84,13 +93,31 @@ const defaultProps = {
 };
 
 function ReportPreview(props) {
-    const managerID = props.iouReport.managerID || 0;
+    const managerID = props.iouReport.managerID || props.action.actorAccountID || 0;
     const isCurrentUserManager = managerID === lodashGet(props.session, 'accountID');
-    const reportAmount = CurrencyUtils.convertToDisplayString(ReportUtils.getMoneyRequestTotal(props.iouReport), props.iouReport.currency);
+    const reportTotal = ReportUtils.getMoneyRequestTotal(props.iouReport);
+    let displayAmount;
+    if (reportTotal) {
+        displayAmount = CurrencyUtils.convertToDisplayString(reportTotal, props.iouReport.currency);
+    } else {
+        // If iouReport is not available, get amount from the action message (Ex: "Domain20821's Workspace owes $33.00" or "paid ₫60" or "paid -₫60 elsewhere")
+        displayAmount = '';
+        const actionMessage = lodashGet(props.action, ['message', 0, 'text'], '');
+        const splits = actionMessage.split(' ');
+        for (let i = 0; i < splits.length; i++) {
+            if (/\d/.test(splits[i])) {
+                displayAmount = splits[i];
+            }
+        }
+    }
+
     const managerName = ReportUtils.isPolicyExpenseChat(props.chatReport) ? ReportUtils.getPolicyName(props.chatReport) : ReportUtils.getDisplayNameForParticipant(managerID, true);
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
+    const previewMessage = props.translate(ReportUtils.isSettled(props.iouReportID) || props.iouReport.isWaitingOnBankAccount ? 'iou.payerPaid' : 'iou.payerOwes', {payer: managerName});
+    const shouldShowSettlementButton =
+        !_.isEmpty(props.iouReport) && isCurrentUserManager && !ReportUtils.isSettled(props.iouReportID) && !props.iouReport.isWaitingOnBankAccount && reportTotal !== 0;
     return (
-        <View style={styles.chatItemMessage}>
+        <View style={[styles.chatItemMessage, ...props.containerStyles]}>
             <PressableWithoutFeedback
                 onPress={() => {
                     Navigation.navigate(ROUTES.getReportRoute(props.iouReportID));
@@ -105,14 +132,12 @@ function ReportPreview(props) {
                 <View style={[styles.iouPreviewBox, props.isHovered ? styles.iouPreviewBoxHover : undefined]}>
                     <View style={styles.flexRow}>
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                            <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh16]}>
-                                {props.translate(ReportUtils.isSettled(props.iouReportID) ? 'iou.payerPaid' : 'iou.payerOwes', {payer: managerName})}
-                            </Text>
+                            <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh16]}>{previewMessage}</Text>
                         </View>
                     </View>
                     <View style={styles.flexRow}>
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                            <Text style={styles.textHeadline}>{reportAmount}</Text>
+                            <Text style={styles.textHeadline}>{displayAmount}</Text>
                             {ReportUtils.isSettled(props.iouReportID) && (
                                 <View style={styles.defaultCheckmarkWrapper}>
                                     <Icon
@@ -123,7 +148,7 @@ function ReportPreview(props) {
                             )}
                         </View>
                     </View>
-                    {isCurrentUserManager && !ReportUtils.isSettled(props.iouReport.reportID) && (
+                    {shouldShowSettlementButton && (
                         <SettlementButton
                             currency={props.iouReport.currency}
                             policyID={props.iouReport.policyID}

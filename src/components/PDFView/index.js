@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
 import {View, Dimensions} from 'react-native';
+import 'core-js/features/array/at';
 import {Document, Page, pdfjs} from 'react-pdf/dist/esm/entry.webpack';
 import pdfWorkerSource from 'pdfjs-dist/legacy/build/pdf.worker';
 import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
@@ -38,7 +39,10 @@ class PDFView extends Component {
         // Use window height changes to toggle the keyboard. To maintain keyboard state
         // on all platforms we also use focus/blur events. So we need to make sure here
         // that we avoid redundant keyboard toggling.
-        if (!this.state.isKeyboardOpen && this.props.windowHeight < prevProps.windowHeight) {
+        // Minus 100px is needed to make sure that when the internet connection is
+        // disabled in android chrome and a small 'No internet connection' text box appears,
+        // we do not take it as a sign to open the keyboard
+        if (!this.state.isKeyboardOpen && this.props.windowHeight < prevProps.windowHeight - 100) {
             this.toggleKeyboardOnSmallScreens(true);
         } else if (this.state.isKeyboardOpen && this.props.windowHeight > prevProps.windowHeight) {
             this.toggleKeyboardOnSmallScreens(false);

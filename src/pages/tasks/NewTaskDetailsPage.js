@@ -35,7 +35,7 @@ const defaultProps = {
     task: {},
 };
 
-function NewTaskPage(props) {
+function NewTaskDetailsPage(props) {
     const inputRef = useRef();
     const [taskTitle, setTaskTitle] = useState(props.task.title);
     const [taskDescription, setTaskDescription] = useState(props.task.description || '');
@@ -75,6 +75,7 @@ function NewTaskPage(props) {
         <ScreenWrapper
             onEntryTransitionEnd={() => inputRef.current && inputRef.current.focus()}
             includeSafeAreaPaddingBottom={false}
+            shouldEnableMaxHeight
         >
             <HeaderWithBackButton
                 title={props.translate('newTaskPage.assignTask')}
@@ -99,9 +100,6 @@ function NewTaskPage(props) {
                         accessibilityLabel={props.translate('task.title')}
                         value={taskTitle}
                         onValueChange={(value) => setTaskTitle(value)}
-                        autoGrowHeight
-                        textAlignVertical="top"
-                        containerStyles={[styles.autoGrowHeightMultilineInput]}
                     />
                 </View>
                 <View style={styles.mb5}>
@@ -123,9 +121,9 @@ function NewTaskPage(props) {
     );
 }
 
-NewTaskPage.displayName = 'NewTaskPage';
-NewTaskPage.propTypes = propTypes;
-NewTaskPage.defaultProps = defaultProps;
+NewTaskDetailsPage.displayName = 'NewTaskDetailsPage';
+NewTaskDetailsPage.propTypes = propTypes;
+NewTaskDetailsPage.defaultProps = defaultProps;
 
 export default compose(
     withOnyx({
@@ -137,4 +135,4 @@ export default compose(
         },
     }),
     withLocalize,
-)(NewTaskPage);
+)(NewTaskDetailsPage);

@@ -11,6 +11,7 @@ import styles from '../../../../styles/styles';
 import CONST from '../../../../CONST';
 import PressableWithoutFeedback from '../../../../components/Pressable/PressableWithoutFeedback';
 import useLocalize from '../../../../hooks/useLocalize';
+import NoDropZone from '../../../../components/DragAndDrop/NoDropZone';
 
 const propTypes = {
     /* State from useNavigationBuilder */
@@ -52,26 +53,28 @@ function ThreePaneView(props) {
                     );
                 }
                 if (route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
+                    const Wrapper = props.state.index === i ? NoDropZone : React.Fragment;
                     return (
-                        <View
-                            key={route.key}
-                            style={[
-                                styles.flexRow,
-                                styles.pAbsolute,
-                                styles.w100,
-                                styles.h100,
-                                StyleUtils.getBackgroundColorWithOpacityStyle(themeColors.shadow, CONST.RIGHT_MODAL_BACKGROUND_OVERLAY_OPACITY),
-                                StyleUtils.displayIfTrue(props.state.index === i),
-                            ]}
-                        >
-                            <PressableWithoutFeedback
-                                style={[styles.flex1]}
-                                onPress={() => props.navigation.goBack()}
-                                accessibilityLabel={translate('common.close')}
-                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                            />
-                            <View style={styles.rightPanelContainer}>{props.descriptors[route.key].render()}</View>
-                        </View>
+                        <Wrapper key={route.key}>
+                            <View
+                                style={[
+                                    styles.flexRow,
+                                    styles.pAbsolute,
+                                    styles.w100,
+                                    styles.h100,
+                                    StyleUtils.getBackgroundColorWithOpacityStyle(themeColors.shadow, CONST.RIGHT_MODAL_BACKGROUND_OVERLAY_OPACITY),
+                                    StyleUtils.displayIfTrue(props.state.index === i),
+                                ]}
+                            >
+                                <PressableWithoutFeedback
+                                    style={[styles.flex1]}
+                                    onPress={() => props.navigation.goBack()}
+                                    accessibilityLabel={translate('common.close')}
+                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                />
+                                <View style={styles.rightPanelContainer}>{props.descriptors[route.key].render()}</View>
+                            </View>
+                        </Wrapper>
                     );
                 }
                 return (

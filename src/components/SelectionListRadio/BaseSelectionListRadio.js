@@ -21,6 +21,7 @@ const propTypes = {
 };
 
 function BaseSelectionListRadio(props) {
+    const firstLayoutRef = useRef(true);
     const listRef = useRef(null);
     const textInputRef = useRef(null);
     const focusTimeoutRef = useRef(null);
@@ -217,7 +218,7 @@ function BaseSelectionListRadio(props) {
                 {({safeAreaPaddingBottomStyle}) => (
                     <View style={[styles.flex1, !props.isKeyboardShown && safeAreaPaddingBottomStyle]}>
                         {shouldShowTextInput && (
-                            <View style={[styles.ph5, styles.pv5]}>
+                            <View style={[styles.ph5, styles.pb3]}>
                                 <TextInput
                                     ref={textInputRef}
                                     label={props.textInputLabel}
@@ -229,6 +230,7 @@ function BaseSelectionListRadio(props) {
                                     onChangeText={props.onChangeText}
                                     keyboardType={props.keyboardType}
                                     selectTextOnFocus
+                                    spellCheck={false}
                                 />
                             </View>
                         )}
@@ -254,7 +256,13 @@ function BaseSelectionListRadio(props) {
                             maxToRenderPerBatch={5}
                             windowSize={5}
                             viewabilityConfig={{viewAreaCoveragePercentThreshold: 95}}
-                            onLayout={() => scrollToIndex(focusedIndex, false)}
+                            onLayout={() => {
+                                if (!firstLayoutRef.current) {
+                                    return;
+                                }
+                                scrollToIndex(focusedIndex, false);
+                                firstLayoutRef.current = false;
+                            }}
                         />
                     </View>
                 )}

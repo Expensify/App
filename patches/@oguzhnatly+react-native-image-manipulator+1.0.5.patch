@@ -1,0 +1,19 @@
+diff --git a/node_modules/@oguzhnatly/react-native-image-manipulator/android/build.gradle b/node_modules/@oguzhnatly/react-native-image-manipulator/android/build.gradle
+index 3a1a548..fe030bb 100644
+--- a/node_modules/@oguzhnatly/react-native-image-manipulator/android/build.gradle
++++ b/node_modules/@oguzhnatly/react-native-image-manipulator/android/build.gradle
+@@ -13,12 +13,12 @@ buildscript {
+ apply plugin: 'com.android.library'
+ 
+ android {
+-    compileSdkVersion 28
++    compileSdkVersion 30
+     buildToolsVersion "28.0.3"
+ 
+     defaultConfig {
+         minSdkVersion 16
+-        targetSdkVersion 28
++        targetSdkVersion 30
+         versionCode 1
+         versionName "1.0"
+     }
