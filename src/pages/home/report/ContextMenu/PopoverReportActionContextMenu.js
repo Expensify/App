@@ -64,6 +64,7 @@ class PopoverReportActionContextMenu extends React.Component {
             this.contentRef.current = ref;
         };
         this.setContentRef = this.setContentRef.bind(this);
+        this.anchorRef = React.createRef();
     }
 
     componentDidMount() {
@@ -302,6 +303,8 @@ class PopoverReportActionContextMenu extends React.Component {
                     animationOutTiming={1}
                     shouldSetModalVisibility={false}
                     fullscreen
+                    withoutOverlay
+                    anchorRef={this.anchorRef}
                 >
                     <BaseReportActionContextMenu
                         isVisible

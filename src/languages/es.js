@@ -171,6 +171,7 @@ export default {
         sizeNotMet: 'El archivo adjunto debe ser mas grande que 240 bytes.',
         wrongFileType: 'El tipo del archivo adjunto es incorrecto',
         notAllowedExtension: 'Este tipo de archivo no está permitido',
+        folderNotAllowedMessage: 'Subir una carpeta no está permitido. Prueba con otro archivo.',
     },
     avatarCropModal: {
         title: 'Editar foto',
@@ -632,7 +633,7 @@ export default {
         growlMessageOnSave: 'Su tarteja de débito se agregó correctamente',
         expensifyPassword: 'Contraseña de Expensify',
         error: {
-            invalidName: 'El nombre solo puede contener números y caracteres latinos.',
+            invalidName: 'El nombre sólo puede incluir letras.',
             addressZipCode: 'Por favor, introduce un código postal válido',
             debitCardNumber: 'Por favor, introduce un número de tarjeta de débito válido',
             expirationDate: 'Por favor, selecciona una fecha de vencimiento válida',
@@ -813,7 +814,7 @@ export default {
             dateShouldBeBefore: ({dateString}) => `La fecha debe ser anterior a ${dateString}.`,
             dateShouldBeAfter: ({dateString}) => `La fecha debe ser posterior a ${dateString}.`,
             incorrectZipFormat: ({zipFormat}) => `Formato de código postal incorrecto.${zipFormat ? ` Formato aceptable: ${zipFormat}` : ''}`,
-            hasInvalidCharacter: 'El nombre solo puede contener números y caracteres latinos.',
+            hasInvalidCharacter: 'El nombre sólo puede incluir letras.',
         },
     },
     resendValidationForm: {
@@ -1440,6 +1441,7 @@ export default {
         copy: 'Copiar',
         paste: 'Pegar',
         pasteAndMatchStyle: 'Pegar adaptando el estilo',
+        pasteAsPlainText: 'Pegar como texto sin formato',
         delete: 'Eliminar',
         selectAll: 'Seleccionar todo',
         speechSubmenu: 'Voz',
