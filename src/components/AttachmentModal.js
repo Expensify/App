@@ -7,9 +7,9 @@ import lodashExtend from 'lodash/extend';
 import _ from 'underscore';
 import CONST from '../CONST';
 import Modal from './Modal';
+import AttachmentView from './Attachments/AttachmentView';
+import AttachmentCarousel from './Attachments/AttachmentCarousel';
 import useLocalize from '../hooks/useLocalize';
-import AttachmentView from './AttachmentView';
-import AttachmentCarousel from './AttachmentCarousel';
 import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
 import * as FileUtils from '../libs/fileDownload/FileUtils';
@@ -343,6 +343,7 @@ function AttachmentModal(props) {
                             report={props.report}
                             onNavigate={onNavigate}
                             source={props.source}
+                            onClose={closeModal}
                             onToggleKeyboard={updateConfirmButtonVisibility}
                         />
                     ) : (

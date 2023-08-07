@@ -424,7 +424,7 @@ function BasePaymentsPage(props) {
                 onClose={hideAddPaymentMenu}
                 anchorPosition={{
                     horizontal: anchorPosition.anchorPositionHorizontal,
-                    vertical: anchorPosition.anchorPositionVertical - 10,
+                    vertical: anchorPosition.anchorPositionVertical - CONST.MODAL.POPOVER_MENU_PADDING,
                 }}
                 onItemSelected={(method) => addPaymentMethodTypePressed(method)}
                 anchorRef={addPaymentMethodAnchorRef}
