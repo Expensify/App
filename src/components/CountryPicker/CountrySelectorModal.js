@@ -6,7 +6,7 @@ import useLocalize from '../../hooks/useLocalize';
 import HeaderWithBackButton from '../HeaderWithBackButton';
 import SelectionListRadio from '../SelectionListRadio';
 import Modal from '../Modal';
-import searchOptions from '../../libs/CountrySelectorUtils';
+import searchOptions from '../../libs/searchCountryOptions';
 
 const propTypes = {
     /** Whether the modal is visible */

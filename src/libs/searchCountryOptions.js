@@ -1,13 +1,13 @@
 import _ from 'underscore';
-import CONST from '../../CONST';
+import CONST from '../CONST';
 
 /**
- * Searches the countriesData and returns sorted results based on country code
+ * Searches the countries/states data and returns sorted results based on the search query
  * @param {String} searchValue
  * @param {Object[]} countriesData - An array of country data objects
- * @returns {Object[]} An array of sorted country data based on country code
+ * @returns {Object[]} An array of countries/states sorted based on the search query
  */
-function searchOptions(searchValue, countriesData) {
+function searchCountryOptions(searchValue, countriesData) {
     const trimmedSearchValue = searchValue.toLowerCase().replaceAll(CONST.REGEX.NON_ALPHABETIC_AND_NON_LATIN_CHARS, '');
     if (trimmedSearchValue.length === 0) {
         return [];
@@ -19,4 +19,4 @@ function searchOptions(searchValue, countriesData) {
     return _.sortBy(filteredData, (country) => (country.value.toLowerCase() === trimmedSearchValue ? -1 : 1));
 }
 
-export default searchOptions;
+export default searchCountryOptions;
