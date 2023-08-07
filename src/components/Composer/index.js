@@ -74,9 +74,6 @@ const propTypes = {
     /** Allow the full composer to be opened */
     setIsFullComposerAvailable: PropTypes.func,
 
-    /** Whether the composer is full size */
-    isComposerFullSize: PropTypes.bool,
-
     /** Should we calculate the caret position */
     shouldCalculateCaretPosition: PropTypes.bool,
 
@@ -86,16 +83,6 @@ const propTypes = {
     ...withLocalizePropTypes,
 
     ...windowDimensionsPropTypes,
-};
-
-const IMAGE_EXTENSIONS = {
-    'image/bmp': 'bmp',
-    'image/gif': 'gif',
-    'image/jpeg': 'jpg',
-    'image/png': 'png',
-    'image/svg+xml': 'svg',
-    'image/tiff': 'tiff',
-    'image/webp': 'webp',
 };
 
 // Get characters from the cursor to the next space or new line
@@ -125,7 +112,6 @@ function Composer({
     shouldClear = false,
     autoFocus = false,
     translate,
-    isComposerFullSize = false,
     isFullComposerAvailable = false,
     shouldCalculateCaretPosition = false,
     numberOfLines: numberOfLinesProp = undefined,
@@ -230,10 +216,13 @@ function Composer({
      *
      * @param {ClipboardEvent} event
      */
-    const handlePastePlainText = (event) => {
-        const plainText = event.clipboardData.getData('text/plain');
-        paste(plainText);
-    };
+    const handlePastePlainText = useCallback(
+        (event) => {
+            const plainText = event.clipboardData.getData('text/plain');
+            paste(plainText);
+        },
+        [paste],
+    );
 
     /**
      * Check the paste event for an attachment, parse the data and call onPasteFile from props with the selected file,
@@ -286,7 +275,7 @@ function Composer({
             }
             handlePastePlainText(event);
         },
-        [onPasteFile, translate, paste, handlePastedHTML, checkComposerVisibility],
+        [onPasteFile, handlePastedHTML, checkComposerVisibility, handlePastePlainText],
     );
 
     /**
@@ -303,11 +292,10 @@ function Composer({
         event.stopPropagation();
     }, []);
 
-    useEffect(() => {
+    const updateNumberOfLines = useCallback(() => {
         if (textInput.current === null) {
             return;
         }
-
         // we reset the height to 0 to get the correct scrollHeight
         textInput.current.style.height = 0;
         const computedStyle = window.getComputedStyle(textInput.current);
@@ -322,7 +310,12 @@ function Composer({
         updateIsFullComposerAvailable({isFullComposerAvailable, setIsFullComposerAvailable}, generalNumberOfLines);
         setNumberOfLines(generalNumberOfLines);
         textInput.current.style.height = 'auto';
-    }, [value, maxLines, numberOfLinesProp, isComposerFullSize, onNumberOfLinesChange, isFullComposerAvailable, setIsFullComposerAvailable]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [value, maxLines, numberOfLinesProp, onNumberOfLinesChange, isFullComposerAvailable, setIsFullComposerAvailable]);
+
+    useEffect(() => {
+        updateNumberOfLines();
+    }, [updateNumberOfLines]);
 
     useEffect(() => {
         // we need to handle listeners on navigation focus/blur as Composer is not unmounting
@@ -359,15 +352,6 @@ function Composer({
         },
         [onKeyPress],
     );
-
-    // /**
-    //  * Set the TextInput Ref
-    //  *
-    //  * @param {Element} el
-    //  */
-    const setTextInputRef = useCallback((el) => {
-        textInput.current = el;
-    }, []);
 
     const renderElementForCaretPosition = (
         <View
@@ -411,7 +395,7 @@ function Composer({
                 autoComplete="off"
                 autoCorrect={!Browser.isMobileSafari()}
                 placeholderTextColor={themeColors.placeholderText}
-                ref={setTextInputRef}
+                ref={(el) => (textInput.current = el)}
                 selection={selection}
                 style={inputStyleMemo}
                 value={value}
