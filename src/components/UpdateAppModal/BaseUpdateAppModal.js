@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, memo} from 'react';
 import {propTypes, defaultProps} from './updateAppModalPropTypes';
 import ConfirmModal from '../ConfirmModal';
 import withLocalize from '../withLocalize';
@@ -18,7 +18,7 @@ function BaseUpdateAppModal({translate, onSubmit}) {
         <ConfirmModal
             title={translate('baseUpdateAppModal.updateApp')}
             isVisible={isModalOpen}
-            onConfirm={submitAndClose}
+            onConfirm={() => submitAndClose()}
             onCancel={() => setIsModalOpen(false)}
             prompt={translate('baseUpdateAppModal.updatePrompt')}
             confirmText={translate('baseUpdateAppModal.updateApp')}
@@ -30,4 +30,4 @@ function BaseUpdateAppModal({translate, onSubmit}) {
 BaseUpdateAppModal.propTypes = propTypes;
 BaseUpdateAppModal.defaultProps = defaultProps;
 
-export default withLocalize(BaseUpdateAppModal);
+export default memo(withLocalize(BaseUpdateAppModal));
