@@ -139,7 +139,7 @@ export default compose(
     withOnyx({
         transaction: {
             key: (props) => `${ONYXKEYS.COLLECTION.TRANSACTION}${props.transactionID}`,
-            selector: (transaction) => ({transactionID: transaction.transactionID, comment: {waypoints: lodashGet(transaction, 'comment.waypoints')}}),
+            selector: (transaction) => (transaction ? {transactionID: transaction.transactionID, comment: {waypoints: lodashGet(transaction, 'comment.waypoints')}} : null),
         },
     }),
 )(DistanceRequest);
