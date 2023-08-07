@@ -849,8 +849,7 @@ function ReportActionCompose({
                                                         // Set a flag to block suggestion calculation until we're finished using the file picker,
                                                         // which will stop any flickering as the file picker opens on non-native devices.
                                                         if (willBlurTextInputOnTapOutside) {
-                                                            shouldBlockEmojiCalc.current = true;
-                                                            shouldBlockMentionCalc.current = true;
+                                                            suggestionsRef.current.setShouldBlockSuggestionCalc(true);
                                                         }
                                                         openPicker({
                                                             onPicked: displayFileInModal,
@@ -869,8 +868,7 @@ function ReportActionCompose({
                                                             // Set a flag to block suggestion calculation until we're finished using the file picker,
                                                             // which will stop any flickering as the file picker opens on non-native devices.
                                                             if (willBlurTextInputOnTapOutside) {
-                                                                shouldBlockEmojiCalc.current = true;
-                                                                shouldBlockMentionCalc.current = true;
+                                                                suggestionsRef.current.setShouldBlockSuggestionCalc(true);
                                                             }
 
                                                             openPicker({
