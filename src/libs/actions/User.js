@@ -577,12 +577,12 @@ function subscribeToUserEvents() {
 
                 // The previous update from the server does not match the last update the client got which means the client is missing some updates.
                 // ReconnectApp will fetch updates starting from the last update this client got and going to the last update the server sent.
-                if (pushJSONPreviousUpdateID !== onyxUpdatesLastUpdateID) {
+                if (onyxUpdatesLastUpdateID < pushJSONPreviousUpdateID) {
                     console.debug('[OnyxUpdates] Gap detected in update IDs so fetching incremental updates');
-                    App.reconnectApp(onyxUpdatesLastUpdateID, pushJSONLastUpdateID);
+                    App.reconnectApp(onyxUpdatesLastUpdateID, pushJSONLastUpdateID, true);
                 }
             } else {
-                console.debug('[OnyxUpdates] No lastUpdateID and previousUpdateID provided');
+                console.debug('[OnyxUpdates] No lastUpdateID and previousUpdateID provided from Pusher');
             }
         }
         _.each(updates, (multipleEvent) => {

@@ -183,8 +183,9 @@ function openApp() {
  * Fetches data when the app reconnects to the network
  * @param {Number} [updateIDFrom] the ID of the Onyx update that we want to start fetching from
  * @param {Number} [updateIDTo] the ID of the Onyx update that we want to fetch up to
+ * @param {Boolean} [prioritizeRequest] whether or not the request should be put at the front of the sequential queue before other requests
  */
-function reconnectApp(updateIDFrom = 0, updateIDTo = 0) {
+function reconnectApp(updateIDFrom = 0, updateIDTo = 0, prioritizeRequest = false) {
     console.debug(`[OnyxUpdates] App reconnecting with updateIDFrom: ${updateIDFrom} and updateIDTo: ${updateIDTo}`);
     getPolicyParamsForOpenOrReconnect().then((policyParams) => {
         const params = {...policyParams};
@@ -208,7 +209,7 @@ function reconnectApp(updateIDFrom = 0, updateIDTo = 0) {
             params.updateIDTo = updateIDTo;
         }
 
-        API.write('ReconnectApp', params, getOnyxDataForOpenOrReconnect());
+        API.write('ReconnectApp', params, getOnyxDataForOpenOrReconnect(), prioritizeRequest);
     });
 }
 
