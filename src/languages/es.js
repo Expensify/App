@@ -1103,7 +1103,8 @@ export default {
         headerTitle: 'Validar cuenta bancaria',
         buttonText: 'Finalizar configuración',
         maxAttemptsReached: 'Se ha inhabilitado la validación de esta cuenta bancaria debido a demasiados intentos incorrectos.',
-        description: 'Uno o dos días después de añadir tu cuenta a Expensify, te enviaremos tres (3) transacciones a tu cuenta. Tienen una nombre de comerciante similar a "Expensify, Inc. Validation".',
+        description:
+            'Uno o dos días después de añadir tu cuenta a Expensify, te enviaremos tres (3) transacciones a tu cuenta. Tienen una nombre de comerciante similar a "Expensify, Inc. Validation".',
         descriptionCTA: 'Introduce el importe de cada transacción en los campos siguientes. Ejemplo: 1.51.',
         reviewingInfo: '¡Gracias! Estamos revisando tu información y nos comunicaremos contigo en breve. Consulta el chat con Concierge ',
         forNextSteps: ' para conocer los próximos pasos para terminar de configurar tu cuenta bancaria.',
