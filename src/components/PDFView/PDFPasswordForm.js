@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {Component} from 'react';
+import React, {useState, useRef, useEffect} from 'react';
 import PropTypes from 'prop-types';
 import {View, ScrollView} from 'react-native';
 import Button from '../Button';
@@ -45,130 +45,115 @@ const defaultProps = {
     onPasswordFieldFocused: () => {},
 };
 
-class PDFPasswordForm extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            password: '',
-            validationErrorText: '',
-            shouldShowForm: false,
-        };
-        this.submitPassword = this.submitPassword.bind(this);
-        this.updatePassword = this.updatePassword.bind(this);
-        this.showForm = this.showForm.bind(this);
-        this.validateAndNotifyPasswordBlur = this.validateAndNotifyPasswordBlur.bind(this);
-        this.getErrorText = this.getErrorText.bind(this);
-    }
+function PDFPasswordForm(props) {
+    const [password, setPassword] = useState('');
+    const [validationErrorText, setValidationErrorText] = useState('');
+    const [shouldShowForm, setShouldShowForm] = useState(false);
+    const textInputRef = useRef(null);
 
-    componentDidUpdate(prevProps) {
-        if (prevProps.isFocused || !this.props.isFocused || !this.textInputRef) {
-            return;
-        }
-        this.textInputRef.focus();
-    }
+    useEffect(() => {
+        if (!props.isFocused || !textInputRef.current) return;
+        textInputRef.current.focus();
+    }, [props.isFocused]);
 
-    getErrorText() {
-        if (this.props.isPasswordInvalid) {
-            return this.props.translate('attachmentView.passwordIncorrect');
+    const getErrorText = () => {
+        if (props.isPasswordInvalid) {
+            return props.translate('attachmentView.passwordIncorrect');
         }
-        if (!_.isEmpty(this.state.validationErrorText)) {
-            return this.props.translate(this.state.validationErrorText);
+        if (!_.isEmpty(validationErrorText)) {
+            return props.translate(validationErrorText);
         }
 
         return '';
-    }
+    };
 
-    submitPassword() {
-        if (!this.validate()) {
-            return;
+    const updatePassword = (passwrd) => {
+        props.onPasswordUpdated(passwrd);
+        if (!_.isEmpty(passwrd) && validationErrorText) {
+            setValidationErrorText('');
         }
-        this.props.onSubmit(this.state.password);
-    }
+        setPassword(passwrd);
+    };
 
-    updatePassword(password) {
-        this.props.onPasswordUpdated(password);
-        if (!_.isEmpty(password) && this.state.validationErrorText) {
-            this.setState({validationErrorText: ''});
-        }
-        this.setState({password});
-    }
-
-    validate() {
-        if (!this.props.isPasswordInvalid && !_.isEmpty(this.state.password)) {
+    const validate = () => {
+        if (!props.isPasswordInvalid && !_.isEmpty(password)) {
             return true;
         }
 
-        if (_.isEmpty(this.state.password)) {
-            this.setState({
-                validationErrorText: 'attachmentView.passwordRequired',
-            });
+        if (_.isEmpty(password)) {
+            setValidationErrorText('attachmentView.passwordRequired');
         }
 
         return false;
-    }
+    };
 
-    validateAndNotifyPasswordBlur() {
-        this.validate();
-        this.props.onPasswordFieldFocused(false);
-    }
+    const submitPassword = () => {
+        if (!validate()) {
+            return;
+        }
+        props.onSubmit(password);
+    };
 
-    showForm() {
-        this.setState({shouldShowForm: true});
-    }
+    const validateAndNotifyPasswordBlur = () => {
+        validate();
+        props.onPasswordFieldFocused(false);
+    };
 
-    render() {
-        const errorText = this.getErrorText();
-        const containerStyle = this.props.isSmallScreenWidth ? [styles.flex1, styles.w100] : styles.pdfPasswordForm.wideScreenWidth;
+    const showForm = () => {
+        setShouldShowForm(true);
+    };
 
-        return (
-            <>
-                {this.state.shouldShowForm ? (
-                    <ScrollView
-                        keyboardShouldPersistTaps="handled"
-                        style={containerStyle}
-                        contentContainerStyle={styles.p5}
-                    >
-                        <View style={styles.mb4}>
-                            <Text>{this.props.translate('attachmentView.pdfPasswordForm.formLabel')}</Text>
-                        </View>
-                        <TextInput
-                            ref={(el) => (this.textInputRef = el)}
-                            label={this.props.translate('common.password')}
-                            accessibilityLabel={this.props.translate('common.password')}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                            /**
-                             * This is a workaround to bypass Safari's autofill odd behaviour.
-                             * This tricks the browser not to fill the username somewhere else and still fill the password correctly.
-                             */
-                            autoComplete={Browser.getBrowser() === CONST.BROWSER.SAFARI ? 'username' : 'off'}
-                            autoCorrect={false}
-                            textContentType="password"
-                            onChangeText={this.updatePassword}
-                            returnKeyType="done"
-                            onSubmitEditing={this.submitPassword}
-                            errorText={errorText}
-                            onFocus={() => this.props.onPasswordFieldFocused(true)}
-                            onBlur={this.validateAndNotifyPasswordBlur}
-                            autoFocus
-                            shouldDelayFocus={shouldDelayFocus}
-                            secureTextEntry
-                        />
-                        <Button
-                            text={this.props.translate('common.confirm')}
-                            onPress={this.submitPassword}
-                            style={styles.mt4}
-                            isLoading={this.props.shouldShowLoadingIndicator}
-                            pressOnEnter
-                        />
-                    </ScrollView>
-                ) : (
-                    <View style={[styles.flex1, styles.justifyContentCenter]}>
-                        <PDFInfoMessage onShowForm={this.showForm} />
+    const errorText = getErrorText();
+    const containerStyle = props.isSmallScreenWidth ? [styles.flex1, styles.w100] : styles.pdfPasswordForm.wideScreenWidth;
+
+    return (
+        <>
+            {shouldShowForm ? (
+                <ScrollView
+                    keyboardShouldPersistTaps="handled"
+                    style={containerStyle}
+                    contentContainerStyle={styles.p5}
+                >
+                    <View style={styles.mb4}>
+                        <Text>{props.translate('attachmentView.pdfPasswordForm.formLabel')}</Text>
                     </View>
-                )}
-            </>
-        );
-    }
+                    <TextInput
+                        ref={textInputRef}
+                        label={props.translate('common.password')}
+                        accessibilityLabel={props.translate('common.password')}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        /**
+                         * This is a workaround to bypass Safari's autofill odd behaviour.
+                         * This tricks the browser not to fill the username somewhere else and still fill the password correctly.
+                         */
+                        autoComplete={Browser.getBrowser() === CONST.BROWSER.SAFARI ? 'username' : 'off'}
+                        autoCorrect={false}
+                        textContentType="password"
+                        onChangeText={updatePassword}
+                        returnKeyType="done"
+                        onSubmitEditing={submitPassword}
+                        errorText={errorText}
+                        onFocus={() => props.onPasswordFieldFocused(true)}
+                        onBlur={validateAndNotifyPasswordBlur}
+                        autoFocus
+                        shouldDelayFocus={shouldDelayFocus}
+                        secureTextEntry
+                    />
+                    <Button
+                        text={props.translate('common.confirm')}
+                        onPress={submitPassword}
+                        style={styles.mt4}
+                        isLoading={props.shouldShowLoadingIndicator}
+                        pressOnEnter
+                    />
+                </ScrollView>
+            ) : (
+                <View style={[styles.flex1, styles.justifyContentCenter]}>
+                    <PDFInfoMessage onShowForm={showForm} />
+                </View>
+            )}
+        </>
+    );
 }
 
 PDFPasswordForm.propTypes = propTypes;
