@@ -78,5 +78,5 @@ export default PropTypes.shape({
     writeCapability: PropTypes.oneOf(_.values(CONST.REPORT.WRITE_CAPABILITIES)),
 
     /** Field-specific pending states for offline UI status */
-    pendingFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
+    pendingFields: PropTypes.objectOf(PropTypes.string),
 });

@@ -64,7 +64,6 @@ function SplitBillDetailsPage(props) {
     if (ReportUtils.isPolicyExpenseChat(props.report)) {
         participants.push(...OptionsListUtils.getPolicyExpenseReportOptions(props.report));
     }
-    console.log(participants);
     const payeePersonalDetails = props.personalDetails[reportAction.actorAccountID];
     const participantsExcludingPayee = _.filter(participants, (participant) => participant.accountID !== reportAction.actorAccountID);
     const splitAmount = parseInt(lodashGet(reportAction, 'originalMessage.amount', 0), 10);

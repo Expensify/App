@@ -125,7 +125,6 @@ const defaultProps = {
 };
 
 function IOUPreview(props) {
-    console.log('re renderrr');
     if (_.isEmpty(props.iouReport) && !props.isBillSplit) {
         return null;
     }

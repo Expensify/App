@@ -138,8 +138,6 @@ function MoneyRequestAction(props) {
         shouldShowPendingConversionMessage = IOUUtils.isIOUReportPendingCurrencyConversion(props.reportActions, props.iouReport);
     }
 
-    console.log(props.chatReport);
-
     return isDeletedParentAction ? (
         <RenderHTML html={`<comment>${props.translate('parentReportAction.deletedRequest')}</comment>`} />
     ) : (
