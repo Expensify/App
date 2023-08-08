@@ -311,15 +311,15 @@ function ReportActionCompose({
         shouldExcludeTextAreaNodes: false,
     });
 
-    const insertedEmojis = useRef([]);
+    const insertedEmojisRef = useRef([]);
 
     /**
      * Update frequently used emojis list. We debounce this method in the constructor so that UpdateFrequentlyUsedEmojis
      * API is not called too often.
      */
     const debouncedUpdateFrequentlyUsedEmojis = useCallback(() => {
-        User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(insertedEmojis));
-        insertedEmojis.current = [];
+        User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(insertedEmojisRef.current));
+        insertedEmojisRef.current = [];
     }, []);
 
     /**
@@ -329,8 +329,8 @@ function ReportActionCompose({
     const [hasExceededMaxCommentLength, setExceededMaxCommentLength] = useState(false);
 
     const commentRef = useRef(comment);
-    const textInput = useRef(null);
-    const actionButton = useRef(null);
+    const textInputRef = useRef(null);
+    const actionButtonRef = useRef(null);
 
     const reportParticipants = useMemo(() => _.without(lodashGet(report, 'participantAccountIDs', []), currentUserPersonalDetails.accountID), [currentUserPersonalDetails.accountID, report]);
     const participantsWithoutExpensifyAccountIDs = useMemo(() => _.difference(reportParticipants, CONST.EXPENSIFY_ACCOUNT_IDS), [reportParticipants]);
@@ -371,18 +371,18 @@ function ReportActionCompose({
         // There could be other animations running while we trigger manual focus.
         // This prevents focus from making those animations janky.
         InteractionManager.runAfterInteractions(() => {
-            if (!textInput.current) {
+            if (!textInputRef.current) {
                 return;
             }
 
             if (!shouldDelay) {
-                textInput.current.focus();
+                textInputRef.current.focus();
             } else {
                 // Keyboard is not opened after Emoji Picker is closed
                 // SetTimeout is used as a workaround
                 // https://github.com/react-native-modal/react-native-modal/issues/114
                 // We carefully choose a delay. 100ms is found enough for keyboard to open.
-                setTimeout(() => textInput.current.focus(), 100);
+                setTimeout(() => textInputRef.current.focus(), 100);
             }
         });
     }, []);
@@ -399,7 +399,7 @@ function ReportActionCompose({
 
             if (!_.isEmpty(emojis)) {
                 User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(emojis));
-                insertedEmojis.current = [...insertedEmojis, ...emojis];
+                insertedEmojisRef.current = [...insertedEmojisRef.current, ...emojis];
                 debouncedUpdateFrequentlyUsedEmojis();
             }
 
@@ -690,7 +690,7 @@ function ReportActionCompose({
     const setTextInputRef = useCallback(
         (el) => {
             ReportActionComposeFocusManager.composerRef.current = el;
-            textInput.current = el;
+            textInputRef.current = el;
             if (_.isFunction(animatedRef)) {
                 animatedRef(el);
             }
@@ -770,7 +770,7 @@ function ReportActionCompose({
             // will be added after the user starts typing again on the keyboard. This package is
             // a workaround to reset the keyboard natively.
             if (RNTextInputReset) {
-                RNTextInputReset.resetKeyboardInput(findNodeHandle(textInput));
+                RNTextInputReset.resetKeyboardInput(findNodeHandle(textInputRef));
             }
 
             setSelection({
@@ -779,7 +779,7 @@ function ReportActionCompose({
             });
             setSuggestionValues((prevState) => ({...prevState, suggestedEmojis: []}));
 
-            insertedEmojis.current = [...insertedEmojis.current, emojiObject];
+            insertedEmojisRef.current = [...insertedEmojisRef.current, emojiObject];
             debouncedUpdateFrequentlyUsedEmojis(emojiObject);
         },
         [debouncedUpdateFrequentlyUsedEmojis, preferredSkinTone, selection.end, suggestionValues.colonIndex, suggestionValues.suggestedEmojis, updateComment, value],
@@ -908,7 +908,7 @@ function ReportActionCompose({
             }
 
             // Trigger the edit box for last sent message if ArrowUp is pressed and the comment is empty and Chronos is not in the participants
-            if (e.key === CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey && textInput.current.selectionStart === 0 && value.length === 0 && !ReportUtils.chatIncludesChronos(report)) {
+            if (e.key === CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey && textInputRef.current.selectionStart === 0 && value.length === 0 && !ReportUtils.chatIncludesChronos(report)) {
                 e.preventDefault();
 
                 const parentReportActionID = lodashGet(report, 'parentReportActionID', '');
@@ -1150,12 +1150,12 @@ function ReportActionCompose({
                                                     )}
                                                     <Tooltip text={translate('reportActionCompose.addAction')}>
                                                         <PressableWithFeedback
-                                                            ref={actionButton}
+                                                            ref={actionButtonRef}
                                                             onPress={(e) => {
                                                                 e.preventDefault();
 
                                                                 // Drop focus to avoid blue focus ring.
-                                                                actionButton.current.blur();
+                                                                actionButtonRef.current.blur();
                                                                 setMenuVisibility(!isMenuVisible);
                                                             }}
                                                             style={styles.composerSizeButton}
@@ -1185,7 +1185,7 @@ function ReportActionCompose({
                                                     anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM}}
                                                     menuItems={menuItems}
                                                     withoutOverlay
-                                                    anchorRef={actionButton}
+                                                    anchorRef={actionButtonRef}
                                                 />
                                             </>
                                         );
