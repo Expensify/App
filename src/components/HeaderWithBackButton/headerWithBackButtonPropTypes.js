@@ -1,7 +1,5 @@
-import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {ThreeDotsMenuItemPropTypes} from '../ThreeDotsMenu';
-import CONST from '../../CONST';
 import iouReportPropTypes from '../../pages/iouReportPropTypes';
 import participantPropTypes from '../participantPropTypes';
 
@@ -48,12 +46,6 @@ const propTypes = {
         right: PropTypes.number,
         bottom: PropTypes.number,
         left: PropTypes.number,
-    }),
-
-    /** The anchor alignment of the menu */
-    threeDotsAnchorAlignment: PropTypes.shape({
-        horizontal: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL)),
-        vertical: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL)),
     }),
 
     /** Whether we should show a close button */
