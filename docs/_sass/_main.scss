@@ -213,6 +213,11 @@ button {
     right: 0;
 }
 
+@media only screen and (max-width: $breakpoint-tablet) {
+    #sidebar-search {
+        width: 100%;
+    }
+}
 .searchbar-title-wrapper {
     padding: 20px;
     padding-bottom: 0px;
