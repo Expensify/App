@@ -29,13 +29,15 @@ let cancellationController = new AbortController();
  * @param {String} url
  * @param {String} [method]
  * @param {Object} [body]
- * @param {Boolean} [canCancel]
+ * @param {String} [command]
  * @returns {Promise}
  */
-function processHTTPRequest(url, method = 'get', body = null, canCancel = true) {
+function processHTTPRequest(url, method = 'get', body = null, command = '') {
+    const signal = command === CONST.NETWORK.COMMAND.LOG ? undefined : cancellationController.signal;
+
     return fetch(url, {
         // We hook requests to the same Controller signal, so we can cancel them all at once
-        signal: canCancel ? cancellationController.signal : undefined,
+        signal,
         method,
         body,
     })
@@ -127,7 +129,7 @@ function xhr(command, data, type = CONST.NETWORK.METHOD.POST, shouldUseSecure = 
     });
 
     const url = ApiUtils.getCommandURL({shouldUseSecure, command});
-    return processHTTPRequest(url, type, formData, data.canCancel);
+    return processHTTPRequest(url, type, formData, command);
 }
 
 function cancelPendingRequests() {

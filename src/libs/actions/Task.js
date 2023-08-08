@@ -88,6 +88,9 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
                 ...optimisticTaskReport,
                 pendingFields: {
                     createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    description: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    managerID: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
                 isOptimisticReport: true,
             },
@@ -116,6 +119,9 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
             value: {
                 pendingFields: {
                     createChat: null,
+                    reportName: null,
+                    description: null,
+                    managerID: null,
                 },
                 isOptimisticReport: false,
             },
