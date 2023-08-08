@@ -5,7 +5,8 @@ import PropTypes from 'prop-types';
 import Header from './Header';
 import styles from '../styles/styles';
 import Button from './Button';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import useLocalize from '../hooks/useLocalize';
+import useNetwork from '../hooks/useNetwork';
 import Text from './Text';
 
 const propTypes = {
@@ -33,14 +34,15 @@ const propTypes = {
     /** Whether we should use the danger button color. Use if the action is destructive */
     danger: PropTypes.bool,
 
+    /** Whether we should disable the confirm button when offline */
+    shouldDisableConfirmButtonWhenOffline: PropTypes.bool,
+
     /** Whether we should show the cancel button */
     shouldShowCancelButton: PropTypes.bool,
 
     /** Styles for view */
     // eslint-disable-next-line react/forbid-prop-types
     contentStyles: PropTypes.arrayOf(PropTypes.object),
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -50,11 +52,15 @@ const defaultProps = {
     success: true,
     danger: false,
     onCancel: () => {},
+    shouldDisableConfirmButtonWhenOffline: false,
     shouldShowCancelButton: true,
     contentStyles: [],
 };
 
 function ConfirmContent(props) {
+    const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
+
     return (
         <View style={[styles.m5, ...props.contentStyles]}>
             <View style={[styles.flexRow, styles.mb4]}>
@@ -69,13 +75,15 @@ function ConfirmContent(props) {
                 style={[styles.mt4]}
                 onPress={props.onConfirm}
                 pressOnEnter
-                text={props.confirmText || props.translate('common.yes')}
+                text={props.confirmText || translate('common.yes')}
+                isDisabled={isOffline && props.shouldDisableConfirmButtonWhenOffline}
             />
             {props.shouldShowCancelButton && (
                 <Button
                     style={[styles.mt3, styles.noSelect]}
                     onPress={props.onCancel}
-                    text={props.cancelText || props.translate('common.no')}
+                    text={props.cancelText || translate('common.no')}
+                    shouldUseDefaultHover
                 />
             )}
         </View>
@@ -85,4 +93,4 @@ function ConfirmContent(props) {
 ConfirmContent.propTypes = propTypes;
 ConfirmContent.defaultProps = defaultProps;
 ConfirmContent.displayName = 'ConfirmContent';
-export default withLocalize(ConfirmContent);
+export default ConfirmContent;

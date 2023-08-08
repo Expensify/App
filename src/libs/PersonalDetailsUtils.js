@@ -24,7 +24,7 @@ Onyx.connect({
 function getDisplayNameOrDefault(passedPersonalDetails, pathToDisplayName, defaultValue) {
     const displayName = lodashGet(passedPersonalDetails, pathToDisplayName);
 
-    return displayName || defaultValue || 'Hidden';
+    return displayName || defaultValue || Localize.translateLocal('common.hidden');
 }
 
 /**
@@ -123,7 +123,6 @@ function getNewPersonalDetailsOnyxData(logins, accountIDs) {
              * This is done to prevent duplicate entries (upon success) since the BE will return other personal details with the correct account IDs.
              */
             successData[accountID] = null;
-            failureData[accountID] = null;
         }
     });
 

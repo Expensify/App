@@ -10,7 +10,6 @@ import * as Expensicons from './Icon/Expensicons';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
 import AttachmentPicker from './AttachmentPicker';
-import ConfirmModal from './ConfirmModal';
 import AvatarCropModal from './AvatarCropModal/AvatarCropModal';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import useLocalize from '../hooks/useLocalize';
@@ -21,6 +20,8 @@ import stylePropTypes from '../styles/stylePropTypes';
 import * as FileUtils from '../libs/fileDownload/FileUtils';
 import getImageResolution from '../libs/fileDownload/getImageResolution';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
+import DotIndicatorMessage from './DotIndicatorMessage';
+import * as Browser from '../libs/Browser';
 
 const propTypes = {
     /** Avatar source to display */
@@ -119,9 +120,8 @@ function AvatarWithImagePicker({
     const {translate} = useLocalize();
 
     const [isMenuVisible, setIsMenuVisible] = useState(false);
-    const [isErrorModalVisible, setIsErrorModalVisible] = useState(false);
-    const [errorModalPrompt, setErrorModalPrompt] = useState('');
-    const [errorModalTitle, setErrorModalTitle] = useState('');
+    const [validationError, setValidationError] = useState(null);
+    const [phraseParam, setPhraseParam] = useState({});
     const [isAvatarCropModalOpen, setIsAvatarCropModalOpen] = useState(false);
     const [imageName, setImageName] = useState('');
     const [imageUri, setImageUri] = useState('');
@@ -129,19 +129,17 @@ function AvatarWithImagePicker({
 
     const additionalStyles = _.isArray(style) ? style : [style];
 
+    const anchorRef = useRef(null);
+
     /**
-     * @param {String} title
-     * @param {String} prompt
+     * @param {String} error
+     * @param {Object} phraseParam
      */
-    const showErrorModal = (title, prompt) => {
-        setIsErrorModalVisible(true);
-        setErrorModalTitle(title);
-        setErrorModalPrompt(prompt);
+    const setError = (error, phraseParam) => {
+        setValidationError(error);
+        setPhraseParam(phraseParam);
     };
 
-    const hideErrorModal = useCallback(() => {
-        setIsErrorModalVisible(false);
-    }, []);
     /**
      * Check if the attachment extension is allowed.
      *
@@ -183,35 +181,28 @@ function AvatarWithImagePicker({
      */
     const showAvatarCropModal = (image) => {
         if (!isValidExtension(image)) {
-            showErrorModal(
-                translate('avatarWithImagePicker.imageUploadFailed'),
-                translate('avatarWithImagePicker.notAllowedExtension', {allowedExtensions: CONST.AVATAR_ALLOWED_EXTENSIONS}),
-            );
+            setError('avatarWithImagePicker.notAllowedExtension', {allowedExtensions: CONST.AVATAR_ALLOWED_EXTENSIONS});
             return;
         }
         if (!isValidSize(image)) {
-            showErrorModal(
-                translate('avatarWithImagePicker.imageUploadFailed'),
-                translate('avatarWithImagePicker.sizeExceeded', {maxUploadSizeInMB: CONST.AVATAR_MAX_ATTACHMENT_SIZE / (1024 * 1024)}),
-            );
+            setError('avatarWithImagePicker.sizeExceeded', {maxUploadSizeInMB: CONST.AVATAR_MAX_ATTACHMENT_SIZE / (1024 * 1024)});
             return;
         }
 
-        isValidResolution(image).then((isValid) => {
-            if (!isValid) {
-                showErrorModal(
-                    translate('avatarWithImagePicker.imageUploadFailed'),
-                    translate('avatarWithImagePicker.resolutionConstraints', {
-                        minHeightInPx: CONST.AVATAR_MIN_HEIGHT_PX,
-                        minWidthInPx: CONST.AVATAR_MIN_WIDTH_PX,
-                        maxHeightInPx: CONST.AVATAR_MAX_HEIGHT_PX,
-                        maxWidthInPx: CONST.AVATAR_MAX_WIDTH_PX,
-                    }),
-                );
+        isValidResolution(image).then((isValidResolution) => {
+            if (!isValidResolution) {
+                setError('avatarWithImagePicker.resolutionConstraints', {
+                    minHeightInPx: CONST.AVATAR_MIN_HEIGHT_PX,
+                    minWidthInPx: CONST.AVATAR_MIN_WIDTH_PX,
+                    maxHeightInPx: CONST.AVATAR_MAX_HEIGHT_PX,
+                    maxWidthInPx: CONST.AVATAR_MAX_WIDTH_PX,
+                });
                 return;
             }
 
             setIsAvatarCropModalOpen(true);
+            setValidationError(null);
+            setPhraseParam({});
             setIsMenuVisible(false);
             setImageUri(image.uri);
             setImageName(image.name);
@@ -235,6 +226,9 @@ function AvatarWithImagePicker({
                 icon: Expensicons.Upload,
                 text: translate('avatarWithImagePicker.uploadPhoto'),
                 onSelected: () => {
+                    if (Browser.isSafari()) {
+                        return;
+                    }
                     openPicker({
                         onPicked: showAvatarCropModal,
                     });
@@ -248,6 +242,7 @@ function AvatarWithImagePicker({
                 icon: Expensicons.Trashcan,
                 text: translate('avatarWithImagePicker.removePhoto'),
                 onSelected: () => {
+                    setError(null, {});
                     onImageRemoved();
                 },
             });
@@ -257,20 +252,21 @@ function AvatarWithImagePicker({
 
     return (
         <View style={[styles.alignItemsCenter, ...additionalStyles]}>
-            <PressableWithoutFeedback
-                onPress={() => setIsMenuVisible(true)}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
-                accessibilityLabel={translate('avatarWithImagePicker.editImage')}
-                disabled={isAvatarCropModalOpen}
-            >
-                <View style={[styles.pRelative, styles.avatarLarge]}>
-                    <OfflineWithFeedback
-                        pendingAction={pendingAction}
-                        errors={errors}
-                        errorRowStyles={errorRowStyles}
-                        onClose={onErrorClose}
-                    >
-                        <Tooltip text={translate('avatarWithImagePicker.editImage')}>
+            <View style={[styles.pRelative, styles.avatarLarge]}>
+                <OfflineWithFeedback
+                    pendingAction={pendingAction}
+                    errors={errors}
+                    errorRowStyles={errorRowStyles}
+                    onClose={onErrorClose}
+                >
+                    <Tooltip text={translate('avatarWithImagePicker.editImage')}>
+                        <PressableWithoutFeedback
+                            onPress={() => setIsMenuVisible((prev) => !prev)}
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                            accessibilityLabel={translate('avatarWithImagePicker.editImage')}
+                            disabled={isAvatarCropModalOpen}
+                            ref={anchorRef}
+                        >
                             <View>
                                 {source ? (
                                     <Avatar
@@ -285,44 +281,47 @@ function AvatarWithImagePicker({
                                     <DefaultAvatar />
                                 )}
                             </View>
-                        </Tooltip>
-                    </OfflineWithFeedback>
-
-                    <AttachmentPicker type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}>
-                        {({openPicker}) => (
-                            <>
-                                <Tooltip text={translate('avatarWithImagePicker.editImage')}>
-                                    <View style={[styles.smallEditIcon, styles.smallAvatarEditIcon]}>
-                                        <Icon
-                                            src={Expensicons.Camera}
-                                            width={variables.iconSizeSmall}
-                                            height={variables.iconSizeSmall}
-                                            fill={themeColors.textLight}
-                                        />
-                                    </View>
-                                </Tooltip>
-                                <PopoverMenu
-                                    isVisible={isMenuVisible}
-                                    onClose={() => setIsMenuVisible(false)}
-                                    onItemSelected={() => setIsMenuVisible(false)}
-                                    menuItems={createMenuItems(openPicker)}
-                                    anchorPosition={anchorPosition}
-                                    anchorAlignment={anchorAlignment}
+                            <View style={[styles.smallEditIcon, styles.smallAvatarEditIcon]}>
+                                <Icon
+                                    src={Expensicons.Camera}
+                                    width={variables.iconSizeSmall}
+                                    height={variables.iconSizeSmall}
+                                    fill={themeColors.textLight}
                                 />
-                            </>
-                        )}
-                    </AttachmentPicker>
-                </View>
-            </PressableWithoutFeedback>
-            <ConfirmModal
-                title={errorModalTitle}
-                onConfirm={hideErrorModal}
-                onCancel={hideErrorModal}
-                isVisible={isErrorModalVisible}
-                prompt={errorModalPrompt}
-                confirmText={translate('common.close')}
-                shouldShowCancelButton={false}
-            />
+                            </View>
+                        </PressableWithoutFeedback>
+                    </Tooltip>
+                </OfflineWithFeedback>
+                <AttachmentPicker type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}>
+                    {({openPicker}) => (
+                        <PopoverMenu
+                            isVisible={isMenuVisible}
+                            onClose={() => setIsMenuVisible(false)}
+                            onItemSelected={(item, index) => {
+                                setIsMenuVisible(false);
+                                // In order for the file picker to open dynamically, the click
+                                // function must be called from within a event handler that was initiated
+                                // by the user on Safari.
+                                if (index === 0 && Browser.isSafari()) {
+                                    openPicker({onPicked: showAvatarCropModal});
+                                }
+                            }}
+                            menuItems={createMenuItems(openPicker)}
+                            anchorPosition={anchorPosition}
+                            withoutOverlay
+                            anchorRef={anchorRef}
+                            anchorAlignment={anchorAlignment}
+                        />
+                    )}
+                </AttachmentPicker>
+            </View>
+            {validationError && (
+                <DotIndicatorMessage
+                    style={[styles.mt6]}
+                    messages={{0: translate(validationError, phraseParam)}}
+                    type="error"
+                />
+            )}
             <AvatarCropModal
                 onClose={hideAvatarCropModal}
                 isVisible={isAvatarCropModalOpen}

@@ -236,7 +236,7 @@ function deleteContactMethod(contactMethod, loginList) {
         },
         {optimisticData, successData, failureData},
     );
-    Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
+    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS);
 }
 
 /**
@@ -254,6 +254,19 @@ function clearContactMethodErrors(contactMethod, fieldName) {
             pendingFields: {
                 [fieldName]: null,
             },
+        },
+    });
+}
+
+/**
+ * Resets the state indicating whether a validation code has been sent to a specific contact method.
+ *
+ * @param {String} contactMethod - The identifier of the contact method to reset.
+ */
+function resetContactMethodValidateCodeSentState(contactMethod) {
+    Onyx.merge(ONYXKEYS.LOGIN_LIST, {
+        [contactMethod]: {
+            validateCodeSent: false,
         },
     });
 }
@@ -532,7 +545,31 @@ function subscribeToUserEvents() {
     // Handles the mega multipleEvents from Pusher which contains an array of single events.
     // Each single event is passed to PusherUtils in order to trigger the callbacks for that event
     PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.MULTIPLE_EVENTS, currentUserAccountID, (pushJSON) => {
-        _.each(pushJSON, (multipleEvent) => {
+        let updates;
+
+        // This is the old format where each update was just an array, with the new changes it's an object with
+        // lastUpdateID, previousUpdateID and updates
+        if (_.isArray(pushJSON)) {
+            updates = pushJSON;
+        } else {
+            updates = pushJSON.updates;
+
+            // Not always we'll have the lastUpdateID and previousUpdateID properties in the pusher update
+            // until we finish the migration to reliable updates. So let's check it before actually updating
+            // the properties in Onyx
+            if (pushJSON.lastUpdateID && pushJSON.previousUpdateID) {
+                console.debug('[OnyxUpdates] Received lastUpdateID from pusher', pushJSON.lastUpdateID);
+                console.debug('[OnyxUpdates] Received previousUpdateID from pusher', pushJSON.previousUpdateID);
+                // Store these values in Onyx to allow App.reconnectApp() to fetch incremental updates from the server when a previous session is being reconnected to.
+                Onyx.multiSet({
+                    [ONYXKEYS.ONYX_UPDATES.LAST_UPDATE_ID]: Number(pushJSON.lastUpdateID || 0),
+                    [ONYXKEYS.ONYX_UPDATES.PREVIOUS_UPDATE_ID]: Number(pushJSON.previousUpdateID || 0),
+                });
+            } else {
+                console.debug('[OnyxUpdates] No lastUpdateID and previousUpdateID provided');
+            }
+        }
+        _.each(updates, (multipleEvent) => {
             PusherUtils.triggerMultiEventHandler(multipleEvent.eventType, multipleEvent.data);
         });
     });
@@ -611,7 +648,7 @@ function updateChatPriorityMode(mode) {
         },
         {optimisticData},
     );
-    Navigation.navigate(ROUTES.SETTINGS_PREFERENCES);
+    Navigation.goBack(ROUTES.SETTINGS_PREFERENCES);
 }
 
 /**
@@ -766,7 +803,7 @@ function setContactMethodAsDefault(newDefaultContactMethod) {
         },
     ];
     API.write('SetContactMethodAsDefault', {partnerUserID: newDefaultContactMethod}, {optimisticData, successData, failureData});
-    Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
+    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS);
 }
 
 /**
@@ -816,4 +853,5 @@ export {
     updateChatPriorityMode,
     setContactMethodAsDefault,
     updateTheme,
+    resetContactMethodValidateCodeSentState,
 };
