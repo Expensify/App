@@ -17,6 +17,7 @@ import useLocalize from '../../hooks/useLocalize';
 const propTypes = {
     /** Current user session */
     session: PropTypes.shape({
+        /** Current user primary login */
         email: PropTypes.string.isRequired,
     }),
 };
@@ -31,11 +32,19 @@ function SaveTheWorldPage(props) {
     const {translate} = useLocalize();
     const isLoggedInEmailPublicDomain = LoginUtils.isEmailPublicDomain(props.session.email);
 
+    const handleNavigation = () => {
+        if (isLoggedInEmailPublicDomain) {
+            Navigation.navigate(ROUTES.I_AM_A_TEACHER);
+        } else {
+            Navigation.navigate(ROUTES.INTRO_SCHOOL_PRINCIPAL);
+        }
+    };
+
     return (
         <IllustratedHeaderPageLayout
             shouldShowBackButton
             title={translate('sidebarScreen.saveTheWorld')}
-            onBackButtonPress={() => Navigation.goBack()}
+            onBackButtonPress={Navigation.goBack}
             backgroundColor={themeColors.PAGE_BACKGROUND_COLORS[ROUTES.I_KNOW_A_TEACHER]}
             illustration={LottieAnimations.SaveTheWorld}
         >
@@ -53,7 +62,7 @@ function SaveTheWorldPage(props) {
             <MenuItem
                 shouldShowRightIcon
                 title={translate('teachersUnitePage.iAmATeacher')}
-                onPress={() => (isLoggedInEmailPublicDomain ? Navigation.navigate(ROUTES.I_AM_A_TEACHER) : Navigation.navigate(ROUTES.INTRO_SCHOOL_PRINCIPAL))}
+                onPress={handleNavigation}
             />
         </IllustratedHeaderPageLayout>
     );
@@ -64,9 +73,6 @@ SaveTheWorldPage.defaultProps = defaultProps;
 SaveTheWorldPage.displayName = 'SaveTheWorldPage';
 
 export default withOnyx({
-    user: {
-        key: ONYXKEYS.USER,
-    },
     session: {
         key: ONYXKEYS.SESSION,
     },
