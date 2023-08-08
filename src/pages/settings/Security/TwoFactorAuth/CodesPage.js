@@ -132,7 +132,7 @@ function CodesPage(props) {
                     {error && (
                         <FormHelpMessage
                             isError
-                            message={error}
+                            message={props.translate(error)}
                         />
                     )}
                     <Button
@@ -140,7 +140,7 @@ function CodesPage(props) {
                         text={props.translate('common.next')}
                         onPress={() => {
                             if (isNextButtonDisabled) {
-                                setError(props.translate('twoFactorAuth.errorStepCodes'));
+                                setError('twoFactorAuth.errorStepCodes');
                                 return;
                             }
                             Navigation.navigate(ROUTES.SETTINGS_2FA_VERIFY);

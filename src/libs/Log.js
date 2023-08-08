@@ -6,6 +6,7 @@ import getPlatform from './getPlatform';
 import pkg from '../../package.json';
 import requireParameters from './requireParameters';
 import * as Network from './Network';
+import CONST from '../CONST';
 
 let timeout = null;
 
@@ -16,12 +17,11 @@ let timeout = null;
  * @returns {Promise}
  */
 function LogCommand(parameters) {
-    const commandName = 'Log';
+    const commandName = CONST.NETWORK.COMMAND.LOG;
     requireParameters(['logPacket', 'expensifyCashAppVersion'], parameters, commandName);
 
     // Note: We are forcing Log to run since it requires no authToken and should only be queued when we are offline.
-    // Non-cancellable request: during logout, when requests are cancelled, we don't want to cancel any remaining logs
-    return Network.post(commandName, {...parameters, forceNetworkRequest: true, canCancel: false});
+    return Network.post(commandName, {...parameters, forceNetworkRequest: true});
 }
 
 /**
@@ -36,7 +36,6 @@ function LogCommand(parameters) {
 function serverLoggingCallback(logger, params) {
     const requestParams = params;
     requestParams.shouldProcessImmediately = false;
-    requestParams.shouldRetry = false;
     requestParams.expensifyCashAppVersion = `expensifyCash[${getPlatform()}]${pkg.version}`;
     if (requestParams.parameters) {
         requestParams.parameters = JSON.stringify(params.parameters);
