@@ -246,7 +246,7 @@ function ReportActionItemMessageEdit(props) {
                 Report.saveReportActionDraft(report.parentReportID, props.action.reportActionID, trimmedNewDraft);
             }
         }
-        // Updating in parent message cause child draft message to change
+        // Updates in the parent message should cause the child draft message to change
         if (props.action.childReportID) {
             if (lodashGet(props.drafts, [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${props.action.childReportID}_${props.action.reportActionID}`], undefined)) {
                 Report.saveReportActionDraft(props.action.childReportID, props.action.reportActionID, trimmedNewDraft);
