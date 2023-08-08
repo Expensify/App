@@ -860,6 +860,9 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
         });
         updatedReportPreviewAction.message[0].text = messageText;
         updatedReportPreviewAction.message[0].html = messageText;
+        if (reportPreviewAction.childMoneyRequestCount > 0) {
+            updatedReportPreviewAction.childMoneyRequestCount = reportPreviewAction.childMoneyRequestCount - 1;
+        }
     }
 
     // STEP 5: Build Onyx data
