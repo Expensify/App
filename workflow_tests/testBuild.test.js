@@ -345,7 +345,7 @@ describe('test workflow testBuild', () => {
                 },
             },
         };
-        it('executes workflow, withuout getBranchRef', async () => {
+        it('executes workflow, without getBranchRef', async () => {
             const repoPath = mockGithub.repo.getPath('testTestBuildWorkflowRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'testBuild.yml');
             let act = new eAct.ExtendedAct(repoPath, workflowPath);
@@ -483,7 +483,7 @@ describe('test workflow testBuild', () => {
                 },
             },
         };
-        it('executes workflow, withuout getBranchRef', async () => {
+        it('executes workflow, without getBranchRef', async () => {
             const repoPath = mockGithub.repo.getPath('testTestBuildWorkflowRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'testBuild.yml');
             let act = new eAct.ExtendedAct(repoPath, workflowPath);

@@ -190,7 +190,7 @@ describe('test workflow cherryPick', () => {
                         assertions.assertCherryPickJobExecuted(result, actor, '1234', true);
                     });
                 });
-                describe('version do not match', () => {
+                describe('version does not match', () => {
                     const versionsMatch = false;
                     it('workflow executes, PR auto-assigned and commented, approved and merged automatically', async () => {
                         const repoPath = mockGithub.repo.getPath('testCherryPickWorkflowRepo') || '';
@@ -289,7 +289,7 @@ describe('test workflow cherryPick', () => {
                         assertions.assertCherryPickJobExecuted(result, actor, '1234', true, true);
                     });
                 });
-                describe('version do not match', () => {
+                describe('version does not match', () => {
                     const versionsMatch = false;
                     it('workflow executes, PR auto-assigned and commented, not merged automatically', async () => {
                         const repoPath = mockGithub.repo.getPath('testCherryPickWorkflowRepo') || '';
@@ -340,7 +340,7 @@ describe('test workflow cherryPick', () => {
             });
         });
     });
-    describe('autmatic trigger', () => {
+    describe('automatic trigger', () => {
         const event = 'pull_request';
         it('workflow does not execute', async () => {
             const repoPath = mockGithub.repo.getPath('testCherryPickWorkflowRepo') || '';
