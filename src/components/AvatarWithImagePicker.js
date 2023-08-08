@@ -84,7 +84,7 @@ const propTypes = {
     headerTitle: PropTypes.string,
 
     /** Avatar source for avatar preview modal */
-    previewSource: PropTypes.string,
+    previewSource: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
 
     /** File name of the avatar */
     originalFileName: PropTypes.string,
