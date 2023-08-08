@@ -171,7 +171,7 @@ class BaseModal extends PureComponent {
                                     ...modalPaddingStyles,
                                 }}
                                 ref={this.props.forwardedRef}
-                                nativeID="no-drag-area"
+                                dataSet={{dragArea: false}}
                             >
                                 {this.props.children}
                             </View>
