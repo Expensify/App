@@ -41,8 +41,9 @@
         #drag-area {
             -webkit-app-region: drag;
         }
-        #no-drag-area, #drag-area [class*="touchAction"] {
+        #no-drag-area, #drag-area [data-tag="pressable"] {
             -webkit-app-region: no-drag;
+
         }
         input::placeholder {
             user-select: none;
