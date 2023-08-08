@@ -85,7 +85,14 @@ const propTypes = {
     ...windowDimensionsPropTypes,
 };
 
-// Get characters from the cursor to the next space or new line
+/**
+ * Retrieves the characters from the specified cursor position up to the next space or new line.
+ *
+ * @param {string} str - The input string.
+ * @param {number} cursorPos - The position of the cursor within the input string.
+ * @returns {string} - The substring from the cursor position up to the next space or new line. 
+ *                     If no space or new line is found, returns the substring from the cursor position to the end of the input string.
+ */
 const getNextChars = (str, cursorPos) => {
     // Get the substring starting from the cursor position
     const substr = str.substring(cursorPos);
@@ -150,7 +157,7 @@ function Composer({
 
     useEffect(() => {
         setSelection((prevSelection) => {
-            if (selectionProp.start === prevSelection.start && selectionProp.end === prevSelection.end) {
+            if (!!prevSelection && selectionProp.start === prevSelection.start && selectionProp.end === prevSelection.end) {
                 return;
             }
             return selectionProp;
@@ -164,6 +171,7 @@ function Composer({
      */
     const addCursorPositionToSelectionChange = (event) => {
         if (shouldCalculateCaretPosition) {
+          // we do flushSync to make sure that the valueBeforeCaret is updated before we calculate the caret position to receive a proper position otherwise we will calculate position for the previous state
             flushSync(() => {
                 setValueBeforeCaret(event.target.value.slice(0, event.nativeEvent.selection.start));
                 setCaretContent(getNextChars(value, event.nativeEvent.selection.start));
@@ -292,6 +300,10 @@ function Composer({
         event.stopPropagation();
     }, []);
 
+    /**
+     * Check the current scrollHeight of the textarea (minus any padding) and
+     * divide by line height to get the total number of rows for the textarea.
+     */
     const updateNumberOfLines = useCallback(() => {
         if (textInput.current === null) {
             return;
@@ -337,7 +349,10 @@ function Composer({
             unsubscribeBlur();
             document.removeEventListener('paste', handlePaste);
             // eslint-disable-next-line es/no-optional-chaining
-            textInput.current?.removeEventListener('wheel', handleWheel);
+            if(!textInput.current) {
+              return;
+            }
+            textInput.current.removeEventListener('wheel', handleWheel);
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
