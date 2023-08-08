@@ -204,6 +204,7 @@ function DetailsPage(props) {
                             {!isCurrentUser && (
                                 <MenuItem
                                     title={`${props.translate('common.message')}${details.displayName}`}
+                                    titleStyle={styles.flex1}
                                     icon={Expensicons.ChatBubble}
                                     onPress={() => Report.navigateToAndOpenReport([login])}
                                     wrapperStyle={styles.breakAll}

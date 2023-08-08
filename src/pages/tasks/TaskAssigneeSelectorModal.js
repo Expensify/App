@@ -183,7 +183,7 @@ function TaskAssigneeSelectorModal(props) {
                 <>
                     <HeaderWithBackButton
                         title={props.translate('task.assignee')}
-                        onBackButtonPress={() => (lodashGet(props.task.report, 'isExistingTaskReport') ? Navigation.dismissModal() : Navigation.goBack(ROUTES.NEW_TASK))}
+                        onBackButtonPress={() => (lodashGet(props.route.params, 'reportID') ? Navigation.dismissModal() : Navigation.goBack(ROUTES.NEW_TASK))}
                     />
                     <View style={[styles.flex1, styles.w100, styles.pRelative]}>
                         <OptionsSelector

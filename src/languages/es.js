@@ -1442,6 +1442,7 @@ export default {
         copy: 'Copiar',
         paste: 'Pegar',
         pasteAndMatchStyle: 'Pegar adaptando el estilo',
+        pasteAsPlainText: 'Pegar como texto sin formato',
         delete: 'Eliminar',
         selectAll: 'Seleccionar todo',
         speechSubmenu: 'Voz',

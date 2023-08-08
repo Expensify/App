@@ -70,6 +70,9 @@ const propTypes = {
     /** Content for the FlatList header component */
     listHeaderComponent: PropTypes.func,
 
+    /** React ref being forwarded to the PaymentMethodList Button */
+    buttonRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
+
     ...withLocalizePropTypes,
 };
 
@@ -89,6 +92,7 @@ const defaultProps = {
     activePaymentMethodID: '',
     selectedMethodID: '',
     listHeaderComponent: null,
+    buttonRef: () => {},
 };
 
 /**
@@ -257,6 +261,7 @@ function PaymentMethodList(props) {
                             success
                             shouldShowRightIcon
                             large
+                            ref={props.buttonRef}
                         />
                     )}
                 </FormAlertWrapper>

@@ -1,15 +1,15 @@
 import {useEffect} from 'react';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import KeyboardShortcut from '../../libs/KeyboardShortcut';
-import CONST from '../../CONST';
+import KeyboardShortcut from '../../../libs/KeyboardShortcut';
+import CONST from '../../../CONST';
 
 const propTypes = {
     /** Callback to cycle through attachments */
     onCycleThroughAttachments: PropTypes.func.isRequired,
 };
 
-function Carousel(props) {
+function CarouselActions({onCycleThroughAttachments}) {
     useEffect(() => {
         const shortcutLeftConfig = CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT;
         const unsubscribeLeftKey = KeyboardShortcut.subscribe(
@@ -20,7 +20,7 @@ function Carousel(props) {
                     e.target.blur();
                 }
 
-                props.onCycleThroughAttachments(-1);
+                onCycleThroughAttachments(-1);
             },
             shortcutLeftConfig.descriptionKey,
             shortcutLeftConfig.modifiers,
@@ -35,7 +35,7 @@ function Carousel(props) {
                     e.target.blur();
                 }
 
-                props.onCycleThroughAttachments(1);
+                onCycleThroughAttachments(1);
             },
             shortcutRightConfig.descriptionKey,
             shortcutRightConfig.modifiers,
@@ -45,12 +45,11 @@ function Carousel(props) {
             unsubscribeLeftKey();
             unsubscribeRightKey();
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [props.onCycleThroughAttachments]);
+    }, [onCycleThroughAttachments]);
 
     return null;
 }
 
-Carousel.propTypes = propTypes;
+CarouselActions.propTypes = propTypes;
 
-export default Carousel;
+export default CarouselActions;
