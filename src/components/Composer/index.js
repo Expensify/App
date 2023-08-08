@@ -90,7 +90,7 @@ const propTypes = {
  *
  * @param {string} str - The input string.
  * @param {number} cursorPos - The position of the cursor within the input string.
- * @returns {string} - The substring from the cursor position up to the next space or new line. 
+ * @returns {string} - The substring from the cursor position up to the next space or new line.
  *                     If no space or new line is found, returns the substring from the cursor position to the end of the input string.
  */
 const getNextChars = (str, cursorPos) => {
@@ -171,7 +171,7 @@ function Composer({
      */
     const addCursorPositionToSelectionChange = (event) => {
         if (shouldCalculateCaretPosition) {
-          // we do flushSync to make sure that the valueBeforeCaret is updated before we calculate the caret position to receive a proper position otherwise we will calculate position for the previous state
+            // we do flushSync to make sure that the valueBeforeCaret is updated before we calculate the caret position to receive a proper position otherwise we will calculate position for the previous state
             flushSync(() => {
                 setValueBeforeCaret(event.target.value.slice(0, event.nativeEvent.selection.start));
                 setCaretContent(getNextChars(value, event.nativeEvent.selection.start));
@@ -349,8 +349,8 @@ function Composer({
             unsubscribeBlur();
             document.removeEventListener('paste', handlePaste);
             // eslint-disable-next-line es/no-optional-chaining
-            if(!textInput.current) {
-              return;
+            if (!textInput.current) {
+                return;
             }
             textInput.current.removeEventListener('wheel', handleWheel);
         };
