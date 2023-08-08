@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import {StyleSheet} from 'react-native';
+import {Platform, StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
 import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withTiming, withDelay } from 'react-native-reanimated';
 import reportActionPropTypes from './reportActionPropTypes';
@@ -50,10 +50,12 @@ const defaultProps = {
     isLoading: true,
 };
 
+const ALWAYS_SHOW_SKELETON = Platform.OS !== 'web';
+
 function ReportActionsViewWithSkeleton(props) {
-    const [isLoading, setIsLoading] = useState(true);
-    const [skeletonVisible, setSkeletonVisible] = useState(true);
-    const skeletonOpacity = useSharedValue(1);
+    const [isLoading, setIsLoading] = useState(ALWAYS_SHOW_SKELETON);
+    const [skeletonVisible, setSkeletonVisible] = useState(ALWAYS_SHOW_SKELETON);
+    const skeletonOpacity = useSharedValue(ALWAYS_SHOW_SKELETON ? 1 : 0);
     const {windowHeight} = useWindowDimensions();
 
     const skeletonStyle = useAnimatedStyle(() => ({
@@ -72,7 +74,7 @@ function ReportActionsViewWithSkeleton(props) {
             return;
         }
 
-        skeletonOpacity.value = withDelay(100, withTiming(0, {duration: 100}, () => {
+        skeletonOpacity.value = withDelay(250, withTiming(0, {duration: 100}, () => {
             runOnJS(setSkeletonVisible)(false);
         }));
     }, [isLoading, skeletonOpacity])
