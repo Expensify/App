@@ -1,4 +1,3 @@
-/* eslint-disable react/require-default-props */
 import React, {useState, useRef, useEffect, useCallback, useMemo} from 'react';
 import {StyleSheet, View} from 'react-native';
 import PropTypes from 'prop-types';
@@ -83,6 +82,30 @@ const propTypes = {
     ...withLocalizePropTypes,
 
     ...windowDimensionsPropTypes,
+};
+
+const defaultProps = {
+    defaultValue: undefined,
+    value: undefined,
+    numberOfLines: undefined,
+    onNumberOfLinesChange: () => {},
+    maxLines: -1,
+    onPasteFile: () => {},
+    shouldClear: false,
+    onClear: () => {},
+    style: null,
+    isDisabled: false,
+    autoFocus: false,
+    forwardedRef: null,
+    onSelectionChange: () => {},
+    selection: {
+        start: 0,
+        end: 0,
+    },
+    isFullComposerAvailable: false,
+    setIsFullComposerAvailable: () => {},
+    shouldCalculateCaretPosition: false,
+    checkComposerVisibility: () => false,
 };
 
 /**
@@ -430,6 +453,7 @@ function Composer({
 }
 
 Composer.propTypes = propTypes;
+Composer.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
