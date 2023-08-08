@@ -35,7 +35,23 @@ function rand64() {
     return left + middleString + rightString;
 }
 
+/**
+ * Clamp a number in a range.
+ * This is a worklet so it should be used only from UI thread.
+ *
+ * @param {Number} num
+ * @param {Number} min
+ * @param {Number} max
+ * @returns {Number}
+ */
+function clampWorklet(num, min, max) {
+    'worklet';
+
+    return Math.min(Math.max(num, min), max);
+}
+
 export {
     // eslint-disable-next-line import/prefer-default-export
     rand64,
+    clampWorklet,
 };

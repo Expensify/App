@@ -21,6 +21,7 @@ import PressableWithoutFeedback from '../../../components/Pressable/PressableWit
 import useWindowDimensions from '../../../hooks/useWindowDimensions';
 import MultipleAvatars from '../../../components/MultipleAvatars';
 import CONST from '../../../CONST';
+import * as NumberUtils from '../../../libs/NumberUtils';
 
 const propTypes = {
     /** The id of the report */
@@ -49,36 +50,34 @@ const defaultProps = {
     policy: {},
 };
 
+const IMAGE_OFFSET_Y = 75;
+const ANIMATION_BOOST = 1.3;
+
 function ReportActionItemCreated(props) {
     const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
-
     const IMAGE_OFFSET_X = windowWidth / 2;
-    const IMAGE_OFFSET_Y = 75;
-    const ANIMATION_BOOST = 1.3;
 
     // Get data from phone rotation sensor and prep other variables for animation
     const animatedSensor = useAnimatedSensor(SensorType.GYROSCOPE);
-    const moveXoffset = useSharedValue(0);
-    const moveYoffset = useSharedValue(0);
-    const backgroundImageOffsetX = useSharedValue(-IMAGE_OFFSET_X);
+    const xOffset = useSharedValue(0);
+    const yOffset = useSharedValue(0);
 
     // Apply data to create style object
     const animatedStyles = useAnimatedStyle(() => {
         /*
-         * We use pitch and roll instead of x and y because Reanimated makes these consistent across iOS and Android by standardizing on the iOS convention.
-         * For a visualization of what these values mean: https://howthingsfly.si.edu/flight-dynamics/roll-pitch-and-yaw
-         * These values are in radians
+         * We use x and y gyroscope velocity and add it to position offset to move background based on device movements.
+         * Position the phone was in while entering the screen is the initial position for background image.
          */
         const {x, y} = animatedSensor.sensor.value;
         // The x vs y here seems wrong but is the way to make it feel right to the user
-        moveXoffset.value = Math.min(IMAGE_OFFSET_X, Math.max(-IMAGE_OFFSET_X, moveXoffset.value - y * ANIMATION_BOOST));
-        moveYoffset.value = Math.min(IMAGE_OFFSET_Y, Math.max(-IMAGE_OFFSET_Y, moveYoffset.value - x * ANIMATION_BOOST));
-        if (isSmallScreenWidth) {
-            return {
-                transform: [{translateX: withSpring(backgroundImageOffsetX.value - moveXoffset.value)}, {translateY: withSpring(moveYoffset.value)}],
-            };
+        xOffset.value = NumberUtils.clampWorklet(xOffset.value - y * ANIMATION_BOOST, -IMAGE_OFFSET_X, IMAGE_OFFSET_X);
+        yOffset.value = NumberUtils.clampWorklet(yOffset.value - x * ANIMATION_BOOST, -IMAGE_OFFSET_Y, IMAGE_OFFSET_Y);
+        if (!isSmallScreenWidth) {
+            return {};
         }
-        return {};
+        return {
+            transform: [{translateX: withSpring(-IMAGE_OFFSET_X - xOffset.value)}, {translateY: withSpring(yOffset.value)}],
+        };
     });
 
     if (!ReportUtils.isChatReport(props.report)) {
