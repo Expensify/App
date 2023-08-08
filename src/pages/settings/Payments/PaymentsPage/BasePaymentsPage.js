@@ -269,7 +269,7 @@ function BasePaymentsPage(props) {
         () => (
             <>
                 {Permissions.canUseWallet(props.betas) && (
-                    <View onLayout={setMenuPosition}>
+                    <>
                         <View style={[styles.mv5]}>
                             {shouldShowLoadingSpinner ? (
                                 <ActivityIndicator
@@ -308,12 +308,12 @@ function BasePaymentsPage(props) {
                                 </KYCWall>
                             </View>
                         )}
-                    </View>
+                    </>
                 )}
                 <Text style={[styles.ph5, styles.textLabelSupporting, styles.mb1]}>{translate('paymentsPage.paymentMethodsTitle')}</Text>
             </>
         ),
-        [props.betas, props.network.isOffline, props.userWallet.currentBalance, props.walletTerms.errors, shouldShowLoadingSpinner, translate, setMenuPosition],
+        [props.betas, props.network.isOffline, props.userWallet.currentBalance, props.walletTerms.errors, shouldShowLoadingSpinner, translate],
     );
 
     useEffect(() => {
@@ -398,6 +398,7 @@ function BasePaymentsPage(props) {
                         activePaymentMethodID={shouldShowDefaultDeleteMenu ? getSelectedPaymentMethodID() : ''}
                         listHeaderComponent={listHeaderComponent}
                         buttonRef={addPaymentMethodAnchorRef}
+                        onListContentSizeChange={shouldShowAddPaymentMenu || shouldShowDefaultDeleteMenu ? setMenuPosition : () => {}}
                     />
                 </OfflineWithFeedback>
             </View>
