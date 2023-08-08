@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import CONST from '../CONST';
 
 /**
@@ -36,6 +37,17 @@ function rand64() {
 }
 
 /**
+ * Returns a hexadecimal value of the specified length
+ * @param {Number} num
+ * @returns {String}
+ */
+function generateHexadecimalValue(num) {
+    return _.times(num, () => Math.floor(Math.random() * 16).toString(16))
+        .join('')
+        .toUpperCase();
+}
+
+/**
  * Clamp a number in a range.
  * This is a worklet so it should be used only from UI thread.
  *
@@ -50,8 +62,4 @@ function clampWorklet(num, min, max) {
     return Math.min(Math.max(num, min), max);
 }
 
-export {
-    // eslint-disable-next-line import/prefer-default-export
-    rand64,
-    clampWorklet,
-};
+export {rand64, generateHexadecimalValue, clampWorklet};
