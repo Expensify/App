@@ -127,7 +127,7 @@ const isPolicyAdmin = (policy) => lodashGet(policy, 'role') === CONST.POLICY.ROL
  *
  * We only return members without errors. Otherwise, the members with errors would immediately be removed before the user has a chance to read the error.
  */
-function getClientPolicyMemberEmailsToAccountIDs(policyMembers, personalDetails) {
+function getMemberAccountIDsForWorkspace(policyMembers, personalDetails) {
     const memberEmailsToAccountIDs = {};
     _.each(policyMembers, (member, accountID) => {
         if (!_.isEmpty(member.errors)) {
@@ -142,6 +142,30 @@ function getClientPolicyMemberEmailsToAccountIDs(policyMembers, personalDetails)
     return memberEmailsToAccountIDs;
 }
 
+/**
+ * Get login list that we should not show in the workspace invite options
+ *
+ * @param {Object} policyMembers
+ * @param {Object} personalDetails
+ * @returns {Array}
+ */
+function getIneligibleInvitees(policyMembers, personalDetails) {
+    const memberEmailsToExclude = [...CONST.EXPENSIFY_EMAILS];
+    _.each(policyMembers, (policyMember, accountID) => {
+        // Policy members that are pending delete or have errors are not valid and we should show them in the invite options (don't exclude them).
+        if (policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !_.isEmpty(policyMember.errors)) {
+            return;
+        }
+        const memberEmail = lodashGet(personalDetails, `[${accountID}].login`);
+        if (!memberEmail) {
+            return;
+        }
+        memberEmailsToExclude.push(memberEmail);
+    });
+
+    return memberEmailsToExclude;
+}
+
 export {
     getActivePolicies,
     hasPolicyMemberError,
@@ -153,5 +177,6 @@ export {
     isExpensifyTeam,
     isExpensifyGuideTeam,
     isPolicyAdmin,
-    getClientPolicyMemberEmailsToAccountIDs,
+    getMemberAccountIDsForWorkspace,
+    getIneligibleInvitees,
 };

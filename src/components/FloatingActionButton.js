@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {Animated, Easing, View} from 'react-native';
 import PropTypes from 'prop-types';
 import Icon from './Icon';
@@ -24,36 +24,35 @@ const propTypes = {
     // Current state (active or not active) of the component
     isActive: PropTypes.bool.isRequired,
 
+    // Ref for the button
+    buttonRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
+
     ...withLocalizePropTypes,
 };
 
-function FloatingActionButton({isActive, onPress, translate, accessibilityLabel, accessibilityRole}) {
-    const prevIsActive = usePrevious(isActive);
-    const animatedValue = useRef(new Animated.Value(isActive ? 1 : 0));
+const defaultProps = {
+    buttonRef: () => {},
+};
+
+function FloatingActionButton({isActive, onPress, buttonRef, translate, accessibilityLabel, accessibilityRole}) {
+    const animatedValue = useRef(isActive ? 1 : 0);
     const fabPressable = useRef(null);
-
-    /**
-     * Animates the floating action button
-     * Method is called when the isActive prop changes
-     */
-    const animateFloatingActionButton = useCallback(() => {
-        const animationFinalValue = isActive ? 1 : 0;
-
-        Animated.timing(animatedValue.current, {
-            toValue: animationFinalValue,
-            duration: 340,
-            easing: Easing.inOut(Easing.ease),
-            useNativeDriver: false,
-        }).start();
-    }, [isActive]);
+    const previousIsActive = usePrevious(isActive);
 
     useEffect(() => {
-        if (prevIsActive === isActive) {
+        if (isActive === previousIsActive) {
             return;
         }
 
-        animateFloatingActionButton();
-    }, [prevIsActive, isActive, animateFloatingActionButton]);
+        const animationFinalValue = isActive ? 1 : 0;
+
+        Animated.timing(animatedValue.current, {
+           toValue: animationFinalValue,
+           duration: 340,
+           easing: Easing.inOut(Easing.ease),
+           useNativeDriver: false,
+       }).start();
+    }, [isActive, previousIsActive]);
 
     const rotate = animatedValue.current.interpolate({
         inputRange: [0, 1],
@@ -74,7 +73,13 @@ function FloatingActionButton({isActive, onPress, translate, accessibilityLabel,
         <Tooltip text={translate('common.new')}>
             <View style={styles.floatingActionButtonContainer}>
                 <AnimatedPressable
-                    ref={fabPressable}
+                    ref={(el) => {
+                        fabPressable.current = el;
+                        if (buttonRef) {
+                            // eslint-disable-next-line no-param-reassign
+                            buttonRef.current = el;
+                        }
+                    }}
                     accessibilityLabel={accessibilityLabel}
                     accessibilityRole={accessibilityRole}
                     pressDimmingValue={1}
@@ -97,5 +102,14 @@ function FloatingActionButton({isActive, onPress, translate, accessibilityLabel,
 }
 
 FloatingActionButton.propTypes = propTypes;
-FloatingActionButton.displayName = 'FloatingActionButton';
-export default withLocalize(FloatingActionButton);
+FloatingActionButton.defaultProps = defaultProps;
+
+const FloatingActionButtonWithLocalize = withLocalize(FloatingActionButton);
+
+export default React.forwardRef((props, ref) => (
+    <FloatingActionButtonWithLocalize
+        // eslint-disable-next-line
+        {...props}
+        buttonRef={ref}
+    />
+));

@@ -13,6 +13,7 @@ import * as UserUtils from '../UserUtils';
 import * as ErrorUtils from '../ErrorUtils';
 import * as ReportActionsUtils from '../ReportActionsUtils';
 import * as Expensicons from '../../components/Icon/Expensicons';
+import * as LocalePhoneNumber from '../LocalePhoneNumber';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -87,6 +88,9 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
                 ...optimisticTaskReport,
                 pendingFields: {
                     createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    description: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    managerID: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
                 isOptimisticReport: true,
             },
@@ -115,6 +119,9 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
             value: {
                 pendingFields: {
                     createChat: null,
+                    reportName: null,
+                    description: null,
+                    managerID: null,
                 },
                 isOptimisticReport: false,
             },
@@ -400,10 +407,27 @@ function editTaskAndNavigate(report, ownerAccountID, {title, description, assign
                 description: reportDescription,
                 managerID: assigneeAccountID || report.managerID,
                 managerEmail: assignee || report.managerEmail,
+                pendingFields: {
+                    ...(title && {reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+                    ...(description && {description: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+                    ...(assigneeAccountID && {managerID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+                },
             },
         },
     ];
-    const successData = [];
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
+            value: {
+                pendingFields: {
+                    ...(title && {reportName: null}),
+                    ...(description && {description: null}),
+                    ...(assigneeAccountID && {managerID: null}),
+                },
+            },
+        },
+    ];
     const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -413,7 +437,12 @@ function editTaskAndNavigate(report, ownerAccountID, {title, description, assign
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
-            value: {reportName: report.reportName, description: report.description, assignee: report.managerEmail, assigneeAccountID: report.managerID},
+            value: {
+                reportName: report.reportName,
+                description: report.description,
+                assignee: report.managerEmail,
+                assigneeAccountID: report.managerID,
+            },
         },
     ];
 
@@ -567,10 +596,12 @@ function clearOutTaskInfoAndNavigate(reportID) {
 /**
  * Get the assignee data
  *
- * @param {Object} details
+ * @param {Number} assigneeAccountID
+ * @param {Object} personalDetails
  * @returns {Object}
  */
-function getAssignee(details) {
+function getAssignee(assigneeAccountID, personalDetails) {
+    const details = personalDetails[assigneeAccountID];
     if (!details) {
         return {
             icons: [],
@@ -578,9 +609,8 @@ function getAssignee(details) {
             subtitle: '',
         };
     }
-    const source = UserUtils.getAvatar(lodashGet(details, 'avatar', ''), lodashGet(details, 'accountID', -1));
     return {
-        icons: [{source, type: 'avatar', name: details.login}],
+        icons: ReportUtils.getIconsForParticipants([details.accountID], personalDetails),
         displayName: details.displayName,
         subtitle: details.login,
     };
@@ -595,10 +625,16 @@ function getAssignee(details) {
  * */
 function getShareDestination(reportID, reports, personalDetails) {
     const report = lodashGet(reports, `report_${reportID}`, {});
+    let subtitle = '';
+    if (ReportUtils.isChatReport(report) && ReportUtils.isDM(report) && ReportUtils.hasSingleParticipant(report)) {
+        subtitle = LocalePhoneNumber.formatPhoneNumber(report.participants[0]);
+    } else {
+        subtitle = ReportUtils.getChatRoomSubtitle(report);
+    }
     return {
         icons: ReportUtils.getIcons(report, personalDetails, Expensicons.FallbackAvatar, ReportUtils.isIOUReport(report)),
         displayName: ReportUtils.getReportName(report),
-        subtitle: ReportUtils.getChatRoomSubtitle(report),
+        subtitle,
     };
 }
 
@@ -712,14 +748,31 @@ function getTaskOwnerAccountID(taskReport) {
 }
 
 /**
- * Check if current user is either task assignee or task owner
- *
+ * Check if you're allowed to modify the task - anyone that has write access to the report can modify the task
  * @param {Object} taskReport
  * @param {Number} sessionAccountID
  * @returns {Boolean}
  */
-function isTaskAssigneeOrTaskOwner(taskReport, sessionAccountID) {
-    return sessionAccountID === getTaskOwnerAccountID(taskReport) || sessionAccountID === getTaskAssigneeAccountID(taskReport);
+function canModifyTask(taskReport, sessionAccountID) {
+    if (sessionAccountID === getTaskOwnerAccountID(taskReport) || sessionAccountID === getTaskAssigneeAccountID(taskReport)) {
+        return true;
+    }
+
+    // If you don't have access to the task report (maybe haven't opened it yet), check if you can access the parent report
+    // - If the parent report is an #admins only room
+    // - If you are a policy admin
+    const parentReport = ReportUtils.getParentReport(taskReport);
+    return ReportUtils.isAllowedToComment(parentReport);
+}
+
+/**
+ * @param {String} reportID
+ */
+function clearEditTaskErrors(reportID) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+        pendingFields: null,
+        errorFields: null,
+    });
 }
 
 export {
@@ -740,5 +793,6 @@ export {
     cancelTask,
     dismissModalAndClearOutTaskInfo,
     getTaskAssigneeAccountID,
-    isTaskAssigneeOrTaskOwner,
+    clearEditTaskErrors,
+    canModifyTask,
 };
