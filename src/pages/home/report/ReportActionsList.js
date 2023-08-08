@@ -19,7 +19,6 @@ import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 import reportActionPropTypes from './reportActionPropTypes';
 import CONST from '../../../CONST';
 import reportPropTypes from '../../reportPropTypes';
-import networkPropTypes from '../../../components/networkPropTypes';
 import useLocalize from '../../../hooks/useLocalize';
 import useNetwork from '../../../hooks/useNetwork';
 import DateUtils from '../../../libs/DateUtils';
