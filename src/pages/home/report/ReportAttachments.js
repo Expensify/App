@@ -69,9 +69,8 @@ function ReportAttachments(props) {
         // then we are on a page other than report screen. Now call openReport to get report actions
         // since we dont have them in onyx.
         const reportActions = ReportActionUtils.getReportActions(initialReport.reportID);
-        if (!initialReport.isLoadingReportActions && _.isEmpty(reportActions)) {
-            Report.openReport(reportID);
-        }
+        if (initialReport.isLoadingReportActions || !_.isEmpty(reportActions)) return;
+        Report.openReport(reportID);
     }, [initialReport, reportID]);
 
     return (
