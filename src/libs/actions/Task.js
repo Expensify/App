@@ -213,7 +213,13 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
     Navigation.dismissModal(optimisticTaskReport.reportID);
 }
 
-function completeTask(taskReportID, taskTitle) {
+/**
+ * Complete a task
+ * @param {Object} taskReport task report
+ * @param {String} taskTitle Title of the task
+ */
+function completeTask(taskReport, taskTitle) {
+    const taskReportID = taskReport.reportID;
     const message = `completed task: ${taskTitle}`;
     const completedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED, message);
 
@@ -266,9 +272,25 @@ function completeTask(taskReportID, taskTitle) {
     ];
 
     // Update optimistic data for parent report action
-    const optimisticParentReportData = ReportUtils.getOptimisticDataForParentReportAction(taskReportID, completedTaskReportAction.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-    if (!_.isEmpty(optimisticParentReportData)) {
-        optimisticData.push(optimisticParentReportData);
+    const optimisticDataForParentReportAction = ReportUtils.getOptimisticDataForParentReportAction(taskReportID, completedTaskReportAction.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+    if (!_.isEmpty(optimisticDataForParentReportAction)) {
+        optimisticData.push(optimisticDataForParentReportAction);
+    }
+
+    // Multiple report actions can link to the same child. Both share destination (task parent) and assignee report link to the same report action.
+    // We need to find and update the other parent report action (in assignee report). More info https://github.com/Expensify/App/issues/23920#issuecomment-1663092717
+    const assigneeReportAction = ReportUtils.getTaskParentReportActionIDInAssigneeReport(taskReport);
+    if (!_.isEmpty(assigneeReportAction)) {
+        const optimisticDataForClonedParentReportAction = ReportUtils.getOptimisticDataForParentReportAction(
+            taskReportID,
+            completedTaskReportAction.created,
+            CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            assigneeReportAction.reportID,
+            assigneeReportAction.reportActionID,
+        );
+        if (!_.isEmpty(optimisticDataForClonedParentReportAction)) {
+            optimisticData.push(optimisticDataForClonedParentReportAction);
+        }
     }
 
     API.write(
@@ -282,11 +304,12 @@ function completeTask(taskReportID, taskTitle) {
 }
 
 /**
- * Reopens a closed task
- * @param {string} taskReportID ReportID of the task
- * @param {string} taskTitle Title of the task
+ * Reopen a closed task
+ * @param {Object} taskReport task report
+ * @param {String} taskTitle Title of the task
  */
-function reopenTask(taskReportID, taskTitle) {
+function reopenTask(taskReport, taskTitle) {
+    const taskReportID = taskReport.reportID;
     const message = `reopened task: ${taskTitle}`;
     const reopenedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASKREOPENED, message);
 
@@ -342,9 +365,25 @@ function reopenTask(taskReportID, taskTitle) {
     ];
 
     // Update optimistic data for parent report action
-    const optimisticParentReportData = ReportUtils.getOptimisticDataForParentReportAction(taskReportID, reopenedTaskReportAction.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-    if (!_.isEmpty(optimisticParentReportData)) {
-        optimisticData.push(optimisticParentReportData);
+    const optimisticDataForParentReportAction = ReportUtils.getOptimisticDataForParentReportAction(taskReportID, reopenedTaskReportAction.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+    if (!_.isEmpty(optimisticDataForParentReportAction)) {
+        optimisticData.push(optimisticDataForParentReportAction);
+    }
+
+    // Multiple report actions can link to the same child. Both share destination (task parent) and assignee report link to the same report action.
+    // We need to find and update the other parent report action (in assignee report). More info https://github.com/Expensify/App/issues/23920#issuecomment-1663092717
+    const assigneeReportAction = ReportUtils.getTaskParentReportActionIDInAssigneeReport(taskReport);
+    if (!_.isEmpty(assigneeReportAction)) {
+        const optimisticDataForClonedParentReportAction = ReportUtils.getOptimisticDataForParentReportAction(
+            taskReportID,
+            reopenedTaskReportAction.created,
+            CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            assigneeReportAction.reportID,
+            assigneeReportAction.reportActionID,
+        );
+        if (!_.isEmpty(optimisticDataForClonedParentReportAction)) {
+            optimisticData.push(optimisticDataForClonedParentReportAction);
+        }
     }
 
     API.write(
@@ -380,9 +419,9 @@ function editTaskAndNavigate(report, ownerAccountID, {title, description, assign
     let optimisticAssigneeAddComment;
     let assigneeChatReportID;
     if (assigneeAccountID && assigneeAccountID !== report.managerID && assigneeAccountID !== ownerAccountID) {
-        assigneeChatReportID = ReportUtils.getChatByParticipants([assigneeAccountID]).reportID;
+        assigneeChatReportID = lodashGet(ReportUtils.getChatByParticipants([assigneeAccountID]), ['reportID'], undefined);
 
-        if (assigneeChatReportID !== report.parentReportID.toString()) {
+        if (assigneeChatReportID && assigneeChatReportID !== report.parentReportID.toString()) {
             optimisticAssigneeAddComment = ReportUtils.buildOptimisticTaskCommentReportAction(
                 report.reportID,
                 reportName,
