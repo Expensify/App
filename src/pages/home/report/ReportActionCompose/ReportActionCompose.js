@@ -251,8 +251,8 @@ function ReportActionCompose({
     const [hasExceededMaxCommentLength, setExceededMaxCommentLength] = useState(false);
 
     const commentRef = useRef(comment);
-    const textInput = useRef(null);
-    const actionButton = useRef(null);
+    const textInputRef = useRef(null);
+    const actionButtonRef = useRef(null);
 
     const suggestionsRef = useRef(null);
 
@@ -295,18 +295,18 @@ function ReportActionCompose({
         // There could be other animations running while we trigger manual focus.
         // This prevents focus from making those animations janky.
         InteractionManager.runAfterInteractions(() => {
-            if (!textInput.current) {
+            if (!textInputRef.current) {
                 return;
             }
 
             if (!shouldDelay) {
-                textInput.current.focus();
+                textInputRef.current.focus();
             } else {
                 // Keyboard is not opened after Emoji Picker is closed
                 // SetTimeout is used as a workaround
                 // https://github.com/react-native-modal/react-native-modal/issues/114
                 // We carefully choose a delay. 100ms is found enough for keyboard to open.
-                setTimeout(() => textInput.current.focus(), 100);
+                setTimeout(() => textInputRef.current.focus(), 100);
             }
         });
     }, []);
@@ -459,7 +459,7 @@ function ReportActionCompose({
     const setTextInputRef = useCallback(
         (el) => {
             ReportActionComposeFocusManager.composerRef.current = el;
-            textInput.current = el;
+            textInputRef.current = el;
             if (_.isFunction(animatedRef)) {
                 animatedRef(el);
             }
@@ -594,7 +594,7 @@ function ReportActionCompose({
             }
 
             // Trigger the edit box for last sent message if ArrowUp is pressed and the comment is empty and Chronos is not in the participants
-            if (e.key === CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey && textInput.current.selectionStart === 0 && value.length === 0 && !ReportUtils.chatIncludesChronos(report)) {
+            if (e.key === CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey && textInputRef.current.selectionStart === 0 && value.length === 0 && !ReportUtils.chatIncludesChronos(report)) {
                 e.preventDefault();
 
                 const parentReportActionID = lodashGet(report, 'parentReportActionID', '');
@@ -733,16 +733,6 @@ function ReportActionCompose({
             runOnJS(submitForm)();
         });
 
-    const menuItems = [
-        ...moneyRequestOptions,
-        ...taskOption,
-        {
-            icon: Expensicons.Paperclip,
-            text: translate('reportActionCompose.addAttachment'),
-            onSelected: () => {},
-        },
-    ];
-
     return (
         <View style={[shouldShowReportRecipientLocalTime && !lodashGet(network, 'isOffline') && styles.chatItemComposeWithFirstRow, isComposerFullSize && styles.chatItemFullComposeRow]}>
             <OfflineWithFeedback
@@ -769,119 +759,121 @@ function ReportActionCompose({
                         {({displayFileInModal}) => (
                             <>
                                 <AttachmentPicker>
-                                    {({openPicker}) => (
-                                        <>
-                                            <View
-                                                style={[
-                                                    styles.dFlex,
-                                                    styles.flexColumn,
-                                                    isFullSizeComposerAvailable || isComposerFullSize ? styles.justifyContentBetween : styles.justifyContentCenter,
-                                                ]}
-                                            >
-                                                {isComposerFullSize && (
-                                                    <Tooltip text={translate('reportActionCompose.collapse')}>
-                                                        <PressableWithFeedback
-                                                            onPress={(e) => {
-                                                                e.preventDefault();
-                                                                updateShouldShowSuggestionMenuToFalse();
-                                                                Report.setIsComposerFullSize(reportID, false);
-                                                            }}
-                                                            // Keep focus on the composer when Collapse button is clicked.
-                                                            onMouseDown={(e) => e.preventDefault()}
-                                                            style={styles.composerSizeButton}
-                                                            disabled={isBlockedFromConcierge || disabled}
-                                                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                                                            accessibilityLabel={translate('reportActionCompose.collapse')}
-                                                        >
-                                                            <Icon src={Expensicons.Collapse} />
-                                                        </PressableWithFeedback>
-                                                    </Tooltip>
-                                                )}
-                                                {!isComposerFullSize && isFullSizeComposerAvailable && (
-                                                    <Tooltip text={translate('reportActionCompose.expand')}>
-                                                        <PressableWithFeedback
-                                                            onPress={(e) => {
-                                                                e.preventDefault();
-                                                                suggestionsRef.current.updateShouldShowSuggestionMenuToFalse();
-                                                                Report.setIsComposerFullSize(reportID, true);
-                                                            }}
-                                                            // Keep focus on the composer when Expand button is clicked.
-                                                            onMouseDown={(e) => e.preventDefault()}
-                                                            style={styles.composerSizeButton}
-                                                            disabled={isBlockedFromConcierge || disabled}
-                                                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                                                            accessibilityLabel={translate('reportActionCompose.expand')}
-                                                        >
-                                                            <Icon src={Expensicons.Expand} />
-                                                        </PressableWithFeedback>
-                                                    </Tooltip>
-                                                )}
-                                                <Tooltip text={translate('reportActionCompose.addAction')}>
-                                                    <PressableWithFeedback
-                                                        ref={actionButton}
-                                                        onPress={(e) => {
-                                                            e.preventDefault();
-
-                                                            // Drop focus to avoid blue focus ring.
-                                                            actionButton.current.blur();
-                                                            setMenuVisibility(!isMenuVisible);
-                                                        }}
-                                                        style={styles.composerSizeButton}
-                                                        disabled={isBlockedFromConcierge || disabled}
-                                                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                                                        accessibilityLabel={translate('reportActionCompose.addAction')}
-                                                    >
-                                                        <Icon src={Expensicons.Plus} />
-                                                    </PressableWithFeedback>
-                                                </Tooltip>
-                                            </View>
-                                            <PopoverMenu
-                                                animationInTiming={CONST.ANIMATION_IN_TIMING}
-                                                isVisible={isMenuVisible}
-                                                onClose={() => setMenuVisibility(false)}
-                                                onItemSelected={(_item, index) => {
-                                                    setMenuVisibility(false);
-
-                                                    // In order for the file picker to open dynamically, the click
-                                                    // function must be called from within a event handler that was initiated
-                                                    // by the user.
-                                                    if (index === menuItems.length - 1) {
-                                                        // Set a flag to block suggestion calculation until we're finished using the file picker,
-                                                        // which will stop any flickering as the file picker opens on non-native devices.
-                                                        if (willBlurTextInputOnTapOutside) {
-                                                            suggestionsRef.current.setShouldBlockSuggestionCalc(true);
-                                                        }
-                                                        openPicker({
-                                                            onPicked: displayFileInModal,
-                                                        });
+                                    {({openPicker}) => {
+                                        const triggerAttachmentPicker = () => {
+                                            // Set a flag to block suggestion calculation until we're finished using the file picker,
+                                            // which will stop any flickering as the file picker opens on non-native devices.
+                                            if (willBlurTextInputOnTapOutsideFunc) {
+                                                shouldBlockEmojiCalc.current = true;
+                                                shouldBlockMentionCalc.current = true;
+                                            }
+                                            openPicker({
+                                                onPicked: displayFileInModal,
+                                            });
+                                        };
+                                        const menuItems = [
+                                            ...moneyRequestOptions,
+                                            ...taskOption,
+                                            {
+                                                icon: Expensicons.Paperclip,
+                                                text: translate('reportActionCompose.addAttachment'),
+                                                onSelected: () => {
+                                                    if (Browser.isSafari()) {
+                                                        return;
                                                     }
-                                                }}
-                                                anchorPosition={styles.createMenuPositionReportActionCompose(windowHeight)}
-                                                anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM}}
-                                                menuItems={[
-                                                    ...moneyRequestOptions,
-                                                    ...taskOption,
-                                                    {
-                                                        icon: Expensicons.Paperclip,
-                                                        text: translate('reportActionCompose.addAttachment'),
-                                                        onSelected: () => {
-                                                            // Set a flag to block suggestion calculation until we're finished using the file picker,
-                                                            // which will stop any flickering as the file picker opens on non-native devices.
-                                                            if (willBlurTextInputOnTapOutside) {
-                                                                suggestionsRef.current.setShouldBlockSuggestionCalc(true);
-                                                            }
+                                                    triggerAttachmentPicker();
+                                                },
+                                            },
+                                        ];
+                                        return (
+                                            <>
+                                                <View
+                                                    style={[
+                                                        styles.dFlex,
+                                                        styles.flexColumn,
+                                                        isFullSizeComposerAvailable || isComposerFullSize ? styles.justifyContentBetween : styles.justifyContentCenter,
+                                                    ]}
+                                                >
+                                                    {isComposerFullSize && (
+                                                        <Tooltip text={translate('reportActionCompose.collapse')}>
+                                                            <PressableWithFeedback
+                                                                onPress={(e) => {
+                                                                    e.preventDefault();
+                                                                    updateShouldShowSuggestionMenuToFalse();
+                                                                    Report.setIsComposerFullSize(reportID, false);
+                                                                }}
+                                                                // Keep focus on the composer when Collapse button is clicked.
+                                                                onMouseDown={(e) => e.preventDefault()}
+                                                                style={styles.composerSizeButton}
+                                                                disabled={isBlockedFromConcierge || disabled}
+                                                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                                                accessibilityLabel={translate('reportActionCompose.collapse')}
+                                                            >
+                                                                <Icon src={Expensicons.Collapse} />
+                                                            </PressableWithFeedback>
+                                                        </Tooltip>
+                                                    )}
+                                                    {!isComposerFullSize && isFullSizeComposerAvailable && (
+                                                        <Tooltip text={translate('reportActionCompose.expand')}>
+                                                            <PressableWithFeedback
+                                                                onPress={(e) => {
+                                                                    e.preventDefault();
+                                                                    updateShouldShowSuggestionMenuToFalse();
+                                                                    Report.setIsComposerFullSize(reportID, true);
+                                                                }}
+                                                                // Keep focus on the composer when Expand button is clicked.
+                                                                onMouseDown={(e) => e.preventDefault()}
+                                                                style={styles.composerSizeButton}
+                                                                disabled={isBlockedFromConcierge || disabled}
+                                                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                                                accessibilityLabel={translate('reportActionCompose.expand')}
+                                                            >
+                                                                <Icon src={Expensicons.Expand} />
+                                                            </PressableWithFeedback>
+                                                        </Tooltip>
+                                                    )}
+                                                    <Tooltip text={translate('reportActionCompose.addAction')}>
+                                                        <PressableWithFeedback
+                                                            ref={actionButtonRef}
+                                                            onPress={(e) => {
+                                                                e.preventDefault();
 
-                                                            openPicker({
-                                                                onPicked: displayFileInModal,
-                                                            });
-                                                        },
-                                                    },
-                                                ]}
-                                                withoutOverlay
-                                                anchorRef={actionButton}
-                                            />
-                                        </>
-                                    )}
+                                                                // Drop focus to avoid blue focus ring.
+                                                                actionButtonRef.current.blur();
+                                                                setMenuVisibility(!isMenuVisible);
+                                                            }}
+                                                            style={styles.composerSizeButton}
+                                                            disabled={isBlockedFromConcierge || disabled}
+                                                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                                            accessibilityLabel={translate('reportActionCompose.addAction')}
+                                                        >
+                                                            <Icon src={Expensicons.Plus} />
+                                                        </PressableWithFeedback>
+                                                    </Tooltip>
+                                                </View>
+                                                <PopoverMenu
+                                                    animationInTiming={CONST.ANIMATION_IN_TIMING}
+                                                    isVisible={isMenuVisible}
+                                                    onClose={() => setMenuVisibility(false)}
+                                                    onItemSelected={(item, index) => {
+                                                        setMenuVisibility(false);
+
+                                                        // In order for the file picker to open dynamically, the click
+                                                        // function must be called from within a event handler that was initiated
+                                                        // by the user on Safari.
+                                                        if (index === menuItems.length - 1) {
+                                                            triggerAttachmentPicker();
+                                                        }
+                                                    }}
+                                                    anchorPosition={styles.createMenuPositionReportActionCompose(windowHeight)}
+                                                    anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM}}
+                                                    menuItems={menuItems}
+                                                    withoutOverlay
+                                                    anchorRef={actionButtonRef}
+                                                />
+                                            </>
+                                        );
+                                    }}
                                 </AttachmentPicker>
                                 <View style={[containerComposeStyles, styles.textInputComposeBorder]}>
                                     <Composer
@@ -952,16 +944,19 @@ function ReportActionCompose({
                         <GestureDetector gesture={Tap}>
                             <Tooltip text={translate('common.send')}>
                                 <PressableWithFeedback
-                                    style={[styles.chatItemSubmitButton, isCommentEmpty || hasExceededMaxCommentLength ? undefined : styles.buttonSuccess]}
-                                    onPress={submitForm}
-                                    disabled={isCommentEmpty || isBlockedFromConcierge || disabled || hasExceededMaxCommentLength}
+                                    style={({pressed, isDisabled}) => [
+                                        styles.chatItemSubmitButton,
+                                        isCommentEmpty || hasExceededMaxCommentLength || pressed || isDisabled ? undefined : styles.buttonSuccess,
+                                    ]}
                                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                     accessibilityLabel={translate('common.send')}
                                 >
-                                    <Icon
-                                        src={Expensicons.Send}
-                                        fill={isCommentEmpty || hasExceededMaxCommentLength ? themeColors.icon : themeColors.textLight}
-                                    />
+                                    {({pressed}) => (
+                                        <Icon
+                                            src={Expensicons.Send}
+                                            fill={isCommentEmpty || hasExceededMaxCommentLength || pressed ? themeColors.icon : themeColors.textLight}
+                                        />
+                                    )}
                                 </PressableWithFeedback>
                             </Tooltip>
                         </GestureDetector>
