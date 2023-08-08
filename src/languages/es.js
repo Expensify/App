@@ -2036,11 +2036,11 @@ export default {
         levelThreeResult: 'Mensaje eliminado del canal, más advertencia anónima y mensaje reportado para revisión.',
     },
     distance: {
-        addStop: 'Añadir parada',
+        addStop: 'Agregar parada',
         waypointDescription: {
-            start: 'El comienzo',
-            finish: 'El final',
-            stop: 'La parada',
+            start: 'Comienzo',
+            finish: 'Final',
+            stop: 'Parada',
         },
     },
     countrySelectorModal: {
