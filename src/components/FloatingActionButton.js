@@ -35,7 +35,7 @@ const defaultProps = {
 };
 
 function FloatingActionButton({isActive, onPress, buttonRef, translate, accessibilityLabel, accessibilityRole}) {
-    const animatedValue = useRef(isActive ? 1 : 0);
+    const animatedValue = useRef(new Animated.Value(isActive ? 1 : 0));
     const fabPressable = useRef(null);
     const previousIsActive = usePrevious(isActive);
 
