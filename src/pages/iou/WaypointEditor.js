@@ -1,13 +1,13 @@
 import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import AddressSearch from '../components/AddressSearch';
-import ScreenWrapper from '../components/ScreenWrapper';
-import HeaderWithBackButton from '../components/HeaderWithBackButton';
+import AddressSearch from '../../components/AddressSearch';
+import ScreenWrapper from '../../components/ScreenWrapper';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import {withOnyx} from 'react-native-onyx';
 import Navigation from '../../libs/Navigation/Navigation';
-import ONYXKEYS from '../ONYXKEYS';
-import Form from '../components/Form';
+import ONYXKEYS from '../../ONYXKEYS';
+import Form from '../../components/Form';
 
 function WaypointEditor(props) {
 
@@ -28,8 +28,6 @@ function WaypointEditor(props) {
             <Form
                 style={[styles.flexGrow1, styles.mh5]}
                 formID={ONYXKEYS.FORMS.HOME_ADDRESS_FORM}
-                validate={}
-                onSubmit={}
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
             >
