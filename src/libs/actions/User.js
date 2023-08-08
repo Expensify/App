@@ -585,7 +585,7 @@ function subscribeToUserEvents() {
                         previousUpdateIDFromPusher: pushJSONPreviousUpdateID,
                         lastUpdateIDOnClient: onyxUpdatesLastUpdateID,
                     });
-                    App.reconnectApp(onyxUpdatesLastUpdateID, pushJSONLastUpdateID, true);
+                    App.getMissingOnyxUpdates(onyxUpdatesLastUpdateID, pushJSONLastUpdateID);
                 }
             } else {
                 console.debug('[OnyxUpdates] No lastUpdateID and previousUpdateID provided from Pusher');

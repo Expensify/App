@@ -182,11 +182,9 @@ function openApp() {
 /**
  * Fetches data when the app reconnects to the network
  * @param {Number} [updateIDFrom] the ID of the Onyx update that we want to start fetching from
- * @param {Number} [updateIDTo] the ID of the Onyx update that we want to fetch up to
- * @param {Boolean} [prioritizeRequest] whether or not the request should be put at the front of the sequential queue before other requests
  */
-function reconnectApp(updateIDFrom = 0, updateIDTo = 0, prioritizeRequest = false) {
-    console.debug(`[OnyxUpdates] App reconnecting with updateIDFrom: ${updateIDFrom} and updateIDTo: ${updateIDTo}`);
+function reconnectApp(updateIDFrom = 0) {
+    console.debug(`[OnyxUpdates] App reconnecting with updateIDFrom: ${updateIDFrom}`);
     getPolicyParamsForOpenOrReconnect().then((policyParams) => {
         const params = {...policyParams};
 
@@ -205,12 +203,28 @@ function reconnectApp(updateIDFrom = 0, updateIDTo = 0, prioritizeRequest = fals
             params.updateIDFrom = updateIDFrom;
         }
 
-        if (updateIDTo) {
-            params.updateIDTo = updateIDTo;
-        }
-
-        API.write('ReconnectApp', params, getOnyxDataForOpenOrReconnect(), prioritizeRequest);
+        API.write('ReconnectApp', params, getOnyxDataForOpenOrReconnect());
     });
+}
+/**
+ * Fetches data when the client has discovered it missed some Onyx updates from the server
+ * @param {Number} [updateIDFrom] the ID of the Onyx update that we want to start fetching from
+ * @param {Number} [updateIDTo] the ID of the Onyx update that we want to fetch up to
+ */
+function getMissingOnyxUpdates(updateIDFrom = 0, updateIDTo = 0) {
+    console.debug(`[OnyxUpdates] Fetching missing updates updateIDFrom: ${updateIDFrom} and updateIDTo: ${updateIDTo}`);
+
+    API.write(
+        'GetMissingOnyxMessages',
+        {
+            updateIDFrom,
+            updateIDTo,
+        },
+        getOnyxDataForOpenOrReconnect(),
+
+        // Set this to true so that the request will be prioritized at the front of the sequential queue
+        true,
+    );
 }
 
 /**
@@ -388,6 +402,7 @@ export {
     setUpPoliciesAndNavigate,
     openProfile,
     openApp,
+    getMissingOnyxUpdates,
     reconnectApp,
     confirmReadyToOpenApp,
     beginDeepLinkRedirect,
