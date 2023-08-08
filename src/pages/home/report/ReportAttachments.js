@@ -49,9 +49,8 @@ function ReportAttachments(props) {
     const [initialReport, setInitialReport] = useState(props.report);
 
     useEffect(() => {
-        if (props.report.reportID && reportID !== props.report.reportID) {
-            setInitialReport(props.report);
-        }
+        if (!props.report.reportID || reportID === props.report.reportID) return;
+        setInitialReport(props.report);
     }, [reportID, props.report]);
 
     /** This effects handles 2x cases when report attachments are opened with deep link */
