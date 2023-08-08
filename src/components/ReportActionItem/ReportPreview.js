@@ -96,7 +96,7 @@ function ReportPreview(props) {
     const managerID = props.iouReport.managerID || props.action.actorAccountID || 0;
     const isCurrentUserManager = managerID === lodashGet(props.session, 'accountID');
     const moneyRequestCount = lodashGet(props.action, 'childMoneyRequestCount', 0);
-    const moneyRequestComment = lodashGet(props.action, 'childLastMoneyRequestComment');
+    const moneyRequestComment = lodashGet(props.action, 'childLastMoneyRequestComment', '');
     const showComment = moneyRequestComment || moneyRequestCount > 1;
     const reportTotal = ReportUtils.getMoneyRequestTotal(props.iouReport);
     let displayAmount;
