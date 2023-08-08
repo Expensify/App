@@ -7,6 +7,7 @@ import {escapeRegExp} from 'lodash';
 import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
+import * as NumberUtils from '../NumberUtils';
 import * as OptionsListUtils from '../OptionsListUtils';
 import * as ErrorUtils from '../ErrorUtils';
 import * as ReportUtils from '../ReportUtils';
@@ -834,9 +835,45 @@ function generateDefaultWorkspaceName(email = '') {
  * @returns {String}
  */
 function generatePolicyID() {
-    return _.times(16, () => Math.floor(Math.random() * 16).toString(16))
-        .join('')
-        .toUpperCase();
+    return NumberUtils.generateHexadecimalValue(16);
+}
+
+/**
+ * Returns a client generated 13 character hexadecimal value for a custom unit ID
+ * @returns {String}
+ */
+function generateCustomUnitID() {
+    return NumberUtils.generateHexadecimalValue(13);
+}
+
+/**
+ * @returns {Object}
+ */
+function buildOptimisticCustomUnits() {
+    const customUnitID = generateCustomUnitID();
+    const customUnitRateID = generateCustomUnitID();
+    const customUnits = {
+        [customUnitID]: {
+            customUnitID,
+            name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+            attributes: {
+                unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+            },
+            rates: {
+                [customUnitRateID]: {
+                    customUnitRateID,
+                    name: CONST.CUSTOM_UNITS.DEFAULT_RATE,
+                    rate: CONST.CUSTOM_UNITS.MILEAGE_IRS_RATE * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET,
+                },
+            },
+        },
+    };
+
+    return {
+        customUnits,
+        customUnitID,
+        customUnitRateID,
+    };
 }
 
 /**
@@ -850,6 +887,8 @@ function generatePolicyID() {
  */
 function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName = '', policyID = generatePolicyID()) {
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
+
+    const {customUnits, customUnitID, customUnitRateID} = buildOptimisticCustomUnits();
 
     const {
         announceChatReportID,
@@ -880,6 +919,8 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
             announceCreatedReportActionID,
             adminsCreatedReportActionID,
             expenseCreatedReportActionID,
+            customUnitID,
+            customUnitRateID,
         },
         {
             optimisticData: [
@@ -894,6 +935,7 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                         owner: sessionEmail,
                         outputCurrency: lodashGet(allPersonalDetails, [sessionAccountID, 'localCurrencyCode'], CONST.CURRENCY.USD),
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                        customUnits,
                     },
                 },
                 {

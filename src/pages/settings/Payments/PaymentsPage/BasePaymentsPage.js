@@ -38,10 +38,6 @@ function BasePaymentsPage(props) {
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
     const [shouldShowAddPaymentMenu, setShouldShowAddPaymentMenu] = useState(false);
     const [shouldShowDefaultDeleteMenu, setShouldShowDefaultDeleteMenu] = useState(false);
-    const [showPassword] = useState({
-        shouldShowPasswordPrompt: false,
-        passwordButtonText: '',
-    });
     const [shouldShowLoadingSpinner, setShouldShowLoadingSpinner] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState({
         isSelectedPaymentMethodDefault: false,
@@ -348,7 +344,7 @@ function BasePaymentsPage(props) {
     }, [props.shouldListenForResize, setMenuPosition]);
 
     useEffect(() => {
-        if (!shouldShowDefaultDeleteMenu && !showPassword.shouldShowPasswordPrompt) {
+        if (!shouldShowDefaultDeleteMenu) {
             return;
         }
 
@@ -368,16 +364,7 @@ function BasePaymentsPage(props) {
                 hideDefaultDeleteMenu();
             }
         }
-    }, [
-        hideDefaultDeleteMenu,
-        paymentMethod.methodID,
-        paymentMethod.selectedPaymentMethodType,
-        props.bankAccountList,
-        props.cardList,
-        props.payPalMeData,
-        shouldShowDefaultDeleteMenu,
-        showPassword.shouldShowPasswordPrompt,
-    ]);
+    }, [hideDefaultDeleteMenu, paymentMethod.methodID, paymentMethod.selectedPaymentMethodType, props.bankAccountList, props.cardList, props.payPalMeData, shouldShowDefaultDeleteMenu]);
 
     const isPayPalMeSelected = paymentMethod.formattedSelectedPaymentMethod.type === CONST.PAYMENT_METHODS.PAYPAL;
     const shouldShowMakeDefaultButton =
@@ -407,8 +394,8 @@ function BasePaymentsPage(props) {
                         onPress={paymentMethodPressed}
                         style={[styles.flex4]}
                         isAddPaymentMenuActive={shouldShowAddPaymentMenu}
-                        actionPaymentMethodType={shouldShowDefaultDeleteMenu || showPassword.shouldShowPasswordPrompt ? paymentMethod.selectedPaymentMethodType : ''}
-                        activePaymentMethodID={shouldShowDefaultDeleteMenu || showPassword.shouldShowPasswordPrompt ? getSelectedPaymentMethodID() : ''}
+                        actionPaymentMethodType={shouldShowDefaultDeleteMenu ? paymentMethod.selectedPaymentMethodType : ''}
+                        activePaymentMethodID={shouldShowDefaultDeleteMenu ? getSelectedPaymentMethodID() : ''}
                         listHeaderComponent={listHeaderComponent}
                         buttonRef={addPaymentMethodAnchorRef}
                     />
@@ -449,13 +436,7 @@ function BasePaymentsPage(props) {
                             <Button
                                 onPress={() => {
                                     setShouldShowDefaultDeleteMenu(false);
-
-                                    // Wait for the previous modal to close, before opening a new one. A modal will be considered completely closed when closing animation is finished.
-                                    // InteractionManager fires after the currently running animation is completed.
-                                    // https://github.com/Expensify/App/issues/7768#issuecomment-1044879541
-                                    InteractionManager.runAfterInteractions(() => {
-                                        makeDefaultPaymentMethod();
-                                    });
+                                    makeDefaultPaymentMethod();
                                 }}
                                 text={translate('paymentsPage.setDefaultConfirmation')}
                             />
