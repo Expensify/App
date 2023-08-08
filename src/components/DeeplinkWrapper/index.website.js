@@ -36,7 +36,6 @@ function DeeplinkWrapper({children, isAuthenticated}) {
     const [currentScreen, setCurrentScreen] = useState();
     const [hasShownPrompt, setHasShownPrompt] = useState(false);
     const removeListener = useRef();
-    CONFIG.ENVIRONMENT = CONST.ENVIRONMENT.STAGING;
 
     useEffect(() => {
         // If we've shown the prompt and still have a listener registered,
@@ -64,7 +63,6 @@ function DeeplinkWrapper({children, isAuthenticated}) {
         if (!isMacOSWeb() || CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.DEV || hasShownPrompt) {
             return;
         }
-
         if (isAuthenticated) {
             promptToOpenInDesktopApp();
             setHasShownPrompt(true);

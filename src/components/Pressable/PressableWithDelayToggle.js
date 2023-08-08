@@ -13,7 +13,7 @@ import useThrottledButtonState from '../../hooks/useThrottledButtonState';
 
 const propTypes = {
     /** Ref passed to the component by React.forwardRef (do not pass from parent) */
-    innerRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]).isRequired,
+    innerRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
 
     /** The text to display */
     text: PropTypes.string,
@@ -67,6 +67,7 @@ const defaultProps = {
     icon: null,
     inline: true,
     iconChecked: Expensicons.Checkmark,
+    innerRef: () => {},
 };
 
 function PressableWithDelayToggle(props) {

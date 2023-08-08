@@ -173,6 +173,7 @@ export default {
         sizeNotMet: 'Attachment size must be greater than 240 bytes.',
         wrongFileType: 'Attachment is the wrong type',
         notAllowedExtension: 'This filetype is not allowed',
+        folderNotAllowedMessage: 'Uploading a folder is not allowed. Try a different file.',
     },
     avatarCropModal: {
         title: 'Edit photo',
@@ -1443,6 +1444,7 @@ export default {
         copy: 'Copy',
         paste: 'Paste',
         pasteAndMatchStyle: 'Paste and Match Style',
+        pasteAsPlainText: 'Paste as Plain Text',
         delete: 'Delete',
         selectAll: 'Select All',
         speechSubmenu: 'Speech',
