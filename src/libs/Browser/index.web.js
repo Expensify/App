@@ -69,7 +69,6 @@ function isMobileChrome() {
 function openRouteInDesktopApp(shortLivedAuthToken = '', email = '') {
     const params = new URLSearchParams();
     params.set('exitTo', `${window.location.pathname}${window.location.search}${window.location.hash}`);
-
     if (email && shortLivedAuthToken) {
         params.set('email', email);
         params.set('shortLivedAuthToken', shortLivedAuthToken);
