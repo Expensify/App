@@ -1,3 +1,4 @@
+/* eslint-disable react/require-default-props */
 import React, {useState, useRef, useEffect, useCallback, useMemo} from 'react';
 import {StyleSheet, View} from 'react-native';
 import PropTypes from 'prop-types';
@@ -6,7 +7,6 @@ import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import {flushSync} from 'react-dom';
 import RNTextInput from '../RNTextInput';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import Growl from '../../libs/Growl';
 import themeColors from '../../styles/themes/default';
 import updateIsFullComposerAvailable from '../../libs/ComposerUtils/updateIsFullComposerAvailable';
 import * as ComposerUtils from '../../libs/ComposerUtils';
@@ -74,9 +74,6 @@ const propTypes = {
     /** Allow the full composer to be opened */
     setIsFullComposerAvailable: PropTypes.func,
 
-    /** Whether the composer is full size */
-    isComposerFullSize: PropTypes.bool,
-
     /** Should we calculate the caret position */
     shouldCalculateCaretPosition: PropTypes.bool,
 
@@ -88,42 +85,14 @@ const propTypes = {
     ...windowDimensionsPropTypes,
 };
 
-const defaultProps = {
-    defaultValue: undefined,
-    value: undefined,
-    numberOfLines: undefined,
-    onNumberOfLinesChange: () => {},
-    maxLines: -1,
-    onPasteFile: () => {},
-    shouldClear: false,
-    onClear: () => {},
-    style: null,
-    isDisabled: false,
-    autoFocus: false,
-    forwardedRef: null,
-    onSelectionChange: () => {},
-    selection: {
-        start: 0,
-        end: 0,
-    },
-    isFullComposerAvailable: false,
-    setIsFullComposerAvailable: () => {},
-    isComposerFullSize: false,
-    shouldCalculateCaretPosition: false,
-    checkComposerVisibility: () => false,
-};
-
-const IMAGE_EXTENSIONS = {
-    'image/bmp': 'bmp',
-    'image/gif': 'gif',
-    'image/jpeg': 'jpg',
-    'image/png': 'png',
-    'image/svg+xml': 'svg',
-    'image/tiff': 'tiff',
-    'image/webp': 'webp',
-};
-
-// Get characters from the cursor to the next space or new line
+/**
+ * Retrieves the characters from the specified cursor position up to the next space or new line.
+ *
+ * @param {string} str - The input string.
+ * @param {number} cursorPos - The position of the cursor within the input string.
+ * @returns {string} - The substring from the cursor position up to the next space or new line.
+ *                     If no space or new line is found, returns the substring from the cursor position to the end of the input string.
+ */
 const getNextChars = (str, cursorPos) => {
     // Get the substring starting from the cursor position
     const substr = str.substring(cursorPos);
@@ -142,26 +111,27 @@ const getNextChars = (str, cursorPos) => {
 // Enable Markdown parsing.
 // On web we like to have the Text Input field always focused so the user can easily type a new chat
 function Composer({
+    value = undefined,
+    defaultValue = undefined,
+    maxLines = -1,
     onKeyPress,
-    style,
-    shouldClear,
-    onClear,
-    checkComposerVisibility,
-    onPasteFile,
+    style = null,
+    shouldClear = false,
+    autoFocus = false,
     translate,
-    isComposerFullSize,
-    maxLines,
-    value,
-    onNumberOfLinesChange,
-    isFullComposerAvailable,
-    setIsFullComposerAvailable,
-    shouldCalculateCaretPosition,
-    numberOfLines: numberOfLinesProp,
-    isDisabled,
-    forwardedRef,
+    isFullComposerAvailable = false,
+    shouldCalculateCaretPosition = false,
+    numberOfLines: numberOfLinesProp = undefined,
+    isDisabled = false,
+    forwardedRef = null,
     navigation,
-    defaultValue,
-    onSelectionChange,
+    onClear = () => {},
+    onPasteFile = () => {},
+    onSelectionChange = () => {},
+    onNumberOfLinesChange = () => {},
+    setIsFullComposerAvailable = () => {},
+    checkComposerVisibility = () => false,
+    selection: selectionProp = {start: 0, end: 0},
     ...props
 }) {
     const textRef = useRef(null);
@@ -186,8 +156,13 @@ function Composer({
     }, [shouldClear, onClear]);
 
     useEffect(() => {
-        setSelection(props.selection);
-    }, [props.selection]);
+        setSelection((prevSelection) => {
+            if (!!prevSelection && selectionProp.start === prevSelection.start && selectionProp.end === prevSelection.end) {
+                return;
+            }
+            return selectionProp;
+        });
+    }, [selectionProp]);
 
     /**
      *  Adds the cursor position to the selection change event.
@@ -195,21 +170,26 @@ function Composer({
      * @param {Event} event
      */
     const addCursorPositionToSelectionChange = (event) => {
-        flushSync(() => {
-            setValueBeforeCaret(event.target.value.slice(0, event.nativeEvent.selection.start));
-            setCaretContent(getNextChars(value, event.nativeEvent.selection.start));
-        });
+        if (shouldCalculateCaretPosition) {
+            // we do flushSync to make sure that the valueBeforeCaret is updated before we calculate the caret position to receive a proper position otherwise we will calculate position for the previous state
+            flushSync(() => {
+                setValueBeforeCaret(event.target.value.slice(0, event.nativeEvent.selection.start));
+                setCaretContent(getNextChars(value, event.nativeEvent.selection.start));
+            });
+        }
 
+        const selectionValue = {
+            start: event.nativeEvent.selection.start,
+            end: event.nativeEvent.selection.end,
+            positionX: textRef.current.offsetLeft - CONST.SPACE_CHARACTER_WIDTH,
+            positionY: textRef.current.offsetTop,
+        };
         onSelectionChange({
             nativeEvent: {
-                selection: {
-                    start: event.nativeEvent.selection.start,
-                    end: event.nativeEvent.selection.end,
-                    positionX: textRef.current.offsetLeft - CONST.SPACE_CHARACTER_WIDTH,
-                    positionY: textRef.current.offsetTop,
-                },
+                selection: selectionValue,
             },
         });
+        setSelection(selectionValue);
     };
 
     /**
@@ -235,6 +215,19 @@ function Composer({
         (html) => {
             const parser = new ExpensiMark();
             paste(parser.htmlToMarkdown(html));
+        },
+        [paste],
+    );
+
+    /**
+     * Paste the plaintext content into Composer.
+     *
+     * @param {ClipboardEvent} event
+     */
+    const handlePastePlainText = useCallback(
+        (event) => {
+            const plainText = event.clipboardData.getData('text/plain');
+            paste(plainText);
         },
         [paste],
     );
@@ -277,54 +270,20 @@ function Composer({
                 const domparser = new DOMParser();
                 const embeddedImages = domparser.parseFromString(pastedHTML, TEXT_HTML).images;
 
-                // If HTML has img tag, then fetch images from it.
+                // Exclude parsing img tags in the HTML, as fetching the image via fetch triggers a connect-src Content-Security-Policy error.
                 if (embeddedImages.length > 0 && embeddedImages[0].src) {
                     // If HTML has emoji, then treat this as plain text.
                     if (embeddedImages[0].dataset && embeddedImages[0].dataset.stringifyType === 'emoji') {
-                        const plainText = event.clipboardData.getData('text/plain');
-                        paste(plainText);
+                        handlePastePlainText(event);
                         return;
                     }
-                    fetch(embeddedImages[0].src)
-                        .then((response) => {
-                            if (!response.ok) {
-                                throw Error(response.statusText);
-                            }
-                            return response.blob();
-                        })
-                        .then((x) => {
-                            const extension = IMAGE_EXTENSIONS[x.type];
-                            if (!extension) {
-                                throw new Error(translate('composer.noExtensionFoundForMimeType'));
-                            }
-
-                            return new File([x], `pasted_image.${extension}`, {});
-                        })
-                        .then(onPasteFile)
-                        .catch(() => {
-                            const errorDesc = translate('composer.problemGettingImageYouPasted');
-                            Growl.error(errorDesc);
-
-                            /*
-                             * Since we intercepted the user-triggered paste event to check for attachments,
-                             * we need to manually set the value and call the `onChangeText` handler.
-                             * Synthetically-triggered paste events do not affect the document's contents.
-                             * See https://developer.mozilla.org/en-US/docs/Web/API/Element/paste_event for more details.
-                             */
-                            handlePastedHTML(pastedHTML);
-                        });
-                    return;
                 }
-
                 handlePastedHTML(pastedHTML);
                 return;
             }
-
-            const plainText = event.clipboardData.getData('text/plain');
-
-            paste(plainText);
+            handlePastePlainText(event);
         },
-        [onPasteFile, translate, paste, handlePastedHTML, checkComposerVisibility],
+        [onPasteFile, handlePastedHTML, checkComposerVisibility, handlePastePlainText],
     );
 
     /**
@@ -341,12 +300,14 @@ function Composer({
         event.stopPropagation();
     }, []);
 
-    useEffect(() => {
+    /**
+     * Check the current scrollHeight of the textarea (minus any padding) and
+     * divide by line height to get the total number of rows for the textarea.
+     */
+    const updateNumberOfLines = useCallback(() => {
         if (textInput.current === null) {
             return;
         }
-        updateIsFullComposerAvailable({isFullComposerAvailable, setIsFullComposerAvailable}, numberOfLinesProp);
-
         // we reset the height to 0 to get the correct scrollHeight
         textInput.current.style.height = 0;
         const computedStyle = window.getComputedStyle(textInput.current);
@@ -361,7 +322,40 @@ function Composer({
         updateIsFullComposerAvailable({isFullComposerAvailable, setIsFullComposerAvailable}, generalNumberOfLines);
         setNumberOfLines(generalNumberOfLines);
         textInput.current.style.height = 'auto';
-    }, [value, maxLines, numberOfLinesProp, isComposerFullSize, onNumberOfLinesChange, isFullComposerAvailable, setIsFullComposerAvailable]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [value, maxLines, numberOfLinesProp, onNumberOfLinesChange, isFullComposerAvailable, setIsFullComposerAvailable]);
+
+    useEffect(() => {
+        updateNumberOfLines();
+    }, [updateNumberOfLines]);
+
+    useEffect(() => {
+        // we need to handle listeners on navigation focus/blur as Composer is not unmounting
+        // when navigating away to different report
+        const unsubscribeFocus = navigation.addListener('focus', () => document.addEventListener('paste', handlePaste));
+        const unsubscribeBlur = navigation.addListener('blur', () => document.removeEventListener('paste', handlePaste));
+
+        if (_.isFunction(forwardedRef)) {
+            forwardedRef(textInput.current);
+        }
+
+        if (textInput.current) {
+            textInput.current.addEventListener('paste', handlePaste);
+            textInput.current.addEventListener('wheel', handleWheel);
+        }
+
+        return () => {
+            unsubscribeFocus();
+            unsubscribeBlur();
+            document.removeEventListener('paste', handlePaste);
+            // eslint-disable-next-line es/no-optional-chaining
+            if (!textInput.current) {
+                return;
+            }
+            textInput.current.removeEventListener('wheel', handleWheel);
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const handleKeyPress = useCallback(
         (e) => {
@@ -373,43 +367,6 @@ function Composer({
         },
         [onKeyPress],
     );
-
-    /**
-     * Set the TextInput Ref
-     *
-     * @param {Element} el
-     */
-    const setTextInputRef = useCallback(
-        (el) => {
-            textInput.current = el;
-
-            if (_.isFunction(forwardedRef)) {
-                forwardedRef(textInput.current);
-            }
-
-            if (textInput.current) {
-                textInput.current.addEventListener('paste', handlePaste);
-                textInput.current.addEventListener('wheel', handleWheel);
-            }
-        },
-        [forwardedRef, handlePaste, handleWheel],
-    );
-
-    useEffect(() => {
-        // we need to handle listeners on navigation focus/blur as Composer is not unmounting
-        // when navigating away to different report
-        const unsubscribeFocus = navigation.addListener('focus', () => document.addEventListener('paste', handlePaste));
-        const unsubscribeBlur = navigation.addListener('blur', () => document.removeEventListener('paste', handlePaste));
-
-        return () => {
-            unsubscribeFocus();
-            unsubscribeBlur();
-            document.removeEventListener('paste', handlePaste);
-            // eslint-disable-next-line es/no-optional-chaining
-            textInput.current?.removeEventListener('wheel', handleWheel);
-        };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
 
     const renderElementForCaretPosition = (
         <View
@@ -453,12 +410,13 @@ function Composer({
                 autoComplete="off"
                 autoCorrect={!Browser.isMobileSafari()}
                 placeholderTextColor={themeColors.placeholderText}
-                ref={setTextInputRef}
+                ref={(el) => (textInput.current = el)}
                 selection={selection}
                 style={inputStyleMemo}
                 value={value}
                 forwardedRef={forwardedRef}
                 defaultValue={defaultValue}
+                autoFocus={autoFocus}
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
                 {...props}
                 onSelectionChange={addCursorPositionToSelectionChange}
@@ -472,7 +430,6 @@ function Composer({
 }
 
 Composer.propTypes = propTypes;
-Composer.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
