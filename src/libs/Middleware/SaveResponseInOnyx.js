@@ -2,6 +2,10 @@ import Onyx from 'react-native-onyx';
 import CONST from '../../CONST';
 import * as QueuedOnyxUpdates from '../actions/QueuedOnyxUpdates';
 
+function updateOnyx(updates) {
+    Onyx.update(updates);
+}
+
 /**
  * @param {Promise} response
  * @param {Object} request
@@ -16,7 +20,7 @@ function SaveResponseInOnyx(response, request) {
 
         // For most requests we can immediately update Onyx. For write requests we queue the updates and apply them after the sequential queue has flushed to prevent a replay effect in
         // the UI. See https://github.com/Expensify/App/issues/12775 for more info.
-        const updateHandler = request.data.apiRequestType === CONST.API_REQUEST_TYPE.WRITE ? QueuedOnyxUpdates.queueOnyxUpdates : Onyx.update;
+        const updateHandler = request.data.apiRequestType === CONST.API_REQUEST_TYPE.WRITE ? QueuedOnyxUpdates.queueOnyxUpdates : updateOnyx;
 
         // First apply any onyx data updates that are being sent back from the API. We wait for this to complete and then
         // apply successData or failureData. This ensures that we do not update any pending, loading, or other UI states contained
