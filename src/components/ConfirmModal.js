@@ -33,6 +33,9 @@ const propTypes = {
     /** Is the action destructive */
     danger: PropTypes.bool,
 
+    /** Whether we should disable the confirm button when offline */
+    shouldDisableConfirmButtonWhenOffline: PropTypes.bool,
+
     /** Whether we should show the cancel button */
     shouldShowCancelButton: PropTypes.bool,
 
@@ -52,6 +55,7 @@ const defaultProps = {
     success: true,
     danger: false,
     onCancel: () => {},
+    shouldDisableConfirmButtonWhenOffline: false,
     shouldShowCancelButton: true,
     shouldSetModalVisibility: true,
     title: '',
@@ -79,6 +83,7 @@ function ConfirmModal(props) {
                 prompt={props.prompt}
                 success={props.success}
                 danger={props.danger}
+                shouldDisableConfirmButtonWhenOffline={props.shouldDisableConfirmButtonWhenOffline}
                 shouldShowCancelButton={props.shouldShowCancelButton}
             />
         </Modal>
