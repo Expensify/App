@@ -146,11 +146,7 @@ function NewChatPage(props) {
      * @param {Object} option
      */
     function createChat(option) {
-        if (option.accountID) {
-            Report.navigateToAndOpenReportWithAccountIDs([option.accountID]);
-        } else {
-            Report.navigateToAndOpenReport([option.login]);
-        }
+        Report.navigateToAndOpenReport([option.login]);
     }
 
     /**
