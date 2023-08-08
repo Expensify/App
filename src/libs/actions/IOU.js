@@ -20,6 +20,7 @@ import TransactionUtils from '../TransactionUtils';
 import * as ErrorUtils from '../ErrorUtils';
 import * as UserUtils from '../UserUtils';
 import * as Report from './Report';
+import * as NumberUtils from '../NumberUtils';
 
 let allReports;
 Onyx.connect({
@@ -1512,6 +1513,12 @@ function setMoneyRequestReceipt(receiptPath, receiptSource) {
     Onyx.merge(ONYXKEYS.IOU, {receiptPath, receiptSource});
 }
 
+function createEmptyTransaction() {
+    const transactionID = NumberUtils.rand64();
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {});
+    Onyx.merge(ONYXKEYS.IOU, {transactionID});
+}
+
 /**
  * Navigates to the next IOU page based on where the IOU request was started
  *
@@ -1565,5 +1572,6 @@ export {
     setMoneyRequestDescription,
     setMoneyRequestParticipants,
     setMoneyRequestReceipt,
+    createEmptyTransaction,
     navigateToNextPage,
 };
