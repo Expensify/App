@@ -596,6 +596,15 @@ function ReportActionCompose({
         RNTextInputReset.resetKeyboardInput(findNodeHandle(textInputRef));
     }, [textInputRef]);
 
+    const onTriggerAttachmentPicker = useCallback(() => {
+        // Set a flag to block suggestion calculation until we're finished using the file picker,
+        // which will stop any flickering as the file picker opens on non-native devices.
+        if (!willBlurTextInputOnTapOutsideFunc) {
+            return;
+        }
+        suggestionsRef.current.setShouldBlockSuggestionCalc(true);
+    }, [suggestionsRef]);
+
     useEffect(() => {
         const unsubscribeNavigationBlur = navigation.addListener('blur', () => KeyDownListener.removeKeyDownPressListner(focusComposerOnKeyPress));
         const unsubscribeNavigationFocus = navigation.addListener('focus', () => {
@@ -706,6 +715,7 @@ function ReportActionCompose({
                                     disabled={isBlockedFromConcierge || disabled}
                                     setMenuVisibility={setMenuVisibility}
                                     isMenuVisible={isMenuVisible}
+                                    onTriggerAttachmentPicker={onTriggerAttachmentPicker}
                                 />
                                 <View style={[containerComposeStyles, styles.textInputComposeBorder]}>
                                     <Composer
