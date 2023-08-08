@@ -106,14 +106,14 @@ class ScreenWrapper extends React.Component {
 
                     return (
                         <View
-                            style={[...this.props.style, styles.flex1, paddingStyle]}
+                            style={styles.flex1}
                             // eslint-disable-next-line react/jsx-props-no-spreading
-                            {...this.keyboardDissmissPanResponder.panHandlers}
+                            {...(this.props.environment === CONST.ENVIRONMENT.DEV ? this.panResponder.panHandlers : {})}
                         >
                             <View
-                                style={styles.flex1}
+                                style={[...this.props.style, styles.flex1, paddingStyle]}
                                 // eslint-disable-next-line react/jsx-props-no-spreading
-                                {...(this.props.environment === CONST.ENVIRONMENT.DEV ? this.panResponder.panHandlers : {})}
+                                {...this.keyboardDissmissPanResponder.panHandlers}
                             >
                                 <KeyboardAvoidingView
                                     style={[styles.w100, styles.h100, {maxHeight}]}
