@@ -1887,11 +1887,11 @@ function buildOptimisticReportPreview(chatReport, iouReport, comment) {
  *
  * @param {Object} iouReport
  * @param {Object} reportPreviewAction
- * @param {String} comment - User comment for the IOU.
+ * @param {String} [comment] - User comment for the IOU.
  *
  * @returns {Object}
  */
-function updateReportPreview(iouReport, reportPreviewAction, comment) {
+function updateReportPreview(iouReport, reportPreviewAction, comment = '') {
     const message = getReportPreviewMessage(iouReport, reportPreviewAction);
     return {
         ...reportPreviewAction,
@@ -1904,7 +1904,7 @@ function updateReportPreview(iouReport, reportPreviewAction, comment) {
                 type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
             },
         ],
-        childLastMoneyRequestComment: comment,
+        childLastMoneyRequestComment: comment ? comment : reportPreviewAction.childLastMoneyRequestComment,
         childMoneyRequestCount: reportPreviewAction.childMoneyRequestCount + 1,
     };
 }
