@@ -340,7 +340,7 @@ export default {
                     },
                     SignIn: {
                         screens: {
-                            SignIn_Root: ROUTES.SIGNINMODAL,
+                            SignIn_Root: ROUTES.SIGN_IN_MODAL,
                         },
                     },
                 },

@@ -83,7 +83,7 @@ function getRenderOptions({hasLogin, hasValidateCode, hasAccount, isPrimaryLogin
 function SignInPage({credentials, account, isInModal}) {
     const {translate, formatPhoneNumber} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const showSmallScreen = isSmallScreenWidth || isInModal;
+    const shouldShowSmallScreen = isSmallScreenWidth || isInModal;
     const safeAreaInsets = useSafeAreaInsets();
 
     useEffect(() => Performance.measureTTI(), []);
@@ -118,19 +118,19 @@ function SignInPage({credentials, account, isInModal}) {
             // replacing spaces with "hard spaces" to prevent breaking the number
             const userLoginToDisplay = Str.isSMSLogin(userLogin) ? formatPhoneNumber(userLogin).replace(/ /g, '\u00A0') : userLogin;
             if (account.validated) {
-                welcomeHeader = showSmallScreen ? '' : translate('welcomeText.welcomeBack');
-                welcomeText = showSmallScreen
+                welcomeHeader = shouldShowSmallScreen ? '' : translate('welcomeText.welcomeBack');
+                welcomeText = shouldShowSmallScreen
                     ? `${translate('welcomeText.welcomeBack')} ${translate('welcomeText.welcomeEnterMagicCode', {login: userLoginToDisplay})}`
                     : translate('welcomeText.welcomeEnterMagicCode', {login: userLoginToDisplay});
             } else {
-                welcomeHeader = showSmallScreen ? '' : translate('welcomeText.welcome');
-                welcomeText = showSmallScreen
+                welcomeHeader = shouldShowSmallScreen ? '' : translate('welcomeText.welcome');
+                welcomeText = shouldShowSmallScreen
                     ? `${translate('welcomeText.welcome')} ${translate('welcomeText.newFaceEnterMagicCode', {login: userLoginToDisplay})}`
                     : translate('welcomeText.newFaceEnterMagicCode', {login: userLoginToDisplay});
             }
         }
     } else if (shouldShowUnlinkLoginForm || shouldShowEmailDeliveryFailurePage) {
-        welcomeHeader = showSmallScreen ? translate('login.hero.header') : translate('welcomeText.welcomeBack');
+        welcomeHeader = shouldShowSmallScreen ? translate('login.hero.header') : translate('welcomeText.welcomeBack');
 
         // Don't show any welcome text if we're showing the user the email delivery failed view
         if (shouldShowEmailDeliveryFailurePage) {

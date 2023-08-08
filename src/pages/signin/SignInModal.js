@@ -12,7 +12,7 @@ const defaultProps = {};
 function SignInModal() {
     return (
         <ScreenWrapper
-            style={[styles.signInModal]}
+            style={[styles.highlightBG]}
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
             onEntryTransitionEnd={() => {}}
