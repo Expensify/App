@@ -2399,14 +2399,16 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouRep
         return false;
     }
 
-    // Hide thread reports that haven't been commented on
-    if (isThread(report) && _.isEmpty(report.lastMessageText)) {
-        return false;
-    }
-
-    // Hide chats between two users that haven't been commented on from the LNH
-    if (excludeEmptyChats && _.isEmpty(report.lastMessageText) && isChatReport(report) && !isChatRoom(report)) {
-        return false;
+    const isEmptyChat = !ReportActionsUtils.getLastVisibleMessage(report).lastMessageText;
+    if (excludeEmptyChats && isEmptyChat) {
+        // Hide thread reports that haven't been commented on
+        if(isThread(report)) {
+            return false;
+        }
+        // Hide chats between two users that haven't been commented on from the LNH
+        if (isChatReport(report) && !isChatRoom(report)) {
+            return false;
+        }
     }
 
     return true;
