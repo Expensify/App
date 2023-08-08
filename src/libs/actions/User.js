@@ -18,8 +18,7 @@ import * as ReportActionsUtils from '../ReportActionsUtils';
 import * as ErrorUtils from '../ErrorUtils';
 import * as Session from './Session';
 import * as PersonalDetails from './PersonalDetails';
-import * as App from './App';
-import Log from '../Log';
+import * as OnyxUpdates from './OnyxUpdates';
 
 let currentUserAccountID = '';
 let currentEmail = '';
@@ -41,12 +40,6 @@ Onyx.connect({
 
         myPersonalDetails = val[currentUserAccountID];
     },
-});
-
-let onyxUpdatesLastUpdateID;
-Onyx.connect({
-    key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID,
-    callback: (val) => (onyxUpdatesLastUpdateID = val),
 });
 
 /**
@@ -561,35 +554,7 @@ function subscribeToUserEvents() {
             updates = pushJSON;
         } else {
             updates = pushJSON.updates;
-
-            // Not always we'll have the lastUpdateID and previousUpdateID properties in the pusher update
-            // until we finish the migration to reliable updates. So let's check it before actually updating
-            // the properties in Onyx
-            if (pushJSON.lastUpdateID && pushJSON.previousUpdateID) {
-                const pushJSONLastUpdateID = Number(pushJSON.lastUpdateID || 0);
-                const pushJSONPreviousUpdateID = Number(pushJSON.previousUpdateID || 0);
-
-                console.debug('[OnyxUpdates] Received lastUpdateID from pusher', pushJSONLastUpdateID);
-                console.debug('[OnyxUpdates] Received previousUpdateID from pusher', pushJSONPreviousUpdateID);
-                console.debug('[OnyxUpdates] The lastUpdateID the client received was', onyxUpdatesLastUpdateID);
-
-                // Store this value in Onyx to allow AuthScreens to fetch incremental updates from the server when a previous session is being reconnected to.
-                Onyx.set(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID, pushJSONLastUpdateID);
-
-                // The previous update from the server does not match the last update the client got which means the client is missing some updates.
-                // ReconnectApp will fetch updates starting from the last update this client got and going to the last update the server sent.
-                if (onyxUpdatesLastUpdateID < pushJSONPreviousUpdateID) {
-                    console.debug('[OnyxUpdates] Gap detected in update IDs so fetching incremental updates');
-                    Log.info('Gap detected in update IDs from Pusher so fetching incremental updates', true, {
-                        lastUpdateIDFromPusher: pushJSONLastUpdateID,
-                        previousUpdateIDFromPusher: pushJSONPreviousUpdateID,
-                        lastUpdateIDOnClient: onyxUpdatesLastUpdateID,
-                    });
-                    App.getMissingOnyxUpdates(onyxUpdatesLastUpdateID, pushJSONLastUpdateID);
-                }
-            } else {
-                console.debug('[OnyxUpdates] No lastUpdateID and previousUpdateID provided from Pusher');
-            }
+            OnyxUpdates.detectAndGetMissingUpdates(Number(pushJSON.lastUpdateID || 0), Number(pushJSON.previousUpdateID || 0));
         }
         _.each(updates, (multipleEvent) => {
             PusherUtils.triggerMultiEventHandler(multipleEvent.eventType, multipleEvent.data);
