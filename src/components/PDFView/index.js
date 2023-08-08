@@ -1,9 +1,10 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
-import {View, Dimensions} from 'react-native';
+import {View} from 'react-native';
 import 'core-js/features/array/at';
 import {Document, Page, pdfjs} from 'react-pdf/dist/esm/entry.webpack';
 import pdfWorkerSource from 'pdfjs-dist/legacy/build/pdf.worker';
+import {VariableSizeList as List} from 'react-window';
 import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
 import styles from '../../styles/styles';
 import variables from '../../styles/variables';
@@ -15,13 +16,27 @@ import withLocalize from '../withLocalize';
 import Text from '../Text';
 import compose from '../../libs/compose';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
+import Log from '../../libs/Log';
+
+/**
+ * Each page has a default border. The app should take this size into account
+ * when calculates the page width and height.
+ */
+const PAGE_BORDER = 9;
+/**
+ * Pages should be more narrow than the container on large screens. The app should take this size into account
+ * when calculates the page width.
+ */
+const LARGE_SCREEN_SIDE_SPACING = 40;
 
 class PDFView extends Component {
     constructor(props) {
         super(props);
         this.state = {
             numPages: null,
-            windowWidth: Dimensions.get('window').width,
+            pageViewports: [],
+            containerWidth: props.windowWidth,
+            containerHeight: props.windowHeight,
             shouldRequestPassword: false,
             isPasswordInvalid: false,
             isKeyboardOpen: false,
@@ -30,6 +45,9 @@ class PDFView extends Component {
         this.initiatePasswordChallenge = this.initiatePasswordChallenge.bind(this);
         this.attemptPDFLoad = this.attemptPDFLoad.bind(this);
         this.toggleKeyboardOnSmallScreens = this.toggleKeyboardOnSmallScreens.bind(this);
+        this.calculatePageHeight = this.calculatePageHeight.bind(this);
+        this.calculatePageWidth = this.calculatePageWidth.bind(this);
+        this.renderPage = this.renderPage.bind(this);
 
         const workerBlob = new Blob([pdfWorkerSource], {type: 'text/javascript'});
         pdfjs.GlobalWorkerOptions.workerSrc = URL.createObjectURL(workerBlob);
@@ -50,19 +68,68 @@ class PDFView extends Component {
     }
 
     /**
-     * Upon successful document load, set the number of pages on PDF,
+     * Upon successful document load, combine an array of page viewports,
+     * set the number of pages on PDF,
      * hide/reset PDF password form, and notify parent component that
      * user input is no longer required.
      *
-     * @param {*} {numPages} No of pages in the rendered PDF
+     * @param {Object} pdf - The PDF file instance
+     * @param {Number} pdf.numPages - Number of pages of the PDF file
+     * @param {Function} pdf.getPage - A method to get page by its number. It requires to have the context. It should be the pdf itself.
      * @memberof PDFView
      */
-    onDocumentLoadSuccess({numPages}) {
-        this.setState({
-            numPages,
-            shouldRequestPassword: false,
-            isPasswordInvalid: false,
+    onDocumentLoadSuccess(pdf) {
+        const {numPages} = pdf;
+
+        Promise.all(
+            _.times(numPages, (index) => {
+                const pageNumber = index + 1;
+
+                return pdf.getPage(pageNumber).then((page) => page.getViewport({scale: 1}));
+            }),
+        ).then((pageViewports) => {
+            this.setState({
+                pageViewports,
+                numPages,
+                shouldRequestPassword: false,
+                isPasswordInvalid: false,
+            });
         });
+    }
+
+    /**
+     * Calculates a proper page height. The method should be called only when there are page viewports.
+     * It is based on a ratio between the specific page viewport width and provided page width.
+     * Also, the app should take into account the page borders.
+     * @param {*} pageIndex
+     * @returns {Number}
+     */
+    calculatePageHeight(pageIndex) {
+        if (this.state.pageViewports.length === 0) {
+            Log.warn('Dev error: calculatePageHeight() in PDFView called too early');
+
+            return 0;
+        }
+
+        const pageViewport = this.state.pageViewports[pageIndex];
+        const pageWidth = this.calculatePageWidth();
+        const scale = pageWidth / pageViewport.width;
+        const actualHeight = pageViewport.height * scale + PAGE_BORDER * 2;
+
+        return actualHeight;
+    }
+
+    /**
+     * Calculates a proper page width.
+     * It depends on a screen size. Also, the app should take into account the page borders.
+     * @returns {Number}
+     */
+    calculatePageWidth() {
+        const pdfContainerWidth = this.state.containerWidth;
+        const pageWidthOnLargeScreen = Math.min(pdfContainerWidth - LARGE_SCREEN_SIDE_SPACING * 2, variables.pdfPageMaxWidth);
+        const pageWidth = this.props.isSmallScreenWidth ? this.state.containerWidth : pageWidthOnLargeScreen;
+
+        return pageWidth + PAGE_BORDER * 2;
     }
 
     /**
@@ -110,10 +177,29 @@ class PDFView extends Component {
         this.props.onToggleKeyboard(isKeyboardOpen);
     }
 
+    /**
+     * It is a currying method that returns a function that renders a specific page based on its index.
+     * The function includes a wrapper to apply virtualized styles.
+     * @param {Number} pageWidth
+     * @returns {JSX.Element}
+     */
+    renderPage(pageWidth) {
+        return ({index, style}) => (
+            <View style={style}>
+                <Page
+                    key={`page_${index}`}
+                    width={pageWidth}
+                    pageIndex={index}
+                    // This needs to be empty to avoid multiple loading texts which show per page and look ugly
+                    // See https://github.com/Expensify/App/issues/14358 for more details
+                    loading=""
+                />
+            </View>
+        );
+    }
+
     renderPDFView() {
-        const pdfContainerWidth = this.state.windowWidth - 100;
-        const pageWidthOnLargeScreen = pdfContainerWidth <= variables.pdfPageMaxWidth ? pdfContainerWidth : variables.pdfPageMaxWidth;
-        const pageWidth = this.props.isSmallScreenWidth ? this.state.windowWidth : pageWidthOnLargeScreen;
+        const pageWidth = this.calculatePageWidth();
         const outerContainerStyle = [styles.w100, styles.h100, styles.justifyContentCenter, styles.alignItemsCenter];
 
         // If we're requesting a password then we need to hide - but still render -
@@ -127,7 +213,11 @@ class PDFView extends Component {
                 <View
                     focusable
                     style={pdfContainerStyle}
-                    onLayout={(event) => this.setState({windowWidth: event.nativeEvent.layout.width})}
+                    onLayout={({
+                        nativeEvent: {
+                            layout: {width, height},
+                        },
+                    }) => this.setState({containerWidth: width, containerHeight: height})}
                 >
                     <Document
                         error={<Text style={[styles.textLabel, styles.textLarge]}>{this.props.translate('attachmentView.failedToLoadPDF')}</Text>}
@@ -141,16 +231,18 @@ class PDFView extends Component {
                         onLoadSuccess={this.onDocumentLoadSuccess}
                         onPassword={this.initiatePasswordChallenge}
                     >
-                        {_.map(_.range(this.state.numPages), (v, index) => (
-                            <Page
-                                width={pageWidth}
-                                key={`page_${index + 1}`}
-                                pageNumber={index + 1}
-                                // This needs to be empty to avoid multiple loading texts which show per page and look ugly
-                                // See https://github.com/Expensify/App/issues/14358 for more details
-                                loading=""
-                            />
-                        ))}
+                        {this.state.pageViewports.length > 0 && (
+                            <List
+                                style={styles.PDFViewList}
+                                width={this.props.isSmallScreenWidth ? pageWidth : this.state.containerWidth}
+                                height={this.state.containerHeight}
+                                estimatedItemSize={this.calculatePageHeight(0)}
+                                itemCount={this.state.numPages}
+                                itemSize={this.calculatePageHeight}
+                            >
+                                {this.renderPage(pageWidth)}
+                            </List>
+                        )}
                     </Document>
                 </View>
                 {this.state.shouldRequestPassword && (

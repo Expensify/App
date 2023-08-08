@@ -141,6 +141,7 @@
     "react-pdf": "^6.2.2",
     "react-plaid-link": "3.3.2",
     "react-web-config": "^1.0.0",
+    "react-window": "^1.8.9",
     "save": "^2.4.0",
     "semver": "^7.3.8",
     "shim-keyboard-event-key": "^1.0.3",
