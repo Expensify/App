@@ -48,9 +48,6 @@ const propTypes = {
     /** Function to load more chats */
     loadMoreChats: PropTypes.func.isRequired,
 
-    /** Information about the network */
-    network: networkPropTypes.isRequired,
-
     /** The policy object for the current route */
     policy: PropTypes.shape({
         /** The name of the policy */
@@ -104,6 +101,7 @@ function ReportActionsList({
     isSmallScreenWidth,
     personalDetailsList,
     currentUserPersonalDetails,
+    hasOutstandingIOU,
     loadMoreChats,
     onLayout,
 }) {
@@ -115,9 +113,9 @@ function ReportActionsList({
     const currentUnreadMarker = useRef(null);
     const scrollingVerticalOffset = useRef(0);
     const readActionSkipped = useRef(false);
+    const reportActionSize = useRef(sortedReportActions.length);
     const [messageManuallyMarked, setMessageManuallyMarked] = useState(false);
     const [isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible] = useState(false);
-    const [reportActionSize, setReportActionSize] = useState(sortedReportActions.length);
     const animatedStyles = useAnimatedStyle(() => ({
         opacity: opacity.value,
     }));
@@ -152,14 +150,14 @@ function ReportActionsList({
             }
         }
 
-        if (currentUnreadMarker.current || reportActionSize === sortedReportActions.length) {
+        if (currentUnreadMarker.current || reportActionSize.current === sortedReportActions.length) {
             return;
         }
 
-        setReportActionSize(sortedReportActions.length);
+        reportActionSize.current = sortedReportActions.length;
         currentUnreadMarker.current = null;
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [sortedReportActions.length, report.reportID, reportActionSize]);
+    }, [sortedReportActions.length, report.reportID]);
 
     useEffect(() => {
         const didManuallyMarkReportAsUnread = report.lastReadTime < DateUtils.getDBTime() && ReportUtils.isUnread(report);
@@ -216,8 +214,6 @@ function ReportActionsList({
         const availableHeight = windowHeight - (CONST.CHAT_FOOTER_MIN_HEIGHT + variables.contentHeaderHeight);
         return Math.ceil(availableHeight / minimumReportActionHeight);
     }, [windowHeight]);
-
-    const hasOutstandingIOU = report.hasOutstandingIOU;
 
     /**
      * @param {Object} args
