@@ -165,6 +165,25 @@ class Composer extends React.Component {
 
             // We need to add paste listener manually as well as navigation focus event is not triggered on component mount
             document.addEventListener('paste', this.handlePaste);
+
+            // Adding styles to solve grammarly-extension
+            const grammarlyElement = this.textInput.querySelector("grammarly-extension:nth-child(1)");
+
+            if (grammarlyElement && grammarlyElement.shadowRoot) {
+                const divElement = grammarlyElement.shadowRoot.querySelector("div > div");
+                if (divElement) {
+                  divElement.style.display = 'flex';
+                  divElement.style.alignItems = 'center';
+                  divElement.style.justifyContent = 'flex-end';
+                }
+
+                const childDivElement = grammarlyElement.shadowRoot.querySelector("div > div > div");
+                if (childDivElement) {
+                  childDivElement.style.transform = 'none';
+                  childDivElement.style.top = 'auto';
+                  childDivElement.style.left = 'auto';
+                }
+            }
         }
     }
 
