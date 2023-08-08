@@ -58,18 +58,16 @@ const NUM_PAD_CONTAINER_VIEW_ID = 'numPadContainerView';
 const NUM_PAD_VIEW_ID = 'numPadView';
 
 function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCurrencyButtonPress, onSubmitButtonPress}) {
-    const {translate, toLocaleDigit, fromLocaleDigit, numberFormat} = useLocalize();
+    const {translate, numberFormat} = useLocalize();
 
     const textInput = useRef(null);
 
-    const selectedAmountAsString = amount ? CurrencyUtils.convertToWholeUnit(currency, amount).toString() : '';
-
-    const [currentAmount, setCurrentAmount] = useState(selectedAmountAsString);
+    const [currentAmount, setCurrentAmount] = useState('');
     const [shouldUpdateSelection, setShouldUpdateSelection] = useState(true);
 
     const [selection, setSelection] = useState({
-        start: selectedAmountAsString.length,
-        end: selectedAmountAsString.length,
+        start: 0,
+        end: 0,
     });
 
     /**
@@ -92,32 +90,22 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
         }
     };
 
-    /**
-     * Convert amount to whole unit and update selection
-     *
-     * @param {String} currencyCode
-     * @param {Number} amountInCurrencyUnits
-     */
-    const saveAmountToState = (currencyCode, amountInCurrencyUnits) => {
-        if (!currencyCode || !amountInCurrencyUnits) {
+    useEffect(() => {
+        if (!currency || !amount) {
             return;
         }
-        const amountAsStringForState = CurrencyUtils.convertToWholeUnit(currencyCode, amountInCurrencyUnits).toString();
+        const amountAsStringForState = CurrencyUtils.convertToWholeUnit(currency, amount).toString();
         setCurrentAmount(amountAsStringForState);
         setSelection({
             start: amountAsStringForState.length,
             end: amountAsStringForState.length,
         });
-    };
-
-    useEffect(() => {
-        saveAmountToState(currency, amount);
         // we want to update the state only when the amount is changed
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [amount]);
 
     /**
-     * Sets the state according to amount that is passed
+     * Sets the selection and the amount accordingly to the value passed to the input
      * @param {String} newAmount - Changed amount from user input
      */
     const setNewAmount = (newAmount) => {
@@ -127,7 +115,6 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
         // Use a shallow copy of selection to trigger setSelection
         // More info: https://github.com/Expensify/App/issues/16385
         if (!MoneyRequestUtils.validateAmount(newAmountWithoutSpaces)) {
-            setCurrentAmount((prevAmount) => prevAmount);
             setSelection((prevSelection) => ({...prevSelection}));
             return;
         }
@@ -176,17 +163,6 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
     }, []);
 
     /**
-     * Update amount on amount change
-     * Validate new amount with decimal number regex up to 6 digits and 2 decimal digit
-     *
-     * @param {String} text - Changed text from user input
-     */
-    const updateAmount = (text) => {
-        const newAmount = MoneyRequestUtils.addLeadingZero(MoneyRequestUtils.replaceAllDigits(text, fromLocaleDigit));
-        setNewAmount(newAmount);
-    };
-
-    /**
      * Submit amount and navigate to a proper page
      *
      */
@@ -194,7 +170,6 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
         onSubmitButtonPress(currentAmount);
     }, [onSubmitButtonPress, currentAmount]);
 
-    const formattedAmount = MoneyRequestUtils.replaceAllDigits(currentAmount, toLocaleDigit);
     const buttonText = isEditing ? translate('common.save') : translate('common.next');
 
     return (
@@ -205,8 +180,8 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
                 style={[styles.flex1, styles.flexRow, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}
             >
                 <TextInputWithCurrencySymbol
-                    formattedAmount={formattedAmount}
-                    onChangeAmount={updateAmount}
+                    formattedAmount={currentAmount}
+                    onChangeAmount={setNewAmount}
                     onCurrencyButtonPress={onCurrencyButtonPress}
                     placeholder={numberFormat(0)}
                     ref={(ref) => {
