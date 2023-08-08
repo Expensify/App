@@ -4,6 +4,7 @@
 
 $color-appBG: $color-green-appBG;
 $color-highlightBG: $color-green-highlightBG;
+$color-accent : $color-green400;
 $color-borders: $color-green-borders;
 $color-icons: $color-green-icons;
 $color-text: $color-white;
@@ -180,6 +181,145 @@ button {
     margin-left: auto;
     margin-right: auto;
     align-content: center;
+}
+
+.logo {
+    width: 80%;
+}
+
+.search-icon {
+    margin: auto 0px;
+}
+
+.flex {
+    display: -webkit-box;
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: -moz-flex;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-flow: row wrap;
+    flex-flow: row wrap;
+    align-content: space-between;
+}
+
+#sidebar-search {
+    background-color: $color-green-appBG;
+    width: 400px;
+    height: 100vh;
+    position: fixed;
+    display: block;
+    top: 0;
+    right: 0;
+}
+
+.searchbar-title-wrapper {
+    padding: 20px;
+    padding-bottom: 0px;
+}
+
+.search-title {
+    font-size: 120%;
+}
+
+#toggle-search-close {
+    margin: auto;
+    margin-left: auto;
+    margin-right: 0px;
+}
+
+#sidebar-layer {
+    position: fixed;
+    /* Sit on top of the page content */
+    display: none;
+    /* Hidden by default */
+    width: 100%;
+    /* Full width (cover the whole page) */
+    height: 100%;
+    /* Full height (cover the whole page) */
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #1b574470;
+    z-index: 2;
+    /* Specify a stack order in case you're using a different order for other elements */
+}
+
+#___gcse_0 {
+    margin-left: 20px;
+}
+
+input#gsc-i-id1.gsc-input {
+    background-color: $color-green-appBG;
+    color: #E7ECE9;
+}
+
+#gsc-iw-id1 {
+    background-color: $color-green-appBG;
+    border-bottom: rgba(255, 255, 255, 0.496) 1px solid;
+    border-bottom-left-radius: 0px;
+    &:focus-within {
+        border-bottom: $color-accent 1px solid;
+    }
+}
+
+.gsc-input-box .gsib_a {
+    padding: 0;
+}
+
+.search-icon {
+    margin-left: auto;
+}
+
+/* Hide the relevance, etc sections */
+.gsc-above-wrapper-area {
+    display: none;
+}
+
+.gsc-webResult.gsc-result .gsc-url-top {
+    display: none;
+}
+
+/* Hide the ad */
+.gsc-results-wrapper-visible .gsc-adBlock {
+    display: none;
+}
+
+/* Hide branding */
+.gcsc-more-maybe-branding-root {
+    display: none;
+}
+
+.gsc-control-cse {
+    background-color: $color-green-appBG;
+    border: $color-green-appBG;
+    font-family: "ExpensifyNeue", "Helvetica Neue", "Helvetica", Arial, sans-serif;
+    max-height: 75vh;
+    overflow-y: scroll;
+}
+
+.gs-title {
+    font-weight: bold;
+}
+
+.gsc-search-button.gsc-search-button-v2 {
+    width: auto;
+    padding: 11px 20px;
+    margin: 0;
+    border-radius: 0;
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+    background-color: transparent;
+}
+
+/* Hide find more button google */
+.gcsc-find-more-on-google-root {
+    display: none;
+}
+
+.gsc-resultsbox-visible .gsc-webResult .gsc-result {
+    border-bottom: none;
 }
 
 #lhn {
@@ -524,6 +664,11 @@ button {
 .base-icon {
     width: 20px;
     height: 20px;
+}
+
+.base-icon--small {
+    width: 14px;
+    height: 14px;
 }
 
 .homepage {

@@ -75,8 +75,44 @@ function injectFooterCopywrite() {
     footer.innerHTML = `&copy;2008-${new Date().getFullYear()} Expensify, Inc.`;
 }
 
+// Count property of --scroll-y variable
+window.addEventListener('scroll', () => {
+    document.documentElement.style.setProperty('--scroll-y', `${window.scrollY}px`);
+});
+
+function openSidebar() {
+    document.getElementById("sidebar-layer").style.display = "block";
+    document.getElementById("gsc-i-id1").placeholder = "Search for something...";
+    // Make body unscrollable
+    const scrollY = document.documentElement.style.getPropertyValue('--scroll-y');
+    const body = document.body;
+    body.style.position = 'fixed';
+    body.style.top = `-${scrollY}`;
+}
+
+function closeSidebar() {
+    document.getElementById("sidebar-layer").style.display = "none";
+    // Make body scrollable again
+    const body = document.body;
+    const scrollY = body.style.top;
+    body.style.position = '';
+    body.style.top = '';
+    window.scrollTo(0, parseInt(scrollY || '0', 10) * -1);
+}
+
 window.addEventListener('DOMContentLoaded', () => {
     injectFooterCopywrite();
+
+    // Handle open & close the sidebar
+    const buttonOpenSidebar = document.getElementById('toggle-search-open');
+    if (buttonOpenSidebar) {
+        buttonOpenSidebar.addEventListener('click', openSidebar);
+    }
+
+    const buttonCloseSidebar = document.getElementById('toggle-search-close');
+    if (buttonCloseSidebar) {
+        buttonCloseSidebar.addEventListener('click', closeSidebar);
+    }
 
     if (window.tocbot) {
         window.tocbot.init({
