@@ -2368,7 +2368,7 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouRep
         return true;
     }
 
-    const isEmptyChat = !ReportActionsUtils.getLastVisibleMessage(report).lastMessageText;
+    const isEmptyChat = !ReportActionsUtils.getLastVisibleMessage(report.reportID).lastMessageText;
 
     // Hide only chat threads that haven't been commented on (other threads are actionable)
     if (isChatThread(report) && isEmptyChat) {
@@ -2403,7 +2403,7 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouRep
 
     if (excludeEmptyChats && isEmptyChat) {
         // Hide thread reports that haven't been commented on
-        if(isThread(report)) {
+        if (isThread(report)) {
             return false;
         }
         // Hide chats between two users that haven't been commented on from the LNH
