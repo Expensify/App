@@ -1904,7 +1904,7 @@ function updateReportPreview(iouReport, reportPreviewAction, comment = '') {
                 type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
             },
         ],
-        childLastMoneyRequestComment: comment ? comment : reportPreviewAction.childLastMoneyRequestComment,
+        childLastMoneyRequestComment: comment || reportPreviewAction.childLastMoneyRequestComment,
         childMoneyRequestCount: reportPreviewAction.childMoneyRequestCount + 1,
     };
 }
