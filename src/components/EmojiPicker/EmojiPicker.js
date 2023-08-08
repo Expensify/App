@@ -28,7 +28,7 @@ const EmojiPicker = forwardRef((props, ref) => {
         vertical: 0,
     });
     const [reportAction, setReportAction] = useState({});
-    const emojiPopoverAnchorOrigin = useRef(DEFAULT_ANCHOR_ORIGIN);
+    const [emojiPopoverAnchorOrigin, setEmojiPopoverAnchorOrigin] = useState(DEFAULT_ANCHOR_ORIGIN);
     const emojiPopoverAnchor = useRef(null);
     const onModalHide = useRef(() => {});
     const onEmojiSelected = useRef(() => {});
@@ -58,7 +58,7 @@ const EmojiPicker = forwardRef((props, ref) => {
             onWillShow();
             setIsEmojiPickerVisible(true);
             setEmojiPopoverAnchorPosition(value);
-            emojiPopoverAnchorOrigin.current = anchorOrigin || DEFAULT_ANCHOR_ORIGIN;
+            setEmojiPopoverAnchorOrigin(anchorOrigin || DEFAULT_ANCHOR_ORIGIN);
             setReportAction(reportActionValue);
         });
     };
@@ -155,11 +155,13 @@ const EmojiPicker = forwardRef((props, ref) => {
                 vertical: emojiPopoverAnchorPosition.vertical,
                 horizontal: emojiPopoverAnchorPosition.horizontal,
             }}
+            anchorRef={emojiPopoverAnchor}
+            withoutOverlay
             popoverDimensions={{
                 width: CONST.EMOJI_PICKER_SIZE.WIDTH,
                 height: CONST.EMOJI_PICKER_SIZE.HEIGHT,
             }}
-            anchorAlignment={emojiPopoverAnchorOrigin.current}
+            anchorAlignment={emojiPopoverAnchorOrigin}
             outerStyle={StyleUtils.getOuterModalStyle(props.windowHeight, props.viewportOffsetTop)}
             innerContainerStyle={styles.popoverInnerContainer}
             avoidKeyboard

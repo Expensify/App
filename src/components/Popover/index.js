@@ -4,6 +4,7 @@ import {propTypes, defaultProps} from './popoverPropTypes';
 import CONST from '../../CONST';
 import Modal from '../Modal';
 import withWindowDimensions from '../withWindowDimensions';
+import PopoverWithoutOverlay from '../PopoverWithoutOverlay';
 
 /*
  * This is a convenience wrapper around the Modal component for a responsive Popover.
@@ -25,6 +26,12 @@ function Popover(props) {
             document.body,
         );
     }
+
+    if (props.withoutOverlay && !props.isSmallScreenWidth) {
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        return createPortal(<PopoverWithoutOverlay {...props} />, document.body);
+    }
+
     return (
         <Modal
             // eslint-disable-next-line react/jsx-props-no-spreading
