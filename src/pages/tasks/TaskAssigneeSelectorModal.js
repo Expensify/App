@@ -1,6 +1,7 @@
 /* eslint-disable es/no-optional-chaining */
 import React, {useState, useEffect, useMemo, useCallback} from 'react';
 import {View} from 'react-native';
+import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -189,7 +190,7 @@ function TaskAssigneeSelectorModal(props) {
                 <>
                     <HeaderWithBackButton
                         title={props.translate('task.assignee')}
-                        onBackButtonPress={() => (report ? Navigation.dismissModal() : Navigation.goBack(ROUTES.NEW_TASK))}
+                        onBackButtonPress={() => (lodashGet(props.route.params, 'reportID') ? Navigation.dismissModal() : Navigation.goBack(ROUTES.NEW_TASK))}
                     />
                     <View style={[styles.flex1, styles.w100, styles.pRelative]}>
                         <OptionsSelector

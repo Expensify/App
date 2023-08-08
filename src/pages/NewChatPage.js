@@ -80,29 +80,23 @@ function NewChatPage(props) {
             }
         }
 
-        // Filtering out selected users from the search results
-        const filterText = _.reduce(selectedOptions, (str, {login}) => `${str} ${login}`, '');
-        const recentReportsWithoutSelected = _.filter(filteredRecentReports, ({login}) => !filterText.includes(login));
-        const personalDetailsWithoutSelected = _.filter(filteredPersonalDetails, ({login}) => !filterText.includes(login));
-        const hasUnselectedUserToInvite = filteredUserToInvite && !filterText.includes(filteredUserToInvite.login);
-
         sectionsList.push({
             title: props.translate('common.recents'),
-            data: recentReportsWithoutSelected,
-            shouldShow: !_.isEmpty(recentReportsWithoutSelected),
+            data: filteredRecentReports,
+            shouldShow: !_.isEmpty(filteredRecentReports),
             indexOffset,
         });
-        indexOffset += recentReportsWithoutSelected.length;
+        indexOffset += filteredRecentReports.length;
 
         sectionsList.push({
             title: props.translate('common.contacts'),
-            data: personalDetailsWithoutSelected,
-            shouldShow: !_.isEmpty(personalDetailsWithoutSelected),
+            data: filteredPersonalDetails,
+            shouldShow: !_.isEmpty(filteredPersonalDetails),
             indexOffset,
         });
-        indexOffset += personalDetailsWithoutSelected.length;
+        indexOffset += filteredPersonalDetails.length;
 
-        if (hasUnselectedUserToInvite) {
+        if (filteredUserToInvite) {
             sectionsList.push({
                 title: undefined,
                 data: [filteredUserToInvite],
@@ -130,7 +124,14 @@ function NewChatPage(props) {
             newSelectedOptions = [...selectedOptions, option];
         }
 
-        const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getNewChatOptions(props.reports, props.personalDetails, props.betas, searchTerm, [], excludedGroupEmails);
+        const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getNewChatOptions(
+            props.reports,
+            props.personalDetails,
+            props.betas,
+            searchTerm,
+            newSelectedOptions,
+            excludedGroupEmails,
+        );
 
         setSelectedOptions(newSelectedOptions);
         setFilteredRecentReports(recentReports);
@@ -169,7 +170,7 @@ function NewChatPage(props) {
             props.personalDetails,
             props.betas,
             searchTerm,
-            [],
+            selectedOptions,
             props.isGroupChat ? excludedGroupEmails : [],
         );
         setFilteredRecentReports(recentReports);

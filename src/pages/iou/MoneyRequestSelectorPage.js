@@ -13,13 +13,13 @@ import useLocalize from '../../hooks/useLocalize';
 import * as IOUUtils from '../../libs/IOUUtils';
 import Navigation from '../../libs/Navigation/Navigation';
 import styles from '../../styles/styles';
-import MoneyRequestAmount from './steps/MoneyRequestAmount';
 import ReceiptSelector from './ReceiptSelector';
 import * as IOU from '../../libs/actions/IOU';
 import DragAndDropProvider from '../../components/DragAndDrop/Provider';
 import usePermissions from '../../hooks/usePermissions';
 import OnyxTabNavigator, {TopTab} from '../../libs/Navigation/OnyxTabNavigator';
 import participantPropTypes from '../../components/participantPropTypes';
+import NewRequestAmountPage from './steps/NewRequestAmountPage';
 
 const propTypes = {
     /** React Navigation route */
@@ -98,7 +98,7 @@ function MoneyRequestSelectorPage(props) {
                                 >
                                     <TopTab.Screen
                                         name={CONST.TAB.MANUAL}
-                                        component={MoneyRequestAmount}
+                                        component={NewRequestAmountPage}
                                         initialParams={{reportID, iouType}}
                                     />
                                     <TopTab.Screen
@@ -108,7 +108,7 @@ function MoneyRequestSelectorPage(props) {
                                     />
                                 </OnyxTabNavigator>
                             ) : (
-                                <MoneyRequestAmount route={props.route} />
+                                <NewRequestAmountPage route={props.route} />
                             )}
                         </View>
                     </DragAndDropProvider>
