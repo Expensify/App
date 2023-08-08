@@ -2368,8 +2368,10 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouRep
         return true;
     }
 
+    const isEmptyChat = !ReportActionsUtils.getLastVisibleMessage(report).lastMessageText;
+
     // Hide only chat threads that haven't been commented on (other threads are actionable)
-    if (isChatThread(report) && !report.lastMessageText) {
+    if (isChatThread(report) && isEmptyChat) {
         return false;
     }
 
@@ -2399,7 +2401,6 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouRep
         return false;
     }
 
-    const isEmptyChat = !ReportActionsUtils.getLastVisibleMessage(report).lastMessageText;
     if (excludeEmptyChats && isEmptyChat) {
         // Hide thread reports that haven't been commented on
         if(isThread(report)) {
