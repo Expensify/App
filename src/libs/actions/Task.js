@@ -419,9 +419,9 @@ function editTaskAndNavigate(report, ownerAccountID, {title, description, assign
     let optimisticAssigneeAddComment;
     let assigneeChatReportID;
     if (assigneeAccountID && assigneeAccountID !== report.managerID && assigneeAccountID !== ownerAccountID) {
-        assigneeChatReportID = ReportUtils.getChatByParticipants([assigneeAccountID]).reportID;
+        assigneeChatReportID = lodashGet(ReportUtils.getChatByParticipants([assigneeAccountID]), ['reportID'], undefined);
 
-        if (assigneeChatReportID !== report.parentReportID.toString()) {
+        if (assigneeChatReportID && assigneeChatReportID !== report.parentReportID.toString()) {
             optimisticAssigneeAddComment = ReportUtils.buildOptimisticTaskCommentReportAction(
                 report.reportID,
                 reportName,
