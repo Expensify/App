@@ -206,26 +206,6 @@ function reconnectApp(updateIDFrom = 0) {
         API.write('ReconnectApp', params, getOnyxDataForOpenOrReconnect());
     });
 }
-/**
- * Fetches data when the client has discovered it missed some Onyx updates from the server
- * @param {Number} [updateIDFrom] the ID of the Onyx update that we want to start fetching from
- * @param {Number} [updateIDTo] the ID of the Onyx update that we want to fetch up to
- */
-function getMissingOnyxUpdates(updateIDFrom = 0, updateIDTo = 0) {
-    console.debug(`[OnyxUpdates] Fetching missing updates updateIDFrom: ${updateIDFrom} and updateIDTo: ${updateIDTo}`);
-
-    API.write(
-        'GetMissingOnyxMessages',
-        {
-            updateIDFrom,
-            updateIDTo,
-        },
-        getOnyxDataForOpenOrReconnect(),
-
-        // Set this to true so that the request will be prioritized at the front of the sequential queue
-        true,
-    );
-}
 
 /**
  * This promise is used so that deeplink component know when a transition is end.
@@ -402,7 +382,6 @@ export {
     setUpPoliciesAndNavigate,
     openProfile,
     openApp,
-    getMissingOnyxUpdates,
     reconnectApp,
     confirmReadyToOpenApp,
     beginDeepLinkRedirect,

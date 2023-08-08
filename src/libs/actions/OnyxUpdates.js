@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
-import * as App from './App';
+import * as API from '../API';
 import Log from '../Log';
 
 let onyxUpdatesLastUpdateID;
@@ -10,13 +10,34 @@ Onyx.connect({
 });
 
 /**
+ * Fetches data when the client has discovered it missed some Onyx updates from the server
+ * @param {Number} [updateIDFrom] the ID of the Onyx update that we want to start fetching from
+ * @param {Number} [updateIDTo] the ID of the Onyx update that we want to fetch up to
+ */
+function getMissingOnyxUpdates(updateIDFrom = 0, updateIDTo = 0) {
+    console.debug(`[OnyxUpdates] Fetching missing updates updateIDFrom: ${updateIDFrom} and updateIDTo: ${updateIDTo}`);
+
+    API.write(
+        'GetMissingOnyxMessages',
+        {
+            updateIDFrom,
+            updateIDTo,
+        },
+        getOnyxDataForOpenOrReconnect(),
+
+        // Set this to true so that the request will be prioritized at the front of the sequential queue
+        true,
+    );
+}
+
+/**
  *
  * @param {Number} [lastUpdateID]
  * @param {Number} [previousUpdateID]
  */
 function detectAndGetMissingUpdates(lastUpdateID = 0, previousUpdateID = 0) {
     // Return early if there were no updateIDs
-    if (!lastUpdateID || !previousUpdateID) {
+    if (!lastUpdateID) {
         return;
     }
 
@@ -36,7 +57,9 @@ function detectAndGetMissingUpdates(lastUpdateID = 0, previousUpdateID = 0) {
             previousUpdateIDFromPusher: previousUpdateID,
             lastUpdateIDOnClient: onyxUpdatesLastUpdateID,
         });
-        App.getMissingOnyxUpdates(onyxUpdatesLastUpdateID, lastUpdateID);
+        getMissingOnyxUpdates(onyxUpdatesLastUpdateID, lastUpdateID);
     }
 }
+
+// eslint-disable-next-line import/prefer-default-export
 export {detectAndGetMissingUpdates};
