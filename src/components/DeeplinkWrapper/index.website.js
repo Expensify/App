@@ -14,9 +14,9 @@ const propTypes = {
 
 class DeeplinkWrapper extends PureComponent {
     componentDidMount() {
-        // if (!this.isMacOSWeb() || CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.DEV) {
-        //     return;
-        // }
+        if (!this.isMacOSWeb() || CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.DEV) {
+            return;
+        }
 
         // If the current url path is /transition..., meaning it was opened from oldDot, during this transition period:
         // 1. The user session may not exist, because sign-in has not been completed yet.
