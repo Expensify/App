@@ -54,7 +54,7 @@ const propTypes = {
     anchorAlignment: PropTypes.shape({
         horizontal: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL)),
         vertical: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL)),
-    }),
+    }).isRequired,
 
     /** Size of Indicator */
     size: PropTypes.oneOf([CONST.AVATAR_SIZE.LARGE, CONST.AVATAR_SIZE.DEFAULT]),
@@ -82,40 +82,23 @@ const propTypes = {
     errors: PropTypes.object,
 };
 
-const defaultProps = {
-    source: '',
-    onImageSelected: () => {},
-    onImageRemoved: () => {},
-    style: [],
-    DefaultAvatar: () => {},
-    isUsingDefaultAvatar: false,
-    size: CONST.AVATAR_SIZE.DEFAULT,
-    fallbackIcon: Expensicons.FallbackAvatar,
-    type: CONST.ICON_TYPE_AVATAR,
-    editorMaskImage: undefined,
-    errorRowStyles: [],
-    onErrorClose: () => {},
-    pendingAction: null,
-    errors: null,
-};
-
 function AvatarWithImagePicker({
+    source = '',
+    onImageSelected = () => {},
+    onImageRemoved = () => {},
+    style = [],
+    DefaultAvatar = () => {},
+    isUsingDefaultAvatar = false,
+    size = CONST.AVATAR_SIZE.DEFAULT,
+    fallbackIcon = Expensicons.FallbackAvatar,
+    type = CONST.ICON_TYPE_AVATAR,
+    editorMaskImage = undefined,
+    errorRowStyles = [],
+    onErrorClose = () => {},
+    pendingAction = null,
+    errors = null,
     anchorPosition,
     anchorAlignment,
-    DefaultAvatar,
-    editorMaskImage,
-    errors,
-    fallbackIcon,
-    isUsingDefaultAvatar,
-    pendingAction,
-    size,
-    source,
-    style,
-    type,
-    errorRowStyles,
-    onImageRemoved,
-    onImageSelected,
-    onErrorClose,
 }) {
     const {translate} = useLocalize();
 
@@ -336,6 +319,5 @@ function AvatarWithImagePicker({
 }
 
 AvatarWithImagePicker.propTypes = propTypes;
-AvatarWithImagePicker.defaultProps = defaultProps;
 
 export default AvatarWithImagePicker;
