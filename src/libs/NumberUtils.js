@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import CONST from '../CONST';
 
 /**
@@ -35,7 +36,15 @@ function rand64() {
     return left + middleString + rightString;
 }
 
-export {
-    // eslint-disable-next-line import/prefer-default-export
-    rand64,
-};
+/**
+ * Returns a hexadecimal value of the specified length
+ * @param {Number} num
+ * @returns {String}
+ */
+function generateHexadecimalValue(num) {
+    return _.times(num, () => Math.floor(Math.random() * 16).toString(16))
+        .join('')
+        .toUpperCase();
+}
+
+export {rand64, generateHexadecimalValue};
