@@ -178,6 +178,7 @@ class ReportActionCompose extends React.Component {
         this.submitForm = this.submitForm.bind(this);
         this.setIsFocused = this.setIsFocused.bind(this);
         this.setIsFullComposerAvailable = this.setIsFullComposerAvailable.bind(this);
+        this.focus = focusWithDelay(this.textInput).bind(this);
         this.replaceSelectionWithText = this.replaceSelectionWithText.bind(this);
         this.focusComposerOnKeyPress = this.focusComposerOnKeyPress.bind(this);
         this.checkComposerVisibility = this.checkComposerVisibility.bind(this);
