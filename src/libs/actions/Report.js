@@ -424,6 +424,10 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
         parentReportActionID,
     };
 
+    if (isFromDeepLink) {
+        params.shouldRetry = false;
+    }
+
     // If we open an exist report, but it is not present in Onyx yet, we should change the method to set for this report
     // and we need data to be available when we navigate to the chat page
     if (_.isEmpty(ReportUtils.getReport(reportID))) {
