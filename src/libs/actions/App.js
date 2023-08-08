@@ -372,7 +372,7 @@ function beginDeepLinkRedirect() {
     }
 
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    API.makeRequestWithSideEffects('OpenOldDotLink', {}, {}).then((response) => {
+    API.makeRequestWithSideEffects('OpenOldDotLink', {shouldRetry: false}, {}).then((response) => {
         Browser.openRouteInDesktopApp(response.shortLivedAuthToken, currentUserEmail);
     });
 }
