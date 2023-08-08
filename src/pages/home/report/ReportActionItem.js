@@ -128,6 +128,7 @@ function ReportActionItem(props) {
     const textInputRef = useRef();
     const popoverAnchorRef = useRef();
     const downloadedPreviews = useRef([]);
+    const isPinnedChat = lodashGet(props, 'report.isPinned', false);
 
     useEffect(
         () => () => {
@@ -218,9 +219,11 @@ function ReportActionItem(props) {
                 toggleContextMenuFromActiveReportAction,
                 ReportUtils.isArchivedRoom(props.report),
                 ReportUtils.chatIncludesChronos(props.report),
+                isPinnedChat,
+                props.shouldDisplayNewMarker,
             );
         },
-        [props.draftMessage, props.action, props.report, toggleContextMenuFromActiveReportAction],
+        [props.draftMessage, props.action, props.report, toggleContextMenuFromActiveReportAction, props.shouldDisplayNewMarker, isPinnedChat],
     );
 
     const toggleReaction = useCallback(
@@ -529,6 +532,8 @@ function ReportActionItem(props) {
                             isVisible={hovered && !props.draftMessage && !hasErrors}
                             draftMessage={props.draftMessage}
                             isChronosReport={ReportUtils.chatIncludesChronos(props.report)}
+                            isPinnedChat={isPinnedChat}
+                            isUnreadChat={props.shouldDisplayNewMarker}
                         />
                         <View
                             style={StyleUtils.getReportActionItemStyle(
