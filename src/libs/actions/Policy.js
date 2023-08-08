@@ -906,6 +906,7 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                         name: workspaceName,
                         role: CONST.POLICY.ROLE.ADMIN,
                         owner: sessionEmail,
+                        isPolicyExpenseChatEnabled: true,
                         outputCurrency: lodashGet(allPersonalDetails, [sessionAccountID, 'localCurrencyCode'], CONST.CURRENCY.USD),
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     },
