@@ -46,7 +46,7 @@ type Report = {
     ownerEmail?: string;
 
     /** List of primarylogins of participants of the report */
-    participants?: Array<string | number>;
+    participants?: string[];
 
     /** Linked policy's ID */
     policyID?: string;
@@ -69,7 +69,7 @@ type Report = {
     /** The report type */
     type?: string;
 
-    parentReportID?: number;
+    parentReportID?: string;
     parentReportActionID?: string;
     isOptimisticReport?: boolean;
     hasDraft?: boolean;
@@ -78,7 +78,7 @@ type Report = {
     displayName?: string;
     lastMessageHtml?: string;
     welcomeMessage?: string;
-    lastActorAccountID?: string;
+    lastActorAccountID?: number;
     ownerAccountID?: number;
     participantAccountIDs?: number[];
 };

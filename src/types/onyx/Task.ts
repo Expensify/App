@@ -18,7 +18,7 @@ type Task = {
     assignee?: string;
 
     /** The account id of the assignee */
-    assigneeAccountID?: string;
+    assigneeAccountID?: number;
 
     /** Report id only when a task was created from a report */
     parentReportID?: string;

@@ -139,3 +139,4 @@ type OriginalMessage =
     | OriginalMessagePolicyTask;
 
 export default OriginalMessage;
+export type {Reaction};

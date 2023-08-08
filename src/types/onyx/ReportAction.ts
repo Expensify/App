@@ -1,15 +1,5 @@
-import OriginalMessage from './OriginalMessage';
+import OriginalMessage, {Reaction} from './OriginalMessage';
 import * as OnyxCommon from './OnyxCommon';
-
-type User = {
-    accountID: number;
-    skinTone: number;
-};
-
-type Reaction = {
-    emoji: string;
-    users: User[];
-};
 
 type Message = {
     /** The type of the action item fragment. Used to render a corresponding component */
@@ -79,7 +69,7 @@ type ReportActionBase = {
     avatar?: string;
     automatic?: boolean;
     shouldShow?: boolean;
-    childReportID?: number;
+    childReportID?: string;
     childType?: string;
     childOldestFourEmails?: string;
     childOldestFourAccountIDs?: string;

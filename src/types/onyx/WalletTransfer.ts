@@ -3,7 +3,7 @@ import * as OnyxCommon from './OnyxCommon';
 
 type WalletTransfer = {
     /** Selected accountID for transfer */
-    selectedAccountID?: string;
+    selectedAccountID?: string | number;
 
     /** Selected accountType for transfer */
     selectedAccountType?: string;
