@@ -149,6 +149,8 @@ export default {
         someone: 'Someone',
         total: 'Total',
         edit: 'Edit',
+        showMore: 'Show more',
+        merchant: 'Merchant',
     },
     anonymousReportFooter: {
         logoTagline: 'Join in on the discussion.',
@@ -168,6 +170,7 @@ export default {
         sizeNotMet: 'Attachment size must be greater than 240 bytes.',
         wrongFileType: 'Attachment is the wrong type',
         notAllowedExtension: 'This filetype is not allowed',
+        folderNotAllowedMessage: 'Uploading a folder is not allowed. Try a different file.',
     },
     avatarCropModal: {
         title: 'Edit photo',
@@ -343,10 +346,32 @@ export default {
         listOfChatMessages: 'List of chat messages',
         listOfChats: 'List of chats',
     },
+    tabSelector: {
+        manual: 'Manual',
+        scan: 'Scan',
+    },
+    receipt: {
+        upload: 'Upload receipt',
+        dragReceiptBeforeEmail: 'Drag a receipt onto this page, forward a receipt to ',
+        dragReceiptAfterEmail: ' or choose a file to upload below.',
+        chooseReceipt: 'Choose a receipt to upload or forward a receipt to ',
+        chooseFile: 'Choose File',
+        givePermission: 'Give permission',
+        takePhoto: 'Take a photo',
+        cameraAccess: 'Camera access is required to take pictures of receipts.',
+        cameraErrorTitle: 'Camera Error',
+        cameraErrorMessage: 'An error occurred while taking a photo, please try again',
+        dropTitle: 'Let it go',
+        dropMessage: 'Drop your file here',
+        flash: 'flash',
+        shutter: 'shutter',
+        gallery: 'gallery',
+    },
     iou: {
         amount: 'Amount',
         cash: 'Cash',
         split: 'Split',
+        request: 'Request',
         participants: 'Participants',
         splitBill: 'Split bill',
         requestMoney: 'Request money',
@@ -402,7 +427,6 @@ export default {
         uploadPhoto: 'Upload photo',
         removePhoto: 'Remove photo',
         editImage: 'Edit photo',
-        imageUploadFailed: 'Image upload failed',
         deleteWorkspaceError: 'Sorry, there was an unexpected problem deleting your workspace avatar.',
         sizeExceeded: ({maxUploadSizeInMB}) => `The selected image exceeds the maximum upload size of ${maxUploadSizeInMB}MB.`,
         resolutionConstraints: ({minHeightInPx, minWidthInPx, maxHeightInPx, maxWidthInPx}) =>
@@ -606,7 +630,7 @@ export default {
         growlMessageOnSave: 'Your debit card was successfully added',
         expensifyPassword: 'Expensify password',
         error: {
-            invalidName: 'Name can only include latin letters and numbers.',
+            invalidName: 'Name can only include letters.',
             addressZipCode: 'Please enter a valid zip code',
             debitCardNumber: 'Please enter a valid debit card number',
             expirationDate: 'Please select a valid expiration date',
@@ -785,7 +809,7 @@ export default {
         error: {
             dateShouldBeBefore: ({dateString}) => `Date should be before ${dateString}.`,
             dateShouldBeAfter: ({dateString}) => `Date should be after ${dateString}.`,
-            hasInvalidCharacter: 'Name can only include latin letters and numbers.',
+            hasInvalidCharacter: 'Name can only include letters.',
             incorrectZipFormat: ({zipFormat}) => `Incorrect zip code format.${zipFormat ? ` Acceptable format: ${zipFormat}` : ''}`,
         },
     },
@@ -1404,6 +1428,7 @@ export default {
         copy: 'Copy',
         paste: 'Paste',
         pasteAndMatchStyle: 'Paste and Match Style',
+        pasteAsPlainText: 'Paste as Plain Text',
         delete: 'Delete',
         selectAll: 'Select All',
         speechSubmenu: 'Speech',
@@ -1510,6 +1535,8 @@ export default {
     threads: {
         replies: 'Replies',
         reply: 'Reply',
+        from: 'From',
+        in: 'In',
         parentNavigationSummary: ({rootReportName, workspaceName}) => `From ${rootReportName}${workspaceName ? ` in ${workspaceName}` : ''}`,
     },
     qrCodes: {
