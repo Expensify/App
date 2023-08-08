@@ -1852,11 +1852,11 @@ function buildOptimisticIOUReportAction(
  *
  * @param {Object} chatReport
  * @param {Object} iouReport
- * @param {String} comment - User comment for the IOU.
+ * @param {String} [comment] - User comment for the IOU.
  *
  * @returns {Object}
  */
-function buildOptimisticReportPreview(chatReport, iouReport, comment) {
+function buildOptimisticReportPreview(chatReport, iouReport, comment = '') {
     const message = getReportPreviewMessage(iouReport);
     return {
         reportActionID: NumberUtils.rand64(),
