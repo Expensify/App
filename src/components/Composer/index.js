@@ -17,6 +17,8 @@ import Text from '../Text';
 import isEnterWhileComposition from '../../libs/KeyboardShortcut/isEnterWhileComposition';
 import CONST from '../../CONST';
 import withNavigation from '../withNavigation';
+import ReportActionComposeFocusManager from '../../libs/ReportActionComposeFocusManager';
+import willBlurTextInputOnTapOutside from '../../libs/willBlurTextInputOnTapOutside';
 
 const propTypes = {
     /** Maximum number of lines in the text input */
@@ -140,6 +142,7 @@ class Composer extends React.Component {
         this.textRef = React.createRef(null);
         this.unsubscribeBlur = () => null;
         this.unsubscribeFocus = () => null;
+        this.willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutside();
     }
 
     componentDidMount() {
@@ -458,6 +461,18 @@ class Composer extends React.Component {
                     numberOfLines={this.state.numberOfLines}
                     disabled={this.props.isDisabled}
                     onKeyPress={this.handleKeyPress}
+                    onFocus={(e) => {
+                        ReportActionComposeFocusManager.onComposerFocus(() => { 
+                            if (!this.willBlurTextInputOnTapOutside) { 
+                                return; 
+                            } 
+                    
+                            this.textInput.focus();
+                        }); 
+                        if (this.props.onFocus) {
+                            this.props.onFocus(e);
+                        }
+                    }}
                 />
                 {this.props.shouldCalculateCaretPosition && renderElementForCaretPosition}
             </>

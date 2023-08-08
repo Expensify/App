@@ -291,7 +291,7 @@ class ReportActionCompose extends React.Component {
     }
 
     componentWillUnmount() {
-        ReportActionComposeFocusManager.clear();
+        ReportActionComposeFocusManager.clear(true);
 
         KeyDownListener.removeKeyDownPressListner(this.focusComposerOnKeyPress);
         this.unsubscribeNavigationBlur();
@@ -320,7 +320,7 @@ class ReportActionCompose extends React.Component {
             }
 
             this.focus(false);
-        });
+        }, true);
     }
 
     getDefaultSuggestionsValues() {
