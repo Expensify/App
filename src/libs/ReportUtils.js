@@ -2401,15 +2401,9 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouRep
         return false;
     }
 
-    if (excludeEmptyChats && isEmptyChat) {
-        // Hide thread reports that haven't been commented on
-        if (isThread(report)) {
-            return false;
-        }
-        // Hide chats between two users that haven't been commented on from the LNH
-        if (isChatReport(report) && !isChatRoom(report)) {
-            return false;
-        }
+    // Hide chats between two users that haven't been commented on from the LNH
+    if (excludeEmptyChats && isEmptyChat && isChatReport(report) && !isChatRoom(report)) {
+        return false;
     }
 
     return true;
