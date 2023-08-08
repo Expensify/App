@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native/Libraries/Components/Keyboard/KeyboardAvoidingView.js b/node_modules/react-native/Libraries/Components/Keyboard/KeyboardAvoidingView.js
-index 2f48f9e..ac7a416 100644
+index 9fb5637..e26d677 100644
 --- a/node_modules/react-native/Libraries/Components/Keyboard/KeyboardAvoidingView.js
 +++ b/node_modules/react-native/Libraries/Components/Keyboard/KeyboardAvoidingView.js
 @@ -65,6 +65,7 @@ class KeyboardAvoidingView extends React.Component<Props, State> {
@@ -10,12 +10,7 @@ index 2f48f9e..ac7a416 100644
  
    constructor(props: Props) {
      super(props);
-@@ -107,18 +108,20 @@ class KeyboardAvoidingView extends React.Component<Props, State> {
- 
-   _onKeyboardChange = (event: ?KeyboardEvent) => {
-     this._keyboardEvent = event;
-+    // $FlowFixMe[unused-promise]
-     this._updateBottomIfNecessary();
+@@ -112,14 +113,15 @@ class KeyboardAvoidingView extends React.Component<Props, State> {
    };
  
    _onLayout = async (event: ViewLayoutEvent) => {
@@ -33,7 +28,7 @@ index 2f48f9e..ac7a416 100644
        await this._updateBottomIfNecessary();
      }
  
-@@ -127,20 +130,32 @@ class KeyboardAvoidingView extends React.Component<Props, State> {
+@@ -128,20 +130,32 @@ class KeyboardAvoidingView extends React.Component<Props, State> {
      }
    };
  
@@ -69,7 +64,7 @@ index 2f48f9e..ac7a416 100644
        LayoutAnimation.configureNext({
          // We have to pass the duration equal to minimal accepted duration defined here: RCTLayoutAnimation.m
          duration: duration > 10 ? duration : 10,
-@@ -150,9 +165,15 @@ class KeyboardAvoidingView extends React.Component<Props, State> {
+@@ -151,9 +165,15 @@ class KeyboardAvoidingView extends React.Component<Props, State> {
          },
        });
      }
