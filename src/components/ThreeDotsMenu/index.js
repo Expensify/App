@@ -57,7 +57,7 @@ const defaultProps = {
     onIconPress: () => {},
     anchorAlignment: {
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP, // we assume that popover menu opens below the button, anchor is at TOP
     },
 };
 
@@ -70,7 +70,7 @@ class ThreeDotsMenu extends Component {
         this.state = {
             isPopupMenuVisible: false,
         };
-        this.button = null;
+        this.buttonRef = React.createRef(null);
     }
 
     showPopoverMenu() {
@@ -93,7 +93,7 @@ class ThreeDotsMenu extends Component {
                                     this.props.onIconPress();
                                 }
                             }}
-                            ref={(el) => (this.button = el)}
+                            ref={this.buttonRef}
                             style={[styles.touchableButtonImage, ...this.props.iconStyles]}
                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                             accessibilityLabel={this.props.translate(this.props.iconTooltip)}
@@ -112,6 +112,8 @@ class ThreeDotsMenu extends Component {
                     anchorAlignment={this.props.anchorAlignment}
                     onItemSelected={this.hidePopoverMenu}
                     menuItems={this.props.menuItems}
+                    anchorRef={this.buttonRef}
+                    withoutOverlay
                 />
             </>
         );
