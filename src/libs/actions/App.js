@@ -341,12 +341,18 @@ function openProfile(personalDetails) {
 }
 
 function beginDeepLinkRedirect() {
+    // Match any magic link (/v/<account id>/<6 digit code>)
+    const isMagicLink = /\/v\/\w+\/[0-9]{6}/.test(window.location.pathname)
+
     // There's no support for anonymous users on desktop
     if (Session.isAnonymousUser()) {
         return;
     }
 
-    if (!currentUserAccountID) {
+
+    // If the route that is being handled is a magic link, email and shortLivedAuthToken should not be attached to the url 
+    // to prevent signing into the wrong account
+    if (!currentUserAccountID || isMagicLink) {
         Browser.openRouteInDesktopApp();
         return;
     }
