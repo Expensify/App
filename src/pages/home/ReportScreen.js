@@ -176,6 +176,8 @@ class ReportScreen extends React.Component {
                 // optimistic case
                 (prevProps.report.statusNum === CONST.REPORT.STATUS.OPEN && this.props.report.statusNum === CONST.REPORT.STATUS.CLOSED))
         ) {
+            // It's possible that we are deleting chat from the RHP so we want to pop it first if it exists.
+            Navigation.dismissModal();
             Navigation.goBack();
             Report.navigateToConciergeChat();
             // isReportRemoved will prevent <FullPageNotFoundView> showing when navigating

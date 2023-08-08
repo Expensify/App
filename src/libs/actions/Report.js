@@ -1758,8 +1758,6 @@ function leaveRoom(reportID) {
             ],
         },
     );
-    Navigation.popToLHN();
-    navigateToConciergeChat();
 }
 
 /**
