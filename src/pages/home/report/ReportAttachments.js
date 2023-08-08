@@ -6,7 +6,6 @@ import {withOnyx} from 'react-native-onyx';
 import AttachmentModal from '../../../components/AttachmentModal';
 import Navigation from '../../../libs/Navigation/Navigation';
 import * as Report from '../../../libs/actions/Report';
-import * as ReportUtils from '../../../libs/ReportUtils';
 import * as ReportActionUtils from '../../../libs/ReportActionsUtils';
 import ROUTES from '../../../ROUTES';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -73,7 +72,7 @@ function ReportAttachments(props) {
         if (!initialReport.isLoadingReportActions && _.isEmpty(reportActions)) {
             Report.openReport(reportID);
         }
-    }, [initialReport]);
+    }, [initialReport, reportID]);
 
     return (
         <AttachmentModal
