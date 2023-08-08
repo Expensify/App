@@ -3,9 +3,9 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import CONST from '../../../../CONST';
 import useArrowKeyFocusManager from '../../../../hooks/useArrowKeyFocusManager';
-import MentionSuggestions from '../../../../components/MentionSuggestions';
-import * as UserUtils from '../../../../libs/UserUtils';
-import * as Expensicons from '../../../../components/Icon/Expensicons';
+import * as SuggestionsUtils from '../../../../libs/SuggestionUtils';
+import * as EmojiUtils from '../../../../libs/EmojiUtils';
+import EmojiSuggestions from '../../../../components/EmojiSuggestions';
 
 /**
  * Check if this piece of string looks like an emoji
@@ -19,14 +19,72 @@ const isEmojiCode = (str, pos) => {
     return CONST.REGEX.HAS_COLON_ONLY_AT_THE_BEGINNING.test(leftWord) && leftWord.length > 2;
 };
 
-function SuggestionEmoji() {
+const defaultSuggestionsValues = {
+    suggestedEmojis: [],
+    colonSignIndex: -1,
+    shouldShowSuggestionMenu: false,
+    mentionPrefix: '',
+    isAutoSuggestionPickerLarge: false,
+};
+
+const propTypes = {
+    // Onyx/Hooks
+    preferredSkinTone: PropTypes.number.isRequired,
+    windowHeight: PropTypes.number.isRequired,
+    isSmallScreenWidth: PropTypes.bool.isRequired,
+    preferredLocale: PropTypes.string.isRequired,
+    personalDetails: PropTypes.object.isRequired,
+    translate: PropTypes.func.isRequired,
+    // Input
+    value: PropTypes.string.isRequired,
+    setValue: PropTypes.func.isRequired,
+    selection: PropTypes.shape({
+        start: PropTypes.number.isRequired,
+        end: PropTypes.number.isRequired,
+    }).isRequired,
+    setSelection: PropTypes.func.isRequired,
+    // Esoteric props
+    isComposerFullSize: PropTypes.bool.isRequired,
+    updateComment: PropTypes.func.isRequired,
+    composerHeight: PropTypes.number.isRequired,
+    shouldShowReportRecipientLocalTime: PropTypes.bool.isRequired,
+    // Custom added
+    forwardedRef: PropTypes.object.isRequired,
+    resetKeyboardInput: PropTypes.func.isRequired,
+    onInsertedEmoji: PropTypes.func.isRequired,
+};
+
+function SuggestionEmoji({
+    isComposerFullSize,
+    windowHeight,
+    preferredLocale,
+    isSmallScreenWidth,
+    preferredSkinTone,
+    personalDetails,
+    translate,
+    value,
+    setValue,
+    selection,
+    setSelection,
+    updateComment,
+    composerHeight,
+    shouldShowReportRecipientLocalTime,
+    forwardedRef,
+    resetKeyboardInput,
+    onInsertedEmoji,
+}) {
+    const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
+
     const isEmojiSuggestionsMenuVisible = !_.isEmpty(suggestionValues.suggestedEmojis) && suggestionValues.shouldShowEmojiSuggestionMenu;
 
     const [highlightedEmojiIndex] = useArrowKeyFocusManager({
         isActive: isEmojiSuggestionsMenuVisible,
-        maxIndex: getMaxArrowIndex(suggestionValues.suggestedEmojis.length, suggestionValues.isAutoSuggestionPickerLarge),
+        maxIndex: SuggestionsUtils.getMaxArrowIndex(suggestionValues.suggestedEmojis.length, suggestionValues.isAutoSuggestionPickerLarge),
         shouldExcludeTextAreaNodes: false,
     });
+
+    // Used to decide whether to block the suggestions list from showing to prevent flickering
+    const shouldBlockCalc = useRef(false);
 
     /**
      * Replace the code of emoji and update selection
@@ -39,7 +97,7 @@ function SuggestionEmoji() {
             const emojiCode = emojiObject.types && emojiObject.types[preferredSkinTone] ? emojiObject.types[preferredSkinTone] : emojiObject.code;
             const commentAfterColonWithEmojiNameRemoved = value.slice(selection.end);
 
-            updateComment(`${commentBeforeColon}${emojiCode} ${trimLeadingSpace(commentAfterColonWithEmojiNameRemoved)}`, true);
+            updateComment(`${commentBeforeColon}${emojiCode} ${SuggestionsUtils.trimLeadingSpace(commentAfterColonWithEmojiNameRemoved)}`, true);
 
             // In some Android phones keyboard, the text to search for the emoji is not cleared
             // will be added after the user starts typing again on the keyboard. This package is
@@ -56,6 +114,22 @@ function SuggestionEmoji() {
         },
         [onInsertedEmoji, preferredSkinTone, resetKeyboardInput, selection.end, setSelection, suggestionValues.colonIndex, suggestionValues.suggestedEmojis, updateComment, value],
     );
+
+    /**
+     * Clean data related to suggestions
+     */
+    const resetSuggestions = useCallback(() => {
+        setSuggestionValues(defaultSuggestionsValues);
+    }, []);
+
+    const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
+        setSuggestionValues((prevState) => {
+            if (prevState.shouldShowSuggestionMenu) {
+                return {...prevState, shouldShowSuggestionMenu: false};
+            }
+            return prevState;
+        });
+    }, []);
 
     /**
      * Listens for keyboard shortcuts and applies the action
@@ -84,15 +158,7 @@ function SuggestionEmoji() {
                 return true;
             }
         },
-        [
-            highlightedEmojiIndex,
-            highlightedMentionIndex,
-            insertSelectedEmoji,
-            insertSelectedMention,
-            resetSuggestions,
-            suggestionValues.suggestedEmojis.length,
-            suggestionValues.suggestedMentions.length,
-        ],
+        [highlightedEmojiIndex, insertSelectedEmoji, resetSuggestions, suggestionValues.suggestedEmojis.length],
     );
 
     /**
@@ -100,8 +166,8 @@ function SuggestionEmoji() {
      */
     const calculateEmojiSuggestion = useCallback(
         (selectionEnd) => {
-            if (shouldBlockEmojiCalc.current) {
-                shouldBlockEmojiCalc.current = false;
+            if (shouldBlockCalc.current) {
+                shouldBlockCalc.current = false;
                 return;
             }
             const leftString = value.substring(0, selectionEnd);
@@ -134,8 +200,7 @@ function SuggestionEmoji() {
         (e) => {
             if (!value || e.nativeEvent.selection.end < 1) {
                 resetSuggestions();
-                shouldBlockEmojiCalc.current = false;
-                shouldBlockMentionCalc.current = false;
+                shouldBlockCalc.current = false;
                 return true;
             }
 
@@ -145,9 +210,27 @@ function SuggestionEmoji() {
              * of suggestion instead of current one
              */
             calculateEmojiSuggestion(e.nativeEvent.selection.end);
-            calculateMentionSuggestion(e.nativeEvent.selection.end);
         },
-        [calculateEmojiSuggestion, calculateMentionSuggestion, resetSuggestions, value],
+        [calculateEmojiSuggestion, resetSuggestions, value],
+    );
+
+    const setShouldBlockSuggestionCalc = useCallback(
+        (shouldBlockSuggestionCalc) => {
+            shouldBlockCalc.current = shouldBlockSuggestionCalc;
+        },
+        [shouldBlockCalc],
+    );
+
+    useImperativeHandle(
+        forwardedRef,
+        () => ({
+            resetSuggestions,
+            onSelectionChange,
+            triggerHotkeyActions,
+            setShouldBlockSuggestionCalc,
+            updateShouldShowSuggestionMenuToFalse,
+        }),
+        [onSelectionChange, resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse],
     );
 
     if (!isEmojiSuggestionsMenuVisible) {
@@ -172,6 +255,8 @@ function SuggestionEmoji() {
         />
     );
 }
+
+SuggestionEmoji.propTypes = propTypes;
 
 const SuggestionEmojiWithRef = React.forwardRef((props, ref) => (
     <SuggestionEmoji

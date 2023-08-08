@@ -1,6 +1,5 @@
 import React, {useRef, useCallback, useImperativeHandle} from 'react';
 import PropTypes from 'prop-types';
-import CONST from '../../../../CONST';
 import SuggestionMention from './SuggestionMention';
 import SuggestionEmoji from './SuggestionEmoji';
 
@@ -79,23 +78,10 @@ function Suggestions({
         return emojiHandler || mentionHandler;
     }, []);
 
-    // eslint-disable-next-line rulesdir/prefer-early-return
     const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
-        if (suggestionValues.shouldShowEmojiSuggestionMenu) {
-            setSuggestionValues((prevState) => ({...prevState, shouldShowEmojiSuggestionMenu: false}));
-        }
-        if (suggestionValues.shouldShowMentionSuggestionMenu) {
-            setSuggestionValues((prevState) => ({...prevState, shouldShowMentionSuggestionMenu: false}));
-        }
-    }, [suggestionValues.shouldShowEmojiSuggestionMenu, suggestionValues.shouldShowMentionSuggestionMenu]);
-
-    const setShouldBlockSuggestionCalc = useCallback(
-        (shouldBlockSuggestionCalc) => {
-            shouldBlockEmojiCalc.current = shouldBlockSuggestionCalc;
-            shouldBlockMentionCalc.current = shouldBlockSuggestionCalc;
-        },
-        [shouldBlockEmojiCalc, shouldBlockMentionCalc],
-    );
+        suggestionEmojiRef.current.updateShouldShowSuggestionMenuToFalse();
+        suggestionMentionRef.current.updateShouldShowSuggestionMenuToFalse();
+    }, []);
 
     useImperativeHandle(
         forwardedRef,
@@ -103,10 +89,9 @@ function Suggestions({
             resetSuggestions,
             onSelectionChange,
             triggerHotkeyActions,
-            setShouldBlockSuggestionCalc,
             updateShouldShowSuggestionMenuToFalse,
         }),
-        [onSelectionChange, resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse],
+        [onSelectionChange, resetSuggestions, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse],
     );
 
     return (

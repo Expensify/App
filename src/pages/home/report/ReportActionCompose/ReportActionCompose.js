@@ -645,8 +645,8 @@ function ReportActionCompose({
         if (!RNTextInputReset) {
             return;
         }
-        RNTextInputReset.resetKeyboardInput(findNodeHandle(textInput));
-    }, [textInput]);
+        RNTextInputReset.resetKeyboardInput(findNodeHandle(textInputRef));
+    }, [textInputRef]);
 
     useEffect(() => {
         const unsubscribeNavigationBlur = navigation.addListener('blur', () => KeyDownListener.removeKeyDownPressListner(focusComposerOnKeyPress));

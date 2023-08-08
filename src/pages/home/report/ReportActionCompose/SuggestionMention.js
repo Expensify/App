@@ -6,31 +6,7 @@ import useArrowKeyFocusManager from '../../../../hooks/useArrowKeyFocusManager';
 import MentionSuggestions from '../../../../components/MentionSuggestions';
 import * as UserUtils from '../../../../libs/UserUtils';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
-import usePrevious from '../../../../hooks/usePrevious';
-
-/**
- * Return the max available index for arrow manager.
- * @param {Number} numRows
- * @param {Boolean} isAutoSuggestionPickerLarge
- * @returns {Number}
- */
-const getMaxArrowIndex = (numRows, isAutoSuggestionPickerLarge) => {
-    // rowCount is number of emoji/mention suggestions. For small screen we can fit 3 items
-    // and for large we show up to 20 items for mentions/emojis
-    const rowCount = isAutoSuggestionPickerLarge
-        ? Math.min(numRows, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS)
-        : Math.min(numRows, CONST.AUTO_COMPLETE_SUGGESTER.MIN_AMOUNT_OF_SUGGESTIONS);
-
-    // -1 because we start at 0
-    return rowCount - 1;
-};
-
-/**
- * Trims first character of the string if it is a space
- * @param {String} str
- * @returns {String}
- */
-const trimLeadingSpace = (str) => (str.slice(0, 1) === ' ' ? str.slice(1) : str);
+import * as SuggestionsUtils from '../../../../libs/SuggestionUtils';
 
 /**
  * Check if this piece of string looks like a mention
@@ -100,13 +76,12 @@ function SuggestionMention({
 
     const [highlightedMentionIndex] = useArrowKeyFocusManager({
         isActive: isMentionSuggestionsMenuVisible,
-        maxIndex: getMaxArrowIndex(suggestionValues.suggestedMentions.length, suggestionValues.isAutoSuggestionPickerLarge),
+        maxIndex: SuggestionsUtils.getMaxArrowIndex(suggestionValues.suggestedMentions.length, suggestionValues.isAutoSuggestionPickerLarge),
         shouldExcludeTextAreaNodes: false,
     });
 
-    // These variables are used to decide whether to block the suggestions list from showing to prevent flickering
-    const shouldBlockEmojiCalc = useRef(false);
-    const shouldBlockMentionCalc = useRef(false);
+    // Used to decide whether to block the suggestions list from showing to prevent flickering
+    const shouldBlockCalc = useRef(false);
 
     /**
      * Replace the code of mention and update selection
@@ -119,7 +94,7 @@ function SuggestionMention({
             const mentionCode = mentionObject.text === CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT ? CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT : `@${mentionObject.alternateText}`;
             const commentAfterAtSignWithMentionRemoved = value.slice(suggestionValues.atSignIndex).replace(CONST.REGEX.MENTION_REPLACER, '');
 
-            updateComment(`${commentBeforeAtSign}${mentionCode} ${trimLeadingSpace(commentAfterAtSignWithMentionRemoved)}`, true);
+            updateComment(`${commentBeforeAtSign}${mentionCode} ${SuggestionsUtils.trimLeadingSpace(commentAfterAtSignWithMentionRemoved)}`, true);
             setSelection({
                 start: suggestionValues.atSignIndex + mentionCode.length + CONST.SPACE_LENGTH,
                 end: suggestionValues.atSignIndex + mentionCode.length + CONST.SPACE_LENGTH,
@@ -133,7 +108,7 @@ function SuggestionMention({
     );
 
     /**
-     * Clean data related to EmojiSuggestions
+     * Clean data related to suggestions
      */
     const resetSuggestions = useCallback(() => {
         setSuggestionValues(defaultSuggestionsValues);
@@ -146,7 +121,7 @@ function SuggestionMention({
      */
     const triggerHotkeyActions = useCallback(
         (e) => {
-            const suggestionsExist = suggestionValues.suggestedEmojis.length > 0 || suggestionValues.suggestedMentions.length > 0;
+            const suggestionsExist = suggestionValues.suggestedMentions.length > 0;
 
             if (((!e.shiftKey && e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) || e.key === CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) && suggestionsExist) {
                 e.preventDefault();
@@ -166,7 +141,7 @@ function SuggestionMention({
                 return true;
             }
         },
-        [highlightedMentionIndex, insertSelectedMention, resetSuggestions, suggestionValues.suggestedEmojis.length, suggestionValues.suggestedMentions.length],
+        [highlightedMentionIndex, insertSelectedMention, resetSuggestions, suggestionValues.suggestedMentions.length],
     );
 
     const getMentionOptions = useCallback(
@@ -219,8 +194,8 @@ function SuggestionMention({
 
     const calculateMentionSuggestion = useCallback(
         (selectionEnd) => {
-            if (shouldBlockMentionCalc.current) {
-                shouldBlockMentionCalc.current = false;
+            if (shouldBlockCalc.current) {
+                shouldBlockCalc.current = false;
                 return;
             }
 
@@ -272,8 +247,7 @@ function SuggestionMention({
         (e) => {
             if (!value || e.nativeEvent.selection.end < 1) {
                 resetSuggestions();
-                shouldBlockEmojiCalc.current = false;
-                shouldBlockMentionCalc.current = false;
+                shouldBlockCalc.current = false;
                 return true;
             }
 
@@ -282,22 +256,20 @@ function SuggestionMention({
         [calculateMentionSuggestion, resetSuggestions, value],
     );
 
-    // eslint-disable-next-line rulesdir/prefer-early-return
     const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
-        if (suggestionValues.shouldShowEmojiSuggestionMenu) {
-            setSuggestionValues((prevState) => ({...prevState, shouldShowEmojiSuggestionMenu: false}));
-        }
-        if (suggestionValues.shouldShowSuggestionMenu) {
-            setSuggestionValues((prevState) => ({...prevState, shouldShowSuggestionMenu: false}));
-        }
-    }, [suggestionValues.shouldShowEmojiSuggestionMenu, suggestionValues.shouldShowSuggestionMenu]);
+        setSuggestionValues((prevState) => {
+            if (prevState.shouldShowSuggestionMenu) {
+                return {...prevState, shouldShowSuggestionMenu: false};
+            }
+            return prevState;
+        });
+    }, []);
 
     const setShouldBlockSuggestionCalc = useCallback(
         (shouldBlockSuggestionCalc) => {
-            shouldBlockEmojiCalc.current = shouldBlockSuggestionCalc;
-            shouldBlockMentionCalc.current = shouldBlockSuggestionCalc;
+            shouldBlockCalc.current = shouldBlockSuggestionCalc;
         },
-        [shouldBlockEmojiCalc, shouldBlockMentionCalc],
+        [shouldBlockCalc],
     );
 
     const onClose = useCallback(() => {
