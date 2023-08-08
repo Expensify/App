@@ -3645,6 +3645,17 @@ const styles = {
         borderRadius: 16,
         margin: 20,
     },
+
+    reportPreviewBox: {
+        backgroundColor: themeColors.cardBG,
+        borderRadius: variables.componentBorderRadiusLarge,
+        maxWidth: variables.sideBarWidth,
+        width: '100%',
+    },
+
+    reportPreviewBoxText: {
+        padding: 16,
+    }
 };
 
 export default styles;

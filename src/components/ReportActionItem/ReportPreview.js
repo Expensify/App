@@ -135,29 +135,37 @@ function ReportPreview(props) {
                 accessibilityRole="button"
                 accessibilityLabel={props.translate('iou.viewDetails')}
             >
-                <RenderHTML html={`
-                    <img
-                        src="${receipts[0].receipt.source}.1024.jpg"
-                        data-expensify-source="${receipts[0].receipt.source}"
-                    />
-                `} />
-                <View style={[styles.iouPreviewBox, props.isHovered ? styles.iouPreviewBoxHover : undefined]}>
+                <View style={[styles.reportPreviewBox, props.isHovered ? styles.iouPreviewBoxHover : undefined]}>
                     <View style={styles.flexRow}>
-                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                            <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh16]}>{previewMessage}</Text>
-                        </View>
-                    </View>
-                    <View style={styles.flexRow}>
-                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                            <Text style={styles.textHeadline}>{displayAmount}</Text>
-                            {ReportUtils.isSettled(props.iouReportID) && (
-                                <View style={styles.defaultCheckmarkWrapper}>
-                                    <Icon
-                                        src={Expensicons.Checkmark}
-                                        fill={themeColors.iconSuccessFill}
+                        {_.map(receipts, ({receipt, transactionID}) => (
+                            <View style={[styles.flex1]}>
+                                <RenderHTML key={transactionID} html={`
+                                    <img
+                                        src="${receipt.source}.1024.jpg"
+                                        data-expensify-source="${receipt.source}"
                                     />
-                                </View>
-                            )}
+                                `} />
+                            </View>
+                        ))}
+                    </View>
+                    <View style={styles.reportPreviewBoxText}>
+                        <View style={styles.flexRow}>
+                            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                                <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh16]}>{previewMessage}</Text>
+                            </View>
+                        </View>
+                        <View style={styles.flexRow}>
+                            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                                <Text style={styles.textHeadline}>{displayAmount}</Text>
+                                {ReportUtils.isSettled(props.iouReportID) && (
+                                    <View style={styles.defaultCheckmarkWrapper}>
+                                        <Icon
+                                            src={Expensicons.Checkmark}
+                                            fill={themeColors.iconSuccessFill}
+                                        />
+                                    </View>
+                                )}
+                            </View>
                         </View>
                     </View>
                     {shouldShowSettlementButton && (
