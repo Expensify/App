@@ -206,6 +206,17 @@ const ONYXKEYS = {
     // Receipt upload modal
     RECEIPT_MODAL: 'receiptModal',
 
+    // The access token to be used with the Mapbox library
+    MAPBOX_ACCESS_TOKEN: 'mapboxAccessToken',
+
+    ONYX_UPDATES: {
+        // The ID of the last Onyx update that was applied to this client
+        LAST_UPDATE_ID: 'onyxUpdatesLastUpdateID',
+
+        // The ID of the previous Onyx update that was applied to this client
+        PREVIOUS_UPDATE_ID: 'onyxUpdatesPreviousUpdateID',
+    },
+
     /** Collection Keys */
     COLLECTION: {
         DOWNLOAD: 'download_',
@@ -321,6 +332,9 @@ type OnyxValues = {
     [ONYXKEYS.IS_USING_MEMORY_ONLY_KEYS]: boolean;
     [ONYXKEYS.SELECTED_TAB]: string;
     [ONYXKEYS.RECEIPT_MODAL]: OnyxTypes.ReceiptModal;
+    [ONYXKEYS.MAPBOX_ACCESS_TOKEN]: OnyxTypes.MapboxAccessToken;
+    [ONYXKEYS.ONYX_UPDATES.LAST_UPDATE_ID]: number;
+    [ONYXKEYS.ONYX_UPDATES.PREVIOUS_UPDATE_ID]: number;
 
     // Collections
     [ONYXKEYS.COLLECTION.DOWNLOAD]: OnyxTypes.Download;

@@ -30,6 +30,7 @@ import ReimbursementAccount from './ReimbursementAccount';
 import ReimbursementAccountDraft from './ReimbursementAccountDraft';
 import WalletTransfer from './WalletTransfer';
 import ReceiptModal from './ReceiptModal';
+import MapboxAccessToken from './MapboxAccessToken';
 
 import Download from './Download';
 import PolicyMember from './PolicyMember';
@@ -75,6 +76,7 @@ export type {
     FrequentlyUsedEmoji,
     WalletTransfer,
     ReceiptModal,
+    MapboxAccessToken,
     Download,
     PolicyMember,
     Policy,
