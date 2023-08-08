@@ -25,6 +25,7 @@ import refPropTypes from '../refPropTypes';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 import themeColors from '../../styles/themes/default';
 import reportPropTypes from '../../pages/reportPropTypes';
+import RenderHTML from '../RenderHTML';
 
 const propTypes = {
     /** All the data of the action */
@@ -116,6 +117,10 @@ function ReportPreview(props) {
     const previewMessage = props.translate(ReportUtils.isSettled(props.iouReportID) || props.iouReport.isWaitingOnBankAccount ? 'iou.payerPaid' : 'iou.payerOwes', {payer: managerName});
     const shouldShowSettlementButton =
         !_.isEmpty(props.iouReport) && isCurrentUserManager && !ReportUtils.isSettled(props.iouReportID) && !props.iouReport.isWaitingOnBankAccount && reportTotal !== 0;
+
+    const receiptIDs = lodashGet(props.action, 'childLastReceiptTransactionIDs', '').split(',');
+    const receipts = _.filter(props.receipts, (transaction) => receiptIDs.includes(transaction.transactionID));
+
     return (
         <View style={[styles.chatItemMessage, ...props.containerStyles]}>
             <PressableWithoutFeedback
@@ -129,6 +134,7 @@ function ReportPreview(props) {
                 accessibilityRole="button"
                 accessibilityLabel={props.translate('iou.viewDetails')}
             >
+                <RenderHTML html={`<img src="${receipts[0].receipt.source}" />`} />
                 <View style={[styles.iouPreviewBox, props.isHovered ? styles.iouPreviewBoxHover : undefined]}>
                     <View style={styles.flexRow}>
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
@@ -178,6 +184,9 @@ export default compose(
         },
         iouReport: {
             key: ({iouReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
+        },
+        receipts: {
+            key: ONYXKEYS.COLLECTION.TRANSACTION,
         },
         session: {
             key: ONYXKEYS.SESSION,
