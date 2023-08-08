@@ -1758,6 +1758,11 @@ function leaveRoom(reportID) {
             ],
         },
     );
+    Navigation.dismissModal();
+    if (Navigation.getTopmostReportId() === reportID) {
+        Navigation.pop();
+    }
+    navigateToConciergeChat();
 }
 
 /**
