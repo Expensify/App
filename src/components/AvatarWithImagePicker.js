@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useState, useRef} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
@@ -50,11 +50,11 @@ const propTypes = {
         left: PropTypes.number,
     }).isRequired,
 
-    /** The anchor alignment of the menu */
+    /** Where the popover should be positioned relative to the anchor points. */
     anchorAlignment: PropTypes.shape({
-        horizontal: PropTypes.number,
-        vertical: PropTypes.number,
-    }).isRequired,
+        horizontal: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL)),
+        vertical: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL)),
+    }),
 
     /** Size of Indicator */
     size: PropTypes.oneOf([CONST.AVATAR_SIZE.LARGE, CONST.AVATAR_SIZE.DEFAULT]),
