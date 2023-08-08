@@ -81,8 +81,8 @@ window.addEventListener('scroll', () => {
 });
 
 function openSidebar() {
-    document.getElementById("sidebar-layer").style.display = "block";
-    document.getElementById("gsc-i-id1").placeholder = "Search for something...";
+    document.getElementById('sidebar-layer').style.display = 'block';
+    document.getElementById('gsc-i-id1').placeholder = 'Search for something...';
     // Make body unscrollable
     const scrollY = document.documentElement.style.getPropertyValue('--scroll-y');
     const body = document.body;
@@ -91,7 +91,7 @@ function openSidebar() {
 }
 
 function closeSidebar() {
-    document.getElementById("sidebar-layer").style.display = "none";
+    document.getElementById('sidebar-layer').style.display = 'none';
     // Make body scrollable again
     const body = document.body;
     const scrollY = body.style.top;
