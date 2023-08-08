@@ -46,7 +46,7 @@ export default function (WrappedComponent) {
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     function WithReportOrNotFound(props) {
-        const [contentShown, setContentShown] = React.useState(false);
+        const contentShown = React.useRef(false);
 
         const shouldShowFullScreenLoadingIndicator = props.isLoadingReportData && (_.isEmpty(props.report) || !props.report.reportID);
         // eslint-disable-next-line rulesdir/no-negated-variables
@@ -54,7 +54,7 @@ export default function (WrappedComponent) {
 
         // If the content was shown but it's not anymore that means the report was deleted and we are probably navigating out of this screen.
         // Return null for this case to avoid rendering FullScreenLoadingIndicator or NotFoundPage when animating transition.
-        if (shouldShowNotFoundPage && contentShown) {
+        if (shouldShowNotFoundPage && contentShown.current) {
             return null;
         }
 
@@ -66,8 +66,8 @@ export default function (WrappedComponent) {
             return <NotFoundPage />;
         }
 
-        if (!contentShown) {
-            setContentShown(true);
+        if (!contentShown.current) {
+            contentShown.current = true;
         }
 
         const rest = _.omit(props, ['forwardedRef']);
