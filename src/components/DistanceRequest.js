@@ -14,6 +14,8 @@ import theme from '../styles/themes/default';
 import Button from './Button';
 import styles from '../styles/styles';
 import LinearGradient from './LinearGradient';
+import Navigation from '../libs/Navigation/Navigation';
+import ROUTES from '../ROUTES';
 
 const MAX_WAYPOINTS = 25;
 const MAX_WAYPOINTS_TO_DISPLAY = 4;
