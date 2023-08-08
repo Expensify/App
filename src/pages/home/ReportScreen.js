@@ -165,6 +165,17 @@ class ReportScreen extends React.Component {
         const prevOnyxReportID = prevProps.report.reportID;
         const routeReportID = getReportID(this.props.route);
 
+        // When a new DM is opened simultaneously from 2 accounts, there'll be 2 different optimistic reports & OpenReport calls
+        // The latter will contain preexistingReportID of the initial report and thus is invalid.
+        if (_.has(this.props.report, 'preexistingReportID') && !_.has(prevProps.report, 'preexistingReportID')) {
+            Report.deleteReport(onyxReportID);
+            Navigation.goBack();
+            const preexistingReportID = lodashGet(this.props.report, 'preexistingReportID');
+            Navigation.navigate(ROUTES.getReportRoute(preexistingReportID));
+            this.setState({isReportRemoved: true});
+            return;
+        }
+
         // navigate to concierge when the room removed from another device (e.g. user leaving a room)
         // the report will not really null when removed, it will have defaultProps properties and values
         if (
