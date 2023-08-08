@@ -25,4 +25,6 @@ const validateReceipt = (file) => {
     return true;
 };
 
-export default {validateReceipt};
+export {
+    validateReceipt,
+};

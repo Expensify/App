@@ -19,7 +19,7 @@ import Receipt from '../../../libs/actions/Receipt';
 import useWindowDimensions from '../../../hooks/useWindowDimensions';
 import useLocalize from '../../../hooks/useLocalize';
 import {DragAndDropContext} from '../../../components/DragAndDrop/Provider';
-import ReceiptUtils from '../../../libs/ReceiptUtils';
+import * as ReceiptUtils from '../../../libs/ReceiptUtils';
 
 const propTypes = {
     /** Information shown to the user when a receipt is not valid */
