@@ -1049,64 +1049,59 @@ function ReportActionCompose({
             runOnJS(submitForm)();
         });
 
-        return (
-            <View
-                style={[
-                    shouldShowReportRecipientLocalTime && !lodashGet(network, 'isOffline') && styles.chatItemComposeWithFirstRow,
-                    isComposerFullSize && styles.chatItemFullComposeRow,
-                ]}
+    return (
+        <View style={[shouldShowReportRecipientLocalTime && !lodashGet(network, 'isOffline') && styles.chatItemComposeWithFirstRow, isComposerFullSize && styles.chatItemFullComposeRow]}>
+            <OfflineWithFeedback
+                pendingAction={pendingAction}
+                style={isComposerFullSize ? styles.chatItemFullComposeRow : {}}
+                contentContainerStyle={isComposerFullSize ? styles.flex1 : {}}
             >
-                <OfflineWithFeedback
-                    pendingAction={pendingAction}
-                    style={isComposerFullSize ? styles.chatItemFullComposeRow : {}}
-                    contentContainerStyle={isComposerFullSize ? styles.flex1 : {}}
+                {shouldShowReportRecipientLocalTime && hasReportRecipient && <ParticipantLocalTime participant={reportRecipient} />}
+                <View
+                    style={[
+                        shouldUseFocusedColor ? styles.chatItemComposeBoxFocusedColor : styles.chatItemComposeBoxColor,
+                        styles.flexRow,
+                        styles.chatItemComposeBox,
+                        isComposerFullSize && styles.chatItemFullComposeBox,
+                        hasExceededMaxCommentLength && styles.borderColorDanger,
+                    ]}
                 >
-                    {shouldShowReportRecipientLocalTime && hasReportRecipient && <ParticipantLocalTime participant={reportRecipient} />}
-                    <View
-                        style={[
-                            shouldUseFocusedColor ? styles.chatItemComposeBoxFocusedColor : styles.chatItemComposeBoxColor,
-                            styles.flexRow,
-                            styles.chatItemComposeBox,
-                            isComposerFullSize && styles.chatItemFullComposeBox,
-                            hasExceededMaxCommentLength && styles.borderColorDanger,
-                        ]}
+                    <AttachmentModal
+                        headerTitle={translate('reportActionCompose.sendAttachment')}
+                        onConfirm={addAttachment}
+                        onModalShow={() => setIsAttachmentPreviewActive(true)}
+                        onModalHide={attachmentPreviewClosed}
                     >
-                        <AttachmentModal
-                            headerTitle={translate('reportActionCompose.sendAttachment')}
-                            onConfirm={addAttachment}
-                            onModalShow={() => setIsAttachmentPreviewActive(true)}
-                            onModalHide={attachmentPreviewClosed}
-                        >
-                            {({displayFileInModal}) => (
-                                <>
-                                    <AttachmentPicker>
-                                        {({openPicker}) => {
-                                            const triggerAttachmentPicker = () => {
-                                                // Set a flag to block suggestion calculation until we're finished using the file picker,
-                                                // which will stop any flickering as the file picker opens on non-native devices.
-                                                if (willBlurTextInputOnTapOutsideFunc) {
-                                                    shouldBlockEmojiCalc.current = true;
-                                                    shouldBlockMentionCalc.current = true;
-                                                }
-                                                openPicker({
-                                                    onPicked: displayFileInModal,
-                                                });
-                                            };
-                                            const menuItems = [
-                                                ...moneyRequestOptions,
-                                                ...taskOption,
-                                                {
-                                                    icon: Expensicons.Paperclip,
-                                                    text: translate('reportActionCompose.addAttachment'),
-                                                    onSelected: () => {
-                                                        if (Browser.isSafari()) {
-                                                            return;
-                                                        }
-                                                        triggerAttachmentPicker();
-                                                    },
+                        {({displayFileInModal}) => (
+                            <>
+                                <AttachmentPicker>
+                                    {({openPicker}) => {
+                                        const triggerAttachmentPicker = () => {
+                                            // Set a flag to block suggestion calculation until we're finished using the file picker,
+                                            // which will stop any flickering as the file picker opens on non-native devices.
+                                            if (willBlurTextInputOnTapOutsideFunc) {
+                                                shouldBlockEmojiCalc.current = true;
+                                                shouldBlockMentionCalc.current = true;
+                                            }
+                                            openPicker({
+                                                onPicked: displayFileInModal,
+                                            });
+                                        };
+                                        const menuItems = [
+                                            ...moneyRequestOptions,
+                                            ...taskOption,
+                                            {
+                                                icon: Expensicons.Paperclip,
+                                                text: translate('reportActionCompose.addAttachment'),
+                                                onSelected: () => {
+                                                    if (Browser.isSafari()) {
+                                                        return;
+                                                    }
+                                                    triggerAttachmentPicker();
                                                 },
-                                            ];
-                                            return (
+                                            },
+                                        ];
+                                        return (
                                             <>
                                                 <View
                                                     style={[
@@ -1120,7 +1115,7 @@ function ReportActionCompose({
                                                             <PressableWithFeedback
                                                                 onPress={(e) => {
                                                                     e.preventDefault();
-                                                                    setShouldShowSuggestionMenuToFalse();
+                                                                    updateShouldShowSuggestionMenuToFalse();
                                                                     Report.setIsComposerFullSize(reportID, false);
                                                                 }}
                                                                 // Keep focus on the composer when Collapse button is clicked.
@@ -1145,9 +1140,9 @@ function ReportActionCompose({
                                                                 // Keep focus on the composer when Expand button is clicked.
                                                                 onMouseDown={(e) => e.preventDefault()}
                                                                 style={styles.composerSizeButton}
-                                                                disabled={isBlockedFromConcierge || this.props.disabled}
+                                                                disabled={isBlockedFromConcierge || disabled}
                                                                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                                                                accessibilityLabel={this.props.translate('reportActionCompose.expand')}
+                                                                accessibilityLabel={translate('reportActionCompose.expand')}
                                                             >
                                                                 <Icon src={Expensicons.Expand} />
                                                             </PressableWithFeedback>
@@ -1177,7 +1172,7 @@ function ReportActionCompose({
                                                     isVisible={isMenuVisible}
                                                     onClose={() => setMenuVisibility(false)}
                                                     onItemSelected={(item, index) => {
-                                                        this.setMenuVisibility(false);
+                                                        setMenuVisibility(false);
 
                                                         // In order for the file picker to open dynamically, the click
                                                         // function must be called from within a event handler that was initiated
@@ -1186,7 +1181,7 @@ function ReportActionCompose({
                                                             triggerAttachmentPicker();
                                                         }
                                                     }}
-                                                    anchorPosition={styles.createMenuPositionReportActionCompose(this.props.windowHeight)}
+                                                    anchorPosition={styles.createMenuPositionReportActionCompose(windowHeight)}
                                                     anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM}}
                                                     menuItems={menuItems}
                                                     withoutOverlay
@@ -1195,149 +1190,148 @@ function ReportActionCompose({
                                             </>
                                         );
                                     }}
-                                    </AttachmentPicker>
-                                    <View style={[containerComposeStyles, styles.textInputComposeBorder]}>
-                                        <Composer
-                                            checkComposerVisibility={checkComposerVisibility}
-                                            autoFocus={shouldAutoFocus}
-                                            multiline
-                                            ref={setTextInputRef}
-                                            textAlignVertical="top"
-                                            placeholder={inputPlaceholder}
-                                            placeholderTextColor={themeColors.placeholderText}
-                                            onChangeText={(commentValue) => updateComment(commentValue, true)}
-                                            onKeyPress={triggerHotkeyActions}
-                                            style={[styles.textInputCompose, isComposerFullSize ? styles.textInputFullCompose : styles.flex4]}
-                                            maxLines={maxComposerLines}
-                                            onFocus={() => setIsFocused(true)}
-                                            onBlur={() => {
-                                                setIsFocused(false);
-                                                resetSuggestions();
-                                            }}
-                                            onClick={() => {
-                                                shouldBlockEmojiCalc.current = false;
-                                                shouldBlockMentionCalc.current = false;
-                                            }}
-                                            onPasteFile={displayFileInModal}
-                                            shouldClear={textInputShouldClear}
-                                            onClear={() => setTextInputShouldClear(false)}
-                                            isDisabled={isBlockedFromConcierge || disabled}
-                                            selection={selection}
-                                            onSelectionChange={onSelectionChange}
-                                            isFullComposerAvailable={isFullSizeComposerAvailable}
-                                            setIsFullComposerAvailable={setIsFullComposerAvailable}
-                                            isComposerFullSize={isComposerFullSize}
-                                            value={value}
-                                            numberOfLines={numberOfLines}
-                                            onNumberOfLinesChange={updateNumberOfLines}
-                                            shouldCalculateCaretPosition
-                                            onLayout={(e) => {
-                                                const composerLayoutHeight = e.nativeEvent.layout.height;
-                                                if (composerHeight === composerLayoutHeight) {
-                                                    return;
-                                                }
-                                                setComposerHeight(composerLayoutHeight);
-                                            }}
-                                            onScroll={() => updateShouldShowSuggestionMenuToFalse()}
-                                        />
-                                    </View>
-                                    <ReportDropUI
-                                        onDrop={(e) => {
-                                            if (isAttachmentPreviewActive) {
+                                </AttachmentPicker>
+                                <View style={[containerComposeStyles, styles.textInputComposeBorder]}>
+                                    <Composer
+                                        checkComposerVisibility={checkComposerVisibility}
+                                        autoFocus={shouldAutoFocus}
+                                        multiline
+                                        ref={setTextInputRef}
+                                        textAlignVertical="top"
+                                        placeholder={inputPlaceholder}
+                                        placeholderTextColor={themeColors.placeholderText}
+                                        onChangeText={(commentValue) => updateComment(commentValue, true)}
+                                        onKeyPress={triggerHotkeyActions}
+                                        style={[styles.textInputCompose, isComposerFullSize ? styles.textInputFullCompose : styles.flex4]}
+                                        maxLines={maxComposerLines}
+                                        onFocus={() => setIsFocused(true)}
+                                        onBlur={() => {
+                                            setIsFocused(false);
+                                            resetSuggestions();
+                                        }}
+                                        onClick={() => {
+                                            shouldBlockEmojiCalc.current = false;
+                                            shouldBlockMentionCalc.current = false;
+                                        }}
+                                        onPasteFile={displayFileInModal}
+                                        shouldClear={textInputShouldClear}
+                                        onClear={() => setTextInputShouldClear(false)}
+                                        isDisabled={isBlockedFromConcierge || disabled}
+                                        selection={selection}
+                                        onSelectionChange={onSelectionChange}
+                                        isFullComposerAvailable={isFullSizeComposerAvailable}
+                                        setIsFullComposerAvailable={setIsFullComposerAvailable}
+                                        isComposerFullSize={isComposerFullSize}
+                                        value={value}
+                                        numberOfLines={numberOfLines}
+                                        onNumberOfLinesChange={updateNumberOfLines}
+                                        shouldCalculateCaretPosition
+                                        onLayout={(e) => {
+                                            const composerLayoutHeight = e.nativeEvent.layout.height;
+                                            if (composerHeight === composerLayoutHeight) {
                                                 return;
                                             }
-                                            const data = lodashGet(e, ['dataTransfer', 'items', 0]);
-                                            displayFileInModal(data);
+                                            setComposerHeight(composerLayoutHeight);
                                         }}
+                                        onScroll={() => updateShouldShowSuggestionMenuToFalse()}
                                     />
-                                </>
-                            )}
-                        </AttachmentModal>
-                        {DeviceCapabilities.canUseTouchScreen() && isMediumScreenWidth ? null : (
-                            <EmojiPickerButton
-                                isDisabled={isBlockedFromConcierge || disabled}
-                                onModalHide={() => focus(true)}
-                                onEmojiSelected={replaceSelectionWithText}
-                            />
+                                </View>
+                                <ReportDropUI
+                                    onDrop={(e) => {
+                                        if (isAttachmentPreviewActive) {
+                                            return;
+                                        }
+                                        const data = lodashGet(e, ['dataTransfer', 'items', 0]);
+                                        displayFileInModal(data);
+                                    }}
+                                />
+                            </>
                         )}
-                        <View
-                            style={[styles.justifyContentEnd]}
-                            // Keep focus on the composer when Send message is clicked.
-                            onMouseDown={(e) => e.preventDefault()}
-                        >
-                            <GestureDetector gesture={Tap}>
-                                <Tooltip text={translate('common.send')}>
-                                    <PressableWithFeedback
-                                        style={({pressed, isDisabled}) => [
-                                            styles.chatItemSubmitButton,
-                                            isCommentEmpty || hasExceededMaxCommentLength || pressed || isDisabled ? undefined : styles.buttonSuccess,
-                                        ]}
-                                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                                        accessibilityLabel={translate('common.send')}
-                                    >
-                                        {({pressed}) => (
-                                            <Icon
-                                                src={Expensicons.Send}
-                                                fill={isCommentEmpty || hasExceededMaxCommentLength || pressed ? themeColors.icon : themeColors.textLight}
-                                            />
-                                        )}
-                                    </PressableWithFeedback>
-                                </Tooltip>
-                            </GestureDetector>
-                        </View>
-                    </View>
+                    </AttachmentModal>
+                    {DeviceCapabilities.canUseTouchScreen() && isMediumScreenWidth ? null : (
+                        <EmojiPickerButton
+                            isDisabled={isBlockedFromConcierge || disabled}
+                            onModalHide={() => focus(true)}
+                            onEmojiSelected={replaceSelectionWithText}
+                        />
+                    )}
                     <View
-                        style={[
-                            styles.flexRow,
-                            styles.justifyContentBetween,
-                            styles.alignItemsCenter,
-                            (!isSmallScreenWidth || (isSmallScreenWidth && !network.isOffline)) && styles.chatItemComposeSecondaryRow,
-                        ]}
+                        style={[styles.justifyContentEnd]}
+                        // Keep focus on the composer when Send message is clicked.
+                        onMouseDown={(e) => e.preventDefault()}
                     >
-                        {!isSmallScreenWidth && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
-                        <ReportTypingIndicator reportID={reportID} />
-                        <ExceededCommentLength
-                            comment={commentRef.current}
-                            onExceededMaxCommentLength={setExceededMaxCommentLength}
-                        />
+                        <GestureDetector gesture={Tap}>
+                            <Tooltip text={translate('common.send')}>
+                                <PressableWithFeedback
+                                    style={({pressed, isDisabled}) => [
+                                        styles.chatItemSubmitButton,
+                                        isCommentEmpty || hasExceededMaxCommentLength || pressed || isDisabled ? undefined : styles.buttonSuccess,
+                                    ]}
+                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                    accessibilityLabel={translate('common.send')}
+                                >
+                                    {({pressed}) => (
+                                        <Icon
+                                            src={Expensicons.Send}
+                                            fill={isCommentEmpty || hasExceededMaxCommentLength || pressed ? themeColors.icon : themeColors.textLight}
+                                        />
+                                    )}
+                                </PressableWithFeedback>
+                            </Tooltip>
+                        </GestureDetector>
                     </View>
-                </OfflineWithFeedback>
-                {isEmojiSuggestionsMenuVisible && (
-                        <EmojiSuggestions
-                            onClose={() => setSuggestionValues((prevState) => ({...prevState, suggestedEmojis: []}))}
-                            highlightedEmojiIndex={highlightedEmojiIndex}
-                            emojis={suggestionValues.suggestedEmojis}
-                            comment={value}
-                            updateComment={(newComment) => setValue(newComment)}
-                            colonIndex={suggestionValues.colonIndex}
-                            prefix={value.slice(suggestionValues.colonIndex + 1, selection.start)}
-                            onSelect={insertSelectedEmoji}
-                            isComposerFullSize={isComposerFullSize}
-                            preferredSkinToneIndex={preferredSkinTone}
-                            isEmojiPickerLarge={suggestionValues.isAutoSuggestionPickerLarge}
-                            composerHeight={composerHeight}
-                            shouldIncludeReportRecipientLocalTimeHeight={shouldShowReportRecipientLocalTime}
-                        />
-                )}
-                {isMentionSuggestionsMenuVisible && (
-                        <MentionSuggestions
-                            onClose={() => setSuggestionValues((prevState) => ({...prevState, suggestedMentions: []}))}
-                            highlightedMentionIndex={highlightedMentionIndex}
-                            mentions={suggestionValues.suggestedMentions}
-                            comment={value}
-                            updateComment={(newComment) => setValue(newComment)}
-                            colonIndex={suggestionValues.colonIndex}
-                            prefix={suggestionValues.mentionPrefix}
-                            onSelect={insertSelectedMention}
-                            isComposerFullSize={isComposerFullSize}
-                            isMentionPickerLarge={suggestionValues.isAutoSuggestionPickerLarge}
-                            composerHeight={composerHeight}
-                            shouldIncludeReportRecipientLocalTimeHeight={shouldShowReportRecipientLocalTime}
-                        />
-                )}
-            </View>
-        );
-    }
+                </View>
+                <View
+                    style={[
+                        styles.flexRow,
+                        styles.justifyContentBetween,
+                        styles.alignItemsCenter,
+                        (!isSmallScreenWidth || (isSmallScreenWidth && !network.isOffline)) && styles.chatItemComposeSecondaryRow,
+                    ]}
+                >
+                    {!isSmallScreenWidth && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
+                    <ReportTypingIndicator reportID={reportID} />
+                    <ExceededCommentLength
+                        comment={commentRef.current}
+                        onExceededMaxCommentLength={setExceededMaxCommentLength}
+                    />
+                </View>
+            </OfflineWithFeedback>
+            {isEmojiSuggestionsMenuVisible && (
+                <EmojiSuggestions
+                    onClose={() => setSuggestionValues((prevState) => ({...prevState, suggestedEmojis: []}))}
+                    highlightedEmojiIndex={highlightedEmojiIndex}
+                    emojis={suggestionValues.suggestedEmojis}
+                    comment={value}
+                    updateComment={(newComment) => setValue(newComment)}
+                    colonIndex={suggestionValues.colonIndex}
+                    prefix={value.slice(suggestionValues.colonIndex + 1, selection.start)}
+                    onSelect={insertSelectedEmoji}
+                    isComposerFullSize={isComposerFullSize}
+                    preferredSkinToneIndex={preferredSkinTone}
+                    isEmojiPickerLarge={suggestionValues.isAutoSuggestionPickerLarge}
+                    composerHeight={composerHeight}
+                    shouldIncludeReportRecipientLocalTimeHeight={shouldShowReportRecipientLocalTime}
+                />
+            )}
+            {isMentionSuggestionsMenuVisible && (
+                <MentionSuggestions
+                    onClose={() => setSuggestionValues((prevState) => ({...prevState, suggestedMentions: []}))}
+                    highlightedMentionIndex={highlightedMentionIndex}
+                    mentions={suggestionValues.suggestedMentions}
+                    comment={value}
+                    updateComment={(newComment) => setValue(newComment)}
+                    colonIndex={suggestionValues.colonIndex}
+                    prefix={suggestionValues.mentionPrefix}
+                    onSelect={insertSelectedMention}
+                    isComposerFullSize={isComposerFullSize}
+                    isMentionPickerLarge={suggestionValues.isAutoSuggestionPickerLarge}
+                    composerHeight={composerHeight}
+                    shouldIncludeReportRecipientLocalTimeHeight={shouldShowReportRecipientLocalTime}
+                />
+            )}
+        </View>
+    );
 }
 
 ReportActionCompose.propTypes = propTypes;
