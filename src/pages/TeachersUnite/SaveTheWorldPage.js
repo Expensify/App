@@ -11,23 +11,25 @@ import Text from '../../components/Text';
 import MenuItem from '../../components/MenuItem';
 import IllustratedHeaderPageLayout from '../../components/IllustratedHeaderPageLayout';
 import * as LottieAnimations from '../../components/LottieAnimations';
+import * as LoginUtils from '../../libs/LoginUtils';
 import useLocalize from '../../hooks/useLocalize';
 
 const propTypes = {
-    /** Object with various information about the user */
-    user: PropTypes.shape({
-        /** Whether or not the user is on a public domain email account or not */
-        isFromPublicDomain: PropTypes.bool,
+    /** Current user session */
+    session: PropTypes.shape({
+        email: PropTypes.string.isRequired,
     }),
 };
 
 const defaultProps = {
-    user: {},
+    session: {
+        email: null,
+    },
 };
 
 function SaveTheWorldPage(props) {
     const {translate} = useLocalize();
-    const isLoggedInEmailPublicDomain = props.user.isFromPublicDomain;
+    const isLoggedInEmailPublicDomain = LoginUtils.isEmailPublicDomain(props.session.email);
 
     return (
         <IllustratedHeaderPageLayout
@@ -64,5 +66,8 @@ SaveTheWorldPage.displayName = 'SaveTheWorldPage';
 export default withOnyx({
     user: {
         key: ONYXKEYS.USER,
+    },
+    session: {
+        key: ONYXKEYS.SESSION,
     },
 })(SaveTheWorldPage);
