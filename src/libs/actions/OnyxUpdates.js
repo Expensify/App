@@ -25,7 +25,7 @@ function detectAndGetMissingUpdates(lastUpdateID = 0, previousUpdateID = 0) {
     console.debug('[OnyxUpdates] The lastUpdateID the client knows about is', onyxUpdatesLastUpdateID);
 
     // Store this value in Onyx to allow AuthScreens to fetch incremental updates from the server when a previous session is being reconnected to.
-    Onyx.set(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID, pushJSONLastUpdateID);
+    Onyx.set(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID, lastUpdateID);
 
     // The previous update from the server does not match the last update the client got which means the client is missing some updates.
     // ReconnectApp will fetch updates starting from the last update this client got and going to the last update the server sent.

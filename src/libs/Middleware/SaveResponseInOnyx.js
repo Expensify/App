@@ -4,19 +4,19 @@ import * as QueuedOnyxUpdates from '../actions/QueuedOnyxUpdates';
 import * as OnyxUpdates from '../actions/OnyxUpdates';
 
 /**
- *
  * @param {Object} updates
  * @param {Object[]} updates.onyxData an array of Onyx update instruction objects
  * @param {Number} updates.previousUpdateID
  * @param {Number} updates.lastUpdateID
+ * @returns {Promise}
  */
 function updateOnyx(updates) {
     if (!updates.onyxData) {
-        Onyx.update(updates);
-    } else {
-        Onyx.update(updates.onyxData);
-        OnyxUpdates.detectAndGetMissingUpdates(Number(updates.lastUpdateID || 0), Number(updates.previousUpdateID || 0));
+        return Onyx.update(updates);
     }
+
+    OnyxUpdates.detectAndGetMissingUpdates(Number(updates.lastUpdateID || 0), Number(updates.previousUpdateID || 0));
+    return Onyx.update(updates.onyxData);
 }
 
 /**

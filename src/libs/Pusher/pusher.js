@@ -136,7 +136,7 @@ function bindEventToChannel(channel, eventName, eventCallback = () => {}) {
         try {
             data = _.isObject(eventData) ? eventData : JSON.parse(eventData);
         } catch (err) {
-            Log.alert('[Pusher] Unable to parse JSON response from Pusher', {error: err, eventData});
+            Log.alert('[Pusher] Unable to parse JSON response from Pusher 1', {error: err, eventData});
             return;
         }
         if (data.id === undefined || data.chunk === undefined || data.final === undefined) {
@@ -168,10 +168,11 @@ function bindEventToChannel(channel, eventName, eventCallback = () => {}) {
             try {
                 eventCallback(JSON.parse(chunkedEvent.chunks.join('')));
             } catch (err) {
-                Log.alert('[Pusher] Unable to parse chunked JSON response from Pusher', {
+                Log.alert('[Pusher] Unable to parse chunked JSON response from Pusher 2', {
                     error: err,
                     eventData: chunkedEvent.chunks.join(''),
                 });
+                console.error(err);
             }
 
             delete chunkedDataEvents[data.id];
