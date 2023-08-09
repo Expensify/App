@@ -187,22 +187,20 @@ function BaseSelectionListRadio(props) {
         };
     }, [props.shouldDelayFocus, shouldShowTextInput]);
 
-    useKeyboardShortcut(
-        CONST.KEYBOARD_SHORTCUTS.ENTER,
-        () => {
-            const focusedOption = flattenedSections.allOptions[focusedIndex];
+    const selectFocusedOption = () => {
+        const focusedOption = flattenedSections.allOptions[focusedIndex];
 
-            if (!focusedOption) {
-                return;
-            }
+        if (!focusedOption) {
+            return;
+        }
 
-            props.onSelectRow(focusedOption);
-        },
-        {
-            captureOnInputs: true,
-            shouldBubble: () => !flattenedSections.allOptions[focusedIndex],
-        },
-    );
+        props.onSelectRow(focusedOption);
+    };
+
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
+        captureOnInputs: true,
+        shouldBubble: () => !flattenedSections.allOptions[focusedIndex],
+    });
 
     return (
         <ArrowKeyFocusManager
@@ -230,6 +228,8 @@ function BaseSelectionListRadio(props) {
                                     onChangeText={props.onChangeText}
                                     keyboardType={props.keyboardType}
                                     selectTextOnFocus
+                                    spellCheck={false}
+                                    onSubmitEditing={selectFocusedOption}
                                 />
                             </View>
                         )}

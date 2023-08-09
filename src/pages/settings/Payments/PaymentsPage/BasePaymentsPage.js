@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState, useRef} from 'react';
 import {ActivityIndicator, View, InteractionManager} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -38,10 +38,6 @@ function BasePaymentsPage(props) {
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
     const [shouldShowAddPaymentMenu, setShouldShowAddPaymentMenu] = useState(false);
     const [shouldShowDefaultDeleteMenu, setShouldShowDefaultDeleteMenu] = useState(false);
-    const [showPassword, setShowPassword] = useState({
-        shouldShowPasswordPrompt: false,
-        passwordButtonText: '',
-    });
     const [shouldShowLoadingSpinner, setShouldShowLoadingSpinner] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState({
         isSelectedPaymentMethodDefault: false,
@@ -52,6 +48,8 @@ function BasePaymentsPage(props) {
         methodID: null,
         selectedPaymentMethodType: null,
     });
+    const addPaymentMethodAnchorRef = useRef(null);
+    const deletePaymentMethodAnchorRef = useRef(null);
     const [anchorPosition, setAnchorPosition] = useState({
         anchorPositionHorizontal: 0,
         anchorPositionVertical: 0,
@@ -231,15 +229,17 @@ function BasePaymentsPage(props) {
     );
 
     const makeDefaultPaymentMethod = useCallback(() => {
+        const paymentCardList = props.fundList || props.cardList || {};
+        const paymentCardOnyxKey = props.fundList ? ONYXKEYS.FUND_LIST : ONYXKEYS.CARD_LIST;
         // Find the previous default payment method so we can revert if the MakeDefaultPaymentMethod command errors
-        const paymentMethods = PaymentUtils.formatPaymentMethods(props.bankAccountList, props.cardList);
+        const paymentMethods = PaymentUtils.formatPaymentMethods(props.bankAccountList, paymentCardList);
 
         const previousPaymentMethod = _.find(paymentMethods, (method) => method.isDefault);
         const currentPaymentMethod = _.find(paymentMethods, (method) => method.methodID === paymentMethod.methodID);
         if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
-            PaymentMethods.makeDefaultPaymentMethod(paymentMethod.selectedPaymentMethod.bankAccountID, null, previousPaymentMethod, currentPaymentMethod);
+            PaymentMethods.makeDefaultPaymentMethod(paymentMethod.selectedPaymentMethod.bankAccountID, null, previousPaymentMethod, currentPaymentMethod, paymentCardOnyxKey);
         } else if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
-            PaymentMethods.makeDefaultPaymentMethod(null, paymentMethod.selectedPaymentMethod.fundID, previousPaymentMethod, currentPaymentMethod);
+            PaymentMethods.makeDefaultPaymentMethod(null, paymentMethod.selectedPaymentMethod.fundID, previousPaymentMethod, currentPaymentMethod, paymentCardOnyxKey);
         }
         resetSelectedPaymentMethodData();
     }, [
@@ -249,6 +249,7 @@ function BasePaymentsPage(props) {
         paymentMethod.selectedPaymentMethodType,
         props.bankAccountList,
         props.cardList,
+        props.fundList,
         resetSelectedPaymentMethodData,
     ]);
 
@@ -348,7 +349,7 @@ function BasePaymentsPage(props) {
     }, [props.shouldListenForResize, setMenuPosition]);
 
     useEffect(() => {
-        if (!shouldShowDefaultDeleteMenu && !showPassword.shouldShowPasswordPrompt) {
+        if (!shouldShowDefaultDeleteMenu) {
             return;
         }
 
@@ -368,16 +369,7 @@ function BasePaymentsPage(props) {
                 hideDefaultDeleteMenu();
             }
         }
-    }, [
-        hideDefaultDeleteMenu,
-        paymentMethod.methodID,
-        paymentMethod.selectedPaymentMethodType,
-        props.bankAccountList,
-        props.cardList,
-        props.payPalMeData,
-        shouldShowDefaultDeleteMenu,
-        showPassword.shouldShowPasswordPrompt,
-    ]);
+    }, [hideDefaultDeleteMenu, paymentMethod.methodID, paymentMethod.selectedPaymentMethodType, props.bankAccountList, props.cardList, props.payPalMeData, shouldShowDefaultDeleteMenu]);
 
     const isPayPalMeSelected = paymentMethod.formattedSelectedPaymentMethod.type === CONST.PAYMENT_METHODS.PAYPAL;
     const shouldShowMakeDefaultButton =
@@ -407,9 +399,10 @@ function BasePaymentsPage(props) {
                         onPress={paymentMethodPressed}
                         style={[styles.flex4]}
                         isAddPaymentMenuActive={shouldShowAddPaymentMenu}
-                        actionPaymentMethodType={shouldShowDefaultDeleteMenu || showPassword.shouldShowPasswordPrompt ? paymentMethod.selectedPaymentMethodType : ''}
-                        activePaymentMethodID={shouldShowDefaultDeleteMenu || showPassword.shouldShowPasswordPrompt ? getSelectedPaymentMethodID() : ''}
+                        actionPaymentMethodType={shouldShowDefaultDeleteMenu ? paymentMethod.selectedPaymentMethodType : ''}
+                        activePaymentMethodID={shouldShowDefaultDeleteMenu ? getSelectedPaymentMethodID() : ''}
                         listHeaderComponent={listHeaderComponent}
+                        buttonRef={addPaymentMethodAnchorRef}
                     />
                 </OfflineWithFeedback>
             </View>
@@ -418,9 +411,10 @@ function BasePaymentsPage(props) {
                 onClose={hideAddPaymentMenu}
                 anchorPosition={{
                     horizontal: anchorPosition.anchorPositionHorizontal,
-                    vertical: anchorPosition.anchorPositionVertical - 10,
+                    vertical: anchorPosition.anchorPositionVertical - CONST.MODAL.POPOVER_MENU_PADDING,
                 }}
                 onItemSelected={(method) => addPaymentMethodTypePressed(method)}
+                anchorRef={addPaymentMethodAnchorRef}
             />
             <Popover
                 isVisible={shouldShowDefaultDeleteMenu}
@@ -429,6 +423,8 @@ function BasePaymentsPage(props) {
                     top: anchorPosition.anchorPositionTop,
                     right: anchorPosition.anchorPositionRight,
                 }}
+                withoutOverlay
+                anchorRef={deletePaymentMethodAnchorRef}
             >
                 {!showConfirmDeleteContent ? (
                     <View style={[styles.m5, !isSmallScreenWidth ? styles.sidebarPopover : '']}>
@@ -445,20 +441,7 @@ function BasePaymentsPage(props) {
                             <Button
                                 onPress={() => {
                                     setShouldShowDefaultDeleteMenu(false);
-
-                                    // Wait for the previous modal to close, before opening a new one. A modal will be considered completely closed when closing animation is finished.
-                                    // InteractionManager fires after the currently running animation is completed.
-                                    // https://github.com/Expensify/App/issues/7768#issuecomment-1044879541
-                                    InteractionManager.runAfterInteractions(() => {
-                                        if (Permissions.canUsePasswordlessLogins(props.betas)) {
-                                            makeDefaultPaymentMethod();
-                                        } else {
-                                            setShowPassword({
-                                                shouldShowPasswordPrompt: true,
-                                                passwordButtonText: translate('paymentsPage.setDefaultConfirmation'),
-                                            });
-                                        }
-                                    });
+                                    makeDefaultPaymentMethod();
                                 }}
                                 text={translate('paymentsPage.setDefaultConfirmation')}
                             />
@@ -478,6 +461,7 @@ function BasePaymentsPage(props) {
                             style={[shouldShowMakeDefaultButton ? styles.mt4 : {}]}
                             text={translate('common.delete')}
                             danger
+                            ref={deletePaymentMethodAnchorRef}
                         />
                     </View>
                 ) : (
@@ -526,6 +510,9 @@ export default compose(
         },
         cardList: {
             key: ONYXKEYS.CARD_LIST,
+        },
+        fundList: {
+            key: ONYXKEYS.FUND_LIST,
         },
         walletTerms: {
             key: ONYXKEYS.WALLET_TERMS,

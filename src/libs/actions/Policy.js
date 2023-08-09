@@ -7,14 +7,13 @@ import {escapeRegExp} from 'lodash';
 import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
-import * as LocalePhoneNumber from '../LocalePhoneNumber';
+import * as NumberUtils from '../NumberUtils';
 import * as OptionsListUtils from '../OptionsListUtils';
 import * as ErrorUtils from '../ErrorUtils';
 import * as ReportUtils from '../ReportUtils';
 import * as PersonalDetailsUtils from '../PersonalDetailsUtils';
 import Log from '../Log';
 import Permissions from '../Permissions';
-import * as UserUtils from '../UserUtils';
 
 const allPolicies = {};
 Onyx.connect({
@@ -360,24 +359,6 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID,
     // create onyx data for policy expense chats for each new member
     const membersChats = createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, betas);
 
-    // Optimistic personal details for the new accounts invited
-    const optimisticPersonalDetails = _.chain(invitedEmailsToAccountIDs)
-        .map(
-            (accountID, memberLogin) =>
-                !_.has(allPersonalDetails, accountID) && [
-                    accountID,
-                    {
-                        accountID,
-                        avatar: UserUtils.getDefaultAvatarURL(accountID),
-                        displayName: LocalePhoneNumber.formatPhoneNumber(memberLogin),
-                        login: OptionsListUtils.addSMSDomainIfPhoneNumber(memberLogin),
-                    },
-                ],
-        )
-        .compact()
-        .object()
-        .value();
-
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -388,11 +369,6 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID,
         },
         ...newPersonalDetailsOnyxData.optimisticData,
         ...membersChats.onyxOptimisticData,
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: optimisticPersonalDetails,
-        },
     ];
 
     const successData = [
@@ -400,17 +376,28 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID,
             onyxMethod: Onyx.METHOD.MERGE,
             key: membersListKey,
 
-            // Convert to object with each key clearing pendingAction. We don’t
-            // need to remove the members since that will be handled by onClose of OfflineWithFeedback.
-            value: _.object(accountIDs, Array(accountIDs.length).fill({pendingAction: null, errors: null})),
+            // Convert to object with each key clearing pendingAction, when it is an existing account.
+            // Remove the object, when it is a newly created account.
+            value: _.reduce(
+                accountIDs,
+                (accountIDsWithClearedPendingAction, accountID) => {
+                    let value = null;
+                    const accountAlreadyExists = !_.isEmpty(allPersonalDetails[accountID]);
+
+                    if (accountAlreadyExists) {
+                        value = {pendingAction: null, errors: null};
+                    }
+
+                    // eslint-disable-next-line no-param-reassign
+                    accountIDsWithClearedPendingAction[accountID] = value;
+
+                    return accountIDsWithClearedPendingAction;
+                },
+                {},
+            ),
         },
         ...newPersonalDetailsOnyxData.successData,
         ...membersChats.onyxSuccessData,
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: _.object(_.keys(optimisticPersonalDetails), Array(_.size(optimisticPersonalDetails)).fill(null)),
-        },
     ];
 
     const failureData = [
@@ -434,8 +421,9 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID,
     const params = {
         employees: JSON.stringify(_.map(logins, (login) => ({email: login}))),
 
-        // Escape HTML special chars to enable them to appear in the invite email
-        welcomeNote: _.escape(welcomeNote),
+        // Do not escape HTML special chars for welcomeNote as this will be handled in the backend.
+        // See https://github.com/Expensify/App/issues/20081 for more details.
+        welcomeNote,
         policyID,
     };
     if (!_.isEmpty(membersChats.reportCreationData)) {
@@ -847,9 +835,45 @@ function generateDefaultWorkspaceName(email = '') {
  * @returns {String}
  */
 function generatePolicyID() {
-    return _.times(16, () => Math.floor(Math.random() * 16).toString(16))
-        .join('')
-        .toUpperCase();
+    return NumberUtils.generateHexadecimalValue(16);
+}
+
+/**
+ * Returns a client generated 13 character hexadecimal value for a custom unit ID
+ * @returns {String}
+ */
+function generateCustomUnitID() {
+    return NumberUtils.generateHexadecimalValue(13);
+}
+
+/**
+ * @returns {Object}
+ */
+function buildOptimisticCustomUnits() {
+    const customUnitID = generateCustomUnitID();
+    const customUnitRateID = generateCustomUnitID();
+    const customUnits = {
+        [customUnitID]: {
+            customUnitID,
+            name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+            attributes: {
+                unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+            },
+            rates: {
+                [customUnitRateID]: {
+                    customUnitRateID,
+                    name: CONST.CUSTOM_UNITS.DEFAULT_RATE,
+                    rate: CONST.CUSTOM_UNITS.MILEAGE_IRS_RATE * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET,
+                },
+            },
+        },
+    };
+
+    return {
+        customUnits,
+        customUnitID,
+        customUnitRateID,
+    };
 }
 
 /**
@@ -863,6 +887,8 @@ function generatePolicyID() {
  */
 function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName = '', policyID = generatePolicyID()) {
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
+
+    const {customUnits, customUnitID, customUnitRateID} = buildOptimisticCustomUnits();
 
     const {
         announceChatReportID,
@@ -893,6 +919,8 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
             announceCreatedReportActionID,
             adminsCreatedReportActionID,
             expenseCreatedReportActionID,
+            customUnitID,
+            customUnitRateID,
         },
         {
             optimisticData: [
@@ -907,6 +935,7 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                         owner: sessionEmail,
                         outputCurrency: lodashGet(allPersonalDetails, [sessionAccountID, 'localCurrencyCode'], CONST.CURRENCY.USD),
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                        customUnits,
                     },
                 },
                 {
