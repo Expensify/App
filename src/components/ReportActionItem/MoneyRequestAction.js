@@ -102,7 +102,7 @@ function MoneyRequestAction(props) {
                 participantAccountIDs,
                 props.translate(ReportActionsUtils.isSentMoneyReportAction(props.action) ? 'iou.threadSentMoneyReportName' : 'iou.threadRequestReportName', {
                     formattedAmount: ReportActionsUtils.getFormattedAmount(props.action),
-                    comment: props.action.originalMessage.comment,
+                    comment: ReportActionsUtils.getMoneyRequestDetails(props.action).comment,
                 }),
                 '',
                 CONST.POLICY.OWNER_EMAIL_FAKE,
