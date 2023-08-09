@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {useState} from 'react';
+import React, {useState, useRef} from 'react';
 import PropTypes from 'prop-types';
 import {View, StyleSheet} from 'react-native';
 import * as optionRowStyles from '../../styles/optionRowStyles';
@@ -20,6 +20,7 @@ import PressableWithSecondaryInteraction from '../PressableWithSecondaryInteract
 import * as ReportActionContextMenu from '../../pages/home/report/ContextMenu/ReportActionContextMenu';
 import * as ContextMenuActions from '../../pages/home/report/ContextMenu/ContextMenuActions';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
+import * as ReportUtils from '../../libs/ReportUtils';
 import useLocalize from '../../hooks/useLocalize';
 
 const propTypes = {
@@ -56,7 +57,9 @@ const defaultProps = {
 };
 
 function OptionRowLHN(props) {
-    const localize = useLocalize();
+    const popoverAnchor = useRef(null);
+
+    const {translate} = useLocalize();
 
     const optionItem = props.optionItem;
     const [isContextMenuActive, setIsContextMenuActive] = useState(false);
@@ -65,7 +68,11 @@ function OptionRowLHN(props) {
         return null;
     }
 
-    let popoverAnchor = null;
+    const isMuted = optionItem.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE;
+    if (isMuted && !props.isFocused && !optionItem.isPinned) {
+        return null;
+    }
+
     const textStyle = props.isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
     const textUnreadStyle = optionItem.isUnread ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
     const displayNameStyle = StyleUtils.combineStyles([styles.optionDisplayName, styles.optionDisplayNameCompact, styles.pre, ...textUnreadStyle], props.style);
@@ -90,7 +97,7 @@ function OptionRowLHN(props) {
     const shouldShowGreenDotIndicator =
         !hasBrickError &&
         (optionItem.isUnreadWithMention ||
-            (optionItem.hasOutstandingIOU && !optionItem.isIOUReportOwner) ||
+            ReportUtils.isWaitingForIOUActionFromCurrentUser(optionItem) ||
             (optionItem.isTaskReport && optionItem.isTaskAssignee && !optionItem.isCompletedTaskReport && !optionItem.isArchivedRoom));
 
     /**
@@ -122,11 +129,12 @@ function OptionRowLHN(props) {
             pendingAction={optionItem.pendingAction}
             errors={optionItem.allReportErrors}
             shouldShowErrorMessages={false}
+            needsOffscreenAlphaCompositing
         >
             <Hoverable>
                 {(hovered) => (
                     <PressableWithSecondaryInteraction
-                        ref={(el) => (popoverAnchor = el)}
+                        ref={popoverAnchor}
                         onPress={(e) => {
                             if (e) {
                                 e.preventDefault();
@@ -156,7 +164,7 @@ function OptionRowLHN(props) {
                             (hovered || isContextMenuActive) && !props.isFocused ? props.hoverStyle : null,
                         ]}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                        accessibilityLabel={localize.translate('accessibilityHints.navigatesToChat')}
+                        accessibilityLabel={translate('accessibilityHints.navigatesToChat')}
                     >
                         <View style={sidebarInnerRowStyle}>
                             <View style={[styles.flexRow, styles.alignItemsCenter]}>
@@ -184,7 +192,7 @@ function OptionRowLHN(props) {
                                 <View style={contentContainerStyles}>
                                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.mw100, styles.overflowHidden]}>
                                         <DisplayNames
-                                            accessibilityLabel={localize.translate('accessibilityHints.chatUserDisplayNames')}
+                                            accessibilityLabel={translate('accessibilityHints.chatUserDisplayNames')}
                                             fullTitle={optionItem.text}
                                             displayNamesWithTooltips={optionItem.displayNamesWithTooltips}
                                             tooltipEnabled
@@ -199,9 +207,9 @@ function OptionRowLHN(props) {
                                         <Text
                                             style={alternateTextStyle}
                                             numberOfLines={1}
-                                            accessibilityLabel={localize.translate('accessibilityHints.lastChatMessagePreview')}
+                                            accessibilityLabel={translate('accessibilityHints.lastChatMessagePreview')}
                                         >
-                                            {optionItem.isLastMessageDeletedParentAction ? props.translate('parentReportAction.deletedMessage') : optionItem.alternateText}
+                                            {optionItem.isLastMessageDeletedParentAction ? translate('parentReportAction.deletedMessage') : optionItem.alternateText}
                                         </Text>
                                     ) : null}
                                 </View>
@@ -230,10 +238,10 @@ function OptionRowLHN(props) {
                                     fill={themeColors.success}
                                 />
                             )}
-                            {optionItem.hasDraftComment && (
+                            {optionItem.hasDraftComment && optionItem.isAllowedToComment && (
                                 <View
                                     style={styles.ml2}
-                                    accessibilityLabel={localize.translate('sidebarScreen.draftedMessage')}
+                                    accessibilityLabel={translate('sidebarScreen.draftedMessage')}
                                 >
                                     <Icon src={Expensicons.Pencil} />
                                 </View>
@@ -241,7 +249,7 @@ function OptionRowLHN(props) {
                             {!shouldShowGreenDotIndicator && optionItem.isPinned && (
                                 <View
                                     style={styles.ml2}
-                                    accessibilityLabel={localize.translate('sidebarScreen.chatPinned')}
+                                    accessibilityLabel={translate('sidebarScreen.chatPinned')}
                                 >
                                     <Icon src={Expensicons.Pin} />
                                 </View>

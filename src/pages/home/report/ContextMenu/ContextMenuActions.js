@@ -59,7 +59,7 @@ export default [
             };
 
             const toggleEmojiAndCloseMenu = (emoji, existingReactions) => {
-                Report.toggleEmojiReaction(reportID, reportAction.reportActionID, emoji, existingReactions);
+                Report.toggleEmojiReaction(reportID, reportAction, emoji, existingReactions);
                 closeContextMenu();
             };
 
@@ -240,7 +240,7 @@ export default [
         icon: Expensicons.Mail,
         successIcon: Expensicons.Checkmark,
         shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat, isUnreadChat) =>
-            type === CONTEXT_MENU_TYPES.REPORT_ACTION || (type === CONTEXT_MENU_TYPES.REPORT && !isUnreadChat),
+            !isUnreadChat && (type === CONTEXT_MENU_TYPES.REPORT_ACTION || type === CONTEXT_MENU_TYPES.REPORT),
         onPress: (closePopover, {reportAction, reportID}) => {
             Report.markCommentAsUnread(reportID, reportAction.created);
             if (closePopover) {

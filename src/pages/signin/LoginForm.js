@@ -24,11 +24,11 @@ import * as ErrorUtils from '../../libs/ErrorUtils';
 import DotIndicatorMessage from '../../components/DotIndicatorMessage';
 import * as CloseAccount from '../../libs/actions/CloseAccount';
 import CONST from '../../CONST';
-import AppleSignIn from '../../components/SignInButtons/AppleSignIn';
 import isInputAutoFilled from '../../libs/isInputAutoFilled';
 import * as PolicyUtils from '../../libs/PolicyUtils';
 import Log from '../../libs/Log';
 import withNavigationFocus, {withNavigationFocusPropTypes} from '../../components/withNavigationFocus';
+import usePrevious from '../../hooks/usePrevious';
 
 const propTypes = {
     /** Should we dismiss the keyboard when transitioning away from the page? */
@@ -82,6 +82,7 @@ function LoginForm(props) {
     const input = useRef();
     const [login, setLogin] = useState('');
     const [formError, setFormError] = useState(false);
+    const prevIsVisible = usePrevious(props.isVisible);
 
     const {translate} = props;
 
@@ -106,10 +107,6 @@ function LoginForm(props) {
         },
         [props.account, props.closeAccount, input, setFormError, setLogin],
     );
-
-    function getSignInWithStyles() {
-        return props.isSmallScreenWidth ? [styles.mt1] : [styles.mt5, styles.mb5];
-    }
 
     /**
      * Check that all the form fields are valid, then trigger the submit callback
@@ -171,11 +168,13 @@ function LoginForm(props) {
         if (props.blurOnSubmit) {
             input.current.blur();
         }
-        if (!input.current || !props.isVisible) {
+
+        // Only focus the input if the form becomes visible again, to prevent the keyboard from automatically opening on touchscreen devices after signing out
+        if (!input.current || prevIsVisible || !props.isVisible) {
             return;
         }
         input.current.focus();
-    }, [props.blurOnSubmit, props.isVisible, input]);
+    }, [props.blurOnSubmit, props.isVisible, prevIsVisible]);
 
     const formErrorText = useMemo(() => (formError ? translate(formError) : ''), [formError, translate]);
     const serverErrorText = useMemo(() => ErrorUtils.getLatestErrorMessage(props.account), [props.account]);
@@ -218,7 +217,7 @@ function LoginForm(props) {
             )}
             {
                 // We need to unmount the submit button when the component is not visible so that the Enter button
-                // key handler gets unsubscribed and does not conflict with the Password Form
+                // key handler gets unsubscribed
                 props.isVisible && (
                     <View style={[styles.mt5]}>
                         <FormAlertWithSubmitButton
@@ -229,12 +228,6 @@ function LoginForm(props) {
                             isAlertVisible={!_.isEmpty(serverErrorText)}
                             containerStyles={[styles.mh0]}
                         />
-                        <View style={[getSignInWithStyles()]}>
-                            <Text style={[styles.textLabelSupporting, styles.textAlignCenter, styles.mb3, styles.mt2]}>{props.translate('common.signInWith')}</Text>
-                            <View style={props.isSmallScreenWidth ? styles.loginButtonRowSmallScreen : styles.loginButtonRow}>
-                                <AppleSignIn />
-                            </View>
-                        </View>
                     </View>
                 )
             }

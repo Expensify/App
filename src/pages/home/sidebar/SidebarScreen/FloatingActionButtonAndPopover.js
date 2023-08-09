@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useCallback, useImperativeHandle, forwardRef} from 'react';
+import React, {useState, useEffect, useRef, useCallback, useImperativeHandle, forwardRef} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
@@ -81,6 +81,7 @@ const defaultProps = {
 function FloatingActionButtonAndPopover(props) {
     const [isCreateMenuActive, setIsCreateMenuActive] = useState(false);
     const isAnonymousUser = Session.isAnonymousUser();
+    const anchorRef = useRef(null);
 
     const prevIsFocused = usePrevious(props.isFocused);
 
@@ -239,17 +240,26 @@ function FloatingActionButtonAndPopover(props) {
                                   iconHeight: 40,
                                   text: props.translate('workspace.new.newWorkspace'),
                                   description: props.translate('workspace.new.getTheExpensifyCardAndMore'),
-                                  onSelected: () => interceptAnonymousUser(() => App.createWorkspaceAndNavigateToIt()),
+                                  onSelected: () => interceptAnonymousUser(() => App.createWorkspaceAndNavigateToIt('', false, '', false, !props.isSmallScreenWidth)),
                               },
                           ]
                         : []),
                 ]}
+                withoutOverlay
+                anchorRef={anchorRef}
             />
             <FloatingActionButton
                 accessibilityLabel={props.translate('sidebarScreen.fabNewChat')}
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                 isActive={isCreateMenuActive}
-                onPress={showCreateMenu}
+                ref={anchorRef}
+                onPress={() => {
+                    if (isCreateMenuActive) {
+                        hideCreateMenu();
+                    } else {
+                        showCreateMenu();
+                    }
+                }}
             />
         </View>
     );

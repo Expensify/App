@@ -30,11 +30,9 @@ const propTypes = {
                 error: PropTypes.string,
                 message: PropTypes.arrayOf(
                     PropTypes.shape({
-                        moderationDecisions: PropTypes.arrayOf(
-                            PropTypes.shape({
-                                decision: PropTypes.string,
-                            }),
-                        ),
+                        moderationDecision: PropTypes.shape({
+                            decision: PropTypes.string,
+                        }),
                     }),
                 ),
             }),
@@ -65,7 +63,7 @@ const defaultProps = {
 };
 
 function SidebarLinksData({isFocused, allReportActions, betas, chatReports, currentReportID, insets, isPersonalDetailsLoading, isSmallScreenWidth, onLinkClick, policies, priorityMode}) {
-    const localize = useLocalize();
+    const {translate} = useLocalize();
 
     const reportIDsRef = useRef([]);
     const optionListItems = useMemo(() => {
@@ -82,7 +80,7 @@ function SidebarLinksData({isFocused, allReportActions, betas, chatReports, curr
     return (
         <View
             accessibilityElementsHidden={!isFocused}
-            accessibilityLabel={localize.translate('sidebarScreen.listOfChats')}
+            accessibilityLabel={translate('sidebarScreen.listOfChats')}
             style={[styles.flex1, styles.h100]}
         >
             <SidebarLinks
@@ -124,6 +122,7 @@ const chatReportSelector = (report) =>
         iouReportID: report.iouReportID,
         total: report.total,
         hasOutstandingIOU: report.hasOutstandingIOU,
+        isWaitingOnBankAccount: report.isWaitingOnBankAccount,
         statusNum: report.statusNum,
         stateNum: report.stateNum,
         chatType: report.chatType,
@@ -151,10 +150,10 @@ const chatReportSelector = (report) =>
 const reportActionsSelector = (reportActions) =>
     reportActions &&
     _.map(reportActions, (reportAction) => ({
-        errors: reportAction.errors,
+        errors: lodashGet(reportAction, 'errors', []),
         message: [
             {
-                moderationDecisions: [{decision: lodashGet(reportAction, 'message[0].moderationDecisions[0].decision')}],
+                moderationDecision: {decision: lodashGet(reportAction, 'message[0].moderationDecision.decision')},
             },
         ],
     }));

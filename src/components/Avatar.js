@@ -11,7 +11,7 @@ import * as Expensicons from './Icon/Expensicons';
 import Image from './Image';
 import styles from '../styles/styles';
 import * as ReportUtils from '../libs/ReportUtils';
-import useOnNetworkReconnect from '../hooks/useOnNetworkReconnect';
+import useNetwork from '../hooks/useNetwork';
 
 const propTypes = {
     /** Source for the avatar. Can be a URL or an icon. */
@@ -64,7 +64,7 @@ const defaultProps = {
 function Avatar(props) {
     const [imageError, setImageError] = useState(false);
 
-    useOnNetworkReconnect(() => setImageError(false));
+    useNetwork({onReconnect: () => setImageError(false)});
 
     if (!props.source) {
         return null;

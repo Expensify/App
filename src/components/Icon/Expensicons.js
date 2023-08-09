@@ -3,7 +3,6 @@ import AdminRoomAvatar from '../../../assets/images/avatars/admin-room.svg';
 import Android from '../../../assets/images/android.svg';
 import AnnounceRoomAvatar from '../../../assets/images/avatars/announce-room.svg';
 import Apple from '../../../assets/images/apple.svg';
-import AppleLogo from '../../../assets/images/signIn/apple-logo.svg';
 import ArrowRight from '../../../assets/images/arrow-right.svg';
 import ArrowRightLong from '../../../assets/images/arrow-right-long.svg';
 import ArrowsUpDown from '../../../assets/images/arrows-updown.svg';
@@ -16,6 +15,7 @@ import Bug from '../../../assets/images/bug.svg';
 import Building from '../../../assets/images/building.svg';
 import Calendar from '../../../assets/images/calendar.svg';
 import Camera from '../../../assets/images/camera.svg';
+import Car from '../../../assets/images/car.svg';
 import Cash from '../../../assets/images/cash.svg';
 import ChatBubble from '../../../assets/images/chatbubble.svg';
 import Checkmark from '../../../assets/images/checkmark.svg';
@@ -125,7 +125,6 @@ export {
     Android,
     AnnounceRoomAvatar,
     Apple,
-    AppleLogo,
     ArrowRight,
     ArrowRightLong,
     ArrowsUpDown,
@@ -138,6 +137,7 @@ export {
     Building,
     Calendar,
     Camera,
+    Car,
     Cash,
     ChatBubble,
     Checkmark,
