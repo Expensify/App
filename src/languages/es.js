@@ -868,6 +868,15 @@ export default {
         setPasswordLinkInvalid: 'El enlace para configurar tu contraseña ha expirado. Te hemos enviado un nuevo enlace a tu correo.',
         validateAccount: 'Verificar cuenta',
     },
+    statusPage: {
+        status: 'Estado',
+        setStatusTitle: 'Establece tu estado',
+        statusExplanation: 'Agrega un emoji para que tus colegas y amigos puedan saber fácilmente qué está pasando. ¡También puedes agregar un mensaje opcionalmente!',
+        today: 'Hoy',
+        clearStatus: 'Borrar estado',
+        save: 'Guardar',
+        message: 'Mensaje',
+    },
     stepCounter: ({step, total, text}) => {
         let result = `Paso ${step}`;
 

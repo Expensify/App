@@ -221,6 +221,7 @@ const CONST = {
         TASKS: 'tasks',
         THREADS: 'threads',
         SCAN_RECEIPTS: 'scanReceipts',
+        CUSTOM_STATUS: 'customStatus',
         DISTANCE_REQUESTS: 'distanceRequests',
     },
     BUTTON_STATES: {
@@ -2516,6 +2517,14 @@ const CONST = {
     },
     TRANSLATION_KEYS: {
         ATTACHMENT: 'common.attachment',
+    },
+    CUSTOM_STATUS_TYPES: {
+        NEVER: 'never',
+        THIRTY_MINUTES: 'thirtyMinutes',
+        ONE_HOUR: 'oneHour',
+        AFTER_TODAY: 'afterToday',
+        AFTER_WEEK: 'afterWeek',
+        CUSTOM: 'custom',
     },
     TAB: {
         RECEIPT_TAB_ID: 'ReceiptTab',
