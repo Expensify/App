@@ -184,7 +184,7 @@ function ProfilePage(props) {
                                     {displayName}
                                 </Text>
                             )}
-                            {hasStatus ? (
+                            {hasStatus && (
                                 <View style={[styles.mb6, styles.detailsPageSectionContainer, styles.mw100]}>
                                     <Text
                                         style={[styles.textLabelSupporting, styles.mb1]}
@@ -196,7 +196,7 @@ function ProfilePage(props) {
                                         <Text numberOfLines={1}>{statusContent}</Text>
                                     </Tooltip>
                                 </View>
-                            ) : null}
+                            )}
 
                             {login ? (
                                 <View style={[styles.mb6, styles.detailsPageSectionContainer, styles.w100]}>
