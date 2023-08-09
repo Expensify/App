@@ -1209,5 +1209,5 @@ export {
     setWorkspaceInviteMembersDraft,
     isPolicyOwner,
     clearErrors,
-    getWorkspaceCategories,
+    openDraftWorkspaceMoneyRequest,
 };
