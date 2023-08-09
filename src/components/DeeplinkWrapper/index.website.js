@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import {PureComponent} from 'react';
+import {useEffect} from 'react';
 import Str from 'expensify-common/lib/str';
 import * as Browser from '../../libs/Browser';
 import ROUTES from '../../ROUTES';
@@ -12,9 +12,13 @@ const propTypes = {
     children: PropTypes.node.isRequired,
 };
 
-class DeeplinkWrapper extends PureComponent {
-    componentDidMount() {
-        if (!this.isMacOSWeb() || CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.DEV) {
+function isMacOSWeb() {
+    return !Browser.isMobile() && typeof navigator === 'object' && typeof navigator.userAgent === 'string' && /Mac/i.test(navigator.userAgent) && !/Electron/i.test(navigator.userAgent);
+}
+
+function DeeplinkWrapper({children}) {
+    useEffect(() => {
+        if (!isMacOSWeb() || CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.DEV) {
             return;
         }
 
@@ -26,16 +30,11 @@ class DeeplinkWrapper extends PureComponent {
             App.beginDeepLinkRedirectAfterTransition();
             return;
         }
+
         App.beginDeepLinkRedirect();
-    }
+    }, []);
 
-    isMacOSWeb() {
-        return !Browser.isMobile() && typeof navigator === 'object' && typeof navigator.userAgent === 'string' && /Mac/i.test(navigator.userAgent) && !/Electron/i.test(navigator.userAgent);
-    }
-
-    render() {
-        return this.props.children;
-    }
+    return children;
 }
 
 DeeplinkWrapper.propTypes = propTypes;

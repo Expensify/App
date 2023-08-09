@@ -16,7 +16,6 @@ import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 
 const visibleReportActionItems = {};
 const lastReportActions = {};
-const reportActions = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     callback: (actions, key) => {
@@ -35,8 +34,6 @@ Onyx.connect({
             (reportAction, actionKey) => ReportActionsUtils.shouldReportActionBeVisible(reportAction, actionKey) && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED,
         );
         visibleReportActionItems[reportID] = _.last(reportActionsForDisplay);
-
-        reportActions[key] = actions;
     },
 });
 
@@ -149,11 +146,6 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
             return;
         }
 
-        if (ReportUtils.isTaskReport(report) && ReportUtils.isCompletedTaskReport(report)) {
-            archivedReports.push(report);
-            return;
-        }
-
         nonArchivedReports.push(report);
     });
 
@@ -180,12 +172,13 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
  * Gets all the data necessary for rendering an OptionRowLHN component
  *
  * @param {Object} report
+ * @param {Object} reportActions
  * @param {Object} personalDetails
  * @param {String} preferredLocale
  * @param {Object} [policy]
  * @returns {Object}
  */
-function getOptionData(report, personalDetails, preferredLocale, policy) {
+function getOptionData(report, reportActions, personalDetails, preferredLocale, policy) {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
     // a null check here and return early.
