@@ -27,6 +27,7 @@ import themeColors from '../../styles/themes/default';
 import reportPropTypes from '../../pages/reportPropTypes';
 import RenderHTML from '../RenderHTML';
 import * as ReceiptUtils from '../../libs/ReceiptUtils';
+import Image from '../Image';
 
 const propTypes = {
     /** All the data of the action */
@@ -136,18 +137,29 @@ function ReportPreview(props) {
                 accessibilityLabel={props.translate('iou.viewDetails')}
             >
                 <View style={[styles.reportPreviewBox, props.isHovered ? styles.iouPreviewBoxHover : undefined]}>
-                    <View style={[styles.flexRow, { height: 200 }]}>
-                        {_.map(receipts, ({receipt, transactionID}) => (
-                            <View style={[styles.flex1, styles.noOutline, styles.w100, styles.h100]}>
-                                <RenderHTML key={transactionID} html={`
-                                    <img
-                                        src="${receipt.source.replace('.jpg', '')}.1024.jpg"
-                                        data-expensify-source="${receipt.source}"
-                                        data-expensify-fit-container="true"
-                                    />
-                                `} />
-                            </View>
-                        ))}
+                    <View style={[styles.reportPreviewBoxImages, props.isHovered ? styles.reportPreviewBoxHoverBorder : undefined]}>
+                        {_.map(receipts, ({receipt, filename, transactionID}) => {
+                            const thumbnailURI = ReceiptUtils.getImageURI(`${receipt.source.replace('.jpg', '')}.1024.jpg`, filename);
+                            const uri = ReceiptUtils.getImageURI(receipt.source, filename);
+
+                            return (
+                                <View
+                                    key={transactionID}
+                                    style={[styles.reportPreviewBoxImage, props.isHovered ? styles.reportPreviewBoxHoverBorder : undefined]}
+                                >
+                                    {uri === receipt.source
+                                        ? <RenderHTML html={`
+                                                <img
+                                                    src="${thumbnailURI}"
+                                                    data-expensify-source="${uri}"
+                                                    data-expensify-fit-container="true"
+                                                />
+                                          `} />
+                                        : <Image source={{uri}} style={[styles.w100, styles.h100]} />
+                                    }
+                                </View>
+                            );
+                        })}
                     </View>
                     <View style={styles.reportPreviewBoxText}>
                         <View style={styles.flexRow}>

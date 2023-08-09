@@ -44,12 +44,11 @@ function ImageRenderer(props) {
     const imagePreviewModalDisabled = htmlAttribs['data-expensify-preview-modal-disabled'] === 'true';
 
     const shouldFitContainer = htmlAttribs['data-expensify-fit-container'] === 'true';
-    const fitContainerStyle = shouldFitContainer ? [styles.w100, styles.h100] : [];
 
     return imagePreviewModalDisabled ? (
         <ThumbnailImage
             previewSourceURL={previewSource}
-            style={[styles.webViewStyles.tagStyles.img, ...fitContainerStyle]}
+            style={shouldFitContainer ? [styles.w100, styles.h100] : styles.webViewStyles.tagStyles.img}
             isAuthTokenRequired={isAttachmentOrReceipt}
             imageWidth={imageWidth}
             imageHeight={imageHeight}
@@ -70,7 +69,7 @@ function ImageRenderer(props) {
                 >
                     <ThumbnailImage
                         previewSourceURL={previewSource}
-                        style={[styles.webViewStyles.tagStyles.img, ...fitContainerStyle]}
+                        style={shouldFitContainer ? [styles.w100, styles.h100] : styles.webViewStyles.tagStyles.img}
                         isAuthTokenRequired={isAttachmentOrReceipt}
                         imageWidth={imageWidth}
                         imageHeight={imageHeight}

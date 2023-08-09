@@ -3653,6 +3653,28 @@ const styles = {
         width: '100%',
     },
 
+    reportPreviewBoxImages: {
+        flexDirection: 'row',
+        borderWidth: 2,
+        borderColor: themeColors.cardBG,
+        borderTopLeftRadius: variables.componentBorderRadiusLarge,
+        borderTopRightRadius: variables.componentBorderRadiusLarge,
+        overflow: 'hidden',
+        height: 200,
+    },
+
+    reportPreviewBoxImage: {
+        borderWidth: 1,
+        borderColor: themeColors.cardBG,
+        flex: 1,
+        width: '100%',
+        height: '100%',
+    },
+
+    reportPreviewBoxHoverBorder: {
+        borderColor: themeColors.border,
+    },
+
     reportPreviewBoxText: {
         padding: 16,
     },
