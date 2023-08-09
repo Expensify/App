@@ -133,6 +133,11 @@ function ProfilePage(props) {
     // If the API returns an error for some reason there won't be any details and isLoading will get set to false, so we want to show a blocking screen
     const shouldShowBlockingView = !hasMinimumDetails && !isLoading;
 
+    const statusEmojiCode = lodashGet(details, 'status.emojiCode', '');
+    const statusText = lodashGet(details, 'status.text', '');
+    const hasStatus = !!statusEmojiCode;
+    const statusContent = `${statusEmojiCode}  ${statusText}`;
+
     return (
         <ScreenWrapper>
             <HeaderWithBackButton
@@ -178,6 +183,18 @@ function ProfilePage(props) {
                                     {displayName}
                                 </Text>
                             )}
+                            {hasStatus ? (
+                                <View style={[styles.mb6, styles.detailsPageSectionContainer, styles.w100]}>
+                                    <Text
+                                        style={[styles.textLabelSupporting, styles.mb1]}
+                                        numberOfLines={1}
+                                    >
+                                        {props.translate('statusPage.status')}
+                                    </Text>
+                                    <Text numberOfLines={1}>{statusContent}</Text>
+                                </View>
+                            ) : null}
+
                             {login ? (
                                 <View style={[styles.mb6, styles.detailsPageSectionContainer, styles.w100]}>
                                     <Text
