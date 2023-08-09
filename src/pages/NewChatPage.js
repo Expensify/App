@@ -176,30 +176,28 @@ function NewChatPage(props) {
             shouldEnableMaxHeight
         >
             {({safeAreaPaddingBottomStyle}) => (
-                <>
-                    <View style={[styles.flex1, styles.w100, styles.pRelative, selectedOptions.length > 0 ? safeAreaPaddingBottomStyle : {}]}>
-                        <OptionsSelector
-                            canSelectMultipleOptions
-                            shouldShowMultipleOptionSelectorAsButton
-                            multipleOptionSelectorButtonText={props.translate('newChatPage.addToGroup')}
-                            onAddToSelection={(option) => toggleOption(option)}
-                            sections={sections}
-                            selectedOptions={selectedOptions}
-                            value={searchTerm}
-                            onSelectRow={(option) => createChat(option)}
-                            onChangeText={setSearchTerm}
-                            headerMessage={headerMessage}
-                            boldStyle
-                            shouldFocusOnSelectRow={!Browser.isMobile()}
-                            shouldShowOptions={isOptionsDataReady}
-                            shouldShowConfirmButton
-                            confirmButtonText={selectedOptions.length > 1 ? props.translate('newChatPage.createGroup') : props.translate('newChatPage.createChat')}
-                            onConfirmSelection={createGroup}
-                            textInputLabel={props.translate('optionsSelector.nameEmailOrPhoneNumber')}
-                            safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
-                        />
-                    </View>
-                </>
+                <View style={[styles.flex1, styles.w100, styles.pRelative, selectedOptions.length > 0 ? safeAreaPaddingBottomStyle : {}]}>
+                    <OptionsSelector
+                        canSelectMultipleOptions
+                        shouldShowMultipleOptionSelectorAsButton
+                        multipleOptionSelectorButtonText={props.translate('newChatPage.addToGroup')}
+                        onAddToSelection={(option) => toggleOption(option)}
+                        sections={sections}
+                        selectedOptions={selectedOptions}
+                        value={searchTerm}
+                        onSelectRow={(option) => createChat(option)}
+                        onChangeText={setSearchTerm}
+                        headerMessage={headerMessage}
+                        boldStyle
+                        shouldFocusOnSelectRow={!Browser.isMobile()}
+                        shouldShowOptions={isOptionsDataReady}
+                        shouldShowConfirmButton
+                        confirmButtonText={selectedOptions.length > 1 ? props.translate('newChatPage.createGroup') : props.translate('newChatPage.createChat')}
+                        onConfirmSelection={createGroup}
+                        textInputLabel={props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                        safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
+                    />
+                </View>
             )}
         </ScreenWrapper>
     );
