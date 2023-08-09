@@ -99,7 +99,7 @@ function canUseScanReceipts(betas) {
  * @returns {Boolean}
  */
 function canUseCustomStatus(betas) {
-  return _.contains(betas, CONST.BETAS.CUSTOM_STATUS) || canUseAllBetas(betas);
+    return _.contains(betas, CONST.BETAS.CUSTOM_STATUS) || canUseAllBetas(betas);
 }
 
 /**

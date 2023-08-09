@@ -38,7 +38,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
     const hasDraftStatus = !!draftEmojiCode || !!draftText;
 
     const updateStatus = useCallback(() => {
-      const endOfDay = moment().endOf('day').toDate();
+        const endOfDay = moment().endOf('day').toDate();
         User.updateCustomStatus({text: defaultText, emojiCode: defaultEmoji, clearAfter: endOfDay.toISOString()});
 
         User.clearDraftCustomStatus();
