@@ -13,6 +13,7 @@ import * as Expensicons from './Icon/Expensicons';
 import theme from '../styles/themes/default';
 import Button from './Button';
 import styles from '../styles/styles';
+import variables from '../styles/variables';
 import LinearGradient from './LinearGradient';
 
 const MAX_WAYPOINTS = 25;
@@ -52,8 +53,8 @@ function DistanceRequest({transactionID, transaction, translate}) {
     const lastWaypointIndex = numberOfWaypoints - 1;
 
     // Show up to the max number of waypoints plus 1/2 of one to hint at scrolling
-    const halfMenuItemHeight = Math.floor(styles.baseMenuItemHeight / 2);
-    const scrollContainerMaxHeight = styles.baseMenuItemHeight * MAX_WAYPOINTS_TO_DISPLAY + halfMenuItemHeight;
+    const halfMenuItemHeight = Math.floor(variables.baseMenuItemHeight / 2);
+    const scrollContainerMaxHeight = variables.baseMenuItemHeight * MAX_WAYPOINTS_TO_DISPLAY + halfMenuItemHeight;
 
     useEffect(() => {
         if (!transaction.transactionID || !_.isEmpty(waypoints)) {
