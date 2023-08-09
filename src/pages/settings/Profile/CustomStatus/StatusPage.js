@@ -2,6 +2,7 @@ import React, {useMemo, useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import moment from 'moment';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes} from '../../../../components/withCurrentUserPersonalDetails';
 import MenuItemWithTopDescription from '../../../../components/MenuItemWithTopDescription';
 import StaticHeaderPageLayout from '../../../../components/StaticHeaderPageLayout';
@@ -37,8 +38,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
     const hasDraftStatus = !!draftEmojiCode || !!draftText;
 
     const updateStatus = useCallback(() => {
-        const endOfDay = new Date();
-        endOfDay.setHours(23, 59, 59, 999);
+      const endOfDay = moment().endOf('day').toDate();
         User.updateCustomStatus({text: defaultText, emojiCode: defaultEmoji, clearAfter: endOfDay.toISOString()});
 
         User.clearDraftCustomStatus();
@@ -82,12 +82,6 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
                 shouldShowRightIcon
                 inputID="test"
                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS_SET)}
-            />
-            <MenuItemWithTopDescription
-                title={localize.translate('statusPage.today')}
-                description="Clear after"
-                shouldShowRightIcon
-                onPress={() => {}}
             />
 
             {(!!currentUserEmojiCode || !!currentUserStatusText) && (

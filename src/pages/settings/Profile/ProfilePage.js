@@ -75,7 +75,7 @@ function ProfilePage(props) {
             pageRoute: ROUTES.SETTINGS_CONTACT_METHODS,
             brickRoadIndicator: contactMethodBrickRoadIndicator,
         },
-        ...(Permissions.canUseCustomStatus(props.beta)
+        ...(Permissions.canUseCustomStatus(props.betas)
             ? [
                   {
                       description: props.translate('statusPage.status'),

@@ -41,8 +41,8 @@ function StatusSetPage({draftStatus, currentUserPersonalDetails}) {
     const defaultEmoji = lodashGet(draftStatus, 'emojiCode') || lodashGet(currentUserPersonalDetails, 'status.emojiCode', '💬');
     const defaultText = lodashGet(draftStatus, 'text') || lodashGet(currentUserPersonalDetails, 'status.text', '');
 
-    const onSubmit = (v) => {
-        User.updateDraftCustomStatus({text: v.statusText, emojiCode: v.emojiCode});
+    const onSubmit = (value) => {
+        User.updateDraftCustomStatus({text: value.statusText, emojiCode: value.emojiCode});
         Navigation.goBack(ROUTES.SETTINGS_STATUS);
     };
 
