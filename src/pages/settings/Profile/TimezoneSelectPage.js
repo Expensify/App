@@ -5,16 +5,14 @@ import moment from 'moment-timezone';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import CONST from '../../../CONST';
 import * as PersonalDetails from '../../../libs/actions/PersonalDetails';
-import compose from '../../../libs/compose';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import SelectionListRadio from '../../../components/SelectionListRadio';
+import useLocalize from '../../../hooks/useLocalize';
 
 const propTypes = {
-    ...withLocalizePropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
 };
 
@@ -36,6 +34,7 @@ const getKey = (text) => `${text}-${new Date().getTime()}`;
 const getUserTimezone = (currentUserPersonalDetails) => lodashGet(currentUserPersonalDetails, 'timezone', CONST.DEFAULT_TIME_ZONE);
 
 function TimezoneSelectPage(props) {
+    const {translate} = useLocalize();
     const timezone = useRef(getUserTimezone(props.currentUserPersonalDetails));
     const allTimezones = useRef(
         _.chain(moment.tz.names())
@@ -69,11 +68,11 @@ function TimezoneSelectPage(props) {
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <HeaderWithBackButton
-                title={props.translate('timezonePage.timezone')}
+                title={translate('timezonePage.timezone')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_TIMEZONE)}
             />
             <SelectionListRadio
-                textInputLabel={props.translate('timezonePage.timezone')}
+                textInputLabel={translate('timezonePage.timezone')}
                 textInputValue={timezoneInputText}
                 onChangeText={filterShownTimezones}
                 onSelectRow={saveSelectedTimezone}
@@ -87,4 +86,4 @@ function TimezoneSelectPage(props) {
 TimezoneSelectPage.propTypes = propTypes;
 TimezoneSelectPage.defaultProps = defaultProps;
 
-export default compose(withLocalize, withCurrentUserPersonalDetails)(TimezoneSelectPage);
+export default withCurrentUserPersonalDetails(TimezoneSelectPage);
