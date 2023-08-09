@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef} from 'react';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
@@ -46,31 +46,26 @@ function getReportID(route) {
 function ReportAttachments(props) {
     const reportID = _.get(props, ['route', 'params', 'reportID']);
     const source = decodeURI(_.get(props, ['route', 'params', 'source']));
-    const [initialReport, setInitialReport] = useState(props.report);
-
-    useEffect(() => {
-        if (!props.report.reportID || reportID === props.report.reportID) return;
-        setInitialReport(props.report);
-    }, [reportID, props.report]);
+    const reportActionsLoadedRef = useRef(false);
 
     /** This effects handles 2x cases when report attachments are opened with deep link */
     useEffect(() => {
-        // Case 1 - if we are logged out and use the deep link for attachments and then login, then
-        // the report will not have reportID yet, and we wouldn't have loaded report and report actions
-        // data yet. call openReport to get both report and report actions data
-        if (!initialReport.reportID) {
-            Report.openReport(reportID);
+        // return early if report actions are already loaded
+        if (reportActionsLoadedRef.current) return;
+
+        // Case 1 - if we are logged out, then use deep link for attachments, then login, then
+        // the report will not have reportID as well as actions data loaded yet
+        // Case 2 (for small screens) - if we are logged in, then use the deep link for attachments,
+        // of a chat we haven't opened after login (from any page other than the chat itself), the
+        // report actions are not loaded for that report
+        const reportActions = ReportActionUtils.getReportActions(props.report.reportID);
+        if (props.report.isLoadingReportActions || !_.isEmpty(reportActions)) {
+            reportActionsLoadedRef.current = true;
             return;
         }
 
-        // Case 2 - if we are already logged in and the report actions are not already loading and
-        // report has no report actions (even an empty chat will have the 'created' report action),
-        // then we are on a page other than report screen. Now call openReport to get report actions
-        // since we dont have them in onyx.
-        const reportActions = ReportActionUtils.getReportActions(initialReport.reportID);
-        if (initialReport.isLoadingReportActions || !_.isEmpty(reportActions)) return;
         Report.openReport(reportID);
-    }, [initialReport, reportID]);
+    }, [props.report, reportID]);
 
     return (
         <AttachmentModal
