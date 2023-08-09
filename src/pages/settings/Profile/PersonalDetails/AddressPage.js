@@ -73,7 +73,7 @@ function AddressPage({privatePersonalDetails, country}) {
 
     const address = lodashGet(privatePersonalDetails, 'address') || {};
     const [street1, street2] = (address.street || '').split('\n');
-
+    const [state, setState] = useState(address.state);
     /**
      * @param {Function} translate - translate function
      * @param {Boolean} isUSAForm - selected country ISO code is US
@@ -120,10 +120,15 @@ function AddressPage({privatePersonalDetails, country}) {
     }, []);
 
     const handleAddressChange = (value, key) => {
-        if (key !== 'country') {
+        if (key !== 'country' && key !== 'state') {
             return;
         }
-        setCurrentCountry(value);
+        if (key === 'country') {
+            setCurrentCountry(value);
+            setState('');
+            return;
+        }
+        setState(value);
     };
 
     if (lodashGet(privatePersonalDetails, 'isLoading', true)) {
@@ -186,7 +191,8 @@ function AddressPage({privatePersonalDetails, country}) {
                     <View style={styles.mhn5}>
                         <StatePicker
                             inputID="state"
-                            defaultValue={address.state}
+                            defaultValue={state}
+                            onValueChange={handleAddressChange}
                         />
                     </View>
                 ) : (
@@ -195,9 +201,10 @@ function AddressPage({privatePersonalDetails, country}) {
                         label={translate('common.stateOrProvince')}
                         accessibilityLabel={translate('common.stateOrProvince')}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        defaultValue={address.state || ''}
+                        value={state || ''}
                         maxLength={CONST.FORM_CHARACTER_LIMIT}
                         spellCheck={false}
+                        onValueChange={handleAddressChange}
                     />
                 )}
                 <View style={styles.formSpaceVertical} />

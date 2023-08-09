@@ -149,11 +149,6 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
             return;
         }
 
-        if (ReportUtils.isTaskReport(report) && ReportUtils.isCompletedTaskReport(report)) {
-            archivedReports.push(report);
-            return;
-        }
-
         nonArchivedReports.push(report);
     });
 
