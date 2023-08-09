@@ -32,7 +32,7 @@ function DeeplinkWrapper({children}) {
             return;
         }
 
-        if (this.isUnsupportedDeeplinkRoute()) {
+        if (isUnsupportedDeeplinkRoute) {
             return;
         }
 
