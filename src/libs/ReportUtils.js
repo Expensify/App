@@ -2985,4 +2985,5 @@ export {
     shouldDisableSettings,
     shouldDisableRename,
     hasSingleParticipant,
+    getTransactionReportName,
 };
