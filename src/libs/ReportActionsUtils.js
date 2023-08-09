@@ -127,7 +127,7 @@ function getParentReportAction(report, allReportActionsParam = undefined) {
  * @returns {Object}
  */
 function getParentReportActionInReport(childReportID, parentReportID) {
-    return _.find(allReportActions[parentReportID], (reportAction) => reportAction && `${reportAction.childReportID}` === `${childReportID}`);
+    return _.find(allReportActions[parentReportID], (reportAction) => reportAction && reportAction.childReportID === childReportID);
 }
 
 /**
