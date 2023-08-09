@@ -1,6 +1,6 @@
 import getBaseNavigationModalCardStyles from './getBaseNavigationModalCardStyles';
 
-export default ({windowHeight, isSmallScreenWidth}) => ({
+export default ({isSmallScreenWidth}) => ({
     ...getBaseNavigationModalCardStyles({isSmallScreenWidth}),
 
     // This height is passed from JavaScript, instead of using CSS expressions like "100%" or "100vh", to work around
@@ -8,7 +8,5 @@ export default ({windowHeight, isSmallScreenWidth}) => ({
     // https://github.com/Expensify/App/issues/12005
     // https://github.com/Expensify/App/issues/17824
     // https://github.com/Expensify/App/issues/20709
-
-    height: `${windowHeight}px`,
-    minHeight: `${windowHeight}px`,
+    position: 'fixed',
 });
