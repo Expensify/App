@@ -133,11 +133,11 @@ function AvatarWithImagePicker({
 
     /**
      * @param {String} error
-     * @param {Object} phraseParam
+     * @param {Object} phrase
      */
-    const setError = (error, phraseParam) => {
+    const setError = (error, phrase) => {
         setValidationError(error);
-        setPhraseParam(phraseParam);
+        setPhraseParam(phrase);
     };
 
     /**
@@ -189,8 +189,8 @@ function AvatarWithImagePicker({
             return;
         }
 
-        isValidResolution(image).then((isValidResolution) => {
-            if (!isValidResolution) {
+        isValidResolution(image).then((isValid) => {
+            if (!isValid) {
                 setError('avatarWithImagePicker.resolutionConstraints', {
                     minHeightInPx: CONST.AVATAR_MIN_HEIGHT_PX,
                     minWidthInPx: CONST.AVATAR_MIN_WIDTH_PX,
