@@ -1,5 +1,7 @@
-import React, {useRef} from 'react';
+import React, {useRef, useMemo} from 'react';
 import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import PropTypes from 'prop-types';
 import styles from '../../../../styles/styles';
 import Icon from '../../../../components/Icon';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
@@ -13,11 +15,74 @@ import * as Browser from '../../../../libs/Browser';
 import PressableWithFeedback from '../../../../components/Pressable/PressableWithFeedback';
 import useLocalize from '../../../../hooks/useLocalize';
 import useWindowDimensions from '../../../../hooks/useWindowDimensions';
+import * as ReportUtils from '../../../../libs/ReportUtils';
+import * as IOU from '../../../../libs/actions/IOU';
+import * as Task from '../../../../libs/actions/Task';
+import ONYXKEYS from '../../../../ONYXKEYS';
+import Permissions from '../../../../libs/Permissions';
+
+const propTypes = {
+    /** Beta features list */
+    betas: PropTypes.arrayOf(PropTypes.string),
+
+    /** The report currently being looked at */
+    report: PropTypes.shape({
+        /** ID of the report */
+        reportID: PropTypes.number,
+
+        /** Whether or not the report is in the process of being created */
+        loading: PropTypes.bool,
+    }).isRequired,
+
+    /** The personal details of everyone in the report */
+    reportParticipants: PropTypes.objectOf(
+        PropTypes.shape({
+            /** Display name of the participant */
+            displayName: PropTypes.string,
+        }),
+    ),
+
+    /** Callback to open the file in the modal */
+    displayFileInModal: PropTypes.func.isRequired,
+
+    /** Whether or not the full size composer is available */
+    isFullSizeComposerAvailable: PropTypes.bool.isRequired,
+
+    /** Whether or not the composer is full size */
+    isComposerFullSize: PropTypes.bool.isRequired,
+
+    /** Updates the isComposerFullSize value */
+    updateShouldShowSuggestionMenuToFalse: PropTypes.func.isRequired,
+
+    /** Whether or not the user is blocked from concierge */
+    isBlockedFromConcierge: PropTypes.bool.isRequired,
+
+    /** Whether or not the attachment picker is disabled */
+    disabled: PropTypes.bool.isRequired,
+
+    /** Sets the menu visibility */
+    setMenuVisibility: PropTypes.func.isRequired,
+
+    /** Whether or not the menu is visible */
+    isMenuVisible: PropTypes.bool.isRequired,
+
+    /** Report ID */
+    reportID: PropTypes.number.isRequired,
+
+    /** Called when opening the attachment picker */
+    onTriggerAttachmentPicker: PropTypes.func.isRequired,
+};
+
+const defaultProps = {
+    betas: [],
+    reportParticipants: {},
+};
 
 function AttachmentPickerWithMenuItems({
+    betas,
+    report,
+    reportParticipants,
     displayFileInModal,
-    moneyRequestOptions,
-    taskOption,
     isFullSizeComposerAvailable,
     isComposerFullSize,
     updateShouldShowSuggestionMenuToFalse,
@@ -26,22 +91,62 @@ function AttachmentPickerWithMenuItems({
     disabled,
     setMenuVisibility,
     isMenuVisible,
+    onTriggerAttachmentPicker,
 }) {
     const {translate} = useLocalize();
     const {windowHeight} = useWindowDimensions();
-
     const actionButtonRef = useRef(null);
+
+    /**
+     * Returns the list of IOU Options
+     * @returns {Array<object>}
+     */
+    const moneyRequestOptions = useMemo(() => {
+        const options = {
+            [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT]: {
+                icon: Expensicons.Receipt,
+                text: translate('iou.splitBill'),
+            },
+            [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST]: {
+                icon: Expensicons.MoneyCircle,
+                text: translate('iou.requestMoney'),
+            },
+            [CONST.IOU.MONEY_REQUEST_TYPE.SEND]: {
+                icon: Expensicons.Send,
+                text: translate('iou.sendMoney'),
+            },
+        };
+
+        return _.map(ReportUtils.getMoneyRequestOptions(report, reportParticipants, betas), (option) => ({
+            ...options[option],
+            onSelected: () => IOU.startMoneyRequest(option, report.reportID),
+        }));
+    }, [betas, report, reportParticipants, translate]);
+
+    /**
+     * Determines if we can show the task option
+     * @returns {Boolean}
+     */
+    const taskOption = useMemo(() => {
+        // We only prevent the task option from showing if it's a DM and the other user is an Expensify default email
+        if (!Permissions.canUseTasks(betas) || ReportUtils.isExpensifyOnlyParticipantInReport(report)) {
+            return [];
+        }
+
+        return [
+            {
+                icon: Expensicons.Task,
+                text: translate('newTaskPage.assignTask'),
+                onSelected: () => Task.clearOutTaskInfoAndNavigate(reportID),
+            },
+        ];
+    }, [betas, report, reportID, translate]);
 
     return (
         <AttachmentPicker>
             {({openPicker}) => {
                 const triggerAttachmentPicker = () => {
-                    // Set a flag to block suggestion calculation until we're finished using the file picker,
-                    // which will stop any flickering as the file picker opens on non-native devices.
-                    if (willBlurTextInputOnTapOutsideFunc) {
-                        shouldBlockEmojiCalc.current = true;
-                        shouldBlockMentionCalc.current = true;
-                    }
+                    onTriggerAttachmentPicker();
                     openPicker({
                         onPicked: displayFileInModal,
                     });
@@ -147,4 +252,11 @@ function AttachmentPickerWithMenuItems({
     );
 }
 
-export default AttachmentPickerWithMenuItems;
+AttachmentPickerWithMenuItems.propTypes = propTypes;
+AttachmentPickerWithMenuItems.defaultProps = defaultProps;
+
+export default withOnyx({
+    betas: {
+        key: ONYXKEYS.BETAS,
+    },
+})(AttachmentPickerWithMenuItems);

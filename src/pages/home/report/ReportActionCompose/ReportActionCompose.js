@@ -8,7 +8,6 @@ import styles from '../../../../styles/styles';
 import themeColors from '../../../../styles/themes/default';
 import Composer from '../../../../components/Composer';
 import ONYXKEYS from '../../../../ONYXKEYS';
-import * as Expensicons from '../../../../components/Icon/Expensicons';
 import * as Report from '../../../../libs/actions/Report';
 import ReportTypingIndicator from '../ReportTypingIndicator';
 import AttachmentModal from '../../../../components/AttachmentModal';
@@ -39,11 +38,8 @@ import withKeyboardState, {keyboardStatePropTypes} from '../../../../components/
 import OfflineWithFeedback from '../../../../components/OfflineWithFeedback';
 import * as ComposerUtils from '../../../../libs/ComposerUtils';
 import * as Welcome from '../../../../libs/actions/Welcome';
-import Permissions from '../../../../libs/Permissions';
 import containerComposeStyles from '../../../../styles/containerComposeStyles';
-import * as Task from '../../../../libs/actions/Task';
 import * as Browser from '../../../../libs/Browser';
-import * as IOU from '../../../../libs/actions/IOU';
 import usePrevious from '../../../../hooks/usePrevious';
 import * as KeyDownListener from '../../../../libs/KeyboardShortcut/KeyDownPressListener';
 import * as EmojiPickerActions from '../../../../libs/actions/EmojiPickerAction';
@@ -55,9 +51,6 @@ import AttachmentPickerWithMenuItems from './AttachmentPickerWithMenuItems';
 const {RNTextInputReset} = NativeModules;
 
 const propTypes = {
-    /** Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string),
-
     /** A method to call when the form is submitted */
     onSubmit: PropTypes.func.isRequired,
 
@@ -125,7 +118,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    betas: [],
     comment: '',
     numberOfLines: undefined,
     modal: {},
@@ -171,7 +163,6 @@ const isMobileSafari = Browser.isMobileSafari();
 
 function ReportActionCompose({
     animatedRef,
-    betas,
     blockedFromConcierge,
     comment,
     currentUserPersonalDetails,
@@ -461,51 +452,6 @@ function ReportActionCompose({
     );
 
     /**
-     * Returns the list of IOU Options
-     * @returns {Array<object>}
-     */
-    const moneyRequestOptions = useMemo(() => {
-        const options = {
-            [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT]: {
-                icon: Expensicons.Receipt,
-                text: translate('iou.splitBill'),
-            },
-            [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST]: {
-                icon: Expensicons.MoneyCircle,
-                text: translate('iou.requestMoney'),
-            },
-            [CONST.IOU.MONEY_REQUEST_TYPE.SEND]: {
-                icon: Expensicons.Send,
-                text: translate('iou.sendMoney'),
-            },
-        };
-
-        return _.map(ReportUtils.getMoneyRequestOptions(report, reportParticipants, betas), (option) => ({
-            ...options[option],
-            onSelected: () => IOU.startMoneyRequest(option, report.reportID),
-        }));
-    }, [betas, report, reportParticipants, translate]);
-
-    /**
-     * Determines if we can show the task option
-     * @returns {Boolean}
-     */
-    const taskOption = useMemo(() => {
-        // We only prevent the task option from showing if it's a DM and the other user is an Expensify default email
-        if (!Permissions.canUseTasks(betas) || ReportUtils.isExpensifyOnlyParticipantInReport(report)) {
-            return [];
-        }
-
-        return [
-            {
-                icon: Expensicons.Task,
-                text: translate('newTaskPage.assignTask'),
-                onSelected: () => Task.clearOutTaskInfoAndNavigate(reportID),
-            },
-        ];
-    }, [betas, report, reportID, translate]);
-
-    /**
      * Update the number of lines for a comment in Onyx
      * @param {Number} numberOfLines
      */
@@ -641,6 +587,15 @@ function ReportActionCompose({
         RNTextInputReset.resetKeyboardInput(findNodeHandle(textInputRef));
     }, [textInputRef]);
 
+    const onTriggerAttachmentPicker = useCallback(() => {
+        // Set a flag to block suggestion calculation until we're finished using the file picker,
+        // which will stop any flickering as the file picker opens on non-native devices.
+        if (!willBlurTextInputOnTapOutsideFunc) {
+            return;
+        }
+        suggestionsRef.current.setShouldBlockEmojiCalc(true);
+    }, []);
+
     useEffect(() => {
         const unsubscribeNavigationBlur = navigation.addListener('blur', () => KeyDownListener.removeKeyDownPressListner(focusComposerOnKeyPress));
         const unsubscribeNavigationFocus = navigation.addListener('focus', () => {
@@ -741,16 +696,17 @@ function ReportActionCompose({
                             <>
                                 <AttachmentPickerWithMenuItems
                                     displayFileInModal={displayFileInModal}
-                                    moneyRequestOptions={moneyRequestOptions}
-                                    taskOption={taskOption}
+                                    reportID={reportID}
+                                    report={report}
+                                    reportParticipants={reportParticipants}
                                     isFullSizeComposerAvailable={isFullSizeComposerAvailable}
                                     isComposerFullSize={isComposerFullSize}
                                     updateShouldShowSuggestionMenuToFalse={updateShouldShowSuggestionMenuToFalse}
-                                    reportID={reportID}
                                     isBlockedFromConcierge={isBlockedFromConcierge}
                                     disabled={disabled}
                                     setMenuVisibility={setMenuVisibility}
                                     isMenuVisible={isMenuVisible}
+                                    onTriggerAttachmentPicker={onTriggerAttachmentPicker}
                                 />
                                 <View style={[containerComposeStyles, styles.textInputComposeBorder]}>
                                     <Composer
@@ -876,9 +832,6 @@ export default compose(
     withKeyboardState,
     withAnimatedRef,
     withOnyx({
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
         comment: {
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,
         },
