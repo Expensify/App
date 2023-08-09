@@ -279,6 +279,7 @@ const CONST = {
         TASKS: 'tasks',
         THREADS: 'threads',
         SCAN_RECEIPTS: 'scanReceipts',
+        DISTANCE_REQUESTS: 'distanceRequests',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -2578,6 +2579,7 @@ const CONST = {
         RECEIPT_TAB_ID: 'ReceiptTab',
         MANUAL: 'manual',
         SCAN: 'scan',
+        DISTANCE: 'distance',
     },
 };
 
