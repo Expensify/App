@@ -246,7 +246,6 @@ function ReportActionCompose({
 
     const commentRef = useRef(comment);
     const textInputRef = useRef(null);
-    const actionButtonRef = useRef(null);
 
     const suggestionsRef = useRef(null);
 
@@ -750,7 +749,6 @@ function ReportActionCompose({
                                     reportID={reportID}
                                     isBlockedFromConcierge={isBlockedFromConcierge}
                                     disabled={disabled}
-                                    actionButtonRef={actionButtonRef}
                                     setMenuVisibility={setMenuVisibility}
                                     isMenuVisible={isMenuVisible}
                                 />

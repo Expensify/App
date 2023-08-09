@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 import styles from '../../../../styles/styles';
 import Icon from '../../../../components/Icon';
@@ -24,12 +24,13 @@ function AttachmentPickerWithMenuItems({
     reportID,
     isBlockedFromConcierge,
     disabled,
-    actionButtonRef,
     setMenuVisibility,
     isMenuVisible,
 }) {
     const {translate} = useLocalize();
     const {windowHeight} = useWindowDimensions();
+
+    const actionButtonRef = useRef(null);
 
     return (
         <AttachmentPicker>
