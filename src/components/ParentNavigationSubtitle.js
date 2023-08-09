@@ -18,7 +18,7 @@ const propTypes = {
     }).isRequired,
 
     /** parent Report ID */
-    parentReportID: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    parentReportID: PropTypes.string,
 
     /** PressableWithoutFeedack additional styles */
     // eslint-disable-next-line react/forbid-prop-types
