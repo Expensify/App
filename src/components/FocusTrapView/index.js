@@ -4,10 +4,10 @@
 import React, {useRef} from 'react';
 import FocusTrap from 'focus-trap-react';
 import {View} from 'react-native';
-import { PropTypes } from 'prop-types';
+import {PropTypes} from 'prop-types';
 
 const propTypes = {
-    /** Whether or not to disable the FocusTrap */
+    /** Whether to enable the FocusTrap */
     enabled: PropTypes.bool,
 };
 
@@ -16,6 +16,11 @@ const defaultProps = {
 };
 
 function FocusTrapView({enabled, ...props}) {
+    /**
+     * Focus trap always needs a focusable element.
+     * In case that we don't have any focusable elements in the modal,
+     * the FocusTrap will use fallback View element using this ref.
+     */
     const ref = useRef(null);
 
     return (

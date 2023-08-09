@@ -46,7 +46,7 @@ const propTypes = {
     /** Styles for the offline indicator */
     offlineIndicatorStyle: stylePropTypes,
 
-    /** Whether to disable focus trap */
+    /** Whether to disable the focus trap */
     shouldDisableFocusTrap: PropTypes.bool,
 };
 
