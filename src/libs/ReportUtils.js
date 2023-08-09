@@ -1592,24 +1592,26 @@ function updateOptimisticParentReportAction(parentReportAction, lastVisibleActio
  * @param {String} reportID The reportID of the report that is updated
  * @param {String} lastVisibleActionCreated Last visible action created of the child report
  * @param {String} type The type of action in the child report
+ * @param {String} parentReportID Custom reportID to be updated
+ * @param {String} parentReportActionID Custom reportActionID to be updated
  * @returns {Object}
  */
-const getOptimisticDataForParentReportAction = (reportID, lastVisibleActionCreated, type) => {
+function getOptimisticDataForParentReportAction(reportID, lastVisibleActionCreated, type, parentReportID = '', parentReportActionID = '') {
     const report = getReport(reportID);
-    if (report && report.parentReportActionID) {
-        const parentReportAction = ReportActionsUtils.getParentReportAction(report);
-        if (parentReportAction && parentReportAction.reportActionID) {
-            return {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
-                value: {
-                    [parentReportAction.reportActionID]: updateOptimisticParentReportAction(parentReportAction, lastVisibleActionCreated, type),
-                },
-            };
-        }
+    const parentReportAction = ReportActionsUtils.getParentReportAction(report);
+    if (_.isEmpty(parentReportAction)) {
+        return {};
     }
-    return {};
-};
+
+    const optimisticParentReportAction = updateOptimisticParentReportAction(parentReportAction, lastVisibleActionCreated, type);
+    return {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID || report.parentReportID}`,
+        value: {
+            [parentReportActionID || report.parentReportActionID]: optimisticParentReportAction,
+        },
+    };
+}
 
 /**
  * Builds an optimistic reportAction for the parent report when a task is created
@@ -1850,10 +1852,11 @@ function buildOptimisticIOUReportAction(
  *
  * @param {Object} chatReport
  * @param {Object} iouReport
+ * @param {String} [comment] - User comment for the IOU.
  *
  * @returns {Object}
  */
-function buildOptimisticReportPreview(chatReport, iouReport) {
+function buildOptimisticReportPreview(chatReport, iouReport, comment = '') {
     const message = getReportPreviewMessage(iouReport);
     return {
         reportActionID: NumberUtils.rand64(),
@@ -1874,6 +1877,8 @@ function buildOptimisticReportPreview(chatReport, iouReport) {
         created: DateUtils.getDBTime(),
         accountID: iouReport.managerID || 0,
         actorAccountID: iouReport.managerID || 0,
+        childMoneyRequestCount: 1,
+        childLastMoneyRequestComment: comment,
     };
 }
 
@@ -1882,10 +1887,11 @@ function buildOptimisticReportPreview(chatReport, iouReport) {
  *
  * @param {Object} iouReport
  * @param {Object} reportPreviewAction
+ * @param {String} [comment] - User comment for the IOU.
  *
  * @returns {Object}
  */
-function updateReportPreview(iouReport, reportPreviewAction) {
+function updateReportPreview(iouReport, reportPreviewAction, comment = '') {
     const message = getReportPreviewMessage(iouReport, reportPreviewAction);
     return {
         ...reportPreviewAction,
@@ -1898,6 +1904,8 @@ function updateReportPreview(iouReport, reportPreviewAction) {
                 type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
             },
         ],
+        childLastMoneyRequestComment: comment || reportPreviewAction.childLastMoneyRequestComment,
+        childMoneyRequestCount: reportPreviewAction.childMoneyRequestCount + 1,
     };
 }
 
@@ -2789,6 +2797,30 @@ function getParentReport(report) {
 }
 
 /**
+ * Find the parent report action in assignee report for a task report
+ * Returns an empty object if assignee report is the same as the share destination report
+ *
+ * @param {Object} taskReport
+ * @returns {Object}
+ */
+function getTaskParentReportActionIDInAssigneeReport(taskReport) {
+    const assigneeChatReportID = lodashGet(getChatByParticipants(isTaskAssignee(taskReport) ? [taskReport.ownerAccountID] : [taskReport.managerID]), 'reportID');
+    if (!assigneeChatReportID || assigneeChatReportID === taskReport.parentReportID) {
+        return {};
+    }
+
+    const clonedParentReportActionID = lodashGet(ReportActionsUtils.getParentReportActionInReport(taskReport.reportID, assigneeChatReportID), 'reportActionID');
+    if (!clonedParentReportActionID) {
+        return {};
+    }
+
+    return {
+        reportID: assigneeChatReportID,
+        reportActionID: clonedParentReportActionID,
+    };
+}
+
+/**
  * Return true if the composer should be hidden
  * @param {Object} report
  * @param {Object} reportErrors
@@ -2969,6 +3001,7 @@ export {
     getMoneyRequestAction,
     getBankAccountRoute,
     getParentReport,
+    getTaskParentReportActionIDInAssigneeReport,
     getReportPreviewMessage,
     shouldHideComposer,
     getOriginalReportID,
