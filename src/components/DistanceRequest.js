@@ -36,15 +36,18 @@ const propTypes = {
         }),
     }),
 
+    formData: PropTypes.shape({}),
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     transactionID: '',
     transaction: {},
+    formData: {},
 };
 
-function DistanceRequest({transactionID, transaction, translate}) {
+function DistanceRequest({transactionID, transaction, translate, formData}) {
     const [shouldShowGradient, setShouldShowGradient] = useState(false);
     const [scrollContainerHeight, setScrollContainerHeight] = useState(0);
     const [scrollContentHeight, setScrollContentHeight] = useState(0);
@@ -103,6 +106,7 @@ function DistanceRequest({transactionID, transaction, translate}) {
                         return (
                             <MenuItemWithTopDescription
                                 description={translate(descriptionKey)}
+                                title={formData[`waypoint${index}`] || ''}
                                 icon={Expensicons.DragHandles}
                                 secondaryIcon={waypointIcon}
                                 secondaryIconFill={theme.icon}
@@ -140,6 +144,9 @@ DistanceRequest.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withOnyx({
+        formData: {
+            key: ONYXKEYS.FORMS.WAYPOINT_FORM_DRAFT,
+        },
         transaction: {
             key: (props) => `${ONYXKEYS.COLLECTION.TRANSACTION}${props.transactionID}`,
             selector: (transaction) => (transaction ? {transactionID: transaction.transactionID, comment: {waypoints: lodashGet(transaction, 'comment.waypoints')}} : null),
