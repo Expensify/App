@@ -37,6 +37,20 @@ Onyx.connect({
     },
 });
 
+let allTransactions;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.TRANSACTION,
+    waitForCollectionCallback: true,
+    callback: (val) => {
+        if (!val) {
+            allTransactions = {};
+            return;
+        }
+
+        allTransactions = val;
+    },
+});
+
 let isNetworkOffline = false;
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
@@ -572,6 +586,15 @@ function isMessageDeleted(reportAction) {
     return lodashGet(reportAction, ['message', 0, 'isDeletedParentAction'], false);
 }
 
+function getTransaction(reportAction) {
+    const transactionID = lodashGet(reportAction, ['originalMessage', 'IOUTransactionID'], '');
+    if (!transactionID) {
+        return {};
+    }
+
+    return allTransactions[transactionID] || {};
+} 
+
 export {
     getSortedReportActions,
     getLastVisibleAction,
@@ -605,4 +628,5 @@ export {
     isWhisperAction,
     isPendingRemove,
     getReportAction,
+    getTransaction,
 };
