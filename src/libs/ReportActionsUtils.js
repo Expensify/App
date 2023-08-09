@@ -145,18 +145,27 @@ function getParentReportActionInReport(childReportID, parentReportID) {
 }
 
 /**
- * Gets the transaction associated with the IOU reportAction
+ * Get the details linked to the IOU reportAction
  *
- * @param {Object} reportAction 
+ * @param {Object} reportAction
  * @returns {Object}
  */
-function getTransaction(reportAction) {
-    const transactionID = lodashGet(reportAction, ['originalMessage', 'IOUTransactionID'], '');
-    if (!transactionID) {
-        return {};
+function getMoneyRequestDetails(reportAction = {}) {
+    // 'pay' actions don't have a linked transaction since they pay the report. So we get the details from the originalMessage instead
+    const originalMessage = lodashGet(reportAction, 'originalMessage', {});
+    if (lodashGet(originalMessage, 'type', '') === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
+        return originalMessage;
     }
 
-    return allTransactions[transactionID] || {};
+    // Similarly, 'send' actions store their details in IOUDetails
+    const iouDetails = lodashGet(originalMessage, 'IOUDetails', null);
+    if (iouDetails) {
+        return iouDetails;
+    }
+
+    // For all other actions, retrieve the details from the linked transaction
+    const transactionID = lodashGet(originalMessage, 'IOUTransactionID', '');
+    return allTransactions[transactionID] || {amount: 0, currency: CONST.CURRENCY.USD, comment: ''};
 }
 
 /**
@@ -181,13 +190,8 @@ function isSentMoneyReportAction(reportAction) {
  * @returns {Number}
  */
 function getFormattedAmount(reportAction) {
-    // IOU actions of type = 'pay' OR actions with existing IOUDetails ('send' actions) don't have linked transactions, so we get the details from the originalMessage key instead
-    if (lodashGet(reportAction, 'originalMessage.type', '') === CONST.IOU.REPORT_ACTION_TYPE.PAY || lodashGet(reportAction, 'originalMessage.IOUDetails', false)) {
-        return CurrencyUtils.convertToDisplayString(lodashGet(reportAction, 'originalMessage.IOUDetails.amount', 0), lodashGet(reportAction, 'originalMessage.IOUDetails.currency', ''));
-    }
-
-    const transaction = getTransaction(reportAction);
-    return CurrencyUtils.convertToDisplayString(lodashGet(transaction, 'amount', 0), lodashGet(transaction, 'currency', ''));
+    const moneyRequestDetails = getMoneyRequestDetails(reportAction);
+    return CurrencyUtils.convertToDisplayString(lodashGet(moneyRequestDetails, 'amount', 0), lodashGet(moneyRequestDetails, 'currency', ''));
 }
 
 /**
@@ -637,5 +641,5 @@ export {
     isWhisperAction,
     isPendingRemove,
     getReportAction,
-    getTransaction,
+    getMoneyRequestDetails,
 };
