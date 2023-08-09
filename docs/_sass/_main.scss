@@ -258,6 +258,7 @@ button {
 input#gsc-i-id1.gsc-input {
     background-color: $color-green-appBG;
     color: #E7ECE9;
+    font-family: "ExpensifyNeue", "Segoe UI Emoji", "Noto Color Emoji" !important;
 }
 
 #gsc-iw-id1 {
@@ -299,8 +300,8 @@ input#gsc-i-id1.gsc-input {
 .gsc-control-cse {
     background-color: $color-green-appBG;
     border: $color-green-appBG;
-    font-family: "ExpensifyNeue", "Helvetica Neue", "Helvetica", Arial, sans-serif;
-    max-height: 75vh;
+    font-family: "ExpensifyNeue", "Helvetica Neue", "Helvetica", Arial, sans-serif !important;
+    max-height: 80vh;
     overflow-y: scroll;
 }
 
@@ -317,6 +318,14 @@ input#gsc-i-id1.gsc-input {
     border-bottom-right-radius: 8px;
     background-color: transparent;
 }
+
+/* Change the path of the Google Search Button icon into Expensify icon */
+.gsc-search-button.gsc-search-button-v2 svg path {
+    d: path('M8 1c3.9 0 7 3.1 7 7 0 1.4-.4 2.7-1.1 3.8l5.2 5.2c.6.6.6 1.5 0 2.1-.6.6-1.5.6-2.1 0l-5.2-5.2C10.7 14.6 9.4 15 8 15c-3.9 0-7-3.1-7-7s3.1-7 7-7zm0 3c2.2 0 4 1.8 4 4s-1.8 4-4 4-4-1.8-4-4 1.8-4 4-4z');
+    fill-rule: evenodd; 
+    clip-rule: evenodd;
+}
+
 
 /* Hide find more button google */
 .gcsc-find-more-on-google-root {

@@ -102,13 +102,27 @@ function closeSidebar() {
     window.scrollTo(0, parseInt(scrollY || '0', 10) * -1);
 }
 
+// Function to change SVG viewBox from Google
+function changeSVGViewBoxGoogle() {
+    // Get all inline Google SVG elements on the page
+    const svgsGoogle = document.querySelectorAll('svg');
+    // eslint-disable-next-line no-console
+    console.log(`There are ${svgsGoogle.length} Divs in Document!`);
+
+    // Iterate through each SVG element
+    Array.from(svgsGoogle).forEach(svg => {
+        // Set the viewBox attribute to "0 0 20 20"
+        svg.setAttribute('viewBox', '0 0 20 20');
+    });
+}
+
+// Need to wait up until page is load, so the svg viewBox can be changed
+window.addEventListener('load', () => {
+    changeSVGViewBoxGoogle();
+});
+
 window.addEventListener('DOMContentLoaded', () => {
     injectFooterCopywrite();
-
-    // Count property of y-axis to keep scroll position & reference it later for making the body fixed when sidebar opened
-    window.addEventListener('scroll', () => {
-        document.documentElement.style.setProperty('y-axis', `${window.scrollY}px`);
-    });
 
     // Handle open & close the sidebar
     const buttonOpenSidebar = document.getElementById('toggle-search-open');
@@ -182,5 +196,8 @@ window.addEventListener('DOMContentLoaded', () => {
         const scrollingElement = e.target.scrollingElement;
         const scrollPercentageInArticleContent = clamp(scrollingElement.scrollTop - articleContent.offsetTop, 0, articleContent.scrollHeight) / articleContent.scrollHeight;
         lhnContent.scrollTop = scrollPercentageInArticleContent * lhnContent.scrollHeight;
+
+        // Count property of y-axis to keep scroll position & reference it later for making the body fixed when sidebar opened
+        document.documentElement.style.setProperty('y-axis', `${window.scrollY}px`);
     });
 });
