@@ -525,7 +525,7 @@ class EmojiPickerMenu extends Component {
     render() {
         const isFiltered = this.emojis.length !== this.state.filteredEmojis.length;
         const listStyle = StyleUtils.getEmojiPickerListHeight(isFiltered, this.props.windowHeight);
-        const height = (!listStyle.maxHeight || listStyle.height < listStyle.maxHeight) ? listStyle.height : listStyle.maxHeight;
+        const height = !listStyle.maxHeight || listStyle.height < listStyle.maxHeight ? listStyle.height : listStyle.maxHeight;
         const overflowLimit = Math.floor(height / CONST.EMOJI_PICKER_ITEM_HEIGHT) * 8;
         return (
             <View
