@@ -173,6 +173,7 @@ function NewChatPage(props) {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
+            includePaddingTop={false}
             shouldEnableMaxHeight
         >
             {({safeAreaPaddingBottomStyle}) => (
