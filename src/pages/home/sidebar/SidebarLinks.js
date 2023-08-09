@@ -230,7 +230,7 @@ class SidebarLinks extends React.PureComponent {
                 </View>
                 {this.props.isLoading ? (
                     <>
-                        {this.props.report.reportID && (
+                        {lodashGet(this.props.report, 'reportID') && (
                             <OptionRowLHNData
                                 reportID={this.props.currentReportID}
                                 viewMode={viewMode}
