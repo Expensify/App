@@ -5,12 +5,14 @@ import * as OnyxUpdates from '../actions/OnyxUpdates';
 
 /**
  * @param {Object} updates
- * @param {Object[]} updates.onyxData an array of Onyx update instruction objects
- * @param {Number} updates.previousUpdateID
- * @param {Number} updates.lastUpdateID
+ * @param {Object[]} [updates.onyxData] an array of Onyx update instruction objects
+ * @param {Number} [updates.previousUpdateID]
+ * @param {Number} [updates.lastUpdateID]
  * @returns {Promise}
  */
 function updateOnyx(updates) {
+    // `updates.onyxData` only exists in the latest format of the OnyxUpdates provided by the RELIABLE_UPDATES beta.
+    // If the value doesn't exist, then onyx is updated with the old format of updates.
     if (!updates.onyxData) {
         return Onyx.update(updates);
     }
