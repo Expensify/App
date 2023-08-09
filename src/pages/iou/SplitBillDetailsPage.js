@@ -62,7 +62,7 @@ function SplitBillDetailsPage(props) {
     const payeePersonalDetails = props.personalDetails[reportAction.actorAccountID];
     const participantsExcludingPayee = _.filter(participants, (participant) => participant.accountID !== reportAction.actorAccountID);
     const splitAmount = parseInt(lodashGet(transaction, 'amount', 0), 10);
-    const splitComment = lodashGet(transaction, 'comment');
+    const splitComment = lodashGet(transaction, 'comment.comment');
     const splitCurrency = lodashGet(transaction, 'currency');
 
     return (

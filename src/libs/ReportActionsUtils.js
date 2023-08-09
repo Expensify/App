@@ -152,7 +152,7 @@ function getParentReportActionInReport(childReportID, parentReportID) {
  */
 function getTransaction(reportAction = {}) {
     const transactionID = lodashGet(reportAction, ['originalMessage', 'IOUTransactionID'], '');
-    return allTransactions[transactionID] || {};
+    return allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] || {};
 }
 
 /**
@@ -175,7 +175,8 @@ function getMoneyRequestDetails(reportAction = {}) {
     }
 
     // For all other actions, retrieve the details from the linked transaction
-    return getTransaction(reportAction);
+    const transaction = getTransaction(reportAction);
+    return {...transaction, comment: lodashGet(transaction, 'comment.comment', '')};
 }
 
 /**
