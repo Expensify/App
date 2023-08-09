@@ -29,6 +29,35 @@ const defaultProps = {
 
 function KnowATeacherPage() {
     const {translate} = useLocalize();
+
+    /**
+     * Check if number is valid
+     * @param {String} values
+     * @returns {String} - Returns valid phone number formatted
+     */
+    const validateNumber = (values) => {
+        const parsedPhoneNumber = parsePhoneNumber(values);
+
+        if (parsedPhoneNumber.possible && Str.isValidPhone(values.slice(0))) {
+            return parsedPhoneNumber.number.e164;
+        }
+
+        return '';
+    };
+
+    /**
+     * Check number is valid and attach country code
+     * @param {String} phoneOrEmail
+     * @returns {String} - Returns valid phone number with country code
+     */
+    const getPhoneLogin = (phoneOrEmail) => {
+        if (_.isEmpty(phoneOrEmail)) {
+            return '';
+        }
+
+        return LoginUtils.appendCountryCode(LoginUtils.getPhoneNumberWithoutSpecialChars(phoneOrEmail));
+    };
+
     /**
      * Submit form to pass firstName, phoneOrEmail and lastName
      * @param {Object} values
@@ -37,7 +66,13 @@ function KnowATeacherPage() {
      * @param {String} values.lastName
      */
     const onSubmit = (values) => {
-        TeachersUnite.referTeachersUniteVolunteer(values.firstName.trim(), values.phoneOrEmail.trim(), values.lastName);
+        const phoneLogin = getPhoneLogin(values.phoneOrEmail);
+        const validateIfnumber = validateNumber(phoneLogin);
+        const contactMethod = (validateIfnumber || values.phoneOrEmail).trim().toLowerCase();
+        const firstName = values.firstName.trim();
+        const lastName = values.lastName.trim();
+
+        TeachersUnite.referTeachersUniteVolunteer(firstName, contactMethod, lastName);
     };
 
     /**
@@ -49,7 +84,8 @@ function KnowATeacherPage() {
     const validate = useCallback(
         (values) => {
             const errors = {};
-            const phoneLogin = LoginUtils.appendCountryCode(LoginUtils.getPhoneNumberWithoutSpecialChars(values.phoneOrEmail));
+            const phoneLogin = getPhoneLogin(values.phoneOrEmail);
+            const validateIfnumber = validateNumber(phoneLogin);
 
             if (_.isEmpty(values.firstName)) {
                 ErrorUtils.addErrorMessage(errors, 'firstName', translate('teachersUnitePage.error.enterName'));
@@ -57,7 +93,8 @@ function KnowATeacherPage() {
             if (_.isEmpty(values.phoneOrEmail)) {
                 ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', translate('teachersUnitePage.error.enterPhoneEmail'));
             }
-            if (!_.isEmpty(values.phoneOrEmail) && !((parsePhoneNumber(phoneLogin).possible && Str.isValidPhone(phoneLogin.slice(0))) || Str.isValidEmail(values.phoneOrEmail))) {
+
+            if (!_.isEmpty(values.phoneOrEmail) && !(validateIfnumber || Str.isValidEmail(values.phoneOrEmail))) {
                 ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', 'contacts.genericFailureMessages.invalidContactMethod');
             }
 
