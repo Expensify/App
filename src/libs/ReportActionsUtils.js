@@ -37,7 +37,7 @@ Onyx.connect({
     },
 });
 
-let allTransactions;
+let allTransactions = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION,
     waitForCollectionCallback: true,
