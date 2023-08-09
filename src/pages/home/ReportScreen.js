@@ -313,6 +313,7 @@ class ReportScreen extends React.Component {
                 <ScreenWrapper
                     style={screenWrapperStyle}
                     shouldEnableKeyboardAvoidingView={isTopMostReportId}
+                    shouldDisableFocusTrap
                 >
                     <FullPageNotFoundView
                         shouldShow={(!this.props.report.reportID && !this.props.report.isLoadingReportActions && !isLoading && !this.state.isReportRemoved) || shouldHideReport}
