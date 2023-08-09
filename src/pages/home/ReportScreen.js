@@ -172,13 +172,13 @@ class ReportScreen extends React.Component {
         // the report will not really null when removed, it will have defaultProps properties and values
         if (
             preexistingReportID ||
-            prevOnyxReportID &&
-            prevOnyxReportID === routeReportID &&
-            !onyxReportID &&
-            // non-optimistic case
-            (_.isEqual(this.props.report, defaultProps.report) ||
-                // optimistic case
-                (prevProps.report.statusNum === CONST.REPORT.STATUS.OPEN && this.props.report.statusNum === CONST.REPORT.STATUS.CLOSED))
+            (prevOnyxReportID &&
+                prevOnyxReportID === routeReportID &&
+                !onyxReportID &&
+                // non-optimistic case
+                (_.isEqual(this.props.report, defaultProps.report) ||
+                    // optimistic case
+                    (prevProps.report.statusNum === CONST.REPORT.STATUS.OPEN && this.props.report.statusNum === CONST.REPORT.STATUS.CLOSED)))
         ) {
             Navigation.goBack();
             if (preexistingReportID) {
