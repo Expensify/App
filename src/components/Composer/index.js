@@ -420,9 +420,9 @@ function Composer({
             // We are hiding the scrollbar to prevent it from reducing the text input width,
             // so we can get the correct scroll height while calculating the number of lines.
             numberOfLines < maxLines ? styles.overflowHidden : {},
-            StyleUtils.getComposeTextAreaPadding(numberOfLinesProp),
 
             StyleSheet.flatten([style, {outline: 'none'}]),
+            StyleUtils.getComposeTextAreaPadding(numberOfLinesProp),
         ],
         [style, maxLines, numberOfLinesProp, numberOfLines],
     );
