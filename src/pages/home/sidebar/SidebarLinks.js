@@ -62,9 +62,12 @@ const propTypes = {
 
     priorityMode: PropTypes.oneOf(_.values(CONST.PRIORITY_MODE)),
 
+    /** The top most report id */
     currentReportID: PropTypes.string,
 
+    /* Onyx Props */
     report: PropTypes.shape({
+        /** reportID (only present when there is a matching report) */
         reportID: PropTypes.string,
     }),
 
