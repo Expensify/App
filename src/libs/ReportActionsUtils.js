@@ -175,17 +175,19 @@ function isSentMoneyReportAction(reportAction) {
 }
 
 /**
- * Returns the formatted amount of a money request. The request and money sent (from send money flow) have
- * currency and amount in IOUDetails object.
+ * Returns the formatted amount of a money request.
  *
  * @param {Object} reportAction
  * @returns {Number}
  */
 function getFormattedAmount(reportAction) {
+    // IOU actions of type = 'pay' OR actions with existing IOUDetails ('send' actions) don't have linked transactions, so we get the details from the originalMessage key instead
+    if (lodashGet(reportAction, 'originalMessage.type', '') === CONST.IOU.REPORT_ACTION_TYPE.PAY || lodashGet(reportAction, 'originalMessage.IOUDetails', false)) {
+        return CurrencyUtils.convertToDisplayString(lodashGet(reportAction, 'originalMessage.IOUDetails.amount', 0), lodashGet(reportAction, 'originalMessage.IOUDetails.currency', ''));
+    }
+
     const transaction = getTransaction(reportAction);
-    return lodashGet(reportAction, 'originalMessage.type', '') === CONST.IOU.REPORT_ACTION_TYPE.PAY && lodashGet(reportAction, 'originalMessage.IOUDetails', false)
-        ? CurrencyUtils.convertToDisplayString(lodashGet(reportAction, 'originalMessage.IOUDetails.amount', 0), lodashGet(reportAction, 'originalMessage.IOUDetails.currency', ''))
-        : CurrencyUtils.convertToDisplayString(lodashGet(reportAction, 'originalMessage.amount', 0), lodashGet(reportAction, 'originalMessage.currency', ''));
+    return CurrencyUtils.convertToDisplayString(lodashGet(transaction, 'amount', 0), lodashGet(transaction, 'currency', ''));
 }
 
 /**
