@@ -35,64 +35,6 @@ const CONST = {
     ARROW_HIDE_DELAY: 3000,
 
     API_ATTACHMENT_VALIDATIONS: {
-        // Same as the PHP layer allows
-        /* eslint-disable-next-line max-len */
-        UNALLOWED_EXTENSIONS: [
-            'ade',
-            'adp',
-            'apk',
-            'appx',
-            'appxbundle',
-            'bat',
-            'cab',
-            'chm',
-            'cmd',
-            'com',
-            'cpl',
-            'diagcab',
-            'diagcfg',
-            'diagpack',
-            'dll',
-            'dmg',
-            'ex',
-            'ex_',
-            'exe',
-            'hta',
-            'img',
-            'ins',
-            'iso',
-            'isp',
-            'jar',
-            'jnlp',
-            'js',
-            'jse',
-            'lib',
-            'lnk',
-            'mde',
-            'msc',
-            'msi',
-            'msix',
-            'msixbundle',
-            'msp',
-            'mst',
-            'nsh',
-            'pif',
-            'ps1',
-            'scr',
-            'sct',
-            'shb',
-            'sys',
-            'vb',
-            'vbe',
-            'vbs',
-            'vhd',
-            'vxd',
-            'wsc',
-            'wsf',
-            'wsh',
-            'xll',
-        ],
-
         // 24 megabytes in bytes, this is limit set on servers, do not update without wider internal discussion
         MAX_SIZE: 25165824,
 
@@ -279,6 +221,7 @@ const CONST = {
         TASKS: 'tasks',
         THREADS: 'threads',
         SCAN_RECEIPTS: 'scanReceipts',
+        DISTANCE_REQUESTS: 'distanceRequests',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -666,6 +609,7 @@ const CONST = {
             CENTER: 'center',
             RIGHT: 'right',
         },
+        POPOVER_MENU_PADDING: 8,
     },
     TIMING: {
         CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION: 'calc_most_recent_last_modified_action',
@@ -1115,6 +1059,10 @@ const CONST = {
 
     CUSTOM_UNITS: {
         NAME_DISTANCE: 'Distance',
+        DISTANCE_UNIT_MILES: 'mi',
+        DISTANCE_UNIT_KILOMETERS: 'km',
+        MILEAGE_IRS_RATE: 0.655,
+        DEFAULT_RATE: 'Default Rate',
     },
 
     TERMS: {
@@ -1158,6 +1106,7 @@ const CONST = {
         SPECIAL_CHARS_WITHOUT_NEWLINE: /((?!\n)[()-\s\t])/g,
         DIGITS_AND_PLUS: /^\+?[0-9]*$/,
         ALPHABETIC_AND_LATIN_CHARS: /^[a-zA-ZÀ-ÿ ]*$/,
+        NON_ALPHABETIC_AND_NON_LATIN_CHARS: /[^a-zA-ZÀ-ÿ]/g,
         POSITIVE_INTEGER: /^\d+$/,
         PO_BOX: /\b[P|p]?(OST|ost)?\.?\s*[O|o|0]?(ffice|FFICE)?\.?\s*[B|b][O|o|0]?[X|x]?\.?\s+[#]?(\d+)\b/,
         ANY_VALUE: /^.+$/,
@@ -2572,6 +2521,7 @@ const CONST = {
         RECEIPT_TAB_ID: 'ReceiptTab',
         MANUAL: 'manual',
         SCAN: 'scan',
+        DISTANCE: 'distance',
     },
 };
 

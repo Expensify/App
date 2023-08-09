@@ -2010,6 +2010,10 @@ const styles = {
         marginRight: variables.avatarChatSpacing,
     },
 
+    emptyAvatarMarginChat: {
+        marginRight: variables.avatarChatSpacing - 12,
+    },
+
     emptyAvatarMarginSmall: {
         marginRight: variables.avatarChatSpacing - 4,
     },
@@ -2097,8 +2101,11 @@ const styles = {
         height: '100%',
         justifyContent: 'center',
         overflow: 'hidden',
-        overflowY: 'auto',
         alignItems: 'center',
+    },
+
+    PDFViewList: {
+        overflowX: 'hidden',
     },
 
     pdfPasswordForm: {
@@ -2494,11 +2501,11 @@ const styles = {
         alignSelf: 'flex-start',
     },
 
-    attachmentModalArrowsContainer: {
-        display: 'flex',
-        justifyContent: 'center',
+    attachmentCarouselContainer: {
         height: '100%',
         width: '100%',
+        display: 'flex',
+        justifyContent: 'center',
         ...cursor.cursorUnset,
     },
 

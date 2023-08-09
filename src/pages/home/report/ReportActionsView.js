@@ -449,6 +449,10 @@ function arePropsEqual(oldProps, newProps) {
         return false;
     }
 
+    if (lodashGet(newProps, 'report.writeCapability') !== lodashGet(oldProps, 'report.writeCapability')) {
+        return false;
+    }
+
     return _.isEqual(lodashGet(newProps.report, 'icons', []), lodashGet(oldProps.report, 'icons', []));
 }
 

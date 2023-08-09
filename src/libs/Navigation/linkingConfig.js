@@ -302,6 +302,10 @@ export default {
                                         path: ROUTES.MONEY_REQUEST_SCAN_TAB,
                                         exact: true,
                                     },
+                                    distance: {
+                                        path: ROUTES.MONEY_REQUEST_DISTANCE_TAB,
+                                        exact: true,
+                                    },
                                 },
                             },
                             Money_Request_Amount: ROUTES.MONEY_REQUEST_AMOUNT,
