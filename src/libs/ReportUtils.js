@@ -1485,7 +1485,7 @@ function hasReportNameError(report) {
 }
 
 /**
- * For comments shorter than 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
+ * For comments shorter than or equal to 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
  * For longer comments, skip parsing, but still escape the text, and display plaintext for performance reasons. It takes over 40s to parse a 100k long string!!
  *
  * @param {String} text
@@ -1493,7 +1493,7 @@ function hasReportNameError(report) {
  */
 function getParsedComment(text) {
     const parser = new ExpensiMark();
-    return text.length < CONST.MAX_MARKUP_LENGTH ? parser.replace(text) : _.escape(text);
+    return text.length <= CONST.MAX_MARKUP_LENGTH ? parser.replace(text) : _.escape(text);
 }
 
 /**
