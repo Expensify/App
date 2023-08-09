@@ -28,6 +28,7 @@ import isInputAutoFilled from '../../libs/isInputAutoFilled';
 import * as PolicyUtils from '../../libs/PolicyUtils';
 import Log from '../../libs/Log';
 import withNavigationFocus, {withNavigationFocusPropTypes} from '../../components/withNavigationFocus';
+import usePrevious from '../../hooks/usePrevious';
 
 const propTypes = {
     /** Should we dismiss the keyboard when transitioning away from the page? */
@@ -81,6 +82,7 @@ function LoginForm(props) {
     const input = useRef();
     const [login, setLogin] = useState('');
     const [formError, setFormError] = useState(false);
+    const prevIsVisible = usePrevious(props.isVisible);
 
     const {translate} = props;
 
@@ -166,11 +168,13 @@ function LoginForm(props) {
         if (props.blurOnSubmit) {
             input.current.blur();
         }
-        if (!input.current || !props.isVisible) {
+
+        // Only focus the input if the form becomes visible again, to prevent the keyboard from automatically opening on touchscreen devices after signing out
+        if (!input.current || prevIsVisible || !props.isVisible) {
             return;
         }
         input.current.focus();
-    }, [props.blurOnSubmit, props.isVisible, input]);
+    }, [props.blurOnSubmit, props.isVisible, prevIsVisible]);
 
     const formErrorText = useMemo(() => (formError ? translate(formError) : ''), [formError, translate]);
     const serverErrorText = useMemo(() => ErrorUtils.getLatestErrorMessage(props.account), [props.account]);

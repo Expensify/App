@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import {PureComponent} from 'react';
+import {useEffect, useMemo} from 'react';
 import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
 import * as Browser from '../../libs/Browser';
@@ -13,9 +13,22 @@ const propTypes = {
     children: PropTypes.node.isRequired,
 };
 
-class DeeplinkWrapper extends PureComponent {
-    componentDidMount() {
-        if (!this.isMacOSWeb() || CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.DEV) {
+function isMacOSWeb() {
+    return !Browser.isMobile() && typeof navigator === 'object' && typeof navigator.userAgent === 'string' && /Mac/i.test(navigator.userAgent) && !/Electron/i.test(navigator.userAgent);
+}
+
+function DeeplinkWrapper({children}) {
+    const isUnsupportedDeeplinkRoute = useMemo(() => {
+        // According to the design, we don't support unlink in Desktop app
+        // https://github.com/Expensify/App/issues/19681#issuecomment-1610353099
+        return _.some([CONST.REGEX.ROUTES.UNLINK_LOGIN], (unsupportRouteRegex) => {
+            const routeRegex = new RegExp(unsupportRouteRegex);
+            return routeRegex.test(window.location.pathname);
+        });
+    }, []);
+
+    useEffect(() => {
+        if (!isMacOSWeb() || CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.DEV) {
             return;
         }
 
@@ -31,25 +44,11 @@ class DeeplinkWrapper extends PureComponent {
             App.beginDeepLinkRedirectAfterTransition();
             return;
         }
+
         App.beginDeepLinkRedirect();
-    }
+    }, []);
 
-    isMacOSWeb() {
-        return !Browser.isMobile() && typeof navigator === 'object' && typeof navigator.userAgent === 'string' && /Mac/i.test(navigator.userAgent) && !/Electron/i.test(navigator.userAgent);
-    }
-
-    isUnsupportedDeeplinkRoute() {
-        // According to the design, we don't support unlink in Desktop app
-        // https://github.com/Expensify/App/issues/19681#issuecomment-1610353099
-        return _.some([CONST.REGEX.ROUTES.UNLINK_LOGIN], (unsupportRouteRegex) => {
-            const routeRegex = new RegExp(unsupportRouteRegex);
-            return routeRegex.test(window.location.pathname);
-        });
-    }
-
-    render() {
-        return this.props.children;
-    }
+    return children;
 }
 
 DeeplinkWrapper.propTypes = propTypes;

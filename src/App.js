@@ -12,6 +12,7 @@ import Expensify from './Expensify';
 import {LocaleContextProvider} from './components/withLocalize';
 import OnyxProvider from './components/OnyxProvider';
 import HTMLEngineProvider from './components/HTMLEngineProvider';
+import PopoverContextProvider from './components/PopoverProvider';
 import ComposeProviders from './components/ComposeProviders';
 import SafeArea from './components/SafeArea';
 import * as Environment from './libs/Environment/Environment';
@@ -51,6 +52,7 @@ function App() {
                     HTMLEngineProvider,
                     WindowDimensionsProvider,
                     KeyboardStateProvider,
+                    PopoverContextProvider,
                     CurrentReportIDContextProvider,
                     PickerStateProvider,
                     EnvironmentProvider,
