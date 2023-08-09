@@ -26,6 +26,7 @@ import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import * as IOUUtils from '../../libs/IOUUtils';
 import * as ReportUtils from '../../libs/ReportUtils';
+import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 import refPropTypes from '../refPropTypes';
 import PressableWithFeedback from '../Pressable/PressableWithoutFeedback';
 
@@ -137,11 +138,11 @@ function IOUPreview(props) {
     // Pay button should only be visible to the manager of the report.
     const isCurrentUserManager = managerID === sessionAccountID;
 
-    const moneyRequestAction = ReportUtils.getMoneyRequestAction(props.action);
+    const moneyRequestDetails = ReportUtils.getMoneyRequestAction(props.action);
 
-    const requestAmount = moneyRequestAction.amount;
-    const requestCurrency = moneyRequestAction.currency;
-    const requestComment = moneyRequestAction.comment.trim();
+    const requestAmount = moneyRequestDetails.amount;
+    const requestCurrency = moneyRequestDetails.currency;
+    const requestComment = moneyRequestDetails.comment.trim();
 
     const getSettledMessage = () => {
         switch (lodashGet(props.action, 'originalMessage.paymentType', '')) {

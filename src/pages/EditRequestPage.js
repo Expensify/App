@@ -10,7 +10,6 @@ import ONYXKEYS from '../ONYXKEYS';
 import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 import EditRequestDescriptionPage from './EditRequestDescriptionPage';
 import reportPropTypes from './reportPropTypes';
-import * as ReportUtils from '../libs/ReportUtils';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -37,8 +36,8 @@ const defaultProps = {
 
 function EditRequestPage(props) {
     const parentReportAction = ReportActionsUtils.getParentReportAction(props.report);
-    const moneyRequestReportAction = ReportUtils.getMoneyRequestAction(parentReportAction);
-    const transactionDescription = moneyRequestReportAction.comment;
+    const moneyRequestDetails = ReportActionsUtils.getMoneyRequestDetails(parentReportAction);
+    const transactionDescription = moneyRequestDetails.comment;
     const field = lodashGet(props, ['route', 'params', 'field'], '');
 
     function updateTransactionWithChanges(changes) {

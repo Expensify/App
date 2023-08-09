@@ -1105,32 +1105,6 @@ function getDisplayNamesWithTooltips(personalDetailsList, isMultipleParticipantR
 }
 
 /**
- * We get the amount, currency and comment money request value from the action.originalMessage.
- * But for the send money action, the above value is put in the IOUDetails object.
- *
- * @param {Object} reportAction
- * @param {Number} reportAction.amount
- * @param {String} reportAction.currency
- * @param {String} reportAction.comment
- * @param {Object} [reportAction.IOUDetails]
- * @returns {Object}
- */
-function getMoneyRequestAction(reportAction = {}) {
-    const originalMessage = lodashGet(reportAction, 'originalMessage', {});
-    let amount = originalMessage.amount || 0;
-    let currency = originalMessage.currency || CONST.CURRENCY.USD;
-    let comment = originalMessage.comment || '';
-
-    if (_.has(originalMessage, 'IOUDetails')) {
-        amount = lodashGet(originalMessage, 'IOUDetails.amount', 0);
-        currency = lodashGet(originalMessage, 'IOUDetails.currency', CONST.CURRENCY.USD);
-        comment = lodashGet(originalMessage, 'IOUDetails.comment', '');
-    }
-
-    return {amount, currency, comment};
-}
-
-/**
  * Determines if a report has an IOU that is waiting for an action from the current user (either Pay or Add a credit bank account)
  *
  * @param {Object} report (chatReport or iouReport)
@@ -2998,7 +2972,6 @@ export {
     isReportDataReady,
     isSettled,
     isAllowedToComment,
-    getMoneyRequestAction,
     getBankAccountRoute,
     getParentReport,
     getTaskParentReportActionIDInAssigneeReport,

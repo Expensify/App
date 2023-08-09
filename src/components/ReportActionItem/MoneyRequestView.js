@@ -40,7 +40,7 @@ const defaultProps = {
 
 function MoneyRequestView(props) {
     const parentReportAction = ReportActionsUtils.getParentReportAction(props.report);
-    const {amount: transactionAmount, currency: transactionCurrency, comment: transactionDescription} = ReportUtils.getMoneyRequestAction(parentReportAction);
+    const {amount: transactionAmount, currency: transactionCurrency, comment: transactionDescription} = ReportActionsUtils.getMoneyRequestDetails(parentReportAction);
     const formattedTransactionAmount = transactionAmount && transactionCurrency && CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency);
     const transactionDate = lodashGet(parentReportAction, ['created']);
     const formattedTransactionDate = DateUtils.getDateStringFromISOTimestamp(transactionDate);

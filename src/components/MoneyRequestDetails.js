@@ -6,6 +6,7 @@ import lodashGet from 'lodash/get';
 import iouReportPropTypes from '../pages/iouReportPropTypes';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import * as ReportUtils from '../libs/ReportUtils';
+import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 import * as Expensicons from './Icon/Expensicons';
 import Text from './Text';
 import participantPropTypes from './participantPropTypes';
@@ -74,7 +75,7 @@ const defaultProps = {
 
 function MoneyRequestDetails(props) {
     // These are only used for the single transaction view and not for expense and iou reports
-    const {amount: transactionAmount, currency: transactionCurrency, comment: transactionDescription} = ReportUtils.getMoneyRequestAction(props.parentReportAction);
+    const {amount: transactionAmount, currency: transactionCurrency, comment: transactionDescription} = ReportActionsUtils.getMoneyRequestDetails(props.parentReportAction);
     const formattedTransactionAmount = transactionAmount && transactionCurrency && CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency);
     const transactionDate = lodashGet(props.parentReportAction, ['created']);
     const formattedTransactionDate = DateUtils.getDateStringFromISOTimestamp(transactionDate);
