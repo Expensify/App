@@ -75,33 +75,40 @@ function injectFooterCopywrite() {
     footer.innerHTML = `&copy;2008-${new Date().getFullYear()} Expensify, Inc.`;
 }
 
-// Count property of --scroll-y variable
-window.addEventListener('scroll', () => {
-    document.documentElement.style.setProperty('--scroll-y', `${window.scrollY}px`);
-});
-
 function openSidebar() {
     document.getElementById('sidebar-layer').style.display = 'block';
     document.getElementById('gsc-i-id1').placeholder = 'Search for something...';
+
     // Make body unscrollable
-    const scrollY = document.documentElement.style.getPropertyValue('--scroll-y');
+    const yAxis = document.documentElement.style.getPropertyValue('y-axis');
     const body = document.body;
     body.style.position = 'fixed';
-    body.style.top = `-${scrollY}`;
+    body.style.top = `-${yAxis}`;
 }
 
+// Function to close the sidebar
 function closeSidebar() {
     document.getElementById('sidebar-layer').style.display = 'none';
-    // Make body scrollable again
+
+    // Make the body scrollable again
     const body = document.body;
     const scrollY = body.style.top;
+
+    // Reset the position and top styles of the body element
     body.style.position = '';
     body.style.top = '';
+
+    // Scroll to the original scroll position
     window.scrollTo(0, parseInt(scrollY || '0', 10) * -1);
 }
 
 window.addEventListener('DOMContentLoaded', () => {
     injectFooterCopywrite();
+
+    // Count property of y-axis to keep scroll position & reference it later for making the body fixed when sidebar opened
+    window.addEventListener('scroll', () => {
+        document.documentElement.style.setProperty('y-axis', `${window.scrollY}px`);
+    });
 
     // Handle open & close the sidebar
     const buttonOpenSidebar = document.getElementById('toggle-search-open');
