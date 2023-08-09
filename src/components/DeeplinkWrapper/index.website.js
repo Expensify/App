@@ -18,14 +18,15 @@ function isMacOSWeb() {
 }
 
 function DeeplinkWrapper({children}) {
-    const isUnsupportedDeeplinkRoute = useMemo(() => {
-        // According to the design, we don't support unlink in Desktop app
-        // https://github.com/Expensify/App/issues/19681#issuecomment-1610353099
-        return _.some([CONST.REGEX.ROUTES.UNLINK_LOGIN], (unsupportRouteRegex) => {
-            const routeRegex = new RegExp(unsupportRouteRegex);
-            return routeRegex.test(window.location.pathname);
-        });
-    }, []);
+    const isUnsupportedDeeplinkRoute = useMemo(
+        () =>
+            // According to the design, we don't support unlink in Desktop app https://github.com/Expensify/App/issues/19681#issuecomment-1610353099
+            _.some([CONST.REGEX.ROUTES.UNLINK_LOGIN], (unsupportRouteRegex) => {
+                const routeRegex = new RegExp(unsupportRouteRegex);
+                return routeRegex.test(window.location.pathname);
+            }),
+        [],
+    );
 
     useEffect(() => {
         if (!isMacOSWeb() || CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.DEV) {
@@ -46,6 +47,8 @@ function DeeplinkWrapper({children}) {
         }
 
         App.beginDeepLinkRedirect();
+        // We only want this to run on mount
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return children;
