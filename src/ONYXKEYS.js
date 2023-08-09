@@ -42,9 +42,6 @@ export default {
     // Has information about the network status (offline/online)
     NETWORK: 'network',
 
-    // Contains all the personalDetails of the user
-    PERSONAL_DETAILS: 'personalDetails',
-
     // draft status
     CUSTOM_STATUS_DRAFT: 'customStatusDraft',
 

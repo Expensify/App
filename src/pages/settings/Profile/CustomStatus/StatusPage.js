@@ -104,9 +104,6 @@ export default compose(
     withLocalize,
     withCurrentUserPersonalDetails,
     withOnyx({
-        status: {
-            key: () => ONYXKEYS.PERSONAL_DETAILS,
-        },
         draftStatus: {
             key: () => ONYXKEYS.CUSTOM_STATUS_DRAFT,
         },
