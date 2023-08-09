@@ -1,5 +1,5 @@
 import React from 'react';
-import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
+import OnyxTabNavigator, {TopTab} from '../libs/Navigation/OnyxTabNavigator';
 import TabSelector from '../components/TabSelector/TabSelector';
 import Permissions from '../libs/Permissions';
 import NewChatPage from './NewChatPage';
@@ -10,8 +10,6 @@ import HeaderWithBackButton from '../components/HeaderWithBackButton';
 import ScreenWrapper from '../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
-
-const TopTab = createMaterialTopTabNavigator();
 
 const propTypes = {
     ...windowDimensionsPropTypes,
@@ -34,8 +32,8 @@ function NewChatSelectorPage(props) {
             <>
                 <HeaderWithBackButton title={props.translate('sidebarScreen.fabNewChat')} />
                 {Permissions.canUsePolicyRooms(props.betas) ? (
-                    <TopTab.Navigator
-                        backBehavior="order"
+                    <OnyxTabNavigator
+                        id={CONST.TAB.NEW_CHAT_TAB_ID}
                         tabBar={({state, navigation}) => (
                             <TabSelector
                                 state={state}
@@ -51,7 +49,7 @@ function NewChatSelectorPage(props) {
                             name={CONST.TAB.NEW_ROOM}
                             component={WorkspaceNewRoomPage}
                         />
-                    </TopTab.Navigator>
+                    </OnyxTabNavigator>
                 ) : (
                     <NewChatPage />
                 )}
