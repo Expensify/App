@@ -7,12 +7,11 @@ import Text from '../Text';
 import TextInput from '../TextInput';
 import styles from '../../styles/styles';
 import PDFInfoMessage from './PDFInfoMessage';
-import compose from '../../libs/compose';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import shouldDelayFocus from '../../libs/shouldDelayFocus';
 import * as Browser from '../../libs/Browser';
 import CONST from '../../CONST';
+import useWindowDimensions from '../../hooks/useWindowDimensions';
+import useLocalize from '../../hooks/useLocalize';
 
 const propTypes = {
     /** If the submitted password is invalid (show an error message) */
@@ -32,9 +31,6 @@ const propTypes = {
 
     /** Should focus to the password input  */
     isFocused: PropTypes.bool.isRequired,
-
-    ...withLocalizePropTypes,
-    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
@@ -46,6 +42,9 @@ const defaultProps = {
 };
 
 function PDFPasswordForm(props) {
+    const {isSmallScreenWidth} = useWindowDimensions();
+    const {translate} = useLocalize();
+
     const [password, setPassword] = useState('');
     const [validationErrorText, setValidationErrorText] = useState('');
     const [shouldShowForm, setShouldShowForm] = useState(false);
@@ -58,10 +57,10 @@ function PDFPasswordForm(props) {
 
     const getErrorText = () => {
         if (props.isPasswordInvalid) {
-            return props.translate('attachmentView.passwordIncorrect');
+            return translate('attachmentView.passwordIncorrect');
         }
         if (!_.isEmpty(validationErrorText)) {
-            return props.translate(validationErrorText);
+            return translate(validationErrorText);
         }
 
         return '';
@@ -104,7 +103,7 @@ function PDFPasswordForm(props) {
     };
 
     const errorText = getErrorText();
-    const containerStyle = props.isSmallScreenWidth ? [styles.flex1, styles.w100] : styles.pdfPasswordForm.wideScreenWidth;
+    const containerStyle = isSmallScreenWidth ? [styles.flex1, styles.w100] : styles.pdfPasswordForm.wideScreenWidth;
 
     return (
         <>
@@ -115,12 +114,12 @@ function PDFPasswordForm(props) {
                     contentContainerStyle={styles.p5}
                 >
                     <View style={styles.mb4}>
-                        <Text>{props.translate('attachmentView.pdfPasswordForm.formLabel')}</Text>
+                        <Text>{translate('attachmentView.pdfPasswordForm.formLabel')}</Text>
                     </View>
                     <TextInput
                         ref={textInputRef}
-                        label={props.translate('common.password')}
-                        accessibilityLabel={props.translate('common.password')}
+                        label={translate('common.password')}
+                        accessibilityLabel={translate('common.password')}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         /**
                          * This is a workaround to bypass Safari's autofill odd behaviour.
@@ -140,7 +139,7 @@ function PDFPasswordForm(props) {
                         secureTextEntry
                     />
                     <Button
-                        text={props.translate('common.confirm')}
+                        text={translate('common.confirm')}
                         onPress={submitPassword}
                         style={styles.mt4}
                         isLoading={props.shouldShowLoadingIndicator}
@@ -159,4 +158,4 @@ function PDFPasswordForm(props) {
 PDFPasswordForm.propTypes = propTypes;
 PDFPasswordForm.defaultProps = defaultProps;
 
-export default compose(withWindowDimensions, withLocalize)(PDFPasswordForm);
+export default PDFPasswordForm;
