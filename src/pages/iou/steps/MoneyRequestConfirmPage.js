@@ -75,24 +75,12 @@ function MoneyRequestConfirmPage(props) {
 
     useEffect(() => {
         const policyID = lodashGet(props.report, 'policyID', '');
-        let connectionID;
 
         // Any money requests triggered from the FAB or from DMs/group chats won't be associated with policies.
         // Therefore, we only want to fetch categories if we know this request is tied to an existing policy and isn't a DM/group chat.
         if (policyID && policyID !== CONST.POLICY.POLICY_ID_FAKE) {
-            // We can't use Onyx.connect to get the policyCategories here,
-            // since we have to access the policyID from the report in Onyx.
-            // eslint-disable-next-line rulesdir/prefer-onyx-connect-in-libs
-            connectionID = Onyx.connect({
-                key: `${ONYXKEYS.POLICY_CATEGORIES}${policyID}`,
-
-                // We only want to fetch categories if:
-                // - there aren't any categories for this policy locally
-                // - the categories for this policy have been marked as stale
-                callback: (val) => (!val || val.stale) && Policy.getWorkspaceCategories(policyID),
-            });
+            Policy.getWorkspaceCategories(policyID);
         }
-        return () => connectionID && Onyx.disconnect(connectionID);
     }, [props.report]);
 
     useEffect(() => {
