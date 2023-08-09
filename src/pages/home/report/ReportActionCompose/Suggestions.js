@@ -83,21 +83,15 @@ function Suggestions({
         suggestionMentionRef.current.updateShouldShowSuggestionMenuToFalse();
     }, []);
 
-    const setShouldBlockSuggestionCalc = useCallback((blockCalculations) => {
-        suggestionEmojiRef.current.setShouldBlockSuggestionCalc(blockCalculations);
-        suggestionMentionRef.current.setShouldBlockSuggestionCalc(blockCalculations);
-    }, []);
-
     useImperativeHandle(
         forwardedRef,
         () => ({
             resetSuggestions,
             onSelectionChange,
             triggerHotkeyActions,
-            setShouldBlockSuggestionCalc,
             updateShouldShowSuggestionMenuToFalse,
         }),
-        [onSelectionChange, resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse],
+        [onSelectionChange, resetSuggestions, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse],
     );
 
     return (
