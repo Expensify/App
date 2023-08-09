@@ -64,7 +64,8 @@ function HeaderWithBackButton({
                                 onBackButtonPress();
                             }}
                             style={[styles.touchableButtonImage]}
-                            accessibilityRole="button"
+                            // Temporary solution to prevent Space from closing the RHP.
+                            // accessibilityRole="button"
                             accessibilityLabel={translate('common.back')}
                         >
                             <Icon

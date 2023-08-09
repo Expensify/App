@@ -27,7 +27,7 @@ function FocusTrapView({enabled, ...props}) {
         <FocusTrap
             active={enabled}
             focusTrapOptions={{
-                initialFocus: false,
+                // initialFocus: false,
                 fallbackFocus: () => ref.current,
                 clickOutsideDeactivates: true,
             }}
