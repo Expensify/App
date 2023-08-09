@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
 import * as Session from '../../../libs/actions/Session';
 import CONST from '../../../CONST';
+import CONFIG from '../../../CONFIG';
 import styles from '../../../styles/styles';
 
 const propTypes = {
@@ -35,7 +36,7 @@ function GoogleSignIn({translate, isDesktopFlow}) {
         const google = window.google;
         if (google) {
             google.accounts.id.initialize({
-                client_id: CONST.GOOGLE_SIGN_IN_WEB_CLIENT_ID,
+                client_id: CONFIG.GOOGLE_SIGN_IN.WEB_CLIENT_ID,
                 callback: signIn,
             });
             // Apply styles for each button

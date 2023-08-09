@@ -88,4 +88,8 @@ export default {
         SERVICE_ID: 'com.chat.expensify.chat.AppleSignIn',
         REDIRECT_URI: `${newExpensifyURL}appleauth`,
     },
+    GOOGLE_SIGN_IN: {
+        WEB_CLIENT_ID: '921154746561-gpsoaqgqfuqrfsjdf8l7vohfkfj7b9up.apps.googleusercontent.com',
+        IOS_CLIENT_ID: '921154746561-s3uqn2oe4m85tufi6mqflbfbuajrm2i3.apps.googleusercontent.com',
+    },
 };

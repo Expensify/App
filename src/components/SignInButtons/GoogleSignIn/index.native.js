@@ -4,14 +4,15 @@ import Log from '../../../libs/Log';
 import IconButton from '../IconButton';
 import * as Session from '../../../libs/actions/Session';
 import CONST from '../../../CONST';
+import CONFIG from '../../../CONFIG';
 
 /**
  * Google Sign In method for iOS and android that returns identityToken.
  */
 function googleSignInRequest() {
     GoogleSignin.configure({
-        webClientId: CONST.GOOGLE_SIGN_IN_WEB_CLIENT_ID,
-        iosClientId: CONST.GOOGLE_SIGN_IN_IOS_CLIENT_ID,
+        webClientId: CONFIG.GOOGLE_SIGN_IN.WEB_CLIENT_ID,
+        iosClientId: CONFIG.GOOGLE_SIGN_IN.IOS_CLIENT_ID,
         offlineAccess: false,
     });
 
