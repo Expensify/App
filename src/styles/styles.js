@@ -1228,8 +1228,8 @@ const styles = {
     },
 
     signInPageLeftContainer: {
-        paddingLeft: 48,
-        paddingRight: 48,
+        paddingLeft: 40,
+        paddingRight: 40,
     },
 
     signInPageLeftContainerWide: {
