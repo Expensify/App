@@ -18,6 +18,7 @@ import * as Session from './Session';
 import * as ReportActionsUtils from '../ReportActionsUtils';
 import Timing from './Timing';
 import * as Browser from '../Browser';
+import {last} from 'lodash';
 
 let currentUserAccountID;
 let currentUserEmail;
@@ -206,6 +207,68 @@ function reconnectApp(updateIDFrom = 0) {
         API.write('ReconnectApp', params, getOnyxDataForOpenOrReconnect());
     });
 }
+
+/**
+ * Fetches data when the client has discovered it missed some Onyx updates from the server
+ * @param {Number} [updateIDFrom] the ID of the Onyx update that we want to start fetching from
+ * @param {Number} [updateIDTo] the ID of the Onyx update that we want to fetch up to
+ */
+function getMissingOnyxUpdates(updateIDFrom = 0, updateIDTo = 0) {
+    console.debug(`[OnyxUpdates] Fetching missing updates updateIDFrom: ${updateIDFrom} and updateIDTo: ${updateIDTo}`);
+
+    API.write(
+        'GetMissingOnyxMessages',
+        {
+            updateIDFrom,
+            updateIDTo,
+        },
+        getOnyxDataForOpenOrReconnect(),
+
+        // Set this to true so that the request will be prioritized at the front of the sequential queue
+        true,
+    );
+}
+
+let lastUpdateIDAppliedToClient = 0;
+Onyx.connect({
+    key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
+    callback: (val) => (lastUpdateIDAppliedToClient = val),
+});
+const onyxUpdates = {
+    lastUpdateIDFromServer: 0,
+    previousUpdateIDFromServer: 0,
+};
+Onyx.connect({
+    key: ONYXKEYS.ONYX_UPDATES,
+    callback: (val) => {
+        if (!val) {
+            return;
+        }
+
+        const {lastUpdateIDFromServer, previousUpdateIDFromServer} = val;
+        console.debug('[OnyxUpdates] Received lastUpdateID from server', lastUpdateIDFromServer);
+        console.debug('[OnyxUpdates] Received previousUpdateID from server', previousUpdateIDFromServer);
+        console.debug('[OnyxUpdates] Last update ID applied to the client', lastUpdateIDAppliedToClient);
+
+        // If the previous update from the server does not match the last update the client got, then the client is missing some updates.
+        // getMissingOnyxUpdates will fetch updates starting from the last update this client got and going to the last update the server sent.
+        if (lastUpdateIDAppliedToClient && previousUpdateIDFromServer && lastUpdateIDAppliedToClient < previousUpdateIDFromServer) {
+            console.debug('[OnyxUpdates] Gap detected in update IDs so fetching incremental updates');
+            Log.info('Gap detected in update IDs from Pusher so fetching incremental updates', true, {
+                lastUpdateIDFromServer,
+                previousUpdateIDFromServer,
+                lastUpdateIDAppliedToClient: onyxUpdates.lastUpdateIDAppliedToClient,
+            });
+            getMissingOnyxUpdates(onyxUpdates.lastUpdateIDAppliedToClient, lastUpdateIDFromServer);
+        }
+
+        // Update the local values to be the same as the values stored in Onyx
+        onyxUpdates.lastUpdateIDFromServer = lastUpdateIDFromServer || 0;
+        onyxUpdates.previousUpdateIDFromServer = previousUpdateIDFromServer || 0;
+
+        Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, lastUpdateIDFromServer || 0);
+    },
+});
 
 /**
  * This promise is used so that deeplink component know when a transition is end.

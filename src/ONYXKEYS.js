@@ -243,8 +243,11 @@ export default {
     // Experimental memory only Onyx mode flag
     IS_USING_MEMORY_ONLY_KEYS: 'isUsingMemoryOnlyKeys',
 
-    // The ID of the last Onyx update that was applied to this client
-    ONYX_UPDATES_LAST_UPDATE_ID: 'onyxUpdatesLastUpdateID',
+    // Information about the onyx updates IDs that were received from the server
+    ONYX_UPDATES: 'onyxUpdates',
+
+    // The last update ID that was applied to the client
+    ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT: 'OnyxUpdatesLastUpdateIDAppliedToClient',
 
     // The access token to be used with the Mapbox library
     MAPBOX_ACCESS_TOKEN: 'mapboxAccessToken',
