@@ -79,12 +79,12 @@ function MoneyRequestConfirmPage(props) {
         // We want to load categories if:
         // - this expense report was started from a policy expense chat
         // - a policy expense chat is a participant of this expense report
-        const hasPolicyExpenseChatParticipant = _.reduce(props.iou.participants, (memo, participant) => memo || participant.isPolicyExpenseChat, false);
+        const hasPolicyExpenseChatParticipant = _.reduce(participants, (memo, participant) => memo || participant.isPolicyExpenseChat, false);
         if (chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT || hasPolicyExpenseChatParticipant) {
             const policyID = lodashGet(props.report, 'policyID', '');
-            Policy.getWorkspaceCategories(policyID);
+            Policy.openDraftWorkspaceMoneyRequest(policyID);
         }
-    }, [props.report, props.iou.participants]);
+    }, [props.report, participants]);
 
     useEffect(() => {
         // ID in Onyx could change by initiating a new request in a separate browser tab or completing a request
