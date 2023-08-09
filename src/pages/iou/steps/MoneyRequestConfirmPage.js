@@ -74,14 +74,17 @@ function MoneyRequestConfirmPage(props) {
     );
 
     useEffect(() => {
-        const policyID = lodashGet(props.report, 'policyID', '');
+        const chatType = lodashGet(props.report, 'chatType', '');
 
-        // Any money requests triggered from the FAB or from DMs/group chats won't be associated with policies.
-        // Therefore, we only want to fetch categories if we know this request is tied to an existing policy and isn't a DM/group chat.
-        if (policyID && policyID !== CONST.POLICY.POLICY_ID_FAKE) {
+        // We want to load categories if:
+        // - this expense report was started from a policy expense chat
+        // - a policy expense chat is a participant of this expense report
+        const hasPolicyExpenseChatParticipant = _.reduce(props.iou.participants, (memo, participant) => memo || participant.isPolicyExpenseChat, false);
+        if (chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT || hasPolicyExpenseChatParticipant) {
+            const policyID = lodashGet(props.report, 'policyID', '');
             Policy.getWorkspaceCategories(policyID);
         }
-    }, [props.report]);
+    }, [props.report, props.iou.participants]);
 
     useEffect(() => {
         // ID in Onyx could change by initiating a new request in a separate browser tab or completing a request
