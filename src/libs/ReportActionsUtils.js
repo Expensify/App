@@ -150,6 +150,17 @@ function getParentReportActionInReport(childReportID, parentReportID) {
  * @param {Object} reportAction
  * @returns {Object}
  */
+function getTransaction(reportAction = {}) {
+    const transactionID = lodashGet(reportAction, ['originalMessage', 'IOUTransactionID'], '');
+    return allTransactions[transactionID] || {};
+}
+
+/**
+ * Get the details linked to the IOU reportAction
+ *
+ * @param {Object} reportAction
+ * @returns {Object}
+ */
 function getMoneyRequestDetails(reportAction = {}) {
     // 'pay' actions don't have a linked transaction since they pay the report. So we get the details from the originalMessage instead
     const originalMessage = lodashGet(reportAction, 'originalMessage', {});
@@ -164,8 +175,7 @@ function getMoneyRequestDetails(reportAction = {}) {
     }
 
     // For all other actions, retrieve the details from the linked transaction
-    const transactionID = lodashGet(originalMessage, 'IOUTransactionID', '');
-    return allTransactions[transactionID] || {amount: 0, currency: CONST.CURRENCY.USD, comment: ''};
+    return getTransaction(reportAction);
 }
 
 /**
@@ -642,4 +652,5 @@ export {
     isPendingRemove,
     getReportAction,
     getMoneyRequestDetails,
+    getTransaction,
 };

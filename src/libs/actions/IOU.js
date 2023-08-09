@@ -846,9 +846,9 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
             updatedIOUReport = {...iouReport};
 
             // Because of the Expense reports are stored as negative values, we add the total from the amount
-            updatedIOUReport.total += reportAction.originalMessage.amount;
+            updatedIOUReport.total += transaction.amount;
         } else {
-            updatedIOUReport = IOUUtils.updateIOUOwnerAndTotal(iouReport, reportAction.actorAccountID, reportAction.originalMessage.amount, reportAction.originalMessage.currency, true);
+            updatedIOUReport = IOUUtils.updateIOUOwnerAndTotal(iouReport, reportAction.actorAccountID, transaction.amount, transaction.currency, true);
         }
 
         updatedIOUReport.lastMessageText = iouReportLastMessageText;
