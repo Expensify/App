@@ -53,6 +53,7 @@ const defaultProps = {
 function ReportWelcomeText(props) {
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
     const isChatRoom = ReportUtils.isChatRoom(props.report);
+    const isAdminsOnlyPostingRoom = ReportUtils.isAdminsOnlyPostingRoom(props.report);
     const isDefault = !(isChatRoom || isPolicyExpenseChat);
     const participantAccountIDs = lodashGet(props.report, 'participantAccountIDs', []);
     const isMultipleParticipant = participantAccountIDs.length > 1;
@@ -62,10 +63,13 @@ function ReportWelcomeText(props) {
     );
     const roomWelcomeMessage = ReportUtils.getRoomWelcomeMessage(props.report);
     const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(props.report, participantAccountIDs, props.betas);
+    const reportName = ReportUtils.getReportName(props.report);
     return (
         <>
             <View>
-                <Text style={[styles.textHero]}>{props.translate('reportActionsView.sayHello')}</Text>
+                <Text style={[styles.textHero]}>
+                    {isChatRoom && isAdminsOnlyPostingRoom ? props.translate('reportActionsView.welcomeTo', {reportName}) : props.translate('reportActionsView.sayHello')}
+                </Text>
             </View>
             <Text style={[styles.mt3, styles.mw100]}>
                 {isPolicyExpenseChat && (
@@ -81,14 +85,15 @@ function ReportWelcomeText(props) {
                         <Text>{props.translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartThree')}</Text>
                     </>
                 )}
-                {isChatRoom && (
+                {isChatRoom && isAdminsOnlyPostingRoom && <Text>{roomWelcomeMessage.phrase1}</Text>}
+                {isChatRoom && !isAdminsOnlyPostingRoom && (
                     <>
                         <Text>{roomWelcomeMessage.phrase1}</Text>
                         <Text
                             style={[styles.textStrong]}
                             onPress={() => Navigation.navigate(ROUTES.getReportDetailsRoute(props.report.reportID))}
                         >
-                            {ReportUtils.getReportName(props.report)}
+                            {reportName}
                         </Text>
                         <Text>{roomWelcomeMessage.phrase2}</Text>
                     </>
