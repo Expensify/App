@@ -104,7 +104,7 @@ function HeaderView(props) {
             threeDotMenuItems.push({
                 icon: Expensicons.Checkmark,
                 text: props.translate('task.markAsDone'),
-                onSelected: () => Task.completeTask(props.report.reportID, title),
+                onSelected: () => Task.completeTask(props.report, title),
             });
         }
 
@@ -113,7 +113,7 @@ function HeaderView(props) {
             threeDotMenuItems.push({
                 icon: Expensicons.Checkmark,
                 text: props.translate('task.markAsIncomplete'),
-                onSelected: () => Task.reopenTask(props.report.reportID, title),
+                onSelected: () => Task.reopenTask(props.report, title),
             });
         }
 
