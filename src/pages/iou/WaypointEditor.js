@@ -55,7 +55,8 @@ const defaultProps = {
 
 function WaypointEditor(props) {
     const waypointIndex = lodashGet(props.route.params, 'waypointIndex', '');
-    console.log(props);
+    const waypoint = `waypoint${waypointIndex}`;
+
     const selectWaypoint = (details) => {
         console.log('What are details', details);
         const lat = details.geometry.location.lat;
@@ -78,15 +79,17 @@ function WaypointEditor(props) {
             errors.addressState = 'addDebitCardPage.error.addressState';
         }
 
+        const waypointValue = values[`waypoint${waypointIndex}`];
+        if (!waypointValue || !ValidationUtils.isValidAddress(waypointValue)) {
+            errors[`waypoint${waypointIndex}`] = 'distance.errors.invalidAddress';
+        }
+
         return errors;
     }
 
     const onSubmit = (params) => {
-        console.log('What are params', params);
-    }
 
-    const onAddressUpdate = (value) => {
-        console.log('value', value);
+
     }
 
     return (
@@ -104,6 +107,7 @@ function WaypointEditor(props) {
                 enabledWhenOffline
                 validate={validate}
                 onSubmit={onSubmit}
+                submitButtonText=''
                 isSubmitButtonVisible={false}
             >
                 <View>
@@ -111,9 +115,12 @@ function WaypointEditor(props) {
                         inputID={`waypoint${waypointIndex}`}
                         containerStyles={[styles.mt4]}
                         label="Address"
+                        onPress={onSubmit}
                         shouldSaveDraft
                         maxInputLength={CONST.FORM_CHARACTER_LIMIT}
-                        onInputChange={(value) => console.log(value)}
+                        renamedInputKeys={{
+                            address: `waypoint${waypointIndex}`,
+                        }}
                     />
                 </View>
             </Form>

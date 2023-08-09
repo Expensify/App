@@ -166,6 +166,9 @@ function AddressSearch(props) {
             zipCode,
             country: '',
             state: state || stateAutoCompleteFallback,
+            lat: details.geometry.location.lat,
+            lng: details.geometry.location.lng,
+            address: details.formatted_address,
         };
 
         // If the address is not in the US, use the full length state name since we're displaying the address's
