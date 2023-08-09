@@ -12,16 +12,14 @@ function Image(props) {
     /**
      * Check if the image source is a URL - if so the `encryptedAuthToken` is appended
      * to the source.
-     * @returns {Object} - the configured image source
      */
     const source = useMemo(() => {
         if (isAuthTokenRequired) {
-            const innerSource = propsSource;
             // There is currently a `react-native-web` bug preventing the authToken being passed
             // in the headers of the image request so the authToken is added as a query param.
             // On native the authToken IS passed in the image request headers
             const authToken = lodashGet(session, 'encryptedAuthToken', null);
-            return {uri: `${innerSource.uri}?encryptedAuthToken=${encodeURIComponent(authToken)}`};
+            return {uri: `${propsSource.uri}?encryptedAuthToken=${encodeURIComponent(authToken)}`};
         }
         return propsSource;
     }, [propsSource, isAuthTokenRequired, session]);
