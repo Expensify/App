@@ -349,6 +349,7 @@ export default {
     tabSelector: {
         manual: 'Manual',
         scan: 'Scan',
+        distance: 'Distance',
     },
     receipt: {
         upload: 'Upload receipt',
@@ -402,6 +403,7 @@ export default {
         pendingConversionMessage: "Total will update when you're back online",
         threadRequestReportName: ({formattedAmount, comment}) => `${formattedAmount} request${comment ? ` for ${comment}` : ''}`,
         threadSentMoneyReportName: ({formattedAmount, comment}) => `${formattedAmount} sent${comment ? ` for ${comment}` : ''}`,
+        requestCount: ({count}) => `${count} requests`,
         error: {
             invalidSplit: 'Split amounts do not equal total amount',
             other: 'Unexpected error, please try again later',
