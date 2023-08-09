@@ -60,8 +60,12 @@ export default function linkTo(navigation, path, type) {
 
     // If action type is different than NAVIGATE we can't change it to the PUSH safely
     if (action.type === 'NAVIGATE') {
-        // If this action is navigating to the report screen and the top most navigator is different from the one we want to navigate - PUSH
-        if (action.payload.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR && getTopmostReportId(root.getState()) !== getTopmostReportId(state)) {
+        // In case if type is 'FORCED_UP' we ensure that we need to replace current screen to the provided
+        if (type === 'FORCED_UP') {
+            action.type = 'REPLACE';
+
+            // If this action is navigating to the report screen and the top most navigator is different from the one we want to navigate - PUSH
+        } else if (action.payload.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR && getTopmostReportId(root.getState()) !== getTopmostReportId(state)) {
             action.type = 'PUSH';
 
             // If the type is UP, we deeplinked into one of the RHP flows and we want to replace the current screen with the previous one in the flow
