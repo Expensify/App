@@ -43,19 +43,15 @@ function EditRequestPage({report, route}) {
     const transactionAmount = TransactionUtils.getAmount(transaction);
     const transactionCurrency = TransactionUtils.getCurrency(transaction);
     const transactionCreated = TransactionUtils.getCreated(transaction);
-    const field = lodashGet(route, ['params', 'field'], '');
+    const fieldToEdit = lodashGet(route, ['params', 'field'], '');
+
+    // Update the transaction object and close the modal
     function editTransaction(transactionChanges) {
-        // Update the transaction...
-        // eslint-disable-next-line no-console
-        console.log({transactionChanges});
-
         IOU.editMoneyRequest(transactionID, report.reportID, transactionChanges);
-
-        // Note: The "modal" we are dismissing is the MoneyRequestAmountPage
         Navigation.dismissModal();
     }
 
-    if (field === CONST.EDIT_REQUEST_FIELD.DESCRIPTION) {
+    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DESCRIPTION) {
         return (
             <EditRequestDescriptionPage
                 defaultDescription={transactionDescription}
@@ -66,7 +62,7 @@ function EditRequestPage({report, route}) {
         );
     }
 
-    if (field === CONST.EDIT_REQUEST_FIELD.DATE) {
+    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DATE) {
         return (
             <EditRequestCreatedPage
                 defaultCreated={transactionCreated}
@@ -77,16 +73,17 @@ function EditRequestPage({report, route}) {
         );
     }
 
-    if (field === CONST.EDIT_REQUEST_FIELD.AMOUNT) {
+    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.AMOUNT) {
         return (
             <EditRequestAmountPage
                 defaultAmount={transactionAmount}
                 defaultCurrency={transactionCurrency}
                 reportID={report.reportID}
                 onSubmit={(transactionChanges) => {
+                    // Temporarily disabling currency editing and it will be enabled as a quick follow up
                     editTransaction({
-                        'amount': CurrencyUtils.convertToSmallestUnit(transactionCurrency, Number.parseFloat(transactionChanges)),
-                        'currency': transactionCurrency,
+                        amount: CurrencyUtils.convertToSmallestUnit(transactionCurrency, Number.parseFloat(transactionChanges)),
+                        currency: transactionCurrency,
                     });
                 }}
             />

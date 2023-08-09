@@ -795,8 +795,6 @@ function splitBillAndOpenReport(participants, currentUserLogin, currentUserAccou
  * @param {Object} transactionChanges
  */
 function editMoneyRequest(transactionID, transactionThreadReportID, transactionChanges) {
-    console.log("transactionID: ", transactionID);
-    console.log("transactionThreadReportID: ", transactionThreadReportID);
     // STEP 1: Get all collections we're updating
     const transactionThread = allReports[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`];
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];

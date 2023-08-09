@@ -1314,7 +1314,8 @@ function getReportPreviewMessage(report, reportAction = {}) {
 function getModifiedExpenseMessage(reportAction) {
     const reportActionOriginalMessage = lodashGet(reportAction, 'originalMessage', {});
     if (!_.isEmpty(reportActionOriginalMessage)) {
-        if (_.has(reportActionOriginalMessage, 'oldAmount') &&
+        if (
+            _.has(reportActionOriginalMessage, 'oldAmount') &&
             _.has(reportActionOriginalMessage, 'oldCurrency') &&
             _.has(reportActionOriginalMessage, 'amount') &&
             _.has(reportActionOriginalMessage, 'currency')
@@ -1330,21 +1331,15 @@ function getModifiedExpenseMessage(reportAction) {
             return `changed the request to ${amount} (previously ${oldAmount})`;
         }
 
-        if (_.has(reportActionOriginalMessage, 'oldComment') &&
-            _.has(reportActionOriginalMessage, 'newComment')
-        ) {
+        if (_.has(reportActionOriginalMessage, 'oldComment') && _.has(reportActionOriginalMessage, 'newComment')) {
             return `changed the request description to "${reportActionOriginalMessage.newComment}" (previously "${reportActionOriginalMessage.oldComment}")`;
         }
 
-        if (_.has(reportActionOriginalMessage, 'oldCreated') &&
-            _.has(reportActionOriginalMessage, 'created')
-        ) {
+        if (_.has(reportActionOriginalMessage, 'oldCreated') && _.has(reportActionOriginalMessage, 'created')) {
             return `changed the request date to ${reportActionOriginalMessage.created} (previously ${reportActionOriginalMessage.oldCreated})`;
         }
 
-        if (_.has(reportActionOriginalMessage, 'oldMerchant') &&
-            _.has(reportActionOriginalMessage, 'merchant')
-        ) {
+        if (_.has(reportActionOriginalMessage, 'oldMerchant') && _.has(reportActionOriginalMessage, 'merchant')) {
             return `changed the request merchant to "${reportActionOriginalMessage.merchant}" (previously "${reportActionOriginalMessage.oldMerchant}")`;
         }
     }
@@ -1381,7 +1376,7 @@ function getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges) {
         originalMessage.oldAmount = TransactionUtils.getAmount(oldTransaction);
         originalMessage.amount = lodashGet(transactionChanges, 'amount', originalMessage.oldAmount);
         originalMessage.oldCurrency = TransactionUtils.getCurrency(oldTransaction);
-        originalMessage.currency = lodashGet(transactionChanges, 'currency', originalMessage.oldCurrency);;
+        originalMessage.currency = lodashGet(transactionChanges, 'currency', originalMessage.oldCurrency);
     }
 
     return originalMessage;
