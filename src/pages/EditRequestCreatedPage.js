@@ -1,4 +1,4 @@
-import React, {useRef} from 'react';
+import React, {useCallback} from 'react';
 import PropTypes from 'prop-types';
 import ScreenWrapper from '../components/ScreenWrapper';
 import HeaderWithBackButton from '../components/HeaderWithBackButton';
@@ -54,7 +54,7 @@ function EditRequestCreatedPage({defaultCreated, onSubmit}) {
                 enabledWhenOffline
             >
                 <NewDatePicker
-                    inputID="modifiedCreated"
+                    inputID="created"
                     label={translate('common.date')}
                     defaultValue={defaultCreated}
                 />

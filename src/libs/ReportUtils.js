@@ -1313,11 +1313,12 @@ function getReportPreviewMessage(report, reportAction = {}) {
  */
 function getModifiedExpenseMessage(reportAction) {
     const reportActionOriginalMessage = lodashGet(reportAction, 'originalMessage', {});
+    console.log('reportActionOriginalMessage: ', reportActionOriginalMessage);
     if (!_.isEmpty(reportActionOriginalMessage)) {
-        if (reportActionOriginalMessage.oldAmount &&
-            reportActionOriginalMessage.oldCurrency &&
-            reportActionOriginalMessage.amount &&
-            reportActionOriginalMessage.currency
+        if (_.has(reportActionOriginalMessage, 'oldAmount') &&
+            _.has(reportActionOriginalMessage, 'oldCurrency') &&
+            _.has(reportActionOriginalMessage, 'amount') &&
+            _.has(reportActionOriginalMessage, 'currency')
         ) {
             const oldCurrency = reportActionOriginalMessage.oldCurrency;
             const oldCurrencyUnit = CurrencyUtils.getCurrencyUnit(oldCurrency);
@@ -1330,16 +1331,22 @@ function getModifiedExpenseMessage(reportAction) {
             return `changed the request to ${amount} (previously ${oldAmount})`;
         }
 
-        if (reportActionOriginalMessage.oldComment &&
-            reportActionOriginalMessage.newComment
+        if (_.has(reportActionOriginalMessage, 'oldComment') &&
+            _.has(reportActionOriginalMessage, 'newComment')
         ) {
-            return `changed the request description to ${reportActionOriginalMessage.newComment} (previously ${reportActionOriginalMessage.oldComment})`;
+            return `changed the request description to "${reportActionOriginalMessage.newComment}" (previously "${reportActionOriginalMessage.oldComment}")`;
         }
 
-        if (reportActionOriginalMessage.oldCreated &&
-            reportActionOriginalMessage.created
+        if (_.has(reportActionOriginalMessage, 'oldCreated') &&
+            _.has(reportActionOriginalMessage, 'created')
         ) {
             return `changed the request date to ${reportActionOriginalMessage.created} (previously ${reportActionOriginalMessage.oldCreated})`;
+        }
+
+        if (_.has(reportActionOriginalMessage, 'oldMerchant') &&
+            _.has(reportActionOriginalMessage, 'merchant')
+        ) {
+            return `changed the request merchant to "${reportActionOriginalMessage.merchant}" (previously "${reportActionOriginalMessage.oldMerchant}")`;
         }
     }
     return `changed the request`;

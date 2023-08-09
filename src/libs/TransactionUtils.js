@@ -1,5 +1,6 @@
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import DateUtils from './DateUtils';
@@ -66,7 +67,8 @@ function buildOptimisticTransaction(amount, currency, reportID, comment = '', so
  * @returns {Object}
  */
 function getUpdatedTransaction(transaction, transactionChanges) {
-    const updatedTransaction = {...transaction};
+    // Only changing the first level fields so no need for deep clone now
+    const updatedTransaction = _.clone(transaction);
 
     // The comment property does not have its modifiedComment counterpart
     if (_.has(transactionChanges, 'comment')) {

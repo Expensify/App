@@ -795,16 +795,17 @@ function splitBillAndOpenReport(participants, currentUserLogin, currentUserAccou
  * @param {Object} transactionChanges
  */
 function editMoneyRequest(transactionID, transactionThreadReportID, transactionChanges) {
+    console.log("transactionID: ", transactionID);
+    console.log("transactionThreadReportID: ", transactionThreadReportID);
     // STEP 1: Get all collections we're updating
     const transactionThread = allReports[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`];
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const iouReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${transactionThread.parentReportID}`];
-
+    debugger;
     // STEP 2: Build new modified expense report action.
     const updatedReportAction = ReportUtils.buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges);
     const updatedTransaction = TransactionUtils.getUpdatedTransaction(transaction, transactionChanges);
     // STEP 3: Compute the IOU total and update the report preview message so LHN amount owed is correct
-
     // STEP 4: Compose the optimistic data
     const optimisticData = [
         {
@@ -817,7 +818,7 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: {updatedTransaction},
+            value: updatedTransaction,
         },
     ];
 
@@ -847,16 +848,12 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: {
-                transaction,
-            },
+            value: transaction,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.report}`,
-            value: {
-                iouReport,
-            },
+            value: iouReport,
         },
     ];
 

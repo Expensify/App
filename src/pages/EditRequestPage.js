@@ -4,7 +4,6 @@ import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import CONST from '../CONST';
 import Navigation from '../libs/Navigation/Navigation';
-import compose from '../libs/compose';
 import ONYXKEYS from '../ONYXKEYS';
 import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 import * as TransactionUtils from '../libs/TransactionUtils';
@@ -37,20 +36,19 @@ const defaultProps = {
 
 function EditRequestPage({report, route}) {
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
-    const transactionID = ReportActionsUtils.getLinkedTransactionID(ReportUtils.getParentReport(report), parentReportAction);
+    const transactionID = lodashGet(parentReportAction, 'originalMessage.IOUTransactionID', '');
     const transaction = TransactionUtils.getTransaction(transactionID);
     const transactionDescription = TransactionUtils.getDescription(transaction);
-    const transactionAmount = TransactionUtils.getAmount(transaction);
-    const transactionCurrency = TransactionUtils.getCurrency(transaction);
+    // const transactionAmount = TransactionUtils.getAmount(transaction);
+    // const transactionCurrency = TransactionUtils.getCurrency(transaction);
     const transactionCreated = TransactionUtils.getCreated(transaction);
     const field = lodashGet(route, ['params', 'field'], '');
-
-    function updateTransactionWithChanges(changes) {
+    function editTransaction(transactionChanges) {
         // Update the transaction...
         // eslint-disable-next-line no-console
-        console.log({changes});
+        console.log({transactionChanges});
 
-        IOU.editMoneyRequest(transactionID, report.reportID, changes);
+        IOU.editMoneyRequest(transactionID, report.reportID, transactionChanges);
 
         // Note: The "modal" we are dismissing is the MoneyRequestAmountPage
         Navigation.dismissModal();
@@ -61,20 +59,24 @@ function EditRequestPage({report, route}) {
             <EditRequestDescriptionPage
                 defaultDescription={transactionDescription}
                 onSubmit={(changes) => {
-                    updateTransactionWithChanges(changes);
+                    editTransaction(changes);
                 }}
             />
         );
-    } else if (field === CONST.EDIT_REQUEST_FIELD.DATE) {
+    }
+
+    if (field === CONST.EDIT_REQUEST_FIELD.DATE) {
         return (
             <EditRequestCreatedPage
                 defaultCreated={transactionCreated}
                 onSubmit={(changes) => {
-                    updateTransactionWithChanges(changes);
+                    editTransaction(changes);
                 }}
             />
         );
-    } else if (field === CONST.EDIT_REQUEST_FIELD.AMOUNT) {
+    }
+
+    if (field === CONST.EDIT_REQUEST_FIELD.AMOUNT) {
         return null;
     }
 
@@ -84,10 +86,8 @@ function EditRequestPage({report, route}) {
 EditRequestPage.displayName = 'EditRequestPage';
 EditRequestPage.propTypes = propTypes;
 EditRequestPage.defaultProps = defaultProps;
-export default compose(
-    withOnyx({
-        report: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`,
-        },
-    }),
-)(EditRequestPage);
+export default withOnyx({
+    report: {
+        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`,
+    },
+})(EditRequestPage);
