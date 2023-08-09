@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import Text from './Text';
 import styles from '../styles/styles';
 import Tooltip from './Tooltip';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import CONST from '../CONST';
 import useLocalize from '../hooks/useLocalize';
@@ -17,8 +16,6 @@ const propTypes = {
 
     /** Flag to indicate if the button should be disabled */
     disabled: PropTypes.bool,
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -45,4 +42,4 @@ CurrencySymbolButton.propTypes = propTypes;
 CurrencySymbolButton.displayName = 'CurrencySymbolButton';
 CurrencySymbolButton.defaultProps = defaultProps;
 
-export default withLocalize(CurrencySymbolButton);
+export default CurrencySymbolButton;

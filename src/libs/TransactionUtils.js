@@ -102,7 +102,7 @@ function getTransaction(transactionID) {
 }
 
 /**
- * Return the comment (in other words description) from the transaction object.
+ * Return the comment field (referred to as description in the App) from the transaction.
  * The comment does not have its modifiedComment counterpart.
  *
  * @param {Object} transaction
@@ -113,7 +113,7 @@ function getDescription(transaction) {
 }
 
 /**
- * Return the amount from the transaction, take the modifiedAmount if present.
+ * Return the amount field from the transaction, return the modifiedAmount if present.
  *
  * @param {Object} transaction
  * @returns {Number}
@@ -127,7 +127,7 @@ function getAmount(transaction) {
 }
 
 /**
- * Return the currency from the transaction, take the modifiedCurrency if present.
+ * Return the currency field from the transaction, return the modifiedCurrency if present.
  *
  * @param {Object} transaction
  * @returns {String}
@@ -141,7 +141,7 @@ function getCurrency(transaction) {
 }
 
 /**
- * Return the created from the transaction, take the modifiedCreated if present.
+ * Return the created field from the transaction, return the modifiedCreated if present.
  *
  * @param {Object} transaction
  * @returns {String}

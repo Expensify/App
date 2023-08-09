@@ -36,8 +36,7 @@ const defaultProps = {
 };
 
 function EditRequestPage({report, route}) {
-    const parentReportAction = ReportActionsUtils.getParentReportAction(report);
-    const transactionID = lodashGet(parentReportAction, 'originalMessage.IOUTransactionID', '');
+    const transactionID = lodashGet(ReportActionsUtils.getParentReportAction(report), 'originalMessage.IOUTransactionID', '');
     const transaction = TransactionUtils.getTransaction(transactionID);
     const transactionDescription = TransactionUtils.getDescription(transaction);
     const transactionAmount = TransactionUtils.getAmount(transaction);
@@ -46,7 +45,7 @@ function EditRequestPage({report, route}) {
     const fieldToEdit = lodashGet(route, ['params', 'field'], '');
 
     // Update the transaction object and close the modal
-    function editTransaction(transactionChanges) {
+    function editMoneyRequest(transactionChanges) {
         IOU.editMoneyRequest(transactionID, report.reportID, transactionChanges);
         Navigation.dismissModal();
     }
@@ -56,7 +55,7 @@ function EditRequestPage({report, route}) {
             <EditRequestDescriptionPage
                 defaultDescription={transactionDescription}
                 onSubmit={(transactionChanges) => {
-                    editTransaction(transactionChanges);
+                    editMoneyRequest(transactionChanges);
                 }}
             />
         );
@@ -67,7 +66,7 @@ function EditRequestPage({report, route}) {
             <EditRequestCreatedPage
                 defaultCreated={transactionCreated}
                 onSubmit={(transactionChanges) => {
-                    editTransaction(transactionChanges);
+                    editMoneyRequest(transactionChanges);
                 }}
             />
         );
@@ -81,7 +80,7 @@ function EditRequestPage({report, route}) {
                 reportID={report.reportID}
                 onSubmit={(transactionChanges) => {
                     // Temporarily disabling currency editing and it will be enabled as a quick follow up
-                    editTransaction({
+                    editMoneyRequest({
                         amount: CurrencyUtils.convertToSmallestUnit(transactionCurrency, Number.parseFloat(transactionChanges)),
                         currency: transactionCurrency,
                     });

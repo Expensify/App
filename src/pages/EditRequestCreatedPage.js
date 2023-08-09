@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import ScreenWrapper from '../components/ScreenWrapper';
 import HeaderWithBackButton from '../components/HeaderWithBackButton';
@@ -8,7 +8,6 @@ import styles from '../styles/styles';
 import Navigation from '../libs/Navigation/Navigation';
 import useLocalize from '../hooks/useLocalize';
 import NewDatePicker from '../components/NewDatePicker';
-import * as ValidationUtils from '../libs/ValidationUtils';
 
 const propTypes = {
     /** Transaction defailt created value */
@@ -20,21 +19,6 @@ const propTypes = {
 
 function EditRequestCreatedPage({defaultCreated, onSubmit}) {
     const {translate} = useLocalize();
-
-    /**
-     * @param {Object} values
-     * @param {String} values.dob - date of birth
-     * @returns {Object} - An object containing the errors for each inputID
-     */
-    const validate = useCallback((values) => {
-        const errors = {};
-
-        if (!values.dob || !ValidationUtils.isValidDate(values.dob)) {
-            errors.dob = 'common.error.fieldRequired';
-        }
-
-        return errors;
-    }, []);
 
     return (
         <ScreenWrapper
@@ -48,12 +32,12 @@ function EditRequestCreatedPage({defaultCreated, onSubmit}) {
             <Form
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.MONEY_REQUEST_CREATED_FORM}
-                validate={validate}
                 onSubmit={onSubmit}
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
             >
                 <NewDatePicker
+                    // We will add date limitations as a follow-up
                     inputID="created"
                     label={translate('common.date')}
                     defaultValue={defaultCreated}

@@ -1313,37 +1313,41 @@ function getReportPreviewMessage(report, reportAction = {}) {
  */
 function getModifiedExpenseMessage(reportAction) {
     const reportActionOriginalMessage = lodashGet(reportAction, 'originalMessage', {});
-    if (!_.isEmpty(reportActionOriginalMessage)) {
-        if (
-            _.has(reportActionOriginalMessage, 'oldAmount') &&
-            _.has(reportActionOriginalMessage, 'oldCurrency') &&
-            _.has(reportActionOriginalMessage, 'amount') &&
-            _.has(reportActionOriginalMessage, 'currency')
-        ) {
-            const oldCurrency = reportActionOriginalMessage.oldCurrency;
-            const oldCurrencyUnit = CurrencyUtils.getCurrencyUnit(oldCurrency);
-            const oldAmount = NumberFormatUtils.format(preferredLocale, Math.abs(reportActionOriginalMessage.oldAmount) / oldCurrencyUnit, {style: 'currency', currency: oldCurrency});
-
-            const currency = reportActionOriginalMessage.currency;
-            const currencyUnit = CurrencyUtils.getCurrencyUnit(currency);
-            const amount = NumberFormatUtils.format(preferredLocale, Math.abs(reportActionOriginalMessage.amount) / currencyUnit, {style: 'currency', currency});
-
-            return `changed the request to ${amount} (previously ${oldAmount})`;
-        }
-
-        if (_.has(reportActionOriginalMessage, 'oldComment') && _.has(reportActionOriginalMessage, 'newComment')) {
-            return `changed the request description to "${reportActionOriginalMessage.newComment}" (previously "${reportActionOriginalMessage.oldComment}")`;
-        }
-
-        if (_.has(reportActionOriginalMessage, 'oldCreated') && _.has(reportActionOriginalMessage, 'created')) {
-            return `changed the request date to ${reportActionOriginalMessage.created} (previously ${reportActionOriginalMessage.oldCreated})`;
-        }
-
-        if (_.has(reportActionOriginalMessage, 'oldMerchant') && _.has(reportActionOriginalMessage, 'merchant')) {
-            return `changed the request merchant to "${reportActionOriginalMessage.merchant}" (previously "${reportActionOriginalMessage.oldMerchant}")`;
-        }
+    if (_.isEmpty(reportActionOriginalMessage)) {
+        return `changed the request`;
     }
-    return `changed the request`;
+
+    const hasModifiedAmount =
+        _.has(reportActionOriginalMessage, 'oldAmount') &&
+        _.has(reportActionOriginalMessage, 'oldCurrency') &&
+        _.has(reportActionOriginalMessage, 'amount') &&
+        _.has(reportActionOriginalMessage, 'currency');
+    if (hasModifiedAmount) {
+        const oldCurrency = reportActionOriginalMessage.oldCurrency;
+        const oldCurrencyUnit = CurrencyUtils.getCurrencyUnit(oldCurrency);
+        const oldAmount = NumberFormatUtils.format(preferredLocale, Math.abs(reportActionOriginalMessage.oldAmount) / oldCurrencyUnit, {style: 'currency', currency: oldCurrency});
+
+        const currency = reportActionOriginalMessage.currency;
+        const currencyUnit = CurrencyUtils.getCurrencyUnit(currency);
+        const amount = NumberFormatUtils.format(preferredLocale, Math.abs(reportActionOriginalMessage.amount) / currencyUnit, {style: 'currency', currency});
+
+        return `changed the request to ${amount} (previously ${oldAmount})`;
+    }
+
+    const hasModifiedComment = _.has(reportActionOriginalMessage, 'oldComment') && _.has(reportActionOriginalMessage, 'newComment');
+    if (hasModifiedComment) {
+        return `changed the request description to "${reportActionOriginalMessage.newComment}" (previously "${reportActionOriginalMessage.oldComment}")`;
+    }
+
+    const hasModifiedCreated = _.has(reportActionOriginalMessage, 'oldCreated') && _.has(reportActionOriginalMessage, 'created');
+    if (hasModifiedCreated) {
+        return `changed the request date to ${reportActionOriginalMessage.created} (previously ${reportActionOriginalMessage.oldCreated})`;
+    }
+
+    const hasModifiedMerchant = _.has(reportActionOriginalMessage, 'oldMerchant') && _.has(reportActionOriginalMessage, 'merchant');
+    if (hasModifiedMerchant) {
+        return `changed the request merchant to "${reportActionOriginalMessage.merchant}" (previously "${reportActionOriginalMessage.oldMerchant}")`;
+    }
 }
 
 /**
@@ -1952,7 +1956,6 @@ function buildOptimisticReportPreview(chatReport, iouReport, comment = '') {
  * @param {Object} transactionThread
  * @param {Object} oldTransaction
  * @param {Object} transactionChanges
- *
  * @returns {Object}
  */
 function buildOptimisticModifiedExpenseReportAction(transactionThread, oldTransaction, transactionChanges) {
