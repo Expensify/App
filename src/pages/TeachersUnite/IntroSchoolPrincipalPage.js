@@ -34,7 +34,7 @@ function IntroSchoolPrincipalPage() {
      * @param {String} values.lastName
      */
     const onSubmit = (values) => {
-        TeachersUnite.createExpenseChatSchoolPrincipal(values.firstName.trim(), values.email.trim(), values.lastName);
+        TeachersUnite.addSchoolPrincipal(values.firstName.trim(), values.email.trim(), values.lastName);
     };
 
     /**

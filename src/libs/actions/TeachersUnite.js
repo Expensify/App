@@ -56,12 +56,12 @@ function referTeachersUniteVolunteer(firstName, phoneOrEmail, lastName = '') {
 }
 
 /**
- * Optimistically creates a policyExpenseChat for schoolPrincipal and pass data to AddSchoolPrincipal
+ * Optimistically creates a policyExpenseChat for the school principal and passes data to AddSchoolPrincipal
  * @param {String} firstName
  * @param {String} email
  * @param {String} [lastName]
  */
-function createExpenseChatSchoolPrincipal(firstName, email, lastName = '') {
+function addSchoolPrincipal(firstName, email, lastName = '') {
     const policyName = 'TeacherUniteSchoolPrincipal';
     const policyID = CONST.TEACHER_UNITE.SCHOOL_PRINCIPAL_POLICY_ID;
     const loggedInEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(sessionEmail);
@@ -171,4 +171,4 @@ function createExpenseChatSchoolPrincipal(firstName, email, lastName = '') {
     Navigation.dismissModal(expenseChatReportID);
 }
 
-export default {referTeachersUniteVolunteer, createExpenseChatSchoolPrincipal};
+export default {referTeachersUniteVolunteer, addSchoolPrincipal};
