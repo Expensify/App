@@ -145,6 +145,21 @@ function getParentReportActionInReport(childReportID, parentReportID) {
 }
 
 /**
+ * Gets the transaction associated with the IOU reportAction
+ *
+ * @param {Object} reportAction 
+ * @returns {Object}
+ */
+function getTransaction(reportAction) {
+    const transactionID = lodashGet(reportAction, ['originalMessage', 'IOUTransactionID'], '');
+    if (!transactionID) {
+        return {};
+    }
+
+    return allTransactions[transactionID] || {};
+}
+
+/**
  * Determines if the given report action is sent money report action by checking for 'pay' type and presence of IOUDetails object.
  *
  * @param {Object} reportAction
@@ -167,6 +182,7 @@ function isSentMoneyReportAction(reportAction) {
  * @returns {Number}
  */
 function getFormattedAmount(reportAction) {
+    const transaction = getTransaction(reportAction);
     return lodashGet(reportAction, 'originalMessage.type', '') === CONST.IOU.REPORT_ACTION_TYPE.PAY && lodashGet(reportAction, 'originalMessage.IOUDetails', false)
         ? CurrencyUtils.convertToDisplayString(lodashGet(reportAction, 'originalMessage.IOUDetails.amount', 0), lodashGet(reportAction, 'originalMessage.IOUDetails.currency', ''))
         : CurrencyUtils.convertToDisplayString(lodashGet(reportAction, 'originalMessage.amount', 0), lodashGet(reportAction, 'originalMessage.currency', ''));
@@ -585,15 +601,6 @@ function isCreatedTaskReportAction(reportAction) {
 function isMessageDeleted(reportAction) {
     return lodashGet(reportAction, ['message', 0, 'isDeletedParentAction'], false);
 }
-
-function getTransaction(reportAction) {
-    const transactionID = lodashGet(reportAction, ['originalMessage', 'IOUTransactionID'], '');
-    if (!transactionID) {
-        return {};
-    }
-
-    return allTransactions[transactionID] || {};
-} 
 
 export {
     getSortedReportActions,
