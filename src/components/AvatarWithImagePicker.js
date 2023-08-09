@@ -337,5 +337,6 @@ function AvatarWithImagePicker({
 
 AvatarWithImagePicker.propTypes = propTypes;
 AvatarWithImagePicker.defaultProps = defaultProps;
+AvatarWithImagePicker.displayName = 'AvatarWithImagePicker';
 
 export default AvatarWithImagePicker;
