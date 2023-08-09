@@ -485,11 +485,20 @@ function findLastAccessedReport(reports, ignoreDomainRooms, policies, isFirstTim
     // since the Concierge report would be incorrectly selected over the deep-linked report in the logic below.
     let sortedReports = sortReportsByLastRead(reports);
 
+    let adminReport;
+    if (openOnAdminRoom) {
+        adminReport = _.find(sortedReports, (report) => {
+            const chatType = getChatType(report);
+            return chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS;
+        });
+    }
+
     if (isFirstTimeNewExpensifyUser) {
         if (sortedReports.length === 1) {
             return sortedReports[0];
         }
-        return _.find(sortedReports, (report) => !isConciergeChatReport(report));
+
+        return adminReport || _.find(sortedReports, (report) => !isConciergeChatReport(report));
     }
 
     if (ignoreDomainRooms) {
@@ -500,14 +509,6 @@ function findLastAccessedReport(reports, ignoreDomainRooms, policies, isFirstTim
             sortedReports,
             (report) => !isDomainRoom(report) || getPolicyType(report, policies) === CONST.POLICY.TYPE.FREE || hasExpensifyGuidesEmails(lodashGet(report, ['participantAccountIDs'], [])),
         );
-    }
-
-    let adminReport;
-    if (openOnAdminRoom) {
-        adminReport = _.find(sortedReports, (report) => {
-            const chatType = getChatType(report);
-            return chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS;
-        });
     }
 
     return adminReport || _.last(sortedReports);
