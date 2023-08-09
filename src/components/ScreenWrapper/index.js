@@ -110,7 +110,7 @@ class ScreenWrapper extends React.Component {
                                     style={styles.flex1}
                                     enabled={this.props.shouldEnablePickerAvoiding}
                                 >
-                                    <FocusTrapView style={styles.flex1}>
+                                    <FocusTrapView style={styles.flex1} enabled={!this.props.shouldDisableFocusTrap}>
                                         <HeaderGap />
                                         {this.props.environment === CONST.ENVIRONMENT.DEV && <TestToolsModal />}
                                         {this.props.environment === CONST.ENVIRONMENT.DEV && <CustomDevMenu />}

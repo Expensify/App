@@ -8,20 +8,21 @@ import { PropTypes } from 'prop-types';
 
 const propTypes = {
     /** Whether or not to disable the FocusTrap */
-    shouldDisableFocusTrap: PropTypes.bool,
+    enabled: PropTypes.bool,
 };
 
 const defaultProps = {
-    shouldDisableFocusTrap: false,
+    enabled: true,
 };
 
-function FocusTrapView({shouldDisableFocusTrap, ...props}) {
+function FocusTrapView({enabled, ...props}) {
     const ref = useRef(null);
 
     return (
         <FocusTrap
-            active={!shouldDisableFocusTrap}
+            active={enabled}
             focusTrapOptions={{
+                initialFocus: false,
                 fallbackFocus: () => ref.current,
                 clickOutsideDeactivates: true,
             }}
