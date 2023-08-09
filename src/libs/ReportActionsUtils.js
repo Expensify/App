@@ -169,7 +169,7 @@ function getMoneyRequestDetails(reportAction = {}) {
     }
 
     // Similarly, 'send' actions store their details in IOUDetails
-    const iouDetails = lodashGet(originalMessage, 'IOUDetails', null);
+    const iouDetails = lodashGet(originalMessage, 'IOUDetails');
     if (iouDetails) {
         return iouDetails;
     }

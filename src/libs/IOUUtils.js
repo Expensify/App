@@ -78,7 +78,7 @@ function getIOUReportActions(reportActions, iouReport, type = '', pendingAction 
         .filter((action) => action.originalMessage && ReportActionsUtils.isMoneyRequestAction(action) && (!_.isEmpty(type) ? action.originalMessage.type === type : true))
         .filter((action) => action.originalMessage.IOUReportID.toString() === iouReport.reportID.toString())
         .filter((action) => (!_.isEmpty(pendingAction) ? action.pendingAction === pendingAction : true))
-        .filter((action) => (filterRequestsInDifferentCurrency ? action.originalMessage.currency !== iouReport.currency : true))
+        .filter((action) => (filterRequestsInDifferentCurrency ? ReportActionsUtils.getMoneyRequestDetails(action).currency !== iouReport.currency : true))
         .value();
 }
 
