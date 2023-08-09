@@ -79,7 +79,7 @@ function FormAlertWithSubmitButton(props) {
                             success
                             isDisabled
                             text={props.buttonText}
-                            style={[buttonMarginStyle]}
+                            style={buttonMarginStyle}
                             danger={props.isSubmitActionDangerous}
                         />
                     ) : (
@@ -87,7 +87,7 @@ function FormAlertWithSubmitButton(props) {
                             success
                             pressOnEnter={!props.disablePressOnEnter}
                             text={props.buttonText}
-                            style={[buttonMarginStyle]}
+                            style={buttonMarginStyle}
                             onPress={props.onSubmit}
                             isDisabled={props.isDisabled}
                             isLoading={props.isLoading}
