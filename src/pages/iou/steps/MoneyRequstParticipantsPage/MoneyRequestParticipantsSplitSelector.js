@@ -150,8 +150,8 @@ function MoneyRequestParticipantsSplitSelector({betas, participants, personalDet
         Boolean(newChatOptions.userToInvite),
         searchTerm,
         maxParticipantsReached,
-        _.some(participant => participant.searchText.toLowerCase().includes(searchTerm.toLowerCase()))
-    ); 
+        _.some((participant) => participant.searchText.toLowerCase().includes(searchTerm.toLowerCase())),
+    );
     const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails);
 
     useEffect(() => {
