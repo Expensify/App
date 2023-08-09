@@ -229,11 +229,17 @@ function getMissingOnyxUpdates(updateIDFrom = 0, updateIDTo = 0) {
     );
 }
 
+// The next 40ish lines of code are used for detecting when there is a gap of OnyxUpdates between what was last applied to the client and the updates the server has.
+// When a gap is detected, the missing updates are fetched from the API.
+
+// These key needs to be separate from ONYXKEYS.ONYX_UPDATES so that it can be updated without triggering the callback when the server IDs are updated
 let lastUpdateIDAppliedToClient = 0;
 Onyx.connect({
     key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
     callback: (val) => (lastUpdateIDAppliedToClient = val),
 });
+
+// This object is stored in Onyx and the callback is triggered anytime new update IDs are received either from Pusher or from HTTPs (it was the only way to keep the code DRY and to prevent circular dependencies)
 const onyxUpdates = {
     lastUpdateIDFromServer: 0,
     previousUpdateIDFromServer: 0,
@@ -257,15 +263,16 @@ Onyx.connect({
             Log.info('Gap detected in update IDs from Pusher so fetching incremental updates', true, {
                 lastUpdateIDFromServer,
                 previousUpdateIDFromServer,
-                lastUpdateIDAppliedToClient: onyxUpdates.lastUpdateIDAppliedToClient,
+                lastUpdateIDAppliedToClient,
             });
-            getMissingOnyxUpdates(onyxUpdates.lastUpdateIDAppliedToClient, lastUpdateIDFromServer);
+            getMissingOnyxUpdates(lastUpdateIDAppliedToClient, lastUpdateIDFromServer);
         }
 
         // Update the local values to be the same as the values stored in Onyx
         onyxUpdates.lastUpdateIDFromServer = lastUpdateIDFromServer || 0;
         onyxUpdates.previousUpdateIDFromServer = previousUpdateIDFromServer || 0;
 
+        // Update this value so that it matches what was just received from the server
         Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, lastUpdateIDFromServer || 0);
     },
 });

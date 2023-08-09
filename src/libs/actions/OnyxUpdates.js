@@ -6,7 +6,7 @@ import ONYXKEYS from '../../ONYXKEYS';
  * @param {Number} [lastUpdateID]
  * @param {Number} [previousUpdateID]
  */
-function detectAndGetMissingUpdates(lastUpdateID = 0, previousUpdateID = 0) {
+function saveUpdateIDs(lastUpdateID = 0, previousUpdateID = 0) {
     // Return early if there were no updateIDs
     if (!lastUpdateID) {
         return;
@@ -19,4 +19,4 @@ function detectAndGetMissingUpdates(lastUpdateID = 0, previousUpdateID = 0) {
 }
 
 // eslint-disable-next-line import/prefer-default-export
-export {detectAndGetMissingUpdates};
+export {saveUpdateIDs};

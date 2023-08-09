@@ -15,7 +15,7 @@ function updateOnyx(updates) {
         return Onyx.update(updates);
     }
 
-    OnyxUpdates.detectAndGetMissingUpdates(Number(updates.lastUpdateID || 0), Number(updates.previousUpdateID || 0));
+    OnyxUpdates.saveUpdateIDs(Number(updates.lastUpdateID || 0), Number(updates.previousUpdateID || 0));
     return Onyx.update(updates.onyxData);
 }
 

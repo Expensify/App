@@ -96,11 +96,8 @@ const propTypes = {
     /** Opt-in experimental mode that prevents certain Onyx keys from persisting to disk */
     isUsingMemoryOnlyKeys: PropTypes.bool,
 
-    /** Information about the onyx update IDs */
-    lastUpdateIDAppliedToClient: PropTypes.shape({
-        /** The last Onyx update ID was applied to the client */
-        lastUpdateIDAppliedToClient: PropTypes.number,
-    }),
+    /** The last Onyx update ID was applied to the client */
+    lastUpdateIDAppliedToClient: PropTypes.number,
 
     ...windowDimensionsPropTypes,
 };
@@ -111,9 +108,7 @@ const defaultProps = {
         email: null,
     },
     lastOpenedPublicRoomID: null,
-    lastUpdateIDAppliedToClient: {
-        lastUpdateIDAppliedToClient: null,
-    },
+    lastUpdateIDAppliedToClient: null,
 };
 
 class AuthScreens extends React.Component {
@@ -125,7 +120,7 @@ class AuthScreens extends React.Component {
 
     componentDidMount() {
         NetworkConnection.listenForReconnect();
-        NetworkConnection.onReconnect(() => App.reconnectApp(this.props.lastUpdateIDAppliedToClient.lastUpdateIDAppliedToClient));
+        NetworkConnection.onReconnect(() => App.reconnectApp(this.props.lastUpdateIDAppliedToClient));
         PusherConnectionManager.init();
         Pusher.init({
             appKey: CONFIG.PUSHER.APP_KEY,
@@ -145,7 +140,7 @@ class AuthScreens extends React.Component {
         if (shouldGetAllData) {
             App.openApp();
         } else {
-            App.reconnectApp(this.props.lastUpdateIDAppliedToClient.lastUpdateIDAppliedToClient);
+            App.reconnectApp(this.props.lastUpdateIDAppliedToClient);
         }
 
         App.setUpPoliciesAndNavigate(this.props.session, !this.props.isSmallScreenWidth);

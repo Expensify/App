@@ -554,7 +554,7 @@ function subscribeToUserEvents() {
             updates = pushJSON;
         } else {
             updates = pushJSON.updates;
-            OnyxUpdates.detectAndGetMissingUpdates(Number(pushJSON.lastUpdateID || 0), Number(pushJSON.previousUpdateID || 0));
+            OnyxUpdates.saveUpdateIDs(Number(pushJSON.lastUpdateID || 0), Number(pushJSON.previousUpdateID || 0));
         }
         _.each(updates, (multipleEvent) => {
             PusherUtils.triggerMultiEventHandler(multipleEvent.eventType, multipleEvent.data);
