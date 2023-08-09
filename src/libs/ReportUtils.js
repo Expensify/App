@@ -1235,7 +1235,7 @@ function getTransactionReportName(reportAction) {
 
     return Localize.translateLocal(ReportActionsUtils.isSentMoneyReportAction(reportAction) ? 'iou.threadSentMoneyReportName' : 'iou.threadRequestReportName', {
         formattedAmount: ReportActionsUtils.getFormattedAmount(reportAction),
-        comment: lodashGet(reportAction, 'originalMessage.comment'),
+        comment: ReportActionsUtils.getMoneyRequestDetails.comment,
     });
 }
 
