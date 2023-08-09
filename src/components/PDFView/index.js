@@ -101,7 +101,7 @@ class PDFView extends Component {
      * Calculates a proper page height. The method should be called only when there are page viewports.
      * It is based on a ratio between the specific page viewport width and provided page width.
      * Also, the app should take into account the page borders.
-     * @param {*} pageIndex
+     * @param {Number} pageIndex
      * @returns {Number}
      */
     calculatePageHeight(pageIndex) {
