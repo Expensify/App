@@ -101,7 +101,7 @@ class PDFView extends Component {
      * Calculates a proper page height. The method should be called only when there are page viewports.
      * It is based on a ratio between the specific page viewport width and provided page width.
      * Also, the app should take into account the page borders.
-     * @param {*} pageIndex
+     * @param {Number} pageIndex
      * @returns {Number}
      */
     calculatePageHeight(pageIndex) {
@@ -178,13 +178,17 @@ class PDFView extends Component {
     }
 
     /**
-     * It is a currying method that returns a function that renders a specific page based on its index.
-     * The function includes a wrapper to apply virtualized styles.
-     * @param {Number} pageWidth
+     * Render a specific page based on its index.
+     * The method includes a wrapper to apply virtualized styles.
+     * @param {Object} page item object of the List
+     * @param {Number} page.index index of the page
+     * @param {Object} page.style virtualized styles
      * @returns {JSX.Element}
      */
-    renderPage(pageWidth) {
-        return ({index, style}) => (
+    renderPage({index, style}) {
+        const pageWidth = this.calculatePageWidth();
+
+        return (
             <View style={style}>
                 <Page
                     key={`page_${index}`}
@@ -240,7 +244,7 @@ class PDFView extends Component {
                                 itemCount={this.state.numPages}
                                 itemSize={this.calculatePageHeight}
                             >
-                                {this.renderPage(pageWidth)}
+                                {this.renderPage}
                             </List>
                         )}
                     </Document>
