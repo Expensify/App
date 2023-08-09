@@ -45,6 +45,9 @@ const propTypes = {
 
     /** Styles for the offline indicator */
     offlineIndicatorStyle: stylePropTypes,
+
+    /** Whether to disable focus trap */
+    shouldDisableFocusTrap: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -59,6 +62,7 @@ const defaultProps = {
     shouldEnablePickerAvoiding: true,
     shouldShowOfflineIndicator: true,
     offlineIndicatorStyle: [],
+    shouldDisableFocusTrap: false,
 };
 
 export {propTypes, defaultProps};
