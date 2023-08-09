@@ -42,7 +42,7 @@ const propTypes = {
 
 function TaskView(props) {
     useEffect(() => {
-        Task.setTaskReport({...props.report, isExistingTaskReport: true});
+        Task.setTaskReport({...props.report});
     }, [props.report]);
 
     const taskTitle = convertToLTR(props.report.reportName || '');
@@ -79,7 +79,7 @@ function TaskView(props) {
                                     <Text style={styles.taskTitleDescription}>{props.translate('task.title')}</Text>
                                     <View style={[styles.flexRow, styles.alignItemsTop, styles.flex1]}>
                                         <Checkbox
-                                            onPress={() => (isCompleted ? Task.reopenTask(props.report.reportID, taskTitle) : Task.completeTask(props.report.reportID, taskTitle))}
+                                            onPress={() => (isCompleted ? Task.reopenTask(props.report, taskTitle) : Task.completeTask(props.report, taskTitle))}
                                             isChecked={isCompleted}
                                             style={styles.taskMenuItemCheckbox}
                                             containerSize={24}
