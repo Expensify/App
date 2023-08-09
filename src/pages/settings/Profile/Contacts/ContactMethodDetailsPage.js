@@ -103,6 +103,8 @@ class ContactMethodDetailsPage extends Component {
         this.state = {
             isDeleteModalOpen: false,
         };
+
+        this.validateCodeFormRef = React.createRef();
     }
 
     componentDidMount() {
@@ -116,7 +118,7 @@ class ContactMethodDetailsPage extends Component {
         // Navigate to methods page on successful magic code verification
         // validateLogin property of errorFields & prev pendingFields is responsible to decide the status of the magic code verification
         if (!errorFields.validateLogin && prevPendingFields.validateLogin === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE) {
-            Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
+            Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS);
         }
     }
 
@@ -217,7 +219,7 @@ class ContactMethodDetailsPage extends Component {
         const isFailedAddContactMethod = Boolean(lodashGet(loginData, 'errorFields.addedLogin'));
 
         return (
-            <ScreenWrapper>
+            <ScreenWrapper onEntryTransitionEnd={() => this.validateCodeFormRef.current && this.validateCodeFormRef.current.focus()}>
                 <HeaderWithBackButton
                     title={formattedContactMethod}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS)}
@@ -251,6 +253,7 @@ class ContactMethodDetailsPage extends Component {
                                 contactMethod={contactMethod}
                                 hasMagicCodeBeenSent={hasMagicCodeBeenSent}
                                 loginList={this.props.loginList}
+                                ref={this.validateCodeFormRef}
                             />
                         </View>
                     )}

@@ -103,8 +103,8 @@ const propTypes = {
     emojiReactions: EmojiReactionsPropTypes,
     personalDetailsList: PropTypes.objectOf(personalDetailsPropType),
 
-    /** Is this the only report action on the report? */
-    isOnlyReportAction: PropTypes.bool,
+    /** Flag to show, hide the thread divider line */
+    shouldHideThreadDividerLine: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -114,7 +114,7 @@ const defaultProps = {
     personalDetailsList: {},
     shouldShowSubscriptAvatar: false,
     hasOutstandingIOU: false,
-    isOnlyReportAction: false,
+    shouldHideThreadDividerLine: false,
 };
 
 function ReportActionItem(props) {
@@ -162,8 +162,7 @@ function ReportActionItem(props) {
 
     // Hide the message if it is being moderated for a higher offense, or is hidden by a moderator
     // Removed messages should not be shown anyway and should not need this flow
-    const decisions = lodashGet(props, ['action', 'message', 0, 'moderationDecisions'], []);
-    const latestDecision = lodashGet(_.last(decisions), 'decision', '');
+    const latestDecision = lodashGet(props, ['action', 'message', 0, 'moderationDecision', 'decision'], '');
     useEffect(() => {
         if (props.action.actionName !== CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT) {
             return;
@@ -382,23 +381,25 @@ function ReportActionItem(props) {
                         <LinkPreviewer linkMetadata={_.filter(props.action.linkMetadata, (item) => !_.isEmpty(item))} />
                     </View>
                 )}
-                <View style={draftMessageRightAlign}>
-                    <ReportActionItemEmojiReactions
-                        reportActionID={props.action.reportActionID}
-                        emojiReactions={props.emojiReactions}
-                        toggleReaction={(emoji) => {
-                            if (Session.isAnonymousUser()) {
-                                hideContextMenu(false);
+                {!ReportActionsUtils.isMessageDeleted(props.action) && (
+                    <View style={draftMessageRightAlign}>
+                        <ReportActionItemEmojiReactions
+                            reportActionID={props.action.reportActionID}
+                            emojiReactions={props.emojiReactions}
+                            toggleReaction={(emoji) => {
+                                if (Session.isAnonymousUser()) {
+                                    hideContextMenu(false);
 
-                                InteractionManager.runAfterInteractions(() => {
-                                    Session.signOutAndRedirectToSignIn();
-                                });
-                            } else {
-                                toggleReaction(emoji);
-                            }
-                        }}
-                    />
-                </View>
+                                    InteractionManager.runAfterInteractions(() => {
+                                        Session.signOutAndRedirectToSignIn();
+                                    });
+                                } else {
+                                    toggleReaction(emoji);
+                                }
+                            }}
+                        />
+                    </View>
+                )}
 
                 {shouldDisplayThreadReplies && (
                     <View style={draftMessageRightAlign}>
@@ -453,7 +454,7 @@ function ReportActionItem(props) {
             return (
                 <MoneyRequestView
                     report={props.report}
-                    shouldShowHorizontalRule={!props.isOnlyReportAction}
+                    shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
                 />
             );
         }
@@ -461,7 +462,7 @@ function ReportActionItem(props) {
             return (
                 <TaskView
                     report={props.report}
-                    shouldShowHorizontalRule={!props.isOnlyReportAction}
+                    shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
                 />
             );
         }
@@ -469,7 +470,7 @@ function ReportActionItem(props) {
             return (
                 <MoneyReportView
                     report={props.report}
-                    shouldShowHorizontalRule={!props.isOnlyReportAction}
+                    shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
                 />
             );
         }
@@ -607,19 +608,19 @@ export default compose(
             prevProps.shouldDisplayNewMarker === nextProps.shouldDisplayNewMarker &&
             _.isEqual(prevProps.emojiReactions, nextProps.emojiReactions) &&
             _.isEqual(prevProps.action, nextProps.action) &&
+            _.isEqual(prevProps.report.pendingFields, nextProps.report.pendingFields) &&
+            _.isEqual(prevProps.report.errorFields, nextProps.report.errorFields) &&
             lodashGet(prevProps.report, 'statusNum') === lodashGet(nextProps.report, 'statusNum') &&
             lodashGet(prevProps.report, 'stateNum') === lodashGet(nextProps.report, 'stateNum') &&
             prevProps.translate === nextProps.translate &&
             // TaskReport's created actions render the TaskView, which updates depending on certain fields in the TaskReport
-            ReportUtils.isTaskReport(prevProps.report) &&
-            prevProps.action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED &&
-            ReportUtils.isTaskReport(nextProps.report) &&
-            nextProps.action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED &&
+            ReportUtils.isTaskReport(prevProps.report) === ReportUtils.isTaskReport(nextProps.report) &&
+            prevProps.action.actionName === nextProps.action.actionName &&
             prevProps.report.reportName === nextProps.report.reportName &&
             prevProps.report.description === nextProps.report.description &&
             ReportUtils.isCompletedTaskReport(prevProps.report) === ReportUtils.isCompletedTaskReport(nextProps.report) &&
             prevProps.report.managerID === nextProps.report.managerID &&
             prevProps.report.managerEmail === nextProps.report.managerEmail &&
-            prevProps.isOnlyReportAction === nextProps.isOnlyReportAction,
+            prevProps.shouldHideThreadDividerLine === nextProps.shouldHideThreadDividerLine,
     ),
 );

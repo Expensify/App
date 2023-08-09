@@ -236,7 +236,7 @@ function deleteContactMethod(contactMethod, loginList) {
         },
         {optimisticData, successData, failureData},
     );
-    Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
+    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS);
 }
 
 /**
@@ -552,9 +552,22 @@ function subscribeToUserEvents() {
         if (_.isArray(pushJSON)) {
             updates = pushJSON;
         } else {
-            // const lastUpdateID = pushJSON.lastUpdateID;
-            // const previousUpdateID = pushJSON.previousUpdateID;
             updates = pushJSON.updates;
+
+            // Not always we'll have the lastUpdateID and previousUpdateID properties in the pusher update
+            // until we finish the migration to reliable updates. So let's check it before actually updating
+            // the properties in Onyx
+            if (pushJSON.lastUpdateID && pushJSON.previousUpdateID) {
+                console.debug('[OnyxUpdates] Received lastUpdateID from pusher', pushJSON.lastUpdateID);
+                console.debug('[OnyxUpdates] Received previousUpdateID from pusher', pushJSON.previousUpdateID);
+                // Store these values in Onyx to allow App.reconnectApp() to fetch incremental updates from the server when a previous session is being reconnected to.
+                Onyx.multiSet({
+                    [ONYXKEYS.ONYX_UPDATES.LAST_UPDATE_ID]: Number(pushJSON.lastUpdateID || 0),
+                    [ONYXKEYS.ONYX_UPDATES.PREVIOUS_UPDATE_ID]: Number(pushJSON.previousUpdateID || 0),
+                });
+            } else {
+                console.debug('[OnyxUpdates] No lastUpdateID and previousUpdateID provided');
+            }
         }
         _.each(updates, (multipleEvent) => {
             PusherUtils.triggerMultiEventHandler(multipleEvent.eventType, multipleEvent.data);
@@ -635,7 +648,7 @@ function updateChatPriorityMode(mode) {
         },
         {optimisticData},
     );
-    Navigation.navigate(ROUTES.SETTINGS_PREFERENCES);
+    Navigation.goBack(ROUTES.SETTINGS_PREFERENCES);
 }
 
 /**
@@ -790,7 +803,7 @@ function setContactMethodAsDefault(newDefaultContactMethod) {
         },
     ];
     API.write('SetContactMethodAsDefault', {partnerUserID: newDefaultContactMethod}, {optimisticData, successData, failureData});
-    Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
+    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS);
 }
 
 /**

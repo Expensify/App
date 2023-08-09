@@ -148,6 +148,8 @@ export default {
         someone: 'Alguien',
         total: 'Total',
         edit: 'Editar',
+        showMore: 'Mostrar más',
+        merchant: 'Comerciante',
     },
     anonymousReportFooter: {
         logoTagline: 'Únete a la discussion.',
@@ -167,6 +169,7 @@ export default {
         sizeNotMet: 'El archivo adjunto debe ser mas grande que 240 bytes.',
         wrongFileType: 'El tipo del archivo adjunto es incorrecto',
         notAllowedExtension: 'Este tipo de archivo no está permitido',
+        folderNotAllowedMessage: 'Subir una carpeta no está permitido. Prueba con otro archivo.',
     },
     avatarCropModal: {
         title: 'Editar foto',
@@ -342,10 +345,32 @@ export default {
         listOfChatMessages: 'Lista de mensajes del chat',
         listOfChats: 'lista de chats',
     },
+    tabSelector: {
+        manual: 'Manual',
+        scan: 'Escanear',
+    },
+    receipt: {
+        upload: 'Subir recibo',
+        dragReceiptBeforeEmail: 'Arrastra un recibo a esta página, reenvíalo a ',
+        dragReceiptAfterEmail: ' o elije un archivo para subir a continuación.',
+        chooseReceipt: 'Elige un recibo para subir o reenvía un recibo a ',
+        chooseFile: 'Elegir archivo',
+        givePermission: 'Permitir',
+        takePhoto: 'Haz una foto',
+        cameraAccess: 'Se requiere acceso a la cámara para hacer fotos de los recibos.',
+        cameraErrorTitle: 'Error en la cámara',
+        cameraErrorMessage: 'Se produjo un error al hacer una foto, Por favor, inténtalo de nuevo.',
+        dropTitle: 'Suéltalo',
+        dropMessage: 'Suelta tu archivo aquí',
+        flash: 'flash',
+        shutter: 'obturador',
+        gallery: 'galería',
+    },
     iou: {
         amount: 'Importe',
         cash: 'Efectivo',
         split: 'Dividir',
+        request: 'Solicitar',
         participants: 'Participantes',
         splitBill: 'Dividir factura',
         requestMoney: 'Pedir dinero',
@@ -400,7 +425,6 @@ export default {
         uploadPhoto: 'Subir foto',
         removePhoto: 'Eliminar foto',
         editImage: 'Editar foto',
-        imageUploadFailed: 'Error al cargar la imagen',
         deleteWorkspaceError: 'Lo sentimos, hubo un problema eliminando el avatar de su espacio de trabajo.',
         sizeExceeded: ({maxUploadSizeInMB}) => `La imagen supera el tamaño máximo de ${maxUploadSizeInMB}MB.`,
         resolutionConstraints: ({minHeightInPx, minWidthInPx, maxHeightInPx, maxWidthInPx}) =>
@@ -606,7 +630,7 @@ export default {
         growlMessageOnSave: 'Su tarteja de débito se agregó correctamente',
         expensifyPassword: 'Contraseña de Expensify',
         error: {
-            invalidName: 'El nombre solo puede contener números y caracteres latinos.',
+            invalidName: 'El nombre sólo puede incluir letras.',
             addressZipCode: 'Por favor, introduce un código postal válido',
             debitCardNumber: 'Por favor, introduce un número de tarjeta de débito válido',
             expirationDate: 'Por favor, selecciona una fecha de vencimiento válida',
@@ -787,7 +811,7 @@ export default {
             dateShouldBeBefore: ({dateString}) => `La fecha debe ser anterior a ${dateString}.`,
             dateShouldBeAfter: ({dateString}) => `La fecha debe ser posterior a ${dateString}.`,
             incorrectZipFormat: ({zipFormat}) => `Formato de código postal incorrecto.${zipFormat ? ` Formato aceptable: ${zipFormat}` : ''}`,
-            hasInvalidCharacter: 'El nombre solo puede contener números y caracteres latinos.',
+            hasInvalidCharacter: 'El nombre sólo puede incluir letras.',
         },
     },
     resendValidationForm: {
@@ -928,6 +952,7 @@ export default {
     messages: {
         errorMessageInvalidPhone: `Por favor, introduce un número de teléfono válido sin paréntesis o guiones. Si reside fuera de Estados Unidos, por favor incluye el prefijo internacional (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
         errorMessageInvalidEmail: 'Email inválido',
+        userIsAlreadyMemberOfWorkspace: ({login, workspace}) => `${login} ya es miembro de ${workspace}`,
     },
     onfidoStep: {
         acceptTerms: 'Al continuar con la solicitud para activar su billetera Expensify, confirma que ha leído, comprende y acepta ',
@@ -1413,6 +1438,7 @@ export default {
         copy: 'Copiar',
         paste: 'Pegar',
         pasteAndMatchStyle: 'Pegar adaptando el estilo',
+        pasteAsPlainText: 'Pegar como texto sin formato',
         delete: 'Eliminar',
         selectAll: 'Seleccionar todo',
         speechSubmenu: 'Voz',
@@ -1979,6 +2005,8 @@ export default {
     threads: {
         replies: 'Respuestas',
         reply: 'Respuesta',
+        from: 'De',
+        in: 'en',
         parentNavigationSummary: ({rootReportName, workspaceName}) => `De ${rootReportName}${workspaceName ? ` en ${workspaceName}` : ''}`,
     },
     qrCodes: {
