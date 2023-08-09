@@ -204,6 +204,9 @@ const styles = {
     },
     emojiSuggestionsText: {
         fontSize: variables.fontSizeMedium,
+        flex: 1,
+        ...wordBreak.breakWord,
+        ...spacing.pr4,
     },
 
     mentionSuggestionsAvatarContainer: {
@@ -1543,7 +1546,7 @@ const styles = {
     chatContentScrollView: {
         flexGrow: 1,
         justifyContent: 'flex-start',
-        paddingVertical: 16,
+        paddingBottom: 16,
     },
 
     // Chat Item
@@ -2014,6 +2017,10 @@ const styles = {
         marginRight: variables.avatarChatSpacing,
     },
 
+    emptyAvatarMarginChat: {
+        marginRight: variables.avatarChatSpacing - 12,
+    },
+
     emptyAvatarMarginSmall: {
         marginRight: variables.avatarChatSpacing - 4,
     },
@@ -2101,8 +2108,11 @@ const styles = {
         height: '100%',
         justifyContent: 'center',
         overflow: 'hidden',
-        overflowY: 'auto',
         alignItems: 'center',
+    },
+
+    PDFViewList: {
+        overflowX: 'hidden',
     },
 
     pdfPasswordForm: {
@@ -2497,11 +2507,11 @@ const styles = {
         alignSelf: 'flex-start',
     },
 
-    attachmentModalArrowsContainer: {
-        display: 'flex',
-        justifyContent: 'center',
+    attachmentCarouselContainer: {
         height: '100%',
         width: '100%',
+        display: 'flex',
+        justifyContent: 'center',
         ...cursor.cursorUnset,
     },
 
@@ -2587,14 +2597,21 @@ const styles = {
         lineHeight: variables.inputHeight,
     },
 
-    magicCodeInputTransparent: {
+    // Manually style transparent, in iOS Safari, an input in a container with its opacity set to
+    // 0 (completely transparent) cannot handle user interaction, hence the Paste option is never shown
+    inputTransparent: {
         color: 'transparent',
-        caretColor: 'transparent',
-        WebkitTextFillColor: 'transparent',
-        // After setting the input text color to transparent, it acquires the background-color.
-        // However, it is not possible to override the background-color directly as explained in this resource: https://developer.mozilla.org/en-US/docs/Web/CSS/:autofill
-        // Therefore, the transition effect needs to be delayed.
-        transitionDelay: '99999s',
+        // These properties are available in browser only
+        ...(Browser.getBrowser()
+            ? {
+                  caretColor: 'transparent',
+                  WebkitTextFillColor: 'transparent',
+                  // After setting the input text color to transparent, it acquires the background-color.
+                  // However, it is not possible to override the background-color directly as explained in this resource: https://developer.mozilla.org/en-US/docs/Web/CSS/:autofill
+                  // Therefore, the transition effect needs to be delayed.
+                  transitionDelay: '99999s',
+              }
+            : {}),
     },
 
     iouAmountText: {

@@ -1,9 +1,11 @@
-import React, {useState, useCallback, useMemo} from 'react';
+import React, {useCallback, useMemo, useReducer, useState} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import {View} from 'react-native';
 import Str from 'expensify-common/lib/str';
 import styles from '../styles/styles';
+import * as ReportUtils from '../libs/ReportUtils';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
 import OptionsSelector from './OptionsSelector';
 import ONYXKEYS from '../ONYXKEYS';
@@ -13,12 +15,15 @@ import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import Log from '../libs/Log';
 import SettlementButton from './SettlementButton';
 import ROUTES from '../ROUTES';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from './withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from './withCurrentUserPersonalDetails';
 import * as IOUUtils from '../libs/IOUUtils';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import Navigation from '../libs/Navigation/Navigation';
 import optionPropTypes from './optionPropTypes';
 import * as CurrencyUtils from '../libs/CurrencyUtils';
+import Button from './Button';
+import * as Expensicons from './Icon/Expensicons';
+import themeColors from '../styles/themes/default';
 import Image from './Image';
 import ReceiptHTML from '../../assets/images/receipt-html.png';
 import ReceiptDoc from '../../assets/images/receipt-doc.png';
@@ -51,6 +56,12 @@ const propTypes = {
 
     /** IOU type */
     iouType: PropTypes.string,
+
+    /** IOU date */
+    iouDate: PropTypes.string,
+
+    /** IOU merchant */
+    iouMerchant: PropTypes.string,
 
     /** Selected participants from MoneyRequestModal with login / accountID */
     selectedParticipants: PropTypes.arrayOf(optionPropTypes).isRequired,
@@ -112,6 +123,9 @@ function MoneyRequestConfirmationList(props) {
     const {onSendMoney, onConfirm, onSelectParticipant} = props;
     const {translate} = useLocalize();
 
+    // A flag and a toggler for showing the rest of the form fields
+    const [showAllFields, toggleShowAllFields] = useReducer((state) => !state, false);
+
     /**
      * Returns the participants with amount
      * @param {Array} participants
@@ -153,7 +167,14 @@ function MoneyRequestConfirmationList(props) {
         const unselectedParticipants = _.filter(props.selectedParticipants, (participant) => !participant.selected);
         if (props.hasMultipleParticipants) {
             const formattedSelectedParticipants = getParticipantsWithAmount(selectedParticipants);
-            const formattedParticipantsList = _.union(formattedSelectedParticipants, unselectedParticipants);
+            let formattedParticipantsList = _.union(formattedSelectedParticipants, unselectedParticipants);
+
+            if (!canModifyParticipants) {
+                formattedParticipantsList = _.map(formattedParticipantsList, (participant) => ({
+                    ...participant,
+                    isDisabled: ReportUtils.isOptimisticPersonalDetail(participant.accountID),
+                }));
+            }
 
             const myIOUAmount = IOUUtils.calculateAmount(selectedParticipants.length, props.iouAmount, true);
             const formattedPayeeOption = OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(
@@ -177,9 +198,13 @@ function MoneyRequestConfirmationList(props) {
                 },
             );
         } else {
+            const formattedSelectedParticipants = _.map(props.selectedParticipants, (participant) => ({
+                ...participant,
+                isDisabled: ReportUtils.isOptimisticPersonalDetail(participant.accountID),
+            }));
             sections.push({
                 title: translate('common.to'),
-                data: props.selectedParticipants,
+                data: formattedSelectedParticipants,
                 shouldShow: true,
                 indexOffset: 0,
             });
@@ -195,6 +220,7 @@ function MoneyRequestConfirmationList(props) {
         payeePersonalDetails,
         translate,
         shouldDisablePaidBySection,
+        canModifyParticipants,
     ]);
 
     const selectedOptions = useMemo(() => {
@@ -277,6 +303,10 @@ function MoneyRequestConfirmationList(props) {
                 currency={props.iouCurrencyCode}
                 policyID={props.policyID}
                 shouldShowPaymentOptions
+                anchorAlignment={{
+                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                }}
             />
         ) : (
             <ButtonWithDropdownMenu
@@ -302,15 +332,15 @@ function MoneyRequestConfirmationList(props) {
             return receiptPath;
         }
 
-        if (fileExtension === 'html') {
+        if (fileExtension === CONST.IOU.FILE_TYPES.HTML) {
             return ReceiptHTML;
         }
 
-        if (fileExtension === 'doc' || fileExtension === 'docx') {
+        if (fileExtension === CONST.IOU.FILE_TYPES.DOC || fileExtension === CONST.IOU.FILE_TYPES.DOCX) {
             return ReceiptDoc;
         }
 
-        if (fileExtension === 'svg') {
+        if (fileExtension === CONST.IOU.FILE_TYPES.SVG) {
             return ReceiptSVG;
         }
 
@@ -334,13 +364,12 @@ function MoneyRequestConfirmationList(props) {
             optionHoveredStyle={canModifyParticipants ? styles.hoveredComponentBG : {}}
             footerContent={footerContent}
         >
-            {!_.isEmpty(props.receiptPath) && (
+            {!_.isEmpty(props.receiptPath) ? (
                 <Image
                     style={styles.moneyRequestImage}
                     source={{uri: getImageURI(props.receiptPath, props.receiptSource)}}
                 />
-            )}
-            {_.isEmpty(props.receiptPath) && (
+            ) : (
                 <MenuItemWithTopDescription
                     shouldShowRightIcon={!props.isReadOnly}
                     title={formattedAmount}
@@ -359,6 +388,39 @@ function MoneyRequestConfirmationList(props) {
                 style={[styles.moneyRequestMenuItem, styles.mb2]}
                 disabled={didConfirm || props.isReadOnly}
             />
+            {!showAllFields && (
+                <View style={[styles.flexRow, styles.justifyContentBetween, styles.mh3, styles.alignItemsCenter]}>
+                    <View style={[styles.shortTermsHorizontalRule, styles.flex1, styles.mr0]} />
+                    <Button
+                        small
+                        onPress={toggleShowAllFields}
+                        text={translate('common.showMore')}
+                        shouldShowRightIcon
+                        iconRight={Expensicons.DownArrow}
+                        iconFill={themeColors.icon}
+                        style={styles.mh0}
+                    />
+                    <View style={[styles.shortTermsHorizontalRule, styles.flex1, styles.ml0]} />
+                </View>
+            )}
+            {showAllFields && (
+                <>
+                    <MenuItemWithTopDescription
+                        title={props.iouDate}
+                        description={translate('common.date')}
+                        style={[styles.moneyRequestMenuItem, styles.mb2]}
+                        // Note: This component is disabled until this field is editable in next PR
+                        disabled
+                    />
+                    <MenuItemWithTopDescription
+                        title={props.iouMerchant}
+                        description={translate('common.merchant')}
+                        style={[styles.moneyRequestMenuItem, styles.mb2]}
+                        // Note: This component is disabled until this field is editable in next PR
+                        disabled
+                    />
+                </>
+            )}
         </OptionsSelector>
     );
 }

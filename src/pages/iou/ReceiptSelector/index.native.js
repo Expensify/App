@@ -1,12 +1,12 @@
-import {ActivityIndicator, Alert, Linking, View, Text} from 'react-native';
-import React, {useRef, useState} from 'react';
+import {ActivityIndicator, Alert, AppState, Linking, Text, View} from 'react-native';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {Camera, useCameraDevices} from 'react-native-vision-camera';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import {launchImageLibrary} from 'react-native-image-picker';
 import {withOnyx} from 'react-native-onyx';
+import {useIsFocused} from '@react-navigation/native';
 import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
-import Colors from '../../../styles/colors';
 import Icon from '../../../components/Icon';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import styles from '../../../styles/styles';
@@ -19,6 +19,8 @@ import CONST from '../../../CONST';
 import Button from '../../../components/Button';
 import useLocalize from '../../../hooks/useLocalize';
 import ONYXKEYS from '../../../ONYXKEYS';
+import Log from '../../../libs/Log';
+import participantPropTypes from '../../../components/participantPropTypes';
 
 const propTypes = {
     /** Route params */
@@ -37,15 +39,7 @@ const propTypes = {
         id: PropTypes.string,
         amount: PropTypes.number,
         currency: PropTypes.string,
-        participants: PropTypes.arrayOf(
-            PropTypes.shape({
-                accountID: PropTypes.number,
-                login: PropTypes.string,
-                isPolicyExpenseChat: PropTypes.bool,
-                isOwnPolicyExpenseChat: PropTypes.bool,
-                selected: PropTypes.bool,
-            }),
-        ),
+        participants: PropTypes.arrayOf(participantPropTypes),
     }),
 };
 
@@ -91,17 +85,38 @@ function getImagePickerOptions(type) {
 }
 
 function ReceiptSelector(props) {
-    const devices = useCameraDevices('wide-angle-camera');
+    const devices = useCameraDevices();
     const device = devices.back;
 
     const camera = useRef(null);
     const [flash, setFlash] = useState(false);
-
     const [permissions, setPermissions] = useState('authorized');
+    const appState = useRef(AppState.currentState);
 
-    const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
+    const iouType = lodashGet(props.route, 'params.iouType', '');
+    const reportID = lodashGet(props.route, 'params.reportID', '');
 
     const {translate} = useLocalize();
+    // Keep track of whether the camera is visible, when we navigate elsewhere, turn off the camera
+    const isFocused = useIsFocused();
+
+    // We want to listen to if the app has come back from background and refresh the permissions status to show camera when permissions were granted
+    useEffect(() => {
+        const subscription = AppState.addEventListener('change', (nextAppState) => {
+            if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
+                Camera.getCameraPermissionStatus().then((permissionStatus) => {
+                    setPermissions(permissionStatus);
+                });
+            }
+
+            appState.current = nextAppState;
+        });
+
+        return () => {
+            subscription.remove();
+        };
+    }, []);
+
     /**
      * Inform the users when they need to grant camera access and guide them to settings
      */
@@ -131,15 +146,21 @@ function ReceiptSelector(props) {
         Alert.alert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingAttachment'));
     };
 
-    const showCameraAlert = () => {
-        Alert.alert(translate('receipt.cameraErrorTitle'), translate('receipt.cameraErrorMessage'));
+    const askForPermissions = () => {
+        if (permissions === 'not-determined') {
+            Camera.requestCameraPermission().then((permissionStatus) => {
+                setPermissions(permissionStatus);
+            });
+        } else {
+            Linking.openSettings();
+        }
     };
 
     /**
      * Common image picker handling
      *
      * @param {function} imagePickerFunc - RNImagePicker.launchCamera or RNImagePicker.launchImageLibrary
-     * @returns {Promise<ImagePickerResponse>}
+     * @returns {Promise}
      */
     const showImagePicker = (imagePickerFunc) =>
         new Promise((resolve, reject) => {
@@ -165,7 +186,11 @@ function ReceiptSelector(props) {
             });
         });
 
-    const takePhoto = () => {
+    const takePhoto = useCallback(() => {
+        const showCameraAlert = () => {
+            Alert.alert(translate('receipt.cameraErrorTitle'), translate('receipt.cameraErrorMessage'));
+        };
+
         if (!camera.current) {
             showCameraAlert();
             return;
@@ -178,120 +203,106 @@ function ReceiptSelector(props) {
             })
             .then((photo) => {
                 IOU.setMoneyRequestReceipt(`file://${photo.path}`, photo.path);
-                IOU.navigateToNextPage(props.iou, reportID.current, props.report);
+                IOU.navigateToNextPage(props.iou, iouType, reportID, props.report);
             })
             .catch(() => {
                 showCameraAlert();
             });
-    };
+    }, [flash, iouType, props.iou, props.report, reportID, translate]);
 
     Camera.getCameraPermissionStatus().then((permissionStatus) => {
         setPermissions(permissionStatus);
     });
 
-    const cameraComponent = () => (
-        <Camera
-            ref={camera}
-            device={device}
-            style={[styles.cameraView]}
-            isActive
-            photo
-        />
-    );
-
-    const loadingComponent = () => (
-        <View style={[styles.cameraView]}>
-            <ActivityIndicator
-                size="large"
-                style={{flex: 1}}
-                color={themeColors.textSupporting}
-            />
-        </View>
-    );
-
-    const permissionComponent = () => (
-        <View style={[styles.cameraView, styles.permissionView]}>
-            <Hand
-                width={152}
-                height={200}
-                style={{paddingBottom: 20}}
-            />
-            <Text style={[styles.textReceiptUpload]}>{translate('receipt.takePhoto')}</Text>
-            <Text style={[styles.subTextReceiptUpload]}>{translate('receipt.cameraAccess')}</Text>
-            <PressableWithFeedback
-                accessibilityLabel={translate('receipt.givePermission')}
-                accessibilityRole="button"
-            >
-                <Button
-                    medium
-                    success
-                    text={translate('receipt.givePermission')}
-                    style={[styles.p9, styles.pt5]}
-                    onPress={() => {
-                        if (permissions === 'not-determined') {
-                            Camera.requestCameraPermission().then((permissionStatus) => {
-                                setPermissions(permissionStatus);
-                            });
-                        } else {
-                            Linking.openSettings();
-                        }
-                    }}
-                />
-            </PressableWithFeedback>
-        </View>
-    );
-
-    const getCameraView = () => {
-        if (permissions !== CONST.RECEIPT.PERMISSION_AUTHORIZED) {
-            return permissionComponent();
-        }
-        return device == null ? loadingComponent() : cameraComponent();
-    };
-
     return (
         <View style={styles.flex1}>
-            {getCameraView()}
+            {permissions !== CONST.RECEIPT.PERMISSION_AUTHORIZED && (
+                <View style={[styles.cameraView, styles.permissionView]}>
+                    <Hand
+                        width={CONST.RECEIPT.HAND_ICON_WIDTH}
+                        height={CONST.RECEIPT.HAND_ICON_HEIGHT}
+                        style={[styles.pb5]}
+                    />
+                    <Text style={[styles.textReceiptUpload]}>{translate('receipt.takePhoto')}</Text>
+                    <Text style={[styles.subTextReceiptUpload]}>{translate('receipt.cameraAccess')}</Text>
+                    <PressableWithFeedback
+                        accessibilityLabel={translate('receipt.givePermission')}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                    >
+                        <Button
+                            medium
+                            success
+                            text={translate('receipt.givePermission')}
+                            style={[styles.p9, styles.pt5]}
+                            onPress={askForPermissions}
+                        />
+                    </PressableWithFeedback>
+                </View>
+            )}
+            {permissions === CONST.RECEIPT.PERMISSION_AUTHORIZED && device == null && (
+                <View style={[styles.cameraView]}>
+                    <ActivityIndicator
+                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                        style={[styles.flex1]}
+                        color={themeColors.textSupporting}
+                    />
+                </View>
+            )}
+            {permissions === CONST.RECEIPT.PERMISSION_AUTHORIZED && device != null && (
+                <Camera
+                    ref={camera}
+                    device={device}
+                    style={[styles.cameraView]}
+                    zoom={device.neutralZoom}
+                    isActive={isFocused}
+                    photo
+                />
+            )}
             <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
                 <PressableWithFeedback
-                    accessibilityRole="button"
+                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                     accessibilityLabel={translate('receipt.gallery')}
                     style={[styles.alignItemsStart]}
                     onPress={() => {
-                        showImagePicker(launchImageLibrary).then((receiptImage) => {
-                            IOU.setMoneyRequestReceipt(receiptImage[0].uri, receiptImage[0].fileName);
-                            IOU.navigateToNextPage(props.iou, reportID.current, props.report);
-                        });
+                        showImagePicker(launchImageLibrary)
+                            .then((receiptImage) => {
+                                IOU.setMoneyRequestReceipt(receiptImage[0].uri, receiptImage[0].fileName);
+                                IOU.navigateToNextPage(props.iou, iouType, reportID, props.report);
+                            })
+                            .catch(() => {
+                                Log.info('User did not select an image from gallery');
+                            });
                     }}
                 >
                     <Icon
                         height={32}
                         width={32}
                         src={Expensicons.Gallery}
-                        fill={Colors.colorMuted}
+                        fill={themeColors.textSupporting}
                     />
                 </PressableWithFeedback>
                 <PressableWithFeedback
-                    accessibilityRole="button"
+                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                     accessibilityLabel={translate('receipt.shutter')}
                     style={[styles.alignItemsCenter]}
-                    onPress={() => takePhoto()}
+                    onPress={takePhoto}
                 >
                     <Shutter
-                        width={90}
-                        height={90}
+                        width={CONST.RECEIPT.SHUTTER_SIZE}
+                        height={CONST.RECEIPT.SHUTTER_SIZE}
                     />
                 </PressableWithFeedback>
                 <PressableWithFeedback
-                    accessibilityRole="button"
+                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                     accessibilityLabel={translate('receipt.flash')}
                     style={[styles.alignItemsEnd]}
-                    onPress={() => setFlash(!flash)}
+                    onPress={() => setFlash((prevFlash) => !prevFlash)}
                 >
                     <Icon
                         height={32}
                         width={32}
                         src={Expensicons.Bolt}
-                        fill={flash ? Colors.white : Colors.colorMuted}
+                        fill={flash ? themeColors.iconHovered : themeColors.textSupporting}
                     />
                 </PressableWithFeedback>
             </View>

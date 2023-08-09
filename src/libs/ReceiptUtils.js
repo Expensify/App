@@ -5,7 +5,7 @@ import CONST from '../CONST';
 import Receipt from './actions/Receipt';
 import * as Localize from './Localize';
 
-const isValidReceipt = (file) => {
+const validateReceipt = (file) => {
     const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(file, 'name', ''));
     if (_.contains(CONST.API_ATTACHMENT_VALIDATIONS.UNALLOWED_EXTENSIONS, fileExtension.toLowerCase())) {
         Receipt.setUploadReceiptError(true, Localize.translateLocal('attachmentPicker.wrongFileType'), Localize.translateLocal('attachmentPicker.notAllowedExtension'));
@@ -25,4 +25,4 @@ const isValidReceipt = (file) => {
     return true;
 };
 
-export default {isValidReceipt};
+export default {validateReceipt};

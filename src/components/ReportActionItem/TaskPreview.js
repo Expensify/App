@@ -88,9 +88,9 @@ function TaskPreview(props) {
                         disabled={ReportUtils.isCanceledTaskReport(props.taskReport)}
                         onPress={() => {
                             if (isTaskCompleted) {
-                                Task.reopenTask(props.taskReportID, taskTitle);
+                                Task.reopenTask(props.taskReport, taskTitle);
                             } else {
-                                Task.completeTask(props.taskReportID, taskTitle);
+                                Task.completeTask(props.taskReport, taskTitle);
                             }
                         }}
                         accessibilityLabel={props.translate('task.task')}

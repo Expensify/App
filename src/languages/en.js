@@ -149,6 +149,8 @@ export default {
         someone: 'Someone',
         total: 'Total',
         edit: 'Edit',
+        showMore: 'Show more',
+        merchant: 'Merchant',
     },
     anonymousReportFooter: {
         logoTagline: 'Join in on the discussion.',
@@ -168,6 +170,7 @@ export default {
         sizeNotMet: 'Attachment size must be greater than 240 bytes.',
         wrongFileType: 'Attachment is the wrong type',
         notAllowedExtension: 'This filetype is not allowed',
+        folderNotAllowedMessage: 'Uploading a folder is not allowed. Try a different file.',
     },
     avatarCropModal: {
         title: 'Edit photo',
@@ -350,6 +353,7 @@ export default {
         scan: 'Scan',
         chat: 'Chat',
         room: 'Room',
+        distance: 'Distance',
     },
     receipt: {
         upload: 'Upload receipt',
@@ -404,6 +408,7 @@ export default {
         pendingConversionMessage: "Total will update when you're back online",
         threadRequestReportName: ({formattedAmount, comment}) => `${formattedAmount} request${comment ? ` for ${comment}` : ''}`,
         threadSentMoneyReportName: ({formattedAmount, comment}) => `${formattedAmount} sent${comment ? ` for ${comment}` : ''}`,
+        requestCount: ({count}) => `${count} requests`,
         error: {
             invalidSplit: 'Split amounts do not equal total amount',
             other: 'Unexpected error, please try again later',
@@ -631,7 +636,7 @@ export default {
         growlMessageOnSave: 'Your debit card was successfully added',
         expensifyPassword: 'Expensify password',
         error: {
-            invalidName: 'Name can only include latin letters and numbers.',
+            invalidName: 'Name can only include letters.',
             addressZipCode: 'Please enter a valid zip code',
             debitCardNumber: 'Please enter a valid debit card number',
             expirationDate: 'Please select a valid expiration date',
@@ -810,7 +815,7 @@ export default {
         error: {
             dateShouldBeBefore: ({dateString}) => `Date should be before ${dateString}.`,
             dateShouldBeAfter: ({dateString}) => `Date should be after ${dateString}.`,
-            hasInvalidCharacter: 'Name can only include latin letters and numbers.',
+            hasInvalidCharacter: 'Name can only include letters.',
             incorrectZipFormat: ({zipFormat}) => `Incorrect zip code format.${zipFormat ? ` Acceptable format: ${zipFormat}` : ''}`,
         },
     },
@@ -1431,6 +1436,7 @@ export default {
         copy: 'Copy',
         paste: 'Paste',
         pasteAndMatchStyle: 'Paste and Match Style',
+        pasteAsPlainText: 'Paste as Plain Text',
         delete: 'Delete',
         selectAll: 'Select All',
         speechSubmenu: 'Speech',
@@ -1537,6 +1543,8 @@ export default {
     threads: {
         replies: 'Replies',
         reply: 'Reply',
+        from: 'From',
+        in: 'In',
         parentNavigationSummary: ({rootReportName, workspaceName}) => `From ${rootReportName}${workspaceName ? ` in ${workspaceName}` : ''}`,
     },
     qrCodes: {
