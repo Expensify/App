@@ -8,6 +8,7 @@ import * as Expensicons from '../../../../components/Icon/Expensicons';
 import AttachmentPicker from '../../../../components/AttachmentPicker';
 import * as Report from '../../../../libs/actions/Report';
 import PopoverMenu from '../../../../components/PopoverMenu';
+import willBlurTextInputOnTapOutsideFunc from '../../../../libs/willBlurTextInputOnTapOutside';
 import CONST from '../../../../CONST';
 import Tooltip from '../../../../components/Tooltip';
 import * as Browser from '../../../../libs/Browser';
@@ -35,8 +36,6 @@ function AttachmentPickerWithMenu({
     disabled,
     setMenuVisibility,
     isMenuVisible,
-    // Added
-    onTriggerAttachmentPicker,
 }) {
     const actionButtonRef = useRef(null);
     const {translate} = useLocalize();
@@ -91,7 +90,11 @@ function AttachmentPickerWithMenu({
         <AttachmentPicker>
             {({openPicker}) => {
                 const triggerAttachmentPicker = () => {
-                    onTriggerAttachmentPicker();
+                    // Set a flag to block suggestion calculation until we're finished using the file picker,
+                    // which will stop any flickering as the file picker opens on non-native devices.
+                    if (willBlurTextInputOnTapOutsideFunc) {
+                        suggestionsRef.current.setShouldBlockSuggestionCalc(true);
+                    }
                     openPicker({
                         onPicked: displayFileInModal,
                     });
