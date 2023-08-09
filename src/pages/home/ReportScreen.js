@@ -182,8 +182,8 @@ class ReportScreen extends React.Component {
         ) {
             Navigation.goBack();
             if (preexistingReportID) {
-                Report.deleteReport(onyxReportID);
                 Navigation.navigate(ROUTES.getReportRoute(preexistingReportID));
+                Report.deleteReport(onyxReportID);
             } else {
                 Report.navigateToConciergeChat();
             }
