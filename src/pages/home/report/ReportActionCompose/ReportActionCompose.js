@@ -1,8 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import PropTypes from 'prop-types';
 import {View, InteractionManager, LayoutAnimation, NativeModules, findNodeHandle} from 'react-native';
-import {runOnJS} from 'react-native-reanimated';
-import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
@@ -55,8 +53,8 @@ import usePrevious from '../../../../hooks/usePrevious';
 import * as KeyDownListener from '../../../../libs/KeyboardShortcut/KeyDownPressListener';
 import * as EmojiPickerActions from '../../../../libs/actions/EmojiPickerAction';
 import withAnimatedRef from '../../../../components/withAnimatedRef';
-import updatePropsPaperWorklet from '../../../../libs/updatePropsPaperWorklet';
 import Suggestions from './Suggestions';
+import SendButton from './SendButton';
 
 const {RNTextInputReset} = NativeModules;
 
@@ -719,19 +717,7 @@ function ReportActionCompose({
     const hasReportRecipient = _.isObject(reportRecipient) && !_.isEmpty(reportRecipient);
     const maxComposerLines = isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
 
-    const Tap = Gesture.Tap()
-        .enabled(!(isCommentEmpty || isBlockedFromConcierge || disabled || hasExceededMaxCommentLength))
-        .onEnd(() => {
-            'worklet';
-
-            const viewTag = animatedRef();
-            const viewName = 'RCTMultilineTextInputView';
-            const updates = {text: ''};
-            // we are setting the isCommentEmpty flag to true so the status of it will be in sync of the native text input state
-            runOnJS(setIsCommentEmpty)(true);
-            updatePropsPaperWorklet(viewTag, viewName, updates); // clears native text input on the UI thread
-            runOnJS(submitForm)();
-        });
+    const isSendDisabled = isCommentEmpty || isBlockedFromConcierge || disabled || hasExceededMaxCommentLength;
 
     return (
         <View style={[shouldShowReportRecipientLocalTime && !lodashGet(network, 'isOffline') && styles.chatItemComposeWithFirstRow, isComposerFullSize && styles.chatItemFullComposeRow]}>
@@ -936,31 +922,12 @@ function ReportActionCompose({
                             onEmojiSelected={replaceSelectionWithText}
                         />
                     )}
-                    <View
-                        style={[styles.justifyContentEnd]}
-                        // Keep focus on the composer when Send message is clicked.
-                        onMouseDown={(e) => e.preventDefault()}
-                    >
-                        <GestureDetector gesture={Tap}>
-                            <Tooltip text={translate('common.send')}>
-                                <PressableWithFeedback
-                                    style={({pressed, isDisabled}) => [
-                                        styles.chatItemSubmitButton,
-                                        isCommentEmpty || hasExceededMaxCommentLength || pressed || isDisabled ? undefined : styles.buttonSuccess,
-                                    ]}
-                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                                    accessibilityLabel={translate('common.send')}
-                                >
-                                    {({pressed}) => (
-                                        <Icon
-                                            src={Expensicons.Send}
-                                            fill={isCommentEmpty || hasExceededMaxCommentLength || pressed ? themeColors.icon : themeColors.textLight}
-                                        />
-                                    )}
-                                </PressableWithFeedback>
-                            </Tooltip>
-                        </GestureDetector>
-                    </View>
+                    <SendButton
+                        isDisabled={isSendDisabled}
+                        setIsCommentEmpty={setIsCommentEmpty}
+                        submitForm={submitForm}
+                        animatedRef={animatedRef}
+                    />
                 </View>
                 <View
                     style={[
