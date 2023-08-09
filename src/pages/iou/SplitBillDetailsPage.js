@@ -18,6 +18,7 @@ import withReportAndReportActionOrNotFound from '../home/report/withReportAndRep
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import CONST from '../../CONST';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
+import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 
 const propTypes = {
     /* Onyx Props */
@@ -52,6 +53,7 @@ const defaultProps = {
 
 function SplitBillDetailsPage(props) {
     const reportAction = props.reportActions[`${props.route.params.reportActionID.toString()}`];
+    const transaction = ReportActionsUtils.getTransaction(reportAction);
     const participantAccountIDs = reportAction.originalMessage.participantAccountIDs;
     const participants = OptionsListUtils.getParticipantsOptions(
         _.map(participantAccountIDs, (accountID) => ({accountID, selected: true})),
@@ -59,9 +61,9 @@ function SplitBillDetailsPage(props) {
     );
     const payeePersonalDetails = props.personalDetails[reportAction.actorAccountID];
     const participantsExcludingPayee = _.filter(participants, (participant) => participant.accountID !== reportAction.actorAccountID);
-    const splitAmount = parseInt(lodashGet(reportAction, 'originalMessage.amount', 0), 10);
-    const splitComment = lodashGet(reportAction, 'originalMessage.comment');
-    const splitCurrency = lodashGet(reportAction, 'originalMessage.currency');
+    const splitAmount = parseInt(lodashGet(transaction, 'amount', 0), 10);
+    const splitComment = lodashGet(transaction, 'comment');
+    const splitCurrency = lodashGet(transaction, 'currency');
 
     return (
         <ScreenWrapper>
