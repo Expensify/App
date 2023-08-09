@@ -200,6 +200,9 @@ function AddressSearch(props) {
         if (props.inputID) {
             _.each(values, (value, key) => {
                 const inputKey = lodashGet(props.renamedInputKeys, key, key);
+                if (!inputKey) {
+                    return;
+                }
                 props.onInputChange(value, inputKey);
             });
         } else {
