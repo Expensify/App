@@ -36,6 +36,7 @@ import * as Illustrations from '../components/Icon/Illustrations';
 import variables from '../styles/variables';
 import ROUTES from '../ROUTES';
 import * as ValidationUtils from '../libs/ValidationUtils';
+import Tooltip from '../components/Tooltip';
 
 const matchType = PropTypes.shape({
     params: PropTypes.shape({
@@ -191,7 +192,9 @@ function ProfilePage(props) {
                                     >
                                         {props.translate('statusPage.status')}
                                     </Text>
-                                    <Text numberOfLines={1}>{statusContent}</Text>
+                                    <Tooltip text={statusContent}>
+                                      <Text numberOfLines={1}>{statusContent}</Text>
+                                    </Tooltip>
                                 </View>
                             ) : null}
 
