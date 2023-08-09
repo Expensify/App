@@ -59,6 +59,8 @@ function ThirdPartySignInPage(props) {
                 <SignInPageLayout
                     welcomeHeader={props.translate('welcomeText.getStarted')}
                     shouldShowWelcomeHeader
+                    shouldShowWelcomeText={false}
+                    welcomeText=""
                 >
                     {props.signInProvider === CONST.SIGN_IN_METHOD.APPLE ? <AppleSignIn isDesktopFlow /> : <GoogleSignIn isDesktopFlow />}
                     <Text style={[styles.mt5]}>{props.translate('thirdPartySignIn.redirectToDesktopMessage')}</Text>
