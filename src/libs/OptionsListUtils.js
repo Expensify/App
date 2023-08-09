@@ -1006,9 +1006,10 @@ function getMemberInviteOptions(personalDetails, betas = [], searchValue = '', e
  * @param {Boolean} hasUserToInvite
  * @param {String} searchValue
  * @param {Boolean} [maxParticipantsReached]
+ * @param {Boolean} [hasMatchedParticipant]
  * @return {String}
  */
-function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, maxParticipantsReached = false) {
+function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, maxParticipantsReached = false, hasMatchedParticipant = false) {
     if (maxParticipantsReached) {
         return Localize.translate(preferredLocale, 'common.maxParticipantsReached', {count: CONST.REPORT.MAXIMUM_PARTICIPANTS});
     }
@@ -1030,7 +1031,9 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
         if (/@/.test(searchValue) && !isValidEmail) {
             return Localize.translate(preferredLocale, 'messages.errorMessageInvalidEmail');
         }
-
+        if (hasMatchedParticipant && (isValidEmail || isValidPhone)){
+            return '';
+        }
         return Localize.translate(preferredLocale, 'common.noResultsFound');
     }
 
