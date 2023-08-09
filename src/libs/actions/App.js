@@ -18,7 +18,6 @@ import * as Session from './Session';
 import * as ReportActionsUtils from '../ReportActionsUtils';
 import Timing from './Timing';
 import * as Browser from '../Browser';
-import {last} from 'lodash';
 
 let currentUserAccountID;
 let currentUserEmail;
