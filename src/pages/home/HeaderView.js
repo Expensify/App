@@ -28,9 +28,8 @@ import * as Task from '../../libs/actions/Task';
 import reportActionPropTypes from './report/reportActionPropTypes';
 import PressableWithoutFeedback from '../../components/Pressable/PressableWithoutFeedback';
 import PinButton from '../../components/PinButton';
-import Navigation from '../../libs/Navigation/Navigation';
-import ROUTES from '../../ROUTES';
 import TaskHeaderActionButton from '../../components/TaskHeaderActionButton';
+import ParentNavigationSubtitle from '../../components/ParentNavigationSubtitle';
 
 const propTypes = {
     /** Toggles the navigationMenu open and closed */
@@ -90,7 +89,7 @@ function HeaderView(props) {
     const reportHeaderData = !isTaskReport && !isChatThread && props.report.parentReportID ? props.parentReport : props.report;
     const title = ReportUtils.getReportName(reportHeaderData);
     const subtitle = ReportUtils.getChatRoomSubtitle(reportHeaderData);
-    const parentNavigationSubtitle = ReportUtils.getParentNavigationSubtitle(reportHeaderData);
+    const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(reportHeaderData);
     const isConcierge = ReportUtils.hasSingleParticipant(props.report) && _.contains(participants, CONST.ACCOUNT_ID.CONCIERGE);
     const isAutomatedExpensifyAccount = ReportUtils.hasSingleParticipant(props.report) && ReportUtils.hasAutomatedExpensifyAccountIDs(participants);
     const guideCalendarLink = lodashGet(props.account, 'guideCalendarLink');
@@ -100,26 +99,26 @@ function HeaderView(props) {
     const shouldShowCallButton = (isConcierge && guideCalendarLink) || (!isAutomatedExpensifyAccount && !isTaskReport);
     const threeDotMenuItems = [];
     if (isTaskReport) {
-        const isTaskAssigneeOrTaskOwner = Task.isTaskAssigneeOrTaskOwner(props.report, props.session.accountID);
-        if (ReportUtils.isOpenTaskReport(props.report) && isTaskAssigneeOrTaskOwner) {
+        const canModifyTask = Task.canModifyTask(props.report, props.session.accountID);
+        if (ReportUtils.isOpenTaskReport(props.report) && canModifyTask) {
             threeDotMenuItems.push({
                 icon: Expensicons.Checkmark,
                 text: props.translate('task.markAsDone'),
-                onSelected: () => Task.completeTask(props.report.reportID, title),
+                onSelected: () => Task.completeTask(props.report, title),
             });
         }
 
         // Task is marked as completed
-        if (ReportUtils.isCompletedTaskReport(props.report) && isTaskAssigneeOrTaskOwner) {
+        if (ReportUtils.isCompletedTaskReport(props.report) && canModifyTask) {
             threeDotMenuItems.push({
                 icon: Expensicons.Checkmark,
                 text: props.translate('task.markAsIncomplete'),
-                onSelected: () => Task.reopenTask(props.report.reportID, title),
+                onSelected: () => Task.reopenTask(props.report, title),
             });
         }
 
         // Task is not closed
-        if (props.report.stateNum !== CONST.REPORT.STATE_NUM.SUBMITTED && props.report.statusNum !== CONST.REPORT.STATUS.CLOSED && isTaskAssigneeOrTaskOwner) {
+        if (props.report.stateNum !== CONST.REPORT.STATE_NUM.SUBMITTED && props.report.statusNum !== CONST.REPORT.STATUS.CLOSED && canModifyTask) {
             threeDotMenuItems.push({
                 icon: Expensicons.Trashcan,
                 text: props.translate('common.cancel'),
@@ -190,22 +189,12 @@ function HeaderView(props) {
                                     textStyles={[styles.headerText, styles.pre]}
                                     shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || isChatThread || isTaskReport}
                                 />
-                                {!_.isEmpty(parentNavigationSubtitle) && (
-                                    <PressableWithoutFeedback
-                                        onPress={() => {
-                                            Navigation.navigate(ROUTES.getReportRoute(props.report.parentReportID));
-                                        }}
-                                        style={[styles.alignSelfStart, styles.mw100]}
-                                        accessibilityLabel={parentNavigationSubtitle}
-                                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
-                                    >
-                                        <Text
-                                            style={[styles.optionAlternateText, styles.textLabelSupporting, styles.link]}
-                                            numberOfLines={1}
-                                        >
-                                            {parentNavigationSubtitle}
-                                        </Text>
-                                    </PressableWithoutFeedback>
+                                {!_.isEmpty(parentNavigationSubtitleData) && (
+                                    <ParentNavigationSubtitle
+                                        parentNavigationSubtitleData={parentNavigationSubtitleData}
+                                        parentReportID={props.report.parentReportID}
+                                        pressableStyles={[styles.alignSelfStart, styles.mw100]}
+                                    />
                                 )}
                                 {!_.isEmpty(subtitle) && (
                                     <Text
