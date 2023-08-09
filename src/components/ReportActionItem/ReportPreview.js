@@ -136,13 +136,14 @@ function ReportPreview(props) {
                 accessibilityLabel={props.translate('iou.viewDetails')}
             >
                 <View style={[styles.reportPreviewBox, props.isHovered ? styles.iouPreviewBoxHover : undefined]}>
-                    <View style={styles.flexRow}>
+                    <View style={[styles.flexRow, { height: 200 }]}>
                         {_.map(receipts, ({receipt, transactionID}) => (
-                            <View style={[styles.flex1]}>
+                            <View style={[styles.flex1, styles.noOutline, styles.w100, styles.h100]}>
                                 <RenderHTML key={transactionID} html={`
                                     <img
-                                        src="${receipt.source}.1024.jpg"
+                                        src="${receipt.source.replace('.jpg', '')}.1024.jpg"
                                         data-expensify-source="${receipt.source}"
+                                        data-expensify-fit-container="true"
                                     />
                                 `} />
                             </View>

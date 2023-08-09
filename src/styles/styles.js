@@ -3655,7 +3655,7 @@ const styles = {
 
     reportPreviewBoxText: {
         padding: 16,
-    }
+    },
 };
 
 export default styles;

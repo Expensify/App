@@ -25,6 +25,8 @@ const propTypes = {
     /** Height of the thumbnail image */
     imageHeight: PropTypes.number,
 
+    shouldDynamicallyResize: PropTypes.bool,
+
     ...windowDimensionsPropTypes,
 };
 
@@ -32,6 +34,7 @@ const defaultProps = {
     style: {},
     imageWidth: 200,
     imageHeight: 200,
+    shouldDynamicallyResize: true,
 };
 
 class ThumbnailImage extends PureComponent {
@@ -91,9 +94,12 @@ class ThumbnailImage extends PureComponent {
     }
 
     render() {
+        const sizeStyles = this.props.shouldDynamicallyResize
+            ? [StyleUtils.getWidthAndHeightStyle(this.state.thumbnailWidth, this.state.thumbnailHeight)]
+            : [styles.w100, styles.h100];
         return (
             <View style={[this.props.style, styles.overflowHidden]}>
-                <View style={[StyleUtils.getWidthAndHeightStyle(this.state.thumbnailWidth, this.state.thumbnailHeight), styles.alignItemsCenter, styles.justifyContentCenter]}>
+                <View style={[...sizeStyles, styles.alignItemsCenter, styles.justifyContentCenter]}>
                     <ImageWithSizeCalculation
                         url={this.props.previewSourceURL}
                         onMeasure={this.updateImageSize}

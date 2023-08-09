@@ -43,19 +43,23 @@ function ImageRenderer(props) {
     const imageHeight = htmlAttribs['data-expensify-height'] ? parseInt(htmlAttribs['data-expensify-height'], 10) : undefined;
     const imagePreviewModalDisabled = htmlAttribs['data-expensify-preview-modal-disabled'] === 'true';
 
+    const shouldFitContainer = htmlAttribs['data-expensify-fit-container'] === 'true';
+    const fitContainerStyle = shouldFitContainer ? [styles.w100, styles.h100] : [];
+
     return imagePreviewModalDisabled ? (
         <ThumbnailImage
             previewSourceURL={previewSource}
-            style={styles.webViewStyles.tagStyles.img}
+            style={[styles.webViewStyles.tagStyles.img, ...fitContainerStyle]}
             isAuthTokenRequired={isAttachmentOrReceipt}
             imageWidth={imageWidth}
             imageHeight={imageHeight}
+            shouldDynamicallyResize={!shouldFitContainer}
         />
     ) : (
         <ShowContextMenuContext.Consumer>
             {({anchor, report, action, checkIfContextMenuActive}) => (
                 <PressableWithoutFocus
-                    style={[styles.noOutline]}
+                    style={[styles.noOutline, styles.w100, styles.h100]}
                     onPress={() => {
                         const route = ROUTES.getReportAttachmentRoute(report.reportID, source);
                         Navigation.navigate(route);
@@ -66,10 +70,11 @@ function ImageRenderer(props) {
                 >
                     <ThumbnailImage
                         previewSourceURL={previewSource}
-                        style={styles.webViewStyles.tagStyles.img}
+                        style={[styles.webViewStyles.tagStyles.img, ...fitContainerStyle]}
                         isAuthTokenRequired={isAttachmentOrReceipt}
                         imageWidth={imageWidth}
                         imageHeight={imageHeight}
+                        shouldDynamicallyResize={!shouldFitContainer}
                     />
                 </PressableWithoutFocus>
             )}
