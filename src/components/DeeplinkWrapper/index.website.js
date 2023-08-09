@@ -29,11 +29,7 @@ function DeeplinkWrapper({children}) {
     );
 
     useEffect(() => {
-        if (!isMacOSWeb() || CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.DEV) {
-            return;
-        }
-
-        if (isUnsupportedDeeplinkRoute) {
+        if (!isMacOSWeb() || isUnsupportedDeeplinkRoute || CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.DEV) {
             return;
         }
 
