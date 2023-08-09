@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import _ from 'underscore';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
@@ -99,9 +99,17 @@ function ReportPreview(props) {
     const managerID = props.iouReport.managerID || props.action.actorAccountID || 0;
     const isCurrentUserManager = managerID === lodashGet(props.session, 'accountID');
     const reportTotal = ReportUtils.getMoneyRequestTotal(props.iouReport);
+
+    const iouSettled = ReportUtils.isSettled(props.iouReportID);
+    const receiptIDs = lodashGet(props.action, 'childLastReceiptTransactionIDs', '').split(',');
+    const receipts = _.filter(props.receipts, (transaction) => receiptIDs.includes(transaction.transactionID));
+    const isScanning = _.some(receipts, ({receipt}) => ReceiptUtils.isBeingScanned(receipt));
+
     let displayAmount;
     if (reportTotal) {
         displayAmount = CurrencyUtils.convertToDisplayString(reportTotal, props.iouReport.currency);
+    } else if (isScanning) {
+        displayAmount = props.translate('iou.receiptScanning');
     } else {
         // If iouReport is not available, get amount from the action message (Ex: "Domain20821's Workspace owes $33.00" or "paid ₫60" or "paid -₫60 elsewhere")
         displayAmount = '';
@@ -114,14 +122,17 @@ function ReportPreview(props) {
         }
     }
 
+    let previewMessage;
     const managerName = ReportUtils.isPolicyExpenseChat(props.chatReport) ? ReportUtils.getPolicyName(props.chatReport) : ReportUtils.getDisplayNameForParticipant(managerID, true);
-    const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
-    const previewMessage = props.translate(ReportUtils.isSettled(props.iouReportID) || props.iouReport.isWaitingOnBankAccount ? 'iou.payerPaid' : 'iou.payerOwes', {payer: managerName});
-    const shouldShowSettlementButton =
-        !_.isEmpty(props.iouReport) && isCurrentUserManager && !ReportUtils.isSettled(props.iouReportID) && !props.iouReport.isWaitingOnBankAccount && reportTotal !== 0;
+    if (_.some(receipts, ({receipt}) => ReceiptUtils.isBeingScanned(receipt))) {
+        previewMessage = props.translate('iou.receipt');
+    } else {
+        previewMessage = props.translate(iouSettled || props.iouReport.isWaitingOnBankAccount ? 'iou.payerPaid' : 'iou.payerOwes', {payer: managerName});
+    }
 
-    const receiptIDs = lodashGet(props.action, 'childLastReceiptTransactionIDs', '').split(',');
-    const receipts = _.filter(props.receipts, (transaction) => receiptIDs.includes(transaction.transactionID));
+    const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
+    const shouldShowSettlementButton =
+        !_.isEmpty(props.iouReport) && isCurrentUserManager && !iouSettled && !props.iouReport.isWaitingOnBankAccount && reportTotal !== 0;
 
     return (
         <View style={[styles.chatItemMessage, ...props.containerStyles]}>
@@ -139,18 +150,18 @@ function ReportPreview(props) {
                 <View style={[styles.reportPreviewBox, props.isHovered ? styles.iouPreviewBoxHover : undefined]}>
                     <View style={[styles.reportPreviewBoxImages, props.isHovered ? styles.reportPreviewBoxHoverBorder : undefined]}>
                         {_.map(receipts, ({receipt, filename, transactionID}) => {
-                            const thumbnailURI = ReceiptUtils.getImageURI(`${receipt.source.replace('.jpg', '')}.1024.jpg`, filename);
                             const uri = ReceiptUtils.getImageURI(receipt.source, filename);
+                            const hasNoFallback = uri === receipt.source;
 
                             return (
                                 <View
                                     key={transactionID}
                                     style={[styles.reportPreviewBoxImage, props.isHovered ? styles.reportPreviewBoxHoverBorder : undefined]}
                                 >
-                                    {uri === receipt.source
+                                    {hasNoFallback
                                         ? <RenderHTML html={`
                                                 <img
-                                                    src="${thumbnailURI}"
+                                                    src="${uri.replace('.jpg', '')}.1024.jpg"
                                                     data-expensify-source="${uri}"
                                                     data-expensify-fit-container="true"
                                                 />

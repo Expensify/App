@@ -378,6 +378,8 @@ export default {
         pay: 'Pagar',
         viewDetails: 'Ver detalles',
         pending: 'Pendiente',
+        receipt: 'Recibo',
+        receiptScanning: 'Escaneo en progreso...',
         settledExpensify: 'Pagado',
         settledElsewhere: 'Pagado de otra forma',
         settledPaypalMe: 'Pagado con PayPal.me',
