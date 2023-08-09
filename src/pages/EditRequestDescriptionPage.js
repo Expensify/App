@@ -12,7 +12,7 @@ import CONST from '../CONST';
 import useLocalize from '../hooks/useLocalize';
 
 const propTypes = {
-    /** Transaction description default value */
+    /** Transaction default description value */
     defaultDescription: PropTypes.string.isRequired,
 
     /** Callback to fire when the Save button is pressed  */

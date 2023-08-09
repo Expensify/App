@@ -9,9 +9,10 @@ import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 import * as TransactionUtils from '../libs/TransactionUtils';
 import EditRequestDescriptionPage from './EditRequestDescriptionPage';
 import EditRequestCreatedPage from './EditRequestCreatedPage';
+import EditRequestAmountPage from './EditRequestAmountPage';
 import reportPropTypes from './reportPropTypes';
-import * as ReportUtils from '../libs/ReportUtils';
 import * as IOU from '../libs/actions/IOU';
+import * as CurrencyUtils from '../libs/CurrencyUtils';
 
 const propTypes = {
     /** Route from navigation */
@@ -39,8 +40,8 @@ function EditRequestPage({report, route}) {
     const transactionID = lodashGet(parentReportAction, 'originalMessage.IOUTransactionID', '');
     const transaction = TransactionUtils.getTransaction(transactionID);
     const transactionDescription = TransactionUtils.getDescription(transaction);
-    // const transactionAmount = TransactionUtils.getAmount(transaction);
-    // const transactionCurrency = TransactionUtils.getCurrency(transaction);
+    const transactionAmount = TransactionUtils.getAmount(transaction);
+    const transactionCurrency = TransactionUtils.getCurrency(transaction);
     const transactionCreated = TransactionUtils.getCreated(transaction);
     const field = lodashGet(route, ['params', 'field'], '');
     function editTransaction(transactionChanges) {
@@ -58,8 +59,8 @@ function EditRequestPage({report, route}) {
         return (
             <EditRequestDescriptionPage
                 defaultDescription={transactionDescription}
-                onSubmit={(changes) => {
-                    editTransaction(changes);
+                onSubmit={(transactionChanges) => {
+                    editTransaction(transactionChanges);
                 }}
             />
         );
@@ -69,15 +70,27 @@ function EditRequestPage({report, route}) {
         return (
             <EditRequestCreatedPage
                 defaultCreated={transactionCreated}
-                onSubmit={(changes) => {
-                    editTransaction(changes);
+                onSubmit={(transactionChanges) => {
+                    editTransaction(transactionChanges);
                 }}
             />
         );
     }
 
     if (field === CONST.EDIT_REQUEST_FIELD.AMOUNT) {
-        return null;
+        return (
+            <EditRequestAmountPage
+                defaultAmount={transactionAmount}
+                defaultCurrency={transactionCurrency}
+                reportID={report.reportID}
+                onSubmit={(transactionChanges) => {
+                    editTransaction({
+                        'amount': CurrencyUtils.convertToSmallestUnit(transactionCurrency, Number.parseFloat(transactionChanges)),
+                        'currency': transactionCurrency,
+                    });
+                }}
+            />
+        );
     }
 
     return null;

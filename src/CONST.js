@@ -1314,6 +1314,7 @@ const CONST = {
     },
     EDIT_REQUEST_FIELD: {
         AMOUNT: 'amount',
+        CURRENCY: 'currency',
         DATE: 'date',
         DESCRIPTION: 'description',
         MERCHANT: 'merchant',

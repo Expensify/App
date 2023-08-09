@@ -11,7 +11,7 @@ import NewDatePicker from '../components/NewDatePicker';
 import * as ValidationUtils from '../libs/ValidationUtils';
 
 const propTypes = {
-    /** Transaction created default value */
+    /** Transaction defailt created value */
     defaultCreated: PropTypes.string.isRequired,
 
     /** Callback to fire when the Save button is pressed  */

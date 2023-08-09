@@ -1313,7 +1313,6 @@ function getReportPreviewMessage(report, reportAction = {}) {
  */
 function getModifiedExpenseMessage(reportAction) {
     const reportActionOriginalMessage = lodashGet(reportAction, 'originalMessage', {});
-    console.log('reportActionOriginalMessage: ', reportActionOriginalMessage);
     if (!_.isEmpty(reportActionOriginalMessage)) {
         if (_.has(reportActionOriginalMessage, 'oldAmount') &&
             _.has(reportActionOriginalMessage, 'oldCurrency') &&
@@ -1322,7 +1321,7 @@ function getModifiedExpenseMessage(reportAction) {
         ) {
             const oldCurrency = reportActionOriginalMessage.oldCurrency;
             const oldCurrencyUnit = CurrencyUtils.getCurrencyUnit(oldCurrency);
-            const oldAmount = NumberFormatUtils.format(preferredLocale, Math.abs(reportActionOriginalMessage.oldAmount) / oldCurrencyUnit, {style: 'currency', oldCurrency});
+            const oldAmount = NumberFormatUtils.format(preferredLocale, Math.abs(reportActionOriginalMessage.oldAmount) / oldCurrencyUnit, {style: 'currency', currency: oldCurrency});
 
             const currency = reportActionOriginalMessage.currency;
             const currencyUnit = CurrencyUtils.getCurrencyUnit(currency);
