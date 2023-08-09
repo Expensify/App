@@ -34,7 +34,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
 
     const defaultEmoji = draftEmojiCode || currentUserEmojiCode;
     const defaultText = draftEmojiCode ? draftText : currentUserStatusText;
-    const customStatus = draftEmojiCode ? `${draftEmojiCode} ${draftText}` : `${currentUserEmojiCode || ''} ${currentUserStatusText || ''}` ;
+    const customStatus = draftEmojiCode ? `${draftEmojiCode} ${draftText}` : `${currentUserEmojiCode || ''} ${currentUserStatusText || ''}`;
     const hasDraftStatus = !!draftEmojiCode || !!draftText;
 
     const updateStatus = useCallback(() => {

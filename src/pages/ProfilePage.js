@@ -185,7 +185,7 @@ function ProfilePage(props) {
                                 </Text>
                             )}
                             {hasStatus ? (
-                                <View style={[styles.mb6, styles.detailsPageSectionContainer, styles.w100]}>
+                                <View style={[styles.mb6, styles.detailsPageSectionContainer, styles.mw100]}>
                                     <Text
                                         style={[styles.textLabelSupporting, styles.mb1]}
                                         numberOfLines={1}
@@ -193,7 +193,7 @@ function ProfilePage(props) {
                                         {props.translate('statusPage.status')}
                                     </Text>
                                     <Tooltip text={statusContent}>
-                                      <Text numberOfLines={1}>{statusContent}</Text>
+                                        <Text numberOfLines={1}>{statusContent}</Text>
                                     </Tooltip>
                                 </View>
                             ) : null}
