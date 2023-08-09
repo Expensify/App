@@ -215,6 +215,8 @@ export default {
         MONEY_REQUEST_DESCRIPTION_FORM: 'moneyRequestDescriptionForm',
         NEW_CONTACT_METHOD_FORM: 'newContactMethodForm',
         PAYPAL_FORM: 'payPalForm',
+        WAYPOINT_FORM: 'waypointForm',
+        WAYPOINT_FORM_DRAFT: 'waypointFormDraft',
     },
 
     // Whether we should show the compose input or not
