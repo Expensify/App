@@ -248,7 +248,7 @@ export default {
                     NewChat: {
                         screens: {
                             NewChat_Root: {
-                                path: ROUTES.NEW,
+                                path: ROUTES.NEW_CHAT,
                                 exact: true,
                                 screens: {
                                     chat: {

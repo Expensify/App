@@ -57,7 +57,7 @@ export default {
     SETTINGS_2FA_CODES: 'settings/security/two-factor-auth/codes',
     SETTINGS_2FA_VERIFY: 'settings/security/two-factor-auth/verify',
     SETTINGS_2FA_SUCCESS: 'settings/security/two-factor-auth/success',
-    NEW: 'new/:tab',
+    NEW: 'new',
     NEW_CHAT: 'new/chat',
     NEW_ROOM: 'new/room',
     NEW_TASK,
