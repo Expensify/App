@@ -44,6 +44,7 @@ function ImageRenderer(props) {
     const imagePreviewModalDisabled = htmlAttribs['data-expensify-preview-modal-disabled'] === 'true';
 
     const shouldFitContainer = htmlAttribs['data-expensify-fit-container'] === 'true';
+    const sizingStyle = shouldFitContainer ? [styles.w100, styles.h100] : [];
 
     return imagePreviewModalDisabled ? (
         <ThumbnailImage
@@ -58,7 +59,7 @@ function ImageRenderer(props) {
         <ShowContextMenuContext.Consumer>
             {({anchor, report, action, checkIfContextMenuActive}) => (
                 <PressableWithoutFocus
-                    style={[styles.noOutline, styles.w100, styles.h100]}
+                    style={[styles.noOutline, ...sizingStyle]}
                     onPress={() => {
                         const route = ROUTES.getReportAttachmentRoute(report.reportID, source);
                         Navigation.navigate(route);
