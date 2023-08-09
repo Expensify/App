@@ -31,14 +31,17 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, onClose,
         const attachmentsFromReport = extractAttachmentsFromReport(report, reportActions);
 
         const initialPage = _.findIndex(attachmentsFromReport, (a) => a.source === source);
-        // dismiss the modal when deleting an attachment during its display in preview.
+
+        // Dismiss the modal when deleting an attachment during its display in preview.
         if (initialPage === -1 && _.find(attachments, (a) => a.source === source)) {
             Navigation.dismissModal();
         } else {
             setPage(initialPage);
             setAttachments(attachmentsFromReport);
+
             // Update the download button visibility in the parent modal
             setDownloadButtonVisibility(initialPage !== -1);
+
             // Update the parent modal's state with the source and name from the mapped attachments
             if (!_.isUndefined(attachmentsFromReport[initialPage])) onNavigate(attachmentsFromReport[initialPage]);
         }
