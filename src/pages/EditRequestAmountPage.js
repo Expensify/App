@@ -10,7 +10,7 @@ import MoneyRequestAmountForm from './iou/steps/MoneyRequestAmountForm';
 
 const propTypes = {
     /** Transaction default amount value */
-    defaultAmount: PropTypes.string.isRequired,
+    defaultAmount: PropTypes.number.isRequired,
 
     /** Transaction default currency value */
     defaultCurrency: PropTypes.string.isRequired,

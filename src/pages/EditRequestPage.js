@@ -1,4 +1,5 @@
 import React from 'react';
+import _ from 'underscore';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
@@ -55,6 +56,11 @@ function EditRequestPage({report, route}) {
             <EditRequestDescriptionPage
                 defaultDescription={transactionDescription}
                 onSubmit={(transactionChanges) => {
+                    // In case the comment hasn't been changed, do not make the API request.
+                    if (transactionChanges.comment === transactionDescription) {
+                        Navigation.dismissModal();
+                        return;
+                    }
                     editMoneyRequest(transactionChanges);
                 }}
             />
@@ -66,6 +72,11 @@ function EditRequestPage({report, route}) {
             <EditRequestCreatedPage
                 defaultCreated={transactionCreated}
                 onSubmit={(transactionChanges) => {
+                    // In case the date hasn't been changed, do not make the API request.
+                    if (transactionChanges.created === transactionCreated) {
+                        Navigation.dismissModal();
+                        return;
+                    }
                     editMoneyRequest(transactionChanges);
                 }}
             />
@@ -79,9 +90,15 @@ function EditRequestPage({report, route}) {
                 defaultCurrency={transactionCurrency}
                 reportID={report.reportID}
                 onSubmit={(transactionChanges) => {
+                    const amount = CurrencyUtils.convertToSmallestUnit(transactionCurrency, Number.parseFloat(transactionChanges));
+                    // In case the amount hasn't been changed, do not make the API request.
+                    if (amount === transactionAmount) {
+                        Navigation.dismissModal();
+                        return;
+                    }
                     // Temporarily disabling currency editing and it will be enabled as a quick follow up
                     editMoneyRequest({
-                        amount: CurrencyUtils.convertToSmallestUnit(transactionCurrency, Number.parseFloat(transactionChanges)),
+                        amount,
                         currency: transactionCurrency,
                     });
                 }}
