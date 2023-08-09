@@ -14,13 +14,10 @@ import compose from '../../libs/compose';
 import CONST from '../../CONST';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import * as FormActions from '../../libs/actions/FormActions';
 
 
 const propTypes = {
-    /** The transactionID of this request */
-    transactionID: PropTypes.string,
-
-
     /** Form values */
     values: PropTypes.shape({
         /** Address street field */
@@ -35,9 +32,6 @@ const propTypes = {
         /** Address zip code field */
         zipCode: PropTypes.string,
     }),
-    
-
-    formData: PropTypes.shape({}),
 
     ...withLocalizePropTypes,
 };
@@ -50,45 +44,37 @@ const defaultProps = {
         zipCode: undefined,
     },
     transactionID: '',
-    formData: {},
 };
 
 function WaypointEditor(props) {
     const waypointIndex = lodashGet(props.route.params, 'waypointIndex', '');
-    const waypoint = `waypoint${waypointIndex}`;
+    const transactionID = lodashGet(props.route.params, 'transactionID', 0);
 
     const selectWaypoint = (details) => {
-        console.log('What are details', details);
-        const lat = details.geometry.location.lat;
-        const long = details.geometry.location.lng;
-    }
 
-    const [address, setAddressValue] = React.useState('');
+    }
 
     const validate = (values) => {
         const errors = {};
-        if (!values.addressStreet || !ValidationUtils.isValidAddress(values.addressStreet)) {
-            errors.addressStreet = 'addDebitCardPage.error.addressStreet';
-        }
-
-        if (!values.addressZipCode || !ValidationUtils.isValidZipCode(values.addressZipCode)) {
-            errors.addressZipCode = 'addDebitCardPage.error.addressZipCode';
-        }
-
-        if (!values.addressState || !values.addressState) {
-            errors.addressState = 'addDebitCardPage.error.addressState';
-        }
 
         const waypointValue = values[`waypoint${waypointIndex}`];
         if (!waypointValue || !ValidationUtils.isValidAddress(waypointValue)) {
             errors[`waypoint${waypointIndex}`] = 'distance.errors.invalidAddress';
         }
 
+        // We only want you to be able to select an address from the dropdown
+        // When an address is selected, we set a bunch of other values in the form
+        // We're going to use those to determine whether an address has been selected or not
+        if (!values.street && !values.city && !values.state && !values.zipCode) {
+            errors[`waypoint${waypointIndex}`] = 'distance.errors.invalidAddress';
+        }
+
+
         return errors;
     }
 
-    const onSubmit = (params) => {
-
+    const onSubmit = (values) => {
+        console.log('what are my values');
 
     }
 
@@ -103,7 +89,7 @@ function WaypointEditor(props) {
             />
             <Form
                 style={[styles.flexGrow1, styles.mh5]}
-                formID={`${ONYXKEYS.FORMS.WAYPOINT_FORM}`}
+                formID={ONYXKEYS.FORMS.WAYPOINT_FORM}
                 enabledWhenOffline
                 validate={validate}
                 onSubmit={onSubmit}
@@ -120,6 +106,14 @@ function WaypointEditor(props) {
                         maxInputLength={CONST.FORM_CHARACTER_LIMIT}
                         renamedInputKeys={{
                             address: `waypoint${waypointIndex}`,
+                            city: null,
+                            country: null,
+                            street: null,
+                            street2: null,
+                            zipCode: null,
+                            lat: null,
+                            lng: null,
+                            state: null,
                         }}
                     />
                 </View>
@@ -135,8 +129,6 @@ WaypointEditor.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withOnyx({
-        formData: {
-            key: ONYXKEYS.FORMS.WAYPOINT_FORM,
-        },
+
     }),
 )(WaypointEditor);

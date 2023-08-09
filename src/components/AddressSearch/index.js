@@ -48,6 +48,8 @@ const propTypes = {
     /** A callback function when the value of this field has changed */
     onInputChange: PropTypes.func.isRequired,
 
+    onSubmit: PropTypes.func,
+
     /** Customize the TextInput container */
     // eslint-disable-next-line react/forbid-prop-types
     containerStyles: PropTypes.arrayOf(PropTypes.object),
@@ -73,6 +75,7 @@ const defaultProps = {
     inputID: undefined,
     shouldSaveDraft: false,
     onBlur: () => {},
+    onSubmit: () => {},
     errorText: '',
     hint: '',
     value: undefined,
@@ -202,6 +205,8 @@ function AddressSearch(props) {
         } else {
             props.onInputChange(values);
         }
+
+        props.onSubmit(values);
     };
 
     return (
