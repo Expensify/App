@@ -7,6 +7,7 @@ import * as LHNTestUtils from '../utils/LHNTestUtils';
 import CONST from '../../src/CONST';
 import DateUtils from '../../src/libs/DateUtils';
 import * as Localize from '../../src/libs/Localize';
+import * as Report from '../../src/libs/actions/Report';
 
 // Be sure to include the mocked Permissions and Expensicons libraries or else the beta tests won't work
 jest.mock('../../src/libs/Permissions');
@@ -106,18 +107,14 @@ describe('Sidebar', () => {
             LHNTestUtils.getDefaultRenderedSidebarLinks();
 
             // Given three unread reports in the recently updated order of 3, 2, 1
-            const report1 = {
-                ...LHNTestUtils.getFakeReport([1, 2], 3),
-                lastMessageText: 'unread message from report 1',
-            };
-            const report2 = {
-                ...LHNTestUtils.getFakeReport([3, 4], 2),
-                lastMessageText: 'unread message from report 2',
-            };
-            const report3 = {
-                ...LHNTestUtils.getFakeReport([5, 6], 1),
-                lastMessageText: 'unread message from report 3',
-            };
+            const report1 = LHNTestUtils.getFakeReport([1, 2], 3);
+            const report2 = LHNTestUtils.getFakeReport([3, 4], 2);
+            const report3 = LHNTestUtils.getFakeReport([5, 6], 1);
+
+            // Each report has at least one ADDCOMMENT action so should be rendered in the LNH
+            Report.addComment(report1.reportID, 'Hi, this is a comment');
+            Report.addComment(report2.reportID, 'Hi, this is a comment');
+            Report.addComment(report3.reportID, 'Hi, this is a comment');
 
             return (
                 waitForPromisesToResolve()
@@ -136,6 +133,7 @@ describe('Sidebar', () => {
                     .then(() => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
+
                         expect(displayNames).toHaveLength(3);
                         expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Five, Six');
                         expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Three, Four');
@@ -150,17 +148,16 @@ describe('Sidebar', () => {
             // And the currently viewed report is the first report
             const report1 = {
                 ...LHNTestUtils.getFakeReport([1, 2], 3),
-                lastMessageText: 'unread message from report 1',
                 hasDraft: true,
             };
-            const report2 = {
-                ...LHNTestUtils.getFakeReport([3, 4], 2),
-                lastMessageText: 'unread message from report 2',
-            };
-            const report3 = {
-                ...LHNTestUtils.getFakeReport([5, 6], 1),
-                lastMessageText: 'unread message from report 3',
-            };
+            const report2 = LHNTestUtils.getFakeReport([3, 4], 2);
+            const report3 = LHNTestUtils.getFakeReport([5, 6], 1);
+
+            // Each report has at least one ADDCOMMENT action so should be rendered in the LNH
+            Report.addComment(report1.reportID, 'Hi, this is a comment');
+            Report.addComment(report2.reportID, 'Hi, this is a comment');
+            Report.addComment(report3.reportID, 'Hi, this is a comment');
+
             const currentReportId = report1.reportID;
             LHNTestUtils.getDefaultRenderedSidebarLinks(currentReportId);
 
@@ -197,18 +194,14 @@ describe('Sidebar', () => {
             LHNTestUtils.getDefaultRenderedSidebarLinks();
 
             // Given three reports in the recently updated order of 3, 2, 1
-            const report1 = {
-                ...LHNTestUtils.getFakeReport([1, 2], 3),
-                lastMessageText: 'unread message from report 1',
-            };
-            const report2 = {
-                ...LHNTestUtils.getFakeReport([3, 4], 2),
-                lastMessageText: 'unread message from report 2',
-            };
-            const report3 = {
-                ...LHNTestUtils.getFakeReport([5, 6], 1),
-                lastMessageText: 'unread message from report 3',
-            };
+            const report1 = LHNTestUtils.getFakeReport([1, 2], 3);
+            const report2 = LHNTestUtils.getFakeReport([3, 4], 2);
+            const report3 = LHNTestUtils.getFakeReport([5, 6], 1);
+
+            // Each report has at least one ADDCOMMENT action so should be rendered in the LNH
+            Report.addComment(report1.reportID, 'Hi, this is a comment');
+            Report.addComment(report2.reportID, 'Hi, this is a comment');
+            Report.addComment(report3.reportID, 'Hi, this is a comment');
 
             return (
                 waitForPromisesToResolve()
@@ -247,19 +240,18 @@ describe('Sidebar', () => {
             // Given three reports in the recently updated order of 3, 2, 1
             // And the second report has a draft
             // And the currently viewed report is the second report
-            const report1 = {
-                ...LHNTestUtils.getFakeReport([1, 2], 3),
-                lastMessageText: 'unread message from report 1',
-            };
+            const report1 = LHNTestUtils.getFakeReport([1, 2], 3);
             const report2 = {
                 ...LHNTestUtils.getFakeReport([3, 4], 2),
-                lastMessageText: 'unread message from report 2',
                 hasDraft: true,
             };
-            const report3 = {
-                ...LHNTestUtils.getFakeReport([5, 6], 1),
-                lastMessageText: 'unread message from report 3',
-            };
+            const report3 = LHNTestUtils.getFakeReport([5, 6], 1);
+
+            // Each report has at least one ADDCOMMENT action so should be rendered in the LNH
+            Report.addComment(report1.reportID, 'Hi, this is a comment');
+            Report.addComment(report2.reportID, 'Hi, this is a comment');
+            Report.addComment(report3.reportID, 'Hi, this is a comment');
+
             const currentReportId = report2.reportID;
             LHNTestUtils.getDefaultRenderedSidebarLinks(currentReportId);
 
@@ -558,19 +550,17 @@ describe('Sidebar', () => {
             // Given three reports, with the first report being archived
             const report1 = {
                 ...LHNTestUtils.getFakeReport([1, 2]),
-                lastMessageText: 'message from report 1',
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
                 statusNum: CONST.REPORT.STATUS.CLOSED,
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
             };
-            const report2 = {
-                ...LHNTestUtils.getFakeReport([3, 4]),
-                lastMessageText: 'message from report 2',
-            };
-            const report3 = {
-                ...LHNTestUtils.getFakeReport([5, 6]),
-                lastMessageText: 'message from report 3',
-            };
+            const report2 = LHNTestUtils.getFakeReport([3, 4]);
+            const report3 = LHNTestUtils.getFakeReport([5, 6]);
+
+            // Each report has at least one ADDCOMMENT action so should be rendered in the LNH
+            Report.addComment(report1.reportID, 'Hi, this is a comment');
+            Report.addComment(report2.reportID, 'Hi, this is a comment');
+            Report.addComment(report3.reportID, 'Hi, this is a comment');
 
             // Given the user is in all betas
             const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS, CONST.BETAS.POLICY_EXPENSE_CHAT];
@@ -787,19 +777,21 @@ describe('Sidebar', () => {
             const lastVisibleActionCreated = DateUtils.getDBTime();
             const report1 = {
                 ...LHNTestUtils.getFakeReport([1, 2]),
-                lastMessageText: 'message from report 1',
                 lastVisibleActionCreated,
             };
             const report2 = {
                 ...LHNTestUtils.getFakeReport([3, 4]),
-                lastMessageText: 'message from report 2',
                 lastVisibleActionCreated,
             };
             const report3 = {
                 ...LHNTestUtils.getFakeReport([5, 6]),
-                lastMessageText: 'message from report 3',
                 lastVisibleActionCreated,
             };
+
+            // Each report has at least one ADDCOMMENT action so should be rendered in the LNH
+            Report.addComment(report1.reportID, 'Hi, this is a comment');
+            Report.addComment(report2.reportID, 'Hi, this is a comment');
+            Report.addComment(report3.reportID, 'Hi, this is a comment');
 
             LHNTestUtils.getDefaultRenderedSidebarLinks('0');
             return (
