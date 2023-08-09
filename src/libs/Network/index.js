@@ -35,6 +35,8 @@ function post(command, data = {}, type = CONST.NETWORK.METHOD.POST, shouldUseSec
         // (e.g. any requests currently happening when the user logs out are cancelled)
         request.data = {
             ...data,
+            shouldRetry: lodashGet(data, 'shouldRetry', true),
+            canCancel: lodashGet(data, 'canCancel', true),
             appversion: pkg.version,
         };
 

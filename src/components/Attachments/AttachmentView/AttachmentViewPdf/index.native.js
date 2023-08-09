@@ -20,7 +20,7 @@ function AttachmentViewPdf({file, encryptedSourceUrl, isFocused, isUsedInCarouse
                 attachmentCarouselPagerContext.shouldPagerScroll.value = shouldPagerScroll;
             }
         },
-        [attachmentCarouselPagerContext.shouldPagerScroll, isUsedInCarousel, onScaleChangedProp],
+        [attachmentCarouselPagerContext, isUsedInCarousel, onScaleChangedProp],
     );
 
     return (
