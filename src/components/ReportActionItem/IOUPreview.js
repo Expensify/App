@@ -138,7 +138,7 @@ function IOUPreview(props) {
     // Pay button should only be visible to the manager of the report.
     const isCurrentUserManager = managerID === sessionAccountID;
 
-    const moneyRequestDetails = ReportUtils.getMoneyRequestAction(props.action);
+    const moneyRequestDetails = ReportActionsUtils.getMoneyRequestDetails(props.action);
 
     const requestAmount = moneyRequestDetails.amount;
     const requestCurrency = moneyRequestDetails.currency;
