@@ -3,7 +3,7 @@ import React from 'react';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {PickerAvoidingView} from 'react-native-picker-select';
-import FocusTrap from 'focus-trap-react';
+import FocusTrapView from '../FocusTrapView';
 import KeyboardAvoidingView from '../KeyboardAvoidingView';
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
@@ -33,8 +33,6 @@ class ScreenWrapper extends React.Component {
         this.state = {
             didScreenTransitionEnd: false,
         };
-
-        this.focusRef = React.createRef();
     }
 
     componentDidMount() {
@@ -98,28 +96,21 @@ class ScreenWrapper extends React.Component {
                     }
 
                     return (
-                        <FocusTrap
-                            active={!this.props.shouldDisableFocusTrap}
-                            focusTrapOptions={{
-                                fallbackFocus: () => this.focusRef.current,
-                                clickOutsideDeactivates: true,
-                            }}
+                        <View
+                            style={[...this.props.style, styles.flex1, paddingStyle]}
+                            // eslint-disable-next-line react/jsx-props-no-spreading
+                            {...(this.props.environment === CONST.ENVIRONMENT.DEV ? this.panResponder.panHandlers : {})}
                         >
-                            <View
-                                style={[...this.props.style, styles.flex1, paddingStyle]}
-                                ref={this.focusRef}
-                                // eslint-disable-next-line react/jsx-props-no-spreading
-                                {...(this.props.environment === CONST.ENVIRONMENT.DEV ? this.panResponder.panHandlers : {})}
+                            <KeyboardAvoidingView
+                                style={[styles.w100, styles.h100, {maxHeight}]}
+                                behavior={this.props.keyboardAvoidingViewBehavior}
+                                enabled={this.props.shouldEnableKeyboardAvoidingView}
                             >
-                                <KeyboardAvoidingView
-                                    style={[styles.w100, styles.h100, {maxHeight}]}
-                                    behavior={this.props.keyboardAvoidingViewBehavior}
-                                    enabled={this.props.shouldEnableKeyboardAvoidingView}
+                                <PickerAvoidingView
+                                    style={styles.flex1}
+                                    enabled={this.props.shouldEnablePickerAvoiding}
                                 >
-                                    <PickerAvoidingView
-                                        style={styles.flex1}
-                                        enabled={this.props.shouldEnablePickerAvoiding}
-                                    >
+                                    <FocusTrapView style={styles.flex1}>
                                         <HeaderGap />
                                         {this.props.environment === CONST.ENVIRONMENT.DEV && <TestToolsModal />}
                                         {this.props.environment === CONST.ENVIRONMENT.DEV && <CustomDevMenu />}
@@ -134,10 +125,10 @@ class ScreenWrapper extends React.Component {
                                                 : this.props.children
                                         }
                                         {this.props.isSmallScreenWidth && this.props.shouldShowOfflineIndicator && <OfflineIndicator style={this.props.offlineIndicatorStyle} />}
-                                    </PickerAvoidingView>
-                                </KeyboardAvoidingView>
-                            </View>
-                        </FocusTrap>
+                                    </FocusTrapView>
+                                </PickerAvoidingView>
+                            </KeyboardAvoidingView>
+                        </View>
                     );
                 }}
             </SafeAreaConsumer>
