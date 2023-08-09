@@ -161,7 +161,7 @@ function ReportPreview(props) {
                                     {hasNoFallback
                                         ? <RenderHTML html={`
                                                 <img
-                                                    src="${uri.replace('.jpg', '')}.1024.jpg"
+                                                    src="${uri}.1024.jpg"
                                                     data-expensify-source="${uri}"
                                                     data-expensify-fit-container="true"
                                                 />
