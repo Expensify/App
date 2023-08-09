@@ -164,21 +164,14 @@ class ReportScreen extends React.Component {
         const onyxReportID = this.props.report.reportID;
         const prevOnyxReportID = prevProps.report.reportID;
         const routeReportID = getReportID(this.props.route);
+        const preexistingReportID = lodashGet(this.props.report, 'preexistingReportID', false);
 
         // When a new DM is opened simultaneously from 2 accounts, there'll be 2 different optimistic reports & OpenReport calls
         // The latter will contain preexistingReportID of the initial report and thus is invalid.
-        if (_.has(this.props.report, 'preexistingReportID') && !_.has(prevProps.report, 'preexistingReportID')) {
-            Report.deleteReport(onyxReportID);
-            Navigation.goBack();
-            const preexistingReportID = lodashGet(this.props.report, 'preexistingReportID');
-            Navigation.navigate(ROUTES.getReportRoute(preexistingReportID));
-            this.setState({isReportRemoved: true});
-            return;
-        }
-
-        // navigate to concierge when the room removed from another device (e.g. user leaving a room)
+        // Navigate to concierge when the room removed from another device (e.g. user leaving a room)
         // the report will not really null when removed, it will have defaultProps properties and values
         if (
+            preexistingReportID ||
             prevOnyxReportID &&
             prevOnyxReportID === routeReportID &&
             !onyxReportID &&
@@ -188,7 +181,12 @@ class ReportScreen extends React.Component {
                 (prevProps.report.statusNum === CONST.REPORT.STATUS.OPEN && this.props.report.statusNum === CONST.REPORT.STATUS.CLOSED))
         ) {
             Navigation.goBack();
-            Report.navigateToConciergeChat();
+            if (preexistingReportID) {
+                Report.deleteReport(onyxReportID);
+                Navigation.navigate(ROUTES.getReportRoute(preexistingReportID));
+            } else {
+                Report.navigateToConciergeChat();
+            }
             // isReportRemoved will prevent <FullPageNotFoundView> showing when navigating
             this.setState({isReportRemoved: true});
             return;
