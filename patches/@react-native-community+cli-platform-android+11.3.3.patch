@@ -1,8 +1,8 @@
 diff --git a/node_modules/@react-native-community/cli-platform-android/native_modules.gradle b/node_modules/@react-native-community/cli-platform-android/native_modules.gradle
-index 4a63eaf..0e2f4f3 100644
+index 8a218d5..8c99a75 100644
 --- a/node_modules/@react-native-community/cli-platform-android/native_modules.gradle
 +++ b/node_modules/@react-native-community/cli-platform-android/native_modules.gradle
-@@ -436,7 +436,7 @@ class ReactNativeModules {
+@@ -412,7 +412,7 @@ class ReactNativeModules {
       *
       * @todo: `fastlane` has been reported to not work too.
       */
