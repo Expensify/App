@@ -78,6 +78,7 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
         lastMessageText: lastCommentText,
         lastActorAccountID: currentUserAccountID,
         lastReadTime: currentTime,
+        lastMessageTranslationKey: '',
     };
 
     const optimisticData = [

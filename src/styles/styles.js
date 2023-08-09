@@ -2104,8 +2104,11 @@ const styles = {
         height: '100%',
         justifyContent: 'center',
         overflow: 'hidden',
-        overflowY: 'auto',
         alignItems: 'center',
+    },
+
+    PDFViewList: {
+        overflowX: 'hidden',
     },
 
     pdfPasswordForm: {
