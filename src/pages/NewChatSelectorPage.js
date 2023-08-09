@@ -33,28 +33,28 @@ function NewChatSelectorPage(props) {
         >
             <>
                 <HeaderWithBackButton title={props.translate('sidebarScreen.fabNewChat')} />
-                <TopTab.Navigator
-                    backBehavior="order"
-                    tabBar={({state, navigation}) => (
-                        <>
-                            {Permissions.canUsePolicyRooms(props.betas) && (
-                                <TabSelector
-                                    state={state}
-                                    navigation={navigation}
-                                />
-                            )}
-                        </>
-                    )}
-                >
-                    <TopTab.Screen
-                        name={CONST.TAB.NEW_CHAT}
-                        component={NewChatPage}
-                    />
-                    <TopTab.Screen
-                        name={CONST.TAB.NEW_ROOM}
-                        component={WorkspaceNewRoomPage}
-                    />
-                </TopTab.Navigator>
+                {Permissions.canUsePolicyRooms(props.betas) ? (
+                    <TopTab.Navigator
+                        backBehavior="order"
+                        tabBar={({state, navigation}) => (
+                            <TabSelector
+                                state={state}
+                                navigation={navigation}
+                            />
+                        )}
+                    >
+                        <TopTab.Screen
+                            name={CONST.TAB.NEW_CHAT}
+                            component={NewChatPage}
+                        />
+                        <TopTab.Screen
+                            name={CONST.TAB.NEW_ROOM}
+                            component={WorkspaceNewRoomPage}
+                        />
+                    </TopTab.Navigator>
+                ) : (
+                    <NewChatPage />
+                )}
             </>
         </ScreenWrapper>
     );
