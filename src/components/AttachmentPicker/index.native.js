@@ -296,7 +296,7 @@ function AttachmentPicker({ type, children}) {
         return () => {
             removeKeyboardListener();
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we only want this effect to run on initial render
     }, []);
 
     useEffect(() => {
