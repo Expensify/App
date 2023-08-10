@@ -133,7 +133,6 @@ function getNormalizedLeavingStatus(leavingStatus) {
     return normalizedLeavingStatus;
 }
 
-
 /**
  * Initialize our pusher subscriptions to listen for someone typing in a report.
  *
@@ -187,7 +186,6 @@ function subscribeToReportTypingEvents(reportID) {
  * @param {String} reportID
  */
 function subscribeToReportLeavingEvents(reportID) {
-    console.log('[debug]  subscribeToReportLeavingEvents(reportID)',  reportID)
     if (!reportID) {
         return;
     }
@@ -197,14 +195,11 @@ function subscribeToReportLeavingEvents(reportID) {
 
     const pusherChannelName = getReportChannelName(reportID);
     Pusher.subscribe(pusherChannelName, Pusher.TYPE.USER_IS_LEAVING_ROOM, (leavingStatus) => {
-        console.log('[debug] leavingStatus', leavingStatus)
         // If the pusher message comes from OldDot, we expect the leaving status to be keyed by user
         // login OR by 'Concierge'. If the pusher message comes from NewDot, it is keyed by accountID
         // since personal details are keyed by accountID.
         const normalizedLeavingStatus = getNormalizedLeavingStatus(leavingStatus);
         const accountIDOrLogin = _.first(_.keys(normalizedLeavingStatus));
-        console.log('[debug] normalizedLeavingStatus', normalizedLeavingStatus)
-        console.log('[debug] accountIDOrLogin', accountIDOrLogin)
 
         if (!accountIDOrLogin) {
             return;
@@ -214,20 +209,7 @@ function subscribeToReportLeavingEvents(reportID) {
             return;
         }
 
-        // Use a combo of the reportID and the accountID or login as a key for holding our timers.
-        // const reportUserIdentifier = `${reportID}-${accountIDOrLogin}`;
-        // clearTimeout(leavingWatchTimers[reportUserIdentifier]);
-        console.log('[debug] Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportID}`, true)');
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportID}`, true);
-        // // Wait for 1.5s of no additional leaving events before setting the status back to false.
-        // leavingWatchTimers[reportUserIdentifier] = setTimeout(() => {
-        //     const leavingStoppedStatus = {};
-        //     leavingStoppedStatus[accountIDOrLogin] = false;
-        // console.log('[debug] leavingStoppedStatus', leavingStoppedStatus)
-
-        //     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportID}`, leavingStoppedStatus);
-        //     delete leavingWatchTimers[reportUserIdentifier];
-        // }, 1500);
     }).catch((error) => {
         Log.hmmm('[Report] Failed to initially subscribe to Pusher channel', false, {errorType: error.type, pusherChannelName});
     });
@@ -262,7 +244,6 @@ function unsubscribeFromLeavingRoomReportChannel(reportID) {
     Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportID}`, false);
     Pusher.unsubscribe(pusherChannelName, Pusher.TYPE.USER_IS_LEAVING_ROOM);
 }
-
 
 // New action subscriber array for report pages
 let newActionSubscribers = [];
@@ -1865,7 +1846,7 @@ function leaveRoom(reportID) {
             ],
         },
     );
-    broadcastUserIsLeavingRoom(reportID)
+    broadcastUserIsLeavingRoom(reportID);
     navigateToConciergeChat();
 }
 

@@ -163,7 +163,6 @@ class ReportScreen extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-
         // If composer should be hidden, hide emoji picker as well
         if (ReportUtils.shouldHideComposer(this.props.report)) {
             EmojiPickerAction.hideEmojiPicker(true);
@@ -173,11 +172,6 @@ class ReportScreen extends React.Component {
         const prevOnyxReportID = prevProps.report.reportID;
         const routeReportID = getReportID(this.props.route);
 
-        console.log('[debug] userLeavingStatus', this.props.userLeavingStatus)
-        console.log('[debug] prevOnyxReportID', prevOnyxReportID)
-        console.log('[debug] routeReportID', routeReportID)
-        console.log('[debug] onyxReportID', onyxReportID)
-      
         // navigate to concierge when the room removed from another device (e.g. user leaving a room)
         if (
             // non-optimistic case
@@ -186,7 +180,8 @@ class ReportScreen extends React.Component {
             (prevOnyxReportID &&
                 prevOnyxReportID === routeReportID &&
                 !onyxReportID &&
-                (prevProps.report.statusNum === CONST.REPORT.STATUS.OPEN && this.props.report.statusNum === CONST.REPORT.STATUS.CLOSED))
+                prevProps.report.statusNum === CONST.REPORT.STATUS.OPEN &&
+                this.props.report.statusNum === CONST.REPORT.STATUS.CLOSED)
         ) {
             Navigation.goBack();
             Report.navigateToConciergeChat();
@@ -207,7 +202,7 @@ class ReportScreen extends React.Component {
     }
 
     componentWillUnmount() {
-        if(this.didSubscribeToReportLeavingEvents){
+        if (this.didSubscribeToReportLeavingEvents) {
             Report.unsubscribeFromLeavingRoomReportChannel(this.props.report.reportID);
         }
         if (!this.unsubscribeVisibilityListener) {
@@ -265,11 +260,8 @@ class ReportScreen extends React.Component {
 
     checkAndSubscribe() {
         const {report} = this.props;
-
         const didCreateReportSuccessfully = !report.pendingFields || (!report.pendingFields.addWorkspaceRoom && !report.pendingFields.createChat);
-
         if (!this.didSubscribeToReportLeavingEvents.current && didCreateReportSuccessfully) {
-            console.log('[debug] Report.subscribeToReportLeavingEvents(reportID);')
             Report.subscribeToReportLeavingEvents(report.reportID);
             this.didSubscribeToReportLeavingEvents.current = true;
         }
