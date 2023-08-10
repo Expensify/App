@@ -136,6 +136,7 @@ function SoloComposer({
     const shouldAutoFocus = !modal.isVisible && (shouldFocusInputOnScreenFocus || isEmptyChat) && shouldShowComposeInput;
 
     const [value, setValue] = useState(initialComment);
+    const valueRef = usePrevious(value);
     const [selection, setSelection] = useState({
         start: isMobileSafari && !shouldAutoFocus ? 0 : initialComment.length,
         end: isMobileSafari && !shouldAutoFocus ? 0 : initialComment.length,
@@ -284,7 +285,8 @@ function SoloComposer({
             }
 
             // Trigger the edit box for last sent message if ArrowUp is pressed and the comment is empty and Chronos is not in the participants
-            if (e.key === CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey && textInputRef.current.selectionStart === 0 && value.length === 0 && !ReportUtils.chatIncludesChronos(report)) {
+            const valueLength = valueRef.current.length;
+            if (e.key === CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey && textInputRef.current.selectionStart === 0 && valueLength === 0 && !ReportUtils.chatIncludesChronos(report)) {
                 e.preventDefault();
 
                 const parentReportActionID = lodashGet(report, 'parentReportActionID', '');
@@ -296,7 +298,7 @@ function SoloComposer({
                 }
             }
         },
-        [isKeyboardShown, isSmallScreenWidth, parentReportActions, report, reportActions, reportID, submitForm, suggestionsRef, value.length],
+        [isKeyboardShown, isSmallScreenWidth, parentReportActions, report, reportActions, reportID, submitForm, valueRef],
     );
 
     /**
