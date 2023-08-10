@@ -107,8 +107,7 @@ function changeSVGViewBoxGoogle() {
     const svgsGoogle = document.querySelectorAll('svg');
 
     // Iterate through each SVG element
-    Array.from(svgsGoogle).forEach(svg => {
-
+    Array.from(svgsGoogle).forEach((svg) => {
         // Set the viewBox attribute
         svg.setAttribute('viewBox', '0 0 20 20');
     });
