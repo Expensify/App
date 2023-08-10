@@ -2104,8 +2104,14 @@ const styles = {
         height: '100%',
         justifyContent: 'center',
         overflow: 'hidden',
-        overflowY: 'auto',
         alignItems: 'center',
+    },
+
+    PDFViewList: {
+        overflowX: 'hidden',
+        // There properties disable "focus" effect on list
+        boxShadow: 'none',
+        outline: 'none',
     },
 
     pdfPasswordForm: {
@@ -3644,10 +3650,39 @@ const styles = {
         willChange: 'transform',
     },
 
+    emojiPickerButtonDropdown: {
+        justifyContent: 'center',
+        backgroundColor: themeColors.activeComponentBG,
+        width: 86,
+        height: 52,
+        borderRadius: 26,
+        alignItems: 'center',
+        paddingLeft: 10,
+        paddingRight: 4,
+        marginBottom: 32,
+        alignSelf: 'flex-start',
+    },
+
+    emojiPickerButtonDropdownIcon: {
+        fontSize: 30,
+    },
+
     moneyRequestImage: {
         height: 200,
         borderRadius: 16,
         margin: 20,
+    },
+
+    staticHeaderImage: {
+        minHeight: 240,
+    },
+
+    emojiPickerButtonDropdownContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    rotate90: {
+        transform: [{rotate: '90deg'}],
     },
 };
 

@@ -829,6 +829,69 @@ function updateTheme(theme) {
     Navigation.navigate(ROUTES.SETTINGS_PREFERENCES);
 }
 
+/**
+ * Sets a custom status
+ *
+ * @param {Object} status
+ * @param {String} status.text
+ * @param {String} status.emojiCode
+ * @param {String} status.clearAfter - ISO 8601 format string, which represents the time when the status should be cleared
+ */
+function updateCustomStatus(status) {
+    API.write('UpdateStatus', status, {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                value: {
+                    [currentUserAccountID]: {
+                        status,
+                    },
+                },
+            },
+        ],
+    });
+}
+
+/**
+ * Clears the custom status
+ */
+function clearCustomStatus() {
+    API.write('ClearStatus', undefined, {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                value: {
+                    [currentUserAccountID]: {
+                        status: null, // Clearing the field
+                    },
+                },
+            },
+        ],
+    });
+}
+
+/**
+ * Sets a custom status
+ *
+ * @param {Object} status
+ * @param {String} status.text
+ * @param {String} status.emojiCode
+ * @param {String} status.clearAfter - ISO 8601 format string, which represents the time when the status should be cleared
+ */
+function updateDraftCustomStatus(status) {
+    Onyx.merge(ONYXKEYS.CUSTOM_STATUS_DRAFT, status);
+}
+
+/**
+ * Clear the custom draft status
+ *
+ */
+function clearDraftCustomStatus() {
+    Onyx.merge(ONYXKEYS.CUSTOM_STATUS_DRAFT, {text: '', emojiCode: '', clearAfter: ''});
+}
+
 export {
     closeAccount,
     resendValidateCode,
@@ -854,4 +917,8 @@ export {
     setContactMethodAsDefault,
     updateTheme,
     resetContactMethodValidateCodeSentState,
+    updateCustomStatus,
+    clearCustomStatus,
+    updateDraftCustomStatus,
+    clearDraftCustomStatus,
 };

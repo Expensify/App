@@ -78,6 +78,7 @@ function createTaskAndNavigate(parentReportID, title, description, assigneeEmail
         lastMessageText: lastCommentText,
         lastActorAccountID: currentUserAccountID,
         lastReadTime: currentTime,
+        lastMessageTranslationKey: '',
     };
 
     // We're only setting onyx data for the task report here because it's possible for the parent report to not exist yet (if you're assigning a task to someone you haven't chatted with before)
