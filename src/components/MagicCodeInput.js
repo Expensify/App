@@ -129,6 +129,9 @@ function MagicCodeInput(props) {
         if (!props.shouldSubmitOnComplete || _.filter(numbers, (n) => ValidationUtils.isNumeric(n)).length !== props.maxLength || props.network.isOffline) {
             return;
         }
+        // Blurs the input and removes focus from the last input and, if it should submit
+        // on complete, it will call the onFulfill callback.
+        blurMagicCodeInput();
         props.onFulfill(value);
     };
 
