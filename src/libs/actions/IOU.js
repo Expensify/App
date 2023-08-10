@@ -20,6 +20,7 @@ import TransactionUtils from '../TransactionUtils';
 import * as ErrorUtils from '../ErrorUtils';
 import * as UserUtils from '../UserUtils';
 import * as Report from './Report';
+import * as NumberUtils from '../NumberUtils';
 
 let allReports;
 Onyx.connect({
@@ -400,9 +401,9 @@ function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, part
 
     let reportPreviewAction = isNewIOUReport ? null : ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID);
     if (reportPreviewAction) {
-        reportPreviewAction = ReportUtils.updateReportPreview(iouReport, reportPreviewAction);
+        reportPreviewAction = ReportUtils.updateReportPreview(iouReport, reportPreviewAction, comment);
     } else {
-        reportPreviewAction = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport);
+        reportPreviewAction = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport, comment);
     }
 
     // STEP 5: Build Onyx Data
@@ -861,6 +862,9 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
         });
         updatedReportPreviewAction.message[0].text = messageText;
         updatedReportPreviewAction.message[0].html = messageText;
+        if (reportPreviewAction.childMoneyRequestCount > 0) {
+            updatedReportPreviewAction.childMoneyRequestCount = reportPreviewAction.childMoneyRequestCount - 1;
+        }
     }
 
     // STEP 5: Build Onyx data
@@ -1518,6 +1522,12 @@ function setMoneyRequestReceipt(receiptPath, receiptSource) {
     return Onyx.merge(ONYXKEYS.IOU, {receiptPath, receiptSource});
 }
 
+function createEmptyTransaction() {
+    const transactionID = NumberUtils.rand64();
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {});
+    Onyx.merge(ONYXKEYS.IOU, {transactionID});
+}
+
 /**
  * Navigates to the next IOU page based on where the IOU request was started
  *
@@ -1589,6 +1599,7 @@ export {
     setMoneyRequestDescription,
     setMoneyRequestParticipants,
     setMoneyRequestReceipt,
+    createEmptyTransaction,
     navigateToNextPage,
     setMoneyRequestReceiptAndNavigateToNextPage,
 };
