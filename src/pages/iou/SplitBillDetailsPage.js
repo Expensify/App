@@ -64,7 +64,7 @@ function SplitBillDetailsPage(props) {
             ...OptionsListUtils.getPolicyExpenseReportOptions({...props.report, selected: true}),
         ];
     } else {
-        const participants = OptionsListUtils.getParticipantsOptions(
+        participants = OptionsListUtils.getParticipantsOptions(
             _.map(participantAccountIDs, (accountID) => ({accountID, selected: true})),
             props.personalDetails,
         );
