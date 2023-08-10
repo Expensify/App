@@ -379,6 +379,8 @@ export default {
         pay: 'Pagar',
         viewDetails: 'Ver detalles',
         pending: 'Pendiente',
+        deleteRequest: 'Eliminar pedido',
+        deleteConfirmation: '¿Estás seguro de que quieres eliminar este pedido?',
         settledExpensify: 'Pagado',
         settledElsewhere: 'Pagado de otra forma',
         settledPaypalMe: 'Pagado con PayPal.me',
@@ -868,6 +870,15 @@ export default {
         passwordNotSet: 'No se pudo cambiar tu clave. Te hemos enviado un nuevo enlace para que intentes cambiar la clave nuevamente.',
         setPasswordLinkInvalid: 'El enlace para configurar tu contraseña ha expirado. Te hemos enviado un nuevo enlace a tu correo.',
         validateAccount: 'Verificar cuenta',
+    },
+    statusPage: {
+        status: 'Estado',
+        setStatusTitle: 'Establece tu estado',
+        statusExplanation: 'Agrega un emoji para que tus colegas y amigos puedan saber fácilmente qué está pasando. ¡También puedes agregar un mensaje opcionalmente!',
+        today: 'Hoy',
+        clearStatus: 'Borrar estado',
+        save: 'Guardar',
+        message: 'Mensaje',
     },
     stepCounter: ({step, total, text}) => {
         let result = `Paso ${step}`;
