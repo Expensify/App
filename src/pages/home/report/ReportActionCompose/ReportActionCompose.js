@@ -5,8 +5,6 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import styles from '../../../../styles/styles';
-import themeColors from '../../../../styles/themes/default';
-import Composer from '../../../../components/Composer';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import * as Report from '../../../../libs/actions/Report';
 import ReportTypingIndicator from '../ReportTypingIndicator';
@@ -38,7 +36,6 @@ import withKeyboardState, {keyboardStatePropTypes} from '../../../../components/
 import OfflineWithFeedback from '../../../../components/OfflineWithFeedback';
 import * as ComposerUtils from '../../../../libs/ComposerUtils';
 import * as Welcome from '../../../../libs/actions/Welcome';
-import containerComposeStyles from '../../../../styles/containerComposeStyles';
 import * as Browser from '../../../../libs/Browser';
 import usePrevious from '../../../../hooks/usePrevious';
 import * as KeyDownListener from '../../../../libs/KeyboardShortcut/KeyDownPressListener';
@@ -47,6 +44,7 @@ import withAnimatedRef from '../../../../components/withAnimatedRef';
 import Suggestions from './Suggestions';
 import SendButton from './SendButton';
 import AttachmentPickerWithMenuItems from './AttachmentPickerWithMenuItems';
+import SoloComposer from './SoloComposer';
 
 const {RNTextInputReset} = NativeModules;
 
@@ -708,48 +706,33 @@ function ReportActionCompose({
                                     isMenuVisible={isMenuVisible}
                                     onTriggerAttachmentPicker={onTriggerAttachmentPicker}
                                 />
-                                <View style={[containerComposeStyles, styles.textInputComposeBorder]}>
-                                    <Composer
-                                        checkComposerVisibility={checkComposerVisibility}
-                                        autoFocus={shouldAutoFocus}
-                                        multiline
-                                        ref={setTextInputRef}
-                                        textAlignVertical="top"
-                                        placeholder={inputPlaceholder}
-                                        placeholderTextColor={themeColors.placeholderText}
-                                        onChangeText={(commentValue) => updateComment(commentValue, true)}
-                                        onKeyPress={triggerHotkeyActions}
-                                        style={[styles.textInputCompose, isComposerFullSize ? styles.textInputFullCompose : styles.flex4]}
-                                        maxLines={maxComposerLines}
-                                        onFocus={() => setIsFocused(true)}
-                                        onBlur={() => {
-                                            setIsFocused(false);
-                                            suggestionsRef.current.resetSuggestions();
-                                        }}
-                                        onClick={updateShouldShowSuggestionMenuToFalse}
-                                        onPasteFile={displayFileInModal}
-                                        shouldClear={textInputShouldClear}
-                                        onClear={() => setTextInputShouldClear(false)}
-                                        isDisabled={isBlockedFromConcierge || disabled}
-                                        selection={selection}
-                                        onSelectionChange={onSelectionChange}
-                                        isFullComposerAvailable={isFullSizeComposerAvailable}
-                                        setIsFullComposerAvailable={setIsFullComposerAvailable}
-                                        isComposerFullSize={isComposerFullSize}
-                                        value={value}
-                                        numberOfLines={numberOfLines}
-                                        onNumberOfLinesChange={updateNumberOfLines}
-                                        shouldCalculateCaretPosition
-                                        onLayout={(e) => {
-                                            const composerLayoutHeight = e.nativeEvent.layout.height;
-                                            if (composerHeight === composerLayoutHeight) {
-                                                return;
-                                            }
-                                            setComposerHeight(composerLayoutHeight);
-                                        }}
-                                        onScroll={updateShouldShowSuggestionMenuToFalse}
-                                    />
-                                </View>
+                                <SoloComposer
+                                    checkComposerVisibility={checkComposerVisibility}
+                                    shouldAutoFocus={shouldAutoFocus}
+                                    setTextInputRef={setTextInputRef}
+                                    inputPlaceholder={inputPlaceholder}
+                                    updateComment={updateComment}
+                                    triggerHotkeyActions={triggerHotkeyActions}
+                                    isComposerFullSize={isComposerFullSize}
+                                    maxComposerLines={maxComposerLines}
+                                    setIsFocused={setIsFocused}
+                                    suggestionsRef={suggestionsRef}
+                                    updateShouldShowSuggestionMenuToFalse={updateShouldShowSuggestionMenuToFalse}
+                                    displayFileInModal={displayFileInModal}
+                                    textInputShouldClear={textInputShouldClear}
+                                    setTextInputShouldClear={setTextInputShouldClear}
+                                    isBlockedFromConcierge={isBlockedFromConcierge}
+                                    disabled={disabled}
+                                    selection={selection}
+                                    onSelectionChange={onSelectionChange}
+                                    isFullSizeComposerAvailable={isFullSizeComposerAvailable}
+                                    setIsFullComposerAvailable={setIsFullComposerAvailable}
+                                    value={value}
+                                    numberOfLines={numberOfLines}
+                                    updateNumberOfLines={updateNumberOfLines}
+                                    composerHeight={composerHeight}
+                                    setComposerHeight={setComposerHeight}
+                                />
                                 <ReportDropUI
                                     onDrop={(e) => {
                                         if (isAttachmentPreviewActive) {
