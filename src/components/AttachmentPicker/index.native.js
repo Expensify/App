@@ -40,7 +40,7 @@ const imagePickerOptions = {
  * @param {String} type
  * @returns {Object}
  */
-function getImagePickerOptions(type) {
+const getImagePickerOptions = (type) => {
     // mediaType property is one of the ImagePicker configuration to restrict types'
     const mediaType = type === CONST.ATTACHMENT_PICKER_TYPE.IMAGE ? 'photo' : 'mixed';
     return {
@@ -64,7 +64,7 @@ const documentPickerOptions = {
  * @param {Object} fileData
  * @return {Promise}
  */
-function getDataForUpload(fileData) {
+const getDataForUpload = (fileData) => {
     const fileName = fileData.fileName || fileData.name || 'chat_attachment';
     const fileResult = {
         name: FileUtils.cleanFileName(fileName),
@@ -93,7 +93,7 @@ function AttachmentPicker({translate, type, children, isSmallScreenWidth}) {
     /**
      * Inform the users when they need to grant camera access and guide them to settings
      */
-    function showPermissionsAlert() {
+    const showPermissionsAlert = () => {
         Alert.alert(
             translate('attachmentPicker.cameraPermissionRequired'),
             translate('attachmentPicker.expensifyDoesntHaveAccessToCamera'),
@@ -115,7 +115,7 @@ function AttachmentPicker({translate, type, children, isSmallScreenWidth}) {
      * A generic handling when we don't know the exact reason for an error
      *
      */
-    function showGeneralAlert() {
+    const showGeneralAlert = () => {
         Alert.alert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingAttachment'));
     }
 
@@ -125,8 +125,7 @@ function AttachmentPicker({translate, type, children, isSmallScreenWidth}) {
      * @param {function} imagePickerFunc - RNImagePicker.launchCamera or RNImagePicker.launchImageLibrary
      * @returns {Promise<ImagePickerResponse>}
      */
-    function showImagePicker(imagePickerFunc) {
-        return new Promise((resolve, reject) => {
+    const showImagePicker = (imagePickerFunc) => new Promise((resolve, reject) => {
             imagePickerFunc(getImagePickerOptions(type), (response) => {
                 if (response.didCancel) {
                     // When the user cancelled resolve with no attachment
@@ -147,8 +146,7 @@ function AttachmentPicker({translate, type, children, isSmallScreenWidth}) {
 
                 return resolve(response.assets);
             });
-        });
-    }
+        })
 
     const [isVisible, setIsVisible] = useState(false);
     const [focusedIndex, setFocusedIndex] = useState(-1);
@@ -170,7 +168,7 @@ function AttachmentPicker({translate, type, children, isSmallScreenWidth}) {
     /**
      * An attachment error dialog when user selected malformed images
      */
-    function showImageCorruptionAlert() {
+    const showImageCorruptionAlert = () => {
         Alert.alert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingCorruptedImage'));
     }
 
@@ -179,23 +177,21 @@ function AttachmentPicker({translate, type, children, isSmallScreenWidth}) {
      *
      * @returns {Promise<DocumentPickerResponse[]>}
      */
-    function showDocumentPicker() {
-        return RNDocumentPicker.pick(documentPickerOptions).catch((error) => {
+    const showDocumentPicker = () => RNDocumentPicker.pick(documentPickerOptions).catch((error) => {
             if (RNDocumentPicker.isCancel(error)) {
                 return;
             }
 
             showGeneralAlert(error.message);
             throw error;
-        });
-    }
+        })
 
     /**
      * Opens the attachment modal
      *
      * @param {function} onPickedHandler A callback that will be called with the selected attachment
      */
-    function open(onPickedHandler) {
+    const open = (onPickedHandler) => {
         completeAttachmentSelection.current = onPickedHandler;
         setIsVisible(true);
     }
@@ -203,7 +199,7 @@ function AttachmentPicker({translate, type, children, isSmallScreenWidth}) {
     /**
      * Closes the attachment modal
      */
-    function close() {
+    const close = () => {
         setIsVisible(false);
     }
 
@@ -214,7 +210,7 @@ function AttachmentPicker({translate, type, children, isSmallScreenWidth}) {
      * @param {Array<ImagePickerResponse|DocumentPickerResponse>} attachments
      * @returns {Promise}
      */
-    function pickAttachment(attachments = []) {
+    const pickAttachment = (attachments = []) => {
         if (attachments.length === 0) {
             return;
         }
@@ -242,7 +238,7 @@ function AttachmentPicker({translate, type, children, isSmallScreenWidth}) {
      * @param {Object} item - an item from this.menuItemData
      * @param {Function} item.pickAttachment
      */
-    function selectItem(item) {
+    const selectItem = (item) => {
         /* setTimeout delays execution to the frame after the modal closes
          * without this on iOS closing the modal closes the gallery/camera as well */
         onModalHide.current = () =>
@@ -259,7 +255,7 @@ function AttachmentPicker({translate, type, children, isSmallScreenWidth}) {
         close();
     }
 
-    function attachKeyboardListener() {
+    const attachKeyboardListener = () => {
         const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
         keyboardListener.current = KeyboardShortcut.subscribe(
             shortcutConfig.shortcutKey,
@@ -276,7 +272,7 @@ function AttachmentPicker({translate, type, children, isSmallScreenWidth}) {
         );
     }
 
-    function removeKeyboardListener() {
+    const removeKeyboardListener = () => {
         if (!keyboardListener.current) {
             return;
         }
@@ -319,11 +315,9 @@ function AttachmentPicker({translate, type, children, isSmallScreenWidth}) {
      *
      * @returns {React.ReactNode}
      */
-    function renderChildren() {
-        return children({
+    const renderChildren = () => children({
             openPicker: ({onPicked}) => open(onPicked),
-        });
-    }
+        })
 
     return (
         <>
