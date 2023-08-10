@@ -2,6 +2,7 @@ import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
+import moment from 'moment';
 import CONST from '../../CONST';
 import ROUTES from '../../ROUTES';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -19,6 +20,7 @@ import TransactionUtils from '../TransactionUtils';
 import * as ErrorUtils from '../ErrorUtils';
 import * as UserUtils from '../UserUtils';
 import * as Report from './Report';
+import * as NumberUtils from '../NumberUtils';
 
 let allReports;
 Onyx.connect({
@@ -57,17 +59,28 @@ Onyx.connect({
     },
 });
 
+let currentDate = '';
+Onyx.connect({
+    key: ONYXKEYS.CURRENT_DATE,
+    callback: (val) => {
+        currentDate = val;
+    },
+});
+
 /**
  * Reset money request info from the store with its initial value
  * @param {String} id
  */
 function resetMoneyRequestInfo(id = '') {
+    const date = currentDate || moment().format('YYYY-MM-DD');
     Onyx.merge(ONYXKEYS.IOU, {
         id,
         amount: 0,
         currency: lodashGet(currentUserPersonalDetails, 'localCurrencyCode', CONST.CURRENCY.USD),
         comment: '',
         participants: [],
+        merchant: '',
+        date,
         receiptPath: '',
         receiptSource: '',
     });
@@ -298,8 +311,10 @@ function buildOnyxDataForMoneyRequest(
  * @param {Number} payeeAccountID
  * @param {Object} participant
  * @param {String} comment
+ * @param {Object} [receipt]
+ *
  */
-function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, participant, comment) {
+function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, participant, comment, receipt = undefined) {
     const payerEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login);
     const payerAccountID = Number(participant.accountID);
     const isPolicyExpenseChat = participant.isPolicyExpenseChat;
@@ -343,8 +358,13 @@ function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, part
             : ReportUtils.buildOptimisticIOUReport(payeeAccountID, payerAccountID, amount, chatReport.reportID, currency);
     }
 
-    // STEP 3: Build optimistic transaction
-    const optimisticTransaction = TransactionUtils.buildOptimisticTransaction(amount, currency, iouReport.reportID, comment);
+    // STEP 3: Build optimistic receipt and transaction
+    const receiptObject = {};
+    if (receipt && receipt.source) {
+        receiptObject.source = receipt.source;
+        receiptObject.state = CONST.IOU.RECEIPT_STATE.SCANREADY;
+    }
+    const optimisticTransaction = TransactionUtils.buildOptimisticTransaction(amount, currency, iouReport.reportID, comment, '', '', undefined, receiptObject);
 
     // STEP 4: Build optimistic reportActions. We need:
     // 1. CREATED action for the chatReport
@@ -363,6 +383,7 @@ function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, part
         optimisticTransaction.transactionID,
         '',
         iouReport.reportID,
+        receiptObject,
     );
 
     // Add optimistic personal details for participant
@@ -379,9 +400,9 @@ function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, part
 
     let reportPreviewAction = isNewIOUReport ? null : ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID);
     if (reportPreviewAction) {
-        reportPreviewAction = ReportUtils.updateReportPreview(iouReport, reportPreviewAction);
+        reportPreviewAction = ReportUtils.updateReportPreview(iouReport, reportPreviewAction, comment);
     } else {
-        reportPreviewAction = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport);
+        reportPreviewAction = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport, comment);
     }
 
     // STEP 5: Build Onyx Data
@@ -414,6 +435,7 @@ function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, part
             createdChatReportActionID: isNewChatReport ? optimisticCreatedActionForChat.reportActionID : 0,
             createdIOUReportActionID: isNewIOUReport ? optimisticCreatedActionForIOU.reportActionID : 0,
             reportPreviewReportActionID: reportPreviewAction.reportActionID,
+            receipt,
         },
         {optimisticData, successData, failureData},
     );
@@ -821,7 +843,7 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
     let updatedIOUReport = null;
     let updatedReportPreviewAction = null;
     if (!shouldDeleteIOUReport) {
-        if (ReportUtils.isExpenseReport(iouReport.reportID)) {
+        if (ReportUtils.isExpenseReport(iouReport)) {
             updatedIOUReport = {...iouReport};
 
             // Because of the Expense reports are stored as negative values, we add the total from the amount
@@ -840,6 +862,9 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
         });
         updatedReportPreviewAction.message[0].text = messageText;
         updatedReportPreviewAction.message[0].html = messageText;
+        if (reportPreviewAction.childMoneyRequestCount > 0) {
+            updatedReportPreviewAction.childMoneyRequestCount = reportPreviewAction.childMoneyRequestCount - 1;
+        }
     }
 
     // STEP 5: Build Onyx data
@@ -1489,6 +1514,12 @@ function setMoneyRequestReceipt(receiptPath, receiptSource) {
     Onyx.merge(ONYXKEYS.IOU, {receiptPath, receiptSource});
 }
 
+function createEmptyTransaction() {
+    const transactionID = NumberUtils.rand64();
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {});
+    Onyx.merge(ONYXKEYS.IOU, {transactionID});
+}
+
 /**
  * Navigates to the next IOU page based on where the IOU request was started
  *
@@ -1542,5 +1573,6 @@ export {
     setMoneyRequestDescription,
     setMoneyRequestParticipants,
     setMoneyRequestReceipt,
+    createEmptyTransaction,
     navigateToNextPage,
 };
