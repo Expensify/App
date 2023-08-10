@@ -50,6 +50,16 @@ function PDFPasswordForm({isFocused, isPasswordInvalid, shouldShowLoadingIndicat
     const [shouldShowForm, setShouldShowForm] = useState(false);
     const textInputRef = useRef(null);
 
+    const errorText = (() => {
+        if (isPasswordInvalid) {
+            return translate('attachmentView.passwordIncorrect');
+        }
+        if (!_.isEmpty(validationErrorText)) {
+            return translate(validationErrorText);
+        }
+        return '';
+    })();
+
     useEffect(() => {
         if (!isFocused) {
             return;
@@ -59,16 +69,6 @@ function PDFPasswordForm({isFocused, isPasswordInvalid, shouldShowLoadingIndicat
         }
         textInputRef.current.focus();
     }, [isFocused]);
-
-    const getErrorText = () => {
-        if (isPasswordInvalid) {
-            return translate('attachmentView.passwordIncorrect');
-        }
-        if (!_.isEmpty(validationErrorText)) {
-            return translate(validationErrorText);
-        }
-        return '';
-    };
 
     const updatePassword = (newPassword) => {
         onPasswordUpdated(newPassword);
@@ -128,7 +128,7 @@ function PDFPasswordForm({isFocused, isPasswordInvalid, shouldShowLoadingIndicat
                         onChangeText={updatePassword}
                         returnKeyType="done"
                         onSubmitEditing={submitPassword}
-                        errorText={getErrorText()}
+                        errorText={errorText}
                         onFocus={() => onPasswordFieldFocused(true)}
                         onBlur={validateAndNotifyPasswordBlur}
                         autoFocus
