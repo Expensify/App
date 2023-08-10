@@ -12,9 +12,8 @@ import Form from '../../components/Form';
 import styles from '../../styles/styles';
 import compose from '../../libs/compose';
 import CONST from '../../CONST';
-import * as ValidationUtils from '../../libs/ValidationUtils';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import * as DistanceRequest from '../../libs/actions/DistanceRequest';
+import DistanceRequest from '../../libs/actions/DistanceRequest';
 import ROUTES from '../../ROUTES';
 
 
@@ -45,16 +44,24 @@ function WaypointEditor(props) {
     const validate = (values) => {
         const errors = {};
 
-        const waypointValue = values[`waypoint${waypointIndex}`];
-        if (!waypointValue || !ValidationUtils.isValidAddress(waypointValue)) {
+        // The address can only be empty (removes the value), or auto-selected which goes through the onPress method
+        // This basically only allows empty values to be saved
+        if (values[`waypoint${waypointIndex}`]) {
             errors[`waypoint${waypointIndex}`] = 'distance.errors.invalidAddress';
         }
 
         return errors;
     }
 
-    const onSubmit = (values) => {
+    const onSubmit = (values) => {    
+        // Allows letting you set a waypoint to an empty value
+        if (!values[`waypoint${waypointIndex}`]) {
+            DistanceRequest.saveWaypoint(transactionID, waypointIndex, null);
+        } else {
+            return;
+        }
 
+        Navigation.navigate(ROUTES.getMoneyRequestDistanceTabRoute('request'));
     }
 
     const onPress = (values) => {
