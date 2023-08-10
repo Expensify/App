@@ -136,7 +136,7 @@ function bindEventToChannel(channel, eventName, eventCallback = () => {}) {
         try {
             data = _.isObject(eventData) ? eventData : JSON.parse(eventData);
         } catch (err) {
-            Log.alert('[Pusher] Unable to parse JSON response from Pusher 1', {error: err, eventData});
+            Log.alert('[Pusher] Unable to parse single JSON event data from Pusher', {error: err, eventData});
             return;
         }
         if (data.id === undefined || data.chunk === undefined || data.final === undefined) {
@@ -168,10 +168,12 @@ function bindEventToChannel(channel, eventName, eventCallback = () => {}) {
             try {
                 eventCallback(JSON.parse(chunkedEvent.chunks.join('')));
             } catch (err) {
-                Log.alert('[Pusher] Unable to parse chunked JSON response from Pusher 2', {
+                Log.alert('[Pusher] Unable to parse chunked JSON response from Pusher', {
                     error: err,
                     eventData: chunkedEvent.chunks.join(''),
                 });
+
+                // Using console.error is helpful here because it will print a usable stack trace to the console to debug where the error comes from
                 console.error(err);
             }
 

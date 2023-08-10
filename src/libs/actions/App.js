@@ -259,7 +259,7 @@ Onyx.connect({
         // getMissingOnyxUpdates will fetch updates starting from the last update this client got and going to the last update the server sent.
         if (lastUpdateIDAppliedToClient && previousUpdateIDFromServer && lastUpdateIDAppliedToClient < previousUpdateIDFromServer) {
             console.debug('[OnyxUpdates] Gap detected in update IDs so fetching incremental updates');
-            Log.info('Gap detected in update IDs from Pusher so fetching incremental updates', true, {
+            Log.info('Gap detected in update IDs from server so fetching incremental updates', true, {
                 lastUpdateIDFromServer,
                 previousUpdateIDFromServer,
                 lastUpdateIDAppliedToClient,
