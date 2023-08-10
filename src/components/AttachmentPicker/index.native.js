@@ -290,7 +290,7 @@ function AttachmentPicker({ type, children, isSmallScreenWidth}) {
             {
                 icon: Expensicons.Paperclip,
                 textTranslationKey: 'attachmentPicker.chooseDocument',
-                pickAttachment: () => showDocumentPicker(),
+                pickAttachment: showDocumentPicker,
             },
         ]);
 
