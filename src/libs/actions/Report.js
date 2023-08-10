@@ -79,6 +79,7 @@ Onyx.connect({
 const allReports = {};
 let conciergeChatReportID;
 const typingWatchTimers = {};
+const leavingWatchTimers = {};
 
 /**
  * Get the private pusher channel name for a Report.
@@ -110,6 +111,28 @@ function getNormalizedTypingStatus(typingStatus) {
 
     return normalizedTypingStatus;
 }
+
+/**
+ * There are 2 possibilities that we can receive via pusher for a user's leaving status:
+ * 1. The "new" way from New Expensify is passed as {[login]: Boolean} (e.g. {yuwen@expensify.com: true}), where the value
+ * is whether the user with that login is leaving on the report or not.
+ * 2. The "old" way from e.com which is passed as {userLogin: login} (e.g. {userLogin: bstites@expensify.com})
+ *
+ * This method makes sure that no matter which we get, we return the "new" format
+ *
+ * @param {Object} leavingStatus
+ * @returns {Object}
+ */
+function getNormalizedLeavingStatus(leavingStatus) {
+    let normalizedLeavingStatus = leavingStatus;
+
+    if (_.first(_.keys(leavingStatus)) === 'userLogin') {
+        normalizedLeavingStatus = {[leavingStatus.userLogin]: true};
+    }
+
+    return normalizedLeavingStatus;
+}
+
 
 /**
  * Initialize our pusher subscriptions to listen for someone typing in a report.
@@ -159,6 +182,53 @@ function subscribeToReportTypingEvents(reportID) {
 }
 
 /**
+ * Initialize our pusher subscriptions to listen for someone typing in a report.
+ *
+ * @param {String} reportID
+ */
+function subscribeToReportLeavingEvents(reportID) {
+    if (!reportID) {
+        return;
+    }
+
+    // Make sure we have a clean Leaving indicator before subscribing to leaving events
+    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportID}`, {});
+
+    const pusherChannelName = getReportChannelName(reportID);
+    Pusher.subscribe(pusherChannelName, Pusher.TYPE.USER_IS_LEAVING_ROOM, (leavingStatus) => {
+        // If the pusher message comes from OldDot, we expect the leaving status to be keyed by user
+        // login OR by 'Concierge'. If the pusher message comes from NewDot, it is keyed by accountID
+        // since personal details are keyed by accountID.
+        const normalizedLeavingStatus = getNormalizedLeavingStatus(leavingStatus);
+        const accountIDOrLogin = _.first(_.keys(normalizedLeavingStatus));
+
+        if (!accountIDOrLogin) {
+            return;
+        }
+
+        // Don't show the leaving indicator if the user is leaving on another platform
+        if (Number(accountIDOrLogin) === currentUserAccountID) {
+            return;
+        }
+
+        // Use a combo of the reportID and the accountID or login as a key for holding our timers.
+        const reportUserIdentifier = `${reportID}-${accountIDOrLogin}`;
+        clearTimeout(leavingWatchTimers[reportUserIdentifier]);
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportID}`, normalizedLeavingStatus);
+
+        // Wait for 1.5s of no additional leaving events before setting the status back to false.
+        leavingWatchTimers[reportUserIdentifier] = setTimeout(() => {
+            const leavingStoppedStatus = {};
+            leavingStoppedStatus[accountIDOrLogin] = false;
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportID}`, leavingStoppedStatus);
+            delete leavingWatchTimers[reportUserIdentifier];
+        }, 1500);
+    }).catch((error) => {
+        Log.hmmm('[Report] Failed to initially subscribe to Pusher channel', false, {errorType: error.type, pusherChannelName});
+    });
+}
+
+/**
  * Remove our pusher subscriptions to listen for someone typing in a report.
  *
  * @param {String} reportID
@@ -172,6 +242,22 @@ function unsubscribeFromReportChannel(reportID) {
     Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, {});
     Pusher.unsubscribe(pusherChannelName, Pusher.TYPE.USER_IS_TYPING);
 }
+
+/**
+ * Remove our pusher subscriptions to listen for someone typing in a report.
+ *
+ * @param {String} reportID
+ */
+function unsubscribeFromLeavingRoomReportChannel(reportID) {
+    if (!reportID) {
+        return;
+    }
+
+    const pusherChannelName = getReportChannelName(reportID);
+    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportID}`, {});
+    Pusher.unsubscribe(pusherChannelName, Pusher.TYPE.USER_IS_LEAVING_ROOM);
+}
+
 
 // New action subscriber array for report pages
 let newActionSubscribers = [];
@@ -837,6 +923,17 @@ function broadcastUserIsTyping(reportID) {
     const typingStatus = {};
     typingStatus[currentUserAccountID] = true;
     Pusher.sendEvent(privateReportChannelName, Pusher.TYPE.USER_IS_TYPING, typingStatus);
+}
+/**
+ * Broadcasts whether or not a user is typing on a report over the report's private pusher channel.
+ *
+ * @param {String} reportID
+ */
+function broadcastUserIsLeavingRoom(reportID) {
+    const privateReportChannelName = getReportChannelName(reportID);
+    const leavingStatus = {};
+    leavingStatus[currentUserAccountID] = true;
+    Pusher.sendEvent(privateReportChannelName, Pusher.TYPE.USER_IS_LEAVING_ROOM, leavingStatus);
 }
 
 /**
@@ -1763,6 +1860,7 @@ function leaveRoom(reportID) {
             ],
         },
     );
+    broadcastUserIsLeavingRoom()
     navigateToConciergeChat();
 }
 
@@ -1878,10 +1976,13 @@ export {
     updateWriteCapabilityAndNavigate,
     updateNotificationPreferenceAndNavigate,
     subscribeToReportTypingEvents,
+    subscribeToReportLeavingEvents,
     unsubscribeFromReportChannel,
+    unsubscribeFromLeavingRoomReportChannel,
     saveReportComment,
     saveReportCommentNumberOfLines,
     broadcastUserIsTyping,
+    broadcastUserIsLeavingRoom,
     togglePinnedState,
     editReportComment,
     handleUserDeletedLinksInHtml,

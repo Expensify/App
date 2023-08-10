@@ -83,6 +83,8 @@ const propTypes = {
     /** All of the personal details for everyone */
     personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
+    userLeavingStatuses: PropTypes.bool,
+
     ...windowDimensionsPropTypes,
     ...viewportOffsetTopPropTypes,
 };
@@ -98,6 +100,7 @@ const defaultProps = {
     betas: [],
     policies: {},
     accountManagerReportID: null,
+    userLeavingStatuses: false,
     personalDetails: {},
 };
 
@@ -125,6 +128,7 @@ class ReportScreen extends React.Component {
         this.onSubmitComment = this.onSubmitComment.bind(this);
         this.chatWithAccountManager = this.chatWithAccountManager.bind(this);
         this.dismissBanner = this.dismissBanner.bind(this);
+        this.checkAndSubscribe = this.checkAndSubscribe.bind(this);
 
         this.state = {
             skeletonViewContainerHeight: reportActionsListViewHeight,
@@ -135,6 +139,8 @@ class ReportScreen extends React.Component {
 
         this.flatListRef = React.createRef();
         this.reactionListRef = React.createRef();
+
+        this.didSubscribeToReportLeavingEvents = React.createRef();
     }
 
     componentDidMount() {
@@ -152,13 +158,38 @@ class ReportScreen extends React.Component {
 
         this.fetchReportIfNeeded();
         ComposerActions.setShouldShowComposeInput(true);
+        this.checkAndSubscribe();
     }
 
     componentDidUpdate(prevProps) {
+
+        console.log('[debug] userLeavingStatuses', this.props.userLeavingStatuses)
         // If composer should be hidden, hide emoji picker as well
         if (ReportUtils.shouldHideComposer(this.props.report)) {
             EmojiPickerAction.hideEmojiPicker(true);
         }
+
+        // const onyxReportID = this.props.report.reportID;
+        // const prevOnyxReportID = prevProps.report.reportID;
+        // const routeReportID = getReportID(this.props.route);
+
+        // // navigate to concierge when the room removed from another device (e.g. user leaving a room)
+        // // the report will not really null when removed, it will have defaultProps properties and values
+        // if (
+        //     prevOnyxReportID &&
+        //     prevOnyxReportID === routeReportID &&
+        //     !onyxReportID &&
+        //     // non-optimistic case
+        //     (_.isEqual(this.props.report, defaultProps.report) ||
+        //         // optimistic case
+        //         (prevProps.report.statusNum === CONST.REPORT.STATUS.OPEN && this.props.report.statusNum === CONST.REPORT.STATUS.CLOSED))
+        // ) {
+        //     // Navigation.goBack();
+        //     // Report.navigateToConciergeChat();
+        //     // // isReportRemoved will prevent <FullPageNotFoundView> showing when navigating
+        //     // this.setState({isReportRemoved: true});
+        //     return;
+        // }
 
         // If you already have a report open and are deeplinking to a new report on native,
         // the ReportScreen never actually unmounts and the reportID in the route also doesn't change.
@@ -172,9 +203,13 @@ class ReportScreen extends React.Component {
 
         this.fetchReportIfNeeded();
         ComposerActions.setShouldShowComposeInput(true);
+        this.checkAndSubscribe();
     }
 
     componentWillUnmount() {
+        if(this.didSubscribeToReportLeavingEvents){
+            Report.unsubscribeFromLeavingRoomReportChannel(this.props.report.reportID);
+        }
         if (!this.unsubscribeVisibilityListener) {
             return;
         }
@@ -226,6 +261,17 @@ class ReportScreen extends React.Component {
 
     chatWithAccountManager() {
         Navigation.navigate(ROUTES.getReportRoute(this.props.accountManagerReportID));
+    }
+
+    checkAndSubscribe() {
+        const { report, reportID } = this.props;
+
+        const didCreateReportSuccessfully = !report.pendingFields || (!report.pendingFields.addWorkspaceRoom && !report.pendingFields.createChat);
+
+        if (!this.didSubscribeToReportLeavingEvents.current && didCreateReportSuccessfully) {
+            Report.subscribeToReportLeavingEvents(reportID);
+            this.didSubscribeToReportLeavingEvents.current = true;
+        }
     }
 
     render() {
@@ -425,6 +471,9 @@ export default compose(
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+        },
+        userLeavingStatuses: {
+            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportID}`,
         },
     }),
 )(ReportScreen);
