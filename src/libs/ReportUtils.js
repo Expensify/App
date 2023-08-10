@@ -334,6 +334,17 @@ function isUserCreatedPolicyRoom(report) {
 }
 
 /**
+ * Get the policy type from a given report
+ * @param {Object} report
+ * @param {String} report.policyID
+ * @param {Object} policies must have Onyxkey prefix (i.e 'policy_') for keys
+ * @returns {String}
+ */
+function getPolicyType(report, policies) {
+    return lodashGet(policies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'type'], '');
+}
+
+/**
  * Whether the provided report is a Policy Expense chat.
  * @param {Object} report
  * @param {String} report.chatType
@@ -389,17 +400,6 @@ function isPublicRoom(report) {
 function isPublicAnnounceRoom(report) {
     const visibility = lodashGet(report, 'visibility', '');
     return visibility === CONST.REPORT.VISIBILITY.PUBLIC_ANNOUNCE;
-}
-
-/**
- * Get the policy type from a given report
- * @param {Object} report
- * @param {String} report.policyID
- * @param {Object} policies must have Onyxkey prefix (i.e 'policy_') for keys
- * @returns {String}
- */
-function getPolicyType(report, policies) {
-    return lodashGet(policies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'type'], '');
 }
 
 /**
@@ -1799,6 +1799,7 @@ function getIOUReportActionMessage(type, total, comment, currency, paymentType =
  * @param {Boolean} [isSettlingUp] - Whether we are settling up an IOU.
  * @param {Boolean} [isSendMoneyFlow] - Whether this is send money flow
  * @param {Object} [receipt]
+ * @param {Boolean} [isOwnPolicyExpenseChat] - Whether this is an expense report create from the current user's policy expense chat
  * @returns {Object}
  */
 function buildOptimisticIOUReportAction(
@@ -1813,7 +1814,7 @@ function buildOptimisticIOUReportAction(
     isSettlingUp = false,
     isSendMoneyFlow = false,
     receipt = {},
-    isPolicyExpenseChat = false,
+    isOwnPolicyExpenseChat = false,
 ) {
     const IOUReportID = iouReportID || generateReportID();
 
@@ -1837,7 +1838,7 @@ function buildOptimisticIOUReportAction(
 
     // IOUs of type split only exist in group DMs and those don't have an iouReport so we need to delete the IOUReportID key
     if (type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT) {
-        if (isPolicyExpenseChat) {
+        if (isOwnPolicyExpenseChat) {
             originalMessage.participantAccountIDs = [currentUserAccountID];
         } else {
             delete originalMessage.IOUReportID;
@@ -2960,6 +2961,8 @@ export {
     formatReportLastMessageText,
     chatIncludesConcierge,
     isPolicyExpenseChat,
+    isControlPolicyExpenseChat,
+    isControlPolicyExpenseReport,
     getIconsForParticipants,
     getIcons,
     getRoomWelcomeMessage,
