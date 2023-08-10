@@ -138,6 +138,15 @@ function MagicCodeInput(props) {
     useNetwork({onReconnect: () => validateAndSubmit(props.value)});
 
     useEffect(() => {
+        if (!props.hasError) {
+            return;
+        }
+        
+        // Focus the last input if an error occurred to allow for corrections
+        inputRefs.current[props.maxLength - 1].focus();
+    }, [props.hasError, props.maxLength]);
+
+    useEffect(() => {
         validateAndSubmit(props.value);
 
         // We have not added:
