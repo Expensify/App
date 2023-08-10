@@ -1,36 +1,44 @@
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
-import LottieAnimations from '@components/LottieAnimations';
-import Text from '@components/Text';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
-import useLocalize from '@hooks/useLocalize';
-import compose from '@libs/compose';
+import _ from 'underscore';
+import PropTypes from 'prop-types';
+import withCurrentUserPersonalDetails, { withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes } from '@components/withCurrentUserPersonalDetails';
 import Navigation from '@libs/Navigation/Navigation';
-import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
-import userPropTypes from '@pages/settings/userPropTypes';
-import useThemeStyles from '@styles/useThemeStyles';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import * as Illustrations from '@components/Icon/Illustrations';
+import ONYXKEYS from '@src/ONYXKEYS';
+import userPropTypes from '@pages/settings/userPropTypes';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import useLocalize from '@hooks/useLocalize';
+import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
+import * as LottieAnimations from '@components/LottieAnimations';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import { styles } from '@styles/styles';
+import compose from '@libs/compose';
 
 const propTypes = {
     /** Current user details, which will hold whether or not they have Lounge Access */
     user: userPropTypes,
-
+    isLoadingReportData: PropTypes.bool,
     ...withCurrentUserPersonalDetailsPropTypes,
 };
 
 const defaultProps = {
     user: {},
+    isLoadingReportData: true,
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
+
 function LoungeAccessPage(props) {
-    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
+    if (props.isLoadingReportData && _.isEmpty(props.user)) {
+        return <FullScreenLoadingIndicator />;
+    }
+
     if (!props.user.hasLoungeAccess) {
-        return <NotFoundPage />;
+        return <FullPageNotFoundView shouldShow />;
     }
 
     return (
