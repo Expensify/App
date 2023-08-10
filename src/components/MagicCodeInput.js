@@ -141,7 +141,7 @@ function MagicCodeInput(props) {
         if (!props.hasError) {
             return;
         }
-        
+
         // Focus the last input if an error occurred to allow for corrections
         inputRefs.current[props.maxLength - 1].focus();
     }, [props.hasError, props.maxLength]);
