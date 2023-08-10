@@ -3,7 +3,6 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
 import * as Session from '../../../libs/actions/Session';
-import CONST from '../../../CONST';
 import CONFIG from '../../../CONFIG';
 import styles from '../../../styles/styles';
 
