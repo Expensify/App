@@ -6,6 +6,9 @@ const propTypes = {
 
     /** Should the component be visible? */
     isVisible: PropTypes.bool.isRequired,
+
+    /** Function used to scroll to the top of the page */    
+    scrollPageToTop: PropTypes.func,
 };
 
 const defaultProps = {
