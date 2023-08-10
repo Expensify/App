@@ -1,4 +1,3 @@
-/* eslint-disable react/require-default-props */
 import React, {useState, useRef, useEffect, useCallback, useMemo} from 'react';
 import {StyleSheet, View} from 'react-native';
 import PropTypes from 'prop-types';
@@ -85,6 +84,30 @@ const propTypes = {
     ...windowDimensionsPropTypes,
 };
 
+const defaultProps = {
+    defaultValue: undefined,
+    value: undefined,
+    numberOfLines: undefined,
+    onNumberOfLinesChange: () => {},
+    maxLines: -1,
+    onPasteFile: () => {},
+    shouldClear: false,
+    onClear: () => {},
+    style: null,
+    isDisabled: false,
+    autoFocus: false,
+    forwardedRef: null,
+    onSelectionChange: () => {},
+    selection: {
+        start: 0,
+        end: 0,
+    },
+    isFullComposerAvailable: false,
+    setIsFullComposerAvailable: () => {},
+    shouldCalculateCaretPosition: false,
+    checkComposerVisibility: () => false,
+};
+
 /**
  * Retrieves the characters from the specified cursor position up to the next space or new line.
  *
@@ -111,27 +134,27 @@ const getNextChars = (str, cursorPos) => {
 // Enable Markdown parsing.
 // On web we like to have the Text Input field always focused so the user can easily type a new chat
 function Composer({
-    value = undefined,
-    defaultValue = undefined,
-    maxLines = -1,
+    value,
+    defaultValue,
+    maxLines,
     onKeyPress,
-    style = null,
-    shouldClear = false,
-    autoFocus = false,
+    style,
+    shouldClear,
+    autoFocus,
     translate,
-    isFullComposerAvailable = false,
-    shouldCalculateCaretPosition = false,
-    numberOfLines: numberOfLinesProp = undefined,
-    isDisabled = false,
-    forwardedRef = null,
+    isFullComposerAvailable,
+    shouldCalculateCaretPosition,
+    numberOfLines: numberOfLinesProp,
+    isDisabled,
+    forwardedRef,
     navigation,
-    onClear = () => {},
-    onPasteFile = () => {},
-    onSelectionChange = () => {},
-    onNumberOfLinesChange = () => {},
-    setIsFullComposerAvailable = () => {},
-    checkComposerVisibility = () => false,
-    selection: selectionProp = {start: 0, end: 0},
+    onClear,
+    onPasteFile,
+    onSelectionChange,
+    onNumberOfLinesChange,
+    setIsFullComposerAvailable,
+    checkComposerVisibility,
+    selection: selectionProp,
     ...props
 }) {
     const textRef = useRef(null);
@@ -397,9 +420,9 @@ function Composer({
             // We are hiding the scrollbar to prevent it from reducing the text input width,
             // so we can get the correct scroll height while calculating the number of lines.
             numberOfLines < maxLines ? styles.overflowHidden : {},
-            StyleUtils.getComposeTextAreaPadding(numberOfLinesProp),
 
             StyleSheet.flatten([style, {outline: 'none'}]),
+            StyleUtils.getComposeTextAreaPadding(numberOfLinesProp),
         ],
         [style, maxLines, numberOfLinesProp, numberOfLines],
     );
@@ -430,6 +453,7 @@ function Composer({
 }
 
 Composer.propTypes = propTypes;
+Composer.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
