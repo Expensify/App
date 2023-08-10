@@ -459,7 +459,7 @@ function isConciergeChatReport(report) {
 function shouldDisableDetailPage(report) {
     const participantAccountIDs = lodashGet(report, 'participantAccountIDs', []);
 
-    if (isChatRoom(report) || isPolicyExpenseChat(report) || isChatThread(report)) {
+    if (isChatRoom(report) || isPolicyExpenseChat(report) || isChatThread(report) || isTaskReport(report)) {
         return false;
     }
     if (participantAccountIDs.length === 1) {
@@ -2208,6 +2208,7 @@ function buildOptimisticTaskReport(ownerAccountID, assigneeAccountID = 0, parent
         reportName: title,
         description,
         ownerAccountID,
+        participantAccountIDs: ownerAccountID === assigneeAccountID ? [] : [assigneeAccountID],
         managerID: assigneeAccountID,
         type: CONST.REPORT.TYPE.TASK,
         parentReportID,
