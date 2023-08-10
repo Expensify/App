@@ -84,7 +84,6 @@ function OptionRowLHNData({
     const isFocused = !shouldDisableFocusOptions && currentReportID === reportID;
 
     const policy = lodashGet(policies, [`${ONYXKEYS.COLLECTION.POLICY}${fullReport.policyID}`], '');
-
     const parentReportAction = parentReportActions[fullReport.parentReportActionID];
 
     const optionItemRef = useRef();
@@ -187,7 +186,13 @@ export default React.memo(
             },
         }),
     )(OptionRowLHNData),
-    (prevProps, nextProps) =>
-        lodashGet(prevProps.props, 'parentReportActions', '0', 'fullReport.parentReportActionID') ===
-        lodashGet(nextProps.props, 'parentReportActions', '0', 'fullReport.parentReportActionID'),
+    (prevProps, nextProps) => {
+        if (
+            lodashGet(prevProps.props, 'parentReportActions', '0', 'fullReport.parentReportActionID') ===
+            lodashGet(nextProps.props, 'parentReportActions', '0', 'fullReport.parentReportActionID')
+        ) {
+            return true;
+        }
+        return _.isEqual(prevProps, nextProps);
+    },
 );
