@@ -49,9 +49,6 @@ const propTypes = {
     /** medium sized button */
     medium: PropTypes.bool,
 
-    /** Center the text and the icon */
-    centered: PropTypes.bool,
-
     /** Indicates whether the button should be disabled and in the loading state */
     isLoading: PropTypes.bool,
 
@@ -99,9 +96,6 @@ const propTypes = {
     /** Whether we should use the danger theme color */
     danger: PropTypes.bool,
 
-    /** Whether the background of the button should be transparent */
-    transparent: PropTypes.bool,
-
     /** Children to replace all inner contents of button */
     children: PropTypes.node,
 
@@ -141,7 +135,6 @@ const defaultProps = {
     small: false,
     large: false,
     medium: false,
-    centered: false,
     onPress: () => {},
     onLongPress: () => {},
     onPressIn: () => {},
@@ -155,7 +148,6 @@ const defaultProps = {
     shouldUseDefaultHover: false,
     success: false,
     danger: false,
-    transparent: false,
     children: null,
     shouldRemoveRightBorderRadius: false,
     shouldRemoveLeftBorderRadius: false,
@@ -233,7 +225,7 @@ class Button extends Component {
 
         if (this.props.icon || this.props.shouldShowRightIcon) {
             return (
-                <View style={[styles.justifyContentBetween, styles.flexRow, this.props.centered && styles.justifyContentCenter]}>
+                <View style={[styles.justifyContentBetween, styles.flexRow]}>
                     <View style={[styles.alignItemsCenter, styles.flexRow, styles.flexShrink1]}>
                         {this.props.icon && (
                             <View style={[styles.mr1, ...this.props.iconStyles]}>
@@ -300,7 +292,6 @@ class Button extends Component {
                     this.props.large ? styles.buttonLarge : undefined,
                     this.props.success ? styles.buttonSuccess : undefined,
                     this.props.danger ? styles.buttonDanger : undefined,
-                    this.props.transparent ? styles.buttonTransparent : undefined,
                     this.props.isDisabled && (this.props.success || this.props.danger) ? styles.buttonOpacityDisabled : undefined,
                     this.props.isDisabled && !this.props.danger && !this.props.success ? styles.buttonDisabled : undefined,
                     this.props.shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,
