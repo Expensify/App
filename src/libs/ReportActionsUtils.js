@@ -657,4 +657,5 @@ export {
     getReportAction,
     getReportPreviewTransactions,
     hasReadyMoneyRequests,
+    getTransaction,
 };

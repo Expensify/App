@@ -2643,13 +2643,26 @@ const styles = {
     moneyRequestPreviewBox: {
         backgroundColor: themeColors.cardBG,
         borderRadius: variables.componentBorderRadiusLarge,
-        padding: 16,
         maxWidth: variables.sideBarWidth,
         width: '100%',
     },
 
+    moneyRequestPreviewReceipt: {
+        borderWidth: 2,
+        borderColor: themeColors.cardBG,
+        borderTopLeftRadius: variables.componentBorderRadiusLarge,
+        borderTopRightRadius: variables.componentBorderRadiusLarge,
+        overflow: 'hidden',
+        height: 200,
+    },
+
+    moneyRequestPreviewBoxText: {
+        padding: 16,
+    },
+
     moneyRequestPreviewBoxHover: {
         backgroundColor: themeColors.border,
+        borderColor: themeColors.border,
     },
 
     moneyRequestPreviewBoxLoading: {
@@ -3653,7 +3666,7 @@ const styles = {
         width: '100%',
     },
 
-    reportPreviewBoxImages: {
+    reportPreviewBoxReceipts: {
         flexDirection: 'row',
         borderWidth: 2,
         borderColor: themeColors.cardBG,
@@ -3663,7 +3676,7 @@ const styles = {
         height: 200,
     },
 
-    reportPreviewBoxImage: {
+    reportPreviewBoxReceipt: {
         borderWidth: 1,
         borderColor: themeColors.cardBG,
         flex: 1,

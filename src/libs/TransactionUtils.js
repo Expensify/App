@@ -48,7 +48,7 @@ function buildOptimisticTransaction(amount, currency, reportID, comment = '', so
  * @returns {Boolean}
  */
 function hasReceipt(transaction) {
-    return _.has(transaction, 'receipt');
+    return !_.isEmpty(transaction.receipt);
 }
 
 export {

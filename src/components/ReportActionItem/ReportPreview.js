@@ -103,7 +103,7 @@ function ReportPreview(props) {
 
     const iouSettled = ReportUtils.isSettled(props.iouReportID);
     const receipts = ReportActionUtils.getReportPreviewTransactions(props.action);
-    const isScanning = _.some(receipts, ({receipt}) => ReceiptUtils.isBeingScanned(receipt));
+    const isScanning = !ReportActionUtils.hasReadyMoneyRequests(props.action);
 
     let displayAmount;
     if (reportTotal) {
@@ -148,7 +148,7 @@ function ReportPreview(props) {
                 accessibilityLabel={props.translate('iou.viewDetails')}
             >
                 <View style={[styles.reportPreviewBox, props.isHovered || isScanning ? styles.moneyRequestPreviewBoxHover : undefined]}>
-                    <View style={[styles.reportPreviewBoxImages, props.isHovered || isScanning ? styles.reportPreviewBoxHoverBorder : undefined]}>
+                    <View style={[styles.reportPreviewBoxReceipts, props.isHovered || isScanning ? styles.reportPreviewBoxHoverBorder : undefined]}>
                         {_.map(receipts, ({receipt, filename, transactionID}) => {
                             const uri = ReceiptUtils.getImageURI(receipt.source, filename);
                             const hasNoFallback = uri === receipt.source;
@@ -156,7 +156,7 @@ function ReportPreview(props) {
                             return (
                                 <View
                                     key={transactionID}
-                                    style={[styles.reportPreviewBoxImage, props.isHovered || isScanning ? styles.reportPreviewBoxHoverBorder : undefined]}
+                                    style={[styles.reportPreviewBoxReceipt, props.isHovered || isScanning ? styles.reportPreviewBoxHoverBorder : undefined]}
                                 >
                                     {hasNoFallback
                                         ? <RenderHTML html={`
