@@ -330,16 +330,24 @@ label {
     font-weight: bold;
 }
 
+/* Change the Google Search Button icon into Expensify icon button */
 .gsc-search-button.gsc-search-button-v2 {
     width: auto;
-    padding: 10px 20px;
-    padding-bottom: 20px;
-    margin: 0;
-    border-radius: 0;
-    border-top-right-radius: 8px;
-    border-bottom-right-radius: 8px;
-    background-color: transparent;
+    padding: 10px;
+    margin-top: -7px;
+    margin-left: 15px;
+    margin-right: 20px;
+    border-radius: 25px;
+    background-color: $color-green400;
     cursor: pointer;
+}
+
+.gsc-search-button.gsc-search-button-v2:hover {
+    background-color: rgb(0, 168, 98);
+}
+
+.gsc-search-button.gsc-search-button-v2 svg {
+    fill: white;
 }
 
 /* Change the path of the Google Search Button icon into Expensify icon */
