@@ -241,7 +241,6 @@ function addActions(reportID, text = '', file) {
     const lastAction = attachmentAction || reportCommentAction;
 
     const currentTime = DateUtils.getDBTime();
-    console.log("currentTime<>----", currentTime);
 
     const lastCommentText = ReportUtils.formatReportLastMessageText(lastAction.message[0].text);
 
@@ -385,15 +384,14 @@ function addComment(reportID, text) {
  * @param {Boolean} isFromDeepLink Whether or not this report is being opened from a deep link
  * @param {Array} participantAccountIDList The list of accountIDs that are included in a new chat, not including the user creating it
  */
-function openReport(reportID, participantLoginList = [], newReportObject = {}, parentReportActionID = '0', isFromDeepLink = false, participantAccountIDList = [], lastReadTime = DateUtils.getDBTime()) {
-    // console.log("lastReadTime --- ", lastReadTime)
+function openReport(reportID, participantLoginList = [], newReportObject = {}, parentReportActionID = '0', isFromDeepLink = false, participantAccountIDList = []) {
     const optimisticReportData = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
         value: {
             isLoadingReportActions: true,
             isLoadingMoreReportActions: false,
-            lastReadTime: lastReadTime,
+            lastReadTime: DateUtils.getDBTime(),
         },
     };
     const reportSuccessData = {
@@ -1873,7 +1871,8 @@ function flagComment(reportID, reportAction, severity) {
 }
 
 /**
- * Saves the draft for a comment report action. This will put the comment into "edit mode"
+ * Saves the current selection for a comment report action.
+ * This will put the cursor to the right position in "edit mode"
  *
  * @param {String} reportID
  * @param {Number} reportActionID

@@ -124,6 +124,7 @@ const defaultProps = {
 function ReportActionItem(props) {
     const [isContextMenuActive, setIsContextMenuActive] = useState(ReportActionContextMenu.isActiveReportAction(props.action.reportActionID));
     const [isHidden, setIsHidden] = useState(false);
+    const [isEditEnabled, setIsEditEnabled] = useState(false);
     const [moderationDecision, setModerationDecision] = useState(CONST.MODERATION.MODERATOR_DECISION_APPROVED);
     const textInputRef = useRef();
     const popoverAnchorRef = useRef();
@@ -150,8 +151,10 @@ function ReportActionItem(props) {
         if (isDraftEmpty) {
             return;
         }
-
-        focusTextInputAfterAnimation(textInputRef.current, 100);
+        setTimeout(() => {
+            setIsEditEnabled(true);
+            focusTextInputAfterAnimation(textInputRef.current, 100);
+        }, 10);
     }, [isDraftEmpty]);
 
     useEffect(() => {
@@ -353,20 +356,22 @@ function ReportActionItem(props) {
                             )}
                         </View>
                     ) : (
-                        <ReportActionItemMessageEdit
-                            action={props.action}
-                            draftMessage={props.draftMessage}
-                            selection={props.selection}
-                            reportID={props.report.reportID}
-                            index={props.index}
-                            ref={textInputRef}
-                            report={props.report}
-                            // Avoid defining within component due to an existing Onyx bug
-                            preferredSkinTone={props.preferredSkinTone}
-                            shouldDisableEmojiPicker={
-                                (ReportUtils.chatIncludesConcierge(props.report) && User.isBlockedFromConcierge(props.blockedFromConcierge)) || ReportUtils.isArchivedRoom(props.report)
-                            }
-                        />
+                        isEditEnabled && (
+                            <ReportActionItemMessageEdit
+                                action={props.action}
+                                draftMessage={props.draftMessage}
+                                selection={props.selection}
+                                reportID={props.report.reportID}
+                                index={props.index}
+                                ref={textInputRef}
+                                report={props.report}
+                                // Avoid defining within component due to an existing Onyx bug
+                                preferredSkinTone={props.preferredSkinTone}
+                                shouldDisableEmojiPicker={
+                                    (ReportUtils.chatIncludesConcierge(props.report) && User.isBlockedFromConcierge(props.blockedFromConcierge)) || ReportUtils.isArchivedRoom(props.report)
+                                }
+                            />
+                        )
                     )}
                 </ShowContextMenuContext.Provider>
             );
@@ -596,7 +601,7 @@ export default compose(
             return lodashGet(drafts, draftKey, '');
         },
     }),
-    withReportActionsSelection({ 
+    withReportActionsSelection({
         propName: 'selection',
         transformValue: (selection, props) => {
             const selectionKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_SELECTION}${props.report.reportID}_${props.action.reportActionID}`;
