@@ -27,7 +27,16 @@ const defaultProps = {
     onTabPress: () => {},
 };
 
-const getIcon = (route) => (route === CONST.TAB.MANUAL ? Expensicons.Pencil : Expensicons.Receipt);
+const getIcon = (route) => {
+    switch (route) {
+        case CONST.TAB.SCAN:
+            return Expensicons.Receipt;
+        case CONST.TAB.DISTANCE:
+            return Expensicons.Car;
+        default:
+            return Expensicons.Pencil;
+    }
+};
 
 function TabSelector({state, navigation, onTabPress}) {
     const {translate} = useLocalize();
