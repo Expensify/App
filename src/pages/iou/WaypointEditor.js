@@ -14,22 +14,32 @@ import compose from '../../libs/compose';
 import CONST from '../../CONST';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import DistanceRequest from '../../libs/actions/DistanceRequest';
+import * as ValidationUtils from '../libs/ValidationUtils';
 import ROUTES from '../../ROUTES';
+import {withNetwork} from '../../components/OnyxProvider';
+import networkPropTypes from '../../components/networkPropTypes';
 
 
 const propTypes = {
     route: PropTypes.shape({
         params: PropTypes.shape({
+            iouType: PropTypes.string,
             waypointIndex: PropTypes.string,
             transactionID: PropTypes.string,
         }),
     }),
+    
+    /** Information about the network */
+    network: networkPropTypes.isRequired,
+
     ...withLocalizePropTypes,
+    
 };
 
 const defaultProps = {
     route: {
         params: {
+            iouType: '',
             waypointIndex: '',
             transactionID: '',
         },
@@ -37,17 +47,23 @@ const defaultProps = {
 };
 
 function WaypointEditor(props) {
-    const waypointIndex = lodashGet(props.route.params, 'waypointIndex', '');
-    const transactionID = lodashGet(props.route.params, 'transactionID', '');
-
+    const waypointIndex = lodashGet(props.route.params, 'waypointIndex');
+    const transactionID = lodashGet(props.route.params, 'transactionID');
+    const iouType = lodashGet(props.route.params, 'iouType');
 
     const validate = (values) => {
         const errors = {};
 
         // The address can only be empty (removes the value), or auto-selected which goes through the onPress method
-        // This basically only allows empty values to be saved
-        if (values[`waypoint${waypointIndex}`]) {
-            errors[`waypoint${waypointIndex}`] = 'distance.errors.invalidAddress';
+        const waypointValue = values[`waypoint${waypointIndex}`];
+        if (!props.network.isOffline && waypointValue) {
+            errors[`waypoint${waypointIndex}`] = 'distance.errors.selectSuggestedAddress';
+        }
+
+        // When the user is offline, we can't use auto-complete to validate the address
+        // So we're going to save the waypoint as just the address, and the lat/long will be filled in on the backend
+        if (props.network.isOffline && waypointValue && ValidationUtils.isValidAddress(waypointValue)) {
+            errors[`waypoint${waypointIndex}`] = 'distance.errors.enterValidAddress';
         }
 
         return errors;
@@ -57,11 +73,19 @@ function WaypointEditor(props) {
         // Allows letting you set a waypoint to an empty value
         if (!values[`waypoint${waypointIndex}`]) {
             DistanceRequest.saveWaypoint(transactionID, waypointIndex, null);
-        } else {
-            return;
         }
 
-        Navigation.navigate(ROUTES.getMoneyRequestDistanceTabRoute('request'));
+        // While the user is offline, the auto-complete address search will not work
+        // Therefore, we're going to save the waypoint as just the address, and the lat/long will be filled in on the backend
+        if (props.network.isOffline && values[`waypoint${waypointIndex}`]) {
+            const waypoint = {
+                address: values[`waypoint${waypointIndex}`],
+            }
+
+            DistanceRequest.saveWaypoint(transactionID, waypointIndex, waypoint);
+        }
+
+        Navigation.navigate(ROUTES.getMoneyRequestDistanceTabRoute(iouType));
     }
 
     const onPress = (values) => {
@@ -72,7 +96,7 @@ function WaypointEditor(props) {
         }
 
         DistanceRequest.saveWaypoint(transactionID, waypointIndex, waypoint);
-        Navigation.navigate(ROUTES.getMoneyRequestDistanceTabRoute('request'));
+        Navigation.navigate(ROUTES.getMoneyRequestDistanceTabRoute(iouType));
     }
 
     return (
@@ -125,6 +149,7 @@ WaypointEditor.propTypes = propTypes;
 WaypointEditor.defaultProps = defaultProps;
 export default compose(
     withLocalize,
+    withNetwork(),
     withOnyx({
 
     }),

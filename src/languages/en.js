@@ -1572,7 +1572,8 @@ export default {
             stop: 'Stop',
         },
         errors: {
-            invalidAddress: 'Please select a suggested address',
+            enterValidAddress: 'Please enter a valid address',
+            selectSuggestedAddress: 'Please select a suggested address',
         }
     },
     countrySelectorModal: {
