@@ -56,11 +56,11 @@ function EditRequestPage({report, route}) {
                 defaultDescription={transactionDescription}
                 onSubmit={(transactionChanges) => {
                     // In case the comment hasn't been changed, do not make the API request.
-                    if (transactionChanges.comment === transactionDescription) {
+                    if (transactionChanges.comment.trim() === transactionDescription) {
                         Navigation.dismissModal();
                         return;
                     }
-                    editMoneyRequest(transactionChanges);
+                    editMoneyRequest({comment: transactionChanges.comment.trim()});
                 }}
             />
         );
