@@ -238,11 +238,6 @@ Onyx.connect({
     callback: (val) => (lastUpdateIDAppliedToClient = val),
 });
 
-// This object is stored in Onyx and the callback is triggered anytime new update IDs are received either from Pusher or from HTTPs (it was the only way to keep the code DRY and to prevent circular dependencies)
-const onyxUpdates = {
-    lastUpdateIDFromServer: 0,
-    previousUpdateIDFromServer: 0,
-};
 Onyx.connect({
     key: ONYXKEYS.ONYX_UPDATES,
     callback: (val) => {
@@ -267,12 +262,10 @@ Onyx.connect({
             getMissingOnyxUpdates(lastUpdateIDAppliedToClient, lastUpdateIDFromServer);
         }
 
-        // Update the local values to be the same as the values stored in Onyx
-        onyxUpdates.lastUpdateIDFromServer = lastUpdateIDFromServer || 0;
-        onyxUpdates.previousUpdateIDFromServer = previousUpdateIDFromServer || 0;
-
-        // Update this value so that it matches what was just received from the server
-        Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, lastUpdateIDFromServer || 0);
+        if (lastUpdateIDFromServer > lastUpdateIDAppliedToClient) {
+            // Update this value so that it matches what was just received from the server
+            Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, lastUpdateIDFromServer || 0);
+        }
     },
 });
 
