@@ -83,30 +83,30 @@ const INPUT_IDS = {
         zipCode: 'addressZip',
     },
 };
+const errorTranslationKeys = {
+    legalFirstName: 'bankAccount.error.firstName',
+    legalLastName: 'bankAccount.error.lastName',
+    phoneNumber: 'bankAccount.error.phoneNumber',
+    dob: 'bankAccount.error.dob',
+    age: 'bankAccount.error.age',
+    ssn: 'bankAccount.error.ssnLast4',
+    ssnFull9: 'additionalDetailsStep.ssnFull9Error',
+};
+
+const fieldNameTranslationKeys = {
+    legalFirstName: 'additionalDetailsStep.legalFirstNameLabel',
+    legalLastName: 'additionalDetailsStep.legalLastNameLabel',
+    addressStreet: 'common.personalAddress',
+    phoneNumber: 'common.phoneNumber',
+    dob: 'common.dob',
+    ssn: 'common.ssnLast4',
+    ssnFull9: 'common.ssnFull9',
+};
 
 function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserPersonalDetails}) {
-    const errorTranslationKeys = {
-        legalFirstName: 'bankAccount.error.firstName',
-        legalLastName: 'bankAccount.error.lastName',
-        phoneNumber: 'bankAccount.error.phoneNumber',
-        dob: 'bankAccount.error.dob',
-        age: 'bankAccount.error.age',
-        ssn: 'bankAccount.error.ssnLast4',
-        ssnFull9: 'additionalDetailsStep.ssnFull9Error',
-    };
-
-    const fieldNameTranslationKeys = {
-        legalFirstName: 'additionalDetailsStep.legalFirstNameLabel',
-        legalLastName: 'additionalDetailsStep.legalLastNameLabel',
-        addressStreet: 'common.personalAddress',
-        phoneNumber: 'common.phoneNumber',
-        dob: 'common.dob',
-        ssn: 'common.ssnLast4',
-        ssnFull9: 'common.ssnFull9',
-    };
-
     const minDate = moment().subtract(CONST.DATE_BIRTH.MAX_AGE, 'Y').toDate();
     const maxDate = moment().subtract(CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT, 'Y').toDate();
+    const shouldAskForFullSSN = walletAdditionalDetails.errorCode === CONST.WALLET.ERROR.SSN;
 
     /**
      * @param {Object} values The values object is passed from Form.js and contains info for each form element that has an inputID
@@ -199,7 +199,6 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
             </ScreenWrapper>
         );
     }
-    const shouldAskForFullSSN = walletAdditionalDetails.errorCode === CONST.WALLET.ERROR.SSN;
 
     return (
         <>
