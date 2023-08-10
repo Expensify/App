@@ -36,7 +36,7 @@ import * as Illustrations from '../components/Icon/Illustrations';
 import variables from '../styles/variables';
 import ROUTES from '../ROUTES';
 import * as ValidationUtils from '../libs/ValidationUtils';
-import Tooltip from '../components/Tooltip';
+import Permissions from '../libs/Permissions';
 
 const matchType = PropTypes.shape({
     params: PropTypes.shape({
@@ -136,7 +136,7 @@ function ProfilePage(props) {
 
     const statusEmojiCode = lodashGet(details, 'status.emojiCode', '');
     const statusText = lodashGet(details, 'status.text', '');
-    const hasStatus = !!statusEmojiCode;
+    const hasStatus = !!statusEmojiCode && Permissions.canUseCustomStatus(props.betas);
     const statusContent = `${statusEmojiCode}  ${statusText}`;
 
     return (
@@ -192,9 +192,7 @@ function ProfilePage(props) {
                                     >
                                         {props.translate('statusPage.status')}
                                     </Text>
-                                    <Tooltip text={statusContent}>
-                                        <Text numberOfLines={1}>{statusContent}</Text>
-                                    </Tooltip>
+                                    <Text>{statusContent}</Text>
                                 </View>
                             )}
 
@@ -267,6 +265,9 @@ export default compose(
         },
         isLoadingReportData: {
             key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+        },
+        betas: {
+            key: ONYXKEYS.BETAS,
         },
     }),
 )(ProfilePage);

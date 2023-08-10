@@ -78,7 +78,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
             </View>
             <MenuItemWithTopDescription
                 title={customStatus}
-                description="Status"
+                description={localize.translate('statusPage.status')}
                 shouldShowRightIcon
                 inputID="test"
                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS_SET)}
