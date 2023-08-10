@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -136,6 +136,12 @@ function LoginForm(props) {
         input.current.focus();
     }, [props.blurOnSubmit, props.isVisible, prevIsVisible]);
 
+    useImperativeHandle(props.innerRef, () => ({
+        isInputFocused() {
+            return input.current && input.current.isFocused;
+        }
+    }));
+
     const formErrorText = useMemo(() => (formError ? translate(formError) : ''), [formError, translate]);
     const serverErrorText = useMemo(() => ErrorUtils.getLatestErrorMessage(props.account), [props.account]);
     const hasError = !_.isEmpty(serverErrorText);
@@ -198,6 +204,9 @@ function LoginForm(props) {
 LoginForm.propTypes = {
     ...propTypes,
 
+    /** A reference so we can expose if the form input is focused */
+    innerRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
+
     /* Onyx Props */
 
     /** The details about the account that the user is signing in with */
@@ -245,4 +254,12 @@ export default compose(
     withLocalize,
     withToggleVisibilityView,
     withNetwork(),
-)(LoginForm);
+)(
+    forwardRef((props, ref) => (
+        <LoginForm
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            innerRef={ref}
+        />
+    )),
+);
