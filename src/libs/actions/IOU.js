@@ -70,8 +70,9 @@ Onyx.connect({
 /**
  * Reset money request info from the store with its initial value
  * @param {String} id
+ * @param {String} expenseType
  */
-function resetMoneyRequestInfo(id = '') {
+function resetMoneyRequestInfo(id = '', expenseType = '') {
     const date = currentDate || moment().format('YYYY-MM-DD');
     Onyx.merge(ONYXKEYS.IOU, {
         id,
@@ -83,6 +84,7 @@ function resetMoneyRequestInfo(id = '') {
         date,
         receiptPath: '',
         receiptSource: '',
+        expenseType,
     });
 }
 
@@ -1466,7 +1468,7 @@ function payMoneyRequest(paymentType, chatReport, iouReport) {
  * @param {String} reportID
  */
 function startMoneyRequest(iouType, reportID = '') {
-    resetMoneyRequestInfo(`${iouType}${reportID}`);
+    resetMoneyRequestInfo(`${iouType}${reportID}`, CONST.IOU.EXPENSE_TYPE.MANUAL);
     Navigation.navigate(ROUTES.getMoneyRequestRoute(iouType, reportID));
 }
 

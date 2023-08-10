@@ -37,6 +37,7 @@ const propTypes = {
         amount: PropTypes.number,
         currency: PropTypes.string,
         participants: PropTypes.arrayOf(participantPropTypes),
+        expenseType: PropTypes.string,
     }),
 
     /** Which tab has been selected */
@@ -55,6 +56,7 @@ const defaultProps = {
         amount: 0,
         currency: CONST.CURRENCY.USD,
         participants: [],
+        expenseType: CONST.IOU.EXPENSE_TYPE.MANUAL,
     },
     selectedTab: CONST.TAB.MANUAL,
 };
@@ -71,9 +73,9 @@ function MoneyRequestSelectorPage(props) {
         [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT]: translate('iou.splitBill'),
     };
 
-    const resetMoneyRequestInfo = () => {
+    const resetMoneyRequestInfo = (expenseType) => {
         const moneyRequestID = `${iouType}${reportID}`;
-        IOU.resetMoneyRequestInfo(moneyRequestID);
+        IOU.resetMoneyRequestInfo(moneyRequestID, expenseType);
     };
 
     return (
@@ -98,20 +100,20 @@ function MoneyRequestSelectorPage(props) {
                                     )}
                                 >
                                     <TopTab.Screen
-                                        name={CONST.TAB.MANUAL}
+                                        name={CONST.IOU.EXPENSE_TYPE.MANUAL}
                                         component={NewRequestAmountPage}
                                         initialParams={{reportID, iouType}}
                                     />
                                     {canUseScanReceipts && (
                                         <TopTab.Screen
-                                            name={CONST.TAB.SCAN}
+                                            name={CONST.IOU.EXPENSE_TYPE.SCAN}
                                             component={ReceiptSelector}
                                             initialParams={{reportID, iouType}}
                                         />
                                     )}
                                     {canUseDistanceRequests && (
                                         <TopTab.Screen
-                                            name={CONST.TAB.DISTANCE}
+                                            name={CONST.IOU.EXPENSE_TYPE.DISTANCE}
                                             component={DistanceRequest}
                                         />
                                     )}

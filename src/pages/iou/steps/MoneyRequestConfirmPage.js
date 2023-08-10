@@ -42,6 +42,7 @@ const propTypes = {
                 selected: PropTypes.bool,
             }),
         ),
+        expenseType: PropTypes.string,
     }),
 
     /** Personal details of all users */
@@ -76,17 +77,17 @@ function MoneyRequestConfirmPage(props) {
     );
 
     useEffect(() => {
-        const chatType = lodashGet(props.report, 'chatType', '');
-
-        // We want to load categories if:
-        // - this expense report was started from a policy expense chat
-        // - a policy expense chat is a participant of this expense report
-        const hasPolicyExpenseChatParticipant = _.reduce(participants, (memo, participant) => memo || participant.isPolicyExpenseChat, false);
-        if (chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT || hasPolicyExpenseChatParticipant) {
-            const policyID = lodashGet(props.report, 'policyID', '');
-            Policy.openDraftWorkspaceMoneyRequest(policyID);
+        // We want to load categories if this is an expense report on a policy expense chat
+        const policyExpenseChat = _.find(participants, (participant) => participant.isPolicyExpenseChat);
+        if (policyExpenseChat) {
+            if (props.iou.expenseType === CONST.IOU.EXPENSE_TYPE.MANUAL) {
+                Policy.openDraftWorkspaceManualRequest(policyExpenseChat.policyID);
+            }
+            if (props.iou.expenseType === CONST.IOU.EXPENSE_TYPE.DISTANCE) {
+                Policy.openDraftWorkspaceDistanceRequest(policyExpenseChat.policyID);
+            }
         }
-    }, [props.report, participants]);
+    }, [props.report, participants, props.iou.expenseType]);
 
     useEffect(() => {
         // ID in Onyx could change by initiating a new request in a separate browser tab or completing a request
