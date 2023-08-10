@@ -41,7 +41,7 @@ const defaultProps = {
     onPasswordFieldFocused: () => {},
 };
 
-function PDFPasswordForm(props) {
+function PDFPasswordForm({isFocused, isPasswordInvalid, shouldShowLoadingIndicator, onSubmit, onPasswordUpdated, onPasswordFieldFocused}) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
 
@@ -51,38 +51,40 @@ function PDFPasswordForm(props) {
     const textInputRef = useRef(null);
 
     useEffect(() => {
-        if (!props.isFocused || !textInputRef.current) return;
+        if (!isFocused) {
+            return;
+        }
+        if (!textInputRef.current) {
+            return;
+        }
         textInputRef.current.focus();
-    }, [props.isFocused]);
+    }, [isFocused]);
 
     const getErrorText = () => {
-        if (props.isPasswordInvalid) {
+        if (isPasswordInvalid) {
             return translate('attachmentView.passwordIncorrect');
         }
         if (!_.isEmpty(validationErrorText)) {
             return translate(validationErrorText);
         }
-
         return '';
     };
 
-    const updatePassword = (passwrd) => {
-        props.onPasswordUpdated(passwrd);
-        if (!_.isEmpty(passwrd) && validationErrorText) {
+    const updatePassword = (newPassword) => {
+        onPasswordUpdated(newPassword);
+        if (!_.isEmpty(newPassword) && validationErrorText) {
             setValidationErrorText('');
         }
-        setPassword(passwrd);
+        setPassword(newPassword);
     };
 
     const validate = () => {
-        if (!props.isPasswordInvalid && !_.isEmpty(password)) {
+        if (!isPasswordInvalid && !_.isEmpty(password)) {
             return true;
         }
-
         if (_.isEmpty(password)) {
             setValidationErrorText('attachmentView.passwordRequired');
         }
-
         return false;
     };
 
@@ -90,27 +92,22 @@ function PDFPasswordForm(props) {
         if (!validate()) {
             return;
         }
-        props.onSubmit(password);
+        onSubmit(password);
     };
 
     const validateAndNotifyPasswordBlur = () => {
         validate();
-        props.onPasswordFieldFocused(false);
+        onPasswordFieldFocused(false);
     };
 
-    const showForm = () => {
-        setShouldShowForm(true);
-    };
-
-    const errorText = getErrorText();
-    const containerStyle = isSmallScreenWidth ? [styles.flex1, styles.w100] : styles.pdfPasswordForm.wideScreenWidth;
+    const showForm = () => setShouldShowForm(true);
 
     return (
         <>
             {shouldShowForm ? (
                 <ScrollView
                     keyboardShouldPersistTaps="handled"
-                    style={containerStyle}
+                    style={isSmallScreenWidth ? [styles.flex1, styles.w100] : styles.pdfPasswordForm.wideScreenWidth}
                     contentContainerStyle={styles.p5}
                 >
                     <View style={styles.mb4}>
@@ -131,8 +128,8 @@ function PDFPasswordForm(props) {
                         onChangeText={updatePassword}
                         returnKeyType="done"
                         onSubmitEditing={submitPassword}
-                        errorText={errorText}
-                        onFocus={() => props.onPasswordFieldFocused(true)}
+                        errorText={getErrorText()}
+                        onFocus={() => onPasswordFieldFocused(true)}
                         onBlur={validateAndNotifyPasswordBlur}
                         autoFocus
                         shouldDelayFocus={shouldDelayFocus}
@@ -142,7 +139,7 @@ function PDFPasswordForm(props) {
                         text={translate('common.confirm')}
                         onPress={submitPassword}
                         style={styles.mt4}
-                        isLoading={props.shouldShowLoadingIndicator}
+                        isLoading={shouldShowLoadingIndicator}
                         pressOnEnter
                     />
                 </ScrollView>
@@ -157,5 +154,6 @@ function PDFPasswordForm(props) {
 
 PDFPasswordForm.propTypes = propTypes;
 PDFPasswordForm.defaultProps = defaultProps;
+PDFPasswordForm.displayName = 'PDFPasswordForm';
 
 export default PDFPasswordForm;
