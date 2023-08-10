@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import PropTypes from 'prop-types';
-import {View, InteractionManager, LayoutAnimation, NativeModules, findNodeHandle} from 'react-native';
+import {View, LayoutAnimation} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
@@ -10,14 +10,11 @@ import * as Report from '../../../../libs/actions/Report';
 import ReportTypingIndicator from '../ReportTypingIndicator';
 import AttachmentModal from '../../../../components/AttachmentModal';
 import compose from '../../../../libs/compose';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import willBlurTextInputOnTapOutsideFunc from '../../../../libs/willBlurTextInputOnTapOutside';
 import canFocusInputOnScreenFocus from '../../../../libs/canFocusInputOnScreenFocus';
 import CONST from '../../../../CONST';
-import reportActionPropTypes from '../reportActionPropTypes';
 import * as ReportUtils from '../../../../libs/ReportUtils';
-import ReportActionComposeFocusManager from '../../../../libs/ReportActionComposeFocusManager';
 import participantPropTypes from '../../../../components/participantPropTypes';
 import ParticipantLocalTime from '../ParticipantLocalTime';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../../components/withCurrentUserPersonalDetails';
@@ -27,45 +24,25 @@ import EmojiPickerButton from '../../../../components/EmojiPicker/EmojiPickerBut
 import * as DeviceCapabilities from '../../../../libs/DeviceCapabilities';
 import OfflineIndicator from '../../../../components/OfflineIndicator';
 import ExceededCommentLength from '../../../../components/ExceededCommentLength';
-import withNavigationFocus from '../../../../components/withNavigationFocus';
-import withNavigation from '../../../../components/withNavigation';
 import * as EmojiUtils from '../../../../libs/EmojiUtils';
 import ReportDropUI from '../ReportDropUI';
 import reportPropTypes from '../../../reportPropTypes';
-import withKeyboardState, {keyboardStatePropTypes} from '../../../../components/withKeyboardState';
 import OfflineWithFeedback from '../../../../components/OfflineWithFeedback';
-import * as ComposerUtils from '../../../../libs/ComposerUtils';
 import * as Welcome from '../../../../libs/actions/Welcome';
-import * as Browser from '../../../../libs/Browser';
-import usePrevious from '../../../../hooks/usePrevious';
-import * as KeyDownListener from '../../../../libs/KeyboardShortcut/KeyDownPressListener';
-import * as EmojiPickerActions from '../../../../libs/actions/EmojiPickerAction';
 import withAnimatedRef from '../../../../components/withAnimatedRef';
 import Suggestions from './Suggestions';
 import SendButton from './SendButton';
 import AttachmentPickerWithMenuItems from './AttachmentPickerWithMenuItems';
 import SoloComposer from './SoloComposer';
-
-const {RNTextInputReset} = NativeModules;
+import debouncedSaveReportComment from './debouncedSaveReportComment';
+import withWindowDimensions from '../../../../components/withWindowDimensions';
 
 const propTypes = {
     /** A method to call when the form is submitted */
     onSubmit: PropTypes.func.isRequired,
 
-    /** The comment left by the user */
-    comment: PropTypes.string,
-
-    /** Number of lines for the comment */
-    numberOfLines: PropTypes.number,
-
     /** The ID of the report actions will be created for */
     reportID: PropTypes.string.isRequired,
-
-    /** Details about any modals being used */
-    modal: PropTypes.shape({
-        /** Indicates if there is a modal currently visible or not */
-        isVisible: PropTypes.bool,
-    }),
 
     /** Personal details of all the users */
     personalDetails: PropTypes.objectOf(participantPropTypes),
@@ -73,17 +50,8 @@ const propTypes = {
     /** The report currently being looked at */
     report: reportPropTypes,
 
-    /** Array of report actions for this report */
-    reportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)),
-
-    /** The actions from the parent report */
-    parentReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
-
     /** Is the window width narrow, like on a mobile device */
     isSmallScreenWidth: PropTypes.bool.isRequired,
-
-    /** Is composer screen focused */
-    isFocused: PropTypes.bool.isRequired,
 
     /** Is composer full size */
     isComposerFullSize: PropTypes.bool,
@@ -100,28 +68,19 @@ const propTypes = {
     /** Whether the composer input should be shown */
     shouldShowComposeInput: PropTypes.bool,
 
-    /** Stores user's preferred skin tone */
-    preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
-
     /** The type of action that's pending  */
     pendingAction: PropTypes.oneOf(['add', 'update', 'delete']),
 
     /** animated ref from react-native-reanimated */
     animatedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]).isRequired,
 
-    ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
-    ...keyboardStatePropTypes,
 };
 
 const defaultProps = {
-    comment: '',
-    numberOfLines: undefined,
     modal: {},
     report: {},
-    reportActions: [],
-    parentReportActions: {},
     blockedFromConcierge: {},
     personalDetails: {},
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
@@ -131,87 +90,44 @@ const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
-const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
-
 // We want consistent auto focus behavior on input between native and mWeb so we have some auto focus management code that will
 // prevent auto focus on existing chat for mobile device
 const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
-/**
- * Save draft report comment. Debounced to happen at most once per second.
- * @param {String} reportID
- * @param {String} comment
- */
-const debouncedSaveReportComment = _.debounce((reportID, comment) => {
-    Report.saveReportComment(reportID, comment || '');
-}, 1000);
-
-/**
- * Broadcast that the user is typing. Debounced to limit how often we publish client events.
- * @param {String} reportID
- */
-const debouncedBroadcastUserIsTyping = _.debounce((reportID) => {
-    Report.broadcastUserIsTyping(reportID);
-}, 100);
-
-// For mobile Safari, updating the selection prop on an unfocused input will cause it to automatically gain focus
-// and subsequent programmatic focus shifts (e.g., modal focus trap) to show the blue frame (:focus-visible style),
-// so we need to ensure that it is only updated after focus.
-const isMobileSafari = Browser.isMobileSafari();
-
 function ReportActionCompose({
     animatedRef,
     blockedFromConcierge,
-    comment,
     currentUserPersonalDetails,
     disabled,
     isComposerFullSize,
-    isFocused: isFocusedProp,
-    isKeyboardShown,
     isMediumScreenWidth,
     isSmallScreenWidth,
-    modal,
-    navigation,
     network,
-    numberOfLines,
     onSubmit,
-    parentReportActions,
     pendingAction,
     personalDetails,
-    preferredLocale,
-    preferredSkinTone,
     report,
-    reportActions,
     reportID,
     shouldShowComposeInput,
     translate,
-    windowHeight,
+    isCommentEmpty: isCommentEmptyProp,
 }) {
     /**
      * Updates the Highlight state of the composer
      */
-    const [isFocused, setIsFocused] = useState(shouldFocusInputOnScreenFocus && !modal.isVisible && !modal.willAlertModalBecomeVisible && shouldShowComposeInput);
+    const [isFocused, setIsFocused] = useState(shouldFocusInputOnScreenFocus && shouldShowComposeInput /* TODO: && !modal.isVisible && !modal.willAlertModalBecomeVisible */);
     const [isFullComposerAvailable, setIsFullComposerAvailable] = useState(isComposerFullSize);
-
-    const isEmptyChat = useMemo(() => _.size(reportActions) === 1, [reportActions]);
-
-    const shouldAutoFocus = !modal.isVisible && (shouldFocusInputOnScreenFocus || isEmptyChat) && shouldShowComposeInput;
 
     /**
      * Updates the should clear state of the composer
      */
     const [textInputShouldClear, setTextInputShouldClear] = useState(false);
-    const [isCommentEmpty, setIsCommentEmpty] = useState(comment.length === 0);
+    const [isCommentEmpty, setIsCommentEmpty] = useState(isCommentEmptyProp);
 
     /**
      * Updates the visibility state of the menu
      */
     const [isMenuVisible, setMenuVisibility] = useState(false);
-    const [selection, setSelection] = useState({
-        start: isMobileSafari && !shouldAutoFocus ? 0 : comment.length,
-        end: isMobileSafari && !shouldAutoFocus ? 0 : comment.length,
-    });
-    const [value, setValue] = useState(comment);
 
     const [composerHeight, setComposerHeight] = useState(0);
     const [isAttachmentPreviewActive, setIsAttachmentPreviewActive] = useState(false);
@@ -232,9 +148,6 @@ function ReportActionCompose({
      * Shows red borders and prevents the comment from being sent
      */
     const [hasExceededMaxCommentLength, setExceededMaxCommentLength] = useState(false);
-
-    const commentRef = useRef(comment);
-    const textInputRef = useRef(null);
 
     const suggestionsRef = useRef(null);
 
@@ -269,80 +182,6 @@ function ReportActionCompose({
     }, [report, blockedFromConcierge, translate, conciergePlaceholderRandomIndex]);
 
     /**
-     * Focus the composer text input
-     * @param {Boolean} [shouldDelay=false] Impose delay before focusing the composer
-     * @memberof ReportActionCompose
-     */
-    const focus = useCallback((shouldDelay = false) => {
-        // There could be other animations running while we trigger manual focus.
-        // This prevents focus from making those animations janky.
-        InteractionManager.runAfterInteractions(() => {
-            if (!textInputRef.current) {
-                return;
-            }
-
-            if (!shouldDelay) {
-                textInputRef.current.focus();
-            } else {
-                // Keyboard is not opened after Emoji Picker is closed
-                // SetTimeout is used as a workaround
-                // https://github.com/react-native-modal/react-native-modal/issues/114
-                // We carefully choose a delay. 100ms is found enough for keyboard to open.
-                setTimeout(() => textInputRef.current.focus(), 100);
-            }
-        });
-    }, []);
-
-    /**
-     * Update the value of the comment in Onyx
-     *
-     * @param {String} comment
-     * @param {Boolean} shouldDebounceSaveComment
-     */
-    const updateComment = useCallback(
-        (commentValue, shouldDebounceSaveComment) => {
-            const {text: newComment = '', emojis = []} = EmojiUtils.replaceEmojis(commentValue, preferredSkinTone, preferredLocale);
-
-            if (!_.isEmpty(emojis)) {
-                User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(emojis));
-                insertedEmojisRef.current = [...insertedEmojisRef.current, ...emojis];
-                debouncedUpdateFrequentlyUsedEmojis();
-            }
-
-            setIsCommentEmpty(!!newComment.match(/^(\s)*$/));
-            setValue(newComment);
-            if (commentValue !== newComment) {
-                const remainder = ComposerUtils.getCommonSuffixLength(commentRef.current, newComment);
-                setSelection({
-                    start: newComment.length - remainder,
-                    end: newComment.length - remainder,
-                });
-            }
-
-            // Indicate that draft has been created.
-            if (commentRef.current.length === 0 && newComment.length !== 0) {
-                Report.setReportWithDraft(reportID, true);
-            }
-
-            // The draft has been deleted.
-            if (newComment.length === 0) {
-                Report.setReportWithDraft(reportID, false);
-            }
-
-            commentRef.current = newComment;
-            if (shouldDebounceSaveComment) {
-                debouncedSaveReportComment(reportID, newComment);
-            } else {
-                Report.saveReportComment(reportID, newComment || '');
-            }
-            if (newComment) {
-                debouncedBroadcastUserIsTyping(reportID);
-            }
-        },
-        [debouncedUpdateFrequentlyUsedEmojis, preferredLocale, preferredSkinTone, reportID],
-    );
-
-    /**
      * Used to show Popover menu on Workspace chat at first sign-in
      * @returns {Boolean}
      */
@@ -355,131 +194,16 @@ function ReportActionCompose({
         [],
     );
 
-    /**
-     * Callback to add whatever text is chosen into the main input (used f.e as callback for the emoji picker)
-     * @param {String} text
-     * @param {Boolean} shouldAddTrailSpace
-     */
-    const replaceSelectionWithText = useCallback(
-        (text, shouldAddTrailSpace = true) => {
-            const updatedText = shouldAddTrailSpace ? `${text} ` : text;
-            const selectionSpaceLength = shouldAddTrailSpace ? CONST.SPACE_LENGTH : 0;
-            updateComment(ComposerUtils.insertText(commentRef.current, selection, updatedText));
-            setSelection((prevSelection) => ({
-                start: prevSelection.start + text.length + selectionSpaceLength,
-                end: prevSelection.start + text.length + selectionSpaceLength,
-            }));
-        },
-        [selection, updateComment],
-    );
-
-    /**
-     * Check if the composer is visible. Returns true if the composer is not covered up by emoji picker or menu. False otherwise.
-     * @returns {Boolean}
-     */
-    const checkComposerVisibility = useCallback(() => {
-        const isComposerCoveredUp = EmojiPickerActions.isEmojiPickerVisible() || isMenuVisible || modal.isVisible;
-        return !isComposerCoveredUp;
-    }, [isMenuVisible, modal.isVisible]);
-
-    const focusComposerOnKeyPress = useCallback(
-        (e) => {
-            const isComposerVisible = checkComposerVisibility();
-            if (!isComposerVisible) {
-                return;
-            }
-
-            // If the key pressed is non-character keys like Enter, Shift, ... do not focus
-            if (e.key.length > 1) {
-                return;
-            }
-
-            // If a key is pressed in combination with Meta, Control or Alt do not focus
-            if (e.metaKey || e.ctrlKey || e.altKey) {
-                return;
-            }
-
-            // if we're typing on another input/text area, do not focus
-            if (['INPUT', 'TEXTAREA'].includes(e.target.nodeName)) {
-                return;
-            }
-
-            focus();
-            replaceSelectionWithText(e.key, false);
-        },
-        [checkComposerVisibility, focus, replaceSelectionWithText],
-    );
-
     const onSelectionChange = useCallback((e) => {
         LayoutAnimation.configureNext(LayoutAnimation.create(50, LayoutAnimation.Types.easeInEaseOut, LayoutAnimation.Properties.opacity));
 
-        if (suggestionsRef.current.onSelectionChange(e)) {
-            return;
-        }
+        // if (suggestionsRef.current.onSelectionChange(e)) {
+        //     return;
+        // }
 
-        setSelection(e.nativeEvent.selection);
+        // TODO: set selection
+        // setSelection(e.nativeEvent.selection);
     }, []);
-
-    const setUpComposeFocusManager = useCallback(() => {
-        // This callback is used in the contextMenuActions to manage giving focus back to the compose input.
-        // TODO: we should clean up this convoluted code and instead move focus management to something like ReportFooter.js or another higher up component
-        ReportActionComposeFocusManager.onComposerFocus(() => {
-            if (!willBlurTextInputOnTapOutside || !isFocusedProp) {
-                return;
-            }
-
-            focus(false);
-        });
-    }, [focus, isFocusedProp]);
-
-    /**
-     * Set the TextInput Ref
-     *
-     * @param {Element} el
-     * @memberof ReportActionCompose
-     */
-    const setTextInputRef = useCallback(
-        (el) => {
-            ReportActionComposeFocusManager.composerRef.current = el;
-            textInputRef.current = el;
-            if (_.isFunction(animatedRef)) {
-                animatedRef(el);
-            }
-        },
-        [animatedRef],
-    );
-
-    /**
-     * Update the number of lines for a comment in Onyx
-     * @param {Number} numberOfLines
-     */
-    const updateNumberOfLines = useCallback(
-        (newNumberOfLines) => {
-            Report.saveReportCommentNumberOfLines(reportID, newNumberOfLines);
-        },
-        [reportID],
-    );
-
-    /**
-     * @returns {String}
-     */
-    const prepareCommentAndResetComposer = useCallback(() => {
-        const trimmedComment = commentRef.current.trim();
-        const commentLength = ReportUtils.getCommentLength(trimmedComment);
-
-        // Don't submit empty comments or comments that exceed the character limit
-        if (!commentLength || commentLength > CONST.MAX_COMMENT_LENGTH) {
-            return '';
-        }
-
-        updateComment('');
-        setTextInputShouldClear(true);
-        if (isComposerFullSize) {
-            Report.setIsComposerFullSize(reportID, false);
-        }
-        setIsFullComposerAvailable(false);
-        return trimmedComment;
-    }, [reportID, updateComment, isComposerFullSize]);
 
     const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
         if (!suggestionsRef.current) {
@@ -487,6 +211,38 @@ function ReportActionCompose({
         }
         suggestionsRef.current.updateShouldShowSuggestionMenuToFalse(false);
     }, []);
+
+    /**
+     * @param {Object} file
+     */
+    const addAttachment = useCallback(
+        (file) => {
+            // Since we're submitting the form here which should clear the composer
+            // We don't really care about saving the draft the user was typing
+            // We need to make sure an empty draft gets saved instead
+            debouncedSaveReportComment.cancel();
+            const newComment = prepareCommentAndResetComposer();
+            Report.addAttachment(reportID, file, newComment);
+            setTextInputShouldClear(false);
+        },
+        [reportID],
+    );
+
+    /**
+     * Event handler to update the state after the attachment preview is closed.
+     */
+    const attachmentPreviewClosed = useCallback(() => {
+        updateShouldShowSuggestionMenuToFalse();
+        setIsAttachmentPreviewActive(false);
+    }, [updateShouldShowSuggestionMenuToFalse]);
+
+    const onInsertedEmoji = useCallback(
+        (emojiObject) => {
+            insertedEmojisRef.current = [...insertedEmojisRef.current, emojiObject];
+            debouncedUpdateFrequentlyUsedEmojis(emojiObject);
+        },
+        [debouncedUpdateFrequentlyUsedEmojis],
+    );
 
     /**
      * Add a new comment to this chat
@@ -511,79 +267,8 @@ function ReportActionCompose({
 
             onSubmit(newComment);
         },
-        [onSubmit, prepareCommentAndResetComposer],
+        [onSubmit],
     );
-
-    const triggerHotkeyActions = useCallback(
-        (e) => {
-            if (!e || ComposerUtils.canSkipTriggerHotkeys(isSmallScreenWidth, isKeyboardShown)) {
-                return;
-            }
-
-            if (suggestionsRef.current.triggerHotkeyActions(e)) {
-                return;
-            }
-
-            // Submit the form when Enter is pressed
-            if (e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey && !e.shiftKey) {
-                e.preventDefault();
-                submitForm();
-            }
-
-            // Trigger the edit box for last sent message if ArrowUp is pressed and the comment is empty and Chronos is not in the participants
-            if (e.key === CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey && textInputRef.current.selectionStart === 0 && value.length === 0 && !ReportUtils.chatIncludesChronos(report)) {
-                e.preventDefault();
-
-                const parentReportActionID = lodashGet(report, 'parentReportActionID', '');
-                const parentReportAction = lodashGet(parentReportActions, [parentReportActionID], {});
-                const lastReportAction = _.find([...reportActions, parentReportAction], (action) => ReportUtils.canEditReportAction(action));
-
-                if (lastReportAction !== -1 && lastReportAction) {
-                    Report.saveReportActionDraft(reportID, lastReportAction.reportActionID, _.last(lastReportAction.message).html);
-                }
-            }
-        },
-        [isKeyboardShown, isSmallScreenWidth, parentReportActions, report, reportActions, reportID, submitForm, value.length],
-    );
-
-    /**
-     * @param {Object} file
-     */
-    const addAttachment = useCallback(
-        (file) => {
-            // Since we're submitting the form here which should clear the composer
-            // We don't really care about saving the draft the user was typing
-            // We need to make sure an empty draft gets saved instead
-            debouncedSaveReportComment.cancel();
-            const newComment = prepareCommentAndResetComposer();
-            Report.addAttachment(reportID, file, newComment);
-            setTextInputShouldClear(false);
-        },
-        [reportID, prepareCommentAndResetComposer],
-    );
-
-    /**
-     * Event handler to update the state after the attachment preview is closed.
-     */
-    const attachmentPreviewClosed = useCallback(() => {
-        updateShouldShowSuggestionMenuToFalse();
-        setIsAttachmentPreviewActive(false);
-    }, [updateShouldShowSuggestionMenuToFalse]);
-
-    const onInsertedEmoji = useCallback(
-        (emojiObject) => {
-            insertedEmojisRef.current = [...insertedEmojisRef.current, emojiObject];
-            debouncedUpdateFrequentlyUsedEmojis(emojiObject);
-        },
-        [debouncedUpdateFrequentlyUsedEmojis],
-    );
-
-    const resetKeyboardInput = useCallback(() => {
-        if (!RNTextInputReset) {
-            return;
-        }
-        RNTextInputReset.resetKeyboardInput(findNodeHandle(textInputRef));
-    }, [textInputRef]);
 
     const onTriggerAttachmentPicker = useCallback(() => {
         // Set a flag to block suggestion calculation until we're finished using the file picker,
@@ -594,74 +279,28 @@ function ReportActionCompose({
         suggestionsRef.current.setShouldBlockEmojiCalc(true);
     }, []);
 
-    useEffect(() => {
-        const unsubscribeNavigationBlur = navigation.addListener('blur', () => KeyDownListener.removeKeyDownPressListner(focusComposerOnKeyPress));
-        const unsubscribeNavigationFocus = navigation.addListener('focus', () => {
-            KeyDownListener.addKeyDownPressListner(focusComposerOnKeyPress);
-            setUpComposeFocusManager();
-        });
-        KeyDownListener.addKeyDownPressListner(focusComposerOnKeyPress);
+    // TODO: migrate me
+    // useEffect(() => {
+    //     updateComment(commentRef.current);
 
-        setUpComposeFocusManager();
+    //     // Shows Popover Menu on Workspace Chat at first sign-in
+    //     if (!disabled) {
+    //         Welcome.show({
+    //             routes: lodashGet(navigation.getState(), 'routes', []),
+    //             showPopoverMenu,
+    //         });
+    //     }
 
-        updateComment(commentRef.current);
-
-        // Shows Popover Menu on Workspace Chat at first sign-in
-        if (!disabled) {
-            Welcome.show({
-                routes: lodashGet(navigation.getState(), 'routes', []),
-                showPopoverMenu,
-            });
-        }
-
-        if (comment.length !== 0) {
-            Report.setReportWithDraft(reportID, true);
-        }
-
-        return () => {
-            ReportActionComposeFocusManager.clear();
-
-            KeyDownListener.removeKeyDownPressListner(focusComposerOnKeyPress);
-            unsubscribeNavigationBlur();
-            unsubscribeNavigationFocus();
-        };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-    const prevIsModalVisible = usePrevious(modal.isVisible);
-    const prevIsFocused = usePrevious(isFocusedProp);
-    useEffect(() => {
-        // We want to focus or refocus the input when a modal has been closed or the underlying screen is refocused.
-        // We avoid doing this on native platforms since the software keyboard popping
-        // open creates a jarring and broken UX.
-        if (!willBlurTextInputOnTapOutside || modal.isVisible || !isFocusedProp || prevIsModalVisible || !prevIsFocused) {
-            return;
-        }
-
-        focus();
-    }, [focus, prevIsFocused, prevIsModalVisible, isFocusedProp, modal.isVisible]);
-
-    const prevCommentProp = usePrevious(comment);
-    const prevPreferredLocale = usePrevious(preferredLocale);
-    const prevReportId = usePrevious(report.reportId);
-    useEffect(() => {
-        // Value state does not have the same value as comment props when the comment gets changed from another tab.
-        // In this case, we should synchronize the value between tabs.
-        const shouldSyncComment = prevCommentProp !== comment && value === comment;
-
-        // As the report IDs change, make sure to update the composer comment as we need to make sure
-        // we do not show incorrect data in there (ie. draft of message from other report).
-        if (preferredLocale === prevPreferredLocale && report.reportID === prevReportId && !shouldSyncComment) {
-            return;
-        }
-
-        updateComment(commentRef.current);
-    }, [prevCommentProp, prevPreferredLocale, prevReportId, comment, preferredLocale, report.reportID, updateComment, value]);
+    //     if (comment.length !== 0) {
+    //         Report.setReportWithDraft(reportID, true);
+    //     }
+    //     // eslint-disable-next-line react-hooks/exhaustive-deps
+    // }, []);
 
     // Prevents focusing and showing the keyboard while the drawer is covering the chat.
     const reportRecipient = personalDetails[participantsWithoutExpensifyAccountIDs[0]];
     const shouldUseFocusedColor = !isBlockedFromConcierge && !disabled && isFocused;
-    const isFullSizeComposerAvailable = isFullComposerAvailable && !_.isEmpty(value);
+    const isFullSizeComposerAvailable = isFullComposerAvailable; // && !_.isEmpty(value);
     const hasReportRecipient = _.isObject(reportRecipient) && !_.isEmpty(reportRecipient);
 
     const isSendDisabled = isCommentEmpty || isBlockedFromConcierge || disabled || hasExceededMaxCommentLength;
@@ -706,12 +345,11 @@ function ReportActionCompose({
                                     onTriggerAttachmentPicker={onTriggerAttachmentPicker}
                                 />
                                 <SoloComposer
-                                    checkComposerVisibility={checkComposerVisibility}
-                                    shouldAutoFocus={shouldAutoFocus}
-                                    setTextInputRef={setTextInputRef}
+                                    reportID={reportID}
+                                    report={report}
+                                    isMenuVisible={isMenuVisible}
+                                    animatedRef={animatedRef}
                                     inputPlaceholder={inputPlaceholder}
-                                    updateComment={updateComment}
-                                    triggerHotkeyActions={triggerHotkeyActions}
                                     isComposerFullSize={isComposerFullSize}
                                     setIsFocused={setIsFocused}
                                     suggestionsRef={suggestionsRef}
@@ -721,15 +359,13 @@ function ReportActionCompose({
                                     setTextInputShouldClear={setTextInputShouldClear}
                                     isBlockedFromConcierge={isBlockedFromConcierge}
                                     disabled={disabled}
-                                    selection={selection}
                                     onSelectionChange={onSelectionChange}
                                     isFullSizeComposerAvailable={isFullSizeComposerAvailable}
                                     setIsFullComposerAvailable={setIsFullComposerAvailable}
-                                    value={value}
-                                    numberOfLines={numberOfLines}
-                                    updateNumberOfLines={updateNumberOfLines}
                                     composerHeight={composerHeight}
                                     setComposerHeight={setComposerHeight}
+                                    setIsCommentEmpty={setIsCommentEmpty}
+                                    submitForm={submitForm}
                                 />
                                 <ReportDropUI
                                     onDrop={(e) => {
@@ -747,7 +383,7 @@ function ReportActionCompose({
                         <EmojiPickerButton
                             isDisabled={isBlockedFromConcierge || disabled}
                             onModalHide={() => focus(true)}
-                            onEmojiSelected={replaceSelectionWithText}
+                            onEmojiSelected={() => replaceSelectionWithText}
                         />
                     )}
                     <SendButton
@@ -767,13 +403,14 @@ function ReportActionCompose({
                 >
                     {!isSmallScreenWidth && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
                     <ReportTypingIndicator reportID={reportID} />
-                    <ExceededCommentLength
+                    {/* TODO: Maybe subscribe this to comment on its own? */}
+                    {/* <ExceededCommentLength
                         comment={commentRef.current}
                         onExceededMaxCommentLength={setExceededMaxCommentLength}
-                    />
+                    /> */}
                 </View>
             </OfflineWithFeedback>
-            <Suggestions
+            {/* <Suggestions
                 // Onyx
                 preferredLocale={preferredLocale}
                 windowHeight={windowHeight}
@@ -795,7 +432,7 @@ function ReportActionCompose({
                 ref={suggestionsRef}
                 onInsertedEmoji={onInsertedEmoji}
                 resetKeyboardInput={resetKeyboardInput}
-            />
+            /> */}
         </View>
     );
 }
@@ -804,40 +441,24 @@ ReportActionCompose.propTypes = propTypes;
 ReportActionCompose.defaultProps = defaultProps;
 
 export default compose(
-    withWindowDimensions,
-    withNavigation,
-    withNavigationFocus,
     withLocalize,
     withNetwork(),
+    withWindowDimensions,
     withCurrentUserPersonalDetails,
-    withKeyboardState,
     withAnimatedRef,
     withOnyx({
-        comment: {
+        isCommentEmpty: {
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,
-        },
-        numberOfLines: {
-            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT_NUMBER_OF_LINES}${reportID}`,
-        },
-        modal: {
-            key: ONYXKEYS.MODAL,
+            selector: (comment) => _.isEmpty(comment),
         },
         blockedFromConcierge: {
             key: ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE,
-        },
-        preferredSkinTone: {
-            key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
-            selector: EmojiUtils.getPreferredSkinToneIndex,
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
         shouldShowComposeInput: {
             key: ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT,
-        },
-        parentReportActions: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
-            canEvict: false,
         },
     }),
 )(ReportActionCompose);
