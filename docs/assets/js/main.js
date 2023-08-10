@@ -110,8 +110,9 @@ function changeSVGViewBoxGoogle() {
 
     // Iterate through each SVG element
     Array.from(svgsGoogle).forEach(svg => {
-        // Set the viewBox attribute to "0 0 20 20"
-        svg.setAttribute('viewBox', '0 0 20 20');
+
+        // Set the viewBox attribute
+        svg.setAttribute('viewBox', '0 0 13 13');
     });
 }
 
