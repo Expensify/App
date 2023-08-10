@@ -97,13 +97,6 @@ function Suggestions({
     return (
         <>
             <SuggestionEmoji
-                // Onyx
-                preferredSkinTone={preferredSkinTone}
-                windowHeight={windowHeight}
-                isSmallScreenWidth={isSmallScreenWidth}
-                preferredLocale={preferredLocale}
-                personalDetails={personalDetails}
-                translate={translate}
                 // Input
                 value={value}
                 setValue={setValue}

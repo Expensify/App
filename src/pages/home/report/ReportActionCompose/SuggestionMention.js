@@ -7,6 +7,7 @@ import MentionSuggestions from '../../../../components/MentionSuggestions';
 import * as UserUtils from '../../../../libs/UserUtils';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
 import * as SuggestionsUtils from '../../../../libs/SuggestionUtils';
+import useLocalize from '../../../../hooks/useLocalize';
 
 /**
  * Check if this piece of string looks like a mention
@@ -24,13 +25,6 @@ const defaultSuggestionsValues = {
 };
 
 const propTypes = {
-    // Onyx/Hooks
-    preferredSkinTone: PropTypes.number.isRequired,
-    windowHeight: PropTypes.number.isRequired,
-    isSmallScreenWidth: PropTypes.bool.isRequired,
-    preferredLocale: PropTypes.string.isRequired,
-    personalDetails: PropTypes.object.isRequired,
-    translate: PropTypes.func.isRequired,
     // Input
     value: PropTypes.string.isRequired,
     setValue: PropTypes.func.isRequired,
@@ -46,28 +40,11 @@ const propTypes = {
     shouldShowReportRecipientLocalTime: PropTypes.bool.isRequired,
     // Custom added
     forwardedRef: PropTypes.object.isRequired,
-    resetKeyboardInput: PropTypes.func.isRequired,
 };
 
 // TODO: split between emoji and mention suggestions
-function SuggestionMention({
-    isComposerFullSize,
-    windowHeight,
-    preferredLocale,
-    isSmallScreenWidth,
-    preferredSkinTone,
-    personalDetails,
-    translate,
-    value,
-    setValue,
-    selection,
-    setSelection,
-    updateComment,
-    composerHeight,
-    shouldShowReportRecipientLocalTime,
-    forwardedRef,
-    resetKeyboardInput,
-}) {
+function SuggestionMention({isComposerFullSize, personalDetails, value, setValue, setSelection, updateComment, composerHeight, shouldShowReportRecipientLocalTime, forwardedRef}) {
+    const {translate} = useLocalize();
     // TODO: rewrite suggestion logic to some hook or state machine or util or something to not make it depend on ReportActionComposer
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
     // TODO: const valueRef = usePrevious(value); (maybe even pass from parent?)

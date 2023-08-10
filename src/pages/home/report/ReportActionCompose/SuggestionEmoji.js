@@ -1,11 +1,16 @@
 import React, {useState, useCallback, useRef, useImperativeHandle} from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
+import {withOnyx} from 'react-native-onyx';
 import CONST from '../../../../CONST';
 import useArrowKeyFocusManager from '../../../../hooks/useArrowKeyFocusManager';
 import * as SuggestionsUtils from '../../../../libs/SuggestionUtils';
 import * as EmojiUtils from '../../../../libs/EmojiUtils';
 import EmojiSuggestions from '../../../../components/EmojiSuggestions';
+import ONYXKEYS from '../../../../ONYXKEYS';
+import compose from '../../../../libs/compose';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
+import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 
 /**
  * Check if this piece of string looks like an emoji
@@ -28,13 +33,6 @@ const defaultSuggestionsValues = {
 };
 
 const propTypes = {
-    // Onyx/Hooks
-    preferredSkinTone: PropTypes.number.isRequired,
-    windowHeight: PropTypes.number.isRequired,
-    isSmallScreenWidth: PropTypes.bool.isRequired,
-    preferredLocale: PropTypes.string.isRequired,
-    personalDetails: PropTypes.object.isRequired,
-    translate: PropTypes.func.isRequired,
     // Input
     value: PropTypes.string.isRequired,
     setValue: PropTypes.func.isRequired,
@@ -52,6 +50,9 @@ const propTypes = {
     forwardedRef: PropTypes.object.isRequired,
     resetKeyboardInput: PropTypes.func.isRequired,
     onInsertedEmoji: PropTypes.func.isRequired,
+
+    ...windowDimensionsPropTypes,
+    ...withLocalizePropTypes,
 };
 
 function SuggestionEmoji({
@@ -60,8 +61,6 @@ function SuggestionEmoji({
     preferredLocale,
     isSmallScreenWidth,
     preferredSkinTone,
-    personalDetails,
-    translate,
     value,
     setValue,
     selection,
@@ -265,4 +264,13 @@ const SuggestionEmojiWithRef = React.forwardRef((props, ref) => (
     />
 ));
 
-export default SuggestionEmojiWithRef;
+export default compose(
+    withLocalize,
+    withWindowDimensions,
+    withOnyx({
+        preferredSkinTone: {
+            key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
+            selector: EmojiUtils.getPreferredSkinToneIndex,
+        },
+    }),
+)(SuggestionEmojiWithRef);
