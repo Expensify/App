@@ -113,7 +113,6 @@ function AttachmentPicker({translate, type, children, isSmallScreenWidth}) {
 
     /**
      * A generic handling when we don't know the exact reason for an error
-     *
      */
     const showGeneralAlert = () => {
         Alert.alert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingAttachment'));
