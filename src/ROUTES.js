@@ -12,6 +12,8 @@ const IOU_SEND = 'send/new';
 const NEW_TASK = 'new/task';
 const SETTINGS_PERSONAL_DETAILS = 'settings/profile/personal-details';
 const SETTINGS_CONTACT_METHODS = 'settings/profile/contact-methods';
+const SETTINGS_STATUS = 'settings/profile/status';
+const SETTINGS_STATUS_SET = 'settings/profile/status/set';
 
 export default {
     BANK_ACCOUNT: 'bank-account',
@@ -58,6 +60,8 @@ export default {
     SETTINGS_2FA_CODES: 'settings/security/two-factor-auth/codes',
     SETTINGS_2FA_VERIFY: 'settings/security/two-factor-auth/verify',
     SETTINGS_2FA_SUCCESS: 'settings/security/two-factor-auth/success',
+    SETTINGS_STATUS,
+    SETTINGS_STATUS_SET,
     NEW_GROUP: 'new/group',
     NEW_CHAT: 'new/chat',
     NEW_TASK,
@@ -87,6 +91,7 @@ export default {
     MONEY_REQUEST_DESCRIPTION: ':iouType/new/description/:reportID?',
     MONEY_REQUEST_MANUAL_TAB: ':iouType/new/:reportID?/manual',
     MONEY_REQUEST_SCAN_TAB: ':iouType/new/:reportID?/scan',
+    MONEY_REQUEST_DISTANCE_TAB: ':iouType/new/:reportID?/distance',
     IOU_SEND_ADD_BANK_ACCOUNT: `${IOU_SEND}/add-bank-account`,
     IOU_SEND_ADD_DEBIT_CARD: `${IOU_SEND}/add-debit-card`,
     IOU_SEND_ENABLE_PAYMENTS: `${IOU_SEND}/enable-payments`,

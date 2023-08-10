@@ -209,6 +209,7 @@ function ProfilePage(props) {
                         {!isCurrentUser && !Session.isAnonymousUser() && (
                             <MenuItem
                                 title={`${props.translate('common.message')}${displayName}`}
+                                titleStyle={styles.flex1}
                                 icon={Expensicons.ChatBubble}
                                 onPress={() => Report.navigateToAndOpenReportWithAccountIDs([accountID])}
                                 wrapperStyle={styles.breakAll}

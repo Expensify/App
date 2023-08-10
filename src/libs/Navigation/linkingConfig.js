@@ -176,6 +176,14 @@ export default {
                                 path: ROUTES.SETTINGS_SHARE_CODE,
                                 exact: true,
                             },
+                            Settings_Status: {
+                                path: ROUTES.SETTINGS_STATUS,
+                                exact: true,
+                            },
+                            Settings_Status_Set: {
+                                path: ROUTES.SETTINGS_STATUS_SET,
+                                exact: true,
+                            },
                             Workspace_Initial: {
                                 path: ROUTES.WORKSPACE_INITIAL,
                             },
@@ -300,6 +308,10 @@ export default {
                                     },
                                     scan: {
                                         path: ROUTES.MONEY_REQUEST_SCAN_TAB,
+                                        exact: true,
+                                    },
+                                    distance: {
+                                        path: ROUTES.MONEY_REQUEST_DISTANCE_TAB,
                                         exact: true,
                                     },
                                 },

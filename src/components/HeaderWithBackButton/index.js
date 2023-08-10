@@ -41,10 +41,6 @@ function HeaderWithBackButton({
     subtitle = '',
     title = '',
     titleColor = undefined,
-    threeDotsAnchorAlignment = {
-        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-    },
     threeDotsAnchorPosition = {
         vertical: 0,
         horizontal: 0,
@@ -141,7 +137,6 @@ function HeaderWithBackButton({
                             menuItems={threeDotsMenuItems}
                             onIconPress={onThreeDotsButtonPress}
                             anchorPosition={threeDotsAnchorPosition}
-                            anchorAlignment={threeDotsAnchorAlignment}
                         />
                     )}
                     {shouldShowCloseButton && (

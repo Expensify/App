@@ -2,7 +2,6 @@ import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useState, useRef, useMemo} from 'react';
 import Animated, {useSharedValue, useAnimatedStyle, withTiming} from 'react-native-reanimated';
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import InvertedFlatList from '../../../components/InvertedFlatList';
 import compose from '../../../libs/compose';
 import styles from '../../../styles/styles';
@@ -103,6 +102,7 @@ function ReportActionsList({
     hasOutstandingIOU,
     loadMoreChats,
     onLayout,
+    isComposerFullSize,
 }) {
     const reportScrollManager = useReportScrollManager();
     const {translate} = useLocalize();
@@ -276,9 +276,8 @@ function ReportActionsList({
     // Native mobile does not render updates flatlist the changes even though component did update called.
     // To notify there something changes we can use extraData prop to flatlist
     const extraData = [isSmallScreenWidth ? currentUnreadMarker.current : undefined, ReportUtils.isArchivedRoom(report)];
-    const errors = lodashGet(report, 'errorFields.addWorkspaceRoom') || lodashGet(report, 'errorFields.createChat');
-    const hideComposer = ReportUtils.shouldHideComposer(report, errors);
-    const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(personalDetailsList, report, currentUserPersonalDetails.accountID);
+    const hideComposer = ReportUtils.shouldHideComposer(report);
+    const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(personalDetailsList, report, currentUserPersonalDetails.accountID) && !isComposerFullSize;
 
     return (
         <>
