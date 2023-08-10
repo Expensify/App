@@ -52,7 +52,8 @@ function TaskShareDestinationSelectorModal(props) {
             if (
                 !ReportUtils.isAllowedToComment(props.reports[reportKey]) ||
                 ReportUtils.isArchivedRoom(props.reports[reportKey]) ||
-                ReportUtils.isExpensifyOnlyParticipantInReport(props.reports[reportKey])
+                ReportUtils.isExpensifyOnlyParticipantInReport(props.reports[reportKey]) ||
+                ReportUtils.isCanceledTaskReport(props.reports[reportKey])
             ) {
                 return;
             }
