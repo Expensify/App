@@ -26,6 +26,7 @@ import * as Browser from '../libs/Browser';
 import cursor from './utilities/cursor';
 import userSelect from './utilities/userSelect';
 import textUnderline from './utilities/textUnderline';
+import Colors from './colors';
 
 // touchCallout is an iOS safari only property that controls the display of the callout information when you touch and hold a target
 const touchCalloutNone = Browser.isMobileSafari() ? {WebkitTouchCallout: 'none'} : {};
@@ -203,6 +204,9 @@ const styles = {
     },
     emojiSuggestionsText: {
         fontSize: variables.fontSizeMedium,
+        flex: 1,
+        ...wordBreak.breakWord,
+        ...spacing.pr4,
     },
 
     mentionSuggestionsAvatarContainer: {
@@ -769,6 +773,39 @@ const styles = {
         borderColor: themeColors.danger,
     },
 
+    uploadReceiptView: (isSmallScreenWidth) => ({
+        borderRadius: variables.componentBorderRadiusLarge,
+        borderWidth: isSmallScreenWidth ? 0 : 2,
+        borderColor: themeColors.borderFocus,
+        borderStyle: 'dotted',
+        marginBottom: 20,
+        marginLeft: 20,
+        marginRight: 20,
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 40,
+        gap: 4,
+        flex: 1,
+    }),
+
+    cameraView: {
+        flex: 1,
+        overflow: 'hidden',
+        padding: 10,
+        borderRadius: 28,
+        borderStyle: 'solid',
+        borderWidth: 8,
+        backgroundColor: Colors.greenHighlightBackground,
+        borderColor: Colors.greenAppBackground,
+    },
+
+    permissionView: {
+        paddingVertical: 108,
+        paddingHorizontal: 61,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+
     headerAnonymousFooter: {
         color: themeColors.heading,
         fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
@@ -1070,6 +1107,20 @@ const styles = {
         fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeLabel,
         color: themeColors.textSupporting,
+    },
+
+    textReceiptUpload: {
+        ...headlineFont,
+        fontSize: variables.fontSizeXLarge,
+        color: themeColors.textLight,
+        textAlign: 'center',
+    },
+
+    subTextReceiptUpload: {
+        fontFamily: fontFamily.EXP_NEUE,
+        lineHeight: variables.lineHeightLarge,
+        textAlign: 'center',
+        color: themeColors.textLight,
     },
 
     furtherDetailsText: {
@@ -1491,7 +1542,7 @@ const styles = {
     chatContentScrollView: {
         flexGrow: 1,
         justifyContent: 'flex-start',
-        paddingVertical: 16,
+        paddingBottom: 16,
     },
 
     // Chat Item
@@ -1551,13 +1602,6 @@ const styles = {
         ...cursor.cursorAuto,
         ...whiteSpace.preWrap,
         ...wordBreak.breakWord,
-    },
-
-    chatItemMessageLink: {
-        color: themeColors.link,
-        fontSize: variables.fontSizeNormal,
-        fontFamily: fontFamily.EXP_NEUE,
-        lineHeight: variables.lineHeightXLarge,
     },
 
     chatItemComposeWithFirstRow: {
@@ -1969,6 +2013,10 @@ const styles = {
         marginRight: variables.avatarChatSpacing,
     },
 
+    emptyAvatarMarginChat: {
+        marginRight: variables.avatarChatSpacing - 12,
+    },
+
     emptyAvatarMarginSmall: {
         marginRight: variables.avatarChatSpacing - 4,
     },
@@ -2056,8 +2104,11 @@ const styles = {
         height: '100%',
         justifyContent: 'center',
         overflow: 'hidden',
-        overflowY: 'auto',
         alignItems: 'center',
+    },
+
+    PDFViewList: {
+        overflowX: 'hidden',
     },
 
     pdfPasswordForm: {
@@ -2452,11 +2503,11 @@ const styles = {
         alignSelf: 'flex-start',
     },
 
-    attachmentModalArrowsContainer: {
-        display: 'flex',
-        justifyContent: 'center',
+    attachmentCarouselContainer: {
         height: '100%',
         width: '100%',
+        display: 'flex',
+        justifyContent: 'center',
         ...cursor.cursorUnset,
     },
 
@@ -2542,14 +2593,21 @@ const styles = {
         lineHeight: variables.inputHeight,
     },
 
-    magicCodeInputTransparent: {
+    // Manually style transparent, in iOS Safari, an input in a container with its opacity set to
+    // 0 (completely transparent) cannot handle user interaction, hence the Paste option is never shown
+    inputTransparent: {
         color: 'transparent',
-        caretColor: 'transparent',
-        WebkitTextFillColor: 'transparent',
-        // After setting the input text color to transparent, it acquires the background-color.
-        // However, it is not possible to override the background-color directly as explained in this resource: https://developer.mozilla.org/en-US/docs/Web/CSS/:autofill
-        // Therefore, the transition effect needs to be delayed.
-        transitionDelay: '99999s',
+        // These properties are available in browser only
+        ...(Browser.getBrowser()
+            ? {
+                  caretColor: 'transparent',
+                  WebkitTextFillColor: 'transparent',
+                  // After setting the input text color to transparent, it acquires the background-color.
+                  // However, it is not possible to override the background-color directly as explained in this resource: https://developer.mozilla.org/en-US/docs/Web/CSS/:autofill
+                  // Therefore, the transition effect needs to be delayed.
+                  transitionDelay: '99999s',
+              }
+            : {}),
     },
 
     iouAmountText: {
@@ -3178,6 +3236,16 @@ const styles = {
         zIndex: 2,
     },
 
+    receiptDropOverlay: {
+        backgroundColor: themeColors.receiptDropUIBG,
+        zIndex: 2,
+    },
+
+    receiptImageWrapper: (receiptImageTopPosition) => ({
+        position: 'absolute',
+        top: receiptImageTopPosition,
+    }),
+
     cardSection: {
         backgroundColor: themeColors.cardBG,
         borderRadius: variables.componentBorderRadiusCard,
@@ -3537,6 +3605,29 @@ const styles = {
         textAlign: 'center',
     },
 
+    tabSelectorButton: (isSelected) => ({
+        height: 40,
+        padding: 12,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: variables.buttonBorderRadius,
+        backgroundColor: isSelected ? themeColors.midtone : themeColors.appBG,
+    }),
+
+    tabSelector: {
+        flexDirection: 'row',
+        paddingHorizontal: 20,
+        paddingBottom: 12,
+    },
+
+    tabText: (isSelected) => ({
+        marginHorizontal: 8,
+        fontFamily: isSelected ? fontFamily.EXP_NEUE_BOLD : fontFamily.EXP_NEUE,
+        fontWeight: isSelected ? fontWeightBold : 400,
+        color: isSelected ? themeColors.textLight : themeColors.textSupporting,
+    }),
+
     /**
      * @param {String} backgroundColor
      * @param {Number} height
@@ -3554,6 +3645,41 @@ const styles = {
 
     willChangeTransform: {
         willChange: 'transform',
+    },
+
+    emojiPickerButtonDropdown: {
+        justifyContent: 'center',
+        backgroundColor: themeColors.activeComponentBG,
+        width: 86,
+        height: 52,
+        borderRadius: 26,
+        alignItems: 'center',
+        paddingLeft: 10,
+        paddingRight: 4,
+        marginBottom: 32,
+        alignSelf: 'flex-start',
+    },
+
+    emojiPickerButtonDropdownIcon: {
+        fontSize: 30,
+    },
+
+    moneyRequestImage: {
+        height: 200,
+        borderRadius: 16,
+        margin: 20,
+    },
+
+    staticHeaderImage: {
+        minHeight: 240,
+    },
+
+    emojiPickerButtonDropdownContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    rotate90: {
+        transform: [{rotate: '90deg'}],
     },
 };
 
