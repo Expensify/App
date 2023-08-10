@@ -77,7 +77,6 @@ function injectFooterCopywrite() {
 
 function openSidebar() {
     document.getElementById('sidebar-layer').style.display = 'block';
-    document.getElementById('gsc-i-id1').placeholder = 'Search for something...';
 
     // Make body unscrollable
     const yAxis = document.documentElement.style.getPropertyValue('y-axis');
@@ -116,9 +115,24 @@ function changeSVGViewBoxGoogle() {
     });
 }
 
+// Function to insert element after another
+function insertElementAfter(referenceNode, newNode) {
+    referenceNode.parentNode.insertBefore(newNode, referenceNode.nextSibling);
+}
+
 // Need to wait up until page is load, so the svg viewBox can be changed
+// And the search label can be inserted
 window.addEventListener('load', () => {
     changeSVGViewBoxGoogle();
+
+    // Add required into the search input
+    const searchInput = document.getElementById('gsc-i-id1');
+    searchInput.setAttribute('required', '');
+
+    // Insert search label after the search input
+    const searchLabel = document.createElement('label');
+    searchLabel.innerHTML = 'Search for something...';
+    insertElementAfter(searchInput, searchLabel);
 });
 
 window.addEventListener('DOMContentLoaded', () => {
