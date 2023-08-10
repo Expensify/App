@@ -162,6 +162,7 @@ function ReportPreview(props) {
                                                     src="${thumbnail}"
                                                     data-expensify-source="${image}"
                                                     data-expensify-fit-container="true"
+                                                    data-expensify-preview-modal-disabled="true"
                                                 />
                                           `} />
                                         : <Image source={{uri: image}} style={[styles.w100, styles.h100]} />

@@ -197,7 +197,6 @@ function MoneyRequestPreview(props) {
 
     const renderReceipt = ({receipt, filename}) => {
         const {thumbnail, image} = ReceiptUtils.getThumbnailAndImageURIs(receipt.source, filename);
-        console.log(thumbnail, image);
         if (thumbnail) {
             return (
                 <RenderHTML html={`
@@ -205,6 +204,7 @@ function MoneyRequestPreview(props) {
                         src="${thumbnail}"
                         data-expensify-source="${image}"
                         data-expensify-fit-container="true"
+                        data-expensify-preview-modal-disabled="true"
                     />
                 `} />
             );
