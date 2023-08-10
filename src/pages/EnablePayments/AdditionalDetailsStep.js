@@ -283,6 +283,8 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
 
 AdditionalDetailsStep.propTypes = propTypes;
 AdditionalDetailsStep.defaultProps = defaultProps;
+AdditionalDetailsStep.displayName = 'AdditionalDetailsStep';
+
 export default compose(
     withLocalize,
     withCurrentUserPersonalDetails,
