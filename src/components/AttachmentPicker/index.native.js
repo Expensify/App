@@ -6,8 +6,6 @@ import RNFetchBlob from 'react-native-blob-util';
 import {launchImageLibrary} from 'react-native-image-picker';
 import {propTypes as basePropTypes, defaultProps} from './attachmentPickerPropTypes';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import compose from '../../libs/compose';
 import CONST from '../../CONST';
 import * as FileUtils from '../../libs/fileDownload/FileUtils';
 import * as Expensicons from '../Icon/Expensicons';
@@ -17,11 +15,11 @@ import Popover from '../Popover';
 import MenuItem from '../MenuItem';
 import styles from '../../styles/styles';
 import ArrowKeyFocusManager from '../ArrowKeyFocusManager';
+import useLocalize from '../../hooks/useLocalize';
 
 const propTypes = {
     ...basePropTypes,
     ...windowDimensionsPropTypes,
-    ...withLocalizePropTypes,
 };
 
 /**
@@ -85,10 +83,12 @@ const getDataForUpload = (fileData) => {
     });
 }
 
-function AttachmentPicker({translate, type, children, isSmallScreenWidth}) {
+function AttachmentPicker({ type, children, isSmallScreenWidth}) {
     const completeAttachmentSelection = useRef();
     const onModalHide = useRef();
     const keyboardListener = useRef();
+    
+    const {translate} = useLocalize()
 
     /**
      * Inform the users when they need to grant camera access and guide them to settings
@@ -352,4 +352,4 @@ function AttachmentPicker({translate, type, children, isSmallScreenWidth}) {
 AttachmentPicker.propTypes = propTypes;
 AttachmentPicker.defaultProps = defaultProps;
 
-export default compose(withWindowDimensions, withLocalize)(AttachmentPicker);
+export default withWindowDimensions(AttachmentPicker);
