@@ -96,7 +96,7 @@ function isRequiredFulfilled(value) {
 }
 
 /**
- * Used to validate a value that is "required".
+ * Used to add requiredField error to the fields passed.
  *
  * @param {Object} values
  * @param {Array} requiredFields
