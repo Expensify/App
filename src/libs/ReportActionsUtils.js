@@ -43,7 +43,6 @@ Onyx.connect({
     waitForCollectionCallback: true,
     callback: (val) => {
         if (!val) {
-            allTransactions = {};
             return;
         }
 
@@ -150,7 +149,7 @@ function getParentReportActionInReport(childReportID, parentReportID) {
  * @param {Object} reportAction
  * @returns {Object}
  */
-function getTransaction(reportAction = {}) {
+function getLinkedTransaction(reportAction = {}) {
     const transactionID = lodashGet(reportAction, ['originalMessage', 'IOUTransactionID'], '');
     return allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] || {};
 }
@@ -177,7 +176,7 @@ function getMoneyRequestDetails(reportAction = {}) {
     }
 
     // For all other actions, retrieve the details from the linked transaction.
-    const transaction = getTransaction(reportAction);
+    const transaction = getLinkedTransaction(reportAction);
     return {...transaction, comment: lodashGet(transaction, 'comment.comment', '')};
 }
 
@@ -655,5 +654,5 @@ export {
     isPendingRemove,
     getReportAction,
     getMoneyRequestDetails,
-    getTransaction,
+    getLinkedTransaction,
 };

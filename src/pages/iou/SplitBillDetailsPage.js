@@ -53,7 +53,7 @@ const defaultProps = {
 
 function SplitBillDetailsPage(props) {
     const reportAction = props.reportActions[`${props.route.params.reportActionID.toString()}`];
-    const transaction = ReportActionsUtils.getTransaction(reportAction);
+    const transaction = ReportActionsUtils.getLinkedTransaction(reportAction);
     const participantAccountIDs = reportAction.originalMessage.participantAccountIDs;
     const participants = OptionsListUtils.getParticipantsOptions(
         _.map(participantAccountIDs, (accountID) => ({accountID, selected: true})),
