@@ -97,6 +97,7 @@ function MultipleAvatars(props) {
     const tooltipTexts = props.shouldShowTooltip ? _.pluck(props.icons, 'name') : [''];
 
     const avatarRows = useMemo(() => {
+        // If we're not displaying avatars in rows or the number of icons is less than or equal to the max avatars in a row, return a single row
         if (!props.shouldDisplayAvatarsInRows || props.icons.length <= props.maxAvatarsInRow) {
             return [props.icons];
         }
