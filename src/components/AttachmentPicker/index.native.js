@@ -326,7 +326,7 @@ function AttachmentPicker({translate, type, children, isSmallScreenWidth}) {
                 anchorPosition={styles.createMenuPosition}
                 onModalHide={onModalHide.current}
             >
-                <View style={isSmallScreenWidth ? {} : styles.createMenuContainer}>
+                <View style={!isSmallScreenWidth && styles.createMenuContainer}>
                     <ArrowKeyFocusManager
                         focusedIndex={focusedIndex}
                         maxIndex={menuItemData.length - 1}
