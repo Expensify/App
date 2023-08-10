@@ -47,6 +47,18 @@
                     {
                         "/": "/concierge/*",
                         "comment": "Concierge"
+                    },
+                    {
+                        "/": "/split/*",
+                        "comment": "Split Bill"
+                    },
+                    {
+                        "/": "/request/*",
+                        "comment": "Request Money"
+                    },
+                    {
+                        "/": "/new/*",
+                        "comment": "New Chat"
                     }
                 ]
             }

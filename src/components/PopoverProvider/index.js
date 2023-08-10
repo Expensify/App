@@ -64,9 +64,9 @@ function PopoverContextProvider(props) {
             }
             closePopover();
         };
-        document.addEventListener('keydown', listener);
+        document.addEventListener('keydown', listener, true);
         return () => {
-            document.removeEventListener('keydown', listener);
+            document.removeEventListener('keydown', listener, true);
         };
     }, [closePopover]);
 
