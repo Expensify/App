@@ -103,7 +103,7 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator([
             return WaypointEditor;
         },
         name: 'Money_Request_Waypoint',
-    }
+    },
 ]);
 
 const SplitDetailsModalStackNavigator = createModalStackNavigator([

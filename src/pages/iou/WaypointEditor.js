@@ -19,7 +19,6 @@ import ROUTES from '../../ROUTES';
 import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
 
-
 const propTypes = {
     route: PropTypes.shape({
         params: PropTypes.shape({
@@ -28,12 +27,11 @@ const propTypes = {
             transactionID: PropTypes.string,
         }),
     }),
-    
+
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
     ...withLocalizePropTypes,
-    
 };
 
 const defaultProps = {
@@ -67,7 +65,7 @@ function WaypointEditor(props) {
         }
 
         return errors;
-    }
+    };
 
     const onSubmit = (values) => {
         // Allows letting you set a waypoint to an empty value
@@ -80,24 +78,24 @@ function WaypointEditor(props) {
         if (props.network.isOffline && values[`waypoint${waypointIndex}`]) {
             const waypoint = {
                 address: values[`waypoint${waypointIndex}`],
-            }
+            };
 
             DistanceRequest.saveWaypoint(transactionID, waypointIndex, waypoint);
         }
 
         Navigation.navigate(ROUTES.getMoneyRequestDistanceTabRoute(iouType));
-    }
+    };
 
     const onPress = (values) => {
         const waypoint = {
             lat: values.lat,
             lng: values.lng,
             address: values.address,
-        }
+        };
 
         DistanceRequest.saveWaypoint(transactionID, waypointIndex, waypoint);
         Navigation.navigate(ROUTES.getMoneyRequestDistanceTabRoute(iouType));
-    }
+    };
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -114,7 +112,7 @@ function WaypointEditor(props) {
                 enabledWhenOffline
                 validate={validate}
                 onSubmit={onSubmit}
-                submitButtonText=''
+                submitButtonText=""
                 isSubmitButtonVisible={false}
             >
                 <View>
@@ -140,17 +138,10 @@ function WaypointEditor(props) {
                 </View>
             </Form>
         </ScreenWrapper>
-    )
-
+    );
 }
 
 WaypointEditor.displayName = 'WaypointEditor';
 WaypointEditor.propTypes = propTypes;
 WaypointEditor.defaultProps = defaultProps;
-export default compose(
-    withLocalize,
-    withNetwork(),
-    withOnyx({
-
-    }),
-)(WaypointEditor);
+export default compose(withLocalize, withNetwork(), withOnyx({}))(WaypointEditor);

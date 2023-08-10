@@ -2059,7 +2059,7 @@ export default {
         },
         errors: {
             selectSuggestedAddress: 'Por favor, selecciona una dirección sugerida',
-        }
+        },
     },
     countrySelectorModal: {
         placeholderText: 'Buscar para ver opciones',
