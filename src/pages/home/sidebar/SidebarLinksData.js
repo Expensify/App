@@ -15,7 +15,7 @@ import CONST from '../../../CONST';
 import useLocalize from '../../../hooks/useLocalize';
 import styles from '../../../styles/styles';
 import withNavigationFocus from '../../../components/withNavigationFocus';
-import usePrevious from "../../../hooks/usePrevious";
+import usePrevious from '../../../hooks/usePrevious';
 
 const propTypes = {
     ...basePropTypes,
@@ -78,7 +78,7 @@ function SidebarLinksData({isFocused, allReportActions, betas, chatReports, curr
 
     const prevCurrentReportID = usePrevious(currentReportID);
     const isActiveReport = useCallback((reportID) => prevCurrentReportID === reportID, [prevCurrentReportID]);
-    console.log(currentReportID, prevCurrentReportID, 'SidebarLinksData')
+    console.log(currentReportID, prevCurrentReportID, 'SidebarLinksData');
 
     const isLoading = _.isEmpty(chatReports) || isPersonalDetailsLoading;
 
