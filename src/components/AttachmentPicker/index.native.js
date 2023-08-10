@@ -1,25 +1,22 @@
-/**
- * The react native image/document pickers work for iOS/Android, but we want to wrap them both within AttachmentPicker
- */
 import _ from 'underscore';
-import React, {Component} from 'react';
-import {Alert, Linking, View} from 'react-native';
-import {launchImageLibrary} from 'react-native-image-picker';
+import React, {useEffect, useState, useRef} from 'react';
+import {View, Alert, Linking} from 'react-native';
 import RNDocumentPicker from 'react-native-document-picker';
 import RNFetchBlob from 'react-native-blob-util';
+import {launchImageLibrary} from 'react-native-image-picker';
 import {propTypes as basePropTypes, defaultProps} from './attachmentPickerPropTypes';
-import styles from '../../styles/styles';
-import Popover from '../Popover';
-import MenuItem from '../MenuItem';
-import * as Expensicons from '../Icon/Expensicons';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import compose from '../../libs/compose';
-import launchCamera from './launchCamera';
 import CONST from '../../CONST';
 import * as FileUtils from '../../libs/fileDownload/FileUtils';
-import ArrowKeyFocusManager from '../ArrowKeyFocusManager';
+import * as Expensicons from '../Icon/Expensicons';
+import launchCamera from './launchCamera';
 import KeyboardShortcut from '../../libs/KeyboardShortcut';
+import Popover from '../Popover';
+import MenuItem from '../MenuItem';
+import styles from '../../styles/styles';
+import ArrowKeyFocusManager from '../ArrowKeyFocusManager';
 
 const propTypes = {
     ...basePropTypes,
@@ -88,133 +85,26 @@ function getDataForUpload(fileData) {
     });
 }
 
-/**
- * This component renders a function as a child and
- * returns a "show attachment picker" method that takes
- * a callback. This is the ios/android implementation
- * opening a modal with attachment options
- */
-class AttachmentPicker extends Component {
-    constructor(...args) {
-        super(...args);
-
-        this.state = {
-            isVisible: false,
-            focusedIndex: -1,
-        };
-
-        this.menuItemData = [
-            {
-                icon: Expensicons.Camera,
-                textTranslationKey: 'attachmentPicker.takePhoto',
-                pickAttachment: () => this.showImagePicker(launchCamera),
-            },
-            {
-                icon: Expensicons.Gallery,
-                textTranslationKey: 'attachmentPicker.chooseFromGallery',
-                pickAttachment: () => this.showImagePicker(launchImageLibrary),
-            },
-        ];
-
-        // When selecting an image on a native device, it would be redundant to have a second option for choosing a document,
-        // so it is excluded in this case.
-        if (this.props.type !== CONST.ATTACHMENT_PICKER_TYPE.IMAGE) {
-            this.menuItemData.push({
-                icon: Expensicons.Paperclip,
-                textTranslationKey: 'attachmentPicker.chooseDocument',
-                pickAttachment: () => this.showDocumentPicker(),
-            });
-        }
-
-        this.close = this.close.bind(this);
-        this.pickAttachment = this.pickAttachment.bind(this);
-        this.removeKeyboardListener = this.removeKeyboardListener.bind(this);
-        this.attachKeyboardListener = this.attachKeyboardListener.bind(this);
-    }
-
-    componentDidUpdate(prevState) {
-        if (this.state.isVisible === prevState.isVisible) {
-            return;
-        }
-
-        if (this.state.isVisible) {
-            this.attachKeyboardListener();
-        } else {
-            this.removeKeyboardListener();
-        }
-    }
-
-    componentWillUnmount() {
-        this.removeKeyboardListener();
-    }
-
-    attachKeyboardListener() {
-        const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
-        this.unsubscribeEnterKey = KeyboardShortcut.subscribe(
-            shortcutConfig.shortcutKey,
-            () => {
-                if (this.state.focusedIndex === -1) {
-                    return;
-                }
-                this.selectItem(this.menuItemData[this.state.focusedIndex]);
-                this.setState({focusedIndex: -1}); // Reset the focusedIndex on selecting any menu
-            },
-            shortcutConfig.descriptionKey,
-            shortcutConfig.modifiers,
-            true,
-        );
-    }
-
-    removeKeyboardListener() {
-        if (!this.unsubscribeEnterKey) {
-            return;
-        }
-        this.unsubscribeEnterKey();
-    }
-
-    /**
-     * Handles the image/document picker result and
-     * sends the selected attachment to the caller (parent component)
-     *
-     * @param {Array<ImagePickerResponse|DocumentPickerResponse>} attachments
-     * @returns {Promise}
-     */
-    pickAttachment(attachments = []) {
-        if (attachments.length === 0) {
-            return;
-        }
-
-        const fileData = _.first(attachments);
-
-        if (fileData.width === -1 || fileData.height === -1) {
-            this.showImageCorruptionAlert();
-            return;
-        }
-
-        return getDataForUpload(fileData)
-            .then((result) => {
-                this.completeAttachmentSelection(result);
-            })
-            .catch((error) => {
-                this.showGeneralAlert(error.message);
-                throw error;
-            });
-    }
+function AttachmentPicker(props) {
+    // const onPicked = useRef();
+    const completeAttachmentSelection = useRef();
+    const onModalHide = useRef();
+    const keyboardListener = useRef();
 
     /**
      * Inform the users when they need to grant camera access and guide them to settings
      */
-    showPermissionsAlert() {
+    function showPermissionsAlert() {
         Alert.alert(
-            this.props.translate('attachmentPicker.cameraPermissionRequired'),
-            this.props.translate('attachmentPicker.expensifyDoesntHaveAccessToCamera'),
+            props.translate('attachmentPicker.cameraPermissionRequired'),
+            props.translate('attachmentPicker.expensifyDoesntHaveAccessToCamera'),
             [
                 {
-                    text: this.props.translate('common.cancel'),
+                    text: props.translate('common.cancel'),
                     style: 'cancel',
                 },
                 {
-                    text: this.props.translate('common.settings'),
+                    text: props.translate('common.settings'),
                     onPress: () => Linking.openSettings(),
                 },
             ],
@@ -223,14 +113,22 @@ class AttachmentPicker extends Component {
     }
 
     /**
+     * A generic handling when we don't know the exact reason for an error
+     *
+     */
+    function showGeneralAlert() {
+        Alert.alert(props.translate('attachmentPicker.attachmentError'), props.translate('attachmentPicker.errorWhileSelectingAttachment'));
+    }
+
+    /**
      * Common image picker handling
      *
      * @param {function} imagePickerFunc - RNImagePicker.launchCamera or RNImagePicker.launchImageLibrary
      * @returns {Promise<ImagePickerResponse>}
      */
-    showImagePicker(imagePickerFunc) {
+    function showImagePicker(imagePickerFunc) {
         return new Promise((resolve, reject) => {
-            imagePickerFunc(getImagePickerOptions(this.props.type), (response) => {
+            imagePickerFunc(getImagePickerOptions(props.type), (response) => {
                 if (response.didCancel) {
                     // When the user cancelled resolve with no attachment
                     return resolve();
@@ -238,10 +136,10 @@ class AttachmentPicker extends Component {
                 if (response.errorCode) {
                     switch (response.errorCode) {
                         case 'permission':
-                            this.showPermissionsAlert();
+                            showPermissionsAlert();
                             return resolve();
                         default:
-                            this.showGeneralAlert();
+                            showGeneralAlert();
                             break;
                     }
 
@@ -253,19 +151,28 @@ class AttachmentPicker extends Component {
         });
     }
 
-    /**
-     * A generic handling when we don't know the exact reason for an error
-     *
-     */
-    showGeneralAlert() {
-        Alert.alert(this.props.translate('attachmentPicker.attachmentError'), this.props.translate('attachmentPicker.errorWhileSelectingAttachment'));
-    }
+    const [isVisible, setIsVisible] = useState(false);
+    const [focusedIndex, setFocusedIndex] = useState(-1);
+    const [menuItemData, setMenuItemData] = useState([
+        {
+            icon: Expensicons.Camera,
+            textTranslationKey: 'attachmentPicker.takePhoto',
+            pickAttachment: () => showImagePicker(launchCamera),
+        },
+        {
+            icon: Expensicons.Gallery,
+            textTranslationKey: 'attachmentPicker.chooseFromGallery',
+            pickAttachment: () => showImagePicker(launchImageLibrary),
+        },
+    ]);
+
+    // const [result, setResult] = useState()
 
     /**
      * An attachment error dialog when user selected malformed images
      */
-    showImageCorruptionAlert() {
-        Alert.alert(this.props.translate('attachmentPicker.attachmentError'), this.props.translate('attachmentPicker.errorWhileSelectingCorruptedImage'));
+    function showImageCorruptionAlert() {
+        Alert.alert(props.translate('attachmentPicker.attachmentError'), props.translate('attachmentPicker.errorWhileSelectingCorruptedImage'));
     }
 
     /**
@@ -273,43 +180,61 @@ class AttachmentPicker extends Component {
      *
      * @returns {Promise<DocumentPickerResponse[]>}
      */
-    showDocumentPicker() {
+    function showDocumentPicker() {
         return RNDocumentPicker.pick(documentPickerOptions).catch((error) => {
             if (RNDocumentPicker.isCancel(error)) {
                 return;
             }
 
-            this.showGeneralAlert(error.message);
+            showGeneralAlert(error.message);
             throw error;
         });
     }
 
     /**
-     * Triggers the `onPicked` callback with the selected attachment
-     */
-    completeAttachmentSelection() {
-        if (!this.state.result) {
-            return;
-        }
-
-        this.state.onPicked(this.state.result);
-    }
-
-    /**
      * Opens the attachment modal
      *
-     * @param {function} onPicked A callback that will be called with the selected attachment
+     * @param {function} onPickedHandler A callback that will be called with the selected attachment
      */
-    open(onPicked) {
-        this.completeAttachmentSelection = onPicked;
-        this.setState({isVisible: true});
+    function open(onPickedHandler) {
+        completeAttachmentSelection.current = onPickedHandler;
+        setIsVisible(true);
     }
 
     /**
      * Closes the attachment modal
      */
-    close() {
-        this.setState({isVisible: false});
+    function close() {
+        setIsVisible(false);
+    }
+
+    /**
+     * Handles the image/document picker result and
+     * sends the selected attachment to the caller (parent component)
+     *
+     * @param {Array<ImagePickerResponse|DocumentPickerResponse>} attachments
+     * @returns {Promise}
+     */
+    function pickAttachment(attachments = []) {
+        if (attachments.length === 0) {
+            return;
+        }
+
+        const fileData = _.first(attachments);
+
+        if (fileData.width === -1 || fileData.height === -1) {
+            showImageCorruptionAlert();
+            return;
+        }
+
+        return getDataForUpload(fileData)
+            .then((result) => {
+                completeAttachmentSelection.current(result);
+            })
+            .catch((error) => {
+                showGeneralAlert(error.message);
+                throw error;
+            });
     }
 
     /**
@@ -318,65 +243,118 @@ class AttachmentPicker extends Component {
      * @param {Object} item - an item from this.menuItemData
      * @param {Function} item.pickAttachment
      */
-    selectItem(item) {
+    function selectItem(item) {
         /* setTimeout delays execution to the frame after the modal closes
          * without this on iOS closing the modal closes the gallery/camera as well */
-        this.onModalHide = () =>
+        onModalHide.current = () =>
             setTimeout(
                 () =>
                     item
                         .pickAttachment()
-                        .then(this.pickAttachment)
+                        .then(pickAttachment)
                         .catch(console.error)
-                        .finally(() => delete this.onModalHide),
+                        .finally(() => delete onModalHide.current),
                 200,
             );
 
-        this.close();
+        close();
     }
+
+    function attachKeyboardListener() {
+        const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
+        keyboardListener.current = KeyboardShortcut.subscribe(
+            shortcutConfig.shortcutKey,
+            () => {
+                if (focusedIndex === -1) {
+                    return;
+                }
+                selectItem(menuItemData[focusedIndex]);
+                setFocusedIndex(-1); // Reset the focusedIndex on selecting any menu
+            },
+            shortcutConfig.descriptionKey,
+            shortcutConfig.modifiers,
+            true,
+        );
+    }
+
+    function removeKeyboardListener() {
+        if (!keyboardListener.current) {
+            return;
+        }
+        keyboardListener.current();
+    }
+
+    useEffect(() => {
+        // When selecting an image on a native device, it would be redundant to have a second option for choosing a document,
+        // so it is excluded in this case.
+        if (props.type === CONST.ATTACHMENT_PICKER_TYPE.IMAGE) {
+            return;
+        }
+
+        setMenuItemData((oldMenuItemData) => [
+            ...oldMenuItemData,
+            {
+                icon: Expensicons.Paperclip,
+                textTranslationKey: 'attachmentPicker.chooseDocument',
+                pickAttachment: () => showDocumentPicker(),
+            },
+        ]);
+
+        return () => {
+            removeKeyboardListener();
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    useEffect(() => {
+        if (isVisible) {
+            attachKeyboardListener();
+        } else {
+            removeKeyboardListener();
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isVisible]);
 
     /**
      * Call the `children` renderProp with the interface defined in propTypes
      *
      * @returns {React.ReactNode}
      */
-    renderChildren() {
-        return this.props.children({
-            openPicker: ({onPicked}) => this.open(onPicked),
+    function renderChildren() {
+        return props.children({
+            openPicker: ({onPicked}) => open(onPicked),
         });
     }
 
-    render() {
-        return (
-            <>
-                <Popover
-                    onClose={this.close}
-                    isVisible={this.state.isVisible}
-                    anchorPosition={styles.createMenuPosition}
-                    onModalHide={this.onModalHide}
-                >
-                    <View style={this.props.isSmallScreenWidth ? {} : styles.createMenuContainer}>
-                        <ArrowKeyFocusManager
-                            focusedIndex={this.state.focusedIndex}
-                            maxIndex={this.menuItemData.length - 1}
-                            onFocusedIndexChanged={(index) => this.setState({focusedIndex: index})}
-                        >
-                            {_.map(this.menuItemData, (item, menuIndex) => (
-                                <MenuItem
-                                    key={item.textTranslationKey}
-                                    icon={item.icon}
-                                    title={this.props.translate(item.textTranslationKey)}
-                                    onPress={() => this.selectItem(item)}
-                                    focused={this.state.focusedIndex === menuIndex}
-                                />
-                            ))}
-                        </ArrowKeyFocusManager>
-                    </View>
-                </Popover>
-                {this.renderChildren()}
-            </>
-        );
-    }
+    return (
+        <>
+            <Popover
+                onClose={() => close()}
+                isVisible={isVisible}
+                anchorPosition={styles.createMenuPosition}
+                onModalHide={onModalHide.current}
+            >
+                <View style={props.isSmallScreenWidth ? {} : styles.createMenuContainer}>
+                    <ArrowKeyFocusManager
+                        focusedIndex={focusedIndex}
+                        maxIndex={menuItemData.length - 1}
+                        onFocusedIndexChanged={(index) => setFocusedIndex(index)}
+                    >
+                        {_.map(menuItemData, (item, menuIndex) => (
+                            <MenuItem
+                                key={item.textTranslationKey}
+                                icon={item.icon}
+                                title={props.translate(item.textTranslationKey)}
+                                onPress={() => selectItem(item)}
+                                focused={focusedIndex === menuIndex}
+                            />
+                        ))}
+                    </ArrowKeyFocusManager>
+                </View>
+            </Popover>
+            {renderChildren()}
+        </>
+    );
 }
 
 AttachmentPicker.propTypes = propTypes;
