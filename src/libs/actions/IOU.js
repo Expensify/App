@@ -301,7 +301,37 @@ function buildOnyxDataForMoneyRequest(
     return [optimisticData, successData, failureData];
 }
 
-function getIouReportOrOptimisticOne(report, participant, comment, isPolicyExpenseChat, amount, currency, payeeAccountID, payerAccountID, payeeEmail, payerEmail, receipt = undefined) {
+/**
+ * Gathers all the data needed to make a money request. It attempts to find existing reports, iouReports, and receipts. If it doesn't find them, then
+ * it creates optimistic versions of them and uses those instead
+ *
+ * @param {Object} report
+ * @param {Object} participant
+ * @param {String} comment
+ * @param {Number} amount
+ * @param {String} currency
+ * @param {Number} payeeAccountID
+ * @param {String} payeeEmail
+ * @param {Object} [receipt]
+ * @returns {Object} data
+ * @returns {String} data.payerEmail
+ * @returns {Object} data.iouReport
+ * @returns {Object} data.chatReport
+ * @returns {Object} data.transaction
+ * @returns {Object} data.iouAction
+ * @returns {Object} data.createdChatReportActionID
+ * @returns {Object} data.createdIOUReportActionID
+ * @returns {Object} data.reportPreviewAction
+ * @returns {Object} data.onyxData
+ * @returns {Object} data.onyxData.optimisticData
+ * @returns {Object} data.onyxData.successData
+ * @returns {Object} data.onyxData.failureData
+ */
+function getMoneyRequestInformation(report, participant, comment, amount, currency, payeeAccountID, payeeEmail, receipt = undefined) {
+    const payerEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login);
+    const payerAccountID = Number(participant.accountID);
+    const isPolicyExpenseChat = participant.isPolicyExpenseChat;
+
     // STEP 1: Get existing chat report OR build a new optimistic one
     let isNewChatReport = false;
     let chatReport = lodashGet(report, 'reportID', null) ? report : null;
@@ -403,6 +433,7 @@ function getIouReportOrOptimisticOne(report, participant, comment, isPolicyExpen
     );
 
     return {
+        payerEmail,
         iouReport,
         chatReport,
         transaction,
@@ -429,21 +460,14 @@ function getIouReportOrOptimisticOne(report, participant, comment, isPolicyExpen
  * @param {String} created
  */
 function createDistanceRequest(report, payeeEmail, payeeAccountID, participant, comment, waypoints, created) {
-    const payerEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login);
-    const payerAccountID = Number(participant.accountID);
-    const isPolicyExpenseChat = participant.isPolicyExpenseChat;
-
-    const {iouReport, chatReport, transaction, iouAction, createdChatReportActionID, createdIOUReportActionID, reportPreviewAction, onyxData} = getIouReportOrOptimisticOne(
+    const {payerEmail, iouReport, chatReport, transaction, iouAction, createdChatReportActionID, createdIOUReportActionID, reportPreviewAction, onyxData} = getMoneyRequestInformation(
         report,
         participant,
         comment,
-        isPolicyExpenseChat,
         0,
         'USD',
         payeeAccountID,
-        payerAccountID,
         payeeEmail,
-        payerEmail,
     );
 
     API.write(
@@ -478,21 +502,14 @@ function createDistanceRequest(report, payeeEmail, payeeAccountID, participant, 
  * @param {Object} [receipt]
  */
 function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, participant, comment, receipt = undefined) {
-    const payerEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login);
-    const payerAccountID = Number(participant.accountID);
-    const isPolicyExpenseChat = participant.isPolicyExpenseChat;
-
-    const {iouReport, chatReport, transaction, iouAction, createdChatReportActionID, createdIOUReportActionID, reportPreviewAction, onyxData} = getIouReportOrOptimisticOne(
+    const {payerEmail, iouReport, chatReport, transaction, iouAction, createdChatReportActionID, createdIOUReportActionID, reportPreviewAction, onyxData} = getMoneyRequestInformation(
         report,
         participant,
         comment,
-        isPolicyExpenseChat,
         amount,
         currency,
         payeeAccountID,
-        payerAccountID,
         payeeEmail,
-        payerEmail,
         receipt,
     );
 
@@ -1632,6 +1649,7 @@ function navigateToNextPage(iou, iouType, reportID, report) {
 }
 
 export {
+    createDistanceRequest,
     deleteMoneyRequest,
     splitBill,
     splitBillAndOpenReport,
