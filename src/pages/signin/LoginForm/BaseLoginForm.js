@@ -8,14 +8,14 @@ import styles from '../../../styles/styles';
 import Text from '../../../components/Text';
 import * as Session from '../../../libs/actions/Session';
 import ONYXKEYS from '../../../ONYXKEYS';
-import withWindowDimensions from '../../../components/withWindowDimensions';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import compose from '../../../libs/compose';
 import canFocusInputOnScreenFocus from '../../../libs/canFocusInputOnScreenFocus';
-import withLocalize from '../../../components/withLocalize';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import TextInput from '../../../components/TextInput';
 import * as ValidationUtils from '../../../libs/ValidationUtils';
 import * as LoginUtils from '../../../libs/LoginUtils';
-import withToggleVisibilityView from '../../../components/withToggleVisibilityView';
+import withToggleVisibilityView, {toggleVisibilityViewPropTypes} from '../../../components/withToggleVisibilityView';
 import FormAlertWithSubmitButton from '../../../components/FormAlertWithSubmitButton';
 import {withNetwork} from '../../../components/OnyxProvider';
 import * as ErrorUtils from '../../../libs/ErrorUtils';
@@ -25,9 +25,10 @@ import CONST from '../../../CONST';
 import isInputAutoFilled from '../../../libs/isInputAutoFilled';
 import * as PolicyUtils from '../../../libs/PolicyUtils';
 import Log from '../../../libs/Log';
-import withNavigationFocus from '../../../components/withNavigationFocus';
+import withNavigationFocus, {withNavigationFocusPropTypes} from '../../../components/withNavigationFocus';
 import usePrevious from '../../../hooks/usePrevious';
 import {propTypes, defaultProps} from './loginFormPropTypes';
+import networkPropTypes from '../../../components/networkPropTypes';
 
 /**
  * Enables experimental "memory only keys" mode in Onyx
@@ -193,8 +194,44 @@ function LoginForm(props) {
     );
 }
 
-LoginForm.propTypes = propTypes;
-LoginForm.defaultProps = defaultProps;
+LoginForm.propTypes = {
+    ...propTypes,
+
+    /* Onyx Props */
+
+    /** The details about the account that the user is signing in with */
+    account: PropTypes.shape({
+        /** An error message to display to the user */
+        errors: PropTypes.objectOf(PropTypes.string),
+
+        /** Success message to display when necessary */
+        success: PropTypes.string,
+
+        /** Whether or not a sign on form is loading (being submitted) */
+        isLoading: PropTypes.bool,
+    }),
+
+    closeAccount: PropTypes.shape({
+        /** Message to display when user successfully closed their account */
+        success: PropTypes.string,
+    }),
+
+    /** Props to detect online status */
+    network: networkPropTypes.isRequired,
+
+    ...windowDimensionsPropTypes,
+
+    ...withLocalizePropTypes,
+
+    ...toggleVisibilityViewPropTypes,
+
+    ...withNavigationFocusPropTypes,
+};
+LoginForm.defaultProps = {
+    ...defaultProps,
+    account: {},
+    closeAccount: {},
+};
 LoginForm.displayName = 'BaseLoginForm';
 
 export default compose(
