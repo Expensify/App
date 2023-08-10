@@ -130,6 +130,7 @@ window.addEventListener('load', () => {
 
     // Insert search label after the search input
     const searchLabel = document.createElement('label');
+    searchLabel.classList.add('search-label');
     searchLabel.innerHTML = 'Search for something...';
     insertElementAfter(searchInput, searchLabel);
 });

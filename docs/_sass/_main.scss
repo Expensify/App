@@ -204,7 +204,7 @@ button {
 }
 
 #sidebar-search {
-    background-color: $color-green-appBG;
+    background-color: $color-appBG;
     width: 375px;
     height: 100vh;
     position: fixed;
@@ -259,15 +259,16 @@ button {
 }
 
 input#gsc-i-id1.gsc-input {
-    background-color: $color-green-appBG;
+    background-color: $color-appBG;
     color: #E7ECE9;
     font-family: "ExpensifyNeue", "Segoe UI Emoji", "Noto Color Emoji" !important;
 }
 
 #gsc-iw-id1 {
-    background-color: $color-green-appBG;
+    background-color: $color-appBG;
     border-bottom: rgba(255, 255, 255, 0.2) 2px solid;
     border-bottom-left-radius: 0px;
+    
     &:focus-within {
         border-bottom: $color-accent 2px solid;
     }
@@ -282,13 +283,13 @@ input#gsc-i-id1.gsc-input {
 }
 
 /* Manage Google Search label animation */
-input:focus+label,
-input:valid+label,
-input:active+label {
+input#gsc-i-id1:focus+label.search-label,
+input#gsc-i-id1:valid+label.search-label,
+input#gsc-i-id1:active+label.search-label {
     transform: translateY(-100%) scale(0.80);
 }
 
-label {
+label.search-label {
     display: block;
     position: absolute;
     margin-top: -20px;
@@ -302,28 +303,18 @@ label {
     transition: transform 150ms cubic-bezier(0.4, 0, 0.2, 1), color 150ms cubic-bezier(0.4, 0, 0.2, 1), top 500ms;
 }
 
-/* Hide the relevance, etc sections */
-.gsc-above-wrapper-area {
-    display: none;
-}
-
-.gsc-webResult.gsc-result .gsc-url-top {
-    display: none;
-}
-
-/* Hide the ad */
-.gsc-results-wrapper-visible .gsc-adBlock {
-    display: none;
-}
-
-/* Hide branding */
-.gcsc-more-maybe-branding-root {
+/* Hide the relevance, Ads, Branding, find more button & etc sections */
+.gsc-above-wrapper-area,
+.gsc-webResult.gsc-result .gsc-url-top,
+.gsc-results-wrapper-visible .gsc-adBlock,
+.gcsc-more-maybe-branding-root,
+.gcsc-find-more-on-google-root {
     display: none;
 }
 
 .gsc-control-cse {
-    background-color: $color-green-appBG;
-    border: $color-green-appBG;
+    background-color: $color-appBG;
+    border: $color-appBG;
     font-family: "ExpensifyNeue", "Helvetica Neue", "Helvetica", Arial, sans-serif !important;
     max-height: 80vh;
     overflow-y: scroll;
@@ -352,7 +343,7 @@ label {
 }
 
 .gsc-search-button.gsc-search-button-v2 svg {
-    fill: white;
+    fill: $color-text;
 }
 
 /* Change the path of the Google Search Button icon into Expensify icon */
@@ -360,12 +351,6 @@ label {
     d: path('M8 1c3.9 0 7 3.1 7 7 0 1.4-.4 2.7-1.1 3.8l5.2 5.2c.6.6.6 1.5 0 2.1-.6.6-1.5.6-2.1 0l-5.2-5.2C10.7 14.6 9.4 15 8 15c-3.9 0-7-3.1-7-7s3.1-7 7-7zm0 3c2.2 0 4 1.8 4 4s-1.8 4-4 4-4-1.8-4-4 1.8-4 4-4z');
     fill-rule: evenodd;
     clip-rule: evenodd;
-}
-
-
-/* Hide find more button google */
-.gcsc-find-more-on-google-root {
-    display: none;
 }
 
 .gsc-resultsbox-visible .gsc-webResult .gsc-result {
