@@ -48,6 +48,9 @@ const propTypes = {
     /** A callback function when the value of this field has changed */
     onInputChange: PropTypes.func.isRequired,
 
+    /** A callback function when an address has been auto-selected */
+    onPress: PropTypes.func,
+
     onSubmit: PropTypes.func,
 
     /** Customize the TextInput container */
@@ -75,6 +78,7 @@ const defaultProps = {
     inputID: undefined,
     shouldSaveDraft: false,
     onBlur: () => {},
+    onPress: () => {},
     onSubmit: () => {},
     errorText: '',
     hint: '',
@@ -209,7 +213,7 @@ function AddressSearch(props) {
             props.onInputChange(values);
         }
 
-        props.onSubmit(values);
+        props.onPress(values);
     };
 
     return (

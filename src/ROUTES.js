@@ -98,6 +98,7 @@ export default {
     getMoneyRequestConfirmationRoute: (iouType, reportID = '') => `${iouType}/new/confirmation/${reportID}`,
     getMoneyRequestCurrencyRoute: (iouType, reportID = '', currency, backTo) => `${iouType}/new/currency/${reportID}?currency=${currency}&backTo=${backTo}`,
     getMoneyRequestDescriptionRoute: (iouType, reportID = '') => `${iouType}/new/description/${reportID}`,
+    getMoneyRequestDistanceTabRoute: (iouType, reportID = '') => `${iouType}/new/${reportID}/distance`,
     getMoneyRequestWaypointRoute: (iouType, transactionID, waypointIndex) => `${iouType}/new/waypoint/${transactionID}/${waypointIndex}`,
     SPLIT_BILL_DETAILS: `r/:reportID/split/:reportActionID`,
     getSplitBillDetailsRoute: (reportID, reportActionID) => `r/${reportID}/split/${reportActionID}`,
