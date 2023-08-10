@@ -20,6 +20,9 @@ import DateUtils from '../../libs/DateUtils';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import EmptyStateBackgroundImage from '../../../assets/images/empty-state_background-fade.png';
 import useLocalize from '../../hooks/useLocalize';
+import * as TransactionUtils from '../../libs/TransactionUtils';
+import * as ReceiptUtils from '../../libs/ReceiptUtils';
+import RenderHTML from '../RenderHTML';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -49,6 +52,13 @@ function MoneyRequestView(props) {
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
     const {translate} = useLocalize();
 
+    const transaction = ReportActionsUtils.getTransaction(parentReportAction)
+    const hasReceipt = TransactionUtils.hasReceipt(transaction);
+    let receiptUris;
+    if (hasReceipt) {
+        receiptUris = ReceiptUtils.getThumbnailAndImageURIs(transaction.receipt.source, transaction.filename);
+    }
+
     return (
         <View>
             <View style={[StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth), StyleUtils.getMinimumHeight(CONST.EMPTY_STATE_BACKGROUND.MONEY_REPORT.MIN_HEIGHT)]}>
@@ -58,6 +68,18 @@ function MoneyRequestView(props) {
                     style={[StyleUtils.getReportWelcomeBackgroundImageStyle(true)]}
                 />
             </View>
+            {hasReceipt && (
+                <View style={[styles.mh5, styles.mv3, styles.border, styles.overflowHidden, { height: 200 }]}>
+                    <RenderHTML html={`
+                        <img
+                            src="${receiptUris.thumbnail}"
+                            data-expensify-source="${receiptUris.image}"
+                            data-expensify-fit-container="true"
+                            data-expensify-preview-modal-disabled="true"
+                        />
+                    `} />
+                </View>
+            )}
             <MenuItemWithTopDescription
                 title={formattedTransactionAmount}
                 shouldShowTitleIcon={isSettled}
