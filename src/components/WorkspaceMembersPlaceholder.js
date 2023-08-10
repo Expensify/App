@@ -6,19 +6,19 @@ import Text from './Text';
 import OptionsListSkeletonView from './OptionsListSkeletonView';
 
 const propTypes = {
-    dataLoaded: PropTypes.bool,
-    dataEmptyText: PropTypes.string,
+    isLoaded: PropTypes.bool,
+    emptyText: PropTypes.string,
 };
 
 const defaultProps = {
-    dataLoaded: false,
-    dataEmptyText: undefined,
+    isLoaded: false,
+    emptyText: undefined,
 };
 
-function WorkspaceMembersPlaceholder(props) {
-    return props.dataLoaded && props.dataEmptyText ? (
+function WorkspaceMembersPlaceholder({isLoaded, emptyText}) {
+    return isLoaded && emptyText ? (
         <View style={[styles.ph5]}>
-            <Text style={[styles.textLabel, styles.colorMuted]}>{props.dataEmptyText}</Text>
+            <Text style={[styles.textLabel, styles.colorMuted]}>{emptyText}</Text>
         </View>
     ) : (
         <OptionsListSkeletonView shouldAnimate />
