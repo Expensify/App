@@ -85,7 +85,7 @@ function getDataForUpload(fileData) {
     });
 }
 
-function AttachmentPicker(props) {
+function AttachmentPicker({translate, type, children, isSmallScreenWidth}) {
     const completeAttachmentSelection = useRef();
     const onModalHide = useRef();
     const keyboardListener = useRef();
@@ -95,15 +95,15 @@ function AttachmentPicker(props) {
      */
     function showPermissionsAlert() {
         Alert.alert(
-            props.translate('attachmentPicker.cameraPermissionRequired'),
-            props.translate('attachmentPicker.expensifyDoesntHaveAccessToCamera'),
+            translate('attachmentPicker.cameraPermissionRequired'),
+            translate('attachmentPicker.expensifyDoesntHaveAccessToCamera'),
             [
                 {
-                    text: props.translate('common.cancel'),
+                    text: translate('common.cancel'),
                     style: 'cancel',
                 },
                 {
-                    text: props.translate('common.settings'),
+                    text: translate('common.settings'),
                     onPress: () => Linking.openSettings(),
                 },
             ],
@@ -116,7 +116,7 @@ function AttachmentPicker(props) {
      *
      */
     function showGeneralAlert() {
-        Alert.alert(props.translate('attachmentPicker.attachmentError'), props.translate('attachmentPicker.errorWhileSelectingAttachment'));
+        Alert.alert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingAttachment'));
     }
 
     /**
@@ -127,7 +127,7 @@ function AttachmentPicker(props) {
      */
     function showImagePicker(imagePickerFunc) {
         return new Promise((resolve, reject) => {
-            imagePickerFunc(getImagePickerOptions(props.type), (response) => {
+            imagePickerFunc(getImagePickerOptions(type), (response) => {
                 if (response.didCancel) {
                     // When the user cancelled resolve with no attachment
                     return resolve();
@@ -171,7 +171,7 @@ function AttachmentPicker(props) {
      * An attachment error dialog when user selected malformed images
      */
     function showImageCorruptionAlert() {
-        Alert.alert(props.translate('attachmentPicker.attachmentError'), props.translate('attachmentPicker.errorWhileSelectingCorruptedImage'));
+        Alert.alert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingCorruptedImage'));
     }
 
     /**
@@ -286,7 +286,7 @@ function AttachmentPicker(props) {
     useEffect(() => {
         // When selecting an image on a native device, it would be redundant to have a second option for choosing a document,
         // so it is excluded in this case.
-        if (props.type === CONST.ATTACHMENT_PICKER_TYPE.IMAGE) {
+        if (type === CONST.ATTACHMENT_PICKER_TYPE.IMAGE) {
             return;
         }
 
@@ -320,7 +320,7 @@ function AttachmentPicker(props) {
      * @returns {React.ReactNode}
      */
     function renderChildren() {
-        return props.children({
+        return children({
             openPicker: ({onPicked}) => open(onPicked),
         });
     }
@@ -333,7 +333,7 @@ function AttachmentPicker(props) {
                 anchorPosition={styles.createMenuPosition}
                 onModalHide={onModalHide.current}
             >
-                <View style={props.isSmallScreenWidth ? {} : styles.createMenuContainer}>
+                <View style={isSmallScreenWidth ? {} : styles.createMenuContainer}>
                     <ArrowKeyFocusManager
                         focusedIndex={focusedIndex}
                         maxIndex={menuItemData.length - 1}
@@ -343,7 +343,7 @@ function AttachmentPicker(props) {
                             <MenuItem
                                 key={item.textTranslationKey}
                                 icon={item.icon}
-                                title={props.translate(item.textTranslationKey)}
+                                title={translate(item.textTranslationKey)}
                                 onPress={() => selectItem(item)}
                                 focused={focusedIndex === menuIndex}
                             />
