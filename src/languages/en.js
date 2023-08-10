@@ -407,7 +407,7 @@ export default {
         threadSentMoneyReportName: ({formattedAmount, comment}) => `${formattedAmount} sent${comment ? ` for ${comment}` : ''}`,
         requestCount: ({count}) => `${count} requests`,
         error: {
-            invalidAmount: 'Please enter a valid amount before continuing',
+            invalidAmount: 'Please enter a valid amount before continuing.',
             invalidSplit: 'Split amounts do not equal total amount',
             other: 'Unexpected error, please try again later',
             genericCreateFailureMessage: 'Unexpected error requesting money, please try again later',
