@@ -79,7 +79,6 @@ Onyx.connect({
 const allReports = {};
 let conciergeChatReportID;
 const typingWatchTimers = {};
-const leavingWatchTimers = {};
 
 /**
  * Get the private pusher channel name for a Report.
@@ -231,7 +230,7 @@ function unsubscribeFromReportChannel(reportID) {
 }
 
 /**
- * Remove our pusher subscriptions to listen for someone typing in a report.
+ * Remove our pusher subscriptions to listen for someone leaving a report.
  *
  * @param {String} reportID
  */
@@ -911,7 +910,7 @@ function broadcastUserIsTyping(reportID) {
     Pusher.sendEvent(privateReportChannelName, Pusher.TYPE.USER_IS_TYPING, typingStatus);
 }
 /**
- * Broadcasts whether or not a user is typing on a report over the report's private pusher channel.
+ * Broadcasts whether or not a user is leaving on a report over the report's private pusher channel.
  *
  * @param {String} reportID
  */

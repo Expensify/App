@@ -84,6 +84,7 @@ const propTypes = {
     /** All of the personal details for everyone */
     personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
+    /** Whether user leaving current report that listen to another device leaveRoom trigger */
     userLeavingStatus: PropTypes.bool,
 
     ...windowDimensionsPropTypes,
@@ -129,7 +130,7 @@ class ReportScreen extends React.Component {
         this.onSubmitComment = this.onSubmitComment.bind(this);
         this.chatWithAccountManager = this.chatWithAccountManager.bind(this);
         this.dismissBanner = this.dismissBanner.bind(this);
-        this.checkAndSubscribe = this.checkAndSubscribe.bind(this);
+        this.checkAndSubscribeReportLeavingEvents = this.checkAndSubscribeReportLeavingEvents.bind(this);
 
         this.state = {
             skeletonViewContainerHeight: reportActionsListViewHeight,
@@ -159,7 +160,7 @@ class ReportScreen extends React.Component {
 
         this.fetchReportIfNeeded();
         ComposerActions.setShouldShowComposeInput(true);
-        this.checkAndSubscribe();
+        this.checkAndSubscribeReportLeavingEvents();
     }
 
     componentDidUpdate(prevProps) {
@@ -198,7 +199,7 @@ class ReportScreen extends React.Component {
 
         this.fetchReportIfNeeded();
         ComposerActions.setShouldShowComposeInput(true);
-        this.checkAndSubscribe();
+        this.checkAndSubscribeReportLeavingEvents();
     }
 
     componentWillUnmount() {
@@ -258,7 +259,7 @@ class ReportScreen extends React.Component {
         Navigation.navigate(ROUTES.getReportRoute(this.props.accountManagerReportID));
     }
 
-    checkAndSubscribe() {
+    checkAndSubscribeReportLeavingEvents() {
         const {report} = this.props;
         const didCreateReportSuccessfully = !report.pendingFields || (!report.pendingFields.addWorkspaceRoom && !report.pendingFields.createChat);
         if (!this.didSubscribeToReportLeavingEvents.current && didCreateReportSuccessfully) {
