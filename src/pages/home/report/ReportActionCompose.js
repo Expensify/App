@@ -1233,6 +1233,7 @@ class ReportActionCompose extends React.Component {
                                         style={({pressed, isDisabled}) => [
                                             styles.chatItemSubmitButton,
                                             this.state.isCommentEmpty || hasExceededMaxCommentLength || pressed || isDisabled ? undefined : styles.buttonSuccess,
+                                            (this.state.isCommentEmpty || isBlockedFromConcierge || this.props.disabled || hasExceededMaxCommentLength) && styles.cursorDisabled,
                                         ]}
                                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                         accessibilityLabel={this.props.translate('common.send')}
