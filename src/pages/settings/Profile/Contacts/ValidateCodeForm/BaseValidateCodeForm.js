@@ -88,6 +88,12 @@ function BaseValidateCodeForm(props) {
 
     useEffect(() => {
         Session.clearAccountMessages();
+        if (!validateLoginError) {
+            return;
+        }
+        User.clearContactMethodErrors(props.contactMethod, 'validateLogin');
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
