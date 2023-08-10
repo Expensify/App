@@ -83,6 +83,9 @@ const getDataForUpload = (fileData) => {
 }
 
 function AttachmentPicker({ type, children}) {
+    const [isVisible, setIsVisible] = useState(false);
+    const [focusedIndex, setFocusedIndex] = useState(-1);
+
     const completeAttachmentSelection = useRef();
     const onModalHide = useRef();
     const keyboardListener = useRef();
@@ -147,8 +150,6 @@ function AttachmentPicker({ type, children}) {
             });
         })
 
-    const [isVisible, setIsVisible] = useState(false);
-    const [focusedIndex, setFocusedIndex] = useState(-1);
     const [menuItemData, setMenuItemData] = useState([
         {
             icon: Expensicons.Camera,
