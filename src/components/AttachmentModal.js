@@ -184,16 +184,6 @@ function AttachmentModal(props) {
      * @returns {Boolean}
      */
     const isValidFile = useCallback((_file) => {
-        const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(_file, 'name', ''));
-        if (_.contains(CONST.API_ATTACHMENT_VALIDATIONS.UNALLOWED_EXTENSIONS, fileExtension.toLowerCase())) {
-            const invalidReason = 'attachmentPicker.notAllowedExtension';
-
-            setIsAttachmentInvalid(true);
-            setAttachmentInvalidReasonTitle('attachmentPicker.wrongFileType');
-            setAttachmentInvalidReason(invalidReason);
-            return false;
-        }
-
         if (lodashGet(_file, 'size', 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
             setIsAttachmentInvalid(true);
             setAttachmentInvalidReasonTitle('attachmentPicker.attachmentTooLarge');

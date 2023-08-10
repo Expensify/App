@@ -28,7 +28,6 @@ import * as PersonalDetailsUtils from '../PersonalDetailsUtils';
 import SidebarUtils from '../SidebarUtils';
 import * as OptionsListUtils from '../OptionsListUtils';
 import * as Environment from '../Environment/Environment';
-import * as Localize from '../Localize';
 
 let currentUserAccountID;
 Onyx.connect({
@@ -243,14 +242,6 @@ function addActions(reportID, text = '', file) {
 
     const currentTime = DateUtils.getDBTime();
 
-    const lastVisibleMessage = ReportActionsUtils.getLastVisibleMessage(reportID);
-    let prevVisibleMessageText;
-    if (lastVisibleMessage.lastMessageTranslationKey) {
-        prevVisibleMessageText = Localize.translateLocal(lastVisibleMessage.lastMessageTranslationKey);
-    } else {
-        prevVisibleMessageText = lastVisibleMessage.lastMessageText;
-    }
-
     const lastCommentText = ReportUtils.formatReportLastMessageText(lastAction.message[0].text);
 
     const optimisticReport = {
@@ -301,9 +292,23 @@ function addActions(reportID, text = '', file) {
         },
     ];
 
-    const failureReport = {
-        lastMessageText: prevVisibleMessageText,
+    let failureReport = {
+        lastMessageTranslationKey: '',
+        lastMessageText: '',
+        lastVisibleActionCreated: '',
     };
+    const {lastMessageText = '', lastMessageTranslationKey = ''} = ReportActionsUtils.getLastVisibleMessage(reportID);
+    if (lastMessageText || lastMessageTranslationKey) {
+        const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(reportID);
+        const lastVisibleActionCreated = lastVisibleAction.created;
+        const lastActorAccountID = lastVisibleAction.actorAccountID;
+        failureReport = {
+            lastMessageTranslationKey,
+            lastMessageText,
+            lastVisibleActionCreated,
+            lastActorAccountID,
+        };
+    }
     const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1058,7 +1063,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     }
 
     // Skip the Edit if message is not changed
-    if (parsedOriginalCommentHTML === htmlForNewComment.trim()) {
+    if (parsedOriginalCommentHTML === htmlForNewComment.trim() || originalCommentHTML === htmlForNewComment.trim()) {
         return;
     }
 
