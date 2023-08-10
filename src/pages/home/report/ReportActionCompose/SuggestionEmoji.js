@@ -250,7 +250,6 @@ function SuggestionEmoji({
             isComposerFullSize={isComposerFullSize}
             preferredSkinToneIndex={preferredSkinTone}
             isEmojiPickerLarge={suggestionValues.isAutoSuggestionPickerLarge}
-            composerHeight={composerHeight}
             shouldIncludeReportRecipientLocalTimeHeight={shouldShowReportRecipientLocalTime}
         />
     );
