@@ -59,6 +59,8 @@ const propTypes = {
 
     priorityMode: PropTypes.oneOf(_.values(CONST.PRIORITY_MODE)),
 
+    isActiveReport: PropTypes.func.isRequired,
+
     ...withLocalizePropTypes,
 };
 
@@ -153,7 +155,7 @@ class SidebarLinks extends React.PureComponent {
         // or when clicking the active LHN row
         // or when continuously clicking different LHNs, only apply to small screen
         // since getTopmostReportId always returns on other devices
-        if (this.props.isCreateMenuOpen || this.props.currentReportID === option.reportID || (this.props.isSmallScreenWidth && Navigation.getTopmostReportId())) {
+        if (this.props.isCreateMenuOpen || (!this.props.isSmallScreenWidth && this.props.isActiveReport(option.reportID)) || (this.props.isSmallScreenWidth && Navigation.getTopmostReportId())) {
             return;
         }
         Navigation.navigate(ROUTES.getReportRoute(option.reportID));
