@@ -28,6 +28,7 @@ import Log from '../../../libs/Log';
 import withNavigationFocus, {withNavigationFocusPropTypes} from '../../../components/withNavigationFocus';
 import usePrevious from '../../../hooks/usePrevious';
 import {propTypes, defaultProps} from './loginFormPropTypes';
+import PropTypes from 'prop-types';
 import networkPropTypes from '../../../components/networkPropTypes';
 
 /**
