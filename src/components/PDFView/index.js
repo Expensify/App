@@ -108,6 +108,8 @@ class PDFView extends Component {
             return;
         }
 
+        // Useful for elements that should not be navigated to directly using the "Tab" key,
+        // but need to have keyboard focus set to them.
         // eslint-disable-next-line no-param-reassign
         ref.tabIndex = -1;
     }
