@@ -80,12 +80,7 @@ function MoneyRequestConfirmPage(props) {
         // We want to load categories if this is an expense report on a policy expense chat
         const policyExpenseChat = _.find(participants, (participant) => participant.isPolicyExpenseChat);
         if (policyExpenseChat) {
-            if (props.iou.expenseType === CONST.IOU.EXPENSE_TYPE.MANUAL) {
-                Policy.openDraftWorkspaceManualRequest(policyExpenseChat.policyID);
-            }
-            if (props.iou.expenseType === CONST.IOU.EXPENSE_TYPE.DISTANCE) {
-                Policy.openDraftWorkspaceDistanceRequest(policyExpenseChat.policyID);
-            }
+            Policy.openDraftWorkspaceRequest(policyExpenseChat.policyID, props.iou.expenseType);
         }
     }, [props.report, participants, props.iou.expenseType]);
 

@@ -1159,16 +1159,10 @@ function openWorkspaceInvitePage(policyID, clientMemberEmails) {
 
 /**
  * @param {String} policyID
+ * @param {String} expenseType
  */
-function openDraftWorkspaceManualRequest(policyID) {
-    API.read('OpenDraftWorkspaceManualRequest', {policyID});
-}
-
-/**
- * @param {String} policyID
- */
-function openDraftWorkspaceDistanceRequest(policyID) {
-    API.read('OpenDraftWorkspaceDistanceRequest', {policyID});
+function openDraftWorkspaceRequest(policyID, expenseType) {
+    API.read('OpenDraftWorkspaceManualRequest', {policyID, expenseType});
 }
 
 /**
@@ -1216,6 +1210,5 @@ export {
     setWorkspaceInviteMembersDraft,
     isPolicyOwner,
     clearErrors,
-    openDraftWorkspaceManualRequest,
-    openDraftWorkspaceDistanceRequest,
+    openDraftWorkspaceRequest,
 };
