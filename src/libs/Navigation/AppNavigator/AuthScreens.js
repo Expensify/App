@@ -172,7 +172,7 @@ class AuthScreens extends React.Component {
             searchShortcutConfig.modifiers,
             true,
         );
-        this.unsubscribeGroupShortcut = KeyboardShortcut.subscribe(
+        this.unsubscribeChatShortcut = KeyboardShortcut.subscribe(
             chatShortcutConfig.shortcutKey,
             () => {
                 Modal.close(() => {
@@ -196,8 +196,8 @@ class AuthScreens extends React.Component {
         if (this.unsubscribeSearchShortcut) {
             this.unsubscribeSearchShortcut();
         }
-        if (this.unsubscribeGroupShortcut) {
-            this.unsubscribeGroupShortcut();
+        if (this.unsubscribeChatShortcut) {
+            this.unsubscribeChatShortcut();
         }
         Session.cleanupSession();
         clearInterval(this.interval);
