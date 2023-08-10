@@ -169,8 +169,6 @@ function ReportActionItem(props) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isWhisper, props.displayAsGroup, props.isPrevActionWhisper, props.separatorActions.highlight, props.separatorActions.unhighlight]);
 
-    const isPinnedChat = lodashGet(props, 'report.isPinned', false);
-
     useEffect(
         () => () => {
             // ReportActionContextMenu and EmojiPicker are global component,
@@ -260,11 +258,9 @@ function ReportActionItem(props) {
                 toggleContextMenuFromActiveReportAction,
                 ReportUtils.isArchivedRoom(props.report),
                 ReportUtils.chatIncludesChronos(props.report),
-                isPinnedChat,
-                props.shouldDisplayNewMarker,
             );
         },
-        [props.draftMessage, props.action, props.report, toggleContextMenuFromActiveReportAction, props.shouldDisplayNewMarker, isPinnedChat],
+        [props.draftMessage, props.action, props.report, toggleContextMenuFromActiveReportAction],
     );
 
     const toggleReaction = useCallback(
@@ -566,8 +562,6 @@ function ReportActionItem(props) {
                             isVisible={hovered && !props.draftMessage && !hasErrors}
                             draftMessage={props.draftMessage}
                             isChronosReport={ReportUtils.chatIncludesChronos(props.report)}
-                            isPinnedChat={isPinnedChat}
-                            isUnreadChat={props.shouldDisplayNewMarker}
                         />
                         <View
                             style={StyleUtils.getReportActionItemStyle(
