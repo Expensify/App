@@ -86,7 +86,6 @@ function getDataForUpload(fileData) {
 }
 
 function AttachmentPicker(props) {
-    // const onPicked = useRef();
     const completeAttachmentSelection = useRef();
     const onModalHide = useRef();
     const keyboardListener = useRef();
