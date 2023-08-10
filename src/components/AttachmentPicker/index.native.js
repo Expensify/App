@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {useEffect, useState, useRef} from 'react';
+import React, {useEffect, useState, useRef, useCallback} from 'react';
 import {View, Alert, Linking} from 'react-native';
 import RNDocumentPicker from 'react-native-document-picker';
 import RNFetchBlob from 'react-native-blob-util';
@@ -114,9 +114,9 @@ function AttachmentPicker({ type, children, isSmallScreenWidth}) {
     /**
      * A generic handling when we don't know the exact reason for an error
      */
-    const showGeneralAlert = () => {
+    const showGeneralAlert = useCallback(() => {
         Alert.alert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingAttachment'));
-    }
+    }, [translate])
 
     /**
      * Common image picker handling
@@ -167,9 +167,9 @@ function AttachmentPicker({ type, children, isSmallScreenWidth}) {
     /**
      * An attachment error dialog when user selected malformed images
      */
-    const showImageCorruptionAlert = () => {
+    const showImageCorruptionAlert = useCallback(() => {
         Alert.alert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingCorruptedImage'));
-    }
+    }, [translate])
 
     /**
      * Launch the DocumentPicker. Results are in the same format as ImagePicker
@@ -209,7 +209,7 @@ function AttachmentPicker({ type, children, isSmallScreenWidth}) {
      * @param {Array<ImagePickerResponse|DocumentPickerResponse>} attachments
      * @returns {Promise}
      */
-    const pickAttachment = (attachments = []) => {
+    const pickAttachment = useCallback((attachments = []) => {
         if (attachments.length === 0) {
             return;
         }
@@ -229,7 +229,7 @@ function AttachmentPicker({ type, children, isSmallScreenWidth}) {
                 showGeneralAlert(error.message);
                 throw error;
             });
-    }
+    }, [showGeneralAlert, showImageCorruptionAlert])
 
     /**
      * Setup native attachment selection to start after this popover closes
@@ -237,7 +237,7 @@ function AttachmentPicker({ type, children, isSmallScreenWidth}) {
      * @param {Object} item - an item from this.menuItemData
      * @param {Function} item.pickAttachment
      */
-    const selectItem = (item) => {
+    const selectItem = useCallback((item) => {
         /* setTimeout delays execution to the frame after the modal closes
          * without this on iOS closing the modal closes the gallery/camera as well */
         onModalHide.current = () =>
@@ -252,9 +252,9 @@ function AttachmentPicker({ type, children, isSmallScreenWidth}) {
             );
 
         close();
-    }
+    }, [pickAttachment])
 
-    const attachKeyboardListener = () => {
+    const attachKeyboardListener = useCallback(() => {
         const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
         keyboardListener.current = KeyboardShortcut.subscribe(
             shortcutConfig.shortcutKey,
@@ -269,7 +269,7 @@ function AttachmentPicker({ type, children, isSmallScreenWidth}) {
             shortcutConfig.modifiers,
             true,
         );
-    }
+    }, [focusedIndex, menuItemData, selectItem])
 
     const removeKeyboardListener = () => {
         if (!keyboardListener.current) {
@@ -306,8 +306,7 @@ function AttachmentPicker({ type, children, isSmallScreenWidth}) {
         } else {
             removeKeyboardListener();
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isVisible]);
+    }, [isVisible, attachKeyboardListener]);
 
     /**
      * Call the `children` renderProp with the interface defined in propTypes
