@@ -2109,6 +2109,8 @@ const styles = {
 
     PDFViewList: {
         overflowX: 'hidden',
+        boxShadow: 'none',
+        outline: 'none',
     },
 
     pdfPasswordForm: {
