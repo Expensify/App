@@ -1,4 +1,4 @@
-import moment from 'moment';
+import {subYears, addYears, startOfDay, endOfMonth, isAfter, isBefore, isValid, isWithinInterval, isSameDay, format} from 'date-fns';
 import _ from 'underscore';
 import {URL_REGEX_WITH_REQUIRED_PROTOCOL} from 'expensify-common/lib/Url';
 import {parsePhoneNumber} from 'awesome-phonenumber';
@@ -53,10 +53,10 @@ function isValidDate(date) {
         return false;
     }
 
-    const pastDate = moment().subtract(1000, 'years');
-    const futureDate = moment().add(1000, 'years');
-    const testDate = moment(date);
-    return testDate.isValid() && testDate.isBetween(pastDate, futureDate);
+    const pastDate = subYears(new Date(), 1000);
+    const futureDate = addYears(new Date(), 1000);
+    const testDate = new Date(date);
+    return isValid(testDate) && isAfter(testDate, pastDate) && isBefore(testDate, futureDate);
 }
 
 /**
@@ -70,10 +70,10 @@ function isValidPastDate(date) {
         return false;
     }
 
-    const pastDate = moment().subtract(1000, 'years');
-    const currentDate = moment();
-    const testDate = moment(date).startOf('day');
-    return testDate.isValid() && testDate.isBetween(pastDate, currentDate);
+    const pastDate = subYears(new Date(), 1000);
+    const currentDate = new Date();
+    const testDate = startOfDay(new Date(date));
+    return isValid(testDate) && isAfter(testDate, pastDate) && isBefore(testDate, currentDate);
 }
 
 /**
@@ -112,7 +112,7 @@ function isValidExpirationDate(string) {
 
     // Use the last of the month to check if the expiration date is in the future or not
     const expirationDate = `${CardUtils.getYearFromExpirationDateString(string)}-${CardUtils.getMonthFromExpirationDateString(string)}-01`;
-    return moment(expirationDate).endOf('month').isAfter(moment());
+    return isAfter(new Date(expirationDate), endOfMonth(new Date()));
 }
 
 /**
@@ -188,9 +188,9 @@ function isValidPaypalUsername(paypalUsername) {
  * @returns {Boolean}
  */
 function meetsMinimumAgeRequirement(date) {
-    const testDate = moment(date);
-    const minDate = moment().subtract(CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT, 'years');
-    return testDate.isValid() && testDate.isSameOrBefore(minDate, 'day');
+    const testDate = new Date(date);
+    const minDate = subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT);
+    return isValid(testDate) && (isSameDay(testDate, minDate) || isBefore(testDate, minDate));
 }
 
 /**
@@ -200,9 +200,9 @@ function meetsMinimumAgeRequirement(date) {
  * @returns {Boolean}
  */
 function meetsMaximumAgeRequirement(date) {
-    const testDate = moment(date);
-    const maxDate = moment().subtract(CONST.DATE_BIRTH.MAX_AGE, 'years');
-    return testDate.isValid() && testDate.isSameOrAfter(maxDate, 'day');
+    const testDate = new Date(date);
+    const maxDate = subYears(new Date(), CONST.DATE_BIRTH.MAX_AGE);
+    return isValid(testDate) && (isSameDay(testDate, maxDate) || isAfter(testDate, maxDate));
 }
 
 /**
@@ -214,19 +214,20 @@ function meetsMaximumAgeRequirement(date) {
  * @returns {String|Array}
  */
 function getAgeRequirementError(date, minimumAge, maximumAge) {
-    const recentDate = moment().startOf('day').subtract(minimumAge, 'years');
-    const longAgoDate = moment().startOf('day').subtract(maximumAge, 'years');
-    const testDate = moment(date);
-    if (!testDate.isValid()) {
+    const currentDate = startOfDay(new Date());
+    const recentDate = subYears(currentDate, minimumAge);
+    const longAgoDate = subYears(currentDate, maximumAge);
+    const testDate = new Date(date);
+    if (!isValid(testDate)) {
         return 'common.error.dateInvalid';
     }
-    if (testDate.isBetween(longAgoDate, recentDate, undefined, '[]')) {
+    if (isWithinInterval(testDate, {start: longAgoDate, end: recentDate})) {
         return '';
     }
-    if (testDate.isSameOrAfter(recentDate)) {
-        return ['privatePersonalDetails.error.dateShouldBeBefore', {dateString: recentDate.format(CONST.DATE.MOMENT_FORMAT_STRING)}];
+    if (isSameDay(testDate, recentDate) || isAfter(testDate, recentDate)) {
+        return ['privatePersonalDetails.error.dateShouldBeBefore', {dateString: format(recentDate, CONST.DATE.FNS_FORMAT_STRING)}];
     }
-    return ['privatePersonalDetails.error.dateShouldBeAfter', {dateString: longAgoDate.format(CONST.DATE.MOMENT_FORMAT_STRING)}];
+    return ['privatePersonalDetails.error.dateShouldBeAfter', {dateString: format(longAgoDate, CONST.DATE.FNS_FORMAT_STRING)}];
 }
 
 /**
@@ -313,7 +314,7 @@ function isValidTwoFactorCode(code) {
  * @returns {Boolean}
  */
 function isNumericWithSpecialChars(input) {
-    return /^\+?\d*$/.test(LoginUtils.getPhoneNumberWithoutSpecialChars(input));
+    return /^\+?[\d\\+]*$/.test(LoginUtils.getPhoneNumberWithoutSpecialChars(input));
 }
 
 /**

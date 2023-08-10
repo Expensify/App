@@ -419,17 +419,6 @@ function isOptimisticPersonalDetail(accountID) {
 }
 
 /**
- * Check if report is a DM and personal detail of participant is optimistic data
- * @param {String} report
- * @returns {Boolean}
- */
-function shouldDisableDetailPage(report) {
-    const participants = lodashGet(report, 'participantAccountIDs', []);
-    const isMultipleParticipant = participants.length > 1;
-    return !isMultipleParticipant && isOptimisticPersonalDetail(participants[0]) && !report.parentReportID;
-}
-
-/**
  * Checks if a report is a task report from a policy expense chat.
  *
  * @param {Object} report
@@ -471,6 +460,35 @@ function isChatThread(report) {
  */
 function isConciergeChatReport(report) {
     return lodashGet(report, 'participantAccountIDs', []).length === 1 && Number(report.participantAccountIDs[0]) === CONST.ACCOUNT_ID.CONCIERGE && !isChatThread(report);
+}
+
+/**
+ * Check if the report is a single chat report that isn't a thread
+ * and personal detail of participant is optimistic data
+ * @param {Object} report
+ * @param {Array} report.participantAccountIDs
+ * @returns {Boolean}
+ */
+function shouldDisableDetailPage(report) {
+    const participantAccountIDs = lodashGet(report, 'participantAccountIDs', []);
+
+    if (isChatRoom(report) || isPolicyExpenseChat(report) || isChatThread(report)) {
+        return false;
+    }
+    if (participantAccountIDs.length === 1) {
+        return isOptimisticPersonalDetail(participantAccountIDs[0]);
+    }
+    return false;
+}
+
+/**
+ * Returns true if this report has only one participant and it's an Expensify account.
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isExpensifyOnlyParticipantInReport(report) {
+    const reportParticipants = _.without(lodashGet(report, 'participantAccountIDs', []), currentUserAccountID);
+    return lodashGet(report, 'participantAccountIDs', []).length === 1 && _.some(reportParticipants, (accountID) => _.contains(CONST.EXPENSIFY_ACCOUNT_IDS, accountID));
 }
 
 /**
@@ -873,7 +891,7 @@ function getIconsForParticipants(participants, personalDetails) {
         const avatarSource = UserUtils.getAvatar(lodashGet(personalDetails, [accountID, 'avatar'], ''), accountID);
         participantDetails.push([
             accountID,
-            lodashGet(personalDetails, [accountID, 'login'], lodashGet(personalDetails, [accountID, 'displayName'], '')),
+            lodashGet(personalDetails, [accountID, 'displayName']) || lodashGet(personalDetails, [accountID, 'login'], ''),
             lodashGet(personalDetails, [accountID, 'firstName'], ''),
             avatarSource,
         ]);
@@ -1592,24 +1610,26 @@ function updateOptimisticParentReportAction(parentReportAction, lastVisibleActio
  * @param {String} reportID The reportID of the report that is updated
  * @param {String} lastVisibleActionCreated Last visible action created of the child report
  * @param {String} type The type of action in the child report
+ * @param {String} parentReportID Custom reportID to be updated
+ * @param {String} parentReportActionID Custom reportActionID to be updated
  * @returns {Object}
  */
-const getOptimisticDataForParentReportAction = (reportID, lastVisibleActionCreated, type) => {
+function getOptimisticDataForParentReportAction(reportID, lastVisibleActionCreated, type, parentReportID = '', parentReportActionID = '') {
     const report = getReport(reportID);
-    if (report && report.parentReportActionID) {
-        const parentReportAction = ReportActionsUtils.getParentReportAction(report);
-        if (parentReportAction && parentReportAction.reportActionID) {
-            return {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
-                value: {
-                    [parentReportAction.reportActionID]: updateOptimisticParentReportAction(parentReportAction, lastVisibleActionCreated, type),
-                },
-            };
-        }
+    const parentReportAction = ReportActionsUtils.getParentReportAction(report);
+    if (_.isEmpty(parentReportAction)) {
+        return {};
     }
-    return {};
-};
+
+    const optimisticParentReportAction = updateOptimisticParentReportAction(parentReportAction, lastVisibleActionCreated, type);
+    return {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID || report.parentReportID}`,
+        value: {
+            [parentReportActionID || report.parentReportActionID]: optimisticParentReportAction,
+        },
+    };
+}
 
 /**
  * Builds an optimistic reportAction for the parent report when a task is created
@@ -1780,9 +1800,22 @@ function getIOUReportActionMessage(type, total, comment, currency, paymentType =
  * @param {String} [iouReportID] - Only required if the IOUReportActions type is oneOf(decline, cancel, pay). Generates a randomID as default.
  * @param {Boolean} [isSettlingUp] - Whether we are settling up an IOU.
  * @param {Boolean} [isSendMoneyFlow] - Whether this is send money flow
+ * @param {Object} [receipt]
  * @returns {Object}
  */
-function buildOptimisticIOUReportAction(type, amount, currency, comment, participants, transactionID, paymentType = '', iouReportID = '', isSettlingUp = false, isSendMoneyFlow = false) {
+function buildOptimisticIOUReportAction(
+    type,
+    amount,
+    currency,
+    comment,
+    participants,
+    transactionID,
+    paymentType = '',
+    iouReportID = '',
+    isSettlingUp = false,
+    isSendMoneyFlow = false,
+    receipt = {},
+) {
     const IOUReportID = iouReportID || generateReportID();
 
     const originalMessage = {
@@ -1828,6 +1861,7 @@ function buildOptimisticIOUReportAction(type, amount, currency, comment, partici
         shouldShow: true,
         created: DateUtils.getDBTime(),
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        receipt,
     };
 }
 
@@ -1836,10 +1870,11 @@ function buildOptimisticIOUReportAction(type, amount, currency, comment, partici
  *
  * @param {Object} chatReport
  * @param {Object} iouReport
+ * @param {String} [comment] - User comment for the IOU.
  *
  * @returns {Object}
  */
-function buildOptimisticReportPreview(chatReport, iouReport) {
+function buildOptimisticReportPreview(chatReport, iouReport, comment = '') {
     const message = getReportPreviewMessage(iouReport);
     return {
         reportActionID: NumberUtils.rand64(),
@@ -1860,6 +1895,8 @@ function buildOptimisticReportPreview(chatReport, iouReport) {
         created: DateUtils.getDBTime(),
         accountID: iouReport.managerID || 0,
         actorAccountID: iouReport.managerID || 0,
+        childMoneyRequestCount: 1,
+        childLastMoneyRequestComment: comment,
     };
 }
 
@@ -1868,10 +1905,11 @@ function buildOptimisticReportPreview(chatReport, iouReport) {
  *
  * @param {Object} iouReport
  * @param {Object} reportPreviewAction
+ * @param {String} [comment] - User comment for the IOU.
  *
  * @returns {Object}
  */
-function updateReportPreview(iouReport, reportPreviewAction) {
+function updateReportPreview(iouReport, reportPreviewAction, comment = '') {
     const message = getReportPreviewMessage(iouReport, reportPreviewAction);
     return {
         ...reportPreviewAction,
@@ -1884,6 +1922,8 @@ function updateReportPreview(iouReport, reportPreviewAction) {
                 type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
             },
         ],
+        childLastMoneyRequestComment: comment || reportPreviewAction.childLastMoneyRequestComment,
+        childMoneyRequestCount: reportPreviewAction.childMoneyRequestCount + 1,
     };
 }
 
@@ -2775,12 +2815,47 @@ function getParentReport(report) {
 }
 
 /**
+ * Find the parent report action in assignee report for a task report
+ * Returns an empty object if assignee report is the same as the share destination report
+ *
+ * @param {Object} taskReport
+ * @returns {Object}
+ */
+function getTaskParentReportActionIDInAssigneeReport(taskReport) {
+    const assigneeChatReportID = lodashGet(getChatByParticipants(isTaskAssignee(taskReport) ? [taskReport.ownerAccountID] : [taskReport.managerID]), 'reportID');
+    if (!assigneeChatReportID || assigneeChatReportID === taskReport.parentReportID) {
+        return {};
+    }
+
+    const clonedParentReportActionID = lodashGet(ReportActionsUtils.getParentReportActionInReport(taskReport.reportID, assigneeChatReportID), 'reportActionID');
+    if (!clonedParentReportActionID) {
+        return {};
+    }
+
+    return {
+        reportID: assigneeChatReportID,
+        reportActionID: clonedParentReportActionID,
+    };
+}
+
+/**
+ * Return the errors we have when creating a chat or a workspace room
+ * @param {Object} report
+ * @returns {Object} errors
+ */
+function getAddWorkspaceRoomOrChatReportErrors(report) {
+    // We are either adding a workspace room, or we're creating a chat, it isn't possible for both of these to have errors for the same report at the same time, so
+    // simply looking up the first truthy value will get the relevant property if it's set.
+    return lodashGet(report, 'errorFields.addWorkspaceRoom') || lodashGet(report, 'errorFields.createChat');
+}
+
+/**
  * Return true if the composer should be hidden
  * @param {Object} report
- * @param {Object} reportErrors
  * @returns {Boolean}
  */
-function shouldHideComposer(report, reportErrors) {
+function shouldHideComposer(report) {
+    const reportErrors = getAddWorkspaceRoomOrChatReportErrors(report);
     return isArchivedRoom(report) || !_.isEmpty(reportErrors) || !isAllowedToComment(report) || isAnonymousUser;
 }
 
@@ -2796,7 +2871,7 @@ function getOriginalReportID(reportID, reportAction) {
 }
 
 /**
- * Return the pendingAction and the errors when we have creating a chat or a workspace room offline
+ * Return the pendingAction and the errors we have when creating a chat or a workspace room offline
  * @param {Object} report
  * @returns {Object} pending action , errors
  */
@@ -2804,7 +2879,7 @@ function getReportOfflinePendingActionAndErrors(report) {
     // We are either adding a workspace room, or we're creating a chat, it isn't possible for both of these to be pending, or to have errors for the same report at the same time, so
     // simply looking up the first truthy value for each case will get the relevant property if it's set.
     const addWorkspaceRoomOrChatPendingAction = lodashGet(report, 'pendingFields.addWorkspaceRoom') || lodashGet(report, 'pendingFields.createChat');
-    const addWorkspaceRoomOrChatErrors = lodashGet(report, 'errorFields.addWorkspaceRoom') || lodashGet(report, 'errorFields.createChat');
+    const addWorkspaceRoomOrChatErrors = getAddWorkspaceRoomOrChatReportErrors(report);
     return {addWorkspaceRoomOrChatPendingAction, addWorkspaceRoomOrChatErrors};
 }
 
@@ -2866,6 +2941,7 @@ export {
     getPolicyName,
     getPolicyType,
     isArchivedRoom,
+    isExpensifyOnlyParticipantInReport,
     isPolicyExpenseChatAdmin,
     isPolicyAdmin,
     isPublicRoom,
@@ -2954,10 +3030,12 @@ export {
     getMoneyRequestAction,
     getBankAccountRoute,
     getParentReport,
+    getTaskParentReportActionIDInAssigneeReport,
     getReportPreviewMessage,
     shouldHideComposer,
     getOriginalReportID,
     canAccessReport,
+    getAddWorkspaceRoomOrChatReportErrors,
     getReportOfflinePendingActionAndErrors,
     isDM,
     getPolicy,

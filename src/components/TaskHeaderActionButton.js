@@ -50,9 +50,7 @@ function TaskHeaderActionButton(props) {
                     medium
                     text={props.translate(ReportUtils.isCompletedTaskReport(props.report) ? 'task.markAsIncomplete' : 'task.markAsDone')}
                     onPress={() =>
-                        ReportUtils.isCompletedTaskReport(props.report)
-                            ? Task.reopenTask(props.report.reportID, props.report.reportName)
-                            : Task.completeTask(props.report.reportID, props.report.reportName)
+                        ReportUtils.isCompletedTaskReport(props.report) ? Task.reopenTask(props.report, props.report.reportName) : Task.completeTask(props.report, props.report.reportName)
                     }
                     style={[styles.flex1]}
                 />
