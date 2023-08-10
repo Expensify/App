@@ -113,7 +113,9 @@ function ReportActionsList({
     const scrollingVerticalOffset = useRef(0);
     const readActionSkipped = useRef(false);
     const reportActionSize = useRef(sortedReportActions.length);
-    const [messageManuallyMarked, setMessageManuallyMarked] = useState(false);
+    // Considering that renderItem is enclosed within a useCallback, marking it as "read" twice will retain the value as "true," preventing the useCallback from re-executing.
+    // However, if we create and listen to an object, it will lead to a new useCallback execution.
+    const [messageManuallyMarked, setMessageManuallyMarked] = useState({read: false});
     const [isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible] = useState(false);
     const animatedStyles = useAnimatedStyle(() => ({
         opacity: opacity.value,
@@ -162,13 +164,13 @@ function ReportActionsList({
         const didManuallyMarkReportAsUnread = report.lastReadTime < DateUtils.getDBTime() && ReportUtils.isUnread(report);
 
         if (!didManuallyMarkReportAsUnread) {
-            setMessageManuallyMarked(false);
+            setMessageManuallyMarked({read: false});
             return;
         }
 
         // Clearing the current unread marker so that it can be recalculated
         currentUnreadMarker.current = null;
-        setMessageManuallyMarked(true);
+        setMessageManuallyMarked({read: true});
 
         // We only care when a new lastReadTime is set in the report
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -228,7 +230,7 @@ function ReportActionsList({
                 const isCurrentMessageUnread = !!isUnreadMsg(reportAction, report.lastReadTime);
                 shouldDisplayNewMarker = isCurrentMessageUnread && !isUnreadMsg(nextMessage, report.lastReadTime);
 
-                if (!messageManuallyMarked) {
+                if (!messageManuallyMarked.read) {
                     shouldDisplayNewMarker = shouldDisplayNewMarker && reportAction.actorAccountID !== Report.getCurrentUserAccountID();
                 }
                 const canDisplayMarker = scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD ? reportAction.created < userActiveSince.current : true;
