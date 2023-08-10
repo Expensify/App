@@ -195,8 +195,12 @@ function bindEventToChannel(channel, eventName, eventCallback = () => {}) {
  */
 function subscribe(channelName, eventName, eventCallback = () => {}, onResubscribe = () => {}) {
     return new Promise((resolve, reject) => {
+        console.log('[debug] jiasjdawd', channelName)
+
         // We cannot call subscribe() before init(). Prevent any attempt to do this on dev.
         if (!socket) {
+            console.log('[debug] ohjaihwa', channelName)
+
             throw new Error(`[Pusher] instance not found. Pusher.subscribe()
             most likely has been called before Pusher.init()`);
         }
@@ -205,11 +209,17 @@ function subscribe(channelName, eventName, eventCallback = () => {}, onResubscri
         let channel = getChannel(channelName);
 
         if (!channel || !channel.subscribed) {
+            console.log('[debug] noahdwawwad', channelName)
+
             channel = socket.subscribe(channelName);
             let isBound = false;
             channel.bind('pusher:subscription_succeeded', () => {
+            console.log('[debug] ahusyodiasd', channelName)
+
                 // Check so that we do not bind another event with each reconnect attempt
                 if (!isBound) {
+            console.log('[debug] pjaisdh08q', channelName)
+
                     bindEventToChannel(channel, eventName, eventCallback);
                     resolve();
                     isBound = true;
@@ -224,6 +234,8 @@ function subscribe(channelName, eventName, eventCallback = () => {}, onResubscri
             });
 
             channel.bind('pusher:subscription_error', (data = {}) => {
+            console.log('[debug] jh98c20chc0asc', channelName)
+
                 const {type, error, status} = data;
                 Log.hmmm('[Pusher] Issue authenticating with Pusher during subscribe attempt.', {
                     channelName,
@@ -234,6 +246,7 @@ function subscribe(channelName, eventName, eventCallback = () => {}, onResubscri
                 reject(error);
             });
         } else {
+            console.log('[debug] jouahsdiasd', channelName)
             bindEventToChannel(channel, eventName, eventCallback);
             resolve();
         }

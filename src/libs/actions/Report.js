@@ -187,42 +187,47 @@ function subscribeToReportTypingEvents(reportID) {
  * @param {String} reportID
  */
 function subscribeToReportLeavingEvents(reportID) {
+    console.log('[debug]  subscribeToReportLeavingEvents(reportID)',  reportID)
     if (!reportID) {
         return;
     }
 
     // Make sure we have a clean Leaving indicator before subscribing to leaving events
-    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportID}`, {});
+    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportID}`, false);
 
     const pusherChannelName = getReportChannelName(reportID);
     Pusher.subscribe(pusherChannelName, Pusher.TYPE.USER_IS_LEAVING_ROOM, (leavingStatus) => {
+        console.log('[debug] leavingStatus', leavingStatus)
         // If the pusher message comes from OldDot, we expect the leaving status to be keyed by user
         // login OR by 'Concierge'. If the pusher message comes from NewDot, it is keyed by accountID
         // since personal details are keyed by accountID.
         const normalizedLeavingStatus = getNormalizedLeavingStatus(leavingStatus);
         const accountIDOrLogin = _.first(_.keys(normalizedLeavingStatus));
+        console.log('[debug] normalizedLeavingStatus', normalizedLeavingStatus)
+        console.log('[debug] accountIDOrLogin', accountIDOrLogin)
 
         if (!accountIDOrLogin) {
             return;
         }
 
-        // Don't show the leaving indicator if the user is leaving on another platform
-        if (Number(accountIDOrLogin) === currentUserAccountID) {
+        if (Number(accountIDOrLogin) !== currentUserAccountID) {
             return;
         }
 
         // Use a combo of the reportID and the accountID or login as a key for holding our timers.
-        const reportUserIdentifier = `${reportID}-${accountIDOrLogin}`;
-        clearTimeout(leavingWatchTimers[reportUserIdentifier]);
-        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportID}`, normalizedLeavingStatus);
+        // const reportUserIdentifier = `${reportID}-${accountIDOrLogin}`;
+        // clearTimeout(leavingWatchTimers[reportUserIdentifier]);
+        console.log('[debug] Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportID}`, true)');
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportID}`, true);
+        // // Wait for 1.5s of no additional leaving events before setting the status back to false.
+        // leavingWatchTimers[reportUserIdentifier] = setTimeout(() => {
+        //     const leavingStoppedStatus = {};
+        //     leavingStoppedStatus[accountIDOrLogin] = false;
+        // console.log('[debug] leavingStoppedStatus', leavingStoppedStatus)
 
-        // Wait for 1.5s of no additional leaving events before setting the status back to false.
-        leavingWatchTimers[reportUserIdentifier] = setTimeout(() => {
-            const leavingStoppedStatus = {};
-            leavingStoppedStatus[accountIDOrLogin] = false;
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportID}`, leavingStoppedStatus);
-            delete leavingWatchTimers[reportUserIdentifier];
-        }, 1500);
+        //     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportID}`, leavingStoppedStatus);
+        //     delete leavingWatchTimers[reportUserIdentifier];
+        // }, 1500);
     }).catch((error) => {
         Log.hmmm('[Report] Failed to initially subscribe to Pusher channel', false, {errorType: error.type, pusherChannelName});
     });
@@ -254,7 +259,7 @@ function unsubscribeFromLeavingRoomReportChannel(reportID) {
     }
 
     const pusherChannelName = getReportChannelName(reportID);
-    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportID}`, {});
+    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportID}`, false);
     Pusher.unsubscribe(pusherChannelName, Pusher.TYPE.USER_IS_LEAVING_ROOM);
 }
 
@@ -1860,7 +1865,7 @@ function leaveRoom(reportID) {
             ],
         },
     );
-    broadcastUserIsLeavingRoom()
+    broadcastUserIsLeavingRoom(reportID)
     navigateToConciergeChat();
 }
 
