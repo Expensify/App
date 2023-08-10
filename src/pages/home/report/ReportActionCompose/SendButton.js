@@ -53,7 +53,11 @@ function SendButton({isDisabled: isDisabledProp, animatedRef, setIsCommentEmpty,
             <GestureDetector gesture={Tap}>
                 <Tooltip text={translate('common.send')}>
                     <PressableWithFeedback
-                        style={({pressed, isDisabled}) => [styles.chatItemSubmitButton, isDisabledProp || pressed || isDisabled ? undefined : styles.buttonSuccess]}
+                        style={({pressed, isDisabled}) => [
+                            styles.chatItemSubmitButton,
+                            isDisabledProp || pressed || isDisabled ? undefined : styles.buttonSuccess,
+                            isDisabled && styles.cursorDisabled,
+                        ]}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         accessibilityLabel={translate('common.send')}
                     >
