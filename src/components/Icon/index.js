@@ -28,7 +28,7 @@ const propTypes = {
 
     /** Is icon hovered */
     isHovered: PropTypes.bool,
-    
+
     /** Is icon pressed */
     isPressed: PropTypes.bool,
 

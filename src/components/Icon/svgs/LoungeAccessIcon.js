@@ -1,5 +1,5 @@
-import * as React from "react";
-import Svg, { G, Path, Polygon } from "react-native-svg";
+import * as React from 'react';
+import Svg, {G, Path, Polygon} from 'react-native-svg';
 import PropTypes from 'prop-types';
 import themeColors from '../../../styles/themes/default';
 import variables from '../../../styles/variables';
@@ -16,7 +16,7 @@ const propTypes = {
 
     /** Is icon hovered */
     isHovered: PropTypes.bool,
-    
+
     /** Is icon pressed */
     isPressed: PropTypes.bool,
 };
@@ -39,7 +39,7 @@ function LoungeAccessIcon(props) {
             y="0px"
             viewBox="0 0 40 40"
             style={{
-                enableBackground: "new 0 0 40 40",
+                enableBackground: 'new 0 0 40 40',
             }}
             xmlSpace="preserve"
             // eslint-disable-next-line react/jsx-props-no-spreading
@@ -57,7 +57,10 @@ function LoungeAccessIcon(props) {
                     className="st1"
                     d="M31,9.8c-0.1-0.2-0.2-0.4-0.5-0.4h-2.1l-0.8-2C27.4,7,27.1,7,27,7c-0.1,0-0.4,0-0.6,0.4l-0.8,1.9h-2.1 c-0.4,0-0.5,0.4-0.5,0.4c0,0.1-0.1,0.4,0.1,0.6l1.6,1.8l-0.6,1.9c-0.1,0.3,0.1,0.5,0.2,0.7c0.1,0,0.3,0.2,0.7,0.1l2-1.1l2,1.2 c0.3,0.2,0.6,0,0.7-0.1c0.1-0.1,0.3-0.3,0.2-0.7l-0.6-2l1.5-1.7C31,10.3,31,10,31,9.8z"
                 />
-                <Polygon className="st1" points="28.5,7 28.5,7 28.5,7  " />
+                <Polygon
+                    className="st1"
+                    points="28.5,7 28.5,7 28.5,7  "
+                />
             </G>
             <G>
                 <Path
@@ -66,10 +69,10 @@ function LoungeAccessIcon(props) {
                 />
             </G>
         </Svg>
-    )
+    );
 }
 
-LoungeAccessIcon.displayName = "LoungeAccessIcon";
+LoungeAccessIcon.displayName = 'LoungeAccessIcon';
 LoungeAccessIcon.propTypes = propTypes;
 LoungeAccessIcon.defaultProps = defaultProps;
 
