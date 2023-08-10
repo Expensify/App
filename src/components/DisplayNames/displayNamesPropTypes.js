@@ -4,6 +4,8 @@ const propTypes = {
     /** The full title of the DisplayNames component (not split up) */
     fullTitle: PropTypes.string,
 
+    fullTitleHtml: PropTypes.string,
+
     /** Array of objects that map display names to their corresponding tooltip */
     displayNamesWithTooltips: PropTypes.arrayOf(
         PropTypes.shape({

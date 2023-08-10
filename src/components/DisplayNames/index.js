@@ -6,6 +6,7 @@ import styles from '../../styles/styles';
 import Tooltip from '../Tooltip';
 import Text from '../Text';
 import UserDetailsTooltip from '../UserDetailsTooltip';
+import RenderHTML from "../RenderHTML";
 
 class DisplayNames extends PureComponent {
     constructor(props) {
@@ -75,7 +76,7 @@ class DisplayNames extends PureComponent {
                 ref={(el) => (this.containerRef = el)}
             >
                 {this.props.shouldUseFullTitle
-                    ? this.props.fullTitle
+                    ? (this.props.fullTitleHtml ? <RenderHTML html={this.props.fullTitleHtml} /> : this.props.fullTitle)
                     : _.map(this.props.displayNamesWithTooltips, ({displayName, accountID, avatar, login}, index) => (
                           <Fragment key={index}>
                               <UserDetailsTooltip

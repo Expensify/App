@@ -183,6 +183,7 @@ function HeaderView(props) {
                             <View style={[styles.flex1, styles.flexColumn]}>
                                 <DisplayNames
                                     fullTitle={title}
+                                    fullTitleHtml={/<\/?[a-z][\s\S]*>/i.test(title)? title : ''}
                                     displayNamesWithTooltips={displayNamesWithTooltips}
                                     tooltipEnabled
                                     numberOfLines={1}

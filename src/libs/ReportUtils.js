@@ -1304,6 +1304,23 @@ function getReportPreviewMessage(report, reportAction = {}) {
     return Localize.translateLocal('iou.payerOwesAmount', {payer: payerName, amount: formattedAmount});
 }
 
+function getThreadReportNameHtml(parentReportActionMessage) {
+    if (!parentReportActionMessage) {
+        return;
+    }
+
+    const blockTags = ['br', 'h1', 'pre', 'code', 'div', 'blockquote', 'p', 'li', 'comment', 'div'];
+    const blockTagPattern = `(?:<\\/?(?:${blockTags.join('|')})(?:[^>]*)>|\\r\\n|\\n|\\r)`;
+    const threadHeaderHtmlRegex = new RegExp(`^(?:<([^>]+)>)?((?:(?!${blockTagPattern}).)*)(${blockTagPattern}.*)`, 'gm');
+    return parentReportActionMessage.replace(threadHeaderHtmlRegex, (match, g1, g2) => {
+        if (!g1 || g1 === 'h1') {
+            return g2;
+        }
+
+        return `<${g1}>${g2}</${g1}>`
+    });
+}
+
 /**
  * Get the title for a report.
  *
@@ -1320,7 +1337,8 @@ function getReportName(report, policy = undefined) {
         }
 
         const isAttachment = _.has(parentReportAction, 'isAttachment') ? parentReportAction.isAttachment : isReportMessageAttachment(_.last(lodashGet(parentReportAction, 'message', [{}])));
-        const parentReportActionMessage = lodashGet(parentReportAction, ['message', 0, 'text'], '').replace(/(\r\n|\n|\r)/gm, ' ');
+        const messageHtml = lodashGet(parentReportAction, ['message', 0, 'html']);
+        const parentReportActionMessage = /<\/?[a-z][\s\S]*>/i.test(messageHtml) ? getThreadReportNameHtml(lodashGet(parentReportAction, ['message', 0, 'html'], '')) : lodashGet(parentReportAction, ['message', 0, 'text'], '').replace(/(\r\n|\n|\r)/gm, ' ');
         if (isAttachment && parentReportActionMessage) {
             return `[${Localize.translateLocal('common.attachment')}]`;
         }
