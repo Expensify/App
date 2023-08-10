@@ -13,7 +13,6 @@ import * as Report from '../../libs/actions/Report';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as ReportUtils from '../../libs/ReportUtils';
 import ReportActionsView from './report/ReportActionsView';
-import CONST from '../../CONST';
 import ReportActionsSkeletonView from '../../components/ReportActionsSkeletonView';
 import reportActionPropTypes from './report/reportActionPropTypes';
 import {withNetwork} from '../../components/OnyxProvider';
@@ -277,34 +276,13 @@ function ReportScreen({
             // If composer should be hidden, hide emoji picker as well
             EmojiPickerAction.hideEmojiPicker(true);
         }
-        const onyxReportID = report.reportID;
-        const prevOnyxReportID = prevReportRef.current.reportID;
-
-        const routeReportID = getReportID(route);
-
-        // navigate to concierge when the room removed from another device (e.g. user leaving a room)
-        // the report will not really null when removed, it will have defaultProps properties and values
-        if (
-            prevOnyxReportID &&
-            prevOnyxReportID === routeReportID &&
-            !onyxReportID &&
-            // non-optimistic case
-            (_.isEqual(report, defaultProps.report) ||
-                // optimistic case
-                (prevReportRef.current.statusNum === CONST.REPORT.STATUS.OPEN && report.statusNum === CONST.REPORT.STATUS.CLOSED))
-        ) {
-            Navigation.goBack();
-            Report.navigateToConciergeChat();
-            // isReportRemoved will prevent <FullPageNotFoundView> showing when navigating
-            setIsReportRemoved(true);
-            return;
-        }
-
         // If you already have a report open and are deeplinking to a new report on native,
         // the ReportScreen never actually unmounts and the reportID in the route also doesn't change.
         // Therefore, we need to compare if the existing reportID is the same as the one in the route
         // before deciding that we shouldn't call OpenReport.
-        if (onyxReportID === prevOnyxReportID && (!onyxReportID || onyxReportID === routeReportID)) {
+        const onyxReportID = report.reportID;
+        const routeReportID = getReportID(route);
+        if (onyxReportID === prevReportRef.current.reportID && (!onyxReportID || onyxReportID === routeReportID)) {
             return;
         }
 
@@ -325,7 +303,7 @@ function ReportScreen({
                 shouldEnableKeyboardAvoidingView={isTopMostReportId}
             >
                 <FullPageNotFoundView
-                    shouldShow={(!report.reportID && !report.isLoadingReportActions && !isLoading && !isReportRemoved) || shouldHideReport}
+                    shouldShow={(!report.reportID && !report.isLoadingReportActions && !isLoading) || shouldHideReport}
                     subtitleKey="notFound.noAccess"
                     shouldShowCloseButton={false}
                     shouldShowBackButton={isSmallScreenWidth}
@@ -390,7 +368,6 @@ function ReportScreen({
                             {isReportReadyForDisplay && (
                                 <>
                                     <ReportFooter
-                                        errors={addWorkspaceRoomOrChatErrors}
                                         pendingAction={addWorkspaceRoomOrChatPendingAction}
                                         isOffline={network.isOffline}
                                         reportActions={reportActions}

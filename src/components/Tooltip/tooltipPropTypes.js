@@ -1,5 +1,4 @@
 import PropTypes from 'prop-types';
-import {windowDimensionsPropTypes} from '../withWindowDimensions';
 import variables from '../../styles/variables';
 import CONST from '../../CONST';
 
@@ -12,9 +11,6 @@ const propTypes = {
 
     /** Children to wrap with Tooltip. */
     children: PropTypes.node.isRequired,
-
-    /** Props inherited from withWindowDimensions */
-    ...windowDimensionsPropTypes,
 
     /** Any additional amount to manually adjust the horizontal position of the tooltip.
     A positive value shifts the tooltip to the right, and a negative value shifts it to the left. */

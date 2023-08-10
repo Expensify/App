@@ -349,6 +349,7 @@ export default {
     tabSelector: {
         manual: 'Manual',
         scan: 'Scan',
+        distance: 'Distance',
     },
     receipt: {
         upload: 'Upload receipt',
@@ -379,6 +380,8 @@ export default {
         pay: 'Pay',
         viewDetails: 'View details',
         pending: 'Pending',
+        deleteRequest: 'Delete request',
+        deleteConfirmation: 'Are you sure that you want to delete this request?',
         settledExpensify: 'Paid',
         settledElsewhere: 'Paid elsewhere',
         settledPaypalMe: 'Paid using Paypal.me',
@@ -402,6 +405,7 @@ export default {
         pendingConversionMessage: "Total will update when you're back online",
         threadRequestReportName: ({formattedAmount, comment}) => `${formattedAmount} request${comment ? ` for ${comment}` : ''}`,
         threadSentMoneyReportName: ({formattedAmount, comment}) => `${formattedAmount} sent${comment ? ` for ${comment}` : ''}`,
+        requestCount: ({count}) => `${count} requests`,
         error: {
             invalidSplit: 'Split amounts do not equal total amount',
             other: 'Unexpected error, please try again later',
@@ -861,6 +865,15 @@ export default {
         passwordNotSet: 'We were unable to set your new password. We have sent you a new password link to try again.',
         setPasswordLinkInvalid: 'This set password link is invalid or has expired. A new one is waiting for you in your email inbox!',
         validateAccount: 'Verify account',
+    },
+    statusPage: {
+        status: 'Status',
+        setStatusTitle: 'Set your status',
+        statusExplanation: "Add an emoji to give your colleagues and friends an easy way to know what's going on. You can optionally add a message too!",
+        today: 'Today',
+        clearStatus: 'Clear status',
+        save: 'Save',
+        message: 'Message',
     },
     stepCounter: ({step, total, text}) => {
         let result = `Step ${step}`;
@@ -1427,6 +1440,7 @@ export default {
         copy: 'Copy',
         paste: 'Paste',
         pasteAndMatchStyle: 'Paste and Match Style',
+        pasteAsPlainText: 'Paste as Plain Text',
         delete: 'Delete',
         selectAll: 'Select All',
         speechSubmenu: 'Speech',
