@@ -103,6 +103,23 @@ input#gsc-i-id1.gsc-input {
     margin-left: auto;
 }
 
+/* This is the close icon on search bar */
+.gsib_b .gsst_a .gscb_a {
+    color: $color-icons;
+
+    &:hover {
+        color: $color-text;
+    }
+}
+
+/* This is to manage hover on parent close icon and make it the same effect on close icon */
+.gsst_a:hover {
+
+    .gscb_a {
+        color: $color-text !important;
+    }
+}
+
 /* Manage Google Search label animation */
 input#gsc-i-id1:focus+label.search-label,
 input#gsc-i-id1:valid+label.search-label,
