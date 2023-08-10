@@ -1566,6 +1566,14 @@ export default {
         levelTwoResult: 'Message hidden from channel, plus anonymous warning and message is reported for review.',
         levelThreeResult: 'Message removed from channel plus anonymous warning and message is reported for review.',
     },
+    distance: {
+        addStop: 'Add stop',
+        waypointDescription: {
+            start: 'Start',
+            finish: 'Finish',
+            stop: 'Stop',
+        },
+    },
     countrySelectorModal: {
         placeholderText: 'Search to see options',
     },

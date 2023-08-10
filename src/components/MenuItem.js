@@ -42,12 +42,14 @@ const defaultProps = {
     descriptionTextStyle: styles.breakWord,
     success: false,
     icon: undefined,
+    secondaryIcon: undefined,
     iconWidth: undefined,
     iconHeight: undefined,
     description: undefined,
     iconRight: Expensicons.ArrowRight,
     iconStyles: [],
     iconFill: undefined,
+    secondaryIconFill: undefined,
     focused: false,
     disabled: false,
     isSelected: false,
@@ -191,6 +193,19 @@ const MenuItem = React.forwardRef((props, ref) => {
                                                     size={props.avatarSize}
                                                 />
                                             )}
+                                        </View>
+                                    )}
+                                    {Boolean(props.secondaryIcon) && (
+                                        <View style={[styles.popoverMenuIcon, ...props.iconStyles]}>
+                                            <Icon
+                                                src={props.secondaryIcon}
+                                                width={props.iconWidth}
+                                                height={props.iconHeight}
+                                                fill={
+                                                    props.secondaryIconFill ||
+                                                    StyleUtils.getIconFillColor(getButtonState(props.focused || isHovered, pressed, props.success, props.disabled, props.interactive), true)
+                                                }
+                                            />
                                         </View>
                                     )}
                                     <View style={[styles.justifyContentCenter, styles.flex1, StyleUtils.getMenuItemTextContainerStyle(props.isSmallAvatarSubscriptMenu)]}>
