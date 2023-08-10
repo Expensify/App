@@ -394,6 +394,7 @@ function ReportScreen({
 
 ReportScreen.propTypes = propTypes;
 ReportScreen.defaultProps = defaultProps;
+ReportScreen.displayName = 'ReportScreen';
 
 export default compose(
     withViewportOffsetTop,
