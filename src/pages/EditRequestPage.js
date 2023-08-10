@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
+import {format} from 'date-fns';
 import CONST from '../CONST';
 import Navigation from '../libs/Navigation/Navigation';
 import ONYXKEYS from '../ONYXKEYS';
@@ -41,7 +42,10 @@ function EditRequestPage({report, route}) {
     const transactionDescription = TransactionUtils.getDescription(transaction);
     const transactionAmount = TransactionUtils.getAmount(transaction);
     const transactionCurrency = TransactionUtils.getCurrency(transaction);
-    const transactionCreated = TransactionUtils.getCreated(transaction);
+
+    // Take only the YYYY-MM-DD value
+    const transactionCreatedDate = new Date(TransactionUtils.getCreated(transaction));
+    const transactionCreated = format(transactionCreatedDate, CONST.DATE.FNS_FORMAT_STRING);
     const fieldToEdit = lodashGet(route, ['params', 'field'], '');
 
     // Update the transaction object and close the modal
