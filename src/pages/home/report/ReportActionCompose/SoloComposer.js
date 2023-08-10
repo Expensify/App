@@ -30,6 +30,7 @@ import withKeyboardState, {keyboardStatePropTypes} from '../../../../components/
 import reportActionPropTypes from '../reportActionPropTypes';
 import canFocusInputOnScreenFocus from '../../../../libs/canFocusInputOnScreenFocus';
 import debouncedSaveReportComment from './debouncedSaveReportComment';
+import UpdateComment from './UpdateComment';
 
 const {RNTextInputReset} = NativeModules;
 
@@ -84,7 +85,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    comment: '',
     numberOfLines: undefined,
     parentReportActions: {},
     reportActions: [],
@@ -405,24 +405,6 @@ function SoloComposer({
         focus();
     }, [focus, prevIsFocused, prevIsModalVisible, isFocusedProp, modal.isVisible]);
 
-    // TODO: this could be moved to its own sub component
-    // const prevCommentProp = usePrevious(comment);
-    // const prevPreferredLocale = usePrevious(preferredLocale);
-    // const prevReportId = usePrevious(report.reportId);
-    // useEffect(() => {
-    //     // Value state does not have the same value as comment props when the comment gets changed from another tab.
-    //     // In this case, we should synchronize the value between tabs.
-    //     const shouldSyncComment = prevCommentProp !== comment && value === comment;
-
-    //     // As the report IDs change, make sure to update the composer comment as we need to make sure
-    //     // we do not show incorrect data in there (ie. draft of message from other report).
-    //     if (preferredLocale === prevPreferredLocale && report.reportID === prevReportId && !shouldSyncComment) {
-    //         return;
-    //     }
-
-    //     updateComment(commentRef.current);
-    // }, [prevCommentProp, prevPreferredLocale, prevReportId, comment, preferredLocale, report.reportID, updateComment, value]);
-
     return (
         <View style={[containerComposeStyles, styles.textInputComposeBorder]}>
             <Composer
@@ -464,6 +446,13 @@ function SoloComposer({
                     setComposerHeight(composerLayoutHeight);
                 }}
                 onScroll={updateShouldShowSuggestionMenuToFalse}
+            />
+            <UpdateComment
+                reportID={reportID}
+                report={report}
+                value={value}
+                updateComment={updateComment}
+                commentRef={commentRef}
             />
         </View>
     );
