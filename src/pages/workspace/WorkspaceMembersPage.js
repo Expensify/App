@@ -496,7 +496,7 @@ function WorkspaceMembersPage(props) {
                         ) : (
                             <View style={styles.flex1}>
                                 <WorkspaceMembersPlaceholder
-                                    isLoaded={OptionsListUtils.isPersonalDetailsReady(props.personalDetails)}
+                                    isLoaded={OptionsListUtils.isPersonalDetailsReady(props.personalDetails) && !_.isEmpty(props.policyMembers)}
                                     emptyText={props.translate('workspace.common.memberNotFound')}
                                 />
                             </View>
