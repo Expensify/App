@@ -124,7 +124,7 @@ const defaultProps = {
     shouldShowPendingConversionMessage: false,
 };
 
-function IOUPreview(props) {
+function MoneyRequestPreview(props) {
     if (_.isEmpty(props.iouReport) && !props.isBillSplit) {
         return null;
     }
@@ -186,7 +186,7 @@ function IOUPreview(props) {
                 errorRowStyles={[styles.mbn1]}
                 needsOffscreenAlphaCompositing
             >
-                <View style={[styles.iouPreviewBox, ...props.containerStyles]}>
+                <View style={[styles.moneyRequestPreviewBox, ...props.containerStyles]}>
                     <View style={[styles.flexRow]}>
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                             <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh16]}>{getPreviewHeaderText()}</Text>
@@ -216,7 +216,7 @@ function IOUPreview(props) {
                             )}
                         </View>
                         {props.isBillSplit && (
-                            <View style={styles.iouPreviewBoxAvatar}>
+                            <View style={styles.moneyRequestPreviewBoxAvatar}>
                                 <MultipleAvatars
                                     icons={participantAvatars}
                                     shouldStackHorizontally
@@ -265,9 +265,9 @@ function IOUPreview(props) {
     );
 }
 
-IOUPreview.propTypes = propTypes;
-IOUPreview.defaultProps = defaultProps;
-IOUPreview.displayName = 'IOUPreview';
+MoneyRequestPreview.propTypes = propTypes;
+MoneyRequestPreview.defaultProps = defaultProps;
+MoneyRequestPreview.displayName = 'MoneyRequestPreview';
 
 export default compose(
     withLocalize,
@@ -285,4 +285,4 @@ export default compose(
             key: ONYXKEYS.WALLET_TERMS,
         },
     }),
-)(IOUPreview);
+)(MoneyRequestPreview);

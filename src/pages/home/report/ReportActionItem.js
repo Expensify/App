@@ -238,7 +238,7 @@ function ReportActionItem(props) {
         // IOUDetails only exists when we are sending money
         const isSendingMoney = originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && _.has(originalMessage, 'IOUDetails');
 
-        // Show the IOUPreview for when request was created, bill was split or money was sent
+        // Show the MoneyRequestPreview for when request was created, bill was split or money was sent
         if (
             props.action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
             originalMessage &&

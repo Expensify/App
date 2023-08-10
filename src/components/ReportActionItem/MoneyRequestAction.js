@@ -10,7 +10,7 @@ import compose from '../../libs/compose';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
 import networkPropTypes from '../networkPropTypes';
 import iouReportPropTypes from '../../pages/iouReportPropTypes';
-import IOUPreview from './IOUPreview';
+import MoneyRequestPreview from './MoneyRequestPreview';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import styles from '../../styles/styles';
@@ -87,7 +87,7 @@ const defaultProps = {
 function MoneyRequestAction(props) {
     const isSplitBillAction = lodashGet(props.action, 'originalMessage.type', '') === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
 
-    const onIOUPreviewPressed = () => {
+    const onMoneyRequestPreviewPressed = () => {
         if (isSplitBillAction) {
             const reportActionID = lodashGet(props.action, 'reportActionID', '0');
             Navigation.navigate(ROUTES.getSplitBillDetailsRoute(props.chatReportID, reportActionID));
@@ -141,7 +141,7 @@ function MoneyRequestAction(props) {
     return isDeletedParentAction ? (
         <RenderHTML html={`<comment>${props.translate('parentReportAction.deletedRequest')}</comment>`} />
     ) : (
-        <IOUPreview
+        <MoneyRequestPreview
             iouReportID={props.requestReportID}
             chatReportID={props.chatReportID}
             isBillSplit={isSplitBillAction}
@@ -149,8 +149,8 @@ function MoneyRequestAction(props) {
             contextMenuAnchor={props.contextMenuAnchor}
             checkIfContextMenuActive={props.checkIfContextMenuActive}
             shouldShowPendingConversionMessage={shouldShowPendingConversionMessage}
-            onPreviewPressed={onIOUPreviewPressed}
-            containerStyles={[styles.cursorPointer, props.isHovered ? styles.iouPreviewBoxHover : undefined, ...props.style]}
+            onPreviewPressed={onMoneyRequestPreviewPressed}
+            containerStyles={[styles.cursorPointer, props.isHovered ? styles.moneyRequestPreviewBoxHover : undefined, ...props.style]}
             isHovered={props.isHovered}
         />
     );

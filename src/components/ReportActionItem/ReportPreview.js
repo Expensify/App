@@ -147,7 +147,7 @@ function ReportPreview(props) {
                 accessibilityRole="button"
                 accessibilityLabel={props.translate('iou.viewDetails')}
             >
-                <View style={[styles.reportPreviewBox, props.isHovered || isScanning ? styles.iouPreviewBoxHover : undefined]}>
+                <View style={[styles.reportPreviewBox, props.isHovered || isScanning ? styles.moneyRequestPreviewBoxHover : undefined]}>
                     <View style={[styles.reportPreviewBoxImages, props.isHovered || isScanning ? styles.reportPreviewBoxHoverBorder : undefined]}>
                         {_.map(receipts, ({receipt, filename, transactionID}) => {
                             const uri = ReceiptUtils.getImageURI(receipt.source, filename);
