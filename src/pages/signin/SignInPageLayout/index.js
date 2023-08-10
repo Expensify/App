@@ -56,13 +56,15 @@ function SignInPageLayout(props) {
         contentContainerStyles = [styles.flex1, styles.flexColumn];
     }
 
-    useImperativeHandle(props.innerRef, () => ({
-        scrollPageToTop(animated = false) {
-            if (!scrollViewRef.current) {
-                return;
-            }
-            scrollViewRef.current.scrollTo({y: 0, animated});
+    const scrollPageToTop = (animated = false) => {
+        if (!scrollViewRef.current) {
+            return;
         }
+        scrollViewRef.current.scrollTo({y: 0, animated});
+    }
+
+    useImperativeHandle(props.innerRef, () => ({
+        scrollPageToTop,
     }));
 
     useEffect(() => {
