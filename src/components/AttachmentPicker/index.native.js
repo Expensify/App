@@ -350,5 +350,6 @@ function AttachmentPicker({ type, children, isSmallScreenWidth}) {
 
 AttachmentPicker.propTypes = propTypes;
 AttachmentPicker.defaultProps = defaultProps;
+AttachmentPicker.displayName = 'AttachmentPicker';
 
 export default withWindowDimensions(AttachmentPicker);
