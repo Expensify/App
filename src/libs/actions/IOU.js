@@ -407,8 +407,6 @@ function getIouReportOrOptimisticOne(report, participant, comment, isPolicyExpen
         chatReport,
         transaction,
         iouAction,
-        isNewChatReport,
-        isNewIOUReport,
         createdChatReportActionID: isNewChatReport ? optimisticCreatedActionForChat.reportActionID : 0,
         createdIOUReportActionID: isNewIOUReport ? optimisticCreatedActionForIOU.reportActionID : 0,
         reportPreviewAction,
@@ -416,11 +414,26 @@ function getIouReportOrOptimisticOne(report, participant, comment, isPolicyExpen
     };
 }
 
+/**
+ * Requests money based on a distance (eg. mileage from a map)
+ *
+ * @param {Object} report
+ * @param {String} payeeEmail
+ * @param {Number} payeeAccountID
+ * @param {Object} participant
+ * @param {String} comment
+ * @param {Object[]} waypoints
+ * @param {String} waypoints[].address required and must be non empty
+ * @param {String} [waypoints[].lat] optional
+ * @param {String} [waypoints[].lng] optional
+ * @param {String} created
+ */
 function createDistanceRequest(report, payeeEmail, payeeAccountID, participant, comment, waypoints, created) {
     const payerEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login);
     const payerAccountID = Number(participant.accountID);
     const isPolicyExpenseChat = participant.isPolicyExpenseChat;
-    const {iouReport, chatReport, transaction, iouAction, isNewChatReport, createdChatReportActionID, createdIOUReportActionID, reportPreviewAction, onyxData} = getIouReportOrOptimisticOne(
+
+    const {iouReport, chatReport, transaction, iouAction, createdChatReportActionID, createdIOUReportActionID, reportPreviewAction, onyxData} = getIouReportOrOptimisticOne(
         report,
         participant,
         comment,
@@ -432,6 +445,7 @@ function createDistanceRequest(report, payeeEmail, payeeAccountID, participant, 
         payeeEmail,
         payerEmail,
     );
+
     API.write(
         'CreateDistanceRequest',
         {
@@ -462,16 +476,26 @@ function createDistanceRequest(report, payeeEmail, payeeAccountID, participant, 
  * @param {Object} participant
  * @param {String} comment
  * @param {Object} [receipt]
- *
  */
 function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, participant, comment, receipt = undefined) {
     const payerEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login);
     const payerAccountID = Number(participant.accountID);
     const isPolicyExpenseChat = participant.isPolicyExpenseChat;
-    const {iouReport, chatReport, transaction, iouAction, isNewChatReport, isNewIOUReport, createdChatReportActionID, createdIOUReportActionID, reportPreviewAction, onyxData} =
-        getIouReportOrOptimisticOne(report, participant, comment, isPolicyExpenseChat, amount, currency, payeeAccountID, payerAccountID, payeeEmail, payerEmail, receipt);
 
-    // STEP 6: Make the request
+    const {iouReport, chatReport, transaction, iouAction, createdChatReportActionID, createdIOUReportActionID, reportPreviewAction, onyxData} = getIouReportOrOptimisticOne(
+        report,
+        participant,
+        comment,
+        isPolicyExpenseChat,
+        amount,
+        currency,
+        payeeAccountID,
+        payerAccountID,
+        payeeEmail,
+        payerEmail,
+        receipt,
+    );
+
     API.write(
         'RequestMoney',
         {
