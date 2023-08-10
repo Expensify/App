@@ -16,7 +16,6 @@ import compose from '../../../libs/compose';
 import useCarouselArrows from './useCarouselArrows';
 import useWindowDimensions from '../../../hooks/useWindowDimensions';
 
-const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
 const viewabilityConfig = {
     // To facilitate paging through the attachments, we want to consider an item "viewable" when it is
     // more than 95% visible. When that happens we update the page index in the state.
@@ -27,6 +26,7 @@ function AttachmentCarousel({report, reportActions, source, onNavigate}) {
     const scrollRef = useRef(null);
 
     const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
+    const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
 
     const {attachments, initialPage, initialActiveSource, initialItem} = useMemo(() => extractAttachmentsFromReport(report, reportActions, source), [report, reportActions, source]);
 
@@ -82,7 +82,7 @@ function AttachmentCarousel({report, reportActions, source, onNavigate}) {
 
             scrollRef.current.scrollToIndex({index: nextIndex, animated: canUseTouchScreen});
         },
-        [attachments, page],
+        [attachments, canUseTouchScreen, page],
     );
 
     /**
@@ -143,7 +143,7 @@ function AttachmentCarousel({report, reportActions, source, onNavigate}) {
                 isUsedInCarousel
             />
         ),
-        [activeSource, setShouldShowArrows, shouldShowArrows],
+        [activeSource, canUseTouchScreen, setShouldShowArrows, shouldShowArrows],
     );
 
     return (
