@@ -301,24 +301,7 @@ function buildOnyxDataForMoneyRequest(
     return [optimisticData, successData, failureData];
 }
 
-/**
- * Request money from another user
- *
- * @param {Object} report
- * @param {Number} amount - always in the smallest unit of the currency
- * @param {String} currency
- * @param {String} payeeEmail
- * @param {Number} payeeAccountID
- * @param {Object} participant
- * @param {String} comment
- * @param {Object} [receipt]
- *
- */
-function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, participant, comment, receipt = undefined) {
-    const payerEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login);
-    const payerAccountID = Number(participant.accountID);
-    const isPolicyExpenseChat = participant.isPolicyExpenseChat;
-
+function getIouReportOrOptimisticOne(report, participant, isPolicyExpenseChat, amount, currency, payeeAccountID, payerAccountID) {
     // STEP 1: Get existing chat report OR build a new optimistic one
     let isNewChatReport = false;
     let chatReport = lodashGet(report, 'reportID', null) ? report : null;
@@ -357,6 +340,44 @@ function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, part
             ? ReportUtils.buildOptimisticExpenseReport(chatReport.reportID, chatReport.policyID, payeeAccountID, amount, currency)
             : ReportUtils.buildOptimisticIOUReport(payeeAccountID, payerAccountID, amount, chatReport.reportID, currency);
     }
+
+    return iouReport;
+}
+
+function createDistanceRequest(report, payeeEmail, payeeAccountID, participant, comment, waypoints, created) {
+    const payerEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login);
+    const payerAccountID = Number(participant.accountID);
+    const isPolicyExpenseChat = participant.isPolicyExpenseChat;
+    const iouReport = getIouReportOrOptimisticOne(report, participant, isPolicyExpenseChat, 0, 'USD', payeeAccountID, payerAccountID);
+    API.write(
+        'CreateDistanceRequest',
+        {
+            debtorEmail: payerEmail,
+            comment,
+            iouReportID: iouReport.reportID,
+        },
+        {},
+    );
+}
+
+/**
+ * Request money from another user
+ *
+ * @param {Object} report
+ * @param {Number} amount - always in the smallest unit of the currency
+ * @param {String} currency
+ * @param {String} payeeEmail
+ * @param {Number} payeeAccountID
+ * @param {Object} participant
+ * @param {String} comment
+ * @param {Object} [receipt]
+ *
+ */
+function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, participant, comment, receipt = undefined) {
+    const payerEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login);
+    const payerAccountID = Number(participant.accountID);
+    const isPolicyExpenseChat = participant.isPolicyExpenseChat;
+    const iouReport = getIouReportOrOptimisticOne(report, participant, isPolicyExpenseChat, amount, currency, payeeAccountID, payerAccountID);
 
     // STEP 3: Build optimistic receipt and transaction
     const receiptObject = {};
