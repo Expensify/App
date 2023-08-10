@@ -270,7 +270,7 @@ function canDeleteReportAction(reportAction, reportID) {
     }
     const report = lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {});
     const policy = lodashGet(allPolicies, `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`) || {};
-    return policy.role === CONST.POLICY.ROLE.ADMIN;
+    return policy.role === CONST.POLICY.ROLE.ADMIN && !isDM(report);
 }
 
 /**
