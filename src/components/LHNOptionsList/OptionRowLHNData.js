@@ -187,4 +187,7 @@ export default React.memo(
             },
         }),
     )(OptionRowLHNData),
+    (prevProps, nextProps) =>
+        lodashGet(prevProps.props, 'parentReportActions', '0', 'fullReport.parentReportActionID') ===
+        lodashGet(nextProps.props, 'parentReportActions', '0', 'fullReport.parentReportActionID'),
 );
