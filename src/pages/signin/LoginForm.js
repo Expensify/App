@@ -112,7 +112,7 @@ function LoginForm(props) {
      * Check that all the form fields are valid, then trigger the submit callback
      */
     const validateAndSubmitForm = useCallback(() => {
-        if (props.network.isOffline) {
+        if (props.network.isOffline || props.account.isLoading) {
             return;
         }
 
@@ -149,7 +149,7 @@ function LoginForm(props) {
 
         // Check if this login has an account associated with it or not
         Session.beginSignIn(parsedPhoneNumber.possible ? parsedPhoneNumber.number.e164 : loginTrim);
-    }, [login, props.closeAccount, props.network, setFormError]);
+    }, [login, props.account, props.closeAccount, props.network, setFormError]);
 
     useEffect(() => {
         // Just call clearAccountMessages on the login page (home route), because when the user is in the transition route and not yet authenticated,
