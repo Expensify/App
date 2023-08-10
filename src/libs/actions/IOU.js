@@ -419,7 +419,7 @@ function getMoneyRequestInformation(report, participant, comment, amount, curren
         : undefined;
 
     // STEP 5: Build Onyx Data
-    const onyxData = buildOnyxDataForMoneyRequest(
+    const [optimisticData, successData, failureData] = buildOnyxDataForMoneyRequest(
         chatReport,
         iouReport,
         transaction,
@@ -441,7 +441,11 @@ function getMoneyRequestInformation(report, participant, comment, amount, curren
         createdChatReportActionID: isNewChatReport ? optimisticCreatedActionForChat.reportActionID : 0,
         createdIOUReportActionID: isNewIOUReport ? optimisticCreatedActionForIOU.reportActionID : 0,
         reportPreviewAction,
-        onyxData,
+        onyxData: {
+            optimisticData,
+            successData,
+            failureData,
+        },
     };
 }
 
