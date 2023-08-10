@@ -162,8 +162,6 @@ function AttachmentPicker({ type, children, isSmallScreenWidth}) {
         },
     ]);
 
-    // const [result, setResult] = useState()
-
     /**
      * An attachment error dialog when user selected malformed images
      */
