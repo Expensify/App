@@ -100,7 +100,7 @@ class PDFView extends Component {
 
     /**
      * Sets attributes to list container.
-     * It unblocks a default scroll by keyboard of Chromium-based browsers.
+     * It unblocks a default scroll by keyboard of browsers.
      * @param {Object|undefined} ref
      */
     setListAttributes(ref) {
