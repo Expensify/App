@@ -17,6 +17,7 @@ import Text from '../Text';
 import compose from '../../libs/compose';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 import Log from '../../libs/Log';
+import * as Browser from '../../libs/Browser';
 
 /**
  * Each page has a default border. The app should take this size into account
@@ -28,6 +29,11 @@ const PAGE_BORDER = 9;
  * when calculates the page width.
  */
 const LARGE_SCREEN_SIDE_SPACING = 40;
+/**
+ * A scroll step when users use keyboard up/down arrow.
+ * For Safari the app handles scroll and uses this step.
+ */
+const SCROLL_STEP = 40;
 
 class PDFView extends Component {
     constructor(props) {
@@ -49,6 +55,11 @@ class PDFView extends Component {
         this.calculatePageWidth = this.calculatePageWidth.bind(this);
         this.renderPage = this.renderPage.bind(this);
         this.setListAttributes = this.setListAttributes.bind(this);
+        this.scrollList = this.scrollList.bind(this);
+
+        this.listRef = React.createRef();
+        this.listOffset = 0;
+        this.isSafari = Browser.isSafari();
 
         const workerBlob = new Blob([pdfWorkerSource], {type: 'text/javascript'});
         pdfjs.GlobalWorkerOptions.workerSrc = URL.createObjectURL(workerBlob);
@@ -104,12 +115,41 @@ class PDFView extends Component {
      * @param {Object|undefined} ref
      */
     setListAttributes(ref) {
-        if (!ref) {
+        if (!ref || this.isSafari) {
             return;
         }
 
         // eslint-disable-next-line no-param-reassign
         ref.tabIndex = -1;
+    }
+
+    /**
+     * Scrolls list up/down by keyboard arrows.
+     * @param {Object} event
+     * @param {String} event.code
+     * @param {Function} event.preventDefault
+     * @param {Function} event.stopPropagation
+     */
+    scrollList(event) {
+        if (!this.listRef.current || !this.isSafari) {
+            return;
+        }
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        switch (event.code) {
+            case CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey:
+                this.listRef.current.scrollTo(0, this.listOffset - SCROLL_STEP);
+                break;
+
+            case CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN.shortcutKey:
+                this.listRef.current.scrollTo(0, this.listOffset + SCROLL_STEP);
+                break;
+
+            default:
+                break;
+        }
     }
 
     /**
@@ -237,6 +277,7 @@ class PDFView extends Component {
                             layout: {width, height},
                         },
                     }) => this.setState({containerWidth: width, containerHeight: height})}
+                    onKeyDown={this.scrollList}
                 >
                     <Document
                         error={<Text style={[styles.textLabel, styles.textLarge]}>{this.props.translate('attachmentView.failedToLoadPDF')}</Text>}
@@ -252,13 +293,20 @@ class PDFView extends Component {
                     >
                         {this.state.pageViewports.length > 0 && (
                             <List
-                                outerRef={this.setListAttributes}
+                                outerRef={this.isSafari ? this.listRef : this.setListAttributes}
                                 style={styles.PDFViewList}
                                 width={this.props.isSmallScreenWidth ? pageWidth : this.state.containerWidth}
                                 height={this.state.containerHeight}
                                 estimatedItemSize={this.calculatePageHeight(0)}
                                 itemCount={this.state.numPages}
                                 itemSize={this.calculatePageHeight}
+                                onScroll={(event) => {
+                                    if (!this.isSafari) {
+                                        return;
+                                    }
+
+                                    this.listOffset = event.scrollOffset;
+                                }}
                             >
                                 {this.renderPage}
                             </List>
