@@ -205,7 +205,7 @@ button {
 
 #sidebar-search {
     background-color: $color-green-appBG;
-    width: 400px;
+    width: 375px;
     height: 100vh;
     position: fixed;
     display: block;
@@ -224,15 +224,17 @@ button {
 }
 
 .search-title {
-    font-size: 120%;
+    font-size: 17px;
+    padding-bottom: 20px;
 }
 
 #toggle-search-close {
     margin: auto;
-    margin-left: auto;
-    margin-right: 0px;
+    margin-left: 0px;
+    margin-right: 10px;
 }
 
+/* Sidebar Layer */
 #sidebar-layer {
     position: fixed;
     /* Sit on top of the page content */
@@ -246,11 +248,12 @@ button {
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: #1b574470;
+    background-color: rgba(0, 0, 0, 0.4);
     z-index: 2;
     /* Specify a stack order in case you're using a different order for other elements */
 }
 
+/* All gsc id & class are Google Search related */
 #___gcse_0 {
     margin-left: 20px;
 }
@@ -266,7 +269,7 @@ input#gsc-i-id1.gsc-input {
     border-bottom: rgba(255, 255, 255, 0.2) 2px solid;
     border-bottom-left-radius: 0px;
     &:focus-within {
-        border-bottom: $color-accent 1px solid;
+        border-bottom: $color-accent 2px solid;
     }
 }
 
@@ -340,6 +343,8 @@ label {
     border-radius: 25px;
     background-color: $color-green400;
     cursor: pointer;
+    width: 40px;
+    height: 40px;
 }
 
 .gsc-search-button.gsc-search-button-v2:hover {
@@ -709,12 +714,6 @@ label {
 .base-icon {
     width: 20px;
     height: 20px;
-    cursor: pointer;
-}
-
-.base-icon--small {
-    width: 14px;
-    height: 14px;
     cursor: pointer;
 }
 

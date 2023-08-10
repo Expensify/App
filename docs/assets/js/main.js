@@ -105,14 +105,12 @@ function closeSidebar() {
 function changeSVGViewBoxGoogle() {
     // Get all inline Google SVG elements on the page
     const svgsGoogle = document.querySelectorAll('svg');
-    // eslint-disable-next-line no-console
-    console.log(`There are ${svgsGoogle.length} Divs in Document!`);
 
     // Iterate through each SVG element
     Array.from(svgsGoogle).forEach(svg => {
 
         // Set the viewBox attribute
-        svg.setAttribute('viewBox', '0 0 13 13');
+        svg.setAttribute('viewBox', '0 0 20 20');
     });
 }
 
