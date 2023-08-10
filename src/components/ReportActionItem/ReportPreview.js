@@ -27,6 +27,7 @@ import themeColors from '../../styles/themes/default';
 import reportPropTypes from '../../pages/reportPropTypes';
 import RenderHTML from '../RenderHTML';
 import * as ReceiptUtils from '../../libs/ReceiptUtils';
+import * as ReportActionUtils from '../../libs/ReportActionsUtils';
 import Image from '../Image';
 
 const propTypes = {
@@ -101,8 +102,7 @@ function ReportPreview(props) {
     const reportTotal = ReportUtils.getMoneyRequestTotal(props.iouReport);
 
     const iouSettled = ReportUtils.isSettled(props.iouReportID);
-    const receiptIDs = lodashGet(props.action, 'childLastReceiptTransactionIDs', '').split(',');
-    const receipts = _.filter(props.receipts, (transaction) => receiptIDs.includes(transaction.transactionID));
+    const receipts = ReportActionUtils.getReportPreviewTransactions(props.action);
     const isScanning = _.some(receipts, ({receipt}) => ReceiptUtils.isBeingScanned(receipt));
 
     let displayAmount;
@@ -222,9 +222,6 @@ export default compose(
         },
         iouReport: {
             key: ({iouReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
-        },
-        receipts: {
-            key: ONYXKEYS.COLLECTION.TRANSACTION,
         },
         session: {
             key: ONYXKEYS.SESSION,

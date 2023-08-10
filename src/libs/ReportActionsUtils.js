@@ -10,6 +10,8 @@ import ONYXKEYS from '../ONYXKEYS';
 import Log from './Log';
 import * as CurrencyUtils from './CurrencyUtils';
 import isReportMessageAttachment from './isReportMessageAttachment';
+import * as TransactionUtils from './TransactionUtils';
+import * as ReceiptUtils from './ReceiptUtils';
 
 const allReports = {};
 Onyx.connect({
@@ -34,6 +36,19 @@ Onyx.connect({
 
         const reportID = CollectionUtils.extractCollectionItemID(key);
         allReportActions[reportID] = actions;
+    },
+});
+
+const allTransactions = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.TRANSACTION,
+    callback: (actions, key) => {
+        if (!key || !actions) {
+            return;
+        }
+
+        const transactionID = CollectionUtils.extractCollectionItemID(key);
+        allTransactions[transactionID] = actions;
     },
 });
 
@@ -561,6 +576,53 @@ function isMessageDeleted(reportAction) {
     return lodashGet(reportAction, ['message', 0, 'isDeletedParentAction'], false);
 }
 
+/**
+ * Get the transactions related to a report preview
+ *
+ * @param {Object} reportPreviewAction
+ * @returns {Object}
+ */
+function getReportPreviewTransactions(reportPreviewAction) {
+    const transactionIDs = lodashGet(reportPreviewAction, ['childLastReceiptTransactionIDs'], '').split(',');
+    return _.reduce(transactionIDs, (transactions, transactionID) => {
+        const transaction = allTransactions[transactionID];
+        if (transaction) {
+            transactions.push(transaction);
+        }
+        return transactions;
+    }, []);
+}
+
+/**
+ * @param {Object} iouReportAction
+ * @returns {Object}
+ */
+function getTransaction(iouReportAction) {
+    const transactionID = lodashGet(iouReportAction, ['originalMessage', 'IOUTransactionID']);
+    return allTransactions[transactionID] || {};
+}
+
+
+/**
+ * Checks if the IOU or expense report has either no smartscanned receipts or at least one is already done scanning
+ *
+ * @param {Object|null} reportAction
+ * @returns {Boolean}
+ */
+function hasReadyMoneyRequests(reportAction) {
+    if (isReportPreviewAction(reportAction)) {
+        const transactions = getReportPreviewTransactions(reportAction);
+        return _.some(transactions, (transaction) => !TransactionUtils.hasReceipt(transaction) || !ReceiptUtils.isBeingScanned(transaction.receipt));
+    }
+
+    if (isMoneyRequestAction(reportAction)) {
+        const transaction = getTransaction(reportAction);
+        return !TransactionUtils.hasReceipt(transaction) || !ReceiptUtils.isBeingScanned(transaction.receipt);
+    }
+
+    return true;
+}
+
 export {
     getSortedReportActions,
     getLastVisibleAction,
@@ -593,4 +655,6 @@ export {
     isWhisperAction,
     isPendingRemove,
     getReportAction,
+    getReportPreviewTransactions,
+    hasReadyMoneyRequests,
 };

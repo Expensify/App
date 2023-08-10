@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import CONST from '../CONST';
 import DateUtils from './DateUtils';
 import * as NumberUtils from './NumberUtils';
@@ -42,6 +43,15 @@ function buildOptimisticTransaction(amount, currency, reportID, comment = '', so
     };
 }
 
-export default {
+/**
+ * @param {Object|null} transaction
+ * @returns {Boolean}
+ */
+function hasReceipt(transaction) {
+    return _.has(transaction, 'receipt');
+}
+
+export {
     buildOptimisticTransaction,
+    hasReceipt,
 };
