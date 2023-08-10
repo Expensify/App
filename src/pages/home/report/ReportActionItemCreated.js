@@ -51,7 +51,6 @@ const defaultProps = {
 };
 
 const IMAGE_OFFSET_Y = 75;
-const ANIMATION_BOOST = 1.3;
 
 function ReportActionItemCreated(props) {
     const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
@@ -70,8 +69,8 @@ function ReportActionItemCreated(props) {
          */
         const {x, y} = animatedSensor.sensor.value;
         // The x vs y here seems wrong but is the way to make it feel right to the user
-        xOffset.value = NumberUtils.clampWorklet(xOffset.value - y * ANIMATION_BOOST, -IMAGE_OFFSET_X, IMAGE_OFFSET_X);
-        yOffset.value = NumberUtils.clampWorklet(yOffset.value - x * ANIMATION_BOOST, -IMAGE_OFFSET_Y, IMAGE_OFFSET_Y);
+        xOffset.value = NumberUtils.clampWorklet(xOffset.value + y, -IMAGE_OFFSET_X, IMAGE_OFFSET_X);
+        yOffset.value = NumberUtils.clampWorklet(yOffset.value - x, -IMAGE_OFFSET_Y, IMAGE_OFFSET_Y);
         if (!isSmallScreenWidth) {
             return {};
         }
