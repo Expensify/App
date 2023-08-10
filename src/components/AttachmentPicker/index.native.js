@@ -321,7 +321,7 @@ function AttachmentPicker({ type, children, isSmallScreenWidth}) {
     return (
         <>
             <Popover
-                onClose={() => close()}
+                onClose={close}
                 isVisible={isVisible}
                 anchorPosition={styles.createMenuPosition}
                 onModalHide={onModalHide.current}
