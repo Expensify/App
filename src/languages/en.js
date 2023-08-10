@@ -380,7 +380,7 @@ export default {
         viewDetails: 'View details',
         pending: 'Pending',
         receipt: 'Receipt',
-        receiptScanning: 'Scanning in progress...',
+        receiptScanning: 'Scan in progress...',
         settledExpensify: 'Paid',
         settledElsewhere: 'Paid elsewhere',
         settledPaypalMe: 'Paid using Paypal.me',
