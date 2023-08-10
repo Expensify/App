@@ -68,7 +68,6 @@ function MoneyReportHeader(props) {
             <HeaderWithBackButton
                 shouldShowAvatarWithDisplay
                 shouldShowPinButton={false}
-                shouldShowThreeDotsButton={false}
                 report={props.report}
                 policies={props.policies}
                 personalDetails={props.personalDetails}
