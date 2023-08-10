@@ -99,8 +99,7 @@ function ReceiptSelector(props) {
             return;
         }
 
-        const filePath = URL.createObjectURL(file);
-        IOU.setMoneyRequestReceipt(filePath, file.name);
+        IOU.setMoneyRequestReceipt(file.uri, file.name);
         IOU.navigateToNextPage(iou, iouType, reportID, report);
     };
 

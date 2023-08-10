@@ -155,7 +155,6 @@ const readFileAsync = (path, fileName) =>
                 const cleanName = cleanFileName(fileName)
                 const file = new File([blob], cleanName);
                 file.source = path;
-                file.filename = cleanName;
                 resolve(file);
             })
             .catch((e) => {

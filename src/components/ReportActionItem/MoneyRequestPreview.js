@@ -196,21 +196,20 @@ function MoneyRequestPreview(props) {
     }
 
     const renderReceipt = ({receipt, filename}) => {
-        const uri = ReceiptUtils.getImageURI(receipt.source, filename);
-        const hasNoFallback = uri === receipt.source;
-
-        if (hasNoFallback) {
+        const {thumbnail, image} = ReceiptUtils.getThumbnailAndImageURIs(receipt.source, filename);
+        console.log(thumbnail, image);
+        if (thumbnail) {
             return (
                 <RenderHTML html={`
                     <img
-                        src="${uri}.1024.jpg"
-                        data-expensify-source="${uri}"
+                        src="${thumbnail}"
+                        data-expensify-source="${image}"
                         data-expensify-fit-container="true"
                     />
                 `} />
             );
         }
-        return (<Image source={{uri}} style={[styles.w100, styles.h100]} />);
+        return (<Image source={{uri: image}} style={[styles.w100, styles.h100]} />);
     }
 
     const childContainer = (

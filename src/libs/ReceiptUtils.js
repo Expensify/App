@@ -32,33 +32,37 @@ function validateReceipt(file) {
 
 
 /**
- * Grab the appropriate receipt image URI based on file type
+ * Grab the appropriate receipt image and thumbnail URIs based on file type
  *
  * @param {String}  path      URI to image, i.e. blob://new.expensify.com/9ef3a018-4067-47c6-b29f-5f1bd35f213d or expensify.com/receipts/w_e616108497ef940b7210ec6beb5a462d01a878f4.jpg
  * @param {String}  filename  of uploaded image or last part of remote URI
- * @returns {*}
+ * @returns {Object}
  */
-function getImageURI(path, filename) {
+function getThumbnailAndImageURIs(path, filename) {
+    if (path.startsWith('blob://')) {
+        return {thumbnail: null, image: path};
+    }
+
     const {fileExtension} = FileUtils.splitExtensionFromFileName(filename);
     const isReceiptImage = Str.isImage(filename);
 
     if (isReceiptImage) {
-        return path;
+        return {thumbnail: `${path}.1024.jpg`, image: path};
     }
 
+    let image = ReceiptGeneric;
     if (fileExtension === CONST.IOU.FILE_TYPES.HTML) {
-        return ReceiptHTML;
+        image = ReceiptHTML;
     }
 
     if (fileExtension === CONST.IOU.FILE_TYPES.DOC || fileExtension === CONST.IOU.FILE_TYPES.DOCX) {
-        return ReceiptDoc;
+        image = ReceiptDoc;
     }
 
     if (fileExtension === CONST.IOU.FILE_TYPES.SVG) {
-        return ReceiptSVG;
+        image = ReceiptSVG;
     }
-
-    return ReceiptGeneric;
+    return {thumbnail: null, image};
 };
 
 function isBeingScanned(receipt) {
@@ -67,6 +71,6 @@ function isBeingScanned(receipt) {
 
 export {
     validateReceipt,
-    getImageURI,
+    getThumbnailAndImageURIs,
     isBeingScanned,
 };

@@ -332,7 +332,7 @@ function MoneyRequestConfirmationList(props) {
             {!_.isEmpty(props.receiptPath) ? (
                 <Image
                     style={styles.moneyRequestImage}
-                    source={{uri: ReceiptUtils.getImageURI(props.receiptPath, props.receiptSource)}}
+                    source={{uri: ReceiptUtils.getThumbnailAndImageURIs(props.receiptPath, props.receiptSource).image}}
                 />
             ) : (
                 <MenuItemWithTopDescription

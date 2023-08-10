@@ -363,7 +363,7 @@ function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, part
     if (receipt && receipt.source) {
         receiptObject.source = receipt.source;
         receiptObject.state = CONST.IOU.RECEIPT_STATE.SCANREADY;
-        filename = receipt.filename;
+        filename = receipt.name;
     }
     const optimisticTransaction = TransactionUtils.buildOptimisticTransaction(amount, currency, iouReport.reportID, comment, '', '', undefined, receiptObject, filename);
 

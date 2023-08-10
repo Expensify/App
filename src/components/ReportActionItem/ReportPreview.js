@@ -150,23 +150,21 @@ function ReportPreview(props) {
                 <View style={[styles.reportPreviewBox, props.isHovered || isScanning ? styles.moneyRequestPreviewBoxHover : undefined]}>
                     <View style={[styles.reportPreviewBoxReceipts, props.isHovered || isScanning ? styles.reportPreviewBoxHoverBorder : undefined]}>
                         {_.map(receipts, ({receipt, filename, transactionID}) => {
-                            const uri = ReceiptUtils.getImageURI(receipt.source, filename);
-                            const hasNoFallback = uri === receipt.source;
-
+                            const {thumbnail, image} = ReceiptUtils.getThumbnailAndImageURIs(receipt.source, filename);
                             return (
                                 <View
                                     key={transactionID}
                                     style={[styles.reportPreviewBoxReceipt, props.isHovered || isScanning ? styles.reportPreviewBoxHoverBorder : undefined]}
                                 >
-                                    {hasNoFallback
+                                    {thumbnail
                                         ? <RenderHTML html={`
                                                 <img
-                                                    src="${uri}.1024.jpg"
-                                                    data-expensify-source="${uri}"
+                                                    src="${thumbnail}"
+                                                    data-expensify-source="${image}"
                                                     data-expensify-fit-container="true"
                                                 />
                                           `} />
-                                        : <Image source={{uri}} style={[styles.w100, styles.h100]} />
+                                        : <Image source={{uri: image}} style={[styles.w100, styles.h100]} />
                                     }
                                 </View>
                             );
