@@ -1251,12 +1251,6 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
         iouReport.reportID,
         true,
     );
-    const optimisticPersonalDetailsListAction = {
-        accountID: Number(recipient.accountID),
-        avatar: UserUtils.getDefaultAvatarURL(Number(recipient.accountID)),
-        displayName: recipient.displayName || recipient.login,
-        login: recipient.login,
-    };
 
     const optimisticReportPreviewAction = ReportUtils.updateReportPreview(iouReport, ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID));
 
@@ -1311,11 +1305,6 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
             value: {[iouReport.policyID]: paymentMethodType},
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: optimisticPersonalDetailsListAction,
         },
     ];
 
