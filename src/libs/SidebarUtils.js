@@ -256,9 +256,8 @@ function getOptionData(report, reportActions, personalDetails, preferredLocale, 
     result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
     result.notificationPreference = report.notificationPreference || null;
 
-    const {addWorkspaceRoomOrChatErrors} = ReportUtils.getReportOfflinePendingActionAndErrors(report);
     // If the composer is hidden then the user is not allowed to comment, same can be used to hide the draft icon.
-    result.isAllowedToComment = !ReportUtils.shouldHideComposer(report, addWorkspaceRoomOrChatErrors);
+    result.isAllowedToComment = !ReportUtils.shouldHideComposer(report);
 
     const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
     const subtitle = ReportUtils.getChatRoomSubtitle(report);
