@@ -5,6 +5,7 @@ import React, {useEffect, useRef} from 'react';
 import FocusTrap from 'focus-trap-react';
 import {View} from 'react-native';
 import {PropTypes} from 'prop-types';
+import {useIsFocused} from '@react-navigation/native';
 
 const propTypes = {
     /** Whether to enable the FocusTrap */
@@ -22,6 +23,8 @@ const defaultProps = {
 };
 
 function FocusTrapView({enabled, shouldDisableAutoFocus, ...props}) {
+    const isFocused = useIsFocused();
+
     /**
      * Focus trap always needs a focusable element.
      * In case that we don't have any focusable elements in the modal,
@@ -40,7 +43,7 @@ function FocusTrapView({enabled, shouldDisableAutoFocus, ...props}) {
 
     return (
         <FocusTrap
-            active={enabled}
+            active={enabled && isFocused}
             focusTrapOptions={{
                 initialFocus: () => !shouldDisableAutoFocus && ref.current,
                 fallbackFocus: () => ref.current,
