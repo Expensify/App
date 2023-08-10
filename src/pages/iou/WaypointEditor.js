@@ -14,7 +14,7 @@ import compose from '../../libs/compose';
 import CONST from '../../CONST';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import DistanceRequest from '../../libs/actions/DistanceRequest';
-import * as ValidationUtils from '../libs/ValidationUtils';
+import * as ValidationUtils from '../../libs/ValidationUtils';
 import ROUTES from '../../ROUTES';
 import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
@@ -60,16 +60,16 @@ function WaypointEditor(props) {
             errors[`waypoint${waypointIndex}`] = 'distance.errors.selectSuggestedAddress';
         }
 
-        // When the user is offline, we can't use auto-complete to validate the address
-        // So we're going to save the waypoint as just the address, and the lat/long will be filled in on the backend
+        // When the user is offline, we can't use auto-complete to validate the address so we will just save the address
+        // Otherwise, we require the user to select an address from the auto-complete
         if (props.network.isOffline && waypointValue && ValidationUtils.isValidAddress(waypointValue)) {
-            errors[`waypoint${waypointIndex}`] = 'distance.errors.enterValidAddress';
+            errors[`waypoint${waypointIndex}`] = 'bankAccount.error.address';
         }
 
         return errors;
     }
 
-    const onSubmit = (values) => {    
+    const onSubmit = (values) => {
         // Allows letting you set a waypoint to an empty value
         if (!values[`waypoint${waypointIndex}`]) {
             DistanceRequest.saveWaypoint(transactionID, waypointIndex, null);
@@ -105,7 +105,7 @@ function WaypointEditor(props) {
                 title="Waypoint Editor"
                 shouldShowBackButton
                 onBackButtonPress={() => {
-                    Navigation.goBack();
+                    Navigation.navigate(ROUTES.getMoneyRequestDistanceTabRoute(iouType));
                 }}
             />
             <Form
@@ -121,7 +121,7 @@ function WaypointEditor(props) {
                     <AddressSearch
                         inputID={`waypoint${waypointIndex}`}
                         containerStyles={[styles.mt4]}
-                        label="Address"
+                        label={props.translate('distance.address')}
                         shouldSaveDraft
                         onPress={onPress}
                         maxInputLength={CONST.FORM_CHARACTER_LIMIT}

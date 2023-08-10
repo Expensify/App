@@ -1566,13 +1566,13 @@ export default {
     },
     distance: {
         addStop: 'Add stop',
+        address: 'Address',
         waypointDescription: {
             start: 'Start',
             finish: 'Finish',
             stop: 'Stop',
         },
         errors: {
-            enterValidAddress: 'Please enter a valid address',
             selectSuggestedAddress: 'Please select a suggested address',
         }
     },

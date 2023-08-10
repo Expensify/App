@@ -2037,11 +2037,15 @@ export default {
     },
     distance: {
         addStop: 'Agregar parada',
+        address: 'Dirección',
         waypointDescription: {
             start: 'Comienzo',
             finish: 'Final',
             stop: 'Parada',
         },
+        errors: {
+            selectSuggestedAddress: 'Por favor, selecciona una dirección sugerida',
+        }
     },
     countrySelectorModal: {
         placeholderText: 'Buscar para ver opciones',
