@@ -3,7 +3,6 @@ import {View} from 'react-native';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import Animated, {useSharedValue, useAnimatedStyle, useAnimatedSensor, SensorType, withSpring} from 'react-native-reanimated';
 import ONYXKEYS from '../../../ONYXKEYS';
 import ReportWelcomeText from '../../../components/ReportWelcomeText';
 import participantPropTypes from '../../../components/participantPropTypes';
@@ -12,16 +11,14 @@ import styles from '../../../styles/styles';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import * as Report from '../../../libs/actions/Report';
 import reportPropTypes from '../../reportPropTypes';
-import EmptyStateBackgroundImage from '../../../../assets/images/empty-state_background-fade.png';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import compose from '../../../libs/compose';
 import withLocalize from '../../../components/withLocalize';
 import PressableWithoutFeedback from '../../../components/Pressable/PressableWithoutFeedback';
-import useWindowDimensions from '../../../hooks/useWindowDimensions';
 import MultipleAvatars from '../../../components/MultipleAvatars';
 import CONST from '../../../CONST';
-import * as NumberUtils from '../../../libs/NumberUtils';
+import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 
 const propTypes = {
     /** The id of the report */
@@ -50,35 +47,7 @@ const defaultProps = {
     policy: {},
 };
 
-const IMAGE_OFFSET_Y = 75;
-
 function ReportActionItemCreated(props) {
-    const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
-    const IMAGE_OFFSET_X = windowWidth / 2;
-
-    // Get data from phone rotation sensor and prep other variables for animation
-    const animatedSensor = useAnimatedSensor(SensorType.GYROSCOPE);
-    const xOffset = useSharedValue(0);
-    const yOffset = useSharedValue(0);
-
-    // Apply data to create style object
-    const animatedStyles = useAnimatedStyle(() => {
-        /*
-         * We use x and y gyroscope velocity and add it to position offset to move background based on device movements.
-         * Position the phone was in while entering the screen is the initial position for background image.
-         */
-        const {x, y} = animatedSensor.sensor.value;
-        // The x vs y here seems wrong but is the way to make it feel right to the user
-        xOffset.value = NumberUtils.clampWorklet(xOffset.value + y, -IMAGE_OFFSET_X, IMAGE_OFFSET_X);
-        yOffset.value = NumberUtils.clampWorklet(yOffset.value - x, -IMAGE_OFFSET_Y, IMAGE_OFFSET_Y);
-        if (!isSmallScreenWidth) {
-            return {};
-        }
-        return {
-            transform: [{translateX: withSpring(-IMAGE_OFFSET_X - xOffset.value)}, {translateY: withSpring(yOffset.value)}],
-        };
-    });
-
     if (!ReportUtils.isChatReport(props.report)) {
         return null;
     }
@@ -95,11 +64,7 @@ function ReportActionItemCreated(props) {
             needsOffscreenAlphaCompositing
         >
             <View style={StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth)}>
-                <Animated.Image
-                    pointerEvents="none"
-                    source={EmptyStateBackgroundImage}
-                    style={[StyleUtils.getReportWelcomeBackgroundImageStyle(props.isSmallScreenWidth), animatedStyles]}
-                />
+                <AnimatedEmptyStateBackground isSmallScreenWidth={props.isSmallScreenWidth} />
                 <View
                     accessibilityLabel={props.translate('accessibilityHints.chatWelcomeMessage')}
                     style={[styles.p5, StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]}
