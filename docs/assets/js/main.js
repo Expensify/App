@@ -106,11 +106,27 @@ function changeSVGViewBoxGoogle() {
     // Get all inline Google SVG elements on the page
     const svgsGoogle = document.querySelectorAll('svg');
 
-    // Iterate through each SVG element
-    Array.from(svgsGoogle).forEach((svg) => {
-        // Set the viewBox attribute
-        svg.setAttribute('viewBox', '0 0 20 20');
-    });
+    // Create a media query for screens wider than tablet
+    const mediaQuery = window.matchMedia('(min-width: 800px)');
+
+    // Check if the viewport is smaller than tablet
+    if (!mediaQuery.matches) {
+        // Iterate through each SVG element
+        Array.from(svgsGoogle).forEach((svg) => {
+            // Set the viewBox attribute to '0 0 13 13' to make the svg fit in the mobile view
+            svg.setAttribute('viewBox', '0 0 13 13');
+            svg.setAttribute('height', '13');
+            svg.setAttribute('width', '13');
+        });
+    } else {
+        // Iterate through each SVG element
+        Array.from(svgsGoogle).forEach((svg) => {
+            // Set the viewBox attribute to '0 0 20 20' to make the svg fit in the tablet-desktop view
+            svg.setAttribute('viewBox', '0 0 20 20');
+            svg.setAttribute('height', '16');
+            svg.setAttribute('width', '16');
+        });
+    }
 }
 
 // Function to insert element after another
