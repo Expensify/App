@@ -1003,11 +1003,6 @@ const CONST = {
             SPLIT: 'split',
             REQUEST: 'request',
         },
-        EXPENSE_TYPE: {
-            MANUAL: 'manual',
-            DISTANCE: 'distance',
-            SCAN: 'scan',
-        },
         REPORT_ACTION_TYPE: {
             PAY: 'pay',
             CREATE: 'create',
