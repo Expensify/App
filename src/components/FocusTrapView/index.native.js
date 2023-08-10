@@ -6,7 +6,7 @@ import {View} from 'react-native';
 import _ from 'underscore';
 
 function FocusTrapView(props) {
-    const viewProps = _.omit(props, ['enabled']);
+    const viewProps = _.omit(props, ['enabled', 'shouldDisableAutoFocus']);
     return (
         // eslint-disable-next-line react/jsx-props-no-spreading
         <View {...viewProps} />

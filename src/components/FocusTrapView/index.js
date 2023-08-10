@@ -9,13 +9,19 @@ import {PropTypes} from 'prop-types';
 const propTypes = {
     /** Whether to enable the FocusTrap */
     enabled: PropTypes.bool,
+
+    /** Whether to disable auto focus
+     *  It is used when the component inside the FocusTrap have their own auto focus logic
+     */
+    shouldDisableAutoFocus: PropTypes.bool,
 };
 
 const defaultProps = {
     enabled: true,
+    shouldDisableAutoFocus: false,
 };
 
-function FocusTrapView({enabled, ...props}) {
+function FocusTrapView({enabled, shouldDisableAutoFocus, ...props}) {
     /**
      * Focus trap always needs a focusable element.
      * In case that we don't have any focusable elements in the modal,
@@ -36,7 +42,8 @@ function FocusTrapView({enabled, ...props}) {
         <FocusTrap
             active={enabled}
             focusTrapOptions={{
-                initialFocus: () => ref.current,
+                initialFocus: () => !shouldDisableAutoFocus && ref.current,
+                fallbackFocus: () => ref.current,
                 clickOutsideDeactivates: true,
             }}
         >
