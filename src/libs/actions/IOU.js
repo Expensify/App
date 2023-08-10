@@ -490,7 +490,20 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
 
     // Note: The created action must be optimistically generated before the IOU action so there's no chance that the created action appears after the IOU action in the chat
     const splitCreatedReportAction = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
-    const splitIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(CONST.IOU.REPORT_ACTION_TYPE.SPLIT, amount, currency, comment, participants, splitTransaction.transactionID);
+    const splitIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
+        CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
+        amount,
+        currency,
+        comment,
+        participants,
+        splitTransaction.transactionID,
+        '',
+        '',
+        false,
+        false,
+        {},
+        isOwnPolicyExpenseChat,
+    );
 
     splitChatReport.lastReadTime = DateUtils.getDBTime();
     splitChatReport.lastMessageText = splitIOUReportAction.message[0].text;
