@@ -663,7 +663,6 @@ function ReportActionCompose({
     const shouldUseFocusedColor = !isBlockedFromConcierge && !disabled && isFocused;
     const isFullSizeComposerAvailable = isFullComposerAvailable && !_.isEmpty(value);
     const hasReportRecipient = _.isObject(reportRecipient) && !_.isEmpty(reportRecipient);
-    const maxComposerLines = isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
 
     const isSendDisabled = isCommentEmpty || isBlockedFromConcierge || disabled || hasExceededMaxCommentLength;
 
@@ -714,7 +713,6 @@ function ReportActionCompose({
                                     updateComment={updateComment}
                                     triggerHotkeyActions={triggerHotkeyActions}
                                     isComposerFullSize={isComposerFullSize}
-                                    maxComposerLines={maxComposerLines}
                                     setIsFocused={setIsFocused}
                                     suggestionsRef={suggestionsRef}
                                     updateShouldShowSuggestionMenuToFalse={updateShouldShowSuggestionMenuToFalse}

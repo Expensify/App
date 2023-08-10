@@ -4,6 +4,8 @@ import styles from '../../../../styles/styles';
 import themeColors from '../../../../styles/themes/default';
 import Composer from '../../../../components/Composer';
 import containerComposeStyles from '../../../../styles/containerComposeStyles';
+import useWindowDimensions from '../../../../hooks/useWindowDimensions';
+import CONST from '../../../../CONST';
 
 function SoloComposer({
     checkComposerVisibility,
@@ -13,7 +15,6 @@ function SoloComposer({
     updateComment,
     triggerHotkeyActions,
     isComposerFullSize,
-    maxComposerLines,
     setIsFocused,
     suggestionsRef,
     updateShouldShowSuggestionMenuToFalse,
@@ -32,6 +33,9 @@ function SoloComposer({
     composerHeight,
     setComposerHeight,
 }) {
+    const {isSmallScreenWidth} = useWindowDimensions();
+    const maxComposerLines = isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
+
     return (
         <View style={[containerComposeStyles, styles.textInputComposeBorder]}>
             <Composer
