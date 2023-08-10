@@ -63,6 +63,9 @@
                 <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/enable-payments"/>
                 <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/statements"/>
                 <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/concierge"/>
+                <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/split"/>
+                <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/request"/>
+                <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/new"/>
 
                 <!-- Staging URLs -->
                 <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/r"/>
@@ -75,6 +78,9 @@
                 <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/enable-payments"/>
                 <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/statements"/>
                 <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/concierge"/>
+                <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/split"/>
+                <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/request"/>
+                <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/new"/>
             </intent-filter>
         </activity>
 

@@ -50,6 +50,7 @@ class BaseOptionsSelector extends Component {
         this.updateFocusedIndex = this.updateFocusedIndex.bind(this);
         this.scrollToIndex = this.scrollToIndex.bind(this);
         this.selectRow = this.selectRow.bind(this);
+        this.selectFocusedOption = this.selectFocusedOption.bind(this);
         this.relatedTarget = null;
 
         const allOptions = this.flattenSections();
@@ -66,22 +67,7 @@ class BaseOptionsSelector extends Component {
         const enterConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
         this.unsubscribeEnter = KeyboardShortcut.subscribe(
             enterConfig.shortcutKey,
-            () => {
-                const focusedOption = this.state.allOptions[this.state.focusedIndex];
-                if (!focusedOption || !this.props.isFocused) {
-                    return;
-                }
-                if (this.props.canSelectMultipleOptions) {
-                    this.selectRow(focusedOption);
-                } else if (!this.state.shouldDisableRowSelection) {
-                    this.setState({shouldDisableRowSelection: true});
-                    let result = this.selectRow(focusedOption);
-                    if (!(result instanceof Promise)) {
-                        result = Promise.resolve();
-                    }
-                    setTimeout(() => result.finally(() => this.setState({shouldDisableRowSelection: false})), 500);
-                }
-            },
+            this.selectFocusedOption,
             enterConfig.descriptionKey,
             enterConfig.modifiers,
             true,
@@ -205,6 +191,31 @@ class BaseOptionsSelector extends Component {
         return defaultIndex;
     }
 
+    selectFocusedOption() {
+        const focusedOption = this.state.allOptions[this.state.focusedIndex];
+
+        if (!focusedOption || !this.props.isFocused) {
+            return;
+        }
+
+        if (this.props.canSelectMultipleOptions) {
+            this.selectRow(focusedOption);
+        } else if (!this.state.shouldDisableRowSelection) {
+            this.setState({shouldDisableRowSelection: true});
+
+            let result = this.selectRow(focusedOption);
+            if (!(result instanceof Promise)) {
+                result = Promise.resolve();
+            }
+
+            setTimeout(() => {
+                result.finally(() => {
+                    this.setState({shouldDisableRowSelection: false});
+                });
+            }, 500);
+        }
+    }
+
     /**
      * Flattens the sections into a single array of options.
      * Each object in this array is enhanced to have:
@@ -315,6 +326,7 @@ class BaseOptionsSelector extends Component {
                 accessibilityLabel={this.props.textInputLabel}
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                 onChangeText={this.props.onChangeText}
+                onSubmitEditing={this.selectFocusedOption}
                 placeholder={this.props.placeholderText}
                 maxLength={this.props.maxLength}
                 keyboardType={this.props.keyboardType}

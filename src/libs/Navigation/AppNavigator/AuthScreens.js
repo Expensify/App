@@ -219,7 +219,6 @@ class AuthScreens extends React.Component {
             // we want pop in RHP since there are some flows that would work weird otherwise
             animationTypeForReplace: 'pop',
             cardStyle: getNavigationModalCardStyle({
-                windowHeight: this.props.windowHeight,
                 isSmallScreenWidth: this.props.isSmallScreenWidth,
             }),
         };
