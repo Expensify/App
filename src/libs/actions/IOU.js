@@ -301,7 +301,7 @@ function buildOnyxDataForMoneyRequest(
     return [optimisticData, successData, failureData];
 }
 
-function getIouReportOrOptimisticOne(report, participant, comment, isPolicyExpenseChat, amount, currency, payeeAccountID, payerAccountID, receipt = undefined) {
+function getIouReportOrOptimisticOne(report, participant, comment, isPolicyExpenseChat, amount, currency, payeeAccountID, payerAccountID, payeeEmail, payerEmail, receipt = undefined) {
     // STEP 1: Get existing chat report OR build a new optimistic one
     let isNewChatReport = false;
     let chatReport = lodashGet(report, 'reportID', null) ? report : null;
@@ -349,14 +349,89 @@ function getIouReportOrOptimisticOne(report, participant, comment, isPolicyExpen
     }
     const transaction = TransactionUtils.buildOptimisticTransaction(amount, currency, iouReport.reportID, comment, '', '', undefined, receiptObject);
 
-    return {iouReport, chatReport, transaction, receiptObject, isNewChatReport, isNewIOUReport};
+    // STEP 4: Build optimistic reportActions. We need:
+    // 1. CREATED action for the chatReport
+    // 2. CREATED action for the iouReport
+    // 3. IOU action for the iouReport
+    // 4. REPORTPREVIEW action for the chatReport
+    // Note: The CREATED action for the IOU report must be optimistically generated before the IOU action so there's no chance that it appears after the IOU action in the chat
+    const optimisticCreatedActionForChat = ReportUtils.buildOptimisticCreatedReportAction(payeeEmail);
+    const optimisticCreatedActionForIOU = ReportUtils.buildOptimisticCreatedReportAction(payeeEmail);
+    const iouAction = ReportUtils.buildOptimisticIOUReportAction(
+        CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+        amount,
+        currency,
+        comment,
+        [participant],
+        transaction.transactionID,
+        '',
+        iouReport.reportID,
+        receiptObject,
+    );
+
+    let reportPreviewAction = isNewIOUReport ? null : ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID);
+    if (reportPreviewAction) {
+        reportPreviewAction = ReportUtils.updateReportPreview(iouReport, reportPreviewAction, comment);
+    } else {
+        reportPreviewAction = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport, comment);
+    }
+
+    // Add optimistic personal details for participant
+    const optimisticPersonalDetailListAction = isNewChatReport
+        ? {
+              [payerAccountID]: {
+                  accountID: payerAccountID,
+                  avatar: UserUtils.getDefaultAvatarURL(payerAccountID),
+                  displayName: participant.displayName || payerEmail,
+                  login: participant.login,
+              },
+          }
+        : undefined;
+
+    // STEP 5: Build Onyx Data
+    const onyxData = buildOnyxDataForMoneyRequest(
+        chatReport,
+        iouReport,
+        transaction,
+        optimisticCreatedActionForChat,
+        optimisticCreatedActionForIOU,
+        iouAction,
+        optimisticPersonalDetailListAction,
+        reportPreviewAction,
+        isNewChatReport,
+        isNewIOUReport,
+    );
+
+    return {
+        iouReport,
+        chatReport,
+        transaction,
+        iouAction,
+        isNewChatReport,
+        isNewIOUReport,
+        createdChatReportActionID: isNewChatReport ? optimisticCreatedActionForChat.reportActionID : 0,
+        createdIOUReportActionID: isNewIOUReport ? optimisticCreatedActionForIOU.reportActionID : 0,
+        reportPreviewAction,
+        onyxData,
+    };
 }
 
 function createDistanceRequest(report, payeeEmail, payeeAccountID, participant, comment, waypoints, created) {
     const payerEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login);
     const payerAccountID = Number(participant.accountID);
     const isPolicyExpenseChat = participant.isPolicyExpenseChat;
-    const {iouReport, chatReport, transaction} = getIouReportOrOptimisticOne(report, participant, comment, isPolicyExpenseChat, 0, 'USD', payeeAccountID, payerAccountID);
+    const {iouReport, chatReport, transaction, iouAction, isNewChatReport, createdChatReportActionID, createdIOUReportActionID, reportPreviewAction, onyxData} = getIouReportOrOptimisticOne(
+        report,
+        participant,
+        comment,
+        isPolicyExpenseChat,
+        0,
+        'USD',
+        payeeAccountID,
+        payerAccountID,
+        payeeEmail,
+        payerEmail,
+    );
     API.write(
         'CreateDistanceRequest',
         {
@@ -365,8 +440,14 @@ function createDistanceRequest(report, payeeEmail, payeeAccountID, participant, 
             iouReportID: iouReport.reportID,
             chatReportID: chatReport.reportID,
             transactionID: transaction.transactionID,
+            reportActionID: iouAction.reportActionID,
+            createdChatReportActionID,
+            createdIOUReportActionID,
+            reportPreviewReportActionID: reportPreviewAction.reportActionID,
+            waypoints,
+            created,
         },
-        {},
+        onyxData,
     );
 }
 
@@ -387,70 +468,8 @@ function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, part
     const payerEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login);
     const payerAccountID = Number(participant.accountID);
     const isPolicyExpenseChat = participant.isPolicyExpenseChat;
-    const {iouReport, chatReport, transaction, receiptObject, isNewChatReport, isNewIOUReport} = getIouReportOrOptimisticOne(
-        report,
-        participant,
-        comment,
-        isPolicyExpenseChat,
-        amount,
-        currency,
-        payeeAccountID,
-        payerAccountID,
-        receipt,
-    );
-
-    // STEP 4: Build optimistic reportActions. We need:
-    // 1. CREATED action for the chatReport
-    // 2. CREATED action for the iouReport
-    // 3. IOU action for the iouReport
-    // 4. REPORTPREVIEW action for the chatReport
-    // Note: The CREATED action for the IOU report must be optimistically generated before the IOU action so there's no chance that it appears after the IOU action in the chat
-    const optimisticCreatedActionForChat = ReportUtils.buildOptimisticCreatedReportAction(payeeEmail);
-    const optimisticCreatedActionForIOU = ReportUtils.buildOptimisticCreatedReportAction(payeeEmail);
-    const optimisticIOUAction = ReportUtils.buildOptimisticIOUReportAction(
-        CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-        amount,
-        currency,
-        comment,
-        [participant],
-        transaction.transactionID,
-        '',
-        iouReport.reportID,
-        receiptObject,
-    );
-
-    // Add optimistic personal details for participant
-    const optimisticPersonalDetailListAction = isNewChatReport
-        ? {
-              [payerAccountID]: {
-                  accountID: payerAccountID,
-                  avatar: UserUtils.getDefaultAvatarURL(payerAccountID),
-                  displayName: participant.displayName || payerEmail,
-                  login: participant.login,
-              },
-          }
-        : undefined;
-
-    let reportPreviewAction = isNewIOUReport ? null : ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID);
-    if (reportPreviewAction) {
-        reportPreviewAction = ReportUtils.updateReportPreview(iouReport, reportPreviewAction, comment);
-    } else {
-        reportPreviewAction = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport, comment);
-    }
-
-    // STEP 5: Build Onyx Data
-    const [optimisticData, successData, failureData] = buildOnyxDataForMoneyRequest(
-        chatReport,
-        iouReport,
-        transaction,
-        optimisticCreatedActionForChat,
-        optimisticCreatedActionForIOU,
-        optimisticIOUAction,
-        optimisticPersonalDetailListAction,
-        reportPreviewAction,
-        isNewChatReport,
-        isNewIOUReport,
-    );
+    const {iouReport, chatReport, transaction, iouAction, isNewChatReport, isNewIOUReport, createdChatReportActionID, createdIOUReportActionID, reportPreviewAction, onyxData} =
+        getIouReportOrOptimisticOne(report, participant, comment, isPolicyExpenseChat, amount, currency, payeeAccountID, payerAccountID, payeeEmail, payerEmail, receipt);
 
     // STEP 6: Make the request
     API.write(
@@ -463,13 +482,13 @@ function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, part
             iouReportID: iouReport.reportID,
             chatReportID: chatReport.reportID,
             transactionID: transaction.transactionID,
-            reportActionID: optimisticIOUAction.reportActionID,
-            createdChatReportActionID: isNewChatReport ? optimisticCreatedActionForChat.reportActionID : 0,
-            createdIOUReportActionID: isNewIOUReport ? optimisticCreatedActionForIOU.reportActionID : 0,
+            reportActionID: iouAction.reportActionID,
+            createdChatReportActionID,
+            createdIOUReportActionID,
             reportPreviewReportActionID: reportPreviewAction.reportActionID,
             receipt,
         },
-        {optimisticData, successData, failureData},
+        onyxData,
     );
     resetMoneyRequestInfo();
     Navigation.dismissModal(chatReport.reportID);
