@@ -558,10 +558,6 @@ const styles = {
         borderWidth: 0,
     },
 
-    buttonTransparent: {
-        backgroundColor: 'transparent',
-    },
-
     buttonDisabled: {
         backgroundColor: themeColors.buttonDefaultBG,
         borderWidth: 0,
