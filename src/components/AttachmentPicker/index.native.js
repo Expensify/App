@@ -5,7 +5,6 @@ import RNDocumentPicker from 'react-native-document-picker';
 import RNFetchBlob from 'react-native-blob-util';
 import {launchImageLibrary} from 'react-native-image-picker';
 import {propTypes as basePropTypes, defaultProps} from './attachmentPickerPropTypes';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import CONST from '../../CONST';
 import * as FileUtils from '../../libs/fileDownload/FileUtils';
 import * as Expensicons from '../Icon/Expensicons';
@@ -16,10 +15,10 @@ import MenuItem from '../MenuItem';
 import styles from '../../styles/styles';
 import ArrowKeyFocusManager from '../ArrowKeyFocusManager';
 import useLocalize from '../../hooks/useLocalize';
+import useWindowDimensions from '../../hooks/useWindowDimensions';
 
 const propTypes = {
     ...basePropTypes,
-    ...windowDimensionsPropTypes,
 };
 
 /**
@@ -83,12 +82,13 @@ const getDataForUpload = (fileData) => {
     });
 }
 
-function AttachmentPicker({ type, children, isSmallScreenWidth}) {
+function AttachmentPicker({ type, children}) {
     const completeAttachmentSelection = useRef();
     const onModalHide = useRef();
     const keyboardListener = useRef();
     
     const {translate} = useLocalize()
+    const {isSmallScreenWidth} = useWindowDimensions()
 
     /**
      * Inform the users when they need to grant camera access and guide them to settings
@@ -350,4 +350,4 @@ AttachmentPicker.propTypes = propTypes;
 AttachmentPicker.defaultProps = defaultProps;
 AttachmentPicker.displayName = 'AttachmentPicker';
 
-export default withWindowDimensions(AttachmentPicker);
+export default AttachmentPicker;
