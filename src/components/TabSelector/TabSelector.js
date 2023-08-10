@@ -40,7 +40,7 @@ const getIcon = (route) => {
         case CONST.TAB.DISTANCE:
             return Expensicons.Car;
         default:
-            return Expensicons.Pencil;
+            throw new Error(`Route ${route} has no icon set.`);
     }
 }
 
@@ -76,7 +76,7 @@ function TabSelector({state, navigation, onTabPress}) {
                     />
                 );
             })}
-        </View> 
+        </View>
     );
 }
 
