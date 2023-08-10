@@ -64,6 +64,7 @@ import * as PersonalDetailsUtils from '../../../libs/PersonalDetailsUtils';
 import ReportActionItemBasicMessage from './ReportActionItemBasicMessage';
 import * as store from '../../../libs/actions/ReimbursementAccount/store';
 import * as BankAccounts from '../../../libs/actions/BankAccounts';
+import usePrevious from '../../../hooks/usePrevious';
 
 const propTypes = {
     ...windowDimensionsPropTypes,
@@ -128,6 +129,7 @@ function ReportActionItem(props) {
     const textInputRef = useRef();
     const popoverAnchorRef = useRef();
     const downloadedPreviews = useRef([]);
+    const prevDraftMessage = usePrevious(props.draftMessage);
 
     useEffect(
         () => () => {
@@ -145,14 +147,13 @@ function ReportActionItem(props) {
         [props.action.reportActionID],
     );
 
-    const isDraftEmpty = !props.draftMessage;
     useEffect(() => {
-        if (isDraftEmpty) {
+        if (prevDraftMessage || !props.draftMessage) {
             return;
         }
 
         focusTextInputAfterAnimation(textInputRef.current, 100);
-    }, [isDraftEmpty]);
+    }, [prevDraftMessage, props.draftMessage]);
 
     useEffect(() => {
         const urls = ReportActionsUtils.extractLinksFromMessageHtml(props.action);
