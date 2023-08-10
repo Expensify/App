@@ -72,8 +72,9 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, polic
 
     const moneyRequestReport = parentReport;
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
-    const isPayer = Policy.isAdminOfFreePolicy([policy]) || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(session, 'accountID', null) === moneyRequestReport.managerID);
-    const canEdit = !isSettled && (ReportUtils.isExpenseReport(moneyRequestReport) || (ReportUtils.isIOUReport(moneyRequestReport) && !isPayer));
+    const isAdmin = Policy.isAdminOfFreePolicy([policy]) && ReportUtils.isExpenseReport(moneyRequestReport);
+    const isRequestor = ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(session, 'accountID', null) === parentReportAction.actorAccountID;
+    const canEdit = !isSettled && (isAdmin || isRequestor);
 
     let description = `${translate('iou.amount')} • ${translate('iou.cash')}`;
     if (isSettled) {
@@ -97,22 +98,22 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, polic
                 titleIcon={Expensicons.Checkmark}
                 description={description}
                 titleStyle={styles.newKansasLarge}
-                disabled={isSettled}
-                shouldShowRightIcon={!canEdit}
+                disabled={isSettled || !canEdit}
+                shouldShowRightIcon={canEdit}
                 onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.AMOUNT))}
             />
             <MenuItemWithTopDescription
                 description={translate('common.description')}
                 title={transactionDescription}
-                disabled={isSettled}
-                shouldShowRightIcon={!canEdit}
+                disabled={isSettled || !canEdit}
+                shouldShowRightIcon={canEdit}
                 onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DESCRIPTION))}
             />
             <MenuItemWithTopDescription
                 description={translate('common.date')}
                 title={formattedTransactionDate}
-                disabled={isSettled}
-                shouldShowRightIcon={!canEdit}
+                disabled={isSettled || !canEdit}
+                shouldShowRightIcon={canEdit}
                 onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DATE))}
             />
             {shouldShowHorizontalRule && <View style={styles.reportHorizontalRule} />}
