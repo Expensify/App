@@ -24,6 +24,7 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import userPropTypes from '../userPropTypes';
 import * as App from '../../../libs/actions/App';
+import Permissions from '../../../libs/Permissions';
 
 const propTypes = {
     /* Onyx Props */
@@ -60,6 +61,7 @@ function ProfilePage(props) {
     };
     const currentUserDetails = props.currentUserPersonalDetails || {};
     const contactMethodBrickRoadIndicator = UserUtils.getLoginListBrickRoadIndicator(props.loginList);
+    const emojiCode = lodashGet(props, 'currentUserPersonalDetails.status.emojiCode', '');
 
     const profileSettingsOptions = [
         {
@@ -73,6 +75,15 @@ function ProfilePage(props) {
             pageRoute: ROUTES.SETTINGS_CONTACT_METHODS,
             brickRoadIndicator: contactMethodBrickRoadIndicator,
         },
+        ...(Permissions.canUseCustomStatus(props.betas)
+            ? [
+                  {
+                      description: props.translate('statusPage.status'),
+                      title: emojiCode ? `${emojiCode} ${lodashGet(props, 'currentUserPersonalDetails.status.text', '')}` : '',
+                      pageRoute: ROUTES.SETTINGS_STATUS,
+                  },
+              ]
+            : []),
         {
             description: props.translate('pronounsPage.pronouns'),
             title: getPronouns(),
@@ -157,6 +168,9 @@ export default compose(
         },
         user: {
             key: ONYXKEYS.USER,
+        },
+        betas: {
+            key: ONYXKEYS.BETAS,
         },
     }),
 )(ProfilePage);

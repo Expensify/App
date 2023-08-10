@@ -3,7 +3,6 @@ import _ from 'underscore';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import styles from '../styles/styles';
 import ONYXKEYS from '../ONYXKEYS';
@@ -21,6 +20,7 @@ import withReportOrNotFound from './home/report/withReportOrNotFound';
 import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
 import CONST from '../CONST';
 import * as UserUtils from '../libs/UserUtils';
+import * as LocalePhoneNumber from '../libs/LocalePhoneNumber';
 
 const propTypes = {
     /* Onyx Props */
@@ -60,7 +60,7 @@ const getAllParticipants = (report, personalDetails, translate) => {
     return _.chain(participantAccountIDs)
         .map((accountID, index) => {
             const userPersonalDetail = lodashGet(personalDetails, accountID, {displayName: personalDetails.displayName || translate('common.hidden'), avatar: ''});
-            const userLogin = Str.removeSMSDomain(userPersonalDetail.login || '') || translate('common.hidden');
+            const userLogin = LocalePhoneNumber.formatPhoneNumber(userPersonalDetail.login || '') || translate('common.hidden');
 
             return {
                 alternateText: userLogin,
