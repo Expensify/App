@@ -152,7 +152,7 @@ class SidebarLinks extends React.PureComponent {
      */
     showReportPage(option) {
         // Prevent opening Report page when clicking LHN row quickly after clicking FAB icon
-        // or when clicking the active LHN row
+        // or when clicking the active LHN row on large screens
         // or when continuously clicking different LHNs, only apply to small screen
         // since getTopmostReportId always returns on other devices
         if (
