@@ -42,6 +42,9 @@ export default {
     // Has information about the network status (offline/online)
     NETWORK: 'network',
 
+    // draft status
+    CUSTOM_STATUS_DRAFT: 'customStatusDraft',
+
     // Contains all the personalDetails the user has access to, keyed by accountID
     PERSONAL_DETAILS_LIST: 'personalDetailsList',
 
@@ -64,6 +67,10 @@ export default {
     // Saves the current country code which is displayed when the user types a phone number without
     // an international code
     COUNTRY_CODE: 'countryCode',
+
+    // The 'country' field in this code represents the return country based on the user's IP address.
+    // It is expected to provide a two-letter country code such as US for United States, and so on.
+    COUNTRY: 'country',
 
     // Contains all the users settings for the Settings page and sub pages
     USER: 'user',
@@ -215,6 +222,9 @@ export default {
         MONEY_REQUEST_DESCRIPTION_FORM: 'moneyRequestDescriptionForm',
         NEW_CONTACT_METHOD_FORM: 'newContactMethodForm',
         PAYPAL_FORM: 'payPalForm',
+        SETTINGS_STATUS_SET_FORM: 'settingsStatusSetForm',
+        SETTINGS_STATUS_CLEAR_AFTER_FORM: 'settingsStatusClearAfterForm',
+        SETTINGS_STATUS_SET_CLEAR_AFTER_FORM: 'settingsStatusSetClearAfterForm',
     },
 
     // Whether we should show the compose input or not
@@ -238,6 +248,17 @@ export default {
 
     // Experimental memory only Onyx mode flag
     IS_USING_MEMORY_ONLY_KEYS: 'isUsingMemoryOnlyKeys',
+
+    // The access token to be used with the Mapbox library
+    MAPBOX_ACCESS_TOKEN: 'mapboxAccessToken',
+
+    ONYX_UPDATES: {
+        // The ID of the last Onyx update that was applied to this client
+        LAST_UPDATE_ID: 'onyxUpdatesLastUpdateID',
+
+        // The ID of the previous Onyx update that was applied to this client
+        PREVIOUS_UPDATE_ID: 'onyxUpdatesPreviousUpdateID',
+    },
 
     // Manual request tab selector
     SELECTED_TAB: 'selectedTab',

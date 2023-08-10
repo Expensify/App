@@ -349,10 +349,8 @@ function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolic
 function getAllReportErrors(report, reportActions) {
     const reportErrors = report.errors || {};
     const reportErrorFields = report.errorFields || {};
-    const reportID = report.reportID;
-    const reportsActions = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] || {};
     const reportActionErrors = _.reduce(
-        reportsActions,
+        reportActions,
         (prevReportActionErrors, action) => (!action || _.isEmpty(action.errors) ? prevReportActionErrors : _.extend(prevReportActionErrors, action.errors)),
         {},
     );
