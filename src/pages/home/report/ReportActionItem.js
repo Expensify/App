@@ -630,6 +630,7 @@ export default compose(
             ReportUtils.isCompletedTaskReport(prevProps.report) === ReportUtils.isCompletedTaskReport(nextProps.report) &&
             prevProps.report.managerID === nextProps.report.managerID &&
             prevProps.report.managerEmail === nextProps.report.managerEmail &&
-            prevProps.shouldHideThreadDividerLine === nextProps.shouldHideThreadDividerLine,
+            prevProps.shouldHideThreadDividerLine === nextProps.shouldHideThreadDividerLine &&
+            lodashGet(prevProps.report, 'total', 0) === lodashGet(nextProps.report, 'total', 0),
     ),
 );
