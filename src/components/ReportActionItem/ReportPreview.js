@@ -147,8 +147,8 @@ function ReportPreview(props) {
                 accessibilityRole="button"
                 accessibilityLabel={props.translate('iou.viewDetails')}
             >
-                <View style={[styles.reportPreviewBox, props.isHovered ? styles.iouPreviewBoxHover : undefined]}>
-                    <View style={[styles.reportPreviewBoxImages, props.isHovered ? styles.reportPreviewBoxHoverBorder : undefined]}>
+                <View style={[styles.reportPreviewBox, props.isHovered || isScanning ? styles.iouPreviewBoxHover : undefined]}>
+                    <View style={[styles.reportPreviewBoxImages, props.isHovered || isScanning ? styles.reportPreviewBoxHoverBorder : undefined]}>
                         {_.map(receipts, ({receipt, filename, transactionID}) => {
                             const uri = ReceiptUtils.getImageURI(receipt.source, filename);
                             const hasNoFallback = uri === receipt.source;
@@ -156,7 +156,7 @@ function ReportPreview(props) {
                             return (
                                 <View
                                     key={transactionID}
-                                    style={[styles.reportPreviewBoxImage, props.isHovered ? styles.reportPreviewBoxHoverBorder : undefined]}
+                                    style={[styles.reportPreviewBoxImage, props.isHovered || isScanning ? styles.reportPreviewBoxHoverBorder : undefined]}
                                 >
                                     {hasNoFallback
                                         ? <RenderHTML html={`
