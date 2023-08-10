@@ -52,7 +52,7 @@ function MoneyRequestView(props) {
     return (
         <View>
             <View style={[StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth), StyleUtils.getMinimumHeight(CONST.EMPTY_STATE_BACKGROUND.MONEY_REPORT.MIN_HEIGHT)]}>
-                <AnimatedEmptyStateBackground isSmallScreenWidth={props.isSmallScreenWidth} />
+                <AnimatedEmptyStateBackground />
             </View>
             <MenuItemWithTopDescription
                 title={formattedTransactionAmount}

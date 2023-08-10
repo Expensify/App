@@ -64,7 +64,7 @@ function ReportActionItemCreated(props) {
             needsOffscreenAlphaCompositing
         >
             <View style={StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth)}>
-                <AnimatedEmptyStateBackground isSmallScreenWidth={props.isSmallScreenWidth} />
+                <AnimatedEmptyStateBackground />
                 <View
                     accessibilityLabel={props.translate('accessibilityHints.chatWelcomeMessage')}
                     style={[styles.p5, StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]}

@@ -1,19 +1,13 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import Animated, {SensorType, useAnimatedSensor, useAnimatedStyle, useSharedValue, withSpring} from 'react-native-reanimated';
 import useWindowDimensions from '../../../hooks/useWindowDimensions';
 import * as NumberUtils from '../../../libs/NumberUtils';
 import EmptyStateBackgroundImage from '../../../../assets/images/empty-state_background-fade.png';
 import * as StyleUtils from '../../../styles/StyleUtils';
 
-const propTypes = {
-    /** Is the window width narrow, like on a mobile device */
-    isSmallScreenWidth: PropTypes.bool.isRequired,
-};
-
 const IMAGE_OFFSET_Y = 75;
 
-function AnimatedEmptyStateBackground(props) {
+function AnimatedEmptyStateBackground() {
     const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
     const IMAGE_OFFSET_X = windowWidth / 2;
 
@@ -24,6 +18,9 @@ function AnimatedEmptyStateBackground(props) {
 
     // Apply data to create style object
     const animatedStyles = useAnimatedStyle(() => {
+        if (!isSmallScreenWidth) {
+            return {};
+        }
         /*
          * We use x and y gyroscope velocity and add it to position offset to move background based on device movements.
          * Position the phone was in while entering the screen is the initial position for background image.
@@ -32,9 +29,6 @@ function AnimatedEmptyStateBackground(props) {
         // The x vs y here seems wrong but is the way to make it feel right to the user
         xOffset.value = NumberUtils.clampWorklet(xOffset.value + y, -IMAGE_OFFSET_X, IMAGE_OFFSET_X);
         yOffset.value = NumberUtils.clampWorklet(yOffset.value - x, -IMAGE_OFFSET_Y, IMAGE_OFFSET_Y);
-        if (!isSmallScreenWidth) {
-            return {};
-        }
         return {
             transform: [{translateX: withSpring(-IMAGE_OFFSET_X - xOffset.value)}, {translateY: withSpring(yOffset.value)}],
         };
@@ -44,11 +38,10 @@ function AnimatedEmptyStateBackground(props) {
         <Animated.Image
             pointerEvents="none"
             source={EmptyStateBackgroundImage}
-            style={[StyleUtils.getReportWelcomeBackgroundImageStyle(props.isSmallScreenWidth), animatedStyles]}
+            style={[StyleUtils.getReportWelcomeBackgroundImageStyle(isSmallScreenWidth), animatedStyles]}
         />
     );
 }
 
-AnimatedEmptyStateBackground.propTypes = propTypes;
 AnimatedEmptyStateBackground.displayName = 'AnimatedEmptyStateBackground';
 export default AnimatedEmptyStateBackground;

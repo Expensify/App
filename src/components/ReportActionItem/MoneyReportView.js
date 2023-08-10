@@ -33,7 +33,7 @@ function MoneyReportView(props) {
     return (
         <View>
             <View style={[StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth), StyleUtils.getMinimumHeight(CONST.EMPTY_STATE_BACKGROUND.MONEY_REPORT.MIN_HEIGHT)]}>
-                <AnimatedEmptyStateBackground isSmallScreenWidth={props.isSmallScreenWidth} />
+                <AnimatedEmptyStateBackground />
             </View>
             <View style={[styles.flexRow, styles.menuItemTextContainer, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.ph5, styles.pv2]}>
                 <View style={[styles.flex1, styles.justifyContentCenter]}>
