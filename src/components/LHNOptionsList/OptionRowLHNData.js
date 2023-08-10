@@ -14,6 +14,7 @@ import * as Report from '../../libs/actions/Report';
 import * as UserUtils from '../../libs/UserUtils';
 import participantPropTypes from '../participantPropTypes';
 import CONST from '../../CONST';
+import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
 
 const propTypes = {
     /** If true will disable ever setting the OptionRowLHN to focused */
@@ -41,6 +42,9 @@ const propTypes = {
         }),
     ),
 
+    /** The actions from the parent report */
+    parentReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
+
     ...withCurrentReportIDPropTypes,
     ...basePropTypes,
 };
@@ -50,6 +54,7 @@ const defaultProps = {
     personalDetails: {},
     fullReport: {},
     policies: {},
+    parentReportActions: {},
     preferredLocale: CONST.LOCALES.DEFAULT,
     ...withCurrentReportIDDefaultProps,
     ...baseDefaultProps,
@@ -61,7 +66,18 @@ const defaultProps = {
  * The OptionRowLHN component is memoized, so it will only
  * re-render if the data really changed.
  */
-function OptionRowLHNData({shouldDisableFocusOptions, currentReportID, fullReport, personalDetails, preferredLocale, comment, policies, ...propsToForward}) {
+function OptionRowLHNData({
+    shouldDisableFocusOptions,
+    currentReportID,
+    fullReport,
+    reportActions,
+    personalDetails,
+    preferredLocale,
+    comment,
+    policies,
+    parentReportActions,
+    ...propsToForward
+}) {
     const reportID = propsToForward.reportID;
     // We only want to pass a boolean to the memoized component,
     // instead of a changing number (so we prevent unnecessary re-renders).
@@ -69,16 +85,20 @@ function OptionRowLHNData({shouldDisableFocusOptions, currentReportID, fullRepor
 
     const policy = lodashGet(policies, [`${ONYXKEYS.COLLECTION.POLICY}${fullReport.policyID}`], '');
 
+    const parentReportAction = parentReportActions[fullReport.parentReportActionID];
+
     const optionItemRef = useRef();
     const optionItem = useMemo(() => {
         // Note: ideally we'd have this as a dependent selector in onyx!
-        const item = SidebarUtils.getOptionData(fullReport, personalDetails, preferredLocale, policy);
+        const item = SidebarUtils.getOptionData(fullReport, reportActions, personalDetails, preferredLocale, policy);
         if (deepEqual(item, optionItemRef.current)) {
             return optionItemRef.current;
         }
         optionItemRef.current = item;
         return item;
-    }, [fullReport, personalDetails, preferredLocale, policy]);
+        // Listen parentReportAction to update title of thread report when parentReportAction changed
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [fullReport, reportActions, personalDetails, preferredLocale, policy, parentReportAction]);
 
     useEffect(() => {
         if (!optionItem || optionItem.hasDraftComment || !comment || comment.length <= 0 || isFocused) {
@@ -145,6 +165,10 @@ export default React.memo(
             fullReport: {
                 key: (props) => ONYXKEYS.COLLECTION.REPORT + props.reportID,
             },
+            reportActions: {
+                key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+                canEvict: false,
+            },
             personalDetails: {
                 key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                 selector: personalDetailsSelector,
@@ -154,6 +178,12 @@ export default React.memo(
             },
             policies: {
                 key: ONYXKEYS.COLLECTION.POLICY,
+            },
+        }),
+        withOnyx({
+            parentReportActions: {
+                key: ({fullReport}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fullReport.parentReportID}`,
+                canEvict: false,
             },
         }),
     )(OptionRowLHNData),

@@ -28,7 +28,6 @@ import * as PersonalDetailsUtils from '../PersonalDetailsUtils';
 import SidebarUtils from '../SidebarUtils';
 import * as OptionsListUtils from '../OptionsListUtils';
 import * as Environment from '../Environment/Environment';
-import * as Localize from '../Localize';
 
 let currentUserAccountID;
 Onyx.connect({
@@ -244,14 +243,6 @@ function addActions(reportID, text = '', file) {
     const currentTime = DateUtils.getDBTime();
     console.log("currentTime<>----", currentTime);
 
-    const lastVisibleMessage = ReportActionsUtils.getLastVisibleMessage(reportID);
-    let prevVisibleMessageText;
-    if (lastVisibleMessage.lastMessageTranslationKey) {
-        prevVisibleMessageText = Localize.translateLocal(lastVisibleMessage.lastMessageTranslationKey);
-    } else {
-        prevVisibleMessageText = lastVisibleMessage.lastMessageText;
-    }
-
     const lastCommentText = ReportUtils.formatReportLastMessageText(lastAction.message[0].text);
 
     const optimisticReport = {
@@ -302,9 +293,23 @@ function addActions(reportID, text = '', file) {
         },
     ];
 
-    const failureReport = {
-        lastMessageText: prevVisibleMessageText,
+    let failureReport = {
+        lastMessageTranslationKey: '',
+        lastMessageText: '',
+        lastVisibleActionCreated: '',
     };
+    const {lastMessageText = '', lastMessageTranslationKey = ''} = ReportActionsUtils.getLastVisibleMessage(reportID);
+    if (lastMessageText || lastMessageTranslationKey) {
+        const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(reportID);
+        const lastVisibleActionCreated = lastVisibleAction.created;
+        const lastActorAccountID = lastVisibleAction.actorAccountID;
+        failureReport = {
+            lastMessageTranslationKey,
+            lastMessageText,
+            lastVisibleActionCreated,
+            lastActorAccountID,
+        };
+    }
     const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -477,6 +482,7 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
                 accountID,
                 avatar: UserUtils.getDefaultAvatarURL(accountID),
                 displayName: login,
+                isOptimisticPersonalDetail: true,
             };
 
             failurePersonalDetails[accountID] = allPersonalDetails[accountID] || null;
@@ -588,6 +594,7 @@ function navigateToAndOpenChildReport(childReportID = '0', parentReportAction = 
             CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
             false,
             '',
+            undefined,
             undefined,
             CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
             parentReportAction.reportActionID,
@@ -1058,7 +1065,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     }
 
     // Skip the Edit if message is not changed
-    if (parsedOriginalCommentHTML === htmlForNewComment.trim()) {
+    if (parsedOriginalCommentHTML === htmlForNewComment.trim() || originalCommentHTML === htmlForNewComment.trim()) {
         return;
     }
 
@@ -1272,7 +1279,7 @@ function navigateToConciergeChat() {
  * @param {Array<Number>} policyMembersAccountIDs
  * @param {String} writeCapability
  */
-function addPolicyReport(policyID, reportName, visibility, policyMembersAccountIDs, writeCapability) {
+function addPolicyReport(policyID, reportName, visibility, policyMembersAccountIDs, writeCapability = CONST.REPORT.WRITE_CAPABILITIES.ALL) {
     // The participants include the current user (admin), and for restricted rooms, the policy members. Participants must not be empty.
     const members = visibility === CONST.REPORT.VISIBILITY.RESTRICTED ? policyMembersAccountIDs : [];
     const participants = _.unique([currentUserAccountID, ...members]);
