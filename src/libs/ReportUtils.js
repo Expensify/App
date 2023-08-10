@@ -1,4 +1,5 @@
 import _ from 'underscore';
+import {format} from 'date-fns';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import lodashIntersection from 'lodash/intersection';
@@ -1341,7 +1342,10 @@ function getModifiedExpenseMessage(reportAction) {
 
     const hasModifiedCreated = _.has(reportActionOriginalMessage, 'oldCreated') && _.has(reportActionOriginalMessage, 'created');
     if (hasModifiedCreated) {
-        return `changed the request date to ${reportActionOriginalMessage.created} (previously ${reportActionOriginalMessage.oldCreated})`;
+        // Take only the YYYY-MM-DD value as the original date includes timestamp
+        let formattedOldCreated = new Date(reportActionOriginalMessage.oldCreated);
+        formattedOldCreated = format(formattedOldCreated, CONST.DATE.FNS_FORMAT_STRING);
+        return `changed the request date to ${reportActionOriginalMessage.created} (previously ${formattedOldCreated})`;
     }
 
     const hasModifiedMerchant = _.has(reportActionOriginalMessage, 'oldMerchant') && _.has(reportActionOriginalMessage, 'merchant');
