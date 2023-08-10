@@ -124,6 +124,8 @@ class WorkspaceInviteMessagePage extends React.Component {
         Keyboard.dismiss();
         Policy.addMembersToWorkspace(this.props.invitedEmailsToAccountIDsDraft, this.state.welcomeNote, this.props.route.params.policyID, this.props.betas);
         Policy.setWorkspaceInviteMembersDraft(this.props.route.params.policyID, {});
+        // Pop the invite message page before navigating to the members page.
+        Navigation.goBack();
         Navigation.navigate(ROUTES.getWorkspaceMembersRoute(this.props.route.params.policyID));
     }
 
