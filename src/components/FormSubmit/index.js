@@ -1,9 +1,10 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import lodashGet from 'lodash/get';
 import {View} from 'react-native';
 import * as formSubmitPropTypes from './formSubmitPropTypes';
 import CONST from '../../CONST';
 import isEnterWhileComposition from '../../libs/KeyboardShortcut/isEnterWhileComposition';
+import * as ComponentUtils from '../../libs/ComponentUtils';
 
 function FormSubmit({innerRef, children, onSubmit, style}) {
     /**
@@ -36,11 +37,21 @@ function FormSubmit({innerRef, children, onSubmit, style}) {
         }
     };
 
+    const preventDefaultFormBehavior = (e) => e.preventDefault();
+
+    useEffect(() => {
+        // Prevent the browser from applying its own validation, which affects the email input
+        innerRef.current.setAttribute('novalidate', '');
+
+        innerRef.current.addEventListener('submit', preventDefaultFormBehavior);
+    }, []);
+
     return (
         // React-native-web prevents event bubbling on TextInput for key presses
         // https://github.com/necolas/react-native-web/blob/fa47f80d34ee6cde2536b2a2241e326f84b633c4/packages/react-native-web/src/exports/TextInput/index.js#L272
         // Thus use capture phase.
         <View
+            accessibilityRole={ComponentUtils.ACCESSIBILITY_ROLE_FORM}
             ref={innerRef}
             onKeyDownCapture={submitForm}
             style={style}
