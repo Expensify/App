@@ -305,7 +305,7 @@ function ReportActionCompose({
         maxIndex: getMaxArrowIndex(suggestionValues.suggestedEmojis.length, suggestionValues.isAutoSuggestionPickerLarge),
         shouldExcludeTextAreaNodes: false,
     });
-    const [highlightedMentionIndex] = useArrowKeyFocusManager({
+    const [highlightedMentionIndex, setHighlightedMentionIndex] = useArrowKeyFocusManager({
         isActive: isMentionSuggestionsMenuVisible,
         maxIndex: getMaxArrowIndex(suggestionValues.suggestedMentions.length, suggestionValues.isAutoSuggestionPickerLarge),
         shouldExcludeTextAreaNodes: false,
@@ -641,8 +641,9 @@ function ReportActionCompose({
                 ...prevState,
                 ...nextState,
             }));
+            setHighlightedMentionIndex(0);
         },
-        [getMentionOptions, value],
+        [getMentionOptions, setHighlightedMentionIndex, value],
     );
 
     const onSelectionChange = useCallback(
@@ -1048,6 +1049,8 @@ function ReportActionCompose({
             updatePropsPaperWorklet(viewTag, viewName, updates); // clears native text input on the UI thread
             runOnJS(submitForm)();
         });
+
+    console.log({highlightedMentionIndex});
 
     return (
         <View style={[shouldShowReportRecipientLocalTime && !lodashGet(network, 'isOffline') && styles.chatItemComposeWithFirstRow, isComposerFullSize && styles.chatItemFullComposeRow]}>
