@@ -44,7 +44,14 @@ function FormSubmit({innerRef, children, onSubmit, style}) {
         innerRef.current.setAttribute('novalidate', '');
 
         innerRef.current.addEventListener('submit', preventDefaultFormBehavior);
-    }, []);
+
+        return () => {
+            if (!innerRef.current) {
+                return;
+            }
+            
+            innerRef.current.removeEventListener('submit', preventDefaultFormBehavior);
+        };
 
     return (
         // React-native-web prevents event bubbling on TextInput for key presses
