@@ -85,7 +85,6 @@ function openSidebar() {
     body.style.top = `-${yAxis}`;
 }
 
-// Function to close the sidebar
 function closeSidebar() {
     document.getElementById('sidebar-layer').style.display = 'none';
 
@@ -101,7 +100,7 @@ function closeSidebar() {
     window.scrollTo(0, parseInt(scrollY || '0', 10) * -1);
 }
 
-// Function to change SVG viewBox from Google
+// Function to adapt & fix cropped SVG viewBox from Google based on viewport (Mobile or Tablet-Desktop)
 function changeSVGViewBoxGoogle() {
     // Get all inline Google SVG elements on the page
     const svgsGoogle = document.querySelectorAll('svg');
@@ -111,16 +110,16 @@ function changeSVGViewBoxGoogle() {
 
     // Check if the viewport is smaller than tablet
     if (!mediaQuery.matches) {
-        // Iterate through each SVG element
         Array.from(svgsGoogle).forEach((svg) => {
+
             // Set the viewBox attribute to '0 0 13 13' to make the svg fit in the mobile view
             svg.setAttribute('viewBox', '0 0 13 13');
             svg.setAttribute('height', '13');
             svg.setAttribute('width', '13');
         });
     } else {
-        // Iterate through each SVG element
         Array.from(svgsGoogle).forEach((svg) => {
+
             // Set the viewBox attribute to '0 0 20 20' to make the svg fit in the tablet-desktop view
             svg.setAttribute('viewBox', '0 0 20 20');
             svg.setAttribute('height', '16');
@@ -130,6 +129,7 @@ function changeSVGViewBoxGoogle() {
 }
 
 // Function to insert element after another
+// In this case, we insert the label element after the Google Search Input so we can have the same label animation effect
 function insertElementAfter(referenceNode, newNode) {
     referenceNode.parentNode.insertBefore(newNode, referenceNode.nextSibling);
 }
