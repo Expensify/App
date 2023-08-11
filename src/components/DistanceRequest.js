@@ -118,6 +118,7 @@ function DistanceRequest({transactionID, transaction, translate, formData}) {
                                 description={translate(descriptionKey)}
                                 title={formData[`waypoint${index}`] || ''}
                                 icon={Expensicons.DragHandles}
+                                iconFill={theme.icon}
                                 secondaryIcon={waypointIcon}
                                 secondaryIconFill={theme.icon}
                                 shouldShowRightIcon

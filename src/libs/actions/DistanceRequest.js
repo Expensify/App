@@ -1,6 +1,5 @@
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
-import CONST from '../../CONST';
 
 /**
  * Saves the selected waypoint to the transaction
