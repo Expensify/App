@@ -3691,6 +3691,27 @@ const styles = {
     reportPreviewBoxText: {
         padding: 16,
     },
+
+    moneyRequestViewReceipt: {
+        marginHorizontal: 20,
+        marginVertical: 8,
+        borderWidth: 2,
+        borderColor: themeColors.border,
+        borderRadius: variables.componentBorderRadiusCard,
+        overflow: 'hidden',
+        height: 300,
+    },
+
+    moneyRequestViewReceiptWhisper: {
+        flexDirection: 'row',
+        marginHorizontal: 20,
+        marginVertical: 8,
+        paddingHorizontal: 20,
+        paddingVertical: 12,
+        justifyContent: 'space-between',
+        backgroundColor: themeColors.border,
+        borderRadius: variables.componentBorderRadiusCard,
+    }
 };
 
 export default styles;

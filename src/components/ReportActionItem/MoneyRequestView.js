@@ -23,6 +23,8 @@ import useLocalize from '../../hooks/useLocalize';
 import * as TransactionUtils from '../../libs/TransactionUtils';
 import * as ReceiptUtils from '../../libs/ReceiptUtils';
 import RenderHTML from '../RenderHTML';
+import withLocalize from '../withLocalize';
+import Text from '../Text';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -69,16 +71,28 @@ function MoneyRequestView(props) {
                 />
             </View>
             {hasReceipt && (
-                <View style={[styles.mh5, styles.mv3, styles.border, styles.overflowHidden, { height: 200 }]}>
-                    <RenderHTML html={`
-                        <img
-                            src="${receiptUris.thumbnail}"
-                            data-expensify-source="${receiptUris.image}"
-                            data-expensify-fit-container="true"
-                            data-expensify-preview-modal-disabled="true"
-                        />
-                    `} />
-                </View>
+                <>
+                    <View style={styles.moneyRequestViewReceipt}>
+                        <RenderHTML html={`
+                            <img
+                                src="${receiptUris.thumbnail}"
+                                data-expensify-source="${receiptUris.image}"
+                                data-expensify-fit-container="true"
+                                data-expensify-preview-modal-disabled="true"
+                            />
+                        `} />
+                    </View>
+                    <View style={styles.moneyRequestViewReceiptWhisper}>
+                        <View>
+                            <View style={styles.flexRow}>
+                                <Text style={styles.textHeadline}>{props.translate('iou.receiptWhisperTitle')}</Text>
+                            </View>
+                            <View style={styles.flexRow}>
+                                <Text style={styles.textNormal}>{props.translate('iou.receiptWhisperText')}</Text>
+                            </View>
+                        </View>
+                    </View>
+                </>
             )}
             <MenuItemWithTopDescription
                 title={formattedTransactionAmount}
@@ -117,6 +131,7 @@ MoneyRequestView.displayName = 'MoneyRequestView';
 export default compose(
     withWindowDimensions,
     withCurrentUserPersonalDetails,
+    withLocalize,
     withOnyx({
         parentReport: {
             key: (props) => `${ONYXKEYS.COLLECTION.REPORT}${props.report.parentReportID}`,
