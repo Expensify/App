@@ -1325,12 +1325,10 @@ function getModifiedExpenseMessage(reportAction) {
         _.has(reportActionOriginalMessage, 'currency');
     if (hasModifiedAmount) {
         const oldCurrency = reportActionOriginalMessage.oldCurrency;
-        const oldCurrencyUnit = CurrencyUtils.getCurrencyUnit(oldCurrency);
-        const oldAmount = NumberFormatUtils.format(preferredLocale, Math.abs(reportActionOriginalMessage.oldAmount) / oldCurrencyUnit, {style: 'currency', currency: oldCurrency});
+        const oldAmount = CurrencyUtils.convertToDisplayString(reportActionOriginalMessage.oldAmount, oldCurrency);
 
         const currency = reportActionOriginalMessage.currency;
-        const currencyUnit = CurrencyUtils.getCurrencyUnit(currency);
-        const amount = NumberFormatUtils.format(preferredLocale, Math.abs(reportActionOriginalMessage.amount) / currencyUnit, {style: 'currency', currency});
+        const amount = CurrencyUtils.convertToDisplayString(reportActionOriginalMessage.amount, currency);
 
         return `changed the request to ${amount} (previously ${oldAmount})`;
     }
@@ -1358,13 +1356,14 @@ function getModifiedExpenseMessage(reportAction) {
  * Given the updates user made to the request, compose the originalMessage
  * object of the modified expense action.
  *
- * At the moment, we only allow changing one transaction field at the time.
+ * At the moment, we only allow changing one transaction field at a time.
  *
  * @param {Object} oldTransaction
  * @param {Object} transactionChanges
+ * @param {Boolen} isFromExpenseReport
  * @returns {Object}
  */
-function getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges) {
+function getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges, isFromExpenseReport) {
     const originalMessage = {};
 
     // Remark: Comment field is the only one which has new/old prefixes for the keys (newComment/ oldComment),
@@ -1381,7 +1380,7 @@ function getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges) {
     // The amount is always a combination of the currency and the number value so when one changes we need to store both
     // to match how we handle the modified expense action in oldDot
     if (_.has(transactionChanges, 'amount') || _.has(transactionChanges, 'currency')) {
-        originalMessage.oldAmount = TransactionUtils.getAmount(oldTransaction);
+        originalMessage.oldAmount = TransactionUtils.getAmount(oldTransaction, isFromExpenseReport);
         originalMessage.amount = lodashGet(transactionChanges, 'amount', originalMessage.oldAmount);
         originalMessage.oldCurrency = TransactionUtils.getCurrency(oldTransaction);
         originalMessage.currency = lodashGet(transactionChanges, 'currency', originalMessage.oldCurrency);
@@ -1868,9 +1867,22 @@ function getIOUReportActionMessage(type, total, comment, currency, paymentType =
  * @param {String} [iouReportID] - Only required if the IOUReportActions type is oneOf(decline, cancel, pay). Generates a randomID as default.
  * @param {Boolean} [isSettlingUp] - Whether we are settling up an IOU.
  * @param {Boolean} [isSendMoneyFlow] - Whether this is send money flow
+ * @param {Object} [receipt]
  * @returns {Object}
  */
-function buildOptimisticIOUReportAction(type, amount, currency, comment, participants, transactionID, paymentType = '', iouReportID = '', isSettlingUp = false, isSendMoneyFlow = false) {
+function buildOptimisticIOUReportAction(
+    type,
+    amount,
+    currency,
+    comment,
+    participants,
+    transactionID,
+    paymentType = '',
+    iouReportID = '',
+    isSettlingUp = false,
+    isSendMoneyFlow = false,
+    receipt = {},
+) {
     const IOUReportID = iouReportID || generateReportID();
 
     const originalMessage = {
@@ -1916,6 +1928,7 @@ function buildOptimisticIOUReportAction(type, amount, currency, comment, partici
         shouldShow: true,
         created: DateUtils.getDBTime(),
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        receipt,
     };
 }
 
@@ -1960,10 +1973,11 @@ function buildOptimisticReportPreview(chatReport, iouReport, comment = '') {
  * @param {Object} transactionThread
  * @param {Object} oldTransaction
  * @param {Object} transactionChanges
+ * @param {Object} isFromExpenseReport
  * @returns {Object}
  */
-function buildOptimisticModifiedExpenseReportAction(transactionThread, oldTransaction, transactionChanges) {
-    const originalMessage = getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges);
+function buildOptimisticModifiedExpenseReportAction(transactionThread, oldTransaction, transactionChanges, isFromExpenseReport) {
+    const originalMessage = getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges, isFromExpenseReport);
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE,
         actorAccountID: currentUserAccountID,

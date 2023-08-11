@@ -7,6 +7,7 @@ import CONST from '../CONST';
 import Navigation from '../libs/Navigation/Navigation';
 import ONYXKEYS from '../ONYXKEYS';
 import * as ReportActionsUtils from '../libs/ReportActionsUtils';
+import * as ReportUtils from '../libs/ReportUtils';
 import * as TransactionUtils from '../libs/TransactionUtils';
 import EditRequestDescriptionPage from './EditRequestDescriptionPage';
 import EditRequestCreatedPage from './EditRequestCreatedPage';
@@ -40,7 +41,7 @@ function EditRequestPage({report, route}) {
     const transactionID = lodashGet(ReportActionsUtils.getParentReportAction(report), 'originalMessage.IOUTransactionID', '');
     const transaction = TransactionUtils.getTransaction(transactionID);
     const transactionDescription = TransactionUtils.getDescription(transaction);
-    const transactionAmount = TransactionUtils.getAmount(transaction);
+    const transactionAmount = TransactionUtils.getAmount(transaction, ReportUtils.isExpenseReport(ReportUtils.getParentReport(report)));
     const transactionCurrency = lodashGet(route, 'params.currency', '') || TransactionUtils.getCurrency(transaction);
 
     // Take only the YYYY-MM-DD value

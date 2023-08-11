@@ -5,18 +5,16 @@ import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import DateUtils from './DateUtils';
 import * as NumberUtils from './NumberUtils';
-import * as CollectionUtils from './CollectionUtils';
 
-const allTransactions = {};
+let allTransactions = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION,
-    callback: (transaction, key) => {
-        if (!key || !transaction) {
+    waitForCollectionCallback: true,
+    callback: (val) => {
+        if (!val) {
             return;
         }
-
-        const transactionID = CollectionUtils.extractCollectionItemID(key);
-        allTransactions[transactionID] = transaction;
+        allTransactions = val;
     },
 });
 
@@ -64,9 +62,10 @@ function buildOptimisticTransaction(amount, currency, reportID, comment = '', so
  *
  * @param {Object} transaction
  * @param {Object} transactionChanges
+ * @param {Object} isFromExpenseReport
  * @returns {Object}
  */
-function getUpdatedTransaction(transaction, transactionChanges) {
+function getUpdatedTransaction(transaction, transactionChanges, isFromExpenseReport) {
     // Only changing the first level fields so no need for deep clone now
     const updatedTransaction = _.clone(transaction);
 
@@ -81,7 +80,7 @@ function getUpdatedTransaction(transaction, transactionChanges) {
         updatedTransaction.modifiedCreated = transactionChanges.created;
     }
     if (_.has(transactionChanges, 'amount')) {
-        updatedTransaction.modifiedAmount = transactionChanges.amount;
+        updatedTransaction.modifiedAmount = isFromExpenseReport ? -transactionChanges.amount : transactionChanges.amount;
     }
     if (_.has(transactionChanges, 'currency')) {
         updatedTransaction.modifiedCurrency = transactionChanges.currency;
@@ -98,7 +97,7 @@ function getUpdatedTransaction(transaction, transactionChanges) {
  * @returns {Object}
  */
 function getTransaction(transactionID) {
-    return lodashGet(allTransactions, [transactionID], {});
+    return lodashGet(allTransactions, `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {});
 }
 
 /**
@@ -115,15 +114,18 @@ function getDescription(transaction) {
 /**
  * Return the amount field from the transaction, return the modifiedAmount if present.
  *
- * @param {Object} transaction
+ * @param {Object}  transaction
+ * @param {Boolean} isFromExpenseReport
  * @returns {Number}
  */
-function getAmount(transaction) {
+function getAmount(transaction, isFromExpenseReport) {
+    // In case of expense reports, the amounts are stored using an opposite sign
+    const multiplier = isFromExpenseReport ? -1 : 1;
     const amount = lodashGet(transaction, 'modifiedAmount', 0);
     if (amount) {
-        return amount;
+        return multiplier * amount;
     }
-    return lodashGet(transaction, 'amount', 0);
+    return multiplier * lodashGet(transaction, 'amount', 0);
 }
 
 /**
