@@ -14,6 +14,7 @@ const propTypes = {
 
     /** Function to change the download button Visibility */
     setDownloadButtonVisibility: PropTypes.func,
+
     /** Object of report actions for this report */
     reportActions: PropTypes.shape(reportActionPropTypes),
 
