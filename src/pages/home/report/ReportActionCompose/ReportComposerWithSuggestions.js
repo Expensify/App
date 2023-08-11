@@ -514,13 +514,6 @@ function ReportComposerWithSuggestions({
                     }}
                     onScroll={updateShouldShowSuggestionMenuToFalse}
                 />
-                <UpdateComment
-                    reportID={reportID}
-                    report={report}
-                    value={value}
-                    updateComment={updateComment}
-                    commentRef={commentRef}
-                />
             </View>
 
             <Suggestions
@@ -536,6 +529,14 @@ function ReportComposerWithSuggestions({
                 selection={selection}
                 setSelection={setSelection}
                 resetKeyboardInput={resetKeyboardInput}
+            />
+
+            <UpdateComment
+                reportID={reportID}
+                report={report}
+                value={value}
+                updateComment={updateComment}
+                commentRef={commentRef}
             />
         </>
     );

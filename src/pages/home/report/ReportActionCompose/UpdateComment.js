@@ -39,12 +39,12 @@ const defaultProps = {
 function UpdateComment({comment, commentRef, preferredLocale, report, value, updateComment}) {
     const prevCommentProp = usePrevious(comment);
     const prevPreferredLocale = usePrevious(preferredLocale);
-    const prevReportId = usePrevious(report.reportId);
+    const prevReportId = usePrevious(report.reportID);
 
     useEffect(() => {
         // Value state does not have the same value as comment props when the comment gets changed from another tab.
         // In this case, we should synchronize the value between tabs.
-        const shouldSyncComment = prevCommentProp !== comment && value === comment;
+        const shouldSyncComment = prevCommentProp !== comment && value !== comment;
 
         // As the report IDs change, make sure to update the composer comment as we need to make sure
         // we do not show incorrect data in there (ie. draft of message from other report).
@@ -52,8 +52,8 @@ function UpdateComment({comment, commentRef, preferredLocale, report, value, upd
             return;
         }
 
-        // TODO: Why commentRef? Can't we also use comment here?
-        updateComment(commentRef.current);
+        console.log('UpdateComment.js: Updating from', comment, 'to comment', commentRef.current);
+        updateComment(comment);
     }, [prevCommentProp, prevPreferredLocale, prevReportId, comment, preferredLocale, report.reportID, updateComment, value, commentRef]);
 
     return null;
