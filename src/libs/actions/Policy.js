@@ -1161,7 +1161,7 @@ function openWorkspaceInvitePage(policyID, clientMemberEmails) {
  * @param {String} policyID
  */
 function openDraftWorkspaceRequest(policyID) {
-    API.read('OpenDraftWorkspaceManualRequest', {policyID});
+    API.read('OpenDraftWorkspaceRequest', {policyID});
 }
 
 /**
