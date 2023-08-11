@@ -563,9 +563,9 @@ class EmojiPickerMenu extends Component {
                     style={[
                         listStyle,
                         // This prevents elastic scrolling when scroll reaches the start or end
-                        {overscrollBehavior: 'contain'},
+                        {overscrollBehaviorY: 'contain'},
                         // Set overflow to hidden to prevent elastic scrolling when there is no enough contents to scroll in FlatList
-                        {overflow: this.state.filteredEmojis.length > overflowLimit ? 'auto' : 'hidden'},
+                        {overflowY: this.state.filteredEmojis.length > overflowLimit ? 'auto' : 'hidden'},
                     ]}
                     extraData={[this.state.filteredEmojis, this.state.highlightedIndex, this.props.preferredSkinTone]}
                     stickyHeaderIndices={this.state.headerIndices}
