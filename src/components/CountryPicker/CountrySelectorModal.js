@@ -6,6 +6,8 @@ import useLocalize from '../../hooks/useLocalize';
 import HeaderWithBackButton from '../HeaderWithBackButton';
 import SelectionListRadio from '../SelectionListRadio';
 import Modal from '../Modal';
+import ScreenWrapper from '../ScreenWrapper';
+import styles from '../../styles/styles';
 import searchCountryOptions from '../../libs/searchCountryOptions';
 
 const propTypes = {
@@ -61,23 +63,29 @@ function CountrySelectorModal({currentCountry, isVisible, onClose, onCountrySele
             hideModalContentWhileAnimating
             useNativeDriver
         >
-            <HeaderWithBackButton
-                title={translate('common.country')}
-                onBackButtonPress={onClose}
-            />
-            <SelectionListRadio
-                headerMessage={headerMessage}
-                textInputLabel={translate('common.country')}
-                textInputPlaceholder={translate('countrySelectorModal.placeholderText')}
-                textInputValue={searchValue}
-                sections={[{data: searchResults, indexOffset: 0}]}
-                onSelectRow={onCountrySelected}
-                onChangeText={setSearchValue}
-                shouldFocusOnSelectRow
-                shouldHaveOptionSeparator
-                shouldDelayFocus
-                initiallyFocusedOptionKey={currentCountry}
-            />
+            <ScreenWrapper
+                style={[styles.pb0]}
+                includePaddingTop={false}
+                includeSafeAreaPaddingBottom={false}
+            >
+                <HeaderWithBackButton
+                    title={translate('common.country')}
+                    onBackButtonPress={onClose}
+                />
+                <SelectionListRadio
+                    headerMessage={headerMessage}
+                    textInputLabel={translate('common.country')}
+                    textInputPlaceholder={translate('countrySelectorModal.placeholderText')}
+                    textInputValue={searchValue}
+                    sections={[{data: searchResults, indexOffset: 0}]}
+                    onSelectRow={onCountrySelected}
+                    onChangeText={setSearchValue}
+                    shouldFocusOnSelectRow
+                    shouldHaveOptionSeparator
+                    shouldDelayFocus
+                    initiallyFocusedOptionKey={currentCountry}
+                />
+            </ScreenWrapper>
         </Modal>
     );
 }
