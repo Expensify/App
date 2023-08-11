@@ -100,55 +100,49 @@ function PDFPasswordForm({isFocused, isPasswordInvalid, shouldShowLoadingIndicat
         onPasswordFieldFocused(false);
     };
 
-    const showForm = () => setShouldShowForm(true);
-
-    return (
-        <>
-            {shouldShowForm ? (
-                <ScrollView
-                    keyboardShouldPersistTaps="handled"
-                    style={isSmallScreenWidth ? [styles.flex1, styles.w100] : styles.pdfPasswordForm.wideScreenWidth}
-                    contentContainerStyle={styles.p5}
-                >
-                    <View style={styles.mb4}>
-                        <Text>{translate('attachmentView.pdfPasswordForm.formLabel')}</Text>
-                    </View>
-                    <TextInput
-                        ref={textInputRef}
-                        label={translate('common.password')}
-                        accessibilityLabel={translate('common.password')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        /**
-                         * This is a workaround to bypass Safari's autofill odd behaviour.
-                         * This tricks the browser not to fill the username somewhere else and still fill the password correctly.
-                         */
-                        autoComplete={Browser.getBrowser() === CONST.BROWSER.SAFARI ? 'username' : 'off'}
-                        autoCorrect={false}
-                        textContentType="password"
-                        onChangeText={updatePassword}
-                        returnKeyType="done"
-                        onSubmitEditing={submitPassword}
-                        errorText={errorText}
-                        onFocus={() => onPasswordFieldFocused(true)}
-                        onBlur={validateAndNotifyPasswordBlur}
-                        autoFocus
-                        shouldDelayFocus={shouldDelayFocus}
-                        secureTextEntry
-                    />
-                    <Button
-                        text={translate('common.confirm')}
-                        onPress={submitPassword}
-                        style={styles.mt4}
-                        isLoading={shouldShowLoadingIndicator}
-                        pressOnEnter
-                    />
-                </ScrollView>
-            ) : (
-                <View style={[styles.flex1, styles.justifyContentCenter]}>
-                    <PDFInfoMessage onShowForm={showForm} />
-                </View>
-            )}
-        </>
+    return shouldShowForm ? (
+        <ScrollView
+            keyboardShouldPersistTaps="handled"
+            style={styles.pdfPasswordForm(isSmallScreenWidth)}
+            contentContainerStyle={styles.p5}
+        >
+            <View style={styles.mb4}>
+                <Text>{translate('attachmentView.pdfPasswordForm.formLabel')}</Text>
+            </View>
+            <TextInput
+                ref={textInputRef}
+                label={translate('common.password')}
+                accessibilityLabel={translate('common.password')}
+                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                /**
+                 * This is a workaround to bypass Safari's autofill odd behaviour.
+                 * This tricks the browser not to fill the username somewhere else and still fill the password correctly.
+                 */
+                autoComplete={Browser.getBrowser() === CONST.BROWSER.SAFARI ? 'username' : 'off'}
+                autoCorrect={false}
+                textContentType="password"
+                onChangeText={updatePassword}
+                returnKeyType="done"
+                onSubmitEditing={submitPassword}
+                errorText={errorText}
+                onFocus={() => onPasswordFieldFocused(true)}
+                onBlur={validateAndNotifyPasswordBlur}
+                autoFocus
+                shouldDelayFocus={shouldDelayFocus}
+                secureTextEntry
+            />
+            <Button
+                text={translate('common.confirm')}
+                onPress={submitPassword}
+                style={styles.mt4}
+                isLoading={shouldShowLoadingIndicator}
+                pressOnEnter
+            />
+        </ScrollView>
+    ) : (
+        <View style={[styles.flex1, styles.justifyContentCenter]}>
+            <PDFInfoMessage onShowForm={() => setShouldShowForm(true)} />
+        </View>
     );
 }
 
