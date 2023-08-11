@@ -58,7 +58,7 @@ const NUM_PAD_CONTAINER_VIEW_ID = 'numPadContainerView';
 const NUM_PAD_VIEW_ID = 'numPadView';
 
 function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCurrencyButtonPress, onSubmitButtonPress}) {
-    const {translate, numberFormat} = useLocalize();
+    const {translate, numberFormat, toLocaleDigit} = useLocalize();
 
     const textInput = useRef(null);
 
@@ -170,6 +170,7 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
         onSubmitButtonPress(currentAmount);
     }, [onSubmitButtonPress, currentAmount]);
 
+    const formattedAmount = MoneyRequestUtils.replaceAllDigits(currentAmount, toLocaleDigit);
     const buttonText = isEditing ? translate('common.save') : translate('common.next');
 
     return (
@@ -180,7 +181,7 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
                 style={[styles.flex1, styles.flexRow, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}
             >
                 <TextInputWithCurrencySymbol
-                    formattedAmount={currentAmount}
+                    formattedAmount={formattedAmount}
                     onChangeAmount={setNewAmount}
                     onCurrencyButtonPress={onCurrencyButtonPress}
                     placeholder={numberFormat(0)}
