@@ -1,4 +1,4 @@
-import _ from 'underscore';
+import _ from 'lodash';
 import CONST from '../CONST';
 
 /**
@@ -8,15 +8,15 @@ import CONST from '../CONST';
  * @returns {Object[]} An array of countries/states sorted based on the search query
  */
 function searchCountryOptions(searchValue, countriesData) {
-    const trimmedSearchValue = searchValue.toLowerCase().replaceAll(CONST.REGEX.NON_ALPHABETIC_AND_NON_LATIN_CHARS, '');
-    if (trimmedSearchValue.length === 0) {
+    const trimmedSearchValue = _.chain(searchValue).deburr().toLower().value().replaceAll(CONST.REGEX.NON_ALPHABETIC_AND_NON_LATIN_CHARS, '');
+    if (_.isEmpty(trimmedSearchValue)) {
         return [];
     }
 
-    const filteredData = _.filter(countriesData, (country) => country.searchValue.includes(trimmedSearchValue));
+    const filteredData = _.filter(countriesData, (country) => _.includes(_.deburr(country.searchValue), trimmedSearchValue));
 
     // sort by country code
-    return _.sortBy(filteredData, (country) => (country.value.toLowerCase() === trimmedSearchValue ? -1 : 1));
+    return _.sortBy(filteredData, (country) => (_.toLower(country.value) === trimmedSearchValue ? -1 : 1));
 }
 
 export default searchCountryOptions;
