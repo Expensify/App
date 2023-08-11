@@ -8,7 +8,7 @@ function LoginForm(props) {
     const {scrollPageToTop} = props;
 
     useEffect(() => {
-        if (scrollPageToTop) {
+        if (!scrollPageToTop) {
             return;
         }
 
