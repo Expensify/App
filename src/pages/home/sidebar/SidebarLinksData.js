@@ -15,7 +15,6 @@ import CONST from '../../../CONST';
 import useLocalize from '../../../hooks/useLocalize';
 import styles from '../../../styles/styles';
 import withNavigationFocus from '../../../components/withNavigationFocus';
-import usePrevious from '../../../hooks/usePrevious';
 
 const propTypes = {
     ...basePropTypes,
