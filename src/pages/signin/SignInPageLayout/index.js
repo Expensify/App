@@ -42,6 +42,10 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
+const defaultProps = {
+    innerRef: () => {},
+}
+
 function SignInPageLayout(props) {
     const scrollViewRef = useRef();
     const prevPreferredLocale = usePrevious(props.preferredLocale);
@@ -154,6 +158,7 @@ function SignInPageLayout(props) {
 }
 
 SignInPageLayout.propTypes = propTypes;
+SignInPageLayout.defaultProps = defaultProps;
 SignInPageLayout.displayName = 'SignInPageLayout';
 
 export default compose(withWindowDimensions, withSafeAreaInsets, withLocalize)(
