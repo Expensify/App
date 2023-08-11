@@ -42,7 +42,9 @@ function EditRequestPage({report, route}) {
     const transaction = TransactionUtils.getTransaction(transactionID);
     const transactionDescription = TransactionUtils.getDescription(transaction);
     const transactionAmount = TransactionUtils.getAmount(transaction, ReportUtils.isExpenseReport(ReportUtils.getParentReport(report)));
-    const transactionCurrency = lodashGet(route, 'params.currency', '') || TransactionUtils.getCurrency(transaction);
+    const transactionCurrency = TransactionUtils.getCurrency(transaction);
+
+    const defaultCurrency = lodashGet(route, 'params.currency', '') || transactionCurrency;
 
     // Take only the YYYY-MM-DD value
     const transactionCreatedDate = new Date(TransactionUtils.getCreated(transaction));
@@ -91,19 +93,19 @@ function EditRequestPage({report, route}) {
         return (
             <EditRequestAmountPage
                 defaultAmount={transactionAmount}
-                defaultCurrency={transactionCurrency}
+                defaultCurrency={defaultCurrency}
                 reportID={report.reportID}
                 onSubmit={(transactionChanges) => {
                     const amount = CurrencyUtils.convertToSmallestUnit(transactionCurrency, Number.parseFloat(transactionChanges));
-                    // In case the amount hasn't been changed, do not make the API request.
-                    if (amount === transactionAmount) {
+                    // In case the amount and the currency haven't been changed, do not make the API request.
+                    if (amount === transactionAmount && transactionCurrency === defaultCurrency) {
                         Navigation.dismissModal();
                         return;
                     }
                     // Temporarily disabling currency editing and it will be enabled as a quick follow up
                     editMoneyRequest({
                         amount,
-                        currency: transactionCurrency,
+                        currency: defaultCurrency,
                     });
                 }}
             />
