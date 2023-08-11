@@ -18,15 +18,14 @@ const propTypes = {
 
 function getParticipantLocalTime(participant, preferredLocale) {
     const reportRecipientTimezone = lodashGet(participant, 'timezone', CONST.DEFAULT_TIME_ZONE);
-    const reportTimezone = DateUtils.getLocalMomentFromDatetime(preferredLocale, null, reportRecipientTimezone.selected);
-    const currentTimezone = DateUtils.getLocalMomentFromDatetime(preferredLocale);
-    const reportRecipientDay = reportTimezone.format('dddd');
-    const currentUserDay = currentTimezone.format('dddd');
-
+    const reportTimezone = DateUtils.getLocalDateFromDatetime(preferredLocale, null, reportRecipientTimezone.selected);
+    const currentTimezone = DateUtils.getLocalDateFromDatetime(preferredLocale);
+    const reportRecipientDay = DateUtils.formatToDayOfWeek(reportTimezone);
+    const currentUserDay = DateUtils.formatToDayOfWeek(currentTimezone);
     if (reportRecipientDay !== currentUserDay) {
-        return `${reportTimezone.format('LT')} ${reportRecipientDay}`;
+        return `${DateUtils.formatToLocalTime(reportTimezone)} ${reportRecipientDay}`;
     }
-    return `${reportTimezone.format('LT')}`;
+    return `${DateUtils.formatToLocalTime(reportTimezone)}`;
 }
 
 function ParticipantLocalTime(props) {

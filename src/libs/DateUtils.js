@@ -1,8 +1,7 @@
-import moment from 'moment-timezone';
 import lodashGet from 'lodash/get';
-
-// IMPORTANT: load any locales (other than english) that might be passed to moment.locale()
-import 'moment/locale/es';
+import {zonedTimeToUtc, utcToZonedTime, formatInTimeZone} from 'date-fns-tz';
+import {es, enGB} from 'date-fns/locale';
+import {formatDistanceToNow, subMinutes, isBefore, subMilliseconds, isToday, isTomorrow, isYesterday, startOfWeek, endOfWeek, format, setDefaultOptions} from 'date-fns';
 
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
@@ -33,6 +32,24 @@ Onyx.connect({
 });
 
 /**
+ * Gets the locale string and setting default locale for date-fns
+ *
+ * @param {String} localeString
+ */
+function setLocale(localeString) {
+    switch (localeString) {
+        case 'en':
+            setDefaultOptions({locale: enGB});
+            break;
+        case 'es':
+            setDefaultOptions({locale: es});
+            break;
+        default:
+            break;
+    }
+}
+
+/**
  * Gets the user's stored time zone NVP and returns a localized
  * Moment object for the given ISO-formatted datetime string
  *
@@ -44,13 +61,15 @@ Onyx.connect({
  *
  * @private
  */
-function getLocalMomentFromDatetime(locale, datetime, currentSelectedTimezone = timezone.selected) {
-    moment.locale(locale);
+function getLocalDateFromDatetime(locale, datetime, currentSelectedTimezone = timezone.selected) {
+    setLocale(locale);
     if (!datetime) {
-        return moment.tz(currentSelectedTimezone);
+        const now = new Date();
+        const zonedNow = utcToZonedTime(now, currentSelectedTimezone);
+        return zonedNow;
     }
-
-    return moment.utc(datetime).tz(currentSelectedTimezone);
+    const parsedDatetime = new Date(`${datetime} UTC`);
+    return utcToZonedTime(parsedDatetime, currentSelectedTimezone);
 }
 
 /**
@@ -70,13 +89,18 @@ function getLocalMomentFromDatetime(locale, datetime, currentSelectedTimezone = 
  * @returns {String}
  */
 function datetimeToCalendarTime(locale, datetime, includeTimeZone = false, currentSelectedTimezone, isLowercase = false) {
-    const date = getLocalMomentFromDatetime(locale, datetime, currentSelectedTimezone);
+    const date = getLocalDateFromDatetime(locale, datetime, currentSelectedTimezone);
     const tz = includeTimeZone ? ' [UTC]Z' : '';
-
     let todayAt = Localize.translate(locale, 'common.todayAt');
     let tomorrowAt = Localize.translate(locale, 'common.tomorrowAt');
     let yesterdayAt = Localize.translate(locale, 'common.yesterdayAt');
     const at = Localize.translate(locale, 'common.conjunctionAt');
+
+    const dateFormatter = 'MMM d';
+    const elseDateFormatter = 'MMM d, yyyy';
+    const timeFormatter = 'h:mm a';
+    const startOfCurrentWeek = startOfWeek(new Date(), {weekStartsOn: 1}); // Assuming Monday is the start of the week
+    const endOfCurrentWeek = endOfWeek(new Date(), {weekStartsOn: 1}); // Assuming Monday is the start of the week
 
     if (isLowercase) {
         todayAt = todayAt.toLowerCase();
@@ -84,14 +108,19 @@ function datetimeToCalendarTime(locale, datetime, includeTimeZone = false, curre
         yesterdayAt = yesterdayAt.toLowerCase();
     }
 
-    return moment(date).calendar({
-        sameDay: `[${todayAt}] LT${tz}`,
-        nextDay: `[${tomorrowAt}] LT${tz}`,
-        lastDay: `[${yesterdayAt}] LT${tz}`,
-        nextWeek: `MMM D [${at}] LT${tz}`,
-        lastWeek: `MMM D [${at}] LT${tz}`,
-        sameElse: `MMM D, YYYY [${at}] LT${tz}`,
-    });
+    if (isToday(date)) {
+        return `${todayAt} ${format(date, timeFormatter)}${tz}`;
+    }
+    if (isTomorrow(date)) {
+        return `${tomorrowAt} ${format(date, timeFormatter)}${tz}`;
+    }
+    if (isYesterday(date)) {
+        return `${yesterdayAt} ${format(date, timeFormatter)}${tz}`;
+    }
+    if (date >= startOfCurrentWeek && date <= endOfCurrentWeek) {
+        return `${format(date, dateFormatter)} ${at} ${format(date, timeFormatter)}${tz}`;
+    }
+    return `${format(date, elseDateFormatter)} ${at} ${format(date, timeFormatter)}${tz}`;
 }
 
 /**
@@ -113,16 +142,66 @@ function datetimeToCalendarTime(locale, datetime, includeTimeZone = false, curre
  * @returns {String}
  */
 function datetimeToRelative(locale, datetime) {
-    const date = getLocalMomentFromDatetime(locale, datetime);
+    const date = getLocalDateFromDatetime(locale, datetime);
+    return formatDistanceToNow(date);
+}
 
-    return moment(date).fromNow();
+/**
+ * Gets the zone abbreviation from the date
+ *
+ * e.g.
+ *
+ * PST
+ * EST
+ * GMT +07  -  For GMT timezone
+ *
+ * @param {String} datetime
+ * @param {String} selectedTimezone
+ *
+ * @returns {String}
+ */
+function getZoneAbbreviation(datetime, selectedTimezone) {
+    return formatInTimeZone(datetime, selectedTimezone, 'zzz');
+}
+
+/**
+ * Format date to a long date format with weekday
+ *
+ * @param {String} datetime
+ *
+ * @returns {String} Sunday, July 9, 2023
+ */
+function formatToLongDateWithWeekday(datetime) {
+    return format(new Date(datetime), CONST.DATE.LONG_DATE_FORMAT_WITH_WEEKDAY);
+}
+
+/**
+ * Format date to a weekday format
+ *
+ * @param {String} datetime
+ *
+ * @returns {String} Sunday
+ */
+function formatToDayOfWeek(datetime) {
+    return format(new Date(datetime), CONST.DATE.WEEKDAY_TIME_FORMAT);
+}
+
+/**
+ * Format date to a local time
+ *
+ * @param {String} datetime
+ *
+ * @returns {String} 2:30 PM
+ */
+function formatToLocalTime(datetime) {
+    return format(new Date(datetime), CONST.DATE.LOCAL_TIME_FORMAT);
 }
 
 /**
  * A throttled version of a function that updates the current date in Onyx store
  */
 const updateCurrentDate = _.throttle(() => {
-    const currentDate = moment().format('YYYY-MM-DD');
+    const currentDate = format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
     CurrentDate.setCurrentDate(currentDate);
 }, 1000 * 60 * 60 * 3); // 3 hours
 
@@ -140,7 +219,7 @@ function startCurrentDateUpdater() {
  * @returns {Object}
  */
 function getCurrentTimezone() {
-    const currentTimezone = moment.tz.guess(true);
+    const currentTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     if (timezone.automatic && timezone.selected !== currentTimezone) {
         return {...timezone, selected: currentTimezone};
     }
@@ -148,17 +227,20 @@ function getCurrentTimezone() {
 }
 
 // Used to throttle updates to the timezone when necessary
-let lastUpdatedTimezoneTime = moment();
+let lastUpdatedTimezoneTime = new Date();
 
 /**
  * @returns {Boolean}
  */
 function canUpdateTimezone() {
-    return lastUpdatedTimezoneTime.isBefore(moment().subtract(5, 'minutes'));
+    const currentTime = new Date();
+    const fiveMinutesAgo = subMinutes(currentTime, 5);
+    // Compare the last updated time with five minutes ago
+    return isBefore(lastUpdatedTimezoneTime, fiveMinutesAgo);
 }
 
 function setTimezoneUpdated() {
-    lastUpdatedTimezoneTime = moment();
+    lastUpdatedTimezoneTime = new Date();
 }
 
 /**
@@ -188,7 +270,8 @@ function getDBTime(timestamp = '') {
  * @returns {String}
  */
 function subtractMillisecondsFromDateTime(dateTime, milliseconds) {
-    const newTimestamp = moment.utc(dateTime).subtract(milliseconds, 'milliseconds').valueOf();
+    const date = zonedTimeToUtc(dateTime, 'Etc/UTC');
+    const newTimestamp = subMilliseconds(date, milliseconds).valueOf();
     return getDBTime(newTimestamp);
 }
 
@@ -209,10 +292,14 @@ function getDateStringFromISOTimestamp(isoTimestamp) {
  * @namespace DateUtils
  */
 const DateUtils = {
+    formatToDayOfWeek,
+    formatToLongDateWithWeekday,
+    formatToLocalTime,
+    getZoneAbbreviation,
     datetimeToRelative,
     datetimeToCalendarTime,
     startCurrentDateUpdater,
-    getLocalMomentFromDatetime,
+    getLocalDateFromDatetime,
     getCurrentTimezone,
     canUpdateTimezone,
     setTimezoneUpdated,
