@@ -1360,9 +1360,10 @@ function getModifiedExpenseMessage(reportAction) {
  *
  * @param {Object} oldTransaction
  * @param {Object} transactionChanges
+ * @param {Boolen} isFromExpenseReport
  * @returns {Object}
  */
-function getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges) {
+function getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges, isFromExpenseReport) {
     const originalMessage = {};
 
     // Remark: Comment field is the only one which has new/old prefixes for the keys (newComment/ oldComment),
@@ -1379,7 +1380,7 @@ function getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges) {
     // The amount is always a combination of the currency and the number value so when one changes we need to store both
     // to match how we handle the modified expense action in oldDot
     if (_.has(transactionChanges, 'amount') || _.has(transactionChanges, 'currency')) {
-        originalMessage.oldAmount = TransactionUtils.getAmount(oldTransaction);
+        originalMessage.oldAmount = TransactionUtils.getAmount(oldTransaction, isFromExpenseReport);
         originalMessage.amount = lodashGet(transactionChanges, 'amount', originalMessage.oldAmount);
         originalMessage.oldCurrency = TransactionUtils.getCurrency(oldTransaction);
         originalMessage.currency = lodashGet(transactionChanges, 'currency', originalMessage.oldCurrency);
@@ -1866,9 +1867,10 @@ function getIOUReportActionMessage(type, total, comment, currency, paymentType =
  * @param {String} [iouReportID] - Only required if the IOUReportActions type is oneOf(decline, cancel, pay). Generates a randomID as default.
  * @param {Boolean} [isSettlingUp] - Whether we are settling up an IOU.
  * @param {Boolean} [isSendMoneyFlow] - Whether this is send money flow
+ * @param {Object} [receipt]
  * @returns {Object}
  */
-function buildOptimisticIOUReportAction(type, amount, currency, comment, participants, transactionID, paymentType = '', iouReportID = '', isSettlingUp = false, isSendMoneyFlow = false) {
+function buildOptimisticIOUReportAction(type, amount, currency, comment, participants, transactionID, paymentType = '', iouReportID = '', isSettlingUp = false, isSendMoneyFlow = false, receipt = {}) {
     const IOUReportID = iouReportID || generateReportID();
 
     const originalMessage = {
@@ -1914,6 +1916,7 @@ function buildOptimisticIOUReportAction(type, amount, currency, comment, partici
         shouldShow: true,
         created: DateUtils.getDBTime(),
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        receipt,
     };
 }
 
@@ -1958,10 +1961,11 @@ function buildOptimisticReportPreview(chatReport, iouReport, comment = '') {
  * @param {Object} transactionThread
  * @param {Object} oldTransaction
  * @param {Object} transactionChanges
+ * @param {Object} isFromExpenseReport
  * @returns {Object}
  */
-function buildOptimisticModifiedExpenseReportAction(transactionThread, oldTransaction, transactionChanges) {
-    const originalMessage = getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges);
+function buildOptimisticModifiedExpenseReportAction(transactionThread, oldTransaction, transactionChanges, isFromExpenseReport) {
+    const originalMessage = getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges, isFromExpenseReport);
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE,
         actorAccountID: currentUserAccountID,

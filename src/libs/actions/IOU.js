@@ -799,10 +799,11 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
     const transactionThread = allReports[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`];
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const iouReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${transactionThread.parentReportID}`];
+    const isFromExpenseReport = ReportUtils.isExpenseReport(iouReport);
 
     // STEP 2: Build new modified expense report action.
-    const updatedReportAction = ReportUtils.buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges);
-    const updatedTransaction = TransactionUtils.getUpdatedTransaction(transaction, transactionChanges);
+    const updatedReportAction = ReportUtils.buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges, isFromExpenseReport);
+    const updatedTransaction = TransactionUtils.getUpdatedTransaction(transaction, transactionChanges, isFromExpenseReport);
     // STEP 3: Compute the IOU total and update the report preview message so LHN amount owed is correct
     // STEP 4: Compose the optimistic data
     const optimisticData = [
@@ -864,7 +865,7 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
 
             // Using the getter methods here to ensure we pass modified field if present
             created: TransactionUtils.getCreated(updatedTransaction),
-            amount: TransactionUtils.getAmount(updatedTransaction),
+            amount: TransactionUtils.getAmount(updatedTransaction, isFromExpenseReport),
             currency: TransactionUtils.getCurrency(updatedTransaction),
             comment: TransactionUtils.getDescription(updatedTransaction),
         },
