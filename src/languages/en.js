@@ -151,6 +151,8 @@ export default {
         edit: 'Edit',
         showMore: 'Show more',
         merchant: 'Merchant',
+        receipt: 'Receipt',
+        replace: 'Replace',
     },
     anonymousReportFooter: {
         logoTagline: 'Join in on the discussion.',
@@ -379,7 +381,7 @@ export default {
         pay: 'Pay',
         viewDetails: 'View details',
         pending: 'Pending',
-        receipt: 'Receipt',
+        deleteReceipt: 'Delete receipt',
         receiptScanning: 'Receipt scan in progress…',
         receiptStatusTitle: 'Scanning…',
         receiptStatusText: 'Only you can see this receipt when it\'s scanning. Check back later or enter the details now.',

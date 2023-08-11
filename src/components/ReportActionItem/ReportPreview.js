@@ -129,7 +129,7 @@ function ReportPreview(props) {
     let previewMessage;
     const managerName = ReportUtils.isPolicyExpenseChat(props.chatReport) ? ReportUtils.getPolicyName(props.chatReport) : ReportUtils.getDisplayNameForParticipant(managerID, true);
     if (_.some(receipts, ({receipt}) => ReceiptUtils.isBeingScanned(receipt))) {
-        previewMessage = props.translate('iou.receipt');
+        previewMessage = props.translate('common.receipt');
     } else {
         previewMessage = props.translate(iouSettled || props.iouReport.isWaitingOnBankAccount ? 'iou.payerPaid' : 'iou.payerOwes', {payer: managerName});
     }

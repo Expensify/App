@@ -171,7 +171,7 @@ function MoneyRequestPreview(props) {
 
     const getPreviewHeaderText = () => {
         if (isScanning) {
-            return props.translate('iou.receipt');
+            return props.translate('common.receipt');
         }
 
         if (props.isBillSplit) {

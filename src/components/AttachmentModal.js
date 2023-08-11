@@ -25,6 +25,7 @@ import HeaderGap from './HeaderGap';
 import SafeAreaConsumer from './SafeAreaConsumer';
 import addEncryptedAuthTokenToURL from '../libs/addEncryptedAuthTokenToURL';
 import reportPropTypes from '../pages/reportPropTypes';
+import * as Expensicons from './Icon/Expensicons';
 
 /**
  * Modal render prop component that exposes modal launching triggers that can be used
@@ -93,6 +94,7 @@ function AttachmentModal(props) {
     const [shouldLoadAttachment, setShouldLoadAttachment] = useState(false);
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
     const [isAuthTokenRequired, setIsAuthTokenRequired] = useState(props.isAuthTokenRequired);
+    const [isAttachmentReceipt, setIsAttachmentReceipt] = useState(false);
     const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState('');
     const [attachmentInvalidReason, setAttachmentInvalidReason] = useState(null);
     const [source, setSource] = useState(props.source);
@@ -118,6 +120,7 @@ function AttachmentModal(props) {
         (attachment) => {
             setSource(attachment.source);
             setFile(attachment.file);
+            setIsAttachmentReceipt(attachment.receipt);
             setIsAuthTokenRequired(attachment.isAuthTokenRequired);
             onCarouselAttachmentChange(attachment);
         },
@@ -308,6 +311,7 @@ function AttachmentModal(props) {
     }, []);
 
     const sourceForAttachmentView = props.source || source;
+
     return (
         <>
             <Modal
@@ -328,12 +332,30 @@ function AttachmentModal(props) {
             >
                 {props.isSmallScreenWidth && <HeaderGap />}
                 <HeaderWithBackButton
-                    title={props.headerTitle || translate('common.attachment')}
+                    title={props.headerTitle || translate(isAttachmentReceipt ? 'common.receipt' : 'common.attachment')}
                     shouldShowBorderBottom
                     shouldShowDownloadButton={props.allowDownload}
                     onDownloadButtonPress={() => downloadAttachment(source)}
                     shouldShowCloseButton={!props.isSmallScreenWidth}
                     shouldShowBackButton={props.isSmallScreenWidth}
+                    shouldShowThreeDotsButton={isAttachmentReceipt}
+                    threeDotsMenuItems={[
+                        {
+                            icon: Expensicons.Camera,
+                            text: props.translate('common.replace'),
+                            onSelected: () => {}, // TODO
+                        },
+                        {
+                            icon: Expensicons.Download,
+                            text: props.translate('common.download'),
+                            onSelected: () => downloadAttachment(source),
+                        },
+                        {
+                            icon: Expensicons.Trashcan,
+                            text: props.translate('iou.deleteReceipt'),
+                            onSelected: () => {}, // TODO
+                        },
+                    ]}
                     onBackButtonPress={closeModal}
                     onCloseButtonPress={closeModal}
                 />

@@ -150,6 +150,8 @@ export default {
         edit: 'Editar',
         showMore: 'Mostrar más',
         merchant: 'Comerciante',
+        receipt: 'Recibo',
+        replace: 'Sustituir',
     },
     anonymousReportFooter: {
         logoTagline: 'Únete a la discussion.',
@@ -378,7 +380,7 @@ export default {
         pay: 'Pagar',
         viewDetails: 'Ver detalles',
         pending: 'Pendiente',
-        receipt: 'Recibo',
+        deleteReceipt: 'Eliminar recibo',
         receiptScanning: 'Escaneo de recibo en curso…',
         receiptStatusTitle: 'Escaneado…',
         receiptStatusText: 'Solo tú puedes ver este recibo cuando se está escaneando. Vuelve más tarde o ingresa los detalles ahora.',
