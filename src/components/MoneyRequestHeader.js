@@ -66,6 +66,8 @@ function MoneyRequestHeader(props) {
         IOU.deleteMoneyRequest(parentReportAction.originalMessage.IOUTransactionID, parentReportAction, true);
     }, [parentReportAction]);
 
+    const isScanning = !ReportActionsUtils.hasReadyMoneyRequests(parentReportAction);
+
     return (
         <View style={[styles.pl0]}>
             <HeaderWithBackButton
@@ -86,6 +88,9 @@ function MoneyRequestHeader(props) {
                 shouldShowBackButton={props.isSmallScreenWidth}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.HOME, false, true)}
                 shouldShowBorderBottom
+                shouldShowStatusBar={isScanning}
+                statusBarBadgeText={props.translate('iou.receiptStatusTitle')}
+                statusBarDescription={props.translate('iou.receiptStatusText')}
             />
         </View>
     );

@@ -71,28 +71,16 @@ function MoneyRequestView(props) {
                 />
             </View>
             {hasReceipt && (
-                <>
-                    <View style={styles.moneyRequestViewReceipt}>
-                        <RenderHTML html={`
-                            <img
-                                src="${receiptUris.thumbnail}"
-                                data-expensify-source="${receiptUris.image}"
-                                data-expensify-fit-container="true"
-                                data-expensify-preview-modal-disabled="true"
-                            />
-                        `} />
-                    </View>
-                    <View style={styles.moneyRequestViewReceiptWhisper}>
-                        <View>
-                            <View style={styles.flexRow}>
-                                <Text style={styles.textHeadline}>{props.translate('iou.receiptWhisperTitle')}</Text>
-                            </View>
-                            <View style={styles.flexRow}>
-                                <Text style={styles.textNormal}>{props.translate('iou.receiptWhisperText')}</Text>
-                            </View>
-                        </View>
-                    </View>
-                </>
+                <View style={styles.moneyRequestViewReceipt}>
+                    <RenderHTML html={`
+                        <img
+                            src="${receiptUris.thumbnail}"
+                            data-expensify-source="${receiptUris.image}"
+                            data-expensify-fit-container="true"
+                            data-expensify-preview-modal-disabled="true"
+                        />
+                    `} />
+                </View>
             )}
             <MenuItemWithTopDescription
                 title={formattedTransactionAmount}

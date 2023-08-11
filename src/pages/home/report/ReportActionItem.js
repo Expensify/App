@@ -495,7 +495,7 @@ function ReportActionItem(props) {
 
     const hasErrors = !_.isEmpty(props.action.errors);
     const whisperedToAccountIDs = props.action.whisperedToAccountIDs || [];
-    const isWhisper = whisperedToAccountIDs.length > 0 || !ReportActionsUtils.hasReadyMoneyRequests(props.action);
+    const isWhisper = whisperedToAccountIDs.length > 0;
     const isMultipleParticipant = whisperedToAccountIDs.length > 1;
     const isWhisperOnlyVisibleByUser = isWhisper && ReportUtils.isCurrentUserTheOnlyParticipant(whisperedToAccountIDs);
     const whisperedToPersonalDetails = isWhisper ? _.filter(props.personalDetailsList, (details) => _.includes(whisperedToAccountIDs, details.accountID)) : [];
