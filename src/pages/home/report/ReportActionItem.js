@@ -451,7 +451,12 @@ function ReportActionItem(props) {
                     report={props.report}
                     iouReport={props.iouReport}
                     isHovered={hovered}
-                    hasBeenFlagged={!_.contains([CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING,CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE], moderationDecision)}
+                    hasBeenFlagged={
+                        !_.contains(
+                            [CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING, CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE],
+                            moderationDecision,
+                        )
+                    }
                 >
                     {content}
                 </ReportActionItemSingle>
