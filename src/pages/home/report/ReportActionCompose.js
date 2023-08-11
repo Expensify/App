@@ -1265,8 +1265,8 @@ function ReportActionCompose({
                                 <PressableWithFeedback
                                     style={({pressed, isDisabled}) => [
                                         styles.chatItemSubmitButton,
-                                        (isCommentEmpty || hasExceededMaxCommentLength || pressed || isDisabled) && styles.buttonSuccess,
-                                        (isCommentEmpty || isBlockedFromConcierge || disabled || hasExceededMaxCommentLength) && styles.cursorDisabled,
+                                        isCommentEmpty || hasExceededMaxCommentLength || pressed || isDisabled ? undefined : styles.buttonSuccess,
+                                        isCommentEmpty || isBlockedFromConcierge || disabled || hasExceededMaxCommentLength ? styles.cursorDisabled : undefined,
                                     ]}
                                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                     accessibilityLabel={translate('common.send')}
