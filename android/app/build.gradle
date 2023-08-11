@@ -55,7 +55,7 @@ react {
 project.ext.envConfigFiles = [
     productionDebug: ".env.production",
     productionRelease: ".env.production",
-    adhocRelease: ".env.staging",
+    adhocRelease: ".env.adhoc",
     developmentRelease: ".env",
     developmentDebug: ".env",
     e2eRelease: ".env.production"
@@ -103,14 +103,17 @@ android {
             // applies all non-production flavors
             applicationIdSuffix ".adhoc"
             signingConfig signingConfigs.debug
+            resValue “string”, “build_config_package”, “com.expensify.chat”
         }
         adhoc {
             applicationIdSuffix ".adhoc"
             signingConfig signingConfigs.debug
+            resValue “string”, “build_config_package”, “com.expensify.chat”
         }
         development {
             applicationIdSuffix ".dev"
             signingConfig signingConfigs.debug
+            resValue “string”, “build_config_package”, “com.expensify.chat”
         }
     }
 
