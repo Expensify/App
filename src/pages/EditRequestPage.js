@@ -41,7 +41,7 @@ function EditRequestPage({report, route}) {
     const transaction = TransactionUtils.getTransaction(transactionID);
     const transactionDescription = TransactionUtils.getDescription(transaction);
     const transactionAmount = TransactionUtils.getAmount(transaction);
-    const transactionCurrency = TransactionUtils.getCurrency(transaction);
+    const transactionCurrency = lodashGet(route, 'params.currency', '') || TransactionUtils.getCurrency(transaction);
 
     // Take only the YYYY-MM-DD value
     const transactionCreatedDate = new Date(TransactionUtils.getCreated(transaction));
