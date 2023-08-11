@@ -204,7 +204,7 @@ function ReportActionItem(props) {
             }
 
             setIsContextMenuActive(true);
-
+            const originalReport = ReportUtils.getReport(ReportUtils.getOriginalReportID(props.report.reportID, props.action));
             const selection = SelectionScraper.getCurrentSelection();
             ReportActionContextMenu.showContextMenu(
                 ContextMenuActions.CONTEXT_MENU_TYPES.REPORT_ACTION,
@@ -216,8 +216,8 @@ function ReportActionItem(props) {
                 props.draftMessage,
                 () => {},
                 toggleContextMenuFromActiveReportAction,
-                ReportUtils.isArchivedRoom(props.report),
-                ReportUtils.chatIncludesChronos(props.report),
+                ReportUtils.isArchivedRoom(originalReport),
+                ReportUtils.chatIncludesChronos(originalReport),
             );
         },
         [props.draftMessage, props.action, props.report, toggleContextMenuFromActiveReportAction],
@@ -506,6 +506,7 @@ function ReportActionItem(props) {
     const isWhisperOnlyVisibleByUser = isWhisper && ReportUtils.isCurrentUserTheOnlyParticipant(whisperedToAccountIDs);
     const whisperedToPersonalDetails = isWhisper ? _.filter(props.personalDetailsList, (details) => _.includes(whisperedToAccountIDs, details.accountID)) : [];
     const displayNamesWithTooltips = isWhisper ? ReportUtils.getDisplayNamesWithTooltips(whisperedToPersonalDetails, isMultipleParticipant) : [];
+    const originalReport = ReportUtils.getReport(ReportUtils.getOriginalReportID(props.report.reportID, props.action));
     return (
         <PressableWithSecondaryInteraction
             pointerEvents={props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? 'none' : 'auto'}
@@ -524,11 +525,11 @@ function ReportActionItem(props) {
                         <MiniReportActionContextMenu
                             reportID={props.report.reportID}
                             reportAction={props.action}
-                            isArchivedRoom={ReportUtils.isArchivedRoom(props.report)}
+                            isArchivedRoom={ReportUtils.isArchivedRoom(originalReport)}
                             displayAsGroup={props.displayAsGroup}
                             isVisible={hovered && !props.draftMessage && !hasErrors}
                             draftMessage={props.draftMessage}
-                            isChronosReport={ReportUtils.chatIncludesChronos(props.report)}
+                            isChronosReport={ReportUtils.chatIncludesChronos(originalReport)}
                         />
                         <View
                             style={StyleUtils.getReportActionItemStyle(
