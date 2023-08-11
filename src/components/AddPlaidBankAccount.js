@@ -116,7 +116,7 @@ function AddPlaidBankAccount({plaidData, selectedPlaidAccountID, plaidLinkToken,
      * Unblocks the keyboard shortcuts that can navigate
      */
     const unsubscribeToNavigationShortcuts = () => {
-        _.each(subscribedKeyboardShortcuts, (unsubscribe) => unsubscribe());
+        _.each(subscribedKeyboardShortcuts.current, (unsubscribe) => unsubscribe());
         subscribedKeyboardShortcuts.current = [];
     };
 
@@ -124,19 +124,20 @@ function AddPlaidBankAccount({plaidData, selectedPlaidAccountID, plaidLinkToken,
         subscribeToNavigationShortcuts();
 
         // If we're coming from Plaid OAuth flow then we need to reuse the existing plaidLinkToken
-        if (!isAuthenticatedWithPlaid()) {
-            BankAccounts.openPlaidBankLogin(allowDebit, bankAccountID);
+        if (isAuthenticatedWithPlaid()) {
+            return unsubscribeToNavigationShortcuts;
         }
-
+        BankAccounts.openPlaidBankLogin(allowDebit, bankAccountID);
         return unsubscribeToNavigationShortcuts;
+
         // disabling this rule, as we want this to run only on the first render
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
-        // previousNetworkState.current also makes sure that this doesn't run on the first render, as null is falsy.
+        // If we are coming back from offline and we haven't authenticated with Plaid yet, we need to re-run our call to kick off Plaid
+        // previousNetworkState.current also makes sure that this doesn't run on the first render.
         if (previousNetworkState.current && !isOffline && !isAuthenticatedWithPlaid()) {
-            // If we are coming back from offline and we haven't authenticated with Plaid yet, we need to re-run our call to kick off Plaid
             BankAccounts.openPlaidBankLogin(allowDebit, bankAccountID);
         }
         previousNetworkState.current = isOffline;
