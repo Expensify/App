@@ -10,7 +10,6 @@ import * as Report from '../../../../libs/actions/Report';
 import ReportTypingIndicator from '../ReportTypingIndicator';
 import AttachmentModal from '../../../../components/AttachmentModal';
 import compose from '../../../../libs/compose';
-import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import willBlurTextInputOnTapOutsideFunc from '../../../../libs/willBlurTextInputOnTapOutside';
 import canFocusInputOnScreenFocus from '../../../../libs/canFocusInputOnScreenFocus';
 import CONST from '../../../../CONST';
@@ -35,6 +34,8 @@ import ReportComposerWithSuggestions from './ReportComposerWithSuggestions';
 import debouncedSaveReportComment from './debouncedSaveReportComment';
 import withWindowDimensions from '../../../../components/withWindowDimensions';
 import withNavigation, {withNavigationPropTypes} from '../../../../components/withNavigation';
+import reportActionPropTypes from '../reportActionPropTypes';
+import useLocalize from '../../../../hooks/useLocalize';
 
 const propTypes = {
     /** A method to call when the form is submitted */
@@ -42,6 +43,9 @@ const propTypes = {
 
     /** The ID of the report actions will be created for */
     reportID: PropTypes.string.isRequired,
+
+    /** Array of report actions for this report */
+    reportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)),
 
     /** Personal details of all the users */
     personalDetails: PropTypes.objectOf(participantPropTypes),
@@ -73,7 +77,6 @@ const propTypes = {
     /** animated ref from react-native-reanimated */
     animatedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]).isRequired,
 
-    ...withLocalizePropTypes,
     ...withNavigationPropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
 };
@@ -108,11 +111,13 @@ function ReportActionCompose({
     personalDetails,
     report,
     reportID,
+    reportActions,
     shouldShowComposeInput,
-    translate,
     isCommentEmpty: isCommentEmptyProp,
     navigation,
 }) {
+    const {translate} = useLocalize();
+
     /**
      * Updates the Highlight state of the composer
      */
@@ -129,8 +134,6 @@ function ReportActionCompose({
      * Updates the visibility state of the menu
      */
     const [isMenuVisible, setMenuVisibility] = useState(false);
-
-    const [composerHeight, setComposerHeight] = useState(0);
     const [isAttachmentPreviewActive, setIsAttachmentPreviewActive] = useState(false);
 
     /**
@@ -238,6 +241,15 @@ function ReportActionCompose({
         suggestionsRef.current.setShouldBlockEmojiCalc(true);
     }, []);
 
+    const onBlur = useCallback(() => {
+        setIsFocused(false);
+        suggestionsRef.current.resetSuggestions();
+    }, []);
+
+    const onFocus = useCallback(() => {
+        setIsFocused(true);
+    }, []);
+
     /**
      * Used to show Popover menu on Workspace chat at first sign-in
      * @returns {Boolean}
@@ -314,10 +326,11 @@ function ReportActionCompose({
                                 />
                                 <ReportComposerWithSuggestions
                                     ref={composerRef}
+                                    animatedRef={animatedRef}
                                     reportID={reportID}
                                     report={report}
+                                    reportActions={reportActions}
                                     isMenuVisible={isMenuVisible}
-                                    animatedRef={animatedRef}
                                     inputPlaceholder={inputPlaceholder}
                                     isComposerFullSize={isComposerFullSize}
                                     setIsFocused={setIsFocused}
@@ -329,11 +342,11 @@ function ReportActionCompose({
                                     disabled={disabled}
                                     isFullSizeComposerAvailable={isFullSizeComposerAvailable}
                                     setIsFullComposerAvailable={setIsFullComposerAvailable}
-                                    composerHeight={composerHeight}
-                                    setComposerHeight={setComposerHeight}
                                     setIsCommentEmpty={setIsCommentEmpty}
                                     submitForm={submitForm}
                                     shouldShowReportRecipientLocalTime={shouldShowReportRecipientLocalTime}
+                                    onFocus={onFocus}
+                                    onBlur={onBlur}
                                 />
                                 <ReportDropUI
                                     onDrop={(e) => {
@@ -385,7 +398,6 @@ ReportActionCompose.propTypes = propTypes;
 ReportActionCompose.defaultProps = defaultProps;
 
 export default compose(
-    withLocalize,
     withNetwork(),
     withNavigation,
     withWindowDimensions,

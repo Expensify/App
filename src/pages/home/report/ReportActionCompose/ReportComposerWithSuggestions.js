@@ -108,12 +108,14 @@ function ReportComposerWithSuggestions({
     reportID,
     report,
     reportActions,
+    // Focus
+    onFocus,
+    onBlur,
     // Unclassified
     isComposerFullSize,
     animatedRef,
     isMenuVisible,
     inputPlaceholder,
-    setIsFocused,
     suggestionsRef,
     displayFileInModal,
     textInputShouldClear,
@@ -122,8 +124,6 @@ function ReportComposerWithSuggestions({
     disabled,
     isFullSizeComposerAvailable,
     setIsFullComposerAvailable,
-    composerHeight,
-    setComposerHeight,
     setIsCommentEmpty,
     submitForm,
     shouldShowReportRecipientLocalTime,
@@ -149,8 +149,9 @@ function ReportComposerWithSuggestions({
         end: isMobileSafari && !shouldAutoFocus ? 0 : initialComment.length,
     });
 
-    const textInputRef = useRef(null);
+    const [composerHeight, setComposerHeight] = useState(0);
 
+    const textInputRef = useRef(null);
     const insertedEmojisRef = useRef([]);
 
     /**
@@ -488,12 +489,8 @@ function ReportComposerWithSuggestions({
                     onKeyPress={triggerHotkeyActions}
                     style={[styles.textInputCompose, isComposerFullSize ? styles.textInputFullCompose : styles.flex4]}
                     maxLines={maxComposerLines}
-                    // TODO: would it be cleaner to forward onFocus and onBlur functions?
-                    onFocus={() => setIsFocused(true)}
-                    onBlur={() => {
-                        setIsFocused(false);
-                        suggestionsRef.current.resetSuggestions();
-                    }}
+                    onFocus={onFocus}
+                    onBlur={onBlur}
                     onClick={updateShouldShowSuggestionMenuToFalse}
                     onPasteFile={displayFileInModal}
                     shouldClear={textInputShouldClear}
