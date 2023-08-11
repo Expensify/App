@@ -3470,7 +3470,6 @@ const styles = {
 
     linkPreviewImage: {
         flex: 1,
-        resizeMode: 'contain',
         borderRadius: 8,
         marginTop: 8,
     },
