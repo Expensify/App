@@ -25,7 +25,8 @@ export default function (WrappedComponent) {
 
     WithToggleVisibilityView.displayName = `WithToggleVisibilityView(${getComponentDisplayName(WrappedComponent)})`;
     WithToggleVisibilityView.propTypes = {
-        forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
+        // eslint-disable-next-line react/forbid-prop-types
+        forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.object})]),
 
         /** Whether the content is visible. */
         isVisible: PropTypes.bool,

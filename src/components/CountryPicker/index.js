@@ -19,7 +19,8 @@ const propTypes = {
     onInputChange: PropTypes.func,
 
     /** A ref to forward to MenuItemWithTopDescription */
-    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
+    // eslint-disable-next-line react/forbid-prop-types
+    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.object})]),
 };
 
 const defaultProps = {

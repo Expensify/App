@@ -24,7 +24,8 @@ const propTypes = {
     isEditing: PropTypes.bool,
 
     /** Refs forwarded to the TextInputWithCurrencySymbol */
-    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
+    // eslint-disable-next-line react/forbid-prop-types
+    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.object})]),
 
     /** Fired when back button pressed, navigates to currency selection page */
     onCurrencyButtonPress: PropTypes.func.isRequired,

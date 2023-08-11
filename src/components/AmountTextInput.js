@@ -9,7 +9,8 @@ const propTypes = {
     formattedAmount: PropTypes.string.isRequired,
 
     /** A ref to forward to amount text input */
-    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
+    // eslint-disable-next-line react/forbid-prop-types
+    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.object})]),
 
     /** Function to call when amount in text input is changed */
     onChangeAmount: PropTypes.func.isRequired,

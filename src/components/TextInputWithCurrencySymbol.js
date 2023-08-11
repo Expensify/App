@@ -6,7 +6,8 @@ import * as CurrencyUtils from '../libs/CurrencyUtils';
 
 const propTypes = {
     /** A ref to forward to amount text input */
-    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
+    // eslint-disable-next-line react/forbid-prop-types
+    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.object})]),
 
     /** Formatted amount in local currency  */
     formattedAmount: PropTypes.string.isRequired,

@@ -13,7 +13,8 @@ import {ScrollContext} from '../ScrollViewWithContext';
 
 const propTypes = {
     /** A forwarded ref */
-    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
+    // eslint-disable-next-line react/forbid-prop-types
+    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.object})]),
 
     /** BasePicker label */
     label: PropTypes.string,

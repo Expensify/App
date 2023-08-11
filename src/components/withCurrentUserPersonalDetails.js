@@ -15,7 +15,8 @@ const withCurrentUserPersonalDetailsDefaultProps = {
 
 export default function (WrappedComponent) {
     const propTypes = {
-        forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
+        // eslint-disable-next-line react/forbid-prop-types
+        forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.object})]),
 
         /** Personal details of all the users, including current user */
         personalDetails: PropTypes.objectOf(personalDetailsPropType),

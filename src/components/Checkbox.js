@@ -45,7 +45,8 @@ const propTypes = {
     caretSize: PropTypes.number,
 
     /** A ref to forward to the Pressable */
-    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
+    // eslint-disable-next-line react/forbid-prop-types
+    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.object})]),
 
     /** An accessibility label for the checkbox */
     accessibilityLabel: PropTypes.string.isRequired,
