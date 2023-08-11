@@ -22,6 +22,7 @@ import HeaderGap from '../HeaderGap';
 import * as StyleUtils from '../../styles/StyleUtils';
 import Tooltip from '../Tooltip';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
+import ScreenWrapper from '../ScreenWrapper';
 
 const propTypes = {
     /** Link to image for cropping */
@@ -361,79 +362,85 @@ function AvatarCropModal(props) {
             type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
             onModalHide={resetState}
         >
-            {props.isSmallScreenWidth && <HeaderGap />}
-            <HeaderWithBackButton
-                title={props.translate('avatarCropModal.title')}
-                onBackButtonPress={props.onClose}
-            />
-            <Text style={[styles.mh5]}>{props.translate('avatarCropModal.description')}</Text>
-            <GestureHandlerRootView
-                onLayout={initializeImageContainer}
-                style={[styles.alignSelfStretch, styles.m5, styles.flex1, styles.alignItemsCenter]}
+            <ScreenWrapper
+                style={[styles.pb0]}
+                includePaddingTop={false}
+                includeSafeAreaPaddingBottom={false}
             >
-                {/* To avoid layout shift we should hide this component until the image container & image is initialized */}
-                {!isImageInitialized || !isImageContainerInitialized ? (
-                    <ActivityIndicator
-                        color={themeColors.spinner}
-                        style={[styles.flex1]}
-                        size="large"
-                    />
-                ) : (
-                    <>
-                        <ImageCropView
-                            imageUri={props.imageUri}
-                            containerSize={imageContainerSize}
-                            panGestureEventHandler={panGestureEventHandler}
-                            originalImageHeight={originalImageHeight}
-                            originalImageWidth={originalImageWidth}
-                            scale={scale}
-                            translateY={translateY}
-                            translateX={translateX}
-                            rotation={rotation}
-                            maskImage={props.maskImage}
+                {props.isSmallScreenWidth && <HeaderGap />}
+                <HeaderWithBackButton
+                    title={props.translate('avatarCropModal.title')}
+                    onBackButtonPress={props.onClose}
+                />
+                <Text style={[styles.mh5]}>{props.translate('avatarCropModal.description')}</Text>
+                <GestureHandlerRootView
+                    onLayout={initializeImageContainer}
+                    style={[styles.alignSelfStretch, styles.m5, styles.flex1, styles.alignItemsCenter]}
+                >
+                    {/* To avoid layout shift we should hide this component until the image container & image is initialized */}
+                    {!isImageInitialized || !isImageContainerInitialized ? (
+                        <ActivityIndicator
+                            color={themeColors.spinner}
+                            style={[styles.flex1]}
+                            size="large"
                         />
-                        <View style={[styles.mt5, styles.justifyContentBetween, styles.alignItemsCenter, styles.flexRow, StyleUtils.getWidthStyle(imageContainerSize)]}>
-                            <Icon
-                                src={Expensicons.Zoom}
-                                fill={themeColors.icons}
+                    ) : (
+                        <>
+                            <ImageCropView
+                                imageUri={props.imageUri}
+                                containerSize={imageContainerSize}
+                                panGestureEventHandler={panGestureEventHandler}
+                                originalImageHeight={originalImageHeight}
+                                originalImageWidth={originalImageWidth}
+                                scale={scale}
+                                translateY={translateY}
+                                translateX={translateX}
+                                rotation={rotation}
+                                maskImage={props.maskImage}
                             />
-                            <PressableWithoutFeedback
-                                style={[styles.mh5, styles.flex1]}
-                                onLayout={initializeSliderContainer}
-                                onPressIn={(e) => runOnUI(sliderOnPress)(e.nativeEvent.locationX)}
-                                accessibilityLabel="slider"
-                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.ADJUSTABLE}
-                            >
-                                <Slider
-                                    sliderValue={translateSlider}
-                                    onGesture={panSliderGestureEventHandler}
+                            <View style={[styles.mt5, styles.justifyContentBetween, styles.alignItemsCenter, styles.flexRow, StyleUtils.getWidthStyle(imageContainerSize)]}>
+                                <Icon
+                                    src={Expensicons.Zoom}
+                                    fill={themeColors.icons}
                                 />
-                            </PressableWithoutFeedback>
-                            <Tooltip
-                                text={props.translate('common.rotate')}
-                                shiftVertical={-2}
-                            >
-                                <View>
-                                    <Button
-                                        medium
-                                        icon={Expensicons.Rotate}
-                                        iconFill={themeColors.inverse}
-                                        iconStyles={[styles.mr0]}
-                                        onPress={rotateImage}
+                                <PressableWithoutFeedback
+                                    style={[styles.mh5, styles.flex1]}
+                                    onLayout={initializeSliderContainer}
+                                    onPressIn={(e) => runOnUI(sliderOnPress)(e.nativeEvent.locationX)}
+                                    accessibilityLabel="slider"
+                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.ADJUSTABLE}
+                                >
+                                    <Slider
+                                        sliderValue={translateSlider}
+                                        onGesture={panSliderGestureEventHandler}
                                     />
-                                </View>
-                            </Tooltip>
-                        </View>
-                    </>
-                )}
-            </GestureHandlerRootView>
-            <Button
-                success
-                style={[styles.m5]}
-                onPress={cropAndSaveImage}
-                pressOnEnter
-                text={props.translate('common.save')}
-            />
+                                </PressableWithoutFeedback>
+                                <Tooltip
+                                    text={props.translate('common.rotate')}
+                                    shiftVertical={-2}
+                                >
+                                    <View>
+                                        <Button
+                                            medium
+                                            icon={Expensicons.Rotate}
+                                            iconFill={themeColors.inverse}
+                                            iconStyles={[styles.mr0]}
+                                            onPress={rotateImage}
+                                        />
+                                    </View>
+                                </Tooltip>
+                            </View>
+                        </>
+                    )}
+                </GestureHandlerRootView>
+                <Button
+                    success
+                    style={[styles.m5]}
+                    onPress={cropAndSaveImage}
+                    pressOnEnter
+                    text={props.translate('common.save')}
+                />
+            </ScreenWrapper>
         </Modal>
     );
 }
