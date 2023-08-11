@@ -52,6 +52,7 @@ function FormSubmit({innerRef, children, onSubmit, style}) {
             
             innerRef.current.removeEventListener('submit', preventDefaultFormBehavior);
         };
+    }, [innerRef]);
 
     return (
         // React-native-web prevents event bubbling on TextInput for key presses
