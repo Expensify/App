@@ -2,7 +2,7 @@ import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
-import React, {useEffect, useRef, useMemo} from 'react';
+import React, {useEffect, useRef, useMemo, memo} from 'react';
 import {deepEqual} from 'fast-equals';
 import {withReportCommentDrafts} from '../OnyxProvider';
 import SidebarUtils from '../../libs/SidebarUtils';
@@ -151,49 +151,43 @@ const personalDetailsSelector = (personalDetails) =>
  * Thats also why the React.memo is used on the outer component here, as we just
  * use it to prevent re-renders from parent re-renders.
  */
-export default React.memo(
-    compose(
-        withCurrentReportID,
-        withReportCommentDrafts({
-            propName: 'comment',
-            transformValue: (drafts, props) => {
-                const draftKey = `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${props.reportID}`;
-                return lodashGet(drafts, draftKey, '');
-            },
-        }),
-        withOnyx({
-            fullReport: {
-                key: (props) => ONYXKEYS.COLLECTION.REPORT + props.reportID,
-            },
-            reportActions: {
-                key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-                canEvict: false,
-            },
-            personalDetails: {
-                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                selector: personalDetailsSelector,
-            },
-            preferredLocale: {
-                key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-            },
-            policies: {
-                key: ONYXKEYS.COLLECTION.POLICY,
-            },
-        }),
-        withOnyx({
-            parentReportActions: {
-                key: ({fullReport}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fullReport.parentReportID}`,
-                canEvict: false,
-            },
-        }),
-    )(OptionRowLHNData),
-    (prevProps, nextProps) => {
-        if (
-            lodashGet(prevProps.props, 'parentReportActions', '0', 'fullReport.parentReportActionID') ===
-            lodashGet(nextProps.props, 'parentReportActions', '0', 'fullReport.parentReportActionID')
-        ) {
-            return true;
-        }
-        return _.isEqual(prevProps, nextProps);
-    },
+export default compose(
+    withCurrentReportID,
+    withReportCommentDrafts({
+        propName: 'comment',
+        transformValue: (drafts, props) => {
+            const draftKey = `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${props.reportID}`;
+            return lodashGet(drafts, draftKey, '');
+        },
+    }),
+    withOnyx({
+        fullReport: {
+            key: (props) => ONYXKEYS.COLLECTION.REPORT + props.reportID,
+        },
+        reportActions: {
+            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            canEvict: false,
+        },
+        personalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            selector: personalDetailsSelector,
+        },
+        preferredLocale: {
+            key: ONYXKEYS.NVP_PREFERRED_LOCALE,
+        },
+        policies: {
+            key: ONYXKEYS.COLLECTION.POLICY,
+        },
+    }),
+    withOnyx({
+        parentReportActions: {
+            key: ({fullReport}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fullReport.parentReportID}`,
+            canEvict: false,
+        },
+    }),
+)(
+    memo(
+        OptionRowLHNData,
+        (prevProps, nextProps) => prevProps.parentReportActions[prevProps.fullReport.parentReportActionID] === nextProps.parentReportActions[nextProps.fullReport.parentReportActionID],
+    ),
 );
