@@ -112,8 +112,7 @@ function WaypointEditor(props) {
                 enabledWhenOffline
                 validate={validate}
                 onSubmit={onSubmit}
-                submitButtonText=""
-                isSubmitButtonVisible={false}
+                submitButtonText={props.translate('common.save')}
             >
                 <View>
                     <AddressSearch
