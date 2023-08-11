@@ -70,7 +70,7 @@ function SplashScreenHider(props) {
         >
             <Reanimated.View style={scaleStyle}>
                 <Logo
-                    viewBox="0 0 100 100"
+                    viewBox="0 0 80 80"
                     width={100}
                     height={100}
                 />
