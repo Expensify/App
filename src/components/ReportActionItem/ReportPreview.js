@@ -102,8 +102,12 @@ function ReportPreview(props) {
     const reportTotal = ReportUtils.getMoneyRequestTotal(props.iouReport);
 
     const iouSettled = ReportUtils.isSettled(props.iouReportID);
-    const receipts = ReportActionUtils.getReportPreviewTransactions(props.action);
-    const isScanning = !ReportActionUtils.hasReadyMoneyRequests(props.action);
+    const numberOfRequests = ReportActionUtils.getNumberOfMoneyRequests(props.action);
+
+    const receipts = ReportActionUtils.getReportPreviewReceipts(props.action);
+    const hasReceipts = receipts.length > 0;
+    const isScanning = hasReceipts && !ReportActionUtils.hasReadyMoneyRequests(props.action);
+    const hasOnlyOneReceiptRequest = numberOfRequests === 1 && hasReceipts;
 
     let displayAmount;
     if (reportTotal) {
@@ -148,29 +152,31 @@ function ReportPreview(props) {
                 accessibilityLabel={props.translate('iou.viewDetails')}
             >
                 <View style={[styles.reportPreviewBox, props.isHovered || isScanning ? styles.moneyRequestPreviewBoxHover : undefined]}>
-                    <View style={[styles.reportPreviewBoxReceipts, props.isHovered || isScanning ? styles.reportPreviewBoxHoverBorder : undefined]}>
-                        {_.map(receipts, ({receipt, filename, transactionID}) => {
-                            const {thumbnail, image} = ReceiptUtils.getThumbnailAndImageURIs(receipt.source, filename);
-                            return (
-                                <View
-                                    key={transactionID}
-                                    style={[styles.reportPreviewBoxReceipt, props.isHovered || isScanning ? styles.reportPreviewBoxHoverBorder : undefined]}
-                                >
-                                    {thumbnail
-                                        ? <RenderHTML html={`
-                                                <img
-                                                    src="${thumbnail}"
-                                                    data-expensify-source="${image}"
-                                                    data-expensify-fit-container="true"
-                                                    data-expensify-preview-modal-disabled="true"
-                                                />
-                                          `} />
-                                        : <Image source={{uri: image}} style={[styles.w100, styles.h100]} />
-                                    }
-                                </View>
-                            );
-                        })}
-                    </View>
+                    {hasReceipts && (
+                        <View style={[styles.reportPreviewBoxReceipts, props.isHovered || isScanning ? styles.reportPreviewBoxHoverBorder : undefined]}>
+                            {_.map(receipts, ({receipt, filename, transactionID}) => {
+                                const {thumbnail, image} = ReceiptUtils.getThumbnailAndImageURIs(receipt.source, filename);
+                                return (
+                                    <View
+                                        key={transactionID}
+                                        style={[styles.reportPreviewBoxReceipt, props.isHovered || isScanning ? styles.reportPreviewBoxHoverBorder : undefined]}
+                                    >
+                                        {thumbnail
+                                            ? <RenderHTML html={`
+                                                    <img
+                                                        src="${thumbnail}"
+                                                        data-expensify-source="${image}"
+                                                        data-expensify-fit-container="true"
+                                                        data-expensify-preview-modal-disabled="true"
+                                                    />
+                                            `} />
+                                            : <Image source={{uri: image}} style={[styles.w100, styles.h100]} />
+                                        }
+                                    </View>
+                                );
+                            })}
+                        </View>
+                    )}
                     <View style={styles.reportPreviewBoxText}>
                         <View style={styles.flexRow}>
                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
@@ -190,6 +196,13 @@ function ReportPreview(props) {
                                 )}
                             </View>
                         </View>
+                        {hasReceipts && !isScanning && (
+                            <View style={styles.flexRow}>
+                                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                                    <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh16]}>{hasOnlyOneReceiptRequest ? receipts[0].merchant : props.translate('iou.requestCount', { count: numberOfRequests })}</Text>
+                                </View>
+                            </View>
+                        )}
                     </View>
                     {shouldShowSettlementButton && (
                         <SettlementButton

@@ -582,7 +582,7 @@ function isMessageDeleted(reportAction) {
  * @param {Object} reportPreviewAction
  * @returns {Object}
  */
-function getReportPreviewTransactions(reportPreviewAction) {
+function getReportPreviewReceipts(reportPreviewAction) {
     const transactionIDs = lodashGet(reportPreviewAction, ['childLastReceiptTransactionIDs'], '').split(',');
     return _.reduce(transactionIDs, (transactions, transactionID) => {
         const transaction = allTransactions[transactionID];
@@ -611,7 +611,7 @@ function getTransaction(iouReportAction) {
  */
 function hasReadyMoneyRequests(reportAction) {
     if (isReportPreviewAction(reportAction)) {
-        const transactions = getReportPreviewTransactions(reportAction);
+        const transactions = getReportPreviewReceipts(reportAction);
         return _.some(transactions, (transaction) => !TransactionUtils.hasReceipt(transaction) || !ReceiptUtils.isBeingScanned(transaction.receipt));
     }
 
@@ -621,6 +621,16 @@ function hasReadyMoneyRequests(reportAction) {
     }
 
     return true;
+}
+
+/**
+ * Returns the number of money requests associated with a report preview
+ *
+ * @param {Object|null} reportPreviewAction
+ * @returns {Number}
+ */
+function getNumberOfMoneyRequests(reportPreviewAction) {
+    return lodashGet(reportPreviewAction, 'childMoneyRequestCount', 0);
 }
 
 export {
@@ -655,7 +665,8 @@ export {
     isWhisperAction,
     isPendingRemove,
     getReportAction,
-    getReportPreviewTransactions,
+    getReportPreviewReceipts,
     hasReadyMoneyRequests,
     getTransaction,
+    getNumberOfMoneyRequests,
 };
