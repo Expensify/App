@@ -2208,7 +2208,7 @@ function buildOptimisticTaskReport(ownerAccountID, assigneeAccountID = 0, parent
         reportName: title,
         description,
         ownerAccountID,
-        participantAccountIDs: ownerAccountID === assigneeAccountID ? [] : [assigneeAccountID],
+        participantAccountIDs: assigneeAccountID && assigneeAccountID !== ownerAccountID ? [assigneeAccountID] : [],
         managerID: assigneeAccountID,
         type: CONST.REPORT.TYPE.TASK,
         parentReportID,
