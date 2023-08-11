@@ -138,7 +138,7 @@ function AddressForm(props) {
                 label={props.translate('common.zip')}
                 accessibilityLabel={props.translate('common.zip')}
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                inputMode={CONST.INPUT_MODE.NUMERIC}
                 value={props.values.zipCode}
                 defaultValue={props.defaultValues.zipCode}
                 onChangeText={(value) => props.onFieldChange({zipCode: value})}

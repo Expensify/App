@@ -758,14 +758,19 @@ const CONST = {
     MAGIC_CODE_EMPTY_CHAR: ' ',
 
     KEYBOARD_TYPE: {
-        PHONE_PAD: 'phone-pad',
-        NUMBER_PAD: 'number-pad',
-        DECIMAL_PAD: 'decimal-pad',
         VISIBLE_PASSWORD: 'visible-password',
-        EMAIL_ADDRESS: 'email-address',
         ASCII_CAPABLE: 'ascii-capable',
-        URL: 'url',
-        DEFAULT: 'default',
+    },
+
+    INPUT_MODE: {
+        NONE: 'none',
+        TEXT: 'text',
+        DECIMAL: 'decimal',
+        NUMERIC: 'numeric',
+        TEL: 'tel',
+        SEARCH: 'search',
+        EMAIL: 'email',
+        URL: 'url'
     },
 
     ATTACHMENT_MESSAGE_TEXT: '[Attachment]',

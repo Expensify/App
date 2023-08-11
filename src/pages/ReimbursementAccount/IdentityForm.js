@@ -186,7 +186,7 @@ function IdentityForm(props) {
                 accessibilityLabel={props.translate('common.ssnLast4')}
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                 containerStyles={[styles.mt4]}
-                keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                inputMode={CONST.INPUT_MODE.NUMERIC}
                 defaultValue={props.defaultValues.ssnLast4}
                 onChangeText={(value) => props.onFieldChange({ssnLast4: value})}
                 errorText={props.errors.ssnLast4 ? props.translate('bankAccount.error.ssnLast4') : ''}

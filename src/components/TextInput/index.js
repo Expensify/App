@@ -3,7 +3,7 @@ import _ from 'underscore';
 import styles from '../../styles/styles';
 import * as styleConst from './styleConst';
 import BaseTextInput from './BaseTextInput';
-import * as baseTextInputPropTypes from './baseTextInputPropTypes';
+import * as baseTextInputPropTypes from './BaseTextInput/propTypes';
 import DomUtils from '../../libs/DomUtils';
 import Visibility from '../../libs/Visibility';
 import * as Browser from '../../libs/Browser';

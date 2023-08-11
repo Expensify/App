@@ -226,7 +226,7 @@ function BaseSelectionListRadio(props) {
                                     placeholder={props.textInputPlaceholder}
                                     maxLength={props.textInputMaxLength}
                                     onChangeText={props.onChangeText}
-                                    keyboardType={props.keyboardType}
+                                    inputMode={props.inputMode}
                                     selectTextOnFocus
                                     spellCheck={false}
                                     onSubmitEditing={selectFocusedOption}

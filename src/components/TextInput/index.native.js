@@ -1,7 +1,7 @@
 import React, {forwardRef} from 'react';
 import styles from '../../styles/styles';
 import BaseTextInput from './BaseTextInput';
-import * as baseTextInputPropTypes from './baseTextInputPropTypes';
+import * as baseTextInputPropTypes from './BaseTextInput/propTypes';
 
 const TextInput = forwardRef((props, ref) => (
     <BaseTextInput

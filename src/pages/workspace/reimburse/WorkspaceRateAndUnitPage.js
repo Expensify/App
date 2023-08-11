@@ -141,7 +141,7 @@ class WorkspaceRateAndUnitPage extends React.Component {
                                 placeholder={lodashGet(this.props, 'policy.outputCurrency', CONST.CURRENCY.USD)}
                                 autoCompleteType="off"
                                 autoCorrect={false}
-                                keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
+                                inputMode={CONST.INPUT_MODE.DECIMAL}
                                 maxLength={12}
                             />
                             <View style={[styles.mt4]}>

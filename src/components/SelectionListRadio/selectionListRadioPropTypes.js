@@ -51,8 +51,8 @@ const propTypes = {
     /** Callback to fire when the text input changes */
     onChangeText: PropTypes.func,
 
-    /** Keyboard type for the text input */
-    keyboardType: PropTypes.string,
+    /** Optional input mode precedence over keyboardType */
+    inputMode: PropTypes.string,
 
     /** Item `keyForList` to focus initially */
     initiallyFocusedOptionKey: PropTypes.string,
@@ -76,7 +76,7 @@ const defaultProps = {
     textInputPlaceholder: '',
     textInputValue: '',
     textInputMaxLength: undefined,
-    keyboardType: CONST.KEYBOARD_TYPE.DEFAULT,
+    inputMode: CONST.INPUT_MODE.TEXT,
     onChangeText: () => {},
     initiallyFocusedOptionKey: '',
     shouldDelayFocus: false,

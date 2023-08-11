@@ -200,7 +200,7 @@ function LoginForm(props) {
                     onSubmitEditing={validateAndSubmitForm}
                     autoCapitalize="none"
                     autoCorrect={false}
-                    keyboardType={CONST.KEYBOARD_TYPE.EMAIL_ADDRESS}
+                    inputMode={CONST.INPUT_MODE.EMAIL}
                     errorText={formErrorText}
                     hasError={hasError}
                     maxLength={CONST.LOGIN_CHARACTER_LIMIT}

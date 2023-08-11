@@ -248,7 +248,7 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
                     <TextInput
                         inputID={INPUT_IDS.PHONE_NUMBER}
                         containerStyles={[styles.mt4]}
-                        keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
+                        inputMode={CONST.INPUT_MODE.TEL}
                         label={translate(fieldNameTranslationKeys.phoneNumber)}
                         accessibilityLabel={translate(fieldNameTranslationKeys.phoneNumber)}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
@@ -272,7 +272,7 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
                         accessibilityLabel={translate(fieldNameTranslationKeys[shouldAskForFullSSN ? 'ssnFull9' : 'ssn'])}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         maxLength={shouldAskForFullSSN ? 9 : 4}
-                        keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                        inputMode={CONST.INPUT_MODE.NUMERIC}
                     />
                     <OfflineIndicator containerStyles={[styles.mh5, styles.mb3]} />
                 </Form>

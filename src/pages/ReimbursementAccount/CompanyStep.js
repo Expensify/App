@@ -208,7 +208,7 @@ class CompanyStep extends React.Component {
                         accessibilityLabel={this.props.translate('common.phoneNumber')}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         containerStyles={[styles.mt4]}
-                        keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
+                        inputMode={CONST.INPUT_MODE.TEL}
                         placeholder={this.props.translate('common.phoneNumberPlaceholder')}
                         defaultValue={this.props.getDefaultStateForField('companyPhone')}
                         shouldSaveDraft
@@ -222,7 +222,7 @@ class CompanyStep extends React.Component {
                         defaultValue={this.props.getDefaultStateForField('website', this.defaultWebsite)}
                         shouldSaveDraft
                         hint={this.props.translate('common.websiteExample')}
-                        keyboardType={CONST.KEYBOARD_TYPE.URL}
+                        inputMode={CONST.INPUT_MODE.URL}
                     />
                     <TextInput
                         inputID="companyTaxID"
@@ -230,7 +230,7 @@ class CompanyStep extends React.Component {
                         accessibilityLabel={this.props.translate('companyStep.taxIDNumber')}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         containerStyles={[styles.mt4]}
-                        keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                        inputMode={CONST.INPUT_MODE.NUMERIC}
                         disabled={shouldDisableCompanyTaxID}
                         placeholder={this.props.translate('companyStep.taxIDNumberPlaceholder')}
                         defaultValue={this.props.getDefaultStateForField('companyTaxID')}

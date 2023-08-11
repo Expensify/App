@@ -2,24 +2,23 @@ import _ from 'underscore';
 import React, {useState, useRef, useEffect, useCallback} from 'react';
 import {Animated, View, AppState, Keyboard, StyleSheet} from 'react-native';
 import Str from 'expensify-common/lib/str';
-import RNTextInput from '../RNTextInput';
-import TextInputLabel from './TextInputLabel';
-import * as baseTextInputPropTypes from './baseTextInputPropTypes';
-import themeColors from '../../styles/themes/default';
-import styles from '../../styles/styles';
-import Icon from '../Icon';
-import * as Expensicons from '../Icon/Expensicons';
-import Text from '../Text';
-import * as styleConst from './styleConst';
-import * as StyleUtils from '../../styles/StyleUtils';
-import variables from '../../styles/variables';
-import Checkbox from '../Checkbox';
-import getSecureEntryKeyboardType from '../../libs/getSecureEntryKeyboardType';
-import CONST from '../../CONST';
-import FormHelpMessage from '../FormHelpMessage';
-import isInputAutoFilled from '../../libs/isInputAutoFilled';
-import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
-import withLocalize from '../withLocalize';
+import RNTextInput from '../../RNTextInput';
+import TextInputLabel from '../TextInputLabel';
+import {propTypes, defaultProps} from './propTypes';
+import themeColors from '../../../styles/themes/default';
+import styles from '../../../styles/styles';
+import Icon from '../../Icon';
+import * as Expensicons from '../../Icon/Expensicons';
+import Text from '../../Text';
+import * as styleConst from '../styleConst';
+import * as StyleUtils from '../../../styles/StyleUtils';
+import variables from '../../../styles/variables';
+import Checkbox from '../../Checkbox';
+import CONST from '../../../CONST';
+import FormHelpMessage from '../../FormHelpMessage';
+import isInputAutoFilled from '../../../libs/isInputAutoFilled';
+import PressableWithoutFeedback from '../../Pressable/PressableWithoutFeedback';
+import withLocalize from '../../withLocalize';
 
 function BaseTextInput(props) {
     const inputValue = props.value || props.defaultValue || '';
@@ -226,7 +225,7 @@ function BaseTextInput(props) {
     }, []);
 
     // eslint-disable-next-line react/forbid-foreign-prop-types
-    const inputProps = _.omit(props, _.keys(baseTextInputPropTypes.propTypes));
+    const inputProps = _.omit(props, _.keys(propTypes));
     const hasLabel = Boolean(props.label.length);
     const isEditable = _.isUndefined(props.editable) ? !props.disabled : props.editable;
     const inputHelpText = props.errorText || props.hint;
@@ -340,7 +339,7 @@ function BaseTextInput(props) {
                                 secureTextEntry={passwordHidden}
                                 onPressOut={props.onPress}
                                 showSoftInputOnFocus={!props.disableKeyboard}
-                                keyboardType={getSecureEntryKeyboardType(props.keyboardType, props.secureTextEntry, passwordHidden)}
+                                inputMode={props.inputMode}
                                 value={props.value}
                                 selection={props.selection}
                                 editable={isEditable}
@@ -404,7 +403,7 @@ function BaseTextInput(props) {
 }
 
 BaseTextInput.displayName = 'BaseTextInput';
-BaseTextInput.propTypes = baseTextInputPropTypes.propTypes;
-BaseTextInput.defaultProps = baseTextInputPropTypes.defaultProps;
+BaseTextInput.propTypes = propTypes;
+BaseTextInput.defaultProps = defaultProps;
 
 export default withLocalize(BaseTextInput);
