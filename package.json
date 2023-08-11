@@ -49,7 +49,6 @@
     "test:e2e": "node tests/e2e/testRunner.js --development"
   },
   "dependencies": {
-    "@expensify/react-native-web": "0.18.15",
     "@formatjs/intl-getcanonicallocales": "^2.2.0",
     "@formatjs/intl-listformat": "^7.2.2",
     "@formatjs/intl-locale": "^3.3.0",
@@ -137,6 +136,7 @@
     "react-native-tab-view": "^3.5.2",
     "react-native-view-shot": "^3.6.0",
     "react-native-vision-camera": "^2.15.4",
+    "react-native-web": "^0.19.7",
     "react-native-web-linear-gradient": "^1.1.2",
     "react-native-web-lottie": "^1.4.4",
     "react-native-webview": "^11.17.2",
