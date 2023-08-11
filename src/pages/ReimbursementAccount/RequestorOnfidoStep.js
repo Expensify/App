@@ -15,6 +15,7 @@ import FullPageOfflineBlockingView from '../../components/BlockingViews/FullPage
 import StepPropTypes from './StepPropTypes';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import ScreenWrapper from '../../components/ScreenWrapper';
+import getPlatform from '../../libs/getPlatform';
 
 const propTypes = {
     ...StepPropTypes,
@@ -35,12 +36,15 @@ class RequestorOnfidoStep extends React.Component {
     }
 
     goBack() {
-        const onfidoBack = document.querySelector('.onfido-sdk-ui-NavigationBar-back');
-        if (onfidoBack && !onfidoBack.classList.contains('onfido-sdk-ui-NavigationBar-disabled')) {
-            onfidoBack.click();
-        } else {
-            this.props.onBackButtonPress();
+        const platform = getPlatform();
+        const isNative = platform === CONST.PLATFORM.IOS || platform === CONST.PLATFORM.ANDROID;
+        if (!isNative) {
+            const onfidoBack = document.querySelector('.onfido-sdk-ui-NavigationBar-back');
+            if (onfidoBack && !onfidoBack.classList.contains('onfido-sdk-ui-NavigationBar-disabled')) {
+                return onfidoBack.click();
+            } 
         }
+        this.props.onBackButtonPress();
     }
 
     submit(onfidoData) {
