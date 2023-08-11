@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useCallback} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -10,17 +10,16 @@ import * as BankAccounts from '../libs/actions/BankAccounts';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
-import compose from '../libs/compose';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import Picker from './Picker';
 import {plaidDataPropTypes} from '../pages/ReimbursementAccount/plaidDataPropTypes';
 import Text from './Text';
 import getBankIcon from './Icon/BankIcons';
 import Icon from './Icon';
 import FullPageOfflineBlockingView from './BlockingViews/FullPageOfflineBlockingView';
-import {withNetwork} from './OnyxProvider';
 import CONST from '../CONST';
 import KeyboardShortcut from '../libs/KeyboardShortcut';
+import useLocalize from '../hooks/useLocalize';
+import useNetwork from '../hooks/useNetwork';
 
 const propTypes = {
     /** Contains plaid data */
@@ -52,8 +51,6 @@ const propTypes = {
 
     /** Are we adding a withdrawal account? */
     allowDebit: PropTypes.bool,
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -68,21 +65,12 @@ const defaultProps = {
     bankAccountID: 0,
 };
 
-function AddPlaidBankAccount({
-    plaidData,
-    selectedPlaidAccountID,
-    plaidLinkToken,
-    onExitPlaid,
-    onSelect,
-    text,
-    receivedRedirectURI,
-    plaidLinkOAuthToken,
-    bankAccountID,
-    allowDebit,
-    translate,
-    network,
-}) {
-    const [subscribedKeyboardShortcuts, setSubscribedKeyboardShortcuts] = useState([]);
+function AddPlaidBankAccount({plaidData, selectedPlaidAccountID, plaidLinkToken, onExitPlaid, onSelect, text, receivedRedirectURI, plaidLinkOAuthToken, bankAccountID, allowDebit}) {
+    const subscribedKeyboardShortcuts = useRef([]);
+    const previousNetworkState = useRef();
+
+    const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
 
     /**
      * @returns {String}
@@ -99,8 +87,12 @@ function AddPlaidBankAccount({
 
     /**
      * @returns {Boolean}
+     * I'm using useCallback so the useEffect which uses this function doesn't run on every render.
      */
-    const isAuthenticatedWithPlaid = () => (receivedRedirectURI && plaidLinkOAuthToken) || !_.isEmpty(lodashGet(plaidData, 'bankAccounts')) || !_.isEmpty(lodashGet(plaidData, 'errors'));
+    const isAuthenticatedWithPlaid = useCallback(
+        () => (receivedRedirectURI && plaidLinkOAuthToken) || !_.isEmpty(lodashGet(plaidData, 'bankAccounts')) || !_.isEmpty(lodashGet(plaidData, 'errors')),
+        [plaidData, plaidLinkOAuthToken, receivedRedirectURI],
+    );
 
     /**
      * Blocks the keyboard shortcuts that can navigate
@@ -108,16 +100,14 @@ function AddPlaidBankAccount({
     const subscribeToNavigationShortcuts = () => {
         // find and block the shortcuts
         const shortcutsToBlock = _.filter(CONST.KEYBOARD_SHORTCUTS, (x) => x.type === CONST.KEYBOARD_SHORTCUTS_TYPES.NAVIGATION_SHORTCUT);
-        setSubscribedKeyboardShortcuts(
-            _.map(shortcutsToBlock, (shortcut) =>
-                KeyboardShortcut.subscribe(
-                    shortcut.shortcutKey,
-                    () => {}, // do nothing
-                    shortcut.descriptionKey,
-                    shortcut.modifiers,
-                    false,
-                    () => lodashGet(plaidData, 'bankAccounts', []).length > 0, // start bubbling when there are bank accounts
-                ),
+        subscribedKeyboardShortcuts.current = _.map(shortcutsToBlock, (shortcut) =>
+            KeyboardShortcut.subscribe(
+                shortcut.shortcutKey,
+                () => {}, // do nothing
+                shortcut.descriptionKey,
+                shortcut.modifiers,
+                false,
+                () => lodashGet(plaidData, 'bankAccounts', []).length > 0, // start bubbling when there are bank accounts
             ),
         );
     };
@@ -127,29 +117,30 @@ function AddPlaidBankAccount({
      */
     const unsubscribeToNavigationShortcuts = () => {
         _.each(subscribedKeyboardShortcuts, (unsubscribe) => unsubscribe());
-        setSubscribedKeyboardShortcuts([]);
+        subscribedKeyboardShortcuts.current = [];
     };
 
     useEffect(() => {
         subscribeToNavigationShortcuts();
 
         // If we're coming from Plaid OAuth flow then we need to reuse the existing plaidLinkToken
-        if (isAuthenticatedWithPlaid()) {
-            return;
+        if (!isAuthenticatedWithPlaid()) {
+            BankAccounts.openPlaidBankLogin(allowDebit, bankAccountID);
         }
 
-        BankAccounts.openPlaidBankLogin(allowDebit, bankAccountID);
         return unsubscribeToNavigationShortcuts;
-    });
+        // disabling this rule, as we want this to run only on the first render
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     useEffect(() => {
-        if (!prevProps.network.isOffline || network.isOffline || isAuthenticatedWithPlaid()) {
-            return;
+        // previousNetworkState.current also makes sure that this doesn't run on the first render, as null is falsy.
+        if (previousNetworkState.current && !isOffline && !isAuthenticatedWithPlaid()) {
+            // If we are coming back from offline and we haven't authenticated with Plaid yet, we need to re-run our call to kick off Plaid
+            BankAccounts.openPlaidBankLogin(allowDebit, bankAccountID);
         }
-
-        // If we are coming back from offline and we haven't authenticated with Plaid yet, we need to re-run our call to kick off Plaid
-        BankAccounts.openPlaidBankLogin(allowDebit, bankAccountID);
-    });
+        previousNetworkState.current = isOffline;
+    }, [allowDebit, bankAccountID, isAuthenticatedWithPlaid, isOffline]);
 
     const plaidBankAccounts = lodashGet(plaidData, 'bankAccounts') || [];
     const token = getPlaidLinkToken();
@@ -227,13 +218,9 @@ AddPlaidBankAccount.propTypes = propTypes;
 AddPlaidBankAccount.defaultProps = defaultProps;
 AddPlaidBankAccount.displayName = 'AddPlaidBankAccount';
 
-export default compose(
-    withLocalize,
-    withNetwork(),
-    withOnyx({
-        plaidLinkToken: {
-            key: ONYXKEYS.PLAID_LINK_TOKEN,
-            initWithStoredValues: false,
-        },
-    }),
-)(AddPlaidBankAccount);
+export default withOnyx({
+    plaidLinkToken: {
+        key: ONYXKEYS.PLAID_LINK_TOKEN,
+        initWithStoredValues: false,
+    },
+})(AddPlaidBankAccount);
