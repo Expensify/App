@@ -72,7 +72,7 @@ const propTypes = {
 
     ...windowDimensionsPropTypes,
 
-    /** Denotes whether it is an avatar or a workspace avatar */
+    /** Denotes whether it is a workspace avatar or not */
     isWorkspaceAvatar: PropTypes.bool,
 };
 

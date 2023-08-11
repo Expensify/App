@@ -35,7 +35,7 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     containerStyles: PropTypes.arrayOf(PropTypes.object),
 
-    /** Denotes whether it is an avatar or a workspace avatar */
+    /** Denotes whether it is a workspace avatar or not */
     isWorkspaceAvatar: PropTypes.bool,
 };
 
