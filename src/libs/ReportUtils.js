@@ -1870,7 +1870,19 @@ function getIOUReportActionMessage(type, total, comment, currency, paymentType =
  * @param {Object} [receipt]
  * @returns {Object}
  */
-function buildOptimisticIOUReportAction(type, amount, currency, comment, participants, transactionID, paymentType = '', iouReportID = '', isSettlingUp = false, isSendMoneyFlow = false, receipt = {}) {
+function buildOptimisticIOUReportAction(
+    type,
+    amount,
+    currency,
+    comment,
+    participants,
+    transactionID,
+    paymentType = '',
+    iouReportID = '',
+    isSettlingUp = false,
+    isSendMoneyFlow = false,
+    receipt = {},
+) {
     const IOUReportID = iouReportID || generateReportID();
 
     const originalMessage = {
