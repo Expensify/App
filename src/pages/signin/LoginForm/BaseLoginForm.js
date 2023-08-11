@@ -4,6 +4,7 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
 import {parsePhoneNumber} from 'awesome-phonenumber';
+import PropTypes from 'prop-types';
 import styles from '../../../styles/styles';
 import Text from '../../../components/Text';
 import * as Session from '../../../libs/actions/Session';
@@ -28,7 +29,6 @@ import Log from '../../../libs/Log';
 import withNavigationFocus, {withNavigationFocusPropTypes} from '../../../components/withNavigationFocus';
 import usePrevious from '../../../hooks/usePrevious';
 import {propTypes, defaultProps} from './loginFormPropTypes';
-import PropTypes from 'prop-types';
 import networkPropTypes from '../../../components/networkPropTypes';
 
 /**
