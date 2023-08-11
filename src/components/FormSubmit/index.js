@@ -40,17 +40,19 @@ function FormSubmit({innerRef, children, onSubmit, style}) {
     const preventDefaultFormBehavior = (e) => e.preventDefault();
 
     useEffect(() => {
-        // Prevent the browser from applying its own validation, which affects the email input
-        innerRef.current.setAttribute('novalidate', '');
+        const form = innerRef.current;
 
-        innerRef.current.addEventListener('submit', preventDefaultFormBehavior);
+        // Prevent the browser from applying its own validation, which affects the email input
+        form.setAttribute('novalidate', '');
+
+        form.addEventListener('submit', preventDefaultFormBehavior);
 
         return () => {
-            if (!innerRef.current) {
+            if (!form) {
                 return;
             }
-            
-            innerRef.current.removeEventListener('submit', preventDefaultFormBehavior);
+
+            form.removeEventListener('submit', preventDefaultFormBehavior);
         };
     }, [innerRef]);
 
