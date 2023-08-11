@@ -225,14 +225,14 @@ function AttachmentPicker({type, children}) {
     const pickAttachment = useCallback(
         (attachments = []) => {
             if (attachments.length === 0) {
-                return;
+                return Promise.resolve();
             }
 
             const fileData = _.first(attachments);
 
             if (fileData.width === -1 || fileData.height === -1) {
                 showImageCorruptionAlert();
-                return;
+                return Promise.resolve();
             }
 
             return getDataForUpload(fileData)
