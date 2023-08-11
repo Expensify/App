@@ -87,7 +87,7 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
 
     // Filter out all the reports that shouldn't be displayed
     const reportsToDisplay = _.filter(allReportsDict, (report) =>
-        ReportUtils.shouldReportBeInOptionList(report, currentReportId, isInGSDMode, allReportsDict, betas, policies, allReportActions),
+        ReportUtils.shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas, policies, allReportActions),
     );
 
     if (_.isEmpty(reportsToDisplay)) {
@@ -131,7 +131,7 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
             return;
         }
 
-        if (ReportUtils.isWaitingForIOUActionFromCurrentUser(report, allReportsDict)) {
+        if (ReportUtils.isWaitingForIOUActionFromCurrentUser(report)) {
             outstandingIOUReports.push(report);
             return;
         }
