@@ -335,8 +335,6 @@ export default {
     sidebarScreen: {
         chat: 'Chat',
         room: 'Sala',
-        fabAction: 'Enviar mensaje',
-        newChat: 'Enviar mensaje',
         newGroup: 'Nuevo grupo',
         newRoom: 'Nueva sala de chat',
         fabNewChat: 'Enviar mensaje',
@@ -853,7 +851,7 @@ export default {
     },
     newChatPage: {
         addToGroup: 'Añadir al grupo',
-        createChat: 'Creat chat',
+        createChat: 'Crear chat',
         createGroup: 'Crear grupo',
     },
     yearPickerPage: {
