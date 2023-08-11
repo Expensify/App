@@ -2892,12 +2892,11 @@ function shouldDisableRename(report, policy) {
 }
 
 /**
- * @param {String} reportID 
+ * @param {String} reportID
  * @returns {Array}
  */
 function getAllReportTransactions(reportID) {
-    return _.filter(allTransactions, transaction => transaction.reportID === reportID);
-
+    return _.filter(allTransactions, (transaction) => transaction.reportID === reportID);
 }
 
 /**
