@@ -111,7 +111,6 @@ function changeSVGViewBoxGoogle() {
     // Check if the viewport is smaller than tablet
     if (!mediaQuery.matches) {
         Array.from(svgsGoogle).forEach((svg) => {
-
             // Set the viewBox attribute to '0 0 13 13' to make the svg fit in the mobile view
             svg.setAttribute('viewBox', '0 0 13 13');
             svg.setAttribute('height', '13');
@@ -119,7 +118,6 @@ function changeSVGViewBoxGoogle() {
         });
     } else {
         Array.from(svgsGoogle).forEach((svg) => {
-
             // Set the viewBox attribute to '0 0 20 20' to make the svg fit in the tablet-desktop view
             svg.setAttribute('viewBox', '0 0 20 20');
             svg.setAttribute('height', '16');
