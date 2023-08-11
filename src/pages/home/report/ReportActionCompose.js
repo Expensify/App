@@ -1050,8 +1050,6 @@ function ReportActionCompose({
             runOnJS(submitForm)();
         });
 
-    console.log({highlightedMentionIndex});
-
     return (
         <View style={[shouldShowReportRecipientLocalTime && !lodashGet(network, 'isOffline') && styles.chatItemComposeWithFirstRow, isComposerFullSize && styles.chatItemFullComposeRow]}>
             <OfflineWithFeedback
