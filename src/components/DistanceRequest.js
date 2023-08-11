@@ -4,7 +4,7 @@ import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import {MapView} from '@hayata/react-native-test-package';
+import MapView from 'react-native-x-maps';
 import ONYXKEYS from '../ONYXKEYS';
 import * as Transaction from '../libs/actions/Transaction';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
@@ -21,7 +21,7 @@ const MAX_WAYPOINTS = 25;
 const MAX_WAYPOINTS_TO_DISPLAY = 4;
 
 const SF_COORDINATES = [-122.4194, 37.7749];
-const DEFAULT_ZOOM_LEVEL = 15;
+const DEFAULT_ZOOM_LEVEL = 10;
 
 const propTypes = {
     /** The transactionID of this request */
@@ -144,7 +144,6 @@ function DistanceRequest({transactionID, transaction, translate}) {
             <View style={[styles.p4, styles.flex1]}>
                 <MapView
                     accessToken="pk.eyJ1IjoiaGF5YXRhIiwiYSI6ImNsa3N5NTIzbTA3NHIzZW15Y2thOWVuZXIifQ.m6e2A0jWN3xuytd00Gj3iA"
-                    styleURL="mapbox://styles/hayata/cll1qv2bg006301rdaha38fjh"
                     mapPadding={50}
                     pitchEnabled={false}
                     initialState={{
