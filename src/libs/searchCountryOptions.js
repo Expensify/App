@@ -8,6 +8,7 @@ import CONST from '../CONST';
  * @returns {Object[]} An array of countries/states sorted based on the search query
  */
 function searchCountryOptions(searchValue, countriesData) {
+    console.log(searchValue);
     const trimmedSearchValue = _.chain(searchValue).deburr().toLower().value().replaceAll(CONST.REGEX.NON_ALPHABETIC_AND_NON_LATIN_CHARS, '');
     if (_.isEmpty(trimmedSearchValue)) {
         return [];
