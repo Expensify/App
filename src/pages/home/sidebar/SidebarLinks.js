@@ -4,6 +4,7 @@ import React from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
+import {withOnyx} from 'react-native-onyx';
 import styles from '../../../styles/styles';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -36,6 +37,7 @@ import KeyboardShortcut from '../../../libs/KeyboardShortcut';
 import onyxSubscribe from '../../../libs/onyxSubscribe';
 import personalDetailsPropType from '../../personalDetailsPropType';
 import * as ReportActionContextMenu from '../report/ContextMenu/ReportActionContextMenu';
+import Permissions from '../../../libs/Permissions';
 
 const basePropTypes = {
     /** Toggles the navigation menu open and closed */
@@ -59,6 +61,8 @@ const propTypes = {
 
     priorityMode: PropTypes.oneOf(_.values(CONST.PRIORITY_MODE)),
 
+    betas: PropTypes.arrayOf(PropTypes.string),
+
     ...withLocalizePropTypes,
 };
 
@@ -67,6 +71,7 @@ const defaultProps = {
         avatar: '',
     },
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
+    betas: [],
 };
 
 class SidebarLinks extends React.PureComponent {
@@ -74,7 +79,7 @@ class SidebarLinks extends React.PureComponent {
         super(props);
 
         this.showSearchPage = this.showSearchPage.bind(this);
-        this.showSettingsPage = this.showSettingsPage.bind(this);
+        this.onHandlePressAvatar = this.onHandlePressAvatar.bind(this);
         this.showReportPage = this.showReportPage.bind(this);
 
         if (this.props.isSmallScreenWidth) {
@@ -124,6 +129,19 @@ class SidebarLinks extends React.PureComponent {
         }
     }
 
+    onHandlePressAvatar() {
+        if (this.props.isCreateMenuOpen) {
+            // Prevent opening Settings page when click profile avatar quickly after clicking FAB icon
+            return;
+        }
+        const emojiCode = lodashGet(this.props.currentUserPersonalDetails, 'status.emojiCode', '');
+        if (emojiCode && Permissions.canUseCustomStatus(this.props.betas)) {
+            Navigation.navigate(ROUTES.SETTINGS_STATUS);
+        } else {
+            Navigation.navigate(ROUTES.SETTINGS);
+        }
+    }
+
     showSearchPage() {
         if (this.props.isCreateMenuOpen) {
             // Prevent opening Search page when click Search icon quickly after clicking FAB icon
@@ -131,15 +149,6 @@ class SidebarLinks extends React.PureComponent {
         }
 
         Navigation.navigate(ROUTES.SEARCH);
-    }
-
-    showSettingsPage() {
-        if (this.props.isCreateMenuOpen) {
-            // Prevent opening Settings page when click profile avatar quickly after clicking FAB icon
-            return;
-        }
-
-        Navigation.navigate(ROUTES.SETTINGS);
     }
 
     /**
@@ -161,6 +170,9 @@ class SidebarLinks extends React.PureComponent {
     }
 
     render() {
+        const statusEmojiCode = lodashGet(this.props.currentUserPersonalDetails, 'status.emojiCode', '');
+        const emojiStatus = Permissions.canUseCustomStatus(this.props.betas) ? statusEmojiCode : '';
+
         return (
             <View style={[styles.flex1, styles.h100]}>
                 <View
@@ -191,7 +203,7 @@ class SidebarLinks extends React.PureComponent {
                     <PressableWithoutFeedback
                         accessibilityLabel={this.props.translate('sidebarScreen.buttonMySettings')}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                        onPress={Session.checkIfActionIsAllowed(this.showSettingsPage)}
+                        onPress={Session.checkIfActionIsAllowed(this.onHandlePressAvatar)}
                     >
                         {Session.isAnonymousUser() ? (
                             <View style={styles.signInButtonAvatar}>
@@ -207,6 +219,7 @@ class SidebarLinks extends React.PureComponent {
                                 <AvatarWithIndicator
                                     source={UserUtils.getAvatar(this.props.currentUserPersonalDetails.avatar, this.props.currentUserPersonalDetails.accountID)}
                                     tooltipText={this.props.translate('common.settings')}
+                                    emojiStatus={emojiStatus}
                                 />
                             </OfflineWithFeedback>
                         )}
@@ -230,5 +243,14 @@ class SidebarLinks extends React.PureComponent {
 
 SidebarLinks.propTypes = propTypes;
 SidebarLinks.defaultProps = defaultProps;
-export default compose(withLocalize, withCurrentUserPersonalDetails, withWindowDimensions)(SidebarLinks);
+export default compose(
+    withLocalize,
+    withCurrentUserPersonalDetails,
+    withWindowDimensions,
+    withOnyx({
+        betas: {
+            key: ONYXKEYS.BETAS,
+        },
+    }),
+)(SidebarLinks);
 export {basePropTypes};

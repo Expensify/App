@@ -1162,6 +1162,24 @@ function isWaitingForIOUActionFromCurrentUser(report, allReportsDict = null) {
 
     return false;
 }
+/**
+ * Should return true only for personal 1:1 report
+ *
+ * @param {Object} report (chatReport or iouReport)
+ * @returns {boolean}
+ */
+function isShowEmojiStatus(report) {
+    return (
+        !report.isThread &&
+        !report.isChatRoom &&
+        !report.isExpenseRequest &&
+        !report.isIOUReportOwner &&
+        !report.isMoneyRequestReport &&
+        !report.isPolicyExpenseChat &&
+        !report.isTaskReport &&
+        !report.isThread
+    );
+}
 
 function isWaitingForTaskCompleteFromAssignee(report) {
     return isTaskReport(report) && isTaskAssignee(report) && isOpenTaskReport(report);
@@ -3024,4 +3042,5 @@ export {
     shouldDisableSettings,
     shouldDisableRename,
     hasSingleParticipant,
+    isShowEmojiStatus,
 };

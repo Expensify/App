@@ -3681,6 +3681,25 @@ const styles = {
     rotate90: {
         transform: [{rotate: '90deg'}],
     },
+
+    emojiStatusLHN: {
+        fontSize: 22,
+    },
+    sidebarStatusAvatarContainer: {
+        height: 44,
+        width: 84,
+        backgroundColor: themeColors.componentBG,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        borderRadius: 42,
+        paddingHorizontal: 2,
+    },
+    sidebarStatusAvatar: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
 };
 
 export default styles;
