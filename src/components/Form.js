@@ -102,7 +102,6 @@ function Form(props) {
     const inputRefs = useRef({});
     const touchedInputs = useRef({});
     const isFirstRender = useRef(true);
-    const lastValidatedValues = useRef({...props.draftValues});
 
     const {validate, onSubmit, children} = props;
 
@@ -146,11 +145,6 @@ function Form(props) {
 
             if (!_.isEqual(errors, touchedInputErrors)) {
                 setErrors(touchedInputErrors);
-            }
-
-            const isAtLeastOneInputTouched = _.keys(touchedInputs.current).length > 0;
-            if (isAtLeastOneInputTouched) {
-                lastValidatedValues.current = values;
             }
 
             return touchedInputErrors;
@@ -312,12 +306,7 @@ function Form(props) {
                             // web and mobile web platforms.
                             setTimeout(() => {
                                 setTouchedInput(inputID);
-
-                                // To prevent server errors from being cleared inadvertently, we only run validation on blur if any form values have changed since the last validation/submit
-                                const shouldValidate = !_.isEqual(inputValues, lastValidatedValues.current);
-                                if (shouldValidate) {
-                                    onValidate(inputValues);
-                                }
+                                onValidate(inputValues);
                             }, 200);
                         }
 
@@ -429,7 +418,6 @@ function Form(props) {
 
             delete inputRefs.current[inputID];
             delete touchedInputs.current[inputID];
-            delete lastValidatedValues.current[inputID];
 
             setInputValues((prevState) => {
                 const copyPrevState = _.clone(prevState);
