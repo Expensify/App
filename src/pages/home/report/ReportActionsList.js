@@ -145,6 +145,7 @@ function ReportActionsList({
 
         if (ReportUtils.isUnread(report)) {
             if (scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD) {
+                console.log('1) Marking report as read');
                 Report.readNewestAction(report.reportID);
             } else {
                 readActionSkipped.current = true;
@@ -187,6 +188,7 @@ function ReportActionsList({
         if (scrollingVerticalOffset.current < VERTICAL_OFFSET_THRESHOLD && isFloatingMessageCounterVisible) {
             if (readActionSkipped.current) {
                 readActionSkipped.current = false;
+                console.log('2) Marking report as read');
                 Report.readNewestAction(report.reportID);
             }
             setIsFloatingMessageCounterVisible(false);

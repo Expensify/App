@@ -8,5 +8,6 @@ import Visibility from './Visibility';
  * @returns {Boolean}
  */
 export default function getIsReportFullyVisible(isFocused) {
+    console.log('getIsReportFullyVisible: ', Visibility.isVisible());
     return Visibility.isVisible() && isFocused;
 }
