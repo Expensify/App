@@ -1325,12 +1325,10 @@ function getModifiedExpenseMessage(reportAction) {
         _.has(reportActionOriginalMessage, 'currency');
     if (hasModifiedAmount) {
         const oldCurrency = reportActionOriginalMessage.oldCurrency;
-        const oldCurrencyUnit = CurrencyUtils.getCurrencyUnit(oldCurrency);
-        const oldAmount = NumberFormatUtils.format(preferredLocale, Math.abs(reportActionOriginalMessage.oldAmount) / oldCurrencyUnit, {style: 'currency', currency: oldCurrency});
+        const oldAmount = CurrencyUtils.convertToDisplayString(reportActionOriginalMessage.oldAmount, oldCurrency);
 
         const currency = reportActionOriginalMessage.currency;
-        const currencyUnit = CurrencyUtils.getCurrencyUnit(currency);
-        const amount = NumberFormatUtils.format(preferredLocale, Math.abs(reportActionOriginalMessage.amount) / currencyUnit, {style: 'currency', currency});
+        const amount = CurrencyUtils.convertToDisplayString(reportActionOriginalMessage.amount, currency);
 
         return `changed the request to ${amount} (previously ${oldAmount})`;
     }
@@ -1358,7 +1356,7 @@ function getModifiedExpenseMessage(reportAction) {
  * Given the updates user made to the request, compose the originalMessage
  * object of the modified expense action.
  *
- * At the moment, we only allow changing one transaction field at the time.
+ * At the moment, we only allow changing one transaction field at a time.
  *
  * @param {Object} oldTransaction
  * @param {Object} transactionChanges
