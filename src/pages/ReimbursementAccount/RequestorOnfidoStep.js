@@ -42,7 +42,7 @@ class RequestorOnfidoStep extends React.Component {
             const onfidoBack = document.querySelector('.onfido-sdk-ui-NavigationBar-back');
             if (onfidoBack && !onfidoBack.classList.contains('onfido-sdk-ui-NavigationBar-disabled')) {
                 return onfidoBack.click();
-            } 
+            }
         }
         this.props.onBackButtonPress();
     }
