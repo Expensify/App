@@ -56,7 +56,7 @@ function SendButton({isDisabled: isDisabledProp, animatedRef, setIsCommentEmpty,
                         style={({pressed, isDisabled}) => [
                             styles.chatItemSubmitButton,
                             isDisabledProp || pressed || isDisabled ? undefined : styles.buttonSuccess,
-                            isDisabled && styles.cursorDisabled,
+                            isDisabledProp ? styles.cursorDisabled : undefined,
                         ]}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         accessibilityLabel={translate('common.send')}

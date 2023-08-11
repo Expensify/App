@@ -446,7 +446,7 @@ function ReportComposerWithSuggestions({
         // We want to focus or refocus the input when a modal has been closed or the underlying screen is refocused.
         // We avoid doing this on native platforms since the software keyboard popping
         // open creates a jarring and broken UX.
-        if (!willBlurTextInputOnTapOutside || modal.isVisible || !isFocusedProp || prevIsModalVisible || !prevIsFocused) {
+        if (!(willBlurTextInputOnTapOutside && !modal.isVisible && isFocusedProp && (prevIsModalVisible || !prevIsFocused))) {
             return;
         }
 
