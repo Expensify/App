@@ -24,18 +24,17 @@ import EmojiPickerButton from '../../../../components/EmojiPicker/EmojiPickerBut
 import * as DeviceCapabilities from '../../../../libs/DeviceCapabilities';
 import OfflineIndicator from '../../../../components/OfflineIndicator';
 import ExceededCommentLength from '../../../../components/ExceededCommentLength';
-import * as EmojiUtils from '../../../../libs/EmojiUtils';
 import ReportDropUI from '../ReportDropUI';
 import reportPropTypes from '../../../reportPropTypes';
 import OfflineWithFeedback from '../../../../components/OfflineWithFeedback';
 import * as Welcome from '../../../../libs/actions/Welcome';
 import withAnimatedRef from '../../../../components/withAnimatedRef';
-import Suggestions from './Suggestions';
 import SendButton from './SendButton';
 import AttachmentPickerWithMenuItems from './AttachmentPickerWithMenuItems';
-import SoloComposer from './SoloComposer';
+import ReportComposerWithSuggestions from './ReportComposerWithSuggestions';
 import debouncedSaveReportComment from './debouncedSaveReportComment';
 import withWindowDimensions from '../../../../components/withWindowDimensions';
+import withNavigation, {withNavigationPropTypes} from '../../../../components/withNavigation';
 
 const propTypes = {
     /** A method to call when the form is submitted */
@@ -75,6 +74,7 @@ const propTypes = {
     animatedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]).isRequired,
 
     ...withLocalizePropTypes,
+    ...withNavigationPropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
 };
 
@@ -111,6 +111,7 @@ function ReportActionCompose({
     shouldShowComposeInput,
     translate,
     isCommentEmpty: isCommentEmptyProp,
+    navigation,
 }) {
     /**
      * Updates the Highlight state of the composer
@@ -170,19 +171,6 @@ function ReportActionCompose({
 
         return translate('reportActionCompose.writeSomething');
     }, [report, blockedFromConcierge, translate, conciergePlaceholderRandomIndex]);
-
-    /**
-     * Used to show Popover menu on Workspace chat at first sign-in
-     * @returns {Boolean}
-     */
-    const showPopoverMenu = useMemo(
-        () =>
-            _.debounce(() => {
-                setMenuVisibility(true);
-                return true;
-            }),
-        [],
-    );
 
     const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
         if (!suggestionsRef.current) {
@@ -250,23 +238,32 @@ function ReportActionCompose({
         suggestionsRef.current.setShouldBlockEmojiCalc(true);
     }, []);
 
-    // TODO: migrate me
-    // useEffect(() => {
-    //     updateComment(commentRef.current);
+    /**
+     * Used to show Popover menu on Workspace chat at first sign-in
+     * @returns {Boolean}
+     */
+    const showPopoverMenu = useMemo(
+        () =>
+            _.debounce(() => {
+                setMenuVisibility(true);
+                return true;
+            }),
+        [],
+    );
 
-    //     // Shows Popover Menu on Workspace Chat at first sign-in
-    //     if (!disabled) {
-    //         Welcome.show({
-    //             routes: lodashGet(navigation.getState(), 'routes', []),
-    //             showPopoverMenu,
-    //         });
-    //     }
+    useEffect(() => {
+        // Shows Popover Menu on Workspace Chat at first sign-in
+        if (disabled) {
+            return;
+        }
 
-    //     if (comment.length !== 0) {
-    //         Report.setReportWithDraft(reportID, true);
-    //     }
-    //     // eslint-disable-next-line react-hooks/exhaustive-deps
-    // }, []);
+        Welcome.show({
+            routes: lodashGet(navigation.getState(), 'routes', []),
+            showPopoverMenu,
+        });
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     // Prevents focusing and showing the keyboard while the drawer is covering the chat.
     const reportRecipient = personalDetails[participantsWithoutExpensifyAccountIDs[0]];
@@ -315,7 +312,7 @@ function ReportActionCompose({
                                     isMenuVisible={isMenuVisible}
                                     onTriggerAttachmentPicker={onTriggerAttachmentPicker}
                                 />
-                                <SoloComposer
+                                <ReportComposerWithSuggestions
                                     ref={composerRef}
                                     reportID={reportID}
                                     report={report}
@@ -353,8 +350,8 @@ function ReportActionCompose({
                     {DeviceCapabilities.canUseTouchScreen() && isMediumScreenWidth ? null : (
                         <EmojiPickerButton
                             isDisabled={isBlockedFromConcierge || disabled}
-                            onModalHide={() => focus(true)}
-                            onEmojiSelected={() => replaceSelectionWithText}
+                            onModalHide={() => composerRef.current.focus(true)}
+                            onEmojiSelected={(...args) => composerRef.current.replaceSelectionWithText(...args)}
                         />
                     )}
                     <SendButton
@@ -391,6 +388,7 @@ ReportActionCompose.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withNetwork(),
+    withNavigation,
     withWindowDimensions,
     withCurrentUserPersonalDetails,
     withAnimatedRef,

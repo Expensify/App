@@ -93,7 +93,7 @@ const defaultProps = {
     modal: {},
 };
 
-function SoloComposer({
+function ReportComposerWithSuggestions({
     // Onyx
     modal,
     preferredLocale,
@@ -452,13 +452,25 @@ function SoloComposer({
         focus();
     }, [focus, prevIsFocused, prevIsModalVisible, isFocusedProp, modal.isVisible]);
 
+    useEffect(() => {
+        // TODO:  I don't know why this line is needed, it just feels wrong
+        updateComment(commentRef.current);
+
+        // TODO: NOTE, this was changed from comment.length to value.length
+        if (value.length !== 0) {
+            Report.setReportWithDraft(reportID, true);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     useImperativeHandle(
         forwardedRef,
         () => ({
             focus,
+            replaceSelectionWithText,
             prepareCommentAndResetComposer,
         }),
-        [focus, prepareCommentAndResetComposer],
+        [focus, prepareCommentAndResetComposer, replaceSelectionWithText],
     );
 
     return (
@@ -532,16 +544,16 @@ function SoloComposer({
     );
 }
 
-const SoloComposerRefForwardingComponent = React.forwardRef((props, ref) => (
-    <SoloComposer
+const RefForwardingComponent = React.forwardRef((props, ref) => (
+    <ReportComposerWithSuggestions
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
     />
 ));
 
-SoloComposer.propTypes = propTypes;
-SoloComposer.defaultProps = defaultProps;
+ReportComposerWithSuggestions.propTypes = propTypes;
+ReportComposerWithSuggestions.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
@@ -564,4 +576,4 @@ export default compose(
             canEvict: false,
         },
     }),
-)(SoloComposerRefForwardingComponent);
+)(RefForwardingComponent);
