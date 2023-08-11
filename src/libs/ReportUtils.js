@@ -87,6 +87,19 @@ Onyx.connect({
     callback: (val) => (loginList = val),
 });
 
+let allTransactions = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.TRANSACTION,
+    waitForCollectionCallback: true,
+    callback: (val) => {
+        if (!val) {
+            return;
+        }
+
+        allTransactions = val;
+    },
+});
+
 function getChatType(report) {
     return report ? report.chatType : '';
 }
@@ -2877,6 +2890,10 @@ function shouldDisableRename(report, policy) {
     return !_.keys(loginList).includes(policy.owner) && policy.role !== CONST.POLICY.ROLE.ADMIN;
 }
 
+function getAllReportTransactions(reportID) {
+    return _.filter(allTransactions, transaction => transaction.reportID === reportID);
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -2998,4 +3015,5 @@ export {
     shouldDisableRename,
     hasSingleParticipant,
     getTransactionReportName,
+    getAllReportTransactions,
 };
