@@ -33,18 +33,19 @@ function BankAccountManualStep(props) {
      */
     const validate = useCallback(
         (values) => {
-            const errorFields = {};
+            const requiredFields = ['routingNumber', 'accountNumber'];
+            const errorFields = ValidationUtils.getFieldRequiredErrors(values, requiredFields);
             const routingNumber = values.routingNumber && values.routingNumber.trim();
-
+            
             if (
-                !values.accountNumber ||
+                values.accountNumber &&
                 (!CONST.BANK_ACCOUNT.REGEX.US_ACCOUNT_NUMBER.test(values.accountNumber.trim()) && !CONST.BANK_ACCOUNT.REGEX.MASKED_US_ACCOUNT_NUMBER.test(values.accountNumber.trim()))
             ) {
                 errorFields.accountNumber = 'bankAccount.error.accountNumber';
-            } else if (values.accountNumber === routingNumber) {
+            } else if (values.accountNumber && (values.accountNumber === routingNumber)) {
                 errorFields.accountNumber = translate('bankAccount.error.routingAndAccountNumberCannotBeSame');
             }
-            if (!routingNumber || !CONST.BANK_ACCOUNT.REGEX.SWIFT_BIC.test(routingNumber) || !ValidationUtils.isValidRoutingNumber(routingNumber)) {
+            if (routingNumber && (!CONST.BANK_ACCOUNT.REGEX.SWIFT_BIC.test(routingNumber) || !ValidationUtils.isValidRoutingNumber(routingNumber))) {
                 errorFields.routingNumber = 'bankAccount.error.routingNumber';
             }
             if (!values.acceptTerms) {
