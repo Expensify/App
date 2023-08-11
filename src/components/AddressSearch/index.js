@@ -51,8 +51,6 @@ const propTypes = {
     /** A callback function when an address has been auto-selected */
     onPress: PropTypes.func,
 
-    onSubmit: PropTypes.func,
-
     /** Customize the TextInput container */
     // eslint-disable-next-line react/forbid-prop-types
     containerStyles: PropTypes.arrayOf(PropTypes.object),
@@ -79,7 +77,6 @@ const defaultProps = {
     shouldSaveDraft: false,
     onBlur: () => {},
     onPress: () => {},
-    onSubmit: () => {},
     errorText: '',
     hint: '',
     value: undefined,
