@@ -12,6 +12,8 @@ const IOU_SEND = 'send/new';
 const NEW_TASK = 'new/task';
 const SETTINGS_PERSONAL_DETAILS = 'settings/profile/personal-details';
 const SETTINGS_CONTACT_METHODS = 'settings/profile/contact-methods';
+const SETTINGS_STATUS = 'settings/profile/status';
+const SETTINGS_STATUS_SET = 'settings/profile/status/set';
 
 export default {
     BANK_ACCOUNT: 'bank-account',
@@ -54,6 +56,8 @@ export default {
     getEditContactMethodRoute: (contactMethod) => `${SETTINGS_CONTACT_METHODS}/${encodeURIComponent(contactMethod)}/details`,
     SETTINGS_NEW_CONTACT_METHOD: `${SETTINGS_CONTACT_METHODS}/new`,
     SETTINGS_2FA: 'settings/security/two-factor-auth',
+    SETTINGS_STATUS,
+    SETTINGS_STATUS_SET,
     NEW_GROUP: 'new/group',
     NEW_CHAT: 'new/chat',
     NEW_TASK,
