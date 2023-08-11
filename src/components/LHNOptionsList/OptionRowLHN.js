@@ -6,6 +6,7 @@ import lodashGet from 'lodash/get';
 import * as optionRowStyles from '../../styles/optionRowStyles';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
+import DateUtils from '../../libs/DateUtils';
 import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
 import MultipleAvatars from '../MultipleAvatars';
@@ -132,7 +133,10 @@ function OptionRowLHN(props) {
     };
 
     const emojiCode = lodashGet(optionItem, 'status.emojiCode', '');
-    const statusContent = lodashGet(optionItem, 'status.text', '');
+    const statusText = lodashGet(optionItem, 'status.text', '');
+    const statusClearAfterDate = lodashGet(optionItem, 'status.clearAfter', '');
+    const formattedDate = DateUtils.getStatusUntilDate(statusClearAfterDate);
+    const statusContent = formattedDate ? `${statusText} (${formattedDate})` : statusText;
     const isStatusVisible = Permissions.canUseCustomStatus(props.betas) && emojiCode && ReportUtils.isShowEmojiStatus(optionItem);
 
     return (
