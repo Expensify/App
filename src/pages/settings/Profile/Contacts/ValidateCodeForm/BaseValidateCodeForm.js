@@ -87,6 +87,10 @@ function BaseValidateCodeForm(props) {
     }));
 
     useEffect(() => {
+        Session.clearAccountMessages();
+    }, []);
+
+    useEffect(() => {
         if (!props.hasMagicCodeBeenSent) {
             return;
         }
@@ -113,11 +117,11 @@ function BaseValidateCodeForm(props) {
             setValidateCode(text);
             setFormError({});
 
-            if (props.account.errors) {
-                Session.clearAccountMessages();
+            if (validateLoginError) {
+                User.clearContactMethodErrors(props.contactMethod, 'validateLogin');
             }
         },
-        [props.account.errors],
+        [validateLoginError, props.contactMethod],
     );
 
     /**

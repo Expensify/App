@@ -314,7 +314,7 @@ function isValidTwoFactorCode(code) {
  * @returns {Boolean}
  */
 function isNumericWithSpecialChars(input) {
-    return /^\+?\d*$/.test(LoginUtils.getPhoneNumberWithoutSpecialChars(input));
+    return /^\+?[\d\\+]*$/.test(LoginUtils.getPhoneNumberWithoutSpecialChars(input));
 }
 
 /**

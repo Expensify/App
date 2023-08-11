@@ -189,6 +189,16 @@ function BaseSelectionList({
         onSelectRow(item);
     };
 
+    const selectFocusedOption = () => {
+        const focusedOption = flattenedSections.allOptions[focusedIndex];
+
+        if (!focusedOption || focusedOption.isDisabled) {
+            return;
+        }
+
+        selectRow(focusedOption, focusedIndex);
+    };
+
     /**
      * This function is used to compute the layout of any given item in our list.
      * We need to implement it so that we can programmatically scroll to items outside the virtual render window of the SectionList.
@@ -275,15 +285,7 @@ function BaseSelectionList({
     /** Selects row when pressing enter */
     useKeyboardShortcut(
         CONST.KEYBOARD_SHORTCUTS.ENTER,
-        () => {
-            const focusedOption = flattenedSections.allOptions[focusedIndex];
-
-            if (!focusedOption || focusedOption.isDisabled) {
-                return;
-            }
-
-            selectRow(focusedOption, focusedIndex);
-        },
+        selectFocusedOption,
         {
             captureOnInputs: true,
             shouldBubble: () => !flattenedSections.allOptions[focusedIndex],
@@ -317,6 +319,7 @@ function BaseSelectionList({
                                     keyboardType={keyboardType}
                                     selectTextOnFocus
                                     spellCheck={false}
+                                    onSubmitEditing={selectFocusedOption}
                                 />
                             </View>
                         )}

@@ -15,6 +15,7 @@ import Bug from '../../../assets/images/bug.svg';
 import Building from '../../../assets/images/building.svg';
 import Calendar from '../../../assets/images/calendar.svg';
 import Camera from '../../../assets/images/camera.svg';
+import Car from '../../../assets/images/car.svg';
 import Cash from '../../../assets/images/cash.svg';
 import ChatBubble from '../../../assets/images/chatbubble.svg';
 import Checkmark from '../../../assets/images/checkmark.svg';
@@ -136,6 +137,7 @@ export {
     Building,
     Calendar,
     Camera,
+    Car,
     Cash,
     ChatBubble,
     Checkmark,

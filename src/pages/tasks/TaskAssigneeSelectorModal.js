@@ -1,10 +1,10 @@
 /* eslint-disable es/no-optional-chaining */
 import React, {useState, useEffect, useMemo, useCallback} from 'react';
 import {View} from 'react-native';
+import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import lodashGet from 'lodash/get';
 import OptionsSelector from '../../components/OptionsSelector';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -108,6 +108,13 @@ function TaskAssigneeSelectorModal(props) {
         setSearchValue(newSearchTerm);
     };
 
+    const report = useMemo(() => {
+        if (!props.route.params || !props.route.params.reportID) {
+            return null;
+        }
+        return props.reports[`${ONYXKEYS.COLLECTION.REPORT}${props.route.params.reportID}`];
+    }, [props.reports, props.route.params]);
+
     const sections = useMemo(() => {
         const sectionsList = [];
         let indexOffset = 0;
@@ -164,13 +171,13 @@ function TaskAssigneeSelectorModal(props) {
         }
 
         // Check to see if we're editing a task and if so, update the assignee
-        if (props.route.params.reportID && props.task.report.reportID === props.route.params.reportID) {
+        if (report) {
             // There was an issue where sometimes a new assignee didn't have a DM thread
             // This would cause the app to crash, so we need to make sure we have a DM thread
-            Task.setAssigneeValue(option.login, option.accountID, props.task.shareDestination, OptionsListUtils.isCurrentUser(option));
+            Task.setAssigneeValue(option.login, option.accountID, props.route.params.reportID, OptionsListUtils.isCurrentUser(option));
 
             // Pass through the selected assignee
-            Task.editTaskAndNavigate(props.task.report, props.session.accountID, {
+            Task.editTaskAndNavigate(report, props.session.accountID, {
                 assignee: option.login,
                 assigneeAccountID: option.accountID,
             });
