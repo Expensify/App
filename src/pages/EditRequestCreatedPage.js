@@ -27,7 +27,7 @@ function EditRequestCreatedPage({defaultCreated, onSubmit}) {
         >
             <HeaderWithBackButton
                 title={translate('common.date')}
-                onBackButtonPress={() => Navigation.goBack()}
+                onBackButtonPress={Navigation.goBack}
             />
             <Form
                 style={[styles.flexGrow1, styles.ph5]}
