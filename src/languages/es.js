@@ -382,6 +382,8 @@ export default {
         pay: 'Pagar',
         viewDetails: 'Ver detalles',
         pending: 'Pendiente',
+        deleteRequest: 'Eliminar pedido',
+        deleteConfirmation: '¿Estás seguro de que quieres eliminar este pedido?',
         settledExpensify: 'Pagado',
         settledElsewhere: 'Pagado de otra forma',
         settledPaypalMe: 'Pagado con PayPal.me',
@@ -2072,6 +2074,14 @@ export default {
             enterPhoneEmail: 'Ingrese un correo electrónico o número de teléfono válido',
             enterEmail: 'Introduce un correo electrónico',
             enterValidEmail: 'Introduzca un correo electrónico válido',
+        },
+    },
+    distance: {
+        addStop: 'Agregar parada',
+        waypointDescription: {
+            start: 'Comienzo',
+            finish: 'Final',
+            stop: 'Parada',
         },
     },
     countrySelectorModal: {

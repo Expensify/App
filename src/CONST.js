@@ -2537,6 +2537,7 @@ const CONST = {
         SCAN: 'scan',
         DISTANCE: 'distance',
     },
+    STATUS_TEXT_MAX_LENGTH: 100,
 };
 
 export default CONST;

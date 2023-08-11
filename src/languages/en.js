@@ -383,6 +383,8 @@ export default {
         pay: 'Pay',
         viewDetails: 'View details',
         pending: 'Pending',
+        deleteRequest: 'Delete request',
+        deleteConfirmation: 'Are you sure that you want to delete this request?',
         settledExpensify: 'Paid',
         settledElsewhere: 'Paid elsewhere',
         settledPaypalMe: 'Paid using Paypal.me',
@@ -1599,6 +1601,14 @@ export default {
             enterPhoneEmail: 'Enter a valid email or phone number',
             enterEmail: 'Enter an email',
             enterValidEmail: 'Enter a valid email',
+        },
+    },
+    distance: {
+        addStop: 'Add stop',
+        waypointDescription: {
+            start: 'Start',
+            finish: 'Finish',
+            stop: 'Stop',
         },
     },
     countrySelectorModal: {
