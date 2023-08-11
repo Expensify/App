@@ -472,7 +472,7 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
 
         // Add optimistic personal details for new participants
         const optimisticPersonalDetails = {};
-        const settledPersonalDetails  = {};
+        const settledPersonalDetails = {};
         _.map(participantLoginList, (login, index) => {
             const accountID = newReportObject.participantAccountIDs[index];
             optimisticPersonalDetails[accountID] = allPersonalDetails[accountID] || {
@@ -483,7 +483,7 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
                 isOptimisticPersonalDetail: true,
             };
 
-            settledPersonalDetails [accountID] = allPersonalDetails[accountID] || null;
+            settledPersonalDetails[accountID] = allPersonalDetails[accountID] || null;
         });
         onyxData.optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -494,12 +494,12 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
         onyxData.successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: settledPersonalDetails ,
+            value: settledPersonalDetails,
         });
         onyxData.failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: settledPersonalDetails ,
+            value: settledPersonalDetails,
         });
 
         // Add the createdReportActionID parameter to the API call
