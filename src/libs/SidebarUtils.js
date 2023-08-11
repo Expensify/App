@@ -244,7 +244,6 @@ function getOptionData(report, reportActions, personalDetails, preferredLocale, 
     result.ownerAccountID = report.ownerAccountID;
     result.managerID = report.managerID;
     result.reportID = report.reportID;
-    console.log('report', report, ReportUtils.isUnread(report));
     result.isUnread = ReportUtils.isUnread(report);
     result.isUnreadWithMention = ReportUtils.isUnreadWithMention(report);
     result.hasDraftComment = report.hasDraft;

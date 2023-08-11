@@ -216,7 +216,6 @@ class ReportScreen extends React.Component {
         if (this.props.report.reportID && this.props.report.reportID === getReportID(this.props.route)) {
             return;
         }
-        console.log('fetchReportIfNeeded', reportIDFromPath);
         Report.openReport(reportIDFromPath);
     }
 
