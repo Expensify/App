@@ -26,13 +26,13 @@ function googleSignInRequest() {
         .then((token) => Session.beginGoogleSignIn(token))
         .catch((error) => {
             if (error.code === statusCodes.SIGN_IN_CANCELLED) {
-                Log.error('Google sign in cancelled', true, {error});
+                Log.alert('[Google Sign In] Google sign in cancelled', true, {error});
             } else if (error.code === statusCodes.IN_PROGRESS) {
-                Log.error('Google sign in already in progress', true, {error});
+                Log.alert('[Google Sign In] Google sign in already in progress', true, {error});
             } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-                Log.error('Google play services not available or outdated', true, {error});
+                Log.alert('[Google Sign In] Google play services not available or outdated', true, {error});
             } else {
-                Log.error('Unknown Google sign in error', true, {error});
+                Log.alert('[Google Sign In] Unknown Google sign in error', true, {error});
             }
         });
 }

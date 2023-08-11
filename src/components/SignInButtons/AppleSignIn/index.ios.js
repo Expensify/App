@@ -20,7 +20,7 @@ function appleSignInRequest() {
         .then((response) =>
             appleAuth.getCredentialStateForUser(response.user).then((credentialState) => {
                 if (credentialState !== appleAuth.State.AUTHORIZED) {
-                    Log.error('Authentication failed. Original response: ', response);
+                    Log.alert('[Apple Sign In] Authentication failed. Original response: ', response);
                     throw new Error('Authentication failed');
                 }
                 return response.identityToken;
@@ -38,7 +38,7 @@ function AppleSignIn() {
             .then((token) => Session.beginAppleSignIn(token))
             .catch((e) => {
                 if (e.code === appleAuth.Error.CANCELED) return null;
-                Log.error('Apple authentication failed', e);
+                Log.alert('[Apple Sign In] Apple authentication failed', e);
             });
     };
     return (
