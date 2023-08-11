@@ -47,9 +47,6 @@ const propTypes = {
             }),
         ),
     }),
-
-    // eslint-disable-next-line react/forbid-prop-types
-    errors: PropTypes.object,
 };
 
 const defaultProps = {
@@ -66,10 +63,9 @@ const defaultProps = {
         currency: CONST.CURRENCY.USD,
         participants: [],
     },
-    errors: {},
 };
 
-function NewRequestAmountPage({route, iou, report, errors}) {
+function NewRequestAmountPage({route, iou, report}) {
     const {translate} = useLocalize();
 
     const prevMoneyRequestID = useRef(iou.id);
@@ -103,11 +99,11 @@ function NewRequestAmountPage({route, iou, report, errors}) {
 
     // Check and dismiss modal
     useEffect(() => {
-        if (!ReportUtils.shouldHideComposer(report, errors)) {
+        if (!ReportUtils.shouldHideComposer(report)) {
             return;
         }
         Navigation.dismissModal(reportID);
-    }, [errors, report, reportID]);
+    }, [report, reportID]);
 
     // Because we use Onyx to store iou info, when we try to make two different money requests from different tabs, it can result in many bugs.
     useEffect(() => {
