@@ -1,8 +1,9 @@
-import React, {useRef} from 'react';
+import React, {useState, useRef, useEffect} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import CONST from '../../../../CONST';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import ROUTES from '../../../../ROUTES';
@@ -46,6 +47,15 @@ const defaultProps = {
 function MoneyRequestParticipantsPage({iou, translate, route}) {
     const iouType = useRef(lodashGet(route, 'params.iouType', ''));
     const reportID = useRef(lodashGet(route, 'params.reportID', ''));
+    const [headerTitle, setHeaderTitle] = useState();
+
+    useEffect(() => {
+        setHeaderTitle(
+            _.isEmpty(iou.participants) ?
+            translate('tabSelector.manual') :
+            translate('iou.split')
+        )
+    }, [iou.participants, translate])
 
     const navigateToNextStep = (moneyRequestType) => {
         IOU.setMoneyRequestId(moneyRequestType);
@@ -64,7 +74,7 @@ function MoneyRequestParticipantsPage({iou, translate, route}) {
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={styles.flex1}>
                     <HeaderWithBackButton
-                        title={translate('tabSelector.manual')}
+                        title={headerTitle}
                         onBackButtonPress={navigateBack}
                     />
                         <MoneyRequestParticipantsSelector
