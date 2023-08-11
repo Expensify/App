@@ -12,7 +12,7 @@ const commonScreenOptions = {
     animationTypeForReplace: 'push',
 };
 
-export default ({isSmallScreenWidth, windowHeight}) => ({
+export default (isSmallScreenWidth) => ({
     rightModalNavigator: {
         ...commonScreenOptions,
         cardStyleInterpolator: (props) => modalCardStyleInterpolator(isSmallScreenWidth, false, props),
@@ -21,10 +21,12 @@ export default ({isSmallScreenWidth, windowHeight}) => ({
         // We want pop in RHP since there are some flows that would work weird otherwise
         animationTypeForReplace: 'pop',
         cardStyle: {
-            ...getNavigationModalCardStyle({windowHeight}),
+            ...getNavigationModalCardStyle(),
 
             // This is necessary to cover translated sidebar with overlay.
-            marginLeft: isSmallScreenWidth ? 0 : -2 * variables.sideBarWidth,
+            width: isSmallScreenWidth ? '100%' : '200%',
+            // Excess space should be on the left so we need to position from right.
+            right: 0,
         },
     },
 
@@ -34,7 +36,7 @@ export default ({isSmallScreenWidth, windowHeight}) => ({
         cardStyleInterpolator: (props) => modalCardStyleInterpolator(isSmallScreenWidth, false, props),
 
         cardStyle: {
-            ...getNavigationModalCardStyle({windowHeight}),
+            ...getNavigationModalCardStyle(),
             width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
 
             // We need to translate the sidebar to not be covered by the StackNavigator so it can be clickable.
@@ -47,7 +49,7 @@ export default ({isSmallScreenWidth, windowHeight}) => ({
         ...commonScreenOptions,
         cardStyleInterpolator: (props) => modalCardStyleInterpolator(isSmallScreenWidth, true, props),
         cardStyle: {
-            ...getNavigationModalCardStyle({windowHeight}),
+            ...getNavigationModalCardStyle(),
 
             // This is necessary to cover whole screen. Including translated sidebar.
             marginLeft: isSmallScreenWidth ? 0 : -variables.sideBarWidth,
@@ -60,6 +62,9 @@ export default ({isSmallScreenWidth, windowHeight}) => ({
         animationEnabled: isSmallScreenWidth,
         cardStyleInterpolator: (props) => modalCardStyleInterpolator(isSmallScreenWidth, true, props),
 
-        cardStyle: getNavigationModalCardStyle({windowHeight}),
+        cardStyle: {
+            ...getNavigationModalCardStyle(),
+            paddingRight: isSmallScreenWidth ? 0 : variables.sideBarWidth,
+        },
     },
 });
