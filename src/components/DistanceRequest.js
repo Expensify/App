@@ -20,6 +20,9 @@ import LinearGradient from './LinearGradient';
 const MAX_WAYPOINTS = 25;
 const MAX_WAYPOINTS_TO_DISPLAY = 4;
 
+const SF_COORDINATES = [-122.4194, 37.7749];
+const DEFAULT_ZOOM_LEVEL = 15;
+
 const propTypes = {
     /** The transactionID of this request */
     transactionID: PropTypes.string,
@@ -128,19 +131,6 @@ function DistanceRequest({transactionID, transaction, translate}) {
                     />
                 )}
             </View>
-            <View
-                style={{
-                    height: 400,
-                    width: '100%',
-                    borderRadius: 10,
-                    overflow: 'hidden',
-                }}
-            >
-                <MapView
-                    accessToken="pk.eyJ1IjoiaGF5YXRhIiwiYSI6ImNsa3N5NTIzbTA3NHIzZW15Y2thOWVuZXIifQ.m6e2A0jWN3xuytd00Gj3iA"
-                    style={{flex: 1}}
-                />
-            </View>
             <View style={[styles.flexRow, styles.justifyContentCenter, styles.pt1]}>
                 <Button
                     small
@@ -149,6 +139,23 @@ function DistanceRequest({transactionID, transaction, translate}) {
                     text={translate('distance.addStop')}
                     isDisabled={numberOfWaypoints === MAX_WAYPOINTS}
                     innerStyles={[styles.ph10]}
+                />
+            </View>
+            <View style={[styles.p4, styles.flex1]}>
+                <MapView
+                    accessToken="pk.eyJ1IjoiaGF5YXRhIiwiYSI6ImNsa3N5NTIzbTA3NHIzZW15Y2thOWVuZXIifQ.m6e2A0jWN3xuytd00Gj3iA"
+                    styleURL="mapbox://styles/hayata/cll1qv2bg006301rdaha38fjh"
+                    mapPadding={50}
+                    pitchEnabled={false}
+                    initialState={{
+                        location: SF_COORDINATES,
+                        zoom: DEFAULT_ZOOM_LEVEL,
+                    }}
+                    style={{
+                        flex: 1,
+                        borderRadius: 20,
+                        overflow: 'hidden',
+                    }}
                 />
             </View>
         </>
