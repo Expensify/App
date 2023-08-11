@@ -283,14 +283,10 @@ function BaseSelectionList({
     }, [shouldDelayFocus, shouldShowTextInput]);
 
     /** Selects row when pressing enter */
-    useKeyboardShortcut(
-        CONST.KEYBOARD_SHORTCUTS.ENTER,
-        selectFocusedOption,
-        {
-            captureOnInputs: true,
-            shouldBubble: () => !flattenedSections.allOptions[focusedIndex],
-        },
-    );
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
+        captureOnInputs: true,
+        shouldBubble: () => !flattenedSections.allOptions[focusedIndex],
+    });
 
     return (
         <ArrowKeyFocusManager
