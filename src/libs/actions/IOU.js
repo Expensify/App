@@ -1515,7 +1515,7 @@ function setMoneyRequestReceipt(receiptPath, receiptSource) {
 
 function createEmptyTransaction() {
     const transactionID = NumberUtils.rand64();
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {transactionID});
     Onyx.merge(ONYXKEYS.IOU, {transactionID});
 }
 

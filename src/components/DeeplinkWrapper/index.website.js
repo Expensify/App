@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import {useEffect} from 'react';
 import Str from 'expensify-common/lib/str';
+import _ from 'underscore';
 import * as Browser from '../../libs/Browser';
 import ROUTES from '../../ROUTES';
 import * as App from '../../libs/actions/App';
@@ -18,7 +19,13 @@ function isMacOSWeb() {
 
 function DeeplinkWrapper({children}) {
     useEffect(() => {
-        if (!isMacOSWeb() || CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.DEV) {
+        // According to the design, we don't support unlink in Desktop app https://github.com/Expensify/App/issues/19681#issuecomment-1610353099
+        const isUnsupportedDeeplinkRoute = _.some([CONST.REGEX.ROUTES.UNLINK_LOGIN], (unsupportRouteRegex) => {
+            const routeRegex = new RegExp(unsupportRouteRegex);
+            return routeRegex.test(window.location.pathname);
+        });
+
+        if (!isMacOSWeb() || isUnsupportedDeeplinkRoute || CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.DEV) {
             return;
         }
 
