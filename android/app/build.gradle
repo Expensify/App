@@ -86,8 +86,8 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         multiDexEnabled rootProject.ext.multiDexEnabled
-        versionCode 1001035203
-        versionName "1.3.52-3"
+        versionCode 1001035301
+        versionName "1.3.53-1"
     }
 
     signingConfigs {
