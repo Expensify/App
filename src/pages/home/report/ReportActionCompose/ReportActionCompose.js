@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import PropTypes from 'prop-types';
-import {View, LayoutAnimation} from 'react-native';
+import {View} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
@@ -194,17 +194,6 @@ function ReportActionCompose({
         [],
     );
 
-    const onSelectionChange = useCallback((e) => {
-        LayoutAnimation.configureNext(LayoutAnimation.create(50, LayoutAnimation.Types.easeInEaseOut, LayoutAnimation.Properties.opacity));
-
-        // if (suggestionsRef.current.onSelectionChange(e)) {
-        //     return;
-        // }
-
-        // TODO: set selection
-        // setSelection(e.nativeEvent.selection);
-    }, []);
-
     const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
         if (!suggestionsRef.current) {
             return;
@@ -353,19 +342,18 @@ function ReportActionCompose({
                                     isComposerFullSize={isComposerFullSize}
                                     setIsFocused={setIsFocused}
                                     suggestionsRef={suggestionsRef}
-                                    updateShouldShowSuggestionMenuToFalse={updateShouldShowSuggestionMenuToFalse}
                                     displayFileInModal={displayFileInModal}
                                     textInputShouldClear={textInputShouldClear}
                                     setTextInputShouldClear={setTextInputShouldClear}
                                     isBlockedFromConcierge={isBlockedFromConcierge}
                                     disabled={disabled}
-                                    onSelectionChange={onSelectionChange}
                                     isFullSizeComposerAvailable={isFullSizeComposerAvailable}
                                     setIsFullComposerAvailable={setIsFullComposerAvailable}
                                     composerHeight={composerHeight}
                                     setComposerHeight={setComposerHeight}
                                     setIsCommentEmpty={setIsCommentEmpty}
                                     submitForm={submitForm}
+                                    shouldShowReportRecipientLocalTime={shouldShowReportRecipientLocalTime}
                                 />
                                 <ReportDropUI
                                     onDrop={(e) => {
@@ -410,29 +398,6 @@ function ReportActionCompose({
                     /> */}
                 </View>
             </OfflineWithFeedback>
-            {/* <Suggestions
-                // Onyx
-                preferredLocale={preferredLocale}
-                windowHeight={windowHeight}
-                isSmallScreenWidth={isSmallScreenWidth}
-                personalDetails={personalDetails}
-                translate={translate}
-                preferredSkinTone={preferredSkinTone}
-                // Input
-                value={value}
-                setValue={setValue}
-                selection={selection}
-                setSelection={setSelection}
-                // Esoteric props
-                isComposerFullSize={isComposerFullSize}
-                updateComment={updateComment}
-                composerHeight={composerHeight}
-                shouldShowReportRecipientLocalTime={shouldShowReportRecipientLocalTime}
-                // Custom added
-                ref={suggestionsRef}
-                onInsertedEmoji={onInsertedEmoji}
-                resetKeyboardInput={resetKeyboardInput}
-            /> */}
         </View>
     );
 }

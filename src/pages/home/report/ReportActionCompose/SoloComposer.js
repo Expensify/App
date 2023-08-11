@@ -1,5 +1,5 @@
 import React, {useEffect, useCallback, useState, useRef, useMemo} from 'react';
-import {View, InteractionManager, NativeModules, findNodeHandle} from 'react-native';
+import {View, InteractionManager, NativeModules, findNodeHandle, LayoutAnimation} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -31,6 +31,7 @@ import reportActionPropTypes from '../reportActionPropTypes';
 import canFocusInputOnScreenFocus from '../../../../libs/canFocusInputOnScreenFocus';
 import debouncedSaveReportComment from './debouncedSaveReportComment';
 import UpdateComment from './UpdateComment';
+import Suggestions from './Suggestions';
 
 const {RNTextInputReset} = NativeModules;
 
@@ -107,13 +108,11 @@ function SoloComposer({
     isComposerFullSize,
     setIsFocused,
     suggestionsRef,
-    updateShouldShowSuggestionMenuToFalse,
     displayFileInModal,
     textInputShouldClear,
     setTextInputShouldClear,
     isBlockedFromConcierge,
     disabled,
-    onSelectionChange,
     isFullSizeComposerAvailable,
     setIsFullComposerAvailable,
     numberOfLines,
@@ -122,6 +121,7 @@ function SoloComposer({
     reportID,
     setIsCommentEmpty,
     submitForm,
+    shouldShowReportRecipientLocalTime,
 
     // Focus stuff
     shouldShowComposeInput,
@@ -136,7 +136,9 @@ function SoloComposer({
     const shouldAutoFocus = !modal.isVisible && (shouldFocusInputOnScreenFocus || isEmptyChat) && shouldShowComposeInput;
 
     const [value, setValue] = useState(initialComment);
-    const valueRef = usePrevious(value);
+    const valueRef = useRef(value);
+    valueRef.current = value;
+
     const [selection, setSelection] = useState({
         start: isMobileSafari && !shouldAutoFocus ? 0 : initialComment.length,
         end: isMobileSafari && !shouldAutoFocus ? 0 : initialComment.length,
@@ -273,10 +275,9 @@ function SoloComposer({
                 return;
             }
 
-            // TODO: enable me again :3
-            // if (suggestionsRef.current.triggerHotkeyActions(e)) {
-            //     return;
-            // }
+            if (suggestionsRef.current.triggerHotkeyActions(e)) {
+                return;
+            }
 
             // Submit the form when Enter is pressed
             if (e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey && !e.shiftKey) {
@@ -298,8 +299,28 @@ function SoloComposer({
                 }
             }
         },
-        [isKeyboardShown, isSmallScreenWidth, parentReportActions, report, reportActions, reportID, submitForm, valueRef],
+        [isKeyboardShown, isSmallScreenWidth, parentReportActions, report, reportActions, reportID, submitForm, suggestionsRef, valueRef],
     );
+
+    const onSelectionChange = useCallback(
+        (e) => {
+            LayoutAnimation.configureNext(LayoutAnimation.create(50, LayoutAnimation.Types.easeInEaseOut, LayoutAnimation.Properties.opacity));
+
+            if (suggestionsRef.current.onSelectionChange(e)) {
+                return;
+            }
+
+            setSelection(e.nativeEvent.selection);
+        },
+        [suggestionsRef],
+    );
+
+    const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
+        if (!suggestionsRef.current) {
+            return;
+        }
+        suggestionsRef.current.updateShouldShowSuggestionMenuToFalse(false);
+    }, [suggestionsRef]);
 
     /**
      * Focus the composer text input
@@ -408,55 +429,73 @@ function SoloComposer({
     }, [focus, prevIsFocused, prevIsModalVisible, isFocusedProp, modal.isVisible]);
 
     return (
-        <View style={[containerComposeStyles, styles.textInputComposeBorder]}>
-            <Composer
-                checkComposerVisibility={checkComposerVisibility}
-                autoFocus={shouldAutoFocus}
-                multiline
-                ref={setTextInputRef}
-                textAlignVertical="top"
-                placeholder={inputPlaceholder}
-                placeholderTextColor={themeColors.placeholderText}
-                onChangeText={(commentValue) => updateComment(commentValue, true)}
-                onKeyPress={triggerHotkeyActions}
-                style={[styles.textInputCompose, isComposerFullSize ? styles.textInputFullCompose : styles.flex4]}
-                maxLines={maxComposerLines}
-                onFocus={() => setIsFocused(true)}
-                onBlur={() => {
-                    setIsFocused(false);
-                    suggestionsRef.current.resetSuggestions();
-                }}
-                onClick={updateShouldShowSuggestionMenuToFalse}
-                onPasteFile={displayFileInModal}
-                shouldClear={textInputShouldClear}
-                onClear={() => setTextInputShouldClear(false)}
-                isDisabled={isBlockedFromConcierge || disabled}
+        <>
+            <View style={[containerComposeStyles, styles.textInputComposeBorder]}>
+                <Composer
+                    checkComposerVisibility={checkComposerVisibility}
+                    autoFocus={shouldAutoFocus}
+                    multiline
+                    ref={setTextInputRef}
+                    textAlignVertical="top"
+                    placeholder={inputPlaceholder}
+                    placeholderTextColor={themeColors.placeholderText}
+                    onChangeText={(commentValue) => updateComment(commentValue, true)}
+                    onKeyPress={triggerHotkeyActions}
+                    style={[styles.textInputCompose, isComposerFullSize ? styles.textInputFullCompose : styles.flex4]}
+                    maxLines={maxComposerLines}
+                    onFocus={() => setIsFocused(true)}
+                    onBlur={() => {
+                        setIsFocused(false);
+                        suggestionsRef.current.resetSuggestions();
+                    }}
+                    onClick={updateShouldShowSuggestionMenuToFalse}
+                    onPasteFile={displayFileInModal}
+                    shouldClear={textInputShouldClear}
+                    onClear={() => setTextInputShouldClear(false)}
+                    isDisabled={isBlockedFromConcierge || disabled}
+                    selection={selection}
+                    onSelectionChange={onSelectionChange}
+                    isFullComposerAvailable={isFullSizeComposerAvailable}
+                    setIsFullComposerAvailable={setIsFullComposerAvailable}
+                    isComposerFullSize={isComposerFullSize}
+                    value={value}
+                    numberOfLines={numberOfLines}
+                    onNumberOfLinesChange={updateNumberOfLines}
+                    shouldCalculateCaretPosition
+                    onLayout={(e) => {
+                        const composerLayoutHeight = e.nativeEvent.layout.height;
+                        if (composerHeight === composerLayoutHeight) {
+                            return;
+                        }
+                        setComposerHeight(composerLayoutHeight);
+                    }}
+                    onScroll={updateShouldShowSuggestionMenuToFalse}
+                />
+                <UpdateComment
+                    reportID={reportID}
+                    report={report}
+                    value={value}
+                    updateComment={updateComment}
+                    commentRef={commentRef}
+                />
+            </View>
+
+            <Suggestions
+                // Input
+                value={value}
+                setValue={setValue}
                 selection={selection}
-                onSelectionChange={onSelectionChange}
-                isFullComposerAvailable={isFullSizeComposerAvailable}
-                setIsFullComposerAvailable={setIsFullComposerAvailable}
+                setSelection={setSelection}
                 isComposerFullSize={isComposerFullSize}
-                value={value}
-                numberOfLines={numberOfLines}
-                onNumberOfLinesChange={updateNumberOfLines}
-                shouldCalculateCaretPosition
-                onLayout={(e) => {
-                    const composerLayoutHeight = e.nativeEvent.layout.height;
-                    if (composerHeight === composerLayoutHeight) {
-                        return;
-                    }
-                    setComposerHeight(composerLayoutHeight);
-                }}
-                onScroll={updateShouldShowSuggestionMenuToFalse}
-            />
-            <UpdateComment
-                reportID={reportID}
-                report={report}
-                value={value}
                 updateComment={updateComment}
-                commentRef={commentRef}
+                composerHeight={composerHeight}
+                shouldShowReportRecipientLocalTime={shouldShowReportRecipientLocalTime}
+                ref={suggestionsRef}
+                // TODO: onInsertedEmoji={onInsertedEmoji}
+
+                resetKeyboardInput={resetKeyboardInput}
             />
-        </View>
+        </>
     );
 }
 
