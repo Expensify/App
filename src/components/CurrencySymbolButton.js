@@ -13,16 +13,9 @@ const propTypes = {
 
     /** Function to call when currency button is pressed */
     onCurrencyButtonPress: PropTypes.func.isRequired,
-
-    /** Flag to indicate if the button should be disabled */
-    disabled: PropTypes.bool,
 };
 
-const defaultProps = {
-    disabled: false,
-};
-
-function CurrencySymbolButton({onCurrencyButtonPress, currencySymbol, disabled}) {
+function CurrencySymbolButton({onCurrencyButtonPress, currencySymbol}) {
     const {translate} = useLocalize();
     return (
         <Tooltip text={translate('iOUCurrencySelection.selectCurrency')}>
@@ -30,7 +23,6 @@ function CurrencySymbolButton({onCurrencyButtonPress, currencySymbol, disabled})
                 onPress={onCurrencyButtonPress}
                 accessibilityLabel={translate('iOUCurrencySelection.selectCurrency')}
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                disabled={disabled}
             >
                 <Text style={styles.iouAmountText}>{currencySymbol}</Text>
             </PressableWithoutFeedback>
@@ -40,6 +32,5 @@ function CurrencySymbolButton({onCurrencyButtonPress, currencySymbol, disabled})
 
 CurrencySymbolButton.propTypes = propTypes;
 CurrencySymbolButton.displayName = 'CurrencySymbolButton';
-CurrencySymbolButton.defaultProps = defaultProps;
 
 export default CurrencySymbolButton;
