@@ -138,7 +138,7 @@ function LoginForm(props) {
 
     useImperativeHandle(props.innerRef, () => ({
         isInputFocused() {
-            return input.current && input.current.isFocused;
+            return input.current && input.current.isFocused();
         }
     }));
 
