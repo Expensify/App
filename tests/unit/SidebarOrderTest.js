@@ -357,7 +357,7 @@ describe('Sidebar', () => {
             };
             const report3 = {
                 ...LHNTestUtils.getFakeReport([5, 6], 1),
-                hasOutstandingIOU: true,
+                hasOutstandingIOU: false,
 
                 // This has to be added after the IOU report is generated
                 iouReportID: null,
@@ -403,8 +403,8 @@ describe('Sidebar', () => {
                         expect(screen.queryAllByTestId('Pencil Icon')).toHaveLength(1);
                         expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('One, Two');
                         expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Email Two owes $100.00');
-                        expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Five, Six');
-                        expect(lodashGet(displayNames, [3, 'props', 'children'])).toBe('Three, Four');
+                        expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Three, Four');
+                        expect(lodashGet(displayNames, [3, 'props', 'children'])).toBe('Five, Six');
                     })
             );
         });
