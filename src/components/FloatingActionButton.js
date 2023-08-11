@@ -47,11 +47,11 @@ function FloatingActionButton({isActive, onPress, buttonRef, translate, accessib
         const animationFinalValue = isActive ? 1 : 0;
 
         Animated.timing(animatedValue.current, {
-           toValue: animationFinalValue,
-           duration: 340,
-           easing: Easing.inOut(Easing.ease),
-           useNativeDriver: false,
-       }).start();
+            toValue: animationFinalValue,
+            duration: 340,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: false,
+        }).start();
     }, [isActive, previousIsActive]);
 
     const rotate = animatedValue.current.interpolate({
