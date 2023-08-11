@@ -266,7 +266,7 @@ const getEmojiCodeWithSkinColor = (item, preferredSkinToneIndex) => {
  * @returns {Object[]} An array of emoji codes.
  */
 function extractEmojis(text) {
-    const emojis = [];
+    let emojis = [];
 
     if (!text) {
         return emojis;
@@ -282,12 +282,14 @@ function extractEmojis(text) {
 
     for (let i = 0; i < parseEmojis.length; i++) {
         const character = parseEmojis[i];
-        const emoji = Emojis.emojiCodeTable[character];
+        const emoji = Emojis.emojiCodeTableWithSkinTones[character];
         if (emoji) {
             emojis.push(emoji);
         }
     }
 
+    // Create a new set to remove duplicates
+    emojis = [...new Set(emojis)];
     return emojis;
 }
 

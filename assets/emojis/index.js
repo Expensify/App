@@ -27,10 +27,27 @@ const emojiCodeTable = _.reduce(
     {},
 );
 
+const emojiCodeTableWithSkinTones = _.reduce(
+    emojis,
+    (prev, cur) => {
+        const newValue = prev;
+        if (!cur.header) {
+            newValue[cur.code] = cur;
+        }
+        if (cur.types) {
+            cur.types.forEach((type) => {
+                newValue[type] = cur;
+            });
+        }
+        return newValue;
+    },
+    {},
+);
+
 const localeEmojis = {
     en: enEmojis,
     es: esEmojis,
 };
 
-export {emojiNameTable, emojiCodeTable, localeEmojis};
+export {emojiNameTable, emojiCodeTable, emojiCodeTableWithSkinTones, localeEmojis};
 export {skinTones, categoryFrequentlyUsed, default} from './common';
