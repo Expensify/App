@@ -46,6 +46,7 @@ const propTypes = {
         params: PropTypes.shape({
             /** The ID of the report this screen should display */
             reportID: PropTypes.string,
+
             /** The reportActionID to scroll to */
             reportActionID: PropTypes.string,
         }).isRequired,
