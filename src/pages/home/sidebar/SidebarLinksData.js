@@ -76,8 +76,9 @@ function SidebarLinksData({isFocused, allReportActions, betas, chatReports, curr
         return reportIDs;
     }, [allReportActions, betas, chatReports, currentReportID, policies, priorityMode]);
 
-    const prevCurrentReportID = usePrevious(currentReportID);
-    const isActiveReport = useCallback((reportID) => prevCurrentReportID === reportID, [prevCurrentReportID]);
+    const currentReportIDRef = useRef(currentReportID);
+    currentReportIDRef.current = currentReportID;
+    const isActiveReport = useCallback((reportID) => currentReportIDRef.current === reportID, []);
 
     const isLoading = _.isEmpty(chatReports) || isPersonalDetailsLoading;
 
