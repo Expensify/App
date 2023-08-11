@@ -103,9 +103,10 @@ function ReportPreview(props) {
 
     const iouSettled = ReportUtils.isSettled(props.iouReportID);
     const numberOfRequests = ReportActionUtils.getNumberOfMoneyRequests(props.action);
+    const numberOfScanningReceipts = ReportActionUtils.getNumberOfScanningReceipts(props.iouReport);
 
-    const receipts = ReportActionUtils.getReportPreviewReceipts(props.action);
-    const hasReceipts = receipts.length > 0;
+    const transactions = ReportActionUtils.getReportPreviewTransactionsWithReceipts(props.action);
+    const hasReceipts = transactions.length > 0;
     const isScanning = hasReceipts && !ReportActionUtils.hasReadyMoneyRequests(props.action);
     const hasOnlyOneReceiptRequest = numberOfRequests === 1 && hasReceipts;
 
@@ -128,7 +129,7 @@ function ReportPreview(props) {
 
     let previewMessage;
     const managerName = ReportUtils.isPolicyExpenseChat(props.chatReport) ? ReportUtils.getPolicyName(props.chatReport) : ReportUtils.getDisplayNameForParticipant(managerID, true);
-    if (_.some(receipts, ({receipt}) => ReceiptUtils.isBeingScanned(receipt))) {
+    if (isScanning) {
         previewMessage = props.translate('common.receipt');
     } else {
         previewMessage = props.translate(iouSettled || props.iouReport.isWaitingOnBankAccount ? 'iou.payerPaid' : 'iou.payerOwes', {payer: managerName});
@@ -154,7 +155,7 @@ function ReportPreview(props) {
                 <View style={[styles.reportPreviewBox, props.isHovered || isScanning ? styles.moneyRequestPreviewBoxHover : undefined]}>
                     {hasReceipts && (
                         <ReceiptImages
-                            images={_.map(receipts, ({receipt, filename}) => ({source: receipt.source, filename}))}
+                            images={_.map(transactions, ({receipt, filename}) => ({source: receipt.source, filename}))}
                             size={3}
                             total={ReportActionUtils.getNumberOfMoneyRequests(props.action)}
                             hoverStyle={props.isHovered || isScanning ? styles.reportPreviewBoxHoverBorder : undefined}
@@ -182,7 +183,14 @@ function ReportPreview(props) {
                         {hasReceipts && !isScanning && (
                             <View style={styles.flexRow}>
                                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                    <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh16]}>{hasOnlyOneReceiptRequest ? receipts[0].merchant : props.translate('iou.requestCount', { count: numberOfRequests })}</Text>
+                                    <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh16]}>{
+                                        hasOnlyOneReceiptRequest
+                                            ? transactions[0].merchant
+                                            : props.translate('iou.requestCount', {
+                                                count: numberOfRequests,
+                                                scanningReceipts: numberOfScanningReceipts,
+                                            })
+                                    }</Text>
                                 </View>
                             </View>
                         )}

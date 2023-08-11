@@ -384,7 +384,7 @@ export default {
         receiptScanning: 'Escaneo de recibo en curso…',
         receiptStatusTitle: 'Escaneado…',
         receiptStatusText: 'Solo tú puedes ver este recibo cuando se está escaneando. Vuelve más tarde o ingresa los detalles ahora.',
-        requestCount: ({count}) => `${count} solicitudes`,
+        requestCount: ({count, scanningReceipts = 0}) => `${count} solicitudes${scanningReceipts > 0 ? `, ${scanningReceipts} escaneo` : ''}`,
         settledExpensify: 'Pagado',
         settledElsewhere: 'Pagado de otra forma',
         settledPaypalMe: 'Pagado con PayPal.me',

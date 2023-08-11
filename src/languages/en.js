@@ -385,7 +385,7 @@ export default {
         receiptScanning: 'Receipt scan in progress…',
         receiptStatusTitle: 'Scanning…',
         receiptStatusText: 'Only you can see this receipt when it\'s scanning. Check back later or enter the details now.',
-        requestCount: ({count}) => `${count} requests`,
+        requestCount: ({count, scanningReceipts = 0}) => `${count} requests${scanningReceipts > 0 ? `, ${scanningReceipts} scanning` : ''}`,
         settledExpensify: 'Paid',
         settledElsewhere: 'Paid elsewhere',
         settledPaypalMe: 'Paid using Paypal.me',

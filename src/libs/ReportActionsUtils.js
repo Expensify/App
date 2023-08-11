@@ -582,7 +582,7 @@ function isMessageDeleted(reportAction) {
  * @param {Object} reportPreviewAction
  * @returns {Object}
  */
-function getReportPreviewReceipts(reportPreviewAction) {
+function getReportPreviewTransactionsWithReceipts(reportPreviewAction) {
     const transactionIDs = lodashGet(reportPreviewAction, ['childLastReceiptTransactionIDs'], '').split(',');
     return _.reduce(transactionIDs, (transactions, transactionID) => {
         const transaction = allTransactions[transactionID];
@@ -611,8 +611,8 @@ function getTransaction(iouReportAction) {
  */
 function hasReadyMoneyRequests(reportAction) {
     if (isReportPreviewAction(reportAction)) {
-        const transactions = getReportPreviewReceipts(reportAction);
-        return _.some(transactions, (transaction) => !TransactionUtils.hasReceipt(transaction) || !ReceiptUtils.isBeingScanned(transaction.receipt));
+        const transactions = getReportPreviewTransactionsWithReceipts(reportAction);
+        return _.some(transactions, (transaction) => !ReceiptUtils.isBeingScanned(transaction.receipt));
     }
 
     if (isMoneyRequestAction(reportAction)) {
@@ -631,6 +631,25 @@ function hasReadyMoneyRequests(reportAction) {
  */
 function getNumberOfMoneyRequests(reportPreviewAction) {
     return lodashGet(reportPreviewAction, 'childMoneyRequestCount', 0);
+}
+
+/**
+ * Returns the number of receipts associated with an IOU report that are still being scanned.
+ * Note that we search the IOU report for this number, since scanning receipts will be whispers
+ * in the IOU report for only the submitter and we can get an accurate count.
+ *
+ * @param {Object|null} iouReport
+ * @returns {Number}
+ */
+function getNumberOfScanningReceipts(iouReport) {
+    const reportActions = lodashGet(allReportActions, lodashGet(iouReport, 'reportID'), []);
+    return _.reduce(reportActions, (count, reportAction) => {
+        if (!isMoneyRequestAction(reportAction)) {
+            return count;
+        }
+        const transaction = getTransaction(reportAction);
+        return count + Number(TransactionUtils.hasReceipt(transaction) && ReceiptUtils.isBeingScanned(transaction.receipt));
+    }, 0);
 }
 
 export {
@@ -665,8 +684,9 @@ export {
     isWhisperAction,
     isPendingRemove,
     getReportAction,
-    getReportPreviewReceipts,
+    getReportPreviewTransactionsWithReceipts,
     hasReadyMoneyRequests,
     getTransaction,
     getNumberOfMoneyRequests,
+    getNumberOfScanningReceipts,
 };
