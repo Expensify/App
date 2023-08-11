@@ -904,6 +904,7 @@ export default {
         hasPhoneLoginError: 'To add a verified bank account please ensure your primary login is a valid email and try again. You can add your phone number as a secondary login.',
         hasBeenThrottledError: 'There was an error adding your bank account. Please wait a few minutes and try again.',
         hasCurrencyError: 'Oops! It appears that your workspace currency is set to a different currency than USD. To proceed, please set it to USD and try again',
+        plaidThrottledError: 'Due to a high number of login attempts, this option has been temporarily disabled for 24 hours. Please try again later.',
         error: {
             noBankAccountAvailable: 'Sorry, no bank account is available',
             noBankAccountSelected: 'Please choose an account',
