@@ -584,7 +584,15 @@ function updateGeneralSettings(policyID, name, currency) {
         },
     ];
 
-    API.write('UpdateWorkspaceGeneralSettings', {policyID, workspaceName: name, currency}, {optimisticData, successData, failureData});
+    API.write(
+        'UpdateWorkspaceGeneralSettings',
+        {policyID, workspaceName: name, currency},
+        {
+            optimisticData,
+            successData,
+            failureData,
+        },
+    );
 }
 
 /**
@@ -1164,38 +1172,10 @@ function openWorkspaceInvitePage(policyID, clientMemberEmails) {
         return;
     }
 
-    const onyxData = {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.IS_LOADING_INVITE_POLICY_MEMBERS,
-                value: true,
-            },
-        ],
-        successData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.IS_LOADING_INVITE_POLICY_MEMBERS,
-                value: false,
-            },
-        ],
-        failureData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.IS_LOADING_INVITE_POLICY_MEMBERS,
-                value: false,
-            },
-        ],
-    };
-
-    API.read(
-        'OpenWorkspaceInvitePage',
-        {
-            policyID,
-            clientMemberEmails: JSON.stringify(clientMemberEmails),
-        },
-        onyxData,
-    );
+    API.read('OpenWorkspaceInvitePage', {
+        policyID,
+        clientMemberEmails: JSON.stringify(clientMemberEmails),
+    });
 }
 
 /**
