@@ -33,11 +33,12 @@
 #
 # Usage:
 # ------
-# To run this script, pass the secret Mapbox access token as a command-line argument:
-# ./scriptname.sh YOUR_MAPBOX_ACCESS_TOKEN
+# To run this script, pass the secret Mapbox access token and public token as command-line arguments:
+# ./scriptname.sh YOUR_MAPBOX_ACCESS_TOKEN YOUR_MAPBOX_PUBLIC_TOKEN
 
 NETRC_PATH="$HOME/.netrc"
 GRADLE_PROPERTIES_PATH="$HOME/.gradle/gradle.properties"
+ENV_PATH="../.env"
 
 # This function provides a user-friendly error message when the script encounters an error.
 # It informs the user about probable permission issues and suggests commands to resolve them.
@@ -61,15 +62,17 @@ handleError() {
 # Set a trap to call the handleError function when any of the commands fail
 trap handleError ERR
 
-# Take the token as a command-line argument
+# Take the tokens as command-line arguments
 TOKEN="$1"
+PUBLIC_TOKEN="$2"
 
-# Check if the token was provided
-if [ -z "$TOKEN" ]; then
-    echo "Usage: $0 <YOUR_MAPBOX_ACCESS_TOKEN>"
-    echo "No token provided. Exiting."
+# Check if the tokens were provided
+if [ -z "$TOKEN" ] || [ -z "$PUBLIC_TOKEN" ]; then
+    echo "Usage: $0 <YOUR_MAPBOX_ACCESS_TOKEN> <YOUR_MAPBOX_PUBLIC_TOKEN>"
+    echo "Token(s) missing. Exiting."
     exit 1
 fi
+
 
 # -----------------------------------------------
 # iOS Configuration for .netrc
@@ -131,4 +134,31 @@ if grep -q "MAPBOX_DOWNLOADS_TOKEN" $GRADLE_PROPERTIES_PATH; then
 else
     echo "MAPBOX_DOWNLOADS_TOKEN=$TOKEN" >> $GRADLE_PROPERTIES_PATH
     echo -e "\n$GRADLE_PROPERTIES_PATH has been updated with new credentials"
+fi
+
+# -----------------------------------------------
+# Configuration for .env
+# -----------------------------------------------
+echo -e "\nConfiguring $ENV_PATH for Mapbox public token"
+
+# Check if .env exists. If not, create one.
+if [ ! -f $ENV_PATH ]; then
+    touch $ENV_PATH
+fi
+
+# Check if MAPBOX_PUBLIC_TOKEN already exists in the file
+if grep -q "MAPBOX_PUBLIC_TOKEN" $ENV_PATH; then
+    # Extract the current public token from .env
+    CURRENT_PUBLIC_TOKEN=$(grep "MAPBOX_PUBLIC_TOKEN" $ENV_PATH | cut -d'=' -f2)
+    
+    # Compare the current public token to the entered public token
+    if [ "$CURRENT_PUBLIC_TOKEN" == "$PUBLIC_TOKEN" ]; then
+        echo -e "\nThe entered public token matches the existing public token in $ENV_PATH. No changes made."
+    else
+        sed -i.bak "s/MAPBOX_PUBLIC_TOKEN=$CURRENT_PUBLIC_TOKEN/MAPBOX_PUBLIC_TOKEN=$PUBLIC_TOKEN/" $ENV_PATH
+        echo -e "\nPublic token updated in $ENV_PATH"
+    fi
+else
+    echo "MAPBOX_PUBLIC_TOKEN=$PUBLIC_TOKEN" >> $ENV_PATH
+    echo -e "\n$ENV_PATH has been updated with new public token"
 fi
