@@ -54,7 +54,7 @@ function MoneyRequestView(props) {
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
     const {translate} = useLocalize();
 
-    const transaction = ReportActionsUtils.getTransaction(parentReportAction)
+    const transaction = ReportActionsUtils.getTransaction(parentReportAction);
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     let receiptUris;
     if (hasReceipt) {
@@ -77,7 +77,6 @@ function MoneyRequestView(props) {
                             src="${receiptUris.thumbnail}"
                             data-expensify-source="${receiptUris.image}"
                             data-expensify-fit-container="true"
-                            data-expensify-preview-modal-disabled="true"
                         />
                     `} />
                 </View>

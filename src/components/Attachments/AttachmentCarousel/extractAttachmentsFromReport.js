@@ -1,6 +1,8 @@
 import {Parser as HtmlParser} from 'htmlparser2';
 import _ from 'underscore';
 import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
+import * as TransactionUtils from '../../../libs/TransactionUtils';
+import * as ReceiptUtils from '../../../libs/ReceiptUtils';
 import CONST from '../../../CONST';
 import tryResolveUrlFromApiRoot from '../../../libs/tryResolveUrlFromApiRoot';
 import Navigation from '../../../libs/Navigation/Navigation';
@@ -38,6 +40,21 @@ function extractAttachmentsFromReport(report, reportActions, source) {
         if (!ReportActionsUtils.shouldReportActionBeVisible(action, key)) {
             return;
         }
+
+        // We're handling receipts differently here because receipt images are not
+        // part of the report action message, the images are constructed client-side
+        if (ReportActionsUtils.isMoneyRequestAction(action)) {
+            const transaction = ReportActionsUtils.getTransaction(action);
+            if (TransactionUtils.hasReceipt(transaction)) {
+                const {image} = ReceiptUtils.getThumbnailAndImageURIs(transaction.receipt.source, transaction.filename);
+                attachments.unshift({
+                    source: tryResolveUrlFromApiRoot(image),
+                    isAuthTokenRequired: true,
+                });
+                return;
+            }
+        }
+
         htmlParser.write(_.get(action, ['message', 0, 'html']));
     });
     htmlParser.end();
