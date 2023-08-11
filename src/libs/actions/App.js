@@ -342,7 +342,10 @@ function openProfile(personalDetails) {
 
 function beginDeepLinkRedirect() {
     // Match any magic link (/v/<account id>/<6 digit code>)
-    const isMagicLink = /\/v\/\w+\/[0-9]{6}/.test(window.location.pathname)
+    // const isMagicLink = /\/v\/\w+\/[0-9]{6}/.test(window.location.pathname)
+    const isMagicLink = CONST.REGEX.ROUTES.VALIDATE_LOGIN.test(window.location.pathname)
+
+    console.log('IS MAGIC LINK', isMagicLink)
 
     // There's no support for anonymous users on desktop
     if (Session.isAnonymousUser()) {
