@@ -86,7 +86,7 @@ class MoneyRequestParticipantsSelector extends Component {
             this.props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
 
             // We don't want to include any P2P options like personal details or reports that are not workspace chats for certain features.
-            this.props.requestType === 'distance' ? false : true,
+            this.props.requestType !== CONST.TAB.DISTANCE,
         );
     }
 

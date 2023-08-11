@@ -945,6 +945,7 @@ function getIOUConfirmationOptionsFromParticipants(participants, amountText) {
  * @param {Array} [selectedOptions]
  * @param {Array} [excludeLogins]
  * @param {Boolean} [includeOwnedWorkspaceChats]
+ * @param {boolean} [includeP2P]
  * @returns {Object}
  */
 function getNewChatOptions(reports, personalDetails, betas = [], searchValue = '', selectedOptions = [], excludeLogins = [], includeOwnedWorkspaceChats = false, includeP2P = true) {
