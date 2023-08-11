@@ -541,14 +541,6 @@ function ReportComposerWithSuggestions({
     );
 }
 
-const RefForwardingComponent = React.forwardRef((props, ref) => (
-    <ReportComposerWithSuggestions
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        forwardedRef={ref}
-    />
-));
-
 ReportComposerWithSuggestions.propTypes = propTypes;
 ReportComposerWithSuggestions.defaultProps = defaultProps;
 
@@ -573,4 +565,12 @@ export default compose(
             canEvict: false,
         },
     }),
-)(RefForwardingComponent);
+)(
+    React.forwardRef((props, ref) => (
+        <ReportComposerWithSuggestions
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            forwardedRef={ref}
+        />
+    )),
+);
