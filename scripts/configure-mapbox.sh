@@ -30,6 +30,11 @@
 # This script streamlines the process of adding the credential to both the `.netrc` and 
 # `gradle.properties` files. When executed, it prompts the user for the secret token and 
 # then saves it to the respective files along with other necessary information.\n
+#
+# Usage:
+# ------
+# To run this script, pass the secret Mapbox access token as a command-line argument:
+# ./scriptname.sh YOUR_MAPBOX_ACCESS_TOKEN
 
 NETRC_PATH="$HOME/.netrc"
 GRADLE_PROPERTIES_PATH="$HOME/.gradle/gradle.properties"
@@ -56,11 +61,12 @@ handleError() {
 # Set a trap to call the handleError function when any of the commands fail
 trap handleError ERR
 
-# Prompt the user for the token
-read -s -p "Enter your secret Mapbox access token: " TOKEN
+# Take the token as a command-line argument
+TOKEN="$1"
 
-# If the user didn't provide the token, exit
+# Check if the token was provided
 if [ -z "$TOKEN" ]; then
+    echo "Usage: $0 <YOUR_MAPBOX_ACCESS_TOKEN>"
     echo "No token provided. Exiting."
     exit 1
 fi
@@ -68,7 +74,7 @@ fi
 # -----------------------------------------------
 # iOS Configuration for .netrc
 # -----------------------------------------------
-echo -e "\n\nConfiguring $NETRC_PATH for Mapbox iOS SDK download"
+echo -e "Configuring $NETRC_PATH for Mapbox iOS SDK download"
 
 # Check for existing Mapbox entries in .netrc
 if grep -q "api.mapbox.com" $NETRC_PATH; then
@@ -126,5 +132,3 @@ else
     echo "MAPBOX_DOWNLOADS_TOKEN=$TOKEN" >> $GRADLE_PROPERTIES_PATH
     echo -e "\n$GRADLE_PROPERTIES_PATH has been updated with new credentials"
 fi
-
-echo -e "\n"

@@ -7,7 +7,7 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "configure:mapbox": "scripts/configure-netrc-for-mapbox-sdk-installation.sh",
+    "configure:mapbox": "scripts/configure-mapbox-walkthrough.sh",
     "postinstall": "scripts/postInstall.sh",
     "clean": "npx react-native clean-project-auto",
     "android": "scripts/set-pusher-suffix.sh && npx react-native run-android",
@@ -57,7 +57,7 @@
     "@formatjs/intl-numberformat": "^8.5.0",
     "@formatjs/intl-pluralrules": "^5.2.2",
     "@gorhom/portal": "^1.0.14",
-    "@hayata/react-native-test-package": "^1.0.26",
+    "@hayata/react-native-test-package": "1.0.28",
     "@oguzhnatly/react-native-image-manipulator": "github:Expensify/react-native-image-manipulator#5cdae3d4455b03a04c57f50be3863e2fe6c92c52",
     "@onfido/react-native-sdk": "7.4.0",
     "@react-native-async-storage/async-storage": "^1.17.10",
