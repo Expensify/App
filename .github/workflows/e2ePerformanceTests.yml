@@ -81,13 +81,7 @@ jobs:
       - name: Unmerged PR - Fetch head ref of unmerged PR
         if: ${{ !fromJSON(steps.getPullRequestDetails.outputs.IS_MERGED) }}
         run: |
-#          TODO: UNDO THIS
-#          if [[ ${{ steps.getPullRequestDetails.outputs.FORKED_REPO_URL }} != '' ]]; then
-#            git remote add pr_remote ${{ steps.getPullRequestDetails.outputs.FORKED_REPO_URL }}
-#            git fetch pr_remote ${{ steps.getPullRequestDetails.outputs.HEAD_COMMIT_SHA }} --no-tags --depth=1
-#          else
             git fetch origin ${{ steps.getPullRequestDetails.outputs.HEAD_COMMIT_SHA }} --no-tags --depth=1
-#          fi
 
       - name: Unmerged PR - Set dummy git credentials before merging
         if: ${{ !fromJSON(steps.getPullRequestDetails.outputs.IS_MERGED) }}
