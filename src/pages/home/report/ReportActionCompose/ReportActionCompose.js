@@ -371,11 +371,10 @@ function ReportActionCompose({
                 >
                     {!isSmallScreenWidth && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
                     <ReportTypingIndicator reportID={reportID} />
-                    {/* TODO: Maybe subscribe this to comment on its own? */}
-                    {/* <ExceededCommentLength
-                        comment={commentRef.current}
+                    <ExceededCommentLength
+                        reportID={reportID}
                         onExceededMaxCommentLength={setExceededMaxCommentLength}
-                    /> */}
+                    />
                 </View>
             </OfflineWithFeedback>
         </View>
