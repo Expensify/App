@@ -244,7 +244,7 @@ export default {
     IS_USING_MEMORY_ONLY_KEYS: 'isUsingMemoryOnlyKeys',
 
     // Information about the onyx updates IDs that were received from the server
-    ONYX_UPDATES: 'onyxUpdates',
+    ONYX_UPDATES_FROM_SERVER: 'onyxUpdatesFromServer',
 
     // The last update ID that was applied to the client
     ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT: 'OnyxUpdatesLastUpdateIDAppliedToClient',

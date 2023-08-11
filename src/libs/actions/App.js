@@ -231,7 +231,7 @@ function getMissingOnyxUpdates(updateIDFrom = 0, updateIDTo = 0) {
 // The next 40ish lines of code are used for detecting when there is a gap of OnyxUpdates between what was last applied to the client and the updates the server has.
 // When a gap is detected, the missing updates are fetched from the API.
 
-// These key needs to be separate from ONYXKEYS.ONYX_UPDATES so that it can be updated without triggering the callback when the server IDs are updated
+// These key needs to be separate from ONYXKEYS.ONYX_UPDATES_FROM_SERVER so that it can be updated without triggering the callback when the server IDs are updated
 let lastUpdateIDAppliedToClient = 0;
 Onyx.connect({
     key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
@@ -239,7 +239,7 @@ Onyx.connect({
 });
 
 Onyx.connect({
-    key: ONYXKEYS.ONYX_UPDATES,
+    key: ONYXKEYS.ONYX_UPDATES_FROM_SERVER,
     callback: (val) => {
         if (!val) {
             return;

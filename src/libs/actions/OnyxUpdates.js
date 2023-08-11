@@ -12,7 +12,7 @@ function saveUpdateIDs(lastUpdateID = 0, previousUpdateID = 0) {
         return;
     }
 
-    Onyx.merge(ONYXKEYS.ONYX_UPDATES, {
+    Onyx.merge(ONYXKEYS.ONYX_UPDATES_FROM_SERVER, {
         lastUpdateIDFromServer: lastUpdateID,
         previousUpdateIDFromServer: previousUpdateID,
     });
