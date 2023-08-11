@@ -192,6 +192,12 @@ export default {
     // Is report data loading?
     IS_LOADING_REPORT_DATA: 'isLoadingReportData',
 
+    // Is policy members loading?
+    IS_LOADING_POLICY_MEMBERS: 'isLoadingPolicyMembers',
+
+    // Is policy invite members loading?
+    IS_LOADING_INVITE_POLICY_MEMBERS: 'isLoadingInvitePolicyMembers',
+
     // Is Keyboard shortcuts modal open?
     IS_SHORTCUTS_MODAL_OPEN: 'isShortcutsModalOpen',
 

@@ -1124,10 +1124,38 @@ function openWorkspaceMembersPage(policyID, clientMemberEmails) {
         return;
     }
 
-    API.read('OpenWorkspaceMembersPage', {
-        policyID,
-        clientMemberEmails: JSON.stringify(clientMemberEmails),
-    });
+    const onyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.IS_LOADING_POLICY_MEMBERS,
+                value: true,
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.IS_LOADING_POLICY_MEMBERS,
+                value: false,
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.IS_LOADING_POLICY_MEMBERS,
+                value: false,
+            },
+        ],
+    };
+
+    API.read(
+        'OpenWorkspaceMembersPage',
+        {
+            policyID,
+            clientMemberEmails: JSON.stringify(clientMemberEmails),
+        },
+        onyxData,
+    );
 }
 
 function openWorkspaceInvitePage(policyID, clientMemberEmails) {
@@ -1136,10 +1164,38 @@ function openWorkspaceInvitePage(policyID, clientMemberEmails) {
         return;
     }
 
-    API.read('OpenWorkspaceInvitePage', {
-        policyID,
-        clientMemberEmails: JSON.stringify(clientMemberEmails),
-    });
+    const onyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.IS_LOADING_INVITE_POLICY_MEMBERS,
+                value: true,
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.IS_LOADING_INVITE_POLICY_MEMBERS,
+                value: false,
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.IS_LOADING_INVITE_POLICY_MEMBERS,
+                value: false,
+            },
+        ],
+    };
+
+    API.read(
+        'OpenWorkspaceInvitePage',
+        {
+            policyID,
+            clientMemberEmails: JSON.stringify(clientMemberEmails),
+        },
+        onyxData,
+    );
 }
 
 /**

@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useMemo} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -15,7 +15,7 @@ import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButto
 import OptionsSelector from '../../components/OptionsSelector';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import CONST from '../../CONST';
-import withPolicy, {policyPropTypes, policyDefaultProps} from './withPolicy';
+import withPolicy, {policyDefaultProps, policyPropTypes} from './withPolicy';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import ROUTES from '../../ROUTES';
 import * as Browser from '../../libs/Browser';
@@ -58,6 +58,7 @@ const propTypes = {
 const defaultProps = {
     personalDetails: {},
     betas: [],
+    isLoadingReportData: true,
     ...policyDefaultProps,
 };
 

@@ -31,7 +31,10 @@ import * as UserUtils from '../../libs/UserUtils';
 import FormHelpMessage from '../../components/FormHelpMessage';
 import TextInput from '../../components/TextInput';
 import KeyboardDismissingFlatList from '../../components/KeyboardDismissingFlatList';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../components/withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails, {
+    withCurrentUserPersonalDetailsDefaultProps,
+    withCurrentUserPersonalDetailsPropTypes,
+} from '../../components/withCurrentUserPersonalDetails';
 import * as PolicyUtils from '../../libs/PolicyUtils';
 import PressableWithFeedback from '../../components/Pressable/PressableWithFeedback';
 import usePrevious from '../../hooks/usePrevious';
