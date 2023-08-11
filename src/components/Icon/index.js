@@ -27,10 +27,10 @@ const propTypes = {
     inline: PropTypes.bool,
 
     /** Is icon hovered */
-    isHovered: PropTypes.bool,
+    hovered: PropTypes.bool,
 
     /** Is icon pressed */
-    isPressed: PropTypes.bool,
+    pressed: PropTypes.bool,
 
     // eslint-disable-next-line react/forbid-prop-types
     additionalStyles: PropTypes.arrayOf(PropTypes.object),
@@ -43,8 +43,8 @@ const defaultProps = {
     small: false,
     inline: false,
     additionalStyles: [],
-    isHovered: false,
-    isPressed: false,
+    hovered: false,
+    pressed: false,
 };
 
 // We must use a class component to create an animatable component with the Animated API
@@ -66,8 +66,8 @@ class Icon extends PureComponent {
                             width={width}
                             height={height}
                             fill={this.props.fill}
-                            hovered={this.props.isHovered.toString()}
-                            pressed={this.props.isPressed.toString()}
+                            hovered={this.props.hovered.toString()}
+                            pressed={this.props.pressed.toString()}
                         />
                     </View>
                 </View>
@@ -83,8 +83,8 @@ class Icon extends PureComponent {
                     width={width}
                     height={height}
                     fill={this.props.fill}
-                    hovered={this.props.isHovered.toString()}
-                    pressed={this.props.isPressed.toString()}
+                    hovered={this.props.hovered.toString()}
+                    pressed={this.props.pressed.toString()}
                 />
             </View>
         );
