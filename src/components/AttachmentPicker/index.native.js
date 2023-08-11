@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {useEffect, useState, useRef, useCallback, useMemo} from 'react';
+import React, {useState, useRef, useCallback, useMemo} from 'react';
 import {View, Alert, Linking} from 'react-native';
 import RNDocumentPicker from 'react-native-document-picker';
 import RNFetchBlob from 'react-native-blob-util';
@@ -9,13 +9,13 @@ import CONST from '../../CONST';
 import * as FileUtils from '../../libs/fileDownload/FileUtils';
 import * as Expensicons from '../Icon/Expensicons';
 import launchCamera from './launchCamera';
-import KeyboardShortcut from '../../libs/KeyboardShortcut';
 import Popover from '../Popover';
 import MenuItem from '../MenuItem';
 import styles from '../../styles/styles';
 import ArrowKeyFocusManager from '../ArrowKeyFocusManager';
 import useLocalize from '../../hooks/useLocalize';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
+import useKeyboardShortcut from '../../hooks/useKeyboardShortcut';
 
 const propTypes = {
     ...basePropTypes,
@@ -88,7 +88,6 @@ function AttachmentPicker({type, children}) {
 
     const completeAttachmentSelection = useRef();
     const onModalHide = useRef();
-    const keyboardListener = useRef();
 
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -127,44 +126,50 @@ function AttachmentPicker({type, children}) {
      * @param {function} imagePickerFunc - RNImagePicker.launchCamera or RNImagePicker.launchImageLibrary
      * @returns {Promise<ImagePickerResponse>}
      */
-    const showImagePicker = useCallback((imagePickerFunc) =>
-        new Promise((resolve, reject) => {
-            imagePickerFunc(getImagePickerOptions(type), (response) => {
-                if (response.didCancel) {
-                    // When the user cancelled resolve with no attachment
-                    return resolve();
-                }
-                if (response.errorCode) {
-                    switch (response.errorCode) {
-                        case 'permission':
-                            showPermissionsAlert();
-                            return resolve();
-                        default:
-                            showGeneralAlert();
-                            break;
+    const showImagePicker = useCallback(
+        (imagePickerFunc) =>
+            new Promise((resolve, reject) => {
+                imagePickerFunc(getImagePickerOptions(type), (response) => {
+                    if (response.didCancel) {
+                        // When the user cancelled resolve with no attachment
+                        return resolve();
+                    }
+                    if (response.errorCode) {
+                        switch (response.errorCode) {
+                            case 'permission':
+                                showPermissionsAlert();
+                                return resolve();
+                            default:
+                                showGeneralAlert();
+                                break;
+                        }
+
+                        return reject(new Error(`Error during attachment selection: ${response.errorMessage}`));
                     }
 
-                    return reject(new Error(`Error during attachment selection: ${response.errorMessage}`));
-                }
-
-                return resolve(response.assets);
-            });
-        }), [showGeneralAlert, showPermissionsAlert, type]);
+                    return resolve(response.assets);
+                });
+            }),
+        [showGeneralAlert, showPermissionsAlert, type],
+    );
 
     /**
      * Launch the DocumentPicker. Results are in the same format as ImagePicker
      *
      * @returns {Promise<DocumentPickerResponse[]>}
      */
-    const showDocumentPicker = useCallback(() =>
-        RNDocumentPicker.pick(documentPickerOptions).catch((error) => {
-            if (RNDocumentPicker.isCancel(error)) {
-                return;
-            }
+    const showDocumentPicker = useCallback(
+        () =>
+            RNDocumentPicker.pick(documentPickerOptions).catch((error) => {
+                if (RNDocumentPicker.isCancel(error)) {
+                    return;
+                }
 
-            showGeneralAlert(error.message);
-            throw error;
-        }), [showGeneralAlert]);
+                showGeneralAlert(error.message);
+                throw error;
+            }),
+        [showGeneralAlert],
+    );
 
     const menuItemData = useMemo(() => {
         const data = [
@@ -273,50 +278,19 @@ function AttachmentPicker({type, children}) {
         [pickAttachment],
     );
 
-    const attachKeyboardListener = useCallback(() => {
-        const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
-        keyboardListener.current = KeyboardShortcut.subscribe(
-            shortcutConfig.shortcutKey,
-            () => {
-                if (focusedIndex === -1) {
-                    return;
-                }
-                selectItem(menuItemData[focusedIndex]);
-                setFocusedIndex(-1); // Reset the focusedIndex on selecting any menu
-            },
-            shortcutConfig.descriptionKey,
-            shortcutConfig.modifiers,
-            true,
-        );
-    }, [focusedIndex, menuItemData, selectItem]);
-
-    const removeKeyboardListener = () => {
-        if (!keyboardListener.current) {
-            return;
-        }
-        keyboardListener.current();
-    };
-
-    useEffect(() => {
-        // When selecting an image on a native device, it would be redundant to have a second option for choosing a document,
-        // so it is excluded in this case.
-        if (type === CONST.ATTACHMENT_PICKER_TYPE.IMAGE) {
-            return;
-        }
-
-        return () => {
-            removeKeyboardListener();
-        };
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- we only want this effect to run on initial render
-    }, []);
-
-    useEffect(() => {
-        if (isVisible) {
-            attachKeyboardListener();
-        } else {
-            removeKeyboardListener();
-        }
-    }, [isVisible, attachKeyboardListener]);
+    useKeyboardShortcut(
+        CONST.KEYBOARD_SHORTCUTS.ENTER,
+        () => {
+            if (focusedIndex === -1) {
+                return;
+            }
+            selectItem(menuItemData[focusedIndex]);
+            setFocusedIndex(-1); // Reset the focusedIndex on selecting any menu
+        },
+        {
+            isActive: isVisible,
+        },
+    );
 
     /**
      * Call the `children` renderProp with the interface defined in propTypes
