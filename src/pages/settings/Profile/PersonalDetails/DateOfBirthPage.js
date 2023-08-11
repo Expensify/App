@@ -47,11 +47,11 @@ function DateOfBirthPage({translate, privatePersonalDetails}) {
     const validate = useCallback((values) => {
         const requiredFields = ['dob'];
         const errors = ValidationUtils.getFieldRequiredErrors(values, requiredFields);
-        
+
         const minimumAge = CONST.DATE_BIRTH.MIN_AGE;
         const maximumAge = CONST.DATE_BIRTH.MAX_AGE;
         const dateError = ValidationUtils.getAgeRequirementError(values.dob, minimumAge, maximumAge);
-        
+
         if (values.dob && dateError) {
             errors.dob = dateError;
         }

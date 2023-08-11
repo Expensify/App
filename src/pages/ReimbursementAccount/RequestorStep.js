@@ -41,9 +41,6 @@ class RequestorStep extends React.Component {
         const requiredFields = ['firstName', 'lastName', 'dob', 'ssnLast4', 'requestorAddressStreet', 'requestorAddressCity', 'requestorAddressZipCode'];
         const errors = ValidationUtils.getFieldRequiredErrors(values, requiredFields);
 
-
-        
-
         if (values.dob) {
             if (!ValidationUtils.meetsMinimumAgeRequirement(values.dob)) {
                 errors.dob = 'bankAccount.error.age';
@@ -59,8 +56,6 @@ class RequestorStep extends React.Component {
         if (values.requestorAddressStreet && !ValidationUtils.isValidAddress(values.requestorAddressStreet)) {
             errors.requestorAddressStreet = 'bankAccount.error.addressStreet';
         }
-
-        
 
         if (!ValidationUtils.isRequiredFulfilled(values.requestorAddressState)) {
             errors.requestorAddressState = 'bankAccount.error.addressState';

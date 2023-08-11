@@ -83,7 +83,6 @@ class CompanyStep extends React.Component {
         const requiredFields = ['companyName', 'addressStreet', 'addressZipCode', 'addressCity', 'companyPhone', 'website', 'companyTaxID', 'incorporationType', 'incorporationDate'];
         const errors = ValidationUtils.getFieldRequiredErrors(values, requiredFields);
 
-
         if (values.addressStreet && !ValidationUtils.isValidAddress(values.addressStreet)) {
             errors.addressStreet = 'bankAccount.error.addressStreet';
         }
@@ -91,8 +90,6 @@ class CompanyStep extends React.Component {
         if (values.addressZipCode && !ValidationUtils.isValidZipCode(values.addressZipCode)) {
             errors.addressZipCode = 'bankAccount.error.zipCode';
         }
-
-        
 
         if (!values.addressState) {
             errors.addressState = 'bankAccount.error.addressState';
@@ -109,8 +106,6 @@ class CompanyStep extends React.Component {
         if (values.companyTaxID && !ValidationUtils.isValidTaxID(values.companyTaxID)) {
             errors.companyTaxID = 'bankAccount.error.taxID';
         }
-
-        
 
         if (values.incorporationDate && !ValidationUtils.isValidDate(values.incorporationDate)) {
             errors.incorporationDate = 'common.error.dateInvalid';
