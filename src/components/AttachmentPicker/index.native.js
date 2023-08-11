@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {useEffect, useState, useRef, useCallback} from 'react';
+import React, {useEffect, useState, useRef, useCallback, useMemo} from 'react';
 import {View, Alert, Linking} from 'react-native';
 import RNDocumentPicker from 'react-native-document-picker';
 import RNFetchBlob from 'react-native-blob-util';
@@ -44,7 +44,7 @@ const getImagePickerOptions = (type) => {
         mediaType,
         ...imagePickerOptions,
     };
-}
+};
 
 /**
  * See https://github.com/rnmods/react-native-document-picker#options for DocumentPicker configuration options
@@ -80,23 +80,23 @@ const getDataForUpload = (fileData) => {
         fileResult.size = stats.size;
         return fileResult;
     });
-}
+};
 
-function AttachmentPicker({ type, children}) {
+function AttachmentPicker({type, children}) {
     const [isVisible, setIsVisible] = useState(false);
     const [focusedIndex, setFocusedIndex] = useState(-1);
 
     const completeAttachmentSelection = useRef();
     const onModalHide = useRef();
     const keyboardListener = useRef();
-    
-    const {translate} = useLocalize()
-    const {isSmallScreenWidth} = useWindowDimensions()
+
+    const {translate} = useLocalize();
+    const {isSmallScreenWidth} = useWindowDimensions();
 
     /**
      * Inform the users when they need to grant camera access and guide them to settings
      */
-    const showPermissionsAlert = () => {
+    const showPermissionsAlert = useCallback(() => {
         Alert.alert(
             translate('attachmentPicker.cameraPermissionRequired'),
             translate('attachmentPicker.expensifyDoesntHaveAccessToCamera'),
@@ -112,14 +112,14 @@ function AttachmentPicker({ type, children}) {
             ],
             {cancelable: false},
         );
-    }
+    }, [translate]);
 
     /**
      * A generic handling when we don't know the exact reason for an error
      */
     const showGeneralAlert = useCallback(() => {
         Alert.alert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingAttachment'));
-    }, [translate])
+    }, [translate]);
 
     /**
      * Common image picker handling
@@ -127,7 +127,8 @@ function AttachmentPicker({ type, children}) {
      * @param {function} imagePickerFunc - RNImagePicker.launchCamera or RNImagePicker.launchImageLibrary
      * @returns {Promise<ImagePickerResponse>}
      */
-    const showImagePicker = (imagePickerFunc) => new Promise((resolve, reject) => {
+    const showImagePicker = useCallback((imagePickerFunc) =>
+        new Promise((resolve, reject) => {
             imagePickerFunc(getImagePickerOptions(type), (response) => {
                 if (response.didCancel) {
                     // When the user cancelled resolve with no attachment
@@ -148,41 +149,54 @@ function AttachmentPicker({ type, children}) {
 
                 return resolve(response.assets);
             });
-        })
-
-    const [menuItemData, setMenuItemData] = useState([
-        {
-            icon: Expensicons.Camera,
-            textTranslationKey: 'attachmentPicker.takePhoto',
-            pickAttachment: () => showImagePicker(launchCamera),
-        },
-        {
-            icon: Expensicons.Gallery,
-            textTranslationKey: 'attachmentPicker.chooseFromGallery',
-            pickAttachment: () => showImagePicker(launchImageLibrary),
-        },
-    ]);
-
-    /**
-     * An attachment error dialog when user selected malformed images
-     */
-    const showImageCorruptionAlert = useCallback(() => {
-        Alert.alert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingCorruptedImage'));
-    }, [translate])
+        }), [showGeneralAlert, showPermissionsAlert, type]);
 
     /**
      * Launch the DocumentPicker. Results are in the same format as ImagePicker
      *
      * @returns {Promise<DocumentPickerResponse[]>}
      */
-    const showDocumentPicker = () => RNDocumentPicker.pick(documentPickerOptions).catch((error) => {
+    const showDocumentPicker = useCallback(() =>
+        RNDocumentPicker.pick(documentPickerOptions).catch((error) => {
             if (RNDocumentPicker.isCancel(error)) {
                 return;
             }
 
             showGeneralAlert(error.message);
             throw error;
-        })
+        }), [showGeneralAlert]);
+
+    const menuItemData = useMemo(() => {
+        const data = [
+            {
+                icon: Expensicons.Camera,
+                textTranslationKey: 'attachmentPicker.takePhoto',
+                pickAttachment: () => showImagePicker(launchCamera),
+            },
+            {
+                icon: Expensicons.Gallery,
+                textTranslationKey: 'attachmentPicker.chooseFromGallery',
+                pickAttachment: () => showImagePicker(launchImageLibrary),
+            },
+        ];
+
+        if (type !== CONST.ATTACHMENT_PICKER_TYPE.IMAGE) {
+            data.push({
+                icon: Expensicons.Paperclip,
+                textTranslationKey: 'attachmentPicker.chooseDocument',
+                pickAttachment: showDocumentPicker,
+            });
+        }
+
+        return data;
+    }, [showDocumentPicker, showImagePicker, type]);
+
+    /**
+     * An attachment error dialog when user selected malformed images
+     */
+    const showImageCorruptionAlert = useCallback(() => {
+        Alert.alert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingCorruptedImage'));
+    }, [translate]);
 
     /**
      * Opens the attachment modal
@@ -192,14 +206,14 @@ function AttachmentPicker({ type, children}) {
     const open = (onPickedHandler) => {
         completeAttachmentSelection.current = onPickedHandler;
         setIsVisible(true);
-    }
+    };
 
     /**
      * Closes the attachment modal
      */
     const close = () => {
         setIsVisible(false);
-    }
+    };
 
     /**
      * Handles the image/document picker result and
@@ -208,27 +222,30 @@ function AttachmentPicker({ type, children}) {
      * @param {Array<ImagePickerResponse|DocumentPickerResponse>} attachments
      * @returns {Promise}
      */
-    const pickAttachment = useCallback((attachments = []) => {
-        if (attachments.length === 0) {
-            return;
-        }
+    const pickAttachment = useCallback(
+        (attachments = []) => {
+            if (attachments.length === 0) {
+                return;
+            }
 
-        const fileData = _.first(attachments);
+            const fileData = _.first(attachments);
 
-        if (fileData.width === -1 || fileData.height === -1) {
-            showImageCorruptionAlert();
-            return;
-        }
+            if (fileData.width === -1 || fileData.height === -1) {
+                showImageCorruptionAlert();
+                return;
+            }
 
-        return getDataForUpload(fileData)
-            .then((result) => {
-                completeAttachmentSelection.current(result);
-            })
-            .catch((error) => {
-                showGeneralAlert(error.message);
-                throw error;
-            });
-    }, [showGeneralAlert, showImageCorruptionAlert])
+            return getDataForUpload(fileData)
+                .then((result) => {
+                    completeAttachmentSelection.current(result);
+                })
+                .catch((error) => {
+                    showGeneralAlert(error.message);
+                    throw error;
+                });
+        },
+        [showGeneralAlert, showImageCorruptionAlert],
+    );
 
     /**
      * Setup native attachment selection to start after this popover closes
@@ -236,22 +253,25 @@ function AttachmentPicker({ type, children}) {
      * @param {Object} item - an item from this.menuItemData
      * @param {Function} item.pickAttachment
      */
-    const selectItem = useCallback((item) => {
-        /* setTimeout delays execution to the frame after the modal closes
-         * without this on iOS closing the modal closes the gallery/camera as well */
-        onModalHide.current = () =>
-            setTimeout(
-                () =>
-                    item
-                        .pickAttachment()
-                        .then(pickAttachment)
-                        .catch(console.error)
-                        .finally(() => delete onModalHide.current),
-                200,
-            );
+    const selectItem = useCallback(
+        (item) => {
+            /* setTimeout delays execution to the frame after the modal closes
+             * without this on iOS closing the modal closes the gallery/camera as well */
+            onModalHide.current = () =>
+                setTimeout(
+                    () =>
+                        item
+                            .pickAttachment()
+                            .then(pickAttachment)
+                            .catch(console.error)
+                            .finally(() => delete onModalHide.current),
+                    200,
+                );
 
-        close();
-    }, [pickAttachment])
+            close();
+        },
+        [pickAttachment],
+    );
 
     const attachKeyboardListener = useCallback(() => {
         const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
@@ -268,14 +288,14 @@ function AttachmentPicker({ type, children}) {
             shortcutConfig.modifiers,
             true,
         );
-    }, [focusedIndex, menuItemData, selectItem])
+    }, [focusedIndex, menuItemData, selectItem]);
 
     const removeKeyboardListener = () => {
         if (!keyboardListener.current) {
             return;
         }
         keyboardListener.current();
-    }
+    };
 
     useEffect(() => {
         // When selecting an image on a native device, it would be redundant to have a second option for choosing a document,
@@ -283,15 +303,6 @@ function AttachmentPicker({ type, children}) {
         if (type === CONST.ATTACHMENT_PICKER_TYPE.IMAGE) {
             return;
         }
-
-        setMenuItemData((oldMenuItemData) => [
-            ...oldMenuItemData,
-            {
-                icon: Expensicons.Paperclip,
-                textTranslationKey: 'attachmentPicker.chooseDocument',
-                pickAttachment: showDocumentPicker,
-            },
-        ]);
 
         return () => {
             removeKeyboardListener();
@@ -312,9 +323,10 @@ function AttachmentPicker({ type, children}) {
      *
      * @returns {React.ReactNode}
      */
-    const renderChildren = () => children({
+    const renderChildren = () =>
+        children({
             openPicker: ({onPicked}) => open(onPicked),
-        })
+        });
 
     return (
         <>
