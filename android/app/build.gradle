@@ -103,17 +103,17 @@ android {
             // applies all non-production flavors
             applicationIdSuffix ".adhoc"
             signingConfig signingConfigs.debug
-            resValue “string”, “build_config_package”, “com.expensify.chat”
+            resValue "string", "build_config_package", "com.expensify.chat"
         }
         adhoc {
             applicationIdSuffix ".adhoc"
             signingConfig signingConfigs.debug
-            resValue “string”, “build_config_package”, “com.expensify.chat”
+            resValue "string", "build_config_package", "com.expensify.chat"
         }
         development {
             applicationIdSuffix ".dev"
             signingConfig signingConfigs.debug
-            resValue “string”, “build_config_package”, “com.expensify.chat”
+            resValue "string", "build_config_package", "com.expensify.chat"
         }
     }
 
