@@ -1,4 +1,4 @@
-import React, {useEffect, useCallback, useState, useRef, useMemo} from 'react';
+import React, {useEffect, useCallback, useState, useRef, useMemo, useImperativeHandle} from 'react';
 import {View, InteractionManager, NativeModules, findNodeHandle, LayoutAnimation} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -54,6 +54,7 @@ const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 // prevent auto focus on existing chat for mobile device
 const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
+// TODO: This needs to be moved to its own place
 const draftCommentMap = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
@@ -93,19 +94,25 @@ const defaultProps = {
 };
 
 function SoloComposer({
+    // Onyx
     modal,
-    isFocused: isFocusedProp,
     preferredLocale,
     preferredSkinTone,
-    report,
+    parentReportActions,
+    numberOfLines,
+    // HOCs
     navigation,
+    isKeyboardShown,
+    isFocused: isFocusedProp,
+    // Props: Report
+    reportID,
+    report,
+    reportActions,
+    // Unclassified
+    isComposerFullSize,
     animatedRef,
     isMenuVisible,
-    isKeyboardShown,
-    parentReportActions,
-    reportActions,
     inputPlaceholder,
-    isComposerFullSize,
     setIsFocused,
     suggestionsRef,
     displayFileInModal,
@@ -115,16 +122,14 @@ function SoloComposer({
     disabled,
     isFullSizeComposerAvailable,
     setIsFullComposerAvailable,
-    numberOfLines,
     composerHeight,
     setComposerHeight,
-    reportID,
     setIsCommentEmpty,
     submitForm,
     shouldShowReportRecipientLocalTime,
-
-    // Focus stuff
     shouldShowComposeInput,
+
+    forwardedRef,
 }) {
     const initialComment = draftCommentMap[reportID] || '';
     const commentRef = useRef(initialComment);
@@ -145,6 +150,25 @@ function SoloComposer({
     });
 
     const textInputRef = useRef(null);
+
+    const insertedEmojisRef = useRef([]);
+
+    /**
+     * Update frequently used emojis list. We debounce this method in the constructor so that UpdateFrequentlyUsedEmojis
+     * API is not called too often.
+     */
+    const debouncedUpdateFrequentlyUsedEmojis = useCallback(() => {
+        User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(insertedEmojisRef.current));
+        insertedEmojisRef.current = [];
+    }, []);
+
+    const onInsertedEmoji = useCallback(
+        (emojiObject) => {
+            insertedEmojisRef.current = [...insertedEmojisRef.current, emojiObject];
+            debouncedUpdateFrequentlyUsedEmojis(emojiObject);
+        },
+        [debouncedUpdateFrequentlyUsedEmojis],
+    );
 
     /**
      * Set the TextInput Ref
@@ -182,8 +206,8 @@ function SoloComposer({
 
             if (!_.isEmpty(emojis)) {
                 User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(emojis));
-                // TODO: insertedEmojisRef.current = [...insertedEmojisRef.current, ...emojis];
-                // TODO: debouncedUpdateFrequentlyUsedEmojis();
+                insertedEmojisRef.current = [...insertedEmojisRef.current, ...emojis];
+                debouncedUpdateFrequentlyUsedEmojis();
             }
 
             setIsCommentEmpty(!!newComment.match(/^(\s)*$/));
@@ -216,7 +240,7 @@ function SoloComposer({
                 debouncedBroadcastUserIsTyping(reportID);
             }
         },
-        [preferredLocale, preferredSkinTone, reportID, setIsCommentEmpty],
+        [debouncedUpdateFrequentlyUsedEmojis, preferredLocale, preferredSkinTone, reportID, setIsCommentEmpty],
     );
 
     /**
@@ -428,6 +452,15 @@ function SoloComposer({
         focus();
     }, [focus, prevIsFocused, prevIsModalVisible, isFocusedProp, modal.isVisible]);
 
+    useImperativeHandle(
+        forwardedRef,
+        () => ({
+            focus,
+            prepareCommentAndResetComposer,
+        }),
+        [focus, prepareCommentAndResetComposer],
+    );
+
     return (
         <>
             <View style={[containerComposeStyles, styles.textInputComposeBorder]}>
@@ -443,6 +476,7 @@ function SoloComposer({
                     onKeyPress={triggerHotkeyActions}
                     style={[styles.textInputCompose, isComposerFullSize ? styles.textInputFullCompose : styles.flex4]}
                     maxLines={maxComposerLines}
+                    // TODO: would it be cleaner to forward onFocus and onBlur functions?
                     onFocus={() => setIsFocused(true)}
                     onBlur={() => {
                         setIsFocused(false);
@@ -481,23 +515,30 @@ function SoloComposer({
             </View>
 
             <Suggestions
+                ref={suggestionsRef}
+                isComposerFullSize={isComposerFullSize}
+                updateComment={updateComment}
+                composerHeight={composerHeight}
+                shouldShowReportRecipientLocalTime={shouldShowReportRecipientLocalTime}
+                onInsertedEmoji={onInsertedEmoji}
                 // Input
                 value={value}
                 setValue={setValue}
                 selection={selection}
                 setSelection={setSelection}
-                isComposerFullSize={isComposerFullSize}
-                updateComment={updateComment}
-                composerHeight={composerHeight}
-                shouldShowReportRecipientLocalTime={shouldShowReportRecipientLocalTime}
-                ref={suggestionsRef}
-                // TODO: onInsertedEmoji={onInsertedEmoji}
-
                 resetKeyboardInput={resetKeyboardInput}
             />
         </>
     );
 }
+
+const SoloComposerRefForwardingComponent = React.forwardRef((props, ref) => (
+    <SoloComposer
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        forwardedRef={ref}
+    />
+));
 
 SoloComposer.propTypes = propTypes;
 SoloComposer.defaultProps = defaultProps;
@@ -523,4 +564,4 @@ export default compose(
             canEvict: false,
         },
     }),
-)(SoloComposer);
+)(SoloComposerRefForwardingComponent);

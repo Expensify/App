@@ -132,17 +132,6 @@ function ReportActionCompose({
     const [composerHeight, setComposerHeight] = useState(0);
     const [isAttachmentPreviewActive, setIsAttachmentPreviewActive] = useState(false);
 
-    const insertedEmojisRef = useRef([]);
-
-    /**
-     * Update frequently used emojis list. We debounce this method in the constructor so that UpdateFrequentlyUsedEmojis
-     * API is not called too often.
-     */
-    const debouncedUpdateFrequentlyUsedEmojis = useCallback(() => {
-        User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(insertedEmojisRef.current));
-        insertedEmojisRef.current = [];
-    }, []);
-
     /**
      * Updates the composer when the comment length is exceeded
      * Shows red borders and prevents the comment from being sent
@@ -150,6 +139,7 @@ function ReportActionCompose({
     const [hasExceededMaxCommentLength, setExceededMaxCommentLength] = useState(false);
 
     const suggestionsRef = useRef(null);
+    const composerRef = useRef(null);
 
     const reportParticipants = useMemo(() => _.without(lodashGet(report, 'participantAccountIDs', []), currentUserPersonalDetails.accountID), [currentUserPersonalDetails.accountID, report]);
     const participantsWithoutExpensifyAccountIDs = useMemo(() => _.difference(reportParticipants, CONST.EXPENSIFY_ACCOUNT_IDS), [reportParticipants]);
@@ -210,7 +200,7 @@ function ReportActionCompose({
             // We don't really care about saving the draft the user was typing
             // We need to make sure an empty draft gets saved instead
             debouncedSaveReportComment.cancel();
-            const newComment = prepareCommentAndResetComposer();
+            const newComment = composerRef.current.prepareCommentAndResetComposer();
             Report.addAttachment(reportID, file, newComment);
             setTextInputShouldClear(false);
         },
@@ -224,14 +214,6 @@ function ReportActionCompose({
         updateShouldShowSuggestionMenuToFalse();
         setIsAttachmentPreviewActive(false);
     }, [updateShouldShowSuggestionMenuToFalse]);
-
-    const onInsertedEmoji = useCallback(
-        (emojiObject) => {
-            insertedEmojisRef.current = [...insertedEmojisRef.current, emojiObject];
-            debouncedUpdateFrequentlyUsedEmojis(emojiObject);
-        },
-        [debouncedUpdateFrequentlyUsedEmojis],
-    );
 
     /**
      * Add a new comment to this chat
@@ -249,7 +231,7 @@ function ReportActionCompose({
             // We need to make sure an empty draft gets saved instead
             debouncedSaveReportComment.cancel();
 
-            const newComment = prepareCommentAndResetComposer();
+            const newComment = composerRef.current.prepareCommentAndResetComposer();
             if (!newComment) {
                 return;
             }
@@ -334,6 +316,7 @@ function ReportActionCompose({
                                     onTriggerAttachmentPicker={onTriggerAttachmentPicker}
                                 />
                                 <SoloComposer
+                                    ref={composerRef}
                                     reportID={reportID}
                                     report={report}
                                     isMenuVisible={isMenuVisible}
