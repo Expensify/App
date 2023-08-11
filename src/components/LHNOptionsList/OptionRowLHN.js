@@ -134,7 +134,7 @@ function OptionRowLHN(props) {
     const emojiCode = lodashGet(optionItem, 'status.emojiCode', '');
     const statusContent = lodashGet(optionItem, 'status.text', '');
     const isStatusVisible = Permissions.canUseCustomStatus(props.betas) && emojiCode && ReportUtils.isShowEmojiStatus(optionItem);
-    
+
     return (
         <OfflineWithFeedback
             pendingAction={optionItem.pendingAction}
