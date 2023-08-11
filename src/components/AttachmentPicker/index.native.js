@@ -12,10 +12,10 @@ import launchCamera from './launchCamera';
 import Popover from '../Popover';
 import MenuItem from '../MenuItem';
 import styles from '../../styles/styles';
-import ArrowKeyFocusManager from '../ArrowKeyFocusManager';
 import useLocalize from '../../hooks/useLocalize';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
 import useKeyboardShortcut from '../../hooks/useKeyboardShortcut';
+import useArrowKeyFocusManager from '../../hooks/useArrowKeyFocusManager';
 
 const propTypes = {
     ...basePropTypes,
@@ -84,7 +84,6 @@ const getDataForUpload = (fileData) => {
 
 function AttachmentPicker({type, children}) {
     const [isVisible, setIsVisible] = useState(false);
-    const [focusedIndex, setFocusedIndex] = useState(-1);
 
     const completeAttachmentSelection = useRef();
     const onModalHide = useRef();
@@ -195,6 +194,8 @@ function AttachmentPicker({type, children}) {
 
         return data;
     }, [showDocumentPicker, showImagePicker, type]);
+
+    const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: -1, maxIndex: menuItemData.length - 1, isActive: isVisible});
 
     /**
      * An attachment error dialog when user selected malformed images
@@ -311,21 +312,15 @@ function AttachmentPicker({type, children}) {
                 onModalHide={onModalHide.current}
             >
                 <View style={!isSmallScreenWidth && styles.createMenuContainer}>
-                    <ArrowKeyFocusManager
-                        focusedIndex={focusedIndex}
-                        maxIndex={menuItemData.length - 1}
-                        onFocusedIndexChanged={(index) => setFocusedIndex(index)}
-                    >
-                        {_.map(menuItemData, (item, menuIndex) => (
-                            <MenuItem
-                                key={item.textTranslationKey}
-                                icon={item.icon}
-                                title={translate(item.textTranslationKey)}
-                                onPress={() => selectItem(item)}
-                                focused={focusedIndex === menuIndex}
-                            />
-                        ))}
-                    </ArrowKeyFocusManager>
+                    {_.map(menuItemData, (item, menuIndex) => (
+                        <MenuItem
+                            key={item.textTranslationKey}
+                            icon={item.icon}
+                            title={translate(item.textTranslationKey)}
+                            onPress={() => selectItem(item)}
+                            focused={focusedIndex === menuIndex}
+                        />
+                    ))}
                 </View>
             </Popover>
             {renderChildren()}
