@@ -13,6 +13,7 @@ import * as Expensicons from './Icon/Expensicons';
 import theme from '../styles/themes/default';
 import Button from './Button';
 import styles from '../styles/styles';
+import variables from '../styles/variables';
 import LinearGradient from './LinearGradient';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
@@ -26,11 +27,20 @@ const propTypes = {
 
     /** The optimistic transaction for this request */
     transaction: PropTypes.shape({
+        /** The transactionID of this request */
         transactionID: PropTypes.string,
+
+        /** The comment object on the transaction */
         comment: PropTypes.shape({
+            /** The waypoints defining the distance request */
             waypoints: PropTypes.shape({
+                /** The latitude of the waypoint */
                 lat: PropTypes.number,
+
+                /** The longitude of the waypoint */
                 lng: PropTypes.number,
+
+                /** The address of the waypoint */
                 address: PropTypes.string,
             }),
         }),
@@ -57,8 +67,8 @@ function DistanceRequest({transactionID, transaction, translate, formData}) {
     const lastWaypointIndex = numberOfWaypoints - 1;
 
     // Show up to the max number of waypoints plus 1/2 of one to hint at scrolling
-    const halfMenuItemHeight = Math.floor(styles.baseMenuItemHeight / 2);
-    const scrollContainerMaxHeight = styles.baseMenuItemHeight * MAX_WAYPOINTS_TO_DISPLAY + halfMenuItemHeight;
+    const halfMenuItemHeight = Math.floor(variables.baseMenuItemHeight / 2);
+    const scrollContainerMaxHeight = variables.baseMenuItemHeight * MAX_WAYPOINTS_TO_DISPLAY + halfMenuItemHeight;
 
     useEffect(() => {
         if (!transaction.transactionID || !_.isEmpty(waypoints)) {

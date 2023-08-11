@@ -1398,8 +1398,6 @@ const styles = {
         minHeight: variables.componentSizeNormal,
     },
 
-    baseMenuItemHeight: 64,
-
     chatLinkRowPressable: {
         minWidth: 0,
         textDecorationLine: 'none',
