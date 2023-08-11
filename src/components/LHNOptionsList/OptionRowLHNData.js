@@ -186,8 +186,9 @@ export default compose(
         },
     }),
 )(
-    memo(
-        OptionRowLHNData,
-        (prevProps, nextProps) => prevProps.parentReportActions[prevProps.fullReport.parentReportActionID] === nextProps.parentReportActions[nextProps.fullReport.parentReportActionID],
-    ),
+    memo(OptionRowLHNData, (prevProps, nextProps) => {
+        const prevParentReportActions = prevProps.parentReportActions[prevProps.fullReport.parentReportActionID];
+        const nextParentReportActions = nextProps.parentReportActions[nextProps.fullReport.parentReportActionID];
+        return prevParentReportActions === nextParentReportActions && _.isEqual(_.omit(prevProps, 'parentReportActions'), _.omit(nextProps, 'parentReportActions'));
+    }),
 );
