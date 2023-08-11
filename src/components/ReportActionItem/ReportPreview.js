@@ -28,7 +28,7 @@ import reportPropTypes from '../../pages/reportPropTypes';
 import RenderHTML from '../RenderHTML';
 import * as ReceiptUtils from '../../libs/ReceiptUtils';
 import * as ReportActionUtils from '../../libs/ReportActionsUtils';
-import Image from '../Image';
+import ReceiptImages from '../ReceiptImages';
 
 const propTypes = {
     /** All the data of the action */
@@ -153,29 +153,12 @@ function ReportPreview(props) {
             >
                 <View style={[styles.reportPreviewBox, props.isHovered || isScanning ? styles.moneyRequestPreviewBoxHover : undefined]}>
                     {hasReceipts && (
-                        <View style={[styles.reportPreviewBoxReceipts, props.isHovered || isScanning ? styles.reportPreviewBoxHoverBorder : undefined]}>
-                            {_.map(receipts, ({receipt, filename, transactionID}) => {
-                                const {thumbnail, image} = ReceiptUtils.getThumbnailAndImageURIs(receipt.source, filename);
-                                return (
-                                    <View
-                                        key={transactionID}
-                                        style={[styles.reportPreviewBoxReceipt, props.isHovered || isScanning ? styles.reportPreviewBoxHoverBorder : undefined]}
-                                    >
-                                        {thumbnail
-                                            ? <RenderHTML html={`
-                                                    <img
-                                                        src="${thumbnail}"
-                                                        data-expensify-source="${image}"
-                                                        data-expensify-fit-container="true"
-                                                        data-expensify-preview-modal-disabled="true"
-                                                    />
-                                            `} />
-                                            : <Image source={{uri: image}} style={[styles.w100, styles.h100]} />
-                                        }
-                                    </View>
-                                );
-                            })}
-                        </View>
+                        <ReceiptImages
+                            images={_.map(receipts, ({receipt, filename}) => ({source: receipt.source, filename}))}
+                            size={3}
+                            total={ReportActionUtils.getNumberOfMoneyRequests(props.action)}
+                            hoverStyle={props.isHovered || isScanning ? styles.reportPreviewBoxHoverBorder : undefined}
+                        />
                     )}
                     <View style={styles.reportPreviewBoxText}>
                         <View style={styles.flexRow}>

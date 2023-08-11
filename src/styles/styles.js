@@ -3682,10 +3682,25 @@ const styles = {
         flex: 1,
         width: '100%',
         height: '100%',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+
+    reportPreviewBoxReceiptsMore: {
+        position: 'absolute',
+        borderRadius: '50%',
+        backgroundColor: themeColors.cardBG,
+        width: 36,
+        height: 36,
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
     },
 
     reportPreviewBoxHoverBorder: {
         borderColor: themeColors.border,
+        backgroundColor: themeColors.border,
     },
 
     reportPreviewBoxText: {
