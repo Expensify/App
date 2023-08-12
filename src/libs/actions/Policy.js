@@ -162,6 +162,16 @@ function isAdminOfFreePolicy(policies) {
 }
 
 /**
+ * Is the user an admin of a corporate policy
+ *
+ * @param {Array} policies
+ * @returns {Boolean}
+ */
+function isAdminOfControlPolicy(policies) {
+    return _.some(policies, (policy) => policy && policy.type === CONST.POLICY.TYPE.CORPORATE && policy.role === CONST.POLICY.ROLE.ADMIN);
+}
+
+/**
  * Is the user the owner of the given policy?
  *
  * @param {Object} policy
@@ -1177,6 +1187,7 @@ export {
     removeMembers,
     addMembersToWorkspace,
     isAdminOfFreePolicy,
+    isAdminOfControlPolicy,
     hasActiveFreePolicy,
     setWorkspaceErrors,
     clearCustomUnitErrors,

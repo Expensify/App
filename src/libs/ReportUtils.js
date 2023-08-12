@@ -1648,6 +1648,47 @@ function buildOptimisticTaskCommentReportAction(taskReportID, taskTitle, taskAss
     return reportAction;
 }
 
+function buildOptimisticApprovedReportAction(amount, currency, expenseReportID) {
+    const originalMessage = {
+        amount,
+        currency,
+        expenseReportID,
+    };
+
+    const currencyUnit = CurrencyUtils.getCurrencyUnit(currency);
+    const formattedAmount = NumberFormatUtils.format(preferredLocale, Math.abs(amount) / currencyUnit, {style: 'currency', currency});
+    const iouMessage = `approved ${formattedAmount}`;
+    const message = [
+        {
+            html: _.escape(iouMessage),
+            text: iouMessage,
+            isEdited: false,
+            type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+        },
+    ];
+
+    return {
+        actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+        actorAccountID: currentUserAccountID,
+        automatic: false,
+        avatar: lodashGet(currentUserPersonalDetails, 'avatar', UserUtils.getDefaultAvatar(currentUserAccountID)),
+        isAttachment: false,
+        originalMessage,
+        message,
+        person: [
+            {
+                style: 'strong',
+                text: lodashGet(currentUserPersonalDetails, 'displayName', currentUserEmail),
+                type: 'TEXT',
+            },
+        ],
+        reportActionID: NumberUtils.rand64(),
+        shouldShow: true,
+        created: DateUtils.getDBTime(),
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+    };
+}
+
 /**
  * Builds an optimistic IOU report with a randomly generated reportID
  *
@@ -2963,6 +3004,7 @@ export {
     buildOptimisticCreatedReportAction,
     buildOptimisticEditedTaskReportAction,
     buildOptimisticIOUReport,
+    buildOptimisticApprovedReportAction,
     buildOptimisticExpenseReport,
     buildOptimisticIOUReportAction,
     buildOptimisticReportPreview,
@@ -2991,6 +3033,7 @@ export {
     isCanceledTaskReport,
     isCompletedTaskReport,
     isReportManager,
+    isReportApproved,
     isMoneyRequestReport,
     isMoneyRequest,
     chatIncludesChronos,
