@@ -4,7 +4,7 @@ import GenericPressablePropTypes from './PropTypes';
 
 const NativeGenericPressable = forwardRef((props, ref) => (
     <GenericPressable
-        focusable
+        tabIndex={0}
         accessible
         accessibilityHint={props.accessibilityHint || props.accessibilityLabel}
         // eslint-disable-next-line react/jsx-props-no-spreading

@@ -246,7 +246,7 @@ function BaseTextInput(props) {
             <View style={styles.pointerEventsNone}>
                 <PressableWithoutFeedback
                     onPress={onPress}
-                    focusable={false}
+                    tabIndex={-1}
                     accessibilityLabel={props.label}
                     style={[
                         props.autoGrowHeight && styles.autoGrowHeightInputContainer(textInputHeight, variables.componentSizeLarge, maxHeight),

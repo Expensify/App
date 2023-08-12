@@ -109,7 +109,7 @@ function PressableWithDelayToggle(props) {
                     text={tooltipText}
                 >
                     <PressableWithoutFeedback
-                        focusable={false}
+                        tabIndex={-1}
                         accessible={false}
                         onPress={updatePressState}
                         style={[styles.flexRow, ...props.styles]}

@@ -232,7 +232,7 @@ class PDFView extends Component {
         return (
             <View style={outerContainerStyle}>
                 <View
-                    focusable
+                    tabIndex={0}
                     style={pdfContainerStyle}
                     onLayout={({
                         nativeEvent: {
