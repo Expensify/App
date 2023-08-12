@@ -138,7 +138,7 @@ function ReportActionItem(props) {
                 ReportActionContextMenu.hideContextMenu();
                 ReportActionContextMenu.hideDeleteModal();
             }
-            if (EmojiPickerAction.isActiveReportAction(props.action.reportActionID)) {
+            if (EmojiPickerAction.isActive(props.action.reportActionID)) {
                 EmojiPickerAction.hideEmojiPicker(true);
             }
         },

@@ -1197,6 +1197,7 @@ class ReportActionCompose extends React.Component {
                                     this.focus(true);
                                 }}
                                 onEmojiSelected={this.replaceSelectionWithText}
+                                emojiPickerID={this.props.report.reportID}
                             />
                         )}
                         <View
