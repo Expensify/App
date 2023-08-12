@@ -22,8 +22,13 @@ import networkPropTypes from '../../components/networkPropTypes';
 const propTypes = {
     route: PropTypes.shape({
         params: PropTypes.shape({
+            /** IOU type */
             iouType: PropTypes.string,
+
+            /** Index of the waypoint being edited */
             waypointIndex: PropTypes.string,
+
+            /** The transactionID of this request */
             transactionID: PropTypes.string,
         }),
     }),
@@ -44,23 +49,19 @@ const defaultProps = {
     },
 };
 
-function WaypointEditor(props) {
-    const waypointIndex = lodashGet(props.route.params, 'waypointIndex');
-    const transactionID = lodashGet(props.route.params, 'transactionID');
-    const iouType = lodashGet(props.route.params, 'iouType');
-
+function WaypointEditor({route: {params: {iouType = '', waypointIndex = '', transactionID = ''} = {}} = {}, network, translate}) {
     const validate = (values) => {
         const errors = {};
 
         // The address can only be empty (removes the value), or auto-selected which goes through the onPress method
         const waypointValue = values[`waypoint${waypointIndex}`];
-        if (!props.network.isOffline && waypointValue) {
+        if (!network.isOffline && waypointValue) {
             errors[`waypoint${waypointIndex}`] = 'distance.errors.selectSuggestedAddress';
         }
 
         // When the user is offline, we can't use auto-complete to validate the address so we will just save the address
         // Otherwise, we require the user to select an address from the auto-complete
-        if (props.network.isOffline && waypointValue && ValidationUtils.isValidAddress(waypointValue)) {
+        if (network.isOffline && waypointValue && ValidationUtils.isValidAddress(waypointValue)) {
             errors[`waypoint${waypointIndex}`] = 'bankAccount.error.address';
         }
 
@@ -75,7 +76,7 @@ function WaypointEditor(props) {
 
         // While the user is offline, the auto-complete address search will not work
         // Therefore, we're going to save the waypoint as just the address, and the lat/long will be filled in on the backend
-        if (props.network.isOffline && values[`waypoint${waypointIndex}`]) {
+        if (network.isOffline && values[`waypoint${waypointIndex}`]) {
             const waypoint = {
                 address: values[`waypoint${waypointIndex}`],
             };
@@ -112,13 +113,13 @@ function WaypointEditor(props) {
                 enabledWhenOffline
                 validate={validate}
                 onSubmit={onSubmit}
-                submitButtonText={props.translate('common.save')}
+                submitButtonText={translate('common.save')}
             >
                 <View>
                     <AddressSearch
                         inputID={`waypoint${waypointIndex}`}
                         containerStyles={[styles.mt4]}
-                        label={props.translate('distance.address')}
+                        label={translate('distance.address')}
                         shouldSaveDraft
                         onPress={onPress}
                         maxInputLength={CONST.FORM_CHARACTER_LIMIT}

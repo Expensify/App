@@ -47,5 +47,4 @@ function saveWaypoint(transactionID, index, waypoint) {
     });
 }
 
-
 export {addStop, createInitialWaypoints, saveWaypoint};
