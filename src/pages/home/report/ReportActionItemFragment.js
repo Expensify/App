@@ -130,8 +130,11 @@ function ReportActionItemFragment(props) {
 
             return (
                 <Text
-                    selectable={!DeviceCapabilities.canUseTouchScreen() || !props.isSmallScreenWidth}
-                    style={[containsOnlyEmojis ? styles.onlyEmojisText : undefined, styles.ltr, ...props.style]}
+                    style={[
+                        containsOnlyEmojis ? styles.onlyEmojisText : undefined, 
+                        styles.ltr, ...props.style,
+                        (!DeviceCapabilities.canUseTouchScreen() || !props.isSmallScreenWidth) ? styles.userSelectText : styles.userSelectNone
+                    ]}
                 >
                     {convertToLTR(text)}
                     {Boolean(props.fragment.isEdited) && (
@@ -141,7 +144,6 @@ function ReportActionItemFragment(props) {
                             style={[editedLabelStyles, ...props.style]}
                         >
                             <Text
-                                selectable={false}
                                 style={[containsOnlyEmojis ? styles.onlyEmojisTextLineHeight : undefined, styles.w1, styles.userSelectNone]}
                             >
                                 {' '}

@@ -60,15 +60,13 @@ function ReportActionItemThread(props) {
                     />
                     <View style={[styles.flex1, styles.flexRow, styles.lh140Percent, styles.alignItemsEnd]}>
                         <Text
-                            selectable={false}
-                            style={[styles.link, styles.ml2, styles.h4, styles.noWrap]}
+                            style={[styles.link, styles.ml2, styles.h4, styles.noWrap, styles.userSelectNone]}
                         >
                             {`${numberOfRepliesText} ${replyText}`}
                         </Text>
                         <Text
-                            selectable={false}
                             numberOfLines={1}
-                            style={[styles.ml2, styles.textMicroSupporting, styles.flex1]}
+                            style={[styles.ml2, styles.textMicroSupporting, styles.flex1, styles.userSelectNone]}
                         >
                             {timeStamp}
                         </Text>

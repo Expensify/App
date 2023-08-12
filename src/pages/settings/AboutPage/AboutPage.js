@@ -97,8 +97,7 @@ function AboutPage(props) {
                                         width={80}
                                     />
                                     <Text
-                                        selectable
-                                        style={[styles.textLabel, styles.alignSelfCenter, styles.mt6, styles.mb2, styles.colorMuted]}
+                                        style={[styles.textLabel, styles.alignSelfCenter, styles.mt6, styles.mb2, styles.colorMuted, styles.userSelectText]}
                                     >
                                         v{Environment.isInternalTestBuild() ? `${pkg.version} PR:${CONST.PULL_REQUEST_NUMBER}${getFlavor()}` : `${pkg.version}${getFlavor()}`}
                                     </Text>

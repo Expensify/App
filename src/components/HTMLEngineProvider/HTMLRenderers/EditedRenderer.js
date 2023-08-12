@@ -26,8 +26,7 @@ function EditedRenderer(props) {
         >
             {/* Native devices do not support margin between nested text */}
             <Text
-                selectable={false}
-                style={[styles.w1, styles.userSelectNone]}
+                style={[styles.w1, styles.userSelectNone, styles.userSelectNone]}
             >
                 {' '}
             </Text>

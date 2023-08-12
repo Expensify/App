@@ -73,8 +73,7 @@ function FloatingMessageCounter(props) {
                                 fill={themeColors.textLight}
                             />
                             <Text
-                                selectable={false}
-                                style={[styles.ml2, styles.buttonSmallText, styles.textWhite]}
+                                style={[styles.ml2, styles.buttonSmallText, styles.textWhit, styles.userSelectNone]}
                             >
                                 {translate('newMessages')}
                             </Text>

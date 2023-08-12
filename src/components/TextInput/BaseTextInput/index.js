@@ -289,8 +289,7 @@ function BaseTextInput(props) {
                             {Boolean(props.prefixCharacter) && (
                                 <View style={styles.textInputPrefixWrapper}>
                                     <Text
-                                        selectable={false}
-                                        style={[styles.textInputPrefix, !hasLabel && styles.pv0, styles.pointerEventsNone]}
+                                        style={[styles.textInputPrefix, !hasLabel && styles.pv0, styles.pointerEventsNone, styles.userSelectNone]}
                                         onLayout={storePrefixLayoutDimensions}
                                     >
                                         {props.prefixCharacter}

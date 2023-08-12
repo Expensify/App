@@ -344,8 +344,7 @@ function ReportActionItem(props) {
                                     onPress={() => setIsHidden(!isHidden)}
                                 >
                                     <Text
-                                        style={styles.buttonSmallText}
-                                        selectable={false}
+                                        style={[styles.buttonSmallText, styles.userSelectNone]}
                                     >
                                         {isHidden ? props.translate('moderation.revealMessage') : props.translate('moderation.hideMessage')}
                                     </Text>

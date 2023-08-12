@@ -49,8 +49,7 @@ class CollapsibleSection extends React.Component {
                     pressDimmingValue={0.2}
                 >
                     <Text
-                        selectable={false}
-                        style={[styles.flex1, styles.textStrong]}
+                        style={[styles.flex1, styles.textStrong, styles.userSelectNone]}
                     >
                         {this.props.title}
                     </Text>

@@ -205,11 +205,11 @@ class Button extends Component {
         const textComponent = (
             <Text
                 numberOfLines={1}
-                selectable={false}
                 style={[
                     this.props.isLoading && styles.opacity0,
                     styles.pointerEventsNone,
                     styles.buttonText,
+                    styles.userSelectNone,
                     this.props.small && styles.buttonSmallText,
                     this.props.medium && styles.buttonMediumText,
                     this.props.large && styles.buttonLargeText,
