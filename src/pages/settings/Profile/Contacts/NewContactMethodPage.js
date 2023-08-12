@@ -140,7 +140,7 @@ function NewContactMethodPage(props) {
                         ref={(el) => (loginInputRef.current = el)}
                         inputID="phoneOrEmail"
                         autoCapitalize="none"
-                        returnKeyType="done"
+                        enterKeyHint="done"
                         maxLength={CONST.LOGIN_CHARACTER_LIMIT}
                     />
                 </View>

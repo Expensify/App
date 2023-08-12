@@ -144,7 +144,7 @@ class PDFPasswordForm extends Component {
                             autoCorrect={false}
                             textContentType="password"
                             onChangeText={this.updatePassword}
-                            returnKeyType="done"
+                            enterKeyHint="done"
                             onSubmitEditing={this.submitPassword}
                             errorText={errorText}
                             onFocus={() => this.props.onPasswordFieldFocused(true)}

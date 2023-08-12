@@ -88,7 +88,7 @@ function AddPayPalMePage(props) {
                     autoCompleteType="off"
                     autoCorrect={false}
                     placeholder={props.translate('addPayPalMePage.yourPayPalUsername')}
-                    returnKeyType="done"
+                    enterKeyHint="done"
                     defaultValue={lodashGet(props.payPalMeData, 'accountData.username', '')}
                 />
                 <View style={[styles.mt3, styles.flexRow, styles.justifyContentBetween, styles.alignSelfStart]}>
