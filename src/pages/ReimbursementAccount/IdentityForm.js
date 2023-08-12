@@ -145,7 +145,7 @@ function IdentityForm(props) {
                         inputID={props.inputKeys.firstName}
                         shouldSaveDraft={props.shouldSaveDraft}
                         label={`${props.translate('common.firstName')}`}
-                        ari-label={props.translate('common.firstName')}
+                        aria-label={props.translate('common.firstName')}
                         role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         value={props.values.firstName}
                         defaultValue={props.defaultValues.firstName}
@@ -158,7 +158,7 @@ function IdentityForm(props) {
                         inputID={props.inputKeys.lastName}
                         shouldSaveDraft={props.shouldSaveDraft}
                         label={`${props.translate('common.lastName')}`}
-                        ari-label={props.translate('common.lastName')}
+                        aria-label={props.translate('common.lastName')}
                         role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         value={props.values.lastName}
                         defaultValue={props.defaultValues.lastName}
@@ -183,7 +183,7 @@ function IdentityForm(props) {
                 inputID={props.inputKeys.ssnLast4}
                 shouldSaveDraft={props.shouldSaveDraft}
                 label={`${props.translate('common.ssnLast4')}`}
-                ari-label={props.translate('common.ssnLast4')}
+                aria-label={props.translate('common.ssnLast4')}
                 role={CONST.ACCESSIBILITY_ROLE.TEXT}
                 containerStyles={[styles.mt4]}
                 inputMode={CONST.INPUT_MODE.NUMERIC}

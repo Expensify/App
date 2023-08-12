@@ -64,14 +64,14 @@ function StatusSetPage({draftStatus, currentUserPersonalDetails}) {
                         <View style={[styles.mt1]}>
                             <EmojiPickerButtonDropdown
                                 inputID={INPUT_IDS.EMOJI_CODE}
-                                ari-label={INPUT_IDS.EMOJI_CODE}
+                                aria-label={INPUT_IDS.EMOJI_CODE}
                                 defaultValue={defaultEmoji}
                             />
                         </View>
                         <TextInput
                             inputID={INPUT_IDS.STATUS_TEXT}
                             label={translate('statusPage.message')}
-                            ari-label={INPUT_IDS.STATUS_TEXT}
+                            aria-label={INPUT_IDS.STATUS_TEXT}
                             role={CONST.ACCESSIBILITY_ROLE.TEXT}
                             defaultValue={defaultText}
                             maxLength={CONST.STATUS_TEXT_MAX_LENGTH}

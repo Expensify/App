@@ -11,7 +11,6 @@ const defaultProps = {
 
 const propTypes = {
     isSmallScreen: PropTypes.bool,
-    pointerEvents: PropTypes.string.isRequired,
     width: PropTypes.number.isRequired,
     style: PropTypes.any
 };

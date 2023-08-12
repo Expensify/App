@@ -94,7 +94,7 @@ function CloseAccountPage(props) {
                         inputID="reasonForLeaving"
                         autoGrowHeight
                         label={props.translate('closeAccountPage.enterMessageHere')}
-                        ari-label={props.translate('closeAccountPage.enterMessageHere')}
+                        aria-label={props.translate('closeAccountPage.enterMessageHere')}
                         role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         inputStyle={styles.verticalAlignTop}
                         containerStyles={[styles.mt5, styles.autoGrowHeightMultilineInput]}
@@ -106,7 +106,7 @@ function CloseAccountPage(props) {
                         inputID="phoneOrEmail"
                         autoCapitalize="none"
                         label={props.translate('closeAccountPage.enterDefaultContact')}
-                        ari-label={props.translate('closeAccountPage.enterDefaultContact')}
+                        aria-label={props.translate('closeAccountPage.enterDefaultContact')}
                         role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         containerStyles={[styles.mt5]}
                         autoCorrect={false}
