@@ -61,8 +61,11 @@ const propTypes = {
     /** A map of inputID key names */
     renamedInputKeys: PropTypes.shape({
         street: PropTypes.string,
+        street2: PropTypes.string,
         city: PropTypes.string,
         state: PropTypes.string,
+        lat: PropTypes.string,
+        lng: PropTypes.string,
         zipCode: PropTypes.string,
     }),
 
@@ -85,9 +88,12 @@ const defaultProps = {
     isLimitedToUSA: true,
     renamedInputKeys: {
         street: 'addressStreet',
+        street2: 'addressStreet2',
         city: 'addressCity',
         state: 'addressState',
         zipCode: 'addressZipCode',
+        lat: 'addressLat',
+        lng: 'addressLng',
     },
     maxInputLength: undefined,
 };
