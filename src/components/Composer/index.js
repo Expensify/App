@@ -463,7 +463,7 @@ class Composer extends React.Component {
                     onKeyPress={this.handleKeyPress}
                     onFocus={(e) => {
                         ReportActionComposeFocusManager.onComposerFocus(() => {
-                            if (!this.willBlurTextInputOnTapOutside) {
+                            if (!this.willBlurTextInputOnTapOutside || !this.textInput) {
                                 return;
                             }
 
