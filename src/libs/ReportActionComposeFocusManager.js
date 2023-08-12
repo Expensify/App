@@ -2,6 +2,7 @@ import _ from 'underscore';
 import React from 'react';
 
 const composerRef = React.createRef();
+// There are two types of composer: general composer (edit composer) and main composer
 let focusCallback = null;
 let mainComposerFocusCallback = null;
 
@@ -10,10 +11,10 @@ let mainComposerFocusCallback = null;
  * Typical uses of this would be call the focus on the ReportActionComposer.
  *
  * @param {Function} callback callback to register
+ * @param {Boolean} isMainComposer
  */
 function onComposerFocus(callback, isMainComposer = false) {
     if (isMainComposer) {
-        console.log('registering mainComposerFocusCallback')
         mainComposerFocusCallback = callback;
     } else {
         focusCallback = callback;
@@ -25,19 +26,14 @@ function onComposerFocus(callback, isMainComposer = false) {
  *
  */
 function focus() {
-    console.log('calling focussss')
     if (!_.isFunction(focusCallback)) {
         if (!_.isFunction(mainComposerFocusCallback)) {
-            console.log('mainComposerFocusCallbackkkk', mainComposerFocusCallback)
             return;
         }
 
-        console.log('mainComposerFocusCallback');
         mainComposerFocusCallback();
         return;
     }
-
-    console.log('calling focusCallback')
 
     focusCallback();
 }
@@ -45,6 +41,7 @@ function focus() {
 /**
  * Clear the registered focus callback
  *
+ * @param {Boolean} isMainComposer
  */
 function clear(isMainComposer = false) {
     if (isMainComposer) {

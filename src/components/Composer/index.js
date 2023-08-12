@@ -462,13 +462,13 @@ class Composer extends React.Component {
                     disabled={this.props.isDisabled}
                     onKeyPress={this.handleKeyPress}
                     onFocus={(e) => {
-                        ReportActionComposeFocusManager.onComposerFocus(() => { 
-                            if (!this.willBlurTextInputOnTapOutside) { 
-                                return; 
-                            } 
-                    
+                        ReportActionComposeFocusManager.onComposerFocus(() => {
+                            if (!this.willBlurTextInputOnTapOutside) {
+                                return;
+                            }
+
                             this.textInput.focus();
-                        }); 
+                        });
                         if (this.props.onFocus) {
                             this.props.onFocus(e);
                         }
