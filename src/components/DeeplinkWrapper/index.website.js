@@ -66,7 +66,7 @@ function DeeplinkWrapper({children, isAuthenticated}) {
             return routeRegex.test(window.location.pathname);
         });
         // Making a few checks to exit early before checking authentication status
-        if (!isMacOSWeb() || CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.DEV || hasShownPrompt) {
+        if (!isMacOSWeb() || isUnsupportedDeeplinkRoute || CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.DEV || hasShownPrompt) {
             return;
         }
         if (isAuthenticated) {
