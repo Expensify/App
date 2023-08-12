@@ -138,20 +138,26 @@ describe('IOUUtils', () => {
 
         test('103 JPY split among 3 participants including the default user should be [35, 34, 34]', () => {
             const participantsAccountIDs = [100, 101];
-            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 103, true)).toBe(35);
-            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 103)).toBe(34);
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 10300, 'JPY', true)).toBe(3500);
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 10300, 'JPY')).toBe(3400);
+        });
+
+        test('103 USD split among 3 participants including the default user should be [34.34, 34.33, 34.33]', () => {
+            const participantsAccountIDs = [100, 101];
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 10300, 'USD', true)).toBe(3434);
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 10300, 'USD')).toBe(3433);
         });
 
         test('10 AFN split among 4 participants including the default user should be [1, 3, 3, 3]', () => {
             const participantsAccountIDs = [100, 101, 102];
-            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 10, true)).toBe(1);
-            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 10)).toBe(3);
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 1000, 'AFN', true)).toBe(100);
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 1000, 'AFN')).toBe(300);
         });
 
-        test('0.02 USD split among 4 participants including the default user should be [-1, 1, 1, 1]', () => {
+        test('0.02 USD split among 4 participants including the default user should be [-0.01, 0.01, 0.01, 0.01]', () => {
             const participantsAccountIDs = [100, 101, 102];
-            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 2, true)).toBe(-1);
-            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 2)).toBe(1);
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 2, 'USD', true)).toBe(-1);
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 2, 'USD')).toBe(1);
         });
     });
 });
