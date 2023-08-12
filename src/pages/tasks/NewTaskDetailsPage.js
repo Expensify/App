@@ -97,7 +97,7 @@ function NewTaskDetailsPage(props) {
                         role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         inputID="taskTitle"
                         label={props.translate('task.title')}
-                        accessibilityLabel={props.translate('task.title')}
+                        aria-label={props.translate('task.title')}
                         value={taskTitle}
                         onValueChange={(value) => setTaskTitle(value)}
                     />
@@ -107,7 +107,7 @@ function NewTaskDetailsPage(props) {
                         role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         inputID="taskDescription"
                         label={props.translate('newTaskPage.descriptionOptional')}
-                        accessibilityLabel={props.translate('newTaskPage.descriptionOptional')}
+                        aria-label={props.translate('newTaskPage.descriptionOptional')}
                         autoGrowHeight
                         submitOnEnter
                         containerStyles={[styles.autoGrowHeightMultilineInput]}

@@ -176,7 +176,7 @@ class CompanyStep extends React.Component {
                     <Text>{this.props.translate('companyStep.subtitle')}</Text>
                     <TextInput
                         label={this.props.translate('companyStep.legalBusinessName')}
-                        accessibilityLabel={this.props.translate('companyStep.legalBusinessName')}
+                        aria-label={this.props.translate('companyStep.legalBusinessName')}
                         role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         inputID="companyName"
                         containerStyles={[styles.mt4]}
@@ -205,7 +205,7 @@ class CompanyStep extends React.Component {
                     <TextInput
                         inputID="companyPhone"
                         label={this.props.translate('common.phoneNumber')}
-                        accessibilityLabel={this.props.translate('common.phoneNumber')}
+                        aria-label={this.props.translate('common.phoneNumber')}
                         role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         containerStyles={[styles.mt4]}
                         inputMode={CONST.INPUT_MODE.TEL}
@@ -216,7 +216,7 @@ class CompanyStep extends React.Component {
                     <TextInput
                         inputID="website"
                         label={this.props.translate('companyStep.companyWebsite')}
-                        accessibilityLabel={this.props.translate('companyStep.companyWebsite')}
+                        aria-label={this.props.translate('companyStep.companyWebsite')}
                         role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         containerStyles={[styles.mt4]}
                         defaultValue={this.props.getDefaultStateForField('website', this.defaultWebsite)}
@@ -227,7 +227,7 @@ class CompanyStep extends React.Component {
                     <TextInput
                         inputID="companyTaxID"
                         label={this.props.translate('companyStep.taxIDNumber')}
-                        accessibilityLabel={this.props.translate('companyStep.taxIDNumber')}
+                        aria-label={this.props.translate('companyStep.taxIDNumber')}
                         role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         containerStyles={[styles.mt4]}
                         inputMode={CONST.INPUT_MODE.NUMERIC}

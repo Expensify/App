@@ -97,7 +97,7 @@ function BankAccountManualStep(props) {
                     shouldDelayFocus={shouldDelayFocus}
                     inputID="routingNumber"
                     label={translate('bankAccount.routingNumber')}
-                    accessibilityLabel={translate('bankAccount.routingNumber')}
+                    ari-label={translate('bankAccount.routingNumber')}
                     role={CONST.ACCESSIBILITY_ROLE.TEXT}
                     defaultValue={props.getDefaultStateForField('routingNumber', '')}
                     inputMode={CONST.INPUT_MODE.NUMERIC}
@@ -109,7 +109,7 @@ function BankAccountManualStep(props) {
                     inputID="accountNumber"
                     containerStyles={[styles.mt4]}
                     label={translate('bankAccount.accountNumber')}
-                    accessibilityLabel={translate('bankAccount.accountNumber')}
+                    ari-label={translate('bankAccount.accountNumber')}
                     role={CONST.ACCESSIBILITY_ROLE.TEXT}
                     defaultValue={props.getDefaultStateForField('accountNumber', '')}
                     inputMode={CONST.INPUT_MODE.NUMERIC}
@@ -118,7 +118,7 @@ function BankAccountManualStep(props) {
                     shouldUseDefaultValue={shouldDisableInputs}
                 />
                 <CheckboxWithLabel
-                    accessibilityLabel={`${translate('common.iAcceptThe')} ${translate('common.expensifyTermsOfService')}`}
+                    ari-label={`${translate('common.iAcceptThe')} ${translate('common.expensifyTermsOfService')}`}
                     style={styles.mt4}
                     inputID="acceptTerms"
                     LabelComponent={() => (

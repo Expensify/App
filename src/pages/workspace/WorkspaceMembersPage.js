@@ -452,7 +452,7 @@ function WorkspaceMembersPage(props) {
                                 value={searchValue}
                                 onChangeText={setSearchValue}
                                 label={props.translate('optionsSelector.findMember')}
-                                accessibilityLabel={props.translate('optionsSelector.findMember')}
+                                aria-label={props.translate('optionsSelector.findMember')}
                                 spellCheck={false}
                             />
                         </View>

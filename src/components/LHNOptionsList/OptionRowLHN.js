@@ -192,7 +192,7 @@ function OptionRowLHN(props) {
                                 <View style={contentContainerStyles}>
                                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.mw100, styles.overflowHidden]}>
                                         <DisplayNames
-                                            accessibilityLabel={translate('accessibilityHints.chatUserDisplayNames')}
+                                            aria-label={translate('accessibilityHints.chatUserDisplayNames')}
                                             fullTitle={optionItem.text}
                                             displayNamesWithTooltips={optionItem.displayNamesWithTooltips}
                                             tooltipEnabled
@@ -207,7 +207,7 @@ function OptionRowLHN(props) {
                                         <Text
                                             style={alternateTextStyle}
                                             numberOfLines={1}
-                                            accessibilityLabel={translate('accessibilityHints.lastChatMessagePreview')}
+                                            aria-label={translate('accessibilityHints.lastChatMessagePreview')}
                                         >
                                             {optionItem.isLastMessageDeletedParentAction ? translate('parentReportAction.deletedMessage') : optionItem.alternateText}
                                         </Text>
@@ -241,7 +241,7 @@ function OptionRowLHN(props) {
                             {optionItem.hasDraftComment && optionItem.isAllowedToComment && (
                                 <View
                                     style={styles.ml2}
-                                    accessibilityLabel={translate('sidebarScreen.draftedMessage')}
+                                    aria-label={translate('sidebarScreen.draftedMessage')}
                                 >
                                     <Icon src={Expensicons.Pencil} />
                                 </View>
@@ -249,7 +249,7 @@ function OptionRowLHN(props) {
                             {!shouldShowGreenDotIndicator && optionItem.isPinned && (
                                 <View
                                     style={styles.ml2}
-                                    accessibilityLabel={translate('sidebarScreen.chatPinned')}
+                                    aria-label={translate('sidebarScreen.chatPinned')}
                                 >
                                     <Icon src={Expensicons.Pin} />
                                 </View>

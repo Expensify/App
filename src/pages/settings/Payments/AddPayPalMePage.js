@@ -83,7 +83,7 @@ function AddPayPalMePage(props) {
                     inputID="payPalMeUsername"
                     ref={(ref) => (payPalMeInput.current = ref)}
                     label={props.translate('addPayPalMePage.payPalMe')}
-                    accessibilityLabel={props.translate('addPayPalMePage.payPalMe')}
+                    ari-label={props.translate('addPayPalMePage.payPalMe')}
                     role={CONST.ACCESSIBILITY_ROLE.TEXT}
                     autoCompleteType="off"
                     autoCorrect={false}

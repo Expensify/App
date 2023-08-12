@@ -163,7 +163,7 @@ function ReportActionsList(props) {
     return (
         <Animated.View style={[animatedStyles, styles.flex1, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}]}>
             <InvertedFlatList
-                accessibilityLabel={props.translate('sidebarScreen.listOfChatMessages')}
+                aria-label={props.translate('sidebarScreen.listOfChatMessages')}
                 ref={reportScrollManager.ref}
                 data={props.sortedReportActions}
                 renderItem={renderItem}

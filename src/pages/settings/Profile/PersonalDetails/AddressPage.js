@@ -172,7 +172,7 @@ function AddressPage({privatePersonalDetails, country}) {
                 <TextInput
                     inputID="addressLine2"
                     label={translate('common.addressLine', {lineNumber: 2})}
-                    accessibilityLabel={translate('common.addressLine')}
+                    ari-label={translate('common.addressLine')}
                     role={CONST.ACCESSIBILITY_ROLE.TEXT}
                     defaultValue={street2 || ''}
                     maxLength={CONST.FORM_CHARACTER_LIMIT}
@@ -199,7 +199,7 @@ function AddressPage({privatePersonalDetails, country}) {
                     <TextInput
                         inputID="state"
                         label={translate('common.stateOrProvince')}
-                        accessibilityLabel={translate('common.stateOrProvince')}
+                        ari-label={translate('common.stateOrProvince')}
                         role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         value={state || ''}
                         maxLength={CONST.FORM_CHARACTER_LIMIT}
@@ -211,7 +211,7 @@ function AddressPage({privatePersonalDetails, country}) {
                 <TextInput
                     inputID="city"
                     label={translate('common.city')}
-                    accessibilityLabel={translate('common.city')}
+                    ari-label={translate('common.city')}
                     role={CONST.ACCESSIBILITY_ROLE.TEXT}
                     defaultValue={address.city || ''}
                     maxLength={CONST.FORM_CHARACTER_LIMIT}
@@ -221,7 +221,7 @@ function AddressPage({privatePersonalDetails, country}) {
                 <TextInput
                     inputID="zipPostCode"
                     label={translate('common.zipPostCode')}
-                    accessibilityLabel={translate('common.zipPostCode')}
+                    ari-label={translate('common.zipPostCode')}
                     role={CONST.ACCESSIBILITY_ROLE.TEXT}
                     autoCapitalize="characters"
                     defaultValue={address.zip || ''}

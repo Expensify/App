@@ -8,7 +8,7 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 function UnreadActionIndicator(props) {
     return (
         <View
-            accessibilityLabel={props.translate('accessibilityHints.newMessageLineIndicator')}
+            aria-label={props.translate('accessibilityHints.newMessageLineIndicator')}
             data-action-id={props.reportActionID}
             style={[styles.unreadIndicatorContainer, styles.userSelectNone]}
             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}

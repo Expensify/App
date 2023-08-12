@@ -69,7 +69,7 @@ function ReportActionItemCreated(props) {
                     style={[StyleUtils.getReportWelcomeBackgroundImageStyle(props.isSmallScreenWidth), styles.pointerEventsNone]}
                 />
                 <View
-                    accessibilityLabel={props.translate('accessibilityHints.chatWelcomeMessage')}
+                    aria-label={props.translate('accessibilityHints.chatWelcomeMessage')}
                     style={[styles.p5, StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]}
                 >
                     <PressableWithoutFeedback

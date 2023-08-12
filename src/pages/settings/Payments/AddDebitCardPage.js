@@ -117,7 +117,7 @@ function DebitCardPage(props) {
                 <TextInput
                     inputID="nameOnCard"
                     label={translate('addDebitCardPage.nameOnCard')}
-                    accessibilityLabel={translate('addDebitCardPage.nameOnCard')}
+                    ari-label={translate('addDebitCardPage.nameOnCard')}
                     role={CONST.ACCESSIBILITY_ROLE.TEXT}
                     ref={(ref) => (nameOnCardRef.current = ref)}
                     spellCheck={false}
@@ -125,7 +125,7 @@ function DebitCardPage(props) {
                 <TextInput
                     inputID="cardNumber"
                     label={translate('addDebitCardPage.debitCardNumber')}
-                    accessibilityLabel={translate('addDebitCardPage.debitCardNumber')}
+                    ari-label={translate('addDebitCardPage.debitCardNumber')}
                     role={CONST.ACCESSIBILITY_ROLE.TEXT}
                     containerStyles={[styles.mt4]}
                     inputMode={CONST.INPUT_MODE.NUMERIC}
@@ -135,7 +135,7 @@ function DebitCardPage(props) {
                         <TextInput
                             inputID="expirationDate"
                             label={translate('addDebitCardPage.expiration')}
-                            accessibilityLabel={translate('addDebitCardPage.expiration')}
+                            ari-label={translate('addDebitCardPage.expiration')}
                             role={CONST.ACCESSIBILITY_ROLE.TEXT}
                             placeholder={translate('addDebitCardPage.expirationDate')}
                             inputMode={CONST.INPUT_MODE.NUMERIC}
@@ -146,7 +146,7 @@ function DebitCardPage(props) {
                         <TextInput
                             inputID="securityCode"
                             label={translate('addDebitCardPage.cvv')}
-                            accessibilityLabel={translate('addDebitCardPage.cvv')}
+                            ari-label={translate('addDebitCardPage.cvv')}
                             role={CONST.ACCESSIBILITY_ROLE.TEXT}
                             maxLength={4}
                             inputMode={CONST.INPUT_MODE.NUMERIC}
@@ -164,7 +164,7 @@ function DebitCardPage(props) {
                 <TextInput
                     inputID="addressZipCode"
                     label={translate('common.zip')}
-                    accessibilityLabel={translate('common.zip')}
+                    ari-label={translate('common.zip')}
                     role={CONST.ACCESSIBILITY_ROLE.TEXT}
                     inputMode={CONST.INPUT_MODE.NUMERIC}
                     maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}

@@ -134,7 +134,7 @@ function NewContactMethodPage(props) {
                 <View style={[styles.mb6]}>
                     <TextInput
                         label={`${props.translate('common.email')}/${props.translate('common.phoneNumber')}`}
-                        accessibilityLabel={`${props.translate('common.email')}/${props.translate('common.phoneNumber')}`}
+                        ari-label={`${props.translate('common.email')}/${props.translate('common.phoneNumber')}`}
                         role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         inputMode={CONST.INPUT_MODE.EMAIL}
                         ref={(el) => (loginInputRef.current = el)}

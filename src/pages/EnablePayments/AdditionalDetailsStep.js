@@ -225,7 +225,7 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
                         inputID={INPUT_IDS.LEGAL_FIRST_NAME}
                         containerStyles={[styles.mt4]}
                         label={translate(fieldNameTranslationKeys.legalFirstName)}
-                        accessibilityLabel={translate(fieldNameTranslationKeys.legalFirstName)}
+                        aria-label={translate(fieldNameTranslationKeys.legalFirstName)}
                         role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         defaultValue={PersonalDetails.extractFirstAndLastNameFromAvailableDetails(currentUserPersonalDetails).firstName}
                         shouldSaveDraft
@@ -234,7 +234,7 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
                         inputID={INPUT_IDS.LEGAL_LAST_NAME}
                         containerStyles={[styles.mt4]}
                         label={translate(fieldNameTranslationKeys.legalLastName)}
-                        accessibilityLabel={translate(fieldNameTranslationKeys.legalLastName)}
+                        aria-label={translate(fieldNameTranslationKeys.legalLastName)}
                         role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         defaultValue={PersonalDetails.extractFirstAndLastNameFromAvailableDetails(currentUserPersonalDetails).lastName}
                         shouldSaveDraft
@@ -250,7 +250,7 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
                         containerStyles={[styles.mt4]}
                         inputMode={CONST.INPUT_MODE.TEL}
                         label={translate(fieldNameTranslationKeys.phoneNumber)}
-                        accessibilityLabel={translate(fieldNameTranslationKeys.phoneNumber)}
+                        aria-label={translate(fieldNameTranslationKeys.phoneNumber)}
                         role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         defaultValue={currentUserPersonalDetails.phoneNumber}
                         placeholder={translate('common.phoneNumberPlaceholder')}
@@ -269,7 +269,7 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
                         inputID={INPUT_IDS.SSN}
                         containerStyles={[styles.mt4]}
                         label={translate(fieldNameTranslationKeys[shouldAskForFullSSN ? 'ssnFull9' : 'ssn'])}
-                        accessibilityLabel={translate(fieldNameTranslationKeys[shouldAskForFullSSN ? 'ssnFull9' : 'ssn'])}
+                        aria-label={translate(fieldNameTranslationKeys[shouldAskForFullSSN ? 'ssnFull9' : 'ssn'])}
                         role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         maxLength={shouldAskForFullSSN ? 9 : 4}
                         inputMode={CONST.INPUT_MODE.NUMERIC}

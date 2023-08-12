@@ -212,7 +212,7 @@ class OptionRow extends Component {
                                         ))}
                                     <View style={contentContainerStyles}>
                                         <DisplayNames
-                                            accessibilityLabel={this.props.translate('accessibilityHints.chatUserDisplayNames')}
+                                            aria-label={this.props.translate('accessibilityHints.chatUserDisplayNames')}
                                             fullTitle={this.props.option.text}
                                             displayNamesWithTooltips={displayNamesWithTooltips}
                                             tooltipEnabled={this.props.showTitleTooltip}

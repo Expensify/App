@@ -220,7 +220,7 @@ function BaseSelectionListRadio(props) {
                                 <TextInput
                                     ref={textInputRef}
                                     label={props.textInputLabel}
-                                    accessibilityLabel={props.textInputLabel}
+                                    aria-label={props.textInputLabel}
                                     role={CONST.ACCESSIBILITY_ROLE.TEXT}
                                     value={props.textInputValue}
                                     placeholder={props.textInputPlaceholder}

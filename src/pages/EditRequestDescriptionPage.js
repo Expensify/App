@@ -46,7 +46,7 @@ function EditRequestDescriptionPage(props) {
                         name="modifiedComment"
                         defaultValue={props.defaultDescription}
                         label={props.translate('moneyRequestConfirmationList.whatsItFor')}
-                        accessibilityLabel={props.translate('moneyRequestConfirmationList.whatsItFor')}
+                        aria-label={props.translate('moneyRequestConfirmationList.whatsItFor')}
                         role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         ref={descriptionInputRef}
                     />

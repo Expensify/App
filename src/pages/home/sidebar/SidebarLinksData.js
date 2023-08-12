@@ -80,7 +80,7 @@ function SidebarLinksData({isFocused, allReportActions, betas, chatReports, curr
     return (
         <View
             accessibilityElementsHidden={!isFocused}
-            accessibilityLabel={translate('sidebarScreen.listOfChats')}
+            aria-label={translate('sidebarScreen.listOfChats')}
             style={[styles.flex1, styles.h100]}
         >
             <SidebarLinks

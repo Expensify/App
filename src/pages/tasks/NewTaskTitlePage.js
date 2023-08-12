@@ -99,7 +99,7 @@ function NewTaskTitlePage(props) {
                         ref={(el) => (inputRef.current = el)}
                         inputID="taskTitle"
                         label={props.translate('task.title')}
-                        accessibilityLabel={props.translate('task.title')}
+                        aria-label={props.translate('task.title')}
                     />
                 </View>
             </Form>

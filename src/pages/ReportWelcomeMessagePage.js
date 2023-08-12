@@ -78,7 +78,7 @@ function ReportWelcomeMessagePage(props) {
                             <TextInput
                                 inputID="welcomeMessage"
                                 label={props.translate('welcomeMessagePage.welcomeMessage')}
-                                accessibilityLabel={props.translate('welcomeMessagePage.welcomeMessage')}
+                                aria-label={props.translate('welcomeMessagePage.welcomeMessage')}
                                 role={CONST.ACCESSIBILITY_ROLE.TEXT}
                                 autoGrowHeight
                                 maxLength={CONST.MAX_COMMENT_LENGTH}

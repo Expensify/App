@@ -77,7 +77,7 @@ class EmojiPickerMenuItem extends PureComponent {
                     this.props.isHighlighted && !this.props.isUsingKeyboardMovement ? styles.emojiItemHighlighted : {},
                     styles.emojiItem,
                 ]}
-                accessibilityLabel={this.props.emoji}
+                aria-label={this.props.emoji}
                 role={CONST.ACCESSIBILITY_ROLE.BUTTON}
             >
                 <Text style={[styles.emojiText]}>{this.props.emoji}</Text>

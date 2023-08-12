@@ -44,7 +44,7 @@ function Template(args) {
             <View>
                 <TextInput
                     role={CONST.ACCESSIBILITY_ROLE.TEXT}
-                    accessibilityLabel="Routing number"
+                    aria-label="Routing number"
                     label="Routing number"
                     inputID="routingNumber"
                     shouldSaveDraft
@@ -53,7 +53,7 @@ function Template(args) {
             <TextInput
                 role={CONST.ACCESSIBILITY_ROLE.TEXT}
                 label="Account number"
-                accessibilityLabel="Account number"
+                aria-label="Account number"
                 inputID="accountNumber"
                 containerStyles={[styles.mt4]}
             />
@@ -143,7 +143,7 @@ function WithNativeEventHandler(args) {
         <Form {...args}>
             <TextInput
                 role={CONST.ACCESSIBILITY_ROLE.TEXT}
-                accessibilityLabel="Routing number"
+                aria-label="Routing number"
                 label="Routing number"
                 inputID="routingNumber"
                 onChangeText={setLog}

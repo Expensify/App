@@ -32,7 +32,7 @@ function RoomNameInput({autoFocus, disabled, errorText, forwardedRef, value, onB
             ref={forwardedRef}
             disabled={disabled}
             label={translate('newRoomPage.roomName')}
-            accessibilityLabel={translate('newRoomPage.roomName')}
+            aria-label={translate('newRoomPage.roomName')}
             role={CONST.ACCESSIBILITY_ROLE.TEXT}
             prefixCharacter={CONST.POLICY.ROOM_PREFIX}
             placeholder={translate('newRoomPage.social')}
