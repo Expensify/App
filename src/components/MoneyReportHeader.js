@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
@@ -12,9 +12,11 @@ import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimen
 import compose from '../libs/compose';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
-import SettlementButton from './SettlementButton';
-import * as Policy from '../libs/actions/Policy';
 import ONYXKEYS from '../ONYXKEYS';
+import CONST from '../CONST';
+import SettlementButton from './SettlementButton';
+import Button from './Button';
+import * as Policy from '../libs/actions/Policy';
 import * as IOU from '../libs/actions/IOU';
 import * as CurrencyUtils from '../libs/CurrencyUtils';
 import reportPropTypes from '../pages/reportPropTypes';
@@ -53,10 +55,7 @@ const defaultProps = {
 
 function MoneyReportHeader(props) {
     const moneyRequestReport = props.report;
-    const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
     const policy = props.policies[`${ONYXKEYS.COLLECTION.POLICY}${props.report.policyID}`];
-    const isPayer =
-        Policy.isAdminOfFreePolicy([policy]) || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(props.session, 'accountID', null) === moneyRequestReport.managerID);
     const reportTotal = ReportUtils.getMoneyRequestTotal(props.report);
     const shouldShowSettlementButton = useMemo(() => {
         if (ReportUtils.getPolicyType(moneyRequestReport, props.policies) === CONST.POLICY.TYPE.CORPORATE) {
@@ -70,7 +69,7 @@ function MoneyReportHeader(props) {
         );
     }, [moneyRequestReport, policy, props.policies, props.session]);
     const shouldShowApprovedButton = useMemo(() => {
-        if (ReportUtils.getPolicyType(moneyRequestReport) !== CONST.POLICY.TYPE.CORPORATE) {
+        if (ReportUtils.getPolicyType(moneyRequestReport) === CONST.POLICY.TYPE.FREE) {
             return false;
         }
 
