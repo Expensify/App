@@ -16,8 +16,13 @@ function addTrailingForwardSlash(url) {
  * @returns {String}
  */
 function getPathFromURL(url) {
-    const path = new URL(url).pathname;
-    return path.substring(1); // Remove the leading '/'
+    try {
+        const path = new URL(url).pathname;
+        return path.substring(1); // Remove the leading '/'
+    } catch (error) {
+        console.error('Error parsing URL:', error);
+        return ''; // Return empty string for invalid URLs
+    }
 }
 
 /**
@@ -28,11 +33,16 @@ function getPathFromURL(url) {
  */
 function hasSameExpensifyOrigin(url1, url2) {
     const removeW3 = (host) => host.replace(/^www\./i, '');
+    try {
+        const parsedUrl1 = new URL(url1);
+        const parsedUrl2 = new URL(url2);
 
-    const parsedUrl1 = new URL(url1);
-    const parsedUrl2 = new URL(url2);
-
-    return removeW3(parsedUrl1.host) === removeW3(parsedUrl2.host);
+        return removeW3(parsedUrl1.host) === removeW3(parsedUrl2.host);
+    } catch (error) {
+        // Handle invalid URLs or other parsing errors
+        console.error('Error parsing URLs:', error);
+        return false;
+    }
 }
 
 export {
