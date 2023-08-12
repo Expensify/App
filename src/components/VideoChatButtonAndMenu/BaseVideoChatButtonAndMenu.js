@@ -96,7 +96,7 @@ function BaseVideoChatButtonAndMenu(props) {
                                 Linking.openURL(props.guideCalendarLink);
                                 return;
                             }
-                            setIsVideoChatMenuActive(true);
+                            setIsVideoChatMenuActive((previousVal) => !previousVal);
                         })}
                         style={styles.touchableButtonImage}
                         accessibilityLabel={props.translate('videoChatButtonAndMenu.tooltip')}
@@ -117,6 +117,8 @@ function BaseVideoChatButtonAndMenu(props) {
                     left: videoChatIconPosition.x - 150,
                     top: videoChatIconPosition.y + 40,
                 }}
+                withoutOverlay
+                anchorRef={videoChatButtonRef}
             >
                 <View style={props.isSmallScreenWidth ? {} : styles.pv3}>
                     {_.map(menuItemData, ({icon, text, onPress}) => (

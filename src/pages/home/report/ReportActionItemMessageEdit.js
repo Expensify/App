@@ -36,6 +36,7 @@ import useKeyboardState from '../../../hooks/useKeyboardState';
 import useWindowDimensions from '../../../hooks/useWindowDimensions';
 import useReportScrollManager from '../../../hooks/useReportScrollManager';
 import * as EmojiPickerAction from '../../../libs/actions/EmojiPickerAction';
+import focusWithDelay from '../../../libs/focusWithDelay';
 
 const propTypes = {
     /** All the data of the action */
@@ -271,6 +272,11 @@ function ReportActionItemMessageEdit(props) {
         [deleteDraft, isKeyboardShown, isSmallScreenWidth, publishDraft],
     );
 
+    /**
+     * Focus the composer text input
+     */
+    const focus = focusWithDelay(textInputRef.current);
+
     return (
         <>
             <View style={[styles.chatItemMessage, styles.flexRow]}>
@@ -346,7 +352,10 @@ function ReportActionItemMessageEdit(props) {
                     <View style={styles.editChatItemEmojiWrapper}>
                         <EmojiPickerButton
                             isDisabled={props.shouldDisableEmojiPicker}
-                            onModalHide={() => InteractionManager.runAfterInteractions(() => textInputRef.current.focus())}
+                            onModalHide={() => {
+                                setIsFocused(true);
+                                focus(true);
+                            }}
                             onEmojiSelected={addEmojiToTextBox}
                             nativeID={emojiButtonID}
                             reportAction={props.action}

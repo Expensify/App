@@ -43,7 +43,7 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
-            const MoneyRequestEditAmountPage = require('../../../pages/iou/steps/MoneyRequestAmount').default;
+            const MoneyRequestEditAmountPage = require('../../../pages/iou/steps/NewRequestAmountPage').default;
             return MoneyRequestEditAmountPage;
         },
         name: 'Money_Request_Amount',
@@ -514,6 +514,20 @@ const SettingsModalStackNavigator = createModalStackNavigator([
             return AddPersonalBankAccountPage;
         },
         name: 'Settings_Add_Bank_Account',
+    },
+    {
+        getComponent: () => {
+            const SettingsStatus = require('../../../pages/settings/Profile/CustomStatus/StatusPage').default;
+            return SettingsStatus;
+        },
+        name: 'Settings_Status',
+    },
+    {
+        getComponent: () => {
+            const SettingsStatusSet = require('../../../pages/settings/Profile/CustomStatus/StatusSetPage').default;
+            return SettingsStatusSet;
+        },
+        name: 'Settings_Status_Set',
     },
     {
         getComponent: () => {
