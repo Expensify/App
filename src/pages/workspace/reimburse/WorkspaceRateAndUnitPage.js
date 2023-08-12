@@ -137,7 +137,7 @@ class WorkspaceRateAndUnitPage extends React.Component {
                                 containerStyles={[styles.mt4]}
                                 defaultValue={this.getUnitRateValue(distanceCustomRate)}
                                 label={this.props.translate('workspace.reimburse.trackDistanceRate')}
-                                accessibilityLabel={this.props.translate('workspace.reimburse.trackDistanceRate')}
+                                ari-label={this.props.translate('workspace.reimburse.trackDistanceRate')}
                                 placeholder={lodashGet(this.props, 'policy.outputCurrency', CONST.CURRENCY.USD)}
                                 autoCompleteType="off"
                                 autoCorrect={false}
