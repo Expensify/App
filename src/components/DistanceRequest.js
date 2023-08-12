@@ -16,6 +16,7 @@ import Button from './Button';
 import styles from '../styles/styles';
 import variables from '../styles/variables';
 import LinearGradient from './LinearGradient';
+import init from '../libs/actions/MapboxToken';
 
 const MAX_WAYPOINTS = 25;
 const MAX_WAYPOINTS_TO_DISPLAY = 4;
@@ -48,6 +49,15 @@ const propTypes = {
         }),
     }),
 
+    /** Data about Mapbox token for calling Mapbox API */
+    mapboxAccessToken: PropTypes.shape({
+        /** Temporary token for Mapbox API */
+        token: PropTypes.string,
+
+        /** Time when the token will expire in ISO 8601 */
+        expiration: PropTypes.string,
+    }).isRequired,
+
     ...withLocalizePropTypes,
 };
 
@@ -56,7 +66,7 @@ const defaultProps = {
     transaction: {},
 };
 
-function DistanceRequest({transactionID, transaction, translate}) {
+function DistanceRequest({transactionID, transaction, translate, mapboxAccessToken}) {
     const [shouldShowGradient, setShouldShowGradient] = useState(false);
     const [scrollContainerHeight, setScrollContainerHeight] = useState(0);
     const [scrollContentHeight, setScrollContentHeight] = useState(0);
@@ -68,6 +78,8 @@ function DistanceRequest({transactionID, transaction, translate}) {
     // Show up to the max number of waypoints plus 1/2 of one to hint at scrolling
     const halfMenuItemHeight = Math.floor(variables.baseMenuItemHeight / 2);
     const scrollContainerMaxHeight = variables.baseMenuItemHeight * MAX_WAYPOINTS_TO_DISPLAY + halfMenuItemHeight;
+
+    useEffect(init, []);
 
     useEffect(() => {
         if (!transaction.transactionID || !_.isEmpty(waypoints)) {
@@ -143,7 +155,7 @@ function DistanceRequest({transactionID, transaction, translate}) {
             </View>
             <View style={[styles.p4, styles.flex1]}>
                 <MapView
-                    accessToken="pk.eyJ1IjoiaGF5YXRhIiwiYSI6ImNsa3N5NTIzbTA3NHIzZW15Y2thOWVuZXIifQ.m6e2A0jWN3xuytd00Gj3iA"
+                    accessToken={mapboxAccessToken.token}
                     mapPadding={50}
                     pitchEnabled={false}
                     initialState={{
@@ -170,6 +182,9 @@ export default compose(
         transaction: {
             key: (props) => `${ONYXKEYS.COLLECTION.TRANSACTION}${props.transactionID}`,
             selector: (transaction) => (transaction ? {transactionID: transaction.transactionID, comment: {waypoints: lodashGet(transaction, 'comment.waypoints')}} : null),
+        },
+        mapboxAccessToken: {
+            key: ONYXKEYS.MAPBOX_ACCESS_TOKEN,
         },
     }),
 )(DistanceRequest);
