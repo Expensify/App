@@ -1839,11 +1839,7 @@ const styles = {
         position: 'absolute',
         width: '100%',
         height: '100%',
-        transform: [
-            {
-                translateX: -variables.sideBarWidth,
-            },
-        ],
+        transform: `translateX(${-variables.sideBarWidth})`,
     },
 
     sidebarVisible: {
@@ -2485,7 +2481,7 @@ const styles = {
     },
 
     flipUpsideDown: {
-        transform: [{rotate: '180deg'}],
+        transform: `rotate(180deg)`,
     },
 
     navigationSceneContainer: {
@@ -3693,7 +3689,7 @@ const styles = {
         alignItems: 'center',
     },
     rotate90: {
-        transform: [{rotate: '90deg'}],
+        transform: 'rotate(90deg)',
     },
 };
 

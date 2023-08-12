@@ -665,7 +665,7 @@ function getMiniReportActionContextMenuWrapperStyle(isReportActionItemGrouped) {
         ...positioning.r4,
         ...styles.cursorDefault,
         position: 'absolute',
-        zIndex: 1,
+        zIndex: 8,
     };
 }
 
@@ -1137,7 +1137,7 @@ function getEmojiReactionCounterTextStyle(hasUserReacted) {
  */
 function getDirectionStyle(direction) {
     if (direction === CONST.DIRECTION.LEFT) {
-        return {transform: [{rotate: '180deg'}]};
+        return {transform: 'rotate(180deg)'}
     }
 
     return {};
@@ -1166,7 +1166,7 @@ function getGoogleListViewStyle(shouldDisplayBorder) {
     }
 
     return {
-        transform: [{scale: 0}],
+        transform: 'scale(0)',
     };
 }
 
