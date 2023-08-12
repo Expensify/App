@@ -455,7 +455,7 @@ class Composer extends React.Component {
                     /* eslint-disable-next-line react/jsx-props-no-spreading */
                     {...propsWithoutStyles}
                     onSelectionChange={this.addCursorPositionToSelectionChange}
-                    numberOfLines={this.state.numberOfLines}
+                    rows={this.state.numberOfLines}
                     disabled={this.props.isDisabled}
                     onKeyPress={this.handleKeyPress}
                 />
