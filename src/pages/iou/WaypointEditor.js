@@ -13,7 +13,7 @@ import styles from '../../styles/styles';
 import compose from '../../libs/compose';
 import CONST from '../../CONST';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import DistanceRequest from '../../libs/actions/DistanceRequest';
+import * as Transaction from '../../libs/actions/Transaction';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import ROUTES from '../../ROUTES';
 import {withNetwork} from '../../components/OnyxProvider';
@@ -70,7 +70,7 @@ function WaypointEditor(props) {
     const onSubmit = (values) => {
         // Allows letting you set a waypoint to an empty value
         if (!values[`waypoint${waypointIndex}`]) {
-            DistanceRequest.saveWaypoint(transactionID, waypointIndex, null);
+            Transaction.saveWaypoint(transactionID, waypointIndex, null);
         }
 
         // While the user is offline, the auto-complete address search will not work
@@ -80,7 +80,7 @@ function WaypointEditor(props) {
                 address: values[`waypoint${waypointIndex}`],
             };
 
-            DistanceRequest.saveWaypoint(transactionID, waypointIndex, waypoint);
+            Transaction.saveWaypoint(transactionID, waypointIndex, waypoint);
         }
 
         Navigation.navigate(ROUTES.getMoneyRequestDistanceTabRoute(iouType));
@@ -93,7 +93,7 @@ function WaypointEditor(props) {
             address: values.address,
         };
 
-        DistanceRequest.saveWaypoint(transactionID, waypointIndex, waypoint);
+        Transaction.saveWaypoint(transactionID, waypointIndex, waypoint);
         Navigation.navigate(ROUTES.getMoneyRequestDistanceTabRoute(iouType));
     };
 

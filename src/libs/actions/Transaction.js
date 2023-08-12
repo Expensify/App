@@ -31,4 +31,21 @@ function addStop(transactionID, newLastIndex) {
     });
 }
 
-export {addStop, createInitialWaypoints};
+/**
+ * Saves the selected waypoint to the transaction
+ * @param {String} transactionID
+ * @param {String} index
+ * @param {Object} waypoint
+ */
+function saveWaypoint(transactionID, index, waypoint) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+        comment: {
+            waypoints: {
+                [`waypoint${index}`]: waypoint,
+            },
+        },
+    });
+}
+
+
+export {addStop, createInitialWaypoints, saveWaypoint};
