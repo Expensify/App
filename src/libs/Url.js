@@ -1,3 +1,4 @@
+import 'react-native-url-polyfill/auto';
 /**
  * Add / to the end of any URL if not present
  * @param {String} url
