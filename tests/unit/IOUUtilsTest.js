@@ -159,6 +159,20 @@ describe('IOUUtils', () => {
             expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 2, 'USD', true)).toBe(-1);
             expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 2, 'USD')).toBe(1);
         });
+
+        test('1 RSD split among 3 participants including the default user should be [0.34, 0.33, 0.33]', () => {
+            // RSD is a special case that we forced to have 2 decimals
+            const participantsAccountIDs = [100, 101];
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 100, 'RSD', true)).toBe(34);
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 100, 'RSD')).toBe(33);
+        });
+
+        test('1 BHD split among 3 participants including the default user should be [0.34, 0.33, 0.33]', () => {
+            // BHD has 3 decimal places, but it still produces parts with only 2 decimal places because of a backend limitation
+            const participantsAccountIDs = [100, 101];
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 100, 'BHD', true)).toBe(34);
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 100, 'BHD')).toBe(33);
+        });
     });
 });
 

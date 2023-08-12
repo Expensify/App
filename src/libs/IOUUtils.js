@@ -13,7 +13,9 @@ import * as CurrencyUtils from './CurrencyUtils';
  * @returns {Number}
  */
 function calculateAmount(numberOfParticipants, total, currency, isDefaultUser = false) {
-    const currencyUnit = CurrencyUtils.getCurrencyUnit(currency);
+    // Since the backend can maximum store 2 decimal places, any currency with more than 2 decimals
+    // has to be capped to 2 decimal places
+    const currencyUnit = Math.min(100, CurrencyUtils.getCurrencyUnit(currency));
     const totalInCurrencyUnit = (total / 100) * currencyUnit;
     const totalParticipants = numberOfParticipants + 1;
     const amountPerPerson = Math.round(totalInCurrencyUnit / totalParticipants);
