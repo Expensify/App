@@ -68,7 +68,7 @@ function TaskDescriptionPage(props) {
                         inputID="description"
                         name="description"
                         label={props.translate('newTaskPage.descriptionOptional')}
-                        aria-label={props.translate('newTaskPage.descriptionOptional')}
+                        accessibilityLabel={props.translate('newTaskPage.descriptionOptional')}
                         defaultValue={(props.report && props.report.description) || ''}
                         ref={(el) => (inputRef.current = el)}
                         autoGrowHeight

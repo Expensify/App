@@ -142,7 +142,7 @@ class CalendarPicker extends React.PureComponent {
                         <Text
                             style={styles.sidebarLinkTextBold}
                             testID="currentYearText"
-                            aria-label={this.props.translate('common.currentYear')}
+                            accessibilityLabel={this.props.translate('common.currentYear')}
                         >
                             {currentYearView}
                         </Text>
@@ -152,7 +152,7 @@ class CalendarPicker extends React.PureComponent {
                         <Text
                             style={styles.sidebarLinkTextBold}
                             testID="currentMonthText"
-                            aria-label={this.props.translate('common.currentMonth')}
+                            accessibilityLabel={this.props.translate('common.currentMonth')}
                         >
                             {monthNames[currentMonthView]}
                         </Text>

@@ -323,7 +323,7 @@ class BaseOptionsSelector extends Component {
                 ref={(el) => (this.textInput = el)}
                 value={this.props.value}
                 label={this.props.textInputLabel}
-                aria-label={this.props.textInputLabel}
+                accessibilityLabel={this.props.textInputLabel}
                 role={CONST.ACCESSIBILITY_ROLE.TEXT}
                 onChangeText={this.props.onChangeText}
                 onSubmitEditing={this.selectFocusedOption}

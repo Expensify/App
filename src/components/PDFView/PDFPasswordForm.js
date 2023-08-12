@@ -134,7 +134,7 @@ class PDFPasswordForm extends Component {
                         <TextInput
                             ref={(el) => (this.textInputRef = el)}
                             label={this.props.translate('common.password')}
-                            aria-label={this.props.translate('common.password')}
+                            accessibilityLabel={this.props.translate('common.password')}
                             role={CONST.ACCESSIBILITY_ROLE.TEXT}
                             /**
                              * This is a workaround to bypass Safari's autofill odd behaviour.

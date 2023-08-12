@@ -113,7 +113,7 @@ function AddressForm(props) {
                 inputID={props.inputKeys.city}
                 shouldSaveDraft={props.shouldSaveDraft}
                 label={props.translate('common.city')}
-                aria-label={props.translate('common.city')}
+                accessibilityLabel={props.translate('common.city')}
                 role={CONST.ACCESSIBILITY_ROLE.TEXT}
                 value={props.values.city}
                 defaultValue={props.defaultValues.city}
@@ -136,7 +136,7 @@ function AddressForm(props) {
                 inputID={props.inputKeys.zipCode}
                 shouldSaveDraft={props.shouldSaveDraft}
                 label={props.translate('common.zip')}
-                aria-label={props.translate('common.zip')}
+                accessibilityLabel={props.translate('common.zip')}
                 role={CONST.ACCESSIBILITY_ROLE.TEXT}
                 inputMode={CONST.INPUT_MODE.NUMERIC}
                 value={props.values.zipCode}

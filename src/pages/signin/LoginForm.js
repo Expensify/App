@@ -183,13 +183,13 @@ function LoginForm(props) {
     return (
         <>
             <View
-                aria-label={translate('loginForm.loginForm')}
+                accessibilityLabel={translate('loginForm.loginForm')}
                 style={[styles.mt3]}
             >
                 <TextInput
                     ref={input}
                     label={translate('loginForm.phoneOrEmail')}
-                    aria-label={translate('loginForm.phoneOrEmail')}
+                    accessibilityLabel={translate('loginForm.phoneOrEmail')}
                     role={CONST.ACCESSIBILITY_ROLE.TEXT}
                     value={login}
                     autoCompleteType="username"

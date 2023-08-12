@@ -6,7 +6,7 @@ import Text from '../Text';
 function DisplayNames(props) {
     return (
         <Text
-            aria-label={props.accessibilityLabel}
+            accessibilityLabel={props.accessibilityLabel}
             style={props.textStyles}
             numberOfLines={props.numberOfLines || undefined}
         >

@@ -81,7 +81,7 @@ function TaskTitlePage(props) {
                         inputID="title"
                         name="title"
                         label={props.translate('task.title')}
-                        aria-label={props.translate('task.title')}
+                        accessibilityLabel={props.translate('task.title')}
                         defaultValue={(props.report && props.report.reportName) || ''}
                         ref={(el) => (inputRef.current = el)}
                     />
