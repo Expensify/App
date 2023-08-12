@@ -332,7 +332,10 @@ function ReportActionItem(props) {
                                 isHidden={isHidden}
                                 style={[
                                     !props.displayAsGroup && isAttachment ? styles.mt2 : undefined,
-                                    _.contains([..._.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG), CONST.REPORT.ACTIONS.TYPE.IOU], props.action.actionName)
+                                    _.contains(
+                                        [..._.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG), CONST.REPORT.ACTIONS.TYPE.IOU, CONST.REPORT.ACTIONS.TYPE.APPROVED],
+                                        props.action.actionName,
+                                    )
                                         ? styles.colorMuted
                                         : undefined,
                                 ]}
