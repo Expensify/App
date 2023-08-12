@@ -42,7 +42,7 @@ function Default(args) {
             <View style={[styles.flexRow, styles.mv5, styles.flexWrap, styles.w100]}>
                 <View
                     style={[styles.border, styles.noLeftBorderRadius, styles.noRightBorderRadius, styles.p5, styles.flex1]}
-                    nativeID={CONST.REPORT.DROP_NATIVE_ID}
+                    id={CONST.REPORT.DROP_NATIVE_ID}
                 >
                     <Text style={[styles.mb2, styles.textLabelSupporting]}>Entered Comment (Drop Enabled)</Text>
                     <Text>{comment}</Text>

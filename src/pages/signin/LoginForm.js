@@ -194,7 +194,7 @@ function LoginForm(props) {
                     value={login}
                     autoCompleteType="username"
                     textContentType="username"
-                    nativeID="username"
+                    id="username"
                     name="username"
                     onChangeText={onTextInput}
                     onSubmitEditing={validateAndSubmitForm}

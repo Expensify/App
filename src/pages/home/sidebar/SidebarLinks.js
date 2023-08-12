@@ -165,7 +165,7 @@ class SidebarLinks extends React.PureComponent {
             <View style={[styles.flex1, styles.h100]}>
                 <View
                     style={[styles.flexRow, styles.ph5, styles.pv3, styles.justifyContentBetween, styles.alignItemsCenter]}
-                    nativeID="drag-area"
+                    id="drag-area"
                 >
                     <Header
                         title={

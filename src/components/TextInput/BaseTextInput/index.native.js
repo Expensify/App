@@ -281,7 +281,7 @@ function BaseTextInput(props) {
                                     label={props.label}
                                     labelTranslateY={labelTranslateY}
                                     labelScale={labelScale}
-                                    for={props.nativeID}
+                                    for={props.id}
                                 />
                             </>
                         ) : null}

@@ -112,7 +112,7 @@ const propTypes = {
     isFocused: PropTypes.bool.isRequired,
 
     /** Id to use for this button */
-    nativeID: PropTypes.string,
+    id: PropTypes.string,
 
     /** Accessibility label for the component */
     accessibilityLabel: PropTypes.string,
@@ -152,7 +152,7 @@ const defaultProps = {
     shouldRemoveRightBorderRadius: false,
     shouldRemoveLeftBorderRadius: false,
     shouldEnableHapticFeedback: false,
-    nativeID: '',
+    id: '',
     accessibilityLabel: '',
     forwardedRef: undefined,
 };
@@ -303,7 +303,7 @@ class Button extends Component {
                     this.props.success && !this.props.isDisabled ? styles.buttonSuccessHovered : undefined,
                     this.props.danger && !this.props.isDisabled ? styles.buttonDangerHovered : undefined,
                 ]}
-                nativeID={this.props.nativeID}
+                id={this.props.id}
                 accessibilityLabel={this.props.accessibilityLabel}
                 hoverDimmingValue={1}
             >

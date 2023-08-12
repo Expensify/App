@@ -285,7 +285,7 @@ function ReportActionItemMessageEdit(props) {
                         <PressableWithFeedback
                             onPress={deleteDraft}
                             style={styles.chatItemSubmitButton}
-                            nativeID={cancelButtonID}
+                            id={cancelButtonID}
                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                             accessibilityLabel={translate('common.close')}
                             // disable dimming
@@ -320,7 +320,7 @@ function ReportActionItemMessageEdit(props) {
                                 // eslint-disable-next-line no-param-reassign
                                 props.forwardedRef.current = el;
                             }}
-                            nativeID={messageEditInput}
+                            id={messageEditInput}
                             onChangeText={updateDraft} // Debounced saveDraftComment
                             onKeyPress={triggerSaveOrCancel}
                             value={draft}
@@ -357,7 +357,7 @@ function ReportActionItemMessageEdit(props) {
                                 focus(true);
                             }}
                             onEmojiSelected={addEmojiToTextBox}
-                            nativeID={emojiButtonID}
+                            id={emojiButtonID}
                             reportAction={props.action}
                         />
                     </View>
@@ -367,7 +367,7 @@ function ReportActionItemMessageEdit(props) {
                             <PressableWithFeedback
                                 style={[styles.chatItemSubmitButton, hasExceededMaxCommentLength ? {} : styles.buttonSuccess]}
                                 onPress={publishDraft}
-                                nativeID={saveButtonID}
+                                id={saveButtonID}
                                 disabled={hasExceededMaxCommentLength}
                                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                 accessibilityLabel={translate('common.saveChanges')}

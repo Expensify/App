@@ -138,7 +138,7 @@ function HeaderView(props) {
     return (
         <View
             style={[styles.appContentHeader, shouldShowBorderBottom && styles.borderBottom]}
-            nativeID="drag-area"
+            id="drag-area"
         >
             <View style={[styles.appContentHeaderTitle, !props.isSmallScreenWidth && styles.pl5]}>
                 {props.isSmallScreenWidth && (

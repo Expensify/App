@@ -42,7 +42,7 @@ function EmojiPickerButtonDropdown(props) {
                 style={styles.emojiPickerButtonDropdown}
                 disabled={props.isDisabled}
                 onPress={onPress}
-                nativeID="emojiDropdownButton"
+                id="emojiDropdownButton"
                 accessibilityLabel="statusEmoji"
                 accessibilityRole="text"
             >

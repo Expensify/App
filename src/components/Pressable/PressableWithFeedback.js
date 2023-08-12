@@ -26,14 +26,14 @@ const PressableWithFeedbackPropTypes = {
     /**
      *  Used to locate this view from native classes.
      */
-    nativeID: propTypes.string,
+    id: propTypes.string,
 };
 
 const PressableWithFeedbackDefaultProps = {
     ...GenericPressablePropTypes.defaultProps,
     pressDimmingValue: variables.pressDimValue,
     hoverDimmingValue: variables.hoverDimValue,
-    nativeID: '',
+    id: '',
     wrapperStyle: [],
 };
 
