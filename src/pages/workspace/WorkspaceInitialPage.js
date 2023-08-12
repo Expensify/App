@@ -155,7 +155,10 @@ function WorkspaceInitialPage(props) {
         {
             translationKey: 'workspace.common.bankAccount',
             icon: Expensicons.Bank,
-            action: () => (policy.outputCurrency === CONST.CURRENCY.USD ? ReimbursementAccount.navigateToBankAccountRoute(policy.id) : setIsCurrencyModalOpen(true)),
+            action: () =>
+                policy.outputCurrency === CONST.CURRENCY.USD
+                    ? ReimbursementAccount.navigateToBankAccountRoute(policy.id, encodeURIComponent(Navigation.getActiveRoute().replace(/\?.*/, '')))
+                    : setIsCurrencyModalOpen(true),
             brickRoadIndicator: !_.isEmpty(props.reimbursementAccount.errors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '',
         },
     ];

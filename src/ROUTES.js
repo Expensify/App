@@ -20,7 +20,7 @@ export default {
     BANK_ACCOUNT_NEW: 'bank-account/new',
     BANK_ACCOUNT_WITH_STEP_TO_OPEN: 'bank-account/:stepToOpen?',
     BANK_ACCOUNT_PERSONAL: 'bank-account/personal',
-    getBankAccountRoute: (stepToOpen = '', policyID = '') => `bank-account/${stepToOpen}?policyID=${policyID}`,
+    getBankAccountRoute: (stepToOpen = '', policyID = '', backTo = '') => `bank-account/${stepToOpen}?policyID=${policyID}&backTo=${backTo}`,
     HOME: '',
     SETTINGS: 'settings',
     SETTINGS_PROFILE: 'settings/profile',

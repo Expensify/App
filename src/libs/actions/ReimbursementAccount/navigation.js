@@ -17,9 +17,10 @@ function goToWithdrawalAccountSetupStep(stepID, newAchData) {
  * Navigate to the correct bank account route based on the bank account state and type
  *
  * @param {String} policyId
+ * @param {String} backTo
  */
-function navigateToBankAccountRoute(policyId) {
-    Navigation.navigate(ROUTES.getBankAccountRoute('', policyId));
+function navigateToBankAccountRoute(policyId, backTo) {
+    Navigation.navigate(ROUTES.getBankAccountRoute('', policyId, backTo));
 }
 
 export {goToWithdrawalAccountSetupStep, navigateToBankAccountRoute};
