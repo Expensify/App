@@ -148,10 +148,7 @@ const GenericPressable = forwardRef((props, ref) => {
                 isDisabled && [...StyleUtils.parseStyleFromFunction(props.disabledStyle, state), styles.noSelect],
             ]}
             // accessibility props
-            accessibilityState={{
-                disabled: isDisabled,
-                ...props.accessibilityState,
-            }}
+            aria-checked={props.ariaChecked}
             aria-disabled={isDisabled}
             aria-keyshortcuts={keyboardShortcut && `${keyboardShortcut.modifiers}+${keyboardShortcut.shortcutKey}`}
             // ios-only form of inputs

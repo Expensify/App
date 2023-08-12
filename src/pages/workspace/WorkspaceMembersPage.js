@@ -308,9 +308,7 @@ function WorkspaceMembersPage(props) {
                         disabled={disabled}
                         onPress={() => toggleUser(item.accountID, item.pendingAction)}
                         role={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
-                        accessibilityState={{
-                            checked: isChecked,
-                        }}
+                        ariaChecked={isChecked}
                         accessibilityLabel={props.formatPhoneNumber(item.displayName)}
                         hoverDimmingValue={1}
                         pressDimmingValue={0.7}
@@ -463,9 +461,7 @@ function WorkspaceMembersPage(props) {
                                         disabled={_.isEmpty(removableMembers)}
                                         onPress={() => toggleAllUsers(removableMembers)}
                                         role={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
-                                        accessibilityState={{
-                                            checked: !_.isEmpty(removableMembers) && _.every(_.keys(removableMembers), (accountID) => _.contains(selectedEmployees, Number(accountID))),
-                                        }}
+                                        ariaChecked={!_.isEmpty(removableMembers) && _.every(_.keys(removableMembers), (accountID) => _.contains(selectedEmployees, Number(accountID)))}
                                         accessibilityLabel={props.translate('workspace.people.selectAll')}
                                         hoverDimmingValue={1}
                                         pressDimmingValue={0.7}
