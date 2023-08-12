@@ -866,7 +866,7 @@ function getIconsForParticipants(participants, personalDetails) {
         const avatarSource = UserUtils.getAvatar(lodashGet(personalDetails, [accountID, 'avatar'], ''), accountID);
         participantDetails.push([
             accountID,
-            lodashGet(personalDetails, [accountID, 'login'], lodashGet(personalDetails, [accountID, 'displayName'], '')),
+            lodashGet(personalDetails, [accountID, 'displayName']) || lodashGet(personalDetails, [accountID, 'login'], ''),
             lodashGet(personalDetails, [accountID, 'firstName'], ''),
             avatarSource,
         ]);
@@ -1580,24 +1580,26 @@ function updateOptimisticParentReportAction(parentReportAction, lastVisibleActio
  * @param {String} reportID The reportID of the report that is updated
  * @param {String} lastVisibleActionCreated Last visible action created of the child report
  * @param {String} type The type of action in the child report
+ * @param {String} parentReportID Custom reportID to be updated
+ * @param {String} parentReportActionID Custom reportActionID to be updated
  * @returns {Object}
  */
-const getOptimisticDataForParentReportAction = (reportID, lastVisibleActionCreated, type) => {
+function getOptimisticDataForParentReportAction(reportID, lastVisibleActionCreated, type, parentReportID = '', parentReportActionID = '') {
     const report = getReport(reportID);
-    if (report && report.parentReportActionID) {
-        const parentReportAction = ReportActionsUtils.getParentReportAction(report);
-        if (parentReportAction && parentReportAction.reportActionID) {
-            return {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
-                value: {
-                    [parentReportAction.reportActionID]: updateOptimisticParentReportAction(parentReportAction, lastVisibleActionCreated, type),
-                },
-            };
-        }
+    const parentReportAction = ReportActionsUtils.getParentReportAction(report);
+    if (_.isEmpty(parentReportAction)) {
+        return {};
     }
-    return {};
-};
+
+    const optimisticParentReportAction = updateOptimisticParentReportAction(parentReportAction, lastVisibleActionCreated, type);
+    return {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID || report.parentReportID}`,
+        value: {
+            [parentReportActionID || report.parentReportActionID]: optimisticParentReportAction,
+        },
+    };
+}
 
 /**
  * Builds an optimistic reportAction for the parent report when a task is created
@@ -1837,10 +1839,11 @@ function buildOptimisticIOUReportAction(
  *
  * @param {Object} chatReport
  * @param {Object} iouReport
+ * @param {String} [comment] - User comment for the IOU.
  *
  * @returns {Object}
  */
-function buildOptimisticReportPreview(chatReport, iouReport) {
+function buildOptimisticReportPreview(chatReport, iouReport, comment = '') {
     const message = getReportPreviewMessage(iouReport);
     return {
         reportActionID: NumberUtils.rand64(),
@@ -1861,6 +1864,8 @@ function buildOptimisticReportPreview(chatReport, iouReport) {
         created: DateUtils.getDBTime(),
         accountID: iouReport.managerID || 0,
         actorAccountID: iouReport.managerID || 0,
+        childMoneyRequestCount: 1,
+        childLastMoneyRequestComment: comment,
     };
 }
 
@@ -1869,10 +1874,11 @@ function buildOptimisticReportPreview(chatReport, iouReport) {
  *
  * @param {Object} iouReport
  * @param {Object} reportPreviewAction
+ * @param {String} [comment] - User comment for the IOU.
  *
  * @returns {Object}
  */
-function updateReportPreview(iouReport, reportPreviewAction) {
+function updateReportPreview(iouReport, reportPreviewAction, comment = '') {
     const message = getReportPreviewMessage(iouReport, reportPreviewAction);
     return {
         ...reportPreviewAction,
@@ -1885,6 +1891,8 @@ function updateReportPreview(iouReport, reportPreviewAction) {
                 type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
             },
         ],
+        childLastMoneyRequestComment: comment || reportPreviewAction.childLastMoneyRequestComment,
+        childMoneyRequestCount: reportPreviewAction.childMoneyRequestCount + 1,
     };
 }
 
@@ -2331,6 +2339,7 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouRep
     if (
         !report ||
         !report.reportID ||
+        report.isHidden ||
         (_.isEmpty(report.participantAccountIDs) && !isChatThread(report) && !isPublicRoom(report) && !isArchivedRoom(report) && !isMoneyRequestReport(report) && !isTaskReport(report))
     ) {
         return false;
@@ -2776,12 +2785,47 @@ function getParentReport(report) {
 }
 
 /**
+ * Find the parent report action in assignee report for a task report
+ * Returns an empty object if assignee report is the same as the share destination report
+ *
+ * @param {Object} taskReport
+ * @returns {Object}
+ */
+function getTaskParentReportActionIDInAssigneeReport(taskReport) {
+    const assigneeChatReportID = lodashGet(getChatByParticipants(isTaskAssignee(taskReport) ? [taskReport.ownerAccountID] : [taskReport.managerID]), 'reportID');
+    if (!assigneeChatReportID || assigneeChatReportID === taskReport.parentReportID) {
+        return {};
+    }
+
+    const clonedParentReportActionID = lodashGet(ReportActionsUtils.getParentReportActionInReport(taskReport.reportID, assigneeChatReportID), 'reportActionID');
+    if (!clonedParentReportActionID) {
+        return {};
+    }
+
+    return {
+        reportID: assigneeChatReportID,
+        reportActionID: clonedParentReportActionID,
+    };
+}
+
+/**
+ * Return the errors we have when creating a chat or a workspace room
+ * @param {Object} report
+ * @returns {Object} errors
+ */
+function getAddWorkspaceRoomOrChatReportErrors(report) {
+    // We are either adding a workspace room, or we're creating a chat, it isn't possible for both of these to have errors for the same report at the same time, so
+    // simply looking up the first truthy value will get the relevant property if it's set.
+    return lodashGet(report, 'errorFields.addWorkspaceRoom') || lodashGet(report, 'errorFields.createChat');
+}
+
+/**
  * Return true if the composer should be hidden
  * @param {Object} report
- * @param {Object} reportErrors
  * @returns {Boolean}
  */
-function shouldHideComposer(report, reportErrors) {
+function shouldHideComposer(report) {
+    const reportErrors = getAddWorkspaceRoomOrChatReportErrors(report);
     return isArchivedRoom(report) || !_.isEmpty(reportErrors) || !isAllowedToComment(report) || isAnonymousUser;
 }
 
@@ -2797,7 +2841,7 @@ function getOriginalReportID(reportID, reportAction) {
 }
 
 /**
- * Return the pendingAction and the errors when we have creating a chat or a workspace room offline
+ * Return the pendingAction and the errors we have when creating a chat or a workspace room offline
  * @param {Object} report
  * @returns {Object} pending action , errors
  */
@@ -2805,7 +2849,7 @@ function getReportOfflinePendingActionAndErrors(report) {
     // We are either adding a workspace room, or we're creating a chat, it isn't possible for both of these to be pending, or to have errors for the same report at the same time, so
     // simply looking up the first truthy value for each case will get the relevant property if it's set.
     const addWorkspaceRoomOrChatPendingAction = lodashGet(report, 'pendingFields.addWorkspaceRoom') || lodashGet(report, 'pendingFields.createChat');
-    const addWorkspaceRoomOrChatErrors = lodashGet(report, 'errorFields.addWorkspaceRoom') || lodashGet(report, 'errorFields.createChat');
+    const addWorkspaceRoomOrChatErrors = getAddWorkspaceRoomOrChatReportErrors(report);
     return {addWorkspaceRoomOrChatPendingAction, addWorkspaceRoomOrChatErrors};
 }
 
@@ -2845,6 +2889,123 @@ function shouldDisableRename(report, policy) {
     // If there is a linked workspace, that means the user is a member of the workspace the report is in.
     // Still, we only want policy owners and admins to be able to modify the name.
     return !_.keys(loginList).includes(policy.owner) && policy.role !== CONST.POLICY.ROLE.ADMIN;
+}
+
+/**
+ * Returns the onyx data needed for the task assignee chat
+ * @param {Number} accountID
+ * @param {String} assigneeEmail
+ * @param {Number} assigneeAccountID
+ * @param {String} taskReportID
+ * @param {String} assigneeChatReportID
+ * @param {String} parentReportID
+ * @param {String} title
+ * @param {Object} assigneeChatReport
+ * @returns {Object}
+ */
+function getTaskAssigneeChatOnyxData(accountID, assigneeEmail, assigneeAccountID, taskReportID, assigneeChatReportID, parentReportID, title, assigneeChatReport) {
+    // Set if we need to add a comment to the assignee chat notifying them that they have been assigned a task
+    let optimisticAssigneeAddComment;
+    // Set if this is a new chat that needs to be created for the assignee
+    let optimisticChatCreatedReportAction;
+    const currentTime = DateUtils.getDBTime();
+    const optimisticData = [];
+    const successData = [];
+    const failureData = [];
+
+    // You're able to assign a task to someone you haven't chatted with before - so we need to optimistically create the chat and the chat reportActions
+    // Only add the assignee chat report to onyx if we haven't already set it optimistically
+    if (assigneeChatReport.isOptimisticReport && lodashGet(assigneeChatReport, 'pendingFields.createChat') !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+        optimisticChatCreatedReportAction = buildOptimisticCreatedReportAction(assigneeChatReportID);
+        optimisticData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${assigneeChatReportID}`,
+                value: {
+                    pendingFields: {
+                        createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    },
+                    isHidden: false,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
+                value: {[optimisticChatCreatedReportAction.reportActionID]: optimisticChatCreatedReportAction},
+            },
+        );
+
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${assigneeChatReportID}`,
+            value: {
+                pendingFields: {
+                    createChat: null,
+                },
+                isOptimisticReport: false,
+            },
+        });
+
+        failureData.push(
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${assigneeChatReportID}`,
+                value: null,
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
+                value: {[optimisticChatCreatedReportAction.reportActionID]: {pendingAction: null}},
+            },
+            // If we failed, we want to remove the optimistic personal details as it was likely due to an invalid login
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                value: {
+                    [assigneeAccountID]: null,
+                },
+            },
+        );
+    }
+
+    // If you're choosing to share the task in the same DM as the assignee then we don't need to create another reportAction indicating that you've been assigned
+    if (assigneeChatReportID !== parentReportID) {
+        optimisticAssigneeAddComment = buildOptimisticTaskCommentReportAction(taskReportID, title, assigneeEmail, assigneeAccountID, `Assigned a task to you: ${title}`, parentReportID);
+
+        const lastAssigneeCommentText = formatReportLastMessageText(optimisticAssigneeAddComment.reportAction.message[0].text);
+        const optimisticAssigneeReport = {
+            lastVisibleActionCreated: currentTime,
+            lastMessageText: lastAssigneeCommentText,
+            lastActorAccountID: accountID,
+            lastReadTime: currentTime,
+        };
+
+        optimisticData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
+                value: {[optimisticAssigneeAddComment.reportAction.reportActionID]: optimisticAssigneeAddComment.reportAction},
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${assigneeChatReportID}`,
+                value: optimisticAssigneeReport,
+            },
+        );
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
+            value: {[optimisticAssigneeAddComment.reportAction.reportActionID]: {pendingAction: null}},
+        });
+    }
+
+    return {
+        optimisticData,
+        successData,
+        failureData,
+        optimisticAssigneeAddComment,
+        optimisticChatCreatedReportAction,
+    };
 }
 
 export {
@@ -2956,14 +3117,17 @@ export {
     getMoneyRequestAction,
     getBankAccountRoute,
     getParentReport,
+    getTaskParentReportActionIDInAssigneeReport,
     getReportPreviewMessage,
     shouldHideComposer,
     getOriginalReportID,
     canAccessReport,
+    getAddWorkspaceRoomOrChatReportErrors,
     getReportOfflinePendingActionAndErrors,
     isDM,
     getPolicy,
     shouldDisableSettings,
     shouldDisableRename,
     hasSingleParticipant,
+    getTaskAssigneeChatOnyxData,
 };
