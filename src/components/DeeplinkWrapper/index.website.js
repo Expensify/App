@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import {useRef, useState, useEffect} from 'react';
 import Str from 'expensify-common/lib/str';
+import _ from 'underscore';
 import * as Browser from '../../libs/Browser';
 import ROUTES from '../../ROUTES';
 import * as App from '../../libs/actions/App';
@@ -59,6 +60,11 @@ function DeeplinkWrapper({children, isAuthenticated}) {
         }
     }, [hasShownPrompt, isAuthenticated]);
     useEffect(() => {
+        // According to the design, we don't support unlink in Desktop app https://github.com/Expensify/App/issues/19681#issuecomment-1610353099
+        const isUnsupportedDeeplinkRoute = _.some([CONST.REGEX.ROUTES.UNLINK_LOGIN], (unsupportRouteRegex) => {
+            const routeRegex = new RegExp(unsupportRouteRegex);
+            return routeRegex.test(window.location.pathname);
+        });
         // Making a few checks to exit early before checking authentication status
         if (!isMacOSWeb() || CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.DEV || hasShownPrompt) {
             return;
