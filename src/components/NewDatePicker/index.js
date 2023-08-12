@@ -86,7 +86,7 @@ class NewDatePicker extends React.Component {
                         textInputContainerStyles={[styles.borderColorFocus]}
                         inputStyle={[styles.pointerEventsNone]}
                         disabled={this.props.disabled}
-                        editable={false}
+                        readOnly
                     />
                 </View>
                 <View style={[styles.datePickerPopover, styles.border]}>

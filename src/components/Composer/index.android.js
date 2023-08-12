@@ -121,7 +121,7 @@ function Composer({shouldClear, onClear, isDisabled, maxLines, forwardedRef, isC
             style={styles}
             /* eslint-disable-next-line react/jsx-props-no-spreading */
             {...props}
-            editable={!isDisabled}
+            readOnly={isDisabled}
         />
     );
 }

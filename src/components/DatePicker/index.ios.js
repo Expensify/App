@@ -91,7 +91,7 @@ class DatePicker extends React.Component {
                     containerStyles={this.props.containerStyles}
                     textInputContainerStyles={this.state.isPickerVisible ? [styles.borderColorFocus] : []}
                     onPress={this.showPicker}
-                    editable={false}
+                    readOnly
                     disabled={this.props.disabled}
                     onBlur={this.props.onBlur}
                     ref={(el) => {

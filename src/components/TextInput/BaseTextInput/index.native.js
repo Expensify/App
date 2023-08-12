@@ -228,7 +228,7 @@ function BaseTextInput(props) {
     // eslint-disable-next-line react/forbid-foreign-prop-types
     const inputProps = _.omit(props, _.keys(propTypes));
     const hasLabel = Boolean(props.label.length);
-    const isEditable = _.isUndefined(props.editable) ? !props.disabled : props.editable;
+    const isReadOnly = _.isUndefined(props.readOnly) ? !props.disabled : props.readOnly;
     const inputHelpText = props.errorText || props.hint;
     const placeholder = props.prefixCharacter || isFocused || !hasLabel || (hasLabel && props.forceActiveLabel) ? props.placeholder : null;
     const maxHeight = StyleSheet.flatten(props.containerStyles).maxHeight;
@@ -343,7 +343,7 @@ function BaseTextInput(props) {
                                 keyboardType={getSecureEntryKeyboardType(props.keyboardType, props.secureTextEntry, passwordHidden)}
                                 value={props.value}
                                 selection={props.selection}
-                                editable={isEditable}
+                                readOnly={isReadOnly}
                                 defaultValue={props.defaultValue}
                                 // FormSubmit Enter key handler does not have access to direct props.
                                 // `dataset.submitOnEnter` is used to indicate that pressing Enter on this input should call the submit callback.
@@ -363,7 +363,7 @@ function BaseTextInput(props) {
                                 </Checkbox>
                             )}
                             {!props.secureTextEntry && Boolean(props.icon) && (
-                                <View style={[styles.textInputIconContainer, isEditable ? styles.cursorPointer : styles.pointerEventsNone]}>
+                                <View style={[styles.textInputIconContainer, isReadOnly ? styles.cursorPointer : styles.pointerEventsNone]}>
                                     <Icon
                                         src={props.icon}
                                         fill={themeColors.icon}
