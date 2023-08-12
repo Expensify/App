@@ -10,7 +10,7 @@ import CONST from '../../CONST';
  */
 function logRequestDetails(message, request, response = {}) {
     // Don't log about log or else we'd cause an infinite loop
-    if (request.command === CONST.NETWORK.COMMAND.LOG) {
+    if (request.command === 'Log') {
         return;
     }
 
@@ -65,7 +65,7 @@ function Logging(response, request) {
             } else if (error.message === CONST.ERROR.FAILED_TO_FETCH) {
                 // If the command that failed is Log it's possible that the next call to Log may also fail.
                 // This will lead to infinitely complex log params that can eventually crash the app.
-                if (request.command === CONST.NETWORK.COMMAND.LOG) {
+                if (request.command === 'Log') {
                     delete logParams.request;
                 }
 

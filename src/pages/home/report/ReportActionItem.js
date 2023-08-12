@@ -103,6 +103,9 @@ const propTypes = {
     emojiReactions: EmojiReactionsPropTypes,
     personalDetailsList: PropTypes.objectOf(personalDetailsPropType),
 
+    /** IOU report for this action, if any */
+    iouReport: reportPropTypes,
+
     /** Flag to show, hide the thread divider line */
     shouldHideThreadDividerLine: PropTypes.bool,
 };
@@ -114,6 +117,7 @@ const defaultProps = {
     personalDetailsList: {},
     shouldShowSubscriptAvatar: false,
     hasOutstandingIOU: false,
+    iouReport: undefined,
     shouldHideThreadDividerLine: false,
 };
 
@@ -438,6 +442,8 @@ function ReportActionItem(props) {
                     wrapperStyles={[styles.chatItem, isWhisper ? styles.pt1 : {}]}
                     shouldShowSubscriptAvatar={props.shouldShowSubscriptAvatar}
                     report={props.report}
+                    iouReport={props.iouReport}
+                    isHovered={hovered}
                     hasBeenFlagged={!_.contains([CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING], moderationDecision)}
                 >
                     {content}
@@ -452,26 +458,32 @@ function ReportActionItem(props) {
         const parentReport = ReportActionsUtils.getParentReportAction(props.report);
         if (ReportActionsUtils.isTransactionThread(parentReport)) {
             return (
-                <MoneyRequestView
-                    report={props.report}
-                    shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
-                />
+                <OfflineWithFeedback pendingAction={props.action.pendingAction}>
+                    <MoneyRequestView
+                        report={props.report}
+                        shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
+                    />
+                </OfflineWithFeedback>
             );
         }
         if (ReportUtils.isTaskReport(props.report)) {
             return (
-                <TaskView
-                    report={props.report}
-                    shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
-                />
+                <OfflineWithFeedback pendingAction={props.action.pendingAction}>
+                    <TaskView
+                        report={props.report}
+                        shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
+                    />
+                </OfflineWithFeedback>
             );
         }
         if (ReportUtils.isExpenseReport(props.report) || ReportUtils.isIOUReport(props.report)) {
             return (
-                <MoneyReportView
-                    report={props.report}
-                    shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
-                />
+                <OfflineWithFeedback pendingAction={props.action.pendingAction}>
+                    <MoneyReportView
+                        report={props.report}
+                        shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
+                    />
+                </OfflineWithFeedback>
             );
         }
         return (
@@ -593,6 +605,9 @@ export default compose(
         preferredSkinTone: {
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
         },
+        iouReport: {
+            key: ({action}) => `${ONYXKEYS.COLLECTION.REPORT}${ReportActionsUtils.getIOUReportIDFromReportActionPreview(action)}`,
+        },
         emojiReactions: {
             key: ({action}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${action.reportActionID}`,
         },
@@ -621,6 +636,7 @@ export default compose(
             ReportUtils.isCompletedTaskReport(prevProps.report) === ReportUtils.isCompletedTaskReport(nextProps.report) &&
             prevProps.report.managerID === nextProps.report.managerID &&
             prevProps.report.managerEmail === nextProps.report.managerEmail &&
-            prevProps.shouldHideThreadDividerLine === nextProps.shouldHideThreadDividerLine,
+            prevProps.shouldHideThreadDividerLine === nextProps.shouldHideThreadDividerLine &&
+            lodashGet(prevProps.report, 'total', 0) === lodashGet(nextProps.report, 'total', 0),
     ),
 );
