@@ -14,7 +14,7 @@ import * as CurrencyUtils from './CurrencyUtils';
  */
 function calculateAmount(numberOfParticipants, total, currency, isDefaultUser = false) {
     const currencyUnit = CurrencyUtils.getCurrencyUnit(currency);
-    const totalInCurrencyUnit = total / 100 * currencyUnit;
+    const totalInCurrencyUnit = (total / 100) * currencyUnit;
     const totalParticipants = numberOfParticipants + 1;
     const amountPerPerson = Math.round(totalInCurrencyUnit / totalParticipants);
     let finalAmount = amountPerPerson;
@@ -23,7 +23,7 @@ function calculateAmount(numberOfParticipants, total, currency, isDefaultUser = 
         const difference = totalInCurrencyUnit - sumAmount;
         finalAmount = totalInCurrencyUnit !== sumAmount ? amountPerPerson + difference : amountPerPerson;
     }
-    return finalAmount * 100 / currencyUnit;
+    return (finalAmount * 100) / currencyUnit;
 }
 
 /**
