@@ -1436,8 +1436,7 @@ function sendMoneyViaPaypal(report, amount, currency, comment, managerID, recipi
 }
 
 function approveMoneyRequest(expenseReport) {
-    const IOUTransactionID = ReportActionsUtils.getReportMostRecentIOUTransactionID(expenseReport.reportID);
-    const optimisticIOUReportAction = ReportUtils.buildOptimisticApprovedReportAction(expenseReport.total, expenseReport.currency, expenseReport.reportID, IOUTransactionID);
+    const optimisticIOUReportAction = ReportUtils.buildOptimisticApprovedReportAction(expenseReport.total, expenseReport.currency, expenseReport.reportID);
 
     const optimisticReportActionsData = {
         onyxMethod: Onyx.METHOD.MERGE,
@@ -1456,6 +1455,7 @@ function approveMoneyRequest(expenseReport) {
             ...expenseReport,
             lastMessageText: optimisticIOUReportAction.message[0].text,
             lastMessageHtml: optimisticIOUReportAction.message[0].html,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
             statusNum: CONST.REPORT.STATUS.APPROVED,
         },
     };
@@ -1615,6 +1615,7 @@ export {
     requestMoney,
     sendMoneyElsewhere,
     sendMoneyViaPaypal,
+    approveMoneyRequest,
     payMoneyRequest,
     sendMoneyWithWallet,
     startMoneyRequest,
