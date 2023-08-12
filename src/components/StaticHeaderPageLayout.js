@@ -71,8 +71,7 @@ function StaticHeaderPageLayout({backgroundColor, children, image: Image, footer
                                 ]}
                             >
                                 <Image
-                                    pointerEvents="none"
-                                    style={styles.staticHeaderImage}
+                                    style={[styles.staticHeaderImage, styles.pointerEventsNone]}
                                 />
                             </View>
                             <View style={styles.pt5}>{children}</View>

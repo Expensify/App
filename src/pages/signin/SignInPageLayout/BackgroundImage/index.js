@@ -6,25 +6,25 @@ import styles from '../../../../styles/styles';
 
 const defaultProps = {
     isSmallScreen: false,
+    style: {}
 };
 
 const propTypes = {
     isSmallScreen: PropTypes.bool,
     pointerEvents: PropTypes.string.isRequired,
     width: PropTypes.number.isRequired,
+    style: PropTypes.any
 };
 function BackgroundImage(props) {
     return props.isSmallScreen ? (
         <MobileBackgroundImage
-            pointerEvents={props.pointerEvents}
             width={props.width}
-            style={styles.signInBackground}
+            style={{...styles.signInBackground, ...props.style}}
         />
     ) : (
         <DesktopBackgroundImage
-            pointerEvents={props.pointerEvents}
             width={props.width}
-            style={styles.signInBackground}
+            style={{...styles.signInBackground, ...props.style}}
         />
     );
 }

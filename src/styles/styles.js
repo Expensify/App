@@ -19,6 +19,7 @@ import writingDirection from './utilities/writingDirection';
 import optionAlternateTextPlatformStyles from './optionAlternateTextPlatformStyles';
 import pointerEventsNone from './pointerEventsNone';
 import pointerEventsAuto from './pointerEventsAuto';
+import pointerEventsBoxNone from "./pointerEventsBoxNone";
 import getPopOverVerticalOffset from './getPopOverVerticalOffset';
 import overflowXHidden from './overflowXHidden';
 import CONST from '../CONST';
@@ -2065,6 +2066,8 @@ const styles = {
     pointerEventsNone,
 
     pointerEventsAuto,
+
+    pointerEventsBoxNone,
 
     headerBar: {
         overflow: 'hidden',

@@ -135,8 +135,7 @@ function DetailsPage(props) {
                     onBackButtonPress={() => Navigation.goBack(ROUTES.HOME)}
                 />
                 <View
-                    pointerEvents="box-none"
-                    style={[styles.containerWithSpaceBetween]}
+                    style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}
                 >
                     {details ? (
                         <ScrollView>

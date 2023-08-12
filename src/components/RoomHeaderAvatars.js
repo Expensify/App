@@ -45,7 +45,7 @@ function RoomHeaderAvatars(props) {
         StyleUtils.getAvatarStyle(CONST.AVATAR_SIZE.LARGE_BORDERED),
     ];
     return (
-        <View pointerEvents="none">
+        <View style={styles.pointerEventsNone}>
             <View style={[styles.flexRow, styles.wAuto, styles.ml3]}>
                 {_.map(iconsToDisplay, (icon, index) => (
                     <View

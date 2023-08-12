@@ -85,8 +85,7 @@ function Avatar(props) {
 
     return (
         <View
-            pointerEvents="none"
-            style={props.containerStyles}
+            style={[props.containerStyles, styles.pointerEventsNone]}
         >
             {_.isFunction(props.source) || imageError ? (
                 <View style={iconStyle}>

@@ -233,8 +233,7 @@ function BasePicker(props) {
             >
                 {props.label && (
                     <Text
-                        pointerEvents="none"
-                        style={[styles.pickerLabel, styles.textLabelSupporting]}
+                        style={[styles.pickerLabel, styles.textLabelSupporting, styles.pointerEventsNone]}
                     >
                         {props.label}
                     </Text>

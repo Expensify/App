@@ -271,8 +271,7 @@ function BaseTextInput(props) {
                                 to prevent text overlapping with label when scrolling */}
                                 {isMultiline && (
                                     <View
-                                        style={styles.textInputLabelBackground}
-                                        pointerEvents="none"
+                                        style={[styles.textInputLabelBackground, styles.pointerEventsNone]}
                                     />
                                 )}
                                 <TextInputLabel
@@ -285,15 +284,13 @@ function BaseTextInput(props) {
                             </>
                         ) : null}
                         <View
-                            style={[styles.textInputAndIconContainer, isMultiline && hasLabel && styles.textInputMultilineContainer]}
-                            pointerEvents="box-none"
+                            style={[styles.textInputAndIconContainer, isMultiline && hasLabel && styles.textInputMultilineContainer, styles.pointerEventsBoxNone]}
                         >
                             {Boolean(props.prefixCharacter) && (
                                 <View style={styles.textInputPrefixWrapper}>
                                     <Text
-                                        pointerEvents="none"
                                         selectable={false}
-                                        style={[styles.textInputPrefix, !hasLabel && styles.pv0]}
+                                        style={[styles.textInputPrefix, !hasLabel && styles.pv0, styles.pointerEventsNone]}
                                         onLayout={storePrefixLayoutDimensions}
                                     >
                                         {props.prefixCharacter}
