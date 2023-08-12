@@ -93,10 +93,10 @@ function CloseAccountPage(props) {
                     <TextInput
                         inputID="reasonForLeaving"
                         autoGrowHeight
-                        textAlignVertical="top"
                         label={props.translate('closeAccountPage.enterMessageHere')}
                         ari-label={props.translate('closeAccountPage.enterMessageHere')}
                         role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        inputStyle={styles.verticalAlignTop}
                         containerStyles={[styles.mt5, styles.autoGrowHeightMultilineInput]}
                     />
                     <Text style={[styles.mt5]}>

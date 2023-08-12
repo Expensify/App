@@ -5,6 +5,7 @@ import _ from 'underscore';
 import RNTextInput from '../RNTextInput';
 import themeColors from '../../styles/themes/default';
 import * as ComposerUtils from '../../libs/ComposerUtils';
+import styles from "../../styles/styles";
 
 const propTypes = {
     /** If the input should clear, it actually gets intercepted instead of .clear() */
@@ -101,7 +102,7 @@ function Composer({shouldClear, onClear, isDisabled, maxLines, forwardedRef, isC
         return maxLines;
     }, [isComposerFullSize, maxLines]);
 
-    const styles = useMemo(() => {
+    const composerStyles = useMemo(() => {
         StyleSheet.flatten(props.style);
     }, [props.style]);
 
@@ -116,10 +117,9 @@ function Composer({shouldClear, onClear, isDisabled, maxLines, forwardedRef, isC
             ref={setTextInputRef}
             onContentSizeChange={(e) => ComposerUtils.updateNumberOfLines({maxLines, isComposerFullSize, isDisabled, setIsFullComposerAvailable}, e)}
             rejectResponderTermination={false}
-            textAlignVertical="center"
             smartInsertDelete={false}
             maxNumberOfLines={maxNumberOfLines}
-            style={styles}
+            style={[composerStyles, styles.verticalAlignMiddle]}
             /* eslint-disable-next-line react/jsx-props-no-spreading */
             {...propsToPass}
             readOnly={isDisabled}

@@ -33,10 +33,9 @@ function Default(args) {
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...args}
                     multiline
-                    textAlignVertical="top"
                     onChangeText={setComment}
                     onPasteFile={setPastedFile}
-                    style={[styles.textInputCompose, styles.w100]}
+                    style={[styles.textInputCompose, styles.w100, styles.verticalAlignTop]}
                 />
             </View>
             <View style={[styles.flexRow, styles.mv5, styles.flexWrap, styles.w100]}>

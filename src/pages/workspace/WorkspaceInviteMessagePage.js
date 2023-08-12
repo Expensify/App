@@ -223,7 +223,7 @@ class WorkspaceInviteMessagePage extends React.Component {
                                 autoCompleteType="off"
                                 autoCorrect={false}
                                 autoGrowHeight
-                                textAlignVertical="top"
+                                inputStyle={styles.verticalAlignTop}
                                 containerStyles={[styles.autoGrowHeightMultilineInput]}
                                 defaultValue={this.state.welcomeNote}
                                 value={this.state.welcomeNote}

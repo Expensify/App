@@ -80,7 +80,7 @@ function NewTaskDescriptionPage(props) {
                         autoGrowHeight
                         submitOnEnter
                         containerStyles={[styles.autoGrowHeightMultilineInput]}
-                        textAlignVertical="top"
+                        inputStyle={styles.verticalAlignTop}
                     />
                 </View>
             </Form>

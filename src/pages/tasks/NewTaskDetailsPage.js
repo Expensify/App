@@ -111,7 +111,7 @@ function NewTaskDetailsPage(props) {
                         autoGrowHeight
                         submitOnEnter
                         containerStyles={[styles.autoGrowHeightMultilineInput]}
-                        textAlignVertical="top"
+                        inputStyle={styles.verticalAlignTop}
                         value={taskDescription}
                         onValueChange={(value) => setTaskDescription(value)}
                     />

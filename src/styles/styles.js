@@ -295,6 +295,22 @@ const styles = {
         textDecorationLine: 'underline',
     },
 
+    verticalAlignAuto: {
+        verticalAlign: 'auto',
+    },
+
+    verticalAlignMiddle: {
+        verticalAlign: 'middle',
+    },
+
+    verticalAlignTop: {
+        verticalAlign: 'top',
+    },
+
+    verticalAlignBottom: {
+        verticalAlign: 'bottom',
+    },
+
     label: {
         fontSize: variables.fontSizeLabel,
         lineHeight: variables.lineHeightLarge,
