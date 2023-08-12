@@ -243,7 +243,7 @@ function BaseTextInput(props) {
 
     return (
         <>
-            <View style={styles.pointerEventsNone}>
+            <View>
                 <PressableWithoutFeedback
                     onPress={onPress}
                     tabIndex={-1}
