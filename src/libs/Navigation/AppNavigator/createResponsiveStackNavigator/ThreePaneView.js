@@ -70,7 +70,7 @@ function ThreePaneView(props) {
                                     style={[styles.flex1]}
                                     onPress={() => props.navigation.goBack()}
                                     accessibilityLabel={translate('common.close')}
-                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                    role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                 />
                                 <View style={styles.rightPanelContainer}>{props.descriptors[route.key].render()}</View>
                             </View>

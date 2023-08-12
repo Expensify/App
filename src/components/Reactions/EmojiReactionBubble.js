@@ -67,7 +67,7 @@ function EmojiReactionBubble(props) {
                 // Prevent text input blur when emoji reaction is left clicked
                 e.preventDefault();
             }}
-            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+            role={CONST.ACCESSIBILITY_ROLE.BUTTON}
             accessibilityLabel={props.emojiCodes.join('')}
         >
             <Text style={[styles.emojiReactionBubbleText, styles.userSelectNone, StyleUtils.getEmojiReactionBubbleTextStyle(props.isContextMenu)]}>{props.emojiCodes.join('')}</Text>

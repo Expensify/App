@@ -132,7 +132,7 @@ class WorkspaceRateAndUnitPage extends React.Component {
                             }
                         >
                             <TextInput
-                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                                role={CONST.ACCESSIBILITY_ROLE.TEXT}
                                 inputID="rate"
                                 containerStyles={[styles.mt4]}
                                 defaultValue={this.getUnitRateValue(distanceCustomRate)}

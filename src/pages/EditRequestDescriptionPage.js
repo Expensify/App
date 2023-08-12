@@ -47,7 +47,7 @@ function EditRequestDescriptionPage(props) {
                         defaultValue={props.defaultDescription}
                         label={props.translate('moneyRequestConfirmationList.whatsItFor')}
                         accessibilityLabel={props.translate('moneyRequestConfirmationList.whatsItFor')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         ref={descriptionInputRef}
                     />
                 </View>

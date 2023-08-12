@@ -75,7 +75,7 @@ function EmailDeliveryFailurePage(props) {
             <View style={[styles.mv4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
                 <PressableWithFeedback
                     onPress={() => redirectToSignIn()}
-                    accessibilityRole="button"
+                    role="button"
                     accessibilityLabel={translate('common.back')}
                     // disable hover dim for switch
                     hoverDimmingValue={1}

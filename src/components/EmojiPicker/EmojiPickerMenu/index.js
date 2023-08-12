@@ -535,7 +535,7 @@ class EmojiPickerMenu extends Component {
                     <TextInput
                         label={this.props.translate('common.search')}
                         accessibilityLabel={this.props.translate('common.search')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         onChangeText={this.filterEmojis}
                         defaultValue=""
                         ref={(el) => (this.searchInput = el)}

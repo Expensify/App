@@ -289,7 +289,7 @@ class ImageView extends PureComponent {
                     }}
                     onPressIn={this.onContainerPressIn}
                     onPress={this.onContainerPress}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGE}
+                    role={CONST.ACCESSIBILITY_ROLE.IMAGE}
                     accessibilityLabel={this.props.fileName}
                 >
                     <Image

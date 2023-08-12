@@ -84,7 +84,7 @@ function AddPayPalMePage(props) {
                     ref={(ref) => (payPalMeInput.current = ref)}
                     label={props.translate('addPayPalMePage.payPalMe')}
                     accessibilityLabel={props.translate('addPayPalMePage.payPalMe')}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
                     autoCompleteType="off"
                     autoCorrect={false}
                     placeholder={props.translate('addPayPalMePage.yourPayPalUsername')}
@@ -95,7 +95,7 @@ function AddPayPalMePage(props) {
                     <Text style={[styles.textMicro, styles.flexRow]}>{props.translate('addPayPalMePage.checkListOf')}</Text>
                     <PressableWithoutFeedback
                         shouldUseAutoHitSlop={false}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
+                        role={CONST.ACCESSIBILITY_ROLE.LINK}
                         accessibilityLabel={props.translate('addPayPalMePage.supportedCurrencies')}
                         onPress={() => Linking.openURL('https://developer.paypal.com/docs/reports/reference/paypal-supported-currencies')}
                     >

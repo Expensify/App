@@ -1064,7 +1064,7 @@ class ReportActionCompose extends React.Component {
                                                                     onMouseDown={(e) => e.preventDefault()}
                                                                     style={styles.composerSizeButton}
                                                                     disabled={isBlockedFromConcierge || this.props.disabled}
-                                                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                                                    role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                                                     accessibilityLabel={this.props.translate('reportActionCompose.collapse')}
                                                                 >
                                                                     <Icon src={Expensicons.Collapse} />
@@ -1083,7 +1083,7 @@ class ReportActionCompose extends React.Component {
                                                                     onMouseDown={(e) => e.preventDefault()}
                                                                     style={styles.composerSizeButton}
                                                                     disabled={isBlockedFromConcierge || this.props.disabled}
-                                                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                                                    role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                                                     accessibilityLabel={this.props.translate('reportActionCompose.expand')}
                                                                 >
                                                                     <Icon src={Expensicons.Expand} />
@@ -1102,7 +1102,7 @@ class ReportActionCompose extends React.Component {
                                                                 }}
                                                                 style={styles.composerSizeButton}
                                                                 disabled={isBlockedFromConcierge || this.props.disabled}
-                                                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                                                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                                                 accessibilityLabel={this.props.translate('reportActionCompose.addAction')}
                                                             >
                                                                 <Icon src={Expensicons.Plus} />
@@ -1212,7 +1212,7 @@ class ReportActionCompose extends React.Component {
                                             this.state.isCommentEmpty || hasExceededMaxCommentLength || pressed || isDisabled ? undefined : styles.buttonSuccess,
                                             (this.state.isCommentEmpty || isBlockedFromConcierge || this.props.disabled || hasExceededMaxCommentLength) && styles.cursorDisabled,
                                         ]}
-                                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                         accessibilityLabel={this.props.translate('common.send')}
                                     >
                                         {({pressed}) => (

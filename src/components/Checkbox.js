@@ -92,7 +92,7 @@ function Checkbox(props) {
             ref={props.forwardedRef}
             style={[props.style, styles.checkboxPressable]}
             onKeyDown={handleSpaceKey}
-            accessibilityRole={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
+            role={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
             accessibilityState={{checked: props.isChecked}}
             accessibilityLabel={props.accessibilityLabel}
             pressDimmingValue={1}

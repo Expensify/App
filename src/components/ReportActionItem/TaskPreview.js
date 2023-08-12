@@ -77,7 +77,7 @@ function TaskPreview(props) {
             <PressableWithoutFeedback
                 onPress={() => Navigation.navigate(ROUTES.getReportRoute(props.taskReportID))}
                 style={[styles.flexRow, styles.justifyContentBetween]}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                 accessibilityLabel={props.translate('task.task')}
             >
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsStart]}>

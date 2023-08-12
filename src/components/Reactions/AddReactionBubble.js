@@ -91,7 +91,7 @@ function AddReactionBubble(props) {
                 // Prevent text input blur when Add reaction is clicked
                 onMouseDown={(e) => e.preventDefault()}
                 accessibilityLabel={props.translate('emojiReactions.addReactionTooltip')}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                 // disable dimming
                 pressDimmingValue={1}
             >

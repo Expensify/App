@@ -72,7 +72,7 @@ function StatusSetPage({draftStatus, currentUserPersonalDetails}) {
                             inputID={INPUT_IDS.STATUS_TEXT}
                             label={translate('statusPage.message')}
                             accessibilityLabel={INPUT_IDS.STATUS_TEXT}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
                             defaultValue={defaultText}
                             maxLength={CONST.STATUS_TEXT_MAX_LENGTH}
                             autoFocus

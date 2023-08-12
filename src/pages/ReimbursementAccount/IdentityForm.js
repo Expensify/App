@@ -146,7 +146,7 @@ function IdentityForm(props) {
                         shouldSaveDraft={props.shouldSaveDraft}
                         label={`${props.translate('common.firstName')}`}
                         accessibilityLabel={props.translate('common.firstName')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         value={props.values.firstName}
                         defaultValue={props.defaultValues.firstName}
                         onChangeText={(value) => props.onFieldChange({firstName: value})}
@@ -159,7 +159,7 @@ function IdentityForm(props) {
                         shouldSaveDraft={props.shouldSaveDraft}
                         label={`${props.translate('common.lastName')}`}
                         accessibilityLabel={props.translate('common.lastName')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         value={props.values.lastName}
                         defaultValue={props.defaultValues.lastName}
                         onChangeText={(value) => props.onFieldChange({lastName: value})}
@@ -184,7 +184,7 @@ function IdentityForm(props) {
                 shouldSaveDraft={props.shouldSaveDraft}
                 label={`${props.translate('common.ssnLast4')}`}
                 accessibilityLabel={props.translate('common.ssnLast4')}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                role={CONST.ACCESSIBILITY_ROLE.TEXT}
                 containerStyles={[styles.mt4]}
                 inputMode={CONST.INPUT_MODE.NUMERIC}
                 defaultValue={props.defaultValues.ssnLast4}

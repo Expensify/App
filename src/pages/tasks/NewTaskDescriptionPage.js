@@ -75,7 +75,7 @@ function NewTaskDescriptionPage(props) {
                         inputID="taskDescription"
                         label={props.translate('newTaskPage.descriptionOptional')}
                         accessibilityLabel={props.translate('newTaskPage.descriptionOptional')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         ref={(el) => (inputRef.current = el)}
                         autoGrowHeight
                         submitOnEnter

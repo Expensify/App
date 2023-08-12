@@ -31,7 +31,7 @@ function RadioListItem(props) {
         <PressableWithFeedback
             onPress={() => props.onSelectRow(props.item)}
             accessibilityLabel={props.item.text}
-            accessibilityRole="button"
+            role="button"
             hoverDimmingValue={1}
             hoverStyle={styles.hoveredComponentBG}
             focusStyle={styles.hoveredComponentBG}

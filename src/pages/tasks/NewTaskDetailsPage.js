@@ -94,7 +94,7 @@ function NewTaskDetailsPage(props) {
                 <View style={styles.mb5}>
                     <TextInput
                         ref={(el) => (inputRef.current = el)}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         inputID="taskTitle"
                         label={props.translate('task.title')}
                         accessibilityLabel={props.translate('task.title')}
@@ -104,7 +104,7 @@ function NewTaskDetailsPage(props) {
                 </View>
                 <View style={styles.mb5}>
                     <TextInput
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         inputID="taskDescription"
                         label={props.translate('newTaskPage.descriptionOptional')}
                         accessibilityLabel={props.translate('newTaskPage.descriptionOptional')}

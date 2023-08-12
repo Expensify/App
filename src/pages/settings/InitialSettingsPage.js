@@ -345,7 +345,7 @@ function InitialSettingsPage(props) {
                                             style={[styles.mb3]}
                                             onPress={openProfileSettings}
                                             accessibilityLabel={translate('common.profile')}
-                                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                            role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                         >
                                             <OfflineWithFeedback pendingAction={lodashGet(props.currentUserPersonalDetails, 'pendingFields.avatar', null)}>
                                                 <Avatar
@@ -360,7 +360,7 @@ function InitialSettingsPage(props) {
                                         style={[styles.mt1, styles.mw100]}
                                         onPress={openProfileSettings}
                                         accessibilityLabel={translate('common.profile')}
-                                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
+                                        role={CONST.ACCESSIBILITY_ROLE.LINK}
                                     >
                                         <Tooltip text={translate('common.profile')}>
                                             <Text

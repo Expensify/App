@@ -307,7 +307,7 @@ function WorkspaceMembersPage(props) {
                         style={[styles.peopleRow, (_.isEmpty(item.errors) || errors[item.accountID]) && styles.peopleRowBorderBottom, hasError && styles.borderColorDanger]}
                         disabled={disabled}
                         onPress={() => toggleUser(item.accountID, item.pendingAction)}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
+                        role={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
                         accessibilityState={{
                             checked: isChecked,
                         }}
@@ -448,7 +448,7 @@ function WorkspaceMembersPage(props) {
                         </View>
                         <View style={[styles.w100, styles.pv3, styles.ph5]}>
                             <TextInput
-                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                                role={CONST.ACCESSIBILITY_ROLE.TEXT}
                                 value={searchValue}
                                 onChangeText={setSearchValue}
                                 label={props.translate('optionsSelector.findMember')}
@@ -462,7 +462,7 @@ function WorkspaceMembersPage(props) {
                                     <PressableWithFeedback
                                         disabled={_.isEmpty(removableMembers)}
                                         onPress={() => toggleAllUsers(removableMembers)}
-                                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
+                                        role={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
                                         accessibilityState={{
                                             checked: !_.isEmpty(removableMembers) && _.every(_.keys(removableMembers), (accountID) => _.contains(selectedEmployees, Number(accountID))),
                                         }}

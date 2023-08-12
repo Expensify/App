@@ -38,7 +38,7 @@ function TaskHeaderActionButton(props) {
         <PressableWithFeedback
             onPress={() => Navigation.navigate(ROUTES.getTaskReportAssigneeRoute(props.report.reportID))}
             disabled={!ReportUtils.isOpenTaskReport(props.report)}
-            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+            role={CONST.ACCESSIBILITY_ROLE.BUTTON}
             accessibilityLabel={props.translate('task.assignee')}
             hoverDimmingValue={1}
             pressDimmingValue={0.2}

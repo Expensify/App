@@ -118,7 +118,7 @@ function DebitCardPage(props) {
                     inputID="nameOnCard"
                     label={translate('addDebitCardPage.nameOnCard')}
                     accessibilityLabel={translate('addDebitCardPage.nameOnCard')}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
                     ref={(ref) => (nameOnCardRef.current = ref)}
                     spellCheck={false}
                 />
@@ -126,7 +126,7 @@ function DebitCardPage(props) {
                     inputID="cardNumber"
                     label={translate('addDebitCardPage.debitCardNumber')}
                     accessibilityLabel={translate('addDebitCardPage.debitCardNumber')}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
                     containerStyles={[styles.mt4]}
                     inputMode={CONST.INPUT_MODE.NUMERIC}
                 />
@@ -136,7 +136,7 @@ function DebitCardPage(props) {
                             inputID="expirationDate"
                             label={translate('addDebitCardPage.expiration')}
                             accessibilityLabel={translate('addDebitCardPage.expiration')}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
                             placeholder={translate('addDebitCardPage.expirationDate')}
                             inputMode={CONST.INPUT_MODE.NUMERIC}
                             maxLength={4}
@@ -147,7 +147,7 @@ function DebitCardPage(props) {
                             inputID="securityCode"
                             label={translate('addDebitCardPage.cvv')}
                             accessibilityLabel={translate('addDebitCardPage.cvv')}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
                             maxLength={4}
                             inputMode={CONST.INPUT_MODE.NUMERIC}
                         />
@@ -165,7 +165,7 @@ function DebitCardPage(props) {
                     inputID="addressZipCode"
                     label={translate('common.zip')}
                     accessibilityLabel={translate('common.zip')}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
                     inputMode={CONST.INPUT_MODE.NUMERIC}
                     maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
                     hint={translate('common.zipCodeExampleFormat', {zipSampleFormat: CONST.COUNTRY_ZIP_REGEX_DATA.US.samples})}

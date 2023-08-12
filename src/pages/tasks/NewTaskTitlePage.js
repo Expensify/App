@@ -94,7 +94,7 @@ function NewTaskTitlePage(props) {
             >
                 <View style={styles.mb5}>
                     <TextInput
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         defaultValue={props.task.title}
                         ref={(el) => (inputRef.current = el)}
                         inputID="taskTitle"

@@ -126,7 +126,7 @@ function OfflineWithFeedback(props) {
                         <PressableWithoutFeedback
                             onPress={props.onClose}
                             style={[styles.touchableButtonImage]}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                            role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                             accessibilityLabel={props.translate('common.close')}
                         >
                             <Icon src={Expensicons.Close} />

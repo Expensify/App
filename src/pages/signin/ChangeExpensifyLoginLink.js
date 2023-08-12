@@ -37,7 +37,7 @@ function ChangeExpensifyLoginLink(props) {
             <PressableWithFeedback
                 style={[styles.link]}
                 onPress={props.onPress}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
+                role={CONST.ACCESSIBILITY_ROLE.LINK}
                 accessibilityLabel={props.translate('common.goBack')}
             >
                 <Text style={[styles.link]}>

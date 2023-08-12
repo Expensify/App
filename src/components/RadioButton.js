@@ -37,7 +37,7 @@ function RadioButton(props) {
             hoverDimmingValue={1}
             pressDimmingValue={1}
             accessibilityLabel={props.accessibilityLabel}
-            accessibilityRole={CONST.ACCESSIBILITY_ROLE.RADIO}
+            role={CONST.ACCESSIBILITY_ROLE.RADIO}
         >
             <View style={[styles.radioButtonContainer, props.isChecked && styles.checkedContainer, props.hasError && styles.borderColorDanger, props.disabled && styles.cursorDisabled]}>
                 <Icon

@@ -23,7 +23,7 @@ function CurrencySymbolButton(props) {
             <PressableWithoutFeedback
                 onPress={props.onCurrencyButtonPress}
                 accessibilityLabel={props.translate('iOUCurrencySelection.selectCurrency')}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
             >
                 <Text style={styles.iouAmountText}>{props.currencySymbol}</Text>
             </PressableWithoutFeedback>

@@ -286,7 +286,7 @@ function ReportActionItemMessageEdit(props) {
                             onPress={deleteDraft}
                             style={styles.chatItemSubmitButton}
                             id={cancelButtonID}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                            role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                             accessibilityLabel={translate('common.close')}
                             // disable dimming
                             hoverDimmingValue={1}
@@ -369,7 +369,7 @@ function ReportActionItemMessageEdit(props) {
                                 onPress={publishDraft}
                                 id={saveButtonID}
                                 disabled={hasExceededMaxCommentLength}
-                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                 accessibilityLabel={translate('common.saveChanges')}
                                 hoverDimmingValue={1}
                                 pressDimmingValue={0.2}

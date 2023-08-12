@@ -113,7 +113,7 @@ class MoneyRequestDescriptionPage extends Component {
                             defaultValue={this.props.iou.comment}
                             label={this.props.translate('moneyRequestConfirmationList.whatsItFor')}
                             accessibilityLabel={this.props.translate('moneyRequestConfirmationList.whatsItFor')}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
                             ref={(el) => (this.descriptionInputRef = el)}
                         />
                     </View>

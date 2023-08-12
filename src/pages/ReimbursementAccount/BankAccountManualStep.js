@@ -98,7 +98,7 @@ function BankAccountManualStep(props) {
                     inputID="routingNumber"
                     label={translate('bankAccount.routingNumber')}
                     accessibilityLabel={translate('bankAccount.routingNumber')}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
                     defaultValue={props.getDefaultStateForField('routingNumber', '')}
                     inputMode={CONST.INPUT_MODE.NUMERIC}
                     disabled={shouldDisableInputs}
@@ -110,7 +110,7 @@ function BankAccountManualStep(props) {
                     containerStyles={[styles.mt4]}
                     label={translate('bankAccount.accountNumber')}
                     accessibilityLabel={translate('bankAccount.accountNumber')}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
                     defaultValue={props.getDefaultStateForField('accountNumber', '')}
                     inputMode={CONST.INPUT_MODE.NUMERIC}
                     disabled={shouldDisableInputs}

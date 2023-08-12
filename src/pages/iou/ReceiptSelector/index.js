@@ -131,7 +131,7 @@ function ReceiptSelector(props) {
                         {({openPicker}) => (
                             <PressableWithFeedback
                                 accessibilityLabel={translate('receipt.chooseFile')}
-                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                             >
                                 <Button
                                     medium

@@ -64,7 +64,7 @@ function HeaderWithBackButton({
                                 onBackButtonPress();
                             }}
                             style={[styles.touchableButtonImage]}
-                            accessibilityRole="button"
+                            role="button"
                             accessibilityLabel={translate('common.back')}
                         >
                             <Icon
@@ -106,7 +106,7 @@ function HeaderWithBackButton({
                                     temporarilyDisableDownloadButton(true);
                                 }}
                                 style={[styles.touchableButtonImage]}
-                                accessibilityRole="button"
+                                role="button"
                                 accessibilityLabel={translate('common.download')}
                             >
                                 <Icon
@@ -121,7 +121,7 @@ function HeaderWithBackButton({
                             <PressableWithoutFeedback
                                 onPress={() => Navigation.navigate(ROUTES.getGetAssistanceRoute(guidesCallTaskID))}
                                 style={[styles.touchableButtonImage]}
-                                accessibilityRole="button"
+                                role="button"
                                 accessibilityLabel={translate('getAssistancePage.questionMarkButtonTooltip')}
                             >
                                 <Icon
@@ -144,7 +144,7 @@ function HeaderWithBackButton({
                             <PressableWithoutFeedback
                                 onPress={onCloseButtonPress}
                                 style={[styles.touchableButtonImage]}
-                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                 accessibilityLabel={translate('common.close')}
                             >
                                 <Icon

@@ -8,8 +8,8 @@ const WebGenericPressable = forwardRef((props, ref) => (
         {...props}
         ref={ref}
         // change native accessibility props to web accessibility props
-        tabIndex={!props.accessible || !props.focusable ? -1 : 0}
-        role={props.accessibilityRole}
+        tabIndex={props.tabIndex}
+        role={props.role}
         aria-label={props.accessibilityLabel}
         aria-labelledby={props.accessibilityLabelledBy}
         aria-valuenow={props.accessibilityValue}

@@ -78,7 +78,7 @@ class NewDatePicker extends React.Component {
                         icon={Expensicons.Calendar}
                         label={this.props.label}
                         accessibilityLabel={this.props.label}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         value={this.props.value || ''}
                         placeholder={this.props.placeholder || this.props.translate('common.dateFormat')}
                         errorText={this.props.errorText}

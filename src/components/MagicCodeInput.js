@@ -284,7 +284,7 @@ function MagicCodeInput(props) {
                                 selectionColor="transparent"
                                 textInputContainerStyles={[styles.borderNone]}
                                 inputStyle={[styles.inputTransparent]}
-                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                                role={CONST.ACCESSIBILITY_ROLE.TEXT}
                             />
                         </View>
                     </View>

@@ -96,7 +96,7 @@ function CloseAccountPage(props) {
                         textAlignVertical="top"
                         label={props.translate('closeAccountPage.enterMessageHere')}
                         accessibilityLabel={props.translate('closeAccountPage.enterMessageHere')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         containerStyles={[styles.mt5, styles.autoGrowHeightMultilineInput]}
                     />
                     <Text style={[styles.mt5]}>
@@ -107,7 +107,7 @@ function CloseAccountPage(props) {
                         autoCapitalize="none"
                         label={props.translate('closeAccountPage.enterDefaultContact')}
                         accessibilityLabel={props.translate('closeAccountPage.enterDefaultContact')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         containerStyles={[styles.mt5]}
                         autoCorrect={false}
                         inputMode={Str.isValidEmail(userEmailOrPhone) ? CONST.INPUT_MODE.EMAIL : CONST.INPUT_MODE.TEXT}

@@ -227,7 +227,7 @@ function ReceiptSelector(props) {
                     <Text style={[styles.subTextReceiptUpload]}>{translate('receipt.cameraAccess')}</Text>
                     <PressableWithFeedback
                         accessibilityLabel={translate('receipt.givePermission')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                     >
                         <Button
                             medium
@@ -260,7 +260,7 @@ function ReceiptSelector(props) {
             )}
             <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
                 <PressableWithFeedback
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                    role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                     accessibilityLabel={translate('receipt.gallery')}
                     style={[styles.alignItemsStart]}
                     onPress={() => {
@@ -282,7 +282,7 @@ function ReceiptSelector(props) {
                     />
                 </PressableWithFeedback>
                 <PressableWithFeedback
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                    role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                     accessibilityLabel={translate('receipt.shutter')}
                     style={[styles.alignItemsCenter]}
                     onPress={takePhoto}
@@ -293,7 +293,7 @@ function ReceiptSelector(props) {
                     />
                 </PressableWithFeedback>
                 <PressableWithFeedback
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                    role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                     accessibilityLabel={translate('receipt.flash')}
                     style={[styles.alignItemsEnd]}
                     onPress={() => setFlash((prevFlash) => !prevFlash)}

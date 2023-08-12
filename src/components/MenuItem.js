@@ -132,7 +132,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                     ]}
                     disabled={props.disabled}
                     ref={ref}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.MENUITEM}
+                    role={CONST.ACCESSIBILITY_ROLE.MENUITEM}
                     accessibilityLabel={props.title}
                 >
                     {({pressed}) => (

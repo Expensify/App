@@ -129,7 +129,7 @@ function ReportPreview(props) {
                 onPressOut={() => ControlSelection.unblock()}
                 onLongPress={(event) => showContextMenuForReport(event, props.contextMenuAnchor, props.chatReportID, props.action, props.checkIfContextMenuActive)}
                 style={[styles.flexRow, styles.justifyContentBetween]}
-                accessibilityRole="button"
+                role="button"
                 accessibilityLabel={props.translate('iou.viewDetails')}
             >
                 <View style={[styles.iouPreviewBox, props.isHovered ? styles.iouPreviewBoxHover : undefined]}>

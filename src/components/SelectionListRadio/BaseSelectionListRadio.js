@@ -221,7 +221,7 @@ function BaseSelectionListRadio(props) {
                                     ref={textInputRef}
                                     label={props.textInputLabel}
                                     accessibilityLabel={props.textInputLabel}
-                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
                                     value={props.textInputValue}
                                     placeholder={props.textInputPlaceholder}
                                     maxLength={props.textInputMaxLength}

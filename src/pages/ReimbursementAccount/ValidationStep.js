@@ -166,7 +166,7 @@ class ValidationStep extends React.Component {
                                 containerStyles={[styles.mb1]}
                                 placeholder="1.52"
                                 inputMode={CONST.INPUT_MODE.DECIMAL}
-                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                                role={CONST.ACCESSIBILITY_ROLE.TEXT}
                             />
                             <TextInput
                                 inputID="amount2"
@@ -174,7 +174,7 @@ class ValidationStep extends React.Component {
                                 containerStyles={[styles.mb1]}
                                 placeholder="1.53"
                                 inputMode={CONST.INPUT_MODE.DECIMAL}
-                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                                role={CONST.ACCESSIBILITY_ROLE.TEXT}
                             />
                             <TextInput
                                 shouldSaveDraft
@@ -182,7 +182,7 @@ class ValidationStep extends React.Component {
                                 containerStyles={[styles.mb1]}
                                 placeholder="1.54"
                                 inputMode={CONST.INPUT_MODE.DECIMAL}
-                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                                role={CONST.ACCESSIBILITY_ROLE.TEXT}
                             />
                         </View>
                         {!requiresTwoFactorAuth && (
