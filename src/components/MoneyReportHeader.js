@@ -59,7 +59,7 @@ function MoneyReportHeader(props) {
     const reportTotal = ReportUtils.getMoneyRequestTotal(props.report);
     const shouldShowSettlementButton = useMemo(() => {
         if (ReportUtils.getPolicyType(moneyRequestReport, props.policies) === CONST.POLICY.TYPE.CORPORATE) {
-            return Policy.isAdminOfControlPolicy([policy]) && ReportUtils.isReportApproved(moneyRequestReport) && !ReportUtils.isSettled(moneyRequestReport.reportID);
+            return Policy.isAdminOfControlPolicy([policy]) && ReportUtils.isReportApproved(moneyRequestReport);
         }
 
         return (
@@ -72,12 +72,7 @@ function MoneyReportHeader(props) {
         if (ReportUtils.getPolicyType(moneyRequestReport) === CONST.POLICY.TYPE.FREE) {
             return false;
         }
-
-        return (
-            ReportUtils.isReportManager(moneyRequestReport) &&
-            lodashGet(moneyRequestReport, 'stateNum') === CONST.REPORT.STATE_NUM.PROCESSING &&
-            lodashGet(moneyRequestReport, 'statusNum') === CONST.REPORT.STATUS.SUBMITTED
-        );
+        return ReportUtils.isReportManager(moneyRequestReport) && !ReportUtils.isReportApproved(moneyRequestReport);
     }, [moneyRequestReport]);
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
     const shouldShowPaypal = Boolean(lodashGet(props.personalDetails, [moneyRequestReport.managerID, 'payPalMeAddress']));

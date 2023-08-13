@@ -129,6 +129,16 @@ function isExpenseReport(report) {
 }
 
 /**
+ * Checks if a report is an expense report that belongs to a Control policy.
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isControlPolicyExpenseReport(report) {
+    return isExpenseReport(report) && getPolicyType(report, allPolicies) === CONST.POLICY.TYPE.CORPORATE;
+}
+
+/**
  * Checks if a report is an IOU report.
  *
  * @param {Object} report
@@ -229,7 +239,16 @@ function canEditReportAction(reportAction) {
  */
 function isSettled(reportID) {
     const report = lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {});
-    return !_.isEmpty(report) && !report.isWaitingOnBankAccount && report.stateNum > CONST.REPORT.STATE_NUM.PROCESSING;
+
+    if (_.isEmpty(report) || report.isWaitingOnBankAccount) {
+        return false;
+    }
+
+    if (getPolicyType(report, allPolicies) === CONST.POLICY.TYPE.CORPORATE) {
+        return report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && report.statusNum === CONST.REPORT.STATUS.REIMBURSED;
+    }
+
+    return report.stateNum > CONST.REPORT.STATE_NUM.PROCESSING;
 }
 
 /**
@@ -1288,6 +1307,11 @@ function getReportPreviewMessage(report, reportAction = {}) {
     const totalAmount = getMoneyRequestTotal(report);
     const payerName = isExpenseReport(report) ? getPolicyName(report) : getDisplayNameForParticipant(report.managerID, true);
     const formattedAmount = CurrencyUtils.convertToDisplayString(totalAmount, report.currency);
+
+    if (isReportApproved(report) && getPolicyType(report, allPolicies) === CONST.POLICY.TYPE.CORPORATE) {
+        const managerName = getDisplayNameForParticipant(report.managerID, true);
+        return `${managerName} approved ${formattedAmount}`;
+    }
 
     if (isSettled(report.reportID)) {
         // A settled report preview message can come in three formats "paid ... using Paypal.me", "paid ... elsewhere" or "paid ... using Expensify"
@@ -3027,6 +3051,7 @@ export {
     isCurrentUserSubmitter,
     isExpenseReport,
     isExpenseRequest,
+    isControlPolicyExpenseReport,
     isIOUReport,
     isTaskReport,
     isOpenTaskReport,
