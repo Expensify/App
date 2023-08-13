@@ -2841,7 +2841,7 @@ function getAddWorkspaceRoomOrChatReportErrors(report) {
 }
 
 /**
- * Return true if write actions like assign task, money request, send message should be hidden on a report
+ * Returns true if write actions like assign task, money request, send message should be disabled on a report
  * @param {Object} report
  * @returns {Boolean}
  */
