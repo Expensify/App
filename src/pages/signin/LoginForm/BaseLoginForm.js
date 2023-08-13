@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -33,6 +33,9 @@ import usePrevious from '../../../hooks/usePrevious';
 const propTypes = {
     /** Should we dismiss the keyboard when transitioning away from the page? */
     blurOnSubmit: PropTypes.bool,
+
+    /** A reference so we can expose if the form input is focused */
+    innerRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
 
     /* Onyx Props */
 
@@ -176,6 +179,12 @@ function LoginForm(props) {
         input.current.focus();
     }, [props.blurOnSubmit, props.isVisible, prevIsVisible]);
 
+    useImperativeHandle(props.innerRef, () => ({
+        isInputFocused() {
+            return input.current && input.current.isFocused();
+        }
+    }));
+
     const formErrorText = useMemo(() => (formError ? translate(formError) : ''), [formError, translate]);
     const serverErrorText = useMemo(() => ErrorUtils.getLatestErrorMessage(props.account), [props.account]);
     const hasError = !_.isEmpty(serverErrorText);
@@ -249,4 +258,12 @@ export default compose(
     withLocalize,
     withToggleVisibilityView,
     withNetwork(),
-)(LoginForm);
+)(
+    forwardRef((props, ref) => (
+        <LoginForm
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            innerRef={ref}
+        />
+    )),
+);
