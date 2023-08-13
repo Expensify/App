@@ -527,6 +527,7 @@ class ReportActionCompose extends React.Component {
     calculateEmojiSuggestion() {
         if (this.shouldBlockEmojiCalc || !this.state.value) {
             this.shouldBlockEmojiCalc = false;
+            this.resetSuggestions();
             return;
         }
 
