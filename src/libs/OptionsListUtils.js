@@ -898,7 +898,7 @@ function getSearchOptions(reports, personalDetails, searchValue = '', betas) {
 function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail, amountText) {
     const formattedLogin = LocalePhoneNumber.formatPhoneNumber(personalDetail.login);
     return {
-        text: personalDetail.displayName || formattedLogin,
+        text: personalDetail.displayName ? personalDetail.displayName : formattedLogin,
         alternateText: formattedLogin || personalDetail.displayName,
         icons: [
             {
