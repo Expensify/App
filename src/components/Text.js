@@ -17,9 +17,6 @@ const propTypes = {
     /** The alignment of the text */
     textAlign: PropTypes.string,
 
-    /** The position of the text */
-    position: PropTypes.string,
-
     /** Any children to display */
     children: PropTypes.node,
 
@@ -35,12 +32,11 @@ const defaultProps = {
     fontSize: variables.fontSizeNormal,
     family: 'EXP_NEUE',
     textAlign: 'left',
-    position: 'static',
     children: null,
     style: {},
 };
 
-const Text = React.forwardRef(({color, fontSize, textAlign, children, position, family, style, ...props}, ref) => {
+const Text = React.forwardRef(({color, fontSize, textAlign, children, family, style, ...props}, ref) => {
     // If the style prop is an array of styles, we need to mix them all together
     const mergedStyles = !_.isArray(style)
         ? style
@@ -56,7 +52,6 @@ const Text = React.forwardRef(({color, fontSize, textAlign, children, position, 
         color,
         fontSize,
         textAlign,
-        position,
         fontFamily: fontFamily[family],
         ...mergedStyles,
     };
@@ -70,7 +65,6 @@ const Text = React.forwardRef(({color, fontSize, textAlign, children, position, 
             allowFontScaling={false}
             ref={ref}
             style={[componentStyle]}
-            role="paragraph"
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         >
