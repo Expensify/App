@@ -63,7 +63,6 @@ function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLo
                     forceCrossDevice: true,
                     hideCountrySelection: true,
                     country: 'USA',
-                    uploadFallback: false,
                     documentTypes: {
                         driving_licence: {
                             country: 'USA',
@@ -76,7 +75,6 @@ function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLo
                 type: CONST.ONFIDO.TYPE.FACE,
                 options: {
                     requestedVariant: CONST.ONFIDO.VARIANT.VIDEO,
-                    uploadFallback: false,
                 },
             },
         ],

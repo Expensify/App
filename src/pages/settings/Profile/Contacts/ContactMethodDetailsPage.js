@@ -103,6 +103,8 @@ class ContactMethodDetailsPage extends Component {
         this.state = {
             isDeleteModalOpen: false,
         };
+
+        this.validateCodeFormRef = React.createRef();
     }
 
     componentDidMount() {
@@ -217,7 +219,7 @@ class ContactMethodDetailsPage extends Component {
         const isFailedAddContactMethod = Boolean(lodashGet(loginData, 'errorFields.addedLogin'));
 
         return (
-            <ScreenWrapper>
+            <ScreenWrapper onEntryTransitionEnd={() => this.validateCodeFormRef.current && this.validateCodeFormRef.current.focus()}>
                 <HeaderWithBackButton
                     title={formattedContactMethod}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS)}
@@ -251,6 +253,7 @@ class ContactMethodDetailsPage extends Component {
                                 contactMethod={contactMethod}
                                 hasMagicCodeBeenSent={hasMagicCodeBeenSent}
                                 loginList={this.props.loginList}
+                                ref={this.validateCodeFormRef}
                             />
                         </View>
                     )}

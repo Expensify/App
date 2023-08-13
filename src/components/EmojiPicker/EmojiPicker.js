@@ -28,7 +28,7 @@ const EmojiPicker = forwardRef((props, ref) => {
         vertical: 0,
     });
     const [reportAction, setReportAction] = useState({});
-    const emojiPopoverAnchorOrigin = useRef(DEFAULT_ANCHOR_ORIGIN);
+    const [emojiPopoverAnchorOrigin, setEmojiPopoverAnchorOrigin] = useState(DEFAULT_ANCHOR_ORIGIN);
     const emojiPopoverAnchor = useRef(null);
     const onModalHide = useRef(() => {});
     const onEmojiSelected = useRef(() => {});
@@ -48,17 +48,18 @@ const EmojiPicker = forwardRef((props, ref) => {
         onModalHide.current = onModalHideValue;
         onEmojiSelected.current = onEmojiSelectedValue;
         emojiPopoverAnchor.current = emojiPopoverAnchorValue;
-
-        if (emojiPopoverAnchor.current) {
+        if (emojiPopoverAnchor.current && emojiPopoverAnchor.current.blur) {
             // Drop focus to avoid blue focus ring.
             emojiPopoverAnchor.current.blur();
         }
 
-        calculateAnchorPosition(emojiPopoverAnchor.current).then((value) => {
+        const anchorOriginValue = anchorOrigin || DEFAULT_ANCHOR_ORIGIN;
+
+        calculateAnchorPosition(emojiPopoverAnchor.current, anchorOriginValue).then((value) => {
             onWillShow();
             setIsEmojiPickerVisible(true);
             setEmojiPopoverAnchorPosition(value);
-            emojiPopoverAnchorOrigin.current = anchorOrigin || DEFAULT_ANCHOR_ORIGIN;
+            setEmojiPopoverAnchorOrigin(anchorOriginValue);
             setReportAction(reportActionValue);
         });
     };
@@ -130,14 +131,14 @@ const EmojiPicker = forwardRef((props, ref) => {
                 }
                 return;
             }
-            calculateAnchorPosition(emojiPopoverAnchor.current).then((value) => {
+            calculateAnchorPosition(emojiPopoverAnchor.current, emojiPopoverAnchorOrigin).then((value) => {
                 setEmojiPopoverAnchorPosition(value);
             });
         });
         return () => {
             emojiPopoverDimensionListener.remove();
         };
-    }, [isEmojiPickerVisible, props.isSmallScreenWidth]);
+    }, [isEmojiPickerVisible, props.isSmallScreenWidth, emojiPopoverAnchorOrigin]);
 
     // There is no way to disable animations, and they are really laggy, because there are so many
     // emojis. The best alternative is to set it to 1ms so it just "pops" in and out
@@ -155,11 +156,13 @@ const EmojiPicker = forwardRef((props, ref) => {
                 vertical: emojiPopoverAnchorPosition.vertical,
                 horizontal: emojiPopoverAnchorPosition.horizontal,
             }}
+            anchorRef={emojiPopoverAnchor}
+            withoutOverlay
             popoverDimensions={{
                 width: CONST.EMOJI_PICKER_SIZE.WIDTH,
                 height: CONST.EMOJI_PICKER_SIZE.HEIGHT,
             }}
-            anchorAlignment={emojiPopoverAnchorOrigin.current}
+            anchorAlignment={emojiPopoverAnchorOrigin}
             outerStyle={StyleUtils.getOuterModalStyle(props.windowHeight, props.viewportOffsetTop)}
             innerContainerStyle={styles.popoverInnerContainer}
             avoidKeyboard
