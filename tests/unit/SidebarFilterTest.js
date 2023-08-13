@@ -7,6 +7,7 @@ import wrapOnyxWithWaitForPromisesToResolve from '../utils/wrapOnyxWithWaitForPr
 import CONST from '../../src/CONST';
 import DateUtils from '../../src/libs/DateUtils';
 import * as Localize from '../../src/libs/Localize';
+import * as Report from '../../src/libs/actions/Report';
 
 // Be sure to include the mocked permissions library or else the beta tests won't work
 jest.mock('../../src/libs/Permissions');
@@ -72,7 +73,59 @@ describe('Sidebar', () => {
             );
         });
 
-        it('includes or excludes policy expense chats depending on the beta', () => {
+        it('excludes an empty chat report', () => {
+            LHNTestUtils.getDefaultRenderedSidebarLinks();
+
+            // Given a new report
+            const report = LHNTestUtils.getFakeReport(['emptychat+1@test.com', 'emptychat+2@test.com'], 0);
+
+            return (
+                waitForPromisesToResolve()
+                    // When Onyx is updated to contain that report
+                    .then(() =>
+                        Onyx.multiSet({
+                            [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+                        }),
+                    )
+
+                    // Then no reports are rendered in the LHN
+                    .then(() => {
+                        const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
+                        const displayNames = screen.queryAllByLabelText(hintText);
+                        expect(displayNames).toHaveLength(0);
+                    })
+            );
+        });
+
+        it('includes an empty chat report if it has a draft', () => {
+            LHNTestUtils.getDefaultRenderedSidebarLinks();
+
+            // Given a new report
+            const report = {
+                ...LHNTestUtils.getFakeReport([1, 2], 0),
+                hasDraft: true,
+            };
+
+            return (
+                waitForPromisesToResolve()
+                    // When Onyx is updated to contain that report
+                    .then(() =>
+                        Onyx.multiSet({
+                            [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+                            [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
+                        }),
+                    )
+
+                    // Then no reports are rendered in the LHN
+                    .then(() => {
+                        const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
+                        const displayNames = screen.queryAllByLabelText(hintText);
+                        expect(displayNames).toHaveLength(1);
+                    })
+            );
+        });
+
+        it('includes or excludes policy expensechats depending on the beta', () => {
             LHNTestUtils.getDefaultRenderedSidebarLinks();
 
             // Given a policy expense report
@@ -93,6 +146,9 @@ describe('Sidebar', () => {
                             [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
                         }),
                     )
+
+                    // When the report has at least one ADDCOMMENT action to be rendered in the LNH
+                    .then(() => Report.addComment(report.reportID, 'Hi, this is a comment'))
 
                     // Then no reports are rendered in the LHN
                     .then(() => {
