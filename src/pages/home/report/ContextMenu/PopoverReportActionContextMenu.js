@@ -165,8 +165,8 @@ class PopoverReportActionContextMenu extends React.Component {
                     vertical: nativeEvent.pageY - y,
                 },
                 popoverAnchorPosition: {
-                    horizontal: nativeEvent.pageX,
-                    vertical: nativeEvent.pageY,
+                    horizontal: nativeEvent.pageX + CONST.MODAL.POPOVER_ANCHOR_SHIFT,
+                    vertical: nativeEvent.pageY - CONST.MODAL.POPOVER_ANCHOR_SHIFT,
                 },
                 type,
                 reportID,
