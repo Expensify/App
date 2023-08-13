@@ -2,7 +2,10 @@ import React from 'react';
 import BaseLoginForm from './BaseLoginForm';
 import {propTypes, defaultProps} from './loginFormPropTypes';
 
-const propTypes = {};
+const propTypes = {
+    /** Function used to scroll to the top of the page */    
+    scrollPageToTop: PropTypes.func,
+};
 const defaultProps = {};
 
 function LoginForm(props) {
