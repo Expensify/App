@@ -2341,9 +2341,10 @@ function canAccessReport(report, policies, betas, allReportActions) {
  * @param {String[]} betas
  * @param {Object} policies
  * @param {Object} allReportActions
+ * @param {Boolean} excludeEmptyChats
  * @returns {boolean}
  */
-function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouReports, betas, policies, allReportActions) {
+function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouReports, betas, policies, allReportActions, excludeEmptyChats = false) {
     const isInDefaultMode = !isInGSDMode;
 
     // Exclude reports that have no data because there wouldn't be anything to show in the option item.
@@ -2374,8 +2375,10 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouRep
         return true;
     }
 
+    const isEmptyChat = !ReportActionsUtils.getLastVisibleMessage(report.reportID).lastMessageText;
+
     // Hide only chat threads that haven't been commented on (other threads are actionable)
-    if (isChatThread(report) && !report.lastMessageText) {
+    if (isChatThread(report) && isEmptyChat) {
         return false;
     }
 
@@ -2402,6 +2405,11 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouRep
 
     // Exclude policy expense chats if the user isn't in the policy expense chat beta
     if (isPolicyExpenseChat(report) && !Permissions.canUsePolicyExpenseChat(betas)) {
+        return false;
+    }
+
+    // Hide chats between two users that haven't been commented on from the LNH
+    if (excludeEmptyChats && isEmptyChat && isChatReport(report) && !isChatRoom(report) && !isPolicyExpenseChat(report)) {
         return false;
     }
 
