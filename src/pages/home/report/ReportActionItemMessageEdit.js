@@ -109,13 +109,19 @@ function ReportActionItemMessageEdit(props) {
     }, [isFocused]);
 
     useEffect(() => {
+        Report.saveReportActionSelection(props.reportID, props.action.reportActionID, selection);
+    }, [selection]);
+
+    useEffect(() => {
         // For mobile Safari, updating the selection prop on an unfocused input will cause it to automatically gain focus
         // and subsequent programmatic focus shifts (e.g., modal focus trap) to show the blue frame (:focus-visible style),
         // so we need to ensure that it is only updated after focus.
         setDraft((prevDraft) => {
             setSelection({
-                start: prevDraft.length,
-                end: prevDraft.length,
+                start: props.selection?.start ? props.selection.start : prevDraft.length,
+                end: props.selection?.end ? props.selection.end : prevDraft.length,
+                // start: prevDraft.length,
+                // end: prevDraft.length,
             });
             return prevDraft;
         });

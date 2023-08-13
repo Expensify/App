@@ -10,6 +10,7 @@ const [withNetwork, NetworkProvider, NetworkContext] = createOnyxContext(ONYXKEY
 const [withPersonalDetails, PersonalDetailsProvider] = createOnyxContext(ONYXKEYS.PERSONAL_DETAILS_LIST);
 const [withCurrentDate, CurrentDateProvider] = createOnyxContext(ONYXKEYS.CURRENT_DATE);
 const [withReportActionsDrafts, ReportActionsDraftsProvider] = createOnyxContext(ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS);
+const [withReportActionsSelection, ReportActionsSelectionProvider] = createOnyxContext(ONYXKEYS.COLLECTION.REPORT_ACTIONS_SELECTION);
 const [withBlockedFromConcierge, BlockedFromConciergeProvider] = createOnyxContext(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE);
 const [withBetas, BetasProvider, BetasContext] = createOnyxContext(ONYXKEYS.BETAS);
 const [withReportCommentDrafts, ReportCommentDraftsProvider] = createOnyxContext(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
@@ -27,6 +28,7 @@ function OnyxProvider(props) {
                 NetworkProvider,
                 PersonalDetailsProvider,
                 ReportActionsDraftsProvider,
+                ReportActionsSelectionProvider,
                 CurrentDateProvider,
                 BlockedFromConciergeProvider,
                 BetasProvider,
@@ -48,6 +50,7 @@ export {
     withNetwork,
     withPersonalDetails,
     withReportActionsDrafts,
+    withReportActionsSelection,
     withCurrentDate,
     withBlockedFromConcierge,
     withBetas,
