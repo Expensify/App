@@ -2841,11 +2841,11 @@ function getAddWorkspaceRoomOrChatReportErrors(report) {
 }
 
 /**
- * Return true if the composer should be hidden
+ * Return true if write actions like assign task, money request, send message should be hidden on a report
  * @param {Object} report
  * @returns {Boolean}
  */
-function shouldHideComposer(report) {
+function shouldDisableWriteActions(report) {
     const reportErrors = getAddWorkspaceRoomOrChatReportErrors(report);
     return isArchivedRoom(report) || !_.isEmpty(reportErrors) || !isAllowedToComment(report) || isAnonymousUser;
 }
@@ -3140,7 +3140,7 @@ export {
     getParentReport,
     getTaskParentReportActionIDInAssigneeReport,
     getReportPreviewMessage,
-    shouldHideComposer,
+    shouldDisableWriteActions,
     getOriginalReportID,
     canAccessReport,
     getAddWorkspaceRoomOrChatReportErrors,
