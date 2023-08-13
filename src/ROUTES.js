@@ -20,7 +20,23 @@ export default {
     BANK_ACCOUNT_NEW: 'bank-account/new',
     BANK_ACCOUNT_WITH_STEP_TO_OPEN: 'bank-account/:stepToOpen?',
     BANK_ACCOUNT_PERSONAL: 'bank-account/personal',
-    getBankAccountRoute: (stepToOpen = '', policyID = '', backTo = '') => `bank-account/${stepToOpen}?policyID=${policyID}&backTo=${backTo}`,
+    /**
+     * Constructs a bank account route URL with the given parameters.
+     *
+     * @function
+     * @param {string} [stepToOpen=''] - The step to open in the bank account route.
+     * @param {string} [policyID=''] - The policy ID associated with the bank account.
+     * @param {string} [backTo=''] - An optional return path. If provided, it will be URL-encoded and appended to the resulting URL.
+     * @returns {string} The constructed bank account URL.
+     *
+     * @example
+     * getBankAccountRoute('step1', '12345', '/dashboard');
+     * // Returns: "bank-account/step1?policyID=12345&backTo=%2Fdashboard"
+     */
+    getBankAccountRoute: (stepToOpen = '', policyID = '', backTo = '') => {
+        const backToParam = backTo ? `&backTo=${encodeURIComponent(backTo)}` : '';
+        return `bank-account/${stepToOpen}?policyID=${policyID}${backToParam}`;
+    },
     HOME: '',
     SETTINGS: 'settings',
     SETTINGS_PROFILE: 'settings/profile',

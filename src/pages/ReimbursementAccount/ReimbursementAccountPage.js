@@ -170,7 +170,7 @@ class ReimbursementAccountPage extends React.Component {
         // When the step changes we will navigate to update the route params. This is mostly cosmetic as we only use
         // the route params when the component first mounts to jump to a specific route instead of picking up where the
         // user left off in the flow.
-        const backTo = encodeURIComponent(lodashGet(this.props.route.params, 'backTo'));
+        const backTo = lodashGet(this.props.route.params, 'backTo');
         const policyId = lodashGet(this.props.route.params, 'policyID');
         Navigation.navigate(ROUTES.getBankAccountRoute(this.getRouteForCurrentStep(currentStep), policyId, backTo));
     }
@@ -402,7 +402,9 @@ class ReimbursementAccountPage extends React.Component {
                     reimbursementAccount={this.props.reimbursementAccount}
                     continue={this.continue}
                     policyName={policyName}
-                    onBackButtonPress={() => Navigation.goBack(lodashGet(this.props.route.params, 'backTo'))}
+                    onBackButtonPress={() => {
+                        Navigation.goBack(lodashGet(this.props.route.params, 'backTo'));
+                    }}
                 />
             );
         }
