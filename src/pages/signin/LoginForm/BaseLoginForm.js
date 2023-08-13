@@ -72,6 +72,7 @@ const defaultProps = {
     account: {},
     closeAccount: {},
     blurOnSubmit: false,
+    innerRef: () => {},
 };
 
 /**

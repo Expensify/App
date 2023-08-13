@@ -1,13 +1,15 @@
 import React, {useEffect, useRef} from 'react';
+import PropTypes from 'prop-types';
 import BaseLoginForm from './BaseLoginForm';
 import AppStateMonitor from '../../../libs/AppStateMonitor';
-import PropTypes from 'prop-types';
 
 const propTypes = {
     /** Function used to scroll to the top of the page */    
     scrollPageToTop: PropTypes.func,
 };
-const defaultProps = {};
+const defaultProps = {
+    scrollPageToTop: () => {},
+};
 
 function LoginForm(props) {
     const loginFormRef = useRef();
