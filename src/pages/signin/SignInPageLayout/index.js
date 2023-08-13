@@ -44,7 +44,7 @@ const propTypes = {
 
 const defaultProps = {
     innerRef: () => {},
-}
+};
 
 function SignInPageLayout(props) {
     const scrollViewRef = useRef();

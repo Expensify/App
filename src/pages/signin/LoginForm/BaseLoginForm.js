@@ -183,7 +183,7 @@ function LoginForm(props) {
     useImperativeHandle(props.innerRef, () => ({
         isInputFocused() {
             return input.current && input.current.isFocused();
-        }
+        },
     }));
 
     const formErrorText = useMemo(() => (formError ? translate(formError) : ''), [formError, translate]);

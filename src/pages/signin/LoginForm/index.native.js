@@ -4,7 +4,7 @@ import BaseLoginForm from './BaseLoginForm';
 import AppStateMonitor from '../../../libs/AppStateMonitor';
 
 const propTypes = {
-    /** Function used to scroll to the top of the page */    
+    /** Function used to scroll to the top of the page */
     scrollPageToTop: PropTypes.func,
 };
 const defaultProps = {
