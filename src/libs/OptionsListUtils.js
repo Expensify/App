@@ -897,8 +897,8 @@ function getSearchOptions(reports, personalDetails, searchValue = '', betas) {
  */
 function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail, amountText) {
     return {
-        text: personalDetail.displayName ? personalDetail.displayName : LocalePhoneNumber.formatPhoneNumber(personalDetail.login),
-        alternateText: LocalePhoneNumber.formatPhoneNumber(personalDetail.login) || personalDetail.displayName,
+        text: personalDetail.displayName ? personalDetail.displayName : personalDetail.login,
+        alternateText: personalDetail.login || personalDetail.displayName,
         icons: [
             {
                 source: UserUtils.getAvatar(personalDetail.avatar, personalDetail.accountID),
