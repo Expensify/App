@@ -1,10 +1,10 @@
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import PropTypes from 'prop-types';
 import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
 import {parsePhoneNumber} from 'awesome-phonenumber';
-import PropTypes from 'prop-types';
 import styles from '../../../styles/styles';
 import Text from '../../../components/Text';
 import * as Session from '../../../libs/actions/Session';
@@ -19,6 +19,7 @@ import * as LoginUtils from '../../../libs/LoginUtils';
 import withToggleVisibilityView, {toggleVisibilityViewPropTypes} from '../../../components/withToggleVisibilityView';
 import FormAlertWithSubmitButton from '../../../components/FormAlertWithSubmitButton';
 import {withNetwork} from '../../../components/OnyxProvider';
+import networkPropTypes from '../../../components/networkPropTypes';
 import * as ErrorUtils from '../../../libs/ErrorUtils';
 import DotIndicatorMessage from '../../../components/DotIndicatorMessage';
 import * as CloseAccount from '../../../libs/actions/CloseAccount';
@@ -29,7 +30,6 @@ import Log from '../../../libs/Log';
 import withNavigationFocus, {withNavigationFocusPropTypes} from '../../../components/withNavigationFocus';
 import usePrevious from '../../../hooks/usePrevious';
 import {propTypes, defaultProps} from './loginFormPropTypes';
-import networkPropTypes from '../../../components/networkPropTypes';
 
 /**
  * Enables experimental "memory only keys" mode in Onyx
