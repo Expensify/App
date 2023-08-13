@@ -17,7 +17,7 @@ import * as Expensicons from '../../../components/Icon/Expensicons';
 import AvatarWithIndicator from '../../../components/AvatarWithIndicator';
 import Tooltip from '../../../components/Tooltip';
 import CONST from '../../../CONST';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import withLocalize from '../../../components/withLocalize';
 import * as App from '../../../libs/actions/App';
 import withCurrentUserPersonalDetails from '../../../components/withCurrentUserPersonalDetails';
 import withWindowDimensions from '../../../components/withWindowDimensions';
@@ -39,6 +39,7 @@ import personalDetailsPropType from '../../personalDetailsPropType';
 import * as ReportActionContextMenu from '../report/ContextMenu/ReportActionContextMenu';
 import withCurrentReportID from '../../../components/withCurrentReportID';
 import OptionRowLHNData from '../../../components/LHNOptionsList/OptionRowLHNData';
+import useLocalize from '../../../hooks/useLocalize';
 
 const basePropTypes = {
     /** Toggles the navigation menu open and closed */
@@ -70,8 +71,6 @@ const propTypes = {
         /** reportID (only present when there is a matching report) */
         reportID: PropTypes.string,
     }),
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -87,13 +86,15 @@ function SidebarLinks({
     isCreateMenuOpen,
     currentReportID,
     onLinkClick,
-    translate,
     currentUserPersonalDetails = {avatar: ''},
     priorityMode = CONST.PRIORITY_MODE.DEFAULT,
     optionListItems,
     isLoading,
     insets,
+    report,
 }) {
+    const {translate} = useLocalize();
+
     useEffect(() => {
         if (isSmallScreenWidth) return;
         App.confirmReadyToOpenApp();
