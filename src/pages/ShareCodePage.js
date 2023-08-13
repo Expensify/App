@@ -40,9 +40,27 @@ const defaultProps = {
 class ShareCodePage extends React.Component {
     qrCodeRef = React.createRef();
 
+    /**
+     * @param {Boolean} isReport
+     * @return {String|string|*}
+     */
+    getSubtitle(isReport){
+        if (ReportUtils.isMoneyRequestReport(this.props.report)) {
+            const {workspaceName} = ReportUtils.getParentNavigationSubtitle(this.props.report);
+            return workspaceName;
+        }
+
+        if (isReport){
+            return ReportUtils.getChatRoomSubtitle(this.props.report);
+        }
+
+        return this.props.formatPhoneNumber(this.props.session.email);
+    }
+
     render() {
         const isReport = this.props.report != null && this.props.report.reportID != null;
-        const subtitle = ReportUtils.getChatRoomSubtitle(this.props.report);
+        const title = isReport ? ReportUtils.getReportName(this.props.report) : this.props.currentUserPersonalDetails.displayName;
+        const subtitle = this.getSubtitle(isReport);
 
         const urlWithTrailingSlash = Url.addTrailingForwardSlash(this.props.environmentURL);
         const url = isReport
@@ -51,7 +69,6 @@ class ShareCodePage extends React.Component {
 
         const platform = getPlatform();
         const isNative = platform === CONST.PLATFORM.IOS || platform === CONST.PLATFORM.ANDROID;
-        const formattedEmail = this.props.formatPhoneNumber(this.props.session.email);
 
         return (
             <ScreenWrapper>
@@ -65,8 +82,8 @@ class ShareCodePage extends React.Component {
                         <QRShareWithDownload
                             ref={this.qrCodeRef}
                             url={url}
-                            title={isReport ? this.props.report.reportName : this.props.currentUserPersonalDetails.displayName}
-                            subtitle={isReport ? subtitle : formattedEmail}
+                            title={title}
+                            subtitle={subtitle}
                             logo={isReport ? expensifyLogo : UserUtils.getAvatarUrl(this.props.currentUserPersonalDetails.avatar, this.props.currentUserPersonalDetails.accountID)}
                             logoRatio={isReport ? CONST.QR.EXPENSIFY_LOGO_SIZE_RATIO : CONST.QR.DEFAULT_LOGO_SIZE_RATIO}
                             logoMarginRatio={isReport ? CONST.QR.EXPENSIFY_LOGO_MARGIN_RATIO : CONST.QR.DEFAULT_LOGO_MARGIN_RATIO}
