@@ -42,7 +42,7 @@ class InvertedFlatList extends React.Component {
                 inverted
                 ref={(el) => (this.list = el)}
                 shouldMeasureItems
-                contentContainerStyle={StyleSheet.compose(this.props.contentContainerStyle, styles.justifyContentEnd)}
+                contentContainerStyle={this.props.contentContainerStyle}
             />
         );
     }

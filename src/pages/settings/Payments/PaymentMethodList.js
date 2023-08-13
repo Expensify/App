@@ -205,7 +205,7 @@ function PaymentMethodList(props) {
      *
      * @return {React.Component}
      */
-    const renderListEmptyComponent = useCallback(() => <Text style={[styles.popoverMenuItem]}>{translate('paymentMethodList.addFirstPaymentMethod')}</Text>, [translate]);
+    const renderListEmptyComponent = useCallback(() => <Text style={styles.popoverMenuItem}>{translate('paymentMethodList.addFirstPaymentMethod')}</Text>, [translate]);
 
     /**
      * Create a menuItem for each passed paymentMethod
