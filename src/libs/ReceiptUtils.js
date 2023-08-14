@@ -9,6 +9,7 @@ import ReceiptHTML from '../../assets/images/receipt-html.png';
 import ReceiptDoc from '../../assets/images/receipt-doc.png';
 import ReceiptGeneric from '../../assets/images/receipt-generic.png';
 import ReceiptSVG from '../../assets/images/receipt-svg.png';
+import CONFIG from '../CONFIG';
 
 function validateReceipt(file) {
     const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(file, 'name', ''));
@@ -68,4 +69,13 @@ function isBeingScanned(receipt) {
     return receipt.state === CONST.IOU.RECEIPT_STATE.SCANREADY || receipt.state === CONST.IOU.RECEIPT_STATE.SCANNING;
 }
 
-export {validateReceipt, getThumbnailAndImageURIs, isBeingScanned};
+/**
+ * Returns the URL of a receipt given a filename
+ * @param {String} filename
+ * @returns {String}
+ */
+function getURL(filename) {
+    return `${CONFIG.EXPENSIFY.EXPENSIFY_URL}receipts/${filename}`;
+}
+
+export {validateReceipt, getThumbnailAndImageURIs, getURL, isBeingScanned};
