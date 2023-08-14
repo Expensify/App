@@ -220,6 +220,8 @@ export default {
         NEW_TASK_FORM: 'newTaskForm',
         EDIT_TASK_FORM: 'editTaskForm',
         MONEY_REQUEST_DESCRIPTION_FORM: 'moneyRequestDescriptionForm',
+        MONEY_REQUEST_AMOUNT_FORM: 'moneyRequestAmountForm',
+        MONEY_REQUEST_CREATED_FORM: 'moneyRequestCreatedForm',
         NEW_CONTACT_METHOD_FORM: 'newContactMethodForm',
         PAYPAL_FORM: 'payPalForm',
         SETTINGS_STATUS_SET_FORM: 'settingsStatusSetForm',
@@ -249,16 +251,14 @@ export default {
     // Experimental memory only Onyx mode flag
     IS_USING_MEMORY_ONLY_KEYS: 'isUsingMemoryOnlyKeys',
 
+    // Information about the onyx updates IDs that were received from the server
+    ONYX_UPDATES_FROM_SERVER: 'onyxUpdatesFromServer',
+
+    // The last update ID that was applied to the client
+    ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT: 'OnyxUpdatesLastUpdateIDAppliedToClient',
+
     // The access token to be used with the Mapbox library
     MAPBOX_ACCESS_TOKEN: 'mapboxAccessToken',
-
-    ONYX_UPDATES: {
-        // The ID of the last Onyx update that was applied to this client
-        LAST_UPDATE_ID: 'onyxUpdatesLastUpdateID',
-
-        // The ID of the previous Onyx update that was applied to this client
-        PREVIOUS_UPDATE_ID: 'onyxUpdatesPreviousUpdateID',
-    },
 
     // Manual request tab selector
     SELECTED_TAB: 'selectedTab',

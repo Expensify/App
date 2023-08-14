@@ -88,6 +88,7 @@ function BaseAnchorForCommentsOnly({onPressIn, onPressOut, href = '', rel = '', 
                         event.preventDefault();
                         linkProps.onPress();
                     }}
+                    suppressHighlighting
                     // Add testID so it gets selected as an anchor tag by SelectionScraper
                     testID="a"
                     // eslint-disable-next-line react/jsx-props-no-spreading
