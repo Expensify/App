@@ -1,11 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View, InteractionManager, LayoutAnimation, NativeModules, findNodeHandle} from 'react-native';
+import {View, LayoutAnimation, NativeModules, findNodeHandle} from 'react-native';
 import {runOnJS} from 'react-native-reanimated';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
+import focusWithDelay from '../../../libs/focusWithDelay';
 import styles from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
 import Composer from '../../../components/Composer';
@@ -177,7 +178,7 @@ class ReportActionCompose extends React.Component {
         this.submitForm = this.submitForm.bind(this);
         this.setIsFocused = this.setIsFocused.bind(this);
         this.setIsFullComposerAvailable = this.setIsFullComposerAvailable.bind(this);
-        this.focus = this.focus.bind(this);
+        this.focus = focusWithDelay(this.textInput).bind(this);
         this.replaceSelectionWithText = this.replaceSelectionWithText.bind(this);
         this.focusComposerOnKeyPress = this.focusComposerOnKeyPress.bind(this);
         this.checkComposerVisibility = this.checkComposerVisibility.bind(this);
@@ -241,6 +242,8 @@ class ReportActionCompose extends React.Component {
             isAttachmentPreviewActive: false,
             ...this.getDefaultSuggestionsValues(),
         };
+
+        this.actionButtonRef = React.createRef();
     }
 
     componentDidMount() {
@@ -281,7 +284,7 @@ class ReportActionCompose extends React.Component {
 
         // As the report IDs change, make sure to update the composer comment as we need to make sure
         // we do not show incorrect data in there (ie. draft of message from other report).
-        if (this.props.report.reportID === prevProps.report.reportID && !shouldSyncComment) {
+        if (this.props.preferredLocale === prevProps.preferredLocale && this.props.report.reportID === prevProps.report.reportID && !shouldSyncComment) {
             return;
         }
 
@@ -379,6 +382,7 @@ class ReportActionCompose extends React.Component {
         if (_.isFunction(this.props.animatedRef)) {
             this.props.animatedRef(el);
         }
+        this.focus = focusWithDelay(this.textInput).bind(this);
     }
 
     /**
@@ -450,12 +454,9 @@ class ReportActionCompose extends React.Component {
      * @param {Array} reportParticipants
      * @returns {Boolean}
      */
-    getTaskOption(reportParticipants) {
+    getTaskOption() {
         // We only prevent the task option from showing if it's a DM and the other user is an Expensify default email
-        if (
-            !Permissions.canUseTasks(this.props.betas) ||
-            (lodashGet(this.props.report, 'participantAccountIDs', []).length === 1 && _.some(reportParticipants, (accountID) => _.contains(CONST.EXPENSIFY_ACCOUNT_IDS, accountID)))
-        ) {
+        if (!Permissions.canUseTasks(this.props.betas) || ReportUtils.isExpensifyOnlyParticipantInReport(this.props.report)) {
             return [];
         }
 
@@ -743,31 +744,6 @@ class ReportActionCompose extends React.Component {
     }
 
     /**
-     * Focus the composer text input
-     * @param {Boolean} [shouldelay=false] Impose delay before focusing the composer
-     * @memberof ReportActionCompose
-     */
-    focus(shouldelay = false) {
-        // There could be other animations running while we trigger manual focus.
-        // This prevents focus from making those animations janky.
-        InteractionManager.runAfterInteractions(() => {
-            if (!this.textInput) {
-                return;
-            }
-
-            if (!shouldelay) {
-                this.textInput.focus();
-            } else {
-                // Keyboard is not opened after Emoji Picker is closed
-                // SetTimeout is used as a workaround
-                // https://github.com/react-native-modal/react-native-modal/issues/114
-                // We carefully choose a delay. 100ms is found enough for keyboard to open.
-                setTimeout(() => this.textInput.focus(), 100);
-            }
-        });
-    }
-
-    /**
      * Save our report comment in Onyx. We debounce this method in the constructor so that it's not called too often
      * to update Onyx and re-render this component.
      *
@@ -1041,102 +1017,121 @@ class ReportActionCompose extends React.Component {
                             {({displayFileInModal}) => (
                                 <>
                                     <AttachmentPicker>
-                                        {({openPicker}) => (
-                                            <>
-                                                <View
-                                                    style={[
-                                                        styles.dFlex,
-                                                        styles.flexColumn,
-                                                        isFullComposerAvailable || this.props.isComposerFullSize ? styles.justifyContentBetween : styles.justifyContentCenter,
-                                                    ]}
-                                                >
-                                                    {this.props.isComposerFullSize && (
-                                                        <Tooltip text={this.props.translate('reportActionCompose.collapse')}>
+                                        {({openPicker}) => {
+                                            const triggerAttachmentPicker = () => {
+                                                // Set a flag to block suggestion calculation until we're finished using the file picker,
+                                                // which will stop any flickering as the file picker opens on non-native devices.
+                                                if (this.willBlurTextInputOnTapOutside) {
+                                                    this.shouldBlockEmojiCalc = true;
+                                                    this.shouldBlockMentionCalc = true;
+                                                }
+                                                openPicker({
+                                                    onPicked: displayFileInModal,
+                                                });
+                                            };
+                                            const menuItems = [
+                                                ...this.getMoneyRequestOptions(reportParticipants),
+                                                ...this.getTaskOption(),
+                                                {
+                                                    icon: Expensicons.Paperclip,
+                                                    text: this.props.translate('reportActionCompose.addAttachment'),
+                                                    onSelected: () => {
+                                                        if (Browser.isSafari()) {
+                                                            return;
+                                                        }
+                                                        triggerAttachmentPicker();
+                                                    },
+                                                },
+                                            ];
+                                            return (
+                                                <>
+                                                    <View
+                                                        style={[
+                                                            styles.dFlex,
+                                                            styles.flexColumn,
+                                                            isFullComposerAvailable || this.props.isComposerFullSize ? styles.justifyContentBetween : styles.justifyContentCenter,
+                                                        ]}
+                                                    >
+                                                        {this.props.isComposerFullSize && (
+                                                            <Tooltip text={this.props.translate('reportActionCompose.collapse')}>
+                                                                <PressableWithFeedback
+                                                                    onPress={(e) => {
+                                                                        e.preventDefault();
+                                                                        this.setShouldShowSuggestionMenuToFalse();
+                                                                        Report.setIsComposerFullSize(this.props.reportID, false);
+                                                                    }}
+                                                                    // Keep focus on the composer when Collapse button is clicked.
+                                                                    onMouseDown={(e) => e.preventDefault()}
+                                                                    style={styles.composerSizeButton}
+                                                                    disabled={isBlockedFromConcierge || this.props.disabled}
+                                                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                                                    accessibilityLabel={this.props.translate('reportActionCompose.collapse')}
+                                                                >
+                                                                    <Icon src={Expensicons.Collapse} />
+                                                                </PressableWithFeedback>
+                                                            </Tooltip>
+                                                        )}
+                                                        {!this.props.isComposerFullSize && isFullComposerAvailable && (
+                                                            <Tooltip text={this.props.translate('reportActionCompose.expand')}>
+                                                                <PressableWithFeedback
+                                                                    onPress={(e) => {
+                                                                        e.preventDefault();
+                                                                        this.setShouldShowSuggestionMenuToFalse();
+                                                                        Report.setIsComposerFullSize(this.props.reportID, true);
+                                                                    }}
+                                                                    // Keep focus on the composer when Expand button is clicked.
+                                                                    onMouseDown={(e) => e.preventDefault()}
+                                                                    style={styles.composerSizeButton}
+                                                                    disabled={isBlockedFromConcierge || this.props.disabled}
+                                                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                                                    accessibilityLabel={this.props.translate('reportActionCompose.expand')}
+                                                                >
+                                                                    <Icon src={Expensicons.Expand} />
+                                                                </PressableWithFeedback>
+                                                            </Tooltip>
+                                                        )}
+                                                        <Tooltip text={this.props.translate('reportActionCompose.addAction')}>
                                                             <PressableWithFeedback
+                                                                ref={this.actionButtonRef}
                                                                 onPress={(e) => {
                                                                     e.preventDefault();
-                                                                    this.setShouldShowSuggestionMenuToFalse();
-                                                                    Report.setIsComposerFullSize(this.props.reportID, false);
+
+                                                                    // Drop focus to avoid blue focus ring.
+                                                                    this.actionButtonRef.current.blur();
+                                                                    this.setMenuVisibility(!this.state.isMenuVisible);
                                                                 }}
-                                                                // Keep focus on the composer when Collapse button is clicked.
-                                                                onMouseDown={(e) => e.preventDefault()}
                                                                 style={styles.composerSizeButton}
                                                                 disabled={isBlockedFromConcierge || this.props.disabled}
                                                                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                                                                accessibilityLabel={this.props.translate('reportActionCompose.collapse')}
+                                                                accessibilityLabel={this.props.translate('reportActionCompose.addAction')}
                                                             >
-                                                                <Icon src={Expensicons.Collapse} />
+                                                                <Icon src={Expensicons.Plus} />
                                                             </PressableWithFeedback>
                                                         </Tooltip>
-                                                    )}
-                                                    {!this.props.isComposerFullSize && isFullComposerAvailable && (
-                                                        <Tooltip text={this.props.translate('reportActionCompose.expand')}>
-                                                            <PressableWithFeedback
-                                                                onPress={(e) => {
-                                                                    e.preventDefault();
-                                                                    this.setShouldShowSuggestionMenuToFalse();
-                                                                    Report.setIsComposerFullSize(this.props.reportID, true);
-                                                                }}
-                                                                // Keep focus on the composer when Expand button is clicked.
-                                                                onMouseDown={(e) => e.preventDefault()}
-                                                                style={styles.composerSizeButton}
-                                                                disabled={isBlockedFromConcierge || this.props.disabled}
-                                                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                                                                accessibilityLabel={this.props.translate('reportActionCompose.expand')}
-                                                            >
-                                                                <Icon src={Expensicons.Expand} />
-                                                            </PressableWithFeedback>
-                                                        </Tooltip>
-                                                    )}
-                                                    <Tooltip text={this.props.translate('reportActionCompose.addAction')}>
-                                                        <PressableWithFeedback
-                                                            ref={(el) => (this.actionButton = el)}
-                                                            onPress={(e) => {
-                                                                e.preventDefault();
+                                                    </View>
+                                                    <PopoverMenu
+                                                        animationInTiming={CONST.ANIMATION_IN_TIMING}
+                                                        isVisible={this.state.isMenuVisible}
+                                                        onClose={() => this.setMenuVisibility(false)}
+                                                        onItemSelected={(item, index) => {
+                                                            this.setMenuVisibility(false);
 
-                                                                // Drop focus to avoid blue focus ring.
-                                                                this.actionButton.blur();
-                                                                this.setMenuVisibility(true);
-                                                            }}
-                                                            style={styles.composerSizeButton}
-                                                            disabled={isBlockedFromConcierge || this.props.disabled}
-                                                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                                                            accessibilityLabel={this.props.translate('reportActionCompose.addAction')}
-                                                        >
-                                                            <Icon src={Expensicons.Plus} />
-                                                        </PressableWithFeedback>
-                                                    </Tooltip>
-                                                </View>
-                                                <PopoverMenu
-                                                    animationInTiming={CONST.ANIMATION_IN_TIMING}
-                                                    isVisible={this.state.isMenuVisible}
-                                                    onClose={() => this.setMenuVisibility(false)}
-                                                    onItemSelected={() => this.setMenuVisibility(false)}
-                                                    anchorPosition={styles.createMenuPositionReportActionCompose(this.props.windowHeight)}
-                                                    anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM}}
-                                                    menuItems={[
-                                                        ...this.getMoneyRequestOptions(reportParticipants),
-                                                        ...this.getTaskOption(reportParticipants),
-                                                        {
-                                                            icon: Expensicons.Paperclip,
-                                                            text: this.props.translate('reportActionCompose.addAttachment'),
-                                                            onSelected: () => {
-                                                                // Set a flag to block suggestion calculation until we're finished using the file picker,
-                                                                // which will stop any flickering as the file picker opens on non-native devices.
-                                                                if (this.willBlurTextInputOnTapOutside) {
-                                                                    this.shouldBlockEmojiCalc = true;
-                                                                    this.shouldBlockMentionCalc = true;
-                                                                }
-
-                                                                openPicker({
-                                                                    onPicked: displayFileInModal,
-                                                                });
-                                                            },
-                                                        },
-                                                    ]}
-                                                />
-                                            </>
-                                        )}
+                                                            // In order for the file picker to open dynamically, the click
+                                                            // function must be called from within a event handler that was initiated
+                                                            // by the user on Safari.
+                                                            if (index === menuItems.length - 1 && Browser.isSafari()) {
+                                                                triggerAttachmentPicker();
+                                                            }
+                                                        }}
+                                                        anchorPosition={styles.createMenuPositionReportActionCompose(this.props.windowHeight)}
+                                                        anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM}}
+                                                        menuItems={menuItems}
+                                                        withoutOverlay
+                                                        anchorRef={this.actionButtonRef}
+                                                    />
+                                                </>
+                                            );
+                                        }}
                                     </AttachmentPicker>
                                     <View style={[containerComposeStyles, styles.textInputComposeBorder]}>
                                         <Composer
@@ -1188,8 +1183,8 @@ class ReportActionCompose extends React.Component {
                                             if (this.state.isAttachmentPreviewActive) {
                                                 return;
                                             }
-                                            const file = lodashGet(e, ['dataTransfer', 'files', 0]);
-                                            displayFileInModal(file);
+                                            const data = lodashGet(e, ['dataTransfer', 'items', 0]);
+                                            displayFileInModal(data);
                                         }}
                                     />
                                 </>
@@ -1215,6 +1210,7 @@ class ReportActionCompose extends React.Component {
                                         style={({pressed, isDisabled}) => [
                                             styles.chatItemSubmitButton,
                                             this.state.isCommentEmpty || hasExceededMaxCommentLength || pressed || isDisabled ? undefined : styles.buttonSuccess,
+                                            (this.state.isCommentEmpty || isBlockedFromConcierge || this.props.disabled || hasExceededMaxCommentLength) && styles.cursorDisabled,
                                         ]}
                                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                         accessibilityLabel={this.props.translate('common.send')}

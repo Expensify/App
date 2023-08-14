@@ -28,6 +28,7 @@ import isInputAutoFilled from '../../libs/isInputAutoFilled';
 import * as PolicyUtils from '../../libs/PolicyUtils';
 import Log from '../../libs/Log';
 import withNavigationFocus, {withNavigationFocusPropTypes} from '../../components/withNavigationFocus';
+import usePrevious from '../../hooks/usePrevious';
 
 const propTypes = {
     /** Should we dismiss the keyboard when transitioning away from the page? */
@@ -81,6 +82,7 @@ function LoginForm(props) {
     const input = useRef();
     const [login, setLogin] = useState('');
     const [formError, setFormError] = useState(false);
+    const prevIsVisible = usePrevious(props.isVisible);
 
     const {translate} = props;
 
@@ -110,7 +112,7 @@ function LoginForm(props) {
      * Check that all the form fields are valid, then trigger the submit callback
      */
     const validateAndSubmitForm = useCallback(() => {
-        if (props.network.isOffline) {
+        if (props.network.isOffline || props.account.isLoading) {
             return;
         }
 
@@ -147,7 +149,7 @@ function LoginForm(props) {
 
         // Check if this login has an account associated with it or not
         Session.beginSignIn(parsedPhoneNumber.possible ? parsedPhoneNumber.number.e164 : loginTrim);
-    }, [login, props.closeAccount, props.network, setFormError]);
+    }, [login, props.account, props.closeAccount, props.network, setFormError]);
 
     useEffect(() => {
         // Just call clearAccountMessages on the login page (home route), because when the user is in the transition route and not yet authenticated,
@@ -166,11 +168,13 @@ function LoginForm(props) {
         if (props.blurOnSubmit) {
             input.current.blur();
         }
-        if (!input.current || !props.isVisible) {
+
+        // Only focus the input if the form becomes visible again, to prevent the keyboard from automatically opening on touchscreen devices after signing out
+        if (!input.current || prevIsVisible || !props.isVisible) {
             return;
         }
         input.current.focus();
-    }, [props.blurOnSubmit, props.isVisible, input]);
+    }, [props.blurOnSubmit, props.isVisible, prevIsVisible]);
 
     const formErrorText = useMemo(() => (formError ? translate(formError) : ''), [formError, translate]);
     const serverErrorText = useMemo(() => ErrorUtils.getLatestErrorMessage(props.account), [props.account]);

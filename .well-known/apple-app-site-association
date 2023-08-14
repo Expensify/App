@@ -33,6 +33,10 @@
                         "comment": "I Owe You reports"
                     },
                     {
+                        "/": "/request/*",
+                        "comment": "Money request"
+                    },
+                    {
                         "/": "/enable-payments/*",
                         "comment": "Payments setup"
                     },
@@ -47,6 +51,18 @@
                     {
                         "/": "/concierge/*",
                         "comment": "Concierge"
+                    },
+                    {
+                        "/": "/split/*",
+                        "comment": "Split Bill"
+                    },
+                    {
+                        "/": "/request/*",
+                        "comment": "Request Money"
+                    },
+                    {
+                        "/": "/new/*",
+                        "comment": "New Chat"
                     }
                 ]
             }
