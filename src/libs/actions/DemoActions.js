@@ -1,7 +1,19 @@
+import Onyx from 'react-native-onyx';
 import CONST from '../../CONST';
 import * as API from '../API';
 import {buildOptimisticWorkspaceChats} from '../ReportUtils';
 import {buildOptimisticCustomUnits, generatePolicyID} from './Policy';
+import Navigation from '../Navigation/Navigation';
+import ROUTES from '../../ROUTES';
+import ONYXKEYS from '../../ONYXKEYS';
+
+let sessionAccountID = 0;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (val) => {
+        sessionAccountID = lodashGet(val, 'accountID', 0);
+    },
+});
 
 function createSaastrDemoWorkspaceAndNavigate() {
     // Create workspace, owned and admin'd by SaaStr
@@ -17,18 +29,17 @@ function createSaastrDemoWorkspaceAndNavigate() {
         announceChatData,
         announceReportActionData,
         announceCreatedReportActionID,
-        // Commenting these out b/c user shouldn't an admin to start with, right? :think:
-        // adminsChatReportID,
-        // adminsChatData,
-        // adminsReportActionData,
-        // adminsCreatedReportActionID,
+        // TODO: maybe comment these admin report data out b/c user shouldn't an admin to start with, right? :think:
+        adminsChatReportID,
+        adminsChatData,
+        adminsReportActionData,
+        adminsCreatedReportActionID,
         expenseChatReportID,
         expenseChatData,
         expenseReportActionData,
         expenseCreatedReportActionID,
     } = buildOptimisticWorkspaceChats(policyID, workspaceName);
 
-    // TODO: Add this user to workspace as a member
     // TODO: Add optimistic invite message comment
     // TODO: Make sure a specific reimbursement account is tied to the workspace
     // TODO: Is it fine if the expense chat report is OWNED by the user instead of saastr here?
@@ -61,7 +72,7 @@ function createSaastrDemoWorkspaceAndNavigate() {
                         name: workspaceName,
                         role: CONST.POLICY.ROLE.USER,
                         owner: CONST.EMAIL.SAASTR,
-                        outputCurrency: lodashGet(allPersonalDetails, [sessionAccountID, 'localCurrencyCode'], CONST.CURRENCY.USD),
+                        outputCurrency: CONST.CURRENCY.USD,
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                         customUnits,
                     },
@@ -229,7 +240,11 @@ function createSaastrDemoWorkspaceAndNavigate() {
             ],
         }
     );
-    // TODO: navigate to workspace chat report
+
+    // Navigate to the new workspace chat report
+    // We must call goBack() to remove the /saastr route from history
+    Navigation.goBack();
+    Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID));
 }
 
 export {createSaastrDemoWorkspaceAndNavigate};
