@@ -46,6 +46,7 @@ function HeaderWithBackButton({
         horizontal: 0,
     },
     threeDotsMenuItems = [],
+    shouldEnableDetailPageNavigation = false,
     children = null,
 }) {
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
@@ -74,14 +75,14 @@ function HeaderWithBackButton({
                         </PressableWithoutFeedback>
                     </Tooltip>
                 )}
-                {shouldShowAvatarWithDisplay && (
+                {shouldShowAvatarWithDisplay ? (
                     <AvatarWithDisplayName
                         report={report}
                         policies={policies}
                         personalDetails={personalDetails}
+                        shouldEnableDetailPageNavigation={shouldEnableDetailPageNavigation}
                     />
-                )}
-                {!shouldShowAvatarWithDisplay && (
+                ) : (
                     <Header
                         title={title}
                         subtitle={stepCounter ? translate('stepCounter', stepCounter) : subtitle}

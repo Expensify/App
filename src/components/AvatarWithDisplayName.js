@@ -18,6 +18,7 @@ import * as OptionsListUtils from '../libs/OptionsListUtils';
 import Text from './Text';
 import * as StyleUtils from '../styles/StyleUtils';
 import ParentNavigationSubtitle from './ParentNavigationSubtitle';
+import PressableWithoutFeedback from "./Pressable/PressableWithoutFeedback";
 
 const propTypes = {
     /** The report currently being looked at */
@@ -38,6 +39,8 @@ const propTypes = {
     /** Whether if it's an unauthenticated user */
     isAnonymous: PropTypes.bool,
 
+    shouldEnableDetailPageNavigation: PropTypes.bool,
+
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
 };
@@ -48,6 +51,7 @@ const defaultProps = {
     report: {},
     isAnonymous: false,
     size: CONST.AVATAR_SIZE.DEFAULT,
+    shouldEnableDetailPageNavigation: false,
 };
 
 function AvatarWithDisplayName(props) {
@@ -61,7 +65,7 @@ function AvatarWithDisplayName(props) {
     const shouldShowSubscriptAvatar = ReportUtils.shouldReportShowSubscript(props.report);
     const isExpenseRequest = ReportUtils.isExpenseRequest(props.report);
     const defaultSubscriptSize = isExpenseRequest ? CONST.AVATAR_SIZE.SMALL_NORMAL : props.size;
-    return (
+    const headerView = (
         <View style={[styles.appContentHeaderTitle, styles.flex1]}>
             {Boolean(props.report && title) && (
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
@@ -107,6 +111,21 @@ function AvatarWithDisplayName(props) {
             )}
         </View>
     );
+
+    if (!props.shouldEnableDetailPageNavigation){
+        return headerView;
+    }
+
+    return (
+        <PressableWithoutFeedback
+            onPress={() => ReportUtils.navigateToDetailsPage(props.report)}
+            style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
+            accessibilityLabel={title}
+            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+        >
+            {headerView}
+        </PressableWithoutFeedback>
+    )
 }
 AvatarWithDisplayName.propTypes = propTypes;
 AvatarWithDisplayName.displayName = 'AvatarWithDisplayName';
