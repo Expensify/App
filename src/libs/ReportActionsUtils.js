@@ -163,32 +163,6 @@ function getLinkedTransaction(reportAction = {}) {
 }
 
 /**
- * Get the details linked to the IOU reportAction
- *
- * @param {Object} reportAction
- * @returns {Object}
- */
-function getMoneyRequestDetails(reportAction = {}) {
-    // 'pay' actions don't have a linked transaction since they pay the report. So we get the details from the originalMessage instead.
-    // 'split' actions have a linked transaction, but we don't return it from the backend since they are stored in an invisible report - see https://github.com/Expensify/Auth/blob/bdadc27d649df6feef51525cc58fa16c1619eee5/auth/lib/Transaction.h#L49-L51
-    const originalMessage = lodashGet(reportAction, 'originalMessage', {});
-    const type = lodashGet(originalMessage, 'type', '');
-    if (type === CONST.IOU.REPORT_ACTION_TYPE.PAY || type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT) {
-        return originalMessage;
-    }
-
-    // Similarly, 'send' actions store their details in IOUDetails.
-    const iouDetails = lodashGet(originalMessage, 'IOUDetails');
-    if (iouDetails) {
-        return iouDetails;
-    }
-
-    // For all other actions, retrieve the details from the linked transaction.
-    const transaction = getLinkedTransaction(reportAction);
-    return {...transaction, comment: lodashGet(transaction, 'comment.comment', '')};
-}
-
-/**
  * Determines if the given report action is sent money report action by checking for 'pay' type and presence of IOUDetails object.
  *
  * @param {Object} reportAction
