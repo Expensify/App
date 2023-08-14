@@ -74,6 +74,7 @@ function AnchorRenderer(props) {
             <Text
                 style={styles.link}
                 onPress={navigateToLink}
+                suppressHighlighting
             >
                 <TNodeChildrenRenderer tnode={props.tnode} />
             </Text>
