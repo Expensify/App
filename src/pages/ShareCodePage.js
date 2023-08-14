@@ -1,5 +1,6 @@
 import React from 'react';
 import {View, ScrollView} from 'react-native';
+import _ from 'underscore';
 import ScreenWrapper from '../components/ScreenWrapper';
 import HeaderWithBackButton from '../components/HeaderWithBackButton';
 import Navigation from '../libs/Navigation/Navigation';
@@ -45,9 +46,13 @@ class ShareCodePage extends React.Component {
      * @return {String|string|*}
      */
     getSubtitle(isReport) {
+        if (ReportUtils.isExpenseReport(this.props.report)) {
+            return ReportUtils.getPolicyName(this.props.report);
+        }
         if (ReportUtils.isMoneyRequestReport(this.props.report)) {
-            const {workspaceName} = ReportUtils.getParentNavigationSubtitle(this.props.report);
-            return workspaceName;
+            // generate subtitle from participants
+            const participantAccountIDs = [this.props.report.managerID, this.props.report.ownerAccountID];
+            return _.map(participantAccountIDs, (accountID) => ReportUtils.getDisplayNameForParticipant(accountID)).join(' & ');
         }
 
         if (isReport) {
