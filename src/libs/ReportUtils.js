@@ -1,4 +1,5 @@
 import _ from 'underscore';
+import {format} from 'date-fns';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import lodashIntersection from 'lodash/intersection';
@@ -13,6 +14,7 @@ import ROUTES from '../ROUTES';
 import * as NumberUtils from './NumberUtils';
 import * as NumberFormatUtils from './NumberFormatUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
+import * as TransactionUtils from './TransactionUtils';
 import Permissions from './Permissions';
 import DateUtils from './DateUtils';
 import linkingConfig from './Navigation/linkingConfig';
@@ -459,7 +461,7 @@ function isConciergeChatReport(report) {
 function shouldDisableDetailPage(report) {
     const participantAccountIDs = lodashGet(report, 'participantAccountIDs', []);
 
-    if (isChatRoom(report) || isPolicyExpenseChat(report) || isChatThread(report)) {
+    if (isChatRoom(report) || isPolicyExpenseChat(report) || isChatThread(report) || isTaskReport(report)) {
         return false;
     }
     if (participantAccountIDs.length === 1) {
@@ -1305,6 +1307,89 @@ function getReportPreviewMessage(report, reportAction = {}) {
 }
 
 /**
+ * Get the report action message when expense has been modified.
+ *
+ * @param {Object} reportAction
+ * @returns {String}
+ */
+function getModifiedExpenseMessage(reportAction) {
+    const reportActionOriginalMessage = lodashGet(reportAction, 'originalMessage', {});
+    if (_.isEmpty(reportActionOriginalMessage)) {
+        return `changed the request`;
+    }
+
+    const hasModifiedAmount =
+        _.has(reportActionOriginalMessage, 'oldAmount') &&
+        _.has(reportActionOriginalMessage, 'oldCurrency') &&
+        _.has(reportActionOriginalMessage, 'amount') &&
+        _.has(reportActionOriginalMessage, 'currency');
+    if (hasModifiedAmount) {
+        const oldCurrency = reportActionOriginalMessage.oldCurrency;
+        const oldAmount = CurrencyUtils.convertToDisplayString(reportActionOriginalMessage.oldAmount, oldCurrency);
+
+        const currency = reportActionOriginalMessage.currency;
+        const amount = CurrencyUtils.convertToDisplayString(reportActionOriginalMessage.amount, currency);
+
+        return `changed the request to ${amount} (previously ${oldAmount})`;
+    }
+
+    const hasModifiedComment = _.has(reportActionOriginalMessage, 'oldComment') && _.has(reportActionOriginalMessage, 'newComment');
+    if (hasModifiedComment) {
+        return `changed the request description to "${reportActionOriginalMessage.newComment}" (previously "${reportActionOriginalMessage.oldComment}")`;
+    }
+
+    const hasModifiedMerchant = _.has(reportActionOriginalMessage, 'oldMerchant') && _.has(reportActionOriginalMessage, 'merchant');
+    if (hasModifiedMerchant) {
+        return `changed the request merchant to "${reportActionOriginalMessage.merchant}" (previously "${reportActionOriginalMessage.oldMerchant}")`;
+    }
+
+    const hasModifiedCreated = _.has(reportActionOriginalMessage, 'oldCreated') && _.has(reportActionOriginalMessage, 'created');
+    if (hasModifiedCreated) {
+        // Take only the YYYY-MM-DD value as the original date includes timestamp
+        let formattedOldCreated = new Date(reportActionOriginalMessage.oldCreated);
+        formattedOldCreated = format(formattedOldCreated, CONST.DATE.FNS_FORMAT_STRING);
+        return `changed the request date to ${reportActionOriginalMessage.created} (previously ${formattedOldCreated})`;
+    }
+}
+
+/**
+ * Given the updates user made to the request, compose the originalMessage
+ * object of the modified expense action.
+ *
+ * At the moment, we only allow changing one transaction field at a time.
+ *
+ * @param {Object} oldTransaction
+ * @param {Object} transactionChanges
+ * @param {Boolen} isFromExpenseReport
+ * @returns {Object}
+ */
+function getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges, isFromExpenseReport) {
+    const originalMessage = {};
+
+    // Remark: Comment field is the only one which has new/old prefixes for the keys (newComment/ oldComment),
+    // all others have old/- pattern such as oldCreated/created
+    if (_.has(transactionChanges, 'comment')) {
+        originalMessage.oldComment = TransactionUtils.getDescription(oldTransaction);
+        originalMessage.newComment = transactionChanges.comment;
+    }
+    if (_.has(transactionChanges, 'created')) {
+        originalMessage.oldCreated = TransactionUtils.getCreated(oldTransaction);
+        originalMessage.created = transactionChanges.created;
+    }
+
+    // The amount is always a combination of the currency and the number value so when one changes we need to store both
+    // to match how we handle the modified expense action in oldDot
+    if (_.has(transactionChanges, 'amount') || _.has(transactionChanges, 'currency')) {
+        originalMessage.oldAmount = TransactionUtils.getAmount(oldTransaction, isFromExpenseReport);
+        originalMessage.amount = lodashGet(transactionChanges, 'amount', originalMessage.oldAmount);
+        originalMessage.oldCurrency = TransactionUtils.getCurrency(oldTransaction);
+        originalMessage.currency = lodashGet(transactionChanges, 'currency', originalMessage.oldCurrency);
+    }
+
+    return originalMessage;
+}
+
+/**
  * Get the title for a report.
  *
  * @param {Object} report
@@ -1451,7 +1536,7 @@ function getReport(reportID) {
 function navigateToDetailsPage(report) {
     const participantAccountIDs = lodashGet(report, 'participantAccountIDs', []);
 
-    if (isChatRoom(report) || isPolicyExpenseChat(report) || isChatThread(report)) {
+    if (isChatRoom(report) || isPolicyExpenseChat(report) || isChatThread(report) || isTaskReport(report)) {
         Navigation.navigate(ROUTES.getReportDetailsRoute(report.reportID));
         return;
     }
@@ -1883,6 +1968,47 @@ function buildOptimisticReportPreview(chatReport, iouReport, comment = '') {
 }
 
 /**
+ * Builds an optimistic modified expense action with a randomly generated reportActionID.
+ *
+ * @param {Object} transactionThread
+ * @param {Object} oldTransaction
+ * @param {Object} transactionChanges
+ * @param {Object} isFromExpenseReport
+ * @returns {Object}
+ */
+function buildOptimisticModifiedExpenseReportAction(transactionThread, oldTransaction, transactionChanges, isFromExpenseReport) {
+    const originalMessage = getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges, isFromExpenseReport);
+    return {
+        actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE,
+        actorAccountID: currentUserAccountID,
+        automatic: false,
+        avatar: lodashGet(currentUserPersonalDetails, 'avatar', UserUtils.getDefaultAvatar(currentUserAccountID)),
+        created: DateUtils.getDBTime(),
+        isAttachment: false,
+        message: [
+            {
+                // Currently we are composing the message from the originalMessage and message is only used in OldDot and not in the App
+                text: 'You',
+                style: 'strong',
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+            },
+        ],
+        originalMessage,
+        person: [
+            {
+                style: 'strong',
+                text: lodashGet(currentUserPersonalDetails, 'displayName', currentUserAccountID),
+                type: 'TEXT',
+            },
+        ],
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        reportActionID: NumberUtils.rand64(),
+        reportID: transactionThread.reportID,
+        shouldShow: true,
+    };
+}
+
+/**
  * Updates a report preview action that exists for an IOU report.
  *
  * @param {Object} iouReport
@@ -2208,6 +2334,7 @@ function buildOptimisticTaskReport(ownerAccountID, assigneeAccountID = 0, parent
         reportName: title,
         description,
         ownerAccountID,
+        participantAccountIDs: assigneeAccountID && assigneeAccountID !== ownerAccountID ? [assigneeAccountID] : [],
         managerID: assigneeAccountID,
         type: CONST.REPORT.TYPE.TASK,
         parentReportID,
@@ -3088,6 +3215,7 @@ export {
     buildOptimisticExpenseReport,
     buildOptimisticIOUReportAction,
     buildOptimisticReportPreview,
+    buildOptimisticModifiedExpenseReportAction,
     updateReportPreview,
     buildOptimisticTaskReportAction,
     buildOptimisticAddCommentReportAction,
@@ -3140,6 +3268,7 @@ export {
     getParentReport,
     getTaskParentReportActionIDInAssigneeReport,
     getReportPreviewMessage,
+    getModifiedExpenseMessage,
     shouldHideComposer,
     getOriginalReportID,
     canAccessReport,

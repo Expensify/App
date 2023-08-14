@@ -85,6 +85,7 @@ describe('Sidebar', () => {
                     .then(() =>
                         Onyx.multiSet({
                             [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+                            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
                         }),
                     )
 
@@ -100,7 +101,7 @@ describe('Sidebar', () => {
         it('includes an empty chat report if it has a draft', () => {
             LHNTestUtils.getDefaultRenderedSidebarLinks();
 
-            // Given a new report
+            // Given a new report with a draft text
             const report = {
                 ...LHNTestUtils.getFakeReport([1, 2], 0),
                 hasDraft: true,
@@ -113,10 +114,11 @@ describe('Sidebar', () => {
                         Onyx.multiSet({
                             [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
+                            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
                         }),
                     )
 
-                    // Then no reports are rendered in the LHN
+                    // Then the report should be rendered in the LHN since it has a draft
                     .then(() => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
