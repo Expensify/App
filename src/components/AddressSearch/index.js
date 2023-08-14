@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import React, {useMemo, useRef, useState} from 'react';
 import PropTypes from 'prop-types';
-import {LogBox, ScrollView, View} from 'react-native';
+import {LogBox, ScrollView, View, Text} from 'react-native';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
 import lodashGet from 'lodash/get';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
@@ -244,6 +244,7 @@ function AddressSearch(props) {
                     fetchDetails
                     suppressDefaultStyles
                     enablePoweredByContainer={false}
+                    ListEmptyComponent={<Text style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}>{props.translate('common.noResultsFound')}</Text>}
                     onPress={(data, details) => {
                         saveLocationDetails(data, details);
 
