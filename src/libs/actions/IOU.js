@@ -16,7 +16,7 @@ import * as ReportActionsUtils from '../ReportActionsUtils';
 import * as IOUUtils from '../IOUUtils';
 import * as OptionsListUtils from '../OptionsListUtils';
 import DateUtils from '../DateUtils';
-import TransactionUtils from '../TransactionUtils';
+import * as TransactionUtils from '../TransactionUtils';
 import * as ErrorUtils from '../ErrorUtils';
 import * as UserUtils from '../UserUtils';
 import * as Report from './Report';
@@ -791,6 +791,90 @@ function splitBillAndOpenReport(participants, currentUserLogin, currentUserAccou
 
 /**
  * @param {String} transactionID
+ * @param {Number} transactionThreadReportID
+ * @param {Object} transactionChanges
+ */
+function editMoneyRequest(transactionID, transactionThreadReportID, transactionChanges) {
+    // STEP 1: Get all collections we're updating
+    const transactionThread = allReports[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`];
+    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    const iouReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${transactionThread.parentReportID}`];
+    const isFromExpenseReport = ReportUtils.isExpenseReport(iouReport);
+
+    // STEP 2: Build new modified expense report action.
+    const updatedReportAction = ReportUtils.buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges, isFromExpenseReport);
+    const updatedTransaction = TransactionUtils.getUpdatedTransaction(transaction, transactionChanges, isFromExpenseReport);
+    // STEP 3: Compute the IOU total and update the report preview message so LHN amount owed is correct
+    // STEP 4: Compose the optimistic data
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThread.reportID}`,
+            value: {
+                [updatedReportAction.reportActionID]: updatedReportAction,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: updatedTransaction,
+        },
+    ];
+
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThread.reportID}`,
+            value: {
+                [updatedReportAction.reportActionID]: {pendingAction: null},
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {pendingAction: null},
+        },
+    ];
+
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThread.reportID}`,
+            value: {
+                [updatedReportAction.reportActionID]: updatedReportAction,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: transaction,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.report}`,
+            value: iouReport,
+        },
+    ];
+
+    // STEP 6: Call the API endpoint
+    API.write(
+        'EditMoneyRequest',
+        {
+            transactionID,
+            reportActionID: updatedReportAction.reportActionID,
+
+            // Using the getter methods here to ensure we pass modified field if present
+            created: TransactionUtils.getCreated(updatedTransaction),
+            amount: TransactionUtils.getAmount(updatedTransaction, isFromExpenseReport),
+            currency: TransactionUtils.getCurrency(updatedTransaction),
+            comment: TransactionUtils.getDescription(updatedTransaction),
+        },
+        {optimisticData, successData, failureData},
+    );
+}
+
+/**
+ * @param {String} transactionID
  * @param {Object} reportAction - the money request reportAction we are deleting
  * @param {Boolean} isSingleTransactionView
  */
@@ -1251,12 +1335,6 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
         iouReport.reportID,
         true,
     );
-    const optimisticPersonalDetailsListAction = {
-        accountID: Number(recipient.accountID),
-        avatar: UserUtils.getDefaultAvatarURL(Number(recipient.accountID)),
-        displayName: recipient.displayName || recipient.login,
-        login: recipient.login,
-    };
 
     const optimisticReportPreviewAction = ReportUtils.updateReportPreview(iouReport, ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID));
 
@@ -1311,11 +1389,6 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
             value: {[iouReport.policyID]: paymentMethodType},
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: optimisticPersonalDetailsListAction,
         },
     ];
 
@@ -1556,6 +1629,7 @@ function navigateToNextPage(iou, iouType, reportID, report) {
 }
 
 export {
+    editMoneyRequest,
     deleteMoneyRequest,
     splitBill,
     splitBillAndOpenReport,

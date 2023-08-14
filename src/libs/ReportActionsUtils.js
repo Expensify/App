@@ -106,6 +106,14 @@ function isReportPreviewAction(reportAction) {
     return lodashGet(reportAction, 'actionName', '') === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW;
 }
 
+/**
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
+function isModifiedExpenseAction(reportAction) {
+    return lodashGet(reportAction, 'actionName', '') === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE;
+}
+
 function isWhisperAction(action) {
     return (action.whisperedToAccountIDs || []).length > 0;
 }
@@ -648,6 +656,7 @@ export {
     isSentMoneyReportAction,
     isDeletedParentAction,
     isReportPreviewAction,
+    isModifiedExpenseAction,
     getIOUReportIDFromReportActionPreview,
     isMessageDeleted,
     isWhisperAction,
