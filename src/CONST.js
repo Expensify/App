@@ -639,6 +639,11 @@ const CONST = {
         DARK: 'dark',
         SYSTEM: 'system',
     },
+    TRANSACTION: {
+        TYPE: {
+            CUSTOM_UNIT: 'customUnit',
+        },
+    },
     JSON_CODE: {
         SUCCESS: 200,
         BAD_REQUEST: 400,

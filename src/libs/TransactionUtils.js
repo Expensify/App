@@ -167,4 +167,15 @@ function getCreated(transaction) {
     return format(new Date(lodashGet(transaction, 'created', '')), CONST.DATE.FNS_FORMAT_STRING);
 }
 
-export {buildOptimisticTransaction, hasReceipt, getUpdatedTransaction, getTransaction, getDescription, getAmount, getCurrency, getCreated};
+/**
+ * @param {Object} transaction
+ * @param {String} transaction.type
+ * @param {Object} [transaction.customUnit]
+ * @param {String} [transaction.customUnit.name]
+ * @returns {Boolean}
+ */
+function isDistanceRequest(transaction) {
+    return transaction && transaction.type === CONST.TRANSACTION.TYPE.CUSTOM_UNIT && transaction.customUnit && transaction.customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE;
+}
+
+export {buildOptimisticTransaction, hasReceipt, getUpdatedTransaction, getTransaction, getDescription, getAmount, getCurrency, getCreated, isDistanceRequest};
