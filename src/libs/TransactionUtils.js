@@ -167,13 +167,4 @@ function getCreated(transaction) {
     return format(new Date(lodashGet(transaction, 'created', '')), CONST.DATE.FNS_FORMAT_STRING);
 }
 
-export {
-    buildOptimisticTransaction,
-    hasReceipt,
-    getUpdatedTransaction,
-    getTransaction,
-    getDescription,
-    getAmount,
-    getCurrency,
-    getCreated,
-};
+export {buildOptimisticTransaction, hasReceipt, getUpdatedTransaction, getTransaction, getDescription, getAmount, getCurrency, getCreated};

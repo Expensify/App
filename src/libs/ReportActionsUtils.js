@@ -603,13 +603,17 @@ function isMessageDeleted(reportAction) {
  */
 function getReportPreviewTransactionsWithReceipts(reportPreviewAction) {
     const transactionIDs = lodashGet(reportPreviewAction, ['childLastReceiptTransactionIDs'], '').split(',');
-    return _.reduce(transactionIDs, (transactions, transactionID) => {
-        const transaction = allTransactions[transactionID];
-        if (transaction) {
-            transactions.push(transaction);
-        }
-        return transactions;
-    }, []);
+    return _.reduce(
+        transactionIDs,
+        (transactions, transactionID) => {
+            const transaction = allTransactions[transactionID];
+            if (transaction) {
+                transactions.push(transaction);
+            }
+            return transactions;
+        },
+        [],
+    );
 }
 
 /**
@@ -620,7 +624,6 @@ function getTransaction(iouReportAction) {
     const transactionID = lodashGet(iouReportAction, ['originalMessage', 'IOUTransactionID']);
     return allTransactions[transactionID] || {};
 }
-
 
 /**
  * Checks if the IOU or expense report has either no smartscanned receipts or at least one is already done scanning
@@ -662,13 +665,17 @@ function getNumberOfMoneyRequests(reportPreviewAction) {
  */
 function getNumberOfScanningReceipts(iouReport) {
     const reportActions = lodashGet(allReportActions, lodashGet(iouReport, 'reportID'), []);
-    return _.reduce(reportActions, (count, reportAction) => {
-        if (!isMoneyRequestAction(reportAction)) {
-            return count;
-        }
-        const transaction = getTransaction(reportAction);
-        return count + Number(TransactionUtils.hasReceipt(transaction) && ReceiptUtils.isBeingScanned(transaction.receipt));
-    }, 0);
+    return _.reduce(
+        reportActions,
+        (count, reportAction) => {
+            if (!isMoneyRequestAction(reportAction)) {
+                return count;
+            }
+            const transaction = getTransaction(reportAction);
+            return count + Number(TransactionUtils.hasReceipt(transaction) && ReceiptUtils.isBeingScanned(transaction.receipt));
+        },
+        0,
+    );
 }
 
 export {

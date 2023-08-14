@@ -90,9 +90,7 @@ function ThumbnailImage(props) {
         [windowHeight],
     );
 
-    const sizeStyles = props.shouldDynamicallyResize
-        ? [StyleUtils.getWidthAndHeightStyle(imageWidth, imageHeight)]
-        : [styles.w100, styles.h100];
+    const sizeStyles = props.shouldDynamicallyResize ? [StyleUtils.getWidthAndHeightStyle(imageWidth, imageHeight)] : [styles.w100, styles.h100];
 
     return (
         <View style={[props.style, styles.overflowHidden]}>

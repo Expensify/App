@@ -15,15 +15,17 @@ const propTypes = {
 function MoneyRequestImage(props) {
     return (
         <View style={styles.moneyRequestViewImage}>
-            <RenderHTML html={`
+            <RenderHTML
+                html={`
                 <img
                     src="${props.image.thumbnail}"
                     data-expensify-source="${props.image.image}"
                     data-expensify-fit-container="true"
                 />
-            `} />
+            `}
+            />
         </View>
-    )
+    );
 }
 
 MoneyRequestImage.propTypes = propTypes;

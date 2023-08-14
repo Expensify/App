@@ -112,9 +112,9 @@ function ReportPreview(props) {
     const previewSubtitleIfNoComment = hasOnlyOneReceiptRequest
         ? transactions[0].merchant
         : props.translate('iou.requestCount', {
-            count: numberOfRequests,
-            scanningReceipts: numberOfScanningReceipts,
-        });
+              count: numberOfRequests,
+              scanningReceipts: numberOfScanningReceipts,
+          });
 
     let displayAmount;
     if (reportTotal) {
@@ -142,8 +142,7 @@ function ReportPreview(props) {
     }
 
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
-    const shouldShowSettlementButton =
-        !_.isEmpty(props.iouReport) && isCurrentUserManager && !iouSettled && !props.iouReport.isWaitingOnBankAccount && reportTotal !== 0;
+    const shouldShowSettlementButton = !_.isEmpty(props.iouReport) && isCurrentUserManager && !iouSettled && !props.iouReport.isWaitingOnBankAccount && reportTotal !== 0;
 
     return (
         <View style={[styles.chatItemMessage, ...props.containerStyles]}>

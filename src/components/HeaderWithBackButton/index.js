@@ -165,8 +165,21 @@ function HeaderWithBackButton({
                 </View>
             </View>
             {shouldShowStatusBar && (
-                <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden, styles.ph5, styles.pv3, styles.borderBottom, styles.w100]}>
-                    <View style={[styles.headerStatusBarBadge, { backgroundColor: statusBarBadgeColor }]}>
+                <View
+                    style={[
+                        styles.dFlex,
+                        styles.flexRow,
+                        styles.alignItemsCenter,
+                        styles.flexGrow1,
+                        styles.justifyContentBetween,
+                        styles.overflowHidden,
+                        styles.ph5,
+                        styles.pv3,
+                        styles.borderBottom,
+                        styles.w100,
+                    ]}
+                >
+                    <View style={[styles.headerStatusBarBadge, {backgroundColor: statusBarBadgeColor}]}>
                         <Text style={[styles.textStrong, styles.textLabel]}>{statusBarBadgeText}</Text>
                     </View>
                     <View style={[styles.flexShrink1]}>

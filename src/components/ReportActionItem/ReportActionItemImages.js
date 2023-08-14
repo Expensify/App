@@ -10,10 +10,12 @@ import Image from '../Image';
 
 const propTypes = {
     /** array of image and thumbnail URIs */
-    images: PropTypes.arrayOf(PropTypes.shape({
-        thumbnail: PropTypes.string,
-        image: PropTypes.string,
-    })),
+    images: PropTypes.arrayOf(
+        PropTypes.shape({
+            thumbnail: PropTypes.string,
+            image: PropTypes.string,
+        }),
+    ),
 
     /** max number of images to show in the row */
     size: PropTypes.number,
@@ -44,17 +46,23 @@ function ReportActionItemImages(props) {
                         key={image}
                         style={[styles.reportActionItemImage, props.hoverStyle]}
                     >
-                        {thumbnail
-                            ? <RenderHTML html={`
+                        {thumbnail ? (
+                            <RenderHTML
+                                html={`
                                     <img
                                         src="${thumbnail}"
                                         data-expensify-source="${image}"
                                         data-expensify-fit-container="true"
                                         data-expensify-preview-modal-disabled="true"
                                     />
-                            `} />
-                            : <Image source={{uri: image}} style={[styles.w100, styles.h100]} />
-                        }
+                            `}
+                            />
+                        ) : (
+                            <Image
+                                source={{uri: image}}
+                                style={[styles.w100, styles.h100]}
+                            />
+                        )}
                         {isLastImage && remaining > 0 && (
                             <View style={[styles.reportActionItemImagesMore, props.hoverStyle]}>
                                 <Text>+{remaining}</Text>
@@ -64,7 +72,7 @@ function ReportActionItemImages(props) {
                 );
             })}
         </View>
-    )
+    );
 }
 
 ReportActionItemImages.propTypes = propTypes;

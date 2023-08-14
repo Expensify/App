@@ -192,7 +192,7 @@ function MoneyRequestPreview(props) {
         }
 
         return CurrencyUtils.convertToDisplayString(requestAmount, requestCurrency);
-    }
+    };
 
     const childContainer = (
         <View>
