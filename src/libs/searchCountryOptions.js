@@ -13,7 +13,7 @@ function searchCountryOptions(searchValue, countriesData) {
         return [];
     }
 
-    const filteredData = _.filter(countriesData, (country) => _.includes(StringUtils.sanitizeString(country.searchValue), trimmedSearchValue));
+    const filteredData = _.filter(countriesData, (country) => _.includes(country.searchValue, trimmedSearchValue));
 
     // sort by country code
     return _.sortBy(filteredData, (country) => (_.toLower(country.value) === trimmedSearchValue ? -1 : 1));
