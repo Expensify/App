@@ -1383,6 +1383,19 @@ function getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges, i
 }
 
 /**
+ * Returns the parentReport if the given report is a thread.
+ *
+ * @param {Object} report
+ * @returns {Object}
+ */
+function getParentReport(report) {
+    if (!report || !report.parentReportID) {
+        return {};
+    }
+    return lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`, {});
+}
+
+/**
  * Get the title for a report.
  *
  * @param {Object} report
@@ -1394,7 +1407,8 @@ function getReportName(report, policy = undefined) {
     if (isChatThread(report)) {
         const parentReportAction = ReportActionsUtils.getParentReportAction(report);
         if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
-            return getTransactionReportName(parentReportAction, report);
+            const parentReport = getParentReport(report);
+            return getTransactionReportName(parentReportAction, parentReport);
         }
 
         const isAttachment = _.has(parentReportAction, 'isAttachment') ? parentReportAction.isAttachment : isReportMessageAttachment(_.last(lodashGet(parentReportAction, 'message', [{}])));
@@ -2910,19 +2924,6 @@ function shouldReportShowSubscript(report) {
  */
 function isReportDataReady() {
     return !_.isEmpty(allReports) && _.some(_.keys(allReports), (key) => allReports[key].reportID);
-}
-
-/**
- * Returns the parentReport if the given report is a thread.
- *
- * @param {Object} report
- * @returns {Object}
- */
-function getParentReport(report) {
-    if (!report || !report.parentReportID) {
-        return {};
-    }
-    return lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`, {});
 }
 
 /**
