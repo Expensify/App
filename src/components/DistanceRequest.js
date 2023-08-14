@@ -56,7 +56,7 @@ const propTypes = {
 
         /** Time when the token will expire in ISO 8601 */
         expiration: PropTypes.string,
-    }).isRequired,
+    }),
 
     ...withLocalizePropTypes,
 };
@@ -64,9 +64,10 @@ const propTypes = {
 const defaultProps = {
     transactionID: '',
     transaction: {},
+    mapboxAccessToken: {},
 };
 
-function DistanceRequest({transactionID, transaction, translate, mapboxAccessToken = {token: '', expiration: ''}}) {
+function DistanceRequest({transactionID, transaction, translate, mapboxAccessToken}) {
     const [shouldShowGradient, setShouldShowGradient] = useState(false);
     const [scrollContainerHeight, setScrollContainerHeight] = useState(0);
     const [scrollContentHeight, setScrollContentHeight] = useState(0);
@@ -153,18 +154,20 @@ function DistanceRequest({transactionID, transaction, translate, mapboxAccessTok
                     innerStyles={[styles.ph10]}
                 />
             </View>
-            <View style={[styles.p4, styles.flex1]}>
-                <MapView
-                    accessToken={mapboxAccessToken.token}
-                    mapPadding={50}
-                    pitchEnabled={false}
-                    initialState={{
-                        location: CONST.SF_COORDINATES,
-                        zoom: DEFAULT_ZOOM_LEVEL,
-                    }}
-                    style={styles.mapView}
-                />
-            </View>
+            {mapboxAccessToken.token && (
+                <View style={[styles.p4, styles.flex1]}>
+                    <MapView
+                        accessToken={mapboxAccessToken.token}
+                        mapPadding={50}
+                        pitchEnabled={false}
+                        initialState={{
+                            location: CONST.SF_COORDINATES,
+                            zoom: DEFAULT_ZOOM_LEVEL,
+                        }}
+                        style={styles.mapView}
+                    />
+                </View>
+            )}
         </>
     );
 }
