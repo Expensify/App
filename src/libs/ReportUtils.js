@@ -3034,14 +3034,6 @@ function shouldDisableRename(report, policy) {
 }
 
 /**
- * @param {String} reportID
- * @returns {Array}
- */
-function getAllReportTransactions(reportID) {
-    return _.filter(allTransactions, (transaction) => transaction.reportID === reportID);
-}
-
-/**
  * Returns the onyx data needed for the task assignee chat
  * @param {Number} accountID
  * @param {String} assigneeEmail
@@ -3281,6 +3273,5 @@ export {
     shouldDisableRename,
     hasSingleParticipant,
     getTransactionReportName,
-    getAllReportTransactions,
     getTaskAssigneeChatOnyxData,
 };
