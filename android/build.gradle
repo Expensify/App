@@ -63,8 +63,7 @@ allprojects {
                 username = 'mapbox'
 
                 // The value for password is read from the 'MAPBOX_DOWNLOADS_TOKEN' gradle property. 
-                // Set this property in a gradle.properties file that is not committed to version control. 
-                // Recommended place is in the Gradle user home folder («USER_HOME»/.gradle/gradle.properties).
+                // Run "npm run setup-mapbox-sdk" to set this property in «USER_HOME»/.gradle/gradle.properties
 
                 // Example gradle.properties entry:
                 // MAPBOX_DOWNLOADS_TOKEN=YOUR_SECRET_TOKEN_HERE
