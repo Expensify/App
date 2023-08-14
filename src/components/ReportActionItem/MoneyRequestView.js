@@ -22,9 +22,8 @@ import EmptyStateBackgroundImage from '../../../assets/images/empty-state_backgr
 import useLocalize from '../../hooks/useLocalize';
 import * as TransactionUtils from '../../libs/TransactionUtils';
 import * as ReceiptUtils from '../../libs/ReceiptUtils';
-import RenderHTML from '../RenderHTML';
 import withLocalize from '../withLocalize';
-import Text from '../Text';
+import ReportActionItemImages from '../ReportActionItemImages';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -70,17 +69,7 @@ function MoneyRequestView(props) {
                     style={[StyleUtils.getReportWelcomeBackgroundImageStyle(true)]}
                 />
             </View>
-            {hasReceipt && (
-                <View style={styles.moneyRequestViewReceipt}>
-                    <RenderHTML html={`
-                        <img
-                            src="${receiptUris.thumbnail}"
-                            data-expensify-source="${receiptUris.image}"
-                            data-expensify-fit-container="true"
-                        />
-                    `} />
-                </View>
-            )}
+            {hasReceipt && <ReportActionItemImages images={[receiptUris]} size={1} total={1} />}
             <MenuItemWithTopDescription
                 title={formattedTransactionAmount}
                 shouldShowTitleIcon={isSettled}

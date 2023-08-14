@@ -3,22 +3,21 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import styles from '../styles/styles';
-import * as ReceiptUtils from '../libs/ReceiptUtils';
 import RenderHTML from './RenderHTML';
 import stylePropTypes from '../styles/stylePropTypes';
 import Text from './Text';
 
 const propTypes = {
-    /** array of image URIs */
+    /** array of image and thumbnail URIs */
     images: PropTypes.arrayOf(PropTypes.shape({
-        source: PropTypes.string,
-        filename: PropTypes.string,
+        thumbnail: PropTypes.string,
+        image: PropTypes.string,
     })),
 
     /** max number of images to show in the row */
     size: PropTypes.number,
 
-    /** optional: total number of images */
+    /** optional: total number of images if different than images prop length */
     total: PropTypes.number,
 
     hoverStyle: stylePropTypes,
@@ -26,24 +25,23 @@ const propTypes = {
 
 const defaultProps = {
     images: [],
-    size: 0,
+    size: 3,
     total: 0,
     hoverStyle: {},
 };
 
-function ReceiptImages(props) {
+function ReportActionItemImages(props) {
     const images = props.images.slice(0, props.size);
-    const remaining = props.total - props.size;
+    const remaining = (props.total || props.images.length) - props.size;
 
     return (
-        <View style={[styles.reportPreviewBoxReceipts, props.hoverStyle]}>
-            {_.map(images, ({source, filename}, index) => {
-                const {thumbnail, image} = ReceiptUtils.getThumbnailAndImageURIs(source, filename);
+        <View style={[styles.reportActionItemImages, props.hoverStyle]}>
+            {_.map(images, ({thumbnail, image}, index) => {
                 const isLastImage = index === props.size - 1;
                 return (
                     <View
-                        key={source}
-                        style={[styles.reportPreviewBoxReceipt, props.hoverStyle]}
+                        key={image}
+                        style={[styles.reportActionItemImage, props.hoverStyle]}
                     >
                         {thumbnail
                             ? <RenderHTML html={`
@@ -57,7 +55,7 @@ function ReceiptImages(props) {
                             : <Image source={{uri: image}} style={[styles.w100, styles.h100]} />
                         }
                         {isLastImage && remaining > 0 && (
-                            <View style={[styles.reportPreviewBoxReceiptsMore, props.hoverStyle]}>
+                            <View style={[styles.reportActionItemImagesMore, props.hoverStyle]}>
                                 <Text>+{remaining}</Text>
                             </View>
                         )}
@@ -68,8 +66,8 @@ function ReceiptImages(props) {
     )
 }
 
-ReceiptImages.propTypes = propTypes;
-ReceiptImages.defaultProps = defaultProps;
-ReceiptImages.displayName = 'ReceiptImages';
+ReportActionItemImages.propTypes = propTypes;
+ReportActionItemImages.defaultProps = defaultProps;
+ReportActionItemImages.displayName = 'ReportActionItemImages';
 
-export default ReceiptImages;
+export default ReportActionItemImages;

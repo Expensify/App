@@ -25,10 +25,9 @@ import refPropTypes from '../refPropTypes';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 import themeColors from '../../styles/themes/default';
 import reportPropTypes from '../../pages/reportPropTypes';
-import RenderHTML from '../RenderHTML';
 import * as ReceiptUtils from '../../libs/ReceiptUtils';
 import * as ReportActionUtils from '../../libs/ReportActionsUtils';
-import ReceiptImages from '../ReceiptImages';
+import ReportActionItemImages from '../ReportActionItemImages';
 
 const propTypes = {
     /** All the data of the action */
@@ -154,8 +153,8 @@ function ReportPreview(props) {
             >
                 <View style={[styles.reportPreviewBox, props.isHovered || isScanning ? styles.moneyRequestPreviewBoxHover : undefined]}>
                     {hasReceipts && (
-                        <ReceiptImages
-                            images={_.map(transactions, ({receipt, filename}) => ({source: receipt.source, filename}))}
+                        <ReportActionItemImages
+                            images={_.map(transactions, ({receipt, filename}) => ReceiptUtils.getThumbnailAndImageURIs(receipt.source, filename))}
                             size={3}
                             total={ReportActionUtils.getNumberOfMoneyRequests(props.action)}
                             hoverStyle={props.isHovered || isScanning ? styles.reportPreviewBoxHoverBorder : undefined}

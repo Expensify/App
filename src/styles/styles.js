@@ -3666,7 +3666,16 @@ const styles = {
         width: '100%',
     },
 
-    reportPreviewBoxReceipts: {
+    reportPreviewBoxHoverBorder: {
+        borderColor: themeColors.border,
+        backgroundColor: themeColors.border,
+    },
+
+    reportPreviewBoxText: {
+        padding: 16,
+    },
+
+    reportActionItemImages: {
         flexDirection: 'row',
         borderWidth: 2,
         borderColor: themeColors.cardBG,
@@ -3676,7 +3685,7 @@ const styles = {
         height: 200,
     },
 
-    reportPreviewBoxReceipt: {
+    reportActionItemImage: {
         borderWidth: 1,
         borderColor: themeColors.cardBG,
         flex: 1,
@@ -3687,7 +3696,7 @@ const styles = {
         alignItems: 'center',
     },
 
-    reportPreviewBoxReceiptsMore: {
+    reportActionItemImagesMore: {
         position: 'absolute',
         borderRadius: '50%',
         backgroundColor: themeColors.cardBG,
@@ -3696,25 +3705,6 @@ const styles = {
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-    },
-
-    reportPreviewBoxHoverBorder: {
-        borderColor: themeColors.border,
-        backgroundColor: themeColors.border,
-    },
-
-    reportPreviewBoxText: {
-        padding: 16,
-    },
-
-    moneyRequestViewReceipt: {
-        marginHorizontal: 20,
-        marginVertical: 8,
-        borderWidth: 2,
-        borderColor: themeColors.border,
-        borderRadius: variables.componentBorderRadiusCard,
-        overflow: 'hidden',
-        height: 300,
     },
 
     headerStatusBarBadge: {
