@@ -4,8 +4,7 @@ description: Earn money when your clients adopt the Expensify Card
 ---
 <!-- The lines above are required by Jekyll to process the .md file -->
 
-# About
-Start making more with us! We're thrilled to announce a new incentive for our US-based ExpensifyApproved! partner accountants. You can now earn additional income for your firm every time your client uses their Expensify Card. We're offering  0.5% of the total Expensify Card spend of your clients in cashback returned to your firm. The more your clients spend, the more cashback your firm receives!<br>
+Start making more with us! We're thrilled to announce a new incentive for our US-based ExpensifyApproved! partner accountants. You can now earn additional income for your firm every time your client uses their Expensify Card.  **In short, your firm gets 0.5% of your clients’ total Expensify Card spend as cash back**. The more your clients spend, the more cashback your firm receives!<br>
 <br>This program is currently only available to US-based ExpensifyApproved! partner accountants.
 
 # How-to

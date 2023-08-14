@@ -38,6 +38,8 @@ import onyxSubscribe from '../../../libs/onyxSubscribe';
 import personalDetailsPropType from '../../personalDetailsPropType';
 import * as ReportActionContextMenu from '../report/ContextMenu/ReportActionContextMenu';
 import Permissions from '../../../libs/Permissions';
+import withCurrentReportID from '../../../components/withCurrentReportID';
+import OptionRowLHNData from '../../../components/LHNOptionsList/OptionRowLHNData';
 
 const basePropTypes = {
     /** Toggles the navigation menu open and closed */
@@ -63,6 +65,15 @@ const propTypes = {
 
     betas: PropTypes.arrayOf(PropTypes.string),
 
+    /** The top most report id */
+    currentReportID: PropTypes.string,
+
+    /* Onyx Props */
+    report: PropTypes.shape({
+        /** reportID (only present when there is a matching report) */
+        reportID: PropTypes.string,
+    }),
+
     ...withLocalizePropTypes,
 };
 
@@ -72,6 +83,8 @@ const defaultProps = {
     },
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
     betas: [],
+    currentReportID: '',
+    report: {},
 };
 
 class SidebarLinks extends React.PureComponent {
@@ -172,6 +185,7 @@ class SidebarLinks extends React.PureComponent {
     render() {
         const statusEmojiCode = lodashGet(this.props.currentUserPersonalDetails, 'status.emojiCode', '');
         const emojiStatus = Permissions.canUseCustomStatus(this.props.betas) ? statusEmojiCode : '';
+        const viewMode = this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT;
 
         return (
             <View style={[styles.flex1, styles.h100]}>
@@ -226,14 +240,24 @@ class SidebarLinks extends React.PureComponent {
                     </PressableWithoutFeedback>
                 </View>
                 {this.props.isLoading ? (
-                    <OptionsListSkeletonView shouldAnimate />
+                    <>
+                        {lodashGet(this.props.report, 'reportID') && (
+                            <OptionRowLHNData
+                                reportID={this.props.currentReportID}
+                                viewMode={viewMode}
+                                shouldDisableFocusOptions={this.props.isSmallScreenWidth}
+                                onSelectRow={this.showReportPage}
+                            />
+                        )}
+                        <OptionsListSkeletonView shouldAnimate />
+                    </>
                 ) : (
                     <LHNOptionsList
                         contentContainerStyles={[styles.sidebarListContainer, {paddingBottom: StyleUtils.getSafeAreaMargins(this.props.insets).marginBottom}]}
                         data={this.props.optionListItems}
                         onSelectRow={this.showReportPage}
                         shouldDisableFocusOptions={this.props.isSmallScreenWidth}
-                        optionMode={this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT}
+                        optionMode={viewMode}
                     />
                 )}
             </View>
@@ -247,7 +271,11 @@ export default compose(
     withLocalize,
     withCurrentUserPersonalDetails,
     withWindowDimensions,
+    withCurrentReportID,
     withOnyx({
+        report: {
+            key: ({currentReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${currentReportID}`,
+        },
         betas: {
             key: ONYXKEYS.BETAS,
         },
