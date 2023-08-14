@@ -12,6 +12,10 @@ runs:
           package-lock.json
           desktop/package-lock.json
 
+    - name: Setup Mapbox SDK
+      run: ./scripts/setup-mapbox-sdk
+      shell: bash
+
     - id: cache-node-modules
       uses: actions/cache@v3
       with:
