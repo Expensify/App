@@ -4,13 +4,13 @@ import ONYXKEYS from '../../../ONYXKEYS';
 const memoryOnlyKeys = [ONYXKEYS.COLLECTION.REPORT, ONYXKEYS.COLLECTION.POLICY, ONYXKEYS.PERSONAL_DETAILS_LIST];
 
 const enable = () => {
-    console.debug('Turning on memory only keys');
+    console.debug('[MemoryOnlyKeys] enabled');
     Onyx.set(ONYXKEYS.IS_USING_MEMORY_ONLY_KEYS, true);
     Onyx.setMemoryOnlyKeys(memoryOnlyKeys);
 };
 
 const disable = () => {
-    console.debug('Turning off memory only keys');
+    console.debug('[MemoryOnlyKeys] disabled');
     Onyx.set(ONYXKEYS.IS_USING_MEMORY_ONLY_KEYS, false);
     Onyx.setMemoryOnlyKeys([]);
 };
