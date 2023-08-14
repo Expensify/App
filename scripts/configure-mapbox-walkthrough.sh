@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo -e "This script helps you set up crednetials needed to use Mapbox SDKs for iOS and Android\n\nWe need two kinds of tokens: one for donlowding Mapbox's closed-sourced SDKs, and the other for accessing Mapbox's API from these SDKs"
+echo -e "This script helps you set up credentials needed to use Mapbox SDKs for iOS and Android\n\nWe need two kinds of tokens: one for downloading Mapbox's closed-sourced SDKs, and the other for accessing Mapbox's API from these SDKs"
 
 echo -e "\nStep 1: Go to https://account.mapbox.com/access-tokens/. If you don't have a Mapbox account yet, crease one. Copy the token named \"Default public token.\" This token is used to call Mapbox API to display maps and get directions. Paste the copied token below and hit enter (the token won't be displayed)\n"
 
