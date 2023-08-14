@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
@@ -52,16 +53,10 @@ const defaultProps = {
 function WaypointEditor({route: {params: {iouType = '', waypointIndex = '', transactionID = ''} = {}} = {}, network, translate}) {
     const validate = (values) => {
         const errors = {};
+        const waypointValue = values[`waypoint${waypointIndex}`] || '';
 
-        // The address can only be empty (removes the value), or auto-selected which goes through the onPress method
-        const waypointValue = values[`waypoint${waypointIndex}`];
-        if (!network.isOffline && waypointValue) {
-            errors[`waypoint${waypointIndex}`] = 'distance.errors.selectSuggestedAddress';
-        }
-
-        // When the user is offline, we can't use auto-complete to validate the address so we will just save the address
-        // Otherwise, we require the user to select an address from the auto-complete
-        if (network.isOffline && waypointValue && ValidationUtils.isValidAddress(waypointValue)) {
+        // If the user is offline, they can enter any address they want, so we validate it this way
+        if (network.isOffline && !ValidationUtils.isValidAddress(waypointValue)) {
             errors[`waypoint${waypointIndex}`] = 'bankAccount.error.address';
         }
 
@@ -69,16 +64,24 @@ function WaypointEditor({route: {params: {iouType = '', waypointIndex = '', tran
     };
 
     const onSubmit = (values) => {
+        const waypointValue = values[`waypoint${waypointIndex}`] || '';
+
+        // Prevent the user from submitting the form if they are online
+        // The only way is to select an address from the auto-complete
+        if (!network.isOffline && waypointValue !== '') {
+            return;
+        }
+
         // Allows letting you set a waypoint to an empty value
-        if (!values[`waypoint${waypointIndex}`]) {
+        if (waypointValue === '') {
             Transaction.saveWaypoint(transactionID, waypointIndex, null);
         }
 
         // While the user is offline, the auto-complete address search will not work
         // Therefore, we're going to save the waypoint as just the address, and the lat/long will be filled in on the backend
-        if (network.isOffline && values[`waypoint${waypointIndex}`]) {
+        if (network.isOffline && waypointValue) {
             const waypoint = {
-                address: values[`waypoint${waypointIndex}`],
+                address: waypointValue,
             };
 
             Transaction.saveWaypoint(transactionID, waypointIndex, waypoint);
@@ -118,6 +121,7 @@ function WaypointEditor({route: {params: {iouType = '', waypointIndex = '', tran
                 <View>
                     <AddressSearch
                         inputID={`waypoint${waypointIndex}`}
+                        hint={!network.isOffline ? translate('distance.errors.selectSuggestedAddress') : ''}
                         containerStyles={[styles.mt4]}
                         label={translate('distance.address')}
                         shouldSaveDraft
