@@ -18,7 +18,7 @@ import Tooltip from '../Tooltip';
 import {propTypes as videoChatButtonAndMenuPropTypes, defaultProps} from './videoChatButtonAndMenuPropTypes';
 import * as Session from '../../libs/actions/Session';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
-import * as Link from '../../libs/actions/Link'; 
+import * as Link from '../../libs/actions/Link';
 
 const propTypes = {
     /** Link to open when user wants to create a new google meet meeting */
