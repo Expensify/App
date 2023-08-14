@@ -88,7 +88,6 @@ function Banner(props) {
                                 <Text
                                     style={[...props.textStyles]}
                                     onPress={props.onPress}
-                                    suppressHighlighting
                                 >
                                     {props.text}
                                 </Text>

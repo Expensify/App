@@ -87,7 +87,6 @@ function ReportWelcomeText(props) {
                         <Text
                             style={[styles.textStrong]}
                             onPress={() => Navigation.navigate(ROUTES.getReportDetailsRoute(props.report.reportID))}
-                            suppressHighlighting
                         >
                             {ReportUtils.getReportName(props.report)}
                         </Text>
@@ -106,7 +105,6 @@ function ReportWelcomeText(props) {
                                         <Text
                                             style={[styles.textStrong]}
                                             onPress={() => Navigation.navigate(ROUTES.getProfileRoute(accountID))}
-                                            suppressHighlighting
                                         >
                                             {displayName}
                                         </Text>

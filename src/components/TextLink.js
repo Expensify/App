@@ -71,7 +71,6 @@ function TextLink(props) {
             onMouseDown={props.onMouseDown}
             onKeyDown={openLinkIfEnterKeyPressed}
             ref={props.forwardedRef}
-            suppressHighlighting
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
         >
