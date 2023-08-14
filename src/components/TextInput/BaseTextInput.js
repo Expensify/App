@@ -186,19 +186,16 @@ function BaseTextInput(props) {
     // It gets updated when the text gets changed.
     const hasValueRef = useRef(inputValue.length > 0);
 
-    const updateLabel = useCallback(
-        () => {
-            // We can't use inputValue here directly, as it might contain
-            // the defaultValue, which doesn't get updated when the text changes.
-            // We can't use props.value either, as it might be undefined.
-            if (hasValueRef.current || isFocused || isInputAutoFilled(input.current)) {
-                activateLabel();
-            } else if (!hasValueRef.current && !isFocused && !isInputAutoFilled(input.current)) {
-                deactivateLabel();
-            }
-        },
-        [activateLabel, deactivateLabel, isFocused],
-    );
+    const updateLabel = useCallback(() => {
+        // We can't use inputValue here directly, as it might contain
+        // the defaultValue, which doesn't get updated when the text changes.
+        // We can't use props.value either, as it might be undefined.
+        if (hasValueRef.current || isFocused || isInputAutoFilled(input.current)) {
+            activateLabel();
+        } else if (!hasValueRef.current && !isFocused && !isInputAutoFilled(input.current)) {
+            deactivateLabel();
+        }
+    }, [activateLabel, deactivateLabel, isFocused]);
 
     // Activate or deactivate the label when the focus changes:
     useEffect(() => {
@@ -207,11 +204,11 @@ function BaseTextInput(props) {
         if (isFirstRender.current) {
             isFirstRender.current = false;
             InteractionManager.runAfterInteractions(() => {
-                updateLabel()
+                updateLabel();
             });
             return;
         }
-        updateLabel()
+        updateLabel();
     }, [updateLabel, inputValue]);
 
     /**
