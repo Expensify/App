@@ -19,6 +19,9 @@ import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
 
 const propTypes = {
+    /** The transactionID of the IOU */
+    transactionID: PropTypes.string.isRequired,
+
     route: PropTypes.shape({
         params: PropTypes.shape({
             /** IOU type */
@@ -26,9 +29,6 @@ const propTypes = {
 
             /** Index of the waypoint being edited */
             waypointIndex: PropTypes.string,
-
-            /** The transactionID of this request */
-            transactionID: PropTypes.string,
         }),
     }),
 
@@ -43,12 +43,11 @@ const defaultProps = {
         params: {
             iouType: '',
             waypointIndex: '',
-            transactionID: '',
         },
     },
 };
 
-function WaypointEditor({route: {params: {iouType = '', waypointIndex = '', transactionID = ''} = {}} = {}, network, translate}) {
+function WaypointEditor({transactionID, route: {params: {iouType = '', waypointIndex = ''} = {}} = {}, network, translate}) {
     const validate = (values) => {
         const errors = {};
         const waypointValue = values[`waypoint${waypointIndex}`] || '';
@@ -88,7 +87,7 @@ function WaypointEditor({route: {params: {iouType = '', waypointIndex = '', tran
         Navigation.navigate(ROUTES.getMoneyRequestDistanceTabRoute(iouType));
     };
 
-    const onPress = (values) => {
+    const selectWaypoint = (values) => {
         const waypoint = {
             lat: values.lat,
             lng: values.lng,
@@ -123,7 +122,7 @@ function WaypointEditor({route: {params: {iouType = '', waypointIndex = '', tran
                         containerStyles={[styles.mt4]}
                         label={translate('distance.address')}
                         shouldSaveDraft
-                        onPress={onPress}
+                        onPress={selectWaypoint}
                         maxInputLength={CONST.FORM_CHARACTER_LIMIT}
                         renamedInputKeys={{
                             address: `waypoint${waypointIndex}`,
@@ -146,4 +145,6 @@ function WaypointEditor({route: {params: {iouType = '', waypointIndex = '', tran
 WaypointEditor.displayName = 'WaypointEditor';
 WaypointEditor.propTypes = propTypes;
 WaypointEditor.defaultProps = defaultProps;
-export default compose(withLocalize, withNetwork(), withOnyx({}))(WaypointEditor);
+export default compose(withLocalize, withNetwork(), withOnyx({
+    transactionID: {key: ONYXKEYS.IOU, selector: (iou) => (iou && iou.transactionID) || ''},
+}))(WaypointEditor);
