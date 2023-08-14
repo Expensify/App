@@ -93,6 +93,9 @@ const propTypes = {
 
     /** The transaction attached to the action.message.iouTransactionID */
     transaction: PropTypes.shape({
+        /** The name of the transaction merchant */
+        merchant: PropTypes.string,
+
         /** The type of transaction */
         type: PropTypes.string,
 
@@ -156,11 +159,16 @@ function MoneyRequestPreview(props) {
 
     const requestAmount = moneyRequestAction.amount;
     const requestCurrency = moneyRequestAction.currency;
-    const requestComment = moneyRequestAction.comment.trim();
+    let description = moneyRequestAction.comment.trim();
 
     const hasReceipt = TransactionUtils.hasReceipt(props.transaction);
     const isScanning = !ReportActionUtils.hasReadyMoneyRequests(props.action);
     const isDistanceRequest = props.transaction && TransactionUtils.isDistanceRequest(props.transaction);
+
+    // On a distance request the merchange of the transaction will be used for the description since that's where it's stored in the database
+    if (isDistanceRequest) {
+        description = props.transaction.merchant;
+    }
 
     const getSettledMessage = () => {
         switch (lodashGet(props.action, 'originalMessage.paymentType', '')) {
@@ -284,7 +292,7 @@ function MoneyRequestPreview(props) {
                                 {!isCurrentUserManager && props.shouldShowPendingConversionMessage && (
                                     <Text style={[styles.textLabel, styles.colorMuted, styles.mt1]}>{props.translate('iou.pendingConversionMessage')}</Text>
                                 )}
-                                {!_.isEmpty(requestComment) && <Text style={[styles.mt1, styles.colorMuted]}>{requestComment}</Text>}
+                                {!_.isEmpty(description) && <Text style={[styles.mt1, styles.colorMuted]}>{description}</Text>}
                             </View>
                             {props.isBillSplit && !_.isEmpty(participantAccountIDs) && (
                                 <Text style={[styles.textLabel, styles.colorMuted, styles.ml1]}>
