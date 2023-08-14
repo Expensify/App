@@ -49,12 +49,7 @@ function PopoverContextProvider(props) {
 
     React.useEffect(() => {
         const listener = (e) => {
-            if (
-                !activePopoverRef.current ||
-                !activePopoverRef.current.ref ||
-                !activePopoverRef.current.ref.current ||
-                activePopoverRef.current.ref.current.contains(e.target)
-            ) {
+            if (!activePopoverRef.current || !activePopoverRef.current.ref || !activePopoverRef.current.ref.current || activePopoverRef.current.ref.current.contains(e.target)) {
                 return;
             }
             closePopover();
