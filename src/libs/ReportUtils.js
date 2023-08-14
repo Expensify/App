@@ -1148,6 +1148,7 @@ function isWaitingForIOUActionFromCurrentUser(report) {
         return true;
     }
 
+    // Money request waiting for current user to Pay (from expense or iou report)
     if (report.hasOutstandingIOU && report.ownerAccountID && (report.ownerAccountID !== currentUserAccountID || currentUserAccountID === report.managerID)) {
         return true;
     }
