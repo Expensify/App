@@ -2533,6 +2533,8 @@ const CONST = {
         DISTANCE: 'distance',
     },
     STATUS_TEXT_MAX_LENGTH: 100,
+
+    SF_COORDINATES: [-122.4194, 37.7749],
 };
 
 export default CONST;

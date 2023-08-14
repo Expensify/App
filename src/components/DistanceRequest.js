@@ -17,11 +17,11 @@ import styles from '../styles/styles';
 import variables from '../styles/variables';
 import LinearGradient from './LinearGradient';
 import init from '../libs/actions/MapboxToken';
+import CONST from '../CONST';
 
 const MAX_WAYPOINTS = 25;
 const MAX_WAYPOINTS_TO_DISPLAY = 4;
 
-const SF_COORDINATES = [-122.4194, 37.7749];
 const DEFAULT_ZOOM_LEVEL = 10;
 
 const propTypes = {
@@ -159,7 +159,7 @@ function DistanceRequest({transactionID, transaction, translate, mapboxAccessTok
                     mapPadding={50}
                     pitchEnabled={false}
                     initialState={{
-                        location: SF_COORDINATES,
+                        location: CONST.SF_COORDINATES,
                         zoom: DEFAULT_ZOOM_LEVEL,
                     }}
                     style={{
