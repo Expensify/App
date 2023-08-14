@@ -16,10 +16,11 @@ import * as ReportActionsUtils from '../ReportActionsUtils';
 import * as IOUUtils from '../IOUUtils';
 import * as OptionsListUtils from '../OptionsListUtils';
 import DateUtils from '../DateUtils';
-import TransactionUtils from '../TransactionUtils';
+import * as TransactionUtils from '../TransactionUtils';
 import * as ErrorUtils from '../ErrorUtils';
 import * as UserUtils from '../UserUtils';
 import * as Report from './Report';
+import * as NumberUtils from '../NumberUtils';
 
 let allReports;
 Onyx.connect({
@@ -310,8 +311,10 @@ function buildOnyxDataForMoneyRequest(
  * @param {Number} payeeAccountID
  * @param {Object} participant
  * @param {String} comment
+ * @param {Object} [receipt]
+ *
  */
-function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, participant, comment) {
+function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, participant, comment, receipt = undefined) {
     const payerEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login);
     const payerAccountID = Number(participant.accountID);
     const isPolicyExpenseChat = participant.isPolicyExpenseChat;
@@ -355,8 +358,13 @@ function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, part
             : ReportUtils.buildOptimisticIOUReport(payeeAccountID, payerAccountID, amount, chatReport.reportID, currency);
     }
 
-    // STEP 3: Build optimistic transaction
-    const optimisticTransaction = TransactionUtils.buildOptimisticTransaction(amount, currency, iouReport.reportID, comment);
+    // STEP 3: Build optimistic receipt and transaction
+    const receiptObject = {};
+    if (receipt && receipt.source) {
+        receiptObject.source = receipt.source;
+        receiptObject.state = CONST.IOU.RECEIPT_STATE.SCANREADY;
+    }
+    const optimisticTransaction = TransactionUtils.buildOptimisticTransaction(amount, currency, iouReport.reportID, comment, '', '', undefined, receiptObject);
 
     // STEP 4: Build optimistic reportActions. We need:
     // 1. CREATED action for the chatReport
@@ -375,6 +383,7 @@ function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, part
         optimisticTransaction.transactionID,
         '',
         iouReport.reportID,
+        receiptObject,
     );
 
     // Add optimistic personal details for participant
@@ -391,9 +400,9 @@ function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, part
 
     let reportPreviewAction = isNewIOUReport ? null : ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID);
     if (reportPreviewAction) {
-        reportPreviewAction = ReportUtils.updateReportPreview(iouReport, reportPreviewAction);
+        reportPreviewAction = ReportUtils.updateReportPreview(iouReport, reportPreviewAction, comment);
     } else {
-        reportPreviewAction = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport);
+        reportPreviewAction = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport, comment);
     }
 
     // STEP 5: Build Onyx Data
@@ -425,6 +434,7 @@ function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, part
             createdChatReportActionID: isNewChatReport ? optimisticCreatedActionForChat.reportActionID : 0,
             createdIOUReportActionID: isNewIOUReport ? optimisticCreatedActionForIOU.reportActionID : 0,
             reportPreviewReportActionID: reportPreviewAction.reportActionID,
+            receipt,
         },
         {optimisticData, successData, failureData},
     );
@@ -781,6 +791,90 @@ function splitBillAndOpenReport(participants, currentUserLogin, currentUserAccou
 
 /**
  * @param {String} transactionID
+ * @param {Number} transactionThreadReportID
+ * @param {Object} transactionChanges
+ */
+function editMoneyRequest(transactionID, transactionThreadReportID, transactionChanges) {
+    // STEP 1: Get all collections we're updating
+    const transactionThread = allReports[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`];
+    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    const iouReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${transactionThread.parentReportID}`];
+    const isFromExpenseReport = ReportUtils.isExpenseReport(iouReport);
+
+    // STEP 2: Build new modified expense report action.
+    const updatedReportAction = ReportUtils.buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges, isFromExpenseReport);
+    const updatedTransaction = TransactionUtils.getUpdatedTransaction(transaction, transactionChanges, isFromExpenseReport);
+    // STEP 3: Compute the IOU total and update the report preview message so LHN amount owed is correct
+    // STEP 4: Compose the optimistic data
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThread.reportID}`,
+            value: {
+                [updatedReportAction.reportActionID]: updatedReportAction,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: updatedTransaction,
+        },
+    ];
+
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThread.reportID}`,
+            value: {
+                [updatedReportAction.reportActionID]: {pendingAction: null},
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {pendingAction: null},
+        },
+    ];
+
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThread.reportID}`,
+            value: {
+                [updatedReportAction.reportActionID]: updatedReportAction,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: transaction,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.report}`,
+            value: iouReport,
+        },
+    ];
+
+    // STEP 6: Call the API endpoint
+    API.write(
+        'EditMoneyRequest',
+        {
+            transactionID,
+            reportActionID: updatedReportAction.reportActionID,
+
+            // Using the getter methods here to ensure we pass modified field if present
+            created: TransactionUtils.getCreated(updatedTransaction),
+            amount: TransactionUtils.getAmount(updatedTransaction, isFromExpenseReport),
+            currency: TransactionUtils.getCurrency(updatedTransaction),
+            comment: TransactionUtils.getDescription(updatedTransaction),
+        },
+        {optimisticData, successData, failureData},
+    );
+}
+
+/**
+ * @param {String} transactionID
  * @param {Object} reportAction - the money request reportAction we are deleting
  * @param {Boolean} isSingleTransactionView
  */
@@ -832,7 +926,7 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
     let updatedIOUReport = null;
     let updatedReportPreviewAction = null;
     if (!shouldDeleteIOUReport) {
-        if (ReportUtils.isExpenseReport(iouReport.reportID)) {
+        if (ReportUtils.isExpenseReport(iouReport)) {
             updatedIOUReport = {...iouReport};
 
             // Because of the Expense reports are stored as negative values, we add the total from the amount
@@ -851,6 +945,9 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
         });
         updatedReportPreviewAction.message[0].text = messageText;
         updatedReportPreviewAction.message[0].html = messageText;
+        if (reportPreviewAction.childMoneyRequestCount > 0) {
+            updatedReportPreviewAction.childMoneyRequestCount = reportPreviewAction.childMoneyRequestCount - 1;
+        }
     }
 
     // STEP 5: Build Onyx data
@@ -1500,6 +1597,12 @@ function setMoneyRequestReceipt(receiptPath, receiptSource) {
     Onyx.merge(ONYXKEYS.IOU, {receiptPath, receiptSource});
 }
 
+function createEmptyTransaction() {
+    const transactionID = NumberUtils.rand64();
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {transactionID});
+    Onyx.merge(ONYXKEYS.IOU, {transactionID});
+}
+
 /**
  * Navigates to the next IOU page based on where the IOU request was started
  *
@@ -1537,6 +1640,7 @@ function navigateToNextPage(iou, iouType, reportID, report) {
 }
 
 export {
+    editMoneyRequest,
     deleteMoneyRequest,
     splitBill,
     splitBillAndOpenReport,
@@ -1553,5 +1657,6 @@ export {
     setMoneyRequestDescription,
     setMoneyRequestParticipants,
     setMoneyRequestReceipt,
+    createEmptyTransaction,
     navigateToNextPage,
 };
