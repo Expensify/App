@@ -40,7 +40,7 @@ function AppleSignIn() {
             .then((token) => Session.beginAppleSignIn(token))
             .catch((e) => {
                 if (e.message === appleAuthAndroid.Error.SIGNIN_CANCELLED) return null;
-                Log.error('Apple authentication failed', e);
+                Log.alert('[Apple Sign In] Apple authentication failed', e);
             });
     };
     return (
