@@ -29,7 +29,4 @@ export default PropTypes.shape({
 
     /** Fragment edited flag */
     isEdited: PropTypes.bool,
-
-    /** A possible IOU transaction ID */
-    iouTransactionID: PropTypes.int,
 });

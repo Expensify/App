@@ -92,7 +92,18 @@ const propTypes = {
     ),
 
     /** The transaction attached to the action.message.iouTransactionID */
-    transaction: PropTypes.any,
+    transaction: PropTypes.shape({
+        /** The type of transaction */
+        type: PropTypes.string,
+
+        /** Custom units attached to the transaction */
+        customUnits: PropTypes.arrayOf(
+            PropTypes.shape({
+                /** The name of the custom unit */
+                name: PropTypes.string,
+            }),
+        ),
+    }),
 
     /** Session info for the currently logged in user. */
     session: PropTypes.shape({
@@ -124,7 +135,7 @@ const defaultProps = {
     session: {
         email: null,
     },
-    transaction: null,
+    transaction: {},
     shouldShowPendingConversionMessage: false,
 };
 
@@ -147,9 +158,9 @@ function MoneyRequestPreview(props) {
     const requestCurrency = moneyRequestAction.currency;
     const requestComment = moneyRequestAction.comment.trim();
 
-    const transaction = ReportActionUtils.getTransaction(props.action);
-    const hasReceipt = TransactionUtils.hasReceipt(transaction);
+    const hasReceipt = TransactionUtils.hasReceipt(props.transaction);
     const isScanning = !ReportActionUtils.hasReadyMoneyRequests(props.action);
+    const isDistanceRequest = props.transaction && TransactionUtils.isDistanceRequest(props.transaction);
 
     const getSettledMessage = () => {
         switch (lodashGet(props.action, 'originalMessage.paymentType', '')) {
@@ -169,6 +180,10 @@ function MoneyRequestPreview(props) {
     };
 
     const getPreviewHeaderText = () => {
+        if (isDistanceRequest) {
+            return props.translate('tabSelector.distance');
+        }
+
         if (isScanning) {
             return props.translate('common.receipt');
         }
@@ -187,6 +202,10 @@ function MoneyRequestPreview(props) {
     };
 
     const getDisplayAmountText = () => {
+        if (isDistanceRequest) {
+            return TransactionUtils.getAmount(props.transaction);
+        }
+
         if (isScanning) {
             return props.translate('iou.receiptScanning');
         }
@@ -208,7 +227,7 @@ function MoneyRequestPreview(props) {
                 <View style={[styles.moneyRequestPreviewBox, ...props.containerStyles, isScanning ? styles.moneyRequestPreviewBoxHover : undefined]}>
                     {hasReceipt && (
                         <ReportActionItemImages
-                            images={[ReceiptUtils.getThumbnailAndImageURIs(transaction.receipt.source, transaction.filename)]}
+                            images={[ReceiptUtils.getThumbnailAndImageURIs(props.transaction.receipt.source, props.transaction.filename)]}
                             size={1}
                             total={1}
                             hoverStyle={isScanning ? styles.moneyRequestPreviewBoxHover : undefined}
@@ -316,7 +335,7 @@ export default compose(
             key: ONYXKEYS.SESSION,
         },
         transaction: {
-            key: ({action}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${(action && action.message && action.message.iouTransactionID) || 0}`,
+            key: ({action}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${(action && action.originalMessage && action.originalMessage.IOUTransactionID) || 0}`,
         },
         walletTerms: {
             key: ONYXKEYS.WALLET_TERMS,
