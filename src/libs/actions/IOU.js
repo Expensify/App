@@ -404,7 +404,7 @@ function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, part
     if (reportPreviewAction) {
         reportPreviewAction = ReportUtils.updateReportPreview(iouReport, reportPreviewAction, comment);
     } else {
-        reportPreviewAction = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport, comment);
+        reportPreviewAction = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport, comment, optimisticTransaction);
     }
 
     // STEP 5: Build Onyx Data

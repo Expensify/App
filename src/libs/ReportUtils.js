@@ -1942,10 +1942,12 @@ function buildOptimisticIOUReportAction(
  * @param {Object} chatReport
  * @param {Object} iouReport
  * @param {String} [comment] - User comment for the IOU.
+ * @param {Object} [transaction] - optimistic first transaction of preview
  *
  * @returns {Object}
  */
-function buildOptimisticReportPreview(chatReport, iouReport, comment = '') {
+function buildOptimisticReportPreview(chatReport, iouReport, comment = '', transaction = undefined) {
+    const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const message = getReportPreviewMessage(iouReport);
     return {
         reportActionID: NumberUtils.rand64(),
@@ -1968,6 +1970,8 @@ function buildOptimisticReportPreview(chatReport, iouReport, comment = '') {
         actorAccountID: iouReport.managerID || 0,
         childMoneyRequestCount: 1,
         childLastMoneyRequestComment: comment,
+        childLastReceiptTransactionIDs: hasReceipt ? transaction.transactionID : '',
+        whisperedToAccountIDs: iouReport.managerID && hasReceipt ? [iouReport.managerID] : [],
     };
 }
 
