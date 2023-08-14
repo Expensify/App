@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import PropTypes from 'prop-types';
 import AmountTextInput from './AmountTextInput';
 import CurrencySymbolButton from './CurrencySymbolButton';
@@ -31,6 +31,9 @@ const propTypes = {
 
     /** Function to call when selection in text input is changed */
     onSelectionChange: PropTypes.func,
+
+    /** Flag to indicate if the button should be disabled */
+    disabled: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -39,16 +42,24 @@ const defaultProps = {
     onCurrencyButtonPress: () => {},
     selection: undefined,
     onSelectionChange: () => {},
+    disabled: false,
 };
 
 function TextInputWithCurrencySymbol(props) {
     const currencySymbol = CurrencyUtils.getLocalizedCurrencySymbol(props.selectedCurrencyCode);
     const isCurrencySymbolLTR = CurrencyUtils.isCurrencySymbolLTR(props.selectedCurrencyCode);
 
+    const [skipNextSelectionChange, setSkipNextSelectionChange] = useState(false);
+
+    useEffect(() => {
+        setSkipNextSelectionChange(true);
+    }, [props.formattedAmount]);
+
     const currencySymbolButton = (
         <CurrencySymbolButton
             currencySymbol={currencySymbol}
             onCurrencyButtonPress={props.onCurrencyButtonPress}
+            disabled={props.disabled}
         />
     );
 
@@ -59,7 +70,13 @@ function TextInputWithCurrencySymbol(props) {
             placeholder={props.placeholder}
             ref={props.forwardedRef}
             selection={props.selection}
-            onSelectionChange={props.onSelectionChange}
+            onSelectionChange={(e) => {
+                if (skipNextSelectionChange) {
+                    setSkipNextSelectionChange(false);
+                    return;
+                }
+                props.onSelectionChange(e);
+            }}
         />
     );
 

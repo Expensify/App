@@ -98,6 +98,9 @@ const defaultProps = {
 function ReportPreview(props) {
     const managerID = props.iouReport.managerID || props.action.actorAccountID || 0;
     const isCurrentUserManager = managerID === lodashGet(props.session, 'accountID');
+    const moneyRequestCount = lodashGet(props.action, 'childMoneyRequestCount', 0);
+    const moneyRequestComment = lodashGet(props.action, 'childLastMoneyRequestComment', '');
+    const showComment = moneyRequestComment || moneyRequestCount > 1;
     const reportTotal = ReportUtils.getMoneyRequestTotal(props.iouReport);
 
     const iouSettled = ReportUtils.isSettled(props.iouReportID);
@@ -194,6 +197,15 @@ function ReportPreview(props) {
                             </View>
                         )}
                     </View>
+                    {showComment && (
+                        <View style={[styles.flexRow]}>
+                            <View style={[styles.flex1]}>
+                                <Text style={[styles.mt1, styles.colorMuted]}>
+                                    {moneyRequestCount > 1 ? props.translate('iou.requestCount', {count: moneyRequestCount}) : moneyRequestComment}
+                                </Text>
+                            </View>
+                        </View>
+                    )}
                     {shouldShowSettlementButton && (
                         <SettlementButton
                             currency={props.iouReport.currency}

@@ -351,6 +351,7 @@ export default {
     tabSelector: {
         manual: 'Manual',
         scan: 'Scan',
+        distance: 'Distance',
     },
     receipt: {
         upload: 'Upload receipt',
@@ -386,6 +387,8 @@ export default {
         receiptStatusTitle: 'Scanning…',
         receiptStatusText: 'Only you can see this receipt when it\'s scanning. Check back later or enter the details now.',
         requestCount: ({count, scanningReceipts = 0}) => `${count} requests${scanningReceipts > 0 ? `, ${scanningReceipts} scanning` : ''}`,
+        deleteRequest: 'Delete request',
+        deleteConfirmation: 'Are you sure that you want to delete this request?',
         settledExpensify: 'Paid',
         settledElsewhere: 'Paid elsewhere',
         settledPaypalMe: 'Paid using Paypal.me',
@@ -409,11 +412,13 @@ export default {
         pendingConversionMessage: "Total will update when you're back online",
         threadRequestReportName: ({formattedAmount, comment}) => `${formattedAmount} request${comment ? ` for ${comment}` : ''}`,
         threadSentMoneyReportName: ({formattedAmount, comment}) => `${formattedAmount} sent${comment ? ` for ${comment}` : ''}`,
+        requestCount: ({count}) => `${count} requests`,
         error: {
             invalidSplit: 'Split amounts do not equal total amount',
             other: 'Unexpected error, please try again later',
             genericCreateFailureMessage: 'Unexpected error requesting money, please try again later',
             genericDeleteFailureMessage: 'Unexpected error deleting the money request, please try again later',
+            genericEditFailureMessage: 'Unexpected error editing the money request, please try again later',
         },
     },
     notificationPreferencesPage: {
@@ -868,6 +873,15 @@ export default {
         passwordNotSet: 'We were unable to set your new password. We have sent you a new password link to try again.',
         setPasswordLinkInvalid: 'This set password link is invalid or has expired. A new one is waiting for you in your email inbox!',
         validateAccount: 'Verify account',
+    },
+    statusPage: {
+        status: 'Status',
+        setStatusTitle: 'Set your status',
+        statusExplanation: "Add an emoji to give your colleagues and friends an easy way to know what's going on. You can optionally add a message too!",
+        today: 'Today',
+        clearStatus: 'Clear status',
+        save: 'Save',
+        message: 'Message',
     },
     stepCounter: ({step, total, text}) => {
         let result = `Step ${step}`;
@@ -1570,6 +1584,14 @@ export default {
         levelOneResult: 'Sends anonymous warning and message is reported for review.',
         levelTwoResult: 'Message hidden from channel, plus anonymous warning and message is reported for review.',
         levelThreeResult: 'Message removed from channel plus anonymous warning and message is reported for review.',
+    },
+    distance: {
+        addStop: 'Add stop',
+        waypointDescription: {
+            start: 'Start',
+            finish: 'Finish',
+            stop: 'Stop',
+        },
     },
     countrySelectorModal: {
         placeholderText: 'Search to see options',

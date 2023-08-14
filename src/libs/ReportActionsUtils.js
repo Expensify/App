@@ -108,6 +108,14 @@ function isReportPreviewAction(reportAction) {
     return lodashGet(reportAction, 'actionName', '') === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW;
 }
 
+/**
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
+function isModifiedExpenseAction(reportAction) {
+    return lodashGet(reportAction, 'actionName', '') === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE;
+}
+
 function isWhisperAction(action) {
     return (action.whisperedToAccountIDs || []).length > 0;
 }
@@ -132,6 +140,17 @@ function getParentReportAction(report, allReportActionsParam = undefined) {
         return {};
     }
     return lodashGet(allReportActionsParam || allReportActions, [report.parentReportID, report.parentReportActionID], {});
+}
+
+/**
+ * Find the reportAction having the given childReportID in parent report actions
+ *
+ * @param {String} childReportID
+ * @param {String} parentReportID
+ * @returns {Object}
+ */
+function getParentReportActionInReport(childReportID, parentReportID) {
+    return _.find(allReportActions[parentReportID], (reportAction) => reportAction && `${reportAction.childReportID}` === `${childReportID}`);
 }
 
 /**
@@ -674,11 +693,13 @@ export {
     getReportPreviewAction,
     isCreatedTaskReportAction,
     getParentReportAction,
+    getParentReportActionInReport,
     isTransactionThread,
     getFormattedAmount,
     isSentMoneyReportAction,
     isDeletedParentAction,
     isReportPreviewAction,
+    isModifiedExpenseAction,
     getIOUReportIDFromReportActionPreview,
     isMessageDeleted,
     isWhisperAction,
