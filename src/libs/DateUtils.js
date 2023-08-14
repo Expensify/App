@@ -212,29 +212,29 @@ function getDateStringFromISOTimestamp(isoTimestamp) {
  * @returns {String}
  */
 function getStatusUntilDate(inputDate) {
-  if (!inputDate) return '';
+    if (!inputDate) return '';
 
-  const input = moment(inputDate, 'YYYY-MM-DD HH:mm:ss');
-  const now = moment();
-  const endOfToday = moment().endOf('day').format('YYYY-MM-DD HH:mm:ss');
+    const input = moment(inputDate, 'YYYY-MM-DD HH:mm:ss');
+    const now = moment();
+    const endOfToday = moment().endOf('day').format('YYYY-MM-DD HH:mm:ss');
 
-  // If the date is equal to the end of today
-  if (input.isSame(endOfToday)) {
-      return 'Until tomorrow';
-  }
+    // If the date is equal to the end of today
+    if (input.isSame(endOfToday)) {
+        return 'Until tomorrow';
+    }
 
-  // If it's a time on the same date
-  if (input.isSame(now, 'day')) {
-      return `Until ${input.format('hh:mm A')}`;
-  }
+    // If it's a time on the same date
+    if (input.isSame(now, 'day')) {
+        return `Until ${input.format('hh:mm A')}`;
+    }
 
-  // If it's further in the future than tomorrow but within the same year
-  if (input.isAfter(now) && input.isSame(now, 'year')) {
-      return `Until ${input.format('MM-DD hh:mm A')}`;
-  }
+    // If it's further in the future than tomorrow but within the same year
+    if (input.isAfter(now) && input.isSame(now, 'year')) {
+        return `Until ${input.format('MM-DD hh:mm A')}`;
+    }
 
-  // If it's in another year
-  return `Until ${input.format('YYYY-MM-DD hh:mm A')}`;
+    // If it's in another year
+    return `Until ${input.format('YYYY-MM-DD hh:mm A')}`;
 }
 
 /**
