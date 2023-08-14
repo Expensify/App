@@ -73,8 +73,7 @@ const PressableWithFeedback = forwardRef((props, ref) => {
                     if (props.onPressOut) props.onPressOut();
                 }}
                 onPress={(e) => {
-                    const onPress = props.onPress(e);
-                    singleExecution(onPress);
+                    singleExecution(() => props.onPress(e))();
                 }}
             >
                 {(state) => (_.isFunction(props.children) ? props.children(state) : props.children)}
