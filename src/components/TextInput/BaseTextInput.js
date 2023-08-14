@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React, {useState, useRef, useEffect, useCallback} from 'react';
-import {Animated, View, AppState, Keyboard, StyleSheet} from 'react-native';
+import {Animated, View, AppState, Keyboard, StyleSheet, InteractionManager} from 'react-native';
 import Str from 'expensify-common/lib/str';
 import RNTextInput from '../RNTextInput';
 import TextInputLabel from './TextInputLabel';
@@ -37,6 +37,8 @@ function BaseTextInput(props) {
 
     const input = useRef(null);
     const isLabelActive = useRef(initialActiveLabel);
+    const isFirstRender = useRef(true);
+
 
     useEffect(() => {
         if (!props.disableKeyboard) {
@@ -185,17 +187,33 @@ function BaseTextInput(props) {
     // It gets updated when the text gets changed.
     const hasValueRef = useRef(inputValue.length > 0);
 
+    const updateLabel = useCallback(
+        () => {
+            // We can't use inputValue here directly, as it might contain
+            // the defaultValue, which doesn't get updated when the text changes.
+            // We can't use props.value either, as it might be undefined.
+            if (hasValueRef.current || isFocused || isInputAutoFilled(input.current)) {
+                activateLabel();
+            } else if (!hasValueRef.current && !isFocused && !isInputAutoFilled(input.current)) {
+                deactivateLabel();
+            }
+        },
+        [activateLabel, deactivateLabel, isFocused],
+    );
+
     // Activate or deactivate the label when the focus changes:
     useEffect(() => {
-        // We can't use inputValue here directly, as it might contain
-        // the defaultValue, which doesn't get updated when the text changes.
-        // We can't use props.value either, as it might be undefined.
-        if (hasValueRef.current || isFocused) {
-            activateLabel();
-        } else if (!hasValueRef.current && !isFocused) {
-            deactivateLabel();
+        // We update label after interaction on initial render.
+        // This also avoids a bug where we immediately clear server errors when the loading indicator unmounts and Form remounts with server errors.
+        if (isFirstRender.current) {
+            isFirstRender.current = false;
+            InteractionManager.runAfterInteractions(() => {
+                updateLabel()
+            });
+            return;
         }
-    }, [activateLabel, deactivateLabel, inputValue, isFocused]);
+        updateLabel()
+    }, [updateLabel, inputValue]);
 
     /**
      * Set Value & activateLabel
