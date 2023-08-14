@@ -13,13 +13,14 @@ import useLocalize from '../../hooks/useLocalize';
 import * as IOUUtils from '../../libs/IOUUtils';
 import Navigation from '../../libs/Navigation/Navigation';
 import styles from '../../styles/styles';
-import MoneyRequestAmount from './steps/MoneyRequestAmount';
 import ReceiptSelector from './ReceiptSelector';
 import * as IOU from '../../libs/actions/IOU';
+import DistanceRequestPage from './DistanceRequestPage';
 import DragAndDropProvider from '../../components/DragAndDrop/Provider';
 import usePermissions from '../../hooks/usePermissions';
 import OnyxTabNavigator, {TopTab} from '../../libs/Navigation/OnyxTabNavigator';
 import participantPropTypes from '../../components/participantPropTypes';
+import NewRequestAmountPage from './steps/NewRequestAmountPage';
 
 const propTypes = {
     /** React Navigation route */
@@ -62,7 +63,7 @@ function MoneyRequestSelectorPage(props) {
     const iouType = lodashGet(props.route, 'params.iouType', '');
     const reportID = lodashGet(props.route, 'params.reportID', '');
     const {translate} = useLocalize();
-    const {canUseScanReceipts} = usePermissions();
+    const {canUseScanReceipts, canUseDistanceRequests} = usePermissions();
 
     const title = {
         [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST]: translate('iou.requestMoney'),
@@ -85,7 +86,7 @@ function MoneyRequestSelectorPage(props) {
                                 title={title[iouType]}
                                 onBackButtonPress={Navigation.dismissModal}
                             />
-                            {canUseScanReceipts && iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST ? (
+                            {(canUseScanReceipts || canUseDistanceRequests) && iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST ? (
                                 <OnyxTabNavigator
                                     id={CONST.TAB.RECEIPT_TAB_ID}
                                     tabBar={({state, navigation}) => (
@@ -98,17 +99,25 @@ function MoneyRequestSelectorPage(props) {
                                 >
                                     <TopTab.Screen
                                         name={CONST.TAB.MANUAL}
-                                        component={MoneyRequestAmount}
+                                        component={NewRequestAmountPage}
                                         initialParams={{reportID, iouType}}
                                     />
-                                    <TopTab.Screen
-                                        name={CONST.TAB.SCAN}
-                                        component={ReceiptSelector}
-                                        initialParams={{reportID, iouType}}
-                                    />
+                                    {canUseScanReceipts && (
+                                        <TopTab.Screen
+                                            name={CONST.TAB.SCAN}
+                                            component={ReceiptSelector}
+                                            initialParams={{reportID, iouType}}
+                                        />
+                                    )}
+                                    {canUseDistanceRequests && (
+                                        <TopTab.Screen
+                                            name={CONST.TAB.DISTANCE}
+                                            component={DistanceRequestPage}
+                                        />
+                                    )}
                                 </OnyxTabNavigator>
                             ) : (
-                                <MoneyRequestAmount route={props.route} />
+                                <NewRequestAmountPage route={props.route} />
                             )}
                         </View>
                     </DragAndDropProvider>

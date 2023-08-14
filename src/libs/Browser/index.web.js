@@ -61,6 +61,10 @@ function isMobileChrome() {
     return /Android/i.test(userAgent) && /chrome|chromium|crios/i.test(userAgent);
 }
 
+function isSafari() {
+    return getBrowser() === 'safari' || isMobileSafari();
+}
+
 /**
  * The session information needs to be passed to the Desktop app, and the only way to do that is by using query params. There is no other way to transfer the data.
  * @param {String} shortLivedAuthToken
@@ -100,4 +104,4 @@ function openRouteInDesktopApp(shortLivedAuthToken = '', email = '') {
     }
 }
 
-export {getBrowser, isMobile, isMobileSafari, isMobileChrome, openRouteInDesktopApp};
+export {getBrowser, isMobile, isMobileSafari, isSafari, isMobileChrome, openRouteInDesktopApp};

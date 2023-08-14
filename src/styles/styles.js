@@ -1194,14 +1194,7 @@ const styles = {
         left: 0,
     },
 
-    signInBackgroundDesktop: {
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        minHeight: 700,
-    },
-
-    signInBackgroundMobile: {
+    signInBackground: {
         position: 'absolute',
         bottom: 0,
         left: 0,
@@ -1542,7 +1535,7 @@ const styles = {
     chatContentScrollView: {
         flexGrow: 1,
         justifyContent: 'flex-start',
-        paddingVertical: 16,
+        paddingBottom: 16,
     },
 
     // Chat Item
@@ -2013,6 +2006,10 @@ const styles = {
         marginRight: variables.avatarChatSpacing,
     },
 
+    emptyAvatarMarginChat: {
+        marginRight: variables.avatarChatSpacing - 12,
+    },
+
     emptyAvatarMarginSmall: {
         marginRight: variables.avatarChatSpacing - 4,
     },
@@ -2100,8 +2097,14 @@ const styles = {
         height: '100%',
         justifyContent: 'center',
         overflow: 'hidden',
-        overflowY: 'auto',
         alignItems: 'center',
+    },
+
+    PDFViewList: {
+        overflowX: 'hidden',
+        // There properties disable "focus" effect on list
+        boxShadow: 'none',
+        outline: 'none',
     },
 
     pdfPasswordForm: {
@@ -2496,11 +2499,11 @@ const styles = {
         alignSelf: 'flex-start',
     },
 
-    attachmentModalArrowsContainer: {
-        display: 'flex',
-        justifyContent: 'center',
+    attachmentCarouselContainer: {
         height: '100%',
         width: '100%',
+        display: 'flex',
+        justifyContent: 'center',
         ...cursor.cursorUnset,
     },
 
@@ -2586,14 +2589,21 @@ const styles = {
         lineHeight: variables.inputHeight,
     },
 
-    magicCodeInputTransparent: {
+    // Manually style transparent, in iOS Safari, an input in a container with its opacity set to
+    // 0 (completely transparent) cannot handle user interaction, hence the Paste option is never shown
+    inputTransparent: {
         color: 'transparent',
-        caretColor: 'transparent',
-        WebkitTextFillColor: 'transparent',
-        // After setting the input text color to transparent, it acquires the background-color.
-        // However, it is not possible to override the background-color directly as explained in this resource: https://developer.mozilla.org/en-US/docs/Web/CSS/:autofill
-        // Therefore, the transition effect needs to be delayed.
-        transitionDelay: '99999s',
+        // These properties are available in browser only
+        ...(Browser.getBrowser()
+            ? {
+                  caretColor: 'transparent',
+                  WebkitTextFillColor: 'transparent',
+                  // After setting the input text color to transparent, it acquires the background-color.
+                  // However, it is not possible to override the background-color directly as explained in this resource: https://developer.mozilla.org/en-US/docs/Web/CSS/:autofill
+                  // Therefore, the transition effect needs to be delayed.
+                  transitionDelay: '99999s',
+              }
+            : {}),
     },
 
     iouAmountText: {
@@ -3633,10 +3643,39 @@ const styles = {
         willChange: 'transform',
     },
 
+    emojiPickerButtonDropdown: {
+        justifyContent: 'center',
+        backgroundColor: themeColors.activeComponentBG,
+        width: 86,
+        height: 52,
+        borderRadius: 26,
+        alignItems: 'center',
+        paddingLeft: 10,
+        paddingRight: 4,
+        marginBottom: 32,
+        alignSelf: 'flex-start',
+    },
+
+    emojiPickerButtonDropdownIcon: {
+        fontSize: 30,
+    },
+
     moneyRequestImage: {
         height: 200,
         borderRadius: 16,
         margin: 20,
+    },
+
+    staticHeaderImage: {
+        minHeight: 240,
+    },
+
+    emojiPickerButtonDropdownContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    rotate90: {
+        transform: [{rotate: '90deg'}],
     },
 };
 
