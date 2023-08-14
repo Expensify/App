@@ -27,6 +27,8 @@ import reportPropTypes from './reportPropTypes';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
 import PressableWithoutFeedback from '../components/Pressable/PressableWithoutFeedback';
+import ParentNavigationSubtitle from '../components/ParentNavigationSubtitle';
+import MultipleAvatars from '../components/MultipleAvatars';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -66,9 +68,11 @@ function ReportDetailsPage(props) {
     const isThread = useMemo(() => ReportUtils.isChatThread(props.report), [props.report]);
     const isUserCreatedPolicyRoom = useMemo(() => ReportUtils.isUserCreatedPolicyRoom(props.report), [props.report]);
     const isArchivedRoom = useMemo(() => ReportUtils.isArchivedRoom(props.report), [props.report]);
+    const isMoneyRequestReport = useMemo(() => ReportUtils.isMoneyRequestReport(props.report), [props.report]);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps -- policy is a dependency because `getChatRoomSubtitle` calls `getPolicyName` which in turn retrieves the value from the `policy` value stored in Onyx
     const chatRoomSubtitle = useMemo(() => ReportUtils.getChatRoomSubtitle(props.report), [props.report, policy]);
+    const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(props.report);
     const canLeaveRoom = useMemo(() => ReportUtils.canLeaveRoom(props.report, !_.isEmpty(policy)), [policy, props.report]);
     const participants = useMemo(() => lodashGet(props.report, 'participantAccountIDs', []), [props.report]);
 
@@ -130,6 +134,8 @@ function ReportDetailsPage(props) {
         return ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs(participants, props.personalDetails), hasMultipleParticipants);
     }, [participants, props.personalDetails]);
 
+    const icons = useMemo(() => ReportUtils.getIcons(props.report, props.personalDetails, props.policies), [props.report, props.personalDetails, props.policies]);
+
     const chatRoomSubtitleText = chatRoomSubtitle ? (
         <Text
             style={[styles.sidebarLinkText, styles.textLabelSupporting, styles.pre, styles.mt1]}
@@ -146,7 +152,14 @@ function ReportDetailsPage(props) {
                 <ScrollView style={[styles.flex1]}>
                     <View style={styles.reportDetailsTitleContainer}>
                         <View style={styles.mb3}>
-                            <RoomHeaderAvatars icons={ReportUtils.getIcons(props.report, props.personalDetails, props.policies)} />
+                            {isMoneyRequestReport ? (
+                                <MultipleAvatars
+                                    icons={icons}
+                                    size={CONST.AVATAR_SIZE.LARGE}
+                                />
+                            ) : (
+                                <RoomHeaderAvatars icons={icons} />
+                            )}
                         </View>
                         <View style={[styles.reportDetailsRoomInfo, styles.mw100]}>
                             <View style={[styles.alignSelfCenter, styles.w100, styles.mt1]}>
@@ -172,6 +185,13 @@ function ReportDetailsPage(props) {
                                 </PressableWithoutFeedback>
                             ) : (
                                 chatRoomSubtitleText
+                            )}
+                            {!_.isEmpty(parentNavigationSubtitleData) && isMoneyRequestReport && (
+                                <ParentNavigationSubtitle
+                                    parentNavigationSubtitleData={parentNavigationSubtitleData}
+                                    parentReportID={props.report.parentReportID}
+                                    pressableStyles={[styles.mt1, styles.mw100]}
+                                />
                             )}
                         </View>
                     </View>

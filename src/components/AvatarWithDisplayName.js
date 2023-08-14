@@ -18,7 +18,7 @@ import * as OptionsListUtils from '../libs/OptionsListUtils';
 import Text from './Text';
 import * as StyleUtils from '../styles/StyleUtils';
 import ParentNavigationSubtitle from './ParentNavigationSubtitle';
-import PressableWithoutFeedback from "./Pressable/PressableWithoutFeedback";
+import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -112,7 +112,7 @@ function AvatarWithDisplayName(props) {
         </View>
     );
 
-    if (!props.shouldEnableDetailPageNavigation){
+    if (!props.shouldEnableDetailPageNavigation) {
         return headerView;
     }
 
@@ -125,7 +125,7 @@ function AvatarWithDisplayName(props) {
         >
             {headerView}
         </PressableWithoutFeedback>
-    )
+    );
 }
 AvatarWithDisplayName.propTypes = propTypes;
 AvatarWithDisplayName.displayName = 'AvatarWithDisplayName';

@@ -44,13 +44,13 @@ class ShareCodePage extends React.Component {
      * @param {Boolean} isReport
      * @return {String|string|*}
      */
-    getSubtitle(isReport){
+    getSubtitle(isReport) {
         if (ReportUtils.isMoneyRequestReport(this.props.report)) {
             const {workspaceName} = ReportUtils.getParentNavigationSubtitle(this.props.report);
             return workspaceName;
         }
 
-        if (isReport){
+        if (isReport) {
             return ReportUtils.getChatRoomSubtitle(this.props.report);
         }
 
