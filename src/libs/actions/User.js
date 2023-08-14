@@ -18,6 +18,7 @@ import * as ReportActionsUtils from '../ReportActionsUtils';
 import * as ErrorUtils from '../ErrorUtils';
 import * as Session from './Session';
 import * as PersonalDetails from './PersonalDetails';
+import * as OnyxUpdates from './OnyxUpdates';
 
 let currentUserAccountID = '';
 let currentEmail = '';
@@ -553,21 +554,7 @@ function subscribeToUserEvents() {
             updates = pushJSON;
         } else {
             updates = pushJSON.updates;
-
-            // Not always we'll have the lastUpdateID and previousUpdateID properties in the pusher update
-            // until we finish the migration to reliable updates. So let's check it before actually updating
-            // the properties in Onyx
-            if (pushJSON.lastUpdateID && pushJSON.previousUpdateID) {
-                console.debug('[OnyxUpdates] Received lastUpdateID from pusher', pushJSON.lastUpdateID);
-                console.debug('[OnyxUpdates] Received previousUpdateID from pusher', pushJSON.previousUpdateID);
-                // Store these values in Onyx to allow App.reconnectApp() to fetch incremental updates from the server when a previous session is being reconnected to.
-                Onyx.multiSet({
-                    [ONYXKEYS.ONYX_UPDATES.LAST_UPDATE_ID]: Number(pushJSON.lastUpdateID || 0),
-                    [ONYXKEYS.ONYX_UPDATES.PREVIOUS_UPDATE_ID]: Number(pushJSON.previousUpdateID || 0),
-                });
-            } else {
-                console.debug('[OnyxUpdates] No lastUpdateID and previousUpdateID provided');
-            }
+            OnyxUpdates.saveUpdateIDs(Number(pushJSON.lastUpdateID || 0), Number(pushJSON.previousUpdateID || 0));
         }
         _.each(updates, (multipleEvent) => {
             PusherUtils.triggerMultiEventHandler(multipleEvent.eventType, multipleEvent.data);
