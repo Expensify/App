@@ -1451,7 +1451,7 @@ function getReport(reportID) {
 function navigateToDetailsPage(report) {
     const participantAccountIDs = lodashGet(report, 'participantAccountIDs', []);
 
-    if (isChatRoom(report) || isPolicyExpenseChat(report) || isChatThread(report)) {
+    if (isChatRoom(report) || isPolicyExpenseChat(report) || isChatThread(report) || isMoneyRequestReport(report)) {
         Navigation.navigate(ROUTES.getReportDetailsRoute(report.reportID));
         return;
     }
