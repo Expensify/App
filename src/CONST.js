@@ -2534,6 +2534,9 @@ const CONST = {
         DISTANCE: 'distance',
     },
     STATUS_TEXT_MAX_LENGTH: 100,
+    DEMO_PAGES: {
+        SAASTR: 'SaaStrDemoSetup',
+    },
 };
 
 export default CONST;

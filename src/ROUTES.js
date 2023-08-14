@@ -173,6 +173,9 @@ export default {
     getWorkspaceTravelRoute: (policyID) => `workspace/${policyID}/travel`,
     getWorkspaceMembersRoute: (policyID) => `workspace/${policyID}/members`,
 
+    // These are some on-off routes that will be removed once they're no longer needed (see GH issues for details)
+    SAASTR: 'saastr',
+
     /**
      * @param {String} route
      * @returns {Object}
