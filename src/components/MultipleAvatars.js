@@ -71,6 +71,21 @@ const defaultProps = {
     maxAvatarsInRow: CONST.AVATAR_ROW_SIZE.DEFAULT,
 };
 
+const avatarSizeToStylesMap = {
+    [CONST.AVATAR_SIZE.SMALL]: {
+        singleAvatarStyle: styles.singleAvatarSmall,
+        secondAvatarStyles: styles.secondAvatarSmall,
+    },
+    [CONST.AVATAR_SIZE.LARGE]: {
+        singleAvatarStyle: styles.singleAvatarMedium,
+        secondAvatarStyles: styles.secondAvatarMedium,
+    },
+    default: {
+        singleAvatarStyle: styles.singleAvatar,
+        secondAvatarStyles: styles.secondAvatar,
+    },
+};
+
 function getContainerStyles(size, isInReportAction) {
     let containerStyles;
 
@@ -95,26 +110,7 @@ function getContainerStyles(size, isInReportAction) {
 }
 function MultipleAvatars(props) {
     let avatarContainerStyles = getContainerStyles(props.size, props.isInReportAction);
-    const {singleAvatarStyle, secondAvatarStyles} = useMemo(() => {
-        if (props.size === CONST.AVATAR_SIZE.SMALL) {
-            return {
-                singleAvatarStyle: styles.singleAvatarSmall,
-                secondAvatarStyles: styles.secondAvatarSmall,
-            };
-        }
-
-        if (props.size === CONST.AVATAR_SIZE.LARGE) {
-            return {
-                singleAvatarStyle: styles.singleAvatarMedium,
-                secondAvatarStyles: styles.secondAvatarMedium,
-            };
-        }
-
-        return {
-            singleAvatarStyle: styles.singleAvatar,
-            secondAvatarStyles: styles.secondAvatar,
-        };
-    }, [props.size]);
+    const {singleAvatarStyle, secondAvatarStyles} = useMemo(() => avatarSizeToStylesMap[props.size] || avatarSizeToStylesMap.default, [props.size]);
 
     const tooltipTexts = props.shouldShowTooltip ? _.pluck(props.icons, 'name') : [''];
     const avatarSize = useMemo(() => {
