@@ -109,13 +109,17 @@ function ReportActionItemMessageEdit(props) {
     }, [isFocused]);
 
     useEffect(() => {
+        debouncedSaveSelection(selection);
+    }, [selection]);
+
+    useEffect(() => {
         // For mobile Safari, updating the selection prop on an unfocused input will cause it to automatically gain focus
         // and subsequent programmatic focus shifts (e.g., modal focus trap) to show the blue frame (:focus-visible style),
         // so we need to ensure that it is only updated after focus.
         setDraft((prevDraft) => {
             setSelection({
-                start: prevDraft.length,
-                end: prevDraft.length,
+                start: props.selection === undefined ? prevDraft.length : props.selection.start,
+                end: props.selection === undefined ? prevDraft.length : props.selection.end ,
             });
             return prevDraft;
         });
@@ -157,6 +161,18 @@ function ReportActionItemMessageEdit(props) {
                 insertedEmojis.current = [];
             }, 1000),
         [],
+    );
+
+    /**
+     * Save the selection of the draft. This debounced so that we don't save the selection too often
+     * @param {Object} newSelection
+     */
+    const debouncedSaveSelection = useMemo(
+        () =>
+            _.debounce((newSelection) => {
+                Report.saveReportActionSelection(props.reportID, props.action.reportActionID, newSelection);
+            }, 1000),
+        [props.reportID, props.action.reportActionID],
     );
 
     /**
