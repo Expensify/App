@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import CONST from '../CONST';
 import * as ReportActionsUtils from './ReportActionsUtils';
+import * as TransactionUtils from './TransactionUtils';
 
 /**
  * Calculates the amount per user given a list of participants
@@ -79,7 +80,8 @@ function getIOUReportActions(reportActions, iouReport, type = '', pendingAction 
         .filter((action) => action.originalMessage.IOUReportID.toString() === iouReport.reportID.toString())
         .filter((action) => (!_.isEmpty(pendingAction) ? action.pendingAction === pendingAction : true))
         .filter((action) => {
-            const currency = ReportActionsUtils.getMoneyRequestDetails(action).currency;
+            const transaction = ReportActionsUtils.getLinkedTransaction(action);
+            const currency = TransactionUtils.getCurrency(transaction);
             return filterRequestsInDifferentCurrency ? currency && currency !== iouReport.currency : true;
         })
         .value();

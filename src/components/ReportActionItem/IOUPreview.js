@@ -29,6 +29,7 @@ import * as ReportUtils from '../../libs/ReportUtils';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 import refPropTypes from '../refPropTypes';
 import PressableWithFeedback from '../Pressable/PressableWithoutFeedback';
+import * as TransactionsUtils from '../../libs/TransactionUtils';
 
 const propTypes = {
     /** The active IOUReport, used for Onyx subscription */
@@ -138,11 +139,10 @@ function IOUPreview(props) {
     // Pay button should only be visible to the manager of the report.
     const isCurrentUserManager = managerID === sessionAccountID;
 
-    const moneyRequestDetails = ReportActionsUtils.getMoneyRequestDetails(props.action);
-
-    const requestAmount = moneyRequestDetails.amount;
-    const requestCurrency = moneyRequestDetails.currency;
-    const requestComment = moneyRequestDetails.comment.trim();
+    const transaction = ReportActionsUtils.getLinkedTransaction(props.action);
+    const requestAmount = TransactionsUtils.getAmount(transaction, ReportUtils.isExpenseReport(props.iouReport));
+    const requestCurrency = TransactionsUtils.getCurrency(transaction);
+    const requestComment = TransactionsUtils.getDescription(transaction);
 
     const getSettledMessage = () => {
         switch (lodashGet(props.action, 'originalMessage.paymentType', '')) {
