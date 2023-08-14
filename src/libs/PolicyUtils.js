@@ -188,7 +188,7 @@ function getIneligibleInvitees(policyMembers, personalDetails) {
  * @returns {Boolean}
  */
 function isPolicyCategoryStale(policyID) {
-    return policyCategories[policyID].lastUpdated < policies[policyID].lastModified;
+    return lodashGet(policyCategories[policyID], 'lastUpdated', 0) < policies[policyID].lastModified;
 }
 
 export {
