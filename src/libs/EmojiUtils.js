@@ -13,7 +13,7 @@ Onyx.connect({
     key: ONYXKEYS.FREQUENTLY_USED_EMOJIS,
     callback: (val) => {
         frequentlyUsedEmojis = _.map(val, (item) => {
-            const emoji = Emojis.emojiCodeTable[item.code];
+            const emoji = Emojis.emojiCodeTableWithSkinTones[item.code];
             if (emoji) {
                 return {...emoji, count: item.count, lastUpdatedAt: item.lastUpdatedAt};
             }
@@ -33,7 +33,7 @@ const findEmojiByName = (name) => Emojis.emojiNameTable[name];
  * @param {String} code
  * @returns {Object}
  */
-const findEmojiByCode = (code) => Emojis.emojiCodeTable[code];
+const findEmojiByCode = (code) => Emojis.emojiCodeTableWithSkinTones[code];
 
 /**
  *
@@ -229,7 +229,7 @@ function getFrequentlyUsedEmojis(newEmoji) {
             frequentEmojiList.splice(emojiIndex, 1);
         }
 
-        const updatedEmoji = {...Emojis.emojiCodeTable[emoji.code], count: currentEmojiCount, lastUpdatedAt: currentTimestamp};
+        const updatedEmoji = {...Emojis.emojiCodeTableWithSkinTones[emoji.code], count: currentEmojiCount, lastUpdatedAt: currentTimestamp};
 
         // We want to make sure the current emoji is added to the list
         // Hence, we take one less than the current frequent used emojis

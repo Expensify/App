@@ -15,18 +15,6 @@ const emojiNameTable = _.reduce(
     {},
 );
 
-const emojiCodeTable = _.reduce(
-    emojis,
-    (prev, cur) => {
-        const newValue = prev;
-        if (!cur.header) {
-            newValue[cur.code] = cur;
-        }
-        return newValue;
-    },
-    {},
-);
-
 const emojiCodeTableWithSkinTones = _.reduce(
     emojis,
     (prev, cur) => {
@@ -49,5 +37,5 @@ const localeEmojis = {
     es: esEmojis,
 };
 
-export {emojiNameTable, emojiCodeTable, emojiCodeTableWithSkinTones, localeEmojis};
+export {emojiNameTable, emojiCodeTableWithSkinTones, localeEmojis};
 export {skinTones, categoryFrequentlyUsed, default} from './common';
