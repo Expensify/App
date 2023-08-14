@@ -266,7 +266,7 @@ const getEmojiCodeWithSkinColor = (item, preferredSkinToneIndex) => {
  * @returns {Object[]} An array of emoji codes.
  */
 function extractEmojis(text) {
-    let emojis = [];
+    const emojis = [];
 
     if (!text) {
         return emojis;
@@ -278,18 +278,20 @@ function extractEmojis(text) {
         return emojis;
     }
 
-    parseEmojis = [...new Set(parseEmojis)];
+    parseEmojis = [...new Set(parseEmojis)]; // Some emojis are repeated with different skin tones
+
+    const alreadyParsedEmojis = new Set();
 
     for (let i = 0; i < parseEmojis.length; i++) {
         const character = parseEmojis[i];
         const emoji = Emojis.emojiCodeTableWithSkinTones[character];
-        if (emoji) {
+
+        if (emoji && !alreadyParsedEmojis.has(emoji.code)) {
+            alreadyParsedEmojis.add(emoji.code); // Add to set to avoid duplicates
             emojis.push(emoji);
         }
     }
 
-    // Create a new set to remove duplicates
-    emojis = [...new Set(emojis)];
     return emojis;
 }
 
