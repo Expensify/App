@@ -3642,12 +3642,17 @@ const styles = {
         willChange: 'transform',
     },
 
-    cartIconContainerPadding: {
+    dropDownButtonCartIconContainerPadding: {
         paddingRight: 0,
         paddingLeft: 0,
     },
 
-    cartIconView: {
+    dropDownButtonArrowContain: {
+        marginLeft: 12,
+        marginRight: 14,
+    },
+
+    dropDownButtonCartIconView: {
         borderTopRightRadius: variables.buttonBorderRadius,
         borderBottomRightRadius: variables.buttonBorderRadius,
         ...flex.flexRow,

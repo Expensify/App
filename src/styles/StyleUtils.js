@@ -1307,7 +1307,7 @@ function getCheckboxContainerStyle(size, borderRadius) {
  * @param {Boolean} isLargeButton
  * @returns {Object}
  */
-function getButtonHeight(isLargeButton) {
+function getDropDownButtonHeight(isLargeButton) {
     if (isLargeButton) {
         return {
             height: variables.componentSizeLarge,
@@ -1391,5 +1391,5 @@ export {
     getMenuItemTextContainerStyle,
     getDisabledLinkStyles,
     getCheckboxContainerStyle,
-    getButtonHeight,
+    getDropDownButtonHeight,
 };

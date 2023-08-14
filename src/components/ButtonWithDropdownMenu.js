@@ -70,7 +70,7 @@ function ButtonWithDropdownMenu(props) {
     const {windowWidth, windowHeight} = useWindowDimensions();
     const caretButton = useRef(null);
     const selectedItem = props.options[selectedItemIndex];
-    const innerStyleDropButton = StyleUtils.getButtonHeight(props.buttonsizelarge);
+    const innerStyleDropButton = StyleUtils.getDropDownButtonHeight(props.buttonsizelarge);
 
     useEffect(() => {
         if (!caretButton.current) {
@@ -117,11 +117,11 @@ function ButtonWithDropdownMenu(props) {
                         shouldRemoveLeftBorderRadius
                         large={props.buttonsizelarge}
                         medium={!props.buttonsizelarge}
-                        innerStyles={[styles.cartIconContainerPadding, innerStyleDropButton]}
+                        innerStyles={[styles.dropDownButtonCartIconContainerPadding, innerStyleDropButton]}
                     >
-                        <View style={[styles.cartIconView, innerStyleDropButton]}>
+                        <View style={[styles.dropDownButtonCartIconView, innerStyleDropButton]}>
                             <View style={[styles.buttonDivider]} />
-                            <View style={[{marginLeft: 12, marginRight: 14}]}>
+                            <View style={[styles.dropDownButtonArrowContain]}>
                                 <Icon
                                     src={Expensicons.DownArrow}
                                     fill={themeColors.textLight}
