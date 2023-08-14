@@ -118,8 +118,8 @@ function ReportActionItemMessageEdit(props) {
         // so we need to ensure that it is only updated after focus.
         setDraft((prevDraft) => {
             setSelection({
-                start: props.selection === undefined ? prevDraft.length : props.selection.start,
-                end: props.selection === undefined ? prevDraft.length : props.selection.end ,
+                start: props.selection && props.selection.start ? props.selection.start: prevDraft.length,
+                end: props.selection && props.selection.end ? props.selection.end :prevDraft.length,
             });
             return prevDraft;
         });
