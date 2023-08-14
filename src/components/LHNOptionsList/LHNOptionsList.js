@@ -21,6 +21,9 @@ const propTypes = {
     /** Toggle between compact and default view of the option */
     optionMode: PropTypes.oneOf(_.values(CONST.OPTION_MODE)).isRequired,
 
+    /** Is loading report data */
+    isLoading: PropTypes.bool.isRequired,
+
     /** Whether to allow option focus or not */
     shouldDisableFocusOptions: PropTypes.bool,
 };
@@ -29,7 +32,7 @@ const defaultProps = {
     shouldDisableFocusOptions: false,
 };
 
-function LHNOptionsList({contentContainerStyles, data, onSelectRow, optionMode, shouldDisableFocusOptions}) {
+function LHNOptionsList({contentContainerStyles, data, onSelectRow, optionMode, shouldDisableFocusOptions, isLoading}) {
     /**
      * This function is used to compute the layout of any given item in our list. Since we know that each item will have the exact same height, this is a performance optimization
      * so that the heights can be determined before the options are rendered. Otherwise, the heights are determined when each option is rendering and it causes a lot of overhead on large
@@ -67,7 +70,7 @@ function LHNOptionsList({contentContainerStyles, data, onSelectRow, optionMode, 
     );
 
     return (
-        <View style={[styles.flex1]}>
+        <View style={[isLoading ? undefined : styles.flex1]}>
             <FlatList
                 indicatorStyle="white"
                 keyboardShouldPersistTaps="always"

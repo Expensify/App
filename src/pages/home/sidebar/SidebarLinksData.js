@@ -66,21 +66,27 @@ const defaultProps = {
 function SidebarLinksData({isFocused, allReportActions, betas, chatReports, currentReportID, insets, isLoadingReportData, isSmallScreenWidth, onLinkClick, policies, priorityMode}) {
     const {translate} = useLocalize();
 
+    const isLoading = SessionUtils.didUserLogInDuringSession() && isLoadingReportData;
+
+    const currentReportIDRef = useRef(currentReportID);
+    currentReportIDRef.current = currentReportID;
+
     const reportIDsRef = useRef([]);
     const optionListItems = useMemo(() => {
-        const reportIDs = SidebarUtils.getOrderedReportIDs(currentReportID, chatReports, betas, policies, priorityMode, allReportActions);
+        if (isLoading && !lodashGet(chatReports, [`${ONYXKEYS.COLLECTION.REPORT}${currentReportIDRef.current}`, 'reportID'])) {
+            reportIDsRef.current = [];
+            return reportIDsRef.current;
+        }
+
+        const reportIDs = SidebarUtils.getOrderedReportIDs(currentReportIDRef.current, chatReports, betas, policies, priorityMode, allReportActions);
         if (deepEqual(reportIDsRef.current, reportIDs)) {
             return reportIDsRef.current;
         }
         reportIDsRef.current = reportIDs;
         return reportIDs;
-    }, [allReportActions, betas, chatReports, currentReportID, policies, priorityMode]);
+    }, [allReportActions, betas, chatReports, isLoading, policies, priorityMode]);
 
-    const currentReportIDRef = useRef(currentReportID);
-    currentReportIDRef.current = currentReportID;
     const isActiveReport = useCallback((reportID) => currentReportIDRef.current === reportID, []);
-
-    const isLoading = SessionUtils.didUserLogInDuringSession() && isLoadingReportData;
 
     return (
         <View
