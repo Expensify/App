@@ -146,6 +146,10 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
 WaypointEditor.displayName = 'WaypointEditor';
 WaypointEditor.propTypes = propTypes;
 WaypointEditor.defaultProps = defaultProps;
-export default compose(withLocalize, withNetwork(), withOnyx({
-    transactionID: {key: ONYXKEYS.IOU, selector: (iou) => (iou && iou.transactionID) || ''},
-}))(WaypointEditor);
+export default compose(
+    withLocalize,
+    withNetwork(),
+    withOnyx({
+        transactionID: {key: ONYXKEYS.IOU, selector: (iou) => (iou && iou.transactionID) || ''},
+    }),
+)(WaypointEditor);

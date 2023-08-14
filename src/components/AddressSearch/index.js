@@ -250,7 +250,11 @@ function AddressSearch(props) {
                     fetchDetails
                     suppressDefaultStyles
                     enablePoweredByContainer={false}
-                    ListEmptyComponent={props.network.isOffline ? null : <Text style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}>{props.translate('common.noResultsFound')}</Text>}
+                    ListEmptyComponent={
+                        props.network.isOffline ? null : (
+                            <Text style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}>{props.translate('common.noResultsFound')}</Text>
+                        )
+                    }
                     onPress={(data, details) => {
                         saveLocationDetails(data, details);
 
@@ -331,12 +335,15 @@ AddressSearch.propTypes = propTypes;
 AddressSearch.defaultProps = defaultProps;
 AddressSearch.displayName = 'AddressSearch';
 
-export default compose(withNetwork(), withLocalize)(
+export default compose(
+    withNetwork(),
+    withLocalize,
+)(
     React.forwardRef((props, ref) => (
         <AddressSearch
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             innerRef={ref}
         />
-    ))
+    )),
 );
