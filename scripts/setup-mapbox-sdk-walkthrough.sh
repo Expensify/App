@@ -51,4 +51,4 @@ fi
 echo -e "${GREEN}Thank you for providing the token. Setting these credentials in relevant files...${NC}\n"
 
 # Execute the configuration script
-./scripts/configure-mapbox.sh "$SECRET_TOKEN"
+./scripts/setup-mapbox-sdk.sh "$SECRET_TOKEN"
