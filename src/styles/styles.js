@@ -1193,14 +1193,7 @@ const styles = {
         left: 0,
     },
 
-    signInBackgroundDesktop: {
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        minHeight: 700,
-    },
-
-    signInBackgroundMobile: {
+    signInBackground: {
         position: 'absolute',
         bottom: 0,
         left: 0,
@@ -2108,6 +2101,9 @@ const styles = {
 
     PDFViewList: {
         overflowX: 'hidden',
+        // There properties disable "focus" effect on list
+        boxShadow: 'none',
+        outline: 'none',
     },
 
     pdfPasswordForm: {
