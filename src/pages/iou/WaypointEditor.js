@@ -22,6 +22,7 @@ const propTypes = {
     /** The transactionID of the IOU */
     transactionID: PropTypes.string.isRequired,
 
+    /** Route params */
     route: PropTypes.shape({
         params: PropTypes.shape({
             /** IOU type */

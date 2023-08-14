@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import {LogBox, ScrollView, View, Text} from 'react-native';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
 import lodashGet from 'lodash/get';
+import compose from '../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
@@ -14,6 +15,8 @@ import CONST from '../../CONST';
 import * as StyleUtils from '../../styles/StyleUtils';
 import resetDisplayListViewBorderOnBlur from './resetDisplayListViewBorderOnBlur';
 import variables from '../../styles/variables';
+import {withNetwork} from '../OnyxProvider';
+import networkPropTypes from '../networkPropTypes';
 
 // The error that's being thrown below will be ignored until we fork the
 // react-native-google-places-autocomplete repo and replace the
@@ -71,6 +74,9 @@ const propTypes = {
 
     /** Maximum number of characters allowed in search input */
     maxInputLength: PropTypes.number,
+
+    /** Information about the network */
+    network: networkPropTypes.isRequired,
 
     ...withLocalizePropTypes,
 };
@@ -244,7 +250,7 @@ function AddressSearch(props) {
                     fetchDetails
                     suppressDefaultStyles
                     enablePoweredByContainer={false}
-                    ListEmptyComponent={<Text style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}>{props.translate('common.noResultsFound')}</Text>}
+                    ListEmptyComponent={props.network.isOffline ? null : <Text style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}>{props.translate('common.noResultsFound')}</Text>}
                     onPress={(data, details) => {
                         saveLocationDetails(data, details);
 
@@ -325,12 +331,12 @@ AddressSearch.propTypes = propTypes;
 AddressSearch.defaultProps = defaultProps;
 AddressSearch.displayName = 'AddressSearch';
 
-export default withLocalize(
+export default compose(withNetwork(), withLocalize)(
     React.forwardRef((props, ref) => (
         <AddressSearch
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             innerRef={ref}
         />
-    )),
+    ))
 );
