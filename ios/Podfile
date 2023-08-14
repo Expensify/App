@@ -18,7 +18,7 @@ prepare_react_native_project!
 #   dependencies: {
 #     ...(process.env.NO_FLIPPER ? { 'react-native-flipper': { platforms: { ios: null } } } : {}),
 # ```
-flipper_config = ENV['NO_FLIPPER'] == "1" ? FlipperConfiguration.disabled : FlipperConfiguration.enabled
+flipper_config = ENV['NO_FLIPPER'] == "1" ? FlipperConfiguration.disabled : FlipperConfiguration.enabled(['Debug Production', 'Debug Development', 'Debug AdHoc'])
 
 linkage = ENV['USE_FRAMEWORKS']
 if linkage != nil
@@ -43,6 +43,14 @@ end
 
 target 'NewExpensify' do
   permissions_path = '../node_modules/react-native-permissions/ios'
+
+  project 'NewExpensify',
+    'Debug Development' => :debug,
+    'Debug AdHoc' => :debug,
+    'Debug Production' => :debug,
+    'Release Development' => :release,
+    'Release AdHoc' => :release,
+    'Release Production' => :release
 
   pod 'Permission-LocationAccuracy', :path => "#{permissions_path}/LocationAccuracy"
   pod 'Permission-LocationAlways', :path => "#{permissions_path}/LocationAlways"
