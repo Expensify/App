@@ -79,7 +79,7 @@ function MoneyRequestConfirmPage(props) {
     useEffect(() => {
         // We want to load categories if this is an expense report on a policy expense chat
         const policyExpenseChat = _.find(participants, (participant) => participant.isPolicyExpenseChat);
-        const policyID = policyExpenseChat.policyID
+        const policyID = policyExpenseChat.policyID;
         if (policyExpenseChat && PolicyUtils.isPolicyCategoryStale(policyID)) {
             Policy.openDraftWorkspaceRequest(policyID);
         }

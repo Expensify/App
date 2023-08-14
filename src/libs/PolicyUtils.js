@@ -5,19 +5,19 @@ import Str from 'expensify-common/lib/str';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 
-let policyCategories;
+const allPolicyCategories = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY_CATEGORIES,
     callback: (categories, key) => {
-        policyCategories[key] = categories;
+        allPolicyCategories[key] = categories;
     },
 });
 
-let policies;
+const allPolicies = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
     callback: (policy, key) => {
-        policies[key] = policy;
+        allPolicies[key] = policy;
     },
 });
 
@@ -184,11 +184,16 @@ function getIneligibleInvitees(policyMembers, personalDetails) {
 }
 
 /**
- * @param {*} policyID 
+ * @param {*} policyID
  * @returns {Boolean}
  */
 function isPolicyCategoryStale(policyID) {
-    return lodashGet(policyCategories[policyID], 'lastUpdated', 0) < policies[policyID].lastModified;
+    const policyCategories = allPolicyCategories[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`];
+    if (!policyCategories) {
+        return true;
+    }
+    const policy = allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+    return lodashGet(policyCategories, 'lastUpdated', 0) < policy.lastModified;
 }
 
 export {
