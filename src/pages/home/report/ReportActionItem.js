@@ -460,26 +460,32 @@ function ReportActionItem(props) {
         const parentReportAction = ReportActionsUtils.getParentReportAction(props.report);
         if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
             return (
-                <MoneyRequestView
-                    report={props.report}
-                    shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
-                />
+                <OfflineWithFeedback pendingAction={props.action.pendingAction}>
+                    <MoneyRequestView
+                        report={props.report}
+                        shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
+                    />
+                </OfflineWithFeedback>
             );
         }
         if (ReportUtils.isTaskReport(props.report)) {
             return (
-                <TaskView
-                    report={props.report}
-                    shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
-                />
+                <OfflineWithFeedback pendingAction={props.action.pendingAction}>
+                    <TaskView
+                        report={props.report}
+                        shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
+                    />
+                </OfflineWithFeedback>
             );
         }
         if (ReportUtils.isExpenseReport(props.report) || ReportUtils.isIOUReport(props.report)) {
             return (
-                <MoneyReportView
-                    report={props.report}
-                    shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
-                />
+                <OfflineWithFeedback pendingAction={props.action.pendingAction}>
+                    <MoneyReportView
+                        report={props.report}
+                        shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
+                    />
+                </OfflineWithFeedback>
             );
         }
         return (

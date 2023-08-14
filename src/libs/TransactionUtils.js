@@ -1,4 +1,5 @@
 import Onyx from 'react-native-onyx';
+import {format} from 'date-fns';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import CONST from '../CONST';
@@ -151,9 +152,9 @@ function getCurrency(transaction) {
 function getCreated(transaction) {
     const created = lodashGet(transaction, 'modifiedCreated', '');
     if (created) {
-        return created;
+        return format(new Date(created), CONST.DATE.FNS_FORMAT_STRING);
     }
-    return lodashGet(transaction, 'created', '');
+    return format(new Date(lodashGet(transaction, 'created', '')), CONST.DATE.FNS_FORMAT_STRING);
 }
 
 export {buildOptimisticTransaction, getUpdatedTransaction, getTransaction, getDescription, getAmount, getCurrency, getCreated};

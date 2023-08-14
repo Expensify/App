@@ -461,7 +461,7 @@ function isConciergeChatReport(report) {
 function shouldDisableDetailPage(report) {
     const participantAccountIDs = lodashGet(report, 'participantAccountIDs', []);
 
-    if (isChatRoom(report) || isPolicyExpenseChat(report) || isChatThread(report)) {
+    if (isChatRoom(report) || isPolicyExpenseChat(report) || isChatThread(report) || isTaskReport(report)) {
         return false;
     }
     if (participantAccountIDs.length === 1) {
@@ -1338,17 +1338,17 @@ function getModifiedExpenseMessage(reportAction) {
         return `changed the request description to "${reportActionOriginalMessage.newComment}" (previously "${reportActionOriginalMessage.oldComment}")`;
     }
 
+    const hasModifiedMerchant = _.has(reportActionOriginalMessage, 'oldMerchant') && _.has(reportActionOriginalMessage, 'merchant');
+    if (hasModifiedMerchant) {
+        return `changed the request merchant to "${reportActionOriginalMessage.merchant}" (previously "${reportActionOriginalMessage.oldMerchant}")`;
+    }
+
     const hasModifiedCreated = _.has(reportActionOriginalMessage, 'oldCreated') && _.has(reportActionOriginalMessage, 'created');
     if (hasModifiedCreated) {
         // Take only the YYYY-MM-DD value as the original date includes timestamp
         let formattedOldCreated = new Date(reportActionOriginalMessage.oldCreated);
         formattedOldCreated = format(formattedOldCreated, CONST.DATE.FNS_FORMAT_STRING);
         return `changed the request date to ${reportActionOriginalMessage.created} (previously ${formattedOldCreated})`;
-    }
-
-    const hasModifiedMerchant = _.has(reportActionOriginalMessage, 'oldMerchant') && _.has(reportActionOriginalMessage, 'merchant');
-    if (hasModifiedMerchant) {
-        return `changed the request merchant to "${reportActionOriginalMessage.merchant}" (previously "${reportActionOriginalMessage.oldMerchant}")`;
     }
 }
 
@@ -1536,7 +1536,7 @@ function getReport(reportID) {
 function navigateToDetailsPage(report) {
     const participantAccountIDs = lodashGet(report, 'participantAccountIDs', []);
 
-    if (isChatRoom(report) || isPolicyExpenseChat(report) || isChatThread(report)) {
+    if (isChatRoom(report) || isPolicyExpenseChat(report) || isChatThread(report) || isTaskReport(report)) {
         Navigation.navigate(ROUTES.getReportDetailsRoute(report.reportID));
         return;
     }
@@ -2334,6 +2334,7 @@ function buildOptimisticTaskReport(ownerAccountID, assigneeAccountID = 0, parent
         reportName: title,
         description,
         ownerAccountID,
+        participantAccountIDs: assigneeAccountID && assigneeAccountID !== ownerAccountID ? [assigneeAccountID] : [],
         managerID: assigneeAccountID,
         type: CONST.REPORT.TYPE.TASK,
         parentReportID,
@@ -2467,9 +2468,10 @@ function canAccessReport(report, policies, betas, allReportActions) {
  * @param {String[]} betas
  * @param {Object} policies
  * @param {Object} allReportActions
+ * @param {Boolean} excludeEmptyChats
  * @returns {boolean}
  */
-function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouReports, betas, policies, allReportActions) {
+function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouReports, betas, policies, allReportActions, excludeEmptyChats = false) {
     const isInDefaultMode = !isInGSDMode;
 
     // Exclude reports that have no data because there wouldn't be anything to show in the option item.
@@ -2478,6 +2480,7 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouRep
     if (
         !report ||
         !report.reportID ||
+        report.isHidden ||
         (_.isEmpty(report.participantAccountIDs) && !isChatThread(report) && !isPublicRoom(report) && !isArchivedRoom(report) && !isMoneyRequestReport(report) && !isTaskReport(report))
     ) {
         return false;
@@ -2499,8 +2502,10 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouRep
         return true;
     }
 
+    const isEmptyChat = !ReportActionsUtils.getLastVisibleMessage(report.reportID).lastMessageText;
+
     // Hide only chat threads that haven't been commented on (other threads are actionable)
-    if (isChatThread(report) && !report.lastMessageText) {
+    if (isChatThread(report) && isEmptyChat) {
         return false;
     }
 
@@ -2527,6 +2532,11 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouRep
 
     // Exclude policy expense chats if the user isn't in the policy expense chat beta
     if (isPolicyExpenseChat(report) && !Permissions.canUsePolicyExpenseChat(betas)) {
+        return false;
+    }
+
+    // Hide chats between two users that haven't been commented on from the LNH
+    if (excludeEmptyChats && isEmptyChat && isChatReport(report) && !isChatRoom(report) && !isPolicyExpenseChat(report)) {
         return false;
     }
 
@@ -3029,6 +3039,123 @@ function shouldDisableRename(report, policy) {
     return !_.keys(loginList).includes(policy.owner) && policy.role !== CONST.POLICY.ROLE.ADMIN;
 }
 
+/**
+ * Returns the onyx data needed for the task assignee chat
+ * @param {Number} accountID
+ * @param {String} assigneeEmail
+ * @param {Number} assigneeAccountID
+ * @param {String} taskReportID
+ * @param {String} assigneeChatReportID
+ * @param {String} parentReportID
+ * @param {String} title
+ * @param {Object} assigneeChatReport
+ * @returns {Object}
+ */
+function getTaskAssigneeChatOnyxData(accountID, assigneeEmail, assigneeAccountID, taskReportID, assigneeChatReportID, parentReportID, title, assigneeChatReport) {
+    // Set if we need to add a comment to the assignee chat notifying them that they have been assigned a task
+    let optimisticAssigneeAddComment;
+    // Set if this is a new chat that needs to be created for the assignee
+    let optimisticChatCreatedReportAction;
+    const currentTime = DateUtils.getDBTime();
+    const optimisticData = [];
+    const successData = [];
+    const failureData = [];
+
+    // You're able to assign a task to someone you haven't chatted with before - so we need to optimistically create the chat and the chat reportActions
+    // Only add the assignee chat report to onyx if we haven't already set it optimistically
+    if (assigneeChatReport.isOptimisticReport && lodashGet(assigneeChatReport, 'pendingFields.createChat') !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+        optimisticChatCreatedReportAction = buildOptimisticCreatedReportAction(assigneeChatReportID);
+        optimisticData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${assigneeChatReportID}`,
+                value: {
+                    pendingFields: {
+                        createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    },
+                    isHidden: false,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
+                value: {[optimisticChatCreatedReportAction.reportActionID]: optimisticChatCreatedReportAction},
+            },
+        );
+
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${assigneeChatReportID}`,
+            value: {
+                pendingFields: {
+                    createChat: null,
+                },
+                isOptimisticReport: false,
+            },
+        });
+
+        failureData.push(
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${assigneeChatReportID}`,
+                value: null,
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
+                value: {[optimisticChatCreatedReportAction.reportActionID]: {pendingAction: null}},
+            },
+            // If we failed, we want to remove the optimistic personal details as it was likely due to an invalid login
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                value: {
+                    [assigneeAccountID]: null,
+                },
+            },
+        );
+    }
+
+    // If you're choosing to share the task in the same DM as the assignee then we don't need to create another reportAction indicating that you've been assigned
+    if (assigneeChatReportID !== parentReportID) {
+        optimisticAssigneeAddComment = buildOptimisticTaskCommentReportAction(taskReportID, title, assigneeEmail, assigneeAccountID, `Assigned a task to you: ${title}`, parentReportID);
+
+        const lastAssigneeCommentText = formatReportLastMessageText(optimisticAssigneeAddComment.reportAction.message[0].text);
+        const optimisticAssigneeReport = {
+            lastVisibleActionCreated: currentTime,
+            lastMessageText: lastAssigneeCommentText,
+            lastActorAccountID: accountID,
+            lastReadTime: currentTime,
+        };
+
+        optimisticData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
+                value: {[optimisticAssigneeAddComment.reportAction.reportActionID]: optimisticAssigneeAddComment.reportAction},
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${assigneeChatReportID}`,
+                value: optimisticAssigneeReport,
+            },
+        );
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
+            value: {[optimisticAssigneeAddComment.reportAction.reportActionID]: {pendingAction: null}},
+        });
+    }
+
+    return {
+        optimisticData,
+        successData,
+        failureData,
+        optimisticAssigneeAddComment,
+        optimisticChatCreatedReportAction,
+    };
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -3152,4 +3279,5 @@ export {
     shouldDisableSettings,
     shouldDisableRename,
     hasSingleParticipant,
+    getTaskAssigneeChatOnyxData,
 };
