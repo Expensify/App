@@ -122,7 +122,7 @@ function DistanceRequest({transactionID, transaction, translate, formData}) {
                                 secondaryIcon={waypointIcon}
                                 secondaryIconFill={theme.icon}
                                 shouldShowRightIcon
-                                onPress={() => Navigation.navigate(ROUTES.getMoneyRequestWaypointRoute('request', transactionID, index))}
+                                onPress={() => Navigation.navigate(ROUTES.getMoneyRequestWaypointRoute('request', index))}
                                 key={key}
                             />
                         );
