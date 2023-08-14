@@ -67,6 +67,7 @@ function MoneyReportHeader(props) {
         <View style={[styles.pt0]}>
             <HeaderWithBackButton
                 shouldShowAvatarWithDisplay
+                shouldEnableDetailPageNavigation
                 shouldShowPinButton={false}
                 report={props.report}
                 policies={props.policies}
