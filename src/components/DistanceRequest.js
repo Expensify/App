@@ -66,7 +66,7 @@ const defaultProps = {
     transaction: {},
 };
 
-function DistanceRequest({transactionID, transaction, translate, mapboxAccessToken}) {
+function DistanceRequest({transactionID, transaction, translate, mapboxAccessToken = {token: '', expiration: ''}}) {
     const [shouldShowGradient, setShouldShowGradient] = useState(false);
     const [scrollContainerHeight, setScrollContainerHeight] = useState(0);
     const [scrollContentHeight, setScrollContentHeight] = useState(0);
