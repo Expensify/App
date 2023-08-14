@@ -105,4 +105,4 @@ const init = () => {
     });
 };
 
-export default init;
+export default {init};
