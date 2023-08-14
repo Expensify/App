@@ -19,6 +19,7 @@ import * as ErrorUtils from '../ErrorUtils';
 import * as Session from './Session';
 import * as PersonalDetails from './PersonalDetails';
 import * as OnyxUpdates from './OnyxUpdates';
+import * as MemoryOnlyKeys from './MemoryOnlyKeys/MemoryOnlyKeys';
 
 let currentUserAccountID = '';
 let currentEmail = '';
@@ -568,6 +569,15 @@ function subscribeToUserEvents() {
             if (!currentUserAccountID) {
                 return;
             }
+
+            // If there is an OnyxUpdate for using memory only keys, enable them
+            _.each(pushJSON, ({key, value}) => {
+                if (key !== ONYXKEYS.IS_USING_MEMORY_ONLY_KEYS || !value) {
+                    return;
+                }
+
+                MemoryOnlyKeys.enable();
+            });
 
             Onyx.update(pushJSON);
             triggerNotifications(pushJSON);

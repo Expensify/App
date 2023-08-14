@@ -4,20 +4,6 @@ import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as QueuedOnyxUpdates from '../actions/QueuedOnyxUpdates';
 import * as MemoryOnlyKeys from '../actions/MemoryOnlyKeys/MemoryOnlyKeys';
-
-function updateOnyx(updateData) {
-    // If there is an OnyxUpdate for using memory only keys, enable them
-    _.each(updateData, ({key, value}) => {
-        if (key !== ONYXKEYS.IS_USING_MEMORY_ONLY_KEYS || !value) {
-            return;
-        }
-
-        MemoryOnlyKeys.enable();
-    });
-
-    return Onyx.update(updateData);
-}
-
 import * as OnyxUpdates from '../actions/OnyxUpdates';
 
 /**
@@ -32,12 +18,23 @@ function SaveResponseInOnyx(response, request) {
             return;
         }
 
+        // Supports both the old format and the new format
+        const onyxUpdates = _.isArray(responseData) ? responseData : responseData.onyxData;
+        // If there is an OnyxUpdate for using memory only keys, enable them
+        _.each(onyxUpdates, ({key, value}) => {
+            if (key !== ONYXKEYS.IS_USING_MEMORY_ONLY_KEYS || !value) {
+                return;
+            }
+
+            MemoryOnlyKeys.enable();
+        });
+
         // Save the update IDs to Onyx so they can be used to fetch incremental updates if the client gets out of sync from the server
         OnyxUpdates.saveUpdateIDs(Number(responseData.lastUpdateID || 0), Number(responseData.previousUpdateID || 0));
 
         // For most requests we can immediately update Onyx. For write requests we queue the updates and apply them after the sequential queue has flushed to prevent a replay effect in
         // the UI. See https://github.com/Expensify/App/issues/12775 for more info.
-        const updateHandler = request.data.apiRequestType === CONST.API_REQUEST_TYPE.WRITE ? QueuedOnyxUpdates.queueOnyxUpdates : updateOnyx;
+        const updateHandler = request.data.apiRequestType === CONST.API_REQUEST_TYPE.WRITE ? QueuedOnyxUpdates.queueOnyxUpdates : Onyx.update;
 
         // First apply any onyx data updates that are being sent back from the API. We wait for this to complete and then
         // apply successData or failureData. This ensures that we do not update any pending, loading, or other UI states contained
