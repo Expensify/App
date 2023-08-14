@@ -2888,7 +2888,7 @@ function getPolicy(policyID) {
  * @returns {Boolean}
  */
 function shouldDisableSettings(report) {
-    return !isPolicyExpenseChat(report) && !isChatRoom(report) && !isChatThread(report);
+    return !isMoneyRequestReport(report) && !isPolicyExpenseChat(report) && !isChatRoom(report) && !isChatThread(report);
 }
 
 /**
@@ -2897,7 +2897,7 @@ function shouldDisableSettings(report) {
  * @returns {Boolean}
  */
 function shouldDisableRename(report, policy) {
-    if (isDefaultRoom(report) || isArchivedRoom(report) || isChatThread(report)) {
+    if (isDefaultRoom(report) || isArchivedRoom(report) || isChatThread(report) || isMoneyRequestReport(report) || isPolicyExpenseChat(report)) {
         return true;
     }
 
