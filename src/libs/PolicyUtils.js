@@ -1,8 +1,25 @@
 import _ from 'underscore';
+import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
+
+let policyCategories;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY_CATEGORIES,
+    callback: (categories, key) => {
+        policyCategories[key] = categories;
+    },
+});
+
+let policies;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY,
+    callback: (policy, key) => {
+        policies[key] = policy;
+    },
+});
 
 /**
  * Filter out the active policies, which will exclude policies with pending deletion
@@ -166,6 +183,14 @@ function getIneligibleInvitees(policyMembers, personalDetails) {
     return memberEmailsToExclude;
 }
 
+/**
+ * @param {*} policyID 
+ * @returns {Boolean}
+ */
+function isPolicyCategoryStale(policyID) {
+    return policyCategories[policyID].lastUpdated < policies[policyID].lastModified;
+}
+
 export {
     getActivePolicies,
     hasPolicyMemberError,
@@ -179,4 +204,5 @@ export {
     isPolicyAdmin,
     getMemberAccountIDsForWorkspace,
     getIneligibleInvitees,
+    isPolicyCategoryStale,
 };
