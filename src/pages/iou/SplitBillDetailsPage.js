@@ -19,6 +19,7 @@ import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoun
 import CONST from '../../CONST';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
+import * as TransactionUtils from '../../libs/TransactionUtils';
 
 const propTypes = {
     /* Onyx Props */
@@ -61,9 +62,9 @@ function SplitBillDetailsPage(props) {
     );
     const payeePersonalDetails = props.personalDetails[reportAction.actorAccountID];
     const participantsExcludingPayee = _.filter(participants, (participant) => participant.accountID !== reportAction.actorAccountID);
-    const splitAmount = parseInt(lodashGet(transaction, 'amount', 0), 10);
-    const splitComment = lodashGet(transaction, 'comment.comment');
-    const splitCurrency = lodashGet(transaction, 'currency');
+    const splitAmount = TransactionUtils.getAmount(transaction, false);
+    const splitComment = TransactionUtils.getDescription(transaction);
+    const splitCurrency = TransactionUtils.getCurrency(transaction);
 
     return (
         <ScreenWrapper>

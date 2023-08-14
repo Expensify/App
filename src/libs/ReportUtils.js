@@ -1249,8 +1249,8 @@ function getTransactionReportName(reportAction) {
     }
 
     return Localize.translateLocal(ReportActionsUtils.isSentMoneyReportAction(reportAction) ? 'iou.threadSentMoneyReportName' : 'iou.threadRequestReportName', {
-        formattedAmount: ReportActionsUtils.getFormattedAmount(reportAction),
-        comment: ReportActionsUtils.getMoneyRequestDetails.comment,
+        // formattedAmount: ReportActionsUtils.getFormattedAmount(reportAction),
+        // comment: ReportActionsUtils.getMoneyRequestDetails.comment,
     });
 }
 
