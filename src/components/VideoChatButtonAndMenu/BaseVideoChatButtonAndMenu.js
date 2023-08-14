@@ -18,6 +18,7 @@ import Tooltip from '../Tooltip';
 import {propTypes as videoChatButtonAndMenuPropTypes, defaultProps} from './videoChatButtonAndMenuPropTypes';
 import * as Session from '../../libs/actions/Session';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
+import * as Link from '../../libs/actions/Link'; 
 
 const propTypes = {
     /** Link to open when user wants to create a new google meet meeting */
@@ -40,7 +41,7 @@ function BaseVideoChatButtonAndMenu(props) {
             text: props.translate('videoChatButtonAndMenu.zoom'),
             onPress: () => {
                 setIsVideoChatMenuActive(false);
-                Linking.openURL(CONST.NEW_ZOOM_MEETING_URL);
+                Link.openExternalLink(CONST.NEW_ZOOM_MEETING_URL);
             },
         },
         {
@@ -48,7 +49,7 @@ function BaseVideoChatButtonAndMenu(props) {
             text: props.translate('videoChatButtonAndMenu.googleMeet'),
             onPress: () => {
                 setIsVideoChatMenuActive(false);
-                Linking.openURL(props.googleMeetURL);
+                Link.openExternalLink(props.googleMeetURL);
             },
         },
     ];
