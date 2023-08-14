@@ -1338,17 +1338,17 @@ function getModifiedExpenseMessage(reportAction) {
         return `changed the request description to "${reportActionOriginalMessage.newComment}" (previously "${reportActionOriginalMessage.oldComment}")`;
     }
 
+    const hasModifiedMerchant = _.has(reportActionOriginalMessage, 'oldMerchant') && _.has(reportActionOriginalMessage, 'merchant');
+    if (hasModifiedMerchant) {
+        return `changed the request merchant to "${reportActionOriginalMessage.merchant}" (previously "${reportActionOriginalMessage.oldMerchant}")`;
+    }
+
     const hasModifiedCreated = _.has(reportActionOriginalMessage, 'oldCreated') && _.has(reportActionOriginalMessage, 'created');
     if (hasModifiedCreated) {
         // Take only the YYYY-MM-DD value as the original date includes timestamp
         let formattedOldCreated = new Date(reportActionOriginalMessage.oldCreated);
         formattedOldCreated = format(formattedOldCreated, CONST.DATE.FNS_FORMAT_STRING);
         return `changed the request date to ${reportActionOriginalMessage.created} (previously ${formattedOldCreated})`;
-    }
-
-    const hasModifiedMerchant = _.has(reportActionOriginalMessage, 'oldMerchant') && _.has(reportActionOriginalMessage, 'merchant');
-    if (hasModifiedMerchant) {
-        return `changed the request merchant to "${reportActionOriginalMessage.merchant}" (previously "${reportActionOriginalMessage.oldMerchant}")`;
     }
 }
 
