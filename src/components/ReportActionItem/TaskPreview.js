@@ -25,7 +25,7 @@ import personalDetailsPropType from '../../pages/personalDetailsPropType';
 
 const propTypes = {
     /** All personal details asssociated with user */
-    personalDetailsList: personalDetailsPropType,
+    personalDetailsList: PropTypes.objectOf(personalDetailsPropType),
 
     /** The ID of the associated taskReport */
     taskReportID: PropTypes.string.isRequired,
