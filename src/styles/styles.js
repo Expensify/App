@@ -1897,7 +1897,7 @@ const styles = {
         position: 'absolute',
         right: -36,
         bottom: -36,
-        borderWidth: 4,
+        borderWidth: 3,
         borderRadius: 52,
         borderColor: 'transparent',
     },
