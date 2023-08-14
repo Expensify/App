@@ -1,0 +1,197 @@
+@import 'breakpoints';
+@import 'colors';
+@import 'fonts';
+
+$color-appBG: $color-green-appBG;
+$color-highlightBG: $color-green-highlightBG;
+$color-accent : $color-green400;
+$color-borders: $color-green-borders;
+$color-icons: $color-green-icons;
+$color-text: $color-white;
+$color-link: $color-blue300;
+$color-link-hovered: $color-blue200;
+$color-success: $color-green400;
+$color-text-supporting: $color-light-gray-green;
+$color-green-hover: $color-green-hover;
+$color-gray-label: $color-gray-label;
+
+.search-icon {
+    margin: auto 0px;
+}
+
+#sidebar-search {
+    background-color: $color-appBG;
+    width: 375px;
+    height: 100vh;
+    position: fixed;
+    display: block;
+    top: 0;
+    right: 0;
+}
+
+@media only screen and (max-width: $breakpoint-tablet) {
+    #sidebar-search {
+        width: 100%;
+    }
+}
+
+.searchbar-title-wrapper {
+    padding: 20px;
+}
+
+.search-title {
+    font-size: 17px;
+    padding-bottom: 20px;
+}
+
+#toggle-search-close {
+    margin: auto;
+    margin-left: 0px;
+    margin-right: 10px;
+}
+
+/* Sidebar Layer */
+#sidebar-layer {
+    position: fixed;
+
+    /* Sit on top of the page content */
+    display: none;
+
+    /* Hidden by default */
+    width: 100%;
+
+    /* Full width (cover the whole page) */
+    height: 100%;
+    
+    /* Full height (cover the whole page) */
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.4);
+    z-index: 2;
+}
+
+/* All gsc id & class are Google Search relate gcse_0 is the search bar parent & gcse_1 is the search result list parent */
+#___gcse_0 {
+    margin-left: 20px;
+}
+
+/* This input is in #___gcse_0 search bar */
+input#gsc-i-id1.gsc-input {
+    background-color: $color-appBG;
+    color: #E7ECE9;
+    font-family: "ExpensifyNeue", "Segoe UI Emoji", "Noto Color Emoji" !important;
+}
+
+/* These below #gsc-iw-id1, .gsc-input-box & .gsib_a are inner wrapper of search bar input */
+#gsc-iw-id1 {
+    background-color: $color-appBG;
+    border-bottom: $color-borders 2px solid;
+    border-bottom-left-radius: 0px;
+    
+    &:focus-within {
+        border-bottom: $color-accent 2px solid;
+    }
+}
+
+.gsc-input-box .gsib_a {
+    padding: 5px 9px 4px 0px;
+}
+
+.search-icon {
+    margin-left: auto;
+}
+
+/* This is the close icon on search bar */
+.gsib_b .gsst_a .gscb_a {
+    color: $color-icons;
+
+    &:hover {
+        color: $color-text;
+    }
+}
+
+/* This is to manage hover on parent close icon and make it the same effect on close icon */
+.gsst_a:hover {
+
+    .gscb_a {
+        color: $color-text !important;
+    }
+}
+
+/* Manage Google Search label animation */
+input#gsc-i-id1:focus+label.search-label,
+input#gsc-i-id1:valid+label.search-label,
+input#gsc-i-id1:active+label.search-label {
+    transform: translateY(-100%) scale(0.80);
+}
+
+label.search-label {
+    display: block;
+    position: absolute;
+    margin-top: -20px;
+    font-size: 15px;
+    font-family: "ExpensifyNeue", "Segoe UI Emoji", "Noto Color Emoji";
+    transform: translateY(-50%);
+    left: 20px;
+    color: $color-gray-label;
+    transform-origin: left top;
+    user-select: none;
+    transition: transform 150ms cubic-bezier(0.4, 0, 0.2, 1), color 150ms cubic-bezier(0.4, 0, 0.2, 1), top 500ms;
+}
+
+/* Hide the relevance, Ads, Branding, find more button & etc sections */
+.gsc-above-wrapper-area,
+.gsc-webResult.gsc-result .gsc-url-top,
+.gsc-results-wrapper-visible .gsc-adBlock,
+.gcsc-more-maybe-branding-root,
+.gcsc-find-more-on-google-root {
+    display: none;
+}
+
+.gsc-control-cse {
+    background-color: $color-appBG;
+    border: $color-appBG;
+    font-family: "ExpensifyNeue", "Helvetica Neue", "Helvetica", Arial, sans-serif !important;
+    max-height: 80vh;
+    overflow-y: scroll;
+}
+
+.gs-title {
+    font-weight: bold;
+}
+
+/* Change the Google Search Button icon into Expensify icon button */
+.gsc-search-button.gsc-search-button-v2 {
+    padding: 10px;
+    margin-top: -7px;
+    margin-left: 15px;
+    margin-right: 20px;
+    border-radius: 25px;
+    background-color: $color-green400;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+}
+
+.gsc-search-button.gsc-search-button-v2:hover {
+    background-color: $color-green-hover;
+}
+
+.gsc-search-button.gsc-search-button-v2 svg {
+    fill: $color-text;
+    height: auto;
+    width: auto;
+}
+
+/* Change the path of the Google Search Button icon into Expensify icon */
+.gsc-search-button.gsc-search-button-v2 svg path {
+    d: path('M8 1c3.9 0 7 3.1 7 7 0 1.4-.4 2.7-1.1 3.8l5.2 5.2c.6.6.6 1.5 0 2.1-.6.6-1.5.6-2.1 0l-5.2-5.2C10.7 14.6 9.4 15 8 15c-3.9 0-7-3.1-7-7s3.1-7 7-7zm0 3c2.2 0 4 1.8 4 4s-1.8 4-4 4-4-1.8-4-4 1.8-4 4-4z');
+    fill-rule: evenodd;
+    clip-rule: evenodd;
+}
+
+.gsc-resultsbox-visible .gsc-webResult .gsc-result {
+    border-bottom: none;
+}
