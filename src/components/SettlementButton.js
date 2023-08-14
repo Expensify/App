@@ -57,8 +57,9 @@ const propTypes = {
     /** Total money amount in form <currency><amount> */
     formattedAmount: PropTypes.string,
 
-    /** Additional styles for button */
-    buttonsizelarge: PropTypes.bool,
+    /** The size of button size */
+    buttonSize: PropTypes.oneOf(_.values(CONST.DROPDOWN_BUTTON_SIZE)),
+
     /** The anchor alignment of the popover menu */
 
     anchorAlignment: PropTypes.shape({
@@ -80,7 +81,7 @@ const defaultProps = {
     iouReport: {},
     policyID: '',
     formattedAmount: '',
-    buttonsizelarge: false,
+    buttonSize: CONST.DROPDOWN_BUTTON_SIZE.MEDIUM,
     anchorAlignment: {
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP, // we assume that popover menu opens below the button, anchor is at TOP
@@ -192,7 +193,7 @@ class SettlementButton extends React.Component {
                         }}
                         options={this.getButtonOptionsFromProps()}
                         style={this.props.style}
-                        buttonsizelarge={this.props.buttonsizelarge}
+                        buttonSize={this.props.buttonSize}
                         anchorAlignment={this.props.anchorAlignment}
                     />
                 )}

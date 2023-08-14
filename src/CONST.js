@@ -2534,6 +2534,11 @@ const CONST = {
         DISTANCE: 'distance',
     },
     STATUS_TEXT_MAX_LENGTH: 100,
+
+    DROPDOWN_BUTTON_SIZE: {
+        LARGE: 'large',
+        MEDIUM: 'medium',
+    },
 };
 
 export default CONST;

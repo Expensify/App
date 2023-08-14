@@ -22,8 +22,8 @@ const propTypes = {
     /** Whether we should show a loading state for the main button */
     isLoading: PropTypes.bool,
 
-    /** Whether the button size should be large */
-    buttonsizelarge: PropTypes.bool,
+    /** The size of button size */
+    buttonSize: PropTypes.oneOf(_.values(CONST.DROPDOWN_BUTTON_SIZE)),
 
     /** Should the confirmation button be disabled? */
     isDisabled: PropTypes.bool,
@@ -56,7 +56,7 @@ const defaultProps = {
     isDisabled: false,
     menuHeaderText: '',
     style: [],
-    buttonsizelarge: false,
+    buttonSize: CONST.DROPDOWN_BUTTON_SIZE.MEDIUM,
     anchorAlignment: {
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP, // we assume that popover menu opens below the button, anchor is at TOP
@@ -70,7 +70,8 @@ function ButtonWithDropdownMenu(props) {
     const {windowWidth, windowHeight} = useWindowDimensions();
     const caretButton = useRef(null);
     const selectedItem = props.options[selectedItemIndex];
-    const innerStyleDropButton = StyleUtils.getDropDownButtonHeight(props.buttonsizelarge);
+    const innerStyleDropButton = StyleUtils.getDropDownButtonHeight(props.buttonSize);
+    const isButtonSizeLarge = props.buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE;
 
     useEffect(() => {
         if (!caretButton.current) {
@@ -103,8 +104,8 @@ function ButtonWithDropdownMenu(props) {
                         shouldRemoveRightBorderRadius
                         style={[styles.flex1, styles.pr0]}
                         pressOnEnter
-                        large={props.buttonsizelarge}
-                        medium={!props.buttonsizelarge}
+                        large={isButtonSizeLarge}
+                        medium={!isButtonSizeLarge}
                         innerStyles={[innerStyleDropButton]}
                     />
 
@@ -115,8 +116,8 @@ function ButtonWithDropdownMenu(props) {
                         style={[styles.pl0]}
                         onPress={() => setIsMenuVisible(true)}
                         shouldRemoveLeftBorderRadius
-                        large={props.buttonsizelarge}
-                        medium={!props.buttonsizelarge}
+                        large={isButtonSizeLarge}
+                        medium={!isButtonSizeLarge}
                         innerStyles={[styles.dropDownButtonCartIconContainerPadding, innerStyleDropButton]}
                     >
                         <View style={[styles.dropDownButtonCartIconView, innerStyleDropButton]}>
@@ -139,8 +140,8 @@ function ButtonWithDropdownMenu(props) {
                     text={selectedItem.text}
                     onPress={(event) => props.onPress(event, props.options[0].value)}
                     pressOnEnter
-                    large={props.buttonsizelarge}
-                    medium={!props.buttonsizelarge}
+                    large={isButtonSizeLarge}
+                    medium={!isButtonSizeLarge}
                     innerStyles={[innerStyleDropButton]}
                 />
             )}

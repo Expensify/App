@@ -1304,11 +1304,11 @@ function getCheckboxContainerStyle(size, borderRadius) {
 
 /**
  * Returns style object for the dropbutton height
- * @param {Boolean} isLargeButton
+ * @param {String} buttonSize
  * @returns {Object}
  */
-function getDropDownButtonHeight(isLargeButton) {
-    if (isLargeButton) {
+function getDropDownButtonHeight(buttonSize) {
+    if (buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE) {
         return {
             height: variables.componentSizeLarge,
         };
