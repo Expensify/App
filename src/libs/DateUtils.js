@@ -38,10 +38,10 @@ Onyx.connect({
  */
 function setLocale(localeString) {
     switch (localeString) {
-        case 'en':
+        case CONST.LOCALES.EN:
             setDefaultOptions({locale: enGB});
             break;
-        case 'es':
+        case CONST.LOCALES.ES:
             setDefaultOptions({locale: es});
             break;
         default:
@@ -53,20 +53,17 @@ function setLocale(localeString) {
  * Gets the user's stored time zone NVP and returns a localized
  * Moment object for the given ISO-formatted datetime string
  *
+ * @private
  * @param {String} locale
  * @param {String} datetime
  * @param {String} [currentSelectedTimezone]
- *
  * @returns  {Moment}
  *
- * @private
  */
 function getLocalDateFromDatetime(locale, datetime, currentSelectedTimezone = timezone.selected) {
     setLocale(locale);
     if (!datetime) {
-        const now = new Date();
-        const zonedNow = utcToZonedTime(now, currentSelectedTimezone);
-        return zonedNow;
+        return utcToZonedTime(new Date(), currentSelectedTimezone);
     }
     const parsedDatetime = new Date(`${datetime} UTC`);
     return utcToZonedTime(parsedDatetime, currentSelectedTimezone);
@@ -85,7 +82,6 @@ function getLocalDateFromDatetime(locale, datetime, currentSelectedTimezone = ti
  * @param {Boolean} includeTimeZone
  * @param {String} [currentSelectedTimezone]
  * @param {Boolean} isLowercase
- *
  * @returns {String}
  */
 function datetimeToCalendarTime(locale, datetime, includeTimeZone = false, currentSelectedTimezone, isLowercase = false) {
@@ -96,9 +92,6 @@ function datetimeToCalendarTime(locale, datetime, includeTimeZone = false, curre
     let yesterdayAt = Localize.translate(locale, 'common.yesterdayAt');
     const at = Localize.translate(locale, 'common.conjunctionAt');
 
-    const dateFormatter = 'MMM d';
-    const elseDateFormatter = 'MMM d, yyyy';
-    const timeFormatter = 'h:mm a';
     const startOfCurrentWeek = startOfWeek(new Date(), {weekStartsOn: 1}); // Assuming Monday is the start of the week
     const endOfCurrentWeek = endOfWeek(new Date(), {weekStartsOn: 1}); // Assuming Monday is the start of the week
 
@@ -109,18 +102,18 @@ function datetimeToCalendarTime(locale, datetime, includeTimeZone = false, curre
     }
 
     if (isToday(date)) {
-        return `${todayAt} ${format(date, timeFormatter)}${tz}`;
+        return `${todayAt} ${format(date, CONST.DATE.LOCAL_TIME_FORMAT)}${tz}`;
     }
     if (isTomorrow(date)) {
-        return `${tomorrowAt} ${format(date, timeFormatter)}${tz}`;
+        return `${tomorrowAt} ${format(date, CONST.DATE.LOCAL_TIME_FORMAT)}${tz}`;
     }
     if (isYesterday(date)) {
-        return `${yesterdayAt} ${format(date, timeFormatter)}${tz}`;
+        return `${yesterdayAt} ${format(date, CONST.DATE.LOCAL_TIME_FORMAT)}${tz}`;
     }
     if (date >= startOfCurrentWeek && date <= endOfCurrentWeek) {
-        return `${format(date, dateFormatter)} ${at} ${format(date, timeFormatter)}${tz}`;
+        return `${format(date, CONST.DATE.MONTH_DAY_ABBR_FORMAT)} ${at} ${format(date, CONST.DATE.LOCAL_TIME_FORMAT)}${tz}`;
     }
-    return `${format(date, elseDateFormatter)} ${at} ${format(date, timeFormatter)}${tz}`;
+    return `${format(date, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT)} ${at} ${format(date, CONST.DATE.LOCAL_TIME_FORMAT)}${tz}`;
 }
 
 /**
@@ -138,12 +131,11 @@ function datetimeToCalendarTime(locale, datetime, includeTimeZone = false, curre
  *
  * @param {String} locale
  * @param {String} datetime
- *
  * @returns {String}
  */
 function datetimeToRelative(locale, datetime) {
     const date = getLocalDateFromDatetime(locale, datetime);
-    return formatDistanceToNow(date);
+    return formatDistanceToNow(date, {addSuffix: true});
 }
 
 /**
@@ -157,7 +149,6 @@ function datetimeToRelative(locale, datetime) {
  *
  * @param {String} datetime
  * @param {String} selectedTimezone
- *
  * @returns {String}
  */
 function getZoneAbbreviation(datetime, selectedTimezone) {
@@ -168,7 +159,6 @@ function getZoneAbbreviation(datetime, selectedTimezone) {
  * Format date to a long date format with weekday
  *
  * @param {String} datetime
- *
  * @returns {String} Sunday, July 9, 2023
  */
 function formatToLongDateWithWeekday(datetime) {
@@ -179,7 +169,6 @@ function formatToLongDateWithWeekday(datetime) {
  * Format date to a weekday format
  *
  * @param {String} datetime
- *
  * @returns {String} Sunday
  */
 function formatToDayOfWeek(datetime) {
@@ -190,7 +179,6 @@ function formatToDayOfWeek(datetime) {
  * Format date to a local time
  *
  * @param {String} datetime
- *
  * @returns {String} 2:30 PM
  */
 function formatToLocalTime(datetime) {
@@ -256,7 +244,6 @@ function getMicroseconds() {
  * Returns the current time in milliseconds in the format expected by the database
  *
  * @param {String|Number} [timestamp]
- *
  * @returns {String}
  */
 function getDBTime(timestamp = '') {

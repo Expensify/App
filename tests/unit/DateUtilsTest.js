@@ -113,21 +113,21 @@ describe('DateUtils', () => {
 
     it('should return the date in calendar time when calling datetimeToRelative', () => {
         const aFewSecondsAgo = subSeconds(new Date(), 10);
-        expect(DateUtils.datetimeToRelative(LOCALE, aFewSecondsAgo)).toBe('less than a minute');
+        expect(DateUtils.datetimeToRelative(LOCALE, aFewSecondsAgo)).toBe('less than a minute ago');
 
         const aMinuteAgo = subMinutes(new Date(), 1);
-        expect(DateUtils.datetimeToRelative(LOCALE, aMinuteAgo)).toBe('1 minute');
+        expect(DateUtils.datetimeToRelative(LOCALE, aMinuteAgo)).toBe('1 minute ago');
 
         const anHourAgo = subHours(new Date(), 1);
-        expect(DateUtils.datetimeToRelative(LOCALE, anHourAgo)).toBe('about 1 hour');
+        expect(DateUtils.datetimeToRelative(LOCALE, anHourAgo)).toBe('about 1 hour ago');
     });
 
     it('subtractMillisecondsFromDateTime should subtract milliseconds from a given date and time', () => {
-        const initialDateTime = '2023-07-18 10:30:00Z';
+        const initialDateTime = '2023-07-18T10:30:00Z';
         const millisecondsToSubtract = 5000; // 5 seconds
-        const expectedDateTime = '2023-07-18T10:29:55Z';
+        const expectedDateTime = '2023-07-18 10:29:55.000';
         const result = DateUtils.subtractMillisecondsFromDateTime(initialDateTime, millisecondsToSubtract);
-        expect(format(new Date(result), CONST.DATE.FNS_TIMEZONE_FORMAT_STRING)).toBe(expectedDateTime);
+        expect(result).toBe(expectedDateTime);
     });
 
     describe('getDBTime', () => {

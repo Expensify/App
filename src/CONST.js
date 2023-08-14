@@ -183,6 +183,8 @@ const CONST = {
         FNS_FORMAT_STRING: 'yyyy-MM-dd',
         LOCAL_TIME_FORMAT: 'h:mm a',
         WEEKDAY_TIME_FORMAT: 'eeee',
+        MONTH_DAY_ABBR_FORMAT: 'MMM d',
+        MONTH_DAY_YEAR_ABBR_FORMAT: 'MMM d, yyyy',
         FNS_TIMEZONE_FORMAT_STRING: "yyyy-MM-dd'T'HH:mm:ssXXX",
         FNS_DB_FORMAT_STRING: 'yyyy-MM-dd HH:mm:ss.SSS',
         LONG_DATE_FORMAT_WITH_WEEKDAY: 'eeee, MMMM d, yyyy',
