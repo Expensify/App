@@ -8,7 +8,6 @@ import * as CollectionUtils from './CollectionUtils';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import Log from './Log';
-import * as CurrencyUtils from './CurrencyUtils';
 import isReportMessageAttachment from './isReportMessageAttachment';
 
 const allReports = {};
