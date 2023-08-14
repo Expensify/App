@@ -140,7 +140,7 @@ function getCurrency(transaction) {
     if (currency) {
         return currency;
     }
-    return lodashGet(transaction, 'currency', '');
+    return lodashGet(transaction, 'currency', CONST.CURRENCY.USD);
 }
 
 /**
