@@ -98,19 +98,24 @@ const defaultProps = {
 function ReportPreview(props) {
     const managerID = props.iouReport.managerID || props.action.actorAccountID || 0;
     const isCurrentUserManager = managerID === lodashGet(props.session, 'accountID');
-    const moneyRequestCount = lodashGet(props.action, 'childMoneyRequestCount', 0);
-    const moneyRequestComment = lodashGet(props.action, 'childLastMoneyRequestComment', '');
-    const showComment = moneyRequestComment || moneyRequestCount > 1;
     const reportTotal = ReportUtils.getMoneyRequestTotal(props.iouReport);
 
     const iouSettled = ReportUtils.isSettled(props.iouReportID);
     const numberOfRequests = ReportActionUtils.getNumberOfMoneyRequests(props.action);
     const numberOfScanningReceipts = ReportActionUtils.getNumberOfScanningReceipts(props.iouReport);
+    const moneyRequestComment = lodashGet(props.action, 'childLastMoneyRequestComment', '');
 
     const transactions = ReportActionUtils.getReportPreviewTransactionsWithReceipts(props.action);
     const hasReceipts = transactions.length > 0;
     const isScanning = hasReceipts && !ReportActionUtils.hasReadyMoneyRequests(props.action);
     const hasOnlyOneReceiptRequest = numberOfRequests === 1 && hasReceipts;
+    console.log(numberOfScanningReceipts);
+    const previewSubtitleIfNoComment = hasOnlyOneReceiptRequest
+        ? transactions[0].merchant
+        : props.translate('iou.requestCount', {
+            count: numberOfRequests,
+            scanningReceipts: numberOfScanningReceipts,
+        });
 
     let displayAmount;
     if (reportTotal) {
@@ -185,27 +190,11 @@ function ReportPreview(props) {
                         {hasReceipts && !isScanning && (
                             <View style={styles.flexRow}>
                                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                    <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh16]}>{
-                                        hasOnlyOneReceiptRequest
-                                            ? transactions[0].merchant
-                                            : props.translate('iou.requestCount', {
-                                                count: numberOfRequests,
-                                                scanningReceipts: numberOfScanningReceipts,
-                                            })
-                                    }</Text>
+                                    <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh16]}>{moneyRequestComment || previewSubtitleIfNoComment}</Text>
                                 </View>
                             </View>
                         )}
                     </View>
-                    {showComment && (
-                        <View style={[styles.flexRow]}>
-                            <View style={[styles.flex1]}>
-                                <Text style={[styles.mt1, styles.colorMuted]}>
-                                    {moneyRequestCount > 1 ? props.translate('iou.requestCount', {count: moneyRequestCount}) : moneyRequestComment}
-                                </Text>
-                            </View>
-                        </View>
-                    )}
                     {shouldShowSettlementButton && (
                         <SettlementButton
                             currency={props.iouReport.currency}

@@ -6,6 +6,7 @@ import styles from '../../styles/styles';
 import RenderHTML from '../RenderHTML';
 import stylePropTypes from '../../styles/stylePropTypes';
 import Text from '../Text';
+import Image from '../Image';
 
 const propTypes = {
     /** array of image and thumbnail URIs */

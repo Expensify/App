@@ -258,6 +258,11 @@ function MoneyRequestPreview(props) {
                                 </View>
                             )}
                         </View>
+                        {moneyRequestAction.merchant && (
+                            <View style={[styles.flexRow]}>
+                                <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh16]}>{moneyRequestAction.merchant}</Text>
+                            </View>
+                        )}
                         <View style={[styles.flexRow]}>
                             <View style={[styles.flex1]}>
                                 {!isCurrentUserManager && props.shouldShowPendingConversionMessage && (
