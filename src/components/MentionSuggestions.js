@@ -42,15 +42,19 @@ const propTypes = {
 
     /** Show that we should include ReportRecipientLocalTime view height */
     shouldIncludeReportRecipientLocalTimeHeight: PropTypes.bool.isRequired,
-    /** Ref the container enclosing the menu. 
+
+    /** Ref of the container enclosing the menu. 
      * This is needed to render the menu in correct position inside a portal
     */
-    containerRef: PropTypes.oneOfType([PropTypes.node, PropTypes.object, PropTypes.func]),
+    // eslint-disable-next-line react/forbid-prop-types
+    containerRef: PropTypes.shape({current: PropTypes.object}),
 };
 
 const defaultProps = {
     highlightedMentionIndex: 0,
-    containerRef: null,
+    containerRef: {
+        current: null,
+    },
 };
 
 /**

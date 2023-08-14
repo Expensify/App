@@ -13,7 +13,7 @@ import * as StyleUtils from '../../styles/StyleUtils';
  * On the native platform, tapping on auto-complete suggestions will not blur the main input.
  */
 
-function AutoCompleteSuggestions(props) {
+function AutoCompleteSuggestions({parentContainerRef, ...props}) {
     const containerRef = React.useRef(null);
     const [containerState, setContainerState] = React.useState({
         width: 0,
@@ -36,11 +36,11 @@ function AutoCompleteSuggestions(props) {
     }, []);
 
     React.useEffect(() => {
-        if (!props.parentContainerRef || !props.parentContainerRef.current) {
+        if (!parentContainerRef || !parentContainerRef.current) {
             return;
         }
-        props.parentContainerRef.current.measureInWindow((x, y, width, height) => setContainerState({x, y, width, height}));
-    }, [props.parentContainerRef]);
+        parentContainerRef.current.measureInWindow((x, y, width, height) => setContainerState({x, y, width, height}));
+    }, [parentContainerRef]);
 
     if (!containerState.width || !containerState.height) {
         return (

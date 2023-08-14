@@ -46,13 +46,14 @@ const propTypes = {
     /** Stores user's preferred skin tone */
     preferredSkinToneIndex: PropTypes.number.isRequired,
     
-    /** Ref the container enclosing the menu. 
+    /** Ref of the container enclosing the menu. 
      * This is needed to render the menu in correct position inside a portal
     */
-    containerRef: PropTypes.oneOfType([PropTypes.node, PropTypes.object, PropTypes.func]),
+    // eslint-disable-next-line react/forbid-prop-types
+    containerRef: PropTypes.shape({current: PropTypes.object}),
 };
 
-const defaultProps = {highlightedEmojiIndex: 0, containerRef: null};
+const defaultProps = {highlightedEmojiIndex: 0, containerRef: {current: null}};
 
 /**
  * Create unique keys for each emoji item

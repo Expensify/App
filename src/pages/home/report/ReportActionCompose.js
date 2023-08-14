@@ -199,8 +199,7 @@ class ReportActionCompose extends React.Component {
         this.comment = props.comment;
         this.insertedEmojis = [];
 
-        this.attachmentModalRef = React.createRef();
-        this.containerRef = React.createRef();
+        this.containerRef = React.createRef(null);
 
         // React Native will retain focus on an input for native devices but web/mWeb behave differently so we have some focus management
         // code that will refocus the compose input after a user closes a modal or some other actions, see usage of ReportActionComposeFocusManager

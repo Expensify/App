@@ -28,14 +28,17 @@ const propTypes = {
     /** create accessibility label for each item */
     accessibilityLabelExtractor: PropTypes.func.isRequired,
 
-    /** Ref the container enclosing the menu. 
+    /** Ref of the container enclosing the menu. 
      * This is needed to render the menu in correct position inside a portal
     */
-    parentContainerRef: PropTypes.oneOfType([PropTypes.node, PropTypes.object, PropTypes.func]),
+    // eslint-disable-next-line react/forbid-prop-types
+    parentContainerRef: PropTypes.shape({current: PropTypes.object}),
 };
 
 const defaultProps = {
-    parentContainerRef: null
+    parentContainerRef: {
+        current: null
+    }
 };
 
 export {propTypes, defaultProps};
