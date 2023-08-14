@@ -11,7 +11,6 @@ import styles from '../../../../styles/styles';
 import CONST from '../../../../CONST';
 import PressableWithoutFeedback from '../../../../components/Pressable/PressableWithoutFeedback';
 import useLocalize from '../../../../hooks/useLocalize';
-import NoDropZone from '../../../../components/DragAndDrop/NoDropZone';
 
 const propTypes = {
     /* State from useNavigationBuilder */
