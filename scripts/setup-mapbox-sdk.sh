@@ -5,14 +5,14 @@
 #
 # Purpose:
 # --------
-# This script configures the development environment to download Mapbox SDKs 
-# for both iOS and Android builds. We use Mapbox to display maps in the App. As Mapbox SDKs 
+# This script configures the development environment to download Mapbox SDKs
+# for both iOS and Android builds. We use Mapbox to display maps in the App. As Mapbox SDKs
 # are closed-sourced, we need to authenticate with Mapbox during the download.
 #
 # Background:
 # -----------
-# Engineers are required to obtain a secret token from Mapbox and store it on 
-# their development machine. This allows tools like CocoaPods for iOS or Gradle for Android 
+# Engineers are required to obtain a secret token from Mapbox and store it on
+# their development machine. This allows tools like CocoaPods for iOS or Gradle for Android
 # to access the Mapbox SDK during the build process.
 #
 # The `.netrc` file for iOS Configuration:
@@ -22,13 +22,13 @@
 #
 # The `gradle.properties` file for Android Configuration:
 # -------------------------------------------------------
-# The token for Android is stored in the `gradle.properties` file located in the .gradle directory 
+# The token for Android is stored in the `gradle.properties` file located in the .gradle directory
 # in the user's home. This is accessed by the Android build system during the SDK download.
 #
 # How this script helps:
 # ----------------------
-# This script streamlines the process of adding the credential to both the `.netrc` and 
-# `gradle.properties` files. When executed, it prompts the user for the secret token and 
+# This script streamlines the process of adding the credential to both the `.netrc` and
+# `gradle.properties` files. When executed, it prompts the user for the secret token and
 # then saves it to the respective files along with other necessary information.\n
 #
 # Usage:
@@ -43,7 +43,7 @@ GRADLE_PROPERTIES_PATH="$HOME/.gradle/gradle.properties"
 # It informs the user about probable permission issues and suggests commands to resolve them.
 handleError() {
     echo -e "\n"
-
+    
     echo -e "\033[1;31mError:\033[0m The script failed."
     echo "The most probable reason is permissions."
     echo -e "Please ensure you have read/write permissions for the following:\n"
@@ -53,7 +53,7 @@ handleError() {
     echo -e "\nYou can grant permissions using the commands:"
     echo -e "\033[1mchmod u+rw $NETRC_PATH\033[0m"
     echo -e "\033[1mchmod u+rw $GRADLE_PROPERTIES_PATH\033[0m"
-
+    
     echo -e "\n"
     exit 1
 }
@@ -77,16 +77,16 @@ fi
 echo -e "Configuring $NETRC_PATH for Mapbox iOS SDK download"
 
 # Check for existing Mapbox entries in .netrc
-if grep -q "api.mapbox.com" $NETRC_PATH; then
+if grep -q "api.mapbox.com" "$NETRC_PATH"; then
     # Extract the current token from .netrc
-    CURRENT_TOKEN=$(grep -A2 "api.mapbox.com" $NETRC_PATH | grep "password" | awk '{print $2}')
+    CURRENT_TOKEN=$(grep -A2 "api.mapbox.com" "$NETRC_PATH" | grep "password" | awk '{print $2}')
     
     # Compare the current token to the entered token
     if [ "$CURRENT_TOKEN" == "$TOKEN" ]; then
         echo -e "\nThe entered token matches the existing token in $NETRC_PATH. No changes made."
     else
         # Use sed to replace the old token with the new one
-        sed -i.bak "/api.mapbox.com/,+2s/password $CURRENT_TOKEN/password $TOKEN/" $NETRC_PATH
+        sed -i.bak "/api.mapbox.com/,+2s/password $CURRENT_TOKEN/password $TOKEN/" "$NETRC_PATH"
         echo -e "\nToken updated in $NETRC_PATH"
     fi
 else
@@ -94,10 +94,10 @@ else
     echo "machine api.mapbox.com" >> $NETRC_PATH
     echo "login mapbox" >> $NETRC_PATH
     echo "password $TOKEN" >> $NETRC_PATH
-
+    
     # Set the permissions of the .netrc file to ensure it's kept private
-    chmod 600 $NETRC_PATH
-
+    chmod 600 "$NETRC_PATH"
+    
     echo -e "\n$NETRC_PATH has been updated with new credentials"
 fi
 
@@ -112,23 +112,23 @@ if [ ! -d "$HOME/.gradle" ]; then
 fi
 
 # Check if gradle.properties exists. If not, create one.
-if [ ! -f $GRADLE_PROPERTIES_PATH ]; then
-    touch $GRADLE_PROPERTIES_PATH
+if [ ! -f "$GRADLE_PROPERTIES_PATH" ]; then
+    touch "$GRADLE_PROPERTIES_PATH"
 fi
 
 # Check if MAPBOX_DOWNLOADS_TOKEN already exists in the file
-if grep -q "MAPBOX_DOWNLOADS_TOKEN" $GRADLE_PROPERTIES_PATH; then
+if grep -q "MAPBOX_DOWNLOADS_TOKEN" "$GRADLE_PROPERTIES_PATH"; then
     # Extract the current token from gradle.properties
-    CURRENT_ANDROID_TOKEN=$(grep "MAPBOX_DOWNLOADS_TOKEN" $GRADLE_PROPERTIES_PATH | cut -d'=' -f2)
+    CURRENT_ANDROID_TOKEN=$(grep "MAPBOX_DOWNLOADS_TOKEN" "$GRADLE_PROPERTIES_PATH" | cut -d'=' -f2)
     
     # Compare the current token to the entered token
     if [ "$CURRENT_ANDROID_TOKEN" == "$TOKEN" ]; then
         echo -e "\nThe entered token matches the existing token in $GRADLE_PROPERTIES_PATH. No changes made."
     else
-        sed -i.bak "s/MAPBOX_DOWNLOADS_TOKEN=$CURRENT_ANDROID_TOKEN/MAPBOX_DOWNLOADS_TOKEN=$TOKEN/" $GRADLE_PROPERTIES_PATH
+        sed -i.bak "s/MAPBOX_DOWNLOADS_TOKEN=$CURRENT_ANDROID_TOKEN/MAPBOX_DOWNLOADS_TOKEN=$TOKEN/" "$GRADLE_PROPERTIES_PATH"
         echo -e "\nToken updated in $GRADLE_PROPERTIES_PATH"
     fi
 else
-    echo "MAPBOX_DOWNLOADS_TOKEN=$TOKEN" >> $GRADLE_PROPERTIES_PATH
+    echo "MAPBOX_DOWNLOADS_TOKEN=$TOKEN" >> "$GRADLE_PROPERTIES_PATH"
     echo -e "\n$GRADLE_PROPERTIES_PATH has been updated with new credentials"
 fi
