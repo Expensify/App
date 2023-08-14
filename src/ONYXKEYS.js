@@ -263,4 +263,7 @@ export default {
 
     // Receipt upload modal
     RECEIPT_MODAL: 'receiptModal',
+
+    // Information on any active demos being run
+    DEMO_INFO: 'demoInfo',
 };

@@ -1591,4 +1591,9 @@ export default {
     stateSelectorModal: {
         placeholderText: 'Search to see options',
     },
+    demos: {
+        saastr: {
+            signInWelcome: 'Welcome to SaaStr! Hop in to start networking now.',
+        }
+    }
 };

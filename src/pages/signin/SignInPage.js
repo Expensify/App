@@ -45,11 +45,19 @@ const propTypes = {
         twoFactorAuthCode: PropTypes.string,
         validateCode: PropTypes.string,
     }),
+
+    /** Information about any currently running demos */
+    demoInfo: PropTypes.shape({
+        saastr: PropTypes.shape({
+            isBeginningDemo: PropTypes.bool,
+        }),
+    }),
 };
 
 const defaultProps = {
     account: {},
     credentials: {},
+    demoInfo: {},
 };
 
 /**
@@ -77,7 +85,7 @@ function getRenderOptions({hasLogin, hasValidateCode, hasAccount, isPrimaryLogin
     };
 }
 
-function SignInPage({credentials, account}) {
+function SignInPage({credentials, account, demoInfo}) {
     const {translate, formatPhoneNumber} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
     const safeAreaInsets = useSafeAreaInsets();
@@ -102,7 +110,13 @@ function SignInPage({credentials, account}) {
     let welcomeText = '';
     if (shouldShowLoginForm) {
         welcomeHeader = isSmallScreenWidth ? translate('login.hero.header') : translate('welcomeText.getStarted');
-        welcomeText = isSmallScreenWidth ? translate('welcomeText.getStarted') : '';
+        
+        if (demoInfo.saastr && demoInfo.saastr.isBeginningDemo) {
+            welcomeText = translate('demos.saastr.signInWelcome');
+        } else {
+            welcomeText = isSmallScreenWidth ? translate('welcomeText.getStarted') : '';
+        }
+        
     } else if (shouldShowValidateCodeForm) {
         if (account.requiresTwoFactorAuth) {
             // We will only know this after a user signs in successfully, without their 2FA code
@@ -165,4 +179,5 @@ SignInPage.displayName = 'SignInPage';
 export default withOnyx({
     account: {key: ONYXKEYS.ACCOUNT},
     credentials: {key: ONYXKEYS.CREDENTIALS},
+    demoInfo: {key: ONYXKEYS.DEMO_INFO},
 })(SignInPage);

@@ -2063,4 +2063,9 @@ export default {
     stateSelectorModal: {
         placeholderText: 'Buscar para ver opciones',
     },
+    demos: {
+        saastr: {
+            signInWelcome: '',
+        }
+    }
 };
