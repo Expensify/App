@@ -93,6 +93,9 @@ const propTypes = {
 
     /** The transaction attached to the action.message.iouTransactionID */
     transaction: PropTypes.shape({
+        /** The name of the file for the receipt image. This is just the filename and doesn't come with any kind of a path */
+        filename: PropTypes.string,
+
         /** The name of the transaction merchant */
         merchant: PropTypes.string,
 
@@ -241,6 +244,8 @@ function MoneyRequestPreview(props) {
                             hoverStyle={isScanning ? styles.moneyRequestPreviewBoxHover : undefined}
                         />
                     )}
+
+                    {isDistanceRequest && <ReportActionItemImages images={[ReceiptUtils.getURL(props.transaction.filename)]} />}
                     <View style={styles.moneyRequestPreviewBoxText}>
                         <View style={[styles.flexRow]}>
                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
