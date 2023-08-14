@@ -55,7 +55,7 @@ function SubscriptAvatar(props) {
             >
                 <View>
                     <Avatar
-                        containerStyles={StyleUtils.getAvatarStyle(props.size || CONST.AVATAR_SIZE.DEFAULT)}
+                        containerStyles={StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(props.size || CONST.AVATAR_SIZE.DEFAULT))}
                         source={props.mainAvatar.source}
                         size={props.size || CONST.AVATAR_SIZE.DEFAULT}
                         name={props.mainAvatar.name}
