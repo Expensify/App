@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import CONST from '../CONST';
+import StringUtils from './StringUtils';
 
 /**
  * Searches the countries/states data and returns sorted results based on the search query
@@ -8,12 +8,12 @@ import CONST from '../CONST';
  * @returns {Object[]} An array of countries/states sorted based on the search query
  */
 function searchCountryOptions(searchValue, countriesData) {
-    const trimmedSearchValue = _.chain(searchValue).deburr().toLower().value().replaceAll(CONST.REGEX.NON_ALPHABETIC_AND_NON_LATIN_CHARS, '');
+    const trimmedSearchValue = StringUtils.sanitizeString(searchValue);
     if (_.isEmpty(trimmedSearchValue)) {
         return [];
     }
 
-    const filteredData = _.filter(countriesData, (country) => _.includes(_.deburr(country.searchValue), trimmedSearchValue));
+    const filteredData = _.filter(countriesData, (country) => _.includes(StringUtils.sanitizeString(country.searchValue), trimmedSearchValue));
 
     // sort by country code
     return _.sortBy(filteredData, (country) => (_.toLower(country.value) === trimmedSearchValue ? -1 : 1));
