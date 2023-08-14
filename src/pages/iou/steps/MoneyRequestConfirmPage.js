@@ -22,6 +22,7 @@ import reportPropTypes from '../../reportPropTypes';
 import personalDetailsPropType from '../../personalDetailsPropType';
 import * as Policy from '../../../libs/actions/Policy';
 import * as FileUtils from '../../../libs/fileDownload/FileUtils';
+import * as PolicyUtils from '../../../libs/PolicyUtils';
 
 const propTypes = {
     report: reportPropTypes,
@@ -78,8 +79,9 @@ function MoneyRequestConfirmPage(props) {
     useEffect(() => {
         // We want to load categories if this is an expense report on a policy expense chat
         const policyExpenseChat = _.find(participants, (participant) => participant.isPolicyExpenseChat);
-        if (policyExpenseChat) {
-            Policy.openDraftWorkspaceRequest(policyExpenseChat.policyID);
+        const policyID = policyExpenseChat.policyID
+        if (policyExpenseChat && PolicyUtils.isPolicyCategoryStale(policyID)) {
+            Policy.openDraftWorkspaceRequest(policyID);
         }
     }, [props.report, participants]);
 
