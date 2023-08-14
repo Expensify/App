@@ -118,12 +118,15 @@ function NewRequestAmountPage({route, iou, report}) {
             }
             const moneyRequestID = `${iouType}${reportID}`;
             const shouldReset = iou.id !== moneyRequestID;
+            let resetPromise = Promise.resolve();
             if (shouldReset) {
-                IOU.resetMoneyRequestInfo(moneyRequestID);
+                resetPromise = IOU.resetMoneyRequestInfo(moneyRequestID);
             }
 
             if (_.isEmpty(iou.participants) || iou.amount === 0 || shouldReset) {
-                Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType, reportID), true);
+                resetPromise.then(() => {
+                    Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType, reportID), true);
+                });
             }
         }
 
