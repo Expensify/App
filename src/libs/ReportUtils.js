@@ -2022,10 +2022,16 @@ function buildOptimisticModifiedExpenseReportAction(transactionThread, oldTransa
  * @param {Object} iouReport
  * @param {Object} reportPreviewAction
  * @param {String} [comment] - User comment for the IOU.
+ * @param {Object} [transaction] - optimistic newest transaction of a report preview
  *
  * @returns {Object}
  */
-function updateReportPreview(iouReport, reportPreviewAction, comment = '') {
+function updateReportPreview(iouReport, reportPreviewAction, comment = '', transaction = undefined) {
+    const hasReceipt = TransactionUtils.hasReceipt(transaction);
+    const previousIDs = lodashGet(reportPreviewAction, 'childLastReceiptTransactionIDs', '').split(',').slice(0, 2);
+    const newTransactions = hasReceipt
+        ? { childLastReceiptTransactionIDs: [transaction.transactionID, ...previousIDs] }
+        : {};
     const message = getReportPreviewMessage(iouReport, reportPreviewAction);
     return {
         ...reportPreviewAction,
@@ -2040,6 +2046,7 @@ function updateReportPreview(iouReport, reportPreviewAction, comment = '') {
         ],
         childLastMoneyRequestComment: comment || reportPreviewAction.childLastMoneyRequestComment,
         childMoneyRequestCount: reportPreviewAction.childMoneyRequestCount + 1,
+        ...newTransactions,
     };
 }
 
