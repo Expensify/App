@@ -182,10 +182,9 @@ function openApp() {
 /**
  * Fetches data when the app reconnects to the network
  * @param {Number} [updateIDFrom] the ID of the Onyx update that we want to start fetching from
- * @param {Number} [updateIDTo] the ID of the Onyx update that we want to fetch up to
  */
-function reconnectApp(updateIDFrom = 0, updateIDTo = 0) {
-    console.debug(`[OnyxUpdates] App reconnecting with updateIDFrom: ${updateIDFrom} and updateIDTo: ${updateIDTo}`);
+function reconnectApp(updateIDFrom = 0) {
+    console.debug(`[OnyxUpdates] App reconnecting with updateIDFrom: ${updateIDFrom}`);
     getPolicyParamsForOpenOrReconnect().then((policyParams) => {
         const params = {...policyParams};
 
@@ -204,13 +203,71 @@ function reconnectApp(updateIDFrom = 0, updateIDTo = 0) {
             params.updateIDFrom = updateIDFrom;
         }
 
-        if (updateIDTo) {
-            params.updateIDTo = updateIDTo;
-        }
-
         API.write('ReconnectApp', params, getOnyxDataForOpenOrReconnect());
     });
 }
+
+/**
+ * Fetches data when the client has discovered it missed some Onyx updates from the server
+ * @param {Number} [updateIDFrom] the ID of the Onyx update that we want to start fetching from
+ * @param {Number} [updateIDTo] the ID of the Onyx update that we want to fetch up to
+ */
+function getMissingOnyxUpdates(updateIDFrom = 0, updateIDTo = 0) {
+    console.debug(`[OnyxUpdates] Fetching missing updates updateIDFrom: ${updateIDFrom} and updateIDTo: ${updateIDTo}`);
+
+    API.write(
+        'GetMissingOnyxMessages',
+        {
+            updateIDFrom,
+            updateIDTo,
+        },
+        getOnyxDataForOpenOrReconnect(),
+
+        // Set this to true so that the request will be prioritized at the front of the sequential queue
+        true,
+    );
+}
+
+// The next 40ish lines of code are used for detecting when there is a gap of OnyxUpdates between what was last applied to the client and the updates the server has.
+// When a gap is detected, the missing updates are fetched from the API.
+
+// These key needs to be separate from ONYXKEYS.ONYX_UPDATES_FROM_SERVER so that it can be updated without triggering the callback when the server IDs are updated
+let lastUpdateIDAppliedToClient = 0;
+Onyx.connect({
+    key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
+    callback: (val) => (lastUpdateIDAppliedToClient = val),
+});
+
+Onyx.connect({
+    key: ONYXKEYS.ONYX_UPDATES_FROM_SERVER,
+    callback: (val) => {
+        if (!val) {
+            return;
+        }
+
+        const {lastUpdateIDFromServer, previousUpdateIDFromServer} = val;
+        console.debug('[OnyxUpdates] Received lastUpdateID from server', lastUpdateIDFromServer);
+        console.debug('[OnyxUpdates] Received previousUpdateID from server', previousUpdateIDFromServer);
+        console.debug('[OnyxUpdates] Last update ID applied to the client', lastUpdateIDAppliedToClient);
+
+        // If the previous update from the server does not match the last update the client got, then the client is missing some updates.
+        // getMissingOnyxUpdates will fetch updates starting from the last update this client got and going to the last update the server sent.
+        if (lastUpdateIDAppliedToClient && previousUpdateIDFromServer && lastUpdateIDAppliedToClient < previousUpdateIDFromServer) {
+            console.debug('[OnyxUpdates] Gap detected in update IDs so fetching incremental updates');
+            Log.info('Gap detected in update IDs from server so fetching incremental updates', true, {
+                lastUpdateIDFromServer,
+                previousUpdateIDFromServer,
+                lastUpdateIDAppliedToClient,
+            });
+            getMissingOnyxUpdates(lastUpdateIDAppliedToClient, lastUpdateIDFromServer);
+        }
+
+        if (lastUpdateIDFromServer > lastUpdateIDAppliedToClient) {
+            // Update this value so that it matches what was just received from the server
+            Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, lastUpdateIDFromServer || 0);
+        }
+    },
+});
 
 /**
  * This promise is used so that deeplink component know when a transition is end.
