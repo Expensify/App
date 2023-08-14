@@ -69,6 +69,9 @@ function DeeplinkWrapper({children, isAuthenticated}) {
         if (!isMacOSWeb() || isUnsupportedDeeplinkRoute || CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.DEV || hasShownPrompt) {
             return;
         }
+        // We want to show the prompt immediately if the user is already authenticated.
+        // Otherwise, we want to wait until the navigation state is set up
+        // and we know the user is on a screen that supports deeplinks.
         if (isAuthenticated) {
             promptToOpenInDesktopApp();
             setHasShownPrompt(true);
