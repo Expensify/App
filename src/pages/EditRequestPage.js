@@ -39,7 +39,7 @@ const defaultProps = {
 
 function EditRequestPage({report, route}) {
     const transactionID = lodashGet(ReportActionsUtils.getParentReportAction(report), 'originalMessage.IOUTransactionID', '');
-    const transaction = TransactionUtils.getTransaction(transactionID);
+    const transaction = ReportActionsUtils.getTransaction(transactionID);
     const transactionDescription = TransactionUtils.getDescription(transaction);
     const transactionAmount = TransactionUtils.getAmount(transaction, ReportUtils.isExpenseReport(ReportUtils.getParentReport(report)));
     const transactionCurrency = TransactionUtils.getCurrency(transaction);

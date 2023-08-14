@@ -1,23 +1,9 @@
-import Onyx from 'react-native-onyx';
 import {format} from 'date-fns';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import CONST from '../CONST';
-import ONYXKEYS from '../ONYXKEYS';
 import DateUtils from './DateUtils';
 import * as NumberUtils from './NumberUtils';
-
-let allTransactions = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.TRANSACTION,
-    waitForCollectionCallback: true,
-    callback: (val) => {
-        if (!val) {
-            return;
-        }
-        allTransactions = val;
-    },
-});
 
 /**
  * Optimistically generate a transaction.
@@ -102,16 +88,6 @@ function getUpdatedTransaction(transaction, transactionChanges, isFromExpenseRep
 }
 
 /**
- * Retrieve the particular transaction object given its ID.
- *
- * @param {String} transactionID
- * @returns {Object}
- */
-function getTransaction(transactionID) {
-    return lodashGet(allTransactions, `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {});
-}
-
-/**
  * Return the comment field (referred to as description in the App) from the transaction.
  * The comment does not have its modifiedComment counterpart.
  *
@@ -178,4 +154,4 @@ function isDistanceRequest(transaction) {
     return transaction && transaction.type === CONST.TRANSACTION.TYPE.CUSTOM_UNIT && transaction.customUnit && transaction.customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE;
 }
 
-export {buildOptimisticTransaction, hasReceipt, getUpdatedTransaction, getTransaction, getDescription, getAmount, getCurrency, getCreated, isDistanceRequest};
+export {buildOptimisticTransaction, hasReceipt, getUpdatedTransaction, getDescription, getAmount, getCurrency, getCreated, isDistanceRequest};
