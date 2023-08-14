@@ -39,7 +39,6 @@ function BaseTextInput(props) {
     const isLabelActive = useRef(initialActiveLabel);
     const isFirstRender = useRef(true);
 
-
     useEffect(() => {
         if (!props.disableKeyboard) {
             return;
