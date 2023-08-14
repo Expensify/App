@@ -31,6 +31,9 @@ const propTypes = {
 
     /** Fired when submit button pressed, saves the given amount and navigates to the next page */
     onSubmitButtonPress: PropTypes.func.isRequired,
+
+    /** Flag to indicate if the button should be disabled */
+    disableCurrency: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -38,6 +41,7 @@ const defaultProps = {
     currency: CONST.CURRENCY.USD,
     forwardedRef: null,
     isEditing: false,
+    disableCurrency: false,
 };
 
 /**
@@ -57,7 +61,7 @@ const AMOUNT_VIEW_ID = 'amountView';
 const NUM_PAD_CONTAINER_VIEW_ID = 'numPadContainerView';
 const NUM_PAD_VIEW_ID = 'numPadView';
 
-function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCurrencyButtonPress, onSubmitButtonPress}) {
+function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCurrencyButtonPress, onSubmitButtonPress, disableCurrency}) {
     const {translate, toLocaleDigit, fromLocaleDigit, numberFormat} = useLocalize();
 
     const textInput = useRef(null);
@@ -188,7 +192,6 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
 
     /**
      * Submit amount and navigate to a proper page
-     *
      */
     const submitAndNavigateToNextPage = useCallback(() => {
         onSubmitButtonPress(currentAmount);
@@ -226,6 +229,7 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
                         }
                         setSelection(e.nativeEvent.selection);
                     }}
+                    disabled={disableCurrency}
                 />
             </View>
             <View
