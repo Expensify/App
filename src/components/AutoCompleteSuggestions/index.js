@@ -20,7 +20,7 @@ function AutoCompleteSuggestions({parentContainerRef, ...props}) {
         height: 0,
         x: 0,
         y: 0,
-    }); 
+    });
     React.useEffect(() => {
         const container = containerRef.current;
         if (!container) {
@@ -52,17 +52,15 @@ function AutoCompleteSuggestions({parentContainerRef, ...props}) {
         );
     }
 
-    return (
-        ReactDOM.createPortal(
-            <View style={StyleUtils.getBaseAutoCompleteSuggestionContainerStyle(containerState)}>
-                <BaseAutoCompleteSuggestions
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...props}
-                    ref={containerRef}
-                />
-            </View>,
-            document.querySelector('body')
-        )
+    return ReactDOM.createPortal(
+        <View style={StyleUtils.getBaseAutoCompleteSuggestionContainerStyle(containerState)}>
+            <BaseAutoCompleteSuggestions
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...props}
+                ref={containerRef}
+            />
+        </View>,
+        document.querySelector('body'),
     );
 }
 
