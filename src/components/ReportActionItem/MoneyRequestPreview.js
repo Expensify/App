@@ -91,6 +91,9 @@ const propTypes = {
         }),
     ),
 
+    /** The transaction attached to the action.message.iouTransactionID */
+    transaction: PropTypes.any,
+
     /** Session info for the currently logged in user. */
     session: PropTypes.shape({
         /** Currently logged in user email */
@@ -121,6 +124,7 @@ const defaultProps = {
     session: {
         email: null,
     },
+    transaction: null,
     shouldShowPendingConversionMessage: false,
 };
 
@@ -310,6 +314,9 @@ export default compose(
         },
         session: {
             key: ONYXKEYS.SESSION,
+        },
+        transaction: {
+            key: ({action}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${(action && action.message && action.message.iouTransactionID) || 0}`,
         },
         walletTerms: {
             key: ONYXKEYS.WALLET_TERMS,
