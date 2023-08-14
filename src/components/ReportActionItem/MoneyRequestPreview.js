@@ -31,6 +31,7 @@ import PressableWithFeedback from '../Pressable/PressableWithoutFeedback';
 import * as ReportActionUtils from '../../libs/ReportActionsUtils';
 import * as TransactionUtils from '../../libs/TransactionUtils';
 import * as ReceiptUtils from '../../libs/ReceiptUtils';
+import ReportActionItemImages from './ReportActionItemImages';
 import RenderHTML from '../RenderHTML';
 import Image from '../Image';
 
@@ -195,23 +196,6 @@ function MoneyRequestPreview(props) {
         return CurrencyUtils.convertToDisplayString(requestAmount, requestCurrency);
     }
 
-    const renderReceipt = ({receipt, filename}) => {
-        const {thumbnail, image} = ReceiptUtils.getThumbnailAndImageURIs(receipt.source, filename);
-        if (thumbnail) {
-            return (
-                <RenderHTML html={`
-                    <img
-                        src="${thumbnail}"
-                        data-expensify-source="${image}"
-                        data-expensify-fit-container="true"
-                        data-expensify-preview-modal-disabled="true"
-                    />
-                `} />
-            );
-        }
-        return (<Image source={{uri: image}} style={[styles.w100, styles.h100]} />);
-    }
-
     const childContainer = (
         <View>
             <OfflineWithFeedback
@@ -226,9 +210,12 @@ function MoneyRequestPreview(props) {
             >
                 <View style={[styles.moneyRequestPreviewBox, ...props.containerStyles, isScanning ? styles.moneyRequestPreviewBoxHover : undefined]}>
                     {hasReceipt && (
-                        <View style={[styles.moneyRequestPreviewReceipt, props.isHovered || isScanning ? styles.moneyRequestPreviewBoxHover : undefined]}>
-                            {renderReceipt(transaction)}
-                        </View>
+                        <ReportActionItemImages
+                            images={[ReceiptUtils.getThumbnailAndImageURIs(transaction.receipt.source, transaction.filename)]}
+                            size={1}
+                            total={1}
+                            hoverStyle={isScanning ? styles.moneyRequestPreviewBoxHover : undefined}
+                        />
                     )}
                     <View style={styles.moneyRequestPreviewBoxText}>
                         <View style={[styles.flexRow]}>

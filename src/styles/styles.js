@@ -2650,15 +2650,6 @@ const styles = {
         width: '100%',
     },
 
-    moneyRequestPreviewReceipt: {
-        borderWidth: 2,
-        borderColor: themeColors.cardBG,
-        borderTopLeftRadius: variables.componentBorderRadiusLarge,
-        borderTopRightRadius: variables.componentBorderRadiusLarge,
-        overflow: 'hidden',
-        height: 200,
-    },
-
     moneyRequestPreviewBoxText: {
         padding: 16,
     },
@@ -3744,6 +3735,16 @@ const styles = {
     rotate90: {
         transform: [{rotate: '90deg'}],
     },
+
+    moneyRequestViewImage: {
+        ...spacing.mh5,
+        ...spacing.mv3,
+        overflow: 'hidden',
+        borderWidth: 2,
+        borderColor: themeColors.cardBG,
+        borderRadius: variables.componentBorderRadiusLarge,
+        height: 200,
+    }
 };
 
 export default styles;

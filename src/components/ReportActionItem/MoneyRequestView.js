@@ -25,8 +25,8 @@ import useLocalize from '../../hooks/useLocalize';
 import * as TransactionUtils from '../../libs/TransactionUtils';
 import * as ReceiptUtils from '../../libs/ReceiptUtils';
 import withLocalize from '../withLocalize';
-import ReportActionItemImages from '../ReportActionItemImages';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
+import MoneyRequestImage from './MoneyRequestImage';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -103,7 +103,7 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, polic
                     style={[StyleUtils.getReportWelcomeBackgroundImageStyle(true)]}
                 />
             </View>
-            {hasReceipt && <ReportActionItemImages images={[receiptUris]} size={1} total={1} />}
+            {hasReceipt && <MoneyRequestImage image={receiptUris} />}
             <MenuItemWithTopDescription
                 title={formattedTransactionAmount}
                 shouldShowTitleIcon={isSettled}

@@ -2,10 +2,10 @@ import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import styles from '../styles/styles';
-import RenderHTML from './RenderHTML';
-import stylePropTypes from '../styles/stylePropTypes';
-import Text from './Text';
+import styles from '../../styles/styles';
+import RenderHTML from '../RenderHTML';
+import stylePropTypes from '../../styles/stylePropTypes';
+import Text from '../Text';
 
 const propTypes = {
     /** array of image and thumbnail URIs */
