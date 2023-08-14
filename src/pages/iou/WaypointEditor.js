@@ -52,23 +52,20 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
     const validate = (values) => {
         const errors = {};
         const waypointValue = values[`waypoint${waypointIndex}`] || '';
-
-        // If the user is offline, they can enter any address they want, so we validate it this way
         if (network.isOffline && waypointValue !== '' && !ValidationUtils.isValidAddress(waypointValue)) {
             errors[`waypoint${waypointIndex}`] = 'bankAccount.error.address';
+        }
+
+        // Require the user to select a suggested address if they are online
+        if (!network.isOffline && waypointValue !== '') {
+            errors[`waypoint${waypointIndex}`] = 'distance.errors.selectSuggestedAddress';
         }
 
         return errors;
     };
 
     const onSubmit = (values) => {
-        const waypointValue = values[`waypoint${waypointIndex}`] || '';
-
-        // Prevent the user from submitting the form if they are online
-        // The only way is to select an address from the auto-complete
-        if (!network.isOffline && waypointValue !== '') {
-            return;
-        }
+        const waypointValue = (values[`waypoint${waypointIndex}`]) || '';
 
         // Allows letting you set a waypoint to an empty value
         if (waypointValue === '') {
@@ -114,6 +111,8 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
                 enabledWhenOffline
                 validate={validate}
                 onSubmit={onSubmit}
+                shouldValidateOnChange={false}
+                shouldValidateOnBlur={false}
                 submitButtonText={translate('common.save')}
             >
                 <View>
