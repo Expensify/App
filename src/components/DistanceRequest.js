@@ -162,11 +162,7 @@ function DistanceRequest({transactionID, transaction, translate, mapboxAccessTok
                         location: CONST.SF_COORDINATES,
                         zoom: DEFAULT_ZOOM_LEVEL,
                     }}
-                    style={{
-                        flex: 1,
-                        borderRadius: 20,
-                        overflow: 'hidden',
-                    }}
+                    style={styles.mapView}
                 />
             </View>
         </>

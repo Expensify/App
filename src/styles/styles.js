@@ -3674,8 +3674,15 @@ const styles = {
         flexDirection: 'row',
         alignItems: 'center',
     },
+
     rotate90: {
         transform: [{rotate: '90deg'}],
+    },
+
+    mapView: {
+        flex: 1,
+        borderRadius: 20,
+        overflow: 'hidden',
     },
 };
 
