@@ -106,6 +106,23 @@ The iOS and Android implementations do not require extra steps to test, aside fr
 
 ### Web and desktop
 
+#### Render the web Sign In with Apple button in development
+
+The Google Sign In button renders differently in development mode. To prevent confusion
+for developers about a possible regression, we decided to not render third party buttons in
+development mode.
+
+To show the Apple Sign In button in development mode, you can comment out the following code in the 
+LoginForm.js file:
+
+```js
+if (CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.DEV) {
+  return;
+}
+```
+
+#### Port requirements
+
 The Sign in with Apple process will break after the user signs in if the pop-up process is not started from a page at an HTTPS domain registered with Apple. To fix this, you could make a new configuration with your own HTTPS domain, but then the Apple configuration won't match that of Expensify's backend.
 
 So to be able to test this, we have two parts:
@@ -221,6 +238,21 @@ open desktop-build
 ## Google
 
 ### Web
+
+#### Render the web Sign In with Google button in Development
+
+The Google Sign In button renders differently in development mode. To prevent confusion
+for developers about a possible regression, we decided to not render third party buttons in
+development mode.
+
+To show the Google Sign In button in development mode, you can comment out the following code in the 
+LoginForm.js file:
+
+```js
+if (CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.DEV) {
+  return;
+}
+```
 
 #### Port requirements
 
