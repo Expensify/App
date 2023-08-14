@@ -54,7 +54,7 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
         const waypointValue = values[`waypoint${waypointIndex}`] || '';
 
         // If the user is offline, they can enter any address they want, so we validate it this way
-        if (network.isOffline && !ValidationUtils.isValidAddress(waypointValue)) {
+        if (network.isOffline && waypointValue !== '' && !ValidationUtils.isValidAddress(waypointValue)) {
             errors[`waypoint${waypointIndex}`] = 'bankAccount.error.address';
         }
 
