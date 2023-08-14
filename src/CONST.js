@@ -1156,6 +1156,7 @@ const CONST = {
 
         ROUTES: {
             VALIDATE_LOGIN: /\/v($|(\/\/*))/,
+            UNLINK_LOGIN: /\/u($|(\/\/*))/,
         },
     },
 
@@ -2535,6 +2536,7 @@ const CONST = {
         SCAN: 'scan',
         DISTANCE: 'distance',
     },
+    STATUS_TEXT_MAX_LENGTH: 100,
 };
 
 export default CONST;

@@ -42,7 +42,7 @@ function StatusSetPage({draftStatus, currentUserPersonalDetails}) {
     const defaultText = lodashGet(draftStatus, 'text') || lodashGet(currentUserPersonalDetails, 'status.text', '');
 
     const onSubmit = (value) => {
-        User.updateDraftCustomStatus({text: value.statusText, emojiCode: value.emojiCode});
+        User.updateDraftCustomStatus({text: value.statusText.trim(), emojiCode: value.emojiCode});
         Navigation.goBack(ROUTES.SETTINGS_STATUS);
     };
 
@@ -55,7 +55,7 @@ function StatusSetPage({draftStatus, currentUserPersonalDetails}) {
             <Form
                 formID={ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM}
                 style={[styles.flexGrow1, styles.ph5]}
-                submitButtonText="Save"
+                submitButtonText={translate('statusPage.save')}
                 onSubmit={onSubmit}
                 enabledWhenOffline
             >
@@ -74,7 +74,7 @@ function StatusSetPage({draftStatus, currentUserPersonalDetails}) {
                             accessibilityLabel={INPUT_IDS.STATUS_TEXT}
                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                             defaultValue={defaultText}
-                            maxLength={100}
+                            maxLength={CONST.STATUS_TEXT_MAX_LENGTH}
                             autoFocus
                             shouldDelayFocus
                         />
