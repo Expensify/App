@@ -1241,16 +1241,22 @@ function getMoneyRequestReportName(report, policy = undefined) {
  * Given a parent IOU report action get report name for the LHN.
  *
  * @param {Object} reportAction
+ * @param {Object} report
  * @returns {String}
  */
-function getTransactionReportName(reportAction) {
+function getTransactionReportName(reportAction, report) {
     if (ReportActionsUtils.isDeletedParentAction(reportAction)) {
         return Localize.translateLocal('parentReportAction.deletedRequest');
     }
 
+    const transaction = ReportActionsUtils.getLinkedTransaction(reportAction);
+    const amount = TransactionUtils.getAmount(transaction, isExpenseReport(report));
+    const currency = TransactionUtils.getCurrency(transaction);
+    const comment = TransactionUtils.getDescription(transaction);
+
     return Localize.translateLocal(ReportActionsUtils.isSentMoneyReportAction(reportAction) ? 'iou.threadSentMoneyReportName' : 'iou.threadRequestReportName', {
-        // formattedAmount: ReportActionsUtils.getFormattedAmount(reportAction),
-        // comment: ReportActionsUtils.getMoneyRequestDetails.comment,
+        formattedAmount: CurrencyUtils.convertToDisplayString(amount, currency),
+        comment,
     });
 }
 
@@ -1388,7 +1394,7 @@ function getReportName(report, policy = undefined) {
     if (isChatThread(report)) {
         const parentReportAction = ReportActionsUtils.getParentReportAction(report);
         if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
-            return getTransactionReportName(parentReportAction);
+            return getTransactionReportName(parentReportAction, report);
         }
 
         const isAttachment = _.has(parentReportAction, 'isAttachment') ? parentReportAction.isAttachment : isReportMessageAttachment(_.last(lodashGet(parentReportAction, 'message', [{}])));

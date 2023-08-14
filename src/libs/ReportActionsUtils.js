@@ -178,17 +178,6 @@ function isSentMoneyReportAction(reportAction) {
 }
 
 /**
- * Returns the formatted amount of a money request.
- *
- * @param {Object} reportAction
- * @returns {Number}
- */
-function getFormattedAmount(reportAction) {
-    const moneyRequestDetails = getMoneyRequestDetails(reportAction);
-    return CurrencyUtils.convertToDisplayString(lodashGet(moneyRequestDetails, 'amount', 0), lodashGet(moneyRequestDetails, 'currency', ''));
-}
-
-/**
  * Returns whether the thread is a transaction thread, which is any thread with IOU parent
  * report action from requesting money (type - create) or from sending money (type - pay with IOUDetails field)
  *
@@ -626,7 +615,6 @@ export {
     getParentReportAction,
     getParentReportActionInReport,
     isTransactionThread,
-    getFormattedAmount,
     isSentMoneyReportAction,
     isDeletedParentAction,
     isReportPreviewAction,
@@ -636,6 +624,5 @@ export {
     isWhisperAction,
     isPendingRemove,
     getReportAction,
-    getMoneyRequestDetails,
     getLinkedTransaction,
 };
