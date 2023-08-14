@@ -6,6 +6,8 @@ import Modal from '../Modal';
 import HeaderWithBackButton from '../HeaderWithBackButton';
 import SelectionList from '../SelectionList';
 import useLocalize from '../../hooks/useLocalize';
+import ScreenWrapper from '../ScreenWrapper';
+import styles from '../../styles/styles';
 import searchCountryOptions from '../../libs/searchCountryOptions';
 
 const propTypes = {
@@ -65,22 +67,28 @@ function StateSelectorModal({currentState, isVisible, onClose, onStateSelected, 
             hideModalContentWhileAnimating
             useNativeDriver
         >
-            <HeaderWithBackButton
-                title={label || translate('common.state')}
-                shouldShowBackButton
-                onBackButtonPress={onClose}
-            />
-            <SelectionList
-                headerMessage={headerMessage}
-                textInputLabel={label || translate('common.state')}
-                textInputPlaceholder={translate('stateSelectorModal.placeholderText')}
-                textInputValue={searchValue}
-                sections={[{data: searchResults, indexOffset: 0}]}
-                onSelectRow={onStateSelected}
-                onChangeText={setSearchValue}
-                shouldDelayFocus
-                initiallyFocusedOptionKey={currentState}
-            />
+            <ScreenWrapper
+                style={[styles.pb0]}
+                includePaddingTop={false}
+                includeSafeAreaPaddingBottom={false}
+            >
+                <HeaderWithBackButton
+                    title={label || translate('common.state')}
+                    shouldShowBackButton
+                    onBackButtonPress={onClose}
+                />
+                <SelectionList
+                    headerMessage={headerMessage}
+                    textInputLabel={label || translate('common.state')}
+                    textInputPlaceholder={translate('stateSelectorModal.placeholderText')}
+                    textInputValue={searchValue}
+                    sections={[{data: searchResults, indexOffset: 0}]}
+                    onSelectRow={onStateSelected}
+                    onChangeText={setSearchValue}
+                    shouldDelayFocus
+                    initiallyFocusedOptionKey={currentState}
+                />
+            </ScreenWrapper>
         </Modal>
     );
 }
