@@ -32,8 +32,6 @@ import * as ReportActionUtils from '../../libs/ReportActionsUtils';
 import * as TransactionUtils from '../../libs/TransactionUtils';
 import * as ReceiptUtils from '../../libs/ReceiptUtils';
 import ReportActionItemImages from './ReportActionItemImages';
-import RenderHTML from '../RenderHTML';
-import Image from '../Image';
 
 const propTypes = {
     /** The active IOUReport, used for Onyx subscription */

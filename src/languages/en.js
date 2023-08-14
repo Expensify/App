@@ -1,6 +1,5 @@
 import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
 import CONST from '../CONST';
-import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 
 /* eslint-disable max-len */
 export default {
@@ -276,8 +275,8 @@ export default {
         markAsUnread: 'Mark as unread',
         markAsRead: 'Mark as read',
         editComment: 'Edit comment',
-        deleteAction: ({action}) => `Delete ${ReportActionsUtils.isMoneyRequestAction(action) ? 'request' : 'comment'}`,
-        deleteConfirmation: ({action}) => `Are you sure you want to delete this ${ReportActionsUtils.isMoneyRequestAction(action) ? 'request' : 'comment'}?`,
+        deleteAction: ({isMoneyRequest}) => `Delete ${isMoneyRequest ? 'request' : 'comment'}`,
+        deleteConfirmation: ({isMoneyRequest}) => `Are you sure you want to delete this ${isMoneyRequest ? 'request' : 'comment'}?`,
         onlyVisible: 'Only visible to',
         replyInThread: 'Reply in thread',
         flagAsOffensive: 'Flag as offensive',

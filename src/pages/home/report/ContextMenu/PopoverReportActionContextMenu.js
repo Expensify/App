@@ -322,7 +322,7 @@ class PopoverReportActionContextMenu extends React.Component {
                     />
                 </PopoverWithMeasuredContent>
                 <ConfirmModal
-                    title={this.props.translate('reportActionContextMenu.deleteAction', {action: this.state.reportAction})}
+                    title={this.props.translate('reportActionContextMenu.deleteAction', {isMoneyRequest: ReportActionsUtils.isMoneyRequestAction(this.state.reportAction)})}
                     isVisible={this.state.isDeleteCommentConfirmModalVisible}
                     shouldSetModalVisibility={this.state.shouldSetModalVisibilityForDeleteConfirmation}
                     onConfirm={this.confirmDeleteAndHideModal}
@@ -331,7 +331,7 @@ class PopoverReportActionContextMenu extends React.Component {
                         this.setState({reportID: '0', reportAction: {}});
                         this.callbackWhenDeleteModalHide();
                     }}
-                    prompt={this.props.translate('reportActionContextMenu.deleteConfirmation', {action: this.state.reportAction})}
+                    prompt={this.props.translate('reportActionContextMenu.deleteConfirmation', {isMoneyRequest: ReportActionsUtils.isMoneyRequestAction(this.state.reportAction)})}
                     confirmText={this.props.translate('common.delete')}
                     cancelText={this.props.translate('common.cancel')}
                     danger

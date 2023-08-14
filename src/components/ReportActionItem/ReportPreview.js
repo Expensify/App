@@ -109,7 +109,6 @@ function ReportPreview(props) {
     const hasReceipts = transactions.length > 0;
     const isScanning = hasReceipts && !ReportActionUtils.hasReadyMoneyRequests(props.action);
     const hasOnlyOneReceiptRequest = numberOfRequests === 1 && hasReceipts;
-    console.log(numberOfScanningReceipts);
     const previewSubtitleIfNoComment = hasOnlyOneReceiptRequest
         ? transactions[0].merchant
         : props.translate('iou.requestCount', {

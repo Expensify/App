@@ -84,7 +84,7 @@ function MoneyRequestHeader(props) {
                     threeDotsMenuItems={[
                         {
                             icon: Expensicons.Trashcan,
-                            text: translate('reportActionContextMenu.deleteAction', {action: parentReportAction}),
+                            text: translate('reportActionContextMenu.deleteAction', {isMoneyRequest: ReportActionsUtils.isMoneyRequestAction(parentReportAction)}),
                             onSelected: () => setIsDeleteModalVisible(true),
                         },
                     ]}
