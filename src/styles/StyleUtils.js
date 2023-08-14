@@ -1051,6 +1051,17 @@ function getAutoCompleteSuggestionItemStyle(highlightedEmojiIndex, rowHeight, ho
 }
 
 /**
+ * Gets the correct position for the base auto complete suggestion container
+ *
+ * @param {Object} parentContainerLayout
+ * @returns {Object}
+ */
+
+function getBaseAutoCompleteSuggestionContainerStyle({x, y, width}) {
+    return {position: 'fixed', top: y, left: x, width};
+}
+
+/**
  * Gets the correct position for auto complete suggestion container
  *
  * @param {Number} itemsHeight
@@ -1351,6 +1362,7 @@ export {
     getReportWelcomeBackgroundImageStyle,
     getReportWelcomeTopMarginStyle,
     getReportWelcomeContainerStyle,
+    getBaseAutoCompleteSuggestionContainerStyle,
     getAutoCompleteSuggestionItemStyle,
     getAutoCompleteSuggestionContainerStyle,
     getColoredBackgroundStyle,

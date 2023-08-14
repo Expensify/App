@@ -45,9 +45,14 @@ const propTypes = {
 
     /** Stores user's preferred skin tone */
     preferredSkinToneIndex: PropTypes.number.isRequired,
+    
+    /** Ref the container enclosing the menu. 
+     * This is needed to render the menu in correct position inside a portal
+    */
+    containerRef: PropTypes.oneOfType([PropTypes.node, PropTypes.object, PropTypes.func]),
 };
 
-const defaultProps = {highlightedEmojiIndex: 0};
+const defaultProps = {highlightedEmojiIndex: 0, containerRef: null};
 
 /**
  * Create unique keys for each emoji item
@@ -98,6 +103,7 @@ function EmojiSuggestions(props) {
             isSuggestionPickerLarge={props.isEmojiPickerLarge}
             shouldIncludeReportRecipientLocalTimeHeight={props.shouldIncludeReportRecipientLocalTimeHeight}
             accessibilityLabelExtractor={keyExtractor}
+            parentContainerRef={props.containerRef}
         />
     );
 }

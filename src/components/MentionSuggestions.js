@@ -42,10 +42,15 @@ const propTypes = {
 
     /** Show that we should include ReportRecipientLocalTime view height */
     shouldIncludeReportRecipientLocalTimeHeight: PropTypes.bool.isRequired,
+    /** Ref the container enclosing the menu. 
+     * This is needed to render the menu in correct position inside a portal
+    */
+    containerRef: PropTypes.oneOfType([PropTypes.node, PropTypes.object, PropTypes.func]),
 };
 
 const defaultProps = {
     highlightedMentionIndex: 0,
+    containerRef: null,
 };
 
 /**
@@ -122,6 +127,7 @@ function MentionSuggestions(props) {
             isSuggestionPickerLarge={props.isMentionPickerLarge}
             shouldIncludeReportRecipientLocalTimeHeight={props.shouldIncludeReportRecipientLocalTimeHeight}
             accessibilityLabelExtractor={keyExtractor}
+            parentContainerRef={props.containerRef}
         />
     );
 }

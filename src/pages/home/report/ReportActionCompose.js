@@ -200,6 +200,7 @@ class ReportActionCompose extends React.Component {
         this.insertedEmojis = [];
 
         this.attachmentModalRef = React.createRef();
+        this.containerRef = React.createRef();
 
         // React Native will retain focus on an input for native devices but web/mWeb behave differently so we have some focus management
         // code that will refocus the compose input after a user closes a modal or some other actions, see usage of ReportActionComposeFocusManager
@@ -988,6 +989,7 @@ class ReportActionCompose extends React.Component {
                     shouldShowReportRecipientLocalTime && !lodashGet(this.props.network, 'isOffline') && styles.chatItemComposeWithFirstRow,
                     this.props.isComposerFullSize && styles.chatItemFullComposeRow,
                 ]}
+                ref={this.containerRef}
             >
                 <OfflineWithFeedback
                     pendingAction={this.props.pendingAction}
@@ -1263,6 +1265,7 @@ class ReportActionCompose extends React.Component {
                             isEmojiPickerLarge={this.state.isAutoSuggestionPickerLarge}
                             composerHeight={this.state.composerHeight}
                             shouldIncludeReportRecipientLocalTimeHeight={shouldShowReportRecipientLocalTime}
+                            containerRef={this.containerRef}
                         />
                     </ArrowKeyFocusManager>
                 )}
@@ -1286,6 +1289,7 @@ class ReportActionCompose extends React.Component {
                             isMentionPickerLarge={this.state.isAutoSuggestionPickerLarge}
                             composerHeight={this.state.composerHeight}
                             shouldIncludeReportRecipientLocalTimeHeight={shouldShowReportRecipientLocalTime}
+                            containerRef={this.containerRef}
                         />
                     </ArrowKeyFocusManager>
                 )}

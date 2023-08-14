@@ -27,8 +27,15 @@ const propTypes = {
 
     /** create accessibility label for each item */
     accessibilityLabelExtractor: PropTypes.func.isRequired,
+
+    /** Ref the container enclosing the menu. 
+     * This is needed to render the menu in correct position inside a portal
+    */
+    parentContainerRef: PropTypes.oneOfType([PropTypes.node, PropTypes.object, PropTypes.func]),
 };
 
-const defaultProps = {};
+const defaultProps = {
+    parentContainerRef: null
+};
 
 export {propTypes, defaultProps};
