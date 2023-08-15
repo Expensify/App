@@ -1237,7 +1237,7 @@ function getReport(reportID) {
 /**
  * Gets transaction amount, currency and comment
  *
- * @param {Object} transaction 
+ * @param {Object} transaction
  * @returns {Object}
  */
 function getTransactionDetails(transaction) {
@@ -1248,7 +1248,7 @@ function getTransactionDetails(transaction) {
         amount: TransactionUtils.getAmount(transaction, isExpenseReport(report)),
         currency: TransactionUtils.getCurrency(transaction),
         comment: TransactionUtils.getDescription(transaction),
-    } 
+    };
 }
 
 /**
