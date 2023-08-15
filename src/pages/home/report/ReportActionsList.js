@@ -20,6 +20,7 @@ import reportPropTypes from '../../reportPropTypes';
 import networkPropTypes from '../../../components/networkPropTypes';
 import withLocalize from '../../../components/withLocalize';
 import useReportScrollManager from '../../../hooks/useReportScrollManager';
+import { View } from "react-native";
 
 const propTypes = {
     /** Position of the "New" line marker */
@@ -153,6 +154,11 @@ function ReportActionsList(props) {
         [report, hasOutstandingIOU, newMarkerReportActionID, sortedReportActions, mostRecentIOUReportActionID],
     );
 
+    const renderCell = useCallback(({ index, style, ...props }) => {
+        const zIndexOffset = {zIndex:  sortedReportActions.length - index};
+        return <View style={[style, zIndexOffset]} {...props} />;
+    }, [sortedReportActions]);
+
     // Native mobile does not render updates flatlist the changes even though component did update called.
     // To notify there something changes we can use extraData prop to flatlist
     const extraData = [props.isSmallScreenWidth ? props.newMarkerReportActionID : undefined, ReportUtils.isArchivedRoom(props.report)];
@@ -167,6 +173,7 @@ function ReportActionsList(props) {
                 ref={reportScrollManager.ref}
                 data={props.sortedReportActions}
                 renderItem={renderItem}
+                CellRendererComponent={renderCell}
                 contentContainerStyle={styles.chatContentScrollView}
                 keyExtractor={keyExtractor}
                 initialRowHeight={32}
