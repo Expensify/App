@@ -1248,6 +1248,32 @@ function getTransactionReportName(reportAction, report) {
 }
 
 /**
+ * Get the report for a reportID
+ *
+ * @param {String} reportID
+ * @returns {Object}
+ */
+function getReport(reportID) {
+    return lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {});
+}
+
+/**
+ * Gets transaction amount, currency and comment
+ *
+ * @param {Object} transaction 
+ * @returns {Object}
+ */
+function getTransactionDetails(transaction) {
+    const reportID = transaction.reportID;
+    const report = getReport(reportID);
+    return {
+        amount: TransactionUtils.getAmount(transaction, isExpenseReport(report)),
+        currency: TransactionUtils.getCurrency(transaction),
+        comment: TransactionUtils.getDescription(transaction),
+    } 
+}
+
+/**
  * Get money request message for an IOU report
  *
  * @param {Object} report
@@ -1510,16 +1536,6 @@ function getParentNavigationSubtitle(report) {
         return {rootReportName, workspaceName};
     }
     return {};
-}
-
-/**
- * Get the report for a reportID
- *
- * @param {String} reportID
- * @returns {Object}
- */
-function getReport(reportID) {
-    return lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {});
 }
 
 /**
@@ -3260,5 +3276,6 @@ export {
     shouldDisableRename,
     hasSingleParticipant,
     getTransactionReportName,
+    getTransactionDetails,
     getTaskAssigneeChatOnyxData,
 };
