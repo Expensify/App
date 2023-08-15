@@ -20,6 +20,23 @@ resolveIsReadyPromise();
 let isSequentialQueueRunning = false;
 let currentRequest = null;
 
+let isQueuePaused = false;
+function pause() {
+    if (isQueuePaused) {
+        return;
+    }
+
+    isQueuePaused = true;
+}
+
+function unpause() {
+    if (!isQueuePaused) {
+        return;
+    }
+
+    isQueuePaused = false;
+}
+
 /**
  * Process any persisted requests, when online, one at a time until the queue is empty.
  *
@@ -139,4 +156,4 @@ function waitForIdle() {
     return isReadyPromise;
 }
 
-export {flush, getCurrentRequest, isRunning, push, waitForIdle};
+export {flush, getCurrentRequest, isRunning, push, waitForIdle, pause, unpause};
