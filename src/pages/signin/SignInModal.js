@@ -13,14 +13,15 @@ const defaultProps = {};
 function SignInModal() {
     if (!Session.isAnonymousUser()) {
         // Sign in in RHP is only for anonymous users
-        Navigation.dismissModal();
+        Navigation.isNavigationReady().then(() => {
+            Navigation.dismissModal();
+        });
     }
     return (
         <ScreenWrapper
             style={[styles.highlightBG]}
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
-            onEntryTransitionEnd={() => {}}
         >
             <HeaderWithBackButton onBackButtonPress={() => Navigation.goBack()} />
             <SignInPage isInModal />

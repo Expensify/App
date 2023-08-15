@@ -35,6 +35,7 @@ const propTypes = {
     /** Whether to show welcome header on a particular page */
     shouldShowWelcomeHeader: PropTypes.bool.isRequired,
 
+    /** Whether or not the sign in page is being rendered in the RHP modal */
     isInModal: PropTypes.bool.isRequired,
 
     ...windowDimensionsPropTypes,

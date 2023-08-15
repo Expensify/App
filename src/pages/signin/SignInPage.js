@@ -46,6 +46,7 @@ const propTypes = {
         validateCode: PropTypes.string,
     }),
 
+    /** Whether or not the sign in page is being rendered in the RHP modal */
     isInModal: PropTypes.bool,
 };
 
