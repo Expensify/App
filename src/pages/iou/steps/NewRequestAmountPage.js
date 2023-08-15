@@ -99,7 +99,7 @@ function NewRequestAmountPage({route, iou, report}) {
 
     // Check and dismiss modal
     useEffect(() => {
-        if (!ReportUtils.shouldHideComposer(report)) {
+        if (!ReportUtils.shouldDisableWriteActions(report)) {
             return;
         }
         Navigation.dismissModal(reportID);
