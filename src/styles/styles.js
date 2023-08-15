@@ -3684,6 +3684,18 @@ const styles = {
         borderRadius: 20,
         overflow: 'hidden',
     },
+
+    mapViewPendingTextArea: {
+        width: 253,
+    },
+
+    mapPendingView: {
+        backgroundColor: themeColors.highlightBG,
+        ...flex.flex1,
+        ...flex.justifyContentCenter,
+        ...flex.alignItemsCenter,
+        borderRadius: variables.componentBorderRadiusLarge,
+    },
 };
 
 export default styles;

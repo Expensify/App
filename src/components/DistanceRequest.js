@@ -5,6 +5,7 @@ import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import MapView from 'react-native-x-maps';
+import Text from './Text';
 import ONYXKEYS from '../ONYXKEYS';
 import * as Transaction from '../libs/actions/Transaction';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
@@ -18,6 +19,8 @@ import variables from '../styles/variables';
 import LinearGradient from './LinearGradient';
 import MapboxToken from '../libs/actions/MapboxToken';
 import CONST from '../CONST';
+import Icon from './Icon';
+import networkPropTypes from './networkPropTypes';
 
 const MAX_WAYPOINTS = 25;
 const MAX_WAYPOINTS_TO_DISPLAY = 4;
@@ -49,6 +52,8 @@ const propTypes = {
         }),
     }),
 
+    network: networkPropTypes.isRequired,
+
     /** Data about Mapbox token for calling Mapbox API */
     mapboxAccessToken: PropTypes.shape({
         /** Temporary token for Mapbox API */
@@ -67,7 +72,7 @@ const defaultProps = {
     mapboxAccessToken: {},
 };
 
-function DistanceRequest({transactionID, transaction, translate, mapboxAccessToken}) {
+function DistanceRequest({transactionID, transaction, translate, mapboxAccessToken, network}) {
     const [shouldShowGradient, setShouldShowGradient] = useState(false);
     const [scrollContainerHeight, setScrollContainerHeight] = useState(0);
     const [scrollContentHeight, setScrollContentHeight] = useState(0);
@@ -154,8 +159,8 @@ function DistanceRequest({transactionID, transaction, translate, mapboxAccessTok
                     innerStyles={[styles.ph10]}
                 />
             </View>
-            {mapboxAccessToken.token && (
-                <View style={[styles.p4, styles.flex1]}>
+            <View style={[styles.p4, styles.flex1]}>
+                {!network.isOffline && mapboxAccessToken.token ? (
                     <MapView
                         accessToken={mapboxAccessToken.token}
                         mapPadding={50}
@@ -166,8 +171,22 @@ function DistanceRequest({transactionID, transaction, translate, mapboxAccessTok
                         }}
                         style={styles.mapView}
                     />
-                </View>
-            )}
+                ) : (
+                    <View style={styles.mapPendingView}>
+                        <Icon
+                            src={Expensicons.EmptyStateRoutePending}
+                            height={100}
+                            width={100}
+                        />
+                        <View style={[styles.mapViewPendingTextArea, styles.alignItemsCenter, styles.mt5]}>
+                            <Text style={[styles.textHeadline, styles.mb1]}>Map pending</Text>
+                            <View>
+                                <Text style={[styles.textAlignCenter]}>The map will be generated when you go back online</Text>
+                            </View>
+                        </View>
+                    </View>
+                )}
+            </View>
         </>
     );
 }
@@ -184,6 +203,9 @@ export default compose(
         },
         mapboxAccessToken: {
             key: ONYXKEYS.MAPBOX_ACCESS_TOKEN,
+        },
+        network: {
+            key: ONYXKEYS.NETWORK,
         },
     }),
 )(DistanceRequest);
