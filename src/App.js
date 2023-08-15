@@ -23,8 +23,7 @@ import ThemeStylesProvider from './styles/ThemeStylesProvider';
 import {CurrentReportIDContextProvider} from './components/withCurrentReportID';
 import {EnvironmentProvider} from './components/withEnvironment';
 import * as Session from './libs/actions/Session';
-import getPlatform from './libs/getPlatform';
-import CONST from './CONST';
+import setDefaultDragDropEvent from './libs/setDefaultDragDropEvent';
 
 // For easier debugging and development, when we are in web we expose Onyx to the window, so you can more easily set data into Onyx
 if (window && Environment.isDevelopment()) {
@@ -42,21 +41,8 @@ LogBox.ignoreLogs([
 const fill = {flex: 1};
 
 function App() {
-    const dropDragListener = (event) => {
-        event.preventDefault();
-        // eslint-disable-next-line no-param-reassign
-        event.dataTransfer.dropEffect = 'none';
-    };
-
     useEffect(() => {
-        const platform = getPlatform();
-        if (platform !== CONST.PLATFORM.WEB && platform !== CONST.PLATFORM.DESKTOP) {
-            return;
-        }
-        document.addEventListener('dragover', dropDragListener);
-        document.addEventListener('dragenter', dropDragListener);
-        document.addEventListener('dragleave', dropDragListener);
-        document.addEventListener('drop', dropDragListener);
+        setDefaultDragDropEvent();
     }, []);
 
     return (
