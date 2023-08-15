@@ -670,6 +670,11 @@ function getOptions(
             return;
         }
 
+        // When passing includeP2P false we are trying to hide features from users that are not ready for P2P and limited to workspace chats only.
+        if (!includeP2P && !isPolicyExpenseChat) {
+            return;
+        }
+
         if (isThread && !includeThreads) {
             return;
         }
@@ -694,11 +699,6 @@ function getOptions(
             reportMapForAccountIDs[accountIDs[0]] = report;
         }
         const isSearchingSomeonesPolicyExpenseChat = !report.isOwnPolicyExpenseChat && searchValue !== '';
-
-        // When passing includeP2P false we are trying to hide features from users that are not ready for P2P and limited to workspace chats only.
-        if (!includeP2P && !isPolicyExpenseChat) {
-            return;
-        }
 
         // Checks to see if the current user is the admin of the policy, if so the policy
         // name preview will be shown.
