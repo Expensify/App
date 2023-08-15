@@ -301,7 +301,7 @@ function ReportActionCompose({
     const isEmojiSuggestionsMenuVisible = !_.isEmpty(suggestionValues.suggestedEmojis) && suggestionValues.shouldShowEmojiSuggestionMenu;
     const isMentionSuggestionsMenuVisible = !_.isEmpty(suggestionValues.suggestedMentions) && suggestionValues.shouldShowMentionSuggestionMenu;
 
-    const [highlightedEmojiIndex] = useArrowKeyFocusManager({
+    const [highlightedEmojiIndex, setHighlightedEmojiIndex] = useArrowKeyFocusManager({
         isActive: isEmojiSuggestionsMenuVisible,
         maxIndex: getMaxArrowIndex(suggestionValues.suggestedEmojis.length, suggestionValues.isAutoSuggestionPickerLarge),
         shouldExcludeTextAreaNodes: false,
@@ -532,8 +532,9 @@ function ReportActionCompose({
             }
 
             setSuggestionValues((prevState) => ({...prevState, ...nextState}));
+            setHighlightedEmojiIndex(0);
         },
-        [value, windowHeight, isSmallScreenWidth, preferredLocale, composerHeight],
+        [value, windowHeight, composerHeight, isSmallScreenWidth, preferredLocale, setHighlightedEmojiIndex],
     );
 
     const getMentionOptions = useCallback(
