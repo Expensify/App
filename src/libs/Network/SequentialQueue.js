@@ -158,6 +158,7 @@ function pause() {
         return;
     }
 
+    console.debug('[SequentialQueue] Pausing the queue');
     isQueuePaused = true;
 }
 
@@ -169,6 +170,8 @@ function unpause() {
         return;
     }
 
+    const numberOfPersistedRequests = PersistedRequests.getAll().length || 0;
+    console.debug(`[SequentialQueue] Unpausing the queue and flushing ${numberOfPersistedRequests} requests`);
     isQueuePaused = false;
     flush();
 }

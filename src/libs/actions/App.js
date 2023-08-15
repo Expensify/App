@@ -18,6 +18,7 @@ import * as Session from './Session';
 import * as ReportActionsUtils from '../ReportActionsUtils';
 import Timing from './Timing';
 import * as Browser from '../Browser';
+import * as SequentialQueue from '../Network/SequentialQueue';
 
 let currentUserAccountID;
 let currentUserEmail;
@@ -259,7 +260,8 @@ Onyx.connect({
                 previousUpdateIDFromServer,
                 lastUpdateIDAppliedToClient,
             });
-            getMissingOnyxUpdates(lastUpdateIDAppliedToClient, lastUpdateIDFromServer);
+            SequentialQueue.pause();
+            getMissingOnyxUpdates(lastUpdateIDAppliedToClient, lastUpdateIDFromServer).then(SequentialQueue.unpause);
         }
 
         if (lastUpdateIDFromServer > lastUpdateIDAppliedToClient) {
