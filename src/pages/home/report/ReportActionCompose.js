@@ -1020,7 +1020,6 @@ function ReportActionCompose({
         updateComment(comment);
     }, [prevCommentProp, prevPreferredLocale, prevReportId, comment, preferredLocale, report.reportID, updateComment, value]);
 
-    // Prevents focusing and showing the keyboard while the drawer is covering the chat.
     const reportRecipient = personalDetails[participantsWithoutExpensifyAccountIDs[0]];
     const shouldUseFocusedColor = !isBlockedFromConcierge && !disabled && isFocused;
     const isFullSizeComposerAvailable = isFullComposerAvailable && !_.isEmpty(value);
