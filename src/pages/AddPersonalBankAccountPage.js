@@ -112,9 +112,7 @@ class AddPersonalBankAccountPage extends React.Component {
                         onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PAYMENTS)}
                     />
                     <View style={[styles.m5]}>
-                        <Text style={[styles.formError]}>
-                            {this.props.translate('bankAccount.tooManyAttempts')}
-                        </Text>
+                        <Text style={[styles.formError]}>{this.props.translate('bankAccount.tooManyAttempts')}</Text>
                     </View>
                 </ScreenWrapper>
             );
