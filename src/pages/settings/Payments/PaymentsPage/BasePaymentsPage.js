@@ -50,13 +50,13 @@ function BasePaymentsPage(props) {
     });
     const addPaymentMethodAnchorRef = useRef(null);
     const deletePaymentMethodAnchorRef = useRef(null);
+    const paymentMethodButtonRef = useRef(null);
     const [anchorPosition, setAnchorPosition] = useState({
         anchorPositionHorizontal: 0,
         anchorPositionVertical: 0,
         anchorPositionTop: 0,
         anchorPositionRight: 0,
     });
-    const [addPaymentMethodButton, setAddPaymentMethodButton] = useState(null);
     const [showConfirmDeleteContent, setShowConfirmDeleteContent] = useState(false);
 
     const updateShouldShowLoadingSpinner = useCallback(() => {
@@ -74,27 +74,20 @@ function BasePaymentsPage(props) {
      *
      * @param {Object} position
      */
-    const setPositionAddPaymentMenu = useCallback(
-        (position) => {
-            setAnchorPosition({
-                anchorPositionTop: position.top + position.height + variables.addPaymentPopoverTopSpacing,
-
-                // We want the position to be 13px to the right of the left border
-                anchorPositionRight: windowWidth - position.right + variables.addPaymentPopoverRightSpacing,
-                anchorPositionHorizontal: position.x,
-                anchorPositionVertical: position.y,
-            });
-        },
-        [windowWidth],
-    );
-
     const setMenuPosition = useCallback(() => {
-        if (!addPaymentMethodButton) {
-            return;
-        }
-        const buttonPosition = getClickedTargetLocation(addPaymentMethodButton);
-        setPositionAddPaymentMenu(buttonPosition);
-    }, [addPaymentMethodButton, setPositionAddPaymentMenu]);
+        if (!paymentMethodButtonRef.current) return;
+
+        const position = getClickedTargetLocation(paymentMethodButtonRef.current);
+
+        setAnchorPosition({
+            anchorPositionTop: position.top + position.height + variables.addPaymentPopoverTopSpacing,
+
+            // We want the position to be 13px to the right of the left border
+            anchorPositionRight: windowWidth - position.right + variables.addPaymentPopoverRightSpacing,
+            anchorPositionHorizontal: position.x,
+            anchorPositionVertical: position.y,
+        });
+    }, [windowWidth]);
 
     const getSelectedPaymentMethodID = useCallback(() => {
         if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PAYPAL) {
@@ -135,8 +128,7 @@ function BasePaymentsPage(props) {
      * @param {String|Number} methodID
      */
     const paymentMethodPressed = (nativeEvent, accountType, account, isDefault, methodID) => {
-        const position = getClickedTargetLocation(nativeEvent.currentTarget);
-        setAddPaymentMethodButton(nativeEvent.currentTarget);
+        paymentMethodButtonRef.current = nativeEvent.currentTarget;
 
         // The delete/default menu
         if (accountType) {
@@ -171,11 +163,11 @@ function BasePaymentsPage(props) {
                 methodID,
             });
             setShouldShowDefaultDeleteMenu(true);
-            setPositionAddPaymentMenu(position);
+            setMenuPosition();
             return;
         }
         setShouldShowAddPaymentMenu(true);
-        setPositionAddPaymentMenu(position);
+        setMenuPosition();
     };
 
     /**
@@ -273,52 +265,55 @@ function BasePaymentsPage(props) {
         setShouldShowDefaultDeleteMenu(false);
     };
 
-    const listHeaderComponent = () => (
-        <>
-            {Permissions.canUseWallet(props.betas) && (
-                <>
-                    <View style={[styles.mv5]}>
-                        {shouldShowLoadingSpinner ? (
-                            <ActivityIndicator
-                                color={themeColors.spinner}
-                                size="large"
-                            />
-                        ) : (
-                            <OfflineWithFeedback
-                                pendingAction={CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}
-                                errors={props.walletTerms.errors}
-                                onClose={PaymentMethods.clearWalletTermsError}
-                                errorRowStyles={[styles.ml10, styles.mr2]}
-                            >
-                                <CurrentWalletBalance />
-                            </OfflineWithFeedback>
-                        )}
-                    </View>
-                    {props.userWallet.currentBalance > 0 && (
-                        <View style={styles.mb3}>
-                            <KYCWall
-                                onSuccessfulKYC={navigateToTransferBalancePage}
-                                enablePaymentsRoute={ROUTES.SETTINGS_ENABLE_PAYMENTS}
-                                addBankAccountRoute={ROUTES.SETTINGS_ADD_BANK_ACCOUNT}
-                                addDebitCardRoute={ROUTES.SETTINGS_ADD_DEBIT_CARD}
-                                popoverPlacement="bottom"
-                            >
-                                {(triggerKYCFlow) => (
-                                    <MenuItem
-                                        title={translate('common.transferBalance')}
-                                        icon={Expensicons.Transfer}
-                                        onPress={triggerKYCFlow}
-                                        shouldShowRightIcon
-                                        disabled={props.network.isOffline}
-                                    />
-                                )}
-                            </KYCWall>
+    const listHeaderComponent = useCallback(
+        () => (
+            <>
+                {Permissions.canUseWallet(props.betas) && (
+                    <>
+                        <View style={[styles.mv5]}>
+                            {shouldShowLoadingSpinner ? (
+                                <ActivityIndicator
+                                    color={themeColors.spinner}
+                                    size="large"
+                                />
+                            ) : (
+                                <OfflineWithFeedback
+                                    pendingAction={CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}
+                                    errors={props.walletTerms.errors}
+                                    onClose={PaymentMethods.clearWalletTermsError}
+                                    errorRowStyles={[styles.ml10, styles.mr2]}
+                                >
+                                    <CurrentWalletBalance />
+                                </OfflineWithFeedback>
+                            )}
                         </View>
-                    )}
-                </>
-            )}
-            <Text style={[styles.ph5, styles.textLabelSupporting, styles.mb1]}>{translate('paymentsPage.paymentMethodsTitle')}</Text>
-        </>
+                        {props.userWallet.currentBalance > 0 && (
+                            <View style={styles.mb3}>
+                                <KYCWall
+                                    onSuccessfulKYC={navigateToTransferBalancePage}
+                                    enablePaymentsRoute={ROUTES.SETTINGS_ENABLE_PAYMENTS}
+                                    addBankAccountRoute={ROUTES.SETTINGS_ADD_BANK_ACCOUNT}
+                                    addDebitCardRoute={ROUTES.SETTINGS_ADD_DEBIT_CARD}
+                                    popoverPlacement="bottom"
+                                >
+                                    {(triggerKYCFlow) => (
+                                        <MenuItem
+                                            title={translate('common.transferBalance')}
+                                            icon={Expensicons.Transfer}
+                                            onPress={triggerKYCFlow}
+                                            shouldShowRightIcon
+                                            disabled={props.network.isOffline}
+                                        />
+                                    )}
+                                </KYCWall>
+                            </View>
+                        )}
+                    </>
+                )}
+                <Text style={[styles.ph5, styles.textLabelSupporting, styles.mb1]}>{translate('paymentsPage.paymentMethodsTitle')}</Text>
+            </>
+        ),
+        [props.betas, props.network.isOffline, props.userWallet.currentBalance, props.walletTerms.errors, shouldShowLoadingSpinner, translate],
     );
 
     useEffect(() => {
@@ -403,6 +398,7 @@ function BasePaymentsPage(props) {
                         activePaymentMethodID={shouldShowDefaultDeleteMenu ? getSelectedPaymentMethodID() : ''}
                         listHeaderComponent={listHeaderComponent}
                         buttonRef={addPaymentMethodAnchorRef}
+                        onListContentSizeChange={shouldShowAddPaymentMenu || shouldShowDefaultDeleteMenu ? setMenuPosition : () => {}}
                     />
                 </OfflineWithFeedback>
             </View>
