@@ -228,7 +228,7 @@ function BaseTextInput(props) {
     // eslint-disable-next-line react/forbid-foreign-prop-types
     const inputProps = _.omit(props, _.keys(propTypes));
     const hasLabel = Boolean(props.label.length);
-    const isReadOnly = _.isUndefined(props.readOnly) ? !props.disabled : props.readOnly;
+    const isReadOnly = _.isUndefined(props.readOnly) ? props.disabled : !props.readOnly;
     const inputHelpText = props.errorText || props.hint;
     const placeholder = props.prefixCharacter || isFocused || !hasLabel || (hasLabel && props.forceActiveLabel) ? props.placeholder : null;
     const maxHeight = StyleSheet.flatten(props.containerStyles).maxHeight;
