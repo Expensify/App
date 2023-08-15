@@ -110,13 +110,11 @@ function SignInPage({credentials, account, demoInfo}) {
     let welcomeText = '';
     if (shouldShowLoginForm) {
         welcomeHeader = isSmallScreenWidth ? translate('login.hero.header') : translate('welcomeText.getStarted');
+        welcomeText = isSmallScreenWidth ? translate('welcomeText.getStarted') : '';
         
         if (demoInfo.saastr && demoInfo.saastr.isBeginningDemo) {
-            welcomeText = translate('demos.saastr.signInWelcome');
-        } else {
-            welcomeText = isSmallScreenWidth ? translate('welcomeText.getStarted') : '';
+            welcomeHeader = translate('demos.saastr.signInWelcome');
         }
-        
     } else if (shouldShowValidateCodeForm) {
         if (account.requiresTwoFactorAuth) {
             // We will only know this after a user signs in successfully, without their 2FA code
