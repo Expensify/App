@@ -1,5 +1,5 @@
 import '../wdyr';
-import React from 'react';
+import React, {useEffect} from 'react';
 import {LogBox} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
@@ -23,6 +23,8 @@ import ThemeStylesProvider from './styles/ThemeStylesProvider';
 import {CurrentReportIDContextProvider} from './components/withCurrentReportID';
 import {EnvironmentProvider} from './components/withEnvironment';
 import * as Session from './libs/actions/Session';
+import getPlatform from './libs/getPlatform';
+import CONST from './CONST';
 
 // For easier debugging and development, when we are in web we expose Onyx to the window, so you can more easily set data into Onyx
 if (window && Environment.isDevelopment()) {
@@ -40,6 +42,23 @@ LogBox.ignoreLogs([
 const fill = {flex: 1};
 
 function App() {
+    const dropDragListener = (event) => {
+        event.preventDefault();
+        // eslint-disable-next-line no-param-reassign
+        event.dataTransfer.dropEffect = 'none';
+    };
+
+    useEffect(() => {
+        const platform = getPlatform();
+        if (platform !== CONST.PLATFORM.WEB && platform !== CONST.PLATFORM.DESKTOP) {
+            return;
+        }
+        document.addEventListener('dragover', dropDragListener);
+        document.addEventListener('dragenter', dropDragListener);
+        document.addEventListener('dragleave', dropDragListener);
+        document.addEventListener('drop', dropDragListener);
+    }, []);
+
     return (
         <GestureHandlerRootView style={fill}>
             <ComposeProviders
