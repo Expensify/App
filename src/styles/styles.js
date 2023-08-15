@@ -3718,7 +3718,7 @@ const styles = {
         alignItems: 'center',
     },
 
-    headerStatusBarBadge: {
+    moneyRequestHeaderStatusBarBadge: {
         padding: 8,
         borderRadius: variables.componentBorderRadiusMedium,
         marginRight: 16,

@@ -18,8 +18,6 @@ import headerWithBackButtonPropTypes from './headerWithBackButtonPropTypes';
 import useThrottledButtonState from '../../hooks/useThrottledButtonState';
 import useLocalize from '../../hooks/useLocalize';
 import useKeyboardState from '../../hooks/useKeyboardState';
-import themeColors from '../../styles/themes/default';
-import Text from '../Text';
 
 function HeaderWithBackButton({
     iconFill = undefined,
@@ -39,10 +37,6 @@ function HeaderWithBackButton({
     shouldShowGetAssistanceButton = false,
     shouldShowPinButton = false,
     shouldShowThreeDotsButton = false,
-    shouldShowStatusBar = false,
-    statusBarBadgeColor = themeColors.border,
-    statusBarBadgeText = '',
-    statusBarDescription = '',
     stepCounter = null,
     subtitle = '',
     title = '',
@@ -53,13 +47,14 @@ function HeaderWithBackButton({
     },
     threeDotsMenuItems = [],
     children = null,
+    statusBar = null,
 }) {
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
     const {translate} = useLocalize();
     const {isKeyboardShown} = useKeyboardState();
     return (
         <>
-            <View style={[styles.headerBar, shouldShowBorderBottom && !shouldShowStatusBar && styles.borderBottom, shouldShowBackButton && styles.pl2]}>
+            <View style={[styles.headerBar, shouldShowBorderBottom && !statusBar && styles.borderBottom, shouldShowBackButton && styles.pl2]}>
                 <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden]}>
                     {shouldShowBackButton && (
                         <Tooltip text={translate('common.back')}>
@@ -164,29 +159,7 @@ function HeaderWithBackButton({
                     </View>
                 </View>
             </View>
-            {shouldShowStatusBar && (
-                <View
-                    style={[
-                        styles.dFlex,
-                        styles.flexRow,
-                        styles.alignItemsCenter,
-                        styles.flexGrow1,
-                        styles.justifyContentBetween,
-                        styles.overflowHidden,
-                        styles.ph5,
-                        styles.pv3,
-                        styles.borderBottom,
-                        styles.w100,
-                    ]}
-                >
-                    <View style={[styles.headerStatusBarBadge, {backgroundColor: statusBarBadgeColor}]}>
-                        <Text style={[styles.textStrong, styles.textLabel]}>{statusBarBadgeText}</Text>
-                    </View>
-                    <View style={[styles.flexShrink1]}>
-                        <Text style={[styles.textLabelSupporting]}>{statusBarDescription}</Text>
-                    </View>
-                </View>
-            )}
+            {statusBar}
         </>
     );
 }
