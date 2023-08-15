@@ -115,7 +115,7 @@
     "react-native-image-pan-zoom": "^2.1.12",
     "react-native-image-picker": "^5.1.0",
     "react-native-image-size": "git+https://github.com/Expensify/react-native-image-size#8393b7e58df6ff65fd41f60aee8ece8822c91e2b",
-    "react-native-key-command": "^1.0.1",
+    "react-native-key-command": "^1.0.4",
     "react-native-linear-gradient": "^2.8.1",
     "react-native-localize": "^2.2.6",
     "react-native-modal": "^13.0.0",
