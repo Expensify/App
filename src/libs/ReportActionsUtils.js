@@ -36,19 +36,6 @@ Onyx.connect({
     },
 });
 
-let allTransactions = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.TRANSACTION,
-    waitForCollectionCallback: true,
-    callback: (val) => {
-        if (!val) {
-            return;
-        }
-
-        allTransactions = val;
-    },
-});
-
 let isNetworkOffline = false;
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
@@ -148,17 +135,6 @@ function getParentReportAction(report, allReportActionsParam = undefined) {
  */
 function getParentReportActionInReport(childReportID, parentReportID) {
     return _.find(allReportActions[parentReportID], (reportAction) => reportAction && `${reportAction.childReportID}` === `${childReportID}`);
-}
-
-/**
- * Get the details linked to the IOU reportAction
- *
- * @param {Object} reportAction
- * @returns {Object}
- */
-function getLinkedTransaction(reportAction = {}) {
-    const transactionID = lodashGet(reportAction, ['originalMessage', 'IOUTransactionID'], '');
-    return allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] || {};
 }
 
 /**
@@ -623,5 +599,4 @@ export {
     isWhisperAction,
     isPendingRemove,
     getReportAction,
-    getLinkedTransaction,
 };

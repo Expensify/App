@@ -17,7 +17,7 @@ import withReportAndReportActionOrNotFound from '../home/report/withReportAndRep
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import CONST from '../../CONST';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
+import * as TransactionUtils from '../../libs/TransactionUtils';
 import * as ReportUtils from '../../libs/ReportUtils';
 
 const propTypes = {
@@ -53,7 +53,7 @@ const defaultProps = {
 
 function SplitBillDetailsPage(props) {
     const reportAction = props.reportActions[`${props.route.params.reportActionID.toString()}`];
-    const transaction = ReportActionsUtils.getLinkedTransaction(reportAction);
+    const transaction = TransactionUtils.getLinkedTransaction(reportAction);
     const participantAccountIDs = reportAction.originalMessage.participantAccountIDs;
     const participants = OptionsListUtils.getParticipantsOptions(
         _.map(participantAccountIDs, (accountID) => ({accountID, selected: true})),

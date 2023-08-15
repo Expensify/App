@@ -14,6 +14,7 @@ import MenuItemWithTopDescription from '../MenuItemWithTopDescription';
 import styles from '../../styles/styles';
 import * as ReportUtils from '../../libs/ReportUtils';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
+import * as TransactionUtils from '../../libs/TransactionUtils';
 import * as StyleUtils from '../../styles/StyleUtils';
 import CONST from '../../CONST';
 import * as Expensicons from '../Icon/Expensicons';
@@ -66,7 +67,7 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, polic
 
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
     const moneyRequestReport = parentReport;
-    const transaction = ReportActionsUtils.getLinkedTransaction(parentReportAction);
+    const transaction = TransactionUtils.getLinkedTransaction(parentReportAction);
     const {amount: transactionAmount, currency: transactionCurrency, description: transactionDescription} = ReportUtils.getTransactionDetails(transaction);
 
     const formattedTransactionAmount = transactionAmount && transactionCurrency && CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency);

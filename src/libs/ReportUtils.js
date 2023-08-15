@@ -1262,7 +1262,7 @@ function getTransactionReportName(reportAction) {
         return Localize.translateLocal('parentReportAction.deletedRequest');
     }
 
-    const transaction = ReportActionsUtils.getLinkedTransaction(reportAction);
+    const transaction = TransactionUtils.getLinkedTransaction(reportAction);
     const {amount, currency, comment} = getTransactionDetails(transaction);
 
     return Localize.translateLocal(ReportActionsUtils.isSentMoneyReportAction(reportAction) ? 'iou.threadSentMoneyReportName' : 'iou.threadRequestReportName', {

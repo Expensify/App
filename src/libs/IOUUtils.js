@@ -80,7 +80,7 @@ function getIOUReportActions(reportActions, iouReport, type = '', pendingAction 
         .filter((action) => action.originalMessage.IOUReportID.toString() === iouReport.reportID.toString())
         .filter((action) => (!_.isEmpty(pendingAction) ? action.pendingAction === pendingAction : true))
         .filter((action) => {
-            const transaction = ReportActionsUtils.getLinkedTransaction(action);
+            const transaction = TransactionUtils.getLinkedTransaction(action);
             const currency = TransactionUtils.getCurrency(transaction);
             return filterRequestsInDifferentCurrency ? currency && currency !== iouReport.currency : true;
         })
