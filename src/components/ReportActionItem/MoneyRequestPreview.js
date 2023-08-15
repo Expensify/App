@@ -147,7 +147,8 @@ function MoneyRequestPreview(props) {
     const requestCurrency = moneyRequestAction.currency;
     const requestComment = moneyRequestAction.comment.trim();
 
-    const transaction = ReportActionUtils.getTransaction(props.action);
+    const transactionID = ReportActionUtils.getLinkedTransactionID(props.action);
+    const transaction = TransactionUtils.getTransaction(transactionID);
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const isScanning = !ReportActionUtils.hasReadyMoneyRequests(props.action);
 

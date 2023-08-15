@@ -167,4 +167,25 @@ function getCreated(transaction) {
     return format(new Date(lodashGet(transaction, 'created', '')), CONST.DATE.FNS_FORMAT_STRING);
 }
 
-export {buildOptimisticTransaction, hasReceipt, getUpdatedTransaction, getTransaction, getDescription, getAmount, getCurrency, getCreated};
+/**
+ * Get the transactions related to a report preview with receipts
+ *
+ * @param {Object} reportPreviewAction
+ * @returns {Object}
+ */
+function getReportPreviewTransactionsWithReceipts(reportPreviewAction) {
+    const transactionIDs = lodashGet(reportPreviewAction, ['childLastReceiptTransactionIDs'], '').split(',');
+    return _.reduce(
+        transactionIDs,
+        (transactions, transactionID) => {
+            const transaction = getTransaction(transactionID);
+            if (!_.isEmpty(transaction)) {
+                transactions.push(transaction);
+            }
+            return transactions;
+        },
+        [],
+    );
+}
+
+export {buildOptimisticTransaction, hasReceipt, getUpdatedTransaction, getTransaction, getDescription, getAmount, getCurrency, getCreated, getReportPreviewTransactionsWithReceipts};

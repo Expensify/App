@@ -19,7 +19,6 @@ import * as IOU from '../libs/actions/IOU';
 import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 import ConfirmModal from './ConfirmModal';
 import useLocalize from '../hooks/useLocalize';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -44,7 +43,6 @@ const propTypes = {
     }),
 
     ...windowDimensionsPropTypes,
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -96,8 +94,8 @@ function MoneyRequestHeader(props) {
                     onBackButtonPress={() => Navigation.goBack(ROUTES.HOME, false, true)}
                     shouldShowBorderBottom
                     shouldShowStatusBar={isScanning}
-                    statusBarBadgeText={props.translate('iou.receiptStatusTitle')}
-                    statusBarDescription={props.translate('iou.receiptStatusText')}
+                    statusBarBadgeText={translate('iou.receiptStatusTitle')}
+                    statusBarDescription={translate('iou.receiptStatusText')}
                 />
             </View>
             <ConfirmModal
@@ -120,7 +118,6 @@ MoneyRequestHeader.defaultProps = defaultProps;
 
 export default compose(
     withWindowDimensions,
-    withLocalize,
     withOnyx({
         session: {
             key: ONYXKEYS.SESSION,

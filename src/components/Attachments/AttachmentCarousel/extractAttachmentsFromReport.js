@@ -32,7 +32,7 @@ function extractAttachmentsFromReport(report, reportActions, source) {
                 source: tryResolveUrlFromApiRoot(expensifySource || attribs.src),
                 isAuthTokenRequired: Boolean(expensifySource),
                 file: {name: attribs[CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE]},
-                receipt: false,
+                isReceipt: false,
             });
         },
     });
@@ -52,7 +52,7 @@ function extractAttachmentsFromReport(report, reportActions, source) {
                     source: tryResolveUrlFromApiRoot(image),
                     isAuthTokenRequired: true,
                     file: {name: transaction.filename},
-                    receipt: true,
+                    isReceipt: true,
                 });
                 return;
             }

@@ -152,8 +152,7 @@ const readFileAsync = (path, fileName) =>
                 return res.blob();
             })
             .then((blob) => {
-                const cleanName = cleanFileName(fileName);
-                const file = new File([blob], cleanName);
+                const file = new File([blob], cleanFileName(fileName));
                 file.source = path;
                 resolve(file);
             })

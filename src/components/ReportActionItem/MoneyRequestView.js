@@ -24,7 +24,6 @@ import EmptyStateBackgroundImage from '../../../assets/images/empty-state_backgr
 import useLocalize from '../../hooks/useLocalize';
 import * as TransactionUtils from '../../libs/TransactionUtils';
 import * as ReceiptUtils from '../../libs/ReceiptUtils';
-import withLocalize from '../withLocalize';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
 import Image from '../Image';
 import RenderHTML from '../RenderHTML';
@@ -152,7 +151,6 @@ MoneyRequestView.displayName = 'MoneyRequestView';
 
 export default compose(
     withCurrentUserPersonalDetails,
-    withLocalize,
     withOnyx({
         parentReport: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`,

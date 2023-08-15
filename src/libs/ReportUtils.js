@@ -1967,6 +1967,7 @@ function buildOptimisticReportPreview(chatReport, iouReport, comment = '', trans
         ],
         created: DateUtils.getDBTime(),
         accountID: iouReport.managerID || 0,
+        // The preview is initially whispered if created with a receipt, so the actor is the current user as well
         actorAccountID: hasReceipt ? currentUserAccountID : iouReport.managerID || 0,
         childMoneyRequestCount: 1,
         childLastMoneyRequestComment: comment,
@@ -2029,7 +2030,7 @@ function buildOptimisticModifiedExpenseReportAction(transactionThread, oldTransa
 function updateReportPreview(iouReport, reportPreviewAction, comment = '', transaction = undefined) {
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const lastReceiptTransactionIDs = lodashGet(reportPreviewAction, 'childLastReceiptTransactionIDs', '');
-    const previousIDs = lastReceiptTransactionIDs.split(',').slice(0, 2);
+    const previousTransactionIDs = lastReceiptTransactionIDs.split(',').slice(0, 2);
 
     const message = getReportPreviewMessage(iouReport, reportPreviewAction);
     return {
@@ -2045,7 +2046,7 @@ function updateReportPreview(iouReport, reportPreviewAction, comment = '', trans
         ],
         childLastMoneyRequestComment: comment || reportPreviewAction.childLastMoneyRequestComment,
         childMoneyRequestCount: reportPreviewAction.childMoneyRequestCount + 1,
-        childLastReceiptTransactionIDs: hasReceipt ? [transaction.transactionID, ...previousIDs].join(',') : lastReceiptTransactionIDs,
+        childLastReceiptTransactionIDs: hasReceipt ? [transaction.transactionID, ...previousTransactionIDs].join(',') : lastReceiptTransactionIDs,
         // As soon as we add a transaction without a receipt to the report, it will have ready money requests,
         // so we remove the whisper
         whisperedToAccountIDs: hasReceipt ? reportPreviewAction.whisperedToAccountIDs : [],

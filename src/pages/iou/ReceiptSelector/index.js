@@ -99,7 +99,8 @@ function ReceiptSelector(props) {
             return;
         }
 
-        IOU.setMoneyRequestReceipt(file.uri, file.name);
+        const filePath = URL.createObjectURL(file);
+        IOU.setMoneyRequestReceipt(filePath, file.name);
         IOU.navigateToNextPage(iou, iouType, reportID, report);
     };
 
@@ -153,7 +154,6 @@ function ReceiptSelector(props) {
             <ReceiptDropUI
                 onDrop={(e) => {
                     const file = lodashGet(e, ['dataTransfer', 'files', 0]);
-                    file.uri = URL.createObjectURL(file);
                     setReceiptAndNavigate(file, props.iou, props.report);
                 }}
                 receiptImageTopPosition={receiptImageTopPosition}

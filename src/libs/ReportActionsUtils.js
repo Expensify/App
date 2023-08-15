@@ -39,19 +39,6 @@ Onyx.connect({
     },
 });
 
-const allTransactions = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.TRANSACTION,
-    callback: (actions, key) => {
-        if (!key || !actions) {
-            return;
-        }
-
-        const transactionID = CollectionUtils.extractCollectionItemID(key);
-        allTransactions[transactionID] = actions;
-    },
-});
-
 let isNetworkOffline = false;
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
@@ -596,36 +583,6 @@ function isMessageDeleted(reportAction) {
 }
 
 /**
- * Get the transactions related to a report preview
- *
- * @param {Object} reportPreviewAction
- * @returns {Object}
- */
-function getReportPreviewTransactionsWithReceipts(reportPreviewAction) {
-    const transactionIDs = lodashGet(reportPreviewAction, ['childLastReceiptTransactionIDs'], '').split(',');
-    return _.reduce(
-        transactionIDs,
-        (transactions, transactionID) => {
-            const transaction = allTransactions[transactionID];
-            if (transaction) {
-                transactions.push(transaction);
-            }
-            return transactions;
-        },
-        [],
-    );
-}
-
-/**
- * @param {Object} iouReportAction
- * @returns {Object}
- */
-function getTransaction(iouReportAction) {
-    const transactionID = lodashGet(iouReportAction, ['originalMessage', 'IOUTransactionID']);
-    return allTransactions[transactionID] || {};
-}
-
-/**
  * Returns the number of money requests associated with a report preview
  *
  * @param {Object|null} reportPreviewAction
@@ -636,14 +593,18 @@ function getNumberOfMoneyRequests(reportPreviewAction) {
 }
 
 /**
- * Checks if the IOU or expense report has either no smartscanned receipts or at least one is already done scanning
+ * For report previews and money request actions, we display a "Receipt scan in progress" indicator
+ * instead of the report total only when we have no report total ready to show. As soon as we have
+ * a non-receipt request, or as soon as one receipt request is done scanning, we have at least one
+ * "ready" money request, and we remove this indicator to show the partial report total.
  *
  * @param {Object|null} reportAction
  * @returns {Boolean}
  */
 function hasReadyMoneyRequests(reportAction) {
+    // If a report preview has at least one manual request or at least one scanned receipt
     if (isReportPreviewAction(reportAction)) {
-        const transactions = getReportPreviewTransactionsWithReceipts(reportAction);
+        const transactions = TransactionUtils.getReportPreviewTransactionsWithReceipts(reportAction);
         // If we have more requests than requests with receipts, we have some manual requests
         if (getNumberOfMoneyRequests(reportAction) > transactions.length) {
             return true;
@@ -651,8 +612,10 @@ function hasReadyMoneyRequests(reportAction) {
         return _.some(transactions, (transaction) => !ReceiptUtils.isBeingScanned(transaction.receipt));
     }
 
+    // If a money request action is not a scanning receipt
     if (isMoneyRequestAction(reportAction)) {
-        const transaction = getTransaction(reportAction);
+        const transactionID = getLinkedTransactionID(reportAction);
+        const transaction = TransactionUtils.getTransaction(transactionID);
         return !TransactionUtils.hasReceipt(transaction) || !ReceiptUtils.isBeingScanned(transaction.receipt);
     }
 
@@ -675,7 +638,7 @@ function getNumberOfScanningReceipts(iouReport) {
             if (!isMoneyRequestAction(reportAction)) {
                 return count;
             }
-            const transaction = getTransaction(reportAction);
+            const transaction = TransactionUtils.getTransaction(getLinkedTransactionID(reportAction));
             return count + Number(TransactionUtils.hasReceipt(transaction) && ReceiptUtils.isBeingScanned(transaction.receipt));
         },
         0,
@@ -716,9 +679,7 @@ export {
     isWhisperAction,
     isPendingRemove,
     getReportAction,
-    getReportPreviewTransactionsWithReceipts,
     hasReadyMoneyRequests,
-    getTransaction,
     getNumberOfMoneyRequests,
     getNumberOfScanningReceipts,
 };
