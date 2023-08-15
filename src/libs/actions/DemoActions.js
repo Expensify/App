@@ -26,7 +26,6 @@ Onyx.connect({
         if (!val) {
             return;
         }
-
         userIsFromPublicDomain = val.isFromPublicDomain;
     }
 })
@@ -76,8 +75,10 @@ function createSaastrDemoWorkspaceAndNavigate() {
     3. Take a photo of the receipt, we'll automatically enter all the info.
     4. Come say hi at the Expensify booth (#601) and let us know if you have any feedback!
     `;
-    // TODO: make sure this comes FROM saastr!!
     const welcomeMessageReportAction = buildOptimisticAddCommentReportAction(initialMessageText);
+    welcomeMessageReportAction.reportAction.actorAccountID = CONST.ACCOUNT_ID.SAASTR;
+    welcomeMessageReportAction.reportAction.person[0].text = 'SaaStr 2023';
+    welcomeMessageReportAction.reportAction.avatar = '';
 
     // Update policy expense chat report actions with welcome message from saastr
     expenseReportActionData[welcomeMessageReportAction.reportAction.reportActionID] = welcomeMessageReportAction.reportAction;
