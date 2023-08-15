@@ -1,6 +1,7 @@
 import Onyx from 'react-native-onyx';
 import CONST from '../../CONST';
 import * as QueuedOnyxUpdates from '../actions/QueuedOnyxUpdates';
+import * as OnyxUpdates from '../actions/OnyxUpdates';
 
 /**
  * @param {Promise} response
@@ -13,6 +14,9 @@ function SaveResponseInOnyx(response, request) {
         if (!responseData) {
             return;
         }
+
+        // Save the update IDs to Onyx so they can be used to fetch incremental updates if the client gets out of sync from the server
+        OnyxUpdates.saveUpdateIDs(Number(responseData.lastUpdateID || 0), Number(responseData.previousUpdateID || 0));
 
         // For most requests we can immediately update Onyx. For write requests we queue the updates and apply them after the sequential queue has flushed to prevent a replay effect in
         // the UI. See https://github.com/Expensify/App/issues/12775 for more info.

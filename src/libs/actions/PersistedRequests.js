@@ -15,9 +15,14 @@ function clear() {
 
 /**
  * @param {Array} requestsToPersist
+ * @param {Boolean} [front] whether or not the request should go in the front of the queue
  */
-function save(requestsToPersist) {
-    persistedRequests = persistedRequests.concat(requestsToPersist);
+function save(requestsToPersist, front = false) {
+    if (persistedRequests.length) {
+        persistedRequests = front ? persistedRequests.unshift(...requestsToPersist) : persistedRequests.concat(requestsToPersist);
+    } else {
+        persistedRequests = requestsToPersist;
+    }
     Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests);
 }
 
