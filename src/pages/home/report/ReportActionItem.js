@@ -64,7 +64,7 @@ import * as PersonalDetailsUtils from '../../../libs/PersonalDetailsUtils';
 import ReportActionItemBasicMessage from './ReportActionItemBasicMessage';
 import * as store from '../../../libs/actions/ReimbursementAccount/store';
 import * as BankAccounts from '../../../libs/actions/BankAccounts';
-import * as Permissions from '../../../libs/Permissions';
+import Permissions from '../../../libs/Permissions';
 
 const propTypes = {
     ...windowDimensionsPropTypes,
