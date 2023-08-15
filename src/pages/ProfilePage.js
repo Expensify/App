@@ -36,6 +36,7 @@ import * as Illustrations from '../components/Icon/Illustrations';
 import variables from '../styles/variables';
 import ROUTES from '../ROUTES';
 import * as ValidationUtils from '../libs/ValidationUtils';
+import Permissions from '../libs/Permissions';
 
 const matchType = PropTypes.shape({
     params: PropTypes.shape({
@@ -133,6 +134,11 @@ function ProfilePage(props) {
     // If the API returns an error for some reason there won't be any details and isLoading will get set to false, so we want to show a blocking screen
     const shouldShowBlockingView = !hasMinimumDetails && !isLoading;
 
+    const statusEmojiCode = lodashGet(details, 'status.emojiCode', '');
+    const statusText = lodashGet(details, 'status.text', '');
+    const hasStatus = !!statusEmojiCode && Permissions.canUseCustomStatus(props.betas);
+    const statusContent = `${statusEmojiCode}  ${statusText}`;
+
     return (
         <ScreenWrapper>
             <HeaderWithBackButton
@@ -178,6 +184,18 @@ function ProfilePage(props) {
                                     {displayName}
                                 </Text>
                             )}
+                            {hasStatus && (
+                                <View style={[styles.mb6, styles.detailsPageSectionContainer, styles.mw100]}>
+                                    <Text
+                                        style={[styles.textLabelSupporting, styles.mb1]}
+                                        numberOfLines={1}
+                                    >
+                                        {props.translate('statusPage.status')}
+                                    </Text>
+                                    <Text>{statusContent}</Text>
+                                </View>
+                            )}
+
                             {login ? (
                                 <View style={[styles.mb6, styles.detailsPageSectionContainer, styles.w100]}>
                                     <Text
@@ -247,6 +265,9 @@ export default compose(
         },
         isLoadingReportData: {
             key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+        },
+        betas: {
+            key: ONYXKEYS.BETAS,
         },
     }),
 )(ProfilePage);

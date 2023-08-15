@@ -41,7 +41,7 @@ import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
 
 const propTypes = {
     /** All personal details asssociated with user */
-    personalDetails: personalDetailsPropType,
+    personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
     /** URL Route params */
     route: PropTypes.shape({

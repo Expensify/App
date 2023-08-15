@@ -64,6 +64,7 @@ import * as PersonalDetailsUtils from '../../../libs/PersonalDetailsUtils';
 import ReportActionItemBasicMessage from './ReportActionItemBasicMessage';
 import * as store from '../../../libs/actions/ReimbursementAccount/store';
 import * as BankAccounts from '../../../libs/actions/BankAccounts';
+import Permissions from '../../../libs/Permissions';
 
 const propTypes = {
     ...windowDimensionsPropTypes,
@@ -155,6 +156,10 @@ function ReportActionItem(props) {
     }, [isDraftEmpty]);
 
     useEffect(() => {
+        if (!Permissions.canUseLinkPreviews()) {
+            return;
+        }
+
         const urls = ReportActionsUtils.extractLinksFromMessageHtml(props.action);
         if (_.isEqual(downloadedPreviews.current, urls) || props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             return;
@@ -312,6 +317,8 @@ function ReportActionItem(props) {
                     ) : null}
                 </ReportActionItemBasicMessage>
             );
+        } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE) {
+            children = <ReportActionItemBasicMessage message={ReportUtils.getModifiedExpenseMessage(props.action)} />;
         } else {
             const message = _.last(lodashGet(props.action, 'message', [{}]));
             const hasBeenFlagged = !_.contains([CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING], moderationDecision);
@@ -380,7 +387,7 @@ function ReportActionItem(props) {
         return (
             <>
                 {children}
-                {!isHidden && !_.isEmpty(props.action.linkMetadata) && (
+                {Permissions.canUseLinkPreviews() && !isHidden && !_.isEmpty(props.action.linkMetadata) && (
                     <View style={props.draftMessage ? styles.chatItemReactionsDraftRight : {}}>
                         <LinkPreviewer linkMetadata={_.filter(props.action.linkMetadata, (item) => !_.isEmpty(item))} />
                     </View>
@@ -455,29 +462,35 @@ function ReportActionItem(props) {
     };
 
     if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
-        const parentReport = ReportActionsUtils.getParentReportAction(props.report);
-        if (ReportActionsUtils.isTransactionThread(parentReport)) {
+        const parentReportAction = ReportActionsUtils.getParentReportAction(props.report);
+        if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
             return (
-                <MoneyRequestView
-                    report={props.report}
-                    shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
-                />
+                <OfflineWithFeedback pendingAction={props.action.pendingAction}>
+                    <MoneyRequestView
+                        report={props.report}
+                        shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
+                    />
+                </OfflineWithFeedback>
             );
         }
         if (ReportUtils.isTaskReport(props.report)) {
             return (
-                <TaskView
-                    report={props.report}
-                    shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
-                />
+                <OfflineWithFeedback pendingAction={props.action.pendingAction}>
+                    <TaskView
+                        report={props.report}
+                        shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
+                    />
+                </OfflineWithFeedback>
             );
         }
         if (ReportUtils.isExpenseReport(props.report) || ReportUtils.isIOUReport(props.report)) {
             return (
-                <MoneyReportView
-                    report={props.report}
-                    shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
-                />
+                <OfflineWithFeedback pendingAction={props.action.pendingAction}>
+                    <MoneyReportView
+                        report={props.report}
+                        shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
+                    />
+                </OfflineWithFeedback>
             );
         }
         return (
