@@ -3676,10 +3676,6 @@ const styles = {
     rotate90: {
         transform: [{rotate: '90deg'}],
     },
-
-    overscrollContain: {
-        overscrollBehavior: 'contain',
-    },
 };
 
 export default styles;

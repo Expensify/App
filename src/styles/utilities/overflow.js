@@ -22,5 +22,9 @@ export default {
         overscrollBehavior: 'none',
     },
 
+    overscrollBehaviorContain: {
+        overscrollBehavior: 'contain',
+    },
+
     overflowAuto,
 };
