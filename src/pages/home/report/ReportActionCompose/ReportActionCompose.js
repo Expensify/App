@@ -201,7 +201,7 @@ function ReportActionCompose({
     /**
      * Event handler to update the state after the attachment preview is closed.
      */
-    const attachmentPreviewClosed = useCallback(() => {
+    const onAttachmentPreviewClose = useCallback(() => {
         updateShouldShowSuggestionMenuToFalse();
         setIsAttachmentPreviewActive(false);
     }, [updateShouldShowSuggestionMenuToFalse]);
@@ -306,7 +306,7 @@ function ReportActionCompose({
                         headerTitle={translate('reportActionCompose.sendAttachment')}
                         onConfirm={addAttachment}
                         onModalShow={() => setIsAttachmentPreviewActive(true)}
-                        onModalHide={attachmentPreviewClosed}
+                        onModalHide={onAttachmentPreviewClose}
                     >
                         {({displayFileInModal}) => (
                             <>
