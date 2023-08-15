@@ -50,7 +50,7 @@ const defaultProps = {
 
 function WaypointEditor({transactionID, route: {params: {iouType = '', waypointIndex = ''} = {}} = {}, network, translate}) {
     const textInput = useRef(null);
-    
+
     const validate = (values) => {
         const errors = {};
         const waypointValue = values[`waypoint${waypointIndex}`] || '';
@@ -67,7 +67,7 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
     };
 
     const onSubmit = (values) => {
-        const waypointValue = (values[`waypoint${waypointIndex}`]) || '';
+        const waypointValue = values[`waypoint${waypointIndex}`] || '';
 
         // Allows letting you set a waypoint to an empty value
         if (waypointValue === '') {
@@ -99,7 +99,7 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
     };
 
     return (
-        <ScreenWrapper 
+        <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             onEntryTransitionEnd={() => textInput.current && textInput.current.focus()}
         >
