@@ -2066,7 +2066,7 @@ export default {
     },
     demos: {
         saastr: {
-            signInWelcome: '',
+            signInWelcome: '¡Bienvenido a SaaStr! Entra y empieza a establecer contactos.',
         },
     },
 };
