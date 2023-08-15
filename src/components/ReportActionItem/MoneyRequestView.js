@@ -94,6 +94,8 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, polic
         receiptUris = ReceiptUtils.getThumbnailAndImageURIs(transaction.receipt.source, transaction.filename);
     }
 
+    const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
+
     return (
         <View>
             <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth), StyleUtils.getMinimumHeight(CONST.EMPTY_STATE_BACKGROUND.MONEY_REPORT.MIN_HEIGHT)]}>
@@ -128,6 +130,15 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, polic
                 shouldShowRightIcon={canEdit}
                 onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DATE))}
             />
+            {isDistanceRequest && (
+                <MenuItemWithTopDescription
+                    description={translate('tabSelector.distance')}
+                    title="123 miles @ $456 / mile"
+                    disabled={isSettled || !canEdit}
+                    shouldShowRightIcon={canEdit}
+                    onPress={() => {}}
+                />
+            )}
             {shouldShowHorizontalRule && <View style={styles.reportHorizontalRule} />}
         </View>
     );
