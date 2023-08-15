@@ -3,6 +3,7 @@ import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
+import {View} from 'react-native';
 import HeaderWithBackButton from '../components/HeaderWithBackButton';
 import ScreenWrapper from '../components/ScreenWrapper';
 import Navigation from '../libs/Navigation/Navigation';
@@ -17,9 +18,7 @@ import Form from '../components/Form';
 import ROUTES from '../ROUTES';
 import * as PlaidDataProps from './ReimbursementAccount/plaidDataPropTypes';
 import ConfirmationPage from '../components/ConfirmationPage';
-import Text from "../components/Text";
-import TextLink from "../components/TextLink";
-import {View} from "react-native";
+import Text from '../components/Text';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -114,7 +113,7 @@ class AddPersonalBankAccountPage extends React.Component {
                     />
                     <View style={[styles.m5]}>
                         <Text style={[styles.formError]}>
-                            {this.props.translate('bankAccount.plaidThrottledError')}
+                            {this.props.translate('bankAccount.tooManyAttempts')}
                         </Text>
                     </View>
                 </ScreenWrapper>
