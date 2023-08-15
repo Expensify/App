@@ -21,12 +21,12 @@
 # To configure Mapbox, invoke this script by running the following command from the project's root directory:
 # npm run configure-mapbox
 
-# Color definitions for better readability
-GREEN='\033[0;32m'
-NC='\033[0m' # No Color
+# Use functions and varaibles from the utils script
+source scripts/shellUtils.sh
 
 # Intro message
-echo -e "${GREEN}This script helps you set up the credential needed to use Mapbox's closed-sourced SDKs for iOS and Android.${NC}\n"
+title "This script helps you set up the credential needed to use Mapbox's closed-sourced SDKs for iOS and Android."
+echo -e "\n"
 
 echo -e "1. Visit: https://account.mapbox.com/access-tokens/\n"
 echo -e "2. If you don't have a Mapbox account, create one.\n"
@@ -44,11 +44,12 @@ read -r -s -p "Secret download token: " SECRET_TOKEN
 echo -e "\n"
 
 if [[ -z "$SECRET_TOKEN" ]]; then
-    echo "Token is empty. Please run the script again and provide a valid token."
+    error "Token is empty. Please run the script again and provide a valid token."
     exit 1
 fi
 
-echo -e "${GREEN}Thank you for providing the token. Setting these credentials in relevant files...${NC}\n"
+success "Thank you for providing the token. Setting these credentials in relevant files..."
+echo -e "\n"
 
 # Execute the configuration script
 ./scripts/setup-mapbox-sdk.sh "$SECRET_TOKEN"

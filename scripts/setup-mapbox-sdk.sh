@@ -36,6 +36,9 @@
 # To run this script, pass the secret Mapbox access token as a command-line argument:
 # ./scriptname.sh YOUR_MAPBOX_ACCESS_TOKEN
 
+# Use functions and varaibles from the utils script
+source scripts/shellUtils.sh
+
 NETRC_PATH="$HOME/.netrc"
 GRADLE_PROPERTIES_PATH="$HOME/.gradle/gradle.properties"
 
@@ -74,7 +77,7 @@ fi
 # -----------------------------------------------
 # iOS Configuration for .netrc
 # -----------------------------------------------
-echo -e "Configuring $NETRC_PATH for Mapbox iOS SDK download"
+info "Configuring $NETRC_PATH for Mapbox iOS SDK download"
 
 # Check for existing Mapbox entries in .netrc
 if grep -q "api.mapbox.com" "$NETRC_PATH"; then
@@ -106,7 +109,8 @@ fi
 # -----------------------------------------------
 # Android Configuration for gradle.properties
 # -----------------------------------------------
-echo -e "\nConfiguring $GRADLE_PROPERTIES_PATH for Mapbox Android SDK download"
+echo -e "\n"
+info "Configuring $GRADLE_PROPERTIES_PATH for Mapbox Android SDK download"
 
 # Ensure the .gradle directory exists
 if [ ! -d "$HOME/.gradle" ]; then
