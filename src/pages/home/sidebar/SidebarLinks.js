@@ -32,6 +32,7 @@ import LogoComponent from '../../../../assets/images/expensify-wordmark.svg';
 import PressableWithoutFeedback from '../../../components/Pressable/PressableWithoutFeedback';
 import * as Session from '../../../libs/actions/Session';
 import Button from '../../../components/Button';
+import Text from '../../../components/Text';
 import * as UserUtils from '../../../libs/UserUtils';
 import KeyboardShortcut from '../../../libs/KeyboardShortcut';
 import onyxSubscribe from '../../../libs/onyxSubscribe';
@@ -92,7 +93,8 @@ class SidebarLinks extends React.PureComponent {
         super(props);
 
         this.showSearchPage = this.showSearchPage.bind(this);
-        this.onHandlePressAvatar = this.onHandlePressAvatar.bind(this);
+        this.showSettingsPage = this.showSettingsPage.bind(this);
+        this.showStatusPage = this.showStatusPage.bind(this);
         this.showReportPage = this.showReportPage.bind(this);
 
         if (this.props.isSmallScreenWidth) {
@@ -142,19 +144,6 @@ class SidebarLinks extends React.PureComponent {
         }
     }
 
-    onHandlePressAvatar() {
-        if (this.props.isCreateMenuOpen) {
-            // Prevent opening Settings page when click profile avatar quickly after clicking FAB icon
-            return;
-        }
-        const emojiCode = lodashGet(this.props.currentUserPersonalDetails, 'status.emojiCode', '');
-        if (emojiCode && Permissions.canUseCustomStatus(this.props.betas)) {
-            Navigation.navigate(ROUTES.SETTINGS_STATUS);
-        } else {
-            Navigation.navigate(ROUTES.SETTINGS);
-        }
-    }
-
     showSearchPage() {
         if (this.props.isCreateMenuOpen) {
             // Prevent opening Search page when click Search icon quickly after clicking FAB icon
@@ -182,9 +171,94 @@ class SidebarLinks extends React.PureComponent {
         this.props.onLinkClick();
     }
 
-    render() {
+    showSettingsPage() {
+        if (this.props.isCreateMenuOpen) {
+            // Prevent opening Settings page when click profile avatar quickly after clicking FAB icon
+            return;
+        }
+
+        Navigation.navigate(ROUTES.SETTINGS);
+    }
+
+    showStatusPage() {
+        if (this.props.isCreateMenuOpen) {
+            // Prevent opening Settings page when click profile avatar quickly after clicking FAB icon
+            return;
+        }
+
+        Navigation.setShouldPopAllStateOnUP();
+        Navigation.navigate(ROUTES.SETTINGS_STATUS);
+    }
+
+    renderAvatarWithIndicator() {
+        return (
+            <PressableWithoutFeedback
+                accessibilityLabel={this.props.translate('sidebarScreen.buttonMySettings')}
+                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                onPress={this.showSettingsPage}
+            >
+                <OfflineWithFeedback pendingAction={lodashGet(this.props.currentUserPersonalDetails, 'pendingFields.avatar', null)}>
+                    <AvatarWithIndicator
+                        source={UserUtils.getAvatar(this.props.currentUserPersonalDetails.avatar, this.props.currentUserPersonalDetails.accountID)}
+                        tooltipText={this.props.translate('common.settings')}
+                    />
+                </OfflineWithFeedback>
+            </PressableWithoutFeedback>
+        );
+    }
+
+    /**
+     * Render either a sign-in button or an avatar with optional status.
+     * @returns {React.Component}
+     */
+    renderSignInOrAvatarWithOptionalStatus() {
         const statusEmojiCode = lodashGet(this.props.currentUserPersonalDetails, 'status.emojiCode', '');
         const emojiStatus = Permissions.canUseCustomStatus(this.props.betas) ? statusEmojiCode : '';
+        if (Session.isAnonymousUser()) {
+            return (
+                <PressableWithoutFeedback
+                    accessibilityLabel={this.props.translate('sidebarScreen.buttonMySettings')}
+                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                    onPress={Session.signOutAndRedirectToSignIn}
+                >
+                    <View style={styles.signInButtonAvatar}>
+                        <Button
+                            medium
+                            success
+                            text={this.props.translate('common.signIn')}
+                            onPress={() => Session.signOutAndRedirectToSignIn()}
+                        />
+                    </View>
+                </PressableWithoutFeedback>
+            );
+        }
+        if (emojiStatus) {
+            return (
+                <View style={styles.sidebarStatusAvatarContainer}>
+                    <PressableWithoutFeedback
+                        accessibilityLabel={this.props.translate('sidebarScreen.buttonMySettings')}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        onPress={this.showStatusPage}
+                        style={{flex: 1}}
+                    >
+                        <View style={styles.sidebarStatusAvatar}>
+                            <Text
+                                style={styles.emojiStatusLHN}
+                                numberOfLines={1}
+                            >
+                                {emojiStatus}
+                            </Text>
+                        </View>
+                    </PressableWithoutFeedback>
+
+                    {this.renderAvatarWithIndicator()}
+                </View>
+            );
+        }
+        return this.renderAvatarWithIndicator();
+    }
+
+    render() {
         const viewMode = this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT;
 
         return (
@@ -214,30 +288,7 @@ class SidebarLinks extends React.PureComponent {
                             <Icon src={Expensicons.MagnifyingGlass} />
                         </PressableWithoutFeedback>
                     </Tooltip>
-                    <PressableWithoutFeedback
-                        accessibilityLabel={this.props.translate('sidebarScreen.buttonMySettings')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                        onPress={Session.checkIfActionIsAllowed(this.onHandlePressAvatar)}
-                    >
-                        {Session.isAnonymousUser() ? (
-                            <View style={styles.signInButtonAvatar}>
-                                <Button
-                                    medium
-                                    success
-                                    text={this.props.translate('common.signIn')}
-                                    onPress={() => Session.signOutAndRedirectToSignIn()}
-                                />
-                            </View>
-                        ) : (
-                            <OfflineWithFeedback pendingAction={lodashGet(this.props.currentUserPersonalDetails, 'pendingFields.avatar', null)}>
-                                <AvatarWithIndicator
-                                    source={UserUtils.getAvatar(this.props.currentUserPersonalDetails.avatar, this.props.currentUserPersonalDetails.accountID)}
-                                    tooltipText={this.props.translate('common.settings')}
-                                    emojiStatus={emojiStatus}
-                                />
-                            </OfflineWithFeedback>
-                        )}
-                    </PressableWithoutFeedback>
+                    {this.renderSignInOrAvatarWithOptionalStatus()}
                 </View>
                 {this.props.isLoading ? (
                     <>
