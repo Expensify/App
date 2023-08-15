@@ -383,7 +383,6 @@ function ReportActionCompose({
             const {text: newComment = '', emojis = []} = EmojiUtils.replaceEmojis(commentValue, preferredSkinTone, preferredLocale);
 
             if (!_.isEmpty(emojis)) {
-                User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(emojis));
                 insertedEmojisRef.current = [...insertedEmojisRef.current, ...emojis];
                 debouncedUpdateFrequentlyUsedEmojis();
             }
