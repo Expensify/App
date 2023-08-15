@@ -1,6 +1,5 @@
 import _ from 'underscore';
 import CONST from '../CONST';
-import * as ReportActionsUtils from './ReportActionsUtils';
 import * as TransactionUtils from './TransactionUtils';
 
 /**
