@@ -463,7 +463,7 @@ function ReportActionItem(props) {
 
     if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
         const parentReportAction = ReportActionsUtils.getParentReportAction(props.report);
-        if (ReportActionsUtils.isTransactionThread(parentReportAction) && !ReportActionsUtils.isDeletedAction(parentReportAction)) {
+        if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
             return (
                 <OfflineWithFeedback pendingAction={props.action.pendingAction}>
                     <MoneyRequestView
@@ -472,9 +472,6 @@ function ReportActionItem(props) {
                     />
                 </OfflineWithFeedback>
             );
-        }
-        if (ReportActionsUtils.isTransactionThread(parentReportAction) && ReportActionsUtils.isDeletedAction(parentReportAction)) {
-            return null;
         }
         if (ReportUtils.isTaskReport(props.report)) {
             return (
