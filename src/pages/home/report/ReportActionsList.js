@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useState} from 'react';
+import { View } from "react-native";
 import Animated, {useSharedValue, useAnimatedStyle, withTiming} from 'react-native-reanimated';
 import _ from 'underscore';
 import InvertedFlatList from '../../../components/InvertedFlatList';
@@ -20,7 +21,6 @@ import reportPropTypes from '../../reportPropTypes';
 import networkPropTypes from '../../../components/networkPropTypes';
 import withLocalize from '../../../components/withLocalize';
 import useReportScrollManager from '../../../hooks/useReportScrollManager';
-import { View } from "react-native";
 
 const propTypes = {
     /** Position of the "New" line marker */
@@ -154,9 +154,11 @@ function ReportActionsList(props) {
         [report, hasOutstandingIOU, newMarkerReportActionID, sortedReportActions, mostRecentIOUReportActionID],
     );
 
-    const renderCell = useCallback(({ index, style, ...props }) => {
+    const renderCell = useCallback(({ index, style, ...rendererProps }) => {
         const zIndexOffset = {zIndex:  sortedReportActions.length - index};
-        return <View style={[style, zIndexOffset]} {...props} />;
+
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        return <View style={[style, zIndexOffset]} {...rendererProps} />;
     }, [sortedReportActions]);
 
     // Native mobile does not render updates flatlist the changes even though component did update called.

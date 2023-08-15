@@ -108,7 +108,7 @@ function PopoverWithMeasuredContent(props) {
         }
 
         let verticalConstraint;
-        let anchorLocation = props.anchorRef.current && getClickedTargetLocation(props.anchorRef.current) || props.anchorPosition;
+        const anchorLocation = props.anchorRef.current && getClickedTargetLocation(props.anchorRef.current) || props.anchorPosition;
 
         switch (props.anchorAlignment.vertical) {
             case CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM:
@@ -128,7 +128,7 @@ function PopoverWithMeasuredContent(props) {
             ...horizontalConstraint,
             ...verticalConstraint,
         };
-    }, [props.anchorPosition, props.anchorAlignment, popoverWidth, popoverHeight]);
+    }, [props.anchorPosition, props.anchorAlignment, props.anchorRef, popoverWidth, popoverHeight]);
 
     const horizontalShift = computeHorizontalShift(adjustedAnchorPosition.left, popoverWidth, windowWidth);
     const verticalShift = computeVerticalShift(adjustedAnchorPosition.top, popoverHeight, windowHeight);
