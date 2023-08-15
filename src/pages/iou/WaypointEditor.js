@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -49,6 +49,8 @@ const defaultProps = {
 };
 
 function WaypointEditor({transactionID, route: {params: {iouType = '', waypointIndex = ''} = {}} = {}, network, translate}) {
+    const textInput = useRef(null);
+    
     const validate = (values) => {
         const errors = {};
         const waypointValue = values[`waypoint${waypointIndex}`] || '';
@@ -97,7 +99,10 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
     };
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper 
+            includeSafeAreaPaddingBottom={false}
+            onEntryTransitionEnd={() => textInput.current && textInput.current.focus()}
+        >
             <HeaderWithBackButton
                 title="Waypoint Editor"
                 shouldShowBackButton
@@ -118,6 +123,7 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
                 <View>
                     <AddressSearch
                         inputID={`waypoint${waypointIndex}`}
+                        ref={(e) => (textInput.current = e)}
                         hint={!network.isOffline ? translate('distance.errors.selectSuggestedAddress') : ''}
                         containerStyles={[styles.mt4]}
                         label={translate('distance.address')}
