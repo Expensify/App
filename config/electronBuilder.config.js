@@ -23,19 +23,19 @@ const macIcon = {
 
 const appIds = {
     production: 'com.expensifyreactnative.chat',
-    staging: 'com.expensifyreactnative.staging.chat',
+    staging: 'com.expensifyreactnative.dev.chat',
     adhoc: 'com.expensifyreactnative.adhoc.chat',
 };
 
 const productNames = {
     production: 'New Expensify',
-    staging: 'New Expensify Staging',
+    staging: 'New Expensify Dev',
     adhoc: 'New Expensify AdHoc',
 };
 
 const artifactNames = {
     production: 'NewExpensify.dmg',
-    staging: 'NewExpensifyStaging.dmg',
+    staging: 'NewExpensifyDev.dmg',
     adhoc: 'NewExpensifyAdHoc.dmg',
 };
 
