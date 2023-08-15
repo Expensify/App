@@ -213,6 +213,7 @@ function getDateStringFromISOTimestamp(isoTimestamp) {
  */
 function getStatusUntilDate(inputDate) {
     if (!inputDate) return '';
+    const {translateLocal} = Localize;
 
     const input = moment(inputDate, 'YYYY-MM-DD HH:mm:ss');
     const now = moment();
@@ -220,21 +221,21 @@ function getStatusUntilDate(inputDate) {
 
     // If the date is equal to the end of today
     if (input.isSame(endOfToday)) {
-        return 'Until tomorrow';
+        return translateLocal('statusPage.untilTomorrow');
     }
 
     // If it's a time on the same date
     if (input.isSame(now, 'day')) {
-        return `Until ${input.format('hh:mm A')}`;
+        return translateLocal('statusPage.untilTime', {time: input.format('hh:mm A')});
     }
 
     // If it's further in the future than tomorrow but within the same year
     if (input.isAfter(now) && input.isSame(now, 'year')) {
-        return `Until ${input.format('MM-DD hh:mm A')}`;
+        return translateLocal('statusPage.untilTime', {time: input.format('MM-DD hh:mm A')});
     }
 
     // If it's in another year
-    return `Until ${input.format('YYYY-MM-DD hh:mm A')}`;
+    return translateLocal('statusPage.untilTime', {time: input.format('YYYY-MM-DD hh:mm A')});
 }
 
 /**

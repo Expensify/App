@@ -878,6 +878,8 @@ export default {
         clearStatus: 'Borrar estado',
         save: 'Guardar',
         message: 'Mensaje',
+        untilTomorrow: 'Hasta mañana',
+        untilTime: ({time}) => `Hasta las ${time}`,
     },
     stepCounter: ({step, total, text}) => {
         let result = `Paso ${step}`;
