@@ -1333,9 +1333,12 @@ function getThreadReportNameHtml(parentReportAction) {
     const blockTagRegExp = `(?:<\\/?(?:${blockTags.join('|')})(?:[^>]*)>|\\r\\n|\\n|\\r)`;
     const threadHeaderHtmlRegExp = new RegExp(`^(?:<([^>]+)>)?((?:(?!${blockTagRegExp}).)*)(${blockTagRegExp}.*)`, 'gmi');
     return messageHtml.replace(threadHeaderHtmlRegExp, (match, g1, g2) => {
-        // If heading tag, display the text as is without any formatting
         if (!g1 || g1 === 'h1') {
             return g2;
+        }
+
+        if (g1 === 'pre') {
+            return `<code>${g2}</code>`
         }
 
         return `<${g1}>${g2}</${g1}>`;
