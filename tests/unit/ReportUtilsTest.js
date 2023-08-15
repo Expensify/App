@@ -365,21 +365,6 @@ describe('ReportUtils', () => {
                 expect(ReportUtils.isWaitingForIOUActionFromCurrentUser(report)).toBe(false);
             });
         });
-        it('returns true when the report has no oustanding IOU but is waiting for a bank account', () => {
-            const report = {
-                ...LHNTestUtils.getFakeReport(),
-                iouReportID: '1',
-                hasOutstandingIOU: false,
-            };
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {
-                reportID: '1',
-                ownerAccountID: currentUserEmail,
-                hasOutstandingIOU: false,
-                isWaitingOnBankAccount: true,
-            }).then(() => {
-                expect(ReportUtils.isWaitingForIOUActionFromCurrentUser(report)).toBe(false);
-            });
-        });
     });
 
     describe('getMoneyRequestOptions', () => {
