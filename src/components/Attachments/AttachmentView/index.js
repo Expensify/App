@@ -59,6 +59,7 @@ function AttachmentView({
     isFocused,
 }) {
     const [loadComplete, setLoadComplete] = useState(false);
+    const [isValidImage, setIsValidImage] = useState(true);
 
     // Handles case where source is a component (ex: SVG)
     if (_.isFunction(source)) {
@@ -95,7 +96,7 @@ function AttachmentView({
     // For this check we use both source and file.name since temporary file source is a blob
     // both PDFs and images will appear as images when pasted into the the text field
     const isImage = Str.isImage(source);
-    if (isImage || (file && Str.isImage(file.name))) {
+    if ((isImage || (file && Str.isImage(file.name))) && isValidImage) {
         return (
             <AttachmentViewImage
                 source={source}
@@ -105,6 +106,7 @@ function AttachmentView({
                 loadComplete={loadComplete}
                 isFocused={isFocused}
                 isImage={isImage}
+                onError={() => setIsValidImage(false)}
                 onPress={onPress}
                 onScaleChanged={onScaleChanged}
             />

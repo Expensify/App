@@ -13,7 +13,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-function AttachmentViewImage({source, file, isAuthTokenRequired, isFocused, isUsedInCarousel, loadComplete, onPress, isImage, onScaleChanged, translate}) {
+function AttachmentViewImage({source, file, isAuthTokenRequired, isFocused, isUsedInCarousel, loadComplete, onPress, onError, isImage, onScaleChanged, translate}) {
     const children = isUsedInCarousel ? (
         <AttachmentCarouselPage
             source={source}
@@ -26,6 +26,7 @@ function AttachmentViewImage({source, file, isAuthTokenRequired, isFocused, isUs
             onScaleChanged={onScaleChanged}
             url={source}
             fileName={file.name}
+            onError={onError}
             isAuthTokenRequired={isImage && isAuthTokenRequired}
         />
     );
