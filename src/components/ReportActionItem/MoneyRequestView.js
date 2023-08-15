@@ -23,6 +23,7 @@ import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import EmptyStateBackgroundImage from '../../../assets/images/empty-state_background-fade.png';
 import useLocalize from '../../hooks/useLocalize';
 import * as TransactionUtils from '../../libs/TransactionUtils';
+import * as PolicyUtils from '../../libs/PolicyUtils';
 import * as ReceiptUtils from '../../libs/ReceiptUtils';
 import withLocalize from '../withLocalize';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
@@ -95,6 +96,8 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, polic
     }
 
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
+    const distanceCustomUnit = PolicyUtils.getDistanceCustomUnit(policy);
+    const mileageRate = PolicyUtils.getDefaultMileageRate(distanceCustomUnit);
 
     return (
         <View>
@@ -133,7 +136,7 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, polic
             {isDistanceRequest && (
                 <MenuItemWithTopDescription
                     description={translate('tabSelector.distance')}
-                    title="123 miles @ $456 / mile"
+                    title={PolicyUtils.getDistanceText(transaction, distanceCustomUnit, mileageRate)}
                     disabled={isSettled || !canEdit}
                     shouldShowRightIcon={canEdit}
                     onPress={() => {}}
