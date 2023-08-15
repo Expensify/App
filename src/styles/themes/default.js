@@ -65,6 +65,7 @@ const darkTheme = {
     heroCard: colors.blue,
     uploadPreviewActivityIndicator: colors.greenHighlightBackground,
     dropUIBG: 'rgba(6,27,9,0.92)',
+    receiptDropUIBG: 'rgba(3, 212, 124, 0.84)',
     checkBox: colors.green,
     pickerOptionsTextColor: colors.white,
     imageCropBackgroundColor: colors.greenIcons,
@@ -77,6 +78,7 @@ const darkTheme = {
     mentionBG: colors.blue600,
     ourMentionText: colors.green100,
     ourMentionBG: colors.green600,
+    starDefaultBG: 'rgb(254, 228, 94)',
 };
 
 darkTheme.PAGE_BACKGROUND_COLORS = {

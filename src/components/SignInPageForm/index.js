@@ -17,6 +17,9 @@ function Form(props) {
             return;
         }
 
+        // Prevent the browser from applying its own validation, which affects the email input
+        this.form.setAttribute('novalidate', '');
+
         formCurrent.setAttribute('method', 'post');
         formCurrent.setAttribute('action', '/');
         formCurrent.addEventListener('submit', preventFormDefault);

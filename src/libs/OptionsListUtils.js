@@ -349,10 +349,8 @@ function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolic
 function getAllReportErrors(report, reportActions) {
     const reportErrors = report.errors || {};
     const reportErrorFields = report.errorFields || {};
-    const reportID = report.reportID;
-    const reportsActions = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] || {};
     const reportActionErrors = _.reduce(
-        reportsActions,
+        reportActions,
         (prevReportActionErrors, action) => (!action || _.isEmpty(action.errors) ? prevReportActionErrors : _.extend(prevReportActionErrors, action.errors)),
         {},
     );
@@ -387,6 +385,8 @@ function getLastMessageTextForReport(report) {
     } else if (ReportActionUtils.isReportPreviewAction(lastReportAction)) {
         const iouReport = ReportUtils.getReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(lastReportAction));
         lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(iouReport, lastReportAction);
+    } else if (ReportActionUtils.isModifiedExpenseAction(lastReportAction)) {
+        lastMessageTextFromReport = ReportUtils.getModifiedExpenseMessage(lastReportAction);
     } else {
         lastMessageTextFromReport = report ? report.lastMessageText || '' : '';
 
@@ -615,6 +615,7 @@ function getOptions(
         includeThreads = false,
         includeTasks = false,
         includeMoneyRequests = false,
+        excludeUnknownUsers = false,
     },
 ) {
     if (!isPersonalDetailsReady(personalDetails)) {
@@ -796,7 +797,8 @@ function getOptions(
         ((Str.isValidEmail(searchValue) && !Str.isDomainEmail(searchValue) && !Str.endsWith(searchValue, CONST.SMS.DOMAIN)) ||
             (parsedPhoneNumber.possible && Str.isValidPhone(LoginUtils.getPhoneNumberWithoutSpecialChars(parsedPhoneNumber.number.input)))) &&
         !_.find(loginOptionsToExclude, (loginOptionToExclude) => loginOptionToExclude.login === addSMSDomainIfPhoneNumber(searchValue).toLowerCase()) &&
-        (searchValue !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos(betas))
+        (searchValue !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos(betas)) &&
+        !excludeUnknownUsers
     ) {
         // Generates an optimistic account ID for new users not yet saved in Onyx
         const optimisticAccountID = UserUtils.generateAccountID(searchValue);
@@ -896,9 +898,10 @@ function getSearchOptions(reports, personalDetails, searchValue = '', betas) {
  * @returns {Object}
  */
 function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail, amountText) {
+    const formattedLogin = LocalePhoneNumber.formatPhoneNumber(personalDetail.login);
     return {
-        text: personalDetail.displayName ? personalDetail.displayName : personalDetail.login,
-        alternateText: personalDetail.login || personalDetail.displayName,
+        text: personalDetail.displayName || formattedLogin,
+        alternateText: formattedLogin || personalDetail.displayName,
         icons: [
             {
                 source: UserUtils.getAvatar(personalDetail.avatar, personalDetail.accountID),
@@ -966,17 +969,32 @@ function getNewChatOptions(reports, personalDetails, betas = [], searchValue = '
  *
  */
 
-function getShareDestinationOptions(reports, personalDetails, betas = [], searchValue = '', selectedOptions = [], excludeLogins = [], includeOwnedWorkspaceChats = true) {
+function getShareDestinationOptions(
+    reports,
+    personalDetails,
+    betas = [],
+    searchValue = '',
+    selectedOptions = [],
+    excludeLogins = [],
+    includeOwnedWorkspaceChats = true,
+    excludeUnknownUsers = true,
+) {
     return getOptions(reports, personalDetails, {
         betas,
         searchInputValue: searchValue.trim(),
         selectedOptions,
-        maxRecentReportsToShow: 5,
+        maxRecentReportsToShow: 0, // Unlimited
         includeRecentReports: true,
         includeMultipleParticipantReports: true,
-        includePersonalDetails: true,
+        includePersonalDetails: false,
+        showChatPreviewLine: true,
+        forcePolicyNamePreview: true,
+        includeThreads: true,
+        includeMoneyRequests: true,
+        includeTasks: true,
         excludeLogins,
         includeOwnedWorkspaceChats,
+        excludeUnknownUsers,
     });
 }
 
@@ -1006,9 +1024,10 @@ function getMemberInviteOptions(personalDetails, betas = [], searchValue = '', e
  * @param {Boolean} hasUserToInvite
  * @param {String} searchValue
  * @param {Boolean} [maxParticipantsReached]
+ * @param {Boolean} [hasMatchedParticipant]
  * @return {String}
  */
-function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, maxParticipantsReached = false) {
+function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, maxParticipantsReached = false, hasMatchedParticipant = false) {
     if (maxParticipantsReached) {
         return Localize.translate(preferredLocale, 'common.maxParticipantsReached', {count: CONST.REPORT.MAXIMUM_PARTICIPANTS});
     }
@@ -1030,7 +1049,9 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
         if (/@/.test(searchValue) && !isValidEmail) {
             return Localize.translate(preferredLocale, 'messages.errorMessageInvalidEmail');
         }
-
+        if (hasMatchedParticipant && (isValidEmail || isValidPhone)) {
+            return '';
+        }
         return Localize.translate(preferredLocale, 'common.noResultsFound');
     }
 
