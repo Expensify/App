@@ -62,7 +62,6 @@ function saveWaypoint(transactionID, index, waypoint) {
     });
 }
 
-
 function removeWaypoint(transactionID, index) {
     const transaction = lodashGet(allTransactions, transactionID, {});
     const existingWaypoints = lodashGet(transaction, 'comment.waypoints', {});
@@ -85,9 +84,6 @@ function removeWaypoint(transactionID, index) {
     // Onyx.merge won't remove the null nested object values, this is a workaround
     // to remove nested keys while also preserving other object keys
     transaction.comment.waypoints = reIndexedWaypoints;
-
-    console.log(transaction);
-
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {...transaction});
 }
 

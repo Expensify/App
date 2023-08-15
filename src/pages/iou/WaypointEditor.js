@@ -128,7 +128,6 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
                         hint={!network.isOffline ? translate('distance.errors.selectSuggestedAddress') : ''}
                         containerStyles={[styles.mt4]}
                         label={translate('distance.address')}
-                        shouldSaveDraft
                         onPress={selectWaypoint}
                         maxInputLength={CONST.FORM_CHARACTER_LIMIT}
                         renamedInputKeys={{
