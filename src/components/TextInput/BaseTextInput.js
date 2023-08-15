@@ -249,7 +249,11 @@ function BaseTextInput(props) {
                     onPress={onPress}
                     focusable={false}
                     accessibilityLabel={props.label}
-                    style={[props.autoGrowHeight && styles.autoGrowHeightInputContainer(textInputHeight, maxHeight), !isMultiline && styles.componentHeightLarge, ...props.containerStyles]}
+                    style={[
+                        props.autoGrowHeight && styles.autoGrowHeightInputContainer(textInputHeight, variables.componentSizeLarge, maxHeight),
+                        !isMultiline && styles.componentHeightLarge,
+                        ...props.containerStyles,
+                    ]}
                 >
                     <View
                         // When autoGrowHeight is true we calculate the width for the textInput, so it will break lines properly
@@ -391,7 +395,8 @@ function BaseTextInput(props) {
                         setTextInputHeight(e.nativeEvent.layout.height);
                     }}
                 >
-                    {props.value || props.placeholder}
+                    {/* \u200B added to solve the issue of not expanding the text input enough when the value ends with '\n' (https://github.com/Expensify/App/issues/21271) */}
+                    {props.value ? `${props.value}${props.value.endsWith('\n') ? '\u200B' : ''}` : props.placeholder}
                 </Text>
             )}
         </>

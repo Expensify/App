@@ -14,41 +14,8 @@ import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as UserUtils from './UserUtils';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 
-// Note: It is very important that the keys subscribed to here are the same
-// keys that are connected to SidebarLinks withOnyx(). If there was a key missing from SidebarLinks and it's data was updated
-// for that key, then there would be no re-render and the options wouldn't reflect the new data because SidebarUtils.getOrderedReportIDs() wouldn't be triggered.
-// There are a couple of keys here which are OK to have stale data. Having redundant subscriptions causes more re-renders which should be avoided.
-// Session also can remain stale because the only way for the current user to change is to sign out and sign in, which would clear out all the Onyx
-// data anyway and cause SidebarLinks to rerender.
-
-let allReports;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
-    callback: (val) => (allReports = val),
-});
-
-let personalDetails;
-Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (val) => (personalDetails = val),
-});
-
-let priorityMode;
-Onyx.connect({
-    key: ONYXKEYS.NVP_PRIORITY_MODE,
-    callback: (val) => (priorityMode = val),
-});
-
-let betas;
-Onyx.connect({
-    key: ONYXKEYS.BETAS,
-    callback: (val) => (betas = val),
-});
-
 const visibleReportActionItems = {};
 const lastReportActions = {};
-const reportActions = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     callback: (actions, key) => {
@@ -67,18 +34,12 @@ Onyx.connect({
             (reportAction, actionKey) => ReportActionsUtils.shouldReportActionBeVisible(reportAction, actionKey) && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED,
         );
         visibleReportActionItems[reportID] = _.last(reportActionsForDisplay);
-
-        reportActions[key] = actions;
     },
 });
 
-let policies;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    waitForCollectionCallback: true,
-    callback: (val) => (policies = val),
-});
-
+// Session can remain stale because the only way for the current user to change is to
+// sign out and sign in, which would clear out all the Onyx
+// data anyway and cause SidebarLinks to rerender.
 let currentUserAccountID;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
@@ -89,12 +50,6 @@ Onyx.connect({
 
         currentUserAccountID = val.accountID;
     },
-});
-
-let preferredLocale;
-Onyx.connect({
-    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    callback: (val) => (preferredLocale = val || CONST.LOCALES.DEFAULT),
 });
 
 let resolveSidebarIsReadyPromise;
@@ -119,17 +74,25 @@ function setIsSidebarLoadedReady() {
 
 /**
  * @param {String} currentReportId
+ * @param {Object} allReportsDict
+ * @param {Object} betas
+ * @param {String[]} policies
+ * @param {String} priorityMode
+ * @param {Object} allReportActions
  * @returns {String[]} An array of reportIDs sorted in the proper order
  */
-function getOrderedReportIDs(currentReportId) {
+function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, priorityMode, allReportActions) {
     const isInGSDMode = priorityMode === CONST.PRIORITY_MODE.GSD;
     const isInDefaultMode = !isInGSDMode;
 
     // Filter out all the reports that shouldn't be displayed
-    const reportsToDisplay = _.filter(allReports, (report) => ReportUtils.shouldReportBeInOptionList(report, currentReportId, isInGSDMode, allReports, betas, policies));
+    const reportsToDisplay = _.filter(allReportsDict, (report) =>
+        ReportUtils.shouldReportBeInOptionList(report, currentReportId, isInGSDMode, allReportsDict, betas, policies, allReportActions, true),
+    );
+
     if (_.isEmpty(reportsToDisplay)) {
         // Display Concierge chat report when there is no report to be displayed
-        const conciergeChatReport = _.find(allReports, ReportUtils.isConciergeChatReport);
+        const conciergeChatReport = _.find(allReportsDict, ReportUtils.isConciergeChatReport);
         if (conciergeChatReport) {
             reportsToDisplay.push(conciergeChatReport);
         }
@@ -144,7 +107,7 @@ function getOrderedReportIDs(currentReportId) {
         report.displayName = ReportUtils.getReportName(report);
 
         // eslint-disable-next-line no-param-reassign
-        report.iouReportAmount = ReportUtils.getMoneyRequestTotal(report, allReports);
+        report.iouReportAmount = ReportUtils.getMoneyRequestTotal(report, allReportsDict);
     });
 
     // The LHN is split into five distinct groups, and each group is sorted a little differently. The groups will ALWAYS be in this order:
@@ -162,14 +125,13 @@ function getOrderedReportIDs(currentReportId) {
     let draftReports = [];
     let nonArchivedReports = [];
     let archivedReports = [];
-
     _.each(reportsToDisplay, (report) => {
         if (report.isPinned) {
             pinnedReports.push(report);
             return;
         }
 
-        if (report.hasOutstandingIOU && !ReportUtils.isIOUOwnedByCurrentUser(report, allReports)) {
+        if (ReportUtils.isWaitingForIOUActionFromCurrentUser(report, allReportsDict)) {
             outstandingIOUReports.push(report);
             return;
         }
@@ -180,11 +142,6 @@ function getOrderedReportIDs(currentReportId) {
         }
 
         if (ReportUtils.isArchivedRoom(report)) {
-            archivedReports.push(report);
-            return;
-        }
-
-        if (ReportUtils.isTaskReport(report) && ReportUtils.isCompletedTaskReport(report)) {
             archivedReports.push(report);
             return;
         }
@@ -214,13 +171,14 @@ function getOrderedReportIDs(currentReportId) {
 /**
  * Gets all the data necessary for rendering an OptionRowLHN component
  *
- * @param {String} reportID
+ * @param {Object} report
+ * @param {Object} reportActions
+ * @param {Object} personalDetails
+ * @param {String} preferredLocale
+ * @param {Object} [policy]
  * @returns {Object}
  */
-function getOptionData(reportID) {
-    const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
-    const report = allReports[reportKey];
-
+function getOptionData(report, reportActions, personalDetails, preferredLocale, policy) {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
     // a null check here and return early.
@@ -240,6 +198,7 @@ function getOptionData(reportID) {
         participantsList: null,
         login: null,
         accountID: null,
+        managerID: null,
         reportID: null,
         phoneNumber: null,
         payPalMeAddress: null,
@@ -259,6 +218,9 @@ function getOptionData(reportID) {
         isPolicyExpenseChat: false,
         isMoneyRequestReport: false,
         isExpenseRequest: false,
+        isWaitingOnBankAccount: false,
+        isLastMessageDeletedParentAction: false,
+        isAllowedToComment: true,
     };
 
     const participantPersonalDetailList = _.values(OptionsListUtils.getPersonalDetailsForAccountIDs(report.participantAccountIDs, personalDetails));
@@ -280,6 +242,7 @@ function getOptionData(reportID) {
     result.allReportErrors = OptionsListUtils.getAllReportErrors(report, reportActions);
     result.brickRoadIndicator = !_.isEmpty(result.allReportErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
     result.ownerAccountID = report.ownerAccountID;
+    result.managerID = report.managerID;
     result.reportID = report.reportID;
     result.isUnread = ReportUtils.isUnread(report);
     result.isUnreadWithMention = ReportUtils.isUnreadWithMention(report);
@@ -290,6 +253,12 @@ function getOptionData(reportID) {
     result.tooltipText = ReportUtils.getReportParticipantsTitle(report.participantAccountIDs || []);
     result.hasOutstandingIOU = report.hasOutstandingIOU;
     result.parentReportID = report.parentReportID || null;
+    result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
+    result.notificationPreference = report.notificationPreference || null;
+
+    // If the composer is hidden then the user is not allowed to comment, same can be used to hide the draft icon.
+    result.isAllowedToComment = !ReportUtils.shouldHideComposer(report);
+
     const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
     const subtitle = ReportUtils.getChatRoomSubtitle(report);
 
@@ -323,7 +292,7 @@ function getOptionData(reportID) {
             CONST.REPORT.ARCHIVE_REASON.DEFAULT;
         lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
             displayName: archiveReason.displayName || PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails, 'displayName'),
-            policyName: ReportUtils.getPolicyName(report),
+            policyName: ReportUtils.getPolicyName(report, false, policy),
         });
     }
 
@@ -363,8 +332,8 @@ function getOptionData(reportID) {
         result.alternateText = lastMessageText || formattedLogin;
     }
 
-    result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result, allReports);
-    result.iouReportAmount = ReportUtils.getMoneyRequestTotal(result, allReports);
+    result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result);
+    result.iouReportAmount = ReportUtils.getMoneyRequestTotal(result);
 
     if (!hasMultipleParticipants) {
         result.accountID = personalDetail.accountID;
@@ -373,15 +342,16 @@ function getOptionData(reportID) {
         result.payPalMeAddress = personalDetail.payPalMeAddress;
     }
 
-    const reportName = ReportUtils.getReportName(report);
+    const reportName = ReportUtils.getReportName(report, policy);
 
     result.text = reportName;
     result.subtitle = subtitle;
     result.participantsList = participantPersonalDetailList;
 
-    result.icons = ReportUtils.getIcons(report, personalDetails, UserUtils.getAvatar(personalDetail.avatar, personalDetail.accountID), true);
+    result.icons = ReportUtils.getIcons(report, personalDetails, UserUtils.getAvatar(personalDetail.avatar, personalDetail.accountID), true, '', -1, policy);
     result.searchText = OptionsListUtils.getSearchText(report, reportName, participantPersonalDetailList, result.isChatRoom || result.isPolicyExpenseChat, result.isThread);
     result.displayNamesWithTooltips = displayNamesWithTooltips;
+    result.isLastMessageDeletedParentAction = report.isLastMessageDeletedParentAction;
     return result;
 }
 

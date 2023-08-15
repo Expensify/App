@@ -1,14 +1,13 @@
-import React, {Component} from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import MenuItem from './MenuItem';
 import Icon from './Icon';
 import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
 import getButtonState from '../libs/getButtonState';
-import withDelayToggleButtonState, {withDelayToggleButtonStatePropTypes} from './withDelayToggleButtonState';
+import useThrottledButtonState from '../hooks/useThrottledButtonState';
 import BaseMiniContextMenuItem from './BaseMiniContextMenuItem';
-import withWindowDimensions from './withWindowDimensions';
-import compose from '../libs/compose';
+import useWindowDimensions from '../hooks/useWindowDimensions';
 import getContextMenuItemStyles from '../styles/getContextMenuItemStyles';
 
 const propTypes = {
@@ -30,84 +29,72 @@ const propTypes = {
     /** Callback to fire when the item is pressed */
     onPress: PropTypes.func.isRequired,
 
-    /** Automatically reset the success status */
-    autoReset: PropTypes.bool,
-
     /** A description text to show under the title */
     description: PropTypes.string,
 
     /** The action accept for anonymous user or not */
     isAnonymousAction: PropTypes.bool,
-
-    ...withDelayToggleButtonStatePropTypes,
 };
 
 const defaultProps = {
     isMini: false,
     successIcon: null,
     successText: '',
-    autoReset: true,
     description: '',
     isAnonymousAction: false,
 };
 
-class ContextMenuItem extends Component {
-    constructor(props) {
-        super(props);
+function ContextMenuItem({onPress, successIcon, successText, icon, text, isMini, description, isAnonymousAction}) {
+    const {windowWidth} = useWindowDimensions();
+    const [isThrottledButtonActive, setThrottledButtonInactive] = useThrottledButtonState();
 
-        this.triggerPressAndUpdateSuccess = this.triggerPressAndUpdateSuccess.bind(this);
-    }
-
-    /**
-     * Method to call parent onPress and toggleDelayButtonState
-     */
-    triggerPressAndUpdateSuccess() {
-        if (this.props.isDelayButtonStateComplete) {
+    const triggerPressAndUpdateSuccess = () => {
+        if (!isThrottledButtonActive) {
             return;
         }
-        this.props.onPress();
+        onPress();
 
         // We only set the success state when we have icon or text to represent the success state
         // We may want to replace this check by checking the Result from OnPress Callback in future.
-        if (this.props.successIcon || this.props.successText) {
-            this.props.toggleDelayButtonState(this.props.autoReset);
+        if (successIcon || successText) {
+            setThrottledButtonInactive();
         }
-    }
+    };
 
-    render() {
-        const icon = this.props.isDelayButtonStateComplete ? this.props.successIcon || this.props.icon : this.props.icon;
-        const text = this.props.isDelayButtonStateComplete ? this.props.successText || this.props.text : this.props.text;
-        return this.props.isMini ? (
-            <BaseMiniContextMenuItem
-                tooltipText={text}
-                onPress={this.triggerPressAndUpdateSuccess}
-                isDelayButtonStateComplete={this.props.isDelayButtonStateComplete}
-            >
-                {({hovered, pressed}) => (
-                    <Icon
-                        small
-                        src={icon}
-                        fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, this.props.isDelayButtonStateComplete))}
-                    />
-                )}
-            </BaseMiniContextMenuItem>
-        ) : (
-            <MenuItem
-                title={text}
-                icon={icon}
-                onPress={this.triggerPressAndUpdateSuccess}
-                wrapperStyle={styles.pr9}
-                success={this.props.isDelayButtonStateComplete}
-                description={this.props.description}
-                descriptionTextStyle={styles.breakAll}
-                style={getContextMenuItemStyles(this.props.windowWidth)}
-                isAnonymousAction={this.props.isAnonymousAction}
-            />
-        );
-    }
+    const itemIcon = !isThrottledButtonActive && successIcon ? successIcon : icon;
+    const itemText = !isThrottledButtonActive && successText ? successText : text;
+
+    return isMini ? (
+        <BaseMiniContextMenuItem
+            tooltipText={itemText}
+            onPress={triggerPressAndUpdateSuccess}
+            isDelayButtonStateComplete={!isThrottledButtonActive}
+        >
+            {({hovered, pressed}) => (
+                <Icon
+                    small
+                    src={itemIcon}
+                    fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, !isThrottledButtonActive))}
+                />
+            )}
+        </BaseMiniContextMenuItem>
+    ) : (
+        <MenuItem
+            title={itemText}
+            icon={itemIcon}
+            onPress={triggerPressAndUpdateSuccess}
+            wrapperStyle={styles.pr9}
+            success={!isThrottledButtonActive}
+            description={description}
+            descriptionTextStyle={styles.breakAll}
+            style={getContextMenuItemStyles(windowWidth)}
+            isAnonymousAction={isAnonymousAction}
+        />
+    );
 }
 
 ContextMenuItem.propTypes = propTypes;
 ContextMenuItem.defaultProps = defaultProps;
+ContextMenuItem.displayName = 'ContextMenuItem';
 
-export default compose(withWindowDimensions, withDelayToggleButtonState)(ContextMenuItem);
+export default ContextMenuItem;

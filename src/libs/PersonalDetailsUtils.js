@@ -6,9 +6,13 @@ import * as Localize from './Localize';
 import * as UserUtils from './UserUtils';
 
 let personalDetails = [];
+let allPersonalDetails = {};
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (val) => (personalDetails = _.values(val)),
+    callback: (val) => {
+        personalDetails = _.values(val);
+        allPersonalDetails = val;
+    },
 });
 
 /**
@@ -20,7 +24,7 @@ Onyx.connect({
 function getDisplayNameOrDefault(passedPersonalDetails, pathToDisplayName, defaultValue) {
     const displayName = lodashGet(passedPersonalDetails, pathToDisplayName);
 
-    return displayName || defaultValue || 'Hidden';
+    return displayName || defaultValue || Localize.translateLocal('common.hidden');
 }
 
 /**
@@ -61,7 +65,7 @@ function getAccountIDsByLogins(logins) {
             const currentDetail = _.find(personalDetails, (detail) => detail.login === login);
             if (!currentDetail) {
                 // generate an account ID because in this case the detail is probably new, so we don't have a real accountID yet
-                foundAccountIDs.push(UserUtils.generateAccountID());
+                foundAccountIDs.push(UserUtils.generateAccountID(login));
             } else {
                 foundAccountIDs.push(Number(currentDetail.accountID));
             }
@@ -91,4 +95,60 @@ function getLoginsByAccountIDs(accountIDs) {
     );
 }
 
-export {getDisplayNameOrDefault, getPersonalDetailsByIDs, getAccountIDsByLogins, getLoginsByAccountIDs};
+/**
+ * Given a list of logins and accountIDs, return Onyx data for users with no existing personal details stored
+ *
+ * @param {Array<string>} logins Array of user logins
+ * @param {Array<number>} accountIDs Array of user accountIDs
+ * @returns {Object} - Object with optimisticData, successData and failureData (object of personal details objects)
+ */
+function getNewPersonalDetailsOnyxData(logins, accountIDs) {
+    const optimisticData = {};
+    const successData = {};
+    const failureData = {};
+
+    _.each(logins, (login, index) => {
+        const accountID = accountIDs[index];
+
+        if (_.isEmpty(allPersonalDetails[accountID])) {
+            optimisticData[accountID] = {
+                login,
+                accountID,
+                avatar: UserUtils.getDefaultAvatarURL(accountID),
+                displayName: login,
+            };
+
+            /**
+             * Cleanup the optimistic user to ensure it does not permanently persist.
+             * This is done to prevent duplicate entries (upon success) since the BE will return other personal details with the correct account IDs.
+             */
+            successData[accountID] = null;
+        }
+    });
+
+    return {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                value: optimisticData,
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                value: successData,
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                value: failureData,
+            },
+        ],
+    };
+}
+
+export {getDisplayNameOrDefault, getPersonalDetailsByIDs, getAccountIDsByLogins, getLoginsByAccountIDs, getNewPersonalDetailsOnyxData};

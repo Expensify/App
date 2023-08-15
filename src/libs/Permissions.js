@@ -82,14 +82,6 @@ function canUsePolicyExpenseChat(betas) {
  * @param {Array<String>} betas
  * @returns {Boolean}
  */
-function canUsePasswordlessLogins(betas) {
-    return _.contains(betas, CONST.BETAS.PASSWORDLESS) || canUseAllBetas(betas);
-}
-
-/**
- * @param {Array<String>} betas
- * @returns {Boolean}
- */
 function canUseTasks(betas) {
     return _.contains(betas, CONST.BETAS.TASKS) || canUseAllBetas(betas);
 }
@@ -102,6 +94,30 @@ function canUseScanReceipts(betas) {
     return _.contains(betas, CONST.BETAS.SCAN_RECEIPTS) || canUseAllBetas(betas);
 }
 
+/**
+ * @param {Array<String>} betas
+ * @returns {Boolean}
+ */
+function canUseCustomStatus(betas) {
+    return _.contains(betas, CONST.BETAS.CUSTOM_STATUS) || canUseAllBetas(betas);
+}
+
+/**
+ * @param {Array<String>} betas
+ * @returns {Boolean}
+ */
+function canUseDistanceRequests(betas) {
+    return _.contains(betas, CONST.BETAS.DISTANCE_REQUESTS) || canUseAllBetas(betas);
+}
+
+/**
+ * Link previews are temporarily disabled.
+ * @returns {Boolean}
+ */
+function canUseLinkPreviews() {
+    return false;
+}
+
 export default {
     canUseChronos,
     canUsePayWithExpensify,
@@ -111,7 +127,9 @@ export default {
     canUseCommentLinking,
     canUsePolicyRooms,
     canUsePolicyExpenseChat,
-    canUsePasswordlessLogins,
     canUseTasks,
     canUseScanReceipts,
+    canUseCustomStatus,
+    canUseDistanceRequests,
+    canUseLinkPreviews,
 };

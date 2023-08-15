@@ -144,7 +144,6 @@ describe('ReportUtils', () => {
             test('with displayName', () => {
                 expect(
                     ReportUtils.getReportName({
-                        participants: [currentUserEmail, 'ragnar@vikings.net'],
                         participantAccountIDs: [currentUserAccountID, 1],
                     }),
                 ).toBe('Ragnar Lothbrok');
@@ -153,7 +152,6 @@ describe('ReportUtils', () => {
             test('no displayName', () => {
                 expect(
                     ReportUtils.getReportName({
-                        participants: [currentUserEmail, 'floki@vikings.net'],
                         participantAccountIDs: [currentUserAccountID, 2],
                     }),
                 ).toBe('floki@vikings.net');
@@ -162,7 +160,6 @@ describe('ReportUtils', () => {
             test('SMS', () => {
                 expect(
                     ReportUtils.getReportName({
-                        participants: [currentUserEmail, '+18332403627@expensify.sms'],
                         participantAccountIDs: [currentUserAccountID, 4],
                     }),
                 ).toBe('(833) 240-3627');
@@ -172,7 +169,6 @@ describe('ReportUtils', () => {
         test('Group DM', () => {
             expect(
                 ReportUtils.getReportName({
-                    participants: [currentUserEmail, 'ragnar@vikings.net', 'floki@vikings.net', 'lagertha@vikings.net', '+18332403627@expensify.sms'],
                     participantAccountIDs: [currentUserAccountID, 1, 2, 3, 4],
                 }),
             ).toBe('Ragnar, floki@vikings.net, Lagertha, (833) 240-3627');
@@ -288,53 +284,58 @@ describe('ReportUtils', () => {
         });
     });
 
-    describe('hasOutstandingIOU', () => {
+    describe('isWaitingForIOUActionFromCurrentUser', () => {
         it('returns false when there is no report', () => {
-            expect(ReportUtils.hasOutstandingIOU()).toBe(false);
+            expect(ReportUtils.isWaitingForIOUActionFromCurrentUser()).toBe(false);
         });
-        it('returns false when the report has no iouReportID', () => {
-            const report = LHNTestUtils.getFakeReport();
-            expect(ReportUtils.hasOutstandingIOU(report)).toBe(false);
-        });
-        it('returns false when there is no iouReports collection', () => {
+        it('returns false when there is no reports collection', () => {
             const report = {
                 ...LHNTestUtils.getFakeReport(),
                 iouReportID: '1',
             };
-            expect(ReportUtils.hasOutstandingIOU(report)).toBe(false);
+            expect(ReportUtils.isWaitingForIOUActionFromCurrentUser(report)).toBe(false);
+        });
+        it('returns false when the report has no iouReportID', () => {
+            const report = LHNTestUtils.getFakeReport();
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}2`, {
+                reportID: '2',
+            }).then(() => {
+                expect(ReportUtils.isWaitingForIOUActionFromCurrentUser(report)).toBe(false);
+            });
         });
         it('returns false when there is no matching IOU report', () => {
             const report = {
                 ...LHNTestUtils.getFakeReport(),
                 iouReportID: '1',
             };
-            const iouReports = {};
-            expect(ReportUtils.hasOutstandingIOU(report, iouReports)).toBe(false);
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}2`, {
+                reportID: '2',
+            }).then(() => {
+                expect(ReportUtils.isWaitingForIOUActionFromCurrentUser(report)).toBe(false);
+            });
         });
         it('returns false when the matched IOU report does not have an owner email', () => {
             const report = {
                 ...LHNTestUtils.getFakeReport(),
                 iouReportID: '1',
             };
-            const iouReports = {
-                report_1: {
-                    reportID: '1',
-                },
-            };
-            expect(ReportUtils.hasOutstandingIOU(report, iouReports)).toBe(false);
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {
+                reportID: '1',
+            }).then(() => {
+                expect(ReportUtils.isWaitingForIOUActionFromCurrentUser(report)).toBe(false);
+            });
         });
         it('returns false when the matched IOU report does not have an owner email', () => {
             const report = {
                 ...LHNTestUtils.getFakeReport(),
                 iouReportID: '1',
             };
-            const iouReports = {
-                report_1: {
-                    reportID: '1',
-                    ownerAccountID: 99,
-                },
-            };
-            expect(ReportUtils.hasOutstandingIOU(report, iouReports)).toBe(false);
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {
+                reportID: '1',
+                ownerAccountID: 99,
+            }).then(() => {
+                expect(ReportUtils.isWaitingForIOUActionFromCurrentUser(report)).toBe(false);
+            });
         });
         it('returns true when the report has an oustanding IOU', () => {
             const report = {
@@ -342,13 +343,13 @@ describe('ReportUtils', () => {
                 iouReportID: '1',
                 hasOutstandingIOU: true,
             };
-            const iouReports = {
-                report_1: {
-                    reportID: '1',
-                    ownerAccountID: 99,
-                },
-            };
-            expect(ReportUtils.hasOutstandingIOU(report, iouReports)).toBe(true);
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {
+                reportID: '1',
+                ownerAccountID: 99,
+                hasOutstandingIOU: true,
+            }).then(() => {
+                expect(ReportUtils.isWaitingForIOUActionFromCurrentUser(report)).toBe(true);
+            });
         });
         it('returns false when the report has no oustanding IOU', () => {
             const report = {
@@ -356,18 +357,33 @@ describe('ReportUtils', () => {
                 iouReportID: '1',
                 hasOutstandingIOU: false,
             };
-            const iouReports = {
-                report_1: {
-                    reportID: '1',
-                    ownerAccountID: 99,
-                },
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {
+                reportID: '1',
+                ownerAccountID: 99,
+                hasOutstandingIOU: false,
+            }).then(() => {
+                expect(ReportUtils.isWaitingForIOUActionFromCurrentUser(report)).toBe(false);
+            });
+        });
+        it('returns true when the report has no oustanding IOU but is waiting for a bank account', () => {
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                iouReportID: '1',
+                hasOutstandingIOU: false,
             };
-            expect(ReportUtils.hasOutstandingIOU(report, iouReports)).toBe(false);
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {
+                reportID: '1',
+                ownerAccountID: currentUserEmail,
+                hasOutstandingIOU: false,
+                isWaitingOnBankAccount: true,
+            }).then(() => {
+                expect(ReportUtils.isWaitingForIOUActionFromCurrentUser(report)).toBe(false);
+            });
         });
     });
 
     describe('getMoneyRequestOptions', () => {
-        const participants = _.keys(participantsPersonalDetails);
+        const participantsAccountIDs = _.keys(participantsPersonalDetails);
 
         beforeAll(() => {
             Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
@@ -404,7 +420,7 @@ describe('ReportUtils', () => {
                             ...LHNTestUtils.getFakeReport(),
                             chatType,
                         };
-                        const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, [currentUserAccountID, participants[0]], []);
+                        const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, [currentUserAccountID, participantsAccountIDs[0]], []);
                         return moneyRequestOptions.length === 1 && moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT);
                     },
                 );
@@ -412,13 +428,13 @@ describe('ReportUtils', () => {
             });
 
             it('has multiple participants exclude self', () => {
-                const moneyRequestOptions = ReportUtils.getMoneyRequestOptions({}, [currentUserAccountID, ...participants], []);
+                const moneyRequestOptions = ReportUtils.getMoneyRequestOptions({}, [currentUserAccountID, ...participantsAccountIDs], []);
                 expect(moneyRequestOptions.length).toBe(1);
                 expect(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT)).toBe(true);
             });
 
             it(' does not have iou send permission', () => {
-                const moneyRequestOptions = ReportUtils.getMoneyRequestOptions({}, [currentUserAccountID, ...participants], []);
+                const moneyRequestOptions = ReportUtils.getMoneyRequestOptions({}, [currentUserAccountID, ...participantsAccountIDs], []);
                 expect(moneyRequestOptions.length).toBe(1);
                 expect(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT)).toBe(true);
             });
@@ -431,14 +447,14 @@ describe('ReportUtils', () => {
                     chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                     isOwnPolicyExpenseChat: true,
                 };
-                const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, [currentUserAccountID, ...participants], [CONST.BETAS.IOU_SEND]);
+                const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, [currentUserAccountID, ...participantsAccountIDs], [CONST.BETAS.IOU_SEND]);
                 expect(moneyRequestOptions.length).toBe(1);
                 expect(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)).toBe(true);
             });
         });
 
         it('return both iou send and request money in DM', () => {
-            const moneyRequestOptions = ReportUtils.getMoneyRequestOptions({type: 'chat'}, [currentUserAccountID, participants[0]], [CONST.BETAS.IOU_SEND]);
+            const moneyRequestOptions = ReportUtils.getMoneyRequestOptions({type: 'chat'}, [currentUserAccountID, participantsAccountIDs[0]], [CONST.BETAS.IOU_SEND]);
             expect(moneyRequestOptions.length).toBe(2);
             expect(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)).toBe(true);
             expect(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.SEND)).toBe(true);
@@ -459,6 +475,26 @@ describe('ReportUtils', () => {
         it("shouldn't get the correct reportID from a deep link", () => {
             expect(ReportUtils.getReportIDFromLink('new-expensify-not-valid://r/75431276')).toBe('');
             expect(ReportUtils.getReportIDFromLink('new-expensify://settings')).toBe('');
+        });
+    });
+
+    describe('sortReportsByLastRead', () => {
+        it('should filter out report without reportID & lastReadTime and sort lastReadTime in ascending order', () => {
+            const reports = {
+                1: {reportID: 1, lastReadTime: '2023-07-08 07:15:44.030'},
+                2: {reportID: 2, lastReadTime: null},
+                3: {reportID: 3, lastReadTime: '2023-07-06 07:15:44.030'},
+                4: {reportID: 4, lastReadTime: '2023-07-07 07:15:44.030', type: CONST.REPORT.TYPE.IOU},
+                5: {lastReadTime: '2023-07-09 07:15:44.030'},
+                6: {reportID: 6},
+                7: {},
+            };
+            const sortedReports = [
+                {reportID: 3, lastReadTime: '2023-07-06 07:15:44.030'},
+                {reportID: 4, lastReadTime: '2023-07-07 07:15:44.030', type: CONST.REPORT.TYPE.IOU},
+                {reportID: 1, lastReadTime: '2023-07-08 07:15:44.030'},
+            ];
+            expect(ReportUtils.sortReportsByLastRead(reports)).toEqual(sortedReports);
         });
     });
 });

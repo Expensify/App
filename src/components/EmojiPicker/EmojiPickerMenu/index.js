@@ -33,6 +33,10 @@ const propTypes = {
     /** Stores user's preferred skin tone */
     preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
 
+    /** Stores user's frequently used emojis */
+    // eslint-disable-next-line react/forbid-prop-types
+    frequentlyUsedEmojis: PropTypes.arrayOf(PropTypes.object),
+
     /** Props related to the dimensions of the window */
     ...windowDimensionsPropTypes,
 
@@ -42,6 +46,7 @@ const propTypes = {
 const defaultProps = {
     forwardedRef: () => {},
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
+    frequentlyUsedEmojis: [],
 };
 
 class EmojiPickerMenu extends Component {
@@ -53,23 +58,6 @@ class EmojiPickerMenu extends Component {
 
         // Ref for emoji FlatList
         this.emojiList = undefined;
-
-        // If we're on Windows, don't display the flag emojis (the last category),
-        // since Windows doesn't support them
-        const flagHeaderIndex = _.findIndex(emojis, (emoji) => emoji.header && emoji.code === 'flags');
-        this.emojis =
-            getOperatingSystem() === CONST.OS.WINDOWS
-                ? EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojis.slice(0, flagHeaderIndex))
-                : EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojis);
-
-        // Get the header emojis along with the code, index and icon.
-        // index is the actual header index starting at the first emoji and counting each one
-        this.headerEmojis = EmojiUtils.getHeaderEmojis(this.emojis);
-
-        // This is the indices of each header's Row
-        // The positions are static, and are calculated as index/numColumns (8 in our case)
-        // This is because each row of 8 emojis counts as one index to the flatlist
-        this.headerRowIndices = _.map(this.headerEmojis, (headerEmoji) => Math.floor(headerEmoji.index / CONST.EMOJI_NUM_PER_ROW));
 
         // We want consistent auto focus behavior on input between native and mWeb so we have some auto focus management code that will
         // prevent auto focus when open picker for mobile device
@@ -90,6 +78,11 @@ class EmojiPickerMenu extends Component {
 
         this.currentScrollOffset = 0;
         this.firstNonHeaderIndex = 0;
+
+        const {filteredEmojis, headerEmojis, headerRowIndices} = this.getEmojisAndHeaderRowIndices();
+        this.emojis = filteredEmojis;
+        this.headerEmojis = headerEmojis;
+        this.headerRowIndices = headerRowIndices;
 
         this.state = {
             filteredEmojis: this.emojis,
@@ -117,6 +110,19 @@ class EmojiPickerMenu extends Component {
         this.setFirstNonHeaderIndex(this.emojis);
     }
 
+    componentDidUpdate(prevProps) {
+        if (prevProps.frequentlyUsedEmojis === this.props.frequentlyUsedEmojis) return;
+
+        const {filteredEmojis, headerEmojis, headerRowIndices} = this.getEmojisAndHeaderRowIndices();
+        this.emojis = filteredEmojis;
+        this.headerEmojis = headerEmojis;
+        this.headerRowIndices = headerRowIndices;
+        this.setState({
+            filteredEmojis: this.emojis,
+            headerIndices: this.headerRowIndices,
+        });
+    }
+
     componentWillUnmount() {
         this.cleanupEventHandlers();
     }
@@ -128,6 +134,31 @@ class EmojiPickerMenu extends Component {
      */
     onSelectionChange(event) {
         this.setState({selection: event.nativeEvent.selection});
+    }
+
+    /**
+     * Calculate the filtered + header emojis and header row indices
+     * @returns {Object}
+     */
+    getEmojisAndHeaderRowIndices() {
+        // If we're on Windows, don't display the flag emojis (the last category),
+        // since Windows doesn't support them
+        const flagHeaderIndex = _.findIndex(emojis, (emoji) => emoji.header && emoji.code === 'flags');
+        const filteredEmojis =
+            getOperatingSystem() === CONST.OS.WINDOWS
+                ? EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojis.slice(0, flagHeaderIndex))
+                : EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojis);
+
+        // Get the header emojis along with the code, index and icon.
+        // index is the actual header index starting at the first emoji and counting each one
+        const headerEmojis = EmojiUtils.getHeaderEmojis(filteredEmojis);
+
+        // This is the indices of each header's Row
+        // The positions are static, and are calculated as index/numColumns (8 in our case)
+        // This is because each row of 8 emojis counts as one index to the flatlist
+        const headerRowIndices = _.map(headerEmojis, (headerEmoji) => Math.floor(headerEmoji.index / CONST.EMOJI_NUM_PER_ROW));
+
+        return {filteredEmojis, headerEmojis, headerRowIndices};
     }
 
     /**
@@ -431,10 +462,11 @@ class EmojiPickerMenu extends Component {
      * Return a unique key for each emoji item
      *
      * @param {Object} item
+     * @param {Number} index
      * @returns {String}
      */
-    keyExtractor(item) {
-        return `emoji_picker_${item.code}`;
+    keyExtractor(item, index) {
+        return `emoji_picker_${item.code}_${index}`;
     }
 
     /**
@@ -492,6 +524,9 @@ class EmojiPickerMenu extends Component {
 
     render() {
         const isFiltered = this.emojis.length !== this.state.filteredEmojis.length;
+        const listStyle = StyleUtils.getEmojiPickerListHeight(isFiltered, this.props.windowHeight);
+        const height = !listStyle.maxHeight || listStyle.height < listStyle.maxHeight ? listStyle.height : listStyle.maxHeight;
+        const overflowLimit = Math.floor(height / CONST.EMOJI_PICKER_ITEM_HEIGHT) * 8;
         return (
             <View
                 style={[styles.emojiPickerContainer, StyleUtils.getEmojiPickerStyle(this.props.isSmallScreenWidth)]}
@@ -525,7 +560,13 @@ class EmojiPickerMenu extends Component {
                     renderItem={this.renderItem}
                     keyExtractor={this.keyExtractor}
                     numColumns={CONST.EMOJI_NUM_PER_ROW}
-                    style={StyleUtils.getEmojiPickerListHeight(isFiltered, this.props.windowHeight)}
+                    style={[
+                        listStyle,
+                        // This prevents elastic scrolling when scroll reaches the start or end
+                        {overscrollBehaviorY: 'contain'},
+                        // Set overflow to hidden to prevent elastic scrolling when there are not enough contents to scroll in FlatList
+                        {overflowY: this.state.filteredEmojis.length > overflowLimit ? 'auto' : 'hidden'},
+                    ]}
                     extraData={[this.state.filteredEmojis, this.state.highlightedIndex, this.props.preferredSkinTone]}
                     stickyHeaderIndices={this.state.headerIndices}
                     onScroll={(e) => (this.currentScrollOffset = e.nativeEvent.contentOffset.y)}
@@ -551,6 +592,9 @@ export default compose(
     withOnyx({
         preferredSkinTone: {
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
+        },
+        frequentlyUsedEmojis: {
+            key: ONYXKEYS.FREQUENTLY_USED_EMOJIS,
         },
     }),
 )(

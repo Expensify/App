@@ -11,7 +11,7 @@ export default {
             // Main Routes
             ValidateLogin: ROUTES.VALIDATE_LOGIN,
             UnlinkLogin: ROUTES.UNLINK_LOGIN,
-            [SCREENS.TRANSITION_FROM_OLD_DOT]: ROUTES.TRANSITION_FROM_OLD_DOT,
+            [SCREENS.TRANSITION_BETWEEN_APPS]: ROUTES.TRANSITION_BETWEEN_APPS,
             Concierge: ROUTES.CONCIERGE,
             [SCREENS.REPORT_ATTACHMENTS]: ROUTES.REPORT_ATTACHMENTS,
 
@@ -38,11 +38,11 @@ export default {
                             Settings_Root: {
                                 path: ROUTES.SETTINGS,
                             },
-                            Settings_Workspaces: {
+                            [SCREENS.SETTINGS.WORKSPACES]: {
                                 path: ROUTES.SETTINGS_WORKSPACES,
                                 exact: true,
                             },
-                            Settings_Preferences: {
+                            [SCREENS.SETTINGS.PREFERENCES]: {
                                 path: ROUTES.SETTINGS_PREFERENCES,
                                 exact: true,
                             },
@@ -60,10 +60,6 @@ export default {
                             },
                             Settings_Close: {
                                 path: ROUTES.SETTINGS_CLOSE,
-                                exact: true,
-                            },
-                            Settings_Password: {
-                                path: ROUTES.SETTINGS_PASSWORD,
                                 exact: true,
                             },
                             Settings_Security: {
@@ -180,6 +176,14 @@ export default {
                                 path: ROUTES.SETTINGS_SHARE_CODE,
                                 exact: true,
                             },
+                            Settings_Status: {
+                                path: ROUTES.SETTINGS_STATUS,
+                                exact: true,
+                            },
+                            Settings_Status_Set: {
+                                path: ROUTES.SETTINGS_STATUS_SET,
+                                exact: true,
+                            },
                             Workspace_Initial: {
                                 path: ROUTES.WORKSPACE_INITIAL,
                             },
@@ -294,7 +298,24 @@ export default {
                     },
                     MoneyRequest: {
                         screens: {
-                            Money_Request: ROUTES.MONEY_REQUEST,
+                            Money_Request: {
+                                path: ROUTES.MONEY_REQUEST,
+                                exact: true,
+                                screens: {
+                                    manual: {
+                                        path: ROUTES.MONEY_REQUEST_MANUAL_TAB,
+                                        exact: true,
+                                    },
+                                    scan: {
+                                        path: ROUTES.MONEY_REQUEST_SCAN_TAB,
+                                        exact: true,
+                                    },
+                                    distance: {
+                                        path: ROUTES.MONEY_REQUEST_DISTANCE_TAB,
+                                        exact: true,
+                                    },
+                                },
+                            },
                             Money_Request_Amount: ROUTES.MONEY_REQUEST_AMOUNT,
                             Money_Request_Participants: ROUTES.MONEY_REQUEST_PARTICIPANTS,
                             Money_Request_Confirmation: ROUTES.MONEY_REQUEST_CONFIRMATION,

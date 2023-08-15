@@ -87,6 +87,7 @@ function ReportWelcomeText(props) {
                         <Text
                             style={[styles.textStrong]}
                             onPress={() => Navigation.navigate(ROUTES.getReportDetailsRoute(props.report.reportID))}
+                            suppressHighlighting
                         >
                             {ReportUtils.getReportName(props.report)}
                         </Text>
@@ -99,12 +100,17 @@ function ReportWelcomeText(props) {
                         {_.map(displayNamesWithTooltips, ({displayName, pronouns, accountID}, index) => (
                             <Text key={`${displayName}${pronouns}${index}`}>
                                 <UserDetailsTooltip accountID={accountID}>
-                                    <Text
-                                        style={[styles.textStrong]}
-                                        onPress={() => Navigation.navigate(ROUTES.getProfileRoute(accountID))}
-                                    >
-                                        {displayName}
-                                    </Text>
+                                    {ReportUtils.isOptimisticPersonalDetail(accountID) ? (
+                                        <Text style={[styles.textStrong]}>{displayName}</Text>
+                                    ) : (
+                                        <Text
+                                            style={[styles.textStrong]}
+                                            onPress={() => Navigation.navigate(ROUTES.getProfileRoute(accountID))}
+                                            suppressHighlighting
+                                        >
+                                            {displayName}
+                                        </Text>
+                                    )}
                                 </UserDetailsTooltip>
                                 {!_.isEmpty(pronouns) && <Text>{` (${pronouns})`}</Text>}
                                 {index === displayNamesWithTooltips.length - 1 && <Text>.</Text>}
@@ -114,9 +120,7 @@ function ReportWelcomeText(props) {
                         ))}
                     </Text>
                 )}
-                {(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.SEND) || moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)) && (
-                    <Text>{props.translate('reportActionsView.usePlusButton')}</Text>
-                )}
+                {moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST) && <Text>{props.translate('reportActionsView.usePlusButton')}</Text>}
             </Text>
         </>
     );

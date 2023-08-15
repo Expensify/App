@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
-import React from 'react';
-import {ScrollView, View} from 'react-native';
+import React, {useState, useEffect, useRef, useMemo, useCallback} from 'react';
+import {View, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -40,6 +40,7 @@ import * as ReportActionContextMenu from '../home/report/ContextMenu/ReportActio
 import {CONTEXT_MENU_TYPES} from '../home/report/ContextMenu/ContextMenuActions';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import PressableWithoutFeedback from '../../components/Pressable/PressableWithoutFeedback';
+import useLocalize from '../../hooks/useLocalize';
 
 const propTypes = {
     /* Onyx Props */
@@ -82,6 +83,9 @@ const propTypes = {
     /** List of cards */
     cardList: PropTypes.objectOf(cardPropTypes),
 
+    /** List of cards */
+    fundList: PropTypes.objectOf(cardPropTypes),
+
     /** Bank account attached to free plan */
     reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes,
 
@@ -117,48 +121,51 @@ const defaultProps = {
     betas: [],
     walletTerms: {},
     bankAccountList: {},
-    cardList: {},
+    cardList: null,
+    fundList: null,
     loginList: {},
     allPolicyMembers: {},
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
-class InitialSettingsPage extends React.Component {
-    constructor(props) {
-        super(props);
+function InitialSettingsPage(props) {
+    const popoverAnchor = useRef(null);
+    const {translate} = useLocalize();
 
-        this.popoverAnchor = React.createRef();
+    const [shouldShowSignoutConfirmModal, setShouldShowSignoutConfirmModal] = useState(false);
 
-        this.getWalletBalance = this.getWalletBalance.bind(this);
-        this.getDefaultMenuItems = this.getDefaultMenuItems.bind(this);
-        this.getMenuItem = this.getMenuItem.bind(this);
-        this.toggleSignoutConfirmModal = this.toggleSignoutConfirmModal.bind(this);
-        this.signout = this.signOut.bind(this);
-
-        this.state = {
-            shouldShowSignoutConfirmModal: false,
-        };
-    }
-
-    componentDidMount() {
+    useEffect(() => {
         Wallet.openInitialSettingsPage();
-    }
+    }, []);
 
-    /**
-     * @param {Boolean} isPaymentItem whether the item being rendered is the payments menu item
-     * @returns {Number} the user wallet balance
-     */
-    getWalletBalance(isPaymentItem) {
-        return isPaymentItem && Permissions.canUseWallet(this.props.betas) ? CurrencyUtils.convertToDisplayString(this.props.userWallet.currentBalance) : undefined;
-    }
+    const toggleSignoutConfirmModal = (value) => {
+        setShouldShowSignoutConfirmModal(value);
+    };
+
+    const openProfileSettings = () => {
+        Navigation.navigate(ROUTES.SETTINGS_PROFILE);
+    };
+
+    const signOut = useCallback(
+        (shouldForceSignout = false) => {
+            if (!props.network.isOffline || shouldForceSignout) {
+                Session.signOutAndRedirectToSignIn();
+                return;
+            }
+
+            // When offline, warn the user that any actions they took while offline will be lost if they sign out
+            toggleSignoutConfirmModal(true);
+        },
+        [props.network.isOffline],
+    );
 
     /**
      * Retuns a list of default menu items
      * @returns {Array} the default menu items
      */
-    getDefaultMenuItems() {
-        const policiesAvatars = _.chain(this.props.policies)
-            .filter((policy) => PolicyUtils.shouldShowPolicy(policy, this.props.network.isOffline))
+    const getDefaultMenuItems = useMemo(() => {
+        const policiesAvatars = _.chain(props.policies)
+            .filter((policy) => PolicyUtils.shouldShowPolicy(policy, props.network.isOffline))
             .sortBy((policy) => policy.name.toLowerCase())
             .map((policy) => ({
                 source: policy.avatar || ReportUtils.getDefaultWorkspaceAvatar(policy.name),
@@ -168,14 +175,16 @@ class InitialSettingsPage extends React.Component {
             .value();
 
         const policyBrickRoadIndicator =
-            !_.isEmpty(this.props.reimbursementAccount.errors) ||
-            _.chain(this.props.policies)
+            !_.isEmpty(props.reimbursementAccount.errors) ||
+            _.chain(props.policies)
                 .filter((policy) => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN)
-                .some((policy) => PolicyUtils.hasPolicyError(policy) || PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, this.props.allPolicyMembers))
+                .some((policy) => PolicyUtils.hasPolicyError(policy) || PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, props.allPolicyMembers))
                 .value()
                 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
                 : null;
-        const profileBrickRoadIndicator = UserUtils.getLoginListBrickRoadIndicator(this.props.loginList);
+        const profileBrickRoadIndicator = UserUtils.getLoginListBrickRoadIndicator(props.loginList);
+
+        const paymentCardList = props.fundList || props.cardList || {};
 
         return [
             {
@@ -225,9 +234,7 @@ class InitialSettingsPage extends React.Component {
                     Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
                 },
                 brickRoadIndicator:
-                    PaymentMethods.hasPaymentMethodError(this.props.bankAccountList, this.props.cardList) ||
-                    !_.isEmpty(this.props.userWallet.errors) ||
-                    !_.isEmpty(this.props.walletTerms.errors)
+                    PaymentMethods.hasPaymentMethodError(props.bankAccountList, paymentCardList) || !_.isEmpty(props.userWallet.errors) || !_.isEmpty(props.walletTerms.errors)
                         ? 'error'
                         : null,
             },
@@ -252,134 +259,146 @@ class InitialSettingsPage extends React.Component {
                 translationKey: 'initialSettingsPage.signOut',
                 icon: Expensicons.Exit,
                 action: () => {
-                    this.signout(false);
+                    signOut(false);
                 },
             },
         ];
-    }
+    }, [
+        props.allPolicyMembers,
+        props.bankAccountList,
+        props.cardList,
+        props.fundList,
+        props.loginList,
+        props.network.isOffline,
+        props.policies,
+        props.reimbursementAccount.errors,
+        props.userWallet.errors,
+        props.walletTerms.errors,
+        signOut,
+    ]);
 
-    getMenuItem(item, index) {
-        const keyTitle = item.translationKey ? this.props.translate(item.translationKey) : item.title;
-        const isPaymentItem = item.translationKey === 'common.payments';
+    const getMenuItems = useMemo(() => {
+        /**
+         * @param {Boolean} isPaymentItem whether the item being rendered is the payments menu item
+         * @returns {Number} the user wallet balance
+         */
+        const getWalletBalance = (isPaymentItem) =>
+            isPaymentItem && Permissions.canUseWallet(props.betas) ? CurrencyUtils.convertToDisplayString(props.userWallet.currentBalance) : undefined;
 
         return (
-            <MenuItem
-                key={`${keyTitle}_${index}`}
-                title={keyTitle}
-                icon={item.icon}
-                iconType={item.iconType}
-                onPress={item.action}
-                iconStyles={item.iconStyles}
-                shouldShowRightIcon
-                iconRight={item.iconRight}
-                badgeText={this.getWalletBalance(isPaymentItem)}
-                fallbackIcon={item.fallbackIcon}
-                brickRoadIndicator={item.brickRoadIndicator}
-                floatRightAvatars={item.floatRightAvatars}
-                shouldStackHorizontally={item.shouldStackHorizontally}
-                floatRightAvatarSize={item.avatarSize}
-                ref={this.popoverAnchor}
-                shouldBlockSelection={Boolean(item.link)}
-                onSecondaryInteraction={!_.isEmpty(item.link) ? (e) => ReportActionContextMenu.showContextMenu(CONTEXT_MENU_TYPES.LINK, e, item.link, this.popoverAnchor.current) : undefined}
-            />
+            <>
+                {_.map(getDefaultMenuItems, (item, index) => {
+                    const keyTitle = item.translationKey ? translate(item.translationKey) : item.title;
+                    const isPaymentItem = item.translationKey === 'common.payments';
+
+                    return (
+                        <MenuItem
+                            key={`${keyTitle}_${index}`}
+                            title={keyTitle}
+                            icon={item.icon}
+                            iconType={item.iconType}
+                            onPress={item.action}
+                            iconStyles={item.iconStyles}
+                            shouldShowRightIcon
+                            iconRight={item.iconRight}
+                            badgeText={getWalletBalance(isPaymentItem)}
+                            fallbackIcon={item.fallbackIcon}
+                            brickRoadIndicator={item.brickRoadIndicator}
+                            floatRightAvatars={item.floatRightAvatars}
+                            shouldStackHorizontally={item.shouldStackHorizontally}
+                            floatRightAvatarSize={item.avatarSize}
+                            ref={popoverAnchor}
+                            shouldBlockSelection={Boolean(item.link)}
+                            onSecondaryInteraction={
+                                !_.isEmpty(item.link) ? (e) => ReportActionContextMenu.showContextMenu(CONTEXT_MENU_TYPES.LINK, e, item.link, popoverAnchor.current) : undefined
+                            }
+                        />
+                    );
+                })}
+            </>
         );
+    }, [getDefaultMenuItems, props.betas, props.userWallet.currentBalance, translate]);
+
+    // On the very first sign in or after clearing storage these
+    // details will not be present on the first render so we'll just
+    // return nothing for now.
+    if (_.isEmpty(props.currentUserPersonalDetails)) {
+        return null;
     }
 
-    toggleSignoutConfirmModal(value) {
-        this.setState({shouldShowSignoutConfirmModal: value});
-    }
-
-    signOut(shouldForceSignout = false) {
-        if (!this.props.network.isOffline || shouldForceSignout) {
-            Session.signOutAndRedirectToSignIn();
-            return;
-        }
-
-        // When offline, warn the user that any actions they took while offline will be lost if they sign out
-        this.toggleSignoutConfirmModal(true);
-    }
-
-    openProfileSettings() {
-        Navigation.navigate(ROUTES.SETTINGS_PROFILE);
-    }
-
-    render() {
-        return (
-            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-                {({safeAreaPaddingBottomStyle}) => (
-                    <>
-                        <HeaderWithBackButton title={this.props.translate('common.settings')} />
-                        <ScrollView
-                            contentContainerStyle={safeAreaPaddingBottomStyle}
-                            style={[styles.settingsPageBackground]}
-                        >
-                            <View style={styles.w100}>
-                                {_.isEmpty(this.props.currentUserPersonalDetails) || _.isUndefined(this.props.currentUserPersonalDetails.displayName) ? (
-                                    <CurrentUserPersonalDetailsSkeletonView />
-                                ) : (
-                                    <View style={styles.avatarSectionWrapper}>
-                                        <Tooltip text={this.props.translate('common.profile')}>
-                                            <PressableWithoutFeedback
-                                                style={[styles.mb3]}
-                                                onPress={this.openProfileSettings}
-                                                accessibilityLabel={this.props.translate('common.profile')}
-                                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                                            >
-                                                <OfflineWithFeedback pendingAction={lodashGet(this.props.currentUserPersonalDetails, 'pendingFields.avatar', null)}>
-                                                    <Avatar
-                                                        imageStyles={[styles.avatarLarge]}
-                                                        source={UserUtils.getAvatar(this.props.currentUserPersonalDetails.avatar, this.props.session.accountID)}
-                                                        size={CONST.AVATAR_SIZE.LARGE}
-                                                    />
-                                                </OfflineWithFeedback>
-                                            </PressableWithoutFeedback>
-                                        </Tooltip>
+    return (
+        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+            {({safeAreaPaddingBottomStyle}) => (
+                <>
+                    <HeaderWithBackButton title={translate('common.settings')} />
+                    <ScrollView
+                        contentContainerStyle={safeAreaPaddingBottomStyle}
+                        style={[styles.settingsPageBackground]}
+                    >
+                        <View style={styles.w100}>
+                            {_.isEmpty(props.currentUserPersonalDetails) || _.isUndefined(props.currentUserPersonalDetails.displayName) ? (
+                                <CurrentUserPersonalDetailsSkeletonView />
+                            ) : (
+                                <View style={styles.avatarSectionWrapper}>
+                                    <Tooltip text={translate('common.profile')}>
                                         <PressableWithoutFeedback
-                                            style={[styles.mt1, styles.mw100]}
-                                            onPress={this.openProfileSettings}
-                                            accessibilityLabel={this.props.translate('common.profile')}
-                                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
+                                            style={[styles.mb3]}
+                                            onPress={openProfileSettings}
+                                            accessibilityLabel={translate('common.profile')}
+                                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                         >
-                                            <Tooltip text={this.props.translate('common.profile')}>
-                                                <Text
-                                                    style={[styles.textHeadline, styles.pre]}
-                                                    numberOfLines={1}
-                                                >
-                                                    {this.props.currentUserPersonalDetails.displayName
-                                                        ? this.props.currentUserPersonalDetails.displayName
-                                                        : this.props.formatPhoneNumber(this.props.session.email)}
-                                                </Text>
-                                            </Tooltip>
+                                            <OfflineWithFeedback pendingAction={lodashGet(props.currentUserPersonalDetails, 'pendingFields.avatar', null)}>
+                                                <Avatar
+                                                    imageStyles={[styles.avatarLarge]}
+                                                    source={UserUtils.getAvatar(props.currentUserPersonalDetails.avatar, props.session.accountID)}
+                                                    size={CONST.AVATAR_SIZE.LARGE}
+                                                />
+                                            </OfflineWithFeedback>
                                         </PressableWithoutFeedback>
-                                        {Boolean(this.props.currentUserPersonalDetails.displayName) && (
+                                    </Tooltip>
+                                    <PressableWithoutFeedback
+                                        style={[styles.mt1, styles.mw100]}
+                                        onPress={openProfileSettings}
+                                        accessibilityLabel={translate('common.profile')}
+                                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
+                                    >
+                                        <Tooltip text={translate('common.profile')}>
                                             <Text
-                                                style={[styles.textLabelSupporting, styles.mt1]}
+                                                style={[styles.textHeadline, styles.pre]}
                                                 numberOfLines={1}
                                             >
-                                                {this.props.formatPhoneNumber(this.props.session.email)}
+                                                {props.currentUserPersonalDetails.displayName ? props.currentUserPersonalDetails.displayName : props.formatPhoneNumber(props.session.email)}
                                             </Text>
-                                        )}
-                                    </View>
-                                )}
-                                {_.map(this.getDefaultMenuItems(), (item, index) => this.getMenuItem(item, index))}
+                                        </Tooltip>
+                                    </PressableWithoutFeedback>
+                                    {Boolean(props.currentUserPersonalDetails.displayName) && (
+                                        <Text
+                                            style={[styles.textLabelSupporting, styles.mt1]}
+                                            numberOfLines={1}
+                                        >
+                                            {props.formatPhoneNumber(props.session.email)}
+                                        </Text>
+                                    )}
+                                </View>
+                            )}
+                            {getMenuItems}
 
-                                <ConfirmModal
-                                    danger
-                                    title={this.props.translate('common.areYouSure')}
-                                    prompt={this.props.translate('initialSettingsPage.signOutConfirmationText')}
-                                    confirmText={this.props.translate('initialSettingsPage.signOut')}
-                                    cancelText={this.props.translate('common.cancel')}
-                                    isVisible={this.state.shouldShowSignoutConfirmModal}
-                                    onConfirm={() => this.signOut(true)}
-                                    onCancel={() => this.toggleSignoutConfirmModal(false)}
-                                />
-                            </View>
-                        </ScrollView>
-                    </>
-                )}
-            </ScreenWrapper>
-        );
-    }
+                            <ConfirmModal
+                                danger
+                                title={translate('common.areYouSure')}
+                                prompt={translate('initialSettingsPage.signOutConfirmationText')}
+                                confirmText={translate('initialSettingsPage.signOut')}
+                                cancelText={translate('common.cancel')}
+                                isVisible={shouldShowSignoutConfirmModal}
+                                onConfirm={() => signOut(true)}
+                                onCancel={() => toggleSignoutConfirmModal(false)}
+                            />
+                        </View>
+                    </ScrollView>
+                </>
+            )}
+        </ScreenWrapper>
+    );
 }
 
 InitialSettingsPage.propTypes = propTypes;
@@ -412,6 +431,9 @@ export default compose(
         },
         cardList: {
             key: ONYXKEYS.CARD_LIST,
+        },
+        fundList: {
+            key: ONYXKEYS.FUND_LIST,
         },
         walletTerms: {
             key: ONYXKEYS.WALLET_TERMS,

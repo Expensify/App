@@ -2,6 +2,7 @@ import _ from 'underscore';
 import React from 'react';
 import {createStackNavigator, CardStyleInterpolators} from '@react-navigation/stack';
 import styles from '../../../styles/styles';
+import SCREENS from '../../../SCREENS';
 
 const defaultSubRouteOptions = {
     cardStyle: styles.navigationScreenCardStyle,
@@ -35,14 +36,14 @@ function createModalStackNavigator(screens) {
 const MoneyRequestModalStackNavigator = createModalStackNavigator([
     {
         getComponent: () => {
-            const MoneyRequestAmountPage = require('../../../pages/iou/steps/MoneyRequestAmountPage').default;
-            return MoneyRequestAmountPage;
+            const MoneyRequestSelectorPage = require('../../../pages/iou/MoneyRequestSelectorPage').default;
+            return MoneyRequestSelectorPage;
         },
         name: 'Money_Request',
     },
     {
         getComponent: () => {
-            const MoneyRequestEditAmountPage = require('../../../pages/iou/steps/MoneyRequestAmountPage').default;
+            const MoneyRequestEditAmountPage = require('../../../pages/iou/steps/NewRequestAmountPage').default;
             return MoneyRequestEditAmountPage;
         },
         name: 'Money_Request_Amount',
@@ -315,7 +316,7 @@ const SettingsModalStackNavigator = createModalStackNavigator([
             const SettingsWorkspacesPage = require('../../../pages/workspace/WorkspacesListPage').default;
             return SettingsWorkspacesPage;
         },
-        name: 'Settings_Workspaces',
+        name: SCREENS.SETTINGS.WORKSPACES,
     },
     {
         getComponent: () => {
@@ -406,7 +407,7 @@ const SettingsModalStackNavigator = createModalStackNavigator([
             const SettingsPreferencesPage = require('../../../pages/settings/Preferences/PreferencesPage').default;
             return SettingsPreferencesPage;
         },
-        name: 'Settings_Preferences',
+        name: SCREENS.SETTINGS.PREFERENCES,
     },
     {
         getComponent: () => {
@@ -430,13 +431,6 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     //     },
     //     name: 'Settings_Preferences_Theme',
     // },
-    {
-        getComponent: () => {
-            const SettingsPasswordPage = require('../../../pages/settings/PasswordPage').default;
-            return SettingsPasswordPage;
-        },
-        name: 'Settings_Password',
-    },
     {
         getComponent: () => {
             const SettingsCloseAccountPage = require('../../../pages/settings/Security/CloseAccountPage').default;
@@ -520,6 +514,20 @@ const SettingsModalStackNavigator = createModalStackNavigator([
             return AddPersonalBankAccountPage;
         },
         name: 'Settings_Add_Bank_Account',
+    },
+    {
+        getComponent: () => {
+            const SettingsStatus = require('../../../pages/settings/Profile/CustomStatus/StatusPage').default;
+            return SettingsStatus;
+        },
+        name: 'Settings_Status',
+    },
+    {
+        getComponent: () => {
+            const SettingsStatusSet = require('../../../pages/settings/Profile/CustomStatus/StatusSetPage').default;
+            return SettingsStatusSet;
+        },
+        name: 'Settings_Status_Set',
     },
     {
         getComponent: () => {
