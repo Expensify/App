@@ -84,16 +84,10 @@ function createSaastrDemoWorkspaceAndNavigate() {
 
     // Update report with info about last message sent
     const currentTime = DateUtils.getDBTime();
-    expenseChatData.lastVisibleActionCreated = currentTime,
-    expenseChatData.lastMessageText = initialMessageText,
-    expenseChatData.lastActorAccountID = CONST.ACCOUNT_ID.SAASTR,
-    expenseChatData.lastReadTime = currentTime,
-
-    // TODO: Make sure a specific reimbursement account is tied to the workspace
-    // TODO: Is it fine if the expense chat report is OWNED by the user instead of saastr here?
-
-    // should all of the "Created" report actions (for each room) be OWNED by saastr or user?
-    //  - it shouldn't actually matter, we don't show anything
+    expenseChatData.lastVisibleActionCreated = currentTime;
+    expenseChatData.lastMessageText = initialMessageText;
+    expenseChatData.lastActorAccountID = CONST.ACCOUNT_ID.SAASTR;
+    expenseChatData.lastReadTime = currentTime;
 
     API.write(
         'CreateSaastrDemoWorkspace',
