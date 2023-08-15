@@ -19,6 +19,7 @@ import * as IOU from '../libs/actions/IOU';
 import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 import ConfirmModal from './ConfirmModal';
 import useLocalize from '../hooks/useLocalize';
+import Text from './Text';
 
 const propTypes = {
     /** The report currently being looked at */

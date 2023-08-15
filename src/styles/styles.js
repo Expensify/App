@@ -3722,6 +3722,7 @@ const styles = {
         padding: 8,
         borderRadius: variables.componentBorderRadiusMedium,
         marginRight: 16,
+        backgroundColor: themeColors.border,
     },
 
     staticHeaderImage: {

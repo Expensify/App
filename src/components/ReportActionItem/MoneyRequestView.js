@@ -26,7 +26,7 @@ import * as TransactionUtils from '../../libs/TransactionUtils';
 import * as ReceiptUtils from '../../libs/ReceiptUtils';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
 import Image from '../Image';
-import RenderHTML from '../RenderHTML';
+import ReportActionItemImage from './ReportActionItemImage';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -87,11 +87,11 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, polic
         description += ` • ${translate('iou.pending')}`;
     }
 
-    const transaction = ReportActionsUtils.getTransaction(parentReportAction);
+    const transaction = TransactionUtils.getTransaction(parentReportAction.originalMessage.IOUTransactionID);
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
-    let receiptImage;
+    let receiptURIs;
     if (hasReceipt) {
-        receiptImage = ReceiptUtils.getThumbnailAndImageURIs(transaction.receipt.source, transaction.filename).image;
+        receiptURIs = ReceiptUtils.getThumbnailAndImageURIs(transaction.receipt.source, transaction.filename);
     }
 
     return (
@@ -105,14 +105,10 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, polic
             </View>
             {hasReceipt && (
                 <View style={styles.moneyRequestViewImage}>
-                    <RenderHTML
-                        html={`
-                            <img
-                                src="${receiptImage}"
-                                data-expensify-source="${receiptImage}"
-                                data-expensify-fit-container="true"
-                            />
-                    `}
+                    <ReportActionItemImage
+                        thumbnail={receiptURIs.thumbnail}
+                        image={receiptURIs.image}
+                        enablePreviewModal
                     />
                 </View>
             )}

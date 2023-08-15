@@ -614,8 +614,7 @@ function hasReadyMoneyRequests(reportAction) {
 
     // If a money request action is not a scanning receipt
     if (isMoneyRequestAction(reportAction)) {
-        const transactionID = getLinkedTransactionID(reportAction);
-        const transaction = TransactionUtils.getTransaction(transactionID);
+        const transaction = TransactionUtils.getTransaction(reportAction.originalMessage.IOUTransactionID);
         return !TransactionUtils.hasReceipt(transaction) || !ReceiptUtils.isBeingScanned(transaction.receipt);
     }
 
@@ -638,7 +637,7 @@ function getNumberOfScanningReceipts(iouReport) {
             if (!isMoneyRequestAction(reportAction)) {
                 return count;
             }
-            const transaction = TransactionUtils.getTransaction(getLinkedTransactionID(reportAction));
+            const transaction = TransactionUtils.getTransaction(reportAction.originalMessage.IOUTransactionID);
             return count + Number(TransactionUtils.hasReceipt(transaction) && ReceiptUtils.isBeingScanned(transaction.receipt));
         },
         0,

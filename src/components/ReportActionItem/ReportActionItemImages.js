@@ -3,10 +3,9 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import styles from '../../styles/styles';
-import RenderHTML from '../RenderHTML';
 import stylePropTypes from '../../styles/stylePropTypes';
 import Text from '../Text';
-import Image from '../Image';
+import ReportActionItemImage from './ReportActionItemImage';
 
 const propTypes = {
     /** array of image and thumbnail URIs */
@@ -50,23 +49,10 @@ function ReportActionItemImages({images, size, total, hoverStyle}) {
                         key={image}
                         style={[styles.reportActionItemImage, hoverStyle]}
                     >
-                        {thumbnail ? (
-                            <RenderHTML
-                                html={`
-                                    <img
-                                        src="${thumbnail}"
-                                        data-expensify-source="${image}"
-                                        data-expensify-fit-container="true"
-                                        data-expensify-preview-modal-disabled="true"
-                                    />
-                            `}
-                            />
-                        ) : (
-                            <Image
-                                source={{uri: image}}
-                                style={[styles.w100, styles.h100]}
-                            />
-                        )}
+                        <ReportActionItemImage
+                            thumbnail={thumbnail}
+                            image={image}
+                        />
                         {isLastImage && remaining > 0 && (
                             <View style={[styles.reportActionItemImagesMore, hoverStyle]}>
                                 <Text>+{remaining}</Text>

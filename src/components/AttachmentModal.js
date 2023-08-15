@@ -25,7 +25,6 @@ import HeaderGap from './HeaderGap';
 import SafeAreaConsumer from './SafeAreaConsumer';
 import addEncryptedAuthTokenToURL from '../libs/addEncryptedAuthTokenToURL';
 import reportPropTypes from '../pages/reportPropTypes';
-import * as Expensicons from './Icon/Expensicons';
 
 /**
  * Modal render prop component that exposes modal launching triggers that can be used

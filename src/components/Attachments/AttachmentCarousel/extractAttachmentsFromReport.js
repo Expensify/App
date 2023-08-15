@@ -45,7 +45,7 @@ function extractAttachmentsFromReport(report, reportActions, source) {
         // We're handling receipts differently here because receipt images are not
         // part of the report action message, the images are constructed client-side
         if (ReportActionsUtils.isMoneyRequestAction(action)) {
-            const transaction = ReportActionsUtils.getTransaction(action);
+            const transaction = TransactionUtils.getTransaction(action.originalMessage.IOUTransactionID);
             if (TransactionUtils.hasReceipt(transaction)) {
                 const {image} = ReceiptUtils.getThumbnailAndImageURIs(transaction.receipt.source, transaction.filename);
                 attachments.unshift({
