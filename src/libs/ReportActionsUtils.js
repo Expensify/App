@@ -626,6 +626,16 @@ function getTransaction(iouReportAction) {
 }
 
 /**
+ * Returns the number of money requests associated with a report preview
+ *
+ * @param {Object|null} reportPreviewAction
+ * @returns {Number}
+ */
+function getNumberOfMoneyRequests(reportPreviewAction) {
+    return lodashGet(reportPreviewAction, 'childMoneyRequestCount', 0);
+}
+
+/**
  * Checks if the IOU or expense report has either no smartscanned receipts or at least one is already done scanning
  *
  * @param {Object|null} reportAction
@@ -634,6 +644,10 @@ function getTransaction(iouReportAction) {
 function hasReadyMoneyRequests(reportAction) {
     if (isReportPreviewAction(reportAction)) {
         const transactions = getReportPreviewTransactionsWithReceipts(reportAction);
+        // If we have more requests than requests with receipts, we have some manual requests
+        if (getNumberOfMoneyRequests(reportAction) > transactions.length) {
+            return true;
+        }
         return _.some(transactions, (transaction) => !ReceiptUtils.isBeingScanned(transaction.receipt));
     }
 
@@ -643,16 +657,6 @@ function hasReadyMoneyRequests(reportAction) {
     }
 
     return true;
-}
-
-/**
- * Returns the number of money requests associated with a report preview
- *
- * @param {Object|null} reportPreviewAction
- * @returns {Number}
- */
-function getNumberOfMoneyRequests(reportPreviewAction) {
-    return lodashGet(reportPreviewAction, 'childMoneyRequestCount', 0);
 }
 
 /**

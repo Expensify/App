@@ -2028,7 +2028,8 @@ function buildOptimisticModifiedExpenseReportAction(transactionThread, oldTransa
  */
 function updateReportPreview(iouReport, reportPreviewAction, comment = '', transaction = undefined) {
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
-    const previousIDs = lodashGet(reportPreviewAction, 'childLastReceiptTransactionIDs', '').split(',').slice(0, 2);
+    const lastReceiptTransactionIDs = lodashGet(reportPreviewAction, 'childLastReceiptTransactionIDs', '');
+    const previousIDs = lastReceiptTransactionIDs.split(',').slice(0, 2);
 
     const message = getReportPreviewMessage(iouReport, reportPreviewAction);
     return {
@@ -2044,7 +2045,10 @@ function updateReportPreview(iouReport, reportPreviewAction, comment = '', trans
         ],
         childLastMoneyRequestComment: comment || reportPreviewAction.childLastMoneyRequestComment,
         childMoneyRequestCount: reportPreviewAction.childMoneyRequestCount + 1,
-        childLastReceiptTransactionIDs: hasReceipt ? [transaction.transactionID, ...previousIDs].join(',') : '',
+        childLastReceiptTransactionIDs: hasReceipt ? [transaction.transactionID, ...previousIDs].join(',') : lastReceiptTransactionIDs,
+        // As soon as we add a transaction without a receipt to the report, it will have ready money requests,
+        // so we remove the whisper
+        whisperedToAccountIDs: hasReceipt ? reportPreviewAction.whisperedToAccountIDs : [],
     };
 }
 

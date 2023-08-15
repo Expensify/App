@@ -109,7 +109,7 @@ function ReportPreview(props) {
     const hasReceipts = transactions.length > 0;
     const isScanning = hasReceipts && !ReportActionUtils.hasReadyMoneyRequests(props.action);
     const hasOnlyOneReceiptRequest = numberOfRequests === 1 && hasReceipts;
-    const previewSubtitleIfNoComment = hasOnlyOneReceiptRequest
+    const previewSubtitle = hasOnlyOneReceiptRequest
         ? transactions[0].merchant
         : props.translate('iou.requestCount', {
               count: numberOfRequests,
@@ -188,7 +188,7 @@ function ReportPreview(props) {
                         {hasReceipts && !isScanning && (
                             <View style={styles.flexRow}>
                                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                    <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh16]}>{moneyRequestComment || previewSubtitleIfNoComment}</Text>
+                                    <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh16]}>{previewSubtitle || moneyRequestComment}</Text>
                                 </View>
                             </View>
                         )}
