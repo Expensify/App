@@ -166,23 +166,6 @@ function getIneligibleInvitees(policyMembers, personalDetails) {
     return memberEmailsToExclude;
 }
 
-function getDistanceCustomUnit(policy) {
-    const customUnits = _.values(policy.customUnits);
-    return _.find(customUnits, (customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
-}
-
-function getDefaultMileageRate(customUnit) {
-    if (!customUnit) {
-        return 0;
-    }
-
-    return _.find(customUnit.rates, (rate) => rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE);
-}
-
-function getDistanceText(transaction, customUnit, mileageRate) {
-    return '123 miles @ $456 / mile';
-}
-
 export {
     getActivePolicies,
     hasPolicyMemberError,
@@ -196,7 +179,4 @@ export {
     isPolicyAdmin,
     getMemberAccountIDsForWorkspace,
     getIneligibleInvitees,
-    getDistanceCustomUnit,
-    getDefaultMileageRate,
-    getDistanceText,
 };
