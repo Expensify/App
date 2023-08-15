@@ -2884,6 +2884,19 @@ function getPolicy(policyID) {
     return policy;
 }
 
+/**
+ * @param {String} policyOwner
+ * @returns {String|null}
+ */
+function getPolicyExpenseChatReportIDByOwner(policyOwner) {
+    const policy = _.find(allPolicies, (policy) => policy.owner === policyOwner);
+    if (!policy) {
+        return null;
+    }
+
+    return _find(allReports, (report) => isPolicyExpenseChat(report) && report.policyID === policy.id);
+}
+
 /*
  * @param {Object|null} report
  * @returns {Boolean}
@@ -3148,6 +3161,7 @@ export {
     getReportOfflinePendingActionAndErrors,
     isDM,
     getPolicy,
+    getPolicyExpenseChatReportIDByOwner,
     shouldDisableSettings,
     shouldDisableRename,
     hasSingleParticipant,
