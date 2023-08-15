@@ -749,9 +749,9 @@ function ReportActionCompose({
      * @param {Number} selectedEmoji
      */
     const insertSelectedEmoji = useCallback(
-        (selectedEmoji) => {
+        (highlightedEmojiIndexInner) => {
             const commentBeforeColon = value.slice(0, suggestionValues.colonIndex);
-            const emojiObject = suggestionValues.suggestedEmojis[selectedEmoji];
+            const emojiObject = suggestionValues.suggestedEmojis[highlightedEmojiIndexInner];
             const emojiCode = emojiObject.types && emojiObject.types[preferredSkinTone] ? emojiObject.types[preferredSkinTone] : emojiObject.code;
             const commentAfterColonWithEmojiNameRemoved = value.slice(selection.end);
 
