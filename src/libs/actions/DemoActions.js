@@ -1,26 +1,52 @@
+import Str from 'expensify-common/lib/str';
 import Onyx from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import CONST from '../../CONST';
 import * as API from '../API';
-import {buildOptimisticWorkspaceChats} from '../ReportUtils';
+import {buildOptimisticWorkspaceChats, getPolicyExpenseChatReportIDByOwner} from '../ReportUtils';
 import {buildOptimisticCustomUnits, generatePolicyID} from './Policy';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import ONYXKEYS from '../../ONYXKEYS';
 
 let sessionAccountID = 0;
+let sessionEmail = 0;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
         sessionAccountID = lodashGet(val, 'accountID', 0);
+        sessionEmail = lodashGet(val, 'email', '');
     },
 });
 
+let userIsFromPublicDomain;
+Onyx.connect({
+    key: ONYXKEYS.USER,
+    callback: (val) => {
+        if (!val) {
+            return;
+        }
+
+        userIsFromPublicDomain = val.isFromPublicDomain;
+    }
+})
+
 function createSaastrDemoWorkspaceAndNavigate() {
+    // Try to navigate to existing SaaStr expense chat if it exists in Onyx
+    const saastrWorkspaceChatReportID = getPolicyExpenseChatReportIDByOwner(CONST.EMAIL.SAASTR);
+    if (saastrWorkspaceChatReportID) {
+        // We must call goBack() to remove the /saastr route from history
+        Navigation.goBack();
+        Navigation.navigate(ROUTES.getReportRoute(saastrWorkspaceChatReportID));
+        return;
+    }
+
     // Create workspace, owned and admin'd by SaaStr
     const policyID = generatePolicyID();
 
-    // TODO: maybe add domain name as prefix??
-    const workspaceName = 'SaaStr Cantina';
+    // Add domain name as prefix (only if domain is private)
+    const domainNamePrefix = userIsFromPublicDomain ? `${Str.extractEmailDomain(sessionEmail)} ` : '';
+    const workspaceName = `${domainNamePrefix}SaaStr Workspace`;
 
     const {customUnits, customUnitID, customUnitRateID} = buildOptimisticCustomUnits();
 
@@ -244,7 +270,7 @@ function createSaastrDemoWorkspaceAndNavigate() {
     // Navigate to the new workspace chat report
     // We must call goBack() to remove the /saastr route from history
     Navigation.goBack();
-    Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID));
+    Navigation.navigate(ROUTES.getReportRoute(expenseChatReportID));
 }
 
 export {createSaastrDemoWorkspaceAndNavigate};
