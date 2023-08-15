@@ -7,12 +7,12 @@
 # --------
 # This script assists users in setting up the necessary credentials to utilize
 # Mapbox's closed-source SDKs for iOS and Android. It provides step-by-step
-# guidance for obtaining a secret token from Mapbox and subsequently invokes 
+# guidance for obtaining a secret token from Mapbox and subsequently invokes
 # the "./scripts/configure-mapbox.sh" script to configure the development environment.
 #
 # Background:
 # -----------
-# To use the Mapbox SDKs for iOS and Android development, a secret token 
+# To use the Mapbox SDKs for iOS and Android development, a secret token
 # must be obtained from Mapbox's account page. This token is essential for
 # authenticating downloads of the closed-source SDKs during the build process.
 #
@@ -40,7 +40,7 @@ echo -e "   - IMPORTANT: Copy the value of the newly created token. This is your
 echo -e "\nOnce you've done the above steps, please paste the token value below.\n"
 
 # Reading the secret token
-read -s -p "Secret download token: " SECRET_TOKEN
+read -r -s -p "Secret download token: " SECRET_TOKEN
 echo -e "\n"
 
 if [[ -z "$SECRET_TOKEN" ]]; then
