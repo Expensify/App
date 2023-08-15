@@ -13,7 +13,7 @@ runs:
           desktop/package-lock.json
 
     - name: Setup Mapbox SDK
-      run: ./scripts/setup-mapbox-sdk
+      run: ./scripts/setup-mapbox-sdk.sh
       shell: bash
 
     - id: cache-node-modules

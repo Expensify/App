@@ -8,7 +8,7 @@
 # This script assists users in setting up the necessary credentials to utilize
 # Mapbox's closed-source SDKs for iOS and Android. It provides step-by-step
 # guidance for obtaining a secret token from Mapbox and subsequently invokes
-# the "./scripts/configure-mapbox.sh" script to configure the development environment.
+# the "setup-mapbox-sdk.sh" script to configure the development environment.
 #
 # Background:
 # -----------
