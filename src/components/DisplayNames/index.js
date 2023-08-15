@@ -6,7 +6,7 @@ import styles from '../../styles/styles';
 import Tooltip from '../Tooltip';
 import Text from '../Text';
 import UserDetailsTooltip from '../UserDetailsTooltip';
-import RenderHTML from "../RenderHTML";
+import RenderHTML from '../RenderHTML';
 
 class DisplayNames extends PureComponent {
     constructor(props) {
@@ -68,6 +68,8 @@ class DisplayNames extends PureComponent {
             );
         }
 
+        const fullTitle = this.props.fullTitleHtml ? <RenderHTML html={this.props.fullTitleHtml} /> : this.props.fullTitle;
+
         return (
             // Tokenization of string only support prop numberOfLines on Web
             <Text
@@ -76,7 +78,7 @@ class DisplayNames extends PureComponent {
                 ref={(el) => (this.containerRef = el)}
             >
                 {this.props.shouldUseFullTitle
-                    ? (this.props.fullTitleHtml ? <RenderHTML html={this.props.fullTitleHtml} /> : this.props.fullTitle)
+                    ? fullTitle
                     : _.map(this.props.displayNamesWithTooltips, ({displayName, accountID, avatar, login}, index) => (
                           <Fragment key={index}>
                               <UserDetailsTooltip

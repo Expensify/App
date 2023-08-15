@@ -87,7 +87,7 @@ function HeaderView(props) {
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
     const isTaskReport = ReportUtils.isTaskReport(props.report);
     const reportHeaderData = !isTaskReport && !isChatThread && props.report.parentReportID ? props.parentReport : props.report;
-    const title = ReportUtils.getReportName(reportHeaderData);
+    const title = ReportUtils.getReportName(reportHeaderData, undefined, true);
     const subtitle = ReportUtils.getChatRoomSubtitle(reportHeaderData);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(reportHeaderData);
     const isConcierge = ReportUtils.hasSingleParticipant(props.report) && _.contains(participants, CONST.ACCOUNT_ID.CONCIERGE);
@@ -183,7 +183,7 @@ function HeaderView(props) {
                             <View style={[styles.flex1, styles.flexColumn]}>
                                 <DisplayNames
                                     fullTitle={title}
-                                    fullTitleHtml={/<\/?[a-z][\s\S]*>/i.test(title)? title : ''}
+                                    fullTitleHtml={ReportUtils.containsHtml(title) ? title : ''}
                                     displayNamesWithTooltips={displayNamesWithTooltips}
                                     tooltipEnabled
                                     numberOfLines={1}

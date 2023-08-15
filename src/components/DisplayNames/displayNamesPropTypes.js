@@ -4,6 +4,7 @@ const propTypes = {
     /** The full title of the DisplayNames component (not split up) */
     fullTitle: PropTypes.string,
 
+    /** The full title of the DisplayNames component in HTML */
     fullTitleHtml: PropTypes.string,
 
     /** Array of objects that map display names to their corresponding tooltip */

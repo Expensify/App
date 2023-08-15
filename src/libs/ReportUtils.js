@@ -1304,20 +1304,39 @@ function getReportPreviewMessage(report, reportAction = {}) {
     return Localize.translateLocal('iou.payerOwesAmount', {payer: payerName, amount: formattedAmount});
 }
 
-function getThreadReportNameHtml(parentReportActionMessage) {
-    if (!parentReportActionMessage) {
-        return;
+/**
+ * Check if the text contains HTML
+ *
+ * @param {String} text
+ * @return {Boolean}
+ */
+function containsHtml(text) {
+    return /<\/?[a-z][\s\S]*>/i.test(text);
+}
+
+/**
+ * Get the formatted title in HTML for a thread based on parent message.
+ * Only the first line of the message should display.
+ *
+ * @param {Object} parentReportAction
+ * @returns {String}
+ */
+function getThreadReportNameHtml(parentReportAction) {
+    const messageHtml = lodashGet(parentReportAction, ['message', 0, 'html']);
+    if (!messageHtml || !containsHtml(messageHtml)) {
+        return '';
     }
 
     const blockTags = ['br', 'h1', 'pre', 'code', 'div', 'blockquote', 'p', 'li', 'comment', 'div'];
-    const blockTagPattern = `(?:<\\/?(?:${blockTags.join('|')})(?:[^>]*)>|\\r\\n|\\n|\\r)`;
-    const threadHeaderHtmlRegex = new RegExp(`^(?:<([^>]+)>)?((?:(?!${blockTagPattern}).)*)(${blockTagPattern}.*)`, 'gm');
-    return parentReportActionMessage.replace(threadHeaderHtmlRegex, (match, g1, g2) => {
+    const blockTagRegExp = `(?:<\\/?(?:${blockTags.join('|')})(?:[^>]*)>|\\r\\n|\\n|\\r)`;
+    const threadHeaderHtmlRegExp = new RegExp(`^(?:<([^>]+)>)?((?:(?!${blockTagRegExp}).)*)(${blockTagRegExp}.*)`, 'gmi');
+    return messageHtml.replace(threadHeaderHtmlRegExp, (match, g1, g2) => {
+        // If heading tag, display the text as is without any formatting
         if (!g1 || g1 === 'h1') {
             return g2;
         }
 
-        return `<${g1}>${g2}</${g1}>`
+        return `<${g1}>${g2}</${g1}>`;
     });
 }
 
@@ -1326,9 +1345,10 @@ function getThreadReportNameHtml(parentReportActionMessage) {
  *
  * @param {Object} report
  * @param {Object} [policy]
+ * @param {Boolean} isThreadTitle
  * @returns {String}
  */
-function getReportName(report, policy = undefined) {
+function getReportName(report, policy = undefined, isThreadTitle = false) {
     let formattedName;
     if (isChatThread(report)) {
         const parentReportAction = ReportActionsUtils.getParentReportAction(report);
@@ -1337,8 +1357,9 @@ function getReportName(report, policy = undefined) {
         }
 
         const isAttachment = _.has(parentReportAction, 'isAttachment') ? parentReportAction.isAttachment : isReportMessageAttachment(_.last(lodashGet(parentReportAction, 'message', [{}])));
-        const messageHtml = lodashGet(parentReportAction, ['message', 0, 'html']);
-        const parentReportActionMessage = /<\/?[a-z][\s\S]*>/i.test(messageHtml) ? getThreadReportNameHtml(lodashGet(parentReportAction, ['message', 0, 'html'], '')) : lodashGet(parentReportAction, ['message', 0, 'text'], '').replace(/(\r\n|\n|\r)/gm, ' ');
+        const parentReportActionMessage = isThreadTitle
+            ? getThreadReportNameHtml(parentReportAction)
+            : lodashGet(parentReportAction, ['message', 0, 'text'], '').replace(/(\r\n|\n|\r)/gm, ' ');
         if (isAttachment && parentReportActionMessage) {
             return `[${Localize.translateLocal('common.attachment')}]`;
         }
@@ -2961,6 +2982,8 @@ export {
     getIcons,
     getRoomWelcomeMessage,
     getDisplayNamesWithTooltips,
+    containsHtml,
+    getThreadReportNameHtml,
     getReportName,
     getReport,
     getReportIDFromLink,
