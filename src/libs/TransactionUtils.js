@@ -169,7 +169,7 @@ function getLinkedTransaction(reportAction = {}) {
 }
 
 function getAllReportTransactions(reportID) {
-    _.filter(allTransactions, transaction => transaction.reportID === reportID);
+    return _.filter(allTransactions, transaction => transaction.reportID === reportID);
 }
 
 export {buildOptimisticTransaction, getUpdatedTransaction, getTransaction, getDescription, getAmount, getCurrency, getCreated, getLinkedTransaction, getAllReportTransactions};
