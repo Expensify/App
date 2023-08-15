@@ -103,6 +103,18 @@ function ReportActionItemMessageEdit(props) {
     const isFocusedRef = useRef(false);
     const insertedEmojis = useRef([]);
 
+    /**
+     * Save the selection of the draft. This debounced so that we don't save the selection too often
+     * @param {Object} newSelection
+     */
+    const debouncedSaveSelection = useMemo(
+        () =>
+            _.debounce((newSelection) => {
+                Report.saveReportActionSelection(props.reportID, props.action.reportActionID, newSelection);
+            }, 1000),
+        [props.reportID, props.action.reportActionID],
+    );
+
     useEffect(() => {
         // required for keeping last state of isFocused variable
         isFocusedRef.current = isFocused;
@@ -110,7 +122,7 @@ function ReportActionItemMessageEdit(props) {
 
     useEffect(() => {
         debouncedSaveSelection(selection);
-    }, [selection]);
+    }, [selection, debouncedSaveSelection]);
 
     useEffect(() => {
         // For mobile Safari, updating the selection prop on an unfocused input will cause it to automatically gain focus
@@ -118,8 +130,8 @@ function ReportActionItemMessageEdit(props) {
         // so we need to ensure that it is only updated after focus.
         setDraft((prevDraft) => {
             setSelection({
-                start: props.selection && props.selection.start ? props.selection.start: prevDraft.length,
-                end: props.selection && props.selection.end ? props.selection.end :prevDraft.length,
+                start: props.selection && props.selection.start ? props.selection.start : prevDraft.length,
+                end: props.selection && props.selection.end ? props.selection.end : prevDraft.length,
             });
             return prevDraft;
         });
@@ -161,18 +173,6 @@ function ReportActionItemMessageEdit(props) {
                 insertedEmojis.current = [];
             }, 1000),
         [],
-    );
-
-    /**
-     * Save the selection of the draft. This debounced so that we don't save the selection too often
-     * @param {Object} newSelection
-     */
-    const debouncedSaveSelection = useMemo(
-        () =>
-            _.debounce((newSelection) => {
-                Report.saveReportActionSelection(props.reportID, props.action.reportActionID, newSelection);
-            }, 1000),
-        [props.reportID, props.action.reportActionID],
     );
 
     /**
