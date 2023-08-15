@@ -43,7 +43,7 @@ function EditRequestPage({report, route}) {
     const transactionID = lodashGet(parentReportAction, 'originalMessage.IOUTransactionID', '');
     const transaction = TransactionUtils.getTransaction(transactionID);
     const transactionDescription = TransactionUtils.getDescription(transaction);
-    const transactionAmount = TransactionUtils.getAmount(transaction, ReportUtils.isExpenseReport(ReportUtils.getParentReport(report)));
+    const transactionAmount = TransactionUtils.getAmount(transaction, ReportUtils.isExpenseReport(parentReport));
     const transactionCurrency = TransactionUtils.getCurrency(transaction);
 
     // Take only the YYYY-MM-DD value
