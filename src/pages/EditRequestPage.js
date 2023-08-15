@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import {format} from 'date-fns';
+import compose from '../libs/compose';
 import CONST from '../CONST';
 import Navigation from '../libs/Navigation/Navigation';
 import ONYXKEYS from '../ONYXKEYS';
@@ -31,14 +32,17 @@ const propTypes = {
 
     /** The report object for the thread report */
     report: reportPropTypes,
+
+    /** The parent report object for the thread report */
+    parentReport: reportPropTypes,
 };
 
 const defaultProps = {
     report: {},
+    parentReport: {},
 };
 
-function EditRequestPage({report, route}) {
-    const parentReport = ReportUtils.getParentReport(report);
+function EditRequestPage({report, route, parentReport}) {
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
     const transactionID = lodashGet(parentReportAction, 'originalMessage.IOUTransactionID', '');
     const transaction = TransactionUtils.getTransaction(transactionID);
@@ -129,8 +133,15 @@ function EditRequestPage({report, route}) {
 EditRequestPage.displayName = 'EditRequestPage';
 EditRequestPage.propTypes = propTypes;
 EditRequestPage.defaultProps = defaultProps;
-export default withOnyx({
-    report: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`,
-    },
-})(EditRequestPage);
+export default compose(
+    withOnyx({
+        report: {
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`,
+        },
+    }),
+    withOnyx({
+        parentReport: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`,
+        },
+    }),
+)(EditRequestPage);
