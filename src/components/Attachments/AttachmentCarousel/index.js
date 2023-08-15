@@ -5,7 +5,6 @@ import _ from 'underscore';
 import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
 import styles from '../../../styles/styles';
 import CarouselActions from './CarouselActions';
-import AttachmentView from '../AttachmentView';
 import withWindowDimensions from '../../withWindowDimensions';
 import CarouselButtons from './CarouselButtons';
 import extractAttachmentsFromReport from './extractAttachmentsFromReport';
@@ -15,6 +14,7 @@ import withLocalize from '../../withLocalize';
 import compose from '../../../libs/compose';
 import useCarouselArrows from './useCarouselArrows';
 import useWindowDimensions from '../../../hooks/useWindowDimensions';
+import CarouselItem from './CarouselItem';
 
 const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
 const viewabilityConfig = {
@@ -130,17 +130,15 @@ function AttachmentCarousel({report, reportActions, source, onNavigate}) {
      * @param {String} item.source
      * @param {Object} item.file
      * @param {String} item.file.name
+     * @param {Boolean} item.isHidden
      * @returns {JSX.Element}
      */
     const renderItem = useCallback(
         ({item}) => (
-            <AttachmentView
-                source={item.source}
-                file={item.file}
-                isAuthTokenRequired={item.isAuthTokenRequired}
+            <CarouselItem
+                item={item}
                 isFocused={activeSource === item.source}
                 onPress={() => canUseTouchScreen && setShouldShowArrows(!shouldShowArrows)}
-                isUsedInCarousel
             />
         ),
         [activeSource, setShouldShowArrows, shouldShowArrows],

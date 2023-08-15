@@ -30,6 +30,7 @@ function extractAttachmentsFromReport(report, reportActions, source) {
                 source: tryResolveUrlFromApiRoot(expensifySource || attribs.src),
                 isAuthTokenRequired: Boolean(expensifySource),
                 file: {name: attribs[CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE]},
+                isHidden: attribs['data-hidden'] === 'true',
             });
         },
     });
@@ -38,7 +39,10 @@ function extractAttachmentsFromReport(report, reportActions, source) {
         if (!ReportActionsUtils.shouldReportActionBeVisible(action, key)) {
             return;
         }
-        htmlParser.write(_.get(action, ['message', 0, 'html']));
+        const decision = _.get(action, ['message', 0, 'moderationDecision', 'decision'], '');
+        const isHidden = decision === CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE || decision === CONST.MODERATION.MODERATOR_DECISION_HIDDEN;
+        const html = _.get(action, ['message', 0, 'html'], '').replace('/>', `data-hidden="${isHidden}" />`);
+        htmlParser.write(html);
     });
     htmlParser.end();
 
