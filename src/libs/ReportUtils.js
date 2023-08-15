@@ -1164,24 +1164,6 @@ function isWaitingForIOUActionFromCurrentUser(report, allReportsDict = null) {
 
     return false;
 }
-/**
- * Should return true only for personal 1:1 report
- *
- * @param {Object} report (chatReport or iouReport)
- * @returns {boolean}
- */
-function isShowEmojiStatus(report) {
-    return (
-        !report.isThread &&
-        !report.isChatRoom &&
-        !report.isExpenseRequest &&
-        !report.isIOUReportOwner &&
-        !report.isMoneyRequestReport &&
-        !report.isPolicyExpenseChat &&
-        !report.isTaskReport &&
-        !report.isThread
-    );
-}
 
 function isWaitingForTaskCompleteFromAssignee(report) {
     return isTaskReport(report) && isTaskAssignee(report) && isOpenTaskReport(report);
@@ -2414,6 +2396,26 @@ function isIOUOwnedByCurrentUser(report, allReportsDict = null) {
 }
 
 /**
+ * Should return true only for personal 1:1 report
+ *
+ * @param {Object} report (chatReport or iouReport)
+ * @returns {boolean}
+ */
+function isPlainDirectMessage(report) {
+    return (
+        !isThread(report) &&
+        !isChatRoom(report) &&
+        !isExpenseRequest(report) &&
+        !isIOUOwnedByCurrentUser(report) &&
+        !isMoneyRequestReport(report) &&
+        !isPolicyExpenseChat(report) &&
+        !isTaskReport(report) && //
+        isDM(report) &&
+        !isIOUReport(report)
+    );
+}
+
+/**
  * Assuming the passed in report is a default room, lets us know whether we can see it or not, based on permissions and
  * the various subsets of users we've allowed to use default rooms.
  *
@@ -3297,6 +3299,6 @@ export {
     shouldDisableSettings,
     shouldDisableRename,
     hasSingleParticipant,
-    isShowEmojiStatus,
+    isPlainDirectMessage,
     getTaskAssigneeChatOnyxData,
 };

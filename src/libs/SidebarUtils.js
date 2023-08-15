@@ -357,6 +357,8 @@ function getOptionData(report, reportActions, personalDetails, preferredLocale, 
     if (status) {
         result.status = status;
     }
+    result.type = report.type;
+
     return result;
 }
 
