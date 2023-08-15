@@ -1,5 +1,5 @@
 import '../wdyr';
-import React, {useEffect} from 'react';
+import React from 'react';
 import {LogBox} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
@@ -23,7 +23,7 @@ import ThemeStylesProvider from './styles/ThemeStylesProvider';
 import {CurrentReportIDContextProvider} from './components/withCurrentReportID';
 import {EnvironmentProvider} from './components/withEnvironment';
 import * as Session from './libs/actions/Session';
-import setDefaultDragDropEvent from './libs/setDefaultDragDropEvent';
+import useDefaultDragAndDrop from './hooks/useDefaultDragAndDrop';
 
 // For easier debugging and development, when we are in web we expose Onyx to the window, so you can more easily set data into Onyx
 if (window && Environment.isDevelopment()) {
@@ -41,10 +41,7 @@ LogBox.ignoreLogs([
 const fill = {flex: 1};
 
 function App() {
-    useEffect(() => {
-        setDefaultDragDropEvent();
-    }, []);
-
+    useDefaultDragAndDrop();
     return (
         <GestureHandlerRootView style={fill}>
             <ComposeProviders
