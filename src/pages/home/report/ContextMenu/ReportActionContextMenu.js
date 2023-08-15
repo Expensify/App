@@ -54,7 +54,7 @@ function showContextMenu(
     selection,
     contextMenuAnchor,
     reportID = '0',
-    reportAction = {},
+    reportActionID = '0',
     draftMessage = '',
     onShow = () => {},
     onHide = () => {},
@@ -72,13 +72,16 @@ function showContextMenu(
         hideContextMenu();
         contextMenuRef.current.runAndResetOnPopoverHide();
     }
+
+    console.log(reportActionID)
+
     contextMenuRef.current.showContextMenu(
         type,
         event,
         selection,
         contextMenuAnchor,
         reportID,
-        reportAction,
+        reportActionID,
         draftMessage,
         onShow,
         onHide,

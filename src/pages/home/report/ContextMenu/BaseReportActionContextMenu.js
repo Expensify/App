@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
@@ -12,6 +12,8 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../compo
 import {withBetas} from '../../../../components/OnyxProvider';
 import * as Session from '../../../../libs/actions/Session';
 import {hideContextMenu} from './ReportActionContextMenu';
+import ONYXKEYS from '../../../../ONYXKEYS';
+import {withOnyx} from 'react-native-onyx';
 
 const propTypes = {
     /** String representing the context menu type [LINK, REPORT_ACTION] which controls context menu choices  */
@@ -44,10 +46,16 @@ const defaultProps = {
 function BaseReportActionContextMenu(props) {
     const [shouldKeepOpen, setShouldKeepOpen] = useState(false);
     const wrapperStyle = getReportActionContextMenuStyles(props.isMini, props.isSmallScreenWidth);
+    const reportAction = useMemo(() => {
+        if (_.isEmpty(props.reportActions) || _.isEmpty(props.reportActionID)) return {};
+        return props.reportActions[props.reportActionID]
+    }, [props.reportActions, props.reportActionID]);
+
+    console.log(reportAction);
     const shouldShowFilter = (contextAction) =>
         contextAction.shouldShow(
             props.type,
-            props.reportAction,
+            reportAction,
             props.isArchivedRoom,
             props.betas,
             props.anchor,
@@ -85,7 +93,7 @@ function BaseReportActionContextMenu(props) {
                 {_.map(_.filter(ContextMenuActions, shouldShowFilter), (contextAction) => {
                     const closePopup = !props.isMini;
                     const payload = {
-                        reportAction: props.reportAction,
+                        reportAction: reportAction,
                         reportID: props.reportID,
                         draftMessage: props.draftMessage,
                         selection: props.selection,
@@ -106,7 +114,7 @@ function BaseReportActionContextMenu(props) {
                     return (
                         <ContextMenuItem
                             icon={contextAction.icon}
-                            text={props.translate(contextAction.textTranslateKey, {action: props.reportAction})}
+                            text={props.translate(contextAction.textTranslateKey, {action: reportAction})}
                             successIcon={contextAction.successIcon}
                             successText={contextAction.successTextTranslateKey ? props.translate(contextAction.successTextTranslateKey) : undefined}
                             isMini={props.isMini}
@@ -125,4 +133,14 @@ function BaseReportActionContextMenu(props) {
 BaseReportActionContextMenu.propTypes = propTypes;
 BaseReportActionContextMenu.defaultProps = defaultProps;
 
-export default compose(withLocalize, withBetas(), withWindowDimensions)(BaseReportActionContextMenu);
+export default compose(
+    withLocalize, 
+    withBetas(), 
+    withWindowDimensions,
+    withOnyx({
+        reportActions: {
+            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            canEvict: false
+        }
+    })
+)(BaseReportActionContextMenu);

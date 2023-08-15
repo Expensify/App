@@ -212,7 +212,7 @@ function ReportActionItem(props) {
                 selection,
                 popoverAnchorRef,
                 props.report.reportID,
-                props.action,
+                props.action.reportActionID,
                 props.draftMessage,
                 () => {},
                 toggleContextMenuFromActiveReportAction,
@@ -529,7 +529,8 @@ function ReportActionItem(props) {
                         {props.shouldDisplayNewMarker && <UnreadActionIndicator reportActionID={props.action.reportActionID} />}
                         <MiniReportActionContextMenu
                             reportID={props.report.reportID}
-                            reportAction={props.action}
+                            // reportAction={props.action}
+                            reportActionID={props.action.reportActionID}
                             isArchivedRoom={ReportUtils.isArchivedRoom(props.report)}
                             displayAsGroup={props.displayAsGroup}
                             isVisible={hovered && !props.draftMessage && !hasErrors}
