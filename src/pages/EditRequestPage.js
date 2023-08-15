@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
@@ -38,7 +38,9 @@ const defaultProps = {
 };
 
 function EditRequestPage({report, route}) {
-    const transactionID = lodashGet(ReportActionsUtils.getParentReportAction(report), 'originalMessage.IOUTransactionID', '');
+    const parentReport = ReportUtils.getParentReport(report);
+    const parentReportAction = ReportActionsUtils.getParentReportAction(report);
+    const transactionID = lodashGet(parentReportAction, 'originalMessage.IOUTransactionID', '');
     const transaction = TransactionUtils.getTransaction(transactionID);
     const transactionDescription = TransactionUtils.getDescription(transaction);
     const transactionAmount = TransactionUtils.getAmount(transaction, ReportUtils.isExpenseReport(ReportUtils.getParentReport(report)));
@@ -48,6 +50,17 @@ function EditRequestPage({report, route}) {
     const transactionCreatedDate = new Date(TransactionUtils.getCreated(transaction));
     const transactionCreated = format(transactionCreatedDate, CONST.DATE.FNS_FORMAT_STRING);
     const fieldToEdit = lodashGet(route, ['params', 'field'], '');
+
+    const isDeleted = ReportActionsUtils.isDeletedAction(parentReportAction);
+    const isSetted = ReportUtils.isSettled(parentReport.reportID);
+
+    // Dismiss the modal when the request is paid or deleted
+    useEffect(() => {
+        if (!isDeleted && !isSetted) {
+            return;
+        }
+        Navigation.dismissModal();
+    }, [isDeleted, isSetted]);
 
     // Update the transaction object and close the modal
     function editMoneyRequest(transactionChanges) {
