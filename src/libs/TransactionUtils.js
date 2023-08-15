@@ -168,4 +168,8 @@ function getLinkedTransaction(reportAction = {}) {
     return allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] || {};
 }
 
-export {buildOptimisticTransaction, getUpdatedTransaction, getTransaction, getDescription, getAmount, getCurrency, getCreated, getLinkedTransaction};
+function getAllReportTransactions(reportID) {
+    _.filter(allTransactions, transaction => transaction.reportID === reportID);
+}
+
+export {buildOptimisticTransaction, getUpdatedTransaction, getTransaction, getDescription, getAmount, getCurrency, getCreated, getLinkedTransaction, getAllReportTransactions};

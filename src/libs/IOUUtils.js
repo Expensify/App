@@ -91,37 +91,13 @@ function getIOUReportActions(reportActions, iouReport, type = '', pendingAction 
  * Returns whether or not an IOU report contains money requests in a different currency
  * that are either created or cancelled offline, and thus haven't been converted to the report's currency yet
  *
- * @param {Array} reportActions
  * @param {Object} iouReport
- *
  * @returns {Boolean}
  */
-function isIOUReportPendingCurrencyConversion(reportActions, iouReport) {
-    // Pending money requests that are in a different currency
-    const pendingRequestsInDifferentCurrency = _.chain(getIOUReportActions(reportActions, iouReport, CONST.IOU.REPORT_ACTION_TYPE.CREATE, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, true))
-        .map((action) => action.originalMessage.IOUTransactionID)
-        .sort()
-        .value();
-
-    // Pending deleted money requests that are in a different currency
-    const pendingDeletedRequestsInDifferentCurrency = _.chain(
-        getIOUReportActions(reportActions, iouReport, CONST.IOU.REPORT_ACTION_TYPE.DELETE, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, true),
-    )
-        .map((action) => action.originalMessage.IOUTransactionID)
-        .sort()
-        .value();
-
-    const hasPendingRequests = Boolean(pendingRequestsInDifferentCurrency.length || pendingDeletedRequestsInDifferentCurrency.length);
-
-    // If we have pending money requests made offline, check if all of them have been cancelled offline
-    // In order to do that, we can grab transactionIDs of all the created and cancelled money requests and check if they're identical
-    if (hasPendingRequests && _.isEqual(pendingRequestsInDifferentCurrency, pendingDeletedRequestsInDifferentCurrency)) {
-        return false;
-    }
-
-    // Not all requests made offline had been cancelled,
-    // simply return if we have any pending created or cancelled requests
-    return hasPendingRequests;
+function isIOUReportPendingCurrencyConversion(iouReport) {
+    const reportTransactions = TransactionUtils.getAllReportTransactions(iouReport.reportID);
+    const pendingRequestsInDifferentCurrency = _.filter(reportTransactions, transaction => transaction.pendingAction && TransactionUtils.getCurrency(transaction) !== iouReport.currency);
+    return pendingRequestsInDifferentCurrency.length > 0;
 }
 
 /**
