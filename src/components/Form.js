@@ -354,7 +354,7 @@ function Form(props) {
 
             return childrenElements;
         },
-        [errors, inputRefs, inputValues, onValidate, props.draftValues, props.formID, props.formState, setTouchedInput],
+        [errors, inputRefs, inputValues, onValidate, props.draftValues, props.formID, props.formState, setTouchedInput, props.shouldValidateOnBlur, props.shouldValidateOnChange],
     );
 
     const scrollViewContent = useCallback(
