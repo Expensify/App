@@ -47,7 +47,7 @@ GRADLE_PROPERTIES_PATH="$HOME/.gradle/gradle.properties"
 handleError() {
     echo -e "\n"
     
-    echo -e "\033[1;31mError:\033[0m The script failed."
+    error "The script failed."
     echo "The most probable reason is permissions."
     echo -e "Please ensure you have read/write permissions for the following:\n"
     
