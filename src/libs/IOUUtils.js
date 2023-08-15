@@ -63,31 +63,6 @@ function updateIOUOwnerAndTotal(iouReport, actorAccountID, amount, currency, isD
 }
 
 /**
- * Returns the list of IOU actions depending on the type and whether or not they are pending.
- * Used below so that we can decide if an IOU report is pending currency conversion.
- *
- * @param {Array} reportActions
- * @param {Object} iouReport
- * @param {String} type - iouReportAction type. Can be oneOf(create, delete, pay, split)
- * @param {String} pendingAction
- * @param {Boolean} filterRequestsInDifferentCurrency
- *
- * @returns {Array}
- */
-function getIOUReportActions(reportActions, iouReport, type = '', pendingAction = '', filterRequestsInDifferentCurrency = false) {
-    return _.chain(reportActions)
-        .filter((action) => action.originalMessage && ReportActionsUtils.isMoneyRequestAction(action) && (!_.isEmpty(type) ? action.originalMessage.type === type : true))
-        .filter((action) => action.originalMessage.IOUReportID.toString() === iouReport.reportID.toString())
-        .filter((action) => (!_.isEmpty(pendingAction) ? action.pendingAction === pendingAction : true))
-        .filter((action) => {
-            const transaction = TransactionUtils.getLinkedTransaction(action);
-            const currency = TransactionUtils.getCurrency(transaction);
-            return filterRequestsInDifferentCurrency ? currency && currency !== iouReport.currency : true;
-        })
-        .value();
-}
-
-/**
  * Returns whether or not an IOU report contains money requests in a different currency
  * that are either created or cancelled offline, and thus haven't been converted to the report's currency yet
  *
@@ -109,4 +84,4 @@ function isValidMoneyRequestType(iouType) {
     return [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST, CONST.IOU.MONEY_REQUEST_TYPE.SPLIT].includes(iouType);
 }
 
-export {calculateAmount, updateIOUOwnerAndTotal, getIOUReportActions, isIOUReportPendingCurrencyConversion, isValidMoneyRequestType};
+export {calculateAmount, updateIOUOwnerAndTotal, isIOUReportPendingCurrencyConversion, isValidMoneyRequestType};
