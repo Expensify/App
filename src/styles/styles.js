@@ -3690,6 +3690,7 @@ const styles = {
         justifyContent: 'space-between',
         borderRadius: 42,
         paddingHorizontal: 2,
+        marginVertical: -2,
     },
     sidebarStatusAvatar: {
         flex: 1,
