@@ -277,7 +277,6 @@ function ReportActionCompose({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // Prevents focusing and showing the keyboard while the drawer is covering the chat.
     const reportRecipient = personalDetails[participantsWithoutExpensifyAccountIDs[0]];
     const shouldUseFocusedColor = !isBlockedFromConcierge && !disabled && isFocused;
     const isFullSizeComposerAvailable = isFullComposerAvailable; // && !_.isEmpty(value); // TODO: fix this somehow again
