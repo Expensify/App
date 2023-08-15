@@ -141,7 +141,7 @@ export default compose(
     }),
     withOnyx({
         parentReport: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`,
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report ? report.parentReportID : '0'}`,
         },
     }),
 )(EditRequestPage);
