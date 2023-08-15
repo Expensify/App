@@ -56,7 +56,10 @@ function CodesPage(props) {
     }, []);
 
     return (
-        <ScreenWrapper shouldShowOfflineIndicator={false}>
+        <ScreenWrapper
+            shouldShowOfflineIndicator={false}
+            shouldEnableKeyboardAvoidingView={false}
+        >
             <HeaderWithBackButton
                 title={props.translate('twoFactorAuth.headerTitle')}
                 stepCounter={{
