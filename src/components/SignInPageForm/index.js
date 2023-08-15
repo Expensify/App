@@ -20,6 +20,7 @@ function Form(props) {
         // Prevent the browser from applying its own validation, which affects the email input
         formCurrent.setAttribute('novalidate', '');
 
+        // Password Managers need these attributes to be able to identify the form elements properly.
         formCurrent.setAttribute('method', 'post');
         formCurrent.setAttribute('action', '/');
         formCurrent.addEventListener('submit', preventFormDefault);
