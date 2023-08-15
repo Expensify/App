@@ -1225,7 +1225,7 @@ function getMoneyRequestReportName(report, policy = undefined) {
 }
 
 /**
- * Get the report for a reportID
+ * Get the report given a reportID
  *
  * @param {String} reportID
  * @returns {Object}
@@ -1235,14 +1235,13 @@ function getReport(reportID) {
 }
 
 /**
- * Gets transaction amount, currency and comment
+ * Gets transaction created, amount, currency and comment
  *
  * @param {Object} transaction
  * @returns {Object}
  */
 function getTransactionDetails(transaction) {
-    const reportID = transaction.reportID;
-    const report = getReport(reportID);
+    const report = getReport(transaction.reportID);
     return {
         created: TransactionUtils.getCreated(transaction),
         amount: TransactionUtils.getAmount(transaction, isExpenseReport(report)),
