@@ -84,6 +84,7 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
             Transaction.saveWaypoint(transactionID, waypointIndex, waypoint);
         }
 
+        // Other flows will be handled by selecting a waypoint with selectWaypoint as this is mainly for the offline flow
         Navigation.navigate(ROUTES.getMoneyRequestDistanceTabRoute(iouType));
     };
 
