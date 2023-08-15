@@ -353,6 +353,7 @@ function ReportActionItem(props) {
                                     <Text
                                         style={styles.buttonSmallText}
                                         selectable={false}
+                                        dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                                     >
                                         {isHidden ? props.translate('moderation.revealMessage') : props.translate('moderation.hideMessage')}
                                     </Text>
