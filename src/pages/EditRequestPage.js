@@ -94,7 +94,7 @@ function EditRequestPage({report, route}) {
                 defaultCurrency={transactionCurrency}
                 reportID={report.reportID}
                 onSubmit={(transactionChanges) => {
-                    const amount = CurrencyUtils.convertToSmallestUnit(transactionCurrency, Number.parseFloat(transactionChanges));
+                    const amount = CurrencyUtils.convertToBackendAmount(transactionCurrency, Number.parseFloat(transactionChanges));
                     // In case the amount hasn't been changed, do not make the API request.
                     if (amount === transactionAmount) {
                         Navigation.dismissModal();
