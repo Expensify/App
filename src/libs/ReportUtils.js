@@ -2502,7 +2502,8 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouRep
         return true;
     }
 
-    const isEmptyChat = !ReportActionsUtils.getLastVisibleMessage(report.reportID).lastMessageText;
+    const lastVisibleMessage = ReportActionsUtils.getLastVisibleMessage(report.reportID);
+    const isEmptyChat = !lastVisibleMessage.lastMessageText && !lastVisibleMessage.lastMessageTranslationKey;
 
     // Hide only chat threads that haven't been commented on (other threads are actionable)
     if (isChatThread(report) && isEmptyChat) {
