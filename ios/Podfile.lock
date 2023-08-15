@@ -562,7 +562,7 @@ PODS:
     - React
   - react-native-image-picker (5.1.0):
     - React-Core
-  - react-native-key-command (1.0.1):
+  - react-native-key-command (1.0.4):
     - React-Core
   - react-native-netinfo (9.3.10):
     - React-Core
@@ -1185,7 +1185,7 @@ SPEC CHECKSUMS:
   react-native-flipper: dc5290261fbeeb2faec1bdc57ae6dd8d562e1de4
   react-native-image-manipulator: c48f64221cfcd46e9eec53619c4c0374f3328a56
   react-native-image-picker: c33d4e79f0a14a2b66e5065e14946ae63749660b
-  react-native-key-command: c2645ec01eb1fa664606c09480c05cb4220ef67b
+  react-native-key-command: 6f4e775d8208843760aece7c7deff31688441aa5
   react-native-netinfo: ccbe1085dffd16592791d550189772e13bf479e2
   react-native-pager-view: 0ccb8bf60e2ebd38b1f3669fa3650ecce81db2df
   react-native-pdf: 33c622cbdf776a649929e8b9d1ce2d313347c4fa
