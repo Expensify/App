@@ -1902,11 +1902,9 @@ function buildOptimisticIOUReportAction(
             });
             originalMessage.IOUDetails = {amount, comment, currency};
             originalMessage.paymentType = paymentType;
-        }
-
-        // In case of pay money request action, we dont store the comment
-        // and there is no single transctionID to link the action to.
-        if (!isSendMoneyFlow) {
+        } else {
+            // In case of pay money request action, we dont store the comment
+            // and there is no single transctionID to link the action to.
             delete originalMessage.IOUTransactionID;
             delete originalMessage.comment;
             originalMessage.paymentType = paymentType;
