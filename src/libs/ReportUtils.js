@@ -1862,7 +1862,7 @@ function getIOUReportActionMessage(type, total, comment, currency, paymentType =
  * @param {String} currency
  * @param {String} comment - User comment for the IOU.
  * @param {Array}  participants - An array with participants details.
- * @param {String} transactionID
+ * @param {String} [transactionID] - Not required if the IOUReportAction type is 'pay'
  * @param {String} [paymentType] - Only required if the IOUReportAction type is 'pay'. Can be oneOf(elsewhere, payPal, Expensify).
  * @param {String} [iouReportID] - Only required if the IOUReportActions type is oneOf(decline, cancel, pay). Generates a randomID as default.
  * @param {Boolean} [isSettlingUp] - Whether we are settling up an IOU.
@@ -1876,7 +1876,7 @@ function buildOptimisticIOUReportAction(
     currency,
     comment,
     participants,
-    transactionID,
+    transactionID = '',
     paymentType = '',
     iouReportID = '',
     isSettlingUp = false,
@@ -1900,6 +1900,14 @@ function buildOptimisticIOUReportAction(
             delete originalMessage[key];
         });
         originalMessage.IOUDetails = {amount, comment, currency};
+        originalMessage.paymentType = paymentType;
+    }
+
+    // In case of pay money request action, we dont store the comment
+    // and there is no single transctionID to link the action to.
+    if (type === CONST.IOU.REPORT_ACTION_TYPE.PAY && !isSendMoneyFlow) {
+        delete originalMessage.IOUTransactionID;
+        delete originalMessage.comment;
         originalMessage.paymentType = paymentType;
     }
 
