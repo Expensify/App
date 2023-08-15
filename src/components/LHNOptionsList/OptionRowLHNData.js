@@ -179,6 +179,7 @@ export default compose(
             key: ONYXKEYS.COLLECTION.POLICY,
         },
     }),
+    /** The second withOnyx is needed here since fullReport only available after we successfully retrieve it from the previous withOnyx */
     withOnyx({
         parentReportActions: {
             key: ({fullReport}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fullReport.parentReportID}`,
@@ -189,6 +190,11 @@ export default compose(
     memo(OptionRowLHNData, (prevProps, nextProps) => {
         const prevParentReportActions = prevProps.parentReportActions[prevProps.fullReport.parentReportActionID];
         const nextParentReportActions = nextProps.parentReportActions[nextProps.fullReport.parentReportActionID];
-        return prevParentReportActions === nextParentReportActions && _.isEqual(_.omit(prevProps, 'parentReportActions'), _.omit(nextProps, 'parentReportActions'));
+        const prevPolicy = lodashGet(prevProps.policies, [`${ONYXKEYS.COLLECTION.POLICY}${prevProps.fullReport.policyID}`], '');
+        const nextPolicy = lodashGet(nextProps.policies, [`${ONYXKEYS.COLLECTION.POLICY}${nextProps.fullReport.policyID}`], '');
+        if (prevParentReportActions !== nextParentReportActions || prevPolicy !== nextPolicy) {
+            return false;
+        }
+        return _.omit(prevProps, 'parentReportActions', 'policies') === _.omit(nextProps, 'parentReportActions', 'policies');
     }),
 );
