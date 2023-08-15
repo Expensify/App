@@ -1,5 +1,20 @@
+import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
+import lodashGet from 'lodash/get';
+import * as CollectionUtils from '../CollectionUtils';
+
+const allTransactions = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.TRANSACTION,
+    callback: (transactions, key) => {
+        if (!key || !transactions) {
+            return;
+        }
+        const transactionID = CollectionUtils.extractCollectionItemID(key);
+        allTransactions[transactionID] = transactions;
+    },
+});
 
 /**
  * @param {String} transactionID
@@ -47,4 +62,33 @@ function saveWaypoint(transactionID, index, waypoint) {
     });
 }
 
-export {addStop, createInitialWaypoints, saveWaypoint};
+
+function removeWaypoint(transactionID, index) {
+    const transaction = lodashGet(allTransactions, transactionID, {});
+    const existingWaypoints = lodashGet(transaction, 'comment.waypoints', {});
+    const totalWaypoints = _.size(existingWaypoints);
+
+    // Prevents removing the starting or ending waypoint
+    if (index === 0 || index === totalWaypoints - 1) {
+        saveWaypoint(transactionID, index, null);
+        return;
+    }
+
+    const waypointValues = _.values(existingWaypoints);
+    waypointValues.splice(index, 1);
+
+    const reIndexedWaypoints = {};
+    waypointValues.forEach((waypoint, idx) => {
+        reIndexedWaypoints[`waypoint${idx}`] = waypoint;
+    });
+
+    // Onyx.merge won't remove the null nested object values, this is a workaround
+    // to remove nested keys while also preserving other object keys
+    transaction.comment.waypoints = reIndexedWaypoints;
+
+    console.log(transaction);
+
+    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {...transaction});
+}
+
+export {addStop, createInitialWaypoints, saveWaypoint, removeWaypoint};

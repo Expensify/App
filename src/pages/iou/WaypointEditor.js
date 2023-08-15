@@ -71,7 +71,7 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
 
         // Allows letting you set a waypoint to an empty value
         if (waypointValue === '') {
-            Transaction.saveWaypoint(transactionID, waypointIndex, null);
+            Transaction.removeWaypoint(transactionID, waypointIndex);
         }
 
         // While the user is offline, the auto-complete address search will not work
