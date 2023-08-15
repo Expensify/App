@@ -410,6 +410,7 @@ export default {
             other: 'Error inesperado, por favor inténtalo más tarde',
             genericCreateFailureMessage: 'Error inesperado solicitando dinero, Por favor, inténtalo más tarde',
             genericDeleteFailureMessage: 'Error inesperado eliminando la solicitud de dinero. Por favor, inténtalo más tarde',
+            genericEditFailureMessage: 'Error inesperado al guardar la solicitud de dinero. Por favor, inténtalo más tarde',
         },
     },
     notificationPreferencesPage: {
@@ -2048,6 +2049,14 @@ export default {
         levelOneResult: 'Envia una advertencia anónima y el mensaje es reportado para revisión.',
         levelTwoResult: 'Mensaje ocultado del canal, más advertencia anónima y mensaje reportado para revisión.',
         levelThreeResult: 'Mensaje eliminado del canal, más advertencia anónima y mensaje reportado para revisión.',
+    },
+    distance: {
+        addStop: 'Agregar parada',
+        waypointDescription: {
+            start: 'Comienzo',
+            finish: 'Final',
+            stop: 'Parada',
+        },
     },
     countrySelectorModal: {
         placeholderText: 'Buscar para ver opciones',

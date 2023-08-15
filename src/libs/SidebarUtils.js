@@ -87,7 +87,7 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
 
     // Filter out all the reports that shouldn't be displayed
     const reportsToDisplay = _.filter(allReportsDict, (report) =>
-        ReportUtils.shouldReportBeInOptionList(report, currentReportId, isInGSDMode, allReportsDict, betas, policies, allReportActions),
+        ReportUtils.shouldReportBeInOptionList(report, currentReportId, isInGSDMode, allReportsDict, betas, policies, allReportActions, true),
     );
 
     if (_.isEmpty(reportsToDisplay)) {
@@ -255,9 +255,7 @@ function getOptionData(report, reportActions, personalDetails, preferredLocale, 
     result.parentReportID = report.parentReportID || null;
     result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
     result.notificationPreference = report.notificationPreference || null;
-
-    // If the composer is hidden then the user is not allowed to comment, same can be used to hide the draft icon.
-    result.isAllowedToComment = !ReportUtils.shouldHideComposer(report);
+    result.isAllowedToComment = !ReportUtils.shouldDisableWriteActions(report);
 
     const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
     const subtitle = ReportUtils.getChatRoomSubtitle(report);
