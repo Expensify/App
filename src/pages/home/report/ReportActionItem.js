@@ -128,7 +128,6 @@ function ReportActionItem(props) {
     const textInputRef = useRef();
     const popoverAnchorRef = useRef();
     const downloadedPreviews = useRef([]);
-    const isPinnedChat = lodashGet(props, 'report.isPinned', false);
 
     useEffect(
         () => () => {
@@ -219,11 +218,9 @@ function ReportActionItem(props) {
                 toggleContextMenuFromActiveReportAction,
                 ReportUtils.isArchivedRoom(props.report),
                 ReportUtils.chatIncludesChronos(props.report),
-                isPinnedChat,
-                props.shouldDisplayNewMarker,
             );
         },
-        [props.draftMessage, props.action, props.report, toggleContextMenuFromActiveReportAction, props.shouldDisplayNewMarker, isPinnedChat],
+        [props.draftMessage, props.action, props.report, toggleContextMenuFromActiveReportAction],
     );
 
     const toggleReaction = useCallback(
@@ -461,26 +458,32 @@ function ReportActionItem(props) {
         const parentReport = ReportActionsUtils.getParentReportAction(props.report);
         if (ReportActionsUtils.isTransactionThread(parentReport)) {
             return (
-                <MoneyRequestView
-                    report={props.report}
-                    shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
-                />
+                <OfflineWithFeedback pendingAction={props.action.pendingAction}>
+                    <MoneyRequestView
+                        report={props.report}
+                        shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
+                    />
+                </OfflineWithFeedback>
             );
         }
         if (ReportUtils.isTaskReport(props.report)) {
             return (
-                <TaskView
-                    report={props.report}
-                    shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
-                />
+                <OfflineWithFeedback pendingAction={props.action.pendingAction}>
+                    <TaskView
+                        report={props.report}
+                        shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
+                    />
+                </OfflineWithFeedback>
             );
         }
         if (ReportUtils.isExpenseReport(props.report) || ReportUtils.isIOUReport(props.report)) {
             return (
-                <MoneyReportView
-                    report={props.report}
-                    shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
-                />
+                <OfflineWithFeedback pendingAction={props.action.pendingAction}>
+                    <MoneyReportView
+                        report={props.report}
+                        shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
+                    />
+                </OfflineWithFeedback>
             );
         }
         return (
@@ -532,8 +535,6 @@ function ReportActionItem(props) {
                             isVisible={hovered && !props.draftMessage && !hasErrors}
                             draftMessage={props.draftMessage}
                             isChronosReport={ReportUtils.chatIncludesChronos(props.report)}
-                            isPinnedChat={isPinnedChat}
-                            isUnreadChat={props.shouldDisplayNewMarker}
                         />
                         <View
                             style={StyleUtils.getReportActionItemStyle(
