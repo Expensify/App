@@ -25,7 +25,7 @@ function calculateAmount(numberOfParticipants, total, currency, isDefaultUser = 
         const difference = totalInCurrencySubunit - sumAmount;
         finalAmount = totalInCurrencySubunit !== sumAmount ? amountPerPerson + difference : amountPerPerson;
     }
-    return Math.round(finalAmount * 100 / currencyUnit);
+    return Math.round((finalAmount * 100) / currencyUnit);
 }
 
 /**
