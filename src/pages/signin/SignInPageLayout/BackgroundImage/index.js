@@ -12,7 +12,10 @@ const defaultProps = {
 const propTypes = {
     isSmallScreen: PropTypes.bool,
     width: PropTypes.number.isRequired,
-    style: PropTypes.any
+
+    /** General styles to apply to MobileBackgroundImage */
+    // eslint-disable-next-line react/forbid-prop-types
+    style: PropTypes.any,
 };
 function BackgroundImage(props) {
     return props.isSmallScreen ? (

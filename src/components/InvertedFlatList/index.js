@@ -1,9 +1,8 @@
 import React, {forwardRef} from 'react';
 import PropTypes from 'prop-types';
-import {FlatList, StyleSheet} from 'react-native';
+import {FlatList} from 'react-native';
 import _ from 'underscore';
 import BaseInvertedFlatList from './BaseInvertedFlatList';
-import styles from '../../styles/styles';
 
 const propTypes = {
     /** Passed via forwardRef so we can access the FlatList ref */
