@@ -67,8 +67,9 @@ function AttachmentView({
 
     // Handles case where source is a component (ex: SVG)
     if (_.isFunction(source)) {
-        const iconFillColor = isWorkspaceAvatar ? StyleUtils.getDefaultWorkspaceAvatarColor(file.name).fill : '';
-        const additionalStyles = isWorkspaceAvatar ? [StyleUtils.getDefaultWorkspaceAvatarColor(file.name)] : [];
+        const defaultWorkspaceAvatarColor = StyleUtils.getDefaultWorkspaceAvatarColor(file.name);
+        const iconFillColor = isWorkspaceAvatar ? defaultWorkspaceAvatarColor.fill : '';
+        const additionalStyles = isWorkspaceAvatar ? [defaultWorkspaceAvatarColor] : [];
 
         return (
             <Icon
