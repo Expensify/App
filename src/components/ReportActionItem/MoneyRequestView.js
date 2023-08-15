@@ -19,7 +19,6 @@ import * as StyleUtils from '../../styles/StyleUtils';
 import CONST from '../../CONST';
 import * as Expensicons from '../Icon/Expensicons';
 import iouReportPropTypes from '../../pages/iouReportPropTypes';
-import DateUtils from '../../libs/DateUtils';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import EmptyStateBackgroundImage from '../../../assets/images/empty-state_background-fade.png';
 import useLocalize from '../../hooks/useLocalize';
@@ -68,11 +67,8 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, polic
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
     const moneyRequestReport = parentReport;
     const transaction = TransactionUtils.getLinkedTransaction(parentReportAction);
-    const {amount: transactionAmount, currency: transactionCurrency, description: transactionDescription} = ReportUtils.getTransactionDetails(transaction);
-
+    const {created: transactionDate, amount: transactionAmount, currency: transactionCurrency, comment: transactionDescription} = ReportUtils.getTransactionDetails(transaction);
     const formattedTransactionAmount = transactionAmount && transactionCurrency && CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency);
-    const transactionDate = lodashGet(parentReportAction, ['created']);
-    const formattedTransactionDate = DateUtils.getDateStringFromISOTimestamp(transactionDate);
 
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
     const isAdmin = Policy.isAdminOfFreePolicy([policy]) && ReportUtils.isExpenseReport(moneyRequestReport);
@@ -114,7 +110,7 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, polic
             />
             <MenuItemWithTopDescription
                 description={translate('common.date')}
-                title={formattedTransactionDate}
+                title={transactionDate}
                 disabled={isSettled || !canEdit}
                 shouldShowRightIcon={canEdit}
                 onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DATE))}
