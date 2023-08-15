@@ -216,7 +216,6 @@ const CONST = {
         INTERNATIONALIZATION: 'internationalization',
         IOU_SEND: 'sendMoney',
         POLICY_ROOMS: 'policyRooms',
-        POLICY_EXPENSE_CHAT: 'policyExpenseChat',
         PASSWORDLESS: 'passwordless',
         TASKS: 'tasks',
         THREADS: 'threads',

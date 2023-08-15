@@ -2530,11 +2530,6 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouRep
         return true;
     }
 
-    // Exclude policy expense chats if the user isn't in the policy expense chat beta
-    if (isPolicyExpenseChat(report) && !Permissions.canUsePolicyExpenseChat(betas)) {
-        return false;
-    }
-
     // Hide chats between two users that haven't been commented on from the LNH
     if (excludeEmptyChats && isEmptyChat && isChatReport(report) && !isChatRoom(report) && !isPolicyExpenseChat(report)) {
         return false;

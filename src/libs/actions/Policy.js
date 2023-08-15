@@ -261,11 +261,6 @@ function createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, betas) {
         reportCreationData: {},
     };
 
-    // If the user is not in the beta, we don't want to create any chats
-    if (!Permissions.canUsePolicyExpenseChat(betas)) {
-        return workspaceMembersChats;
-    }
-
     _.each(invitedEmailsToAccountIDs, (accountID, email) => {
         const cleanAccountID = Number(accountID);
         const login = OptionsListUtils.addSMSDomainIfPhoneNumber(email);
