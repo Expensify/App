@@ -254,14 +254,10 @@ function ReportActionCompose({
      * Used to show Popover menu on Workspace chat at first sign-in
      * @returns {Boolean}
      */
-    const showPopoverMenu = useMemo(
-        () =>
-            _.debounce(() => {
-                setMenuVisibility(true);
-                return true;
-            }),
-        [],
-    );
+    const showPopoverMenu = useCallback(() => {
+        setMenuVisibility(true);
+        return true;
+    }, []);
 
     useEffect(() => {
         // Shows Popover Menu on Workspace Chat at first sign-in
