@@ -154,6 +154,18 @@ describe('IOUUtils', () => {
             expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 1000, 'AFN')).toBe(300);
         });
 
+        test('10.12 USD split among 4 participants including the default user should be [2.53, 2.53, 2.53, 2.53]', () => {
+            const participantsAccountIDs = [100, 101, 102];
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 1012, 'USD', true)).toBe(253);
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 1012, 'USD')).toBe(253);
+        });
+
+        test('10.12 USD split among 3 participants including the default user should be [3.38, 3.37, 3.37]', () => {
+            const participantsAccountIDs = [100, 102];
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 1012, 'USD', true)).toBe(338);
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 1012, 'USD')).toBe(337);
+        });
+
         test('0.02 USD split among 4 participants including the default user should be [-0.01, 0.01, 0.01, 0.01]', () => {
             const participantsAccountIDs = [100, 101, 102];
             expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 2, 'USD', true)).toBe(-1);
