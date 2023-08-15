@@ -3,7 +3,7 @@ import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import CONST from '../../CONST';
 import * as API from '../API';
-import {buildOptimisticWorkspaceChats, getPolicyExpenseChatReportIDByOwner} from '../ReportUtils';
+import {buildOptimisticWorkspaceChats, buildOptimisticAddCommentReportAction, getPolicyExpenseChatReportIDByOwner} from '../ReportUtils';
 import {buildOptimisticCustomUnits, generatePolicyID} from './Policy';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
@@ -66,7 +66,29 @@ function createSaastrDemoWorkspaceAndNavigate() {
         expenseCreatedReportActionID,
     } = buildOptimisticWorkspaceChats(policyID, workspaceName);
 
-    // TODO: Add optimistic invite message comment
+    // Add optimistic invite message comment
+    const initialMessageText = `
+    Welcome to NewExpensify, who wants $20?
+
+    To scan the receipt and get paid:
+    1. Click the +
+    2. Click Request Money.
+    3. Take a photo of the receipt, we'll automatically enter all the info.
+    4. Come say hi at the Expensify booth (#601) and let us know if you have any feedback!
+    `;
+    // TODO: make sure this comes FROM saastr!!
+    const welcomeMessageReportAction = buildOptimisticAddCommentReportAction(initialMessageText);
+
+    // Update policy expense chat report actions with welcome message from saastr
+    expenseReportActionData[welcomeMessageReportAction.reportAction.reportActionID] = welcomeMessageReportAction.reportAction;
+
+    // Update report with info about last message sent
+    const currentTime = DateUtils.getDBTime();
+    expenseChatData.lastVisibleActionCreated = currentTime,
+    expenseChatData.lastMessageText = initialMessageText,
+    expenseChatData.lastActorAccountID = CONST.ACCOUNT_ID.SAASTR,
+    expenseChatData.lastReadTime = currentTime,
+
     // TODO: Make sure a specific reimbursement account is tied to the workspace
     // TODO: Is it fine if the expense chat report is OWNED by the user instead of saastr here?
 
