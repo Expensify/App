@@ -14,4 +14,5 @@ export default {
     canUsePolicyRooms: (betas) => _.contains(betas, CONST.BETAS.POLICY_ROOMS),
     canUsePolicyExpenseChat: (betas) => _.contains(betas, CONST.BETAS.POLICY_EXPENSE_CHAT),
     canUseIOUSend: (betas) => _.contains(betas, CONST.BETAS.IOU_SEND),
+    canUseCustomStatus: (betas) => _.contains(betas, CONST.BETAS.CUSTOM_STATUS),
 };
