@@ -24,6 +24,9 @@ import CONST from '../CONST';
 import KeyboardShortcut from '../libs/KeyboardShortcut';
 
 const propTypes = {
+    /** If the user has been throttled from Plaid */
+    isPlaidDisabled: PropTypes.bool,
+
     /** Contains plaid data */
     plaidData: plaidDataPropTypes.isRequired,
 
@@ -67,6 +70,7 @@ const defaultProps = {
     plaidLinkOAuthToken: '',
     allowDebit: false,
     bankAccountID: 0,
+    isPlaidDisabled: false,
 };
 
 class AddPlaidBankAccount extends React.Component {

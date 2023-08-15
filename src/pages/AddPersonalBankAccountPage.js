@@ -3,7 +3,6 @@ import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import {View} from 'react-native';
 import HeaderWithBackButton from '../components/HeaderWithBackButton';
 import ScreenWrapper from '../components/ScreenWrapper';
 import Navigation from '../libs/Navigation/Navigation';
@@ -18,13 +17,9 @@ import Form from '../components/Form';
 import ROUTES from '../ROUTES';
 import * as PlaidDataProps from './ReimbursementAccount/plaidDataPropTypes';
 import ConfirmationPage from '../components/ConfirmationPage';
-import Text from '../components/Text';
 
 const propTypes = {
     ...withLocalizePropTypes,
-
-    /** If the user has been throttled from Plaid */
-    isPlaidDisabled: PropTypes.bool,
 
     /** Contains plaid data */
     plaidData: PlaidDataProps.plaidDataPropTypes,
@@ -49,7 +44,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    isPlaidDisabled: false,
     plaidData: PlaidDataProps.plaidDataDefaultProps,
     personalBankAccount: {
         error: '',
