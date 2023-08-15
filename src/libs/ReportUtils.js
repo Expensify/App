@@ -1967,11 +1967,11 @@ function buildOptimisticReportPreview(chatReport, iouReport, comment = '', trans
         ],
         created: DateUtils.getDBTime(),
         accountID: iouReport.managerID || 0,
-        actorAccountID: iouReport.managerID || 0,
+        actorAccountID: hasReceipt ? currentUserAccountID : iouReport.managerID || 0,
         childMoneyRequestCount: 1,
         childLastMoneyRequestComment: comment,
         childLastReceiptTransactionIDs: hasReceipt ? transaction.transactionID : '',
-        whisperedToAccountIDs: iouReport.managerID && hasReceipt ? [iouReport.managerID] : [],
+        whisperedToAccountIDs: hasReceipt ? [currentUserAccountID] : [],
     };
 }
 
@@ -2029,9 +2029,7 @@ function buildOptimisticModifiedExpenseReportAction(transactionThread, oldTransa
 function updateReportPreview(iouReport, reportPreviewAction, comment = '', transaction = undefined) {
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const previousIDs = lodashGet(reportPreviewAction, 'childLastReceiptTransactionIDs', '').split(',').slice(0, 2);
-    const newTransactions = hasReceipt
-        ? { childLastReceiptTransactionIDs: [transaction.transactionID, ...previousIDs] }
-        : {};
+
     const message = getReportPreviewMessage(iouReport, reportPreviewAction);
     return {
         ...reportPreviewAction,
@@ -2046,7 +2044,7 @@ function updateReportPreview(iouReport, reportPreviewAction, comment = '', trans
         ],
         childLastMoneyRequestComment: comment || reportPreviewAction.childLastMoneyRequestComment,
         childMoneyRequestCount: reportPreviewAction.childMoneyRequestCount + 1,
-        ...newTransactions,
+        childLastReceiptTransactionIDs: hasReceipt ? [transaction.transactionID, ...previousIDs].join(',') : '',
     };
 }
 

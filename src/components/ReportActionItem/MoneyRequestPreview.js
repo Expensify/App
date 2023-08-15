@@ -210,8 +210,6 @@ function MoneyRequestPreview(props) {
                     {hasReceipt && (
                         <ReportActionItemImages
                             images={[ReceiptUtils.getThumbnailAndImageURIs(transaction.receipt.source, transaction.filename)]}
-                            size={1}
-                            total={1}
                             hoverStyle={isScanning ? styles.moneyRequestPreviewBoxHover : undefined}
                         />
                     )}

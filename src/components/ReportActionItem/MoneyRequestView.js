@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Image} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
@@ -26,7 +26,8 @@ import * as TransactionUtils from '../../libs/TransactionUtils';
 import * as ReceiptUtils from '../../libs/ReceiptUtils';
 import withLocalize from '../withLocalize';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
-import MoneyRequestImage from './MoneyRequestImage';
+import Image from '../Image';
+import RenderHTML from '../RenderHTML';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -89,9 +90,9 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, polic
 
     const transaction = ReportActionsUtils.getTransaction(parentReportAction);
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
-    let receiptUris;
+    let receiptImage;
     if (hasReceipt) {
-        receiptUris = ReceiptUtils.getThumbnailAndImageURIs(transaction.receipt.source, transaction.filename);
+        receiptImage = ReceiptUtils.getThumbnailAndImageURIs(transaction.receipt.source, transaction.filename).image;
     }
 
     return (
@@ -103,7 +104,19 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, polic
                     style={[StyleUtils.getReportWelcomeBackgroundImageStyle(true)]}
                 />
             </View>
-            {hasReceipt && <MoneyRequestImage image={receiptUris} />}
+            {hasReceipt && (
+                <View style={styles.moneyRequestViewImage}>
+                    <RenderHTML
+                        html={`
+                            <img
+                                src="${receiptImage}"
+                                data-expensify-source="${receiptImage}"
+                                data-expensify-fit-container="true"
+                            />
+                    `}
+                    />
+                </View>
+            )}
             <MenuItemWithTopDescription
                 title={formattedTransactionAmount}
                 shouldShowTitleIcon={isSettled}
