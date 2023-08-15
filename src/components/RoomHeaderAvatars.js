@@ -81,7 +81,7 @@ function RoomHeaderAvatars(props) {
                             {({show}) => (
                                 <PressableWithoutFocus
                                     onPress={show}
-                                    accessibilityRole="imagebutton"
+                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                                     accessibilityLabel={icon.name}
                                 >
                                     <Avatar
