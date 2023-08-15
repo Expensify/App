@@ -154,7 +154,7 @@ function getCreated(transaction) {
     if (created) {
         return format(new Date(created), CONST.DATE.FNS_FORMAT_STRING);
     }
-    return format(new Date(lodashGet(transaction, 'created', '')), CONST.DATE.FNS_FORMAT_STRING);
+    return format(new Date(lodashGet(transaction, 'created', Date.now())), CONST.DATE.FNS_FORMAT_STRING);
 }
 
 /**
