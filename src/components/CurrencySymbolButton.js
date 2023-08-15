@@ -28,7 +28,7 @@ function CurrencySymbolButton({onCurrencyButtonPress, currencySymbol, disabled})
         <Tooltip text={!disabled && translate('iOUCurrencySelection.selectCurrency')}>
             <PressableWithoutFeedback
                 onPress={onCurrencyButtonPress}
-                accessibilityLabel={translate('iOUCurrencySelection.selectCurrency')}
+                accessibilityLabel={!disabled && translate('iOUCurrencySelection.selectCurrency')}
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                 disabled={disabled}
             >
