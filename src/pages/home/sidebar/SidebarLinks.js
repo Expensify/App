@@ -239,7 +239,7 @@ class SidebarLinks extends React.PureComponent {
                         accessibilityLabel={this.props.translate('sidebarScreen.buttonMySettings')}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         onPress={this.showStatusPage}
-                        style={{flex: 1}}
+                        style={styles.flex1}
                     >
                         <View style={styles.sidebarStatusAvatar}>
                             <Text
