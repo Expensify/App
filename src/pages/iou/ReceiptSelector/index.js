@@ -153,6 +153,7 @@ function ReceiptSelector(props) {
             <ReceiptDropUI
                 onDrop={(e) => {
                     const file = lodashGet(e, ['dataTransfer', 'files', 0]);
+                    file.uri = URL.createObjectURL(file);
                     setReceiptAndNavigate(file, props.iou, props.report);
                 }}
                 receiptImageTopPosition={receiptImageTopPosition}
