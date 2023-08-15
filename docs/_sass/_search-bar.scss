@@ -216,14 +216,6 @@ label.search-label {
     background-color: $color-appBG;
 }
 
-.gsc-cursor-chevron {
-    color: $color-icons;
-
-    &:hover {
-        color: $color-text;
-    }
-}
-
 /* Change the color & background of Google Search Current Page */
 .gsc-resultsbox-visible .gsc-results .gsc-cursor-box .gsc-cursor-page.gsc-cursor-current-page {
     background-color: $color-appBG;
@@ -234,6 +226,7 @@ label.search-label {
     }
 }
 
+/* Change the color & background of Google Search of Other Page */
 .gsc-resultsbox-visible .gsc-results .gsc-cursor-box .gsc-cursor-page {
     background-color: $color-appBG;
     color: $color-text;
