@@ -76,7 +76,7 @@ function SuggestionEmoji({
 
     const isEmojiSuggestionsMenuVisible = !_.isEmpty(suggestionValues.suggestedEmojis) && suggestionValues.shouldShowEmojiSuggestionMenu;
 
-    const [highlightedEmojiIndex, setHighlightedMentionIndex] = useArrowKeyFocusManager({
+    const [highlightedEmojiIndex, setHighlightedEmojiIndex] = useArrowKeyFocusManager({
         isActive: isEmojiSuggestionsMenuVisible,
         maxIndex: SuggestionsUtils.getMaxArrowIndex(suggestionValues.suggestedEmojis.length, suggestionValues.isAutoSuggestionPickerLarge),
         shouldExcludeTextAreaNodes: false,
@@ -191,9 +191,9 @@ function SuggestionEmoji({
             }
 
             setSuggestionValues((prevState) => ({...prevState, ...nextState}));
-            setHighlightedMentionIndex(0);
+            setHighlightedEmojiIndex(0);
         },
-        [value, windowHeight, composerHeight, isSmallScreenWidth, preferredLocale, setHighlightedMentionIndex],
+        [value, windowHeight, composerHeight, isSmallScreenWidth, preferredLocale, setHighlightedEmojiIndex],
     );
 
     const onSelectionChange = useCallback(

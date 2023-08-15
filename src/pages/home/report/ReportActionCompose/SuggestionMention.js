@@ -51,7 +51,7 @@ function SuggestionMention({isComposerFullSize, personalDetails, value, setValue
 
     const isMentionSuggestionsMenuVisible = !_.isEmpty(suggestionValues.suggestedMentions) && suggestionValues.shouldShowSuggestionMenu;
 
-    const [highlightedMentionIndex] = useArrowKeyFocusManager({
+    const [highlightedMentionIndex, setHighlightedMentionIndex] = useArrowKeyFocusManager({
         isActive: isMentionSuggestionsMenuVisible,
         maxIndex: SuggestionsUtils.getMaxArrowIndex(suggestionValues.suggestedMentions.length, suggestionValues.isAutoSuggestionPickerLarge),
         shouldExcludeTextAreaNodes: false,
@@ -216,8 +216,9 @@ function SuggestionMention({isComposerFullSize, personalDetails, value, setValue
                 ...prevState,
                 ...nextState,
             }));
+            setHighlightedMentionIndex(0);
         },
-        [getMentionOptions, personalDetails, value],
+        [getMentionOptions, personalDetails, setHighlightedMentionIndex, value],
     );
 
     const onSelectionChange = useCallback(
