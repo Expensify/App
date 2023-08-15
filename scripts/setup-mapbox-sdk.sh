@@ -91,9 +91,11 @@ if grep -q "api.mapbox.com" "$NETRC_PATH"; then
     fi
 else
     # If no existing entry, append the new credentials
-    echo "machine api.mapbox.com" >> $NETRC_PATH
-    echo "login mapbox" >> $NETRC_PATH
-    echo "password $TOKEN" >> $NETRC_PATH
+    {
+        echo "machine api.mapbox.com"
+        echo "login mapbox"
+        echo "password $TOKEN"
+    } >> "$NETRC_PATH"
     
     # Set the permissions of the .netrc file to ensure it's kept private
     chmod 600 "$NETRC_PATH"
