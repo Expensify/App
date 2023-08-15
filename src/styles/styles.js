@@ -1,5 +1,5 @@
 import lodashClamp from 'lodash/clamp';
-import { defaultStyles as defaultPickerStyles } from 'react-native-picker-select/src/styles';
+import {defaultStyles as defaultPickerStyles} from 'react-native-picker-select/src/styles';
 import CONST from '../CONST';
 import * as Browser from '../libs/Browser';
 import addOutlineWidth from './addOutlineWidth';
