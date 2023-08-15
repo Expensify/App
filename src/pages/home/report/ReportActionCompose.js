@@ -424,14 +424,10 @@ function ReportActionCompose({
      * Used to show Popover menu on Workspace chat at first sign-in
      * @returns {Boolean}
      */
-    const showPopoverMenu = useMemo(
-        () =>
-            _.debounce(() => {
-                setMenuVisibility(true);
-                return true;
-            }),
-        [],
-    );
+    const showPopoverMenu = useCallback(() => {
+        setMenuVisibility(true);
+        return true;
+    }, []);
 
     /**
      * Callback to add whatever text is chosen into the main input (used f.e as callback for the emoji picker)
