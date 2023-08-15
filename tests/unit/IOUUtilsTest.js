@@ -32,11 +32,10 @@ describe('IOUUtils', () => {
             return Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${usdPendingTransaction.transactionID}`]: usdPendingTransaction,
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${aedPendingTransaction.transactionID}`]: aedPendingTransaction,
-            })
-                .then(() => {
-                    // We requested money offline in a different currency, we don't know the total of the iouReport until we're back online
-                    expect(IOUUtils.isIOUReportPendingCurrencyConversion(iouReport)).toBe(true);
-                });
+            }).then(() => {
+                // We requested money offline in a different currency, we don't know the total of the iouReport until we're back online
+                expect(IOUUtils.isIOUReportPendingCurrencyConversion(iouReport)).toBe(true);
+            });
         });
 
         test('Requesting money online in a different currency will not show the pending conversion message', () => {
@@ -53,13 +52,11 @@ describe('IOUUtils', () => {
                     ...aedPendingTransaction,
                     pendingAction: null,
                 },
-            })
-                .then(() => {
-                    // We requested money online in a different currency, we know the iouReport total and there's no need to show the pending conversion message
-                    expect(IOUUtils.isIOUReportPendingCurrencyConversion(iouReport)).toBe(false);
-                });
+            }).then(() => {
+                // We requested money online in a different currency, we know the iouReport total and there's no need to show the pending conversion message
+                expect(IOUUtils.isIOUReportPendingCurrencyConversion(iouReport)).toBe(false);
+            });
         });
-    
     });
 
     describe('calculateAmount', () => {

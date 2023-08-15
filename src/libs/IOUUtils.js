@@ -96,7 +96,7 @@ function getIOUReportActions(reportActions, iouReport, type = '', pendingAction 
  */
 function isIOUReportPendingCurrencyConversion(iouReport) {
     const reportTransactions = TransactionUtils.getAllReportTransactions(iouReport.reportID);
-    const pendingRequestsInDifferentCurrency = _.filter(reportTransactions, transaction => transaction.pendingAction && TransactionUtils.getCurrency(transaction) !== iouReport.currency);
+    const pendingRequestsInDifferentCurrency = _.filter(reportTransactions, (transaction) => transaction.pendingAction && TransactionUtils.getCurrency(transaction) !== iouReport.currency);
     return pendingRequestsInDifferentCurrency.length > 0;
 }
 
