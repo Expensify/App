@@ -29,7 +29,6 @@ import * as ReportUtils from '../../libs/ReportUtils';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 import refPropTypes from '../refPropTypes';
 import PressableWithFeedback from '../Pressable/PressableWithoutFeedback';
-import * as TransactionsUtils from '../../libs/TransactionUtils';
 
 const propTypes = {
     /** The active IOUReport, used for Onyx subscription */
@@ -140,9 +139,7 @@ function IOUPreview(props) {
     const isCurrentUserManager = managerID === sessionAccountID;
 
     const transaction = ReportActionsUtils.getLinkedTransaction(props.action);
-    const requestAmount = TransactionsUtils.getAmount(transaction, ReportUtils.isExpenseReport(props.iouReport));
-    const requestCurrency = TransactionsUtils.getCurrency(transaction);
-    const requestComment = TransactionsUtils.getDescription(transaction);
+    const {amount: requestAmount, currency: requestCurrency, comment: requestComment} = ReportUtils.getTransactionDetails(transaction);
 
     const getSettledMessage = () => {
         switch (lodashGet(props.action, 'originalMessage.paymentType', '')) {

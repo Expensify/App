@@ -40,9 +40,7 @@ const defaultProps = {
 function EditRequestPage({report, route}) {
     const transactionID = lodashGet(ReportActionsUtils.getParentReportAction(report), 'originalMessage.IOUTransactionID', '');
     const transaction = TransactionUtils.getTransaction(transactionID);
-    const transactionDescription = TransactionUtils.getDescription(transaction);
-    const transactionAmount = TransactionUtils.getAmount(transaction, ReportUtils.isExpenseReport(ReportUtils.getParentReport(report)));
-    const transactionCurrency = TransactionUtils.getCurrency(transaction);
+    const {amount: transactionAmount, currency: transactionCurrency, comment: transactionDescription} = ReportUtils.getTransactionDetails(transaction);
 
     // Take only the YYYY-MM-DD value
     const transactionCreatedDate = new Date(TransactionUtils.getCreated(transaction));

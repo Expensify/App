@@ -100,7 +100,7 @@ function MoneyRequestAction(props) {
             const participantAccountIDs = _.uniq([props.session.accountID, Number(props.action.actorAccountID)]);
             const thread = ReportUtils.buildOptimisticChatReport(
                 participantAccountIDs,
-                ReportUtils.getTransactionReportName(props.action, props.iouReport),
+                ReportUtils.getTransactionReportName(props.action),
                 '',
                 CONST.POLICY.OWNER_EMAIL_FAKE,
                 CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,

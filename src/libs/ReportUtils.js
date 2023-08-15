@@ -1225,29 +1225,6 @@ function getMoneyRequestReportName(report, policy = undefined) {
 }
 
 /**
- * Given a parent IOU report action get report name for the LHN.
- *
- * @param {Object} reportAction
- * @param {Object} report
- * @returns {String}
- */
-function getTransactionReportName(reportAction, report) {
-    if (ReportActionsUtils.isDeletedParentAction(reportAction)) {
-        return Localize.translateLocal('parentReportAction.deletedRequest');
-    }
-
-    const transaction = ReportActionsUtils.getLinkedTransaction(reportAction);
-    const amount = TransactionUtils.getAmount(transaction, isExpenseReport(report));
-    const currency = TransactionUtils.getCurrency(transaction);
-    const comment = TransactionUtils.getDescription(transaction);
-
-    return Localize.translateLocal(ReportActionsUtils.isSentMoneyReportAction(reportAction) ? 'iou.threadSentMoneyReportName' : 'iou.threadRequestReportName', {
-        formattedAmount: CurrencyUtils.convertToDisplayString(amount, currency),
-        comment,
-    });
-}
-
-/**
  * Get the report for a reportID
  *
  * @param {String} reportID
@@ -1267,10 +1244,31 @@ function getTransactionDetails(transaction) {
     const reportID = transaction.reportID;
     const report = getReport(reportID);
     return {
+        created: TransactionUtils.getCreated(transaction),
         amount: TransactionUtils.getAmount(transaction, isExpenseReport(report)),
         currency: TransactionUtils.getCurrency(transaction),
         comment: TransactionUtils.getDescription(transaction),
     } 
+}
+
+/**
+ * Given a parent IOU report action get report name for the LHN.
+ *
+ * @param {Object} reportAction
+ * @returns {String}
+ */
+function getTransactionReportName(reportAction) {
+    if (ReportActionsUtils.isDeletedParentAction(reportAction)) {
+        return Localize.translateLocal('parentReportAction.deletedRequest');
+    }
+
+    const transaction = ReportActionsUtils.getLinkedTransaction(reportAction);
+    const {amount, currency, comment} = getTransactionDetails(transaction);
+
+    return Localize.translateLocal(ReportActionsUtils.isSentMoneyReportAction(reportAction) ? 'iou.threadSentMoneyReportName' : 'iou.threadRequestReportName', {
+        formattedAmount: CurrencyUtils.convertToDisplayString(amount, currency),
+        comment,
+    });
 }
 
 /**
@@ -1420,8 +1418,7 @@ function getReportName(report, policy = undefined) {
     if (isChatThread(report)) {
         const parentReportAction = ReportActionsUtils.getParentReportAction(report);
         if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
-            const parentReport = getParentReport(report);
-            return getTransactionReportName(parentReportAction, parentReport);
+            return getTransactionReportName(parentReportAction);
         }
 
         const isAttachment = _.has(parentReportAction, 'isAttachment') ? parentReportAction.isAttachment : isReportMessageAttachment(_.last(lodashGet(parentReportAction, 'message', [{}])));

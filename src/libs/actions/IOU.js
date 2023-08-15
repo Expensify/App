@@ -857,17 +857,16 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
     ];
 
     // STEP 6: Call the API endpoint
+    const {created, amount, currency, comment} = ReportUtils.getTransactionDetails(transaction);
     API.write(
         'EditMoneyRequest',
         {
             transactionID,
             reportActionID: updatedReportAction.reportActionID,
-
-            // Using the getter methods here to ensure we pass modified field if present
-            created: TransactionUtils.getCreated(updatedTransaction),
-            amount: TransactionUtils.getAmount(updatedTransaction, isFromExpenseReport),
-            currency: TransactionUtils.getCurrency(updatedTransaction),
-            comment: TransactionUtils.getDescription(updatedTransaction),
+            created,
+            amount,
+            currency,
+            comment,
         },
         {optimisticData, successData, failureData},
     );

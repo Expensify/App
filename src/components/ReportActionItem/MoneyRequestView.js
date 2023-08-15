@@ -23,7 +23,6 @@ import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import EmptyStateBackgroundImage from '../../../assets/images/empty-state_background-fade.png';
 import useLocalize from '../../hooks/useLocalize';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
-import * as TransactionUtils from '../../libs/TransactionUtils';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -68,9 +67,7 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, polic
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
     const moneyRequestReport = parentReport;
     const transaction = ReportActionsUtils.getLinkedTransaction(parentReportAction);
-    const transactionAmount = TransactionUtils.getAmount(transaction, ReportUtils.isExpenseReport(parentReport));
-    const transactionCurrency = TransactionUtils.getCurrency(transaction);
-    const transactionDescription = TransactionUtils.getDescription(transaction);
+    const {amount: transactionAmount, currency: transactionCurrency, description: transactionDescription} = ReportUtils.getTransactionDetails(transaction);
 
     const formattedTransactionAmount = transactionAmount && transactionCurrency && CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency);
     const transactionDate = lodashGet(parentReportAction, ['created']);
