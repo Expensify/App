@@ -2067,6 +2067,6 @@ export default {
     demos: {
         saastr: {
             signInWelcome: '',
-        }
-    }
+        },
+    },
 };

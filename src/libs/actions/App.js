@@ -447,8 +447,8 @@ function runDemoByURL(url = '') {
         Onyx.merge(ONYXKEYS.DEMO_INFO, {
             saastr: {
                 isBeginningDemo: true,
-            }
-        })
+            },
+        });
     } else {
         // No demo is being run, so clear out demo info
         Onyx.set(ONYXKEYS.DEMO_INFO, null);
@@ -467,5 +467,5 @@ export {
     beginDeepLinkRedirect,
     beginDeepLinkRedirectAfterTransition,
     createWorkspaceAndNavigateToIt,
-    runDemoByURL
+    runDemoByURL,
 };

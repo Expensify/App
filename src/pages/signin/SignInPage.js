@@ -111,7 +111,7 @@ function SignInPage({credentials, account, demoInfo}) {
     if (shouldShowLoginForm) {
         welcomeHeader = isSmallScreenWidth ? translate('login.hero.header') : translate('welcomeText.getStarted');
         welcomeText = isSmallScreenWidth ? translate('welcomeText.getStarted') : '';
-        
+
         if (demoInfo.saastr && demoInfo.saastr.isBeginningDemo) {
             welcomeHeader = translate('demos.saastr.signInWelcome');
         }

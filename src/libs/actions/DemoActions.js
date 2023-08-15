@@ -27,8 +27,8 @@ Onyx.connect({
             return;
         }
         userIsFromPublicDomain = val.isFromPublicDomain;
-    }
-})
+    },
+});
 
 function createSaastrDemoWorkspaceAndNavigate() {
     // Try to navigate to existing SaaStr expense chat if it exists in Onyx
@@ -281,7 +281,7 @@ function createSaastrDemoWorkspaceAndNavigate() {
                     value: null,
                 },
             ],
-        }
+        },
     );
 
     // Navigate to the new workspace chat report

@@ -1595,6 +1595,6 @@ export default {
     demos: {
         saastr: {
             signInWelcome: 'Welcome to SaaStr! Hop in to start networking now.',
-        }
-    }
+        },
+    },
 };

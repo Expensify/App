@@ -23,7 +23,7 @@ export default {
             [NAVIGATORS.CENTRAL_PANE_NAVIGATOR]: {
                 screens: {
                     [SCREENS.REPORT]: ROUTES.REPORT_WITH_ID,
-                    [CONST.DEMO_PAGES.SAASTR]: ROUTES.SAASTR
+                    [CONST.DEMO_PAGES.SAASTR]: ROUTES.SAASTR,
                 },
             },
             [NAVIGATORS.FULL_SCREEN_NAVIGATOR]: {
