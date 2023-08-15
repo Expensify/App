@@ -104,20 +104,6 @@ class AddPersonalBankAccountPage extends React.Component {
     render() {
         const shouldShowSuccess = lodashGet(this.props, 'personalBankAccount.shouldShowSuccess', false);
 
-        if (this.props.isPlaidDisabled) {
-            return (
-                <ScreenWrapper>
-                    <HeaderWithBackButton
-                        title={this.props.translate('bankAccount.addBankAccount')}
-                        onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PAYMENTS)}
-                    />
-                    <View style={[styles.m5]}>
-                        <Text style={[styles.formError]}>{this.props.translate('bankAccount.error.tooManyAttempts')}</Text>
-                    </View>
-                </ScreenWrapper>
-            );
-        }
-
         return (
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={shouldShowSuccess}
@@ -175,9 +161,6 @@ export default compose(
         },
         plaidData: {
             key: ONYXKEYS.PLAID_DATA,
-        },
-        isPlaidDisabled: {
-            key: ONYXKEYS.IS_PLAID_DISABLED,
         },
     }),
 )(AddPersonalBankAccountPage);

@@ -163,6 +163,14 @@ class AddPlaidBankAccount extends React.Component {
         const plaidDataErrorMessage = !_.isEmpty(plaidErrors) ? _.chain(plaidErrors).values().first().value() : '';
         const bankName = lodashGet(this.props.plaidData, 'bankName');
 
+        if (this.props.isPlaidDisabled) {
+            return (
+                <View style={[styles.m5]}>
+                    <Text style={[styles.formError]}>{this.props.translate('bankAccount.error.tooManyAttempts')}</Text>
+                </View>
+            );
+        }
+
         // Plaid Link view
         if (!plaidBankAccounts.length) {
             return (
@@ -249,6 +257,9 @@ export default compose(
         plaidLinkToken: {
             key: ONYXKEYS.PLAID_LINK_TOKEN,
             initWithStoredValues: false,
+        },
+        isPlaidDisabled: {
+            key: ONYXKEYS.IS_PLAID_DISABLED,
         },
     }),
 )(AddPlaidBankAccount);
