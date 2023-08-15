@@ -1,32 +1,32 @@
-import {defaultStyles as defaultPickerStyles} from 'react-native-picker-select/src/styles';
 import lodashClamp from 'lodash/clamp';
-import fontFamily from './fontFamily';
-import addOutlineWidth from './addOutlineWidth';
-import themeColors from './themes/default';
-import fontWeightBold from './fontWeight/bold';
-import variables from './variables';
-import spacing from './utilities/spacing';
-import sizing from './utilities/sizing';
-import flex from './utilities/flex';
-import display from './utilities/display';
-import overflow from './utilities/overflow';
-import whiteSpace from './utilities/whiteSpace';
-import wordBreak from './utilities/wordBreak';
-import positioning from './utilities/positioning';
-import codeStyles from './codeStyles';
-import visibility from './utilities/visibility';
-import writingDirection from './utilities/writingDirection';
-import optionAlternateTextPlatformStyles from './optionAlternateTextPlatformStyles';
-import pointerEventsNone from './pointerEventsNone';
-import pointerEventsAuto from './pointerEventsAuto';
-import getPopOverVerticalOffset from './getPopOverVerticalOffset';
-import overflowXHidden from './overflowXHidden';
+import { defaultStyles as defaultPickerStyles } from 'react-native-picker-select/src/styles';
 import CONST from '../CONST';
 import * as Browser from '../libs/Browser';
-import cursor from './utilities/cursor';
-import userSelect from './utilities/userSelect';
-import textUnderline from './utilities/textUnderline';
+import addOutlineWidth from './addOutlineWidth';
+import codeStyles from './codeStyles';
 import Colors from './colors';
+import fontFamily from './fontFamily';
+import fontWeightBold from './fontWeight/bold';
+import getPopOverVerticalOffset from './getPopOverVerticalOffset';
+import optionAlternateTextPlatformStyles from './optionAlternateTextPlatformStyles';
+import overflowXHidden from './overflowXHidden';
+import pointerEventsAuto from './pointerEventsAuto';
+import pointerEventsNone from './pointerEventsNone';
+import themeColors from './themes/default';
+import cursor from './utilities/cursor';
+import display from './utilities/display';
+import flex from './utilities/flex';
+import overflow from './utilities/overflow';
+import positioning from './utilities/positioning';
+import sizing from './utilities/sizing';
+import spacing from './utilities/spacing';
+import textUnderline from './utilities/textUnderline';
+import userSelect from './utilities/userSelect';
+import visibility from './utilities/visibility';
+import whiteSpace from './utilities/whiteSpace';
+import wordBreak from './utilities/wordBreak';
+import writingDirection from './utilities/writingDirection';
+import variables from './variables';
 
 // touchCallout is an iOS safari only property that controls the display of the callout information when you touch and hold a target
 const touchCalloutNone = Browser.isMobileSafari() ? {WebkitTouchCallout: 'none'} : {};
@@ -3618,7 +3618,7 @@ const styles = {
     },
 
     tabText: (isSelected) => ({
-        marginHorizontal: 8,
+        marginLeft: 8,
         fontFamily: isSelected ? fontFamily.EXP_NEUE_BOLD : fontFamily.EXP_NEUE,
         fontWeight: isSelected ? fontWeightBold : 400,
         color: isSelected ? themeColors.textLight : themeColors.textSupporting,
