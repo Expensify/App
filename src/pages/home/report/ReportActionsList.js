@@ -86,8 +86,8 @@ function keyExtractor(item) {
     return item.reportActionID;
 }
 
-function isUnreadMsg(message, lastRead) {
-    return message && lastRead && message.created && lastRead < message.created;
+function isMessageUnread(message, lastReadTime) {
+    return Boolean(message && lastReadTime && message.created && lastReadTime < message.created);
 }
 
 function ReportActionsList({
@@ -113,6 +113,7 @@ function ReportActionsList({
     const scrollingVerticalOffset = useRef(0);
     const readActionSkipped = useRef(false);
     const reportActionSize = useRef(sortedReportActions.length);
+
     // Considering that renderItem is enclosed within a useCallback, marking it as "read" twice will retain the value as "true," preventing the useCallback from re-executing.
     // However, if we create and listen to an object, it will lead to a new useCallback execution.
     const [messageManuallyMarked, setMessageManuallyMarked] = useState({read: false});
@@ -128,8 +129,8 @@ function ReportActionsList({
 
     useEffect(() => {
         // If the reportID changes, we reset the userActiveSince to null, we need to do it because
-        // the parent component is sending the previous reportID even when the user isn't activily
-        // into the report
+        // the parent component is sending the previous reportID even when the user isn't active
+        // on the report
         if (userActiveSince.current && prevReportID && prevReportID !== report.reportID) {
             userActiveSince.current = null;
         } else {
@@ -162,7 +163,6 @@ function ReportActionsList({
 
     useEffect(() => {
         const didManuallyMarkReportAsUnread = report.lastReadTime < DateUtils.getDBTime() && ReportUtils.isUnread(report);
-
         if (!didManuallyMarkReportAsUnread) {
             setMessageManuallyMarked({read: false});
             return;
@@ -227,8 +227,8 @@ function ReportActionsList({
 
             if (!currentUnreadMarker.current) {
                 const nextMessage = sortedReportActions[index + 1];
-                const isCurrentMessageUnread = !!isUnreadMsg(reportAction, report.lastReadTime);
-                shouldDisplayNewMarker = isCurrentMessageUnread && !isUnreadMsg(nextMessage, report.lastReadTime);
+                const isCurrentMessageUnread = isMessageUnread(reportAction, report.lastReadTime);
+                shouldDisplayNewMarker = isCurrentMessageUnread && !isMessageUnread(nextMessage, report.lastReadTime);
 
                 if (!messageManuallyMarked.read) {
                     shouldDisplayNewMarker = shouldDisplayNewMarker && reportAction.actorAccountID !== Report.getCurrentUserAccountID();

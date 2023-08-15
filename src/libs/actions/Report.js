@@ -30,7 +30,6 @@ import * as OptionsListUtils from '../OptionsListUtils';
 import * as Environment from '../Environment/Environment';
 
 let currentUserAccountID;
-
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {

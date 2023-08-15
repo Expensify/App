@@ -258,7 +258,6 @@ describe('actions/Report', () => {
             .then(() => {
                 // The report will be read
                 expect(ReportUtils.isUnread(report)).toBe(false);
-
                 expect(moment.utc(report.lastReadTime).valueOf()).toBeGreaterThanOrEqual(moment.utc(currentTime).valueOf());
 
                 // And no longer show the green dot for unread mentions in the LHN

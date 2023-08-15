@@ -437,7 +437,7 @@ describe('Unread Indicators', () => {
                 return waitFor(() => expect(isNewMessagesBadgeVisible()).toBe(false));
             }));
 
-    it('Keeps showing the new line indicator when a new message is created by the current user', () =>
+    it('Keep showing the new line indicator when a new message is created by the current user', () =>
         signInAndGetAppWithUnreadChat()
             .then(() => {
                 // Verify we are on the LHN and that the chat shows as unread in the LHN
