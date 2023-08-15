@@ -79,7 +79,6 @@ function refreshNotificationOptInStatus() {
  *          DO NOT ALTER UNLESS YOU KNOW WHAT YOU'RE DOING. See this PR for details: https://github.com/Expensify/App/pull/3877
  */
 function init() {
-
     if (initNotificationStatus) {
         // if we already init before, we shouldn't do it again.
         return;
