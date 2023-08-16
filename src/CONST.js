@@ -2540,6 +2540,17 @@ const CONST = {
         DISTANCE: 'distance',
     },
     STATUS_TEXT_MAX_LENGTH: 100,
+    NAVIGATION: {
+        TYPE: {
+            FORCED_UP: 'FORCED_UP',
+            UP: 'UP',
+        },
+        ACTION_TYPE: {
+            REPLACE: 'REPLACE',
+            PUSH: 'PUSH',
+            NAVIGATE: 'NAVIGATE',
+        },
+    },
 };
 
 export default CONST;

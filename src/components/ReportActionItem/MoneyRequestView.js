@@ -87,6 +87,12 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, polic
         description += ` • ${translate('iou.pending')}`;
     }
 
+    // A temporary solution to hide the transaction detail
+    // This will be removed after we properly add the transaction as a prop
+    if (ReportActionsUtils.isDeletedAction(parentReportAction)) {
+        return null;
+    }
+  
     const transaction = TransactionUtils.getTransaction(parentReportAction.originalMessage.IOUTransactionID);
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     let receiptURIs;

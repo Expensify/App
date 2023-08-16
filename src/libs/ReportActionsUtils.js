@@ -645,6 +645,14 @@ function getNumberOfScanningReceipts(iouReport) {
     );
 }
 
+/**
+ * @param {*} reportAction
+ * @returns {Boolean}
+ */
+function isSplitBillAction(reportAction) {
+    return lodashGet(reportAction, 'originalMessage.type', '') === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
+}
+
 export {
     getSortedReportActions,
     getLastVisibleAction,
@@ -682,4 +690,5 @@ export {
     areAllRequestsBeingSmartScanned,
     getNumberOfMoneyRequests,
     getNumberOfScanningReceipts,
+    isSplitBillAction,
 };
