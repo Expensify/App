@@ -4,7 +4,6 @@ import React from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
 import styles from '../../../styles/styles';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -37,7 +36,6 @@ import KeyboardShortcut from '../../../libs/KeyboardShortcut';
 import onyxSubscribe from '../../../libs/onyxSubscribe';
 import personalDetailsPropType from '../../personalDetailsPropType';
 import * as ReportActionContextMenu from '../report/ContextMenu/ReportActionContextMenu';
-import withCurrentReportID from '../../../components/withCurrentReportID';
 import OptionRowLHNData from '../../../components/LHNOptionsList/OptionRowLHNData';
 
 const basePropTypes = {
@@ -230,9 +228,9 @@ class SidebarLinks extends React.PureComponent {
                 </View>
                 {this.props.isLoading ? (
                     <>
-                        {lodashGet(this.props.report, 'reportID') && (
+                        {this.props.optionListItems[0] && (
                             <OptionRowLHNData
-                                reportID={this.props.currentReportID}
+                                reportID={this.props.optionListItems[0]}
                                 viewMode={viewMode}
                                 shouldDisableFocusOptions={this.props.isSmallScreenWidth}
                                 onSelectRow={this.showReportPage}
@@ -256,15 +254,5 @@ class SidebarLinks extends React.PureComponent {
 
 SidebarLinks.propTypes = propTypes;
 SidebarLinks.defaultProps = defaultProps;
-export default compose(
-    withLocalize,
-    withCurrentUserPersonalDetails,
-    withWindowDimensions,
-    withCurrentReportID,
-    withOnyx({
-        report: {
-            key: ({currentReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${currentReportID}`,
-        },
-    }),
-)(SidebarLinks);
+export default compose(withLocalize, withCurrentUserPersonalDetails, withWindowDimensions)(SidebarLinks);
 export {basePropTypes};
