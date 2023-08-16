@@ -29,6 +29,9 @@ const propTypes = {
     /* The workspace name */
     policyName: PropTypes.string,
 
+    /** Goes to the previous step */
+    onBackButtonPress: PropTypes.func.isRequired,
+
     ...withLocalizePropTypes,
 };
 
