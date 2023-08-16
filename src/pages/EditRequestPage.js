@@ -2,7 +2,6 @@ import React, {useEffect} from 'react';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
-import {format} from 'date-fns';
 import compose from '../libs/compose';
 import CONST from '../CONST';
 import Navigation from '../libs/Navigation/Navigation';
@@ -51,8 +50,7 @@ function EditRequestPage({report, route, parentReport}) {
     const transactionCurrency = TransactionUtils.getCurrency(transaction);
 
     // Take only the YYYY-MM-DD value
-    const transactionCreatedDate = new Date(TransactionUtils.getCreated(transaction));
-    const transactionCreated = format(transactionCreatedDate, CONST.DATE.FNS_FORMAT_STRING);
+    const transactionCreated = TransactionUtils.getCreated(transaction);
     const fieldToEdit = lodashGet(route, ['params', 'field'], '');
 
     const isDeleted = ReportActionsUtils.isDeletedAction(parentReportAction);

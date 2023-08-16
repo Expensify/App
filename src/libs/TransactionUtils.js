@@ -154,7 +154,7 @@ function getCreated(transaction) {
     if (created) {
         return format(new Date(created), CONST.DATE.FNS_FORMAT_STRING);
     }
-    return format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
+    return '';
 }
 
 export {buildOptimisticTransaction, getUpdatedTransaction, getTransaction, getDescription, getAmount, getCurrency, getCreated};
