@@ -64,20 +64,52 @@ describe('IOUUtils', () => {
 
         test('103 JPY split among 3 participants including the default user should be [35, 34, 34]', () => {
             const participantsAccountIDs = [100, 101];
-            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 103, true)).toBe(35);
-            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 103)).toBe(34);
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 10300, 'JPY', true)).toBe(3500);
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 10300, 'JPY')).toBe(3400);
+        });
+
+        test('103 USD split among 3 participants including the default user should be [34.34, 34.33, 34.33]', () => {
+            const participantsAccountIDs = [100, 101];
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 10300, 'USD', true)).toBe(3434);
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 10300, 'USD')).toBe(3433);
         });
 
         test('10 AFN split among 4 participants including the default user should be [1, 3, 3, 3]', () => {
             const participantsAccountIDs = [100, 101, 102];
-            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 10, true)).toBe(1);
-            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 10)).toBe(3);
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 1000, 'AFN', true)).toBe(100);
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 1000, 'AFN')).toBe(300);
         });
 
-        test('0.02 USD split among 4 participants including the default user should be [-1, 1, 1, 1]', () => {
+        test('10.12 USD split among 4 participants including the default user should be [2.53, 2.53, 2.53, 2.53]', () => {
             const participantsAccountIDs = [100, 101, 102];
-            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 2, true)).toBe(-1);
-            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 2)).toBe(1);
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 1012, 'USD', true)).toBe(253);
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 1012, 'USD')).toBe(253);
+        });
+
+        test('10.12 USD split among 3 participants including the default user should be [3.38, 3.37, 3.37]', () => {
+            const participantsAccountIDs = [100, 102];
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 1012, 'USD', true)).toBe(338);
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 1012, 'USD')).toBe(337);
+        });
+
+        test('0.02 USD split among 4 participants including the default user should be [-0.01, 0.01, 0.01, 0.01]', () => {
+            const participantsAccountIDs = [100, 101, 102];
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 2, 'USD', true)).toBe(-1);
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 2, 'USD')).toBe(1);
+        });
+
+        test('1 RSD split among 3 participants including the default user should be [0.34, 0.33, 0.33]', () => {
+            // RSD is a special case that we forced to have 2 decimals
+            const participantsAccountIDs = [100, 101];
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 100, 'RSD', true)).toBe(34);
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 100, 'RSD')).toBe(33);
+        });
+
+        test('1 BHD split among 3 participants including the default user should be [0.34, 0.33, 0.33]', () => {
+            // BHD has 3 decimal places, but it still produces parts with only 2 decimal places because of a backend limitation
+            const participantsAccountIDs = [100, 101];
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 100, 'BHD', true)).toBe(34);
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 100, 'BHD')).toBe(33);
         });
     });
 });

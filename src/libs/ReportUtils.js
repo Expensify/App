@@ -12,7 +12,6 @@ import * as Expensicons from '../components/Icon/Expensicons';
 import Navigation from './Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import * as NumberUtils from './NumberUtils';
-import * as NumberFormatUtils from './NumberFormatUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as TransactionUtils from './TransactionUtils';
 import Permissions from './Permissions';
@@ -38,17 +37,6 @@ Onyx.connect({
         currentUserEmail = val.email;
         currentUserAccountID = val.accountID;
         isAnonymousUser = val.authTokenType === 'anonymousAccount';
-    },
-});
-
-let preferredLocale = CONST.LOCALES.DEFAULT;
-Onyx.connect({
-    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    callback: (val) => {
-        if (!val) {
-            return;
-        }
-        preferredLocale = val;
     },
 });
 
@@ -1808,8 +1796,7 @@ function buildOptimisticExpenseReport(chatReportID, policyID, payeeAccountID, to
  * @returns {Array}
  */
 function getIOUReportActionMessage(type, total, comment, currency, paymentType = '', isSettlingUp = false) {
-    const currencyUnit = CurrencyUtils.getCurrencyUnit(currency);
-    const amount = NumberFormatUtils.format(preferredLocale, Math.abs(total) / currencyUnit, {style: 'currency', currency});
+    const amount = CurrencyUtils.convertToDisplayString(total, currency);
     let paymentMethodMessage;
     switch (paymentType) {
         case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
@@ -1859,7 +1846,7 @@ function getIOUReportActionMessage(type, total, comment, currency, paymentType =
  * @param {String} currency
  * @param {String} comment - User comment for the IOU.
  * @param {Array}  participants - An array with participants details.
- * @param {String} transactionID
+ * @param {String} [transactionID] - Not required if the IOUReportAction type is 'pay'
  * @param {String} [paymentType] - Only required if the IOUReportAction type is 'pay'. Can be oneOf(elsewhere, payPal, Expensify).
  * @param {String} [iouReportID] - Only required if the IOUReportActions type is oneOf(decline, cancel, pay). Generates a randomID as default.
  * @param {Boolean} [isSettlingUp] - Whether we are settling up an IOU.
@@ -1873,7 +1860,7 @@ function buildOptimisticIOUReportAction(
     currency,
     comment,
     participants,
-    transactionID,
+    transactionID = '',
     paymentType = '',
     iouReportID = '',
     isSettlingUp = false,
@@ -1891,13 +1878,21 @@ function buildOptimisticIOUReportAction(
         type,
     };
 
-    // We store amount, comment, currency in IOUDetails when type = pay
-    if (type === CONST.IOU.REPORT_ACTION_TYPE.PAY && isSendMoneyFlow) {
-        _.each(['amount', 'comment', 'currency'], (key) => {
-            delete originalMessage[key];
-        });
-        originalMessage.IOUDetails = {amount, comment, currency};
-        originalMessage.paymentType = paymentType;
+    if (type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
+        // In send money flow, we store amount, comment, currency in IOUDetails when type = pay
+        if (isSendMoneyFlow) {
+            _.each(['amount', 'comment', 'currency'], (key) => {
+                delete originalMessage[key];
+            });
+            originalMessage.IOUDetails = {amount, comment, currency};
+            originalMessage.paymentType = paymentType;
+        } else {
+            // In case of pay money request action, we dont store the comment
+            // and there is no single transctionID to link the action to.
+            delete originalMessage.IOUTransactionID;
+            delete originalMessage.comment;
+            originalMessage.paymentType = paymentType;
+        }
     }
 
     // IOUs of type split only exist in group DMs and those don't have an iouReport so we need to delete the IOUReportID key

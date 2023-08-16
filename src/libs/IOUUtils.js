@@ -1,25 +1,31 @@
 import _ from 'underscore';
 import CONST from '../CONST';
 import * as TransactionUtils from './TransactionUtils';
+import * as CurrencyUtils from './CurrencyUtils';
 
 /**
  * Calculates the amount per user given a list of participants
  *
  * @param {Number} numberOfParticipants - Number of participants in the chat. It should not include the current user.
- * @param {Number} total - IOU total amount in the smallest units of the currency
+ * @param {Number} total - IOU total amount in backend format (cents, no matter the currency)
+ * @param {String} currency - This is used to know how many decimal places are valid to use when splitting the total
  * @param {Boolean} isDefaultUser - Whether we are calculating the amount for the current user
  * @returns {Number}
  */
-function calculateAmount(numberOfParticipants, total, isDefaultUser = false) {
+function calculateAmount(numberOfParticipants, total, currency, isDefaultUser = false) {
+    // Since the backend can maximum store 2 decimal places, any currency with more than 2 decimals
+    // has to be capped to 2 decimal places
+    const currencyUnit = Math.min(100, CurrencyUtils.getCurrencyUnit(currency));
+    const totalInCurrencySubunit = Math.round((total / 100) * currencyUnit);
     const totalParticipants = numberOfParticipants + 1;
-    const amountPerPerson = Math.round(total / totalParticipants);
+    const amountPerPerson = Math.round(totalInCurrencySubunit / totalParticipants);
     let finalAmount = amountPerPerson;
     if (isDefaultUser) {
         const sumAmount = amountPerPerson * totalParticipants;
-        const difference = total - sumAmount;
-        finalAmount = total !== sumAmount ? amountPerPerson + difference : amountPerPerson;
+        const difference = totalInCurrencySubunit - sumAmount;
+        finalAmount = totalInCurrencySubunit !== sumAmount ? amountPerPerson + difference : amountPerPerson;
     }
-    return finalAmount;
+    return Math.round((finalAmount * 100) / currencyUnit);
 }
 
 /**

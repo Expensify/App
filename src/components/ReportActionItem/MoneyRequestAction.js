@@ -102,7 +102,7 @@ function MoneyRequestAction(props) {
                 participantAccountIDs,
                 ReportUtils.getTransactionReportName(props.action),
                 '',
-                CONST.POLICY.OWNER_EMAIL_FAKE,
+                lodashGet(props.iouReport, 'policyID', CONST.POLICY.OWNER_EMAIL_FAKE),
                 CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
                 false,
                 '',
