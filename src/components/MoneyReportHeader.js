@@ -65,14 +65,14 @@ function MoneyReportHeader(props) {
         return (
             (Policy.isAdminOfFreePolicy([policy]) ||
                 (ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(props.session, 'accountID', null) === moneyRequestReport.managerID)) &&
-            !ReportUtils.isSettled(moneyRequestReport)
+            !ReportUtils.isSettled(moneyRequestReport.reportID)
         );
     }, [moneyRequestReport, policy, props.policies, props.session]);
     const shouldShowApprovedButton = useMemo(() => {
         if (ReportUtils.getPolicyType(moneyRequestReport) === CONST.POLICY.TYPE.FREE) {
             return false;
         }
-        return ReportUtils.isReportManager(moneyRequestReport) && !ReportUtils.isReportApproved(moneyRequestReport);
+        return ReportUtils.isReportManager(moneyRequestReport) && !ReportUtils.isReportApproved(moneyRequestReport) && !ReportUtils.isSettled(moneyRequestReport.reportID);
     }, [moneyRequestReport]);
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
     const shouldShowPaypal = Boolean(lodashGet(props.personalDetails, [moneyRequestReport.managerID, 'payPalMeAddress']));
