@@ -410,7 +410,6 @@ export default {
             other: 'Error inesperado, por favor inténtalo más tarde',
             genericCreateFailureMessage: 'Error inesperado solicitando dinero, Por favor, inténtalo más tarde',
             genericDeleteFailureMessage: 'Error inesperado eliminando la solicitud de dinero. Por favor, inténtalo más tarde',
-            genericEditFailureMessage: 'Error inesperado al guardar la solicitud de dinero. Por favor, inténtalo más tarde',
         },
     },
     notificationPreferencesPage: {
@@ -880,7 +879,7 @@ export default {
         save: 'Guardar',
         message: 'Mensaje',
         untilTomorrow: 'Hasta mañana',
-        untilTime: ({time}) => `Hasta las ${time}`,
+        untilTime: ({time}) => `Hasta la ${time}`,
     },
     stepCounter: ({step, total, text}) => {
         let result = `Paso ${step}`;
