@@ -71,10 +71,14 @@ function AddReactionBubble(props) {
             );
         };
 
-        if (props.onPressOpenPicker) {
-            props.onPressOpenPicker(openPicker);
+        if (!EmojiPickerAction.emojiPickerRef.current.isEmojiPickerVisible) {
+            if (props.onPressOpenPicker) {
+                props.onPressOpenPicker(openPicker);
+            } else {
+                openPicker();
+            }
         } else {
-            openPicker();
+            EmojiPickerAction.emojiPickerRef.current.hideEmojiPicker();
         }
     };
 

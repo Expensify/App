@@ -34,7 +34,7 @@ const defaultProps = {
     sourceURL: '',
     fileName: '',
     style: {},
-    onPress: () => {},
+    onPress: undefined,
     onToggleKeyboard: () => {},
     onScaleChanged: () => {},
     onLoadComplete: () => {},
