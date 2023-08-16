@@ -61,11 +61,11 @@ export default function linkTo(navigation, path, type) {
 
     // If action type is different than NAVIGATE we can't change it to the PUSH safely
     if (action.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE) {
-        // In case if type is 'FORCED_UP' we ensure that we need to replace current screen to the provided
+        // In case if type is 'FORCED_UP' we replace current screen with the provided. This means the current screen no longer exists in the stack
         if (type === CONST.NAVIGATION.TYPE.FORCED_UP) {
             action.type = CONST.NAVIGATION.ACTION_TYPE.REPLACE;
 
-            // If this action is navigating to the report screen and the top most navigator is different from the one we want to navigate - PUSH
+            // If this action is navigating to the report screen and the top most navigator is different from the one we want to navigate - PUSH the new screen to the top of the stack
         } else if (action.payload.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR && getTopmostReportId(root.getState()) !== getTopmostReportId(state)) {
             action.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
 
