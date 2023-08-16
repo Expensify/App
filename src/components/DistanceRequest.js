@@ -74,8 +74,7 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
     const {translate} = useLocalize();
 
     const waypoints = lodashGet(transaction, 'comment.waypoints', {});
-    // const waypointCoordinates = _.map(waypoints, (waypoint) => [waypoint.lat, waypoint.lng]);
-    const waypointCoordinates = [CONST.SF_COORDINATES];
+    const waypointCoordinates = _.map(waypoints, (waypoint) => [waypoint.lat, waypoint.lng]);
     const numberOfWaypoints = _.size(waypoints);
     const lastWaypointIndex = numberOfWaypoints - 1;
 
@@ -170,8 +169,6 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
                                     zoom: DEFAULT_ZOOM_LEVEL,
                                 }}
                                 style={styles.mapView}
-                                markerComponent={() => <Expensicons.Location height={20} />}
-                                waypoints={waypointCoordinates}
                             />
                         ) : (
                             <View style={[styles.mapPendingView]}>
