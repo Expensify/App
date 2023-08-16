@@ -4,6 +4,7 @@
 
 $color-appBG: $color-green-appBG;
 $color-highlightBG: $color-green-highlightBG;
+$color-highlightBG-hover: $color-green-highlightBG-hover;
 $color-accent : $color-green400;
 $color-borders: $color-green-borders;
 $color-icons: $color-green-icons;
@@ -208,6 +209,21 @@ label.search-label {
     color: $color-text;
 }
 
+/* Pagination  */
+.gsc-resultsbox-visible .gsc-results .gsc-cursor-box {
+    text-align: center;
+}
+
+.gsc-resultsbox-visible .gsc-results .gsc-cursor-box .gsc-cursor-page {
+    margin: 4px;
+    width: 30px;
+    height: 30px;
+    border-radius: 25px;
+    display: inline-block;
+    line-height: 2.2;
+    background-color: $color-accent;
+}
+
 
 /* Change the color & background of Google Search Pagination */
 .gsc-cursor-next-page,
@@ -218,20 +234,22 @@ label.search-label {
 
 /* Change the color & background of Google Search Current Page */
 .gsc-resultsbox-visible .gsc-results .gsc-cursor-box .gsc-cursor-page.gsc-cursor-current-page {
-    background-color: $color-appBG;
-    color: $color-accent;
+    background-color: $color-accent;
+    color: $color-text;
 
     &:hover {
         text-decoration: none;
+        background-color: $color-accent;
     }
 }
 
 /* Change the color & background of Google Search of Other Page */
 .gsc-resultsbox-visible .gsc-results .gsc-cursor-box .gsc-cursor-page {
-    background-color: $color-appBG;
+    background-color: $color-highlightBG;
     color: $color-text;
 
     &:hover {
+        background-color: $color-highlightBG-hover;
         text-decoration: none;
     }
 }
