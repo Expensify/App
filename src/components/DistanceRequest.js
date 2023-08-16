@@ -103,7 +103,7 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
     return (
         <>
             <View
-                style={{maxHeight: scrollContainerMaxHeight, flexShrink: 2}}
+                style={{maxHeight: scrollContainerMaxHeight, minHeight: variables.baseMenuItemHeight, flexShrink: 2}}
                 onLayout={(event = {}) => setScrollContainerHeight(lodashGet(event, 'nativeEvent.layout.height', 0))}
             >
                 <ScrollView
