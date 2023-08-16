@@ -18,6 +18,12 @@ const test = () => {
         console.debug('[E2E] Logged in, getting search metrics and submitting them…');
 
         Performance.subscribeToMeasurements((entry) => {
+            if (entry.name === CONST.TIMING.SIDEBAR_LOADED) {
+                console.debug(`[E2E] Sidebar loaded, navigating to search route…`);
+                Navigation.navigate(ROUTES.SEARCH);
+                return;
+            }
+
             console.debug(`[E2E] Entry: ${JSON.stringify(entry)}`);
             if (entry.name !== CONST.TIMING.SEARCH_RENDER) {
                 return;
@@ -36,8 +42,6 @@ const test = () => {
                     console.debug('[E2E] Error while submitting test results:', err);
                 });
         });
-
-        Navigation.navigate(ROUTES.SEARCH);
     });
 };
 
