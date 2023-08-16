@@ -14,6 +14,9 @@ const SETTINGS_PERSONAL_DETAILS = 'settings/profile/personal-details';
 const SETTINGS_CONTACT_METHODS = 'settings/profile/contact-methods';
 const SETTINGS_STATUS = 'settings/profile/status';
 const SETTINGS_STATUS_SET = 'settings/profile/status/set';
+const SETTINGS_STATUS_CLEAR_AFTER = 'settings/profile/status/clear-after';
+const SETTINGS_STATUS_CLEAR_AFTER_CUSTOM = 'settings/profile/status/clear-after/custom';
+const SETTINGS_STATUS_CLEAR_AFTER_TIME = 'settings/profile/status/clear-after/time';
 
 export default {
     BANK_ACCOUNT: 'bank-account',
@@ -62,6 +65,9 @@ export default {
     SETTINGS_2FA_SUCCESS: 'settings/security/two-factor-auth/success',
     SETTINGS_STATUS,
     SETTINGS_STATUS_SET,
+    SETTINGS_STATUS_CLEAR_AFTER,
+    SETTINGS_STATUS_CLEAR_AFTER_CUSTOM,
+    SETTINGS_STATUS_CLEAR_AFTER_TIME,
     NEW_GROUP: 'new/group',
     NEW_CHAT: 'new/chat',
     NEW_TASK,
