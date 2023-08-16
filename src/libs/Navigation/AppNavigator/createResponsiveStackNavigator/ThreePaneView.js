@@ -66,12 +66,24 @@ function ThreePaneView(props) {
                                     StyleUtils.displayIfTrue(props.state.index === i),
                                 ]}
                             >
-                                <PressableWithoutFeedback
-                                    style={[styles.flex1]}
-                                    onPress={() => props.navigation.goBack()}
-                                    accessibilityLabel={translate('common.close')}
-                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                                />
+                                <View style={[styles.flex1, styles.flexColumn]}>
+                                    {/* The PressableWithoutFeedback with 30px height was added to make whole dimmed area pressable
+                                    on all web devices, but aslo make the top of the desktop apps draggable.
+                                    Please remember that in latestest Electron update, buttons can't be both draggable and clickable  */}
+                                    <PressableWithoutFeedback
+                                        style={[styles.w100, {height: 30}]}
+                                        onPress={() => props.navigation.goBack()}
+                                        accessibilityLabel={translate('common.close')}
+                                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                    />
+                                    <PressableWithoutFeedback
+                                        style={[styles.flex1]}
+                                        onPress={() => props.navigation.goBack()}
+                                        accessibilityLabel={translate('common.close')}
+                                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                        noDragArea
+                                    />
+                                </View>
                                 <View style={styles.rightPanelContainer}>{props.descriptors[route.key].render()}</View>
                             </View>
                         </Wrapper>
