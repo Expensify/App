@@ -263,7 +263,7 @@ Onyx.connect({
                 lastUpdateIDAppliedToClient,
             });
             SequentialQueue.pause();
-            getMissingOnyxUpdates(lastUpdateIDAppliedToClient, lastUpdateIDFromServer).then(SequentialQueue.unpause);
+            getMissingOnyxUpdates(lastUpdateIDAppliedToClient, lastUpdateIDFromServer).finally(SequentialQueue.unpause);
         }
 
         if (lastUpdateIDFromServer > lastUpdateIDAppliedToClient) {
