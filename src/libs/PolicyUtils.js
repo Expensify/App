@@ -10,7 +10,7 @@ import ONYXKEYS from '../ONYXKEYS';
  * @returns {Array}
  */
 function getActivePolicies(policies) {
-    return _.filter(policies, (policy) => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    return _.filter(policies, (policy) => policy && policy.isPolicyExpenseChatEnabled && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 }
 
 /**
@@ -86,7 +86,7 @@ function getPolicyBrickRoadIndicatorStatus(policy, policyMembersCollection) {
 function shouldShowPolicy(policy, isOffline) {
     return (
         policy &&
-        policy.type === CONST.POLICY.TYPE.FREE &&
+        policy.isPolicyExpenseChatEnabled &&
         policy.role === CONST.POLICY.ROLE.ADMIN &&
         (isOffline || policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !_.isEmpty(policy.errors))
     );
