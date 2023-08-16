@@ -83,57 +83,50 @@ const INPUT_IDS = {
         zipCode: 'addressZip',
     },
 };
+const errorTranslationKeys = {
+    legalFirstName: 'bankAccount.error.firstName',
+    legalLastName: 'bankAccount.error.lastName',
+    phoneNumber: 'bankAccount.error.phoneNumber',
+    dob: 'bankAccount.error.dob',
+    age: 'bankAccount.error.age',
+    ssn: 'bankAccount.error.ssnLast4',
+    ssnFull9: 'additionalDetailsStep.ssnFull9Error',
+};
 
-class AdditionalDetailsStep extends React.Component {
-    constructor(props) {
-        super(props);
+const fieldNameTranslationKeys = {
+    legalFirstName: 'additionalDetailsStep.legalFirstNameLabel',
+    legalLastName: 'additionalDetailsStep.legalLastNameLabel',
+    addressStreet: 'common.personalAddress',
+    phoneNumber: 'common.phoneNumber',
+    dob: 'common.dob',
+    ssn: 'common.ssnLast4',
+    ssnFull9: 'common.ssnFull9',
+};
 
-        this.activateWallet = this.activateWallet.bind(this);
-        this.validate = this.validate.bind(this);
-
-        this.errorTranslationKeys = {
-            legalFirstName: 'bankAccount.error.firstName',
-            legalLastName: 'bankAccount.error.lastName',
-            phoneNumber: 'bankAccount.error.phoneNumber',
-            dob: 'bankAccount.error.dob',
-            age: 'bankAccount.error.age',
-            ssn: 'bankAccount.error.ssnLast4',
-            ssnFull9: 'additionalDetailsStep.ssnFull9Error',
-        };
-
-        this.fieldNameTranslationKeys = {
-            legalFirstName: 'additionalDetailsStep.legalFirstNameLabel',
-            legalLastName: 'additionalDetailsStep.legalLastNameLabel',
-            addressStreet: 'common.personalAddress',
-            phoneNumber: 'common.phoneNumber',
-            dob: 'common.dob',
-            ssn: 'common.ssnLast4',
-            ssnFull9: 'common.ssnFull9',
-        };
-
-        this.minDate = moment().subtract(CONST.DATE_BIRTH.MAX_AGE, 'Y').toDate();
-        this.maxDate = moment().subtract(CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT, 'Y').toDate();
-    }
+function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserPersonalDetails}) {
+    const minDate = moment().subtract(CONST.DATE_BIRTH.MAX_AGE, 'Y').toDate();
+    const maxDate = moment().subtract(CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT, 'Y').toDate();
+    const shouldAskForFullSSN = walletAdditionalDetails.errorCode === CONST.WALLET.ERROR.SSN;
 
     /**
      * @param {Object} values The values object is passed from Form.js and contains info for each form element that has an inputID
      * @returns {Object}
      */
-    validate(values) {
+    const validate = (values) => {
         const errors = {};
 
         if (_.isEmpty(values[INPUT_IDS.LEGAL_FIRST_NAME])) {
-            errors[INPUT_IDS.LEGAL_FIRST_NAME] = this.errorTranslationKeys.legalFirstName;
+            errors[INPUT_IDS.LEGAL_FIRST_NAME] = errorTranslationKeys.legalFirstName;
         }
 
         if (_.isEmpty(values[INPUT_IDS.LEGAL_LAST_NAME])) {
-            errors[INPUT_IDS.LEGAL_LAST_NAME] = this.errorTranslationKeys.legalLastName;
+            errors[INPUT_IDS.LEGAL_LAST_NAME] = errorTranslationKeys.legalLastName;
         }
 
         if (!ValidationUtils.isValidPastDate(values[INPUT_IDS.DOB]) || !ValidationUtils.meetsMaximumAgeRequirement(values[INPUT_IDS.DOB])) {
-            ErrorUtils.addErrorMessage(errors, INPUT_IDS.DOB, this.errorTranslationKeys.dob);
+            ErrorUtils.addErrorMessage(errors, INPUT_IDS.DOB, errorTranslationKeys.dob);
         } else if (!ValidationUtils.meetsMinimumAgeRequirement(values[INPUT_IDS.DOB])) {
-            ErrorUtils.addErrorMessage(errors, INPUT_IDS.DOB, this.errorTranslationKeys.age);
+            ErrorUtils.addErrorMessage(errors, INPUT_IDS.DOB, errorTranslationKeys.age);
         }
 
         if (!ValidationUtils.isValidAddress(values[INPUT_IDS.ADDRESS.street]) || _.isEmpty(values[INPUT_IDS.ADDRESS.street])) {
@@ -153,26 +146,26 @@ class AdditionalDetailsStep extends React.Component {
         }
 
         if (!ValidationUtils.isValidUSPhone(values[INPUT_IDS.PHONE_NUMBER], true)) {
-            errors[INPUT_IDS.PHONE_NUMBER] = this.errorTranslationKeys.phoneNumber;
+            errors[INPUT_IDS.PHONE_NUMBER] = errorTranslationKeys.phoneNumber;
         }
 
-        // this.props.walletAdditionalDetails stores errors returned by the server. If the server returns an SSN error
+        // walletAdditionalDetails stores errors returned by the server. If the server returns an SSN error
         // then the user needs to provide the full 9 digit SSN.
-        if (this.props.walletAdditionalDetails.errorCode === CONST.WALLET.ERROR.SSN) {
+        if (walletAdditionalDetails.errorCode === CONST.WALLET.ERROR.SSN) {
             if (!ValidationUtils.isValidSSNFullNine(values[INPUT_IDS.SSN])) {
-                errors[INPUT_IDS.SSN] = this.errorTranslationKeys.ssnFull9;
+                errors[INPUT_IDS.SSN] = errorTranslationKeys.ssnFull9;
             }
         } else if (!ValidationUtils.isValidSSNLastFour(values[INPUT_IDS.SSN])) {
-            errors[INPUT_IDS.SSN] = this.errorTranslationKeys.ssn;
+            errors[INPUT_IDS.SSN] = errorTranslationKeys.ssn;
         }
 
         return errors;
-    }
+    };
 
     /**
      * @param {Object} values The values object is passed from Form.js and contains info for each form element that has an inputID
      */
-    activateWallet(values) {
+    const activateWallet = (values) => {
         const personalDetails = {
             phoneNumber: parsePhoneNumber(values[INPUT_IDS.PHONE_NUMBER], {regionCode: CONST.COUNTRY.US}).number.significant,
             legalFirstName: values[INPUT_IDS.LEGAL_FIRST_NAME],
@@ -187,112 +180,111 @@ class AdditionalDetailsStep extends React.Component {
 
         // Attempt to set the personal details
         Wallet.updatePersonalDetails(personalDetails);
-    }
+    };
 
-    render() {
-        if (!_.isEmpty(this.props.walletAdditionalDetails.questions)) {
-            return (
-                <ScreenWrapper
-                    style={[styles.flex1]}
-                    keyboardAvoidingViewBehavior="height"
-                >
-                    <HeaderWithBackButton
-                        title={this.props.translate('additionalDetailsStep.headerTitle')}
-                        onBackButtonPress={() => Wallet.setAdditionalDetailsQuestions(null)}
-                    />
-                    <IdologyQuestions
-                        questions={this.props.walletAdditionalDetails.questions}
-                        idNumber={this.props.walletAdditionalDetails.idNumber}
-                    />
-                </ScreenWrapper>
-            );
-        }
-        const shouldAskForFullSSN = this.props.walletAdditionalDetails.errorCode === CONST.WALLET.ERROR.SSN;
-
+    if (!_.isEmpty(walletAdditionalDetails.questions)) {
         return (
-            <>
-                <HeaderWithBackButton title={this.props.translate('additionalDetailsStep.headerTitle')} />
-                <View style={[styles.flex1]}>
-                    <View style={[styles.ph5]}>
-                        <Text style={styles.mb3}>{this.props.translate('additionalDetailsStep.helpText')}</Text>
-                        <TextLink
-                            style={styles.mb3}
-                            href="https://use.expensify.com/usa-patriot-act"
-                        >
-                            {this.props.translate('additionalDetailsStep.helpLink')}
-                        </TextLink>
-                    </View>
-                    <Form
-                        formID={ONYXKEYS.WALLET_ADDITIONAL_DETAILS}
-                        validate={this.validate}
-                        onSubmit={this.activateWallet}
-                        scrollContextEnabled
-                        submitButtonText={this.props.translate('common.saveAndContinue')}
-                        style={[styles.mh5, styles.flexGrow1]}
-                    >
-                        <TextInput
-                            inputID={INPUT_IDS.LEGAL_FIRST_NAME}
-                            containerStyles={[styles.mt4]}
-                            label={this.props.translate(this.fieldNameTranslationKeys.legalFirstName)}
-                            accessibilityLabel={this.props.translate(this.fieldNameTranslationKeys.legalFirstName)}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                            defaultValue={PersonalDetails.extractFirstAndLastNameFromAvailableDetails(this.props.currentUserPersonalDetails).firstName}
-                            shouldSaveDraft
-                        />
-                        <TextInput
-                            inputID={INPUT_IDS.LEGAL_LAST_NAME}
-                            containerStyles={[styles.mt4]}
-                            label={this.props.translate(this.fieldNameTranslationKeys.legalLastName)}
-                            accessibilityLabel={this.props.translate(this.fieldNameTranslationKeys.legalLastName)}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                            defaultValue={PersonalDetails.extractFirstAndLastNameFromAvailableDetails(this.props.currentUserPersonalDetails).lastName}
-                            shouldSaveDraft
-                        />
-                        <AddressForm
-                            inputKeys={INPUT_IDS.ADDRESS}
-                            translate={this.props.translate}
-                            streetTranslationKey={this.fieldNameTranslationKeys.addressStreet}
-                            shouldSaveDraft
-                        />
-                        <TextInput
-                            inputID={INPUT_IDS.PHONE_NUMBER}
-                            containerStyles={[styles.mt4]}
-                            keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
-                            label={this.props.translate(this.fieldNameTranslationKeys.phoneNumber)}
-                            accessibilityLabel={this.props.translate(this.fieldNameTranslationKeys.phoneNumber)}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                            defaultValue={this.props.currentUserPersonalDetails.phoneNumber}
-                            placeholder={this.props.translate('common.phoneNumberPlaceholder')}
-                            shouldSaveDraft
-                        />
-                        <DatePicker
-                            inputID={INPUT_IDS.DOB}
-                            containerStyles={[styles.mt4]}
-                            label={this.props.translate(this.fieldNameTranslationKeys.dob)}
-                            placeholder={this.props.translate('common.dob')}
-                            minDate={this.minDate}
-                            maxDate={this.maxDate}
-                            shouldSaveDraft
-                        />
-                        <TextInput
-                            inputID={INPUT_IDS.SSN}
-                            containerStyles={[styles.mt4]}
-                            label={this.props.translate(this.fieldNameTranslationKeys[shouldAskForFullSSN ? 'ssnFull9' : 'ssn'])}
-                            accessibilityLabel={this.props.translate(this.fieldNameTranslationKeys[shouldAskForFullSSN ? 'ssnFull9' : 'ssn'])}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                            maxLength={shouldAskForFullSSN ? 9 : 4}
-                            keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                        />
-                        <OfflineIndicator containerStyles={[styles.mh5, styles.mb3]} />
-                    </Form>
-                </View>
-            </>
+            <ScreenWrapper
+                style={[styles.flex1]}
+                keyboardAvoidingViewBehavior="height"
+            >
+                <HeaderWithBackButton
+                    title={translate('additionalDetailsStep.headerTitle')}
+                    onBackButtonPress={() => Wallet.setAdditionalDetailsQuestions(null)}
+                />
+                <IdologyQuestions
+                    questions={walletAdditionalDetails.questions}
+                    idNumber={walletAdditionalDetails.idNumber}
+                />
+            </ScreenWrapper>
         );
     }
+
+    return (
+        <>
+            <HeaderWithBackButton title={translate('additionalDetailsStep.headerTitle')} />
+            <View style={[styles.flex1]}>
+                <View style={[styles.ph5]}>
+                    <Text style={styles.mb3}>{translate('additionalDetailsStep.helpText')}</Text>
+                    <TextLink
+                        style={styles.mb3}
+                        href="https://use.expensify.com/usa-patriot-act"
+                    >
+                        {translate('additionalDetailsStep.helpLink')}
+                    </TextLink>
+                </View>
+                <Form
+                    formID={ONYXKEYS.WALLET_ADDITIONAL_DETAILS}
+                    validate={validate}
+                    onSubmit={activateWallet}
+                    scrollContextEnabled
+                    submitButtonText={translate('common.saveAndContinue')}
+                    style={[styles.mh5, styles.flexGrow1]}
+                >
+                    <TextInput
+                        inputID={INPUT_IDS.LEGAL_FIRST_NAME}
+                        containerStyles={[styles.mt4]}
+                        label={translate(fieldNameTranslationKeys.legalFirstName)}
+                        accessibilityLabel={translate(fieldNameTranslationKeys.legalFirstName)}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        defaultValue={PersonalDetails.extractFirstAndLastNameFromAvailableDetails(currentUserPersonalDetails).firstName}
+                        shouldSaveDraft
+                    />
+                    <TextInput
+                        inputID={INPUT_IDS.LEGAL_LAST_NAME}
+                        containerStyles={[styles.mt4]}
+                        label={translate(fieldNameTranslationKeys.legalLastName)}
+                        accessibilityLabel={translate(fieldNameTranslationKeys.legalLastName)}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        defaultValue={PersonalDetails.extractFirstAndLastNameFromAvailableDetails(currentUserPersonalDetails).lastName}
+                        shouldSaveDraft
+                    />
+                    <AddressForm
+                        inputKeys={INPUT_IDS.ADDRESS}
+                        translate={translate}
+                        streetTranslationKey={fieldNameTranslationKeys.addressStreet}
+                        shouldSaveDraft
+                    />
+                    <TextInput
+                        inputID={INPUT_IDS.PHONE_NUMBER}
+                        containerStyles={[styles.mt4]}
+                        keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
+                        label={translate(fieldNameTranslationKeys.phoneNumber)}
+                        accessibilityLabel={translate(fieldNameTranslationKeys.phoneNumber)}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        defaultValue={currentUserPersonalDetails.phoneNumber}
+                        placeholder={translate('common.phoneNumberPlaceholder')}
+                        shouldSaveDraft
+                    />
+                    <DatePicker
+                        inputID={INPUT_IDS.DOB}
+                        containerStyles={[styles.mt4]}
+                        label={translate(fieldNameTranslationKeys.dob)}
+                        placeholder={translate('common.dob')}
+                        minDate={minDate}
+                        maxDate={maxDate}
+                        shouldSaveDraft
+                    />
+                    <TextInput
+                        inputID={INPUT_IDS.SSN}
+                        containerStyles={[styles.mt4]}
+                        label={translate(fieldNameTranslationKeys[shouldAskForFullSSN ? 'ssnFull9' : 'ssn'])}
+                        accessibilityLabel={translate(fieldNameTranslationKeys[shouldAskForFullSSN ? 'ssnFull9' : 'ssn'])}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        maxLength={shouldAskForFullSSN ? 9 : 4}
+                        keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                    />
+                    <OfflineIndicator containerStyles={[styles.mh5, styles.mb3]} />
+                </Form>
+            </View>
+        </>
+    );
 }
 
 AdditionalDetailsStep.propTypes = propTypes;
 AdditionalDetailsStep.defaultProps = defaultProps;
+AdditionalDetailsStep.displayName = 'AdditionalDetailsStep';
+
 export default compose(
     withLocalize,
     withCurrentUserPersonalDetails,

@@ -449,6 +449,7 @@ const CONST = {
                 TASKEDITED: 'TASKEDITED',
                 TASKCANCELLED: 'TASKCANCELLED',
                 IOU: 'IOU',
+                MODIFIEDEXPENSE: 'MODIFIEDEXPENSE',
                 REIMBURSEMENTQUEUED: 'REIMBURSEMENTQUEUED',
                 RENAMED: 'RENAMED',
                 CHRONOSOOOLIST: 'CHRONOSOOOLIST',
@@ -1156,6 +1157,7 @@ const CONST = {
 
         ROUTES: {
             VALIDATE_LOGIN: /\/v($|(\/\/*))/,
+            UNLINK_LOGIN: /\/u($|(\/\/*))/,
         },
     },
 
@@ -1257,8 +1259,10 @@ const CONST = {
     },
     EDIT_REQUEST_FIELD: {
         AMOUNT: 'amount',
+        CURRENCY: 'currency',
         DATE: 'date',
         DESCRIPTION: 'description',
+        MERCHANT: 'merchant',
     },
     FOOTER: {
         EXPENSE_MANAGEMENT_URL: `${USE_EXPENSIFY_URL}/expense-management`,
@@ -2532,6 +2536,18 @@ const CONST = {
         MANUAL: 'manual',
         SCAN: 'scan',
         DISTANCE: 'distance',
+    },
+    STATUS_TEXT_MAX_LENGTH: 100,
+    NAVIGATION: {
+        TYPE: {
+            FORCED_UP: 'FORCED_UP',
+            UP: 'UP',
+        },
+        ACTION_TYPE: {
+            REPLACE: 'REPLACE',
+            PUSH: 'PUSH',
+            NAVIGATE: 'NAVIGATE',
+        },
     },
 };
 
