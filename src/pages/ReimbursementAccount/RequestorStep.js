@@ -42,10 +42,10 @@ class RequestorStep extends React.Component {
         const errors = ValidationUtils.getFieldRequiredErrors(values, requiredFields);
 
         if (values.dob) {
-            if (!ValidationUtils.meetsMinimumAgeRequirement(values.dob)) {
-                errors.dob = 'bankAccount.error.age';
-            } else if (!ValidationUtils.meetsMaximumAgeRequirement(values.dob)) {
+            if (!ValidationUtils.isValidPastDate(values.dob) || !ValidationUtils.meetsMaximumAgeRequirement(values.dob)) {
                 errors.dob = 'bankAccount.error.dob';
+            } else if (!ValidationUtils.meetsMinimumAgeRequirement(values.dob)) {
+                errors.dob = 'bankAccount.error.age';
             }
         }
 
