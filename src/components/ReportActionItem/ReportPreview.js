@@ -108,7 +108,7 @@ function ReportPreview(props) {
 
     const transactions = TransactionUtils.getReportPreviewTransactionsWithReceipts(props.action);
     const hasReceipts = transactions.length > 0;
-    const isScanning = hasReceipts && !ReportActionUtils.hasReadyMoneyRequests(props.action);
+    const isScanning = hasReceipts && !ReportActionUtils.areAllRequestsBeingSmartScanned(props.action);
     const hasOnlyOneReceiptRequest = numberOfRequests === 1 && hasReceipts;
     const previewSubtitle = hasOnlyOneReceiptRequest
         ? transactions[0].merchant
@@ -170,7 +170,7 @@ function ReportPreview(props) {
                             hoverStyle={props.isHovered || isScanning ? styles.reportPreviewBoxHoverBorder : undefined}
                         />
                     )}
-                    <View style={styles.reportPreviewBoxText}>
+                    <View style={styles.reportPreviewBoxBody}>
                         <View style={styles.flexRow}>
                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                                 <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh16]}>{getPreviewMessage()}</Text>
@@ -196,19 +196,19 @@ function ReportPreview(props) {
                                 </View>
                             </View>
                         )}
+                        {shouldShowSettlementButton && (
+                            <SettlementButton
+                                currency={props.iouReport.currency}
+                                policyID={props.iouReport.policyID}
+                                chatReportID={props.chatReportID}
+                                iouReport={props.iouReport}
+                                onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.iouReport)}
+                                enablePaymentsRoute={ROUTES.BANK_ACCOUNT_NEW}
+                                addBankAccountRoute={bankAccountRoute}
+                                style={[styles.requestPreviewBox]}
+                            />
+                        )}
                     </View>
-                    {shouldShowSettlementButton && (
-                        <SettlementButton
-                            currency={props.iouReport.currency}
-                            policyID={props.iouReport.policyID}
-                            chatReportID={props.chatReportID}
-                            iouReport={props.iouReport}
-                            onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.iouReport)}
-                            enablePaymentsRoute={ROUTES.BANK_ACCOUNT_NEW}
-                            addBankAccountRoute={bankAccountRoute}
-                            style={[styles.requestPreviewBox]}
-                        />
-                    )}
                 </View>
             </PressableWithoutFeedback>
         </View>

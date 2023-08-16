@@ -679,7 +679,7 @@ export {
     isWhisperAction,
     isPendingRemove,
     getReportAction,
-    areAllRequestsBeingSmartscanned,
+    areAllRequestsBeingSmartScanned,
     getNumberOfMoneyRequests,
     getNumberOfScanningReceipts,
 };

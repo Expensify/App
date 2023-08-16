@@ -3682,7 +3682,7 @@ const styles = {
         backgroundColor: themeColors.border,
     },
 
-    reportPreviewBoxText: {
+    reportPreviewBoxBody: {
         padding: 16,
     },
 

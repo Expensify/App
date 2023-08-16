@@ -71,7 +71,7 @@ function MoneyRequestHeader(props) {
         setIsDeleteModalVisible(false);
     }, [parentReportAction, setIsDeleteModalVisible]);
 
-    const isScanning = !ReportActionsUtils.hasReadyMoneyRequests(parentReportAction);
+    const isScanning = !ReportActionsUtils.areAllRequestsBeingSmartScanned(parentReportAction);
 
     const getStatusBar = () => (
         <View

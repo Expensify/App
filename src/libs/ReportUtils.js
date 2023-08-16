@@ -1261,7 +1261,7 @@ function getTransactionReportName(reportAction) {
         return Localize.translateLocal('parentReportAction.deletedRequest');
     }
 
-    if (!ReportActionsUtils.areAllRequestsBeingSmartscanned(reportAction)) {
+    if (!ReportActionsUtils.areAllRequestsBeingSmartScanned(reportAction)) {
         return Localize.translateLocal('iou.receiptScanning');
     }
 
