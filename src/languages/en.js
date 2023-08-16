@@ -874,6 +874,14 @@ export default {
         clearStatus: 'Clear status',
         save: 'Save',
         message: 'Message',
+        timePeriods: {
+          never: 'Never',
+          thirtyMinutes: 'Thirty minutes',
+          oneHour: 'One hour',
+          afterToday: 'After today',
+          afterWeek: 'After week',
+          custom: 'Custom',
+        }
     },
     stepCounter: ({step, total, text}) => {
         let result = `Step ${step}`;

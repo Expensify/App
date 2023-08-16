@@ -878,6 +878,14 @@ export default {
         clearStatus: 'Borrar estado',
         save: 'Guardar',
         message: 'Mensaje',
+        timePeriods: {
+            never: 'Nunca',
+            thirtyMinutes: 'Treinta minutos',
+            oneHour: 'Una hora',
+            afterToday: 'Después de hoy',
+            afterWeek: 'Después de una semana',
+            custom: 'Personalizado',
+        },
     },
     stepCounter: ({step, total, text}) => {
         let result = `Paso ${step}`;
