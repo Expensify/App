@@ -22,7 +22,6 @@ import reportPropTypes from '../../reportPropTypes';
 import personalDetailsPropType from '../../personalDetailsPropType';
 import * as FileUtils from '../../../libs/fileDownload/FileUtils';
 import * as Policy from '../../../libs/actions/Policy';
-import * as PolicyUtils from '../../../libs/PolicyUtils';
 
 const propTypes = {
     report: reportPropTypes,
