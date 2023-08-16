@@ -18,6 +18,7 @@ import * as ReportActionsUtils from '../ReportActionsUtils';
 import * as ErrorUtils from '../ErrorUtils';
 import * as Session from './Session';
 import * as PersonalDetails from './PersonalDetails';
+import * as OnyxUpdates from './OnyxUpdates';
 
 let currentUserAccountID = '';
 let currentEmail = '';
@@ -236,7 +237,7 @@ function deleteContactMethod(contactMethod, loginList) {
         },
         {optimisticData, successData, failureData},
     );
-    Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
+    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS);
 }
 
 /**
@@ -254,6 +255,19 @@ function clearContactMethodErrors(contactMethod, fieldName) {
             pendingFields: {
                 [fieldName]: null,
             },
+        },
+    });
+}
+
+/**
+ * Resets the state indicating whether a validation code has been sent to a specific contact method.
+ *
+ * @param {String} contactMethod - The identifier of the contact method to reset.
+ */
+function resetContactMethodValidateCodeSentState(contactMethod) {
+    Onyx.merge(ONYXKEYS.LOGIN_LIST, {
+        [contactMethod]: {
+            validateCodeSent: false,
         },
     });
 }
@@ -539,9 +553,8 @@ function subscribeToUserEvents() {
         if (_.isArray(pushJSON)) {
             updates = pushJSON;
         } else {
-            // const lastUpdateID = pushJSON.lastUpdateID;
-            // const previousUpdateID = pushJSON.previousUpdateID;
             updates = pushJSON.updates;
+            OnyxUpdates.saveUpdateIDs(Number(pushJSON.lastUpdateID || 0), Number(pushJSON.previousUpdateID || 0));
         }
         _.each(updates, (multipleEvent) => {
             PusherUtils.triggerMultiEventHandler(multipleEvent.eventType, multipleEvent.data);
@@ -622,7 +635,7 @@ function updateChatPriorityMode(mode) {
         },
         {optimisticData},
     );
-    Navigation.navigate(ROUTES.SETTINGS_PREFERENCES);
+    Navigation.goBack(ROUTES.SETTINGS_PREFERENCES);
 }
 
 /**
@@ -777,7 +790,7 @@ function setContactMethodAsDefault(newDefaultContactMethod) {
         },
     ];
     API.write('SetContactMethodAsDefault', {partnerUserID: newDefaultContactMethod}, {optimisticData, successData, failureData});
-    Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
+    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS);
 }
 
 /**
@@ -801,6 +814,69 @@ function updateTheme(theme) {
     );
 
     Navigation.navigate(ROUTES.SETTINGS_PREFERENCES);
+}
+
+/**
+ * Sets a custom status
+ *
+ * @param {Object} status
+ * @param {String} status.text
+ * @param {String} status.emojiCode
+ * @param {String} status.clearAfter - ISO 8601 format string, which represents the time when the status should be cleared
+ */
+function updateCustomStatus(status) {
+    API.write('UpdateStatus', status, {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                value: {
+                    [currentUserAccountID]: {
+                        status,
+                    },
+                },
+            },
+        ],
+    });
+}
+
+/**
+ * Clears the custom status
+ */
+function clearCustomStatus() {
+    API.write('ClearStatus', undefined, {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                value: {
+                    [currentUserAccountID]: {
+                        status: null, // Clearing the field
+                    },
+                },
+            },
+        ],
+    });
+}
+
+/**
+ * Sets a custom status
+ *
+ * @param {Object} status
+ * @param {String} status.text
+ * @param {String} status.emojiCode
+ * @param {String} status.clearAfter - ISO 8601 format string, which represents the time when the status should be cleared
+ */
+function updateDraftCustomStatus(status) {
+    Onyx.merge(ONYXKEYS.CUSTOM_STATUS_DRAFT, status);
+}
+
+/**
+ * Clear the custom draft status
+ *
+ */
+function clearDraftCustomStatus() {
+    Onyx.merge(ONYXKEYS.CUSTOM_STATUS_DRAFT, {text: '', emojiCode: '', clearAfter: ''});
 }
 
 export {
@@ -827,4 +903,9 @@ export {
     updateChatPriorityMode,
     setContactMethodAsDefault,
     updateTheme,
+    resetContactMethodValidateCodeSentState,
+    updateCustomStatus,
+    clearCustomStatus,
+    updateDraftCustomStatus,
+    clearDraftCustomStatus,
 };

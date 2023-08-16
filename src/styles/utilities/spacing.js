@@ -113,6 +113,10 @@ export default {
         marginLeft: 'auto',
     },
 
+    ml0: {
+        marginLeft: 0,
+    },
+
     ml1: {
         marginLeft: 4,
     },
@@ -127,6 +131,10 @@ export default {
 
     ml4: {
         marginLeft: 16,
+    },
+
+    mln4: {
+        marginLeft: -16,
     },
 
     ml5: {
@@ -262,6 +270,11 @@ export default {
     p5: {
         padding: 20,
     },
+
+    p9: {
+        padding: 36,
+    },
+
     p10: {
         padding: 40,
     },

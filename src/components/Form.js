@@ -17,6 +17,7 @@ import ScrollViewWithContext from './ScrollViewWithContext';
 import stylePropTypes from '../styles/stylePropTypes';
 import {withNetwork} from './OnyxProvider';
 import networkPropTypes from './networkPropTypes';
+import Visibility from '../libs/Visibility';
 
 const propTypes = {
     /** A unique Onyx key identifying the form */
@@ -101,7 +102,6 @@ function Form(props) {
     const inputRefs = useRef({});
     const touchedInputs = useRef({});
     const isFirstRender = useRef(true);
-    const lastValidatedValues = useRef({...props.draftValues});
 
     const {validate, onSubmit, children} = props;
 
@@ -146,8 +146,6 @@ function Form(props) {
             if (!_.isEqual(errors, touchedInputErrors)) {
                 setErrors(touchedInputErrors);
             }
-
-            lastValidatedValues.current = values;
 
             return touchedInputErrors;
         },
@@ -264,7 +262,7 @@ function Form(props) {
 
                 // We want to initialize the input value if it's undefined
                 if (_.isUndefined(inputValues[inputID])) {
-                    inputValues[inputID] = defaultValue;
+                    inputValues[inputID] = defaultValue || '';
                 }
 
                 // We force the form to set the input value from the defaultValue props if there is a saved valid value
@@ -296,20 +294,21 @@ function Form(props) {
                         }
                     },
                     value: inputValues[inputID],
+                    // As the text input is controlled, we never set the defaultValue prop
+                    // as this is already happening by the value prop.
+                    defaultValue: undefined,
                     errorText: errors[inputID] || fieldErrorMessage,
                     onBlur: (event) => {
-                        // We delay the validation in order to prevent Checkbox loss of focus when
-                        // the user are focusing a TextInput and proceeds to toggle a CheckBox in
-                        // web and mobile web platforms.
-                        setTimeout(() => {
-                            setTouchedInput(inputID);
-
-                            // To prevent server errors from being cleared inadvertently, we only run validation on blur if any form values have changed since the last validation/submit
-                            const shouldValidate = !_.isEqual(inputValues, lastValidatedValues.current);
-                            if (shouldValidate) {
+                        // Only run validation when user proactively blurs the input.
+                        if (Visibility.isVisible() && Visibility.hasFocus()) {
+                            // We delay the validation in order to prevent Checkbox loss of focus when
+                            // the user are focusing a TextInput and proceeds to toggle a CheckBox in
+                            // web and mobile web platforms.
+                            setTimeout(() => {
+                                setTouchedInput(inputID);
                                 onValidate(inputValues);
-                            }
-                        }, 200);
+                            }, 200);
+                        }
 
                         if (_.isFunction(child.props.onBlur)) {
                             child.props.onBlur(event);
@@ -334,27 +333,9 @@ function Form(props) {
                         }
 
                         if (child.props.onValueChange) {
-                            child.props.onValueChange(value);
+                            child.props.onValueChange(value, inputKey);
                         }
                     },
-                });
-            });
-
-            // We need to verify that all references and values are still actual.
-            // We should not store it when e.g. some input has been unmounted
-            _.each(inputRefs.current, (inputRef, inputID) => {
-                if (inputRef) {
-                    return;
-                }
-
-                delete inputRefs.current[inputID];
-
-                setInputValues((prevState) => {
-                    const copyPrevState = _.clone(prevState);
-
-                    delete copyPrevState[inputID];
-
-                    return copyPrevState;
                 });
             });
 
@@ -428,6 +409,28 @@ function Form(props) {
             props.submitButtonText,
         ],
     );
+
+    useEffect(() => {
+        _.each(inputRefs.current, (inputRef, inputID) => {
+            if (inputRef) {
+                return;
+            }
+
+            delete inputRefs.current[inputID];
+            delete touchedInputs.current[inputID];
+
+            setInputValues((prevState) => {
+                const copyPrevState = _.clone(prevState);
+
+                delete copyPrevState[inputID];
+
+                return copyPrevState;
+            });
+        });
+        // We need to verify that all references and values are still actual.
+        // We should not store it when e.g. some input has been unmounted.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [children]);
 
     return (
         <SafeAreaConsumer>
