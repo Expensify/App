@@ -620,7 +620,10 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
         }
 
         // STEP 2: Get existing IOU report and update its total OR build a new optimistic one
-        const isNewOneOnOneIOUReport = !oneOnOneChatReport.iouReportID;
+        // For Control policy expense chats, if the report is already apprvoed, create a new expense report
+        let isNewOneOnOneIOUReport =
+            !oneOnOneChatReport.iouReportID ||
+            (oneOnOneChatReport.iouReportID && isOwnPolicyExpenseChat && ReportUtils.isReportApproved(allReports[`${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.iouReportID}`]));
         let oneOnOneIOUReport;
         if (!isNewOneOnOneIOUReport) {
             oneOnOneIOUReport = IOUUtils.updateIOUOwnerAndTotal(allReports[`${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.iouReportID}`], currentUserAccountID, splitAmount, currency);
