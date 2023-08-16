@@ -876,7 +876,7 @@ function updateDraftCustomStatus(status) {
  *
  */
 function clearDraftCustomStatus() {
-    Onyx.merge(ONYXKEYS.CUSTOM_STATUS_DRAFT, {text: '', emojiCode: '', clearAfter: ''});
+    Onyx.merge(ONYXKEYS.CUSTOM_STATUS_DRAFT, {text: '', emojiCode: '', clearAfter: '', customDateTemporary: ''});
 }
 
 export {
