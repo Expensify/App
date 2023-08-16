@@ -136,7 +136,7 @@ function DistanceRequest({transactionID, transaction, translate}) {
                 <Button
                     small
                     icon={Expensicons.Plus}
-                    onPress={() => Transaction.addStop(transactionID, lastWaypointIndex + 1)}
+                    onPress={() => Transaction.addStop(transactionID)}
                     text={translate('distance.addStop')}
                     isDisabled={numberOfWaypoints === MAX_WAYPOINTS}
                     innerStyles={[styles.ph10]}

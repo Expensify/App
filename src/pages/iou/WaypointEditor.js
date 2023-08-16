@@ -75,6 +75,7 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
     const textInput = useRef(null);
     const currentWaypoint = lodashGet(transaction, `comment.waypoints.waypoint${waypointIndex}`, {});
     const waypointAddress = lodashGet(currentWaypoint, 'address', '');
+    console.log('Current waypoint address', waypointAddress, waypointIndex);
 
     const validate = (values) => {
         const errors = {};
@@ -153,7 +154,7 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
                         hint={!network.isOffline ? translate('distance.errors.selectSuggestedAddress') : ''}
                         containerStyles={[styles.mt4]}
                         label={translate('distance.address')}
-                        initialValue={waypointAddress}
+                        defaultValue={waypointAddress}
                         onPress={selectWaypoint}
                         maxInputLength={CONST.FORM_CHARACTER_LIMIT}
                         renamedInputKeys={{

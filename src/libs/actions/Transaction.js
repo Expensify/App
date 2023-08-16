@@ -36,7 +36,12 @@ function createInitialWaypoints(transactionID) {
  * @param {String} transactionID
  * @param {Number} newLastIndex
  */
-function addStop(transactionID, newLastIndex) {
+function addStop(transactionID) {
+    const transaction = lodashGet(allTransactions, transactionID, {});
+    const existingWaypoints = lodashGet(transaction, 'comment.waypoints', {});
+    const totalWaypoints = _.size(existingWaypoints);
+    const newLastIndex = totalWaypoints;
+    
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         comment: {
             waypoints: {
@@ -62,12 +67,14 @@ function saveWaypoint(transactionID, index, waypoint) {
     });
 }
 
-function removeWaypoint(transactionID, index) {
+function removeWaypoint(transactionID, currentIndex) {
+    // Index comes from the route params and is a string
+    const index = Number(currentIndex);
     const transaction = lodashGet(allTransactions, transactionID, {});
     const existingWaypoints = lodashGet(transaction, 'comment.waypoints', {});
     const totalWaypoints = _.size(existingWaypoints);
 
-    // Prevents removing the starting or ending waypoint
+    // Prevents removing the starting or ending waypoint but clear the stored address
     if (index === 0 || index === totalWaypoints - 1) {
         saveWaypoint(transactionID, index, null);
         return;
@@ -84,7 +91,7 @@ function removeWaypoint(transactionID, index) {
     // Onyx.merge won't remove the null nested object values, this is a workaround
     // to remove nested keys while also preserving other object keys
     transaction.comment.waypoints = reIndexedWaypoints;
-    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {...transaction});
+    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
 }
 
 export {addStop, createInitialWaypoints, saveWaypoint, removeWaypoint};
