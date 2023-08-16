@@ -167,7 +167,7 @@ function IOUPreview(props) {
 
         let message = props.translate('iou.cash');
         if (ReportUtils.isControlPolicyExpenseReport(props.iouReport) && ReportUtils.isReportApproved(props.iouReport) && !ReportUtils.isSettled(props.iouReport)) {
-            message += ` • approved`;
+            message += ` • ${props.translate('iou.approved')}`;
         } else if (props.iouReport.isWaitingOnBankAccount) {
             message += ` • ${props.translate('iou.pending')}`;
         } else if (ReportUtils.isSettled(props.iouReport.reportID)) {

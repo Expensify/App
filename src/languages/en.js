@@ -370,6 +370,7 @@ export default {
     },
     iou: {
         amount: 'Amount',
+        approved: 'Approved',
         cash: 'Cash',
         split: 'Split',
         request: 'Request',
@@ -395,6 +396,7 @@ export default {
         payerOwes: ({payer}) => `${payer} owes: `,
         payerPaidAmount: ({payer, amount}) => `${payer} paid ${amount}`,
         payerPaid: ({payer}) => `${payer} paid: `,
+        managerApproved: ({manager}) => `${manager} approved:`,
         payerSettled: ({amount}) => `paid ${amount}`,
         waitingOnBankAccount: ({submitterDisplayName}) => `started settling up, payment is held until ${submitterDisplayName} adds a bank account`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}) => `${submitterDisplayName} added a bank account. The ${amount} payment has been made.`,
