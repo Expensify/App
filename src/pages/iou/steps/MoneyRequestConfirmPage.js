@@ -75,7 +75,7 @@ function MoneyRequestConfirmPage(props) {
                 : OptionsListUtils.getParticipantsOptions(props.iou.participants, props.personalDetails),
         [props.iou.participants, props.personalDetails],
     );
-    
+
     useEffect(() => {
         const policyExpenseChat = _.find(participants, (participant) => participant.isPolicyExpenseChat);
         const policyID = policyExpenseChat.policyID;
@@ -83,7 +83,7 @@ function MoneyRequestConfirmPage(props) {
             Policy.openDraftWorkspaceRequest(policyID);
         }
     }, [props.report, participants]);
-        
+
     useEffect(() => {
         // ID in Onyx could change by initiating a new request in a separate browser tab or completing a request
         if (prevMoneyRequestId.current !== props.iou.id) {
