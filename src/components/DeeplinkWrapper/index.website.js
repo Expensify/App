@@ -29,9 +29,6 @@ function DeeplinkWrapper({children}) {
             return;
         }
 
-        // Match any magic link (/v/<account id>/<6 digit code>)
-        const isMagicLink = CONST.REGEX.ROUTES.VALIDATE_LOGIN.test(window.location.pathname);
-
         // If the current url path is /transition..., meaning it was opened from oldDot, during this transition period:
         // 1. The user session may not exist, because sign-in has not been completed yet.
         // 2. There may be non-idempotent operations (e.g. create a new workspace), which obviously should not be executed again in the desktop app.
@@ -40,6 +37,9 @@ function DeeplinkWrapper({children}) {
             App.beginDeepLinkRedirectAfterTransition();
             return;
         }
+
+        // Match any magic link (/v/<account id>/<6 digit code>)
+        const isMagicLink = CONST.REGEX.ROUTES.VALIDATE_LOGIN.test(window.location.pathname);
 
         App.beginDeepLinkRedirect(!isMagicLink);
     }, []);
