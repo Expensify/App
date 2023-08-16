@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {ErrorBoundary} from 'react-error-boundary';
 import BootSplash from '../../libs/BootSplash';
 import GenericErrorPage from '../../pages/ErrorPage/GenericErrorPage';
 
@@ -22,40 +23,28 @@ const defaultProps = {
  * This component captures an error in the child component tree and logs it to the server
  * It can be used to wrap the entire app as well as to wrap specific parts for more granularity
  * @see {@link https://reactjs.org/docs/error-boundaries.html#where-to-place-error-boundaries}
+ * @param {Object=} props
+ * @return {null}
  */
-class BaseErrorBoundary extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {hasError: false};
-        this.clearError = this.clearError.bind(this);
-    }
-
-    static getDerivedStateFromError() {
-        // Update state so the next render will show the fallback UI.
-        return {hasError: true};
-    }
-
-    componentDidCatch(error, errorInfo) {
-        this.props.logError(this.props.errorMessage, error, JSON.stringify(errorInfo));
-
+function BaseErrorBoundary(props) {
+    const caughtError = (error, errorInfo) => {
+        props.logError(props.errorMessage, error, JSON.stringify(errorInfo));
         // We hide the splash screen since the error might happened during app init
         BootSplash.hide();
-    }
+    };
 
-    clearError() {
-        this.setState({hasError: false});
-    }
-
-    render() {
-        if (this.state.hasError) {
-            return <GenericErrorPage onRefresh={this.clearError} />;
-        }
-
-        return this.props.children;
-    }
+    return (
+        <ErrorBoundary
+            fallback={<GenericErrorPage />}
+            onError={caughtError}
+        >
+            {props.children}
+        </ErrorBoundary>
+    );
 }
 
 BaseErrorBoundary.propTypes = propTypes;
 BaseErrorBoundary.defaultProps = defaultProps;
+BaseErrorBoundary.displayName = 'BaseErrorBoundary';
 
 export default BaseErrorBoundary;

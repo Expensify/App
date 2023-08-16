@@ -1,6 +1,6 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {View} from 'react-native';
+import {useErrorBoundary} from 'react-error-boundary';
 import Icon from '../../components/Icon';
 import defaultTheme from '../../styles/themes/default';
 import * as Expensicons from '../../components/Icon/Expensicons';
@@ -19,12 +19,12 @@ import * as StyleUtils from '../../styles/StyleUtils';
 
 const propTypes = {
     ...withLocalizePropTypes,
-
-    /** Callback to call on refresh button click */
-    onRefresh: PropTypes.func.isRequired,
 };
 
 function GenericErrorPage(props) {
+    // resetBoundary request the nearest error boundary retry the render that original failed
+    const {resetBoundary} = useErrorBoundary();
+
     return (
         <SafeAreaConsumer>
             {({paddingBottom}) => (
@@ -59,7 +59,7 @@ function GenericErrorPage(props) {
                                     <Button
                                         success
                                         medium
-                                        onPress={props.onRefresh}
+                                        onPress={resetBoundary}
                                         text={props.translate('genericErrorPage.refresh')}
                                         style={styles.mr3}
                                     />
@@ -67,7 +67,7 @@ function GenericErrorPage(props) {
                                         medium
                                         onPress={() => {
                                             Session.signOutAndRedirectToSignIn();
-                                            props.onRefresh();
+                                            resetBoundary();
                                         }}
                                         text={props.translate('initialSettingsPage.signOut')}
                                     />
