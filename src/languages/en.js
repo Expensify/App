@@ -880,6 +880,8 @@ export default {
         clearStatus: 'Clear status',
         save: 'Save',
         message: 'Message',
+        untilTomorrow: 'Until tomorrow',
+        untilTime: ({time}) => `Until ${time}`,
     },
     stepCounter: ({step, total, text}) => {
         let result = `Step ${step}`;

@@ -3746,6 +3746,11 @@ const styles = {
         height: 200,
         maxWidth: 400,
     },
+
+    userReportStatusEmoji: {
+        fontSize: variables.fontSizeNormal,
+        marginRight: 4,
+    },
 };
 
 export default styles;
