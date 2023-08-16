@@ -74,7 +74,6 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
     const {translate} = useLocalize();
 
     const waypoints = lodashGet(transaction, 'comment.waypoints', {});
-    const waypointCoordinates = _.map(waypoints, (waypoint) => [waypoint.lat, waypoint.lng]);
     const numberOfWaypoints = _.size(waypoints);
     const lastWaypointIndex = numberOfWaypoints - 1;
 
