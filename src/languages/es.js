@@ -1,6 +1,5 @@
 import CONST from '../CONST';
 import * as ReportActionsUtils from '../libs/ReportActionsUtils';
-import RegExp from '../libs/RegExp';
 
 /* eslint-disable max-len */
 export default {
@@ -882,15 +881,15 @@ export default {
         untilTomorrow: 'Hasta mañana',
         untilTime: ({time}) => {
             // Check for HH:MM AM/PM format and starts with '01:'
-            if (RegExp.TIME_STARTS_01.test(time)) {
+            if (CONST.REGEX.TIME_STARTS_01.test(time)) {
                 return `Hasta la ${time}`;
             }
             // Check for any HH:MM AM/PM format not starting with '01:'
-            if (RegExp.TIME_FORMAT.test(time)) {
+            if (CONST.REGEX.TIME_FORMAT.test(time)) {
                 return `Hasta las ${time}`;
             }
             // Check for date-time format like "06-29 11:30 AM"
-            if (RegExp.DATE_TIME_FORMAT.test(time)) {
+            if (CONST.REGEX.DATE_TIME_FORMAT.test(time)) {
                 return `Hasta el día ${time}`;
             }
             // Default case
