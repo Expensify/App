@@ -44,19 +44,14 @@ function Modal(props) {
             onModalShow={showModal}
             avoidKeyboard={false}
             coverScreen={false}
-            customBackdrop={
-                <Pressable
-                    onPress={(e) => {
-                        if (e && e.key === 'Enter') {
-                            return;
-                        }
-                        props.onClose();
-                    }}
-                    style={styles.modalBackdropWeb}
-                    accessibilityLabel="backdrop"
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.ADJUSTABLE}
-                />
-            }
+            customBackdrop={(onBackdropPress) => (
+                    <Pressable
+                        onPress={onBackdropPress}
+                        style={styles.modalBackdropWeb}
+                        accessibilityLabel="backdrop"
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.ADJUSTABLE}
+                    />
+                )}
         >
             {props.children}
         </BaseModal>

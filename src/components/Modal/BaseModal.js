@@ -66,6 +66,13 @@ class BaseModal extends PureComponent {
         }
     }
 
+    onBackdropPress(e) {
+        if (e && e.key === 'Enter') {
+            return;
+        }
+        this.props.onClose();
+    }
+
     /**
      * Hides modal
      * @param {Boolean} [callHideCallback=true] Should we call the onModalHide callback
@@ -103,10 +110,7 @@ class BaseModal extends PureComponent {
         return (
             <ReactNativeModal
                 onBackdropPress={(e) => {
-                    if (e && e.key === 'Enter') {
-                        return;
-                    }
-                    this.props.onClose();
+                    this.onBackdropPress(e);
                 }}
                 // Note: Escape key on web/desktop will trigger onBackButtonPress callback
                 // eslint-disable-next-line react/jsx-props-no-multi-spaces
@@ -126,7 +130,12 @@ class BaseModal extends PureComponent {
                 backdropOpacity={hideBackdrop ? 0 : variables.overlayOpacity}
                 backdropTransitionOutTiming={0}
                 hasBackdrop={this.props.fullscreen}
-                customBackdrop={this.props.customBackdrop}
+                customBackdrop={
+                    this.props.customBackdrop &&
+                    this.props.customBackdrop((e) => {
+                        this.onBackdropPress(e);
+                    })
+                }
                 coverScreen={!this.props.isSmallScreenWidth || this.props.coverScreen}
                 style={modalStyle}
                 deviceHeight={this.props.windowHeight}
