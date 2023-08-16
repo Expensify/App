@@ -33,7 +33,7 @@ function referTeachersUniteVolunteer(firstName, phoneOrEmail, lastName = '') {
     const reportID = CONST.TEACHER_UNITE.PUBLIC_ROOM_ID;
     const optimisticData = [
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 firstName,
