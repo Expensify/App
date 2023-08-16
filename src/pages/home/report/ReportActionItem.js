@@ -230,7 +230,7 @@ function ReportActionItem(props) {
                 ReportUtils.chatIncludesChronos(originalReport),
             );
         },
-        [props.draftMessage, props.action, props.report, toggleContextMenuFromActiveReportAction, originalReport],
+        [props.draftMessage, props.action, props.report.reportID, toggleContextMenuFromActiveReportAction, originalReport],
     );
 
     const toggleReaction = useCallback(
