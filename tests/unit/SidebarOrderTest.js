@@ -7,6 +7,7 @@ import * as LHNTestUtils from '../utils/LHNTestUtils';
 import CONST from '../../src/CONST';
 import DateUtils from '../../src/libs/DateUtils';
 import * as Localize from '../../src/libs/Localize';
+import * as Report from '../../src/libs/actions/Report';
 
 // Be sure to include the mocked Permissions and Expensicons libraries or else the beta tests won't work
 jest.mock('../../src/libs/Permissions');
@@ -109,15 +110,14 @@ describe('Sidebar', () => {
             LHNTestUtils.getDefaultRenderedSidebarLinks();
 
             // Given three unread reports in the recently updated order of 3, 2, 1
-            const report1 = {
-                ...LHNTestUtils.getFakeReport([1, 2], 3),
-            };
-            const report2 = {
-                ...LHNTestUtils.getFakeReport([3, 4], 2),
-            };
-            const report3 = {
-                ...LHNTestUtils.getFakeReport([5, 6], 1),
-            };
+            const report1 = LHNTestUtils.getFakeReport([1, 2], 3);
+            const report2 = LHNTestUtils.getFakeReport([3, 4], 2);
+            const report3 = LHNTestUtils.getFakeReport([5, 6], 1);
+
+            // Each report has at least one ADDCOMMENT action so should be rendered in the LNH
+            Report.addComment(report1.reportID, 'Hi, this is a comment');
+            Report.addComment(report2.reportID, 'Hi, this is a comment');
+            Report.addComment(report3.reportID, 'Hi, this is a comment');
 
             return (
                 waitForPromisesToResolve()
@@ -137,6 +137,7 @@ describe('Sidebar', () => {
                     .then(() => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
+
                         expect(displayNames).toHaveLength(3);
                         expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Five, Six');
                         expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Three, Four');
@@ -155,8 +156,15 @@ describe('Sidebar', () => {
             };
             const report2 = LHNTestUtils.getFakeReport([3, 4], 2);
             const report3 = LHNTestUtils.getFakeReport([5, 6], 1);
+
+            // Each report has at least one ADDCOMMENT action so should be rendered in the LNH
+            Report.addComment(report1.reportID, 'Hi, this is a comment');
+            Report.addComment(report2.reportID, 'Hi, this is a comment');
+            Report.addComment(report3.reportID, 'Hi, this is a comment');
+
             const currentReportId = report1.reportID;
             LHNTestUtils.getDefaultRenderedSidebarLinks(currentReportId);
+
             return (
                 waitForPromisesToResolve()
                     // When Onyx is updated with the data and the sidebar re-renders
@@ -194,6 +202,11 @@ describe('Sidebar', () => {
             const report1 = LHNTestUtils.getFakeReport([1, 2], 3);
             const report2 = LHNTestUtils.getFakeReport([3, 4], 2);
             const report3 = LHNTestUtils.getFakeReport([5, 6], 1);
+
+            // Each report has at least one ADDCOMMENT action so should be rendered in the LNH
+            Report.addComment(report1.reportID, 'Hi, this is a comment');
+            Report.addComment(report2.reportID, 'Hi, this is a comment');
+            Report.addComment(report3.reportID, 'Hi, this is a comment');
 
             return (
                 waitForPromisesToResolve()
@@ -239,6 +252,12 @@ describe('Sidebar', () => {
                 hasDraft: true,
             };
             const report3 = LHNTestUtils.getFakeReport([5, 6], 1);
+
+            // Each report has at least one ADDCOMMENT action so should be rendered in the LNH
+            Report.addComment(report1.reportID, 'Hi, this is a comment');
+            Report.addComment(report2.reportID, 'Hi, this is a comment');
+            Report.addComment(report3.reportID, 'Hi, this is a comment');
+
             const currentReportId = report2.reportID;
             LHNTestUtils.getDefaultRenderedSidebarLinks(currentReportId);
 
@@ -366,7 +385,7 @@ describe('Sidebar', () => {
             };
             const report3 = {
                 ...LHNTestUtils.getFakeReport([5, 6], 1),
-                hasOutstandingIOU: true,
+                hasOutstandingIOU: false,
 
                 // This has to be added after the IOU report is generated
                 iouReportID: null,
@@ -408,13 +427,12 @@ describe('Sidebar', () => {
                     .then(() => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
-                        expect(displayNames).toHaveLength(4);
+                        expect(displayNames).toHaveLength(3);
                         expect(screen.queryAllByTestId('Pin Icon')).toHaveLength(1);
                         expect(screen.queryAllByTestId('Pencil Icon')).toHaveLength(1);
                         expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('One, Two');
                         expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Email Two owes $100.00');
-                        expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Five, Six');
-                        expect(lodashGet(displayNames, [3, 'props', 'children'])).toBe('Three, Four');
+                        expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Three, Four');
                     })
             );
         });
@@ -550,6 +568,11 @@ describe('Sidebar', () => {
             const report2 = LHNTestUtils.getFakeReport([3, 4]);
             const report3 = LHNTestUtils.getFakeReport([5, 6]);
 
+            // Each report has at least one ADDCOMMENT action so should be rendered in the LNH
+            Report.addComment(report1.reportID, 'Hi, this is a comment');
+            Report.addComment(report2.reportID, 'Hi, this is a comment');
+            Report.addComment(report3.reportID, 'Hi, this is a comment');
+
             // Given the user is in all betas
             const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS, CONST.BETAS.POLICY_EXPENSE_CHAT];
             LHNTestUtils.getDefaultRenderedSidebarLinks('0');
@@ -676,21 +699,31 @@ describe('Sidebar', () => {
             // Given three IOU reports containing the same IOU amounts
             const report1 = {
                 ...LHNTestUtils.getFakeReport([1, 2]),
-                hasOutstandingIOU: true,
 
                 // This has to be added after the IOU report is generated
                 iouReportID: null,
             };
             const report2 = {
                 ...LHNTestUtils.getFakeReport([3, 4]),
-                hasOutstandingIOU: true,
 
                 // This has to be added after the IOU report is generated
                 iouReportID: null,
             };
             const report3 = {
                 ...LHNTestUtils.getFakeReport([5, 6]),
-                hasOutstandingIOU: true,
+                hasOutstandingIOU: false,
+
+                // This has to be added after the IOU report is generated
+                iouReportID: null,
+            };
+            const report4 = {
+                ...LHNTestUtils.getFakeReport([5, 6]),
+
+                // This has to be added after the IOU report is generated
+                iouReportID: null,
+            };
+            const report5 = {
+                ...LHNTestUtils.getFakeReport([5, 6]),
 
                 // This has to be added after the IOU report is generated
                 iouReportID: null,
@@ -709,7 +742,7 @@ describe('Sidebar', () => {
                 ...LHNTestUtils.getFakeReport([9, 10]),
                 type: CONST.REPORT.TYPE.IOU,
                 ownerAccountID: 2,
-                managerID: 2,
+                managerID: 3,
                 hasOutstandingIOU: true,
                 total: 10000,
                 currency: 'USD',
@@ -719,7 +752,27 @@ describe('Sidebar', () => {
                 ...LHNTestUtils.getFakeReport([11, 12]),
                 type: CONST.REPORT.TYPE.IOU,
                 ownerAccountID: 2,
-                managerID: 2,
+                managerID: 4,
+                hasOutstandingIOU: true,
+                total: 100000,
+                currency: 'USD',
+                chatReportID: report3.reportID,
+            };
+            const iouReport4 = {
+                ...LHNTestUtils.getFakeReport([11, 12]),
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: 2,
+                managerID: 5,
+                hasOutstandingIOU: true,
+                total: 10000,
+                currency: 'USD',
+                chatReportID: report3.reportID,
+            };
+            const iouReport5 = {
+                ...LHNTestUtils.getFakeReport([11, 12]),
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: 2,
+                managerID: 6,
                 hasOutstandingIOU: true,
                 total: 10000,
                 currency: 'USD',
@@ -729,6 +782,8 @@ describe('Sidebar', () => {
             report1.iouReportID = iouReport1.reportID;
             report2.iouReportID = iouReport2.reportID;
             report3.iouReportID = iouReport3.reportID;
+            report4.iouReportID = iouReport4.reportID;
+            report5.iouReportID = iouReport5.reportID;
 
             const currentlyLoggedInUserAccountID = 13;
             LHNTestUtils.getDefaultRenderedSidebarLinks('0');
@@ -744,22 +799,26 @@ describe('Sidebar', () => {
                             [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
+                            [`${ONYXKEYS.COLLECTION.REPORT}${report4.reportID}`]: report4,
+                            [`${ONYXKEYS.COLLECTION.REPORT}${report5.reportID}`]: report5,
                             [`${ONYXKEYS.COLLECTION.REPORT}${iouReport1.reportID}`]: iouReport1,
                             [`${ONYXKEYS.COLLECTION.REPORT}${iouReport2.reportID}`]: iouReport2,
                             [`${ONYXKEYS.COLLECTION.REPORT}${iouReport3.reportID}`]: iouReport3,
+                            [`${ONYXKEYS.COLLECTION.REPORT}${iouReport4.reportID}`]: iouReport4,
+                            [`${ONYXKEYS.COLLECTION.REPORT}${iouReport5.reportID}`]: iouReport5,
                         }),
                     )
 
-                    // Then the reports are ordered alphabetically since their amounts are the same
+                    // Then the reports with the same amount are ordered alphabetically
                     .then(() => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(5);
-                        expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Email Two owes $100.00');
-                        expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Email Two owes $100.00');
-                        expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Email Two owes $100.00');
-                        expect(lodashGet(displayNames, [3, 'props', 'children'])).toBe('Five, Six');
-                        expect(lodashGet(displayNames, [4, 'props', 'children'])).toBe('One, Two');
+                        expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Email Four owes $1,000.00');
+                        expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Email Five owes $100.00');
+                        expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Email Six owes $100.00');
+                        expect(lodashGet(displayNames, [3, 'props', 'children'])).toBe('Email Three owes $100.00');
+                        expect(lodashGet(displayNames, [4, 'props', 'children'])).toBe('Email Two owes $100.00');
                     })
             );
         });
@@ -779,6 +838,11 @@ describe('Sidebar', () => {
                 ...LHNTestUtils.getFakeReport([5, 6]),
                 lastVisibleActionCreated,
             };
+
+            // Each report has at least one ADDCOMMENT action so should be rendered in the LNH
+            Report.addComment(report1.reportID, 'Hi, this is a comment');
+            Report.addComment(report2.reportID, 'Hi, this is a comment');
+            Report.addComment(report3.reportID, 'Hi, this is a comment');
 
             LHNTestUtils.getDefaultRenderedSidebarLinks('0');
             return (
