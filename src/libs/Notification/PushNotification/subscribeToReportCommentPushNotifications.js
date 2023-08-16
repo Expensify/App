@@ -4,6 +4,7 @@ import ROUTES from '../../../ROUTES';
 import Log from '../../Log';
 import Navigation from '../../Navigation/Navigation';
 import Visibility from '../../Visibility';
+import backgroundRefresh from './backgroundRefresh';
 
 /**
  * Setup reportComment push notification callbacks.
@@ -12,6 +13,7 @@ export default function subscribeToReportCommentPushNotifications() {
     PushNotification.onReceived(PushNotification.TYPE.REPORT_COMMENT, ({reportID, reportActionID, onyxData}) => {
         Log.info(`[PushNotification] received report comment notification in the ${Visibility.isVisible() ? 'foreground' : 'background'}`, false, {reportID, reportActionID});
         Onyx.update(onyxData);
+        backgroundRefresh();
     });
 
     // Open correct report when push notification is clicked

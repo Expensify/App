@@ -379,6 +379,8 @@ export default {
         pay: 'Pagar',
         viewDetails: 'Ver detalles',
         pending: 'Pendiente',
+        deleteRequest: 'Eliminar pedido',
+        deleteConfirmation: '¿Estás seguro de que quieres eliminar este pedido?',
         settledExpensify: 'Pagado',
         settledElsewhere: 'Pagado de otra forma',
         settledPaypalMe: 'Pagado con PayPal.me',
@@ -408,6 +410,7 @@ export default {
             other: 'Error inesperado, por favor inténtalo más tarde',
             genericCreateFailureMessage: 'Error inesperado solicitando dinero, Por favor, inténtalo más tarde',
             genericDeleteFailureMessage: 'Error inesperado eliminando la solicitud de dinero. Por favor, inténtalo más tarde',
+            genericEditFailureMessage: 'Error inesperado al guardar la solicitud de dinero. Por favor, inténtalo más tarde',
         },
     },
     notificationPreferencesPage: {
@@ -867,6 +870,15 @@ export default {
         passwordNotSet: 'No se pudo cambiar tu clave. Te hemos enviado un nuevo enlace para que intentes cambiar la clave nuevamente.',
         setPasswordLinkInvalid: 'El enlace para configurar tu contraseña ha expirado. Te hemos enviado un nuevo enlace a tu correo.',
         validateAccount: 'Verificar cuenta',
+    },
+    statusPage: {
+        status: 'Estado',
+        setStatusTitle: 'Establece tu estado',
+        statusExplanation: 'Agrega un emoji para que tus colegas y amigos puedan saber fácilmente qué está pasando. ¡También puedes agregar un mensaje opcionalmente!',
+        today: 'Hoy',
+        clearStatus: 'Borrar estado',
+        save: 'Guardar',
+        message: 'Mensaje',
     },
     stepCounter: ({step, total, text}) => {
         let result = `Paso ${step}`;
@@ -2037,6 +2049,14 @@ export default {
         levelOneResult: 'Envia una advertencia anónima y el mensaje es reportado para revisión.',
         levelTwoResult: 'Mensaje ocultado del canal, más advertencia anónima y mensaje reportado para revisión.',
         levelThreeResult: 'Mensaje eliminado del canal, más advertencia anónima y mensaje reportado para revisión.',
+    },
+    distance: {
+        addStop: 'Agregar parada',
+        waypointDescription: {
+            start: 'Comienzo',
+            finish: 'Final',
+            stop: 'Parada',
+        },
     },
     countrySelectorModal: {
         placeholderText: 'Buscar para ver opciones',
