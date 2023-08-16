@@ -75,7 +75,6 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
     const textInput = useRef(null);
     const currentWaypoint = lodashGet(transaction, `comment.waypoints.waypoint${waypointIndex}`, {});
     const waypointAddress = lodashGet(currentWaypoint, 'address', '');
-    console.log('Current waypoint address', waypointAddress, waypointIndex);
 
     const validate = (values) => {
         const errors = {};
@@ -84,7 +83,8 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
             errors[`waypoint${waypointIndex}`] = 'bankAccount.error.address';
         }
 
-        // Require the user to select a suggested address if they are online
+        // If the user is online and they are trying to save a value without using the autocomplete, show an error message instructing them to use a selected address instead.
+        // That enables us to save the address with coordinates when it is selected
         if (!network.isOffline && waypointValue !== '') {
             errors[`waypoint${waypointIndex}`] = 'distance.errors.selectSuggestedAddress';
         }
