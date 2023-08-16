@@ -516,7 +516,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
             },
         },
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${groupTransaction.transactionID}`,
             value: groupTransaction,
         },
