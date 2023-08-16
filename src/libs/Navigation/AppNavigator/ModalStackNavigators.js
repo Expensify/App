@@ -531,6 +531,13 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
+            const SettingsStatusClearAfter = require('../../../pages/settings/Profile/CustomStatus/StatusClearAfterPage').default;
+            return SettingsStatusClearAfter;
+        },
+        name: 'Settings_Status_Clear_After',
+    },
+    {
+        getComponent: () => {
             const WorkspaceInitialPage = require('../../../pages/workspace/WorkspaceInitialPage').default;
             return WorkspaceInitialPage;
         },

@@ -225,6 +225,7 @@ export default {
         SETTINGS_STATUS_SET_FORM: 'settingsStatusSetForm',
         SETTINGS_STATUS_CLEAR_AFTER_FORM: 'settingsStatusClearAfterForm',
         SETTINGS_STATUS_SET_CLEAR_AFTER_FORM: 'settingsStatusSetClearAfterForm',
+        SETTINGS_STATUS_CLEAR_DATE_FORM: 'settingsStatusClearDateForm',
     },
 
     // Whether we should show the compose input or not
