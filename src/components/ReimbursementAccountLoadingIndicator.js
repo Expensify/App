@@ -36,7 +36,7 @@ function ReimbursementAccountLoadingIndicator(props) {
                 {props.isSubmittingVerificationsData ? (
                     <View style={[styles.pageWrapper]}>
                         <Lottie
-                            source={LottieAnimations.ReviewingBankInfoAnimation}
+                            source={LottieAnimations.ReviewingBankInfo}
                             autoPlay
                             loop
                             style={styles.loadingVBAAnimation}
