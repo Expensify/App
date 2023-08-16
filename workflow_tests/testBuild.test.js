@@ -232,7 +232,7 @@ describe('test workflow testBuild', () => {
                     web: mocks.TESTBUILD__WEB__STEP_MOCKS,
                     postGithubComment: mocks.TESTBUILD__POSTGITHUBCOMMENT__STEP_MOCKS,
                 };
-                testMockSteps.iOS[4] = utils.createMockStep('Install cocoapods', 'Install cocoapods', 'IOS', ['timeout_minutes', 'max_attempts', 'command'], [], {}, {}, false);
+                testMockSteps.iOS[5] = utils.createMockStep('Install cocoapods', 'Install cocoapods', 'IOS', ['timeout_minutes', 'max_attempts', 'command'], [], {}, {}, false);
                 const result = await act.runEvent(event, {
                     workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
                     mockSteps: testMockSteps,
@@ -243,7 +243,7 @@ describe('test workflow testBuild', () => {
                 assertions.assertValidateActorJobExecuted(result, '1234');
                 assertions.assertGetBranchRefJobExecuted(result);
                 assertions.assertAndroidJobExecuted(result, 'test-ref');
-                assertions.assertIOSJobExecuted(result, 'test-ref', true, 4);
+                assertions.assertIOSJobExecuted(result, 'test-ref', true, 5);
                 assertions.assertDesktopJobExecuted(result, 'test-ref');
                 assertions.assertWebJobExecuted(result, 'test-ref');
                 assertions.assertPostGithubCommentJobExecuted(result, 'test-ref', '1234', true, 'success', 'failure', 'success', 'success');
