@@ -53,7 +53,7 @@ const defaultProps = {
     policyID: '',
 };
 
-function CompanyStep ({reimbursementAccount, reimbursementAccountDraft, getDefaultStateForField, onBackButtonPress, translate, session, user, policyID}) {
+function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaultStateForField, onBackButtonPress, translate, session, user, policyID}) {
     /**
      * @param {Array} fieldNames
      *
@@ -66,7 +66,7 @@ function CompanyStep ({reimbursementAccount, reimbursementAccountDraft, getDefau
         };
     }
 
-    const defaultWebsite = useMemo(() => lodashGet(user, 'isFromPublicDomain', false) ? 'https://' : `https://www.${Str.extractEmailDomain(session.email, '')}`, [user, session]);
+    const defaultWebsite = useMemo(() => (lodashGet(user, 'isFromPublicDomain', false) ? 'https://' : `https://www.${Str.extractEmailDomain(session.email, '')}`), [user, session]);
 
     /**
      * @param {Object} values - form input values passed by the Form component
@@ -126,7 +126,7 @@ function CompanyStep ({reimbursementAccount, reimbursementAccountDraft, getDefau
         }
 
         return errors;
-    }
+    };
 
     const submit = (values) => {
         const bankAccount = {
@@ -142,7 +142,7 @@ function CompanyStep ({reimbursementAccount, reimbursementAccountDraft, getDefau
         };
 
         BankAccounts.updateCompanyInformationForBankAccount(bankAccount, policyID);
-    }
+    };
 
     const bankAccountID = lodashGet(reimbursementAccount, 'achData.bankAccountID', 0);
     const shouldDisableCompanyName = Boolean(bankAccountID && getDefaultStateForField('companyName'));
