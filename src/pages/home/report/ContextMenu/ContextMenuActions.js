@@ -175,11 +175,9 @@ export default [
         successIcon: Expensicons.Checkmark,
         shouldShow: (type, reportAction) =>
             type === CONTEXT_MENU_TYPES.REPORT_ACTION &&
-            reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU &&
             reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED &&
             reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED &&
             reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.TASKREOPENED &&
-            !ReportActionUtils.isCreatedTaskReportAction(reportAction) &&
             !ReportUtils.isReportMessageAttachment(_.last(lodashGet(reportAction, ['message'], [{}]))) &&
             !ReportActionUtils.isMessageDeleted(reportAction),
 
@@ -198,6 +196,9 @@ export default [
                     const iouReport = ReportUtils.getReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(reportAction));
                     const displayMessage = ReportUtils.getReportPreviewMessage(iouReport, reportAction);
                     Clipboard.setString(displayMessage);
+                } else if (ReportActionUtils.isModifiedExpenseAction(reportAction)) {
+                    const modifyExpenseMessage = ReportUtils.getModifiedExpenseMessage(reportAction);
+                    Clipboard.setString(modifyExpenseMessage);
                 } else if (content) {
                     const parser = new ExpensiMark();
                     if (!Clipboard.canSetHtml()) {
