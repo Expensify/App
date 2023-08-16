@@ -91,7 +91,6 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, polic
         return null;
     }
 
-    const transaction = TransactionUtils.getTransaction(parentReportAction.originalMessage.IOUTransactionID);
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     let receiptURIs;
     if (hasReceipt) {
