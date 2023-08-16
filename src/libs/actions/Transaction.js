@@ -1,7 +1,8 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
-import ONYXKEYS from '../../ONYXKEYS';
 import lodashGet from 'lodash/get';
+import lodashCloneDeep from 'lodash/cloneDeep';
+import ONYXKEYS from '../../ONYXKEYS';
 import * as CollectionUtils from '../CollectionUtils';
 
 const allTransactions = {};
@@ -31,7 +32,7 @@ function createInitialWaypoints(transactionID) {
 }
 
 /**
- * Add a stop which is a new waypoint at the newLastIndex
+ * Add a stop to the transaction
  *
  * @param {String} transactionID
  * @param {Number} newLastIndex
@@ -41,7 +42,7 @@ function addStop(transactionID) {
     const existingWaypoints = lodashGet(transaction, 'comment.waypoints', {});
     const totalWaypoints = _.size(existingWaypoints);
     const newLastIndex = totalWaypoints;
-    
+
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         comment: {
             waypoints: {
@@ -90,8 +91,10 @@ function removeWaypoint(transactionID, currentIndex) {
 
     // Onyx.merge won't remove the null nested object values, this is a workaround
     // to remove nested keys while also preserving other object keys
-    transaction.comment.waypoints = reIndexedWaypoints;
-    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+    // Doing a deep clone of the transaction to avoid mutating the original object and running into a cache issue when using Onyx.set
+    const newTransaction = lodashCloneDeep(transaction);
+    newTransaction.comment.waypoints = reIndexedWaypoints;
+    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, newTransaction);
 }
 
 export {addStop, createInitialWaypoints, saveWaypoint, removeWaypoint};

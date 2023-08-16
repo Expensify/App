@@ -38,9 +38,8 @@ function WaypointEditorPage({transactionID, route}) {
             transactionID={transactionID}
             route={route}
         />
-    )
+    );
 }
-
 
 WaypointEditorPage.displayName = 'WaypointEditorPage';
 WaypointEditorPage.propTypes = propTypes;
