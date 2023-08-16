@@ -187,8 +187,9 @@ function BaseTextInput(props) {
 
     // Activate or deactivate the label when the focus changes:
     useEffect(() => {
-        // We update label after interaction on initial render.
-        // This also avoids a bug where we immediately clear server errors when the loading indicator unmounts and Form remounts with server errors.
+        // We can't use inputValue here directly, as it might contain
+        // the defaultValue, which doesn't get updated when the text changes.
+        // We can't use props.value either, as it might be undefined.
         InteractionManager.runAfterInteractions(() => {
             if (hasValueRef.current || isFocused || isInputAutoFilled(input.current)) {
                 activateLabel();
