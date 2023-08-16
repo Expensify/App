@@ -105,7 +105,7 @@ function MoneyRequestAction(props) {
                     comment: props.action.originalMessage.comment,
                 }),
                 '',
-                CONST.POLICY.OWNER_EMAIL_FAKE,
+                lodashGet(props.iouReport, 'policyID', CONST.POLICY.OWNER_EMAIL_FAKE),
                 CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
                 false,
                 '',
