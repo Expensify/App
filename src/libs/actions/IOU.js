@@ -326,8 +326,9 @@ function buildOnyxDataForMoneyRequest(
  * @returns {Object} data.onyxData.optimisticData
  * @returns {Object} data.onyxData.successData
  * @returns {Object} data.onyxData.failureData
+ * @param {String} [existingTransactionID]
  */
-function getMoneyRequestInformation(report, participant, comment, amount, currency, payeeAccountID, payeeEmail, receipt = undefined) {
+function getMoneyRequestInformation(report, participant, comment, amount, currency, payeeAccountID, payeeEmail, receipt = undefined, existingTransactionID = null) {
     const payerEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login);
     const payerAccountID = Number(participant.accountID);
     const isPolicyExpenseChat = participant.isPolicyExpenseChat;
@@ -377,7 +378,7 @@ function getMoneyRequestInformation(report, participant, comment, amount, curren
         receiptObject.source = receipt.source;
         receiptObject.state = CONST.IOU.RECEIPT_STATE.SCANREADY;
     }
-    const transaction = TransactionUtils.buildOptimisticTransaction(amount, currency, iouReport.reportID, comment, '', '', undefined, receiptObject);
+    const transaction = TransactionUtils.buildOptimisticTransaction(amount, currency, iouReport.reportID, comment, '', '', undefined, receiptObject, existingTransactionID);
 
     // STEP 4: Build optimistic reportActions. We need:
     // 1. CREATED action for the chatReport
@@ -462,8 +463,9 @@ function getMoneyRequestInformation(report, participant, comment, amount, curren
  * @param {String} [waypoints[].lat] optional
  * @param {String} [waypoints[].lng] optional
  * @param {String} created
+ * @param {String} [transactionID]
  */
-function createDistanceRequest(report, payeeEmail, payeeAccountID, participant, comment, waypoints, created) {
+function createDistanceRequest(report, payeeEmail, payeeAccountID, participant, comment, waypoints, created, transactionID) {
     const {payerEmail, iouReport, chatReport, transaction, iouAction, createdChatReportActionID, createdIOUReportActionID, reportPreviewAction, onyxData} = getMoneyRequestInformation(
         report,
         participant,
@@ -472,6 +474,8 @@ function createDistanceRequest(report, payeeEmail, payeeAccountID, participant, 
         'USD',
         payeeAccountID,
         payeeEmail,
+        null,
+        transactionID,
     );
 
     API.write(
