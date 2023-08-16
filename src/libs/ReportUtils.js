@@ -1840,7 +1840,7 @@ function getIOUReportActionMessage(type, total, comment, currency, paymentType =
  * @param {String} currency
  * @param {String} comment - User comment for the IOU.
  * @param {Array}  participants - An array with participants details.
- * @param {String} transactionID
+ * @param {String} [transactionID] - Not required if the IOUReportAction type is 'pay'
  * @param {String} [paymentType] - Only required if the IOUReportAction type is 'pay'. Can be oneOf(elsewhere, payPal, Expensify).
  * @param {String} [iouReportID] - Only required if the IOUReportActions type is oneOf(decline, cancel, pay). Generates a randomID as default.
  * @param {Boolean} [isSettlingUp] - Whether we are settling up an IOU.
@@ -1854,7 +1854,7 @@ function buildOptimisticIOUReportAction(
     currency,
     comment,
     participants,
-    transactionID,
+    transactionID = '',
     paymentType = '',
     iouReportID = '',
     isSettlingUp = false,
@@ -1872,13 +1872,21 @@ function buildOptimisticIOUReportAction(
         type,
     };
 
-    // We store amount, comment, currency in IOUDetails when type = pay
-    if (type === CONST.IOU.REPORT_ACTION_TYPE.PAY && isSendMoneyFlow) {
-        _.each(['amount', 'comment', 'currency'], (key) => {
-            delete originalMessage[key];
-        });
-        originalMessage.IOUDetails = {amount, comment, currency};
-        originalMessage.paymentType = paymentType;
+    if (type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
+        // In send money flow, we store amount, comment, currency in IOUDetails when type = pay
+        if (isSendMoneyFlow) {
+            _.each(['amount', 'comment', 'currency'], (key) => {
+                delete originalMessage[key];
+            });
+            originalMessage.IOUDetails = {amount, comment, currency};
+            originalMessage.paymentType = paymentType;
+        } else {
+            // In case of pay money request action, we dont store the comment
+            // and there is no single transctionID to link the action to.
+            delete originalMessage.IOUTransactionID;
+            delete originalMessage.comment;
+            originalMessage.paymentType = paymentType;
+        }
     }
 
     // IOUs of type split only exist in group DMs and those don't have an iouReport so we need to delete the IOUReportID key

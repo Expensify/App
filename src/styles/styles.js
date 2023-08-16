@@ -3697,6 +3697,11 @@ const styles = {
         ...flex.flex1,
         borderRadius: variables.componentBorderRadiusLarge,
     },
+  
+    userReportStatusEmoji: {
+        fontSize: variables.fontSizeNormal,
+        marginRight: 4,
+    },
 };
 
 export default styles;
