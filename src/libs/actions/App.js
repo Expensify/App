@@ -442,7 +442,7 @@ function beginDeepLinkRedirect(shouldAuthenticateWithCurrentAccount = true) {
  * @param {boolean} shouldAuthenticateWithCurrentAccount Optional, indicates wheather default authentication method (shortLivedAuthToken) should be used
  */
 function beginDeepLinkRedirectAfterTransition(shouldAuthenticateWithCurrentAccount = true) {
-    waitForSignOnTransitionToFinish().then(beginDeepLinkRedirect(shouldAuthenticateWithCurrentAccount));
+    waitForSignOnTransitionToFinish().then(() => beginDeepLinkRedirect(shouldAuthenticateWithCurrentAccount));
 }
 
 export {
