@@ -69,13 +69,4 @@ function isBeingScanned(receipt) {
     return receipt.state === CONST.IOU.RECEIPT_STATE.SCANREADY || receipt.state === CONST.IOU.RECEIPT_STATE.SCANNING;
 }
 
-/**
- * Returns the URL of a receipt given a filename
- * @param {String} filename
- * @returns {String}
- */
-function getURL(filename) {
-    return `${CONFIG.EXPENSIFY.EXPENSIFY_URL}receipts/${filename}`;
-}
-
-export {validateReceipt, getThumbnailAndImageURIs, getURL, isBeingScanned};
+export {validateReceipt, getThumbnailAndImageURIs, isBeingScanned};

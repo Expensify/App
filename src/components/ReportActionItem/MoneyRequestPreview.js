@@ -214,7 +214,7 @@ function MoneyRequestPreview(props) {
 
     const getDisplayAmountText = () => {
         if (isDistanceRequest) {
-            return TransactionUtils.getAmount(props.transaction);
+            return CurrencyUtils.convertToDisplayString(TransactionUtils.getAmount(props.transaction), props.transaction.currency);
         }
 
         if (isScanning) {
@@ -245,7 +245,7 @@ function MoneyRequestPreview(props) {
                         />
                     )}
 
-                    {isDistanceRequest && <ReportActionItemImages images={[ReceiptUtils.getURL(props.transaction.filename)]} />}
+                    {isDistanceRequest && <ReportActionItemImages images={[ReceiptUtils.getThumbnailAndImageURIs(props.transaction.receipt.source, props.transaction.filename)]} />}
                     <View style={styles.moneyRequestPreviewBoxText}>
                         <View style={[styles.flexRow]}>
                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>

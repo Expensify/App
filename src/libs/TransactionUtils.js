@@ -151,7 +151,9 @@ function getCreated(transaction) {
  * @returns {Boolean}
  */
 function isDistanceRequest(transaction) {
-    return transaction && transaction.type === CONST.TRANSACTION.TYPE.CUSTOM_UNIT && transaction.customUnit && transaction.customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE;
+    const type = lodashGet(transaction, 'comment.type');
+    const customUnitName = lodashGet(transaction, 'comment.customUnit.name');
+    return type === CONST.TRANSACTION.TYPE.CUSTOM_UNIT && customUnitName === CONST.CUSTOM_UNITS.NAME_DISTANCE;
 }
 
 export {buildOptimisticTransaction, hasReceipt, getUpdatedTransaction, getDescription, getAmount, getCurrency, getCreated, isDistanceRequest};
