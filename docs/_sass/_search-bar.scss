@@ -6,6 +6,8 @@ $color-appBG: $color-green-appBG;
 $color-highlightBG: $color-green-highlightBG;
 $color-highlightBG-hover: $color-green-highlightBG-hover;
 $color-accent : $color-green400;
+$color-button-background: $color-button-background;
+$color-button-hovered: $color-button-hovered;
 $color-borders: $color-green-borders;
 $color-icons: $color-green-icons;
 $color-text: $color-white;
@@ -252,11 +254,11 @@ label.search-label {
 
 /* Change the color & background of Google Search of Other Page */
 .gsc-resultsbox-visible .gsc-results .gsc-cursor-box .gsc-cursor-page {
-    background-color: $color-borders;
+    background-color: $color-button-background;
     color: $color-text;
 
     &:hover {
-        background-color: $color-highlightBG-hover;
+        background-color: $color-button-hovered;
         text-decoration: none;
     }
 }
