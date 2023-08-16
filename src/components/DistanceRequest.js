@@ -5,12 +5,9 @@ import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import MapView from 'react-native-x-maps';
-import Text from './Text';
 import ONYXKEYS from '../ONYXKEYS';
 import * as Transaction from '../libs/actions/Transaction';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import compose from '../libs/compose';
 import * as Expensicons from './Icon/Expensicons';
 import theme from '../styles/themes/default';
 import Button from './Button';
@@ -19,8 +16,9 @@ import variables from '../styles/variables';
 import LinearGradient from './LinearGradient';
 import MapboxToken from '../libs/actions/MapboxToken';
 import CONST from '../CONST';
-import Icon from './Icon';
-import networkPropTypes from './networkPropTypes';
+import BlockingView from './BlockingViews/BlockingView';
+import useNetwork from '../hooks/useNetwork';
+import useLocalize from '../hooks/useLocalize';
 
 const MAX_WAYPOINTS = 25;
 const MAX_WAYPOINTS_TO_DISPLAY = 4;
@@ -52,8 +50,6 @@ const propTypes = {
         }),
     }),
 
-    network: networkPropTypes.isRequired,
-
     /** Data about Mapbox token for calling Mapbox API */
     mapboxAccessToken: PropTypes.shape({
         /** Temporary token for Mapbox API */
@@ -62,8 +58,6 @@ const propTypes = {
         /** Time when the token will expire in ISO 8601 */
         expiration: PropTypes.string,
     }),
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -72,12 +66,16 @@ const defaultProps = {
     mapboxAccessToken: {},
 };
 
-function DistanceRequest({transactionID, transaction, translate, mapboxAccessToken, network}) {
+function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
     const [shouldShowGradient, setShouldShowGradient] = useState(false);
     const [scrollContainerHeight, setScrollContainerHeight] = useState(0);
     const [scrollContentHeight, setScrollContentHeight] = useState(0);
+    const {isOffline} = useNetwork();
+    const {translate} = useLocalize();
 
     const waypoints = lodashGet(transaction, 'comment.waypoints', {});
+    // const waypointCoordinates = _.map(waypoints, (waypoint) => [waypoint.lat, waypoint.lng]);
+    const waypointCoordinates = [CONST.SF_COORDINATES];
     const numberOfWaypoints = _.size(waypoints);
     const lastWaypointIndex = numberOfWaypoints - 1;
 
@@ -160,7 +158,7 @@ function DistanceRequest({transactionID, transaction, translate, mapboxAccessTok
                 />
             </View>
             <View style={[styles.p4, styles.flex1]}>
-                {!network.isOffline && mapboxAccessToken.token ? (
+                {!isOffline && mapboxAccessToken.token ? (
                     <MapView
                         accessToken={mapboxAccessToken.token}
                         mapPadding={50}
@@ -170,21 +168,15 @@ function DistanceRequest({transactionID, transaction, translate, mapboxAccessTok
                             zoom: DEFAULT_ZOOM_LEVEL,
                         }}
                         style={styles.mapView}
+                        markerComponent={() => <Expensicons.Location height={20} />}
+                        waypoints={waypointCoordinates}
                     />
                 ) : (
-                    <View style={styles.mapPendingView}>
-                        <Icon
-                            src={Expensicons.EmptyStateRoutePending}
-                            height={100}
-                            width={100}
-                        />
-                        <View style={[styles.mapViewPendingTextArea, styles.alignItemsCenter, styles.mt5]}>
-                            <Text style={[styles.textHeadline, styles.mb1]}>Map pending</Text>
-                            <View>
-                                <Text style={[styles.textAlignCenter]}>The map will be generated when you go back online</Text>
-                            </View>
-                        </View>
-                    </View>
+                    <BlockingView
+                        icon={Expensicons.EmptyStateRoutePending}
+                        title={translate('distance.mapPending.title')}
+                        subtitle="The map will be generated when you go back online"
+                    />
                 )}
             </View>
         </>
@@ -194,18 +186,12 @@ function DistanceRequest({transactionID, transaction, translate, mapboxAccessTok
 DistanceRequest.displayName = 'DistanceRequest';
 DistanceRequest.propTypes = propTypes;
 DistanceRequest.defaultProps = defaultProps;
-export default compose(
-    withLocalize,
-    withOnyx({
-        transaction: {
-            key: (props) => `${ONYXKEYS.COLLECTION.TRANSACTION}${props.transactionID}`,
-            selector: (transaction) => (transaction ? {transactionID: transaction.transactionID, comment: {waypoints: lodashGet(transaction, 'comment.waypoints')}} : null),
-        },
-        mapboxAccessToken: {
-            key: ONYXKEYS.MAPBOX_ACCESS_TOKEN,
-        },
-        network: {
-            key: ONYXKEYS.NETWORK,
-        },
-    }),
-)(DistanceRequest);
+export default withOnyx({
+    transaction: {
+        key: (props) => `${ONYXKEYS.COLLECTION.TRANSACTION}${props.transactionID}`,
+        selector: (transaction) => (transaction ? {transactionID: transaction.transactionID, comment: {waypoints: lodashGet(transaction, 'comment.waypoints')}} : null),
+    },
+    mapboxAccessToken: {
+        key: ONYXKEYS.MAPBOX_ACCESS_TOKEN,
+    },
+})(DistanceRequest);

@@ -3685,10 +3685,6 @@ const styles = {
         overflow: 'hidden',
     },
 
-    mapViewPendingTextArea: {
-        width: 253,
-    },
-
     mapPendingView: {
         backgroundColor: themeColors.highlightBG,
         ...flex.flex1,

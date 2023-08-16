@@ -1584,6 +1584,10 @@ export default {
             finish: 'Finish',
             stop: 'Stop',
         },
+        mapPending: {
+            title: 'Map pending',
+            subTitle: 'The map will be generated when you go back online',
+        },
     },
     countrySelectorModal: {
         placeholderText: 'Search to see options',

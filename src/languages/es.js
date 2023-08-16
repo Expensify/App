@@ -2056,6 +2056,10 @@ export default {
             finish: 'Final',
             stop: 'Parada',
         },
+        mapPending: {
+            title: 'Mapa pendiente',
+            subTitle: 'El mapa se generará cuando vuelvas a estar en línea',
+        },
     },
     countrySelectorModal: {
         placeholderText: 'Buscar para ver opciones',
