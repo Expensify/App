@@ -19,7 +19,7 @@ const propTypes = {
     /** Callback to fire when the Save button is pressed  */
     onSubmit: PropTypes.func.isRequired,
 
-    /** reportID for the "transaction thread" */
+    /** reportID for the transaction thread */
     reportID: PropTypes.string.isRequired,
 };
 
@@ -63,7 +63,6 @@ function EditRequestAmountPage({defaultAmount, defaultCurrency, onSubmit, report
             />
             <MoneyRequestAmountForm
                 isEditing
-                disableCurrency
                 currency={defaultCurrency}
                 amount={defaultAmount}
                 ref={(e) => (textInput.current = e)}
