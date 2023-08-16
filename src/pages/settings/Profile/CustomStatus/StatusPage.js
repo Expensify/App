@@ -20,6 +20,7 @@ import styles from '../../../../styles/styles';
 import compose from '../../../../libs/compose';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import ROUTES from '../../../../ROUTES';
+import DateUtils from '../../../../libs/DateUtils';
 
 const propTypes = {
     ...withCurrentUserPersonalDetailsPropTypes,
@@ -31,16 +32,20 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
     const currentUserStatusText = lodashGet(currentUserPersonalDetails, 'status.text', '');
     const draftEmojiCode = lodashGet(draftStatus, 'emojiCode');
     const draftText = lodashGet(draftStatus, 'text');
+    const draftClearAfter = lodashGet(draftStatus, 'clearAfter');
 
     const defaultEmoji = draftEmojiCode || currentUserEmojiCode;
     const defaultText = draftEmojiCode ? draftText : currentUserStatusText;
     const customStatus = draftEmojiCode ? `${draftEmojiCode} ${draftText}` : `${currentUserEmojiCode || ''} ${currentUserStatusText || ''}`;
+    
     const hasDraftStatus = !!draftEmojiCode || !!draftText;
+    const formattedClearAfter = DateUtils.formatDateTo12Hour(lodashGet(currentUserPersonalDetails, 'status.clearAfter', ''));
+    const formattedClearAfterDraft = DateUtils.formatDateTo12Hour(draftClearAfter);
+    const customClearAfter = draftClearAfter ? formattedClearAfterDraft : formattedClearAfter ||'';
 
     const updateStatus = useCallback(() => {
-        const endOfDay = moment().endOf('day').toDate();
-        User.updateCustomStatus({text: defaultText, emojiCode: defaultEmoji, clearAfter: endOfDay.toISOString()});
-
+        const endOfDay = moment().endOf('day').format('YYYY-MM-DD HH:mm:ss');
+        User.updateCustomStatus({text: defaultText, emojiCode: defaultEmoji, clearAfter: endOfDay});
         User.clearDraftCustomStatus();
         Navigation.goBack(ROUTES.SETTINGS_PROFILE);
     }, [defaultText, defaultEmoji]);
@@ -82,6 +87,12 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
                 shouldShowRightIcon
                 inputID="test"
                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS_SET)}
+            />
+            <MenuItemWithTopDescription
+                title={customClearAfter}
+                description="Clear after"
+                shouldShowRightIcon
+                onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS_CLEAR_AFTER)}
             />
 
             {(!!currentUserEmojiCode || !!currentUserStatusText) && (

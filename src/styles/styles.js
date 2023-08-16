@@ -3642,7 +3642,17 @@ const styles = {
     willChangeTransform: {
         willChange: 'transform',
     },
-
+    statusClearAfter: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        width: '100%',
+        paddingHorizontal: 20,
+    },
+    statusClearAfterContent: {
+        borderBottomWidth: 1,
+        borderColor: themeColors.border,
+        paddingVertical: 12,
+    },
     emojiPickerButtonDropdown: {
         justifyContent: 'center',
         backgroundColor: themeColors.activeComponentBG,
