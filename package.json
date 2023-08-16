@@ -144,7 +144,7 @@
     "react-native-web-linear-gradient": "^1.1.2",
     "react-native-web-lottie": "^1.4.4",
     "react-native-webview": "^11.17.2",
-    "react-native-x-maps": "1.0.6",
+    "react-native-x-maps": "github:Expensify/react-native-x-maps#hayata-test-new-version",
     "react-pdf": "^6.2.2",
     "react-plaid-link": "3.3.2",
     "react-web-config": "^1.0.0",

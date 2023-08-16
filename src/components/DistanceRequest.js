@@ -20,6 +20,17 @@ import BlockingView from './BlockingViews/BlockingView';
 import useNetwork from '../hooks/useNetwork';
 import useLocalize from '../hooks/useLocalize';
 
+const waypointsData = [
+    {
+        coordinate: [0, 37],
+        markerComponent: () => <Expensicons.Location />,
+    },
+    {
+        coordinate: [0, 38],
+        markerComponent: () => <Expensicons.DotIndicator />,
+    },
+];
+
 const MAX_WAYPOINTS = 25;
 const MAX_WAYPOINTS_TO_DISPLAY = 4;
 
@@ -167,6 +178,7 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
                             zoom: DEFAULT_ZOOM_LEVEL,
                         }}
                         style={styles.mapView}
+                        waypoints={waypointsData}
                     />
                 ) : (
                     <View style={[styles.mapPendingView]}>
