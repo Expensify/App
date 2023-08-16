@@ -45,11 +45,14 @@ const propTypes = {
         twoFactorAuthCode: PropTypes.string,
         validateCode: PropTypes.string,
     }),
+
+    customHeader: PropTypes.string,
 };
 
 const defaultProps = {
     account: {},
     credentials: {},
+    customHeader: '',
 };
 
 /**
@@ -77,7 +80,7 @@ function getRenderOptions({hasLogin, hasValidateCode, hasAccount, isPrimaryLogin
     };
 }
 
-function SignInPage({credentials, account}) {
+function SignInPage({credentials, account, customHeader}) {
     const {translate, formatPhoneNumber} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
     const safeAreaInsets = useSafeAreaInsets();
@@ -100,8 +103,9 @@ function SignInPage({credentials, account}) {
 
     let welcomeHeader = '';
     let welcomeText = '';
+    const headerText = customHeader || translate('login.hero.header');
     if (shouldShowLoginForm) {
-        welcomeHeader = isSmallScreenWidth ? translate('login.hero.header') : translate('welcomeText.getStarted');
+        welcomeHeader = isSmallScreenWidth ? headerText : translate('welcomeText.getStarted');
         welcomeText = isSmallScreenWidth ? translate('welcomeText.getStarted') : '';
     } else if (shouldShowValidateCodeForm) {
         if (account.requiresTwoFactorAuth) {
@@ -126,7 +130,7 @@ function SignInPage({credentials, account}) {
             }
         }
     } else if (shouldShowUnlinkLoginForm || shouldShowEmailDeliveryFailurePage) {
-        welcomeHeader = isSmallScreenWidth ? translate('login.hero.header') : translate('welcomeText.welcomeBack');
+        welcomeHeader = isSmallScreenWidth ? headerText : translate('welcomeText.welcomeBack');
 
         // Don't show any welcome text if we're showing the user the email delivery failed view
         if (shouldShowEmailDeliveryFailurePage) {

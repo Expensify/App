@@ -14,6 +14,7 @@ export default {
             [SCREENS.TRANSITION_BETWEEN_APPS]: ROUTES.TRANSITION_BETWEEN_APPS,
             Concierge: ROUTES.CONCIERGE,
             [SCREENS.REPORT_ATTACHMENTS]: ROUTES.REPORT_ATTACHMENTS,
+            SaaStrHome: ROUTES.SAASTR_HOME,
 
             // Sidebar
             [SCREENS.HOME]: {
