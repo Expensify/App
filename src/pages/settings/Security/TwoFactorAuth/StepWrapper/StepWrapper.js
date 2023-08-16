@@ -7,13 +7,21 @@ import StepWrapperPropTypes from './StepWrapperPropTypes';
 import AnimatedStep from '../../../../../components/AnimatedStep';
 import styles from '../../../../../styles/styles';
 
-function StepWrapper({title = '', stepCounter = null, onBackButtonPress = TwoFactorAuthActions.quitAndNavigateBackToSettings, children = null, onEntryTransitionEnd}) {
+function StepWrapper({
+    title = '',
+    stepCounter = null,
+    onBackButtonPress = TwoFactorAuthActions.quitAndNavigateBackToSettings,
+    children = null,
+    shouldEnableKeyboardAvoidingView = true,
+    onEntryTransitionEnd,
+}) {
     const shouldShowStepCounter = Boolean(stepCounter);
 
     return (
         <ScreenWrapper
             shouldShowOfflineIndicator={false}
             onEntryTransitionEnd={onEntryTransitionEnd}
+            shouldEnableKeyboardAvoidingView={shouldEnableKeyboardAvoidingView}
         >
             <AnimatedStep style={styles.flex1}>
                 <HeaderWithBackButton

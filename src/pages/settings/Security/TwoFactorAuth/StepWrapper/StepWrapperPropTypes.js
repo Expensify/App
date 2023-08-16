@@ -22,4 +22,7 @@ export default {
 
     /** Children components */
     children: PropTypes.node,
+
+    /** Flag to indicate if the keyboard avoiding view should be enabled */
+    shouldEnableKeyboardAvoidingView: PropTypes.bool,
 };

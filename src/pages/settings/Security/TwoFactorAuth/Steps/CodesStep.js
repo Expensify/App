@@ -40,6 +40,7 @@ function CodesStep({account = defaultAccount}) {
     return (
         <StepWrapper
             title={translate('twoFactorAuth.headerTitle')}
+            shouldEnableKeyboardAvoidingView={false}
             stepCounter={{
                 step: 1,
                 text: translate('twoFactorAuth.stepCodes'),
