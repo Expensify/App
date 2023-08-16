@@ -18,15 +18,20 @@ const propTypes = {
 
     /** Callback to fire when the item is pressed */
     onSelectRow: PropTypes.func,
+
+    /** Whether to disable the isFocused style */
+    disableIsFocusStyle: PropTypes.bool,
 };
 
 const defaultProps = {
     item: {},
     isFocused: false,
     onSelectRow: () => {},
+    disableIsFocusStyle: false,
 };
 
 function RadioListItem(props) {
+  const isFocused = !props.disableIsFocusStyle && props.isFocused
     return (
         <PressableWithFeedback
             onPress={() => props.onSelectRow(props.item)}
@@ -36,14 +41,14 @@ function RadioListItem(props) {
             hoverStyle={styles.hoveredComponentBG}
             focusStyle={styles.hoveredComponentBG}
         >
-            <View style={[styles.flex1, styles.justifyContentBetween, styles.sidebarLinkInner, styles.optionRow, props.isFocused && styles.sidebarLinkActive]}>
+            <View style={[styles.flex1, styles.justifyContentBetween, styles.sidebarLinkInner, styles.optionRow, isFocused && styles.sidebarLinkActive]}>
                 <View style={[styles.flex1, styles.alignItemsStart]}>
-                    <Text style={[styles.optionDisplayName, props.isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText, props.item.isSelected && styles.sidebarLinkTextBold]}>
+                    <Text style={[styles.optionDisplayName, isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText, props.item.isSelected && styles.sidebarLinkTextBold]}>
                         {props.item.text}
                     </Text>
 
                     {Boolean(props.item.alternateText) && (
-                        <Text style={[props.isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting]}>
+                        <Text style={[isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting]}>
                             {props.item.alternateText}
                         </Text>
                     )}

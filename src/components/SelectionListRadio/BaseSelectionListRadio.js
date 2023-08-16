@@ -165,6 +165,7 @@ function BaseSelectionListRadio(props) {
                 item={item}
                 isFocused={isFocused}
                 onSelectRow={props.onSelectRow}
+                disableIsFocusStyle={props.disableInitialFocusOptionStyle}
             />
         );
     };
