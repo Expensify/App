@@ -162,7 +162,7 @@ export default {
     // The user's credit cards (renamed from cardList)
     FUND_LIST: 'fundList',
 
-    // The user's expensify cards
+    // The user's Expensify cards
     CORPORATE_CARD_LIST: 'corporateCardList',
 
     // Stores information about the user's saved statements
