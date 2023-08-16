@@ -131,7 +131,8 @@ function ReportActionItem(props) {
     const textInputRef = useRef();
     const popoverAnchorRef = useRef();
     const downloadedPreviews = useRef([]);
-    const originalReport = ReportUtils.getReport(ReportUtils.getOriginalReportID(props.report.reportID, props.action));
+    const originalReportID = ReportUtils.getOriginalReportID(props.report.reportID, props.action);
+    const originalReport = props.report.reportID === originalReportID ? props.report : ReportUtils.getReport(originalReportID);
 
     useEffect(
         () => () => {
