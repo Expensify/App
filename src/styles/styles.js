@@ -3708,7 +3708,7 @@ const styles = {
 
     reportActionItemImagesMore: {
         position: 'absolute',
-        borderRadius: '50%',
+        borderRadius: 18,
         backgroundColor: themeColors.cardBG,
         width: 36,
         height: 36,

@@ -1924,6 +1924,7 @@ function buildOptimisticIOUReportAction(
         created: DateUtils.getDBTime(),
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         receipt,
+        whisperedToAccountIDs: !_.isEmpty(receipt) ? [currentUserAccountID] : [],
     };
 }
 
@@ -1959,7 +1960,7 @@ function buildOptimisticReportPreview(chatReport, iouReport, comment = '', trans
         created: DateUtils.getDBTime(),
         accountID: iouReport.managerID || 0,
         // The preview is initially whispered if created with a receipt, so the actor is the current user as well
-        actorAccountID: hasReceipt ? currentUserAccountID : iouReport.managerID || 0,
+        actorAccountID: hasReceipt ? currentUserAccountID : (iouReport.managerID || 0),
         childMoneyRequestCount: 1,
         childLastMoneyRequestComment: comment,
         childLastReceiptTransactionIDs: hasReceipt ? transaction.transactionID : '',

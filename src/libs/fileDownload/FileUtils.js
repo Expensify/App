@@ -154,6 +154,7 @@ const readFileAsync = (path, fileName) =>
             .then((blob) => {
                 const file = new File([blob], cleanFileName(fileName));
                 file.source = path;
+                file.uri = path;
                 resolve(file);
             })
             .catch((e) => {
