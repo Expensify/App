@@ -3744,6 +3744,7 @@ const styles = {
         borderColor: themeColors.cardBG,
         borderRadius: variables.componentBorderRadiusLarge,
         height: 200,
+        maxWidth: 400,
     },
 };
 
