@@ -58,7 +58,7 @@ function ReportFooter(props) {
     const isAnonymousUser = Session.isAnonymousUser();
 
     const isSmallSizeLayout = props.windowWidth - (props.isSmallScreenWidth ? 0 : variables.sideBarWidth) < variables.anonymousReportFooterBreakpoint;
-    const hideComposer = ReportUtils.shouldHideComposer(props.report);
+    const hideComposer = ReportUtils.shouldDisableWriteActions(props.report);
 
     return (
         <>
