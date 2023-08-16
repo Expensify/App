@@ -18,7 +18,7 @@ const test = () => {
         console.debug('[E2E] Logged in, getting search metrics and submitting them…');
 
         Performance.subscribeToMeasurements((entry) => {
-            console.debug(`[E2E] Entry: ${entry}`);
+            console.debug(`[E2E] Entry: ${JSON.stringify(entry)}`);
             if (entry.name !== CONST.TIMING.SEARCH_RENDER) {
                 return;
             }
