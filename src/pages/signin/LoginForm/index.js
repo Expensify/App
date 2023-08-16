@@ -7,7 +7,7 @@ const propTypes = {
     scrollPageToTop: PropTypes.func,
 };
 const defaultProps = {
-    scrollPageToTop: () => {},
+    scrollPageToTop: undefined,
 };
 
 function LoginForm(props) {
