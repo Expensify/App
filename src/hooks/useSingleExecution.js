@@ -6,13 +6,16 @@ import {useCallback, useState} from 'react';
  *
  * @returns {Object}
  */
-export default function useSingleExecution() {
+function useSingleExecution() {
     const [isExecuting, setIsExecuting] = useState(false);
+    const isExecutingRef = useRef();
+
+    isExecutingRef.current = isExecuting;
 
     const singleExecution = useCallback(
         (action) =>
             (...params) => {
-                if (isExecuting) {
+                if (isExecutingRef.current) {
                     return;
                 }
 
@@ -29,7 +32,7 @@ export default function useSingleExecution() {
                     });
                 });
             },
-        [isExecuting],
+        [],
     );
 
     return {isExecuting, singleExecution};
