@@ -77,7 +77,7 @@ jobs:
 
       - name: Upload Android version to Browser Stack
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@./android/app/build/outputs/bundle/release/app-release.aab"
+        run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@./android/app/build/outputs/bundle/productionRelease/app-production-release.aab"
         env:
           BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
 
