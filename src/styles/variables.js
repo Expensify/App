@@ -150,4 +150,6 @@ export default {
     hoverDimValue: 1,
     pressDimValue: 0.8,
     qrShareHorizontalPadding: 32,
+
+    baseMenuItemHeight: 64,
 };

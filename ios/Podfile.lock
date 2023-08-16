@@ -21,6 +21,8 @@ PODS:
     - Airship/MessageCenter (= 16.11.3)
     - Airship/PreferenceCenter (= 16.11.3)
   - boost (1.76.0)
+  - BVLinearGradient (2.8.1):
+    - React-Core
   - CocoaAsyncSocket (7.6.5)
   - DoubleConversion (1.1.6)
   - FBLazyVector (0.72.3)
@@ -793,6 +795,7 @@ PODS:
 
 DEPENDENCIES:
   - boost (from `../node_modules/react-native/third-party-podspecs/boost.podspec`)
+  - BVLinearGradient (from `../node_modules/react-native-linear-gradient`)
   - DoubleConversion (from `../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec`)
   - FBLazyVector (from `../node_modules/react-native/Libraries/FBLazyVector`)
   - FBReactNativeSpec (from `../node_modules/react-native/React/FBReactNativeSpec`)
@@ -943,6 +946,8 @@ SPEC REPOS:
 EXTERNAL SOURCES:
   boost:
     :podspec: "../node_modules/react-native/third-party-podspecs/boost.podspec"
+  BVLinearGradient:
+    :path: "../node_modules/react-native-linear-gradient"
   DoubleConversion:
     :podspec: "../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec"
   FBLazyVector:
@@ -1115,6 +1120,7 @@ SPEC CHECKSUMS:
   Airship: c70eed50e429f97f5adb285423c7291fb7a032ae
   AirshipFrameworkProxy: 7bc4130c668c6c98e2d4c60fe4c9eb61a999be99
   boost: 57d2868c099736d80fcd648bf211b4431e51a558
+  BVLinearGradient: 421743791a59d259aec53f4c58793aad031da2ca
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
   DoubleConversion: 5189b271737e1565bdce30deb4a08d647e3f5f54
   FBLazyVector: 4cce221dd782d3ff7c4172167bba09d58af67ccb
@@ -1233,6 +1239,6 @@ SPEC CHECKSUMS:
   Yoga: 8796b55dba14d7004f980b54bcc9833ee45b28ce
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
-PODFILE CHECKSUM: bc8161c6bfffeec6e6eaf84be18de5041ddcacf6
+PODFILE CHECKSUM: ff7c8276619cfa428c00b8439045ffd134df7eb8
 
 COCOAPODS: 1.12.1

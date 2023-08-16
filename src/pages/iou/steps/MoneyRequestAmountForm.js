@@ -32,6 +32,9 @@ const propTypes = {
 
     /** Fired when submit button pressed, saves the given amount and navigates to the next page */
     onSubmitButtonPress: PropTypes.func.isRequired,
+
+    /** Flag to indicate if the button should be disabled */
+    disableCurrency: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -39,6 +42,7 @@ const defaultProps = {
     currency: CONST.CURRENCY.USD,
     forwardedRef: null,
     isEditing: false,
+    disableCurrency: false,
 };
 
 /**
@@ -60,8 +64,8 @@ const AMOUNT_VIEW_ID = 'amountView';
 const NUM_PAD_CONTAINER_VIEW_ID = 'numPadContainerView';
 const NUM_PAD_VIEW_ID = 'numPadView';
 
-function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCurrencyButtonPress, onSubmitButtonPress}) {
-    const {translate, toLocaleDigit, fromLocaleDigit, numberFormat} = useLocalize();
+function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCurrencyButtonPress, onSubmitButtonPress, disableCurrency}) {
+    const {translate, toLocaleDigit, numberFormat} = useLocalize();
 
     const textInput = useRef(null);
 
@@ -97,32 +101,22 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
         }
     };
 
-    /**
-     * Convert amount to whole unit and update selection
-     *
-     * @param {String} currencyCode
-     * @param {Number} amountInCurrencyUnits
-     */
-    const saveAmountToState = (currencyCode, amountInCurrencyUnits) => {
-        if (!currencyCode || !amountInCurrencyUnits) {
+    useEffect(() => {
+        if (!currency || !amount) {
             return;
         }
-        const amountAsStringForState = CurrencyUtils.convertToWholeUnit(currencyCode, amountInCurrencyUnits).toString();
+        const amountAsStringForState = CurrencyUtils.convertToWholeUnit(currency, amount).toString();
         setCurrentAmount(amountAsStringForState);
         setSelection({
             start: amountAsStringForState.length,
             end: amountAsStringForState.length,
         });
-    };
-
-    useEffect(() => {
-        saveAmountToState(currency, amount);
         // we want to update the state only when the amount is changed
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [amount]);
 
     /**
-     * Sets the state according to amount that is passed
+     * Sets the selection and the amount accordingly to the value passed to the input
      * @param {String} newAmount - Changed amount from user input
      */
     const setNewAmount = (newAmount) => {
@@ -132,10 +126,11 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
         // Use a shallow copy of selection to trigger setSelection
         // More info: https://github.com/Expensify/App/issues/16385
         if (!MoneyRequestUtils.validateAmount(newAmountWithoutSpaces)) {
-            setCurrentAmount((prevAmount) => prevAmount);
             setSelection((prevSelection) => ({...prevSelection}));
             return;
         }
+        setIsInvalidAmount(checkAmount(newAmountWithoutSpaces));
+        setFormError('');
         setCurrentAmount((prevAmount) => {
             setSelection((prevSelection) => getNewSelection(prevSelection, prevAmount.length, newAmountWithoutSpaces.length));
             return MoneyRequestUtils.stripCommaFromAmount(newAmountWithoutSpaces);
@@ -163,8 +158,6 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
                 return;
             }
             const newAmount = MoneyRequestUtils.addLeadingZero(`${currentAmount.substring(0, selection.start)}${key}${currentAmount.substring(selection.end)}`);
-            setIsInvalidAmount(checkAmount(newAmount));
-            setFormError('');
             setNewAmount(newAmount);
         },
         [currentAmount, selection, shouldUpdateSelection],
@@ -183,21 +176,7 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
     }, []);
 
     /**
-     * Update amount on amount change
-     * Validate new amount with decimal number regex up to 6 digits and 2 decimal digit
-     *
-     * @param {String} text - Changed text from user input
-     */
-    const updateAmount = (text) => {
-        const newAmount = MoneyRequestUtils.addLeadingZero(MoneyRequestUtils.replaceAllDigits(text, fromLocaleDigit));
-        setIsInvalidAmount(checkAmount(newAmount));
-        setFormError('');
-        setNewAmount(newAmount);
-    };
-
-    /**
      * Submit amount and navigate to a proper page
-     *
      */
     const submitAndNavigateToNextPage = useCallback(() => {
         if (isInvaidAmount) {
@@ -219,7 +198,7 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
             >
                 <TextInputWithCurrencySymbol
                     formattedAmount={formattedAmount}
-                    onChangeAmount={updateAmount}
+                    onChangeAmount={setNewAmount}
                     onCurrencyButtonPress={onCurrencyButtonPress}
                     placeholder={numberFormat(0)}
                     ref={(ref) => {
@@ -239,6 +218,7 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
                         }
                         setSelection(e.nativeEvent.selection);
                     }}
+                    disabled={disableCurrency}
                 />
             </View>
             <View
@@ -254,7 +234,7 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
                     />
                 ) : null}
                 <View style={[styles.w100, styles.mt5]}>
-                    {formError && (
+                    {!_.isEmpty(formError) && (
                         <FormHelpMessage
                             isError
                             message={translate(formError)}

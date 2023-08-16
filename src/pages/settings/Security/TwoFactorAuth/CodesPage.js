@@ -58,7 +58,10 @@ function CodesPage(props) {
     }, []);
 
     return (
-        <ScreenWrapper shouldShowOfflineIndicator={false}>
+        <ScreenWrapper
+            shouldShowOfflineIndicator={false}
+            shouldEnableKeyboardAvoidingView={false}
+        >
             <HeaderWithBackButton
                 title={props.translate('twoFactorAuth.headerTitle')}
                 stepCounter={{
@@ -129,7 +132,7 @@ function CodesPage(props) {
                     </Section>
                 </ScrollView>
                 <FixedFooter style={[styles.mtAuto, styles.pt2]}>
-                    {error && (
+                    {!_.isEmpty(error) && (
                         <FormHelpMessage
                             isError
                             message={props.translate(error)}
