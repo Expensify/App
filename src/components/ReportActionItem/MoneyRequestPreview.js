@@ -242,8 +242,6 @@ function MoneyRequestPreview(props) {
                             hoverStyle={isScanning ? styles.moneyRequestPreviewBoxHover : undefined}
                         />
                     )}
-
-                    {isDistanceRequest && <ReportActionItemImages images={[ReceiptUtils.getThumbnailAndImageURIs(props.transaction.receipt.source, props.transaction.filename)]} />}
                     <View style={styles.moneyRequestPreviewBoxText}>
                         <View style={[styles.flexRow]}>
                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
