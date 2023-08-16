@@ -105,7 +105,6 @@ jobs:
 
       - name: Setup credentails for Mapbox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
-        shell: bash
 
       - name: Run Fastlane beta test
         id: runFastlaneBetaTest
@@ -152,7 +151,6 @@ jobs:
 
       - name: Setup credentails for Mapbox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
-        shell: bash
 
       - name: Install cocoapods
         uses: nick-invision/retry@0711ba3d7808574133d713a0d92d2941be03a350
