@@ -237,7 +237,7 @@ function IOUPreview(props) {
                         {props.isBillSplit && !_.isEmpty(participantAccountIDs) && (
                             <Text style={[styles.textLabel, styles.colorMuted, styles.ml1]}>
                                 {props.translate('iou.amountEach', {
-                                    amount: CurrencyUtils.convertToDisplayString(IOUUtils.calculateAmount(participantAccountIDs.length - 1, requestAmount), requestCurrency),
+                                    amount: CurrencyUtils.convertToDisplayString(IOUUtils.calculateAmount(participantAccountIDs.length - 1, requestAmount, requestCurrency), requestCurrency),
                                 })}
                             </Text>
                         )}

@@ -411,6 +411,7 @@ export default {
             other: 'Unexpected error, please try again later',
             genericCreateFailureMessage: 'Unexpected error requesting money, please try again later',
             genericDeleteFailureMessage: 'Unexpected error deleting the money request, please try again later',
+            genericEditFailureMessage: 'Unexpected error editing the money request, please try again later',
         },
     },
     notificationPreferencesPage: {
