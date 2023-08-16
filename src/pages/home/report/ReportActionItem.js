@@ -128,6 +128,7 @@ function ReportActionItem(props) {
     const textInputRef = useRef();
     const popoverAnchorRef = useRef();
     const downloadedPreviews = useRef([]);
+    const originalReport = ReportUtils.getReport(ReportUtils.getOriginalReportID(props.report.reportID, props.action));
 
     useEffect(
         () => () => {
@@ -204,7 +205,6 @@ function ReportActionItem(props) {
             }
 
             setIsContextMenuActive(true);
-            const originalReport = ReportUtils.getReport(ReportUtils.getOriginalReportID(props.report.reportID, props.action));
             const selection = SelectionScraper.getCurrentSelection();
             ReportActionContextMenu.showContextMenu(
                 ContextMenuActions.CONTEXT_MENU_TYPES.REPORT_ACTION,
@@ -220,7 +220,7 @@ function ReportActionItem(props) {
                 ReportUtils.chatIncludesChronos(originalReport),
             );
         },
-        [props.draftMessage, props.action, props.report, toggleContextMenuFromActiveReportAction],
+        [props.draftMessage, props.action, props.report, toggleContextMenuFromActiveReportAction, originalReport],
     );
 
     const toggleReaction = useCallback(
@@ -506,7 +506,6 @@ function ReportActionItem(props) {
     const isWhisperOnlyVisibleByUser = isWhisper && ReportUtils.isCurrentUserTheOnlyParticipant(whisperedToAccountIDs);
     const whisperedToPersonalDetails = isWhisper ? _.filter(props.personalDetailsList, (details) => _.includes(whisperedToAccountIDs, details.accountID)) : [];
     const displayNamesWithTooltips = isWhisper ? ReportUtils.getDisplayNamesWithTooltips(whisperedToPersonalDetails, isMultipleParticipant) : [];
-    const originalReport = ReportUtils.getReport(ReportUtils.getOriginalReportID(props.report.reportID, props.action));
     return (
         <PressableWithSecondaryInteraction
             pointerEvents={props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? 'none' : 'auto'}
