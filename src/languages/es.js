@@ -2076,7 +2076,7 @@ export default {
         },
         mapPending: {
             title: 'Mapa pendiente',
-            subTitle: 'El mapa se generará cuando vuelvas a estar en línea',
+            subtitle: 'El mapa se generará cuando vuelvas a estar en línea',
         },
     },
     countrySelectorModal: {
