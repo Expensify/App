@@ -152,8 +152,6 @@ function MoneyRequestPreview(props) {
     const isScanning = !ReportActionUtils.areAllRequestsBeingSmartScanned(props.action);
 
     const getSettledMessage = () => {
-        return 'test';
-
         switch (lodashGet(props.action, 'originalMessage.paymentType', '')) {
             case CONST.IOU.PAYMENT_TYPE.PAYPAL_ME:
                 return props.translate('iou.settledPaypalMe');
