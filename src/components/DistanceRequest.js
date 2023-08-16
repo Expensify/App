@@ -68,12 +68,12 @@ function DistanceRequest({transactionID, transaction, translate}) {
     const scrollContainerMaxHeight = variables.baseMenuItemHeight * MAX_WAYPOINTS_TO_DISPLAY + halfMenuItemHeight;
 
     useEffect(() => {
-        if (!transaction.transactionID || !_.isEmpty(waypoints)) {
+        if (!transactionID || !_.isEmpty(waypoints)) {
             return;
         }
         // Create the initial start and stop waypoints
-        Transaction.createInitialWaypoints(transaction.transactionID);
-    }, [transaction.transactionID, waypoints]);
+        Transaction.createInitialWaypoints(transactionID);
+    }, [transactionID, waypoints]);
 
     const updateGradientVisibility = (event = {}) => {
         // If a waypoint extends past the bottom of the visible area show the gradient, else hide it.
