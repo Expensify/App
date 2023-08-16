@@ -202,7 +202,7 @@ function WorkspaceInvitePage(props) {
 
                 return (
                     <FullPageNotFoundView
-                        shouldShow={_.isEmpty(props.policy) || !Policy.isPolicyOwner(props.policy)}
+                        shouldShow={_.isEmpty(props.policy) || !PolicyUtils.isPolicyAdmin(props.policy)}
                         subtitleKey={_.isEmpty(props.policy) ? undefined : 'workspace.common.notAuthorized'}
                         onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
                     >

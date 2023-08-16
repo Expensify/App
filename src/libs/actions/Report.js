@@ -849,6 +849,20 @@ function handleReportChanged(report) {
         return;
     }
 
+    // It is possible that we optimistically created a DM/group-DM for a set of users for which a report already exists.
+    // In this case, the API will let us know by returning a preexistingReportID.
+    // We should clear out the optimistically created report and re-route the user to the preexisting report.
+    if (report && report.reportID && report.preexistingReportID) {
+        Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, null);
+
+        // Only re-route them if they are still looking at the optimistically created report
+        if (Navigation.getActiveRoute().includes(`/r/${report.reportID}`)) {
+            // Pass 'FORCED_UP' type to replace new report on second login with proper one in the Navigation
+            Navigation.navigate(ROUTES.getReportRoute(report.preexistingReportID), CONST.NAVIGATION.TYPE.FORCED_UP);
+        }
+        return;
+    }
+
     if (report && report.reportID) {
         allReports[report.reportID] = report;
 
@@ -1720,7 +1734,7 @@ function openReportFromDeepLink(url, isAuthenticated) {
     InteractionManager.runAfterInteractions(() => {
         SidebarUtils.isSidebarLoadedReady().then(() => {
             if (reportID) {
-                Navigation.navigate(ROUTES.getReportRoute(reportID), 'UP');
+                Navigation.navigate(ROUTES.getReportRoute(reportID), CONST.NAVIGATION.TYPE.UP);
             }
             if (route === ROUTES.CONCIERGE) {
                 navigateToConciergeChat();
@@ -1774,6 +1788,10 @@ function leaveRoom(reportID) {
             ],
         },
     );
+    Navigation.dismissModal();
+    if (Navigation.getTopmostReportId() === reportID) {
+        Navigation.goBack();
+    }
     navigateToConciergeChat();
 }
 

@@ -71,6 +71,9 @@ const propTypes = {
     ...withLocalizePropTypes,
 
     ...windowDimensionsPropTypes,
+
+    /** Denotes whether it is a workspace avatar or not */
+    isWorkspaceAvatar: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -86,6 +89,7 @@ const defaultProps = {
     onModalShow: () => {},
     onModalHide: () => {},
     onCarouselAttachmentChange: () => {},
+    isWorkspaceAvatar: false,
 };
 
 function AttachmentModal(props) {
@@ -345,6 +349,7 @@ function AttachmentModal(props) {
                                 isAuthTokenRequired={isAuthTokenRequired}
                                 file={file}
                                 onToggleKeyboard={updateConfirmButtonVisibility}
+                                isWorkspaceAvatar={props.isWorkspaceAvatar}
                             />
                         )
                     )}

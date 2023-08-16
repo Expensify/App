@@ -385,6 +385,8 @@ function getLastMessageTextForReport(report) {
     } else if (ReportActionUtils.isReportPreviewAction(lastReportAction)) {
         const iouReport = ReportUtils.getReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(lastReportAction));
         lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(iouReport, lastReportAction);
+    } else if (ReportActionUtils.isModifiedExpenseAction(lastReportAction)) {
+        lastMessageTextFromReport = ReportUtils.getModifiedExpenseMessage(lastReportAction);
     } else {
         lastMessageTextFromReport = report ? report.lastMessageText || '' : '';
 
@@ -638,7 +640,7 @@ function getOptions(
     const searchValue = parsedPhoneNumber.possible ? parsedPhoneNumber.number.e164 : searchInputValue.toLowerCase();
 
     // Filter out all the reports that shouldn't be displayed
-    const filteredReports = _.filter(reports, (report) => ReportUtils.shouldReportBeInOptionList(report, Navigation.getTopmostReportId(), false, null, betas, policies));
+    const filteredReports = _.filter(reports, (report) => ReportUtils.shouldReportBeInOptionList(report, Navigation.getTopmostReportId(), false, betas, policies));
 
     // Sorting the reports works like this:
     // - Order everything by the last message timestamp (descending)
@@ -896,9 +898,10 @@ function getSearchOptions(reports, personalDetails, searchValue = '', betas) {
  * @returns {Object}
  */
 function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail, amountText) {
+    const formattedLogin = LocalePhoneNumber.formatPhoneNumber(personalDetail.login);
     return {
-        text: personalDetail.displayName ? personalDetail.displayName : personalDetail.login,
-        alternateText: personalDetail.login || personalDetail.displayName,
+        text: personalDetail.displayName || formattedLogin,
+        alternateText: formattedLogin || personalDetail.displayName,
         icons: [
             {
                 source: UserUtils.getAvatar(personalDetail.avatar, personalDetail.accountID),
