@@ -18,10 +18,12 @@ const test = () => {
         console.debug('[E2E] Logged in, getting search metrics and submitting them…');
 
         Performance.subscribeToMeasurements((entry) => {
+            console.debug(`[E2E] Entry: ${entry}`);
             if (entry.name !== CONST.TIMING.SEARCH_RENDER) {
                 return;
             }
 
+            console.debug(`[E2E] Submitting!`);
             E2EClient.submitTestResults({
                 name: 'Open Search Page TTI',
                 duration: entry.duration,
