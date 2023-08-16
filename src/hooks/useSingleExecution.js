@@ -1,12 +1,12 @@
 import {InteractionManager} from 'react-native';
-import {useCallback, useState} from 'react';
+import {useCallback, useState, useRef} from 'react';
 
 /**
  * With any action passed in, it will only allow 1 such action to occur at a time.
  *
  * @returns {Object}
  */
-function useSingleExecution() {
+export default function useSingleExecution() {
     const [isExecuting, setIsExecuting] = useState(false);
     const isExecutingRef = useRef();
 
