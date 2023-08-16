@@ -65,7 +65,7 @@ function getLocalDateFromDatetime(locale, datetime, currentSelectedTimezone = ti
     if (!datetime) {
         return utcToZonedTime(new Date(), currentSelectedTimezone);
     }
-    const parsedDatetime = new Date(`${datetime} UTC`);
+    const parsedDatetime = new Date(`${datetime}Z`);
     return utcToZonedTime(parsedDatetime, currentSelectedTimezone);
 }
 
