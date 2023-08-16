@@ -7,11 +7,15 @@ import CONST from '../../../CONST';
 
 const test = () => {
     // check for login (if already logged in the action will simply resolve)
+    console.debug('[E2E] Logging in for search');
+
     E2ELogin().then((neededLogin) => {
         if (neededLogin) {
             // we don't want to submit the first login to the results
             return E2EClient.submitTestDone();
         }
+
+        console.debug('[E2E] Logged in, getting search metrics and submitting them…');
 
         Performance.subscribeToMeasurements((entry) => {
             if (entry.name !== CONST.TIMING.SEARCH_RENDER) {
@@ -21,7 +25,14 @@ const test = () => {
             E2EClient.submitTestResults({
                 name: 'Open Search Page TTI',
                 duration: entry.duration,
-            }).then(E2EClient.submitTestDone);
+            })
+                .then(() => {
+                    console.debug('[E2E] Done with search, exiting…');
+                    E2EClient.submitTestDone();
+                })
+                .catch((err) => {
+                    console.debug('[E2E] Error while submitting test results:', err);
+                });
         });
 
         Navigation.navigate(ROUTES.SEARCH);
