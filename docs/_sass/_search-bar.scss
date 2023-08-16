@@ -203,25 +203,32 @@ label.search-label {
     font-family: "ExpensifyNeue", "Helvetica Neue", "Helvetica", Arial, sans-serif !important;
 }
 
+/* Change Font result Paragraph color */
+.gsc-results .gs-webResult:not(.gs-no-results-result):not(.gs-error-result) .gs-snippet, .gs-fileFormatType {
+    color: $color-text;
+}
+
 
 /* Change the color of the Google Search Suggestion font */
 .gs-spelling.gs-result {
     color: $color-text;
 }
 
-/* Pagination  */
+/* Pagination related style */
 .gsc-resultsbox-visible .gsc-results .gsc-cursor-box {
     text-align: center;
 }
 
 .gsc-resultsbox-visible .gsc-results .gsc-cursor-box .gsc-cursor-page {
     margin: 4px;
-    width: 30px;
-    height: 30px;
+    width: 28px;
+    height: 28px;
     border-radius: 25px;
     display: inline-block;
-    line-height: 2.2;
+    line-height: 2.5;
     background-color: $color-accent;
+    font-weight: bold;
+    font-size: 11px;
 }
 
 
