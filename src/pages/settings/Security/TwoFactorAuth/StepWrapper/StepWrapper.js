@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useRef, useState} from 'react';
 import HeaderWithBackButton from '../../../../../components/HeaderWithBackButton';
 import ScreenWrapper from '../../../../../components/ScreenWrapper';
 import FullPageOfflineBlockingView from '../../../../../components/BlockingViews/FullPageOfflineBlockingView';
@@ -20,10 +20,12 @@ function StepWrapper({
     return (
         <ScreenWrapper
             shouldShowOfflineIndicator={false}
-            onEntryTransitionEnd={onEntryTransitionEnd}
             shouldEnableKeyboardAvoidingView={shouldEnableKeyboardAvoidingView}
         >
-            <AnimatedStep style={[styles.flex1]}>
+            <AnimatedStep
+                style={[styles.flex1]}
+                onAnimationEnd={onEntryTransitionEnd}
+            >
                 <HeaderWithBackButton
                     title={title}
                     shouldShowStepCounter={shouldShowStepCounter}
