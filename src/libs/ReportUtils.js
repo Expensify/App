@@ -404,7 +404,7 @@ function isPublicAnnounceRoom(report) {
  * @returns {String}
  */
 function getPolicyType(report, policies) {
-    return lodashGet(policies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'type'], '');
+    return lodashGet(policies || allPolicies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'type'], '');
 }
 
 /**
@@ -1157,14 +1157,25 @@ function getMoneyRequestAction(reportAction = {}) {
  * @param {Object} report (chatReport or iouReport)
  * @returns {boolean}
  */
-function isWaitingForIOUActionFromCurrentUser(report) {
+function isWaitingForIOUActionFromCurrentUser(report, debug) {
     if (!report) {
         return false;
     }
 
-    // Money request waiting for current user to add their credit bank account
-    if (report.ownerAccountID === currentUserAccountID && report.isWaitingOnBankAccount) {
-        return true;
+    const policy = getPolicy(report.policyID);
+    if (policy.type === CONST.POLICY.TYPE.CORPORATE) {
+        // If the report is already settled, there's no action required from any user.
+        if (isSettled(report.reportID)) {
+            return false;
+        }
+
+        // Report is pending approval and the current user is the manager
+        if (isReportManager(report) && !isReportApproved(report)) {
+            return true;
+        }
+
+        // Current user is an admin and the report has been approved but not settled yet
+        return policy.role === CONST.POLICY.ROLE.ADMIN && isReportApproved(report);
     }
 
     // Money request waiting for current user to Pay (from expense or iou report)
