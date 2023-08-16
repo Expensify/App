@@ -3680,6 +3680,7 @@ const styles = {
     },
 
     mapViewContainer: {
+        ...flex.flex1,
         ...spacing.p4,
         ...spacing.flex1,
         minHeight: 300,

@@ -157,7 +157,7 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
                     innerStyles={[styles.ph10]}
                 />
             </View>
-            <View style={[styles.flex1]}>
+            <View style={styles.flex1}>
                 <ScrollView contentContainerStyle={styles.flex1}>
                     <View style={styles.mapViewContainer}>
                         {!isOffline && mapboxAccessToken.token ? (
