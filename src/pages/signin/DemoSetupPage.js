@@ -4,9 +4,7 @@ import useLocalize from '../../hooks/useLocalize';
 
 function DemoSetupPage() {
     const {translate} = useLocalize();
-    return (
-        <SignInPage customHeadline={translate('login.hero.demoHeadline')} />
-    );
+    return <SignInPage customHeadline={translate('login.hero.demoHeadline')} />;
 }
 
 DemoSetupPage.displayName = 'SignInPage';

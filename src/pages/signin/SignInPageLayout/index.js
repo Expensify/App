@@ -44,7 +44,7 @@ const propTypes = {
 
 const defaultProps = {
     customHeadline: '',
-}
+};
 
 function SignInPageLayout(props) {
     const scrollViewRef = useRef();

@@ -1,5 +1,5 @@
 import {View} from 'react-native';
-import PropTypes from 'prop-types'
+import PropTypes from 'prop-types';
 import React from 'react';
 import Text from '../../components/Text';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
@@ -19,7 +19,7 @@ const propTypes = {
 
 const defaultProps = {
     customHeadline: '',
-}
+};
 function SignInHeroCopy(props) {
     return (
         <View style={[styles.flex1, styles.alignSelfCenter, styles.gap7]}>

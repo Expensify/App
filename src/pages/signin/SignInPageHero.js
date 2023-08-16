@@ -17,7 +17,7 @@ const propTypes = {
 
 const defaultProps = {
     customHeadline: '',
-}
+};
 
 function SignInPageHero(props) {
     return (
