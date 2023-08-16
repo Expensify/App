@@ -31,10 +31,6 @@ const propTypes = {
     /** Callback fired when the comment is submitted */
     onSubmitComment: PropTypes.func,
 
-    /** Any errors associated with an attempt to create a chat */
-    // eslint-disable-next-line react/forbid-prop-types
-    errors: PropTypes.object,
-
     /** The pending action when we are adding a chat */
     pendingAction: PropTypes.string,
 
@@ -51,7 +47,6 @@ const defaultProps = {
     report: {reportID: '0'},
     reportActions: [],
     onSubmitComment: () => {},
-    errors: {},
     pendingAction: null,
     shouldShowComposeInput: true,
     shouldDisableCompose: false,
@@ -63,7 +58,7 @@ function ReportFooter(props) {
     const isAnonymousUser = Session.isAnonymousUser();
 
     const isSmallSizeLayout = props.windowWidth - (props.isSmallScreenWidth ? 0 : variables.sideBarWidth) < variables.anonymousReportFooterBreakpoint;
-    const hideComposer = ReportUtils.shouldHideComposer(props.report, props.errors);
+    const hideComposer = ReportUtils.shouldDisableWriteActions(props.report);
 
     return (
         <>
