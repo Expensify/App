@@ -1,4 +1,5 @@
 import React, {useRef} from 'react';
+import lodashGet from 'lodash/get';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -33,6 +34,27 @@ const propTypes = {
         }),
     }),
 
+    /** The optimistic transaction for this request */
+    transaction: PropTypes.shape({
+        /** The transactionID of this request */
+        transactionID: PropTypes.string,
+
+        /** The comment object on the transaction */
+        comment: PropTypes.shape({
+            /** The waypoints defining the distance request */
+            waypoints: PropTypes.shape({
+                /** The latitude of the waypoint */
+                lat: PropTypes.number,
+
+                /** The longitude of the waypoint */
+                lng: PropTypes.number,
+
+                /** The address of the waypoint */
+                address: PropTypes.string,
+            }),
+        }),
+    }),
+
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
@@ -46,10 +68,13 @@ const defaultProps = {
             waypointIndex: '',
         },
     },
+    transaction: {},
 };
 
-function WaypointEditor({transactionID, route: {params: {iouType = '', waypointIndex = ''} = {}} = {}, network, translate}) {
+function WaypointEditor({transactionID, route: {params: {iouType = '', waypointIndex = ''} = {}} = {}, network, translate, transaction}) {
     const textInput = useRef(null);
+    const waypoint = lodashGet(transaction, `comment.waypoints.waypoint${waypointIndex}`, {});
+    const waypointAddress = lodashGet(waypoint, 'address', '');
 
     const validate = (values) => {
         const errors = {};
@@ -128,6 +153,7 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
                         hint={!network.isOffline ? translate('distance.errors.selectSuggestedAddress') : ''}
                         containerStyles={[styles.mt4]}
                         label={translate('distance.address')}
+                        initialValue={waypointAddress}
                         onPress={selectWaypoint}
                         maxInputLength={CONST.FORM_CHARACTER_LIMIT}
                         renamedInputKeys={{
@@ -155,6 +181,9 @@ export default compose(
     withLocalize,
     withNetwork(),
     withOnyx({
-        transactionID: {key: ONYXKEYS.IOU, selector: (iou) => (iou && iou.transactionID) || ''},
+        transaction: {
+            key: (props) => `${ONYXKEYS.COLLECTION.TRANSACTION}${props.transactionID}`,
+            selector: (transaction) => (transaction ? {transactionID: transaction.transactionID, comment: {waypoints: lodashGet(transaction, 'comment.waypoints')}} : null),
+        },
     }),
 )(WaypointEditor);
