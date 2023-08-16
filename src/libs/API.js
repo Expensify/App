@@ -36,8 +36,9 @@ Request.use(Middleware.SaveResponseInOnyx);
  * @param {Object} [onyxData.optimisticData] - Onyx instructions that will be passed to Onyx.update() before the request is made.
  * @param {Object} [onyxData.successData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode === 200.
  * @param {Object} [onyxData.failureData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode !== 200.
+ * @param {Boolean} [prioritizeRequest] Whether or not the request should be prioritized at the front of the queue or placed onto the back of the queue
  */
-function write(command, apiCommandParameters = {}, onyxData = {}) {
+function write(command, apiCommandParameters = {}, onyxData = {}, prioritizeRequest = false) {
     Log.info('Called API write', false, {command, ...apiCommandParameters});
 
     // Optimistically update Onyx
@@ -61,12 +62,16 @@ function write(command, apiCommandParameters = {}, onyxData = {}) {
         command,
         data: {
             ...data,
+
+            // This should be removed once we are no longer using deprecatedAPI https://github.com/Expensify/Expensify/issues/215650
+            shouldRetry: true,
+            canCancel: true,
         },
         ..._.omit(onyxData, 'optimisticData'),
     };
 
     // Write commands can be saved and retried, so push it to the SequentialQueue
-    SequentialQueue.push(request);
+    SequentialQueue.push(request, prioritizeRequest);
 }
 
 /**

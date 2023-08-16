@@ -5,6 +5,7 @@ import QueuedOnyxUpdates from './QueuedOnyxUpdates';
 import IOU from './IOU';
 import Modal from './Modal';
 import Network from './Network';
+import CustomStatusDraft from './CustomStatusDraft';
 import PersonalDetails from './PersonalDetails';
 import PrivatePersonalDetails from './PrivatePersonalDetails';
 import Task from './Task';
@@ -51,6 +52,7 @@ export type {
     IOU,
     Modal,
     Network,
+    CustomStatusDraft,
     PersonalDetails,
     PrivatePersonalDetails,
     Task,

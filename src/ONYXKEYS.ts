@@ -47,6 +47,9 @@ const ONYXKEYS = {
     /** Has information about the network status (offline/online) */
     NETWORK: 'network',
 
+    // draft status
+    CUSTOM_STATUS_DRAFT: 'customStatusDraft',
+
     /** Contains all the personalDetails the user has access to, keyed by accountID */
     PERSONAL_DETAILS_LIST: 'personalDetailsList',
 
@@ -200,6 +203,12 @@ const ONYXKEYS = {
     // Experimental memory only Onyx mode flag
     IS_USING_MEMORY_ONLY_KEYS: 'isUsingMemoryOnlyKeys',
 
+    // Information about the onyx updates IDs that were received from the server
+    ONYX_UPDATES_FROM_SERVER: 'onyxUpdatesFromServer',
+
+    // The last update ID that was applied to the client
+    ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT: 'OnyxUpdatesLastUpdateIDAppliedToClient',
+
     // Manual request tab selector
     SELECTED_TAB: 'selectedTab',
 
@@ -209,19 +218,12 @@ const ONYXKEYS = {
     // The access token to be used with the Mapbox library
     MAPBOX_ACCESS_TOKEN: 'mapboxAccessToken',
 
-    ONYX_UPDATES: {
-        // The ID of the last Onyx update that was applied to this client
-        LAST_UPDATE_ID: 'onyxUpdatesLastUpdateID',
-
-        // The ID of the previous Onyx update that was applied to this client
-        PREVIOUS_UPDATE_ID: 'onyxUpdatesPreviousUpdateID',
-    },
-
     /** Collection Keys */
     COLLECTION: {
         DOWNLOAD: 'download_',
         POLICY: 'policy_',
         POLICY_MEMBERS: 'policyMembers_',
+        POLICY_CATEGORIES: 'policyCategories_',
         WORKSPACE_INVITE_MEMBERS_DRAFT: 'workspaceInviteMembersDraft_',
         REPORT: 'report_',
         REPORT_ACTIONS: 'reportActions_',
@@ -257,8 +259,13 @@ const ONYXKEYS = {
         NEW_TASK_FORM: 'newTaskForm',
         EDIT_TASK_FORM: 'editTaskForm',
         MONEY_REQUEST_DESCRIPTION_FORM: 'moneyRequestDescriptionForm',
+        MONEY_REQUEST_AMOUNT_FORM: 'moneyRequestAmountForm',
+        MONEY_REQUEST_CREATED_FORM: 'moneyRequestCreatedForm',
         NEW_CONTACT_METHOD_FORM: 'newContactMethodForm',
         PAYPAL_FORM: 'payPalForm',
+        SETTINGS_STATUS_SET_FORM: 'settingsStatusSetForm',
+        SETTINGS_STATUS_CLEAR_AFTER_FORM: 'settingsStatusClearAfterForm',
+        SETTINGS_STATUS_SET_CLEAR_AFTER_FORM: 'settingsStatusSetClearAfterForm',
     },
 } as const;
 
@@ -280,6 +287,7 @@ type OnyxValues = {
     [ONYXKEYS.IOU]: OnyxTypes.IOU;
     [ONYXKEYS.MODAL]: OnyxTypes.Modal;
     [ONYXKEYS.NETWORK]: OnyxTypes.Network;
+    [ONYXKEYS.CUSTOM_STATUS_DRAFT]: OnyxTypes.CustomStatusDraft;
     [ONYXKEYS.PERSONAL_DETAILS_LIST]: Record<string, OnyxTypes.PersonalDetails>;
     [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: OnyxTypes.PrivatePersonalDetails;
     [ONYXKEYS.TASK]: OnyxTypes.Task;
@@ -333,12 +341,13 @@ type OnyxValues = {
     [ONYXKEYS.SELECTED_TAB]: string;
     [ONYXKEYS.RECEIPT_MODAL]: OnyxTypes.ReceiptModal;
     [ONYXKEYS.MAPBOX_ACCESS_TOKEN]: OnyxTypes.MapboxAccessToken;
-    [ONYXKEYS.ONYX_UPDATES.LAST_UPDATE_ID]: number;
-    [ONYXKEYS.ONYX_UPDATES.PREVIOUS_UPDATE_ID]: number;
+    [ONYXKEYS.ONYX_UPDATES_FROM_SERVER]: number;
+    [ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT]: number;
 
     // Collections
     [ONYXKEYS.COLLECTION.DOWNLOAD]: OnyxTypes.Download;
     [ONYXKEYS.COLLECTION.POLICY]: OnyxTypes.Policy;
+    [ONYXKEYS.COLLECTION.POLICY_CATEGORIES]: unknown;
     [ONYXKEYS.COLLECTION.POLICY_MEMBERS]: OnyxTypes.PolicyMember;
     [ONYXKEYS.COLLECTION.DEPRECATED_POLICY_MEMBER_LIST]: OnyxTypes.PolicyMember;
     [ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT]: Record<string, number>;
@@ -371,7 +380,13 @@ type OnyxValues = {
     [ONYXKEYS.FORMS.NEW_TASK_FORM]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.EDIT_TASK_FORM]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM]: OnyxTypes.Form;
+    [ONYXKEYS.FORMS.MONEY_REQUEST_AMOUNT_FORM]: OnyxTypes.Form;
+    [ONYXKEYS.FORMS.MONEY_REQUEST_CREATED_FORM]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM]: OnyxTypes.Form;
+    [ONYXKEYS.FORMS.PAYPAL_FORM]: OnyxTypes.Form;
+    [ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM]: OnyxTypes.Form;
+    [ONYXKEYS.FORMS.SETTINGS_STATUS_CLEAR_AFTER_FORM]: OnyxTypes.Form;
+    [ONYXKEYS.FORMS.SETTINGS_STATUS_SET_CLEAR_AFTER_FORM]: OnyxTypes.Form;
 };
 
 export default ONYXKEYS;
