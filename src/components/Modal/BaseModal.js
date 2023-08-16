@@ -165,11 +165,7 @@ class BaseModal extends PureComponent {
 
                         return (
                             <View
-                                style={{
-                                    ...styles.defaultModalContainer,
-                                    ...modalContainerStyle,
-                                    ...modalPaddingStyles,
-                                }}
+                                style={[styles.defaultModalContainer, modalContainerStyle, modalPaddingStyles, !this.props.isVisible ? styles.pointerEventsNone : {}]}
                                 ref={this.props.forwardedRef}
                                 nativeID="no-drag-area"
                             >
