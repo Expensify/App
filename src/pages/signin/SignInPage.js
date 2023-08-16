@@ -46,13 +46,14 @@ const propTypes = {
         validateCode: PropTypes.string,
     }),
 
-    customHeader: PropTypes.string,
+    /** Override the green headline copy */
+    customHeadline: PropTypes.string,
 };
 
 const defaultProps = {
     account: {},
     credentials: {},
-    customHeader: '',
+    customHeadline: '',
 };
 
 /**
@@ -80,7 +81,7 @@ function getRenderOptions({hasLogin, hasValidateCode, hasAccount, isPrimaryLogin
     };
 }
 
-function SignInPage({credentials, account, customHeader}) {
+function SignInPage({credentials, account, customHeadline}) {
     const {translate, formatPhoneNumber} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
     const safeAreaInsets = useSafeAreaInsets();
@@ -103,7 +104,7 @@ function SignInPage({credentials, account, customHeader}) {
 
     let welcomeHeader = '';
     let welcomeText = '';
-    const headerText = customHeader || translate('login.hero.header');
+    const headerText = customHeadline || translate('login.hero.header');
     if (shouldShowLoginForm) {
         welcomeHeader = isSmallScreenWidth ? headerText : translate('welcomeText.getStarted');
         welcomeText = isSmallScreenWidth ? translate('welcomeText.getStarted') : '';
@@ -147,6 +148,7 @@ function SignInPage({credentials, account, customHeader}) {
                 welcomeText={welcomeText}
                 shouldShowWelcomeHeader={shouldShowWelcomeHeader || !isSmallScreenWidth}
                 shouldShowWelcomeText={shouldShowWelcomeText}
+                customHeadline={customHeadline}
             >
                 {/* LoginForm must use the isVisible prop. This keeps it mounted, but visually hidden
                     so that password managers can access the values. Conditionally rendering this component will break this feature. */}
