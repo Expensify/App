@@ -206,6 +206,87 @@ function getDateStringFromISOTimestamp(isoTimestamp) {
 }
 
 /**
+ * @returns {string} example: 2023-05-16
+ */
+function getThirtyMinutesFromNow() {
+    return moment().add(30, 'minutes').format('YYYY-MM-DD HH:mm:ss');
+}
+
+function getOneHourFromNow() {
+    return moment().add(1, 'hours').format('YYYY-MM-DD HH:mm:ss');
+}
+
+/**
+ * @returns {string} example: 2023-05-16
+ */
+function getEndOfToday() {
+    return moment().endOf('day').format('YYYY-MM-DD HH:mm:ss');
+}
+
+/**
+ * @returns {string} example: 2023-05-16
+ */
+function getEndOfWeekFromNow() {
+    return moment().add(7, 'days').format('YYYY-MM-DD HH:mm:ss');
+}
+
+/**
+ * @returns {string} example: 2023-05-16
+ * it's kind of 'newer' date
+ */
+function getOneHundredYearsFromNow() {
+    return moment().endOf(100, 'years').format('YYYY-MM-DD HH:mm:ss');
+}
+
+/**
+ * @param {string} time
+ * @returns {string} example: 2023-05-16
+ * it's kind of 'newer' date
+ */
+function extractDate(time) {
+    return moment(time).format('YYYY-MM-DD');
+}
+
+/**
+ * @param {string} dateTimeString
+ * @returns {string} example: 2023-05-16
+ * it's kind of 'newer' date
+ */
+function extractTime(dateTimeString) {
+    return moment(dateTimeString).format('HH:mm');
+}
+
+/**
+ * @param {string} dateTimeString
+ * @returns {string} example: 2023-05-16
+ * it's kind of 'newer' date
+ */
+function formatDateTo12Hour(dateTimeString) {
+    if (!dateTimeString) return '';
+    return moment(dateTimeString).format('YYYY-MM-DD hh:mm:ss A');
+}
+
+// /**
+//  * @returns {string} example: 2023-05-16
+//  */
+function getDateBasedFromType(type) {
+    switch (type) {
+        case CONST.CUSTOM_STATUS_TYPES.THIRTY_MINUTES:
+            return getThirtyMinutesFromNow();
+        case CONST.CUSTOM_STATUS_TYPES.ONE_HOUR:
+            return getOneHourFromNow();
+        case CONST.CUSTOM_STATUS_TYPES.AFTER_TODAY:
+            return getEndOfToday();
+        case CONST.CUSTOM_STATUS_TYPES.AFTER_WEEK:
+            return getEndOfWeekFromNow();
+        case CONST.CUSTOM_STATUS_TYPES.NEVER:
+            return getOneHundredYearsFromNow();
+        default:
+            return '';
+    }
+}
+
+/**
  * @namespace DateUtils
  */
 const DateUtils = {
@@ -220,6 +301,15 @@ const DateUtils = {
     getDBTime,
     subtractMillisecondsFromDateTime,
     getDateStringFromISOTimestamp,
+    getThirtyMinutesFromNow,
+    getEndOfToday,
+    getEndOfWeekFromNow,
+    getOneHundredYearsFromNow,
+    getDateBasedFromType,
+    getOneHourFromNow,
+    extractDate,
+    extractTime,
+    formatDateTo12Hour,
 };
 
 export default DateUtils;
