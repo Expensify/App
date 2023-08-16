@@ -1143,7 +1143,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
  * Saves the draft for a comment report action. This will put the comment into "edit mode"
  *
  * @param {String} reportID
- * @param {Number} reportAction
+ * @param {Object} reportAction
  * @param {String} draftMessage
  */
 function saveReportActionDraft(reportID, reportAction, draftMessage) {

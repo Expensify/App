@@ -104,6 +104,13 @@ function ReportActionItemMessageEdit(props) {
     const insertedEmojis = useRef([]);
 
     useEffect(() => {
+        if (props.draftMessage === props.action.message[0].html) {
+            return;
+        }
+        setDraft(Str.htmlDecode(props.draftMessage));
+    }, [props.draftMessage, props.action.message]);
+
+    useEffect(() => {
         // required for keeping last state of isFocused variable
         isFocusedRef.current = isFocused;
     }, [isFocused]);
