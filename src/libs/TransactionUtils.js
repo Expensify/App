@@ -150,11 +150,11 @@ function getCurrency(transaction) {
  * @returns {String}
  */
 function getCreated(transaction) {
-    const created = lodashGet(transaction, 'modifiedCreated', '');
+    const created = lodashGet(transaction, 'modifiedCreated', '') || lodashGet(transaction, 'created', '');
     if (created) {
         return format(new Date(created), CONST.DATE.FNS_FORMAT_STRING);
     }
-    return format(new Date(lodashGet(transaction, 'created', Date.now())), CONST.DATE.FNS_FORMAT_STRING);
+    return '';
 }
 
 /**

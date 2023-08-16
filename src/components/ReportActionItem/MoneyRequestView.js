@@ -82,6 +82,12 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, polic
         description += ` • ${translate('iou.pending')}`;
     }
 
+    // A temporary solution to hide the transaction detail
+    // This will be removed after we properly add the transaction as a prop
+    if (ReportActionsUtils.isDeletedAction(parentReportAction)) {
+        return null;
+    }
+
     return (
         <View>
             <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth), StyleUtils.getMinimumHeight(CONST.EMPTY_STATE_BACKGROUND.MONEY_REPORT.MIN_HEIGHT)]}>

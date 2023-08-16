@@ -1110,12 +1110,10 @@ function getDisplayNamesWithTooltips(personalDetailsList, isMultipleParticipantR
  * Determines if a report has an IOU that is waiting for an action from the current user (either Pay or Add a credit bank account)
  *
  * @param {Object} report (chatReport or iouReport)
- * @param {Object} allReportsDict
  * @returns {boolean}
  */
-function isWaitingForIOUActionFromCurrentUser(report, allReportsDict = null) {
-    const allAvailableReports = allReportsDict || allReports;
-    if (!report || !allAvailableReports) {
+function isWaitingForIOUActionFromCurrentUser(report) {
+    if (!report) {
         return false;
     }
 
@@ -1124,15 +1122,8 @@ function isWaitingForIOUActionFromCurrentUser(report, allReportsDict = null) {
         return true;
     }
 
-    let reportToLook = report;
-    if (report.iouReportID) {
-        const iouReport = allAvailableReports[`${ONYXKEYS.COLLECTION.REPORT}${report.iouReportID}`];
-        if (iouReport) {
-            reportToLook = iouReport;
-        }
-    }
-    // Money request waiting for current user to Pay (from chat or from iou report)
-    if (reportToLook.ownerAccountID && (reportToLook.ownerAccountID !== currentUserAccountID || currentUserAccountID === reportToLook.managerID) && reportToLook.hasOutstandingIOU) {
+    // Money request waiting for current user to Pay (from expense or iou report)
+    if (report.hasOutstandingIOU && report.ownerAccountID && (report.ownerAccountID !== currentUserAccountID || currentUserAccountID === report.managerID)) {
         return true;
     }
 
@@ -2470,14 +2461,13 @@ function canAccessReport(report, policies, betas, allReportActions) {
  * @param {Object} report
  * @param {String} currentReportId
  * @param {Boolean} isInGSDMode
- * @param {Object} iouReports
  * @param {String[]} betas
  * @param {Object} policies
  * @param {Object} allReportActions
  * @param {Boolean} excludeEmptyChats
  * @returns {boolean}
  */
-function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouReports, betas, policies, allReportActions, excludeEmptyChats = false) {
+function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas, policies, allReportActions, excludeEmptyChats = false) {
     const isInDefaultMode = !isInGSDMode;
 
     // Exclude reports that have no data because there wouldn't be anything to show in the option item.
@@ -2504,7 +2494,7 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouRep
     }
 
     // Include reports that are relevant to the user in any view mode. Criteria include having a draft, having an outstanding IOU, or being assigned to an open task.
-    if (report.hasDraft || isWaitingForIOUActionFromCurrentUser(report, iouReports) || isWaitingForTaskCompleteFromAssignee(report)) {
+    if (report.hasDraft || isWaitingForIOUActionFromCurrentUser(report) || isWaitingForTaskCompleteFromAssignee(report)) {
         return true;
     }
 

@@ -86,9 +86,7 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
     const isInDefaultMode = !isInGSDMode;
 
     // Filter out all the reports that shouldn't be displayed
-    const reportsToDisplay = _.filter(allReportsDict, (report) =>
-        ReportUtils.shouldReportBeInOptionList(report, currentReportId, isInGSDMode, allReportsDict, betas, policies, allReportActions, true),
-    );
+    const reportsToDisplay = _.filter(allReportsDict, (report) => ReportUtils.shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas, policies, allReportActions, true));
 
     if (_.isEmpty(reportsToDisplay)) {
         // Display Concierge chat report when there is no report to be displayed
@@ -131,7 +129,7 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
             return;
         }
 
-        if (ReportUtils.isWaitingForIOUActionFromCurrentUser(report, allReportsDict)) {
+        if (ReportUtils.isWaitingForIOUActionFromCurrentUser(report)) {
             outstandingIOUReports.push(report);
             return;
         }
