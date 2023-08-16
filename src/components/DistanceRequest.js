@@ -157,27 +157,33 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
                     innerStyles={[styles.ph10]}
                 />
             </View>
-            <View style={[styles.p4, styles.flex1]}>
-                {!isOffline && mapboxAccessToken.token ? (
-                    <MapView
-                        accessToken={mapboxAccessToken.token}
-                        mapPadding={50}
-                        pitchEnabled={false}
-                        initialState={{
-                            location: CONST.SF_COORDINATES,
-                            zoom: DEFAULT_ZOOM_LEVEL,
-                        }}
-                        style={styles.mapView}
-                        markerComponent={() => <Expensicons.Location height={20} />}
-                        waypoints={waypointCoordinates}
-                    />
-                ) : (
-                    <BlockingView
-                        icon={Expensicons.EmptyStateRoutePending}
-                        title={translate('distance.mapPending.title')}
-                        subtitle="The map will be generated when you go back online"
-                    />
-                )}
+            <View style={[styles.flex1]}>
+                <ScrollView contentContainerStyle={styles.flex1}>
+                    <View style={styles.mapViewContainer}>
+                        {!isOffline && mapboxAccessToken.token ? (
+                            <MapView
+                                accessToken={mapboxAccessToken.token}
+                                mapPadding={50}
+                                pitchEnabled={false}
+                                initialState={{
+                                    location: CONST.SF_COORDINATES,
+                                    zoom: DEFAULT_ZOOM_LEVEL,
+                                }}
+                                style={styles.mapView}
+                                markerComponent={() => <Expensicons.Location height={20} />}
+                                waypoints={waypointCoordinates}
+                            />
+                        ) : (
+                            <View style={[styles.mapPendingView]}>
+                                <BlockingView
+                                    icon={Expensicons.EmptyStateRoutePending}
+                                    title={translate('distance.mapPending.title')}
+                                    subtitle="The map will be generated when you go back online"
+                                />
+                            </View>
+                        )}
+                    </View>
+                </ScrollView>
             </View>
         </>
     );

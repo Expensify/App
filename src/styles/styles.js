@@ -3679,6 +3679,13 @@ const styles = {
         transform: [{rotate: '90deg'}],
     },
 
+    mapViewContainer: {
+        ...spacing.p4,
+        ...spacing.flex1,
+        minHeight: 300,
+        maxHeight: 500,
+    },
+
     mapView: {
         flex: 1,
         borderRadius: 20,
@@ -3688,8 +3695,6 @@ const styles = {
     mapPendingView: {
         backgroundColor: themeColors.highlightBG,
         ...flex.flex1,
-        ...flex.justifyContentCenter,
-        ...flex.alignItemsCenter,
         borderRadius: variables.componentBorderRadiusLarge,
     },
 };
