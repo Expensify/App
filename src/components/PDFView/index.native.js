@@ -41,15 +41,12 @@ const [failedToLoadPDF, setFailedToLoadPDF] = useState(false),
 const [successToLoadPDF, setSuccessToLoadPDF] = useState(false),
 const [password, setPassword] = useState(''),
 
-
-/* Ignoring this for last.*/
-componentDidUpdate() {
-   props .onToggleKeyboard(props.isKeyboardShown);
-}
-
-
-
 function PDFView(props) {
+
+    useEffect(() => {
+        props.onToggleKeyboard(props.isKeyboardShown);
+     },);
+
     /**
      * Initiate password challenge if message received from react-native-pdf/PDF
      * indicates that a password is required or invalid.
@@ -97,20 +94,18 @@ function PDFView(props) {
         setShouldShowLoadingIndicator(true);
 
     }
-        
-
         /**
          * After the PDF is successfully loaded hide PDFPasswordForm and the loading
          * indicator.
          */
-        finishPDFLoad() {
-            setShouldRequestPassword(false);
-            setShouldShowLoadingIndicator(false);
-            setsuccessToLoadPDF(true);
-            props.onLoadComplete();
-        }
+    function finishPDFLoad() {
+        setShouldRequestPassword(false);
+        setShouldShowLoadingIndicator(false);
+        setsuccessToLoadPDF(true);
+        props.onLoadComplete();
+    }
 
-    renderPDFView() {
+    function renderPDFView() {
         const pdfStyles = [styles.imageModalPDF, StyleUtils.getWidthAndHeightStyle(props.windowWidth, props.windowHeight)];
 
         // If we haven't yet successfully validated the password and loaded the PDF,
@@ -143,7 +138,7 @@ function PDFView(props) {
                         onScaleChanged={props.onScaleChanged}
                     />
                 )}
-                {this.state.shouldRequestPassword && (
+                {shouldRequestPassword && (
                     <KeyboardAvoidingView style={styles.flex1}>
                         <PDFPasswordForm
                             isFocused={props.isFocused}
