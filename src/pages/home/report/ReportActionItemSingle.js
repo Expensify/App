@@ -144,9 +144,14 @@ function ReportActionItemSingle(props) {
         if (isWorkspaceActor) {
             showWorkspaceDetails(props.report.reportID);
         } else {
+            // Show participants page IOU report preview
+            if (displayAllActors) {
+                Navigation.navigate(ROUTES.getReportParticipantsRoute(props.iouReport.reportID));
+                return;
+            }
             showUserDetails(props.action.delegateAccountID ? props.action.delegateAccountID : actorAccountID);
         }
-    }, [isWorkspaceActor, props.report.reportID, actorAccountID, props.action.delegateAccountID]);
+    }, [isWorkspaceActor, props.report.reportID, actorAccountID, props.action.delegateAccountID, props.iouReport.reportID, displayAllActors]);
 
     const shouldDisableDetailPage = useMemo(
         () => !isWorkspaceActor && ReportUtils.isOptimisticPersonalDetail(props.action.delegateAccountID ? props.action.delegateAccountID : actorAccountID),

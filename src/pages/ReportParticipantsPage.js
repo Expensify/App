@@ -55,7 +55,12 @@ const defaultProps = {
  * @return {Array}
  */
 const getAllParticipants = (report, personalDetails, translate) => {
-    const {participantAccountIDs} = report;
+    let participantAccountIDs = report.participantAccountIDs;
+
+    // Append report owner when the given report is IOU
+    if (ReportUtils.isIOUReport(report)) {
+        participantAccountIDs = [...participantAccountIDs, report.ownerAccountID];
+    }
 
     return _.chain(participantAccountIDs)
         .map((accountID, index) => {
