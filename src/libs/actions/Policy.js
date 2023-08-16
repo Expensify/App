@@ -1132,38 +1132,10 @@ function openWorkspaceMembersPage(policyID, clientMemberEmails) {
         return;
     }
 
-    const onyxData = {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.IS_LOADING_POLICY_MEMBERS,
-                value: true,
-            },
-        ],
-        successData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.IS_LOADING_POLICY_MEMBERS,
-                value: false,
-            },
-        ],
-        failureData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.IS_LOADING_POLICY_MEMBERS,
-                value: false,
-            },
-        ],
-    };
-
-    API.read(
-        'OpenWorkspaceMembersPage',
-        {
-            policyID,
-            clientMemberEmails: JSON.stringify(clientMemberEmails),
-        },
-        onyxData,
-    );
+    API.read('OpenWorkspaceMembersPage', {
+        policyID,
+        clientMemberEmails: JSON.stringify(clientMemberEmails),
+    });
 }
 
 function openWorkspaceInvitePage(policyID, clientMemberEmails) {
