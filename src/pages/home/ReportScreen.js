@@ -270,8 +270,7 @@ function ReportScreen({
             return;
         }
 
-        if (ReportUtils.shouldHideComposer(report, errors)) {
-            // If composer should be hidden, hide emoji picker as well
+        if (ReportUtils.shouldDisableWriteActions(report)) {
             EmojiPickerAction.hideEmojiPicker(true);
         }
         // If you already have a report open and are deeplinking to a new report on native,

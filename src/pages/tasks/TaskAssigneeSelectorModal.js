@@ -26,7 +26,7 @@ const propTypes = {
     betas: PropTypes.arrayOf(PropTypes.string),
 
     /** All of the personal details for everyone */
-    personalDetails: personalDetailsPropType,
+    personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
     /** All reports shared with the user */
     reports: PropTypes.objectOf(reportPropTypes),
@@ -172,15 +172,10 @@ function TaskAssigneeSelectorModal(props) {
 
         // Check to see if we're editing a task and if so, update the assignee
         if (report) {
-            // There was an issue where sometimes a new assignee didn't have a DM thread
-            // This would cause the app to crash, so we need to make sure we have a DM thread
-            Task.setAssigneeValue(option.login, option.accountID, props.route.params.reportID, OptionsListUtils.isCurrentUser(option));
+            const assigneeChatReport = Task.setAssigneeValue(option.login, option.accountID, props.route.params.reportID, OptionsListUtils.isCurrentUser(option));
 
             // Pass through the selected assignee
-            Task.editTaskAndNavigate(report, props.session.accountID, {
-                assignee: option.login,
-                assigneeAccountID: option.accountID,
-            });
+            Task.editTaskAssigneeAndNavigate(props.task.report, props.session.accountID, option.login, option.accountID, assigneeChatReport);
         }
     };
 
