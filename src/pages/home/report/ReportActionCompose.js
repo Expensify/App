@@ -1,11 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View, InteractionManager, LayoutAnimation, NativeModules, findNodeHandle} from 'react-native';
+import {View, LayoutAnimation, NativeModules, findNodeHandle} from 'react-native';
 import {runOnJS} from 'react-native-reanimated';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
+import focusWithDelay from '../../../libs/focusWithDelay';
 import styles from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
 import Composer from '../../../components/Composer';
@@ -59,7 +60,6 @@ import * as KeyDownListener from '../../../libs/KeyboardShortcut/KeyDownPressLis
 import * as EmojiPickerActions from '../../../libs/actions/EmojiPickerAction';
 import withAnimatedRef from '../../../components/withAnimatedRef';
 import updatePropsPaperWorklet from '../../../libs/updatePropsPaperWorklet';
-import ComposerFocusManager from '../../../libs/ComposerFocusManager';
 
 const propTypes = {
     /** Beta features list */
@@ -178,7 +178,7 @@ class ReportActionCompose extends React.Component {
         this.submitForm = this.submitForm.bind(this);
         this.setIsFocused = this.setIsFocused.bind(this);
         this.setIsFullComposerAvailable = this.setIsFullComposerAvailable.bind(this);
-        this.focus = this.focus.bind(this);
+        this.focus = focusWithDelay(this.textInput).bind(this);
         this.replaceSelectionWithText = this.replaceSelectionWithText.bind(this);
         this.focusComposerOnKeyPress = this.focusComposerOnKeyPress.bind(this);
         this.checkComposerVisibility = this.checkComposerVisibility.bind(this);
@@ -393,6 +393,7 @@ class ReportActionCompose extends React.Component {
         if (_.isFunction(this.props.animatedRef)) {
             this.props.animatedRef(el);
         }
+        this.focus = focusWithDelay(this.textInput).bind(this);
     }
 
     /**
@@ -751,32 +752,6 @@ class ReportActionCompose extends React.Component {
 
         this.focus();
         this.replaceSelectionWithText(e.key, false);
-    }
-
-    /**
-     * Focus the composer text input
-     * @param {Boolean} [shouldelay=false] Impose delay before focusing the composer
-     * @memberof ReportActionCompose
-     */
-    focus(shouldelay = false) {
-        // There could be other animations running while we trigger manual focus.
-        // This prevents focus from making those animations janky.
-        InteractionManager.runAfterInteractions(() => {
-            if (!this.textInput) {
-                return;
-            }
-
-            if (!shouldelay) {
-                this.textInput.focus();
-                return;
-            }
-            ComposerFocusManager.isReadyToFocus().then(() => {
-                if (!this.textInput) {
-                    return;
-                }
-                this.textInput.focus();
-            });
-        });
     }
 
     /**
