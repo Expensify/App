@@ -2542,6 +2542,18 @@ const CONST = {
         LARGE: 'large',
         MEDIUM: 'medium',
     },
+
+    NAVIGATION: {
+        TYPE: {
+            FORCED_UP: 'FORCED_UP',
+            UP: 'UP',
+        },
+        ACTION_TYPE: {
+            REPLACE: 'REPLACE',
+            PUSH: 'PUSH',
+            NAVIGATE: 'NAVIGATE',
+        },
+    },
 };
 
 export default CONST;
