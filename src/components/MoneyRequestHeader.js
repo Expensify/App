@@ -19,7 +19,7 @@ import * as IOU from '../libs/actions/IOU';
 import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 import ConfirmModal from './ConfirmModal';
 import useLocalize from '../hooks/useLocalize';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import Text from './Text';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -44,7 +44,6 @@ const propTypes = {
     }),
 
     ...windowDimensionsPropTypes,
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -72,7 +71,31 @@ function MoneyRequestHeader(props) {
         setIsDeleteModalVisible(false);
     }, [parentReportAction, setIsDeleteModalVisible]);
 
-    const isScanning = !ReportActionsUtils.hasReadyMoneyRequests(parentReportAction);
+    const isScanning = !ReportActionsUtils.areAllRequestsBeingSmartScanned(parentReportAction);
+
+    const getStatusBar = () => (
+        <View
+            style={[
+                styles.dFlex,
+                styles.flexRow,
+                styles.alignItemsCenter,
+                styles.flexGrow1,
+                styles.justifyContentBetween,
+                styles.overflowHidden,
+                styles.ph5,
+                styles.pv3,
+                styles.borderBottom,
+                styles.w100,
+            ]}
+        >
+            <View style={[styles.moneyRequestHeaderStatusBarBadge]}>
+                <Text style={[styles.textStrong, styles.textLabel]}>{translate('iou.receiptStatusTitle')}</Text>
+            </View>
+            <View style={[styles.flexShrink1]}>
+                <Text style={[styles.textLabelSupporting]}>{translate('iou.receiptStatusText')}</Text>
+            </View>
+        </View>
+    );
 
     return (
         <>
@@ -94,10 +117,8 @@ function MoneyRequestHeader(props) {
                     personalDetails={props.personalDetails}
                     shouldShowBackButton={props.isSmallScreenWidth}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.HOME, false, true)}
+                    statusBar={isScanning ? getStatusBar() : null}
                     shouldShowBorderBottom
-                    shouldShowStatusBar={isScanning}
-                    statusBarBadgeText={props.translate('iou.receiptStatusTitle')}
-                    statusBarDescription={props.translate('iou.receiptStatusText')}
                 />
             </View>
             <ConfirmModal
@@ -120,7 +141,6 @@ MoneyRequestHeader.defaultProps = defaultProps;
 
 export default compose(
     withWindowDimensions,
-    withLocalize,
     withOnyx({
         session: {
             key: ONYXKEYS.SESSION,

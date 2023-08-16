@@ -51,7 +51,7 @@ function buildOptimisticTransaction(amount, currency, reportID, comment = '', so
  * @returns {Boolean}
  */
 function hasReceipt(transaction) {
-    return !_.isEmpty(transaction.receipt);
+    return !_.isEmpty(lodashGet(transaction, 'receipt'));
 }
 
 /**
@@ -126,7 +126,7 @@ function getCurrency(transaction) {
     if (currency) {
         return currency;
     }
-    return lodashGet(transaction, 'currency', '');
+    return lodashGet(transaction, 'currency', CONST.CURRENCY.USD);
 }
 
 /**
@@ -136,11 +136,11 @@ function getCurrency(transaction) {
  * @returns {String}
  */
 function getCreated(transaction) {
-    const created = lodashGet(transaction, 'modifiedCreated', '');
+    const created = lodashGet(transaction, 'modifiedCreated', '') || lodashGet(transaction, 'created', '');
     if (created) {
         return format(new Date(created), CONST.DATE.FNS_FORMAT_STRING);
     }
-    return format(new Date(lodashGet(transaction, 'created', '')), CONST.DATE.FNS_FORMAT_STRING);
+    return '';
 }
 
 /**
@@ -156,4 +156,36 @@ function isDistanceRequest(transaction) {
     return type === CONST.TRANSACTION.TYPE.CUSTOM_UNIT && customUnitName === CONST.CUSTOM_UNITS.NAME_DISTANCE;
 }
 
-export {buildOptimisticTransaction, hasReceipt, getUpdatedTransaction, getDescription, getAmount, getCurrency, getCreated, isDistanceRequest};
+/**
+ * Get the transactions related to a report preview with receipts
+ *
+ * @param {Object} reportPreviewAction
+ * @returns {Object}
+ */
+function getReportPreviewTransactionsWithReceipts(reportPreviewAction) {
+    const transactionIDs = lodashGet(reportPreviewAction, ['childLastReceiptTransactionIDs'], '').split(',');
+    return _.reduce(
+        transactionIDs,
+        (transactions, transactionID) => {
+            const transaction = getTransaction(transactionID);
+            if (!_.isEmpty(transaction)) {
+                transactions.push(transaction);
+            }
+            return transactions;
+        },
+        [],
+    );
+}
+
+export {
+    buildOptimisticTransaction,
+    hasReceipt,
+    getUpdatedTransaction,
+    getTransaction,
+    getDescription,
+    getAmount,
+    getCurrency,
+    getCreated,
+    getReportPreviewTransactionsWithReceipts,
+    isDistanceRequest,
+};

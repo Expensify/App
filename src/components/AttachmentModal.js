@@ -25,7 +25,6 @@ import HeaderGap from './HeaderGap';
 import SafeAreaConsumer from './SafeAreaConsumer';
 import addEncryptedAuthTokenToURL from '../libs/addEncryptedAuthTokenToURL';
 import reportPropTypes from '../pages/reportPropTypes';
-import * as Expensicons from './Icon/Expensicons';
 
 /**
  * Modal render prop component that exposes modal launching triggers that can be used
@@ -118,13 +117,13 @@ function AttachmentModal(props) {
 
     /**
      * Keeps the attachment source in sync with the attachment displayed currently in the carousel.
-     * @param {{ source: String, isAuthTokenRequired: Boolean, file: { name: string } }} attachment
+     * @param {{ source: String, isAuthTokenRequired: Boolean, file: { name: string }, isReceipt: Boolean }} attachment
      */
     const onNavigate = useCallback(
         (attachment) => {
             setSource(attachment.source);
             setFile(attachment.file);
-            setIsAttachmentReceipt(attachment.receipt);
+            setIsAttachmentReceipt(attachment.isReceipt);
             setIsAuthTokenRequired(attachment.isAuthTokenRequired);
             onCarouselAttachmentChange(attachment);
         },
@@ -332,24 +331,6 @@ function AttachmentModal(props) {
                     onDownloadButtonPress={() => downloadAttachment(source)}
                     shouldShowCloseButton={!props.isSmallScreenWidth}
                     shouldShowBackButton={props.isSmallScreenWidth}
-                    shouldShowThreeDotsButton={isAttachmentReceipt}
-                    threeDotsMenuItems={[
-                        {
-                            icon: Expensicons.Camera,
-                            text: props.translate('common.replace'),
-                            onSelected: () => {}, // TODO
-                        },
-                        {
-                            icon: Expensicons.Download,
-                            text: props.translate('common.download'),
-                            onSelected: () => downloadAttachment(source),
-                        },
-                        {
-                            icon: Expensicons.Trashcan,
-                            text: props.translate('iou.deleteReceipt'),
-                            onSelected: () => {}, // TODO
-                        },
-                    ]}
                     onBackButtonPress={closeModal}
                     onCloseButtonPress={closeModal}
                 />

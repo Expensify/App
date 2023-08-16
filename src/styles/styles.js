@@ -3681,7 +3681,7 @@ const styles = {
         backgroundColor: themeColors.border,
     },
 
-    reportPreviewBoxText: {
+    reportPreviewBoxBody: {
         padding: 16,
     },
 
@@ -3717,10 +3717,11 @@ const styles = {
         alignItems: 'center',
     },
 
-    headerStatusBarBadge: {
+    moneyRequestHeaderStatusBarBadge: {
         padding: 8,
         borderRadius: variables.componentBorderRadiusMedium,
         marginRight: 16,
+        backgroundColor: themeColors.border,
     },
 
     staticHeaderImage: {

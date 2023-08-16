@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Image} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
@@ -24,9 +24,9 @@ import EmptyStateBackgroundImage from '../../../assets/images/empty-state_backgr
 import useLocalize from '../../hooks/useLocalize';
 import * as TransactionUtils from '../../libs/TransactionUtils';
 import * as ReceiptUtils from '../../libs/ReceiptUtils';
-import withLocalize from '../withLocalize';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
-import MoneyRequestImage from './MoneyRequestImage';
+import Image from '../Image';
+import ReportActionItemImage from './ReportActionItemImage';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -87,11 +87,17 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, polic
         description += ` • ${translate('iou.pending')}`;
     }
 
-    const transaction = ReportActionsUtils.getTransaction(parentReportAction);
+    // A temporary solution to hide the transaction detail
+    // This will be removed after we properly add the transaction as a prop
+    if (ReportActionsUtils.isDeletedAction(parentReportAction)) {
+        return null;
+    }
+  
+    const transaction = TransactionUtils.getTransaction(parentReportAction.originalMessage.IOUTransactionID);
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
-    let receiptUris;
+    let receiptURIs;
     if (hasReceipt) {
-        receiptUris = ReceiptUtils.getThumbnailAndImageURIs(transaction.receipt.source, transaction.filename);
+        receiptURIs = ReceiptUtils.getThumbnailAndImageURIs(transaction.receipt.source, transaction.filename);
     }
 
     return (
@@ -103,7 +109,15 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, polic
                     style={[StyleUtils.getReportWelcomeBackgroundImageStyle(true)]}
                 />
             </View>
-            {hasReceipt && <MoneyRequestImage image={receiptUris} />}
+            {hasReceipt && (
+                <View style={styles.moneyRequestViewImage}>
+                    <ReportActionItemImage
+                        thumbnail={receiptURIs.thumbnail}
+                        image={receiptURIs.image}
+                        enablePreviewModal
+                    />
+                </View>
+            )}
             <MenuItemWithTopDescription
                 title={formattedTransactionAmount}
                 shouldShowTitleIcon={isSettled}
@@ -139,7 +153,6 @@ MoneyRequestView.displayName = 'MoneyRequestView';
 
 export default compose(
     withCurrentUserPersonalDetails,
-    withLocalize,
     withOnyx({
         parentReport: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`,

@@ -165,7 +165,7 @@ function MoneyRequestPreview(props) {
     let description = moneyRequestAction.comment.trim();
 
     const hasReceipt = TransactionUtils.hasReceipt(props.transaction);
-    const isScanning = !ReportActionUtils.hasReadyMoneyRequests(props.action);
+    const isScanning = !ReportActionUtils.areAllRequestsBeingSmartScanned(props.action);
     const isDistanceRequest = props.transaction && TransactionUtils.isDistanceRequest(props.transaction);
 
     // On a distance request the merchange of the transaction will be used for the description since that's where it's stored in the database
@@ -239,8 +239,6 @@ function MoneyRequestPreview(props) {
                     {hasReceipt && (
                         <ReportActionItemImages
                             images={[ReceiptUtils.getThumbnailAndImageURIs(props.transaction.receipt.source, props.transaction.filename)]}
-                            size={1}
-                            total={1}
                             hoverStyle={isScanning ? styles.moneyRequestPreviewBoxHover : undefined}
                         />
                     )}

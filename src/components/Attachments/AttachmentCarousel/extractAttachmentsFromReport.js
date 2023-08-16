@@ -32,7 +32,7 @@ function extractAttachmentsFromReport(report, reportActions, source) {
                 source: tryResolveUrlFromApiRoot(expensifySource || attribs.src),
                 isAuthTokenRequired: Boolean(expensifySource),
                 file: {name: attribs[CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE]},
-                receipt: false,
+                isReceipt: false,
             });
         },
     });
@@ -45,14 +45,14 @@ function extractAttachmentsFromReport(report, reportActions, source) {
         // We're handling receipts differently here because receipt images are not
         // part of the report action message, the images are constructed client-side
         if (ReportActionsUtils.isMoneyRequestAction(action)) {
-            const transaction = ReportActionsUtils.getTransaction(action);
+            const transaction = TransactionUtils.getTransaction(action.originalMessage.IOUTransactionID);
             if (TransactionUtils.hasReceipt(transaction)) {
                 const {image} = ReceiptUtils.getThumbnailAndImageURIs(transaction.receipt.source, transaction.filename);
                 attachments.unshift({
                     source: tryResolveUrlFromApiRoot(image),
                     isAuthTokenRequired: true,
                     file: {name: transaction.filename},
-                    receipt: true,
+                    isReceipt: true,
                 });
                 return;
             }

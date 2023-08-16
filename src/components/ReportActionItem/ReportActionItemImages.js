@@ -3,10 +3,9 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import styles from '../../styles/styles';
-import RenderHTML from '../RenderHTML';
 import stylePropTypes from '../../styles/stylePropTypes';
 import Text from '../Text';
-import Image from '../Image';
+import ReportActionItemImage from './ReportActionItemImage';
 
 const propTypes = {
     /** array of image and thumbnail URIs */
@@ -15,56 +14,47 @@ const propTypes = {
             thumbnail: PropTypes.string,
             image: PropTypes.string,
         }),
-    ),
+    ).isRequired,
 
-    /** max number of images to show in the row */
+    // We're not providing default values for size and total and disabling the ESLint rule
+    // because we want them to default to the length of images, but we can't set default props
+    // to be computed from another prop
+
+    /** max number of images to show in the row if different than images length */
+    // eslint-disable-next-line react/require-default-props
     size: PropTypes.number,
 
-    /** optional: total number of images if different than images prop length */
+    /** total number of images if different than images length */
+    // eslint-disable-next-line react/require-default-props
     total: PropTypes.number,
 
     hoverStyle: stylePropTypes,
 };
 
 const defaultProps = {
-    images: [],
-    size: 3,
-    total: 0,
     hoverStyle: {},
 };
 
-function ReportActionItemImages(props) {
-    const images = props.images.slice(0, props.size);
-    const remaining = (props.total || props.images.length) - props.size;
+function ReportActionItemImages({images, size, total, hoverStyle}) {
+    const numberOfShownImages = size || images.length;
+    const shownImages = images.slice(0, size);
+    const remaining = (total || images.length) - size;
 
     return (
-        <View style={[styles.reportActionItemImages, props.hoverStyle]}>
-            {_.map(images, ({thumbnail, image}, index) => {
-                const isLastImage = index === props.size - 1;
+        <View style={[styles.reportActionItemImages, hoverStyle]}>
+            {_.map(shownImages, ({thumbnail, image}, index) => {
+                const isLastImage = index === numberOfShownImages - 1;
                 return (
                     <View
                         key={image}
-                        style={[styles.reportActionItemImage, props.hoverStyle]}
+                        style={[styles.reportActionItemImage, hoverStyle]}
                     >
-                        {thumbnail ? (
-                            <RenderHTML
-                                html={`
-                                    <img
-                                        src="${thumbnail}"
-                                        data-expensify-source="${image}"
-                                        data-expensify-fit-container="true"
-                                        data-expensify-preview-modal-disabled="true"
-                                    />
-                            `}
-                            />
-                        ) : (
-                            <Image
-                                source={{uri: image}}
-                                style={[styles.w100, styles.h100]}
-                            />
-                        )}
+                        <ReportActionItemImage
+                            thumbnail={thumbnail}
+                            image={image}
+                        />
                         {isLastImage && remaining > 0 && (
-                            <View style={[styles.reportActionItemImagesMore, props.hoverStyle]}>
+                            <View style={[styles.reportActionItemImagesMore, hoverStyle]}>
                                 <Text>+{remaining}</Text>
                             </View>
                         )}
