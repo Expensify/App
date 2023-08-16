@@ -72,7 +72,7 @@ function VerifyStep({account = defaultAccount}) {
                 text: translate('twoFactorAuth.stepVerify'),
                 total: 3,
             }}
-            onBackButtonPress={() => setStep(CONST.TWO_FACTOR_AUTH_STEPS.CODES)}
+            onBackButtonPress={() => setStep(CONST.TWO_FACTOR_AUTH_STEPS.CODES, CONST.ANIMATION_DIRECTION.OUT)}
             onEntryTransitionEnd={() => formRef.current && formRef.current.focus()}
         >
             <ScrollView
