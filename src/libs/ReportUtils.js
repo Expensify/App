@@ -1309,8 +1309,7 @@ function getReportPreviewMessage(report, reportAction = {}) {
     const formattedAmount = CurrencyUtils.convertToDisplayString(totalAmount, report.currency);
 
     if (isReportApproved(report) && getPolicyType(report, allPolicies) === CONST.POLICY.TYPE.CORPORATE) {
-        const managerName = getDisplayNameForParticipant(report.managerID, true);
-        return `${managerName} approved ${formattedAmount}`;
+        return `approved ${formattedAmount}`;
     }
 
     if (isSettled(report.reportID)) {
