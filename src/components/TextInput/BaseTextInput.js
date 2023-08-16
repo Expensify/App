@@ -37,7 +37,6 @@ function BaseTextInput(props) {
 
     const input = useRef(null);
     const isLabelActive = useRef(initialActiveLabel);
-    const isFirstRender = useRef(true);
 
     useEffect(() => {
         if (!props.disableKeyboard) {
@@ -186,30 +185,18 @@ function BaseTextInput(props) {
     // It gets updated when the text gets changed.
     const hasValueRef = useRef(inputValue.length > 0);
 
-    const updateLabel = useCallback(() => {
-        // We can't use inputValue here directly, as it might contain
-        // the defaultValue, which doesn't get updated when the text changes.
-        // We can't use props.value either, as it might be undefined.
-        if (hasValueRef.current || isFocused || isInputAutoFilled(input.current)) {
-            activateLabel();
-        } else {
-            deactivateLabel();
-        }
-    }, [activateLabel, deactivateLabel, isFocused]);
-
     // Activate or deactivate the label when the focus changes:
     useEffect(() => {
         // We update label after interaction on initial render.
         // This also avoids a bug where we immediately clear server errors when the loading indicator unmounts and Form remounts with server errors.
-        if (isFirstRender.current) {
-            isFirstRender.current = false;
-            InteractionManager.runAfterInteractions(() => {
-                updateLabel();
-            });
-            return;
-        }
-        updateLabel();
-    }, [updateLabel, inputValue]);
+        InteractionManager.runAfterInteractions(() => {
+            if (hasValueRef.current || isFocused || isInputAutoFilled(input.current)) {
+                activateLabel();
+            } else {
+                deactivateLabel();
+            }
+        });
+    }, [activateLabel, deactivateLabel, inputValue, isFocused]);
 
     /**
      * Set Value & activateLabel
