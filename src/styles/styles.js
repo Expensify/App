@@ -1194,14 +1194,7 @@ const styles = {
         left: 0,
     },
 
-    signInBackgroundDesktop: {
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        minHeight: 700,
-    },
-
-    signInBackgroundMobile: {
+    signInBackground: {
         position: 'absolute',
         bottom: 0,
         left: 0,
@@ -2106,6 +2099,9 @@ const styles = {
 
     PDFViewList: {
         overflowX: 'hidden',
+        // There properties disable "focus" effect on list
+        boxShadow: 'none',
+        outline: 'none',
     },
 
     pdfPasswordForm: {
@@ -2359,7 +2355,6 @@ const styles = {
 
     roomHeaderAvatar: {
         backgroundColor: themeColors.appBG,
-        marginLeft: -16,
         borderRadius: 100,
         borderColor: themeColors.componentBG,
         borderWidth: 4,
