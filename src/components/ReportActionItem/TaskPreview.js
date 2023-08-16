@@ -25,7 +25,7 @@ import personalDetailsPropType from '../../pages/personalDetailsPropType';
 
 const propTypes = {
     /** All personal details asssociated with user */
-    personalDetailsList: personalDetailsPropType,
+    personalDetailsList: PropTypes.objectOf(personalDetailsPropType),
 
     /** The ID of the associated taskReport */
     taskReportID: PropTypes.string.isRequired,
@@ -88,9 +88,9 @@ function TaskPreview(props) {
                         disabled={ReportUtils.isCanceledTaskReport(props.taskReport)}
                         onPress={() => {
                             if (isTaskCompleted) {
-                                Task.reopenTask(props.taskReportID, taskTitle);
+                                Task.reopenTask(props.taskReport, taskTitle);
                             } else {
-                                Task.completeTask(props.taskReportID, taskTitle);
+                                Task.completeTask(props.taskReport, taskTitle);
                             }
                         }}
                         accessibilityLabel={props.translate('task.task')}
