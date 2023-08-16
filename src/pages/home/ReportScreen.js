@@ -37,6 +37,7 @@ import * as ComposerActions from '../../libs/actions/Composer';
 import ReportScreenContext from './ReportScreenContext';
 import TaskHeaderActionButton from '../../components/TaskHeaderActionButton';
 import DragAndDropProvider from '../../components/DragAndDrop/Provider';
+import usePrevious from '../../hooks/usePrevious';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -132,7 +133,7 @@ function ReportScreen({
     const firstRenderRef = useRef(true);
     const flatListRef = useRef();
     const reactionListRef = useRef();
-    const prevReportRef = useRef();
+    const prevReport = usePrevious(report);
 
     const [skeletonViewContainerHeight, setSkeletonViewContainerHeight] = useState(0);
     const [isBannerVisible, setIsBannerVisible] = useState(true);
@@ -252,8 +253,6 @@ function ReportScreen({
 
         fetchReportIfNeeded();
         ComposerActions.setShouldShowComposeInput(true);
-        prevReportRef.current = report;
-
         return () => {
             if (!unsubscribeVisibilityListener) {
                 return;
@@ -281,14 +280,13 @@ function ReportScreen({
         // before deciding that we shouldn't call OpenReport.
         const onyxReportID = report.reportID;
         const routeReportID = getReportID(route);
-        if (onyxReportID === prevReportRef.current.reportID && (!onyxReportID || onyxReportID === routeReportID)) {
+        if (onyxReportID === prevReport.reportID && (!onyxReportID || onyxReportID === routeReportID)) {
             return;
         }
 
         fetchReportIfNeeded();
         ComposerActions.setShouldShowComposeInput(true);
-        prevReportRef.current = report;
-    }, [route, report, errors, fetchReportIfNeeded]);
+    }, [route, report, errors, fetchReportIfNeeded, prevReport.reportID]);
 
     return (
         <ReportScreenContext.Provider
