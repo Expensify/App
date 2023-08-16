@@ -128,6 +128,11 @@ function BasePaymentsPage(props) {
      * @param {String|Number} methodID
      */
     const paymentMethodPressed = (nativeEvent, accountType, account, isDefault, methodID) => {
+        if (shouldShowAddPaymentMenu) {
+            setShouldShowAddPaymentMenu(false);
+            return;
+        }
+
         paymentMethodButtonRef.current = nativeEvent.currentTarget;
 
         // The delete/default menu

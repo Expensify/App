@@ -104,7 +104,7 @@ function ButtonWithDropdownMenu(props) {
                         success
                         isDisabled={props.isDisabled}
                         style={[styles.pl0]}
-                        onPress={() => setIsMenuVisible(true)}
+                        onPress={() => setIsMenuVisible(!isMenuVisible)}
                         shouldRemoveLeftBorderRadius
                     >
                         <Icon

@@ -88,6 +88,10 @@ class ThreeDotsMenu extends Component {
                     <Tooltip text={this.props.translate(this.props.iconTooltip)}>
                         <PressableWithoutFeedback
                             onPress={() => {
+                                if (this.state.isPopupMenuVisible) {
+                                    this.hidePopoverMenu();
+                                    return;
+                                }
                                 this.showPopoverMenu();
                                 if (this.props.onIconPress) {
                                     this.props.onIconPress();
