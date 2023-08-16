@@ -53,13 +53,13 @@ function confirmReadyToOpenApp() {
 
 /**
  * @param {Array} policies
- * @return {Object} map of policy id to lastUpdated
+ * @return {Array<String>} array of policy ids
  */
-function getNonOptimisticPolicyIDToLastModifiedMap(policies) {
+function getNonOptimisticPolicyIDs(policies) {
     return _.chain(policies)
-        .reject((policy) => lodashGet(policy, 'pendingAction', '') === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD)
-        .map((policy) => [policy.id, policy.lastModified || 0])
-        .object()
+        .reject((policy) => lodashGet(policy, 'pendingAction', null) === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD)
+        .pluck('id')
+        .compact()
         .value();
 }
 
@@ -133,7 +133,7 @@ function getPolicyParamsForOpenOrReconnect() {
                 waitForCollectionCallback: true,
                 callback: (policies) => {
                     Onyx.disconnect(connectionID);
-                    resolve({policyIDToLastModified: JSON.stringify(getNonOptimisticPolicyIDToLastModifiedMap(policies))});
+                    resolve({policyIDList: getNonOptimisticPolicyIDs(policies)});
                 },
             });
         });
