@@ -3020,7 +3020,7 @@ function getPolicyExpenseChatReportIDByOwner(policyOwner) {
         return null;
     }
 
-    return _find(allReports, (report) => isPolicyExpenseChat(report) && report.policyID === policy.id);
+    return _.find(allReports, (report) => isPolicyExpenseChat(report) && report.policyID === policy.id);
 }
 
 /*

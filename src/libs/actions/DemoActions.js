@@ -8,6 +8,7 @@ import {buildOptimisticCustomUnits, generatePolicyID} from './Policy';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import ONYXKEYS from '../../ONYXKEYS';
+import DateUtils from '../DateUtils';
 
 let sessionAccountID = 0;
 let sessionEmail = 0;
