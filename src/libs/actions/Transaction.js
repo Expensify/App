@@ -8,12 +8,12 @@ import * as CollectionUtils from '../CollectionUtils';
 const allTransactions = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION,
-    callback: (transactions, key) => {
-        if (!key || !transactions) {
+    callback: (transaction, key) => {
+        if (!key || !transaction) {
             return;
         }
         const transactionID = CollectionUtils.extractCollectionItemID(key);
-        allTransactions[transactionID] = transactions;
+        allTransactions[transactionID] = transaction;
     },
 });
 
@@ -40,8 +40,7 @@ function createInitialWaypoints(transactionID) {
 function addStop(transactionID) {
     const transaction = lodashGet(allTransactions, transactionID, {});
     const existingWaypoints = lodashGet(transaction, 'comment.waypoints', {});
-    const totalWaypoints = _.size(existingWaypoints);
-    const newLastIndex = totalWaypoints;
+    const newLastIndex = _.size(existingWaypoints);
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         comment: {
@@ -75,8 +74,8 @@ function removeWaypoint(transactionID, currentIndex) {
     const existingWaypoints = lodashGet(transaction, 'comment.waypoints', {});
     const totalWaypoints = _.size(existingWaypoints);
 
-    // Prevents removing the starting or ending waypoint but clear the stored address
-    if (index === 0 || index === totalWaypoints - 1) {
+    // Prevents removing the starting or ending waypoint but clear the stored address only if there are only two waypoints
+    if (totalWaypoints === 2 && (index === 0 || index === totalWaypoints - 1)) {
         saveWaypoint(transactionID, index, null);
         return;
     }
@@ -92,8 +91,13 @@ function removeWaypoint(transactionID, currentIndex) {
     // Onyx.merge won't remove the null nested object values, this is a workaround
     // to remove nested keys while also preserving other object keys
     // Doing a deep clone of the transaction to avoid mutating the original object and running into a cache issue when using Onyx.set
-    const newTransaction = lodashCloneDeep(transaction);
-    newTransaction.comment.waypoints = reIndexedWaypoints;
+    const newTransaction = {
+        ...transaction,
+        comment: {
+            ...transaction.comment,
+            waypoints: reIndexedWaypoints,
+        },
+    };
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, newTransaction);
 }
 
