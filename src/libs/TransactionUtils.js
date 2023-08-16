@@ -1,9 +1,23 @@
 import {format} from 'date-fns';
 import lodashGet from 'lodash/get';
+import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import CONST from '../CONST';
+import ONYXKEYS from '../ONYXKEYS';
 import DateUtils from './DateUtils';
 import * as NumberUtils from './NumberUtils';
+
+let allTransactions = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.TRANSACTION,
+    waitForCollectionCallback: true,
+    callback: (val) => {
+        if (!val) {
+            return;
+        }
+        allTransactions = val;
+    },
+});
 
 /**
  * Optimistically generate a transaction.
@@ -85,6 +99,16 @@ function getUpdatedTransaction(transaction, transactionChanges, isFromExpenseRep
     updatedTransaction.pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
 
     return updatedTransaction;
+}
+
+/**
+ * Retrieve the particular transaction object given its ID.
+ *
+ * @param {String} transactionID
+ * @returns {Object}
+ */
+function getTransaction(transactionID) {
+    return lodashGet(allTransactions, `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {});
 }
 
 /**
@@ -181,11 +205,11 @@ export {
     buildOptimisticTransaction,
     hasReceipt,
     getUpdatedTransaction,
-    getTransaction,
     getDescription,
     getAmount,
     getCurrency,
     getCreated,
     getReportPreviewTransactionsWithReceipts,
+    getTransaction,
     isDistanceRequest,
 };
