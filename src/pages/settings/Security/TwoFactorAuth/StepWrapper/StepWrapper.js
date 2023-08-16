@@ -23,7 +23,7 @@ function StepWrapper({
             onEntryTransitionEnd={onEntryTransitionEnd}
             shouldEnableKeyboardAvoidingView={shouldEnableKeyboardAvoidingView}
         >
-            <AnimatedStep style={styles.flex1}>
+            <AnimatedStep style={[styles.flex1]}>
                 <HeaderWithBackButton
                     title={title}
                     shouldShowStepCounter={shouldShowStepCounter}
