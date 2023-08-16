@@ -594,14 +594,15 @@ function getNumberOfMoneyRequests(reportPreviewAction) {
 
 /**
  * For report previews and money request actions, we display a "Receipt scan in progress" indicator
- * instead of the report total only when we have no report total ready to show. As soon as we have
- * a non-receipt request, or as soon as one receipt request is done scanning, we have at least one
+ * instead of the report total only when we have no report total ready to show. This is the case when
+ * all requests are receipts that are being SmartScanned. As soon as we have a non-receipt request,
+ * or as soon as one receipt request is done scanning, we have at least one
  * "ready" money request, and we remove this indicator to show the partial report total.
  *
  * @param {Object|null} reportAction
  * @returns {Boolean}
  */
-function hasReadyMoneyRequests(reportAction) {
+function areAllRequestsBeingSmartScanned(reportAction) {
     // If a report preview has at least one manual request or at least one scanned receipt
     if (isReportPreviewAction(reportAction)) {
         const transactions = TransactionUtils.getReportPreviewTransactionsWithReceipts(reportAction);
@@ -678,7 +679,7 @@ export {
     isWhisperAction,
     isPendingRemove,
     getReportAction,
-    hasReadyMoneyRequests,
+    areAllRequestsBeingSmartscanned,
     getNumberOfMoneyRequests,
     getNumberOfScanningReceipts,
 };

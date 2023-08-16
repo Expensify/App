@@ -149,7 +149,7 @@ function MoneyRequestPreview(props) {
 
     const transaction = TransactionUtils.getTransaction(props.action.originalMessage.IOUTransactionID);
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
-    const isScanning = !ReportActionUtils.hasReadyMoneyRequests(props.action);
+    const isScanning = !ReportActionUtils.areAllRequestsBeingSmartscanned(props.action);
 
     const getSettledMessage = () => {
         switch (lodashGet(props.action, 'originalMessage.paymentType', '')) {
