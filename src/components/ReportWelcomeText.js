@@ -55,6 +55,8 @@ function ReportWelcomeText(props) {
     const isChatRoom = ReportUtils.isChatRoom(props.report);
     const isDefault = !(isChatRoom || isPolicyExpenseChat);
     const participantAccountIDs = lodashGet(props.report, 'participantAccountIDs', []);
+    const isAdminsOnlyPostingRoom = ReportUtils.isAdminsOnlyPostingRoom(props.report);
+    const isAnnounceRoom = ReportUtils.isAnnounceRoom(props.report);
     const isMultipleParticipant = participantAccountIDs.length > 1;
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(
         OptionsListUtils.getPersonalDetailsForAccountIDs(participantAccountIDs, props.personalDetails),
@@ -65,7 +67,11 @@ function ReportWelcomeText(props) {
     return (
         <>
             <View>
-                <Text style={[styles.textHero]}>{props.translate('reportActionsView.sayHello')}</Text>
+                <Text style={[styles.textHero]}>
+                    {isAdminsOnlyPostingRoom || isAnnounceRoom
+                        ? props.translate('reportActionsView.welcomeToRoom', {roomName: ReportUtils.getReportName(props.report)})
+                        : props.translate('reportActionsView.sayHello')}
+                </Text>
             </View>
             <Text style={[styles.mt3, styles.mw100]}>
                 {isPolicyExpenseChat && (
@@ -84,14 +90,18 @@ function ReportWelcomeText(props) {
                 {isChatRoom && (
                     <>
                         <Text>{roomWelcomeMessage.phrase1}</Text>
-                        <Text
-                            style={[styles.textStrong]}
-                            onPress={() => Navigation.navigate(ROUTES.getReportDetailsRoute(props.report.reportID))}
-                            suppressHighlighting
-                        >
-                            {ReportUtils.getReportName(props.report)}
-                        </Text>
-                        <Text>{roomWelcomeMessage.phrase2}</Text>
+                        {/* if room is admin only posting room we dont need phrase2 and link to room details */}
+                        {!isAdminsOnlyPostingRoom && (
+                            <>
+                                <Text
+                                    style={[styles.textStrong]}
+                                    onPress={() => Navigation.navigate(ROUTES.getReportDetailsRoute(props.report.reportID))}
+                                >
+                                    {ReportUtils.getReportName(props.report)}
+                                </Text>
+                                <Text>{roomWelcomeMessage.phrase2}</Text>
+                            </>
+                        )}
                     </>
                 )}
                 {isDefault && (
