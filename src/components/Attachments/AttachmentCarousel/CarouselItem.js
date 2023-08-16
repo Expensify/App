@@ -32,14 +32,6 @@ function CarouselItem({item, isFocused, onPress}) {
     const {translate} = useLocalize();
     const [isHidden, setIsHidden] = useState(item.isHidden);
 
-    useEffect(() => {
-        if (isFocused) {
-            return;
-        }
-        // When the attachment is out of focus, we want to hide the attachment back
-        setIsHidden(item.isHidden);
-    }, [isFocused, item.isHidden]);
-
     if (isHidden) {
         return (
             <PressableWithoutFeedback
