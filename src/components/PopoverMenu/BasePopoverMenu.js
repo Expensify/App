@@ -7,6 +7,7 @@ import styles from '../../styles/styles';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import MenuItem from '../MenuItem';
 import {propTypes as createMenuPropTypes, defaultProps as createMenuDefaultProps} from './popoverMenuPropTypes';
+import refPropTypes from '../refPropTypes';
 import Text from '../Text';
 import CONST from '../../CONST';
 import useArrowKeyFocusManager from '../../hooks/useArrowKeyFocusManager';
@@ -17,13 +18,16 @@ const propTypes = {
     ...createMenuPropTypes,
     ...windowDimensionsPropTypes,
 
-    /** Defines the anchor points for the popover */
+    /** The horizontal and vertical anchors points for the popover */
     anchorPosition: PropTypes.shape({
         horizontal: PropTypes.number.isRequired,
         vertical: PropTypes.number.isRequired,
     }).isRequired,
 
-    /** Sets the popover's position relative to the anchor points */
+    /** Ref of the anchor */
+    anchorRef: refPropTypes,
+
+    /** Where the popover should be positioned relative to the anchor points. */
     anchorAlignment: PropTypes.shape({
         horizontal: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL)),
         vertical: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL)),
@@ -31,6 +35,8 @@ const propTypes = {
 
     /** Indicates whether navigation should occur before closing the modal */
     shouldNavigateBeforeClosingModal: PropTypes.bool,
+
+    withoutOverlay: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -40,6 +46,8 @@ const defaultProps = {
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
     },
     shouldNavigateBeforeClosingModal: false,
+    anchorRef: () => {},
+    withoutOverlay: false,
 };
 
 function PopoverMenu(props) {
@@ -66,7 +74,7 @@ function PopoverMenu(props) {
 
     const selectItem = (index) => {
         const selectedItem = props.menuItems[index];
-        props.onItemSelected(selectedItem);
+        props.onItemSelected(selectedItem, index);
         setSelectedItemIndex(index);
     };
 
@@ -85,6 +93,7 @@ function PopoverMenu(props) {
     return (
         <PopoverWithMeasuredContent
             anchorPosition={props.anchorPosition}
+            anchorRef={props.anchorRef}
             anchorAlignment={props.anchorAlignment}
             onClose={props.onClose}
             onModalHide={() => {
@@ -99,6 +108,7 @@ function PopoverMenu(props) {
             animationInTiming={props.animationInTiming}
             disableAnimation={props.disableAnimation}
             fromSidebarMediumScreen={props.fromSidebarMediumScreen}
+            withoutOverlay={props.withoutOverlay}
         >
             <View style={isSmallScreenWidth ? {} : styles.createMenuContainer}>
                 {!_.isEmpty(props.headerText) && <Text style={[styles.createMenuHeaderText, styles.ml3]}>{props.headerText}</Text>}
