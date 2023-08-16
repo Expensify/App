@@ -215,7 +215,7 @@ function BaseSelectionListRadio(props) {
         >
             <SafeAreaConsumer>
                 {({safeAreaPaddingBottomStyle}) => (
-                    <View style={[styles.flex1, !props.isKeyboardShown && safeAreaPaddingBottomStyle]}>
+                    <View style={[styles.flex1, props.wrapperStyle, !props.isKeyboardShown && safeAreaPaddingBottomStyle]}>
                         {shouldShowTextInput && (
                             <View style={[styles.ph5, styles.pb3]}>
                                 <TextInput
