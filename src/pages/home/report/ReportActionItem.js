@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import React, {useState, useRef, useEffect, memo, useCallback} from 'react';
+import React, {useState, useRef, useEffect, memo, useCallback, useContext} from 'react';
 import {InteractionManager, View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -64,6 +64,7 @@ import * as PersonalDetailsUtils from '../../../libs/PersonalDetailsUtils';
 import ReportActionItemBasicMessage from './ReportActionItemBasicMessage';
 import * as store from '../../../libs/actions/ReimbursementAccount/store';
 import * as BankAccounts from '../../../libs/actions/BankAccounts';
+import ReportScreenContext from '../ReportScreenContext';
 import Permissions from '../../../libs/Permissions';
 
 const propTypes = {
@@ -126,15 +127,15 @@ function ReportActionItem(props) {
     const [isContextMenuActive, setIsContextMenuActive] = useState(ReportActionContextMenu.isActiveReportAction(props.action.reportActionID));
     const [isHidden, setIsHidden] = useState(false);
     const [moderationDecision, setModerationDecision] = useState(CONST.MODERATION.MODERATOR_DECISION_APPROVED);
+    const {reactionListRef} = useContext(ReportScreenContext);
     const textInputRef = useRef();
     const popoverAnchorRef = useRef();
     const downloadedPreviews = useRef([]);
 
     useEffect(
         () => () => {
-            // ReportActionContextMenu and EmojiPicker are global component,
-            // we use showContextMenu and showEmojiPicker to show them,
-            // so we should also hide them when the current component is destroyed
+            // ReportActionContextMenu, EmojiPicker and PopoverReactionList are global components,
+            // we should also hide them when the current component is destroyed
             if (ReportActionContextMenu.isActiveReportAction(props.action.reportActionID)) {
                 ReportActionContextMenu.hideContextMenu();
                 ReportActionContextMenu.hideDeleteModal();
@@ -142,8 +143,11 @@ function ReportActionItem(props) {
             if (EmojiPickerAction.isActiveReportAction(props.action.reportActionID)) {
                 EmojiPickerAction.hideEmojiPicker(true);
             }
+            if (reactionListRef.current && reactionListRef.current.isActiveReportAction(props.action.reportActionID)) {
+                reactionListRef.current.hideReactionList();
+            }
         },
-        [props.action.reportActionID],
+        [props.action.reportActionID, reactionListRef],
     );
 
     const isDraftEmpty = !props.draftMessage;
@@ -353,6 +357,7 @@ function ReportActionItem(props) {
                                     <Text
                                         style={styles.buttonSmallText}
                                         selectable={false}
+                                        dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                                     >
                                         {isHidden ? props.translate('moderation.revealMessage') : props.translate('moderation.hideMessage')}
                                     </Text>
