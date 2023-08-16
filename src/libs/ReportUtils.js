@@ -246,11 +246,7 @@ function isSettled(reportID) {
         return false;
     }
 
-    if (getPolicyType(report, allPolicies) === CONST.POLICY.TYPE.CORPORATE) {
-        return report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && report.statusNum === CONST.REPORT.STATUS.REIMBURSED;
-    }
-
-    return report.stateNum > CONST.REPORT.STATE_NUM.PROCESSING;
+    return report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && report.statusNum === CONST.REPORT.STATUS.REIMBURSED;
 }
 
 /**
