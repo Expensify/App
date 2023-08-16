@@ -73,8 +73,8 @@ const defaultProps = {
 
 function WaypointEditor({transactionID, route: {params: {iouType = '', waypointIndex = ''} = {}} = {}, network, translate, transaction}) {
     const textInput = useRef(null);
-    const waypoint = lodashGet(transaction, `comment.waypoints.waypoint${waypointIndex}`, {});
-    const waypointAddress = lodashGet(waypoint, 'address', '');
+    const currentWaypoint = lodashGet(transaction, `comment.waypoints.waypoint${waypointIndex}`, {});
+    const waypointAddress = lodashGet(currentWaypoint, 'address', '');
 
     const validate = (values) => {
         const errors = {};
