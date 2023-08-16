@@ -349,7 +349,7 @@ export {
     deletePayPalMe,
     deletePaymentCard,
     addPaymentCard,
-    openPaymentsPage,
+    openWalletPage,
     makeDefaultPaymentMethod,
     kycWallRef,
     continueSetup,
