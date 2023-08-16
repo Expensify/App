@@ -1,10 +1,11 @@
 import React from 'react';
 import SignInPage from './SignInPage';
+import useLocalize from '../../hooks/useLocalize';
 
 function DemoSetupPage() {
+    const {translate} = useLocalize();
     return (
-        <SignInPage customHeadline="Welcome to SaaStr!
-        Hop in to start networking now."/>
+        <SignInPage customHeadline={translate('login.hero.demoHeadline')} />
     );
 }
 
