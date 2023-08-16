@@ -600,6 +600,14 @@ function getTaskCreatedReportActions(taskReportID) {
     return taskCreatedReportActions;
 }
 
+/*
+ * @param {*} reportAction
+ * @returns {Boolean}
+ */
+function isSplitBillAction(reportAction) {
+    return lodashGet(reportAction, 'originalMessage.type', '') === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
+}
+
 export {
     getSortedReportActions,
     getLastVisibleAction,
@@ -635,4 +643,5 @@ export {
     isPendingRemove,
     getReportAction,
     getTaskCreatedReportActions,
+    isSplitBillAction,
 };
