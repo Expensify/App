@@ -2373,7 +2373,6 @@ const styles = {
 
     roomHeaderAvatar: {
         backgroundColor: themeColors.appBG,
-        marginLeft: -16,
         borderRadius: 100,
         borderColor: themeColors.componentBG,
         borderWidth: 4,
