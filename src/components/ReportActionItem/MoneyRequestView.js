@@ -92,7 +92,7 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, polic
     if (ReportActionsUtils.isDeletedAction(parentReportAction)) {
         return null;
     }
-  
+
     const transaction = TransactionUtils.getTransaction(parentReportAction.originalMessage.IOUTransactionID);
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     let receiptURIs;
