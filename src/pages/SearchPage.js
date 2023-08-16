@@ -44,6 +44,8 @@ function SearchPage(props) {
         recentReports: initialRecentReports,
         personalDetails: initialPersonalDetails,
         userToInvite: initialUserToInvite
+        // Ignoring the rule because in this case we need the data only initially
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     } = useMemo(() => OptionsListUtils.getSearchOptions(props.reports, props.personalDetails, '', props.betas), []);
 
     const [searchValue, setSearchValue] = useState('')
@@ -74,7 +76,7 @@ function SearchPage(props) {
         })
     }, [props.reports, props.personalDetails, searchValue, props.betas])
 
-    const debouncedUpdateOptions = useCallback(_.debounce(updateOptions, 75), [updateOptions]);
+    const debouncedUpdateOptions = useMemo(() => _.debounce(updateOptions, 75), [updateOptions]);
 
     useEffect(() => {
         Timing.start(CONST.TIMING.SEARCH_RENDER);
