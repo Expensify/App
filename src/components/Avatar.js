@@ -75,8 +75,8 @@ function Avatar(props) {
 
     const imageStyle =
         props.imageStyles && props.imageStyles.length
-            ? [StyleUtils.getAvatarStyle(props.size), ...props.imageStyles, StyleUtils.getAvatarBorderRadius(props.size, props.type)]
-            : [StyleUtils.getAvatarStyle(props.size), StyleUtils.getAvatarBorderStyle(props.size, props.type)];
+            ? [StyleUtils.getAvatarStyle(props.size), ...props.imageStyles, styles.noBorderRadius]
+            : [StyleUtils.getAvatarStyle(props.size), styles.noBorderRadius];
 
     const iconStyle = props.imageStyles && props.imageStyles.length ? [StyleUtils.getAvatarStyle(props.size), styles.bgTransparent, ...props.imageStyles] : undefined;
 

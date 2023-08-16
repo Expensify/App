@@ -35,64 +35,6 @@ const CONST = {
     ARROW_HIDE_DELAY: 3000,
 
     API_ATTACHMENT_VALIDATIONS: {
-        // Same as the PHP layer allows
-        /* eslint-disable-next-line max-len */
-        UNALLOWED_EXTENSIONS: [
-            'ade',
-            'adp',
-            'apk',
-            'appx',
-            'appxbundle',
-            'bat',
-            'cab',
-            'chm',
-            'cmd',
-            'com',
-            'cpl',
-            'diagcab',
-            'diagcfg',
-            'diagpack',
-            'dll',
-            'dmg',
-            'ex',
-            'ex_',
-            'exe',
-            'hta',
-            'img',
-            'ins',
-            'iso',
-            'isp',
-            'jar',
-            'jnlp',
-            'js',
-            'jse',
-            'lib',
-            'lnk',
-            'mde',
-            'msc',
-            'msi',
-            'msix',
-            'msixbundle',
-            'msp',
-            'mst',
-            'nsh',
-            'pif',
-            'ps1',
-            'scr',
-            'sct',
-            'shb',
-            'sys',
-            'vb',
-            'vbe',
-            'vbs',
-            'vhd',
-            'vxd',
-            'wsc',
-            'wsf',
-            'wsh',
-            'xll',
-        ],
-
         // 24 megabytes in bytes, this is limit set on servers, do not update without wider internal discussion
         MAX_SIZE: 25165824,
 
@@ -286,6 +228,7 @@ const CONST = {
         TASKS: 'tasks',
         THREADS: 'threads',
         SCAN_RECEIPTS: 'scanReceipts',
+        CUSTOM_STATUS: 'customStatus',
         DISTANCE_REQUESTS: 'distanceRequests',
     },
     BUTTON_STATES: {
@@ -512,6 +455,7 @@ const CONST = {
                 TASKEDITED: 'TASKEDITED',
                 TASKCANCELLED: 'TASKCANCELLED',
                 IOU: 'IOU',
+                MODIFIEDEXPENSE: 'MODIFIEDEXPENSE',
                 REIMBURSEMENTQUEUED: 'REIMBURSEMENTQUEUED',
                 RENAMED: 'RENAMED',
                 CHRONOSOOOLIST: 'CHRONOSOOOLIST',
@@ -1219,6 +1163,7 @@ const CONST = {
 
         ROUTES: {
             VALIDATE_LOGIN: /\/v($|(\/\/*))/,
+            UNLINK_LOGIN: /\/u($|(\/\/*))/,
         },
     },
 
@@ -1320,8 +1265,10 @@ const CONST = {
     },
     EDIT_REQUEST_FIELD: {
         AMOUNT: 'amount',
+        CURRENCY: 'currency',
         DATE: 'date',
         DESCRIPTION: 'description',
+        MERCHANT: 'merchant',
     },
     FOOTER: {
         EXPENSE_MANAGEMENT_URL: `${USE_EXPENSIFY_URL}/expense-management`,
@@ -2582,11 +2529,31 @@ const CONST = {
     TRANSLATION_KEYS: {
         ATTACHMENT: 'common.attachment',
     },
+    CUSTOM_STATUS_TYPES: {
+        NEVER: 'never',
+        THIRTY_MINUTES: 'thirtyMinutes',
+        ONE_HOUR: 'oneHour',
+        AFTER_TODAY: 'afterToday',
+        AFTER_WEEK: 'afterWeek',
+        CUSTOM: 'custom',
+    },
     TAB: {
         RECEIPT_TAB_ID: 'ReceiptTab',
         MANUAL: 'manual',
         SCAN: 'scan',
         DISTANCE: 'distance',
+    },
+    STATUS_TEXT_MAX_LENGTH: 100,
+    NAVIGATION: {
+        TYPE: {
+            FORCED_UP: 'FORCED_UP',
+            UP: 'UP',
+        },
+        ACTION_TYPE: {
+            REPLACE: 'REPLACE',
+            PUSH: 'PUSH',
+            NAVIGATE: 'NAVIGATE',
+        },
     },
 };
 

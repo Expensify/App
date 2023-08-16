@@ -93,6 +93,14 @@ function isReportPreviewAction(reportAction) {
     return lodashGet(reportAction, 'actionName', '') === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW;
 }
 
+/**
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
+function isModifiedExpenseAction(reportAction) {
+    return lodashGet(reportAction, 'actionName', '') === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE;
+}
+
 function isWhisperAction(action) {
     return (action.whisperedToAccountIDs || []).length > 0;
 }
@@ -572,6 +580,14 @@ function isMessageDeleted(reportAction) {
     return lodashGet(reportAction, ['message', 0, 'isDeletedParentAction'], false);
 }
 
+/**
+ * @param {*} reportAction
+ * @returns {Boolean}
+ */
+function isSplitBillAction(reportAction) {
+    return lodashGet(reportAction, 'originalMessage.type', '') === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
+}
+
 export {
     getSortedReportActions,
     getLastVisibleAction,
@@ -600,9 +616,11 @@ export {
     isSentMoneyReportAction,
     isDeletedParentAction,
     isReportPreviewAction,
+    isModifiedExpenseAction,
     getIOUReportIDFromReportActionPreview,
     isMessageDeleted,
     isWhisperAction,
     isPendingRemove,
     getReportAction,
+    isSplitBillAction,
 };
