@@ -525,7 +525,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
             },
         },
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${groupTransaction.transactionID}`,
             value: groupTransaction,
         },
@@ -866,17 +866,16 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
     ];
 
     // STEP 6: Call the API endpoint
+    const {created, amount, currency, comment} = ReportUtils.getTransactionDetails(updatedTransaction);
     API.write(
         'EditMoneyRequest',
         {
             transactionID,
             reportActionID: updatedReportAction.reportActionID,
-
-            // Using the getter methods here to ensure we pass modified field if present
-            created: TransactionUtils.getCreated(updatedTransaction),
-            amount: TransactionUtils.getAmount(updatedTransaction, isFromExpenseReport),
-            currency: TransactionUtils.getCurrency(updatedTransaction),
-            comment: TransactionUtils.getDescription(updatedTransaction),
+            created,
+            amount,
+            currency,
+            comment,
         },
         {optimisticData, successData, failureData},
     );
@@ -939,9 +938,15 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
             updatedIOUReport = {...iouReport};
 
             // Because of the Expense reports are stored as negative values, we add the total from the amount
-            updatedIOUReport.total += reportAction.originalMessage.amount;
+            updatedIOUReport.total += TransactionUtils.getAmount(transaction, true);
         } else {
-            updatedIOUReport = IOUUtils.updateIOUOwnerAndTotal(iouReport, reportAction.actorAccountID, reportAction.originalMessage.amount, reportAction.originalMessage.currency, true);
+            updatedIOUReport = IOUUtils.updateIOUOwnerAndTotal(
+                iouReport,
+                reportAction.actorAccountID,
+                TransactionUtils.getAmount(transaction, false),
+                TransactionUtils.getCurrency(transaction),
+                true,
+            );
         }
 
         updatedIOUReport.lastMessageText = iouReportLastMessageText;

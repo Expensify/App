@@ -157,4 +157,19 @@ function getCreated(transaction) {
     return '';
 }
 
-export {buildOptimisticTransaction, getUpdatedTransaction, getTransaction, getDescription, getAmount, getCurrency, getCreated};
+/**
+ * Get the details linked to the IOU reportAction
+ *
+ * @param {Object} reportAction
+ * @returns {Object}
+ */
+function getLinkedTransaction(reportAction = {}) {
+    const transactionID = lodashGet(reportAction, ['originalMessage', 'IOUTransactionID'], '');
+    return allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] || {};
+}
+
+function getAllReportTransactions(reportID) {
+    return _.filter(allTransactions, (transaction) => transaction.reportID === reportID);
+}
+
+export {buildOptimisticTransaction, getUpdatedTransaction, getTransaction, getDescription, getAmount, getCurrency, getCreated, getLinkedTransaction, getAllReportTransactions};
