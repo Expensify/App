@@ -70,6 +70,12 @@ const propTypes = {
     /** Content for the FlatList header component */
     listHeaderComponent: PropTypes.func,
 
+    /** Callback for whenever FlatList component size changes */
+    onListContentSizeChange: PropTypes.func,
+
+    /** React ref being forwarded to the PaymentMethodList Button */
+    buttonRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
+
     ...withLocalizePropTypes,
 };
 
@@ -89,6 +95,8 @@ const defaultProps = {
     activePaymentMethodID: '',
     selectedMethodID: '',
     listHeaderComponent: null,
+    buttonRef: () => {},
+    onListContentSizeChange: () => {},
 };
 
 /**
@@ -242,6 +250,7 @@ function PaymentMethodList(props) {
                 keyExtractor={(item) => item.key}
                 ListEmptyComponent={renderListEmptyComponent(translate)}
                 ListHeaderComponent={props.listHeaderComponent}
+                onContentSizeChange={props.onListContentSizeChange}
             />
             {props.shouldShowAddPaymentMethodButton && (
                 <FormAlertWrapper>
@@ -257,6 +266,7 @@ function PaymentMethodList(props) {
                             success
                             shouldShowRightIcon
                             large
+                            ref={props.buttonRef}
                         />
                     )}
                 </FormAlertWrapper>

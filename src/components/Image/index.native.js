@@ -7,6 +7,12 @@ import ONYXKEYS from '../../ONYXKEYS';
 import {defaultProps, imagePropTypes} from './imagePropTypes';
 import RESIZE_MODES from './resizeModes';
 
+const dimensionsCache = new Map();
+
+function resolveDimensions(key) {
+    return dimensionsCache.get(key);
+}
+
 function Image(props) {
     // eslint-disable-next-line react/destructuring-assignment
     const {source, isAuthTokenRequired, session, ...rest} = props;
@@ -29,6 +35,13 @@ function Image(props) {
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
             source={imageSource}
+            onLoad={(evt) => {
+                const {width, height} = evt.nativeEvent;
+                dimensionsCache.set(source.uri, {width, height});
+                if (props.onLoad) {
+                    props.onLoad(evt);
+                }
+            }}
         />
     );
 }
@@ -42,4 +55,5 @@ const ImageWithOnyx = withOnyx({
     },
 })(Image);
 ImageWithOnyx.resizeMode = RESIZE_MODES;
+ImageWithOnyx.resolveDimensions = resolveDimensions;
 export default ImageWithOnyx;

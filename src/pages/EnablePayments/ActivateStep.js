@@ -30,7 +30,7 @@ const defaultProps = {
 
 function ActivateStep(props) {
     const isGoldWallet = props.userWallet.tierName === CONST.WALLET.TIER_NAME.GOLD;
-    const animation = isGoldWallet ? LottieAnimations.FireworksAnimation : LottieAnimations.ReviewingBankInfoAnimation;
+    const animation = isGoldWallet ? LottieAnimations.Fireworks : LottieAnimations.ReviewingBankInfo;
     const continueButtonText = props.walletTerms.chatReportID ? props.translate('activateStep.continueToPayment') : props.translate('activateStep.continueToTransfer');
 
     return (
