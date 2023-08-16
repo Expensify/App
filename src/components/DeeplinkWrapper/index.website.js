@@ -18,6 +18,9 @@ class DeeplinkWrapper extends PureComponent {
             return;
         }
 
+        // Match any magic link (/v/<account id>/<6 digit code>)
+        const isMagicLink = CONST.REGEX.ROUTES.VALIDATE_LOGIN.test(window.location.pathname);
+
         // If the current url path is /transition..., meaning it was opened from oldDot, during this transition period:
         // 1. The user session may not exist, because sign-in has not been completed yet.
         // 2. There may be non-idempotent operations (e.g. create a new workspace), which obviously should not be executed again in the desktop app.
@@ -26,7 +29,7 @@ class DeeplinkWrapper extends PureComponent {
             App.beginDeepLinkRedirectAfterTransition();
             return;
         }
-        App.beginDeepLinkRedirect();
+        App.beginDeepLinkRedirect(!isMagicLink);
     }
 
     isMacOSWeb() {
