@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import optionPropTypes from '../optionPropTypes';
 import styles from '../../styles/styles';
-import CONST from "../../CONST";
+import CONST from '../../CONST';
 
 const propTypes = {
     /** Callback to fire when a row is tapped */

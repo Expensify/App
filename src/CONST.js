@@ -771,7 +771,7 @@ const CONST = {
         TEL: 'tel',
         SEARCH: 'search',
         EMAIL: 'email',
-        URL: 'url'
+        URL: 'url',
     },
 
     ATTACHMENT_MESSAGE_TEXT: '[Attachment]',

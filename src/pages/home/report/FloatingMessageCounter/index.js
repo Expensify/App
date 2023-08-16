@@ -72,11 +72,7 @@ function FloatingMessageCounter(props) {
                                 src={Expensicons.DownArrow}
                                 fill={themeColors.textLight}
                             />
-                            <Text
-                                style={[styles.ml2, styles.buttonSmallText, styles.textWhit, styles.userSelectNone]}
-                            >
-                                {translate('newMessages')}
-                            </Text>
+                            <Text style={[styles.ml2, styles.buttonSmallText, styles.textWhit, styles.userSelectNone]}>{translate('newMessages')}</Text>
                         </View>
                     </Button>
                 </View>

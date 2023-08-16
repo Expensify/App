@@ -59,11 +59,7 @@ function ReportActionItemThread(props) {
                         isInReportAction
                     />
                     <View style={[styles.flex1, styles.flexRow, styles.lh140Percent, styles.alignItemsEnd]}>
-                        <Text
-                            style={[styles.link, styles.ml2, styles.h4, styles.noWrap, styles.userSelectNone]}
-                        >
-                            {`${numberOfRepliesText} ${replyText}`}
-                        </Text>
+                        <Text style={[styles.link, styles.ml2, styles.h4, styles.noWrap, styles.userSelectNone]}>{`${numberOfRepliesText} ${replyText}`}</Text>
                         <Text
                             numberOfLines={1}
                             style={[styles.ml2, styles.textMicroSupporting, styles.flex1, styles.userSelectNone]}

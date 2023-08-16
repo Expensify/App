@@ -6,7 +6,7 @@ import styles from '../../../../styles/styles';
 
 const defaultProps = {
     isSmallScreen: false,
-    style: {}
+    style: {},
 };
 
 const propTypes = {

@@ -529,7 +529,11 @@ class EmojiPickerMenu extends Component {
         const overflowLimit = Math.floor(height / CONST.EMOJI_PICKER_ITEM_HEIGHT) * 8;
         return (
             <View
-                style={[styles.emojiPickerContainer, StyleUtils.getEmojiPickerStyle(this.props.isSmallScreenWidth), this.state.arePointerEventsDisabled ? styles.pointerEventsNone : styles.pointerEventsAuto]}
+                style={[
+                    styles.emojiPickerContainer,
+                    StyleUtils.getEmojiPickerStyle(this.props.isSmallScreenWidth),
+                    this.state.arePointerEventsDisabled ? styles.pointerEventsNone : styles.pointerEventsAuto,
+                ]}
             >
                 <View style={[styles.ph4, styles.pb3, styles.pt2]}>
                     <TextInput

@@ -5,7 +5,7 @@ import _ from 'underscore';
 import RNTextInput from '../RNTextInput';
 import themeColors from '../../styles/themes/default';
 import * as ComposerUtils from '../../libs/ComposerUtils';
-import styles from "../../styles/styles";
+import styles from '../../styles/styles';
 
 const propTypes = {
     /** Maximum number of lines in the text input */

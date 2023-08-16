@@ -1137,7 +1137,7 @@ function getEmojiReactionCounterTextStyle(hasUserReacted) {
  */
 function getDirectionStyle(direction) {
     if (direction === CONST.DIRECTION.LEFT) {
-        return {transform: 'rotate(180deg)'}
+        return {transform: 'rotate(180deg)'};
     }
 
     return {};

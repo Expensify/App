@@ -218,9 +218,9 @@ function MultipleAvatars(props) {
                                             StyleUtils.getWidthStyle(oneAvatarSize.width),
                                         ]}
                                     >
-                                        <Text
-                                            style={[styles.avatarInnerTextSmall, StyleUtils.getAvatarExtraFontSizeStyle(props.size), styles.userSelectNone]}
-                                        >{`+${avatars.length - props.maxAvatarsInRow}`}</Text>
+                                        <Text style={[styles.avatarInnerTextSmall, StyleUtils.getAvatarExtraFontSizeStyle(props.size), styles.userSelectNone]}>{`+${
+                                            avatars.length - props.maxAvatarsInRow
+                                        }`}</Text>
                                     </View>
                                 </View>
                             </Tooltip>
@@ -274,9 +274,7 @@ function MultipleAvatars(props) {
                             ) : (
                                 <Tooltip text={tooltipTexts.slice(1).join(', ')}>
                                     <View style={[singleAvatarStyle, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                                        <Text
-                                            style={[styles.userSelectNone, props.size === CONST.AVATAR_SIZE.SMALL ? styles.avatarInnerTextSmall : styles.avatarInnerText]}
-                                        >
+                                        <Text style={[styles.userSelectNone, props.size === CONST.AVATAR_SIZE.SMALL ? styles.avatarInnerTextSmall : styles.avatarInnerText]}>
                                             {`+${props.icons.length - 1}`}
                                         </Text>
                                     </View>

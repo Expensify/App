@@ -145,9 +145,7 @@ function ProfilePage(props) {
                 title={props.translate('common.profile')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.HOME)}
             />
-            <View
-                style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}
-            >
+            <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
                 {hasMinimumDetails && (
                     <ScrollView>
                         <View style={styles.avatarSectionWrapper}>

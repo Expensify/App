@@ -270,11 +270,7 @@ function BaseTextInput(props) {
                             <>
                                 {/* Adding this background to the label only for multiline text input,
                                 to prevent text overlapping with label when scrolling */}
-                                {isMultiline && (
-                                    <View
-                                        style={[styles.textInputLabelBackground, styles.pointerEventsNone]}
-                                    />
-                                )}
+                                {isMultiline && <View style={[styles.textInputLabelBackground, styles.pointerEventsNone]} />}
                                 <TextInputLabel
                                     isLabelActive={isLabelActive.current}
                                     label={props.label}
@@ -284,9 +280,7 @@ function BaseTextInput(props) {
                                 />
                             </>
                         ) : null}
-                        <View
-                            style={[styles.textInputAndIconContainer, isMultiline && hasLabel && styles.textInputMultilineContainer, styles.pointerEventsBoxNone]}
-                        >
+                        <View style={[styles.textInputAndIconContainer, isMultiline && hasLabel && styles.textInputMultilineContainer, styles.pointerEventsBoxNone]}>
                             {Boolean(props.prefixCharacter) && (
                                 <View style={styles.textInputPrefixWrapper}>
                                     <Text

@@ -70,9 +70,7 @@ function StaticHeaderPageLayout({backgroundColor, children, image: Image, footer
                                     styles.staticHeaderImage,
                                 ]}
                             >
-                                <Image
-                                    style={[styles.staticHeaderImage, styles.pointerEventsNone]}
-                                />
+                                <Image style={[styles.staticHeaderImage, styles.pointerEventsNone]} />
                             </View>
                             <View style={styles.pt5}>{children}</View>
                         </ScrollView>

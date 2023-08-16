@@ -9,7 +9,7 @@ import {windowDimensionsPropTypes} from './withWindowDimensions';
 import CONST from '../CONST';
 import styles from '../styles/styles';
 import {computeHorizontalShift, computeVerticalShift} from '../styles/getPopoverWithMeasuredContentStyles';
-import getClickedTargetLocation from "../libs/getClickedTargetLocation";
+import getClickedTargetLocation from '../libs/getClickedTargetLocation';
 
 const propTypes = {
     // All popover props except:
@@ -108,7 +108,7 @@ function PopoverWithMeasuredContent(props) {
         }
 
         let verticalConstraint;
-        const anchorLocationVertical = props.anchorRef.current && getClickedTargetLocation(props.anchorRef.current).y || props.anchorPosition.vertical;
+        const anchorLocationVertical = (props.anchorRef.current && getClickedTargetLocation(props.anchorRef.current).y) || props.anchorPosition.vertical;
 
         switch (props.anchorAlignment.vertical) {
             case CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM:

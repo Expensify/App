@@ -134,9 +134,7 @@ function DetailsPage(props) {
                     title={props.translate('common.details')}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.HOME)}
                 />
-                <View
-                    style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}
-                >
+                <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
                     {details ? (
                         <ScrollView>
                             <View style={styles.avatarSectionWrapper}>
