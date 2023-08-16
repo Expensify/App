@@ -3005,12 +3005,12 @@ function getPolicy(policyID) {
  * @returns {String|null}
  */
 function getPolicyExpenseChatReportIDByOwner(policyOwner) {
-    const policy = _.find(allPolicies, (policy) => policy.owner === policyOwner);
-    if (!policy) {
+    const policyWithOwner = _.find(allPolicies, (policy) => policy.owner === policyOwner);
+    if (!policyWithOwner) {
         return null;
     }
 
-    return _.find(allReports, (report) => isPolicyExpenseChat(report) && report.policyID === policy.id);
+    return _.find(allReports, (report) => isPolicyExpenseChat(report) && report.policyID === policyWithOwner.id);
 }
 
 /*

@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -6,7 +5,7 @@ import {useFocusEffect} from '@react-navigation/native';
 import ONYXKEYS from '../ONYXKEYS';
 import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 import CONST from '../CONST';
-import {createSaastrDemoWorkspaceAndNavigate} from '../libs/actions/DemoActions';
+import * as DemoActions from '../libs/actions/DemoActions';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -26,7 +25,7 @@ function DemoSetupPage(props) {
     useFocusEffect(() => {
         // Depending on the route that the user hit to get here, run a specific demo flow
         if (props.route.name === CONST.DEMO_PAGES.SAASTR) {
-            createSaastrDemoWorkspaceAndNavigate();
+            DemoActions.createSaastrDemoWorkspaceAndNavigate();
         }
     });
 

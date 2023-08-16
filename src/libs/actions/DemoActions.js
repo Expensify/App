@@ -1,10 +1,11 @@
 import Str from 'expensify-common/lib/str';
 import Onyx from 'react-native-onyx';
+import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import CONST from '../../CONST';
 import * as API from '../API';
-import {buildOptimisticWorkspaceChats, buildOptimisticAddCommentReportAction, getPolicyExpenseChatReportIDByOwner} from '../ReportUtils';
-import {buildOptimisticCustomUnits, generatePolicyID} from './Policy';
+import * as ReportUtils from '../ReportUtils';
+import * as Policy from './Policy';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -33,7 +34,7 @@ Onyx.connect({
 
 function createSaastrDemoWorkspaceAndNavigate() {
     // Try to navigate to existing SaaStr expense chat if it exists in Onyx
-    const saastrWorkspaceChatReportID = getPolicyExpenseChatReportIDByOwner(CONST.EMAIL.SAASTR);
+    const saastrWorkspaceChatReportID = ReportUtils.getPolicyExpenseChatReportIDByOwner(CONST.EMAIL.SAASTR);
     if (saastrWorkspaceChatReportID) {
         // We must call goBack() to remove the /saastr route from history
         Navigation.goBack();
@@ -42,13 +43,13 @@ function createSaastrDemoWorkspaceAndNavigate() {
     }
 
     // Create workspace, owned and admin'd by SaaStr
-    const policyID = generatePolicyID();
+    const policyID = Policy.generatePolicyID();
 
     // Add domain name as prefix (only if domain is private)
     const domainNamePrefix = userIsFromPublicDomain ? `${Str.extractEmailDomain(sessionEmail)} ` : '';
     const workspaceName = `${domainNamePrefix}SaaStr Workspace`;
 
-    const {customUnits, customUnitID, customUnitRateID} = buildOptimisticCustomUnits();
+    const {customUnits, customUnitID, customUnitRateID} = Policy.buildOptimisticCustomUnits();
 
     const {
         announceChatReportID,
@@ -64,7 +65,7 @@ function createSaastrDemoWorkspaceAndNavigate() {
         expenseChatData,
         expenseReportActionData,
         expenseCreatedReportActionID,
-    } = buildOptimisticWorkspaceChats(policyID, workspaceName);
+    } = ReportUtils.buildOptimisticWorkspaceChats(policyID, workspaceName);
 
     // Add optimistic invite message comment
     const initialMessageText = `
@@ -76,7 +77,7 @@ function createSaastrDemoWorkspaceAndNavigate() {
     3. Take a photo of the receipt, we'll automatically enter all the info.
     4. Come say hi at the Expensify booth (#601) and let us know if you have any feedback!
     `;
-    const welcomeMessageReportAction = buildOptimisticAddCommentReportAction(initialMessageText);
+    const welcomeMessageReportAction = ReportUtils.buildOptimisticAddCommentReportAction(initialMessageText);
     welcomeMessageReportAction.reportAction.actorAccountID = CONST.ACCOUNT_ID.SAASTR;
     welcomeMessageReportAction.reportAction.person[0].text = 'SaaStr 2023';
     welcomeMessageReportAction.reportAction.avatar = '';

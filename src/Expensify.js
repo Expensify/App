@@ -31,7 +31,7 @@ import SplashScreenHider from './components/SplashScreenHider';
 import KeyboardShortcutsModal from './components/KeyboardShortcutsModal';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
 import * as EmojiPickerAction from './libs/actions/EmojiPickerAction';
-import {runDemoByURL} from './libs/actions/App';
+import * as App from './libs/actions/App';
 
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
 // eslint-disable-next-line no-unused-vars
@@ -165,13 +165,13 @@ function Expensify(props) {
 
         // If the app is opened from a deep link, get the reportID (if exists) from the deep link and navigate to the chat report
         Linking.getInitialURL().then((url) => {
-            runDemoByURL(url);
+            App.runDemoByURL(url);
             Report.openReportFromDeepLink(url, isAuthenticated);
         });
 
         // Open chat report from a deep link (only mobile native)
         Linking.addEventListener('url', (state) => {
-            runDemoByURL(state.url);
+            App.runDemoByURL(state.url);
             Report.openReportFromDeepLink(state.url, isAuthenticated);
         });
 
