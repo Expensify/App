@@ -1,6 +1,5 @@
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import {Linking} from 'react-native';
 import _ from 'underscore';
 import ONYXKEYS from '../../ONYXKEYS';
 import Growl from '../Growl';
@@ -57,11 +56,23 @@ function buildOldDotURL(url, shortLivedAuthToken) {
 }
 
 /**
+ * @param {String} url
+ * @param {Boolean} shouldSkipCustomSafariLogic When true, we will use `Linking.openURL` even if the browser is Safari.
+ */
+function openExternalLink(url, shouldSkipCustomSafariLogic = false) {
+    if (showGrowlIfOffline()) {
+        return;
+    }
+
+    asyncOpenURL(Promise.resolve(), url, shouldSkipCustomSafariLogic);
+}
+
+/**
  * @param {String} url the url path
  */
 function openOldDotLink(url) {
     if (isNetworkOffline) {
-        buildOldDotURL(url).then((oldDotURL) => Linking.openURL(oldDotURL));
+        buildOldDotURL(url).then((oldDotURL) => openExternalLink(oldDotURL));
         return;
     }
 
@@ -74,17 +85,4 @@ function openOldDotLink(url) {
         (oldDotURL) => oldDotURL,
     );
 }
-
-/**
- * @param {String} url
- * @param {Boolean} shouldSkipCustomSafariLogic When true, we will use `Linking.openURL` even if the browser is Safari.
- */
-function openExternalLink(url, shouldSkipCustomSafariLogic = false) {
-    if (showGrowlIfOffline()) {
-        return;
-    }
-
-    asyncOpenURL(Promise.resolve(), url, shouldSkipCustomSafariLogic);
-}
-
 export {buildOldDotURL, openOldDotLink, openExternalLink};

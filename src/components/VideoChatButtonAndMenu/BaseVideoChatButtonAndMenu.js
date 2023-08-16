@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React, {useState, useRef, useEffect, useCallback} from 'react';
-import {View, Dimensions, Linking} from 'react-native';
+import {View, Dimensions} from 'react-native';
 import PropTypes from 'prop-types';
 import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
@@ -94,7 +94,7 @@ function BaseVideoChatButtonAndMenu(props) {
 
                             // If this is the Concierge chat, we'll open the modal for requesting a setup call instead
                             if (props.isConcierge && props.guideCalendarLink) {
-                                Linking.openURL(props.guideCalendarLink);
+                                Link.openExternalLink(props.guideCalendarLink);
                                 return;
                             }
                             setIsVideoChatMenuActive((previousVal) => !previousVal);
