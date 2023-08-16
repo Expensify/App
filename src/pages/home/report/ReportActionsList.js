@@ -158,10 +158,10 @@ function ReportActionsList(props) {
         ({index, style, ...rendererProps}) => {
             const zIndexOffset = {zIndex: sortedReportActions.length - index};
 
-            // eslint-disable-next-line react/jsx-props-no-spreading
             return (
                 <View
                     style={[style, zIndexOffset]}
+                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...rendererProps}
                 />
             );
