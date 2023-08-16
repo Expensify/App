@@ -340,19 +340,18 @@ function openProfile(personalDetails) {
     );
 }
 
-function beginDeepLinkRedirect() {
+/**
+ * @param {boolean} shouldAuthenticateWithCurrentAccount Optional, indicates wheather default authentication method (shortLivedAuthToken) should be used
+ */
+function beginDeepLinkRedirect(shouldAuthenticateWithCurrentAccount = true) {
     // There's no support for anonymous users on desktop
     if (Session.isAnonymousUser()) {
         return;
     }
 
-    // Match any magic link (/v/<account id>/<6 digit code>)
-    const isMagicLink = CONST.REGEX.ROUTES.VALIDATE_LOGIN.test(window.location.pathname)
-
-
     // If the route that is being handled is a magic link, email and shortLivedAuthToken should not be attached to the url 
     // to prevent signing into the wrong account
-    if (!currentUserAccountID || isMagicLink) {
+    if (!currentUserAccountID || !shouldAuthenticateWithCurrentAccount) {
         Browser.openRouteInDesktopApp();
         return;
     }
@@ -363,8 +362,11 @@ function beginDeepLinkRedirect() {
     });
 }
 
-function beginDeepLinkRedirectAfterTransition() {
-    waitForSignOnTransitionToFinish().then(beginDeepLinkRedirect);
+/**
+ * @param {boolean} shouldAuthenticateWithCurrentAccount Optional, indicates wheather default authentication method (shortLivedAuthToken) should be used
+ */
+function beginDeepLinkRedirectAfterTransition(shouldAuthenticateWithCurrentAccount = true) {
+    waitForSignOnTransitionToFinish().then(beginDeepLinkRedirect(shouldAuthenticateWithCurrentAccount));
 }
 
 export {
