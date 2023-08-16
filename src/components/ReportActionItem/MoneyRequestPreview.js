@@ -142,7 +142,7 @@ function MoneyRequestPreview(props) {
     const isCurrentUserManager = managerID === sessionAccountID;
 
     const transaction = TransactionUtils.getLinkedTransaction(props.action);
-    const {amount: requestAmount, currency: requestCurrency, comment: requestComment} = ReportUtils.getTransactionDetails(transaction);
+    const {amount: requestAmount, currency: requestCurrency, comment: requestComment, merchant: requestMerchant} = ReportUtils.getTransactionDetails(transaction);
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const isScanning = !ReportActionUtils.areAllRequestsBeingSmartScanned(props.action);
 
@@ -250,9 +250,9 @@ function MoneyRequestPreview(props) {
                                 </View>
                             )}
                         </View>
-                        {moneyRequestAction.merchant && (
+                        {requestMerchant && (
                             <View style={[styles.flexRow]}>
-                                <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh16]}>{moneyRequestAction.merchant}</Text>
+                                <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh16]}>{requestMerchant}</Text>
                             </View>
                         )}
                         <View style={[styles.flexRow]}>
@@ -265,7 +265,10 @@ function MoneyRequestPreview(props) {
                             {props.isBillSplit && !_.isEmpty(participantAccountIDs) && (
                                 <Text style={[styles.textLabel, styles.colorMuted, styles.ml1]}>
                                     {props.translate('iou.amountEach', {
-                                        amount: CurrencyUtils.convertToDisplayString(IOUUtils.calculateAmount(participantAccountIDs.length - 1, requestAmount, requestCurrency), requestCurrency),
+                                        amount: CurrencyUtils.convertToDisplayString(
+                                            IOUUtils.calculateAmount(participantAccountIDs.length - 1, requestAmount, requestCurrency),
+                                            requestCurrency,
+                                        ),
                                     })}
                                 </Text>
                             )}

@@ -203,5 +203,16 @@ function getAllReportTransactions(reportID) {
     return _.filter(allTransactions, (transaction) => transaction.reportID === reportID);
 }
 
-export {buildOptimisticTransaction, getUpdatedTransaction, getTransaction, getDescription, getAmount, getCurrency, getCreated, getLinkedTransaction, getAllReportTransactions, hasReceipt, getReportPreviewTransactionsWithReceipts};
-
+export {
+    buildOptimisticTransaction,
+    getUpdatedTransaction,
+    getTransaction,
+    getDescription,
+    getAmount,
+    getCurrency,
+    getCreated,
+    getLinkedTransaction,
+    getAllReportTransactions,
+    hasReceipt,
+    getReportPreviewTransactionsWithReceipts,
+};
