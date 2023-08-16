@@ -66,7 +66,7 @@ class BaseModal extends PureComponent {
         }
     }
 
-     /**
+    /**
      * Callback triggered when backdrop is pressed
      * @param {Object} [e] native event passed to onBackdropPress
      */

@@ -45,13 +45,13 @@ function Modal(props) {
             avoidKeyboard={false}
             coverScreen={false}
             customBackdrop={(onBackdropPress) => (
-                    <Pressable
-                        onPress={onBackdropPress}
-                        style={styles.modalBackdropWeb}
-                        accessibilityLabel="backdrop"
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.ADJUSTABLE}
-                    />
-                )}
+                <Pressable
+                    onPress={onBackdropPress}
+                    style={styles.modalBackdropWeb}
+                    accessibilityLabel="backdrop"
+                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.ADJUSTABLE}
+                />
+            )}
         >
             {props.children}
         </BaseModal>
