@@ -145,10 +145,9 @@ jobs:
       - name: Setup Node
         uses: Expensify/App/.github/actions/composite/setupNode@main
 
-      - name: Setup Xcode
+      - name: Setup XCode
         run: sudo xcode-select -switch /Applications/Xcode_14.2.app
 
-      - uses: ruby/setup-ruby@eae47962baca661befdfd24e4d6c34ade04858f7
       - name: Setup Ruby
         uses: ruby/setup-ruby@eae47962baca661befdfd24e4d6c34ade04858f7
         with:

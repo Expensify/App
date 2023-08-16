@@ -137,6 +137,7 @@ const assertIOSJobExecuted = (workflowResult, ref = '', didExecute = true, fails
         utils.createStepAssertion('Checkout', true, null, 'IOS', 'Checkout', [{key: 'ref', value: ref}], []),
         utils.createStepAssertion('Create .env.adhoc file based on staging and add PULL_REQUEST_NUMBER env to it', true, null, 'IOS', 'Creating .env.adhoc file based on staging', [], []),
         utils.createStepAssertion('Setup Node', true, null, 'IOS', 'Setup Node', [], []),
+        utils.createStepAssertion('Setup XCode', true, null, 'IOS', 'Setup XCode', [], []),
         utils.createStepAssertion(
             'Setup Ruby',
             true,
