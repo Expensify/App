@@ -1589,7 +1589,7 @@ export default {
         },
         mapPending: {
             title: 'Map pending',
-            subTitle: 'The map will be generated when you go back online',
+            subtitle: 'The map will be generated when you go back online',
         },
     },
     countrySelectorModal: {

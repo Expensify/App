@@ -175,7 +175,7 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
                                 <BlockingView
                                     icon={Expensicons.EmptyStateRoutePending}
                                     title={translate('distance.mapPending.title')}
-                                    subtitle="The map will be generated when you go back online"
+                                    subtitle={translate('distance.mapPending.subtitle')}
                                 />
                             </View>
                         )}
