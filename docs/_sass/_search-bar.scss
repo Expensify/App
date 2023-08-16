@@ -252,7 +252,7 @@ label.search-label {
 
 /* Change the color & background of Google Search of Other Page */
 .gsc-resultsbox-visible .gsc-results .gsc-cursor-box .gsc-cursor-page {
-    background-color: $color-highlightBG;
+    background-color: $color-borders;
     color: $color-text;
 
     &:hover {
