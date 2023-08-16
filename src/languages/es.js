@@ -885,11 +885,11 @@ export default {
             if (RegExp.TIME_STARTS_01.test(time)) {
                 return `Hasta la ${time}`;
             }
-            // Check for HH:MM AM/PM format and starts with '11:'
-            if (RegExp.TIME_STARTS_11.test(time)) {
+            // Check for any HH:MM AM/PM format not starting with '01:'
+            if (RegExp.TIME_FORMAT.test(time)) {
                 return `Hasta las ${time}`;
             }
-            // Check for 06-29 11:30AM format
+            // Check for date-time format like "06-29 11:30 AM"
             if (RegExp.DATE_TIME_FORMAT.test(time)) {
                 return `Hasta el día ${time}`;
             }
