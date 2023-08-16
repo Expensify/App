@@ -101,10 +101,11 @@ NetworkStore.onReconnection(flush);
 
 /**
  * @param {Object} request
+ * @param {Boolean} [front] whether or not the request should be placed in the front of the queue
  */
-function push(request) {
+function push(request, front = false) {
     // Add request to Persisted Requests so that it can be retried if it fails
-    PersistedRequests.save([request]);
+    PersistedRequests.save([request], front);
 
     // If we are offline we don't need to trigger the queue to empty as it will happen when we come back online
     if (NetworkStore.isOffline()) {

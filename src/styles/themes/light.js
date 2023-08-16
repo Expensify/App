@@ -79,6 +79,7 @@ const lightTheme = {
     skeletonLHNIn: colors.lightBorders,
     skeletonLHNOut: colors.lightDefaultButtonPressed,
     QRLogo: colors.green400,
+    starDefaultBG: 'rgb(254, 228, 94)',
 };
 
 lightTheme.PAGE_BACKGROUND_COLORS = {

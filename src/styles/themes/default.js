@@ -80,6 +80,7 @@ const darkTheme = {
     skeletonLHNIn: colors.darkBorders,
     skeletonLHNOut: colors.darkDefaultButton,
     QRLogo: colors.green400,
+    starDefaultBG: 'rgb(254, 228, 94)',
 };
 
 darkTheme.PAGE_BACKGROUND_COLORS = {
