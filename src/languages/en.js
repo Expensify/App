@@ -30,6 +30,7 @@ export default {
         workspaces: 'Workspaces',
         profile: 'Profile',
         payments: 'Payments',
+        wallet: 'Wallet',
         preferences: 'Preferences',
         view: 'View',
         not: 'Not',
@@ -646,7 +647,7 @@ export default {
             password: 'Please enter your Expensify password',
         },
     },
-    paymentsPage: {
+    walletPage: {
         paymentMethodsTitle: 'Payment methods',
         setDefaultConfirmation: 'Make default payment method',
         setDefaultSuccess: 'Default payment method set!',
