@@ -103,7 +103,7 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
     return (
         <>
             <View
-                style={{maxHeight: scrollContainerMaxHeight}}
+                style={{maxHeight: scrollContainerMaxHeight, flexShrink: 2}}
                 onLayout={(event = {}) => setScrollContainerHeight(lodashGet(event, 'nativeEvent.layout.height', 0))}
             >
                 <ScrollView
@@ -156,31 +156,27 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
                     innerStyles={[styles.ph10]}
                 />
             </View>
-            <View style={styles.flex1}>
-                <ScrollView contentContainerStyle={styles.flex1}>
-                    <View style={styles.mapViewContainer}>
-                        {!isOffline && mapboxAccessToken.token ? (
-                            <MapView
-                                accessToken={mapboxAccessToken.token}
-                                mapPadding={50}
-                                pitchEnabled={false}
-                                initialState={{
-                                    location: CONST.SF_COORDINATES,
-                                    zoom: DEFAULT_ZOOM_LEVEL,
-                                }}
-                                style={styles.mapView}
-                            />
-                        ) : (
-                            <View style={[styles.mapPendingView]}>
-                                <BlockingView
-                                    icon={Expensicons.EmptyStateRoutePending}
-                                    title={translate('distance.mapPending.title')}
-                                    subtitle={translate('distance.mapPending.subtitle')}
-                                />
-                            </View>
-                        )}
+            <View style={styles.mapViewContainer}>
+                {!isOffline && mapboxAccessToken.token ? (
+                    <MapView
+                        accessToken={mapboxAccessToken.token}
+                        mapPadding={50}
+                        pitchEnabled={false}
+                        initialState={{
+                            location: CONST.SF_COORDINATES,
+                            zoom: DEFAULT_ZOOM_LEVEL,
+                        }}
+                        style={styles.mapView}
+                    />
+                ) : (
+                    <View style={[styles.mapPendingView]}>
+                        <BlockingView
+                            icon={Expensicons.EmptyStateRoutePending}
+                            title={translate('distance.mapPending.title')}
+                            subtitle={translate('distance.mapPending.subtitle')}
+                        />
                     </View>
-                </ScrollView>
+                )}
             </View>
         </>
     );
