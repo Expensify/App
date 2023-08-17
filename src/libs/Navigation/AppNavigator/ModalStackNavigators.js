@@ -723,6 +723,13 @@ const EditRequestStackNavigator = createModalStackNavigator([
         },
         name: 'EditRequest_Root',
     },
+    {
+        getComponent: () => {
+            const IOUCurrencySelection = require('../../../pages/iou/IOUCurrencySelection').default;
+            return IOUCurrencySelection;
+        },
+        name: 'EditRequest_Currency',
+    },
 ]);
 
 export {

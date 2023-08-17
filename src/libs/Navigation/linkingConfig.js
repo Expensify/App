@@ -361,6 +361,7 @@ export default {
                     EditRequest: {
                         screens: {
                             EditRequest_Root: ROUTES.EDIT_REQUEST,
+                            EditRequest_Currency: ROUTES.EDIT_CURRENCY_REQUEST,
                         },
                     },
                 },
