@@ -1466,9 +1466,8 @@ function payMoneyRequest(paymentType, chatReport, iouReport) {
  * @param {String} reportID
  */
 function startMoneyRequest(iouType, reportID = '') {
-    resetMoneyRequestInfo(`${iouType}${reportID}`).then(() => {
-        Navigation.navigate(ROUTES.getMoneyRequestRoute(iouType, reportID));
-    });
+    resetMoneyRequestInfo(`${iouType}${reportID}`);
+    Navigation.navigate(ROUTES.getMoneyRequestRoute(iouType, reportID));
 }
 
 /**
@@ -1554,7 +1553,6 @@ function navigateToNextPage(iou, iouType, reportID, report) {
         Navigation.navigate(ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID));
         return;
     }
-
     Navigation.navigate(ROUTES.getMoneyRequestParticipantsRoute(iouType));
 }
 

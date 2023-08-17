@@ -119,7 +119,7 @@ function NewRequestAmountPage({route, iou, report}) {
             const moneyRequestID = `${iouType}${reportID}`;
             const shouldReset = iou.id !== moneyRequestID;
             if (shouldReset) {
-                IOU.resetMoneyRequestInfo(moneyRequestID)
+                IOU.resetMoneyRequestInfo(moneyRequestID);
             }
 
             if (_.isEmpty(iou.participants) || iou.amount === 0 || shouldReset) {

@@ -98,13 +98,13 @@ function MoneyRequestParticipantsPage(props) {
                         <MoneyRequestParticipantsSplitSelector
                             onStepComplete={navigateToNextStep}
                             participants={props.iou.participants}
-                            onAddParticipants={onAddParticipants}
+                            onAddParticipants={IOU.setMoneyRequestParticipants}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                         />
                     ) : (
                         <MoneyRequestParticipantsSelector
                             onStepComplete={navigateToNextStep}
-                            onAddParticipants={onAddParticipants}
+                            onAddParticipants={IOU.setMoneyRequestParticipants}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                             iouType={iouType.current}
                         />
