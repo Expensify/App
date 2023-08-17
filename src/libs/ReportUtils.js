@@ -1284,11 +1284,11 @@ function getTransactionReportName(reportAction) {
         return Localize.translateLocal('parentReportAction.deletedRequest');
     }
 
-    if (areAllRequestsBeingSmartScanned(reportAction)) {
+    const transaction = TransactionUtils.getLinkedTransaction(reportAction);
+    if (TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction)) {
         return Localize.translateLocal('iou.receiptScanning');
     }
 
-    const transaction = TransactionUtils.getLinkedTransaction(reportAction);
     const {amount, currency, comment} = getTransactionDetails(transaction);
 
     return Localize.translateLocal(ReportActionsUtils.isSentMoneyReportAction(reportAction) ? 'iou.threadSentMoneyReportName' : 'iou.threadRequestReportName', {
