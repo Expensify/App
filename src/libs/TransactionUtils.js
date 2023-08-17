@@ -140,7 +140,7 @@ function getCurrency(transaction) {
     if (currency) {
         return currency;
     }
-    return lodashGet(transaction, 'currency', '');
+    return lodashGet(transaction, 'currency', CONST.CURRENCY.USD);
 }
 
 /**
@@ -150,11 +150,26 @@ function getCurrency(transaction) {
  * @returns {String}
  */
 function getCreated(transaction) {
-    const created = lodashGet(transaction, 'modifiedCreated', '');
+    const created = lodashGet(transaction, 'modifiedCreated', '') || lodashGet(transaction, 'created', '');
     if (created) {
         return format(new Date(created), CONST.DATE.FNS_FORMAT_STRING);
     }
-    return format(new Date(lodashGet(transaction, 'created', '')), CONST.DATE.FNS_FORMAT_STRING);
+    return '';
 }
 
-export {buildOptimisticTransaction, getUpdatedTransaction, getTransaction, getDescription, getAmount, getCurrency, getCreated};
+/**
+ * Get the details linked to the IOU reportAction
+ *
+ * @param {Object} reportAction
+ * @returns {Object}
+ */
+function getLinkedTransaction(reportAction = {}) {
+    const transactionID = lodashGet(reportAction, ['originalMessage', 'IOUTransactionID'], '');
+    return allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] || {};
+}
+
+function getAllReportTransactions(reportID) {
+    return _.filter(allTransactions, (transaction) => transaction.reportID === reportID);
+}
+
+export {buildOptimisticTransaction, getUpdatedTransaction, getTransaction, getDescription, getAmount, getCurrency, getCreated, getLinkedTransaction, getAllReportTransactions};
