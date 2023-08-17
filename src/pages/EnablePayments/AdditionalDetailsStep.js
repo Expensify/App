@@ -89,7 +89,7 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
      * @returns {Object}
      */
     const validate = (values) => {
-        const requiredFields = ['legalFirstName', 'legalLastName', 'addressStreet', 'addressCity', 'addressZipCode', 'phoneNumber', 'dob', 'ssn'];
+        const requiredFields = ['legalFirstName', 'legalLastName', 'addressStreet', 'addressCity', 'addressZipCode', 'phoneNumber', 'dob', 'ssn', 'addressState'];
         const errors = ValidationUtils.getFieldRequiredErrors(values, requiredFields);
 
         if (values.dob) {
@@ -102,10 +102,6 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
 
         if (values.addressStreet && !ValidationUtils.isValidAddress(values.addressStreet)) {
             errors.addressStreet = 'bankAccount.error.addressStreet';
-        }
-
-        if (!values.addressState) {
-            errors.addressState = 'bankAccount.error.addressState';
         }
 
         if (values.addressZipCode && !ValidationUtils.isValidZipCode(values.addressZipCode)) {

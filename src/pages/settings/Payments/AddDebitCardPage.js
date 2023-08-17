@@ -60,7 +60,7 @@ function DebitCardPage(props) {
      * @returns {Boolean}
      */
     const validate = (values) => {
-        const requiredFields = ['nameOnCard', 'cardNumber', 'expirationDate', 'securityCode', 'addressStreet', 'addressZipCode'];
+        const requiredFields = ['nameOnCard', 'cardNumber', 'expirationDate', 'securityCode', 'addressStreet', 'addressZipCode', 'addressState'];
         const errors = ValidationUtils.getFieldRequiredErrors(values, requiredFields);
 
         if (values.nameOnCard && !ValidationUtils.isValidLegalName(values.nameOnCard)) {
@@ -85,10 +85,6 @@ function DebitCardPage(props) {
 
         if (values.addressZipCode && !ValidationUtils.isValidZipCode(values.addressZipCode)) {
             errors.addressZipCode = 'addDebitCardPage.error.addressZipCode';
-        }
-
-        if (!values.addressState) {
-            errors.addressState = 'addDebitCardPage.error.addressState';
         }
 
         if (!values.acceptTerms) {

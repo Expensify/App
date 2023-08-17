@@ -80,7 +80,7 @@ class CompanyStep extends React.Component {
      * @returns {Object} - Object containing the errors for each inputID, e.g. {inputID1: error1, inputID2: error2}
      */
     validate(values) {
-        const requiredFields = ['companyName', 'addressStreet', 'addressZipCode', 'addressCity', 'companyPhone', 'website', 'companyTaxID', 'incorporationType', 'incorporationDate'];
+        const requiredFields = ['companyName', 'addressStreet', 'addressZipCode', 'addressCity', 'companyPhone', 'website', 'companyTaxID', 'incorporationType', 'incorporationDate', 'incorporationState'];
         const errors = ValidationUtils.getFieldRequiredErrors(values, requiredFields);
 
         if (values.addressStreet && !ValidationUtils.isValidAddress(values.addressStreet)) {
@@ -111,10 +111,6 @@ class CompanyStep extends React.Component {
             errors.incorporationDate = 'common.error.dateInvalid';
         } else if (values.incorporationDate && !ValidationUtils.isValidPastDate(values.incorporationDate)) {
             errors.incorporationDate = 'bankAccount.error.incorporationDateFuture';
-        }
-
-        if (!values.incorporationState) {
-            errors.incorporationState = 'bankAccount.error.incorporationState';
         }
 
         if (!values.hasNoConnectionToCannabis) {
