@@ -29,7 +29,7 @@ const defaultProps = {
 };
 
 function ImageView({isAuthTokenRequired, url, fileName}) {
-    const [isLoaded, setIsLoaded] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
     const [containerHeight, setContainerHeight] = useState(0);
     const [containerWidth, setContainerWidth] = useState(0);
     const [isZoomed, setIsZoomed] = useState(false);
@@ -87,15 +87,15 @@ function ImageView({isAuthTokenRequired, url, fileName}) {
     };
 
     const imageLoadingStart = () => {
-        if (isLoaded) return;
-        setIsLoaded(false);
+        if (!isLoading) return;
+        setIsLoading(true);
         setZoomScale(0);
         setIsZoomed(false);
     };
 
     const imageLoad = ({nativeEvent}) => {
         setImageRegion(nativeEvent.width, nativeEvent.height);
-        setIsLoaded(true);
+        setIsLoading(false);
     };
 
     /**
@@ -220,14 +220,14 @@ function ImageView({isAuthTokenRequired, url, fileName}) {
                     source={{uri: url}}
                     isAuthTokenRequired={isAuthTokenRequired}
                     // Hide image until finished loading to prevent showing preview with wrong dimensions.
-                    style={!isLoaded ? undefined : [styles.w100, styles.h100]}
+                    style={isLoading ? undefined : [styles.w100, styles.h100]}
                     // When Image dimensions are lower than the container boundary(zoomscale <= 1), use `contain` to render the image with natural dimensions.
                     // Both `center` and `contain` keeps the image centered on both x and y axis.
                     resizeMode={zoomScale > 1 ? Image.resizeMode.center : Image.resizeMode.contain}
                     onLoadStart={imageLoadingStart}
                     onLoad={imageLoad}
                 />
-                {!isLoaded && <FullscreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
+                {isLoading && <FullscreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
             </View>
         );
     }
@@ -239,7 +239,7 @@ function ImageView({isAuthTokenRequired, url, fileName}) {
         >
             <PressableWithoutFeedback
                 style={{
-                    ...StyleUtils.getZoomSizingStyle(isZoomed, imgWidth, imgHeight, zoomScale, containerHeight, containerWidth, !isLoaded),
+                    ...StyleUtils.getZoomSizingStyle(isZoomed, imgWidth, imgHeight, zoomScale, containerHeight, containerWidth, isLoading),
                     ...StyleUtils.getZoomCursorStyle(isZoomed, isDragging),
                     ...(isZoomed && zoomScale >= 1 ? styles.pRelative : styles.pAbsolute),
                     ...styles.flex1,
@@ -259,12 +259,13 @@ function ImageView({isAuthTokenRequired, url, fileName}) {
                 />
             </PressableWithoutFeedback>
 
-            {!isLoaded && <FullscreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
+            {isLoading && <FullscreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
         </View>
     );
 }
 
 ImageView.propTypes = propTypes;
-ImageView.displayName = 'ImageView';
 ImageView.defaultProps = defaultProps;
+ImageView.displayName = 'ImageView';
+
 export default ImageView;
