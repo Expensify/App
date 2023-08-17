@@ -14,7 +14,7 @@ import Button from './Button';
 import styles from '../styles/styles';
 import variables from '../styles/variables';
 import LinearGradient from './LinearGradient';
-import MapboxToken from '../libs/actions/MapboxToken';
+import * as MapboxToken from '../libs/actions/MapboxToken';
 import CONST from '../CONST';
 import BlockingView from './BlockingViews/BlockingView';
 import useNetwork from '../hooks/useNetwork';
@@ -82,7 +82,10 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
     const halfMenuItemHeight = Math.floor(variables.baseMenuItemHeight / 2);
     const scrollContainerMaxHeight = variables.baseMenuItemHeight * MAX_WAYPOINTS_TO_DISPLAY + halfMenuItemHeight;
 
-    useEffect(() => MapboxToken.init(), []);
+    useEffect(() => {
+        MapboxToken.init();
+        return MapboxToken.stop;
+    }, []);
 
     useEffect(() => {
         if (!transaction.transactionID || !_.isEmpty(waypoints)) {
