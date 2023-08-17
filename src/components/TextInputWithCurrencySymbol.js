@@ -33,9 +33,6 @@ const propTypes = {
 
     /** Function to call when selection in text input is changed */
     onSelectionChange: PropTypes.func,
-
-    /** Flag to indicate if the button should be disabled */
-    disabled: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -44,7 +41,6 @@ const defaultProps = {
     onCurrencyButtonPress: () => {},
     selection: undefined,
     onSelectionChange: () => {},
-    disabled: false,
 };
 
 function TextInputWithCurrencySymbol(props) {
@@ -62,7 +58,6 @@ function TextInputWithCurrencySymbol(props) {
         <CurrencySymbolButton
             currencySymbol={currencySymbol}
             onCurrencyButtonPress={props.onCurrencyButtonPress}
-            disabled={props.disabled}
         />
     );
 
