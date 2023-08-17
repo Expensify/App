@@ -1235,7 +1235,11 @@ function canEditMoneyRequest(reportAction) {
     if (reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) {
         return true;
     }
-    const moneyRequestReport = getReport(reportAction.reportID);
+    const moneyRequestReportID = lodashGet(reportAction, 'originalMessage.IOUReportID', 0);
+    if (!moneyRequestReportID) {
+        return false;
+    }
+    const moneyRequestReport = getReport(moneyRequestReportID);
     const isReportSettled = isSettled(moneyRequestReport.reportID);
     const isAdmin = isExpenseReport(moneyRequestReport) && lodashGet(getPolicy(moneyRequestReport.policyID), 'role', '') === CONST.POLICY.ROLE.ADMIN;
     const isRequestor = currentUserAccountID === reportAction.actorAccountID;
