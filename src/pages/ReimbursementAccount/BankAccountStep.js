@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, ScrollView, Linking} from 'react-native';
+import {View, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
@@ -27,6 +27,7 @@ import Button from '../../components/Button';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import StepPropTypes from './StepPropTypes';
 import PressableWithoutFeedback from '../../components/Pressable/PressableWithoutFeedback';
+import * as Link from '../../libs/actions/Link';
 
 const propTypes = {
     ...StepPropTypes,
@@ -148,7 +149,7 @@ function BankAccountStep(props) {
                     <View style={[styles.mv0, styles.mh5, styles.flexRow, styles.justifyContentBetween]}>
                         <TextLink href="https://use.expensify.com/privacy">{props.translate('common.privacy')}</TextLink>
                         <PressableWithoutFeedback
-                            onPress={() => Linking.openURL('https://community.expensify.com/discussion/5677/deep-dive-how-expensify-protects-your-information/')}
+                            onPress={() => Link.openExternalLink('https://community.expensify.com/discussion/5677/deep-dive-how-expensify-protects-your-information/')}
                             style={[styles.flexRow, styles.alignItemsCenter]}
                             accessibilityLabel={props.translate('bankAccount.yourDataIsSecure')}
                         >
