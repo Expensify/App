@@ -227,27 +227,16 @@ class SidebarLinks extends React.PureComponent {
                         )}
                     </PressableWithoutFeedback>
                 </View>
-                {this.props.isLoading ? (
-                    <>
-                        <LHNOptionsList
-                            style={[styles.flexShrink1]}
-                            contentContainerStyles={[styles.sidebarListContainer, {paddingBottom: StyleUtils.getSafeAreaMargins(this.props.insets).marginBottom}]}
-                            data={this.props.optionListItems}
-                            onSelectRow={this.showReportPage}
-                            shouldDisableFocusOptions={this.props.isSmallScreenWidth}
-                            optionMode={viewMode}
-                        />
-                        <OptionsListSkeletonView shouldAnimate />
-                    </>
-                ) : (
-                    <LHNOptionsList
-                        contentContainerStyles={[styles.sidebarListContainer, {paddingBottom: StyleUtils.getSafeAreaMargins(this.props.insets).marginBottom}]}
-                        data={this.props.optionListItems}
-                        onSelectRow={this.showReportPage}
-                        shouldDisableFocusOptions={this.props.isSmallScreenWidth}
-                        optionMode={viewMode}
-                    />
-                )}
+
+                <LHNOptionsList
+                    style={[this.props.isLoading ? styles.flexShrink1 : styles.flex1]}
+                    contentContainerStyles={[styles.sidebarListContainer, {paddingBottom: StyleUtils.getSafeAreaMargins(this.props.insets).marginBottom}]}
+                    data={this.props.optionListItems}
+                    onSelectRow={this.showReportPage}
+                    shouldDisableFocusOptions={this.props.isSmallScreenWidth}
+                    optionMode={viewMode}
+                />
+                {this.props.isLoading && <OptionsListSkeletonView shouldAnimate />}
             </View>
         );
     }
