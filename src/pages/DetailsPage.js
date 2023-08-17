@@ -102,7 +102,7 @@ function DetailsPage(props) {
                 avatar: UserUtils.getDefaultAvatar(CONST.ACCOUNT_ID.CONCIERGE),
             };
         } else {
-            const optimisticAccountID = UserUtils.generateAccountID();
+            const optimisticAccountID = UserUtils.generateAccountID(login);
             details = {
                 accountID: optimisticAccountID,
                 login,
@@ -204,6 +204,7 @@ function DetailsPage(props) {
                             {!isCurrentUser && (
                                 <MenuItem
                                     title={`${props.translate('common.message')}${details.displayName}`}
+                                    titleStyle={styles.flex1}
                                     icon={Expensicons.ChatBubble}
                                     onPress={() => Report.navigateToAndOpenReport([login])}
                                     wrapperStyle={styles.breakAll}

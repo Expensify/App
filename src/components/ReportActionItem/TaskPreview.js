@@ -66,8 +66,10 @@ function TaskPreview(props) {
         ? props.taskReport.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.taskReport.statusNum === CONST.REPORT.STATUS.APPROVED
         : props.action.childStateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.action.childStatusNum === CONST.REPORT.STATUS.APPROVED;
     const taskTitle = props.taskReport.reportName || props.action.childReportName;
-    const taskAssigneeAccountID = Task.getTaskAssigneeAccountID(props.taskReport);
-    const taskAssignee = lodashGet(props.personalDetailsList, [taskAssigneeAccountID, 'login'], lodashGet(props.personalDetailsList, [taskAssigneeAccountID, 'displayName'], ''));
+    const taskAssigneeAccountID = Task.getTaskAssigneeAccountID(props.taskReport) || props.action.childManagerAccountID;
+    const assigneeLogin = lodashGet(props.personalDetailsList, [taskAssigneeAccountID, 'login'], '');
+    const assigneeDisplayName = lodashGet(props.personalDetailsList, [taskAssigneeAccountID, 'displayName'], '');
+    const taskAssignee = assigneeLogin || assigneeDisplayName;
     const htmlForTaskPreview = taskAssignee ? `<comment><mention-user>@${taskAssignee}</mention-user> ${taskTitle}</comment>` : `<comment>${taskTitle}</comment>`;
 
     return (
@@ -86,9 +88,9 @@ function TaskPreview(props) {
                         disabled={ReportUtils.isCanceledTaskReport(props.taskReport)}
                         onPress={() => {
                             if (isTaskCompleted) {
-                                Task.reopenTask(props.taskReportID, taskTitle);
+                                Task.reopenTask(props.taskReport, taskTitle);
                             } else {
-                                Task.completeTask(props.taskReportID, taskTitle);
+                                Task.completeTask(props.taskReport, taskTitle);
                             }
                         }}
                         accessibilityLabel={props.translate('task.task')}

@@ -1,0 +1,13 @@
+diff --git a/node_modules/@react-native-community/cli-platform-android/native_modules.gradle b/node_modules/@react-native-community/cli-platform-android/native_modules.gradle
+index 8a218d5..8c99a75 100644
+--- a/node_modules/@react-native-community/cli-platform-android/native_modules.gradle
++++ b/node_modules/@react-native-community/cli-platform-android/native_modules.gradle
+@@ -412,7 +412,7 @@ class ReactNativeModules {
+      *
+      * @todo: `fastlane` has been reported to not work too.
+      */
+-    def cliResolveScript = "try {console.log(require('@react-native-community/cli').bin);} catch (e) {console.log(require('react-native/cli').bin);}"
++    def cliResolveScript = "try {console.log(require('../react-native/node_modules/@react-native-community/cli').bin);} catch (e) {console.log(require('../react-native/node_modules/react-native/cli').bin);}"
+     String[] nodeCommand = ["node", "-e", cliResolveScript]
+     def cliPath = this.getCommandOutput(nodeCommand, this.root)
+ 
