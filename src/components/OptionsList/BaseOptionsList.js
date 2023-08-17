@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {useRef, useEffect, forwardRef, memo} from 'react';
+import React, {useRef, useEffect, useCallback, forwardRef, memo} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
@@ -9,6 +9,7 @@ import SectionList from '../SectionList';
 import Text from '../Text';
 import {propTypes as optionsListPropTypes, defaultProps as optionsListDefaultProps} from './optionsListPropTypes';
 import OptionsListSkeletonView from '../OptionsListSkeletonView';
+import usePrevious from '../../hooks/usePrevious';
 
 const propTypes = {
     /** Determines whether the keyboard gets dismissed in response to a drag */
@@ -56,7 +57,14 @@ function BaseOptionsList({
     innerRef,
 }) {
     const flattenedData = useRef();
+    const previousSections = usePrevious(sections);
     const didLayout = useRef(false);
+
+    /**
+     * This helper function is used to memoize the computation needed for getItemLayout. It is run whenever section data changes.
+     *
+     * @returns {Array<Object>}
+     */
     const buildFlatSectionArray = () => {
         let offset = 0;
 
@@ -92,6 +100,9 @@ function BaseOptionsList({
     };
 
     useEffect(() => {
+        if (_.isEqual(sections, previousSections)) {
+            return;
+        }
         flattenedData.current = buildFlatSectionArray();
     });
 
@@ -132,12 +143,6 @@ function BaseOptionsList({
             index: flatDataArrayIndex,
         };
     };
-
-    /**
-     * This helper function is used to memoize the computation needed for getItemLayout. It is run whenever section data changes.
-     *
-     * @returns {Array<Object>}
-     */
 
     /**
      * Returns the key used by the list
