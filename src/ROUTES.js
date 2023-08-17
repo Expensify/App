@@ -25,6 +25,7 @@ export default {
         return `bank-account/${stepToOpen}?policyID=${policyID}${backToParam}`;
     },
     HOME: '',
+    SAASTR_HOME: 'saastr',
     SETTINGS: 'settings',
     SETTINGS_PROFILE: 'settings/profile',
     SETTINGS_SHARE_CODE: 'settings/shareCode',
@@ -150,6 +151,10 @@ export default {
     GET_ASSISTANCE: 'get-assistance/:taskID',
     getGetAssistanceRoute: (taskID) => `get-assistance/${taskID}`,
     UNLINK_LOGIN: 'u/:accountID/:validateCode',
+
+    APPLE_SIGN_IN: 'sign-in-with-apple',
+    GOOGLE_SIGN_IN: 'sign-in-with-google',
+    DESKTOP_SIGN_IN_REDIRECT: 'desktop-signin-redirect',
 
     // This is a special validation URL that will take the user to /workspace/new after validation. This is used
     // when linking users from e.com in order to share a session in this app.

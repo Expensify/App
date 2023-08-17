@@ -80,10 +80,7 @@ const propTypes = {
     /** List of bank accounts */
     bankAccountList: PropTypes.objectOf(bankAccountPropTypes),
 
-    /** List of cards */
-    cardList: PropTypes.objectOf(cardPropTypes),
-
-    /** List of cards */
+    /** List of user's cards */
     fundList: PropTypes.objectOf(cardPropTypes),
 
     /** Bank account attached to free plan */
@@ -121,7 +118,6 @@ const defaultProps = {
     betas: [],
     walletTerms: {},
     bankAccountList: {},
-    cardList: null,
     fundList: null,
     loginList: {},
     allPolicyMembers: {},
@@ -184,7 +180,7 @@ function InitialSettingsPage(props) {
                 : null;
         const profileBrickRoadIndicator = UserUtils.getLoginListBrickRoadIndicator(props.loginList);
 
-        const paymentCardList = props.fundList || props.cardList || {};
+        const paymentCardList = props.fundList || {};
 
         return [
             {
@@ -266,7 +262,6 @@ function InitialSettingsPage(props) {
     }, [
         props.allPolicyMembers,
         props.bankAccountList,
-        props.cardList,
         props.fundList,
         props.loginList,
         props.network.isOffline,
@@ -428,9 +423,6 @@ export default compose(
         },
         reimbursementAccount: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-        },
-        cardList: {
-            key: ONYXKEYS.CARD_LIST,
         },
         fundList: {
             key: ONYXKEYS.FUND_LIST,
