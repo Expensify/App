@@ -111,7 +111,7 @@ function ReportActionItemSingle(props) {
 
     // If this is a report preview, display names and avatars of both people involved
     let secondaryAvatar = {};
-    const displayAllActors = props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && props.iouReport;
+    const displayAllActors = useMemo(() => props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && props.iouReport, [props.action.actionName, props.iouReport]);
     const primaryDisplayName = displayName;
     if (displayAllActors) {
         const secondaryUserDetails = props.personalDetailsList[props.iouReport.ownerAccountID] || {};
