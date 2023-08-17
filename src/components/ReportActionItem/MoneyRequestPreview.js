@@ -143,7 +143,7 @@ function MoneyRequestPreview(props) {
     const transaction = TransactionUtils.getLinkedTransaction(props.action);
     const {amount: requestAmount, currency: requestCurrency, comment: requestComment, merchant: requestMerchant} = ReportUtils.getTransactionDetails(transaction);
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
-    const isScanning = ReportUtils.areAllRequestsBeingSmartScanned(props.action);
+    const isScanning = hasReceipt && TransactionUtils.isReceiptBeingScanned(transaction);
 
     const getSettledMessage = () => {
         switch (lodashGet(props.action, 'originalMessage.paymentType', '')) {

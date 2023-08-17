@@ -27,7 +27,6 @@ import themeColors from '../../styles/themes/default';
 import reportPropTypes from '../../pages/reportPropTypes';
 import * as ReceiptUtils from '../../libs/ReceiptUtils';
 import * as ReportActionUtils from '../../libs/ReportActionsUtils';
-import * as TransactionUtils from '../../libs/TransactionUtils';
 import ReportActionItemImages from './ReportActionItemImages';
 
 const propTypes = {
@@ -106,12 +105,14 @@ function ReportPreview(props) {
     const numberOfScanningReceipts = ReportUtils.getNumberOfScanningReceipts(props.iouReport);
     const moneyRequestComment = lodashGet(props.action, 'childLastMoneyRequestComment', '');
 
-    const transactions = TransactionUtils.getReportPreviewTransactionsWithReceipts(props.action);
-    const hasReceipts = transactions.length > 0;
-    const isScanning = hasReceipts && ReportUtils.areAllRequestsBeingSmartScanned(props.action);
+    const transactionsWithReceipts = ReportUtils.getTransactionsWithReceipts(props.iouReport);
+    const hasReceipts = transactionsWithReceipts.length > 0;
+    const isScanning = hasReceipts && ReportUtils.areAllRequestsBeingSmartScanned(props.iouReport, props.action);
+    const lastThreeTransactionsWithReceipts = ReportUtils.getReportPreviewDisplayTransactions(props.action);
+
     const hasOnlyOneReceiptRequest = numberOfRequests === 1 && hasReceipts;
     const previewSubtitle = hasOnlyOneReceiptRequest
-        ? transactions[0].merchant
+        ? transactionsWithReceipts[0].merchant
         : props.translate('iou.requestCount', {
               count: numberOfRequests,
               scanningReceipts: numberOfScanningReceipts,
@@ -164,7 +165,7 @@ function ReportPreview(props) {
                 <View style={[styles.reportPreviewBox, props.isHovered || isScanning ? styles.reportPreviewBoxHoverBorder : undefined]}>
                     {hasReceipts && (
                         <ReportActionItemImages
-                            images={_.map(transactions, ({receipt, filename}) => ReceiptUtils.getThumbnailAndImageURIs(receipt.source, filename))}
+                            images={_.map(lastThreeTransactionsWithReceipts, ({receipt, filename}) => ReceiptUtils.getThumbnailAndImageURIs(receipt.source, filename))}
                             size={3}
                             total={ReportUtils.getNumberOfScanningReceipts(props.iouReport)}
                             isHovered={props.isHovered || isScanning}

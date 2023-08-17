@@ -28,7 +28,7 @@ const propTypes = {
     total: PropTypes.number,
 
     /** if the corresponding report action item is hovered */
-    isHovered: PropTypes.boolean,
+    isHovered: PropTypes.bool,
 };
 
 const defaultProps = {

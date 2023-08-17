@@ -20,6 +20,7 @@ import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 import ConfirmModal from './ConfirmModal';
 import useLocalize from '../hooks/useLocalize';
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
+import * as TransactionUtils from '../libs/TransactionUtils';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -71,7 +72,8 @@ function MoneyRequestHeader(props) {
         setIsDeleteModalVisible(false);
     }, [parentReportAction, setIsDeleteModalVisible]);
 
-    const isScanning = ReportUtils.areAllRequestsBeingSmartScanned(parentReportAction);
+    const transaction = TransactionUtils.getLinkedTransaction(parentReportAction);
+    const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
 
     return (
         <>

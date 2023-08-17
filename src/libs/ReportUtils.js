@@ -1230,33 +1230,47 @@ function getTransactionDetails(transaction) {
 }
 
 /**
- * For report previews and money request actions, we display a "Receipt scan in progress" indicator
+ * Gets all transactions on an IOU report with a receipt
+ *
+ * @param {Object|null} iouReport
+ * @returns {[Object]}
+ */
+function getTransactionsWithReceipts(iouReport) {
+    const reportID = lodashGet(iouReport, 'reportID');
+    const reportActions = ReportActionsUtils.getAllReportActions(reportID);
+    return _.reduce(
+        reportActions,
+        (transactions, action) => {
+            if (ReportActionsUtils.isMoneyRequestAction(action)) {
+                const transaction = TransactionUtils.getLinkedTransaction(action);
+                if (TransactionUtils.hasReceipt(transaction)) {
+                    transactions.push(transaction);
+                }
+            }
+            return transactions;
+        },
+        [],
+    );
+}
+
+/**
+ * For report previews, we display a "Receipt scan in progress" indicator
  * instead of the report total only when we have no report total ready to show. This is the case when
  * all requests are receipts that are being SmartScanned. As soon as we have a non-receipt request,
  * or as soon as one receipt request is done scanning, we have at least one
  * "ready" money request, and we remove this indicator to show the partial report total.
  *
- * @param {Object|null} reportAction
+ * @param {Object|null} iouReport
+ * @param {Object|null} reportPreviewAction the preview action associated with the IOU report
  * @returns {Boolean}
  */
-function areAllRequestsBeingSmartScanned(reportAction) {
-    // If a report preview has at least one manual request or at least one scanned receipt
-    if (ReportActionsUtils.isReportPreviewAction(reportAction)) {
-        const transactions = TransactionUtils.getReportPreviewTransactionsWithReceipts(reportAction);
-        // If we have more requests than requests with receipts, we have some manual requests
-        if (ReportActionsUtils.getNumberOfMoneyRequests(reportAction) > transactions.length) {
-            return false;
-        }
-        return _.all(transactions, (transaction) => TransactionUtils.isReceiptBeingScanned(transaction));
+function areAllRequestsBeingSmartScanned(iouReport, reportPreviewAction) {
+    const transactions = getTransactionsWithReceipts(iouReport);
+    // If we have more requests than requests with receipts, we have some manual requests
+    if (ReportActionsUtils.getNumberOfMoneyRequests(reportPreviewAction) > transactions.length) {
+        return false;
     }
-
-    // If a money request action is not a scanning receipt
-    if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
-        const transaction = TransactionUtils.getTransaction(reportAction.originalMessage.IOUTransactionID);
-        return TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
-    }
-
-    return false;
+    return _.all(transactions, (transaction) => TransactionUtils.isReceiptBeingScanned(transaction));
 }
 
 /**
@@ -3208,6 +3222,17 @@ function getNumberOfScanningReceipts(iouReport) {
     );
 }
 
+/**
+ * Get the last 3 transactions with receipts of an IOU report that will be displayed on the report preview
+ *
+ * @param {Object} reportPreviewAction
+ * @returns {Object}
+ */
+function getReportPreviewDisplayTransactions(reportPreviewAction) {
+    const transactionIDs = lodashGet(reportPreviewAction, ['childLastReceiptTransactionIDs'], '').split(',');
+    return _.map(transactionIDs, (transactionID) => TransactionUtils.getTransaction(transactionID));
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -3335,4 +3360,6 @@ export {
     getTaskAssigneeChatOnyxData,
     areAllRequestsBeingSmartScanned,
     getNumberOfScanningReceipts,
+    getReportPreviewDisplayTransactions,
+    getTransactionsWithReceipts,
 };

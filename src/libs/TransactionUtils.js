@@ -168,27 +168,6 @@ function getCreated(transaction) {
 }
 
 /**
- * Get the transactions related to a report preview with receipts
- *
- * @param {Object} reportPreviewAction
- * @returns {Object}
- */
-function getReportPreviewTransactionsWithReceipts(reportPreviewAction) {
-    const transactionIDs = lodashGet(reportPreviewAction, ['childLastReceiptTransactionIDs'], '').split(',');
-    return _.reduce(
-        transactionIDs,
-        (transactions, transactionID) => {
-            const transaction = getTransaction(transactionID);
-            if (hasReceipt(transaction)) {
-                transactions.push(transaction);
-            }
-            return transactions;
-        },
-        [],
-    );
-}
-
-/**
  * Get the details linked to the IOU reportAction
  *
  * @param {Object} reportAction
@@ -219,5 +198,4 @@ export {
     getAllReportTransactions,
     hasReceipt,
     isReceiptBeingScanned,
-    getReportPreviewTransactionsWithReceipts,
 };
