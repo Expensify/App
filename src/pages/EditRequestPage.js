@@ -43,11 +43,8 @@ const defaultProps = {
 
 function EditRequestPage({report, route, parentReport}) {
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
-    const transactionID = lodashGet(parentReportAction, 'originalMessage.IOUTransactionID', '');
-    const transaction = TransactionUtils.getTransaction(transactionID);
-    const transactionDescription = TransactionUtils.getDescription(transaction);
-    const transactionAmount = TransactionUtils.getAmount(transaction, ReportUtils.isExpenseReport(parentReport));
-    const transactionCurrency = TransactionUtils.getCurrency(transaction);
+    const transaction = TransactionUtils.getLinkedTransaction(parentReportAction);
+    const {amount: transactionAmount, currency: transactionCurrency, comment: transactionDescription} = ReportUtils.getTransactionDetails(transaction);
 
     // Take only the YYYY-MM-DD value
     const transactionCreated = TransactionUtils.getCreated(transaction);
@@ -66,7 +63,7 @@ function EditRequestPage({report, route, parentReport}) {
 
     // Update the transaction object and close the modal
     function editMoneyRequest(transactionChanges) {
-        IOU.editMoneyRequest(transactionID, report.reportID, transactionChanges);
+        IOU.editMoneyRequest(transaction.transactionID, report.reportID, transactionChanges);
         Navigation.dismissModal();
     }
 
@@ -109,7 +106,7 @@ function EditRequestPage({report, route, parentReport}) {
                 defaultCurrency={transactionCurrency}
                 reportID={report.reportID}
                 onSubmit={(transactionChanges) => {
-                    const amount = CurrencyUtils.convertToSmallestUnit(transactionCurrency, Number.parseFloat(transactionChanges));
+                    const amount = CurrencyUtils.convertToBackendAmount(transactionCurrency, Number.parseFloat(transactionChanges));
                     // In case the amount hasn't been changed, do not make the API request.
                     if (amount === transactionAmount) {
                         Navigation.dismissModal();
