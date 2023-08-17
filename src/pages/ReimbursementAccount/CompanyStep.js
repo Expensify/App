@@ -80,7 +80,19 @@ class CompanyStep extends React.Component {
      * @returns {Object} - Object containing the errors for each inputID, e.g. {inputID1: error1, inputID2: error2}
      */
     validate(values) {
-        const requiredFields = ['companyName', 'addressStreet', 'addressZipCode', 'addressCity', 'addressState', 'companyPhone', 'website', 'companyTaxID', 'incorporationType', 'incorporationDate', 'incorporationState'];
+        const requiredFields = [
+            'companyName',
+            'addressStreet',
+            'addressZipCode',
+            'addressCity',
+            'addressState',
+            'companyPhone',
+            'website',
+            'companyTaxID',
+            'incorporationType',
+            'incorporationDate',
+            'incorporationState',
+        ];
         const errors = ValidationUtils.getFieldRequiredErrors(values, requiredFields);
 
         if (values.addressStreet && !ValidationUtils.isValidAddress(values.addressStreet)) {
