@@ -92,6 +92,10 @@ class SidebarLinks extends React.PureComponent {
         if (this.props.isSmallScreenWidth) {
             App.confirmReadyToOpenApp();
         }
+
+        this.state = {
+            firstLoadedReportID: '',
+        };
     }
 
     componentDidMount() {
@@ -126,6 +130,17 @@ class SidebarLinks extends React.PureComponent {
         ReportActionContextMenu.hideContextMenu(false);
     }
 
+    componentDidUpdate() {
+        const firstLoadedReportID = this.props.optionListItems[0];
+        if (!this.props.isLoading || this.state.firstLoadedReportID || !firstLoadedReportID) {
+            return;
+        }
+
+        this.setState({
+            firstLoadedReportID,
+        });
+    }
+    
     componentWillUnmount() {
         SidebarUtils.resetIsSidebarLoadedReadyPromise();
         if (this.unsubscribeEscapeKey) {
@@ -228,9 +243,9 @@ class SidebarLinks extends React.PureComponent {
                 </View>
                 {this.props.isLoading ? (
                     <>
-                        {this.props.optionListItems[0] && (
+                        {this.state.firstLoadedReportID && (
                             <OptionRowLHNData
-                                reportID={this.props.optionListItems[0]}
+                                reportID={this.state.firstLoadedReportID}
                                 viewMode={viewMode}
                                 shouldDisableFocusOptions={this.props.isSmallScreenWidth}
                                 onSelectRow={this.showReportPage}
