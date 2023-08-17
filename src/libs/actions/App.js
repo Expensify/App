@@ -417,7 +417,7 @@ function openProfile(personalDetails) {
 }
 
 /**
- * @param {boolean} shouldAuthenticateWithCurrentAccount Optional, indicates wheather default authentication method (shortLivedAuthToken) should be used
+ * @param {boolean} shouldAuthenticateWithCurrentAccount Optional, indicates whether default authentication method (shortLivedAuthToken) should be used
  */
 function beginDeepLinkRedirect(shouldAuthenticateWithCurrentAccount = true) {
     // There's no support for anonymous users on desktop
@@ -439,7 +439,7 @@ function beginDeepLinkRedirect(shouldAuthenticateWithCurrentAccount = true) {
 }
 
 /**
- * @param {boolean} shouldAuthenticateWithCurrentAccount Optional, indicates wheather default authentication method (shortLivedAuthToken) should be used
+ * @param {boolean} shouldAuthenticateWithCurrentAccount Optional, indicates whether default authentication method (shortLivedAuthToken) should be used
  */
 function beginDeepLinkRedirectAfterTransition(shouldAuthenticateWithCurrentAccount = true) {
     waitForSignOnTransitionToFinish().then(() => beginDeepLinkRedirect(shouldAuthenticateWithCurrentAccount));
