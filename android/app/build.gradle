@@ -138,8 +138,6 @@ android {
         release {
             signingConfig signingConfigs.release
             productFlavors.production.signingConfig signingConfigs.release
-            // AdHoc builds use the prod env, but don't need to be signed with the production keys
-            productFlavors.adhoc.signingConfig signingConfigs.debug
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }
