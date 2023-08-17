@@ -89,7 +89,8 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
         }
 
         return {
-            coordinate: [0, 0],
+            coordinate: CONST.SF_COORDINATES,
+            // Because coordinates of test waypoints are undefined, the SF coordinate is used temporarily. The below line should be uncommented once waypoints in correct format are saved in the waypoints editor page
             // coordinate: [waypoint.lat, waypoint.lng],
             markerComponent: () => (
                 <MarkerComponent
