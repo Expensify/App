@@ -1454,12 +1454,12 @@ function getRootReportAndWorkspaceName(report) {
 
     if (isIOURequest(report)) {
         return {
-            rootReportName: lodashGet(report, 'displayName', ''),
+            rootReportName: getReportName(report),
         };
     }
     if (isExpenseRequest(report)) {
         return {
-            rootReportName: lodashGet(report, 'displayName', ''),
+            rootReportName: getReportName(report),
             workspaceName: isIOUReport(report) ? CONST.POLICY.OWNER_EMAIL_FAKE : getPolicyName(report, true),
         };
     }
