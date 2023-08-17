@@ -118,7 +118,7 @@ const init = () => {
             callback: (val) => {
                 // When the network reconnects, check if the token has expired. If it has, then clearing the token will
                 // trigger the fetch of a new one
-                if (network && network.isOffline && val && !val.isOffline && !isCurrentlyFetchingToken) {
+                if (network && network.isOffline && val && !val.isOffline && !isCurrentlyFetchingToken && hasTokenExpired()) {
                     console.debug('[MapboxToken] Token is expired after network came online');
                     clearToken();
                 }
