@@ -120,13 +120,26 @@ function getDescription(transaction) {
  * @returns {Number}
  */
 function getAmount(transaction, isFromExpenseReport) {
-    // In case of expense reports, the amounts are stored using an opposite sign
-    const multiplier = isFromExpenseReport ? -1 : 1;
-    const amount = lodashGet(transaction, 'modifiedAmount', 0);
-    if (amount) {
-        return multiplier * amount;
+    // IOU requests cannot have negative values but they can be stored as negative values, let's return absolute value
+    if (!isFromExpenseReport) {
+        const amount = lodashGet(transaction, 'modifiedAmount', 0);
+        if (amount) {
+            return Math.abs(amount);
+        }
+        return Math.abs(lodashGet(transaction, 'amount', 0));
     }
-    return multiplier * lodashGet(transaction, 'amount', 0);
+
+    // Expense report case:
+    // The amounts are stored using an opposite sign and negative values can be set,
+    // we need to return an opposite sign than is saved in the transaction object
+    let amount = lodashGet(transaction, 'modifiedAmount', 0);
+    if (amount) {
+        return -amount;
+    }
+
+    // To avoid -0 being shown, lets only change the sign if the value is other than 0.
+    amount = lodashGet(transaction, 'amount', 0);
+    return amount ? -amount : 0;
 }
 
 /**
@@ -157,4 +170,19 @@ function getCreated(transaction) {
     return '';
 }
 
-export {buildOptimisticTransaction, getUpdatedTransaction, getTransaction, getDescription, getAmount, getCurrency, getCreated};
+/**
+ * Get the details linked to the IOU reportAction
+ *
+ * @param {Object} reportAction
+ * @returns {Object}
+ */
+function getLinkedTransaction(reportAction = {}) {
+    const transactionID = lodashGet(reportAction, ['originalMessage', 'IOUTransactionID'], '');
+    return allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] || {};
+}
+
+function getAllReportTransactions(reportID) {
+    return _.filter(allTransactions, (transaction) => transaction.reportID === reportID);
+}
+
+export {buildOptimisticTransaction, getUpdatedTransaction, getTransaction, getDescription, getAmount, getCurrency, getCreated, getLinkedTransaction, getAllReportTransactions};

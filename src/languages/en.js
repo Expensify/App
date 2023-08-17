@@ -34,6 +34,9 @@ export default {
         view: 'View',
         not: 'Not',
         signIn: 'Sign in',
+        signInWithGoogle: 'Sign in with Google',
+        signInWithApple: 'Sign in with Apple',
+        signInWith: 'Sign in with',
         continue: 'Continue',
         firstName: 'First name',
         lastName: 'Last name',
@@ -191,6 +194,11 @@ export default {
         redirectedToDesktopApp: "We've redirected you to the desktop app.",
         youCanAlso: 'You can also',
         openLinkInBrowser: 'open this link in your browser',
+        loggedInAs: ({email}) => `You're logged in as ${email}. Click "Open link" in the prompt to log into the desktop app with this account.`,
+        doNotSeePrompt: "Can't see the prompt?",
+        tryAgain: 'Try again',
+        or: ', or',
+        continueInWeb: 'continue to the web app',
     },
     validateCodeModal: {
         successfulSignInTitle: 'Abracadabra,\nyou are signed in!',
@@ -240,6 +248,15 @@ export default {
             header: 'Split bills, request payments, and chat with friends.',
             body: 'Welcome to the future of Expensify, your new go-to place for financial collaboration with friends and teammates alike.',
         },
+    },
+    thirdPartySignIn: {
+        alreadySignedIn: ({email}) => `You are already signed in as ${email}.`,
+        goBackMessage: ({provider}) => `Don't want to sign in with ${provider}?`,
+        continueWithMyCurrentSession: 'Continue with my current session',
+        redirectToDesktopMessage: "We'll redirect you to the desktop app once you finish signing in.",
+        signInAgreementMessage: 'By logging in, you agree to the',
+        termsOfService: 'Terms of Service',
+        privacy: 'Privacy',
     },
     reportActionCompose: {
         addAction: 'Actions',
@@ -875,6 +892,8 @@ export default {
         clearStatus: 'Clear status',
         save: 'Save',
         message: 'Message',
+        untilTomorrow: 'Until tomorrow',
+        untilTime: ({time}) => `Until ${time}`,
     },
     stepCounter: ({step, total, text}) => {
         let result = `Step ${step}`;
@@ -1580,10 +1599,15 @@ export default {
     },
     distance: {
         addStop: 'Add stop',
+        address: 'Address',
+        waypointEditor: 'Waypoint Editor',
         waypointDescription: {
             start: 'Start',
             finish: 'Finish',
             stop: 'Stop',
+        },
+        errors: {
+            selectSuggestedAddress: 'Please select a suggested address',
         },
     },
     countrySelectorModal: {
