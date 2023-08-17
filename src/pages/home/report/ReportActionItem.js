@@ -66,6 +66,7 @@ import * as store from '../../../libs/actions/ReimbursementAccount/store';
 import * as BankAccounts from '../../../libs/actions/BankAccounts';
 import ReportScreenContext from '../ReportScreenContext';
 import Permissions from '../../../libs/Permissions';
+import RenderHTML from '../../../components/RenderHTML';
 
 const propTypes = {
     ...windowDimensionsPropTypes,
@@ -484,7 +485,9 @@ function ReportActionItem(props) {
                         showHeader={!props.draftMessage}
                         wrapperStyles={[styles.chatItem]}
                         report={props.report}
-                     />
+                     >
+                        <RenderHTML html={`<comment>${props.translate('parentReportAction.deletedTask')}</comment>`} />
+                    </ReportActionItemSingle>
                 )
             }
 

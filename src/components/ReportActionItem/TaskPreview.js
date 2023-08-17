@@ -22,7 +22,6 @@ import * as ReportUtils from '../../libs/ReportUtils';
 import RenderHTML from '../RenderHTML';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 import personalDetailsPropType from '../../pages/personalDetailsPropType';
-import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 import * as Session from '../../libs/actions/Session';
 
 const propTypes = {
