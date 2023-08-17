@@ -757,7 +757,7 @@ function ReportActionCompose({
             // will be added after the user starts typing again on the keyboard. This package is
             // a workaround to reset the keyboard natively.
             if (RNTextInputReset) {
-                RNTextInputReset.resetKeyboardInput(findNodeHandle(textInputRef));
+                RNTextInputReset.resetKeyboardInput(findNodeHandle(textInputRef.current));
             }
 
             setSelection({
