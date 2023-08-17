@@ -95,8 +95,8 @@ function MoneyRequestAction(props) {
         }
 
         // If the childReportID is not present, we need to create a new thread
-        const childReportID = lodashGet(props.action, 'childReportID', '0');
-        if (childReportID === '0') {
+        const childReportID = lodashGet(props.action, 'childReportID', 0);
+        if (!childReportID) {
             const participantAccountIDs = _.uniq([props.session.accountID, Number(props.action.actorAccountID)]);
             const thread = ReportUtils.buildOptimisticChatReport(
                 participantAccountIDs,
@@ -116,10 +116,11 @@ function MoneyRequestAction(props) {
             const userLogins = PersonalDetailsUtils.getLoginsByAccountIDs(thread.participantAccountIDs);
             Report.openReport(thread.reportID, userLogins, thread, props.action.reportActionID);
             Navigation.navigate(ROUTES.getReportRoute(thread.reportID));
-        } else {
-            Report.openReport(childReportID);
-            Navigation.navigate(ROUTES.getReportRoute(childReportID));
+            return;
         }
+
+        Report.openReport(childReportID);
+        Navigation.navigate(ROUTES.getReportRoute(childReportID));
     };
 
     let shouldShowPendingConversionMessage = false;

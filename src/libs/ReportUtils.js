@@ -14,6 +14,7 @@ import ROUTES from '../ROUTES';
 import * as NumberUtils from './NumberUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as TransactionUtils from './TransactionUtils';
+import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import Permissions from './Permissions';
 import DateUtils from './DateUtils';
 import linkingConfig from './Navigation/linkingConfig';
@@ -2372,6 +2373,31 @@ function buildOptimisticTaskReport(ownerAccountID, assigneeAccountID = 0, parent
 }
 
 /**
+ * A helper method to create transaction thread
+ *
+ * @param {Object} reportAction - the parent IOU report action from which to create the thread
+ * 
+* @returns {Object}
+ */
+function buildTransactionThread(reportAction) {
+    const participantAccountIDs = _.uniq([currentUserAccountID, Number(reportAction.actorAccountID)]);
+    return buildOptimisticChatReport(
+        participantAccountIDs,
+        getTransactionReportName(reportAction),
+        '',
+        lodashGet(getReport(reportAction.reportID), 'policyID', CONST.POLICY.OWNER_EMAIL_FAKE),
+        CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
+        false,
+        '',
+        undefined,
+        undefined,
+        CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+        reportAction.reportActionID,
+        reportAction.reportID,
+    );
+}
+
+/**
  * @param {Object} report
  * @returns {Boolean}
  */
@@ -3288,4 +3314,5 @@ export {
     getTransactionDetails,
     getTaskAssigneeChatOnyxData,
     canEditMoneyRequest,
+    buildTransactionThread,
 };
