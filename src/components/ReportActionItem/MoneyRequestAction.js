@@ -17,12 +17,12 @@ import styles from '../../styles/styles';
 import * as IOUUtils from '../../libs/IOUUtils';
 import * as ReportUtils from '../../libs/ReportUtils';
 import * as Report from '../../libs/actions/Report';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 import refPropTypes from '../refPropTypes';
 import RenderHTML from '../RenderHTML';
 import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
 import reportPropTypes from '../../pages/reportPropTypes';
+import useLocalize from '../../hooks/useLocalize';
 
 const propTypes = {
     /** All the data of the action */
@@ -61,8 +61,6 @@ const propTypes = {
     /** Styles to be assigned to Container */
     // eslint-disable-next-line react/forbid-prop-types
     style: PropTypes.arrayOf(PropTypes.object),
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -89,6 +87,7 @@ function MoneyRequestAction({
     network,
     style,
 }) {
+    const {translate} = useLocalize();
     const isSplitBillAction = lodashGet(action, 'originalMessage.type', '') === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
 
     const onIOUPreviewPressed = () => {
