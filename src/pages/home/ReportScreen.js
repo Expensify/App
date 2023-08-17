@@ -298,6 +298,7 @@ class ReportScreen extends React.Component {
                         shouldShowCloseButton={false}
                         shouldShowBackButton={this.props.isSmallScreenWidth}
                         onBackButtonPress={Navigation.goBack}
+                        shouldShowLink={false}
                     >
                         <OfflineWithFeedback
                             pendingAction={addWorkspaceRoomOrChatPendingAction}
