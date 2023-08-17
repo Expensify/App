@@ -874,8 +874,14 @@ function getIconsForParticipants(participants, personalDetails) {
         ]);
     }
 
-    // Sort all logins by first name (which is the second element in the array)
-    const sortedParticipantDetails = participantDetails.sort((a, b) => a[2] - b[2]);
+    // Sort all logins by first name (position 2 element in array)
+    // if multiple participants have the same first name, sub-sort them by login/displayName (position 1 element in array)
+    // if that still clashes, sub-sort by accountID (position 0 element in array)
+    const sortedParticipantDetails = _.chain(participantDetails)
+        .sortBy((detail) => detail[0])
+        .sortBy((detail) => detail[1])
+        .sortBy((detail) => detail[2])
+        .value();
 
     // Now that things are sorted, gather only the avatars (third element in the array) and return those
     const avatars = [];
