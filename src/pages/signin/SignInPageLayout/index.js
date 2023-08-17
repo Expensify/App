@@ -37,9 +37,16 @@ const propTypes = {
 
     /** Whether or not the sign in page is being rendered in the RHP modal */
     isInModal: PropTypes.bool.isRequired,
+  
+    /** Override the green headline copy */
+    customHeadline: PropTypes.string,
 
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    customHeadline: '',
 };
 
 function SignInPageLayout(props) {
@@ -112,7 +119,7 @@ function SignInPageLayout(props) {
                                         props.isLargeScreenWidth ? styles.ph25 : {},
                                     ]}
                                 >
-                                    <SignInPageHero />
+                                    <SignInPageHero customHeadline={props.customHeadline} />
                                     <Footer scrollPageToTop={scrollPageToTop} />
                                 </View>
                             </View>
@@ -130,7 +137,6 @@ function SignInPageLayout(props) {
                             isSmallScreen
                             pointerEvents="none"
                             width={variables.signInHeroBackgroundWidthMobile}
-                            style={styles.signInBackgroundMobile}
                         />
                         <SignInPageContent
                             welcomeHeader={props.welcomeHeader}
@@ -152,5 +158,6 @@ function SignInPageLayout(props) {
 
 SignInPageLayout.propTypes = propTypes;
 SignInPageLayout.displayName = 'SignInPageLayout';
+SignInPageLayout.defaultProps = defaultProps;
 
 export default compose(withWindowDimensions, withSafeAreaInsets, withLocalize)(SignInPageLayout);

@@ -41,8 +41,8 @@ class WorkspaceRateAndUnitPage extends React.Component {
 
     getUnitItems() {
         return [
-            {label: this.props.translate('workspace.reimburse.kilometers'), value: 'km'},
-            {label: this.props.translate('workspace.reimburse.miles'), value: 'mi'},
+            {label: this.props.translate('workspace.reimburse.kilometers'), value: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS},
+            {label: this.props.translate('workspace.reimburse.miles'), value: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
         ];
     }
 
@@ -63,11 +63,11 @@ class WorkspaceRateAndUnitPage extends React.Component {
     }
 
     saveUnitAndRate(unit, rate) {
-        const distanceCustomUnit = _.find(lodashGet(this.props, 'policy.customUnits', {}), (u) => u.name === 'Distance');
+        const distanceCustomUnit = _.find(lodashGet(this.props, 'policy.customUnits', {}), (u) => u.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
         if (!distanceCustomUnit) {
             return;
         }
-        const currentCustomUnitRate = _.find(lodashGet(distanceCustomUnit, 'rates', {}), (r) => r.name === 'Default Rate');
+        const currentCustomUnitRate = _.find(lodashGet(distanceCustomUnit, 'rates', {}), (r) => r.name === CONST.CUSTOM_UNITS.DEFAULT_RATE);
         const unitID = lodashGet(distanceCustomUnit, 'customUnitID', '');
         const unitName = lodashGet(distanceCustomUnit, 'name', '');
         const rateNumValue = this.getNumericValue(rate);
@@ -101,8 +101,8 @@ class WorkspaceRateAndUnitPage extends React.Component {
     }
 
     render() {
-        const distanceCustomUnit = _.find(lodashGet(this.props, 'policy.customUnits', {}), (unit) => unit.name === 'Distance');
-        const distanceCustomRate = _.find(lodashGet(distanceCustomUnit, 'rates', {}), (rate) => rate.name === 'Default Rate');
+        const distanceCustomUnit = _.find(lodashGet(this.props, 'policy.customUnits', {}), (unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
+        const distanceCustomRate = _.find(lodashGet(distanceCustomUnit, 'rates', {}), (rate) => rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE);
         return (
             <WorkspacePageWithSections
                 headerText={this.props.translate('workspace.reimburse.trackDistance')}

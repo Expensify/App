@@ -6,7 +6,7 @@ import RHPScreenOptions from '../RHPScreenOptions';
 
 const Stack = createStackNavigator();
 
-function RigthModalNavigator() {
+function RightModalNavigator() {
     return (
         <Stack.Navigator screenOptions={RHPScreenOptions}>
             <Stack.Screen
@@ -101,4 +101,4 @@ function RigthModalNavigator() {
     );
 }
 
-export default RigthModalNavigator;
+export default RightModalNavigator;

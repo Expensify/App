@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, ScrollView, Linking} from 'react-native';
+import {View, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
@@ -68,7 +68,7 @@ function GetAssistancePage(props) {
     if (guideCalendarLink) {
         menuItems.splice(1, 0, {
             title: props.translate('getAssistancePage.scheduleSetupCall'),
-            onPress: () => Linking.openURL(guideCalendarLink),
+            onPress: () => Link.openExternalLink(guideCalendarLink),
             icon: Expensicons.Phone,
             shouldShowRightIcon: true,
             iconRight: Expensicons.NewWindow,
