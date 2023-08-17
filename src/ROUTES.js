@@ -20,7 +20,10 @@ export default {
     BANK_ACCOUNT_NEW: 'bank-account/new',
     BANK_ACCOUNT_WITH_STEP_TO_OPEN: 'bank-account/:stepToOpen?',
     BANK_ACCOUNT_PERSONAL: 'bank-account/personal',
-    getBankAccountRoute: (stepToOpen = '', policyID = '') => `bank-account/${stepToOpen}?policyID=${policyID}`,
+    getBankAccountRoute: (stepToOpen = '', policyID = '', backTo = '') => {
+        const backToParam = backTo ? `&backTo=${encodeURIComponent(backTo)}` : '';
+        return `bank-account/${stepToOpen}?policyID=${policyID}${backToParam}`;
+    },
     HOME: '',
     SETTINGS: 'settings',
     SETTINGS_PROFILE: 'settings/profile',
@@ -69,6 +72,8 @@ export default {
     REPORT_WITH_ID: 'r/:reportID?',
     EDIT_REQUEST: 'r/:threadReportID/edit/:field',
     getEditRequestRoute: (threadReportID, field) => `r/${threadReportID}/edit/${field}`,
+    EDIT_CURRENCY_REQUEST: 'r/:threadReportID/edit/currency',
+    getEditRequestCurrencyRoute: (threadReportID, currency, backTo) => `r/${threadReportID}/edit/currency?currency=${currency}&backTo=${backTo}`,
     getReportRoute: (reportID) => `r/${reportID}`,
     REPORT_WITH_ID_DETAILS_SHARE_CODE: 'r/:reportID/details/shareCode',
     getReportShareCodeRoute: (reportID) => `r/${reportID}/details/shareCode`,
