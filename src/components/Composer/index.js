@@ -370,11 +370,11 @@ function Composer({
         return () => {
             unsubscribeFocus();
             unsubscribeBlur();
+            document.removeEventListener('paste', handlePaste);
             // eslint-disable-next-line es/no-optional-chaining
             if (!textInput.current) {
                 return;
             }
-            document.removeEventListener('paste', handlePaste);
             textInput.current.removeEventListener('wheel', handleWheel);
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
