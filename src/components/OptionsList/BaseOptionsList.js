@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {useRef, useEffect, useCallback, forwardRef, memo} from 'react';
+import React, {useRef, useEffect, forwardRef, memo} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
@@ -249,7 +249,7 @@ BaseOptionsList.propTypes = propTypes;
 BaseOptionsList.defaultProps = defaultProps;
 BaseOptionsList.displayName = 'BaseOptionsList';
 
-// using memo here because the components using this components don't memoize callbacks or arrays, thus causing unnecessary rerenders of this component.
+// using memo to avoid unnecessary rerenders when parents component rerenders (thus causing this component to rerender because shallow comparison is used for some props).
 export default memo(
     forwardRef((props, ref) => (
         <BaseOptionsList
