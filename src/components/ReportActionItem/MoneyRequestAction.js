@@ -97,28 +97,12 @@ function MoneyRequestAction(props) {
         // If the childReportID is not present, we need to create a new thread
         const childReportID = lodashGet(props.action, 'childReportID', 0);
         if (!childReportID) {
-            const participantAccountIDs = _.uniq([props.session.accountID, Number(props.action.actorAccountID)]);
-            const thread = ReportUtils.buildOptimisticChatReport(
-                participantAccountIDs,
-                ReportUtils.getTransactionReportName(props.action),
-                '',
-                lodashGet(props.iouReport, 'policyID', CONST.POLICY.OWNER_EMAIL_FAKE),
-                CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
-                false,
-                '',
-                undefined,
-                undefined,
-                CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                props.action.reportActionID,
-                props.requestReportID,
-            );
-
+            const thread = ReportUtils.buildTransactionThread(props.action);
             const userLogins = PersonalDetailsUtils.getLoginsByAccountIDs(thread.participantAccountIDs);
             Report.openReport(thread.reportID, userLogins, thread, props.action.reportActionID);
             Navigation.navigate(ROUTES.getReportRoute(thread.reportID));
             return;
         }
-
         Report.openReport(childReportID);
         Navigation.navigate(ROUTES.getReportRoute(childReportID));
     };
