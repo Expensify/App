@@ -1,19 +1,19 @@
 import React, {useState} from 'react';
 import {View} from 'react-native';
-import styles from '../../styles/styles';
-import Icon from '../Icon';
-import * as Expensicons from '../Icon/Expensicons';
-import Text from '../Text';
-import Tooltip from '../Tooltip';
-import PressableWithFeedback from '../Pressable/PressableWithFeedback';
-import CONST from '../../CONST';
+import styles from '../styles/styles';
+import Icon from './Icon';
+import * as Expensicons from './Icon/Expensicons';
+import Text from './Text';
+import Tooltip from './Tooltip';
+import PressableWithFeedback from './Pressable/PressableWithFeedback';
+import CONST from '../CONST';
 import AppIcon from '../../../assets/images/expensify-app-icon.svg';
-import Button from '../Button';
-import variables from '../../styles/variables';
-import useLocalize from '../../hooks/useLocalize';
-import * as Link from '../../libs/actions/Link';
-import * as Browser from '../../libs/Browser';
-import getOperatingSystem from '../../libs/getOperatingSystem';
+import Button from './Button';
+import variables from '../styles/variables';
+import useLocalize from '../hooks/useLocalize';
+import * as Link from '../libs/actions/Link';
+import * as Browser from '../libs/Browser';
+import getOperatingSystem from '../libs/getOperatingSystem';
 
 function MobileBanner() {
     const [shouldShowBanner, setshouldShowBanner] = useState(Browser.isMobile());
