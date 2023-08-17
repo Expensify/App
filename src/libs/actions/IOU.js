@@ -1622,18 +1622,6 @@ function navigateToNextPage(iou, iouType, reportID, report) {
     Navigation.navigate(ROUTES.getMoneyRequestParticipantsRoute(iouType));
 }
 
-/**
- * @param {String} receiptPath
- * @param {String} receiptSource
- * @param {String} iouType
- * @param {String} reportID
- * @param {Object} report
- */
-function setMoneyRequestReceiptAndNavigateToNextPage(receiptPath, receiptSource, iouType, reportID, report) {
-    setMoneyRequestReceipt(receiptPath, receiptSource);
-    navigateToNextPage(ONYXKEYS.IOU, iouType, reportID, report);
-}
-
 export {
     editMoneyRequest,
     deleteMoneyRequest,
@@ -1654,5 +1642,4 @@ export {
     setMoneyRequestReceipt,
     createEmptyTransaction,
     navigateToNextPage,
-    setMoneyRequestReceiptAndNavigateToNextPage,
 };
