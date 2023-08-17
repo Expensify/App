@@ -1306,12 +1306,12 @@ function getProperSchemaForModifiedExpenseMessage(newValue, oldValue, valueName,
     const oldValueToDisplay = valueInQuotes ? `"${oldValue}"` : oldValue;
 
     if (!oldValue) {
-        return `set the request ${valueName} to ${newValueToDisplay}`;
+        return `set the ${valueName} to ${newValueToDisplay}`;
     }
     if (!newValue) {
-        return `removed the request ${valueName} (previously ${oldValueToDisplay})`;
+        return `removed the ${valueName} (previously ${oldValueToDisplay})`;
     }
-    return `changed the request ${valueName} to ${newValueToDisplay} (previously ${oldValueToDisplay})`;
+    return `changed the ${valueName} to ${newValueToDisplay} (previously ${oldValueToDisplay})`;
 }
 
 /**
