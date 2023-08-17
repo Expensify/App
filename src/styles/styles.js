@@ -2358,7 +2358,6 @@ const styles = {
 
     roomHeaderAvatar: {
         backgroundColor: themeColors.appBG,
-        marginLeft: -16,
         borderRadius: 100,
         borderColor: themeColors.componentBG,
         borderWidth: 4,
@@ -3676,6 +3675,11 @@ const styles = {
     },
     rotate90: {
         transform: [{rotate: '90deg'}],
+    },
+
+    userReportStatusEmoji: {
+        fontSize: variables.fontSizeNormal,
+        marginRight: 4,
     },
 };
 
