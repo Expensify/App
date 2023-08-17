@@ -18,6 +18,7 @@ import * as Session from './Session';
 import * as ReportActionsUtils from '../ReportActionsUtils';
 import Timing from './Timing';
 import * as Browser from '../Browser';
+import * as SequentialQueue from '../Network/SequentialQueue';
 
 let currentUserAccountID;
 let currentUserEmail;
@@ -60,18 +61,6 @@ function getNonOptimisticPolicyIDs(policies) {
         .reject((policy) => lodashGet(policy, 'pendingAction', null) === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD)
         .pluck('id')
         .compact()
-        .value();
-}
-
-/**
- * @param {Array} policies
- * @return {Object} map of policy id to lastUpdated
- */
-function getNonOptimisticPolicyIDToLastModifiedMap(policies) {
-    return _.chain(policies)
-        .reject((policy) => lodashGet(policy, 'pendingAction', '') === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD)
-        .map((policy) => [policy.id, policy.lastModified || 0])
-        .object()
         .value();
 }
 
@@ -134,64 +123,155 @@ AppState.addEventListener('change', (nextAppState) => {
 });
 
 /**
- * Fetches data needed for app initialization
- * @param {boolean} [isReconnecting]
+ * Gets the policy params that are passed to the server in the OpenApp and ReconnectApp API commands. This includes a full list of policy IDs the client knows about as well as when they were last modified.
+ * @returns {Promise}
  */
-function openApp(isReconnecting = false) {
-    isReadyToOpenApp.then(() => {
-        const connectionID = Onyx.connect({
-            key: ONYXKEYS.COLLECTION.POLICY,
-            waitForCollectionCallback: true,
-            callback: (policies) => {
-                // When the app reconnects we do a fast "sync" of the LHN and only return chats that have new messages. We achieve this by sending the most recent reportActionID.
-                // we have locally. And then only update the user about chats with messages that have occurred after that reportActionID.
-                //
-                // - Look through the local report actions and reports to find the most recently modified report action or report.
-                // - We send this to the server so that it can compute which new chats the user needs to see and return only those as an optimization.
-                const params = {policyIDList: getNonOptimisticPolicyIDs(policies), policyIDToLastModified: JSON.stringify(getNonOptimisticPolicyIDToLastModifiedMap(policies))};
-                if (isReconnecting) {
-                    Timing.start(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION);
-                    params.mostRecentReportActionLastModified = ReportActionsUtils.getMostRecentReportActionLastModified();
-                    Timing.end(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION, '', 500);
-                }
-                Onyx.disconnect(connectionID);
-
-                // eslint-disable-next-line rulesdir/no-multiple-api-calls
-                const apiMethod = isReconnecting ? API.write : API.read;
-                apiMethod(isReconnecting ? 'ReconnectApp' : 'OpenApp', params, {
-                    optimisticData: [
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-                            value: true,
-                        },
-                    ],
-                    successData: [
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-                            value: false,
-                        },
-                    ],
-                    failureData: [
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-                            value: false,
-                        },
-                    ],
-                });
-            },
+function getPolicyParamsForOpenOrReconnect() {
+    return new Promise((resolve) => {
+        isReadyToOpenApp.then(() => {
+            const connectionID = Onyx.connect({
+                key: ONYXKEYS.COLLECTION.POLICY,
+                waitForCollectionCallback: true,
+                callback: (policies) => {
+                    Onyx.disconnect(connectionID);
+                    resolve({policyIDList: getNonOptimisticPolicyIDs(policies)});
+                },
+            });
         });
     });
 }
 
 /**
- * Refreshes data when the app reconnects
+ * Returns the Onyx data that is used for both the OpenApp and ReconnectApp API commands.
+ * @returns {Object}
  */
-function reconnectApp() {
-    openApp(true);
+function getOnyxDataForOpenOrReconnect() {
+    return {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+                value: true,
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+                value: false,
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+                value: false,
+            },
+        ],
+    };
 }
+
+/**
+ * Fetches data needed for app initialization
+ */
+function openApp() {
+    getPolicyParamsForOpenOrReconnect().then((policyParams) => {
+        API.read('OpenApp', policyParams, getOnyxDataForOpenOrReconnect());
+    });
+}
+
+/**
+ * Fetches data when the app reconnects to the network
+ * @param {Number} [updateIDFrom] the ID of the Onyx update that we want to start fetching from
+ */
+function reconnectApp(updateIDFrom = 0) {
+    console.debug(`[OnyxUpdates] App reconnecting with updateIDFrom: ${updateIDFrom}`);
+    getPolicyParamsForOpenOrReconnect().then((policyParams) => {
+        const params = {...policyParams};
+
+        // When the app reconnects we do a fast "sync" of the LHN and only return chats that have new messages. We achieve this by sending the most recent reportActionID.
+        // we have locally. And then only update the user about chats with messages that have occurred after that reportActionID.
+        //
+        // - Look through the local report actions and reports to find the most recently modified report action or report.
+        // - We send this to the server so that it can compute which new chats the user needs to see and return only those as an optimization.
+        Timing.start(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION);
+        params.mostRecentReportActionLastModified = ReportActionsUtils.getMostRecentReportActionLastModified();
+        Timing.end(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION, '', 500);
+
+        // Include the update IDs when reconnecting so that the server can send incremental updates if they are available.
+        // Otherwise, a full set of app data will be returned.
+        if (updateIDFrom) {
+            params.updateIDFrom = updateIDFrom;
+        }
+
+        API.write('ReconnectApp', params, getOnyxDataForOpenOrReconnect());
+    });
+}
+
+/**
+ * Fetches data when the client has discovered it missed some Onyx updates from the server
+ * @param {Number} [updateIDFrom] the ID of the Onyx update that we want to start fetching from
+ * @param {Number} [updateIDTo] the ID of the Onyx update that we want to fetch up to
+ * @return {Promise}
+ */
+function getMissingOnyxUpdates(updateIDFrom = 0, updateIDTo = 0) {
+    console.debug(`[OnyxUpdates] Fetching missing updates updateIDFrom: ${updateIDFrom} and updateIDTo: ${updateIDTo}`);
+
+    // It is SUPER BAD FORM to return promises from action methods.
+    // DO NOT FOLLOW THIS PATTERN!!!!!
+    // It was absolutely necessary in order to block OnyxUpdates while fetching the missing updates from the server or else the udpates aren't applied in the proper order.
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    return API.makeRequestWithSideEffects(
+        'GetMissingOnyxMessages',
+        {
+            updateIDFrom,
+            updateIDTo,
+        },
+        getOnyxDataForOpenOrReconnect(),
+    );
+}
+
+// The next 40ish lines of code are used for detecting when there is a gap of OnyxUpdates between what was last applied to the client and the updates the server has.
+// When a gap is detected, the missing updates are fetched from the API.
+
+// These key needs to be separate from ONYXKEYS.ONYX_UPDATES_FROM_SERVER so that it can be updated without triggering the callback when the server IDs are updated
+let lastUpdateIDAppliedToClient = 0;
+Onyx.connect({
+    key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
+    callback: (val) => (lastUpdateIDAppliedToClient = val),
+});
+
+Onyx.connect({
+    key: ONYXKEYS.ONYX_UPDATES_FROM_SERVER,
+    callback: (val) => {
+        if (!val) {
+            return;
+        }
+
+        const {lastUpdateIDFromServer, previousUpdateIDFromServer} = val;
+        console.debug('[OnyxUpdates] Received lastUpdateID from server', lastUpdateIDFromServer);
+        console.debug('[OnyxUpdates] Received previousUpdateID from server', previousUpdateIDFromServer);
+        console.debug('[OnyxUpdates] Last update ID applied to the client', lastUpdateIDAppliedToClient);
+
+        // If the previous update from the server does not match the last update the client got, then the client is missing some updates.
+        // getMissingOnyxUpdates will fetch updates starting from the last update this client got and going to the last update the server sent.
+        if (lastUpdateIDAppliedToClient && previousUpdateIDFromServer && lastUpdateIDAppliedToClient < previousUpdateIDFromServer) {
+            console.debug('[OnyxUpdates] Gap detected in update IDs so fetching incremental updates');
+            Log.info('Gap detected in update IDs from server so fetching incremental updates', true, {
+                lastUpdateIDFromServer,
+                previousUpdateIDFromServer,
+                lastUpdateIDAppliedToClient,
+            });
+            SequentialQueue.pause();
+            getMissingOnyxUpdates(lastUpdateIDAppliedToClient, lastUpdateIDFromServer).finally(SequentialQueue.unpause);
+        }
+
+        if (lastUpdateIDFromServer > lastUpdateIDAppliedToClient) {
+            // Update this value so that it matches what was just received from the server
+            Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, lastUpdateIDFromServer || 0);
+        }
+    },
+});
 
 /**
  * This promise is used so that deeplink component know when a transition is end.

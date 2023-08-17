@@ -26,6 +26,9 @@ import FullscreenLoadingIndicator from '../../../../components/FullscreenLoading
 const propTypes = {
     /* Onyx Props */
 
+    // The user's country based on IP address
+    country: PropTypes.string,
+
     /** User's private personal details */
     privatePersonalDetails: PropTypes.shape({
         /** User's home address */
@@ -40,6 +43,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    country: '',
     privatePersonalDetails: {
         address: {
             street: '',
@@ -59,17 +63,17 @@ function updateAddress(values) {
     PersonalDetails.updateAddress(values.addressLine1.trim(), values.addressLine2.trim(), values.city.trim(), values.state.trim(), values.zipPostCode.trim().toUpperCase(), values.country);
 }
 
-function AddressPage({privatePersonalDetails}) {
+function AddressPage({privatePersonalDetails, country}) {
     usePrivatePersonalDetails();
     const {translate} = useLocalize();
-    const [currentCountry, setCurrentCountry] = useState(PersonalDetails.getCountryISO(lodashGet(privatePersonalDetails, 'address.country')) || CONST.COUNTRY.US);
+    const [currentCountry, setCurrentCountry] = useState(PersonalDetails.getCountryISO(lodashGet(privatePersonalDetails, 'address.country')) || country || CONST.COUNTRY.US);
     const isUSAForm = currentCountry === CONST.COUNTRY.US;
     const zipSampleFormat = lodashGet(CONST.COUNTRY_ZIP_REGEX_DATA, [currentCountry, 'samples'], '');
     const zipFormat = translate('common.zipCodeExampleFormat', {zipSampleFormat});
 
     const address = lodashGet(privatePersonalDetails, 'address') || {};
     const [street1, street2] = (address.street || '').split('\n');
-
+    const [state, setState] = useState(address.state);
     /**
      * @param {Function} translate - translate function
      * @param {Boolean} isUSAForm - selected country ISO code is US
@@ -116,10 +120,15 @@ function AddressPage({privatePersonalDetails}) {
     }, []);
 
     const handleAddressChange = (value, key) => {
-        if (key !== 'country') {
+        if (key !== 'country' && key !== 'state') {
             return;
         }
-        setCurrentCountry(value);
+        if (key === 'country') {
+            setCurrentCountry(value);
+            setState('');
+            return;
+        }
+        setState(value);
     };
 
     if (lodashGet(privatePersonalDetails, 'isLoading', true)) {
@@ -173,7 +182,7 @@ function AddressPage({privatePersonalDetails}) {
                 <View style={styles.mhn5}>
                     <CountryPicker
                         inputID="country"
-                        defaultValue={PersonalDetails.getCountryISO(address.country)}
+                        defaultValue={currentCountry}
                         onValueChange={handleAddressChange}
                     />
                 </View>
@@ -182,7 +191,8 @@ function AddressPage({privatePersonalDetails}) {
                     <View style={styles.mhn5}>
                         <StatePicker
                             inputID="state"
-                            defaultValue={address.state}
+                            defaultValue={state}
+                            onValueChange={handleAddressChange}
                         />
                     </View>
                 ) : (
@@ -191,9 +201,10 @@ function AddressPage({privatePersonalDetails}) {
                         label={translate('common.stateOrProvince')}
                         accessibilityLabel={translate('common.stateOrProvince')}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        defaultValue={address.state || ''}
+                        value={state || ''}
                         maxLength={CONST.FORM_CHARACTER_LIMIT}
                         spellCheck={false}
+                        onValueChange={handleAddressChange}
                     />
                 )}
                 <View style={styles.formSpaceVertical} />
@@ -226,6 +237,9 @@ AddressPage.propTypes = propTypes;
 AddressPage.defaultProps = defaultProps;
 
 export default withOnyx({
+    country: {
+        key: ONYXKEYS.COUNTRY,
+    },
     privatePersonalDetails: {
         key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
     },
