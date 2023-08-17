@@ -85,7 +85,6 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
     const scrollContainerMaxHeight = variables.baseMenuItemHeight * MAX_WAYPOINTS_TO_DISPLAY + halfMenuItemHeight;
 
     useEffect(() => {
-      
         MapboxToken.init();
         return MapboxToken.stop;
     }, []);
