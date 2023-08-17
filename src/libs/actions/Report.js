@@ -433,8 +433,17 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
         params.shouldRetry = false;
     }
 
+    // If we open an exist report, but it is not present in Onyx yet, we should change the method to set for this report
+    // and we need data to be available when we navigate to the chat page
+    if (_.isEmpty(ReportUtils.getReport(reportID))) {
+        optimisticReportData.onyxMethod = Onyx.METHOD.SET;
+    }
+
     // If we are creating a new report, we need to add the optimistic report data and a report action
     if (!_.isEmpty(newReportObject)) {
+        // Change the method to set for new reports because it doesn't exist yet, is faster,
+        // and we need the data to be available when we navigate to the chat page
+        optimisticReportData.onyxMethod = Onyx.METHOD.SET;
         optimisticReportData.value = {
             reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
             ...optimisticReportData.value,
@@ -451,7 +460,7 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
         }
         const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(reportOwnerEmail);
         onyxData.optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {[optimisticCreatedAction.reportActionID]: optimisticCreatedAction},
         });
@@ -509,7 +518,7 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
     if (isFromDeepLink) {
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
         API.makeRequestWithSideEffects('OpenReport', params, onyxData).finally(() => {
-            Onyx.merge(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, false);
+            Onyx.set(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, false);
         });
     } else {
         // eslint-disable-next-line rulesdir/no-multiple-api-calls
