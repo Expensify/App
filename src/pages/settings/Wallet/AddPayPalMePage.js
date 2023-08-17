@@ -1,5 +1,5 @@
 import React, {useRef, useCallback} from 'react';
-import {View, Linking} from 'react-native';
+import {View} from 'react-native';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
@@ -24,6 +24,7 @@ import * as Expensicons from '../../../components/Icon/Expensicons';
 import variables from '../../../styles/variables';
 import PressableWithoutFeedback from '../../../components/Pressable/PressableWithoutFeedback';
 import paypalMeDataPropTypes from '../../../components/paypalMeDataPropTypes';
+import * as Link from '../../../libs/actions/Link';
 
 const propTypes = {
     /** Account details for PayPal.Me */
@@ -97,7 +98,7 @@ function AddPayPalMePage(props) {
                         shouldUseAutoHitSlop={false}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
                         accessibilityLabel={props.translate('addPayPalMePage.supportedCurrencies')}
-                        onPress={() => Linking.openURL('https://developer.paypal.com/docs/reports/reference/paypal-supported-currencies')}
+                        onPress={() => Link.openExternalLink('https://developer.paypal.com/docs/reports/reference/paypal-supported-currencies')}
                     >
                         <View style={[styles.flexRow, styles.cursorPointer]}>
                             <TextLink

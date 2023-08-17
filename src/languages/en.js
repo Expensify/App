@@ -876,6 +876,8 @@ export default {
         clearStatus: 'Clear status',
         save: 'Save',
         message: 'Message',
+        untilTomorrow: 'Until tomorrow',
+        untilTime: ({time}) => `Until ${time}`,
     },
     stepCounter: ({step, total, text}) => {
         let result = `Step ${step}`;
@@ -1581,10 +1583,15 @@ export default {
     },
     distance: {
         addStop: 'Add stop',
+        address: 'Address',
+        waypointEditor: 'Waypoint Editor',
         waypointDescription: {
             start: 'Start',
             finish: 'Finish',
             stop: 'Stop',
+        },
+        errors: {
+            selectSuggestedAddress: 'Please select a suggested address',
         },
     },
     countrySelectorModal: {
