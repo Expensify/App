@@ -674,8 +674,8 @@ export default {
         transferDetailBankAccount: 'Your money should arrive in the next 1-3 business days.',
         transferDetailDebitCard: 'Your money should arrive immediately.',
         failedTransfer: 'Your balance isn’t fully settled. Please transfer to a bank account.',
-        notHereSubTitle: 'Please transfer your balance from the payments page',
-        goToPayment: 'Go to Payments',
+        notHereSubTitle: 'Please transfer your balance from the wallet page',
+        goToWallet: 'Go to Wallet',
     },
     chooseTransferAccountPage: {
         chooseAccount: 'Choose account',

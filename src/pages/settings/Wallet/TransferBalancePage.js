@@ -180,7 +180,7 @@ function TransferBalancePage(props) {
                 titleKey="notFound.pageNotFound"
                 subtitleKey="transferAmountPage.notHereSubTitle"
                 shouldShowLink
-                linkKey="transferAmountPage.goToPayment"
+                linkKey="transferAmountPage.goToWallet"
                 onLinkPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)}
             >
                 <HeaderWithBackButton
