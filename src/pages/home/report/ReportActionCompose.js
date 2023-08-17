@@ -895,12 +895,7 @@ function ReportActionCompose({
             }
 
             // Trigger the edit box for last sent message if ArrowUp is pressed and the comment is empty and Chronos is not in the participants
-            if (
-                e.key === CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey &&
-                textInputRef.current.selectionStart === 0 &&
-                value.length === 0 &&
-                !ReportUtils.chatIncludesChronos(report)
-            ) {
+            if (e.key === CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey && textInputRef.current.selectionStart === 0 && value.length === 0 && !ReportUtils.chatIncludesChronos(report)) {
                 e.preventDefault();
 
                 const parentReportActionID = lodashGet(report, 'parentReportActionID', '');
