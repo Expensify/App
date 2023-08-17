@@ -16,7 +16,7 @@ import * as ReportActionsUtils from '../ReportActionsUtils';
 import * as IOUUtils from '../IOUUtils';
 import * as OptionsListUtils from '../OptionsListUtils';
 import DateUtils from '../DateUtils';
-import TransactionUtils from '../TransactionUtils';
+import * as TransactionUtils from '../TransactionUtils';
 import * as ErrorUtils from '../ErrorUtils';
 import * as UserUtils from '../UserUtils';
 import * as Report from './Report';
@@ -364,7 +364,16 @@ function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, part
         receiptObject.source = receipt.source;
         receiptObject.state = CONST.IOU.RECEIPT_STATE.SCANREADY;
     }
-    const optimisticTransaction = TransactionUtils.buildOptimisticTransaction(amount, currency, iouReport.reportID, comment, '', '', undefined, receiptObject);
+    const optimisticTransaction = TransactionUtils.buildOptimisticTransaction(
+        ReportUtils.isExpenseReport(iouReport) ? -amount : amount,
+        currency,
+        iouReport.reportID,
+        comment,
+        '',
+        '',
+        undefined,
+        receiptObject,
+    );
 
     // STEP 4: Build optimistic reportActions. We need:
     // 1. CREATED action for the chatReport
@@ -516,7 +525,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
             },
         },
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${groupTransaction.transactionID}`,
             value: groupTransaction,
         },
@@ -590,8 +599,8 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
     }
 
     // Loop through participants creating individual chats, iouReports and reportActionIDs as needed
-    const splitAmount = IOUUtils.calculateAmount(participants.length, amount, false);
-    const splits = [{email: currentUserEmail, accountID: currentUserAccountID, amount: IOUUtils.calculateAmount(participants.length, amount, true)}];
+    const splitAmount = IOUUtils.calculateAmount(participants.length, amount, currency, false);
+    const splits = [{email: currentUserEmail, accountID: currentUserAccountID, amount: IOUUtils.calculateAmount(participants.length, amount, currency, true)}];
 
     const hasMultipleParticipants = participants.length > 1;
     _.each(participants, (participant) => {
@@ -630,7 +639,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
 
         // STEP 3: Build optimistic transaction
         const oneOnOneTransaction = TransactionUtils.buildOptimisticTransaction(
-            splitAmount,
+            ReportUtils.isExpenseReport(oneOnOneIOUReport) ? -splitAmount : splitAmount,
             currency,
             oneOnOneIOUReport.reportID,
             comment,
@@ -791,6 +800,89 @@ function splitBillAndOpenReport(participants, currentUserLogin, currentUserAccou
 
 /**
  * @param {String} transactionID
+ * @param {Number} transactionThreadReportID
+ * @param {Object} transactionChanges
+ */
+function editMoneyRequest(transactionID, transactionThreadReportID, transactionChanges) {
+    // STEP 1: Get all collections we're updating
+    const transactionThread = allReports[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`];
+    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    const iouReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${transactionThread.parentReportID}`];
+    const isFromExpenseReport = ReportUtils.isExpenseReport(iouReport);
+
+    // STEP 2: Build new modified expense report action.
+    const updatedReportAction = ReportUtils.buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges, isFromExpenseReport);
+    const updatedTransaction = TransactionUtils.getUpdatedTransaction(transaction, transactionChanges, isFromExpenseReport);
+    // STEP 3: Compute the IOU total and update the report preview message so LHN amount owed is correct
+    // STEP 4: Compose the optimistic data
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThread.reportID}`,
+            value: {
+                [updatedReportAction.reportActionID]: updatedReportAction,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: updatedTransaction,
+        },
+    ];
+
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThread.reportID}`,
+            value: {
+                [updatedReportAction.reportActionID]: {pendingAction: null},
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {pendingAction: null},
+        },
+    ];
+
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThread.reportID}`,
+            value: {
+                [updatedReportAction.reportActionID]: updatedReportAction,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: transaction,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.report}`,
+            value: iouReport,
+        },
+    ];
+
+    // STEP 6: Call the API endpoint
+    const {created, amount, currency, comment} = ReportUtils.getTransactionDetails(updatedTransaction);
+    API.write(
+        'EditMoneyRequest',
+        {
+            transactionID,
+            reportActionID: updatedReportAction.reportActionID,
+            created,
+            amount,
+            currency,
+            comment,
+        },
+        {optimisticData, successData, failureData},
+    );
+}
+
+/**
+ * @param {String} transactionID
  * @param {Object} reportAction - the money request reportAction we are deleting
  * @param {Boolean} isSingleTransactionView
  */
@@ -846,9 +938,15 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
             updatedIOUReport = {...iouReport};
 
             // Because of the Expense reports are stored as negative values, we add the total from the amount
-            updatedIOUReport.total += reportAction.originalMessage.amount;
+            updatedIOUReport.total += TransactionUtils.getAmount(transaction, true);
         } else {
-            updatedIOUReport = IOUUtils.updateIOUOwnerAndTotal(iouReport, reportAction.actorAccountID, reportAction.originalMessage.amount, reportAction.originalMessage.currency, true);
+            updatedIOUReport = IOUUtils.updateIOUOwnerAndTotal(
+                iouReport,
+                reportAction.actorAccountID,
+                TransactionUtils.getAmount(transaction, false),
+                TransactionUtils.getCurrency(transaction),
+                true,
+            );
         }
 
         updatedIOUReport.lastMessageText = iouReportLastMessageText;
@@ -1010,8 +1108,7 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
  * @returns {String}
  */
 function buildPayPalPaymentUrl(amount, submitterPayPalMeAddress, currency) {
-    const currencyUnit = CurrencyUtils.getCurrencyUnit(currency);
-    return `https://paypal.me/${submitterPayPalMeAddress}/${Math.abs(amount) / currencyUnit}${currency}`;
+    return `https://paypal.me/${submitterPayPalMeAddress}/${Math.abs(amount) / 100}${currency}`;
 }
 
 /**
@@ -1239,24 +1336,17 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
  * @returns {Object}
  */
 function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMethodType) {
-    const optimisticTransaction = TransactionUtils.buildOptimisticTransaction(iouReport.total, iouReport.currency, iouReport.reportID);
     const optimisticIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
         CONST.IOU.REPORT_ACTION_TYPE.PAY,
         iouReport.total,
         iouReport.currency,
         '',
         [recipient],
-        optimisticTransaction.transactionID,
+        '',
         paymentMethodType,
         iouReport.reportID,
         true,
     );
-    const optimisticPersonalDetailsListAction = {
-        accountID: Number(recipient.accountID),
-        avatar: UserUtils.getDefaultAvatarURL(Number(recipient.accountID)),
-        displayName: recipient.displayName || recipient.login,
-        login: recipient.login,
-    };
 
     const optimisticReportPreviewAction = ReportUtils.updateReportPreview(iouReport, ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID));
 
@@ -1303,19 +1393,9 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
             },
         },
         {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${optimisticTransaction.transactionID}`,
-            value: optimisticTransaction,
-        },
-        {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
             value: {[iouReport.policyID]: paymentMethodType},
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: optimisticPersonalDetailsListAction,
         },
     ];
 
@@ -1327,13 +1407,6 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
                 [optimisticIOUReportAction.reportActionID]: {
                     pendingAction: null,
                 },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${optimisticTransaction.transactionID}`,
-            value: {
-                pendingAction: null,
             },
         },
     ];
@@ -1355,13 +1428,6 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
                 [optimisticReportPreviewAction.reportActionID]: {
                     created: optimisticReportPreviewAction.created,
                 },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${optimisticTransaction.transactionID}`,
-            value: {
-                errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
             },
         },
     ];
@@ -1515,7 +1581,7 @@ function setMoneyRequestReceipt(receiptPath, receiptSource) {
 
 function createEmptyTransaction() {
     const transactionID = NumberUtils.rand64();
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {transactionID});
     Onyx.merge(ONYXKEYS.IOU, {transactionID});
 }
 
@@ -1556,6 +1622,7 @@ function navigateToNextPage(iou, iouType, reportID, report) {
 }
 
 export {
+    editMoneyRequest,
     deleteMoneyRequest,
     splitBill,
     splitBillAndOpenReport,
