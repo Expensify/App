@@ -3,7 +3,6 @@ import {View} from 'react-native';
 import {parsePhoneNumber} from 'awesome-phonenumber';
 import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
-import {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../components/withCurrentUserPersonalDetails';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import Form from '../../components/Form';
@@ -19,13 +18,9 @@ import Navigation from '../../libs/Navigation/Navigation';
 import TeachersUnite from '../../libs/actions/TeachersUnite';
 import useLocalize from '../../hooks/useLocalize';
 
-const propTypes = {
-    ...withCurrentUserPersonalDetailsPropTypes,
-};
+const propTypes = {};
 
-const defaultProps = {
-    ...withCurrentUserPersonalDetailsDefaultProps,
-};
+const defaultProps = {};
 
 function KnowATeacherPage() {
     const {translate} = useLocalize();

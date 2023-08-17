@@ -2517,9 +2517,8 @@ const CONST = {
         ATTACHMENT: 'common.attachment',
     },
     TEACHER_UNITE: {
-        // PUBLIC_ROOM_ID TBD later stage currently we are just using ECX #anounce room
         PUBLIC_ROOM_ID: '8813851443373010',
-        SCHOOL_PRINCIPAL_POLICY_ID: 'B40A3A7E39CEA84E', // <- Replace It With PolicyId
+        SCHOOL_PRINCIPAL_POLICY_ID: 'B40A3A7E39CEA84E',
     },
     CUSTOM_STATUS_TYPES: {
         NEVER: 'never',
