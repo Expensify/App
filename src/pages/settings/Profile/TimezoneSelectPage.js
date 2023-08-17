@@ -1,7 +1,6 @@
 import lodashGet from 'lodash/get';
 import React, {useState, useRef} from 'react';
 import _ from 'underscore';
-import moment from 'moment-timezone';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
@@ -37,7 +36,7 @@ function TimezoneSelectPage(props) {
     const {translate} = useLocalize();
     const timezone = useRef(getUserTimezone(props.currentUserPersonalDetails));
     const allTimezones = useRef(
-        _.chain(moment.tz.names())
+        _.chain(Intl.supportedValuesOf('timeZone'))
             .filter((tz) => !tz.startsWith('Etc/GMT'))
             .map((text) => ({
                 text,
