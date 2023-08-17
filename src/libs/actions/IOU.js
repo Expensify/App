@@ -100,7 +100,6 @@ function buildOnyxDataForMoneyRequest(
 ) {
     const optimisticData = [
         {
-            // Use SET for new reports because it doesn't exist yet, is faster and we need the data to be available when we navigate to the chat page
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
             value: {
