@@ -899,7 +899,7 @@ function ReportActionCompose({
                 e.key === CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey &&
                 textInputRef.current.selectionStart === 0 &&
                 value.length === 0 &&
-                !ReportUtils.chatIncludesChronos(this.props.report)
+                !ReportUtils.chatIncludesChronos(report)
             ) {
                 e.preventDefault();
 
