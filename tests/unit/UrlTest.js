@@ -6,12 +6,12 @@ describe('Url', () => {
             expect(Url.getPathFromURL('http://www.foo.com')).toEqual('');
             expect(Url.getPathFromURL('http://foo.com/blah_blah')).toEqual('blah_blah');
             expect(Url.getPathFromURL('http://foo.com/blah_blah_(wikipedia)')).toEqual('blah_blah_(wikipedia)');
-            expect(Url.getPathFromURL('http://www.example.com/wpstyle/?p=364')).toEqual('wpstyle/');
-            expect(Url.getPathFromURL('https://www.example.com/foo/?bar=baz&inga=42&quux')).toEqual('foo/');
-            expect(Url.getPathFromURL('http://foo.com/(something)?after=parens')).toEqual('(something)');
+            expect(Url.getPathFromURL('http://www.example.com/wpstyle/?p=364')).toEqual('wpstyle/?p=364');
+            expect(Url.getPathFromURL('https://www.example.com/foo/?bar=baz&inga=42&quux')).toEqual('foo/?bar=baz&inga=42&quux');
+            expect(Url.getPathFromURL('http://foo.com/(something)?after=parens')).toEqual('(something)?after=parens');
             expect(Url.getPathFromURL('http://code.google.com/events/#&product=browser')).toEqual('events/');
-            expect(Url.getPathFromURL('http://foo.bar/?q=Test%20URL-encoded%20stuff')).toEqual('');
-            expect(Url.getPathFromURL('http://www.test.com/path?param=123#123')).toEqual('path');
+            expect(Url.getPathFromURL('http://foo.bar/?q=Test%20URL-encoded%20stuff')).toEqual('?q=Test%20URL-encoded%20stuff');
+            expect(Url.getPathFromURL('http://www.test.com/path?param=123#123')).toEqual('path?param=123');
             expect(Url.getPathFromURL('http://1337.net')).toEqual('');
             expect(Url.getPathFromURL('http://a.b-c.de/')).toEqual('');
             expect(Url.getPathFromURL('https://sd1.sd2.docs.google.com/')).toEqual('');
@@ -27,7 +27,9 @@ describe('Url', () => {
                     'https://www.expensify.com/_devportal/tools/logSearch/#query=request_id:(%22Ufjjim%22)+AND+timestamp:[2021-01-08T03:48:10.389Z+TO+2021-01-08T05:48:10.389Z]&index=logs_expensify-008878)',
                 ),
             ).toEqual('_devportal/tools/logSearch/');
-            expect(Url.getPathFromURL('http://necolas.github.io/react-native-web/docs/?path=/docs/components-pressable--disabled ')).toEqual('react-native-web/docs/');
+            expect(Url.getPathFromURL('http://necolas.github.io/react-native-web/docs/?path=/docs/components-pressable--disabled ')).toEqual(
+                'react-native-web/docs/?path=/docs/components-pressable--disabled',
+            );
             expect(Url.getPathFromURL('https://github.com/Expensify/Expensify.cash/issues/123#:~:text=Please%20work/Expensify.cash ')).toEqual('Expensify/Expensify.cash/issues/123');
             expect(Url.getPathFromURL('https://github.com/Expensify/Expensify.cash/issues/123#:~:text=Please%20work/Expensify.cash ')).toEqual('Expensify/Expensify.cash/issues/123');
             expect(Url.getPathFromURL('mm..food ')).toEqual('');
