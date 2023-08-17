@@ -23,6 +23,7 @@ import useLocalize from '../hooks/useLocalize';
 const MAX_WAYPOINTS = 25;
 const MAX_WAYPOINTS_TO_DISPLAY = 4;
 
+const MAP_PADDING = 50;
 const DEFAULT_ZOOM_LEVEL = 10;
 
 const propTypes = {
@@ -156,10 +157,10 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
                 />
             </View>
             <View style={styles.mapViewContainer}>
-                {!isOffline && mapboxAccessToken.token ? (
+                {!isOffline && Boolean(mapboxAccessToken.token) ? (
                     <MapView
                         accessToken={mapboxAccessToken.token}
-                        mapPadding={50}
+                        mapPadding={MAP_PADDING}
                         pitchEnabled={false}
                         initialState={{
                             location: CONST.SF_COORDINATES,
