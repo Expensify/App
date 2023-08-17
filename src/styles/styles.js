@@ -2107,7 +2107,7 @@ const styles = {
         outline: 'none',
     },
 
-    pdfPasswordForm: (isSmallScreenWidth) => ({
+    getPDFPasswordFormStyle: (isSmallScreenWidth) => ({
         width: isSmallScreenWidth ? '100%' : 350,
         ...(isSmallScreenWidth && flex.flex1),
     }),
