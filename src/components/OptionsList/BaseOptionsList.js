@@ -94,30 +94,6 @@ function BaseOptionsList({
     useEffect(() => {
         flattenedData.current = buildFlatSectionArray();
     });
-    // constructor(props) {
-    //     super(props);
-    //     this.didLayout = false;
-
-    //     this.flattenedData = this.buildFlatSectionArray();
-    // }
-
-    // shouldComponentUpdate(nextProps) {
-    //     return (
-    //         nextProps.focusedIndex !== focusedIndex ||
-    //         nextProps.selectedOptions.length !== selectedOptions.length ||
-    //         nextProps.headerMessage !== headerMessage ||
-    //         nextProps.isLoading !== isLoading ||
-    //         !_.isEqual(nextProps.sections, sections)
-    //     );
-    // }
-
-    // componentDidUpdate(prevProps) {
-    //     if (_.isEqual(sections, prevProps.sections)) {
-    //         return;
-    //     }
-
-    //     this.flattenedData = this.buildFlatSectionArray();
-    // }
 
     const onViewableItemsChanged = () => {
         if (didLayout.current || !onLayout) {
@@ -182,7 +158,6 @@ function BaseOptionsList({
      */
     const renderItem = ({item, index, section}) => {
         const isItemDisabled = isDisabled || section.isDisabled || !!item.isDisabled;
-        console.log(`rendering base optionslist. isDisabled: ${isDisabled}`);
         return (
             <OptionRow
                 option={item}
