@@ -34,14 +34,14 @@ function PressableWithSecondaryInteraction({
         if (DeviceCapabilities.hasHoverSupport() && !enableLongPressWithHover) {
             return;
         }
-        if (withoutFocusOnSecondaryInteraction && pressableRef && pressableRef.current) {
+        if (withoutFocusOnSecondaryInteraction && pressableRef.current) {
             pressableRef.current.blur();
         }
         onSecondaryInteraction(e);
     };
 
     useEffect(() => {
-        if (!pressableRef || !pressableRef.current) {
+        if (!pressableRef.current) {
             return;
         }
 
