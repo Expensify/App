@@ -58,12 +58,6 @@ const propTypes = {
 
     network: networkPropTypes.isRequired,
 
-    /** Session info for the currently logged in user. */
-    session: PropTypes.shape({
-        /** Currently logged in user email */
-        email: PropTypes.string,
-    }),
-
     /** Styles to be assigned to Container */
     // eslint-disable-next-line react/forbid-prop-types
     style: PropTypes.arrayOf(PropTypes.object),
@@ -78,28 +72,38 @@ const defaultProps = {
     iouReport: {},
     reportActions: {},
     isHovered: false,
-    session: {
-        email: null,
-    },
     style: [],
 };
 
-function MoneyRequestAction(props) {
-    const isSplitBillAction = lodashGet(props.action, 'originalMessage.type', '') === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
+function MoneyRequestAction({
+    action,
+    chatReportID,
+    requestReportID,
+    isMostRecentIOUReportAction,
+    contextMenuAnchor,
+    checkIfContextMenuActive,
+    chatReport,
+    iouReport,
+    reportActions,
+    isHovered,
+    network,
+    style,
+}) {
+    const isSplitBillAction = lodashGet(action, 'originalMessage.type', '') === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
 
     const onIOUPreviewPressed = () => {
         if (isSplitBillAction) {
-            const reportActionID = lodashGet(props.action, 'reportActionID', '0');
-            Navigation.navigate(ROUTES.getSplitBillDetailsRoute(props.chatReportID, reportActionID));
+            const reportActionID = lodashGet(action, 'reportActionID', '0');
+            Navigation.navigate(ROUTES.getSplitBillDetailsRoute(chatReportID, reportActionID));
             return;
         }
 
         // If the childReportID is not present, we need to create a new thread
-        const childReportID = lodashGet(props.action, 'childReportID', 0);
+        const childReportID = lodashGet(action, 'childReportID', 0);
         if (!childReportID) {
-            const thread = ReportUtils.buildTransactionThread(props.action);
+            const thread = ReportUtils.buildTransactionThread(action);
             const userLogins = PersonalDetailsUtils.getLoginsByAccountIDs(thread.participantAccountIDs);
-            Report.openReport(thread.reportID, userLogins, thread, props.action.reportActionID);
+            Report.openReport(thread.reportID, userLogins, thread, action.reportActionID);
             Navigation.navigate(ROUTES.getReportRoute(thread.reportID));
             return;
         }
@@ -108,32 +112,32 @@ function MoneyRequestAction(props) {
     };
 
     let shouldShowPendingConversionMessage = false;
-    const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(props.action);
+    const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(action);
     if (
-        !_.isEmpty(props.iouReport) &&
-        !_.isEmpty(props.reportActions) &&
-        props.chatReport.hasOutstandingIOU &&
-        props.isMostRecentIOUReportAction &&
-        props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD &&
-        props.network.isOffline
+        !_.isEmpty(iouReport) &&
+        !_.isEmpty(reportActions) &&
+        chatReport.hasOutstandingIOU &&
+        isMostRecentIOUReportAction &&
+        action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD &&
+        network.isOffline
     ) {
-        shouldShowPendingConversionMessage = IOUUtils.isIOUReportPendingCurrencyConversion(props.reportActions, props.iouReport);
+        shouldShowPendingConversionMessage = IOUUtils.isIOUReportPendingCurrencyConversion(reportActions, iouReport);
     }
 
     return isDeletedParentAction ? (
-        <RenderHTML html={`<comment>${props.translate('parentReportAction.deletedRequest')}</comment>`} />
+        <RenderHTML html={`<comment>${translate('parentReportAction.deletedRequest')}</comment>`} />
     ) : (
         <IOUPreview
-            iouReportID={props.requestReportID}
-            chatReportID={props.chatReportID}
+            iouReportID={requestReportID}
+            chatReportID={chatReportID}
             isBillSplit={isSplitBillAction}
-            action={props.action}
-            contextMenuAnchor={props.contextMenuAnchor}
-            checkIfContextMenuActive={props.checkIfContextMenuActive}
+            action={action}
+            contextMenuAnchor={contextMenuAnchor}
+            checkIfContextMenuActive={checkIfContextMenuActive}
             shouldShowPendingConversionMessage={shouldShowPendingConversionMessage}
             onPreviewPressed={onIOUPreviewPressed}
-            containerStyles={[styles.cursorPointer, props.isHovered ? styles.iouPreviewBoxHover : undefined, ...props.style]}
-            isHovered={props.isHovered}
+            containerStyles={[styles.cursorPointer, isHovered ? styles.iouPreviewBoxHover : undefined, ...style]}
+            isHovered={isHovered}
         />
     );
 }
@@ -154,9 +158,6 @@ export default compose(
         reportActions: {
             key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
             canEvict: false,
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
         },
     }),
     withNetwork(),
