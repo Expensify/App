@@ -100,7 +100,8 @@ function buildOnyxDataForMoneyRequest(
 ) {
     const optimisticData = [
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            // Use SET for new reports because it doesn't exist yet, is faster and we need the data to be available when we navigate to the chat page
+            onyxMethod: isNewChatReport ? Onyx.METHOD.SET : Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
             value: {
                 ...chatReport,
@@ -111,7 +112,7 @@ function buildOnyxDataForMoneyRequest(
             },
         },
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: isNewIOUReport ? Onyx.METHOD.SET : Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
             value: {
                 ...iouReport,
@@ -126,7 +127,7 @@ function buildOnyxDataForMoneyRequest(
             value: transaction,
         },
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: isNewChatReport ? Onyx.METHOD.SET : Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
                 ...(isNewChatReport ? {[chatCreatedAction.reportActionID]: chatCreatedAction} : {}),
@@ -134,7 +135,7 @@ function buildOnyxDataForMoneyRequest(
             },
         },
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: isNewIOUReport ? Onyx.METHOD.SET : Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
             value: {
                 ...(isNewIOUReport ? {[iouCreatedAction.reportActionID]: iouCreatedAction} : {}),
