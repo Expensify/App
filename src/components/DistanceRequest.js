@@ -19,6 +19,8 @@ import CONST from '../CONST';
 import BlockingView from './BlockingViews/BlockingView';
 import useNetwork from '../hooks/useNetwork';
 import useLocalize from '../hooks/useLocalize';
+import Navigation from '../libs/Navigation/Navigation';
+import ROUTES from '../ROUTES';
 
 const MAX_WAYPOINTS = 25;
 const MAX_WAYPOINTS_TO_DISPLAY = 4;
@@ -83,17 +85,18 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
     const scrollContainerMaxHeight = variables.baseMenuItemHeight * MAX_WAYPOINTS_TO_DISPLAY + halfMenuItemHeight;
 
     useEffect(() => {
+      
         MapboxToken.init();
         return MapboxToken.stop;
     }, []);
 
     useEffect(() => {
-        if (!transaction.transactionID || !_.isEmpty(waypoints)) {
+        if (!transactionID || !_.isEmpty(waypoints)) {
             return;
         }
         // Create the initial start and stop waypoints
-        Transaction.createInitialWaypoints(transaction.transactionID);
-    }, [transaction.transactionID, waypoints]);
+        Transaction.createInitialWaypoints(transactionID);
+    }, [transactionID, waypoints]);
 
     const updateGradientVisibility = (event = {}) => {
         // If a waypoint extends past the bottom of the visible area show the gradient, else hide it.
@@ -133,10 +136,13 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
                         return (
                             <MenuItemWithTopDescription
                                 description={translate(descriptionKey)}
+                                title={lodashGet(waypoints, [`waypoint${index}`, 'address'], '')}
                                 icon={Expensicons.DragHandles}
+                                iconFill={theme.icon}
                                 secondaryIcon={waypointIcon}
                                 secondaryIconFill={theme.icon}
                                 shouldShowRightIcon
+                                onPress={() => Navigation.navigate(ROUTES.getMoneyRequestWaypointRoute('request', index))}
                                 key={key}
                             />
                         );
@@ -153,7 +159,7 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
                 <Button
                     small
                     icon={Expensicons.Plus}
-                    onPress={() => Transaction.addStop(transactionID, lastWaypointIndex + 1)}
+                    onPress={() => Transaction.addStop(transactionID)}
                     text={translate('distance.addStop')}
                     isDisabled={numberOfWaypoints === MAX_WAYPOINTS}
                     innerStyles={[styles.ph10]}

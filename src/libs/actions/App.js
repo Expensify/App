@@ -377,6 +377,21 @@ function setUpPoliciesAndNavigate(session, shouldNavigateToAdminChat) {
     }
 }
 
+function redirectThirdPartyDesktopSignIn() {
+    const currentUrl = getCurrentUrl();
+    if (!currentUrl) {
+        return;
+    }
+    const url = new URL(currentUrl);
+
+    if (url.pathname === `/${ROUTES.GOOGLE_SIGN_IN}` || url.pathname === `/${ROUTES.APPLE_SIGN_IN}`) {
+        Navigation.isNavigationReady().then(() => {
+            Navigation.goBack();
+            Navigation.navigate(ROUTES.DESKTOP_SIGN_IN_REDIRECT);
+        });
+    }
+}
+
 function openProfile(personalDetails) {
     const oldTimezoneData = personalDetails.timezone || {};
     let newTimezoneData = oldTimezoneData;
@@ -447,6 +462,7 @@ export {
     setSidebarLoaded,
     setUpPoliciesAndNavigate,
     openProfile,
+    redirectThirdPartyDesktopSignIn,
     openApp,
     reconnectApp,
     confirmReadyToOpenApp,
