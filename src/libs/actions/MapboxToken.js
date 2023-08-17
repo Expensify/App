@@ -69,7 +69,7 @@ const init = () => {
         callback: (token) => {
             // Only the leader should be in charge of the mapbox token, or else when you have multiple tabs open, the Onyx connection fires multiple times
             // and it sets up duplicate refresh timers. This would be a big waste of tokens.
-            if (!isClientTheLeader()) {
+            if (!ActiveClientManager.isClientTheLeader()) {
                 console.debug('[MapboxToken] This client is not the leader so ignoring onyx callback');
                 return;
             }
