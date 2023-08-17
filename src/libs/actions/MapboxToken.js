@@ -20,7 +20,8 @@ let connectionIDForNetwork;
 let appStateSubscription;
 let currentToken;
 let refreshTimeoutID;
-const REFRESH_INTERVAL = 1000 * 60 * 1;
+let isCurrentlyFetchingToken = false;
+const REFRESH_INTERVAL = 1000 * 60 * 25;
 
 const setExpirationTimer = () => {
     console.debug('[MapboxToken] refreshing token on an interval', REFRESH_INTERVAL, 'ms');
@@ -76,6 +77,7 @@ const init = () => {
             if (_.isEmpty(token)) {
                 console.debug('[MapboxToken] Token does not exist so fetching one');
                 API.write('GetMapboxAccessToken');
+                isCurrentlyFetchingToken = true;
                 return;
             }
 
@@ -90,6 +92,7 @@ const init = () => {
 
             console.debug('[MapboxToken] Token is valid, setting up refresh');
             setExpirationTimer();
+            isCurrentlyFetchingToken = false;
         },
     });
 
@@ -100,7 +103,7 @@ const init = () => {
             // - There is no current token (which means it's not been fetch yet for the first time)
             // - The token hasn't expired yet (this would just be a waste of an API call)
             // - There is no authToken (which means the user has logged out)
-            if (nextAppState !== CONST.APP_STATE.ACTIVE || !currentToken || !hasTokenExpired() || !authToken) {
+            if (nextAppState !== CONST.APP_STATE.ACTIVE || !currentToken || !hasTokenExpired() || !authToken || isCurrentlyFetchingToken) {
                 return;
             }
             console.debug('[MapboxToken] Token is expired after app became active');
@@ -115,7 +118,7 @@ const init = () => {
             callback: (val) => {
                 // When the network reconnects, check if the token has expired. If it has, then clearing the token will
                 // trigger the fetch of a new one
-                if (network && network.isOffline && val && !val.isOffline) {
+                if (network && network.isOffline && val && !val.isOffline && !isCurrentlyFetchingToken) {
                     console.debug('[MapboxToken] Token is expired after network came online');
                     clearToken();
                 }
