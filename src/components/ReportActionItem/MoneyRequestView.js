@@ -143,7 +143,7 @@ export default compose(
         transaction: {
             key: ({report}) => {
                 const parentReportAction = ReportActionsUtils.getParentReportAction(report);
-                const transactionID = lodashGet(parentReportAction, ['originalMessage', 'IOUTransactionID'], '');
+                const transactionID = lodashGet(parentReportAction, ['originalMessage', 'IOUTransactionID'], 0);
                 return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
             }
         }
