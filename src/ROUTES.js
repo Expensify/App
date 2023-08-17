@@ -1,3 +1,4 @@
+import 'core-js/features/string/at';
 import lodashGet from 'lodash/get';
 import * as Url from './libs/Url';
 
