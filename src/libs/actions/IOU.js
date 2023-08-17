@@ -446,7 +446,7 @@ function getMoneyRequestInformation(report, participant, comment, amount, curren
     const [optimisticData, successData, failureData] = buildOnyxDataForMoneyRequest(
         chatReport,
         iouReport,
-        transaction: optimisticTransaction,
+        optimisticTransaction,
         optimisticCreatedActionForChat,
         optimisticCreatedActionForIOU,
         iouAction,
@@ -460,7 +460,7 @@ function getMoneyRequestInformation(report, participant, comment, amount, curren
         payerEmail,
         iouReport,
         chatReport,
-        transaction,
+        transaction: optimisticTransaction,
         iouAction,
         createdChatReportActionID: isNewChatReport ? optimisticCreatedActionForChat.reportActionID : 0,
         createdIOUReportActionID: isNewIOUReport ? optimisticCreatedActionForIOU.reportActionID : 0,
