@@ -62,6 +62,12 @@ const propTypes = {
     /** Whether the form submit action is dangerous */
     isSubmitActionDangerous: PropTypes.bool,
 
+    /** Whether the validate() method should run on input changes */
+    shouldValidateOnChange: PropTypes.bool,
+
+    /** Whether the validate() method should run on blur */
+    shouldValidateOnBlur: PropTypes.bool,
+
     /** Whether ScrollWithContext should be used instead of regular ScrollView.
      *  Set to true when there's a nested Picker component in Form.
      */
@@ -88,6 +94,8 @@ const defaultProps = {
     enabledWhenOffline: false,
     isSubmitActionDangerous: false,
     scrollContextEnabled: false,
+    shouldValidateOnChange: true,
+    shouldValidateOnBlur: true,
     footerContent: null,
     style: [],
     validate: () => ({}),
@@ -305,7 +313,9 @@ function Form(props) {
                             // web and mobile web platforms.
                             setTimeout(() => {
                                 setTouchedInput(inputID);
-                                onValidate(inputValues);
+                                if (props.shouldValidateOnBlur) {
+                                    onValidate(inputValues);
+                                }
                             }, 200);
                         }
 
@@ -323,7 +333,10 @@ function Form(props) {
                                 ...prevState,
                                 [inputKey]: value,
                             };
-                            onValidate(newState);
+
+                            if (props.shouldValidateOnChange) {
+                                onValidate(newState);
+                            }
                             return newState;
                         });
 
@@ -340,7 +353,7 @@ function Form(props) {
 
             return childrenElements;
         },
-        [errors, inputRefs, inputValues, onValidate, props.draftValues, props.formID, props.formState, setTouchedInput],
+        [errors, inputRefs, inputValues, onValidate, props.draftValues, props.formID, props.formState, setTouchedInput, props.shouldValidateOnBlur, props.shouldValidateOnChange],
     );
 
     const scrollViewContent = useCallback(

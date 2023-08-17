@@ -410,6 +410,7 @@ export default {
             other: 'Error inesperado, por favor inténtalo más tarde',
             genericCreateFailureMessage: 'Error inesperado solicitando dinero, Por favor, inténtalo más tarde',
             genericDeleteFailureMessage: 'Error inesperado eliminando la solicitud de dinero. Por favor, inténtalo más tarde',
+            genericEditFailureMessage: 'Error inesperado al guardar la solicitud de dinero. Por favor, inténtalo más tarde',
         },
     },
     notificationPreferencesPage: {
@@ -878,6 +879,23 @@ export default {
         clearStatus: 'Borrar estado',
         save: 'Guardar',
         message: 'Mensaje',
+        untilTomorrow: 'Hasta mañana',
+        untilTime: ({time}) => {
+            // Check for HH:MM AM/PM format and starts with '01:'
+            if (CONST.REGEX.TIME_STARTS_01.test(time)) {
+                return `Hasta la ${time}`;
+            }
+            // Check for any HH:MM AM/PM format not starting with '01:'
+            if (CONST.REGEX.TIME_FORMAT.test(time)) {
+                return `Hasta las ${time}`;
+            }
+            // Check for date-time format like "06-29 11:30 AM"
+            if (CONST.REGEX.DATE_TIME_FORMAT.test(time)) {
+                return `Hasta el día ${time}`;
+            }
+            // Default case
+            return `Hasta ${time}`;
+        },
     },
     stepCounter: ({step, total, text}) => {
         let result = `Paso ${step}`;
@@ -2051,10 +2069,15 @@ export default {
     },
     distance: {
         addStop: 'Agregar parada',
+        address: 'Dirección',
+        waypointEditor: 'Editor de puntos de ruta',
         waypointDescription: {
             start: 'Comienzo',
             finish: 'Final',
             stop: 'Parada',
+        },
+        errors: {
+            selectSuggestedAddress: 'Por favor, selecciona una dirección sugerida',
         },
     },
     countrySelectorModal: {
