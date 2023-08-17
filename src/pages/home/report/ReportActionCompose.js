@@ -196,6 +196,7 @@ class ReportActionCompose extends React.Component {
         this.updateNumberOfLines = this.updateNumberOfLines.bind(this);
         this.showPopoverMenu = this.showPopoverMenu.bind(this);
         this.debouncedUpdateFrequentlyUsedEmojis = _.debounce(this.debouncedUpdateFrequentlyUsedEmojis.bind(this), 1000, false);
+        this.restoreKeyboardState = this.restoreKeyboardState.bind(this);
         this.comment = props.comment;
         this.insertedEmojis = [];
 
@@ -215,6 +216,9 @@ class ReportActionCompose extends React.Component {
         this.shouldBlockEmojiCalc = false;
         this.shouldBlockMentionCalc = false;
 
+        this.willOpenNextModal = false;
+        this.isKeyboardVisibleWhenShowingModal = false;
+
         // For mobile Safari, updating the selection prop on an unfocused input will cause it to automatically gain focus
         // and subsequent programmatic focus shifts (e.g., modal focus trap) to show the blue frame (:focus-visible style),
         // so we need to ensure that it is only updated after focus.
@@ -222,8 +226,6 @@ class ReportActionCompose extends React.Component {
 
         this.unsubscribeNavigationBlur = () => null;
         this.unsubscribeNavigationFocus = () => null;
-
-        this.shouldFocusAfterClosingModal = true;
 
         this.state = {
             isFocused: this.shouldFocusInputOnScreenFocus && !this.props.modal.isVisible && !this.props.modal.willAlertModalBecomeVisible && this.props.shouldShowComposeInput,
@@ -274,18 +276,12 @@ class ReportActionCompose extends React.Component {
 
     componentDidUpdate(prevProps) {
         if (this.props.modal.isVisible && !prevProps.modal.isVisible) {
-            this.shouldFocusAfterClosingModal = true;
+            this.willOpenNextModal = false;
         }
         // We want to focus or refocus the input when a modal has been closed or the underlying screen is refocused.
         // We avoid doing this on native platforms since the software keyboard popping
         // open creates a jarring and broken UX.
-        if (
-            this.willBlurTextInputOnTapOutside &&
-            this.shouldFocusAfterClosingModal &&
-            !this.props.modal.isVisible &&
-            this.props.isFocused &&
-            (prevProps.modal.isVisible || !prevProps.isFocused)
-        ) {
+        if (this.willBlurTextInputOnTapOutside && !this.willOpenNextModal && !this.props.modal.isVisible && this.props.isFocused && (prevProps.modal.isVisible || !prevProps.isFocused)) {
             this.focus();
         }
 
@@ -961,6 +957,14 @@ class ReportActionCompose extends React.Component {
         return true;
     }
 
+    restoreKeyboardState() {
+        if (!this.isKeyboardVisibleWhenShowingModal) {
+            return;
+        }
+        this.focus(true);
+        this.isKeyboardVisibleWhenShowingModal = false;
+    }
+
     render() {
         const reportParticipants = _.without(lodashGet(this.props.report, 'participantAccountIDs', []), this.props.currentUserPersonalDetails.accountID);
         const participantsWithoutExpensifyAccountIDs = _.difference(reportParticipants, CONST.EXPENSIFY_ACCOUNT_IDS);
@@ -1023,7 +1027,7 @@ class ReportActionCompose extends React.Component {
                                 this.shouldBlockEmojiCalc = false;
                                 this.shouldBlockMentionCalc = false;
                                 this.setState({isAttachmentPreviewActive: false});
-                                this.focus(true);
+                                this.restoreKeyboardState();
                             }}
                         >
                             {({displayFileInModal}) => (
@@ -1037,12 +1041,10 @@ class ReportActionCompose extends React.Component {
                                                     this.shouldBlockEmojiCalc = true;
                                                     this.shouldBlockMentionCalc = true;
                                                 }
-                                                this.shouldFocusAfterClosingModal = false;
+                                                this.willOpenNextModal = true;
                                                 openPicker({
                                                     onPicked: displayFileInModal,
-                                                    onCanceled: () => {
-                                                        this.focus(true);
-                                                    },
+                                                    onCanceled: this.restoreKeyboardState,
                                                 });
                                             };
                                             const menuItems = [
@@ -1111,6 +1113,9 @@ class ReportActionCompose extends React.Component {
                                                                 ref={this.actionButtonRef}
                                                                 onPress={(e) => {
                                                                     e.preventDefault();
+                                                                    if (!this.willBlurTextInputOnTapOutside) {
+                                                                        this.isKeyboardVisibleWhenShowingModal = this.textInput.isFocused();
+                                                                    }
                                                                     this.textInput.blur();
 
                                                                     // Drop focus to avoid blue focus ring.
@@ -1131,7 +1136,7 @@ class ReportActionCompose extends React.Component {
                                                         isVisible={this.state.isMenuVisible}
                                                         onClose={() => {
                                                             this.setMenuVisibility(false);
-                                                            this.focus(true);
+                                                            this.restoreKeyboardState();
                                                         }}
                                                         onItemSelected={(item, index) => {
                                                             this.setMenuVisibility(false);
@@ -1167,9 +1172,12 @@ class ReportActionCompose extends React.Component {
                                             style={[styles.textInputCompose, this.props.isComposerFullSize ? styles.textInputFullCompose : styles.flex4]}
                                             maxLines={maxComposerLines}
                                             onFocus={() => this.setIsFocused(true)}
-                                            onBlur={() => {
+                                            onBlur={(e) => {
                                                 this.setIsFocused(false);
                                                 this.resetSuggestions();
+                                                if (e.relatedTarget && e.relatedTarget === this.actionButtonRef.current) {
+                                                    this.isKeyboardVisibleWhenShowingModal = true;
+                                                }
                                             }}
                                             onClick={() => {
                                                 this.shouldBlockEmojiCalc = false;
