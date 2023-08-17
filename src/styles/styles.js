@@ -231,7 +231,7 @@ const styles = {
     },
 
     appIconBorderRadius: {
-        overflow: 'hidden', 
+        overflow: 'hidden',
         borderRadius: 12,
     },
 
