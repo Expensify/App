@@ -884,7 +884,7 @@ class ReportActionCompose extends React.Component {
             const lastReportAction = _.find([...this.props.reportActions, parentReportAction], (action) => ReportUtils.canEditReportAction(action));
 
             if (lastReportAction !== -1 && lastReportAction) {
-                Report.saveReportActionDraft(this.props.reportID, lastReportAction.reportActionID, _.last(lastReportAction.message).html);
+                Report.saveReportActionDraft(this.props.reportID, lastReportAction, _.last(lastReportAction.message).html);
             }
         }
     }
