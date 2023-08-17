@@ -56,11 +56,6 @@ function createSaastrDemoWorkspaceAndNavigate() {
         announceChatData,
         announceReportActionData,
         announceCreatedReportActionID,
-        // TODO: maybe comment these admin report data out b/c user shouldn't an admin to start with, right? :think:
-        adminsChatReportID,
-        adminsChatData,
-        adminsReportActionData,
-        adminsCreatedReportActionID,
         expenseChatReportID,
         expenseChatData,
         expenseReportActionData,
@@ -83,7 +78,8 @@ function createSaastrDemoWorkspaceAndNavigate() {
     welcomeMessageReportAction.reportAction.avatar = '';
 
     // Update policy expense chat report actions with welcome message from saastr
-    expenseReportActionData[welcomeMessageReportAction.reportAction.reportActionID] = welcomeMessageReportAction.reportAction;
+    const expenseChatWelcomeReportActionID = welcomeMessageReportAction.reportAction.reportActionID;
+    expenseReportActionData[expenseChatWelcomeReportActionID] = welcomeMessageReportAction.reportAction;
 
     // Update report with info about last message sent
     const currentTime = DateUtils.getDBTime();
@@ -97,12 +93,11 @@ function createSaastrDemoWorkspaceAndNavigate() {
         {
             policyID,
             announceChatReportID,
-            adminsChatReportID,
             expenseChatReportID,
             policyName: workspaceName,
             announceCreatedReportActionID,
-            adminsCreatedReportActionID,
             expenseCreatedReportActionID,
+            expenseChatWelcomeReportActionID,
             customUnitID,
             customUnitRateID,
         },
@@ -153,21 +148,6 @@ function createSaastrDemoWorkspaceAndNavigate() {
                 },
                 {
                     onyxMethod: Onyx.METHOD.SET,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`,
-                    value: {
-                        pendingFields: {
-                            addWorkspaceRoom: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                        },
-                        ...adminsChatData,
-                    },
-                },
-                {
-                    onyxMethod: Onyx.METHOD.SET,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`,
-                    value: adminsReportActionData,
-                },
-                {
-                    onyxMethod: Onyx.METHOD.SET,
                     key: `${ONYXKEYS.COLLECTION.REPORT}${expenseChatReportID}`,
                     value: {
                         pendingFields: {
@@ -209,25 +189,6 @@ function createSaastrDemoWorkspaceAndNavigate() {
                 },
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`,
-                    value: {
-                        pendingFields: {
-                            addWorkspaceRoom: null,
-                        },
-                        pendingAction: null,
-                    },
-                },
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`,
-                    value: {
-                        [_.keys(adminsChatData)[0]]: {
-                            pendingAction: null,
-                        },
-                    },
-                },
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT}${expenseChatReportID}`,
                     value: {
                         pendingFields: {
@@ -260,16 +221,6 @@ function createSaastrDemoWorkspaceAndNavigate() {
                 {
                     onyxMethod: Onyx.METHOD.SET,
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${announceChatReportID}`,
-                    value: null,
-                },
-                {
-                    onyxMethod: Onyx.METHOD.SET,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`,
-                    value: null,
-                },
-                {
-                    onyxMethod: Onyx.METHOD.SET,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`,
                     value: null,
                 },
                 {
