@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {forwardRef, useCallback, useEffect, useRef} from 'react';
+import React, {forwardRef, useEffect, useRef} from 'react';
 import styles from '../../styles/styles';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 import * as StyleUtils from '../../styles/StyleUtils';
@@ -10,23 +10,21 @@ import * as pressableWithSecondaryInteractionPropTypes from './pressableWithSeco
  * This is a special Pressable that calls onSecondaryInteraction when LongPressed, or right-clicked.
  */
 
-function PressableWithSecondaryInteraction(props) {
-    const {
-        children,
-        inline,
-        style,
-        enableLongPressWithHover,
-        withoutFocusOnSecondaryInteraction,
-        preventDefaultContextMenu,
-        onSecondaryInteraction,
-        onPressIn,
-        onPress,
-        onPressOut,
-        activeOpacity,
-        innerRef,
-        ...rest
-    } = props;
-
+function PressableWithSecondaryInteraction({
+    children,
+    inline,
+    style,
+    enableLongPressWithHover,
+    withoutFocusOnSecondaryInteraction,
+    preventDefaultContextMenu,
+    onSecondaryInteraction,
+    onPressIn,
+    onPress,
+    onPressOut,
+    activeOpacity,
+    forwardedRef,
+    ...rest
+}) {
     const pressableRef = useRef(null);
 
     /**
@@ -42,12 +40,25 @@ function PressableWithSecondaryInteraction(props) {
         onSecondaryInteraction(e);
     };
 
-    /**
-     * @param {contextmenu} e - A right-click MouseEvent.
-     * https://developer.mozilla.org/en-US/docs/Web/API/Element/contextmenu_event
-     */
-    const executeSecondaryInteractionOnContextMenu = useCallback(
-        (e) => {
+    useEffect(() => {
+        if (!pressableRef || !pressableRef.current) {
+            return;
+        }
+
+        if (forwardedRef) {
+            if (_.isFunction(forwardedRef)) {
+                forwardedRef(pressableRef);
+            } else if (_.isObject(forwardedRef)) {
+                // eslint-disable-next-line no-param-reassign
+                forwardedRef.current = pressableRef.current;
+            }
+        }
+
+        /**
+         * @param {contextmenu} e - A right-click MouseEvent.
+         * https://developer.mozilla.org/en-US/docs/Web/API/Element/contextmenu_event
+         */
+        const executeSecondaryInteractionOnContextMenu = (e) => {
             if (!onSecondaryInteraction) {
                 return;
             }
@@ -69,22 +80,7 @@ function PressableWithSecondaryInteraction(props) {
             if (withoutFocusOnSecondaryInteraction && pressableRef && pressableRef.current) {
                 pressableRef.current.blur();
             }
-        },
-        [onSecondaryInteraction, preventDefaultContextMenu, pressableRef, withoutFocusOnSecondaryInteraction],
-    );
-
-    useEffect(() => {
-        if (!pressableRef || !pressableRef.current) {
-            return;
-        }
-
-        if (innerRef) {
-            if (_.isFunction(innerRef)) {
-                innerRef(pressableRef);
-            } else if (_.isObject(innerRef)) {
-                innerRef.current = pressableRef.current;
-            }
-        }
+        };
 
         const element = pressableRef.current;
         element.addEventListener('contextmenu', executeSecondaryInteractionOnContextMenu);
@@ -92,7 +88,8 @@ function PressableWithSecondaryInteraction(props) {
         return () => {
             element.removeEventListener('contextmenu', executeSecondaryInteractionOnContextMenu);
         };
-    }, [executeSecondaryInteractionOnContextMenu, innerRef, pressableRef]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const defaultPressableProps = _.omit(rest, ['onLongPress']);
     const inlineStyle = inline ? styles.dInline : {};
@@ -123,6 +120,6 @@ export default forwardRef((props, ref) => (
     <PressableWithSecondaryInteraction
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
-        innerRef={ref}
+        forwardedRef={ref}
     />
 ));
