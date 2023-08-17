@@ -31,6 +31,7 @@ import SplashScreenHider from './components/SplashScreenHider';
 import KeyboardShortcutsModal from './components/KeyboardShortcutsModal';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
 import * as EmojiPickerAction from './libs/actions/EmojiPickerAction';
+import MobileBanner from './components/MobileBanner';
 
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
 // eslint-disable-next-line no-unused-vars
@@ -191,6 +192,7 @@ function Expensify(props) {
                     <PopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />
                     <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
                     {/* We include the modal for showing a new update at the top level so the option is always present. */}
+                    {true ? <MobileBanner /> : null}
                     {props.updateAvailable ? <UpdateAppModal /> : null}
                     {props.screenShareRequest ? (
                         <ConfirmModal

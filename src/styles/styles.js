@@ -230,6 +230,11 @@ const styles = {
         color: themeColors.textSupporting,
     },
 
+    appIconBorderRadius: {
+        overflow: 'hidden', 
+        borderRadius: 12,
+    },
+
     unitCol: {
         margin: 0,
         padding: 0,
