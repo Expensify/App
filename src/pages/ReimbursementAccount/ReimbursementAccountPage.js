@@ -32,7 +32,6 @@ import * as ReimbursementAccountProps from './reimbursementAccountPropTypes';
 import reimbursementAccountDraftPropTypes from './ReimbursementAccountDraftPropTypes';
 import withPolicy from '../workspace/withPolicy';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
-import * as Policy from '../../libs/actions/Policy';
 import * as PolicyUtils from '../../libs/PolicyUtils';
 import shouldReopenOnfido from '../../libs/shouldReopenOnfido';
 
