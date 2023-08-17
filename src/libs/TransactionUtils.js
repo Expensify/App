@@ -120,13 +120,23 @@ function getDescription(transaction) {
  * @returns {Number}
  */
 function getAmount(transaction, isFromExpenseReport) {
-    // In case of expense reports, the amounts are stored using an opposite sign
-    const multiplier = isFromExpenseReport ? -1 : 1;
+    // IOU requests cannot have negative values but they can be stored as negative values, let's return absolute value
+    if (!isFromExpenseReport) {
+        const amount = lodashGet(transaction, 'modifiedAmount', 0);
+        if (amount) {
+            return Math.abs(amount);
+        }
+        return Math.abs(lodashGet(transaction, 'amount', 0));
+    }
+
+    // Expense report case:
+    // The amounts are stored using an opposite sign and negative values can be set,
+    // we need to return an opposite sign than is saved in the transaction object
     const amount = lodashGet(transaction, 'modifiedAmount', 0);
     if (amount) {
-        return multiplier * amount;
+        return -amount;
     }
-    return multiplier * lodashGet(transaction, 'amount', 0);
+    return -lodashGet(transaction, 'amount', 0);
 }
 
 /**
