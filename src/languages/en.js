@@ -1582,10 +1582,15 @@ export default {
     },
     distance: {
         addStop: 'Add stop',
+        address: 'Address',
+        waypointEditor: 'Waypoint Editor',
         waypointDescription: {
             start: 'Start',
             finish: 'Finish',
             stop: 'Stop',
+        },
+        errors: {
+            selectSuggestedAddress: 'Please select a suggested address',
         },
     },
     countrySelectorModal: {

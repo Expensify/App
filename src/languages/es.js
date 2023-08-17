@@ -2069,10 +2069,15 @@ export default {
     },
     distance: {
         addStop: 'Agregar parada',
+        address: 'Dirección',
+        waypointEditor: 'Editor de puntos de ruta',
         waypointDescription: {
             start: 'Comienzo',
             finish: 'Final',
             stop: 'Parada',
+        },
+        errors: {
+            selectSuggestedAddress: 'Por favor, selecciona una dirección sugerida',
         },
     },
     countrySelectorModal: {

@@ -321,6 +321,7 @@ export default {
                             Money_Request_Confirmation: ROUTES.MONEY_REQUEST_CONFIRMATION,
                             Money_Request_Currency: ROUTES.MONEY_REQUEST_CURRENCY,
                             Money_Request_Description: ROUTES.MONEY_REQUEST_DESCRIPTION,
+                            Money_Request_Waypoint: ROUTES.MONEY_REQUEST_WAYPOINT,
                             IOU_Send_Enable_Payments: ROUTES.IOU_SEND_ENABLE_PAYMENTS,
                             IOU_Send_Add_Bank_Account: ROUTES.IOU_SEND_ADD_BANK_ACCOUNT,
                             IOU_Send_Add_Debit_Card: ROUTES.IOU_SEND_ADD_DEBIT_CARD,
