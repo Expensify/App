@@ -1770,7 +1770,7 @@ function openReportFromDeepLink(url, isAuthenticated) {
             if (route === ROUTES.CONCIERGE) {
                 navigateToConciergeChat();
             }
-            Navigation.navigate(route, CONST.NAVIGATION.TYPE.UP);
+            Navigation.navigate(route, CONST.NAVIGATION.TYPE.PUSH);
         });
     });
 }
