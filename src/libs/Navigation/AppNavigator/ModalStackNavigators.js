@@ -97,6 +97,13 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator([
         },
         name: 'IOU_Send_Enable_Payments',
     },
+    {
+        getComponent: () => {
+            const WaypointEditorPage = require('../../../pages/iou/WaypointEditorPage').default;
+            return WaypointEditorPage;
+        },
+        name: 'Money_Request_Waypoint',
+    },
 ]);
 
 const SplitDetailsModalStackNavigator = createModalStackNavigator([
@@ -722,6 +729,13 @@ const EditRequestStackNavigator = createModalStackNavigator([
             return EditRequestPage;
         },
         name: 'EditRequest_Root',
+    },
+    {
+        getComponent: () => {
+            const IOUCurrencySelection = require('../../../pages/iou/IOUCurrencySelection').default;
+            return IOUCurrencySelection;
+        },
+        name: 'EditRequest_Currency',
     },
 ]);
 

@@ -28,7 +28,7 @@ Onyx.connect({
  */
 function getCurrencyDecimals(currency = CONST.CURRENCY.USD) {
     const decimals = lodashGet(currencyList, [currency, 'decimals']);
-    return _.isUndefined(decimals) ? 2 : Math.min(decimals, 2);
+    return _.isUndefined(decimals) ? 2 : decimals;
 }
 
 /**
@@ -73,54 +73,49 @@ function isCurrencySymbolLTR(currencyCode) {
 }
 
 /**
- * Takes an amount as a floating point number and converts it to an integer amount.
- * For example, given [25, USD], return 2500.
- * Given [25.50, USD] return 2550.
- * Given [2500, JPY], return 2500.
+ * Takes an amount as a floating point number and converts it to an integer equivalent to the amount in "cents".
+ * This is because the backend always stores amounts in "cents". The backend works in integer cents to avoid precision errors
+ * when doing math operations.
  *
- * @note we do not currently support any currencies with more than two decimal places. Sorry Tunisia :(
+ * @note we do not currently support any currencies with more than two decimal places. Decimal past the second place will be rounded. Sorry Tunisia :(
  *
- * @param {String} currency
  * @param {Number} amountAsFloat
  * @returns {Number}
  */
-function convertToSmallestUnit(currency, amountAsFloat) {
-    const currencyUnit = getCurrencyUnit(currency);
-    // We round off the number to resolve floating-point precision issues.
-    return Math.round(amountAsFloat * currencyUnit);
+function convertToBackendAmount(amountAsFloat) {
+    return Math.round(amountAsFloat * 100);
 }
 
 /**
- * Takes an amount as an integer and converts it to a floating point amount.
- * For example, give [25, USD], return 0.25
- * Given [2550, USD], return 25.50
- * Given [2500, JPY], return 2500
+ * Takes an amount in "cents" as an integer and converts it to a floating point amount used in the frontend.
  *
  * @note we do not support any currencies with more than two decimal places.
  *
- * @param {String} currency
  * @param {Number} amountAsInt
  * @returns {Number}
  */
-function convertToWholeUnit(currency, amountAsInt) {
-    const currencyUnit = getCurrencyUnit(currency);
-    return Math.trunc(amountAsInt) / currencyUnit;
+function convertToFrontendAmount(amountAsInt) {
+    return Math.trunc(amountAsInt) / 100.0;
 }
 
 /**
- * Given an amount in the smallest units of a currency, convert it to a string for display in the UI.
+ * Given an amount in the "cents", convert it to a string for display in the UI.
+ * The backend always handle things in "cents" (subunit equal to 1/100)
  *
- * @param {Number} amountInSmallestUnit – should be an integer. Anything after a decimal place will be dropped.
+ * @param {Number} amountInCents – should be an integer. Anything after a decimal place will be dropped.
  * @param {String} currency
  * @returns {String}
  */
-function convertToDisplayString(amountInSmallestUnit, currency = CONST.CURRENCY.USD) {
-    const currencyUnit = getCurrencyUnit(currency);
-    const convertedAmount = Math.trunc(amountInSmallestUnit) / currencyUnit;
+function convertToDisplayString(amountInCents, currency = CONST.CURRENCY.USD) {
+    const convertedAmount = convertToFrontendAmount(amountInCents);
     return NumberFormatUtils.format(BaseLocaleListener.getPreferredLocale(), convertedAmount, {
         style: 'currency',
         currency,
+
+        // We are forcing the number of decimals because we override the default number of decimals in the backend for RSD
+        // See: https://github.com/Expensify/PHP-Libs/pull/834
+        minimumFractionDigits: currency === 'RSD' ? getCurrencyDecimals(currency) : undefined,
     });
 }
 
-export {getCurrencyDecimals, getCurrencyUnit, getLocalizedCurrencySymbol, isCurrencySymbolLTR, convertToSmallestUnit, convertToWholeUnit, convertToDisplayString};
+export {getCurrencyDecimals, getCurrencyUnit, getLocalizedCurrencySymbol, isCurrencySymbolLTR, convertToBackendAmount, convertToFrontendAmount, convertToDisplayString};

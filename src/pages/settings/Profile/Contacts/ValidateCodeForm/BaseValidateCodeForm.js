@@ -123,11 +123,11 @@ function BaseValidateCodeForm(props) {
             setValidateCode(text);
             setFormError({});
 
-            if (props.account.errors) {
-                Session.clearAccountMessages();
+            if (validateLoginError) {
+                User.clearContactMethodErrors(props.contactMethod, 'validateLogin');
             }
         },
-        [props.account.errors],
+        [validateLoginError, props.contactMethod],
     );
 
     /**
