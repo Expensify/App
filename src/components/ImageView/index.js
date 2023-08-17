@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useRef} from 'react';
+import React, {useState, useEffect, useRef, useCallback} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import Image from '../Image';
@@ -161,32 +161,38 @@ function ImageView({isAuthTokenRequired, url, fileName}) {
     /**
      * @param {SyntheticEvent} e
      */
-    const trackPointerPosition = (e) => {
-        // Whether the pointer is released inside the ImageView
-        const isInsideImageView = scrollableRef.current.contains(e.nativeEvent.target);
+    const trackPointerPosition = useCallback(
+        (e) => {
+            // Whether the pointer is released inside the ImageView
+            const isInsideImageView = scrollableRef.current.contains(e.nativeEvent.target);
 
-        if (!isInsideImageView && isZoomed && isDragging && isMouseDown) {
-            setIsDragging(false);
-            setIsMouseDown(false);
-        }
-    };
+            if (!isInsideImageView && isZoomed && isDragging && isMouseDown) {
+                setIsDragging(false);
+                setIsMouseDown(false);
+            }
+        },
+        [isDragging, isMouseDown, isZoomed],
+    );
 
-    const trackMovement = (e) => {
-        if (!isZoomed) {
-            return;
-        }
+    const trackMovement = useCallback(
+        (e) => {
+            if (!isZoomed) {
+                return;
+            }
 
-        if (isDragging && isMouseDown) {
-            const x = e.nativeEvent.x;
-            const y = e.nativeEvent.y;
-            const moveX = initialX - x;
-            const moveY = initialY - y;
-            scrollableRef.current.scrollLeft = initialScrollLeft + moveX;
-            scrollableRef.current.scrollTop = initialScrollTop + moveY;
-        }
+            if (isDragging && isMouseDown) {
+                const x = e.nativeEvent.x;
+                const y = e.nativeEvent.y;
+                const moveX = initialX - x;
+                const moveY = initialY - y;
+                scrollableRef.current.scrollLeft = initialScrollLeft + moveX;
+                scrollableRef.current.scrollTop = initialScrollTop + moveY;
+            }
 
-        setIsDragging(isMouseDown);
-    };
+            setIsDragging(isMouseDown);
+        },
+        [initialScrollLeft, initialScrollTop, initialX, initialY, isDragging, isMouseDown, isZoomed],
+    );
 
     useEffect(() => {
         if (!isZoomed || !zoomDelta || !scrollableRef.current) {
@@ -207,8 +213,7 @@ function ImageView({isAuthTokenRequired, url, fileName}) {
             document.removeEventListener('mousemove', trackMovement);
             document.removeEventListener('mouseup', trackPointerPosition);
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [canUseTouchScreen]);
+    }, [canUseTouchScreen, trackMovement, trackPointerPosition]);
 
     if (canUseTouchScreen) {
         return (
