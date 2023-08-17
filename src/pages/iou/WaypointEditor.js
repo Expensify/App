@@ -70,7 +70,7 @@ const defaultProps = {
     transaction: {},
 };
 
-function WaypointEditor({transactionID, route: {params: {waypointIndex = ''} = {}} = {}, network, translate, transaction}) {
+function WaypointEditor({transactionID, route: {params: {iouType = '', waypointIndex = ''} = {}} = {}, network, translate, transaction}) {
     const textInput = useRef(null);
     const currentWaypoint = lodashGet(transaction, `comment.waypoints.waypoint${waypointIndex}`, {});
     const waypointAddress = lodashGet(currentWaypoint, 'address', '');
@@ -110,7 +110,7 @@ function WaypointEditor({transactionID, route: {params: {waypointIndex = ''} = {
         }
 
         // Other flows will be handled by selecting a waypoint with selectWaypoint as this is mainly for the offline flow
-        Navigation.goBack();
+        Navigation.goBack(ROUTES.getMoneyRequestDistanceTabRoute(iouType));
     };
 
     const selectWaypoint = (values) => {
@@ -121,7 +121,7 @@ function WaypointEditor({transactionID, route: {params: {waypointIndex = ''} = {
         };
 
         Transaction.saveWaypoint(transactionID, waypointIndex, waypoint);
-        Navigation.goBack();
+        Navigation.goBack(ROUTES.getMoneyRequestDistanceTabRoute(iouType));
     };
 
     return (
@@ -133,7 +133,7 @@ function WaypointEditor({transactionID, route: {params: {waypointIndex = ''} = {
                 title="Waypoint Editor"
                 shouldShowBackButton
                 onBackButtonPress={() => {
-                    Navigation.goBack();
+                    Navigation.goBack(ROUTES.getMoneyRequestDistanceTabRoute(iouType));
                 }}
             />
             <Form
