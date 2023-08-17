@@ -1,4 +1,4 @@
-import React, {Fragment, useEffect, useRef, useState} from 'react';
+import React, {Fragment, useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import styles from '../../styles/styles';
@@ -15,8 +15,8 @@ function DisplayNamesWithToolTip(props) {
     useEffect(() => {
         setIsEllipsisActive(
             containerRef.current && containerRef.current.offsetWidth && containerRef.current.scrollWidth && containerRef.current.offsetWidth < containerRef.current.scrollWidth,
-        );
-    }, [containerRef]);
+        )
+    }, []);
 
     /**
      * We may need to shift the Tooltip horizontally as some of the inline text wraps well with ellipsis,
@@ -30,7 +30,7 @@ function DisplayNamesWithToolTip(props) {
      * @param {Number} index Used to get the Ref to the node at the current index
      * @returns {Number} Distance to shift the tooltip horizontally
      */
-    const getTooltipShiftX = (index) => {
+    const getTooltipShiftX = useCallback((index) => {
         // Only shift the tooltip in case the containerLayout or Refs to the text node are available
         if (!containerRef || !childRefs.current[index]) {
             return;
@@ -46,7 +46,7 @@ function DisplayNamesWithToolTip(props) {
 
         // When text right end is beyond the Container right end
         return textNodeRight > containerRight ? -(tooltipX - newToolX) : 0;
-    };
+    }, []);
 
     return (
         // Tokenization of string only support prop numberOfLines on Web
