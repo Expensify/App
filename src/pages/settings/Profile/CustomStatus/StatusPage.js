@@ -33,16 +33,16 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
     const draftText = lodashGet(draftStatus, 'text');
 
     const defaultEmoji = draftEmojiCode || currentUserEmojiCode;
-    const defaultText = draftText || currentUserStatusText;
-    const customStatus = defaultEmoji ? `${defaultEmoji} ${defaultText}` : '';
+    const defaultText = draftEmojiCode ? draftText : currentUserStatusText;
+    const customStatus = draftEmojiCode ? `${draftEmojiCode} ${draftText}` : `${currentUserEmojiCode || ''} ${currentUserStatusText || ''}`;
     const hasDraftStatus = !!draftEmojiCode || !!draftText;
 
     const updateStatus = useCallback(() => {
-        const endOfDay = moment().endOf('day').toDate();
-        User.updateCustomStatus({text: defaultText, emojiCode: defaultEmoji, clearAfter: endOfDay.toISOString()});
+        const endOfDay = moment().endOf('day').format('YYYY-MM-DD HH:mm:ss');
+        User.updateCustomStatus({text: defaultText, emojiCode: defaultEmoji, clearAfter: endOfDay});
 
         User.clearDraftCustomStatus();
-        Navigation.goBack(ROUTES.SETTINGS);
+        Navigation.goBack(ROUTES.SETTINGS_PROFILE);
     }, [defaultText, defaultEmoji]);
 
     const clearStatus = () => {
@@ -78,7 +78,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
             </View>
             <MenuItemWithTopDescription
                 title={customStatus}
-                description="Status"
+                description={localize.translate('statusPage.status')}
                 shouldShowRightIcon
                 inputID="test"
                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS_SET)}

@@ -411,6 +411,7 @@ export default {
             other: 'Unexpected error, please try again later',
             genericCreateFailureMessage: 'Unexpected error requesting money, please try again later',
             genericDeleteFailureMessage: 'Unexpected error deleting the money request, please try again later',
+            genericEditFailureMessage: 'Unexpected error editing the money request, please try again later',
         },
     },
     notificationPreferencesPage: {
@@ -874,6 +875,8 @@ export default {
         clearStatus: 'Clear status',
         save: 'Save',
         message: 'Message',
+        untilTomorrow: 'Until tomorrow',
+        untilTime: ({time}) => `Until ${time}`,
     },
     stepCounter: ({step, total, text}) => {
         let result = `Step ${step}`;
@@ -1576,6 +1579,14 @@ export default {
         levelOneResult: 'Sends anonymous warning and message is reported for review.',
         levelTwoResult: 'Message hidden from channel, plus anonymous warning and message is reported for review.',
         levelThreeResult: 'Message removed from channel plus anonymous warning and message is reported for review.',
+    },
+    distance: {
+        addStop: 'Add stop',
+        waypointDescription: {
+            start: 'Start',
+            finish: 'Finish',
+            stop: 'Stop',
+        },
     },
     countrySelectorModal: {
         placeholderText: 'Search to see options',
