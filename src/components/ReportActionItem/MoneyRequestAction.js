@@ -147,7 +147,7 @@ function MoneyRequestAction(props) {
             checkIfContextMenuActive={props.checkIfContextMenuActive}
             shouldShowPendingConversionMessage={shouldShowPendingConversionMessage}
             onPreviewPressed={onMoneyRequestPreviewPressed}
-            containerStyles={[styles.cursorPointer, props.isHovered ? styles.moneyRequestPreviewBoxHover : undefined, ...props.style]}
+            containerStyles={[styles.cursorPointer, props.isHovered ? styles.reportPreviewBoxHoverBorder : undefined, ...props.style]}
             isHovered={props.isHovered}
         />
     );

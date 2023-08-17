@@ -71,7 +71,7 @@ function MoneyRequestHeader(props) {
         setIsDeleteModalVisible(false);
     }, [parentReportAction, setIsDeleteModalVisible]);
 
-    const isScanning = !ReportActionsUtils.areAllRequestsBeingSmartScanned(parentReportAction);
+    const isScanning = ReportActionsUtils.areAllRequestsBeingSmartScanned(parentReportAction);
 
     return (
         <>
@@ -93,8 +93,8 @@ function MoneyRequestHeader(props) {
                     personalDetails={props.personalDetails}
                     shouldShowBackButton={props.isSmallScreenWidth}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.HOME, false, true)}
-                    statusBar={isScanning ? <MoneyRequestHeaderStatusBar /> : null}
                 />
+                {isScanning && <MoneyRequestHeaderStatusBar />}
             </View>
             <ConfirmModal
                 title={translate('iou.deleteRequest')}

@@ -596,13 +596,13 @@ function areAllRequestsBeingSmartScanned(reportAction) {
         if (getNumberOfMoneyRequests(reportAction) > transactions.length) {
             return false;
         }
-        return _.all(transactions, (transaction) => !ReceiptUtils.isBeingScanned(transaction.receipt));
+        return _.all(transactions, (transaction) => ReceiptUtils.isBeingScanned(transaction.receipt));
     }
 
     // If a money request action is not a scanning receipt
     if (isMoneyRequestAction(reportAction)) {
         const transaction = TransactionUtils.getTransaction(reportAction.originalMessage.IOUTransactionID);
-        return TransactionUtils.hasReceipt(transaction) && !ReceiptUtils.isBeingScanned(transaction.receipt);
+        return TransactionUtils.hasReceipt(transaction) && ReceiptUtils.isBeingScanned(transaction.receipt);
     }
 
     return false;

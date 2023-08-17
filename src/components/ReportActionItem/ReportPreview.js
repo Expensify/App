@@ -108,7 +108,7 @@ function ReportPreview(props) {
 
     const transactions = TransactionUtils.getReportPreviewTransactionsWithReceipts(props.action);
     const hasReceipts = transactions.length > 0;
-    const isScanning = hasReceipts && !ReportActionUtils.areAllRequestsBeingSmartScanned(props.action);
+    const isScanning = hasReceipts && ReportActionUtils.areAllRequestsBeingSmartScanned(props.action);
     const hasOnlyOneReceiptRequest = numberOfRequests === 1 && hasReceipts;
     const previewSubtitle = hasOnlyOneReceiptRequest
         ? transactions[0].merchant

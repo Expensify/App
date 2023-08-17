@@ -179,7 +179,7 @@ function getReportPreviewTransactionsWithReceipts(reportPreviewAction) {
         transactionIDs,
         (transactions, transactionID) => {
             const transaction = getTransaction(transactionID);
-            if (!_.isEmpty(transaction)) {
+            if (hasReceipt(transaction)) {
                 transactions.push(transaction);
             }
             return transactions;

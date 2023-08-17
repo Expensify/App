@@ -144,7 +144,7 @@ function MoneyRequestPreview(props) {
     const transaction = TransactionUtils.getLinkedTransaction(props.action);
     const {amount: requestAmount, currency: requestCurrency, comment: requestComment, merchant: requestMerchant} = ReportUtils.getTransactionDetails(transaction);
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
-    const isScanning = !ReportActionUtils.areAllRequestsBeingSmartScanned(props.action);
+    const isScanning = ReportActionUtils.areAllRequestsBeingSmartScanned(props.action);
 
     const getSettledMessage = () => {
         switch (lodashGet(props.action, 'originalMessage.paymentType', '')) {
@@ -201,7 +201,7 @@ function MoneyRequestPreview(props) {
                 errorRowStyles={[styles.mbn1]}
                 needsOffscreenAlphaCompositing
             >
-                <View style={[styles.moneyRequestPreviewBox, isScanning ? styles.moneyRequestPreviewBoxHover : undefined, ...props.containerStyles]}>
+                <View style={[styles.moneyRequestPreviewBox, isScanning ? styles.reportPreviewBoxHoverBorder : undefined, ...props.containerStyles]}>
                     {hasReceipt && (
                         <ReportActionItemImages
                             images={[ReceiptUtils.getThumbnailAndImageURIs(transaction.receipt.source, transaction.filename)]}
