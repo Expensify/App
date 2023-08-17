@@ -95,6 +95,9 @@ class KYCWall extends React.Component {
      * @param {String} iouPaymentType
      */
     continue(event, iouPaymentType) {
+        if (this.state.shouldShowAddPaymentMenu) {
+            return;
+        }
         this.setState({transferBalanceButton: event.nativeEvent.target});
         const isExpenseReport = ReportUtils.isExpenseReport(this.props.iouReport);
         const paymentCardList = this.props.fundList || this.props.cardList || {};
@@ -113,7 +116,6 @@ class KYCWall extends React.Component {
             });
             return;
         }
-
         if (!isExpenseReport) {
             // Ask the user to upgrade to a gold wallet as this means they have not yet gone through our Know Your Customer (KYC) checks
             const hasGoldWallet = this.props.userWallet.tierName && this.props.userWallet.tierName === CONST.WALLET.TIER_NAME.GOLD;
@@ -123,7 +125,6 @@ class KYCWall extends React.Component {
                 return;
             }
         }
-
         Log.info('[KYC Wallet] User has valid payment method and passed KYC checks or did not need them');
         this.props.onSuccessfulKYC(iouPaymentType);
     }
@@ -133,7 +134,12 @@ class KYCWall extends React.Component {
             <>
                 <AddPaymentMethodMenu
                     isVisible={this.state.shouldShowAddPaymentMenu}
-                    onClose={() => this.setState({shouldShowAddPaymentMenu: false})}
+                    onClose={() => {
+                        /* a small delay will schedule this to run after the continue method preventing rerendering of the menu when clicking the menu item */
+                        setTimeout(() => {
+                            this.setState({shouldShowAddPaymentMenu: false});
+                        }, 10);
+                    }}
                     anchorPosition={{
                         vertical: this.state.anchorPositionVertical,
                         horizontal: this.state.anchorPositionHorizontal,
