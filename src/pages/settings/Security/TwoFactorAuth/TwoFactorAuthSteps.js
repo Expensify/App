@@ -10,7 +10,7 @@ import CONST from '../../../../CONST';
 import * as TwoFactorAuthActions from '../../../../libs/actions/TwoFactorAuthActions';
 import TwoFactorAuthContext from './TwoFactorAuthContext';
 import {defaultAccount, TwoFactorAuthPropTypes} from './TwoFactorAuthPropTypes';
-import useAnimatedStepContext from "../../../../components/AnimatedStep/useAnimatedStepContext";
+import useAnimatedStepContext from '../../../../components/AnimatedStep/useAnimatedStepContext';
 
 function TwoFactorAuthSteps({account = defaultAccount}) {
     const [currentStep, setCurrentStep] = useState(CONST.TWO_FACTOR_AUTH_STEPS.CODES);
@@ -33,11 +33,14 @@ function TwoFactorAuthSteps({account = defaultAccount}) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [account.requiresTwoFactorAuth]);
 
-    const handleSetStep = useCallback((step, animationDirection = CONST.ANIMATION_DIRECTION.IN) => {
-        setAnimationDirection(animationDirection);
-        TwoFactorAuthActions.setTwoFactorAuthStep(step);
-        setCurrentStep(step);
-    }, [setAnimationDirection]);
+    const handleSetStep = useCallback(
+        (step, animationDirection = CONST.ANIMATION_DIRECTION.IN) => {
+            setAnimationDirection(animationDirection);
+            TwoFactorAuthActions.setTwoFactorAuthStep(step);
+            setCurrentStep(step);
+        },
+        [setAnimationDirection],
+    );
 
     const renderStep = () => {
         switch (currentStep) {
