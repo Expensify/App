@@ -2358,7 +2358,6 @@ const styles = {
 
     roomHeaderAvatar: {
         backgroundColor: themeColors.appBG,
-        marginLeft: -16,
         borderRadius: 100,
         borderColor: themeColors.componentBG,
         borderWidth: 4,
@@ -3696,6 +3695,10 @@ const styles = {
         flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
+    },
+    userReportStatusEmoji: {
+        fontSize: variables.fontSizeNormal,
+        marginRight: 4,
     },
 };
 

@@ -880,7 +880,22 @@ export default {
         save: 'Guardar',
         message: 'Mensaje',
         untilTomorrow: 'Hasta mañana',
-        untilTime: ({time}) => `Hasta la ${time}`,
+        untilTime: ({time}) => {
+            // Check for HH:MM AM/PM format and starts with '01:'
+            if (CONST.REGEX.TIME_STARTS_01.test(time)) {
+                return `Hasta la ${time}`;
+            }
+            // Check for any HH:MM AM/PM format not starting with '01:'
+            if (CONST.REGEX.TIME_FORMAT.test(time)) {
+                return `Hasta las ${time}`;
+            }
+            // Check for date-time format like "06-29 11:30 AM"
+            if (CONST.REGEX.DATE_TIME_FORMAT.test(time)) {
+                return `Hasta el día ${time}`;
+            }
+            // Default case
+            return `Hasta ${time}`;
+        },
     },
     stepCounter: ({step, total, text}) => {
         let result = `Paso ${step}`;
