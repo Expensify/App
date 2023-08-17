@@ -1,7 +1,23 @@
 import lodashGet from 'lodash/get';
 import {zonedTimeToUtc, utcToZonedTime, formatInTimeZone} from 'date-fns-tz';
 import {es, enGB} from 'date-fns/locale';
-import {formatDistanceToNow, subMinutes, isBefore, subMilliseconds, isToday, isTomorrow, isYesterday, startOfWeek, endOfWeek, format, setDefaultOptions} from 'date-fns';
+import {
+    formatDistanceToNow,
+    subMinutes,
+    isBefore,
+    subMilliseconds,
+    isToday,
+    isTomorrow,
+    isYesterday,
+    startOfWeek,
+    endOfWeek,
+    format,
+    setDefaultOptions,
+    endOfDay,
+    isSameDay,
+    isAfter,
+    isSameYear,
+} from 'date-fns';
 
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
@@ -285,27 +301,27 @@ function getStatusUntilDate(inputDate) {
     if (!inputDate) return '';
     const {translateLocal} = Localize;
 
-    const input = moment(inputDate, 'YYYY-MM-DD HH:mm:ss');
-    const now = moment();
-    const endOfToday = moment().endOf('day').format('YYYY-MM-DD HH:mm:ss');
+    const input = new Date(inputDate);
+    const now = new Date();
+    const endOfToday = endOfDay(now);
 
     // If the date is equal to the end of today
-    if (input.isSame(endOfToday)) {
+    if (isSameDay(input, endOfToday)) {
         return translateLocal('statusPage.untilTomorrow');
     }
 
     // If it's a time on the same date
-    if (input.isSame(now, 'day')) {
-        return translateLocal('statusPage.untilTime', {time: input.format('hh:mm A')});
+    if (isSameDay(input, now)) {
+        return translateLocal('statusPage.untilTime', {time: format(input, CONST.DATE.LOCAL_TIME_FORMAT)});
     }
 
     // If it's further in the future than tomorrow but within the same year
-    if (input.isAfter(now) && input.isSame(now, 'year')) {
-        return translateLocal('statusPage.untilTime', {time: input.format('MM-DD hh:mm A')});
+    if (isAfter(input, now) && isSameYear(input, now)) {
+        return translateLocal('statusPage.untilTime', {time: format(input, `${CONST.DATE.SHORT_DATE_FORMAT} ${CONST.DATE.LOCAL_TIME_FORMAT}`)});
     }
 
     // If it's in another year
-    return translateLocal('statusPage.untilTime', {time: input.format('YYYY-MM-DD hh:mm A')});
+    return translateLocal('statusPage.untilTime', {time: format(input, `${CONST.DATE.FNS_FORMAT_STRING} ${CONST.DATE.LOCAL_TIME_FORMAT}`)});
 }
 
 /**
