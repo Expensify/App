@@ -3678,6 +3678,11 @@ const styles = {
         transform: [{rotate: '90deg'}],
     },
 
+    distanceRequestContainer: {
+        ...flex.flexShrink2,
+        minHeight: variables.baseMenuItemHeight,
+    },
+
     mapViewContainer: {
         ...flex.flex1,
         ...spacing.p4,
