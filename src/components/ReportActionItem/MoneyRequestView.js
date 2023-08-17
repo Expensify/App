@@ -45,6 +45,17 @@ const propTypes = {
         email: PropTypes.string,
     }),
 
+    /** The transaction associated with the transactionThread */
+    transaction: PropTypes.shape({
+        transactionID: PropTypes.string,
+        amount: PropTypes.number,
+        created: PropTypes.string,
+        comment: PropTypes.shape({
+            comment: PropTypes.string
+        }),
+        currency: PropTypes.string,
+    }),
+
     /** Whether we should display the horizontal rule below the component */
     shouldShowHorizontalRule: PropTypes.bool.isRequired,
 
@@ -56,6 +67,11 @@ const defaultProps = {
     policy: null,
     session: {
         email: null,
+    },
+    transaction: {
+        amount: 0,
+        currency: CONST.CURRENCY.USD,
+        comment: {comment: ''},
     },
 };
 
