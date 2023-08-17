@@ -77,29 +77,34 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
     const numberOfWaypoints = _.size(waypoints);
     const lastWaypointIndex = numberOfWaypoints - 1;
 
-    const waypointsData = _.map(waypoints, (waypoint, key) => {
-        const index = Number(key.replace('waypoint', ''));
-        let MarkerComponent;
-        if (index === 0) {
-            MarkerComponent = Expensicons.DotIndicatorUnfilled;
-        } else if (index === lastWaypointIndex) {
-            MarkerComponent = Expensicons.Location;
-        } else {
-            MarkerComponent = Expensicons.DotIndicator;
-        }
+    const waypointsData = _.filter(
+        _.map(waypoints, (waypoint, key) => {
+            if (waypoint.lng === undefined || waypoint.lat === undefined) {
+                return;
+            }
 
-        return {
-            coordinate: CONST.SF_COORDINATES,
-            // Because coordinates of test waypoints are undefined, the SF coordinate is used temporarily. The below line should be uncommented once waypoints in correct format are saved in the waypoints editor page
-            // coordinate: [waypoint.lat, waypoint.lng],
-            markerComponent: () => (
-                <MarkerComponent
-                    height={20}
-                    fill={theme.iconReversed}
-                />
-            ),
-        };
-    });
+            const index = Number(key.replace('waypoint', ''));
+            let MarkerComponent;
+            if (index === 0) {
+                MarkerComponent = Expensicons.DotIndicatorUnfilled;
+            } else if (index === lastWaypointIndex) {
+                MarkerComponent = Expensicons.Location;
+            } else {
+                MarkerComponent = Expensicons.DotIndicator;
+            }
+
+            return {
+                coordinate: [waypoint.lng, waypoint.lat],
+                markerComponent: () => (
+                    <MarkerComponent
+                        height={20}
+                        fill={theme.iconReversed}
+                    />
+                ),
+            };
+        }),
+        (waypoint) => waypoint,
+    );
 
     // Show up to the max number of waypoints plus 1/2 of one to hint at scrolling
     const halfMenuItemHeight = Math.floor(variables.baseMenuItemHeight / 2);
