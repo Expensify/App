@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {forwardRef, Component} from 'react';
+import React, {useRef, useEffect, forwardRef} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
@@ -30,47 +30,103 @@ const defaultProps = {
     ...optionsListDefaultProps,
 };
 
-class BaseOptionsList extends Component {
-    constructor(props) {
-        super(props);
+function BaseOptionsList({
+    keyboardDismissMode,
+    onScrollBeginDrag,
+    onScroll,
+    focusedIndex,
+    selectedOptions,
+    headerMessage,
+    isLoading,
+    sections,
+    onLayout,
+    hideSectionHeaders,
+    shouldHaveOptionSeparator,
+    showTitleTooltip,
+    optionHoveredStyle,
+    contentContainerStyles,
+    showScrollIndicator,
+    listContainerStyles,
+    shouldDisableRowInnerPadding,
+    disableFocusOptions,
+    canSelectMultipleOptions,
+    onSelectRow,
+    boldStyle,
+    isDisabled,
+    innerRef,
+}) {
+    const flattenedData = useRef();
+    const didLayout = useRef(false);
+    const buildFlatSectionArray = () => {
+        let offset = 0;
 
-        this.renderItem = this.renderItem.bind(this);
-        this.renderSectionHeader = this.renderSectionHeader.bind(this);
-        this.getItemLayout = this.getItemLayout.bind(this);
-        this.buildFlatSectionArray = this.buildFlatSectionArray.bind(this);
-        this.extractKey = this.extractKey.bind(this);
-        this.onViewableItemsChanged = this.onViewableItemsChanged.bind(this);
-        this.didLayout = false;
+        // Start with just an empty list header
+        const flatArray = [{length: 0, offset}];
 
-        this.flattenedData = this.buildFlatSectionArray();
-    }
+        // Build the flat array
+        for (let sectionIndex = 0; sectionIndex < sections.length; sectionIndex++) {
+            const section = sections[sectionIndex];
 
-    shouldComponentUpdate(nextProps) {
-        return (
-            nextProps.focusedIndex !== this.props.focusedIndex ||
-            nextProps.selectedOptions.length !== this.props.selectedOptions.length ||
-            nextProps.headerMessage !== this.props.headerMessage ||
-            nextProps.isLoading !== this.props.isLoading ||
-            !_.isEqual(nextProps.sections, this.props.sections)
-        );
-    }
+            // Add the section header
+            const sectionHeaderHeight = section.title && !hideSectionHeaders ? variables.optionsListSectionHeaderHeight : 0;
+            flatArray.push({length: sectionHeaderHeight, offset});
+            offset += sectionHeaderHeight;
 
-    componentDidUpdate(prevProps) {
-        if (_.isEqual(this.props.sections, prevProps.sections)) {
+            // Add section items
+            for (let i = 0; i < section.data.length; i++) {
+                let fullOptionHeight = variables.optionRowHeight;
+                if (i > 0 && shouldHaveOptionSeparator) {
+                    fullOptionHeight += variables.borderTopWidth;
+                }
+                flatArray.push({length: fullOptionHeight, offset});
+                offset += fullOptionHeight;
+            }
+
+            // Add the section footer
+            flatArray.push({length: 0, offset});
+        }
+
+        // Then add the list footer
+        flatArray.push({length: 0, offset});
+        return flatArray;
+    };
+
+    useEffect(() => {
+        flattenedData.current = buildFlatSectionArray();
+    });
+    // constructor(props) {
+    //     super(props);
+    //     this.didLayout = false;
+
+    //     this.flattenedData = this.buildFlatSectionArray();
+    // }
+
+    // shouldComponentUpdate(nextProps) {
+    //     return (
+    //         nextProps.focusedIndex !== focusedIndex ||
+    //         nextProps.selectedOptions.length !== selectedOptions.length ||
+    //         nextProps.headerMessage !== headerMessage ||
+    //         nextProps.isLoading !== isLoading ||
+    //         !_.isEqual(nextProps.sections, sections)
+    //     );
+    // }
+
+    // componentDidUpdate(prevProps) {
+    //     if (_.isEqual(sections, prevProps.sections)) {
+    //         return;
+    //     }
+
+    //     this.flattenedData = this.buildFlatSectionArray();
+    // }
+
+    const onViewableItemsChanged = () => {
+        if (didLayout.current || !onLayout) {
             return;
         }
 
-        this.flattenedData = this.buildFlatSectionArray();
-    }
-
-    onViewableItemsChanged() {
-        if (this.didLayout || !this.props.onLayout) {
-            return;
-        }
-
-        this.didLayout = true;
-        this.props.onLayout();
-    }
+        didLayout.current = true;
+        onLayout();
+    };
 
     /**
      * This function is used to compute the layout of any given item in our list.
@@ -88,66 +144,31 @@ class BaseOptionsList extends Component {
      *
      * @returns {Object}
      */
-    getItemLayout(data, flatDataArrayIndex) {
-        if (!_.has(this.flattenedData, flatDataArrayIndex)) {
-            this.flattenedData = this.buildFlatSectionArray();
+    const getItemLayout = (data, flatDataArrayIndex) => {
+        if (!_.has(flattenedData.current, flatDataArrayIndex)) {
+            flattenedData.current = buildFlatSectionArray();
         }
 
-        const targetItem = this.flattenedData[flatDataArrayIndex];
+        const targetItem = flattenedData.current[flatDataArrayIndex];
         return {
             length: targetItem.length,
             offset: targetItem.offset,
             index: flatDataArrayIndex,
         };
-    }
+    };
 
     /**
      * This helper function is used to memoize the computation needed for getItemLayout. It is run whenever section data changes.
      *
      * @returns {Array<Object>}
      */
-    buildFlatSectionArray() {
-        let offset = 0;
-
-        // Start with just an empty list header
-        const flatArray = [{length: 0, offset}];
-
-        // Build the flat array
-        for (let sectionIndex = 0; sectionIndex < this.props.sections.length; sectionIndex++) {
-            const section = this.props.sections[sectionIndex];
-
-            // Add the section header
-            const sectionHeaderHeight = section.title && !this.props.hideSectionHeaders ? variables.optionsListSectionHeaderHeight : 0;
-            flatArray.push({length: sectionHeaderHeight, offset});
-            offset += sectionHeaderHeight;
-
-            // Add section items
-            for (let i = 0; i < section.data.length; i++) {
-                let fullOptionHeight = variables.optionRowHeight;
-                if (i > 0 && this.props.shouldHaveOptionSeparator) {
-                    fullOptionHeight += variables.borderTopWidth;
-                }
-                flatArray.push({length: fullOptionHeight, offset});
-                offset += fullOptionHeight;
-            }
-
-            // Add the section footer
-            flatArray.push({length: 0, offset});
-        }
-
-        // Then add the list footer
-        flatArray.push({length: 0, offset});
-        return flatArray;
-    }
 
     /**
      * Returns the key used by the list
      * @param {Object} option
      * @return {String}
      */
-    extractKey(option) {
-        return option.keyForList;
-    }
+    const extractKey = (option) => option.keyForList;
 
     /**
      * Function which renders a row in the list
@@ -159,24 +180,25 @@ class BaseOptionsList extends Component {
      *
      * @return {Component}
      */
-    renderItem({item, index, section}) {
-        const isDisabled = this.props.isDisabled || section.isDisabled || !!item.isDisabled;
+    const renderItem = ({item, index, section}) => {
+        const isItemDisabled = isDisabled || section.isDisabled || !!item.isDisabled;
+        console.log(`rendering base optionslist. isDisabled: ${isDisabled}`);
         return (
             <OptionRow
                 option={item}
-                showTitleTooltip={this.props.showTitleTooltip}
-                hoverStyle={this.props.optionHoveredStyle}
-                optionIsFocused={!this.props.disableFocusOptions && !isDisabled && this.props.focusedIndex === index + section.indexOffset}
-                onSelectRow={this.props.onSelectRow}
-                isSelected={Boolean(_.find(this.props.selectedOptions, (option) => option.accountID === item.accountID))}
-                showSelectedState={this.props.canSelectMultipleOptions}
-                boldStyle={this.props.boldStyle}
-                isDisabled={isDisabled}
-                shouldHaveOptionSeparator={index > 0 && this.props.shouldHaveOptionSeparator}
-                shouldDisableRowInnerPadding={this.props.shouldDisableRowInnerPadding}
+                showTitleTooltip={showTitleTooltip}
+                hoverStyle={optionHoveredStyle}
+                optionIsFocused={!disableFocusOptions && !isItemDisabled && focusedIndex === index + section.indexOffset}
+                onSelectRow={onSelectRow}
+                isSelected={Boolean(_.find(selectedOptions, (option) => option.accountID === item.accountID))}
+                showSelectedState={canSelectMultipleOptions}
+                boldStyle={boldStyle}
+                isDisabled={isItemDisabled}
+                shouldHaveOptionSeparator={index > 0 && shouldHaveOptionSeparator}
+                shouldDisableRowInnerPadding={shouldDisableRowInnerPadding}
             />
         );
-    }
+    };
 
     /**
      * Function which renders a section header component
@@ -188,8 +210,8 @@ class BaseOptionsList extends Component {
      *
      * @return {Component}
      */
-    renderSectionHeader({section: {title, shouldShow}}) {
-        if (title && shouldShow && !this.props.hideSectionHeaders) {
+    const renderSectionHeader = ({section: {title, shouldShow}}) => {
+        if (title && shouldShow && !hideSectionHeaders) {
             return (
                 // Note: The `optionsListSectionHeader` style provides an explicit height to section headers.
                 // We do this so that we can reference the height in `getItemLayout` –
@@ -202,51 +224,50 @@ class BaseOptionsList extends Component {
         }
 
         return <View />;
-    }
+    };
 
-    render() {
-        return (
-            <View style={this.props.listContainerStyles}>
-                {this.props.isLoading ? (
-                    <OptionsListSkeletonView />
-                ) : (
-                    <>
-                        {this.props.headerMessage ? (
-                            <View style={[styles.ph5, styles.pb5]}>
-                                <Text style={[styles.textLabel, styles.colorMuted]}>{this.props.headerMessage}</Text>
-                            </View>
-                        ) : null}
-                        <SectionList
-                            ref={this.props.innerRef}
-                            indicatorStyle="white"
-                            keyboardShouldPersistTaps="always"
-                            keyboardDismissMode={this.props.keyboardDismissMode}
-                            onScrollBeginDrag={this.props.onScrollBeginDrag}
-                            onScroll={this.props.onScroll}
-                            contentContainerStyle={this.props.contentContainerStyles}
-                            showsVerticalScrollIndicator={this.props.showScrollIndicator}
-                            sections={this.props.sections}
-                            keyExtractor={this.extractKey}
-                            stickySectionHeadersEnabled={false}
-                            renderItem={this.renderItem}
-                            getItemLayout={this.getItemLayout}
-                            renderSectionHeader={this.renderSectionHeader}
-                            extraData={this.props.focusedIndex}
-                            initialNumToRender={12}
-                            maxToRenderPerBatch={5}
-                            windowSize={5}
-                            viewabilityConfig={{viewAreaCoveragePercentThreshold: 95}}
-                            onViewableItemsChanged={this.onViewableItemsChanged}
-                        />
-                    </>
-                )}
-            </View>
-        );
-    }
+    return (
+        <View style={listContainerStyles}>
+            {isLoading ? (
+                <OptionsListSkeletonView />
+            ) : (
+                <>
+                    {headerMessage ? (
+                        <View style={[styles.ph5, styles.pb5]}>
+                            <Text style={[styles.textLabel, styles.colorMuted]}>{headerMessage}</Text>
+                        </View>
+                    ) : null}
+                    <SectionList
+                        ref={innerRef}
+                        indicatorStyle="white"
+                        keyboardShouldPersistTaps="always"
+                        keyboardDismissMode={keyboardDismissMode}
+                        onScrollBeginDrag={onScrollBeginDrag}
+                        onScroll={onScroll}
+                        contentContainerStyle={contentContainerStyles}
+                        showsVerticalScrollIndicator={showScrollIndicator}
+                        sections={sections}
+                        keyExtractor={extractKey}
+                        stickySectionHeadersEnabled={false}
+                        renderItem={renderItem}
+                        getItemLayout={getItemLayout}
+                        renderSectionHeader={renderSectionHeader}
+                        extraData={focusedIndex}
+                        initialNumToRender={12}
+                        maxToRenderPerBatch={5}
+                        windowSize={5}
+                        viewabilityConfig={{viewAreaCoveragePercentThreshold: 95}}
+                        onViewableItemsChanged={onViewableItemsChanged}
+                    />
+                </>
+            )}
+        </View>
+    );
 }
 
 BaseOptionsList.propTypes = propTypes;
 BaseOptionsList.defaultProps = defaultProps;
+BaseOptionsList.displayName = 'BaseOptionsList';
 
 export default forwardRef((props, ref) => (
     <BaseOptionsList
