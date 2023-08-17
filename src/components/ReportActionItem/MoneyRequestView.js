@@ -14,7 +14,6 @@ import MenuItemWithTopDescription from '../MenuItemWithTopDescription';
 import styles from '../../styles/styles';
 import * as ReportUtils from '../../libs/ReportUtils';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
-import * as TransactionUtils from '../../libs/TransactionUtils';
 import * as StyleUtils from '../../styles/StyleUtils';
 import CONST from '../../CONST';
 import * as Expensicons from '../Icon/Expensicons';
@@ -60,13 +59,12 @@ const defaultProps = {
     },
 };
 
-function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, policy, session}) {
+function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, policy, session, transaction}) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
 
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
     const moneyRequestReport = parentReport;
-    const transaction = TransactionUtils.getLinkedTransaction(parentReportAction);
     const {created: transactionDate, amount: transactionAmount, currency: transactionCurrency, comment: transactionDescription} = ReportUtils.getTransactionDetails(transaction);
     const formattedTransactionAmount = transactionAmount && transactionCurrency && CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency);
 
@@ -142,5 +140,12 @@ export default compose(
         session: {
             key: ONYXKEYS.SESSION,
         },
+        transaction: {
+            key: ({report}) => {
+                const parentReportAction = ReportActionsUtils.getParentReportAction(report);
+                const transactionID = lodashGet(parentReportAction, ['originalMessage', 'IOUTransactionID'], '');
+                return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
+            }
+        }
     }),
 )(MoneyRequestView);
