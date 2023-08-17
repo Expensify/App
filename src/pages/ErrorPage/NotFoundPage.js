@@ -6,9 +6,7 @@ import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoun
 function NotFoundPage() {
     return (
         <ScreenWrapper>
-            <FullPageNotFoundView
-                shouldShow
-            />
+            <FullPageNotFoundView shouldShow />
         </ScreenWrapper>
     );
 }
