@@ -92,7 +92,7 @@ function BaseValidateCodeForm(props) {
             return;
         }
         User.clearContactMethodErrors(props.contactMethod, 'validateLogin');
-
+        // contactMethod is not added as a dependency since it does not change between renders
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
