@@ -51,7 +51,7 @@ const propTypes = {
         amount: PropTypes.number,
         created: PropTypes.string,
         comment: PropTypes.shape({
-            comment: PropTypes.string
+            comment: PropTypes.string,
         }),
         currency: PropTypes.string,
     }),
@@ -161,7 +161,7 @@ export default compose(
                 const parentReportAction = ReportActionsUtils.getParentReportAction(report);
                 const transactionID = lodashGet(parentReportAction, ['originalMessage', 'IOUTransactionID'], 0);
                 return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
-            }
-        }
+            },
+        },
     }),
 )(MoneyRequestView);
