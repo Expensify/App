@@ -1,5 +1,5 @@
 /* eslint-disable es/no-optional-chaining */
-import React, {useState, useEffect, useMemo, useCallback} from 'react';
+import React, {useState, useEffect, useMemo, useCallback, useRef} from 'react';
 import _ from 'underscore';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
@@ -45,6 +45,8 @@ function TaskShareDestinationSelectorModal(props) {
     const [searchValue, setSearchValue] = useState('');
     const [headerMessage, setHeaderMessage] = useState('');
     const [filteredRecentReports, setFilteredRecentReports] = useState([]);
+
+    const optionRef = useRef();
 
     const filteredReports = useMemo(() => {
         const reports = {};
@@ -111,7 +113,10 @@ function TaskShareDestinationSelectorModal(props) {
 
     const sections = getSections();
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            onEntryTransitionEnd={() => optionRef.current && optionRef.current.textInput.focus()}
+        >
             {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                 <>
                     <HeaderWithBackButton
@@ -131,6 +136,8 @@ function TaskShareDestinationSelectorModal(props) {
                             shouldShowOptions={didScreenTransitionEnd}
                             textInputLabel={props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
+                            autoFocus={false}
+                            ref={optionRef}
                         />
                     </View>
                 </>

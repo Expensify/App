@@ -27,6 +27,7 @@ import Image from '../Image';
 import ReportActionItemImage from './ReportActionItemImage';
 import * as TransactionUtils from '../../libs/TransactionUtils';
 import OfflineWithFeedback from '../OfflineWithFeedback';
+import SpacerView from '../SpacerView';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -91,7 +92,7 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, trans
     let hasErrors = false;
     if (hasReceipt) {
         receiptURIs = ReceiptUtils.getThumbnailAndImageURIs(transaction.receipt.source, transaction.filename);
-        hasErrors = TransactionUtils.hasMissingSmartscanFields(transaction);
+        hasErrors = canEdit && TransactionUtils.hasMissingSmartscanFields(transaction);
     }
 
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
@@ -169,7 +170,10 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, trans
                     subtitleTextStyle={styles.textLabelError}
                 />
             </OfflineWithFeedback>
-            {shouldShowHorizontalRule && <View style={styles.reportHorizontalRule} />}
+            <SpacerView
+                shouldShow={shouldShowHorizontalRule}
+                style={[shouldShowHorizontalRule ? styles.reportHorizontalRule : {}]}
+            />
         </View>
     );
 }

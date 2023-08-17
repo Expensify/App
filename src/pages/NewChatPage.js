@@ -55,8 +55,9 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate}) 
     const headerMessage = OptionsListUtils.getHeaderMessage(
         filteredPersonalDetails.length + filteredRecentReports.length !== 0,
         Boolean(filteredUserToInvite),
-        searchTerm,
+        searchTerm.trim(),
         maxParticipantsReached,
+        _.some(selectedOptions, (participant) => participant.searchText.toLowerCase().includes(searchTerm.trim().toLowerCase())),
     );
     const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails);
 
@@ -123,7 +124,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate}) 
             recentReports,
             personalDetails: newChatPersonalDetails,
             userToInvite,
-        } = OptionsListUtils.getNewChatOptions(reports, personalDetails, betas, searchTerm, newSelectedOptions, excludedGroupEmails);
+        } = OptionsListUtils.getFilteredOptions(reports, personalDetails, betas, searchTerm, newSelectedOptions, excludedGroupEmails);
 
         setSelectedOptions(newSelectedOptions);
         setFilteredRecentReports(recentReports);
@@ -158,7 +159,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate}) 
             recentReports,
             personalDetails: newChatPersonalDetails,
             userToInvite,
-        } = OptionsListUtils.getNewChatOptions(reports, personalDetails, betas, searchTerm, selectedOptions, isGroupChat ? excludedGroupEmails : []);
+        } = OptionsListUtils.getFilteredOptions(reports, personalDetails, betas, searchTerm, selectedOptions, isGroupChat ? excludedGroupEmails : []);
         setFilteredRecentReports(recentReports);
         setFilteredPersonalDetails(newChatPersonalDetails);
         setFilteredUserToInvite(userToInvite);
