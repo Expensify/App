@@ -73,7 +73,7 @@ const init = () => {
             // The API sets a token in Onyx with a 30 minute expiration.
             if (_.isEmpty(token)) {
                 console.debug('[MapboxToken] Token does not exist so fetching one');
-                API.read('GetMapboxAccessToken');
+                API.write('GetMapboxAccessToken');
                 return;
             }
 
@@ -102,6 +102,20 @@ const init = () => {
         }
         console.debug('[MapboxToken] Token is expired after app became active');
         clearToken();
+    });
+
+    let network;
+    Onyx.connect({
+        key: ONYXKEYS.NETWORK,
+        callback: (val) => {
+            // When the network reconnects, check if the token has expired. If it has, then clearing the token will
+            // trigger the fetch of a new one
+            if (network && network.isOffline && val && !val.isOffline) {
+                console.debug('[MapboxToken] Token is expired after network came online');
+                clearToken();
+            }
+            network = val;
+        },
     });
 };
 
