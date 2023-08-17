@@ -140,7 +140,7 @@ class SidebarLinks extends React.PureComponent {
             firstLoadedReportID,
         });
     }
-    
+
     componentWillUnmount() {
         SidebarUtils.resetIsSidebarLoadedReadyPromise();
         if (this.unsubscribeEscapeKey) {
