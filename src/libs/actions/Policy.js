@@ -66,12 +66,6 @@ Onyx.connect({
     callback: (val) => (allPersonalDetails = val),
 });
 
-let loginList;
-Onyx.connect({
-    key: ONYXKEYS.LOGIN_LIST,
-    callback: (val) => (loginList = val),
-});
-
 /**
  * Stores in Onyx the policy ID of the last workspace that was accessed by the user
  * @param {String|null} policyID
@@ -159,16 +153,6 @@ function deleteWorkspace(policyID, reports, policyName) {
  */
 function isAdminOfFreePolicy(policies) {
     return _.some(policies, (policy) => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN);
-}
-
-/**
- * Is the user the owner of the given policy?
- *
- * @param {Object} policy
- * @returns {Boolean}
- */
-function isPolicyOwner(policy) {
-    return _.keys(loginList).includes(policy.owner);
 }
 
 /**
@@ -934,6 +918,7 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                         name: workspaceName,
                         role: CONST.POLICY.ROLE.ADMIN,
                         owner: sessionEmail,
+                        isPolicyExpenseChatEnabled: true,
                         outputCurrency: lodashGet(allPersonalDetails, [sessionAccountID, 'localCurrencyCode'], CONST.CURRENCY.USD),
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                         customUnits,
@@ -1201,6 +1186,5 @@ export {
     openWorkspaceInvitePage,
     removeWorkspace,
     setWorkspaceInviteMembersDraft,
-    isPolicyOwner,
     clearErrors,
 };

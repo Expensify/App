@@ -47,9 +47,6 @@ const propTypes = {
             }),
         ),
     }),
-
-    // eslint-disable-next-line react/forbid-prop-types
-    errors: PropTypes.object,
 };
 
 const defaultProps = {
@@ -66,10 +63,9 @@ const defaultProps = {
         currency: CONST.CURRENCY.USD,
         participants: [],
     },
-    errors: {},
 };
 
-function NewRequestAmountPage({route, iou, report, errors}) {
+function NewRequestAmountPage({route, iou, report}) {
     const {translate} = useLocalize();
 
     const prevMoneyRequestID = useRef(iou.id);
@@ -103,15 +99,17 @@ function NewRequestAmountPage({route, iou, report, errors}) {
 
     // Check and dismiss modal
     useEffect(() => {
-        if (!ReportUtils.shouldHideComposer(report, errors)) {
+        if (!ReportUtils.shouldDisableWriteActions(report)) {
             return;
         }
         Navigation.dismissModal(reportID);
-    }, [errors, report, reportID]);
+    }, [report, reportID]);
 
-    // Because we use Onyx to store iou info, when we try to make two different money requests from different tabs, it can result in many bugs.
+    // Because we use Onyx to store IOU info, when we try to make two different money requests from different tabs,
+    // it can result in an IOU sent with improper values. In such cases we want to reset the flow and redirect the user to the first step of the IOU.
     useEffect(() => {
         if (isEditing) {
+            // ID in Onyx could change by initiating a new request in a separate browser tab or completing a request
             if (prevMoneyRequestID.current !== iou.id) {
                 // The ID is cleared on completing a request. In that case, we will do nothing.
                 if (!iou.id) {
@@ -147,7 +145,7 @@ function NewRequestAmountPage({route, iou, report, errors}) {
     };
 
     const navigateToNextPage = (currentAmount) => {
-        const amountInSmallestCurrencyUnits = CurrencyUtils.convertToSmallestUnit(currency, Number.parseFloat(currentAmount));
+        const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(currentAmount));
         IOU.setMoneyRequestAmount(amountInSmallestCurrencyUnits);
         IOU.setMoneyRequestCurrency(currency);
 
@@ -179,6 +177,7 @@ function NewRequestAmountPage({route, iou, report, errors}) {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
+            shouldEnableKeyboardAvoidingView={false}
             onEntryTransitionEnd={focusTextInput}
         >
             {({safeAreaPaddingBottomStyle}) => (
