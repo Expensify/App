@@ -85,7 +85,7 @@ const defaultProps = {
 
 class SettlementButton extends React.Component {
     componentDidMount() {
-        PaymentMethods.openPaymentsPage();
+        PaymentMethods.openWalletPage();
     }
 
     getButtonOptionsFromProps() {

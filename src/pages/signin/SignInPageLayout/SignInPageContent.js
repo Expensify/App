@@ -45,8 +45,7 @@ function SignInPageContent(props) {
         >
             <View style={[styles.flex1, styles.alignSelfCenter, styles.signInPageWelcomeFormContainer]}>
                 {/* This empty view creates margin on the top of the sign in form which will shrink and grow depending on if the keyboard is open or not */}
-                <View style={[styles.flexGrow1, styles.signInPageContentTopSpacer]} />
-
+                <View style={[styles.flexGrow1, props.isSmallScreenWidth ? styles.signInPageContentTopSpacerSmallScreens : styles.signInPageContentTopSpacer]} />
                 <View style={[styles.flexGrow2, styles.mb8]}>
                     <SignInPageForm style={[styles.alignSelfStretch]}>
                         <View style={[props.isSmallScreenWidth ? styles.mb8 : styles.mb15, props.isSmallScreenWidth ? styles.alignItemsCenter : styles.alignSelfStart]}>

@@ -31,12 +31,24 @@ Onyx.connect({
  * @param {String} [merchant]
  * @param {Object} [receipt]
  * @param {String} [filename]
+ * @param {String} [existingTransactionID] When creating a distance request, an empty transaction has already been created with a transactionID. In that case, the transaction here needs to have it's transactionID match what was already generated.
  * @returns {Object}
  */
-function buildOptimisticTransaction(amount, currency, reportID, comment = '', source = '', originalTransactionID = '', merchant = CONST.REPORT.TYPE.IOU, receipt = {}, filename = '') {
+function buildOptimisticTransaction(
+    amount,
+    currency,
+    reportID,
+    comment = '',
+    source = '',
+    originalTransactionID = '',
+    merchant = CONST.REPORT.TYPE.IOU,
+    receipt = {},
+    filename = '',
+    existingTransactionID = null,
+) {
     // transactionIDs are random, positive, 64-bit numeric strings.
     // Because JS can only handle 53-bit numbers, transactionIDs are strings in the front-end (just like reportActionID)
-    const transactionID = NumberUtils.rand64();
+    const transactionID = existingTransactionID || NumberUtils.rand64();
 
     const commentJSON = {comment};
     if (source) {
@@ -130,13 +142,26 @@ function getDescription(transaction) {
  * @returns {Number}
  */
 function getAmount(transaction, isFromExpenseReport) {
-    // In case of expense reports, the amounts are stored using an opposite sign
-    const multiplier = isFromExpenseReport ? -1 : 1;
-    const amount = lodashGet(transaction, 'modifiedAmount', 0);
-    if (amount) {
-        return multiplier * amount;
+    // IOU requests cannot have negative values but they can be stored as negative values, let's return absolute value
+    if (!isFromExpenseReport) {
+        const amount = lodashGet(transaction, 'modifiedAmount', 0);
+        if (amount) {
+            return Math.abs(amount);
+        }
+        return Math.abs(lodashGet(transaction, 'amount', 0));
     }
-    return multiplier * lodashGet(transaction, 'amount', 0);
+
+    // Expense report case:
+    // The amounts are stored using an opposite sign and negative values can be set,
+    // we need to return an opposite sign than is saved in the transaction object
+    let amount = lodashGet(transaction, 'modifiedAmount', 0);
+    if (amount) {
+        return -amount;
+    }
+
+    // To avoid -0 being shown, lets only change the sign if the value is other than 0.
+    amount = lodashGet(transaction, 'amount', 0);
+    return amount ? -amount : 0;
 }
 
 /**
