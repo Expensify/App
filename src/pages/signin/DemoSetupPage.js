@@ -7,6 +7,6 @@ function DemoSetupPage() {
     return <SignInPage customHeadline={translate('login.hero.demoHeadline')} />;
 }
 
-DemoSetupPage.displayName = 'SignInPage';
+DemoSetupPage.displayName = 'DemoSetupPage';
 
 export default DemoSetupPage;
