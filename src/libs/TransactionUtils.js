@@ -30,7 +30,7 @@ Onyx.connect({
  * @param {String} [originalTransactionID]
  * @param {String} [merchant]
  * @param {Object} [receipt]
- * @param {String} [existingTransactionID] When creating a disatance request, an empty transaction has already been created with a transactionID. In that case, the transaction here needs to have it's transactionID match what was already generated.
+ * @param {String} [existingTransactionID] When creating a distance request, an empty transaction has already been created with a transactionID. In that case, the transaction here needs to have it's transactionID match what was already generated.
  * @returns {Object}
  */
 function buildOptimisticTransaction(
