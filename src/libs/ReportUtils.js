@@ -3199,30 +3199,6 @@ function getTaskAssigneeChatOnyxData(accountID, assigneeEmail, assigneeAccountID
 }
 
 /**
- * Returns the number of receipts associated with an IOU report that are still being scanned.
- * Note that we search the IOU report for this number, since scanning receipts will be whispers
- * in the IOU report for only the submitter and we can get an accurate count.
- *
- * @param {Object|null} iouReport
- * @returns {Number}
- */
-function getNumberOfScanningReceipts(iouReport) {
-    const reportID = lodashGet(iouReport, 'reportID');
-    const reportActions = ReportActionsUtils.getAllReportActions(reportID);
-    return _.reduce(
-        reportActions,
-        (count, reportAction) => {
-            if (!ReportActionsUtils.isMoneyRequestAction(reportAction)) {
-                return count;
-            }
-            const transaction = TransactionUtils.getTransaction(reportAction.originalMessage.IOUTransactionID);
-            return count + Number(TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction));
-        },
-        0,
-    );
-}
-
-/**
  * Get the last 3 transactions with receipts of an IOU report that will be displayed on the report preview
  *
  * @param {Object} reportPreviewAction
@@ -3230,7 +3206,13 @@ function getNumberOfScanningReceipts(iouReport) {
  */
 function getReportPreviewDisplayTransactions(reportPreviewAction) {
     const transactionIDs = lodashGet(reportPreviewAction, ['childLastReceiptTransactionIDs'], '').split(',');
-    return _.map(transactionIDs, (transactionID) => TransactionUtils.getTransaction(transactionID));
+    return _.reduce(transactionIDs, (transactions, transactionID) => {
+        const transaction = TransactionUtils.getTransaction(transactionID);
+        if (TransactionUtils.hasReceipt(transaction)) {
+            transactions.push(transaction);
+        }
+        return transactions;
+    }, []);
 }
 
 export {
@@ -3359,7 +3341,6 @@ export {
     getTransactionDetails,
     getTaskAssigneeChatOnyxData,
     areAllRequestsBeingSmartScanned,
-    getNumberOfScanningReceipts,
     getReportPreviewDisplayTransactions,
     getTransactionsWithReceipts,
 };

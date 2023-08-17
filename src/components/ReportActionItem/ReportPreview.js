@@ -27,6 +27,7 @@ import themeColors from '../../styles/themes/default';
 import reportPropTypes from '../../pages/reportPropTypes';
 import * as ReceiptUtils from '../../libs/ReceiptUtils';
 import * as ReportActionUtils from '../../libs/ReportActionsUtils';
+import * as TransactionUtils from '../../libs/TransactionUtils';
 import ReportActionItemImages from './ReportActionItemImages';
 
 const propTypes = {
@@ -102,10 +103,10 @@ function ReportPreview(props) {
 
     const iouSettled = ReportUtils.isSettled(props.iouReportID);
     const numberOfRequests = ReportActionUtils.getNumberOfMoneyRequests(props.action);
-    const numberOfScanningReceipts = ReportUtils.getNumberOfScanningReceipts(props.iouReport);
     const moneyRequestComment = lodashGet(props.action, 'childLastMoneyRequestComment', '');
 
     const transactionsWithReceipts = ReportUtils.getTransactionsWithReceipts(props.iouReport);
+    const numberOfScanningReceipts = _.filter(transactionsWithReceipts, (transaction) => TransactionUtils.isReceiptBeingScanned(transaction)).length;
     const hasReceipts = transactionsWithReceipts.length > 0;
     const isScanning = hasReceipts && ReportUtils.areAllRequestsBeingSmartScanned(props.iouReport, props.action);
     const lastThreeTransactionsWithReceipts = ReportUtils.getReportPreviewDisplayTransactions(props.action);
@@ -167,7 +168,7 @@ function ReportPreview(props) {
                         <ReportActionItemImages
                             images={_.map(lastThreeTransactionsWithReceipts, ({receipt, filename}) => ReceiptUtils.getThumbnailAndImageURIs(receipt.source, filename))}
                             size={3}
-                            total={ReportUtils.getNumberOfScanningReceipts(props.iouReport)}
+                            total={transactionsWithReceipts.length}
                             isHovered={props.isHovered || isScanning}
                         />
                     )}
