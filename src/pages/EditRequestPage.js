@@ -43,11 +43,10 @@ const defaultProps = {
 
 function EditRequestPage({report, route, parentReport}) {
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
-    const transactionID = lodashGet(parentReportAction, 'originalMessage.IOUTransactionID', '');
-    const transaction = TransactionUtils.getTransaction(transactionID);
-    const transactionDescription = TransactionUtils.getDescription(transaction);
-    const transactionAmount = TransactionUtils.getAmount(transaction, ReportUtils.isExpenseReport(parentReport));
-    const transactionCurrency = TransactionUtils.getCurrency(transaction);
+    const transaction = TransactionUtils.getLinkedTransaction(parentReportAction);
+    const {amount: transactionAmount, currency: transactionCurrency, comment: transactionDescription} = ReportUtils.getTransactionDetails(transaction);
+
+    const defaultCurrency = lodashGet(route, 'params.currency', '') || transactionCurrency;
 
     // Take only the YYYY-MM-DD value
     const transactionCreated = TransactionUtils.getCreated(transaction);
@@ -66,7 +65,7 @@ function EditRequestPage({report, route, parentReport}) {
 
     // Update the transaction object and close the modal
     function editMoneyRequest(transactionChanges) {
-        IOU.editMoneyRequest(transactionID, report.reportID, transactionChanges);
+        IOU.editMoneyRequest(transaction.transactionID, report.reportID, transactionChanges);
         Navigation.dismissModal();
     }
 
@@ -106,19 +105,19 @@ function EditRequestPage({report, route, parentReport}) {
         return (
             <EditRequestAmountPage
                 defaultAmount={transactionAmount}
-                defaultCurrency={transactionCurrency}
+                defaultCurrency={defaultCurrency}
                 reportID={report.reportID}
                 onSubmit={(transactionChanges) => {
-                    const amount = CurrencyUtils.convertToBackendAmount(transactionCurrency, Number.parseFloat(transactionChanges));
+                    const amount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(transactionChanges));
                     // In case the amount hasn't been changed, do not make the API request.
-                    if (amount === transactionAmount) {
+                    if (amount === transactionAmount && transactionCurrency === defaultCurrency) {
                         Navigation.dismissModal();
                         return;
                     }
                     // Temporarily disabling currency editing and it will be enabled as a quick follow up
                     editMoneyRequest({
                         amount,
-                        currency: transactionCurrency,
+                        currency: defaultCurrency,
                     });
                 }}
             />
