@@ -35,6 +35,7 @@ const policySelector = (policy) =>
     policy && {
         type: policy.type,
         role: policy.role,
+        isPolicyExpenseChatEnabled: policy.isPolicyExpenseChatEnabled,
         pendingAction: policy.pendingAction,
     };
 

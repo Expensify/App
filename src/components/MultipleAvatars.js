@@ -1,4 +1,4 @@
-import React, {memo, useEffect, useState} from 'react';
+import React, {memo, useMemo} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import _ from 'underscore';
@@ -91,17 +91,15 @@ function getContainerStyles(size, isInReportAction) {
     return containerStyles;
 }
 function MultipleAvatars(props) {
-    const [avatarRows, setAvatarRows] = useState([props.icons]);
     let avatarContainerStyles = getContainerStyles(props.size, props.isInReportAction);
     const singleAvatarStyle = props.size === CONST.AVATAR_SIZE.SMALL ? styles.singleAvatarSmall : styles.singleAvatar;
     const secondAvatarStyles = [props.size === CONST.AVATAR_SIZE.SMALL ? styles.secondAvatarSmall : styles.secondAvatar, ...props.secondAvatarStyle];
     const tooltipTexts = props.shouldShowTooltip ? _.pluck(props.icons, 'name') : [''];
 
-    const calculateAvatarRows = () => {
+    const avatarRows = useMemo(() => {
         // If we're not displaying avatars in rows or the number of icons is less than or equal to the max avatars in a row, return a single row
         if (!props.shouldDisplayAvatarsInRows || props.icons.length <= props.maxAvatarsInRow) {
-            setAvatarRows([props.icons]);
-            return;
+            return [props.icons];
         }
 
         // Calculate the size of each row
@@ -112,14 +110,7 @@ function MultipleAvatars(props) {
         const secondRow = props.icons.slice(0, rowSize);
 
         // Update the state with the two rows as an array
-        setAvatarRows([firstRow, secondRow]);
-    };
-
-    useEffect(() => {
-        calculateAvatarRows();
-
-        // The only dependencies of the effect are based on props, so we can safely disable the exhaustive-deps rule
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        return [firstRow, secondRow];
     }, [props.icons, props.maxAvatarsInRow, props.shouldDisplayAvatarsInRows]);
 
     if (!props.icons.length) {

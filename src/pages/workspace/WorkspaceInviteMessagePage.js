@@ -12,6 +12,7 @@ import styles from '../../styles/styles';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Policy from '../../libs/actions/Policy';
+import * as PolicyUtils from '../../libs/PolicyUtils';
 import TextInput from '../../components/TextInput';
 import MultipleAvatars from '../../components/MultipleAvatars';
 import CONST from '../../CONST';
@@ -124,6 +125,8 @@ class WorkspaceInviteMessagePage extends React.Component {
         Keyboard.dismiss();
         Policy.addMembersToWorkspace(this.props.invitedEmailsToAccountIDsDraft, this.state.welcomeNote, this.props.route.params.policyID, this.props.betas);
         Policy.setWorkspaceInviteMembersDraft(this.props.route.params.policyID, {});
+        // Pop the invite message page before navigating to the members page.
+        Navigation.goBack();
         Navigation.navigate(ROUTES.getWorkspaceMembersRoute(this.props.route.params.policyID));
     }
 
@@ -161,7 +164,7 @@ class WorkspaceInviteMessagePage extends React.Component {
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <FullPageNotFoundView
-                    shouldShow={_.isEmpty(this.props.policy) || !Policy.isPolicyOwner(this.props.policy)}
+                    shouldShow={_.isEmpty(this.props.policy) || !PolicyUtils.isPolicyAdmin(this.props.policy)}
                     subtitleKey={_.isEmpty(this.props.policy) ? undefined : 'workspace.common.notAuthorized'}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
                 >
