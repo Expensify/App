@@ -38,7 +38,6 @@ import onyxSubscribe from '../../../libs/onyxSubscribe';
 import personalDetailsPropType from '../../personalDetailsPropType';
 import * as ReportActionContextMenu from '../report/ContextMenu/ReportActionContextMenu';
 import withCurrentReportID from '../../../components/withCurrentReportID';
-import OptionRowLHNData from '../../../components/LHNOptionsList/OptionRowLHNData';
 
 const basePropTypes = {
     /** Toggles the navigation menu open and closed */
@@ -230,14 +229,14 @@ class SidebarLinks extends React.PureComponent {
                 </View>
                 {this.props.isLoading ? (
                     <>
-                        {lodashGet(this.props.report, 'reportID') && (
-                            <OptionRowLHNData
-                                reportID={this.props.currentReportID}
-                                viewMode={viewMode}
-                                shouldDisableFocusOptions={this.props.isSmallScreenWidth}
-                                onSelectRow={this.showReportPage}
-                            />
-                        )}
+                        <LHNOptionsList
+                            style={[styles.flexShrink1]}
+                            contentContainerStyles={[styles.sidebarListContainer, {paddingBottom: StyleUtils.getSafeAreaMargins(this.props.insets).marginBottom}]}
+                            data={this.props.optionListItems}
+                            onSelectRow={this.showReportPage}
+                            shouldDisableFocusOptions={this.props.isSmallScreenWidth}
+                            optionMode={viewMode}
+                        />
                         <OptionsListSkeletonView shouldAnimate />
                     </>
                 ) : (
