@@ -77,11 +77,10 @@ function MoneyRequestConfirmPage(props) {
 
     useEffect(() => {
         const policyExpenseChat = _.find(participants, (participant) => participant.isPolicyExpenseChat);
-        const policyID = policyExpenseChat.policyID;
         if (policyExpenseChat) {
-            Policy.openDraftWorkspaceRequest(policyID);
+            Policy.openDraftWorkspaceRequest(policyExpenseChat.policyID);
         }
-    }, [props.report, participants]);
+    });
 
     useEffect(() => {
         // ID in Onyx could change by initiating a new request in a separate browser tab or completing a request
