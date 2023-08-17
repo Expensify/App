@@ -37,7 +37,7 @@ function TwoFactorAuthSteps({account = defaultAccount}) {
         setAnimationDirection(animationDirection);
         TwoFactorAuthActions.setTwoFactorAuthStep(step);
         setCurrentStep(step);
-    }, []);
+    }, [setAnimationDirection]);
 
     const renderStep = () => {
         switch (currentStep) {
