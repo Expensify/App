@@ -2053,7 +2053,7 @@ export default {
     distance: {
         addStop: 'Agregar parada',
         address: 'Dirección',
-        waypointEditor: 'Editor de Waypoints',
+        waypointEditor: 'Editor de puntos de ruta',
         waypointDescription: {
             start: 'Comienzo',
             finish: 'Final',
