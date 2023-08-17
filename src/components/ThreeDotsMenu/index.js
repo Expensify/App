@@ -78,9 +78,9 @@ function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, me
                 <Tooltip text={translate(iconTooltip)}>
                     <PressableWithoutFeedback
                         onPress={() => {
-                           if (isPopupMenuVisible) {
-                               hidePopoverMenu();
-                               return;
+                            if (isPopupMenuVisible) {
+                                hidePopoverMenu();
+                                return;
                             }
                             showPopoverMenu();
                             if (onIconPress) {

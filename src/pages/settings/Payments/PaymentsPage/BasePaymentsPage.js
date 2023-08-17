@@ -292,7 +292,7 @@ function BasePaymentsPage(props) {
                                 </OfflineWithFeedback>
                             )}
                         </View>
-                        {props.userWallet.currentBalance === 0 && (
+                        {props.userWallet.currentBalance > 0 && (
                             <View style={styles.mb3}>
                                 <KYCWall
                                     onSuccessfulKYC={navigateToTransferBalancePage}
