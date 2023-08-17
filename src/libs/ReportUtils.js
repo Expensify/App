@@ -1106,7 +1106,7 @@ function isWaitingForIOUActionFromCurrentUser(report) {
     }
 
     // Money request waiting for current user to add their credit bank account
-    if (report.ownerAccountID === currentUserAccountID && report.isWaitingOnBankAccount) {
+    if (report.hasOutstandingIOU && report.ownerAccountID === currentUserAccountID && report.isWaitingOnBankAccount) {
         return true;
     }
 
