@@ -14,7 +14,6 @@ import ROUTES from '../ROUTES';
 import * as NumberUtils from './NumberUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as TransactionUtils from './TransactionUtils';
-import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import Permissions from './Permissions';
 import DateUtils from './DateUtils';
 import linkingConfig from './Navigation/linkingConfig';

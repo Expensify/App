@@ -1,12 +1,10 @@
 import React from 'react';
 import {View, Image} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import reportPropTypes from '../../pages/reportPropTypes';
 import ONYXKEYS from '../../ONYXKEYS';
 import ROUTES from '../../ROUTES';
-import * as Policy from '../../libs/actions/Policy';
 import Navigation from '../../libs/Navigation/Navigation';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes} from '../withCurrentUserPersonalDetails';
 import compose from '../../libs/compose';
@@ -40,12 +38,6 @@ const propTypes = {
         avatar: PropTypes.string,
     }),
 
-    /** Session info for the currently logged in user. */
-    session: PropTypes.shape({
-        /** Currently logged in user email */
-        email: PropTypes.string,
-    }),
-
     /** Whether we should display the horizontal rule below the component */
     shouldShowHorizontalRule: PropTypes.bool.isRequired,
 
@@ -55,12 +47,9 @@ const propTypes = {
 const defaultProps = {
     parentReport: {},
     policy: null,
-    session: {
-        email: null,
-    },
 };
 
-function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, policy, session}) {
+function MoneyRequestView({report, parentReport, shouldShowHorizontalRule}) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
 
@@ -136,9 +125,6 @@ export default compose(
         },
         policy: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`,
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
         },
     }),
 )(MoneyRequestView);
