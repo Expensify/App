@@ -3690,6 +3690,11 @@ const styles = {
     rotate90: {
         transform: 'rotate(90deg)',
     },
+
+    userReportStatusEmoji: {
+        fontSize: variables.fontSizeNormal,
+        marginRight: 4,
+    },
 };
 
 export default styles;

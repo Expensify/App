@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import CONST from '../CONST';
-import * as ReportActionsUtils from './ReportActionsUtils';
+import * as TransactionUtils from './TransactionUtils';
 import * as CurrencyUtils from './CurrencyUtils';
 
 /**
@@ -68,61 +68,16 @@ function updateIOUOwnerAndTotal(iouReport, actorAccountID, amount, currency, isD
 }
 
 /**
- * Returns the list of IOU actions depending on the type and whether or not they are pending.
- * Used below so that we can decide if an IOU report is pending currency conversion.
- *
- * @param {Array} reportActions
- * @param {Object} iouReport
- * @param {String} type - iouReportAction type. Can be oneOf(create, delete, pay, split)
- * @param {String} pendingAction
- * @param {Boolean} filterRequestsInDifferentCurrency
- *
- * @returns {Array}
- */
-function getIOUReportActions(reportActions, iouReport, type = '', pendingAction = '', filterRequestsInDifferentCurrency = false) {
-    return _.chain(reportActions)
-        .filter((action) => action.originalMessage && ReportActionsUtils.isMoneyRequestAction(action) && (!_.isEmpty(type) ? action.originalMessage.type === type : true))
-        .filter((action) => action.originalMessage.IOUReportID.toString() === iouReport.reportID.toString())
-        .filter((action) => (!_.isEmpty(pendingAction) ? action.pendingAction === pendingAction : true))
-        .filter((action) => (filterRequestsInDifferentCurrency ? action.originalMessage.currency !== iouReport.currency : true))
-        .value();
-}
-
-/**
  * Returns whether or not an IOU report contains money requests in a different currency
  * that are either created or cancelled offline, and thus haven't been converted to the report's currency yet
  *
- * @param {Array} reportActions
  * @param {Object} iouReport
- *
  * @returns {Boolean}
  */
-function isIOUReportPendingCurrencyConversion(reportActions, iouReport) {
-    // Pending money requests that are in a different currency
-    const pendingRequestsInDifferentCurrency = _.chain(getIOUReportActions(reportActions, iouReport, CONST.IOU.REPORT_ACTION_TYPE.CREATE, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, true))
-        .map((action) => action.originalMessage.IOUTransactionID)
-        .sort()
-        .value();
-
-    // Pending deleted money requests that are in a different currency
-    const pendingDeletedRequestsInDifferentCurrency = _.chain(
-        getIOUReportActions(reportActions, iouReport, CONST.IOU.REPORT_ACTION_TYPE.DELETE, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, true),
-    )
-        .map((action) => action.originalMessage.IOUTransactionID)
-        .sort()
-        .value();
-
-    const hasPendingRequests = Boolean(pendingRequestsInDifferentCurrency.length || pendingDeletedRequestsInDifferentCurrency.length);
-
-    // If we have pending money requests made offline, check if all of them have been cancelled offline
-    // In order to do that, we can grab transactionIDs of all the created and cancelled money requests and check if they're identical
-    if (hasPendingRequests && _.isEqual(pendingRequestsInDifferentCurrency, pendingDeletedRequestsInDifferentCurrency)) {
-        return false;
-    }
-
-    // Not all requests made offline had been cancelled,
-    // simply return if we have any pending created or cancelled requests
-    return hasPendingRequests;
+function isIOUReportPendingCurrencyConversion(iouReport) {
+    const reportTransactions = TransactionUtils.getAllReportTransactions(iouReport.reportID);
+    const pendingRequestsInDifferentCurrency = _.filter(reportTransactions, (transaction) => transaction.pendingAction && TransactionUtils.getCurrency(transaction) !== iouReport.currency);
+    return pendingRequestsInDifferentCurrency.length > 0;
 }
 
 /**
@@ -134,4 +89,4 @@ function isValidMoneyRequestType(iouType) {
     return [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST, CONST.IOU.MONEY_REQUEST_TYPE.SPLIT].includes(iouType);
 }
 
-export {calculateAmount, updateIOUOwnerAndTotal, getIOUReportActions, isIOUReportPendingCurrencyConversion, isValidMoneyRequestType};
+export {calculateAmount, updateIOUOwnerAndTotal, isIOUReportPendingCurrencyConversion, isValidMoneyRequestType};
