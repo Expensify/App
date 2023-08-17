@@ -22,6 +22,7 @@ import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import EmptyStateBackgroundImage from '../../../assets/images/empty-state_background-fade.png';
 import useLocalize from '../../hooks/useLocalize';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
+import transactionPropTypes from '../transactionPropTypes';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -46,15 +47,7 @@ const propTypes = {
     }),
 
     /** The transaction associated with the transactionThread */
-    transaction: PropTypes.shape({
-        transactionID: PropTypes.string,
-        amount: PropTypes.number,
-        created: PropTypes.string,
-        comment: PropTypes.shape({
-            comment: PropTypes.string,
-        }),
-        currency: PropTypes.string,
-    }),
+    transaction: transactionPropTypes,
 
     /** Whether we should display the horizontal rule below the component */
     shouldShowHorizontalRule: PropTypes.bool.isRequired,
