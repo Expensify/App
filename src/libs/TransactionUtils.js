@@ -90,7 +90,7 @@ function getUpdatedTransaction(transaction, transactionChanges, isFromExpenseRep
         updatedTransaction.modifiedCurrency = transactionChanges.currency;
         shouldStopSmartscan = true;
     }
-    if(shouldStopSmartscan &&_.has(transaction, 'receipt') && !_.isEmpty(transaction.receipt) && lodashGet(transaction, 'receipt.state') !== CONST.IOU.RECEIPT_STATE.OPEN) {
+    if (shouldStopSmartscan && _.has(transaction, 'receipt') && !_.isEmpty(transaction.receipt) && lodashGet(transaction, 'receipt.state') !== CONST.IOU.RECEIPT_STATE.OPEN) {
         updatedTransaction.receipt.state = CONST.IOU.RECEIPT_STATE.OPEN;
     }
     updatedTransaction.pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
