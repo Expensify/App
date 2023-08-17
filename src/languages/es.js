@@ -150,6 +150,7 @@ export default {
         edit: 'Editar',
         showMore: 'Mostrar más',
         merchant: 'Comerciante',
+        category: 'Categoría',
     },
     anonymousReportFooter: {
         logoTagline: 'Únete a la discussion.',

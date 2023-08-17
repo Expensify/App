@@ -151,6 +151,7 @@ export default {
         edit: 'Edit',
         showMore: 'Show more',
         merchant: 'Merchant',
+        category: 'Category',
     },
     anonymousReportFooter: {
         logoTagline: 'Join in on the discussion.',
