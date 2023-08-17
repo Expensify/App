@@ -38,7 +38,7 @@ class RequestorStep extends React.Component {
      * @returns {Object}
      */
     validate(values) {
-        const requiredFields = ['firstName', 'lastName', 'dob', 'ssnLast4', 'requestorAddressStreet', 'requestorAddressCity', 'requestorAddressZipCode'];
+        const requiredFields = ['firstName', 'lastName', 'dob', 'ssnLast4', 'requestorAddressStreet', 'requestorAddressCity', 'requestorAddressState', 'requestorAddressZipCode'];
         const errors = ValidationUtils.getFieldRequiredErrors(values, requiredFields);
 
         if (values.dob) {
@@ -55,10 +55,6 @@ class RequestorStep extends React.Component {
 
         if (values.requestorAddressStreet && !ValidationUtils.isValidAddress(values.requestorAddressStreet)) {
             errors.requestorAddressStreet = 'bankAccount.error.addressStreet';
-        }
-
-        if (!ValidationUtils.isRequiredFulfilled(values.requestorAddressState)) {
-            errors.requestorAddressState = 'bankAccount.error.addressState';
         }
 
         if (values.requestorAddressZipCode && !ValidationUtils.isValidZipCode(values.requestorAddressZipCode)) {
