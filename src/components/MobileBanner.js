@@ -7,7 +7,7 @@ import Text from './Text';
 import Tooltip from './Tooltip';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 import CONST from '../CONST';
-import AppIcon from '../../../assets/images/expensify-app-icon.svg';
+import AppIcon from '../../assets/images/expensify-app-icon.svg';
 import Button from './Button';
 import variables from '../styles/variables';
 import useLocalize from '../hooks/useLocalize';
