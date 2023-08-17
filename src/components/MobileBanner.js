@@ -54,7 +54,7 @@ function MobileBanner() {
                                 {translate('mobileBanner.downloadTheApp')}
                             </Text>
                             <Text
-                                style={[styles.alignSelfStretch, styles.textLabel]}
+                                style={[styles.alignSelfStretch, styles.textLabel, styles.lh16]}
                                 suppressHighlighting
                             >
                                 {translate('mobileBanner.keepTheConversationGoing')}
