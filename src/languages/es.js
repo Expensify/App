@@ -235,7 +235,7 @@ export default {
         welcomeEnterMagicCode: ({login}) => `Por favor, introduce el código mágico enviado a ${login}. Debería llegar en un par de minutos.`,
     },
     mobileBanner: {
-        downloadTheApp: 'Descarga la App.',
+        downloadTheApp: 'Descarga la aplicación.',
         keepTheConversationGoing: 'Mantén la conversación en New Expensify.',
     },
     login: {
