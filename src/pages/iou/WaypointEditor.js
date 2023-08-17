@@ -128,6 +128,7 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             onEntryTransitionEnd={() => textInput.current && textInput.current.focus()}
+            shouldEnableMaxHeight
         >
             <HeaderWithBackButton
                 title="Waypoint Editor"
