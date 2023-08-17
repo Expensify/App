@@ -63,6 +63,7 @@ describe('CurrencyUtils', () => {
         test('Currency decimals smaller than or equal 2', () => {
             expect(CurrencyUtils.getCurrencyDecimals('JPY')).toBe(0);
             expect(CurrencyUtils.getCurrencyDecimals('USD')).toBe(2);
+            expect(CurrencyUtils.getCurrencyDecimals('RSD')).toBe(2);
         });
 
         test('Currency decimals larger than 2 should return 2', () => {
@@ -85,36 +86,36 @@ describe('CurrencyUtils', () => {
         });
     });
 
-    describe('convertToSmallestUnit', () => {
+    describe('convertToBackendAmount', () => {
         test.each([
-            [CONST.CURRENCY.USD, 25, 2500],
-            [CONST.CURRENCY.USD, 25.25, 2525],
-            [CONST.CURRENCY.USD, 25.5, 2550],
-            [CONST.CURRENCY.USD, 2500, 250000],
-            [CONST.CURRENCY.USD, 80.6, 8060],
-            [CONST.CURRENCY.USD, 80.9, 8090],
-            [CONST.CURRENCY.USD, 80.99, 8099],
-            ['JPY', 25, 25],
-            ['JPY', 25.25, 25],
-            ['JPY', 25.5, 26],
-            ['JPY', 2500, 2500],
-            ['JPY', 80.6, 81],
-            ['JPY', 80.9, 81],
-            ['JPY', 80.99, 81],
-        ])('Correctly converts %s to amount in smallest units', (currency, amount, expectedResult) => {
-            expect(CurrencyUtils.convertToSmallestUnit(currency, amount)).toBe(expectedResult);
+            [25, 2500],
+            [25.25, 2525],
+            [25.5, 2550],
+            [2500, 250000],
+            [80.6, 8060],
+            [80.9, 8090],
+            [80.99, 8099],
+            [25, 2500],
+            [25.25, 2525],
+            [25.5, 2550],
+            [2500, 250000],
+            [80.6, 8060],
+            [80.9, 8090],
+            [80.99, 8099],
+        ])('Correctly converts %s to amount in cents (subunit) handled in backend', (amount, expectedResult) => {
+            expect(CurrencyUtils.convertToBackendAmount(amount)).toBe(expectedResult);
         });
     });
 
-    describe('convertToWholeUnit', () => {
+    describe('convertToFrontendAmount', () => {
         test.each([
-            [CONST.CURRENCY.USD, 2500, 25],
-            [CONST.CURRENCY.USD, 2550, 25.5],
-            ['JPY', 25, 25],
-            ['JPY', 2500, 2500],
-            ['JPY', 25.5, 25],
-        ])('Correctly converts %s to amount in whole units', (currency, amount, expectedResult) => {
-            expect(CurrencyUtils.convertToWholeUnit(currency, amount)).toBe(expectedResult);
+            [2500, 25],
+            [2550, 25.5],
+            [25, 0.25],
+            [2500, 25],
+            [2500.5, 25], // The backend should never send a decimal .5 value
+        ])('Correctly converts %s to amount in units handled in frontend', (amount, expectedResult) => {
+            expect(CurrencyUtils.convertToFrontendAmount(amount)).toBe(expectedResult);
         });
     });
 
@@ -124,9 +125,13 @@ describe('CurrencyUtils', () => {
             [CONST.CURRENCY.USD, 2500, '$25.00'],
             [CONST.CURRENCY.USD, 150, '$1.50'],
             [CONST.CURRENCY.USD, 250000, '$2,500.00'],
-            ['JPY', 25, '¥25'],
-            ['JPY', 2500, '¥2,500'],
-            ['JPY', 25.5, '¥25'],
+            ['JPY', 2500, '¥25'],
+            ['JPY', 250000, '¥2,500'],
+            ['JPY', 2500.5, '¥25'],
+            ['RSD', 100, 'RSD\xa01.00'],
+            ['RSD', 145, 'RSD\xa01.45'],
+            ['BHD', 12345, 'BHD\xa0123.450'],
+            ['BHD', 1, 'BHD\xa00.010'],
         ])('Correctly displays %s', (currency, amount, expectedResult) => {
             expect(CurrencyUtils.convertToDisplayString(amount, currency)).toBe(expectedResult);
         });
