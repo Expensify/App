@@ -89,6 +89,7 @@ function PressableWithSecondaryInteraction({
         return () => {
             element.removeEventListener('contextmenu', executeSecondaryInteractionOnContextMenu);
         };
+        // We only want this to run on mount
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
