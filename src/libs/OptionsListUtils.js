@@ -149,6 +149,7 @@ function getAvatarsForAccountIDs(accountIDs, personalDetails, defaultValues = {}
     return _.map(accountIDs, (accountID) => {
         const login = lodashGet(reversedDefaultValues, accountID, '');
         const userPersonalDetail = lodashGet(personalDetails, accountID, {login, accountID, avatar: ''});
+
         return {
             id: accountID,
             source: UserUtils.getAvatar(userPersonalDetail.avatar, userPersonalDetail.accountID),
@@ -1010,17 +1011,20 @@ function formatMemberForList(member, isSelected) {
         return undefined;
     }
 
+    const avatarSource = lodashGet(member, 'participantsList[0].avatar', '') || lodashGet(member, 'avatar', '');
+    const accountID = lodashGet(member, 'accountID', '');
+
     return {
         text: lodashGet(member, 'text', '') || lodashGet(member, 'displayName', ''),
         alternateText: lodashGet(member, 'alternateText', '') || lodashGet(member, 'login', ''),
-        keyForList: lodashGet(member, 'keyForList', '') || String(lodashGet(member, 'accountID', '')),
+        keyForList: lodashGet(member, 'keyForList', '') || String(accountID),
         isSelected,
         isDisabled: false,
-        accountID: lodashGet(member, 'accountID', ''),
+        accountID,
         login: lodashGet(member, 'login', ''),
         isAdmin: false,
         avatar: {
-            source: lodashGet(member, 'participantsList[0].avatar', '') || lodashGet(member, 'avatar', '') || UserUtils.getDefaultAvatar(lodashGet(member, 'accountID', '')),
+            source: UserUtils.getAvatar(avatarSource, accountID),
             name: lodashGet(member, 'participantsList[0].login', '') || lodashGet(member, 'displayName', ''),
             type: 'avatar',
         },
