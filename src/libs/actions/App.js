@@ -1,5 +1,5 @@
 import moment from 'moment-timezone';
-import {AppState} from 'react-native';
+import {AppState, InteractionManager} from 'react-native';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
@@ -18,6 +18,10 @@ import * as Session from './Session';
 import * as ReportActionsUtils from '../ReportActionsUtils';
 import Timing from './Timing';
 import * as Browser from '../Browser';
+import * as Report from './Report';
+import * as ReportUtils from '../ReportUtils';
+import * as SidebarUtils from '../SidebarUtils';
+import * as NetworkStore from '../Network/NetworkStore';
 
 let currentUserAccountID;
 let currentUserEmail;
@@ -45,6 +49,12 @@ Onyx.connect({
 let resolveIsReadyPromise;
 const isReadyToOpenApp = new Promise((resolve) => {
     resolveIsReadyPromise = resolve;
+});
+
+let isNetworkOffline = false;
+Onyx.connect({
+    key: ONYXKEYS.NETWORK,
+    callback: (val) => (isNetworkOffline = lodashGet(val, 'isOffline', false)),
 });
 
 function confirmReadyToOpenApp() {
@@ -437,6 +447,42 @@ function beginDeepLinkRedirectAfterTransition() {
     waitForSignOnTransitionToFinish().then(beginDeepLinkRedirect);
 }
 
+// /**
+//  * @param {String|null} url
+//  * @param {Boolean} isAuthenticated
+//  */
+function openDeeplinkAfterSignIn(url, isAuthenticated) {
+    const route = ReportUtils.getRouteFromLink(url);
+    const reportID = ReportUtils.getReportIDFromLink(url);
+
+    if (reportID && !isAuthenticated) {
+        // Call the OpenReport command to check in the server if it's a public room. If so, we'll open it as an anonymous user
+        Report.openReport(reportID, [], {}, '0', true);
+
+        // Show the sign-in page if the app is offline
+        if (isNetworkOffline) {
+            Onyx.set(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, false);
+        }
+    } else {
+        // If we're not opening a public room (no reportID) or the user is authenticated, we unblock the UI (hide splash screen)
+        Onyx.set(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, false);
+    }
+
+    // Navigate to the report after sign-in/sign-up.
+    InteractionManager.runAfterInteractions(() => {
+        NetworkStore.isUserAuthenticatedReady().then(() => {
+            console.debug('[App] Navigating to deeplink', route, reportID);
+            if (reportID) {
+                Navigation.navigate(ROUTES.getReportRoute(reportID), 'UP');
+            }
+            if (route === ROUTES.CONCIERGE) {
+                Report.navigateToConciergeChat();
+            }
+            Navigation.navigate(route, 'PUSH');
+        });
+    });
+}
+
 export {
     setLocale,
     setLocaleAndNavigate,
@@ -449,4 +495,5 @@ export {
     beginDeepLinkRedirect,
     beginDeepLinkRedirectAfterTransition,
     createWorkspaceAndNavigateToIt,
+    openDeeplinkAfterSignIn,
 };

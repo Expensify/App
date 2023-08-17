@@ -34,6 +34,7 @@ import FullScreenNavigator from './Navigators/FullScreenNavigator';
 import styles from '../../../styles/styles';
 import * as SessionUtils from '../../SessionUtils';
 import getNavigationModalCardStyle from '../../../styles/getNavigationModalCardStyles';
+import * as NetworkStore from '../../Network/NetworkStore';
 
 let timezone;
 let currentAccountID;
@@ -185,6 +186,8 @@ class AuthScreens extends React.Component {
             groupShortcutConfig.modifiers,
             true,
         );
+
+        NetworkStore.setIsUserAuthenticated();
     }
 
     shouldComponentUpdate(nextProps) {
@@ -199,6 +202,7 @@ class AuthScreens extends React.Component {
             this.unsubscribeGroupShortcut();
         }
         Session.cleanupSession();
+        NetworkStore.resetIsUserAuthenticatedReadyPromise();
         clearInterval(this.interval);
         this.interval = null;
     }

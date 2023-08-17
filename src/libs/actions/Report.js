@@ -1,4 +1,3 @@
-import {InteractionManager} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
@@ -25,7 +24,6 @@ import * as ErrorUtils from '../ErrorUtils';
 import * as UserUtils from '../UserUtils';
 import * as Welcome from './Welcome';
 import * as PersonalDetailsUtils from '../PersonalDetailsUtils';
-import SidebarUtils from '../SidebarUtils';
 import * as OptionsListUtils from '../OptionsListUtils';
 import * as Environment from '../Environment/Environment';
 
@@ -1696,40 +1694,6 @@ function toggleEmojiReaction(reportID, reportAction, reactionObject, existingRea
 }
 
 /**
- * @param {String|null} url
- * @param {Boolean} isAuthenticated
- */
-function openReportFromDeepLink(url, isAuthenticated) {
-    const route = ReportUtils.getRouteFromLink(url);
-    const reportID = ReportUtils.getReportIDFromLink(url);
-
-    if (reportID && !isAuthenticated) {
-        // Call the OpenReport command to check in the server if it's a public room. If so, we'll open it as an anonymous user
-        openReport(reportID, [], {}, '0', true);
-
-        // Show the sign-in page if the app is offline
-        if (isNetworkOffline) {
-            Onyx.set(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, false);
-        }
-    } else {
-        // If we're not opening a public room (no reportID) or the user is authenticated, we unblock the UI (hide splash screen)
-        Onyx.set(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, false);
-    }
-
-    // Navigate to the report after sign-in/sign-up.
-    InteractionManager.runAfterInteractions(() => {
-        SidebarUtils.isSidebarLoadedReady().then(() => {
-            if (reportID) {
-                Navigation.navigate(ROUTES.getReportRoute(reportID), 'UP');
-            }
-            if (route === ROUTES.CONCIERGE) {
-                navigateToConciergeChat();
-            }
-        });
-    });
-}
-
-/**
  * Leave a report by setting the state to submitted and closed
  *
  * @param {String} reportID
@@ -1910,7 +1874,6 @@ export {
     readNewestAction,
     readOldestAction,
     openReport,
-    openReportFromDeepLink,
     navigateToAndOpenReport,
     navigateToAndOpenReportWithAccountIDs,
     navigateToAndOpenChildReport,

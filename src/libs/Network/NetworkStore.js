@@ -10,6 +10,26 @@ let currentUserEmail;
 let offline = false;
 let authenticating = false;
 
+let resolveIsUserAuthenticatedPromise;
+
+let isUserAuthenticatedPromise = new Promise((resolve) => {
+    resolveIsUserAuthenticatedPromise = resolve;
+});
+
+function resetIsUserAuthenticatedReadyPromise() {
+    isUserAuthenticatedPromise = new Promise((resolve) => {
+        resolveIsUserAuthenticatedPromise = resolve;
+    });
+}
+
+function isUserAuthenticatedReady() {
+    return isUserAuthenticatedPromise;
+}
+
+function setIsUserAuthenticated() {
+    resolveIsUserAuthenticatedPromise();
+}
+
 // Allow code that is outside of the network listen for when a reconnection happens so that it can execute any side-effects (like flushing the sequential network queue)
 let reconnectCallback;
 function triggerReconnectCallback() {
@@ -179,4 +199,7 @@ export {
     getSupportAuthToken,
     setSupportAuthToken,
     isSupportRequest,
+    isUserAuthenticatedReady,
+    setIsUserAuthenticated,
+    resetIsUserAuthenticatedReadyPromise,
 };
