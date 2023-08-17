@@ -57,7 +57,7 @@ const defaultProps = {
 const getAllParticipants = (report, personalDetails, translate) => {
     let participantAccountIDs = report.participantAccountIDs;
 
-    // Build participants list for IOU report - there is a possibility that participantAccountIDs may be empty
+    // Build participants list for IOU report - there is a possibility that participantAccountIDs may be undefined/empty
     if (ReportUtils.isIOUReport(report)) {
         const managerID = report.managerID || '';
         const ownerAccountID = report.ownerAccountID || '';
