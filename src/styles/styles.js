@@ -3678,10 +3678,11 @@ const styles = {
         transform: [{rotate: '90deg'}],
     },
 
-    distanceRequestContainer: {
+    distanceRequestContainer: (maxHeight) => ({
         ...flex.flexShrink2,
         minHeight: variables.baseMenuItemHeight,
-    },
+        maxHeight,
+    }),
 
     mapViewContainer: {
         ...flex.flex1,
