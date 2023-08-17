@@ -471,6 +471,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
         ? allReports[`${ONYXKEYS.COLLECTION.REPORT}${existingGroupChatReportID}`]
         : ReportUtils.getChatByParticipants(participantAccountIDs);
     const groupChatReport = existingGroupChatReport || ReportUtils.buildOptimisticChatReport(participantAccountIDs);
+    const isOwnPolicyExpenseChat = groupChatReport.isOwnPolicyExpenseChat;
 
     // ReportID is -2 (aka "deleted") on the group transaction: https://github.com/Expensify/Auth/blob/3fa2698654cd4fbc30f9de38acfca3fbeb7842e4/auth/command/SplitTransaction.cpp#L24-L27
     const formattedParticipants = Localize.arrayToString([currentUserLogin, ..._.map(participants, (participant) => participant.login)]);

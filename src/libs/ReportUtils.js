@@ -1157,7 +1157,7 @@ function getMoneyRequestAction(reportAction = {}) {
  * @param {Object} report (chatReport or iouReport)
  * @returns {boolean}
  */
-function isWaitingForIOUActionFromCurrentUser(report, debug) {
+function isWaitingForIOUActionFromCurrentUser(report) {
     if (!report) {
         return false;
     }
