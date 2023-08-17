@@ -189,10 +189,10 @@ function Expensify(props) {
                 <>
                     <KeyboardShortcutsModal />
                     <GrowlNotification ref={Growl.growlRef} />
+                    <MobileBanner />
                     <PopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />
                     <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
                     {/* We include the modal for showing a new update at the top level so the option is always present. */}
-                    {true ? <MobileBanner /> : null}
                     {props.updateAvailable ? <UpdateAppModal /> : null}
                     {props.screenShareRequest ? (
                         <ConfirmModal
