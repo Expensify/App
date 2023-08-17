@@ -20,8 +20,12 @@ export default {
     BANK_ACCOUNT_NEW: 'bank-account/new',
     BANK_ACCOUNT_WITH_STEP_TO_OPEN: 'bank-account/:stepToOpen?',
     BANK_ACCOUNT_PERSONAL: 'bank-account/personal',
-    getBankAccountRoute: (stepToOpen = '', policyID = '') => `bank-account/${stepToOpen}?policyID=${policyID}`,
+    getBankAccountRoute: (stepToOpen = '', policyID = '', backTo = '') => {
+        const backToParam = backTo ? `&backTo=${encodeURIComponent(backTo)}` : '';
+        return `bank-account/${stepToOpen}?policyID=${policyID}${backToParam}`;
+    },
     HOME: '',
+    SAASTR_HOME: 'saastr',
     SETTINGS: 'settings',
     SETTINGS_PROFILE: 'settings/profile',
     SETTINGS_SHARE_CODE: 'settings/shareCode',
@@ -69,6 +73,8 @@ export default {
     REPORT_WITH_ID: 'r/:reportID?',
     EDIT_REQUEST: 'r/:threadReportID/edit/:field',
     getEditRequestRoute: (threadReportID, field) => `r/${threadReportID}/edit/${field}`,
+    EDIT_CURRENCY_REQUEST: 'r/:threadReportID/edit/currency',
+    getEditRequestCurrencyRoute: (threadReportID, currency, backTo) => `r/${threadReportID}/edit/currency?currency=${currency}&backTo=${backTo}`,
     getReportRoute: (reportID) => `r/${reportID}`,
     REPORT_WITH_ID_DETAILS_SHARE_CODE: 'r/:reportID/details/shareCode',
     getReportShareCodeRoute: (reportID) => `r/${reportID}/details/shareCode`,
@@ -92,6 +98,7 @@ export default {
     MONEY_REQUEST_MANUAL_TAB: ':iouType/new/:reportID?/manual',
     MONEY_REQUEST_SCAN_TAB: ':iouType/new/:reportID?/scan',
     MONEY_REQUEST_DISTANCE_TAB: ':iouType/new/:reportID?/distance',
+    MONEY_REQUEST_WAYPOINT: ':iouType/new/waypoint/:waypointIndex',
     IOU_SEND_ADD_BANK_ACCOUNT: `${IOU_SEND}/add-bank-account`,
     IOU_SEND_ADD_DEBIT_CARD: `${IOU_SEND}/add-debit-card`,
     IOU_SEND_ENABLE_PAYMENTS: `${IOU_SEND}/enable-payments`,
@@ -101,6 +108,8 @@ export default {
     getMoneyRequestConfirmationRoute: (iouType, reportID = '') => `${iouType}/new/confirmation/${reportID}`,
     getMoneyRequestCurrencyRoute: (iouType, reportID = '', currency, backTo) => `${iouType}/new/currency/${reportID}?currency=${currency}&backTo=${backTo}`,
     getMoneyRequestDescriptionRoute: (iouType, reportID = '') => `${iouType}/new/description/${reportID}`,
+    getMoneyRequestDistanceTabRoute: (iouType, reportID = '') => `${iouType}/new/${reportID}/distance`,
+    getMoneyRequestWaypointRoute: (iouType, waypointIndex) => `${iouType}/new/waypoint/${waypointIndex}`,
     SPLIT_BILL_DETAILS: `r/:reportID/split/:reportActionID`,
     getSplitBillDetailsRoute: (reportID, reportActionID) => `r/${reportID}/split/${reportActionID}`,
     getNewTaskRoute: (reportID) => `${NEW_TASK}/${reportID}`,
@@ -142,6 +151,10 @@ export default {
     GET_ASSISTANCE: 'get-assistance/:taskID',
     getGetAssistanceRoute: (taskID) => `get-assistance/${taskID}`,
     UNLINK_LOGIN: 'u/:accountID/:validateCode',
+
+    APPLE_SIGN_IN: 'sign-in-with-apple',
+    GOOGLE_SIGN_IN: 'sign-in-with-google',
+    DESKTOP_SIGN_IN_REDIRECT: 'desktop-signin-redirect',
 
     // This is a special validation URL that will take the user to /workspace/new after validation. This is used
     // when linking users from e.com in order to share a session in this app.

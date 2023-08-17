@@ -363,7 +363,7 @@ function Composer({
         }
 
         if (textInput.current) {
-            textInput.current.addEventListener('paste', handlePaste);
+            document.addEventListener('paste', handlePaste);
             textInput.current.addEventListener('wheel', handleWheel);
         }
 
