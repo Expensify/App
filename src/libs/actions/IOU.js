@@ -1706,6 +1706,13 @@ function setMoneyRequestDescription(comment) {
 }
 
 /**
+ * @param {String} merchant
+ */
+function setMoneyRequestMerchant(merchant) {
+    Onyx.merge(ONYXKEYS.IOU, {merchant: merchant.trim()});
+}
+
+/**
  * @param {Object[]} participants
  */
 function setMoneyRequestParticipants(participants) {
@@ -1779,6 +1786,7 @@ export {
     setMoneyRequestAmount,
     setMoneyRequestCurrency,
     setMoneyRequestDescription,
+    setMoneyRequestMerchant,
     setMoneyRequestParticipants,
     setMoneyRequestReceipt,
     createEmptyTransaction,
