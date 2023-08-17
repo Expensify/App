@@ -157,9 +157,6 @@ export default {
     BANK_ACCOUNT_LIST: 'bankAccountList',
 
     // The user's credit cards
-    CARD_LIST: 'cardList',
-
-    // The user's credit cards (renamed from cardList)
     FUND_LIST: 'fundList',
 
     // The user's Expensify cards
