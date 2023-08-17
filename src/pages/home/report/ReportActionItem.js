@@ -468,12 +468,10 @@ function ReportActionItem(props) {
         const parentReportAction = ReportActionsUtils.getParentReportAction(props.report);
         if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
             return (
-                <OfflineWithFeedback pendingAction={props.action.pendingAction}>
-                    <MoneyRequestView
-                        report={props.report}
-                        shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
-                    />
-                </OfflineWithFeedback>
+                <MoneyRequestView
+                    report={props.report}
+                    shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
+                />
             );
         }
         if (ReportUtils.isTaskReport(props.report)) {
