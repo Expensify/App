@@ -2,9 +2,6 @@ import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import ONYXKEYS from '../../ONYXKEYS';
-import Growl from '../Growl';
-import * as Localize from '../Localize';
-import CONST from '../../CONST';
 import asyncOpenURL from '../asyncOpenURL';
 import * as API from '../API';
 import * as Environment from '../Environment/Environment';
@@ -21,16 +18,6 @@ Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => (currentUserEmail = lodashGet(val, 'email', '')),
 });
-
-/**
- * @returns {Boolean}
- */
-function showGrowlIfOffline() {
-    if (isNetworkOffline) {
-        Growl.show(Localize.translateLocal('session.offlineMessageRetry'), CONST.GROWL.WARNING);
-    }
-    return isNetworkOffline;
-}
 
 /**
  * @param {String} [url] the url path
@@ -60,10 +47,6 @@ function buildOldDotURL(url, shortLivedAuthToken) {
  * @param {Boolean} shouldSkipCustomSafariLogic When true, we will use `Linking.openURL` even if the browser is Safari.
  */
 function openExternalLink(url, shouldSkipCustomSafariLogic = false) {
-    if (showGrowlIfOffline()) {
-        return;
-    }
-
     asyncOpenURL(Promise.resolve(), url, shouldSkipCustomSafariLogic);
 }
 
