@@ -12,6 +12,7 @@ import NAVIGATORS from '../../NAVIGATORS';
 import originalGetTopmostReportId from './getTopmostReportId';
 import getStateFromPath from './getStateFromPath';
 import SCREENS from '../../SCREENS';
+import CONST from '../../CONST';
 
 let resolveNavigationIsReadyPromise;
 const navigationIsReadyPromise = new Promise((resolve) => {
@@ -127,7 +128,7 @@ function goBack(fallbackRoute = ROUTES.HOME, shouldEnforceFallback = false, shou
     }
 
     if (shouldEnforceFallback || (isFirstRouteInNavigator && fallbackRoute)) {
-        navigate(fallbackRoute, 'UP');
+        navigate(fallbackRoute, CONST.NAVIGATION.TYPE.UP);
         return;
     }
 
