@@ -2398,7 +2398,6 @@ function isPlainDirectMessage(report) {
         !isThread(report) &&
         !isChatRoom(report) &&
         !isExpenseRequest(report) &&
-        !isIOUOwnedByCurrentUser(report) &&
         !isMoneyRequestReport(report) &&
         !isPolicyExpenseChat(report) &&
         !isTaskReport(report) && //
