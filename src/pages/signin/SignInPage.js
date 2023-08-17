@@ -45,11 +45,15 @@ const propTypes = {
         twoFactorAuthCode: PropTypes.string,
         validateCode: PropTypes.string,
     }),
+
+    /** Override the green headline copy */
+    customHeadline: PropTypes.string,
 };
 
 const defaultProps = {
     account: {},
     credentials: {},
+    customHeadline: '',
 };
 
 /**
@@ -77,7 +81,7 @@ function getRenderOptions({hasLogin, hasValidateCode, hasAccount, isPrimaryLogin
     };
 }
 
-function SignInPage({credentials, account}) {
+function SignInPage({credentials, account, customHeadline}) {
     const {translate, formatPhoneNumber} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
     const safeAreaInsets = useSafeAreaInsets();
@@ -100,8 +104,9 @@ function SignInPage({credentials, account}) {
 
     let welcomeHeader = '';
     let welcomeText = '';
+    const headerText = customHeadline || translate('login.hero.header');
     if (shouldShowLoginForm) {
-        welcomeHeader = isSmallScreenWidth ? translate('login.hero.header') : translate('welcomeText.getStarted');
+        welcomeHeader = isSmallScreenWidth ? headerText : translate('welcomeText.getStarted');
         welcomeText = isSmallScreenWidth ? translate('welcomeText.getStarted') : '';
     } else if (shouldShowValidateCodeForm) {
         if (account.requiresTwoFactorAuth) {
@@ -126,7 +131,7 @@ function SignInPage({credentials, account}) {
             }
         }
     } else if (shouldShowUnlinkLoginForm || shouldShowEmailDeliveryFailurePage) {
-        welcomeHeader = isSmallScreenWidth ? translate('login.hero.header') : translate('welcomeText.welcomeBack');
+        welcomeHeader = isSmallScreenWidth ? headerText : translate('welcomeText.welcomeBack');
 
         // Don't show any welcome text if we're showing the user the email delivery failed view
         if (shouldShowEmailDeliveryFailurePage) {
@@ -145,6 +150,7 @@ function SignInPage({credentials, account}) {
                 welcomeText={welcomeText}
                 shouldShowWelcomeHeader={shouldShowWelcomeHeader || !isSmallScreenWidth}
                 shouldShowWelcomeText={shouldShowWelcomeText}
+                customHeadline={customHeadline}
             >
                 {/* LoginForm must use the isVisible prop. This keeps it mounted, but visually hidden
                     so that password managers can access the values. Conditionally rendering this component will break this feature. */}

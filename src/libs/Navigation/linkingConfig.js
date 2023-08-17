@@ -17,6 +17,7 @@ export default {
             GoogleSignInDesktop: ROUTES.GOOGLE_SIGN_IN,
             DesktopSignInRedirect: ROUTES.DESKTOP_SIGN_IN_REDIRECT,
             [SCREENS.REPORT_ATTACHMENTS]: ROUTES.REPORT_ATTACHMENTS,
+            SaaStrHome: ROUTES.SAASTR_HOME,
 
             // Sidebar
             [SCREENS.HOME]: {
