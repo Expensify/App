@@ -54,7 +54,7 @@ function HeaderWithBackButton({
     const {isKeyboardShown} = useKeyboardState();
     return (
         <>
-            <View style={[styles.headerBar, shouldShowBorderBottom && !statusBar && styles.borderBottom, shouldShowBackButton && styles.pl2]}>
+            <View style={[styles.headerBar, shouldShowBorderBottom && styles.borderBottom, shouldShowBackButton && styles.pl2]}>
                 <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden]}>
                     {shouldShowBackButton && (
                         <Tooltip text={translate('common.back')}>

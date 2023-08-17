@@ -3,7 +3,6 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import styles from '../../styles/styles';
-import stylePropTypes from '../../styles/stylePropTypes';
 import Text from '../Text';
 import ReportActionItemImage from './ReportActionItemImage';
 
@@ -28,18 +27,20 @@ const propTypes = {
     // eslint-disable-next-line react/require-default-props
     total: PropTypes.number,
 
-    hoverStyle: stylePropTypes,
+    /** if the corresponding report action item is hovered */
+    isHovered: PropTypes.boolean,
 };
 
 const defaultProps = {
-    hoverStyle: {},
+    isHovered: false,
 };
 
-function ReportActionItemImages({images, size, total, hoverStyle}) {
+function ReportActionItemImages({images, size, total, isHovered}) {
     const numberOfShownImages = size || images.length;
     const shownImages = images.slice(0, size);
     const remaining = (total || images.length) - size;
 
+    const hoverStyle = isHovered ? styles.reportPreviewBoxHoverBorder : undefined;
     return (
         <View style={[styles.reportActionItemImages, hoverStyle]}>
             {_.map(shownImages, ({thumbnail, image}, index) => {

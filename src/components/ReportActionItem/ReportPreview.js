@@ -167,7 +167,7 @@ function ReportPreview(props) {
                             images={_.map(transactions, ({receipt, filename}) => ReceiptUtils.getThumbnailAndImageURIs(receipt.source, filename))}
                             size={3}
                             total={ReportActionUtils.getNumberOfMoneyRequests(props.action)}
-                            hoverStyle={props.isHovered || isScanning ? styles.reportPreviewBoxHoverBorder : undefined}
+                            isHovered={props.isHovered || isScanning}
                         />
                     )}
                     <View style={styles.reportPreviewBoxBody}>

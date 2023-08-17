@@ -1240,7 +1240,7 @@ function getTransactionReportName(reportAction) {
         return Localize.translateLocal('parentReportAction.deletedRequest');
     }
 
-    if (!ReportActionsUtils.areAllRequestsBeingSmartScanned(reportAction)) {
+    if (ReportActionsUtils.areAllRequestsBeingSmartScanned(reportAction)) {
         return Localize.translateLocal('iou.receiptScanning');
     }
 

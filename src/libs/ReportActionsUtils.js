@@ -594,18 +594,18 @@ function areAllRequestsBeingSmartScanned(reportAction) {
         const transactions = TransactionUtils.getReportPreviewTransactionsWithReceipts(reportAction);
         // If we have more requests than requests with receipts, we have some manual requests
         if (getNumberOfMoneyRequests(reportAction) > transactions.length) {
-            return true;
+            return false;
         }
-        return _.some(transactions, (transaction) => !ReceiptUtils.isBeingScanned(transaction.receipt));
+        return _.all(transactions, (transaction) => !ReceiptUtils.isBeingScanned(transaction.receipt));
     }
 
     // If a money request action is not a scanning receipt
     if (isMoneyRequestAction(reportAction)) {
         const transaction = TransactionUtils.getTransaction(reportAction.originalMessage.IOUTransactionID);
-        return !TransactionUtils.hasReceipt(transaction) || !ReceiptUtils.isBeingScanned(transaction.receipt);
+        return TransactionUtils.hasReceipt(transaction) && !ReceiptUtils.isBeingScanned(transaction.receipt);
     }
 
-    return true;
+    return false;
 }
 
 /**

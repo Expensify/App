@@ -201,11 +201,11 @@ function MoneyRequestPreview(props) {
                 errorRowStyles={[styles.mbn1]}
                 needsOffscreenAlphaCompositing
             >
-                <View style={[styles.moneyRequestPreviewBox, ...props.containerStyles, isScanning ? styles.moneyRequestPreviewBoxHover : undefined]}>
+                <View style={[styles.moneyRequestPreviewBox, isScanning ? styles.moneyRequestPreviewBoxHover : undefined, ...props.containerStyles]}>
                     {hasReceipt && (
                         <ReportActionItemImages
                             images={[ReceiptUtils.getThumbnailAndImageURIs(transaction.receipt.source, transaction.filename)]}
-                            hoverStyle={isScanning ? styles.moneyRequestPreviewBoxHover : undefined}
+                            isHovered={isScanning}
                         />
                     )}
                     <View style={styles.moneyRequestPreviewBoxText}>
