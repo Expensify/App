@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React, {useState, useRef, useEffect, useCallback} from 'react';
-import {Animated, View, AppState, Keyboard, StyleSheet, InteractionManager} from 'react-native';
+import {Animated, View, AppState, Keyboard, StyleSheet} from 'react-native';
 import Str from 'expensify-common/lib/str';
 import RNTextInput from '../RNTextInput';
 import TextInputLabel from './TextInputLabel';
@@ -190,13 +190,11 @@ function BaseTextInput(props) {
         // We can't use inputValue here directly, as it might contain
         // the defaultValue, which doesn't get updated when the text changes.
         // We can't use props.value either, as it might be undefined.
-        InteractionManager.runAfterInteractions(() => {
-            if (hasValueRef.current || isFocused || isInputAutoFilled(input.current)) {
-                activateLabel();
-            } else {
-                deactivateLabel();
-            }
-        });
+        if (hasValueRef.current || isFocused || isInputAutoFilled(input.current)) {
+            activateLabel();
+        } else {
+            deactivateLabel();
+        }
     }, [activateLabel, deactivateLabel, inputValue, isFocused]);
 
     /**
