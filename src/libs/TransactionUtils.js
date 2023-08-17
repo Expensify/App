@@ -30,12 +30,23 @@ Onyx.connect({
  * @param {String} [originalTransactionID]
  * @param {String} [merchant]
  * @param {Object} [receipt]
+ * @param {String} [existingTransactionID] When creating a distance request, an empty transaction has already been created with a transactionID. In that case, the transaction here needs to have it's transactionID match what was already generated.
  * @returns {Object}
  */
-function buildOptimisticTransaction(amount, currency, reportID, comment = '', source = '', originalTransactionID = '', merchant = CONST.REPORT.TYPE.IOU, receipt = {}) {
+function buildOptimisticTransaction(
+    amount,
+    currency,
+    reportID,
+    comment = '',
+    source = '',
+    originalTransactionID = '',
+    merchant = CONST.REPORT.TYPE.IOU,
+    receipt = {},
+    existingTransactionID = null,
+) {
     // transactionIDs are random, positive, 64-bit numeric strings.
     // Because JS can only handle 53-bit numbers, transactionIDs are strings in the front-end (just like reportActionID)
-    const transactionID = NumberUtils.rand64();
+    const transactionID = existingTransactionID || NumberUtils.rand64();
 
     const commentJSON = {comment};
     if (source) {
