@@ -118,15 +118,12 @@ function NewRequestAmountPage({route, iou, report}) {
             }
             const moneyRequestID = `${iouType}${reportID}`;
             const shouldReset = iou.id !== moneyRequestID;
-            let resetPromise = Promise.resolve();
             if (shouldReset) {
-                resetPromise = IOU.resetMoneyRequestInfo(moneyRequestID);
+                IOU.resetMoneyRequestInfo(moneyRequestID)
             }
 
             if (_.isEmpty(iou.participants) || iou.amount === 0 || shouldReset) {
-                resetPromise.then(() => {
-                    Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType, reportID), true);
-                });
+                Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType, reportID), true);
             }
         }
 
@@ -147,14 +144,15 @@ function NewRequestAmountPage({route, iou, report}) {
 
     const navigateToNextPage = (currentAmount) => {
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToSmallestUnit(currency, Number.parseFloat(currentAmount));
-        const iouUpdates = [IOU.setMoneyRequestAmount(amountInSmallestCurrencyUnits), IOU.setMoneyRequestCurrency(currency)];
+        IOU.setMoneyRequestAmount(amountInSmallestCurrencyUnits);
+        IOU.setMoneyRequestCurrency(currency);
 
         if (isEditing) {
             Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID));
             return;
         }
 
-        Promise.all(iouUpdates).then(() => IOU.navigateToNextPage(iou, iouType, reportID, report));
+        IOU.navigateToNextPage(iou, iouType, reportID, report);
     };
 
     const content = (

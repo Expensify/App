@@ -87,15 +87,12 @@ function MoneyRequestConfirmPage(props) {
         // Reset the money request Onyx if the ID in Onyx does not match the ID from params
         const moneyRequestId = `${iouType.current}${reportID.current}`;
         const shouldReset = props.iou.id !== moneyRequestId;
-        let resetPromise = Promise.resolve();
         if (shouldReset) {
-            resetPromise = IOU.resetMoneyRequestInfo(moneyRequestId);
+            IOU.resetMoneyRequestInfo(moneyRequestId);
         }
 
         if (_.isEmpty(props.iou.participants) || (props.iou.amount === 0 && !props.iou.receiptPath) || shouldReset) {
-            resetPromise.then(() => {
-                Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current), true);
-            });
+            Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current), true);
         }
 
         return () => {
