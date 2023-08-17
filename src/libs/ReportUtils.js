@@ -3206,13 +3206,17 @@ function getTaskAssigneeChatOnyxData(accountID, assigneeEmail, assigneeAccountID
  */
 function getReportPreviewDisplayTransactions(reportPreviewAction) {
     const transactionIDs = lodashGet(reportPreviewAction, ['childLastReceiptTransactionIDs'], '').split(',');
-    return _.reduce(transactionIDs, (transactions, transactionID) => {
-        const transaction = TransactionUtils.getTransaction(transactionID);
-        if (TransactionUtils.hasReceipt(transaction)) {
-            transactions.push(transaction);
-        }
-        return transactions;
-    }, []);
+    return _.reduce(
+        transactionIDs,
+        (transactions, transactionID) => {
+            const transaction = TransactionUtils.getTransaction(transactionID);
+            if (TransactionUtils.hasReceipt(transaction)) {
+                transactions.push(transaction);
+            }
+            return transactions;
+        },
+        [],
+    );
 }
 
 export {
