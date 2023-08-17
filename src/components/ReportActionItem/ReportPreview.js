@@ -166,7 +166,7 @@ function ReportPreview(props) {
                         <ReportActionItemImages
                             images={_.map(transactions, ({receipt, filename}) => ReceiptUtils.getThumbnailAndImageURIs(receipt.source, filename))}
                             size={3}
-                            total={ReportActionUtils.getNumberOfMoneyRequests(props.action)}
+                            total={ReportUtils.getNumberOfScanningReceipts(props.iouReport)}
                             isHovered={props.isHovered || isScanning}
                         />
                     )}
