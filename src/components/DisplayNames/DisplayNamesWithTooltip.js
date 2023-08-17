@@ -15,7 +15,7 @@ function DisplayNamesWithToolTip(props) {
     useEffect(() => {
         setIsEllipsisActive(
             containerRef.current && containerRef.current.offsetWidth && containerRef.current.scrollWidth && containerRef.current.offsetWidth < containerRef.current.scrollWidth,
-        )
+        );
     }, []);
 
     /**
