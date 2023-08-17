@@ -51,13 +51,13 @@ function MobileBanner() {
                                 style={[styles.alignSelfStretch, styles.textLabel, styles.textStrong]}
                                 suppressHighlighting
                             >
-                                {'Download the app'}
+                                {translate('mobileBanner.downloadTheApp')}
                             </Text>
                             <Text
                                 style={[styles.alignSelfStretch, styles.textLabel]}
                                 suppressHighlighting
                             >
-                                {'Keep the conversation going in New Expensify.'}
+                                {translate('mobileBanner.keepTheConversationGoing')}
                             </Text>
                         </View>
                     </View>
@@ -65,7 +65,7 @@ function MobileBanner() {
                 <Button
                     small
                     success
-                    text="Download"
+                    text={translate('common.download')}
                     onPress={handleOpenAppStore}
                 />
                 <Tooltip text={translate('common.close')}>
