@@ -57,9 +57,11 @@ const defaultProps = {
 const getAllParticipants = (report, personalDetails, translate) => {
     let participantAccountIDs = report.participantAccountIDs;
 
-    // Append report owner when the given report is IOU
+    // Build participants list for IOU report - there is a possibility that participantAccountIDs may be empty
     if (ReportUtils.isIOUReport(report)) {
-        participantAccountIDs = [...participantAccountIDs, report.ownerAccountID];
+        const managerID = report.managerID || '';
+        const ownerAccountID = report.ownerAccountID || '';
+        participantAccountIDs = [managerID, ownerAccountID];
     }
 
     return _.chain(participantAccountIDs)
