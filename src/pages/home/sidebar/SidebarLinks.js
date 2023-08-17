@@ -14,16 +14,13 @@ import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import Icon from '../../../components/Icon';
 import * as Expensicons from '../../../components/Icon/Expensicons';
-import AvatarWithIndicator from '../../../components/AvatarWithIndicator';
 import Tooltip from '../../../components/Tooltip';
 import CONST from '../../../CONST';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as App from '../../../libs/actions/App';
-import withCurrentUserPersonalDetails from '../../../components/withCurrentUserPersonalDetails';
 import withWindowDimensions from '../../../components/withWindowDimensions';
 import LHNOptionsList from '../../../components/LHNOptionsList/LHNOptionsList';
 import SidebarUtils from '../../../libs/SidebarUtils';
-import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import Header from '../../../components/Header';
 import defaultTheme from '../../../styles/themes/default';
 import OptionsListSkeletonView from '../../../components/OptionsListSkeletonView';
@@ -31,16 +28,12 @@ import variables from '../../../styles/variables';
 import LogoComponent from '../../../../assets/images/expensify-wordmark.svg';
 import PressableWithoutFeedback from '../../../components/Pressable/PressableWithoutFeedback';
 import * as Session from '../../../libs/actions/Session';
-import Button from '../../../components/Button';
-import Text from '../../../components/Text';
-import * as UserUtils from '../../../libs/UserUtils';
 import KeyboardShortcut from '../../../libs/KeyboardShortcut';
 import onyxSubscribe from '../../../libs/onyxSubscribe';
-import personalDetailsPropType from '../../personalDetailsPropType';
 import * as ReportActionContextMenu from '../report/ContextMenu/ReportActionContextMenu';
-import Permissions from '../../../libs/Permissions';
 import withCurrentReportID from '../../../components/withCurrentReportID';
 import OptionRowLHNData from '../../../components/LHNOptionsList/OptionRowLHNData';
+import SignInOrAvatarWithOptionalStatus from './SignInOrAvatarWithOptionalStatus';
 
 const basePropTypes = {
     /** Toggles the navigation menu open and closed */
@@ -60,11 +53,7 @@ const propTypes = {
 
     isLoading: PropTypes.bool.isRequired,
 
-    currentUserPersonalDetails: personalDetailsPropType,
-
     priorityMode: PropTypes.oneOf(_.values(CONST.PRIORITY_MODE)),
-
-    betas: PropTypes.arrayOf(PropTypes.string),
 
     /** The top most report id */
     currentReportID: PropTypes.string,
@@ -79,11 +68,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    currentUserPersonalDetails: {
-        avatar: '',
-    },
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
-    betas: [],
     currentReportID: '',
     report: {},
 };
@@ -93,8 +78,6 @@ class SidebarLinks extends React.PureComponent {
         super(props);
 
         this.showSearchPage = this.showSearchPage.bind(this);
-        this.showSettingsPage = this.showSettingsPage.bind(this);
-        this.showStatusPage = this.showStatusPage.bind(this);
         this.showReportPage = this.showReportPage.bind(this);
 
         if (this.props.isSmallScreenWidth) {
@@ -171,93 +154,6 @@ class SidebarLinks extends React.PureComponent {
         this.props.onLinkClick();
     }
 
-    showSettingsPage() {
-        if (this.props.isCreateMenuOpen) {
-            // Prevent opening Settings page when click profile avatar quickly after clicking FAB icon
-            return;
-        }
-
-        Navigation.navigate(ROUTES.SETTINGS);
-    }
-
-    showStatusPage() {
-        if (this.props.isCreateMenuOpen) {
-            // Prevent opening Settings page when click profile avatar quickly after clicking FAB icon
-            return;
-        }
-
-        Navigation.setShouldPopAllStateOnUP();
-        Navigation.navigate(ROUTES.SETTINGS_STATUS);
-    }
-
-    renderAvatarWithIndicator() {
-        return (
-            <PressableWithoutFeedback
-                accessibilityLabel={this.props.translate('sidebarScreen.buttonMySettings')}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                onPress={this.showSettingsPage}
-            >
-                <OfflineWithFeedback pendingAction={lodashGet(this.props.currentUserPersonalDetails, 'pendingFields.avatar', null)}>
-                    <AvatarWithIndicator
-                        source={UserUtils.getAvatar(this.props.currentUserPersonalDetails.avatar, this.props.currentUserPersonalDetails.accountID)}
-                        tooltipText={this.props.translate('common.settings')}
-                    />
-                </OfflineWithFeedback>
-            </PressableWithoutFeedback>
-        );
-    }
-
-    /**
-     * Render either a sign-in button or an avatar with optional status.
-     * @returns {React.Component}
-     */
-    renderSignInOrAvatarWithOptionalStatus() {
-        const statusEmojiCode = lodashGet(this.props.currentUserPersonalDetails, 'status.emojiCode', '');
-        const emojiStatus = Permissions.canUseCustomStatus(this.props.betas) ? statusEmojiCode : '';
-        if (Session.isAnonymousUser()) {
-            return (
-                <PressableWithoutFeedback
-                    accessibilityLabel={this.props.translate('sidebarScreen.buttonMySettings')}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                    onPress={Session.signOutAndRedirectToSignIn}
-                >
-                    <View style={styles.signInButtonAvatar}>
-                        <Button
-                            medium
-                            success
-                            text={this.props.translate('common.signIn')}
-                            onPress={() => Session.signOutAndRedirectToSignIn()}
-                        />
-                    </View>
-                </PressableWithoutFeedback>
-            );
-        }
-        if (emojiStatus) {
-            return (
-                <View style={styles.sidebarStatusAvatarContainer}>
-                    <PressableWithoutFeedback
-                        accessibilityLabel={this.props.translate('sidebarScreen.buttonMySettings')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                        onPress={this.showStatusPage}
-                        style={styles.flex1}
-                    >
-                        <View style={styles.sidebarStatusAvatar}>
-                            <Text
-                                style={styles.emojiStatusLHN}
-                                numberOfLines={1}
-                            >
-                                {emojiStatus}
-                            </Text>
-                        </View>
-                    </PressableWithoutFeedback>
-
-                    {this.renderAvatarWithIndicator()}
-                </View>
-            );
-        }
-        return this.renderAvatarWithIndicator();
-    }
-
     render() {
         const viewMode = this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT;
 
@@ -288,7 +184,7 @@ class SidebarLinks extends React.PureComponent {
                             <Icon src={Expensicons.MagnifyingGlass} />
                         </PressableWithoutFeedback>
                     </Tooltip>
-                    {this.renderSignInOrAvatarWithOptionalStatus()}
+                    <SignInOrAvatarWithOptionalStatus isCreateMenuOpen={this.props.isCreateMenuOpen} />
                 </View>
                 {this.props.isLoading ? (
                     <>
@@ -320,15 +216,11 @@ SidebarLinks.propTypes = propTypes;
 SidebarLinks.defaultProps = defaultProps;
 export default compose(
     withLocalize,
-    withCurrentUserPersonalDetails,
     withWindowDimensions,
     withCurrentReportID,
     withOnyx({
         report: {
             key: ({currentReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${currentReportID}`,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
         },
     }),
 )(SidebarLinks);

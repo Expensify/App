@@ -137,7 +137,7 @@ function OptionRowLHN(props) {
     const statusClearAfterDate = lodashGet(optionItem, 'status.clearAfter', '');
     const formattedDate = DateUtils.getStatusUntilDate(statusClearAfterDate);
     const statusContent = formattedDate ? `${statusText} (${formattedDate})` : statusText;
-    const isStatusVisible = Permissions.canUseCustomStatus(props.betas) && emojiCode && ReportUtils.isShowEmojiStatus(optionItem);
+    const isStatusVisible = Permissions.canUseCustomStatus(props.betas) && emojiCode && ReportUtils.isPlainDirectMessage(optionItem);
 
     return (
         <OfflineWithFeedback
@@ -222,7 +222,7 @@ function OptionRowLHN(props) {
                                                 text={statusContent}
                                                 shiftVertical={-4}
                                             >
-                                                <Text style={styles.ml1}>{`${emojiCode}`}</Text>
+                                                <Text style={styles.ml1}>{emojiCode}</Text>
                                             </Tooltip>
                                         )}
                                     </View>
