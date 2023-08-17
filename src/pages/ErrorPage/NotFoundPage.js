@@ -8,7 +8,6 @@ function NotFoundPage() {
         <ScreenWrapper>
             <FullPageNotFoundView
                 shouldShow
-                shouldShowLink
             />
         </ScreenWrapper>
     );
