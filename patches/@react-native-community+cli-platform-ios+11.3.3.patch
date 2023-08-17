@@ -1,0 +1,13 @@
+diff --git a/node_modules/@react-native-community/cli-platform-ios/native_modules.rb b/node_modules/@react-native-community/cli-platform-ios/native_modules.rb
+index 1b6eece..1e66633 100644
+--- a/node_modules/@react-native-community/cli-platform-ios/native_modules.rb
++++ b/node_modules/@react-native-community/cli-platform-ios/native_modules.rb
+@@ -22,7 +22,7 @@ def use_native_modules!(config = nil)
+   end
+ 
+   # Resolving the path the RN CLI. The `@react-native-community/cli` module may not be there for certain package managers, so we fall back to resolving it through `react-native` package, that's always present in RN projects
+-  cli_resolve_script = "try {console.log(require('@react-native-community/cli').bin);} catch (e) {console.log(require('react-native/cli').bin);}"
++  cli_resolve_script = "try {console.log(require('../react-native/node_modules/@react-native-community/cli').bin);} catch (e) {console.log(require('../react-native/node_modules/react-native/cli').bin);}"
+   cli_bin = Pod::Executable.execute_command("node", ["-e", cli_resolve_script], true).strip
+ 
+   if (!config)
