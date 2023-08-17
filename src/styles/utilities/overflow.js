@@ -18,8 +18,12 @@ export default {
         overflow: 'scroll',
     },
 
-    overscrollBehaviorNone: {
-        overscrollBehavior: 'none',
+    overscrollBehaviorXNone: {
+        overscrollBehaviorX: 'none',
+    },
+
+    overscrollBehaviorYAuto: {
+        overscrollBehaviorY: 'auto',
     },
 
     overflowAuto,
