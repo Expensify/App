@@ -377,6 +377,7 @@ function ReportActionItem(props) {
                         <View style={props.displayAsGroup && hasBeenFlagged ? styles.blockquote : {}}>
                             <ReportActionItemMessage
                                 action={props.action}
+                                displayAsGroup={props.displayAsGroup}
                                 isHidden={isHidden}
                                 style={[
                                     _.contains([..._.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG), CONST.REPORT.ACTIONS.TYPE.IOU], props.action.actionName)
@@ -649,7 +650,8 @@ export default compose(
     withReportActionsDrafts({
         propName: 'draftMessage',
         transformValue: (drafts, props) => {
-            const draftKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${props.report.reportID}_${props.action.reportActionID}`;
+            const originalReportID = ReportUtils.getOriginalReportID(props.report.reportID, props.action);
+            const draftKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}_${props.action.reportActionID}`;
             return lodashGet(drafts, draftKey, '');
         },
     }),
