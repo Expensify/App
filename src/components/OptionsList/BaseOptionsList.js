@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {useRef, useEffect, forwardRef} from 'react';
+import React, {useRef, useEffect, forwardRef, memo} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
@@ -269,10 +269,19 @@ BaseOptionsList.propTypes = propTypes;
 BaseOptionsList.defaultProps = defaultProps;
 BaseOptionsList.displayName = 'BaseOptionsList';
 
-export default forwardRef((props, ref) => (
-    <BaseOptionsList
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        innerRef={ref}
-    />
-));
+// using memo here because the components using this components don't memoize callbacks or arrays, thus causing unnecessary rerenders of this component.
+export default memo(
+    forwardRef((props, ref) => (
+        <BaseOptionsList
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            innerRef={ref}
+        />
+    )),
+    (prevProps, nextProps) =>
+        nextProps.focusedIndex === prevProps.focusedIndex &&
+        nextProps.selectedOptions.length === prevProps.selectedOptions.length &&
+        nextProps.headerMessage === prevProps.headerMessage &&
+        nextProps.isLoading === prevProps.isLoading &&
+        _.isEqual(nextProps.sections, prevProps.sections),
+);
