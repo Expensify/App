@@ -203,6 +203,10 @@ function getAllReportTransactions(reportID) {
     return _.filter(allTransactions, (transaction) => transaction.reportID === reportID);
 }
 
+function isReceiptBeingScanned(transaction) {
+    return transaction.receipt.state === CONST.IOU.RECEIPT_STATE.SCANREADY || transaction.receipt.state === CONST.IOU.RECEIPT_STATE.SCANNING;
+}
+
 export {
     buildOptimisticTransaction,
     getUpdatedTransaction,
@@ -214,5 +218,6 @@ export {
     getLinkedTransaction,
     getAllReportTransactions,
     hasReceipt,
+    isReceiptBeingScanned,
     getReportPreviewTransactionsWithReceipts,
 };

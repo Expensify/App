@@ -65,8 +65,4 @@ function getThumbnailAndImageURIs(path, filename) {
     return {thumbnail: null, image};
 }
 
-function isBeingScanned(receipt) {
-    return receipt.state === CONST.IOU.RECEIPT_STATE.SCANREADY || receipt.state === CONST.IOU.RECEIPT_STATE.SCANNING;
-}
-
-export {validateReceipt, getThumbnailAndImageURIs, isBeingScanned};
+export {validateReceipt, getThumbnailAndImageURIs};

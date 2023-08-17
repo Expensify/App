@@ -29,7 +29,6 @@ import * as ReportUtils from '../../libs/ReportUtils';
 import * as TransactionUtils from '../../libs/TransactionUtils';
 import refPropTypes from '../refPropTypes';
 import PressableWithFeedback from '../Pressable/PressableWithoutFeedback';
-import * as ReportActionUtils from '../../libs/ReportActionsUtils';
 import * as ReceiptUtils from '../../libs/ReceiptUtils';
 import ReportActionItemImages from './ReportActionItemImages';
 
@@ -144,7 +143,7 @@ function MoneyRequestPreview(props) {
     const transaction = TransactionUtils.getLinkedTransaction(props.action);
     const {amount: requestAmount, currency: requestCurrency, comment: requestComment, merchant: requestMerchant} = ReportUtils.getTransactionDetails(transaction);
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
-    const isScanning = ReportActionUtils.areAllRequestsBeingSmartScanned(props.action);
+    const isScanning = ReportUtils.areAllRequestsBeingSmartScanned(props.action);
 
     const getSettledMessage = () => {
         switch (lodashGet(props.action, 'originalMessage.paymentType', '')) {

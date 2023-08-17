@@ -1230,6 +1230,36 @@ function getTransactionDetails(transaction) {
 }
 
 /**
+ * For report previews and money request actions, we display a "Receipt scan in progress" indicator
+ * instead of the report total only when we have no report total ready to show. This is the case when
+ * all requests are receipts that are being SmartScanned. As soon as we have a non-receipt request,
+ * or as soon as one receipt request is done scanning, we have at least one
+ * "ready" money request, and we remove this indicator to show the partial report total.
+ *
+ * @param {Object|null} reportAction
+ * @returns {Boolean}
+ */
+function areAllRequestsBeingSmartScanned(reportAction) {
+    // If a report preview has at least one manual request or at least one scanned receipt
+    if (ReportActionsUtils.isReportPreviewAction(reportAction)) {
+        const transactions = TransactionUtils.getReportPreviewTransactionsWithReceipts(reportAction);
+        // If we have more requests than requests with receipts, we have some manual requests
+        if (ReportActionsUtils.getNumberOfMoneyRequests(reportAction) > transactions.length) {
+            return false;
+        }
+        return _.all(transactions, (transaction) => TransactionUtils.isReceiptBeingScanned(transaction.receipt));
+    }
+
+    // If a money request action is not a scanning receipt
+    if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
+        const transaction = TransactionUtils.getTransaction(reportAction.originalMessage.IOUTransactionID);
+        return TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction.receipt);
+    }
+
+    return false;
+}
+
+/**
  * Given a parent IOU report action get report name for the LHN.
  *
  * @param {Object} reportAction
@@ -1240,7 +1270,7 @@ function getTransactionReportName(reportAction) {
         return Localize.translateLocal('parentReportAction.deletedRequest');
     }
 
-    if (ReportActionsUtils.areAllRequestsBeingSmartScanned(reportAction)) {
+    if (areAllRequestsBeingSmartScanned(reportAction)) {
         return Localize.translateLocal('iou.receiptScanning');
     }
 
@@ -3154,6 +3184,30 @@ function getTaskAssigneeChatOnyxData(accountID, assigneeEmail, assigneeAccountID
     };
 }
 
+/**
+ * Returns the number of receipts associated with an IOU report that are still being scanned.
+ * Note that we search the IOU report for this number, since scanning receipts will be whispers
+ * in the IOU report for only the submitter and we can get an accurate count.
+ *
+ * @param {Object|null} iouReport
+ * @returns {Number}
+ */
+function getNumberOfScanningReceipts(iouReport) {
+    const reportID = lodashGet(iouReport, 'reportID');
+    const reportActions = ReportActionsUtils.getAllReportActions(reportID);
+    return _.reduce(
+        reportActions,
+        (count, reportAction) => {
+            if (!ReportActionsUtils.isMoneyRequestAction(reportAction)) {
+                return count;
+            }
+            const transaction = TransactionUtils.getTransaction(reportAction.originalMessage.IOUTransactionID);
+            return count + Number(TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction.receipt));
+        },
+        0,
+    );
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -3279,4 +3333,6 @@ export {
     getTransactionReportName,
     getTransactionDetails,
     getTaskAssigneeChatOnyxData,
+    areAllRequestsBeingSmartScanned,
+    getNumberOfScanningReceipts,
 };

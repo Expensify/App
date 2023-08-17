@@ -1,4 +1,5 @@
 import CONST from '../CONST';
+import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 
 /* eslint-disable max-len */
 export default {
@@ -274,8 +275,8 @@ export default {
         markAsUnread: 'Marcar como no leído',
         markAsRead: 'Marcar como leído',
         editComment: 'Editar comentario',
-        deleteAction: ({isMoneyRequest = false}) => `Eliminar ${isMoneyRequest ? 'pedido' : 'comentario'}`,
-        deleteConfirmation: ({isMoneyRequest = false}) => `¿Estás seguro de que quieres eliminar este ${isMoneyRequest ? 'pedido' : 'comentario'}`,
+        deleteAction: ({action}) => `Eliminar ${ReportActionsUtils.isMoneyRequest(action) ? 'pedido' : 'comentario'}`,
+        deleteConfirmation: ({action}) => `¿Estás seguro de que quieres eliminar este ${ReportActionsUtils.isMoneyRequest(action) ? 'pedido' : 'comentario'}`,
         onlyVisible: 'Visible sólo para',
         replyInThread: 'Responder en el hilo',
         flagAsOffensive: 'Marcar como ofensivo',

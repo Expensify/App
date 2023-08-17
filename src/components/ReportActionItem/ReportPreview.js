@@ -103,12 +103,12 @@ function ReportPreview(props) {
 
     const iouSettled = ReportUtils.isSettled(props.iouReportID);
     const numberOfRequests = ReportActionUtils.getNumberOfMoneyRequests(props.action);
-    const numberOfScanningReceipts = ReportActionUtils.getNumberOfScanningReceipts(props.iouReport);
+    const numberOfScanningReceipts = ReportUtils.getNumberOfScanningReceipts(props.iouReport);
     const moneyRequestComment = lodashGet(props.action, 'childLastMoneyRequestComment', '');
 
     const transactions = TransactionUtils.getReportPreviewTransactionsWithReceipts(props.action);
     const hasReceipts = transactions.length > 0;
-    const isScanning = hasReceipts && ReportActionUtils.areAllRequestsBeingSmartScanned(props.action);
+    const isScanning = hasReceipts && ReportUtils.areAllRequestsBeingSmartScanned(props.action);
     const hasOnlyOneReceiptRequest = numberOfRequests === 1 && hasReceipts;
     const previewSubtitle = hasOnlyOneReceiptRequest
         ? transactions[0].merchant
