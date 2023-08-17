@@ -69,6 +69,7 @@ function buildOptimisticTransaction(amount, currency, reportID, comment = '', so
 function getUpdatedTransaction(transaction, transactionChanges, isFromExpenseReport) {
     // Only changing the first level fields so no need for deep clone now
     const updatedTransaction = _.clone(transaction);
+    let shouldStopSmartscan = false;
 
     // The comment property does not have its modifiedComment counterpart
     if (_.has(transactionChanges, 'comment')) {
@@ -79,14 +80,17 @@ function getUpdatedTransaction(transaction, transactionChanges, isFromExpenseRep
     }
     if (_.has(transactionChanges, 'created')) {
         updatedTransaction.modifiedCreated = transactionChanges.created;
+        shouldStopSmartscan = true;
     }
     if (_.has(transactionChanges, 'amount')) {
         updatedTransaction.modifiedAmount = isFromExpenseReport ? -transactionChanges.amount : transactionChanges.amount;
+        shouldStopSmartscan = true;
     }
     if (_.has(transactionChanges, 'currency')) {
         updatedTransaction.modifiedCurrency = transactionChanges.currency;
+        shouldStopSmartscan = true;
     }
-    if(_.has(transaction, 'receipt') && !_.isEmpty(transaction.receipt) && lodashGet(transaction, 'receipt.state') !== CONST.IOU.RECEIPT_STATE.OPEN) {
+    if(shouldStopSmartscan &&_.has(transaction, 'receipt') && !_.isEmpty(transaction.receipt) && lodashGet(transaction, 'receipt.state') !== CONST.IOU.RECEIPT_STATE.OPEN) {
         updatedTransaction.receipt.state = CONST.IOU.RECEIPT_STATE.OPEN;
     }
     updatedTransaction.pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
