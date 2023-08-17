@@ -888,23 +888,6 @@ function ReportActionCompose({
                 return;
             }
 
-        // Trigger the edit box for last sent message if ArrowUp is pressed and the comment is empty and Chronos is not in the participants
-        if (
-            e.key === CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey &&
-            this.textInput.selectionStart === 0 &&
-            this.state.value.length === 0 &&
-            !ReportUtils.chatIncludesChronos(this.props.report)
-        ) {
-            e.preventDefault();
-
-            const parentReportActionID = lodashGet(this.props.report, 'parentReportActionID', '');
-            const parentReportAction = lodashGet(this.props.parentReportActions, [parentReportActionID], {});
-            const lastReportAction = _.find([...this.props.reportActions, parentReportAction], (action) => ReportUtils.canEditReportAction(action));
-
-            if (lastReportAction !== -1 && lastReportAction) {
-                Report.saveReportActionDraft(this.props.reportID, lastReportAction, _.last(lastReportAction.message).html);
-            }
-
             // Submit the form when Enter is pressed
             if (e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey && !e.shiftKey) {
                 e.preventDefault();
@@ -912,7 +895,12 @@ function ReportActionCompose({
             }
 
             // Trigger the edit box for last sent message if ArrowUp is pressed and the comment is empty and Chronos is not in the participants
-            if (e.key === CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey && textInputRef.current.selectionStart === 0 && value.length === 0 && !ReportUtils.chatIncludesChronos(report)) {
+            if (
+                e.key === CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey &&
+                textInputRef.current.selectionStart === 0 &&
+                value.length === 0 &&
+                !ReportUtils.chatIncludesChronos(this.props.report)
+            ) {
                 e.preventDefault();
 
                 const parentReportActionID = lodashGet(report, 'parentReportActionID', '');
