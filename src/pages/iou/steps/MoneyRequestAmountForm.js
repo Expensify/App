@@ -62,7 +62,7 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
 
     const textInput = useRef(null);
 
-    const selectedAmountAsString = amount ? CurrencyUtils.convertToWholeUnit(currency, amount).toString() : '';
+    const selectedAmountAsString = amount ? CurrencyUtils.convertToFrontendAmount(amount).toString() : '';
 
     const [currentAmount, setCurrentAmount] = useState(selectedAmountAsString);
     const [shouldUpdateSelection, setShouldUpdateSelection] = useState(true);
@@ -96,7 +96,7 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
         if (!currency || !amount) {
             return;
         }
-        const amountAsStringForState = CurrencyUtils.convertToWholeUnit(currency, amount).toString();
+        const amountAsStringForState = CurrencyUtils.convertToFrontendAmount(amount).toString();
         setCurrentAmount(amountAsStringForState);
         setSelection({
             start: amountAsStringForState.length,

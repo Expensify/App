@@ -12,7 +12,6 @@ import * as Expensicons from '../components/Icon/Expensicons';
 import Navigation from './Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import * as NumberUtils from './NumberUtils';
-import * as NumberFormatUtils from './NumberFormatUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as TransactionUtils from './TransactionUtils';
 import Permissions from './Permissions';
@@ -38,17 +37,6 @@ Onyx.connect({
         currentUserEmail = val.email;
         currentUserAccountID = val.accountID;
         isAnonymousUser = val.authTokenType === 'anonymousAccount';
-    },
-});
-
-let preferredLocale = CONST.LOCALES.DEFAULT;
-Onyx.connect({
-    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    callback: (val) => {
-        if (!val) {
-            return;
-        }
-        preferredLocale = val;
     },
 });
 
@@ -1107,32 +1095,6 @@ function getDisplayNamesWithTooltips(personalDetailsList, isMultipleParticipantR
 }
 
 /**
- * We get the amount, currency and comment money request value from the action.originalMessage.
- * But for the send money action, the above value is put in the IOUDetails object.
- *
- * @param {Object} reportAction
- * @param {Number} reportAction.amount
- * @param {String} reportAction.currency
- * @param {String} reportAction.comment
- * @param {Object} [reportAction.IOUDetails]
- * @returns {Object}
- */
-function getMoneyRequestAction(reportAction = {}) {
-    const originalMessage = lodashGet(reportAction, 'originalMessage', {});
-    let amount = originalMessage.amount || 0;
-    let currency = originalMessage.currency || CONST.CURRENCY.USD;
-    let comment = originalMessage.comment || '';
-
-    if (_.has(originalMessage, 'IOUDetails')) {
-        amount = lodashGet(originalMessage, 'IOUDetails.amount', 0);
-        currency = lodashGet(originalMessage, 'IOUDetails.currency', CONST.CURRENCY.USD);
-        comment = lodashGet(originalMessage, 'IOUDetails.comment', '');
-    }
-
-    return {amount, currency, comment};
-}
-
-/**
  * Determines if a report has an IOU that is waiting for an action from the current user (either Pay or Add a credit bank account)
  *
  * @param {Object} report (chatReport or iouReport)
@@ -1242,6 +1204,32 @@ function getMoneyRequestReportName(report, policy = undefined) {
 }
 
 /**
+ * Get the report given a reportID
+ *
+ * @param {String} reportID
+ * @returns {Object}
+ */
+function getReport(reportID) {
+    return lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {});
+}
+
+/**
+ * Gets transaction created, amount, currency and comment
+ *
+ * @param {Object} transaction
+ * @returns {Object}
+ */
+function getTransactionDetails(transaction) {
+    const report = getReport(transaction.reportID);
+    return {
+        created: TransactionUtils.getCreated(transaction),
+        amount: TransactionUtils.getAmount(transaction, isExpenseReport(report)),
+        currency: TransactionUtils.getCurrency(transaction),
+        comment: TransactionUtils.getDescription(transaction),
+    };
+}
+
+/**
  * Given a parent IOU report action get report name for the LHN.
  *
  * @param {Object} reportAction
@@ -1252,9 +1240,12 @@ function getTransactionReportName(reportAction) {
         return Localize.translateLocal('parentReportAction.deletedRequest');
     }
 
+    const transaction = TransactionUtils.getLinkedTransaction(reportAction);
+    const {amount, currency, comment} = getTransactionDetails(transaction);
+
     return Localize.translateLocal(ReportActionsUtils.isSentMoneyReportAction(reportAction) ? 'iou.threadSentMoneyReportName' : 'iou.threadRequestReportName', {
-        formattedAmount: ReportActionsUtils.getFormattedAmount(reportAction),
-        comment: lodashGet(reportAction, 'originalMessage.comment'),
+        formattedAmount: CurrencyUtils.convertToDisplayString(amount, currency),
+        comment,
     });
 }
 
@@ -1378,6 +1369,19 @@ function getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges, i
     }
 
     return originalMessage;
+}
+
+/**
+ * Returns the parentReport if the given report is a thread.
+ *
+ * @param {Object} report
+ * @returns {Object}
+ */
+function getParentReport(report) {
+    if (!report || !report.parentReportID) {
+        return {};
+    }
+    return lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`, {});
 }
 
 /**
@@ -1507,16 +1511,6 @@ function getParentNavigationSubtitle(report) {
         return {rootReportName, workspaceName};
     }
     return {};
-}
-
-/**
- * Get the report for a reportID
- *
- * @param {String} reportID
- * @returns {Object}
- */
-function getReport(reportID) {
-    return lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {});
 }
 
 /**
@@ -1802,8 +1796,7 @@ function buildOptimisticExpenseReport(chatReportID, policyID, payeeAccountID, to
  * @returns {Array}
  */
 function getIOUReportActionMessage(type, total, comment, currency, paymentType = '', isSettlingUp = false) {
-    const currencyUnit = CurrencyUtils.getCurrencyUnit(currency);
-    const amount = NumberFormatUtils.format(preferredLocale, Math.abs(total) / currencyUnit, {style: 'currency', currency});
+    const amount = CurrencyUtils.convertToDisplayString(total, currency);
     let paymentMethodMessage;
     switch (paymentType) {
         case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
@@ -1853,7 +1846,7 @@ function getIOUReportActionMessage(type, total, comment, currency, paymentType =
  * @param {String} currency
  * @param {String} comment - User comment for the IOU.
  * @param {Array}  participants - An array with participants details.
- * @param {String} transactionID
+ * @param {String} [transactionID] - Not required if the IOUReportAction type is 'pay'
  * @param {String} [paymentType] - Only required if the IOUReportAction type is 'pay'. Can be oneOf(elsewhere, payPal, Expensify).
  * @param {String} [iouReportID] - Only required if the IOUReportActions type is oneOf(decline, cancel, pay). Generates a randomID as default.
  * @param {Boolean} [isSettlingUp] - Whether we are settling up an IOU.
@@ -1867,7 +1860,7 @@ function buildOptimisticIOUReportAction(
     currency,
     comment,
     participants,
-    transactionID,
+    transactionID = '',
     paymentType = '',
     iouReportID = '',
     isSettlingUp = false,
@@ -1885,13 +1878,21 @@ function buildOptimisticIOUReportAction(
         type,
     };
 
-    // We store amount, comment, currency in IOUDetails when type = pay
-    if (type === CONST.IOU.REPORT_ACTION_TYPE.PAY && isSendMoneyFlow) {
-        _.each(['amount', 'comment', 'currency'], (key) => {
-            delete originalMessage[key];
-        });
-        originalMessage.IOUDetails = {amount, comment, currency};
-        originalMessage.paymentType = paymentType;
+    if (type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
+        // In send money flow, we store amount, comment, currency in IOUDetails when type = pay
+        if (isSendMoneyFlow) {
+            _.each(['amount', 'comment', 'currency'], (key) => {
+                delete originalMessage[key];
+            });
+            originalMessage.IOUDetails = {amount, comment, currency};
+            originalMessage.paymentType = paymentType;
+        } else {
+            // In case of pay money request action, we dont store the comment
+            // and there is no single transctionID to link the action to.
+            delete originalMessage.IOUTransactionID;
+            delete originalMessage.comment;
+            originalMessage.paymentType = paymentType;
+        }
     }
 
     // IOUs of type split only exist in group DMs and those don't have an iouReport so we need to delete the IOUReportID key
@@ -2492,7 +2493,8 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas,
         return true;
     }
 
-    const isEmptyChat = !ReportActionsUtils.getLastVisibleMessage(report.reportID).lastMessageText;
+    const lastVisibleMessage = ReportActionsUtils.getLastVisibleMessage(report.reportID);
+    const isEmptyChat = !lastVisibleMessage.lastMessageText && !lastVisibleMessage.lastMessageTranslationKey;
 
     // Hide only chat threads that haven't been commented on (other threads are actionable)
     if (isChatThread(report) && isEmptyChat) {
@@ -2910,19 +2912,6 @@ function isReportDataReady() {
 }
 
 /**
- * Returns the parentReport if the given report is a thread.
- *
- * @param {Object} report
- * @returns {Object}
- */
-function getParentReport(report) {
-    if (!report || !report.parentReportID) {
-        return {};
-    }
-    return lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`, {});
-}
-
-/**
  * Find the parent report action in assignee report for a task report
  * Returns an empty object if assignee report is the same as the share destination report
  *
@@ -3253,7 +3242,6 @@ export {
     isReportDataReady,
     isSettled,
     isAllowedToComment,
-    getMoneyRequestAction,
     getBankAccountRoute,
     getParentReport,
     getTaskParentReportActionIDInAssigneeReport,
@@ -3269,5 +3257,7 @@ export {
     shouldDisableSettings,
     shouldDisableRename,
     hasSingleParticipant,
+    getTransactionReportName,
+    getTransactionDetails,
     getTaskAssigneeChatOnyxData,
 };
