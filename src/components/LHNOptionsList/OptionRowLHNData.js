@@ -190,11 +190,15 @@ export default compose(
     memo(OptionRowLHNData, (prevProps, nextProps) => {
         const prevParentReportActions = prevProps.parentReportActions[prevProps.fullReport.parentReportActionID];
         const nextParentReportActions = nextProps.parentReportActions[nextProps.fullReport.parentReportActionID];
-        const prevPolicy = lodashGet(prevProps.policies, [`${ONYXKEYS.COLLECTION.POLICY}${prevProps.fullReport.policyID}`], '');
-        const nextPolicy = lodashGet(nextProps.policies, [`${ONYXKEYS.COLLECTION.POLICY}${nextProps.fullReport.policyID}`], '');
-        if (prevParentReportActions !== nextParentReportActions || prevPolicy !== nextPolicy) {
+        if (prevParentReportActions !== nextParentReportActions) {
             return false;
         }
-        return _.omit(prevProps, 'parentReportActions', 'policies') === _.omit(nextProps, 'parentReportActions', 'policies');
+
+        const prevPolicy = lodashGet(prevProps.policies, [`${ONYXKEYS.COLLECTION.POLICY}${prevProps.fullReport.policyID}`], '');
+        const nextPolicy = lodashGet(nextProps.policies, [`${ONYXKEYS.COLLECTION.POLICY}${nextProps.fullReport.policyID}`], '');
+        if (prevPolicy !== nextPolicy) {
+            return false;
+        }
+        return _.isEqual(_.omit(prevProps, 'parentReportActions', 'policies'), _.omit(nextProps, 'parentReportActions', 'policies'));
     }),
 );
