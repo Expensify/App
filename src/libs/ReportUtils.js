@@ -2380,8 +2380,8 @@ function buildOptimisticTaskReport(ownerAccountID, assigneeAccountID = 0, parent
  * A helper method to create transaction thread
  *
  * @param {Object} reportAction - the parent IOU report action from which to create the thread
- * 
-* @returns {Object}
+ *
+ * @returns {Object}
  */
 function buildTransactionThread(reportAction) {
     const participantAccountIDs = _.uniq([currentUserAccountID, Number(reportAction.actorAccountID)]);
