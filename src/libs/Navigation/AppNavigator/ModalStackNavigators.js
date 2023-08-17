@@ -97,6 +97,13 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator([
         },
         name: 'IOU_Send_Enable_Payments',
     },
+    {
+        getComponent: () => {
+            const WaypointEditorPage = require('../../../pages/iou/WaypointEditorPage').default;
+            return WaypointEditorPage;
+        },
+        name: 'Money_Request_Waypoint',
+    },
 ]);
 
 const SplitDetailsModalStackNavigator = createModalStackNavigator([
