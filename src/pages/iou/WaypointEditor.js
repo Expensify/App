@@ -131,7 +131,7 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
-                title="Waypoint Editor"
+                title={translate('distance.waypointEditor')}
                 shouldShowBackButton
                 onBackButtonPress={() => {
                     Navigation.goBack(ROUTES.getMoneyRequestDistanceTabRoute(iouType));

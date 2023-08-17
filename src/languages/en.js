@@ -1581,6 +1581,7 @@ export default {
     distance: {
         addStop: 'Add stop',
         address: 'Address',
+        waypointEditor: 'Editor de Waypoints',
         waypointDescription: {
             start: 'Start',
             finish: 'Finish',
