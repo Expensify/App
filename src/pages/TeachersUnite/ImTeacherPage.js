@@ -1,5 +1,4 @@
 import React from 'react';
-import {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../components/withCurrentUserPersonalDetails';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import ROUTES from '../../ROUTES';
@@ -12,13 +11,9 @@ import variables from '../../styles/variables';
 import useLocalize from '../../hooks/useLocalize';
 import BlockingView from '../../components/BlockingViews/BlockingView';
 
-const propTypes = {
-    ...withCurrentUserPersonalDetailsPropTypes,
-};
+const propTypes = {};
 
-const defaultProps = {
-    ...withCurrentUserPersonalDetailsDefaultProps,
-};
+const defaultProps = {};
 
 function ImTeacherPage() {
     const {translate} = useLocalize();
