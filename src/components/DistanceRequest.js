@@ -79,6 +79,7 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
     const waypoints = lodashGet(transaction, 'comment.waypoints', {});
     const numberOfWaypoints = _.size(waypoints);
     const lastWaypointIndex = numberOfWaypoints - 1;
+    const isLoadingRoute = lodashGet(transaction, 'route.isLoading', false);
 
     // Show up to the max number of waypoints plus 1/2 of one to hint at scrolling
     const halfMenuItemHeight = Math.floor(variables.baseMenuItemHeight / 2);
@@ -102,6 +103,15 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
         const visibleAreaEnd = lodashGet(event, 'nativeEvent.contentOffset.y', 0) + scrollContainerHeight;
         setShouldShowGradient(visibleAreaEnd < scrollContentHeight);
     };
+
+    // Handle fetching the route when there are at least 2 waypoints
+    useEffect(() => {
+        if (numberOfWaypoints < 1 || isLoadingRoute) {
+            return;
+        }
+
+        Transaction.getRoute(transactionID, waypoints);
+    }, [numberOfWaypoints, waypoints, transactionID, isLoadingRoute]);
 
     useEffect(updateGradientVisibility, [scrollContainerHeight, scrollContentHeight]);
 

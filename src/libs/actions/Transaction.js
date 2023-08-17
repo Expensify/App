@@ -104,54 +104,57 @@ function removeWaypoint(transactionID, currentIndex) {
 /**
  * Gets the route for a set of waypoints
  * Used so we can generate a map view of the provided waypoints
- * @param {String} transactionID 
- * @param {Object} waypoints 
+ * @param {String} transactionID
+ * @param {Object} waypoints
  */
 function getRoute(transactionID, waypoints) {
-    API.read('GetRoute', {
-        transactionID,
-        waypoints
-    }, {
-        optimisticData: [
-            {
-                // Clears any potentially stale error messages from fetching the route
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-                value: {
-                    route: {
-                        isLoading: true
-                    },
-                    errorFields: {
-                        route: null
-                    },
-                },
-            },
-        ],
-        // The route and failure are sent back via pusher in the BE, we are just clearing the loading state here
-        successData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-                value: {
-                    route: {
-                        isLoading: false,
+    API.read(
+        'GetRoute',
+        {
+            transactionID,
+            waypoints,
+        },
+        {
+            optimisticData: [
+                {
+                    // Clears any potentially stale error messages from fetching the route
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                    value: {
+                        route: {
+                            isLoading: true,
+                        },
+                        errorFields: {
+                            route: null,
+                        },
                     },
                 },
-            },
-        ],
-        failureData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-                value: {
-                    route: {
-                        isLoading: false,
+            ],
+            // The route and failure are sent back via pusher in the BE, we are just clearing the loading state here
+            successData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                    value: {
+                        route: {
+                            isLoading: false,
+                        },
                     },
                 },
-            },
-        ],
-    },);
-    
+            ],
+            failureData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                    value: {
+                        route: {
+                            isLoading: false,
+                        },
+                    },
+                },
+            ],
+        },
+    );
 }
 
 export {addStop, createInitialWaypoints, saveWaypoint, removeWaypoint, getRoute};
