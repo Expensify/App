@@ -54,6 +54,8 @@ function PressableWithSecondaryInteraction({
             }
         }
 
+        const element = pressableRef.current;
+
         /**
          * @param {contextmenu} e - A right-click MouseEvent.
          * https://developer.mozilla.org/en-US/docs/Web/API/Element/contextmenu_event
@@ -77,12 +79,11 @@ function PressableWithSecondaryInteraction({
              * Therefore it shifts the element to bring it back to focus.
              * https://github.com/Expensify/App/issues/14148
              */
-            if (withoutFocusOnSecondaryInteraction && pressableRef && pressableRef.current) {
-                pressableRef.current.blur();
+            if (withoutFocusOnSecondaryInteraction) {
+                element.blur();
             }
         };
 
-        const element = pressableRef.current;
         element.addEventListener('contextmenu', executeSecondaryInteractionOnContextMenu);
 
         return () => {
