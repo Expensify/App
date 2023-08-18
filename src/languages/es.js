@@ -387,8 +387,7 @@ export default {
     },
     iou: {
         amount: 'Importe',
-        // TODO
-        approved: '',
+        approved: 'Aprobado',
         cash: 'Efectivo',
         split: 'Dividir',
         request: 'Solicitar',
@@ -414,8 +413,7 @@ export default {
         payerOwes: ({payer}) => `${payer} debe: `,
         payerPaidAmount: ({payer, amount}) => `${payer} pagó ${amount}`,
         payerPaid: ({payer}) => `${payer} pagó: `,
-        // TODO
-        managerApproved: ({manager}) => `${manager} approved:`,
+        managerApproved: ({manager}) => `${manager} aprobó:`,
         payerSettled: ({amount}) => `pagó ${amount}`,
         waitingOnBankAccount: ({submitterDisplayName}) => `inicio el pago, pero no se procesará hasta que ${submitterDisplayName} añada una cuenta bancaria`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}) => `${submitterDisplayName} añadió una cuenta bancaria. El pago de ${amount} se ha realizado.`,
