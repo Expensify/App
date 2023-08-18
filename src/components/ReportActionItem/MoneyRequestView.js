@@ -67,7 +67,13 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, polic
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
     const moneyRequestReport = parentReport;
     const transaction = TransactionUtils.getLinkedTransaction(parentReportAction);
-    const {created: transactionDate, amount: transactionAmount, currency: transactionCurrency, comment: transactionDescription} = ReportUtils.getTransactionDetails(transaction);
+    const {
+        created: transactionDate,
+        amount: transactionAmount,
+        currency: transactionCurrency,
+        comment: transactionDescription,
+        merchant: transactionMerchant,
+    } = ReportUtils.getTransactionDetails(transaction);
     const formattedTransactionAmount = transactionAmount && transactionCurrency && CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency);
 
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
@@ -120,6 +126,12 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, polic
                 disabled={isSettled || !canEdit}
                 shouldShowRightIcon={canEdit}
                 onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DATE))}
+            />
+            <MenuItemWithTopDescription
+                description={translate('common.merchant')}
+                title={transactionMerchant}
+                shouldShowRightIcon={false}
+                disabled
             />
             {shouldShowHorizontalRule && <View style={styles.reportHorizontalRule} />}
         </View>

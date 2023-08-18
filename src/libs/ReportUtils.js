@@ -1242,6 +1242,7 @@ function getTransactionDetails(transaction) {
         amount: TransactionUtils.getAmount(transaction, isExpenseReport(report)),
         currency: TransactionUtils.getCurrency(transaction),
         comment: TransactionUtils.getDescription(transaction),
+        merchant: TransactionUtils.getMerchant(transaction),
     };
 }
 
