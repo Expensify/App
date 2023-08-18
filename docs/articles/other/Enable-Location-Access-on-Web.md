@@ -29,7 +29,7 @@ What elements of this feature are pay-walled vs. free?
 4. Click Location
 5. Check the "Not allowed to see your location" list to make sure expensify.com and new.expensify.com are not listed. If they are, click the delete icon next to them to allow location access
 
-[Chrome help page]([url](https://support.google.com/chrome/answer/142065))
+[Chrome help page](https://support.google.com/chrome/answer/142065)
 
 ### Firefox
 
@@ -40,7 +40,7 @@ What elements of this feature are pay-walled vs. free?
 5. Click on Settings next to Location
 6. If location access is blocked for expensify.com or new.expensify.com, you can update it here to allow access
 
-[Firefox help page]([url](https://support.mozilla.org/en-US/kb/permissions-manager-give-ability-store-passwords-set-cookies-more))
+[Firefox help page](https://support.mozilla.org/en-US/kb/permissions-manager-give-ability-store-passwords-set-cookies-more)
 
 ### Safari
 1. In the top menu bar click Safari
@@ -52,4 +52,4 @@ Ask: The site must ask if it can use your location.
 Deny: The site can’t use your location.
 Allow: The site can always use your location.
 
-[Safari help page]([url](https://support.apple.com/guide/safari/websites-ibrwe2159f50/mac))
+[Safari help page](https://support.apple.com/guide/safari/websites-ibrwe2159f50/mac)
