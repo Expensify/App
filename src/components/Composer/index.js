@@ -356,6 +356,11 @@ function Composer({
         updateNumberOfLines();
     }, [updateNumberOfLines]);
 
+    useEffect(() => () => {
+        ReportActionComposeFocusManager.clear();
+        ReportActionComposeFocusManager.focus();
+    }, []);
+
     useEffect(() => {
         // we need to handle listeners on navigation focus/blur as Composer is not unmounting
         // when navigating away to different report
