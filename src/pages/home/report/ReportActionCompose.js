@@ -501,7 +501,7 @@ function ReportActionCompose({
      */
     const calculateEmojiSuggestion = useCallback(
         (selectionEnd) => {
-            if (shouldBlockEmojiCalc.current || !this.state.value) {
+            if (shouldBlockEmojiCalc.current || !value) {
                 shouldBlockEmojiCalc.current = false;
                 resetSuggestions();
                 return;
@@ -583,7 +583,7 @@ function ReportActionCompose({
 
     const calculateMentionSuggestion = useCallback(
         (selectionEnd) => {
-            if (shouldBlockMentionCalc.current || this.state.selection.end < 1) {
+            if (shouldBlockMentionCalc.current || selection.end < 1) {
                 shouldBlockMentionCalc.current = false;
                 resetSuggestions();
                 return;
@@ -631,7 +631,7 @@ function ReportActionCompose({
             }));
             setHighlightedMentionIndex(0);
         },
-        [getMentionOptions, setHighlightedMentionIndex, value],
+        [getMentionOptions, setHighlightedMentionIndex, value, selection],
     );
 
     const onSelectionChange = useCallback(
