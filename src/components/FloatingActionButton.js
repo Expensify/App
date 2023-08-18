@@ -9,9 +9,9 @@ import themeColors from '../styles/themes/default';
 import Tooltip from './Tooltip';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
+import {withAnimated} from './withAnimated';
 
-const AnimatedIcon = Animated.createAnimatedComponent(Icon);
-AnimatedIcon.displayName = 'AnimatedIcon';
+const AnimatedIcon = withAnimated(Icon);
 
 const AnimatedPressable = Animated.createAnimatedComponent(PressableWithFeedback);
 AnimatedPressable.displayName = 'AnimatedPressable';
