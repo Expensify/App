@@ -25,6 +25,7 @@ const propTypes = {
         amount: PropTypes.number,
         comment: PropTypes.string,
         participants: PropTypes.arrayOf(optionPropTypes),
+        receiptPath: PropTypes.string,
     }),
 
     /** Route from navigation */
@@ -46,6 +47,7 @@ const defaultProps = {
         amount: 0,
         comment: '',
         participants: [],
+        receiptPath: '',
     },
 };
 
