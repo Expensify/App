@@ -12,19 +12,19 @@ import ONYXKEYS from '../../ONYXKEYS';
 import reportPropTypes from '../reportPropTypes';
 
 const propTypes = {
-    /** TODO: Comment */
+    /** Navigation route context info provided by react navigation */
     route: PropTypes.shape({
-        /** Each parameter passed via the URL */
+        /** Route specific parameters used on this screen via route :iouType/new/category/:reportID? */
         params: PropTypes.shape({
-            /** TODO: Comment */
+            /** The type of IOU report, i.e. bill, request, send */
             iouType: PropTypes.string,
 
-            /** TODO: Comment */
+            /** reportID for the transaction thread */
             reportID: PropTypes.string,
         }),
     }).isRequired,
 
-    /** TODO: Comment */
+    /** The report currently being used */
     report: reportPropTypes,
 };
 

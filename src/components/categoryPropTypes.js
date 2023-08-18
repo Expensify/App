@@ -1,9 +1,9 @@
 import PropTypes from 'prop-types';
 
 export default PropTypes.shape({
-    /** TODO: Comment */
+    /** Name of a category */
     name: PropTypes.string.isRequired,
 
-    /** TODO: Comment */
+    /** Flag that determine is a category active */
     enabled: PropTypes.bool.isRequired,
 });

@@ -2,10 +2,10 @@ import PropTypes from 'prop-types';
 import categoryPropTypes from '../categoryPropTypes';
 
 const propTypes = {
-    /** TODO: Comment */
+    /** The policyID of we are getting categories */
     policyID: PropTypes.string,
 
-    /** TODO: Comment */
+    /** Collection of categories attached to a policy */
     policyCategories: PropTypes.objectOf(categoryPropTypes),
 };
 

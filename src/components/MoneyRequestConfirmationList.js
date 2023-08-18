@@ -63,7 +63,7 @@ const propTypes = {
     /** IOU merchant */
     iouMerchant: PropTypes.string,
 
-    /** TODO: Comment */
+    /** IOU Category */
     iouCategory: PropTypes.string,
 
     /** Selected participants from MoneyRequestModal with login / accountID */
@@ -100,7 +100,7 @@ const propTypes = {
     /** File source of the receipt */
     receiptSource: PropTypes.string,
 
-    /** TODO: Comment */
+    /** Collection of categories attached to a policy */
     policyCategories: PropTypes.objectOf(
         PropTypes.shape({
             enabled: PropTypes.bool.isRequired,
