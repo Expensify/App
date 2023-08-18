@@ -55,12 +55,7 @@ function AutoCompleteSuggestions({parentContainerRef, ...props}) {
         return componentToRender;
     }
 
-    return ReactDOM.createPortal(
-        <View style={StyleUtils.getBaseAutoCompleteSuggestionContainerStyle({left, width, bottom})}>
-            {componentToRender}
-        </View>,
-        document.querySelector('body'),
-    );
+    return ReactDOM.createPortal(<View style={StyleUtils.getBaseAutoCompleteSuggestionContainerStyle({left, width, bottom})}>{componentToRender}</View>, document.querySelector('body'));
 }
 
 AutoCompleteSuggestions.propTypes = propTypes;
