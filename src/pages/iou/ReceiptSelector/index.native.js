@@ -38,7 +38,9 @@ const propTypes = {
     iou: PropTypes.shape({
         id: PropTypes.string,
         amount: PropTypes.number,
-        currency: PropTypes.string,
+        comment: PropTypes.string,
+        created: PropTypes.string,
+        merchant: PropTypes.string,
         participants: PropTypes.arrayOf(participantPropTypes),
     }),
 };
@@ -54,6 +56,8 @@ const defaultProps = {
     iou: {
         id: '',
         amount: 0,
+        merchant: '',
+        created: '',
         currency: CONST.CURRENCY.USD,
         participants: [],
     },

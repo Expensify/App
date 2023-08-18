@@ -1,10 +1,9 @@
 import React, {Component} from 'react';
-import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import TextInput from '../../components/TextInput';
+import CONST from '../../CONST';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
@@ -16,7 +15,6 @@ import ROUTES from '../../ROUTES';
 import compose from '../../libs/compose';
 import * as IOU from '../../libs/actions/IOU';
 import optionPropTypes from '../../components/optionPropTypes';
-import CONST from '../../CONST';
 import NewDatePicker from '../../components/NewDatePicker';
 
 const propTypes = {
@@ -28,6 +26,7 @@ const propTypes = {
         id: PropTypes.string,
         amount: PropTypes.number,
         comment: PropTypes.string,
+        created: PropTypes.string,
         participants: PropTypes.arrayOf(optionPropTypes),
     }),
 };
@@ -37,6 +36,7 @@ const defaultProps = {
         id: '',
         amount: 0,
         comment: '',
+        created: '',
         participants: [],
     },
 };
@@ -102,14 +102,14 @@ class MoneyRequestCreatedPage extends Component {
                 <Form
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.MONEY_REQUEST_CREATED_FORM}
-                    onSubmit={this.updateComment}
+                    onSubmit={this.updateDate}
                     submitButtonText={this.props.translate('common.save')}
                     enabledWhenOffline
                 >
                     <NewDatePicker
                         inputID="moneyRequestCreated"
                         label={this.props.translate('common.date')}
-                        defaultValue={new Date()}
+                        defaultValue={this.props.iou.created}
                         maxDate={new Date()}
                     />
                 </Form>

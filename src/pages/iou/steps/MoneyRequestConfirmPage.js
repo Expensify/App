@@ -2,6 +2,7 @@ import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import {format} from 'date-fns';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import MoneyRequestConfirmationList from '../../../components/MoneyRequestConfirmationList';
@@ -30,9 +31,10 @@ const propTypes = {
     iou: PropTypes.shape({
         id: PropTypes.string,
         amount: PropTypes.number,
-        receiptPath: PropTypes.string,
-        currency: PropTypes.string,
         comment: PropTypes.string,
+        created: PropTypes.string,
+        currency: PropTypes.string,
+        merchant: PropTypes.string,
         participants: PropTypes.arrayOf(
             PropTypes.shape({
                 accountID: PropTypes.number,
@@ -42,6 +44,7 @@ const propTypes = {
                 selected: PropTypes.bool,
             }),
         ),
+        receiptPath: PropTypes.string,
     }),
 
     /** Personal details of all users */
@@ -58,6 +61,8 @@ const defaultProps = {
         amount: 0,
         currency: CONST.CURRENCY.USD,
         comment: '',
+        merchant: '',
+        created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
         participants: [],
     },
     ...withCurrentUserPersonalDetailsDefaultProps,
@@ -260,7 +265,7 @@ function MoneyRequestConfirmPage(props) {
                         bankAccountRoute={ReportUtils.getBankAccountRoute(props.report)}
                         iouMerchant={props.iou.merchant}
                         iouModifiedMerchant={props.iou.modifiedMerchant}
-                        iouDate={props.iou.date}
+                        iouDate={props.iou.created}
                     />
                 </View>
             )}

@@ -406,11 +406,12 @@ function MoneyRequestConfirmationList(props) {
             {showAllFields && (
                 <>
                     <MenuItemWithTopDescription
+                        shouldShowRightIcon={!props.isReadOnly}
                         title={props.iouDate}
                         description={translate('common.date')}
                         style={[styles.moneyRequestMenuItem, styles.mb2]}
-                        // Note: This component is disabled until this field is editable in next PR
-                        disabled
+                        onPress={() => Navigation.navigate(ROUTES.getMoneyRequestCreatedRoute(props.iouType, props.reportID))}
+                        disabled={didConfirm || props.isReadOnly}
                     />
                     <MenuItemWithTopDescription
                         shouldShowRightIcon={!props.isReadOnly}

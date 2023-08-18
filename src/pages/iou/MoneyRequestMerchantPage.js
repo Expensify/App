@@ -27,6 +27,7 @@ const propTypes = {
         id: PropTypes.string,
         amount: PropTypes.number,
         comment: PropTypes.string,
+        created: PropTypes.string,
         merchant: PropTypes.string,
         participants: PropTypes.arrayOf(optionPropTypes),
     }),
@@ -95,7 +96,7 @@ class MoneyRequestMerchantPage extends Component {
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
                 shouldEnableMaxHeight
-                onEntryTransitionEnd={() => this.descriptionInputRef && this.descriptionInputRef.focus()}
+                onEntryTransitionEnd={() => this.merchantInputRef && this.merchantInputRef.focus()}
             >
                 <HeaderWithBackButton
                     title={this.props.translate('common.merchant')}
@@ -112,11 +113,11 @@ class MoneyRequestMerchantPage extends Component {
                         <TextInput
                             inputID="moneyRequestMerchant"
                             name="moneyRequestMerchant"
-                            defaultValue={this.props.iou.comment}
+                            defaultValue={this.props.iou.merchant}
                             label={this.props.translate('common.merchant')}
                             accessibilityLabel={this.props.translate('common.merchant')}
                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                            ref={(el) => (this.descriptionInputRef = el)}
+                            ref={(el) => (this.merchantInputRef = el)}
                         />
                     </View>
                 </Form>
