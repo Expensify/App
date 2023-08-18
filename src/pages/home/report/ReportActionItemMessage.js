@@ -3,12 +3,15 @@ import {View, Text} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import CONST from '../../../CONST';
 import styles from '../../../styles/styles';
 import ReportActionItemFragment from './ReportActionItemFragment';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 import reportActionPropTypes from './reportActionPropTypes';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import useNetwork from '../../../hooks/useNetwork';
+import RenderHTML from '../../../components/RenderHTML';
 
 const propTypes = {
     /** The report action */
@@ -33,25 +36,36 @@ const defaultProps = {
 };
 
 function ReportActionItemMessage(props) {
+    const {isOffline} = useNetwork();
+    const hasCommentThread = ReportActionsUtils.hasCommentThread(props.action);
     const messages = _.compact(props.action.previousMessage || props.action.message);
     const isAttachment = ReportUtils.isReportMessageAttachment(_.last(messages));
+
     return (
-        <View style={[styles.chatItemMessage, !props.displayAsGroup && isAttachment ? styles.mt2 : {}, ...props.style]}>
+        <View style={[styles.chatItemMessage, ...props.style]}>
             {!props.isHidden ? (
-                _.map(messages, (fragment, index) => (
-                    <ReportActionItemFragment
-                        key={`actionFragment-${props.action.reportActionID}-${index}`}
-                        fragment={fragment}
-                        isAttachment={props.action.isAttachment}
-                        hasCommentThread={ReportActionsUtils.hasCommentThread(props.action)}
-                        attachmentInfo={props.action.attachmentInfo}
-                        pendingAction={props.action.pendingAction}
-                        source={lodashGet(props.action, 'originalMessage.source')}
-                        accountID={props.action.actorAccountID}
-                        loading={props.action.isLoading}
-                        style={props.style}
-                    />
-                ))
+                _.map(messages, (fragment, index) =>
+                    // Threaded messages display "[Deleted message]" instead of being hidden altogether.
+                    // While offline we display the previous message with a strikethrough style. Once online we want to
+                    // immediately display "[Deleted message]" while the delete action is pending.
+                    (!isOffline && hasCommentThread && props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) || fragment.isDeletedParentAction ? (
+                        <RenderHTML html={`<comment>${props.translate('parentReportAction.deletedMessage')}</comment>`} />
+                    ) : (
+                        <View style={!props.displayAsGroup && isAttachment ? styles.mt2 : {}}>
+                            <ReportActionItemFragment
+                                key={`actionFragment-${props.action.reportActionID}-${index}`}
+                                fragment={fragment}
+                                isAttachment={props.action.isAttachment}
+                                attachmentInfo={props.action.attachmentInfo}
+                                pendingAction={props.action.pendingAction}
+                                source={lodashGet(props.action, 'originalMessage.source')}
+                                accountID={props.action.actorAccountID}
+                                loading={props.action.isLoading}
+                                style={props.style}
+                            />
+                        </View>
+                    ),
+                )
             ) : (
                 <Text style={[styles.textLabelSupporting, styles.lh20]}>{props.translate('moderation.flaggedContent')}</Text>
             )}
