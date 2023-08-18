@@ -2552,6 +2552,10 @@ const CONST = {
             NAVIGATE: 'NAVIGATE',
         },
     },
+    ONYX_UPDATE_TYPES: {
+        HTTPS: 'https',
+        PUSHER: 'pusher',
+    },
 };
 
 export default CONST;

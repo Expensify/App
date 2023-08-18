@@ -552,13 +552,22 @@ function subscribeToUserEvents() {
         // lastUpdateID, previousUpdateID and updates
         if (_.isArray(pushJSON)) {
             updates = pushJSON;
-        } else {
-            updates = pushJSON.updates;
-            OnyxUpdates.saveUpdateIDs(Number(pushJSON.lastUpdateID || 0), Number(pushJSON.previousUpdateID || 0));
+            _.each(updates, (multipleEvent) => {
+                PusherUtils.triggerMultiEventHandler(multipleEvent.eventType, multipleEvent.data);
+            });
+            return;
         }
-        _.each(updates, (multipleEvent) => {
-            PusherUtils.triggerMultiEventHandler(multipleEvent.eventType, multipleEvent.data);
-        });
+
+        OnyxUpdates.saveUpdateIDs(
+            {
+                updateType: CONST.ONYX_UPDATE_TYPES.PUSHER,
+                data: {
+                    onyxUpdates: pushJSON.updates,
+                },
+            },
+            Number(pushJSON.lastUpdateID || 0),
+            Number(pushJSON.previousUpdateID || 0),
+        );
     });
 
     // Handles Onyx updates coming from Pusher through the mega multipleEvents.

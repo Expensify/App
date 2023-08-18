@@ -234,6 +234,36 @@ function getMissingOnyxUpdates(updateIDFrom = 0, updateIDTo = 0) {
 // The next 40ish lines of code are used for detecting when there is a gap of OnyxUpdates between what was last applied to the client and the updates the server has.
 // When a gap is detected, the missing updates are fetched from the API.
 
+/**
+ * @param {Object} data
+ * @param {Object} data.request
+ * @param {Object} data.response
+ */
+function applyHTTPSOnyxUpdates({request, response}) {}
+
+/**
+ * @param {Object} data
+ * @param {Object} data.onyxData
+ */
+function applyPusherOnyxUpdates({onyxData}) {}
+
+/**
+ * @param {Object[]} updateParams
+ * @param {String} updateParams.type
+ * @param {Object} updateParams.data
+ * @param {Object} [updateParams.data.request] Exists if updateParams.type === 'https'
+ * @param {Object} [updateParams.data.response] Exists if updateParams.type === 'https'
+ * @param {Object} [updateParams.data.onyxData] Exists if updateParams.type === 'pusher'
+ */
+function applyOnyxUpdates({type, data}) {
+    if (type === CONST.ONYX_UPDATE_TYPES.HTTPS) {
+        applyHTTPSOnyxUpdates(data);
+    }
+    if (type === CONST.ONYX_UPDATE_TYPES.PUSHER) {
+        applyPusherOnyxUpdates(data);
+    }
+}
+
 // These key needs to be separate from ONYXKEYS.ONYX_UPDATES_FROM_SERVER so that it can be updated without triggering the callback when the server IDs are updated
 let lastUpdateIDAppliedToClient = 0;
 Onyx.connect({
@@ -248,7 +278,7 @@ Onyx.connect({
             return;
         }
 
-        const {lastUpdateIDFromServer, previousUpdateIDFromServer} = val;
+        const {lastUpdateIDFromServer, previousUpdateIDFromServer, updateParams} = val;
         console.debug('[OnyxUpdates] Received lastUpdateID from server', lastUpdateIDFromServer);
         console.debug('[OnyxUpdates] Received previousUpdateID from server', previousUpdateIDFromServer);
         console.debug('[OnyxUpdates] Last update ID applied to the client', lastUpdateIDAppliedToClient);
