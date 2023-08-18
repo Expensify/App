@@ -1768,7 +1768,7 @@ function buildOptimisticApprovedReportAction(amount, currency, expenseReportID) 
         avatar: lodashGet(currentUserPersonalDetails, 'avatar', UserUtils.getDefaultAvatar(currentUserAccountID)),
         isAttachment: false,
         originalMessage,
-        message: getIOUReportActionMessage(CONST.REPORT.ACTIONS.TYPE.APPROVED, Math.abs(amount), '', currency),
+        message: getIOUReportActionMessage(expenseReportID, CONST.REPORT.ACTIONS.TYPE.APPROVED, Math.abs(amount), '', currency),
         person: [
             {
                 style: 'strong',
@@ -1866,7 +1866,11 @@ function buildOptimisticExpenseReport(chatReportID, policyID, payeeAccountID, to
  * @returns {Array}
  */
 function getIOUReportActionMessage(iouReportID, type, total, comment, currency, paymentType = '', isSettlingUp = false) {
-    let amount = CurrencyUtils.convertToDisplayString(total, currency);
+    let amount =
+        type === CONST.IOU.REPORT_ACTION_TYPE.PAY
+            ? CurrencyUtils.convertToDisplayString(getMoneyRequestTotal(getReport(iouReportID)), currency)
+            : CurrencyUtils.convertToDisplayString(total, currency);
+
     let paymentMethodMessage;
     switch (paymentType) {
         case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
@@ -1895,7 +1899,6 @@ function getIOUReportActionMessage(iouReportID, type, total, comment, currency, 
             iouMessage = `deleted the ${amount} request${comment && ` for ${comment}`}`;
             break;
         case CONST.IOU.REPORT_ACTION_TYPE.PAY:
-            amount = CurrencyUtils.convertToDisplayString(getMoneyRequestTotal(getReport(iouReportID)), currency);
             iouMessage = isSettlingUp ? `paid ${amount}${paymentMethodMessage}` : `sent ${amount}${comment && ` for ${comment}`}${paymentMethodMessage}`;
             break;
         default:
