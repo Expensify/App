@@ -4,88 +4,101 @@
 SRC_DIR="src"
 STYLES_FILE="src/styles/styles.js"
 TRANSLATION_FILES=("src/languages/es.js" "src/languages/en.js")
-KEYS_LIST_FILE="keys_list.txt"
+STYLES_KEYS_FILE="src/languages/style_keys_list_temp.txt"
+TRANSLATION_KEYS_FILE="src/languages/translations_keys_list_temp.txt"
 
 # Function to find and store keys from a file
-find_and_store_keys() {
+find_styles_and_store_keys() {
   local file="$1"
-  local file_keys=($(grep -Eo "([a-zA-Z0-9_-]+\.)?[a-zA-Z0-9_-]+:" "$file" | sed -E "s/[:]//g"))
-  
-  for key in "${file_keys[@]}"; do
-    local line_numbers=($(grep -n "$key" "$file" | cut -d':' -f1))
-    for line_number in "${line_numbers[@]}"; do
-      echo "$key:$file:$line_number"
-    done
-  done
-}
+  local parent_keys=()
+  local root_key=""
+  local line_number=0  # Initialize the line number
 
-# Function to remove keys from the list
-remove_keys() {
-  local file="$1"
-  local list_file="$2"
-  
-  while IFS= read -r key_info; do
-    local key=$(echo "$key_info" | cut -d':' -f1)
-    local key_file=$(echo "$key_info" | cut -d':' -f2)
-    if [[ "$key_file" != "$file" ]]; then
-      echo "$key_info"
-    fi
-  done < "$list_file"
-}
+  while IFS= read -r line; do
+    ((line_number++))  # Increment the line number
 
-# Function to find unused keys in a file
-find_unused_keys_in_file() {
-  local file="$1"
-  local list_file="$2"
-  local unused_keys=()
-  
-  while IFS= read -r key_info; do
-    local key=$(echo "$key_info" | cut -d':' -f1)
-    local key_file=$(echo "$key_info" | cut -d':' -f2)
-    local line_number=$(echo "$key_info" | cut -d':' -f3)
-    if [[ "$key_file" != "$file" ]]; then
+  # Skip lines that are not key-related
+    if [[ ! "$line" =~ ^[[:space:]]*const[[:space:]]+([a-zA-Z0-9_-]+)[[:space:]]*=[[:space:]]*\{|^[[:space:]]*([a-zA-Z0-9_-]+\.)?[a-zA-Z0-9_-]+:[[:space:]]*\{|^[[:space:]]*\} ]]; then
       continue
     fi
-    
-    if ! grep -q "$key" "$file"; then
-      # Check if the line number contains a numeric value
-      if [[ "$line_number" =~ ^[0-9]+$ ]]; then
-        unused_keys+=("$key_info")
+
+    if [[ "$line" =~ ^[[:space:]]*const[[:space:]]+([a-zA-Z0-9_-]+)[[:space:]]*=[[:space:]]*\{ ]]; then
+      root_key=$(echo "${BASH_REMATCH[1]}" | sed -E "s/[:[:space:]]*\{.*//")
+    elif [[ "$line" =~ ^[[:space:]]*([a-zA-Z0-9_-]+\.)?[a-zA-Z0-9_-]+:[[:space:]]*\{ ]]; then
+      local key=$(echo "$line" | sed -E "s/[:[:space:]]*\{.*//")
+      # local line_number=$(echo "$line" | grep -n "$key:" | cut -d':' -f1)
+      
+      if [[ ${#parent_keys[@]} -gt 0 ]]; then
+        parent_key_trimmed="${parent_keys[${#parent_keys[@]}-1]// /}"  # Trim spaces
+        key_trimmed="${key// /}"  # Trim spaces
+        key="$parent_key_trimmed.$key_trimmed"
+      elif [[ -n "$root_key" ]]; then
+        parent_key_trimmed="${root_key// /}"  # Trim spaces
+        key_trimmed="${key// /}"  # Trim spaces
+        key="$parent_key_trimmed.$key_trimmed"
       fi
+    
+      echo "$key:$file:$line_number" >> "$STYLES_KEYS_FILE"
+      parent_keys+=("$key")
+    elif [[ "$line" =~ ^[[:space:]]*\} ]]; then
+      # unset "parent_keys[${#parent_keys[@]}-1]"
+      parent_keys=("${parent_keys[@]:0:${#parent_keys[@]}-1}")
     fi
-  done < "$list_file"
-  
-  for unused_key_info in "${unused_keys[@]}"; do
-    echo "Error: Unused key '$(echo "$unused_key_info" | cut -d':' -f1)' found in '$file' at line: $(echo "$unused_key_info" | cut -d':' -f3)"
-  done
+  # done < <(grep -E "^[[:space:]]*const[[:space:]]+([a-zA-Z0-9_-]+)[[:space:]]*=[[:space:]]*\{|^[[:space:]]*([a-zA-Z0-9_-]+\.)?[a-zA-Z0-9_-]+:[[:space:]]*\{|^[[:space:]]*\}" "$file")
+  done < "$file"
 }
 
-# Find and store keys from styles.js (only top-level keys)
-grep -Eo "^[[:space:]]*[a-zA-Z0-9_-]+:" "$STYLES_FILE" | sed -E "s/[:]//g" | while IFS= read -r key; do
-  echo "$key:$STYLES_FILE:0"
-done > "$KEYS_LIST_FILE"
+find_translations_and_store_keys() {
+  local file="$1"
+  local parent_key=()
+  local current_key=""
+  local line_number=0  # Initialize the line number
+
+  while IFS= read -r line; do
+    ((line_number++))  # Increment the line number
+
+  # Skip lines that are not key-related
+    if [[ ! "$line" =~ ^[[:space:]]*([a-zA-Z0-9_-]+)[[:space:]]*:[[:space:]]*\{|^[[:space:]]*([a-zA-Z0-9_-]+)[[:space:]]*:[[:space:]]*(\'[^\']*\'|\{)|^[[:space:]]*\} ]]; then
+      continue
+    fi
+
+    
+    if [[ "$line" =~ ^[[:space:]]*([a-zA-Z0-9_-]+)[[:space:]]*:[[:space:]]*\{ ]]; then
+      local key="${BASH_REMATCH[1]}"
+      current_key="$key"
+
+      if [[ ${#parent_keys[@]} -gt 0 ]]; then
+        local parent_key="${parent_keys[*]}"
+        current_key="$parent_key.$key"
+      fi
+
+      parent_keys=("${parent_keys[@]}" "$current_key")
+    elif [[ "$line" =~ ^[[:space:]]*([a-zA-Z0-9_-]+)[[:space:]]*:[[:space:]]*(\'[^\']*\'|\{) ]]; then
+      local key="${BASH_REMATCH[1]}"
+      # local line_number=$(echo "$line" | grep -n "${BASH_REMATCH[1]}" | cut -d':' -f1)
+      
+      if [[ ${#parent_keys[@]} -gt 0 ]]; then
+        local lastItem="${#parent_keys[@]}-1"
+        local parent_key="${parent_keys[$lastItem]}"
+
+        echo "${parent_key}.${key}:${file}:${line_number}" >> "$TRANSLATION_KEYS_FILE"
+      else
+        echo "$key:${file}:${line_number}" >> "$TRANSLATION_KEYS_FILE"
+      fi
+    elif [[ "$line" =~ ^[[:space:]]*\} ]]; then
+      parent_keys=("${parent_keys[@]:0:${#parent_keys[@]}-1}")
+      current_key="${parent_keys[*]}"
+    fi
+  # done < <(grep -E "^[[:space:]]*([a-zA-Z0-9_-]+)[[:space:]]*:[[:space:]]*\{|^[[:space:]]*([a-zA-Z0-9_-]+)[[:space:]]*:[[:space:]]*(\'[^\']*\'|\{)|^[[:space:]]*\}" "$file")
+  done < "$file"
+}
+
+# Find and store keys from styles.js
+find_styles_and_store_keys "$STYLES_FILE"
 
 # Find and store keys from translation files
 for translation_file in "${TRANSLATION_FILES[@]}"; do
-  find_and_store_keys "$translation_file" >> "$KEYS_LIST_FILE"
+  find_translations_and_store_keys "$translation_file"
 done
 
-# Find and remove used keys from the list
-while IFS= read -r file; do
-  remove_keys "$file" "$KEYS_LIST_FILE" > keys_list_temp.txt
-  mv keys_list_temp.txt "$KEYS_LIST_FILE"
-done < <(find "$SRC_DIR" -type f)
-
-# Find unused keys in all files
-unused_keys_found=false
-while IFS= read -r file; do
-  unused_keys_in_file=$(find_unused_keys_in_file "$file" "$KEYS_LIST_FILE")
-  if [[ -n "$unused_keys_in_file" ]]; then
-    unused_keys_found=true
-    echo "$unused_keys_in_file"
-  fi
-done < <(find "$SRC_DIR" -type f)
-
-if [[ "$unused_keys_found" = false ]]; then
-  echo "No unused keys found."
-fi
+echo "Keys saved to $KEYS_FILE"
