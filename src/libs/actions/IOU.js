@@ -560,6 +560,8 @@ function requestMoney(report, amount, currency, created, merchant, payeeEmail, p
             amount,
             currency,
             comment,
+            created,
+            merchant,
             iouReportID: iouReport.reportID,
             chatReportID: chatReport.reportID,
             transactionID: transaction.transactionID,
