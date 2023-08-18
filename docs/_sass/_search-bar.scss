@@ -28,6 +28,7 @@ $color-gray-label: $color-gray-label;
     display: block;
     top: 0;
     right: 0;
+    z-index: 2;
 }
 
 @media only screen and (max-width: $breakpoint-tablet) {
@@ -70,7 +71,7 @@ $color-gray-label: $color-gray-label;
     right: 0;
     bottom: 0;
     background-color: rgba(0, 0, 0, 0.4);
-    z-index: 2;
+    z-index: 1;
 }
 
 /* All gsc id & class are Google Search relate gcse_0 is the search bar parent & gcse_1 is the search result list parent */
@@ -157,6 +158,13 @@ label.search-label {
     font-family: "ExpensifyNeue", "Helvetica Neue", "Helvetica", Arial, sans-serif !important;
     max-height: 80vh;
     overflow-y: scroll;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+/* Hide the scrollbar */
+.gsc-control-cse::-webkit-scrollbar {
+    display: none;
 }
 
 .gs-title {
