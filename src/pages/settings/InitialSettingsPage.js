@@ -224,10 +224,10 @@ function InitialSettingsPage(props) {
                 },
             },
             {
-                translationKey: 'common.payments',
+                translationKey: 'common.wallet',
                 icon: Expensicons.Wallet,
                 action: () => {
-                    Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
+                    Navigation.navigate(ROUTES.SETTINGS_WALLET);
                 },
                 brickRoadIndicator:
                     PaymentMethods.hasPaymentMethodError(props.bankAccountList, paymentCardList) || !_.isEmpty(props.userWallet.errors) || !_.isEmpty(props.walletTerms.errors)
@@ -284,7 +284,7 @@ function InitialSettingsPage(props) {
             <>
                 {_.map(getDefaultMenuItems, (item, index) => {
                     const keyTitle = item.translationKey ? translate(item.translationKey) : item.title;
-                    const isPaymentItem = item.translationKey === 'common.payments';
+                    const isPaymentItem = item.translationKey === 'common.wallet';
 
                     return (
                         <MenuItem

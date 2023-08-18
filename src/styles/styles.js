@@ -2124,11 +2124,10 @@ const styles = {
         outline: 'none',
     },
 
-    pdfPasswordForm: {
-        wideScreenWidth: {
-            width: 350,
-        },
-    },
+    getPDFPasswordFormStyle: (isSmallScreenWidth) => ({
+        width: isSmallScreenWidth ? '100%' : 350,
+        ...(isSmallScreenWidth && flex.flex1),
+    }),
 
     modalCenterContentContainer: {
         flex: 1,
