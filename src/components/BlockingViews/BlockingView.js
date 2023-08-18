@@ -42,7 +42,7 @@ const propTypes = {
 const defaultProps = {
     iconColor: themeColors.offline,
     subtitle: '',
-    shouldShowLink: true,
+    shouldShowLink: false,
     link: 'notFound.goBackHome',
     iconWidth: variables.iconSizeSuperLarge,
     iconHeight: variables.iconSizeSuperLarge,
