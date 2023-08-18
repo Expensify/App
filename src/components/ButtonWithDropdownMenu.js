@@ -45,6 +45,8 @@ const propTypes = {
         horizontal: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL)),
         vertical: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL)),
     }),
+
+    /* ref for the button */
     buttonRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
 };
 
