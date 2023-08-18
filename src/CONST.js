@@ -2,6 +2,7 @@ import lodashGet from 'lodash/get';
 import Config from 'react-native-config';
 import * as KeyCommand from 'react-native-key-command';
 import * as Url from './libs/Url';
+import SCREENS from './SCREENS';
 
 const CLOUDFRONT_DOMAIN = 'cloudfront.net';
 const CLOUDFRONT_URL = `https://d2k5nsl2zxldvw.${CLOUDFRONT_DOMAIN}`;
@@ -181,6 +182,10 @@ const CONST = {
             // If the length is longer than 13 digits, we show the first 6 and last 4 digits, hiding the rest with X
             MASKED_US_ACCOUNT_NUMBER: /^[X]{0,9}[0-9]{4}$|^[0-9]{6}[X]{4,7}[0-9]{4}$/,
             SWIFT_BIC: /^[A-Za-z0-9]{8,11}$/,
+
+            TIME_STARTS_01: /^01:\d{2} [AP]M$/,
+            TIME_FORMAT: /^\d{2}:\d{2} [AP]M$/,
+            DATE_TIME_FORMAT: /^\d{2}-\d{2} \d{2}:\d{2} [AP]M$/,
         },
         VERIFICATION_MAX_ATTEMPTS: 7,
         STATE: {
@@ -425,6 +430,15 @@ const CONST = {
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'http://localhost:',
 
+    SIGN_IN_FORM_WIDTH: 300,
+
+    DEEPLINK_PROMPT_DENYLIST: [SCREENS.HOME, SCREENS.SIGN_IN_WITH_APPLE_DESKTOP, SCREENS.SIGN_IN_WITH_GOOGLE_DESKTOP],
+
+    SIGN_IN_METHOD: {
+        APPLE: 'Apple',
+        GOOGLE: 'Google',
+    },
+
     OPTION_TYPE: {
         REPORT: 'report',
         PERSONAL_DETAIL: 'personalDetail',
@@ -448,6 +462,7 @@ const CONST = {
                 TASKEDITED: 'TASKEDITED',
                 TASKCANCELLED: 'TASKCANCELLED',
                 IOU: 'IOU',
+                MODIFIEDEXPENSE: 'MODIFIEDEXPENSE',
                 REIMBURSEMENTQUEUED: 'REIMBURSEMENTQUEUED',
                 RENAMED: 'RENAMED',
                 CHRONOSOOOLIST: 'CHRONOSOOOLIST',
@@ -1155,6 +1170,7 @@ const CONST = {
 
         ROUTES: {
             VALIDATE_LOGIN: /\/v($|(\/\/*))/,
+            UNLINK_LOGIN: /\/u($|(\/\/*))/,
         },
     },
 
@@ -1256,8 +1272,10 @@ const CONST = {
     },
     EDIT_REQUEST_FIELD: {
         AMOUNT: 'amount',
+        CURRENCY: 'currency',
         DATE: 'date',
         DESCRIPTION: 'description',
+        MERCHANT: 'merchant',
     },
     FOOTER: {
         EXPENSE_MANAGEMENT_URL: `${USE_EXPENSIFY_URL}/expense-management`,
@@ -1305,16 +1323,6 @@ const CONST = {
         REACT_PDF_PASSWORD_RESPONSES: {
             NEED_PASSWORD: 1,
             INCORRECT_PASSWORD: 2,
-        },
-    },
-    TESTING: {
-        SCREEN_SIZE: {
-            SMALL: {
-                width: 300,
-                height: 700,
-                scale: 1,
-                fontScale: 1,
-            },
         },
     },
     API_REQUEST_TYPE: {
@@ -2531,6 +2539,19 @@ const CONST = {
         MANUAL: 'manual',
         SCAN: 'scan',
         DISTANCE: 'distance',
+    },
+    STATUS_TEXT_MAX_LENGTH: 100,
+    SF_COORDINATES: [-122.4194, 37.7749],
+    NAVIGATION: {
+        TYPE: {
+            FORCED_UP: 'FORCED_UP',
+            UP: 'UP',
+        },
+        ACTION_TYPE: {
+            REPLACE: 'REPLACE',
+            PUSH: 'PUSH',
+            NAVIGATE: 'NAVIGATE',
+        },
     },
 };
 

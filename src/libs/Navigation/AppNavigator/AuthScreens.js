@@ -31,6 +31,7 @@ import RightModalNavigator from './Navigators/RightModalNavigator';
 import CentralPaneNavigator from './Navigators/CentralPaneNavigator';
 import NAVIGATORS from '../../../NAVIGATORS';
 import FullScreenNavigator from './Navigators/FullScreenNavigator';
+import DesktopSignInRedirectPage from '../../../pages/signin/DesktopSignInRedirectPage';
 import styles from '../../../styles/styles';
 import * as SessionUtils from '../../SessionUtils';
 import getNavigationModalCardStyle from '../../../styles/getNavigationModalCardStyles';
@@ -96,8 +97,8 @@ const propTypes = {
     /** Opt-in experimental mode that prevents certain Onyx keys from persisting to disk */
     isUsingMemoryOnlyKeys: PropTypes.bool,
 
-    /** The last Onyx update ID that is stored in Onyx (used for getting incremental updates when reconnecting) */
-    onyxUpdatesLastUpdateID: PropTypes.number,
+    /** The last Onyx update ID was applied to the client */
+    lastUpdateIDAppliedToClient: PropTypes.number,
 
     ...windowDimensionsPropTypes,
 };
@@ -108,7 +109,7 @@ const defaultProps = {
         email: null,
     },
     lastOpenedPublicRoomID: null,
-    onyxUpdatesLastUpdateID: 0,
+    lastUpdateIDAppliedToClient: null,
 };
 
 class AuthScreens extends React.Component {
@@ -120,7 +121,7 @@ class AuthScreens extends React.Component {
 
     componentDidMount() {
         NetworkConnection.listenForReconnect();
-        NetworkConnection.onReconnect(() => App.reconnectApp(this.props.onyxUpdatesLastUpdateID));
+        NetworkConnection.onReconnect(() => App.reconnectApp(this.props.lastUpdateIDAppliedToClient));
         PusherConnectionManager.init();
         Pusher.init({
             appKey: CONFIG.PUSHER.APP_KEY,
@@ -131,8 +132,7 @@ class AuthScreens extends React.Component {
         });
 
         // If we are on this screen then we are "logged in", but the user might not have "just logged in". They could be reopening the app
-        // or returning from background. If so, we'll assume they have some app data already and we can call
-        // reconnectApp(onyxUpdatesLastUpdateID) instead of openApp().
+        // or returning from background. If so, we'll assume they have some app data already and we can call reconnectApp() instead of openApp().
         // Note: If a Guide has enabled the memory only key mode then we do want to run OpenApp as their app will not be rehydrated with
         // the correct state on refresh. They are explicitly opting out of storing data they would need (i.e. reports_) to take advantage of
         // the optimizations performed during ReconnectApp.
@@ -140,10 +140,11 @@ class AuthScreens extends React.Component {
         if (shouldGetAllData) {
             App.openApp();
         } else {
-            App.reconnectApp(this.props.onyxUpdatesLastUpdateID);
+            App.reconnectApp(this.props.lastUpdateIDAppliedToClient);
         }
 
         App.setUpPoliciesAndNavigate(this.props.session, !this.props.isSmallScreenWidth);
+        App.redirectThirdPartyDesktopSignIn();
 
         if (this.props.lastOpenedPublicRoomID) {
             // Re-open the last opened public room if the user logged in from a public room link
@@ -309,6 +310,11 @@ class AuthScreens extends React.Component {
                     component={RightModalNavigator}
                     listeners={modalScreenListeners}
                 />
+                <RootStack.Screen
+                    name="DesktopSignInRedirect"
+                    options={defaultScreenOptions}
+                    component={DesktopSignInRedirectPage}
+                />
             </RootStack.Navigator>
         );
     }
@@ -328,8 +334,8 @@ export default compose(
         isUsingMemoryOnlyKeys: {
             key: ONYXKEYS.IS_USING_MEMORY_ONLY_KEYS,
         },
-        onyxUpdatesLastUpdateID: {
-            key: ONYXKEYS.ONYX_UPDATES.LAST_UPDATE_ID,
+        lastUpdateIDAppliedToClient: {
+            key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
         },
     }),
 )(AuthScreens);

@@ -35,8 +35,15 @@ const propTypes = {
     /** Whether to show welcome header on a particular page */
     shouldShowWelcomeHeader: PropTypes.bool.isRequired,
 
+    /** Override the green headline copy */
+    customHeadline: PropTypes.string,
+
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    customHeadline: '',
 };
 
 function SignInPageLayout(props) {
@@ -108,7 +115,7 @@ function SignInPageLayout(props) {
                                         props.isLargeScreenWidth ? styles.ph25 : {},
                                     ]}
                                 >
-                                    <SignInPageHero />
+                                    <SignInPageHero customHeadline={props.customHeadline} />
                                     <Footer scrollPageToTop={scrollPageToTop} />
                                 </View>
                             </View>
@@ -126,7 +133,6 @@ function SignInPageLayout(props) {
                             isSmallScreen
                             pointerEvents="none"
                             width={variables.signInHeroBackgroundWidthMobile}
-                            style={styles.signInBackgroundMobile}
                         />
                         <SignInPageContent
                             welcomeHeader={props.welcomeHeader}
@@ -148,5 +154,6 @@ function SignInPageLayout(props) {
 
 SignInPageLayout.propTypes = propTypes;
 SignInPageLayout.displayName = 'SignInPageLayout';
+SignInPageLayout.defaultProps = defaultProps;
 
 export default compose(withWindowDimensions, withSafeAreaInsets, withLocalize)(SignInPageLayout);
