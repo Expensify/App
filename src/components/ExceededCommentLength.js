@@ -16,7 +16,7 @@ const propTypes = {
 };
 
 function ExceededCommentLength(props) {
-    const {numberFormat} = useLocalize();
+    const {numberFormat, translate} = useLocalize();
     const [commentLength, setCommentLength] = useState(0);
     const updateCommentLength = useMemo(
         () =>
@@ -36,7 +36,11 @@ function ExceededCommentLength(props) {
         return null;
     }
 
-    return <Text style={[styles.textMicro, styles.textDanger, styles.chatItemComposeSecondaryRow, styles.mlAuto, styles.pl2]}>{numberFormat(CONST.MAX_COMMENT_LENGTH)}+</Text>;
+    return (
+        <Text style={[styles.textMicro, styles.textDanger, styles.chatItemComposeSecondaryRow, styles.mlAuto, styles.pl2]}>
+            {translate('composer.commentExceededMaxLength', {formattedMaxLength: numberFormat(CONST.MAX_COMMENT_LENGTH)})}
+        </Text>
+    );
 }
 
 ExceededCommentLength.propTypes = propTypes;
