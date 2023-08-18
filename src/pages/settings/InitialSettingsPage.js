@@ -80,8 +80,8 @@ const propTypes = {
     /** List of bank accounts */
     bankAccountList: PropTypes.objectOf(bankAccountPropTypes),
 
-    /** List of cards */
-    cardList: PropTypes.objectOf(cardPropTypes),
+    /** List of user's cards */
+    fundList: PropTypes.objectOf(cardPropTypes),
 
     /** Bank account attached to free plan */
     reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes,
@@ -118,7 +118,7 @@ const defaultProps = {
     betas: [],
     walletTerms: {},
     bankAccountList: {},
-    cardList: {},
+    fundList: null,
     loginList: {},
     allPolicyMembers: {},
     ...withCurrentUserPersonalDetailsDefaultProps,
@@ -180,6 +180,8 @@ function InitialSettingsPage(props) {
                 : null;
         const profileBrickRoadIndicator = UserUtils.getLoginListBrickRoadIndicator(props.loginList);
 
+        const paymentCardList = props.fundList || {};
+
         return [
             {
                 translationKey: 'common.shareCode',
@@ -222,13 +224,13 @@ function InitialSettingsPage(props) {
                 },
             },
             {
-                translationKey: 'common.payments',
+                translationKey: 'common.wallet',
                 icon: Expensicons.Wallet,
                 action: () => {
-                    Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
+                    Navigation.navigate(ROUTES.SETTINGS_WALLET);
                 },
                 brickRoadIndicator:
-                    PaymentMethods.hasPaymentMethodError(props.bankAccountList, props.cardList) || !_.isEmpty(props.userWallet.errors) || !_.isEmpty(props.walletTerms.errors)
+                    PaymentMethods.hasPaymentMethodError(props.bankAccountList, paymentCardList) || !_.isEmpty(props.userWallet.errors) || !_.isEmpty(props.walletTerms.errors)
                         ? 'error'
                         : null,
             },
@@ -260,7 +262,7 @@ function InitialSettingsPage(props) {
     }, [
         props.allPolicyMembers,
         props.bankAccountList,
-        props.cardList,
+        props.fundList,
         props.loginList,
         props.network.isOffline,
         props.policies,
@@ -282,7 +284,7 @@ function InitialSettingsPage(props) {
             <>
                 {_.map(getDefaultMenuItems, (item, index) => {
                     const keyTitle = item.translationKey ? translate(item.translationKey) : item.title;
-                    const isPaymentItem = item.translationKey === 'common.payments';
+                    const isPaymentItem = item.translationKey === 'common.wallet';
 
                     return (
                         <MenuItem
@@ -422,8 +424,8 @@ export default compose(
         reimbursementAccount: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },
-        cardList: {
-            key: ONYXKEYS.CARD_LIST,
+        fundList: {
+            key: ONYXKEYS.FUND_LIST,
         },
         walletTerms: {
             key: ONYXKEYS.WALLET_TERMS,

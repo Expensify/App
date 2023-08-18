@@ -42,12 +42,14 @@ const defaultProps = {
     descriptionTextStyle: styles.breakWord,
     success: false,
     icon: undefined,
+    secondaryIcon: undefined,
     iconWidth: undefined,
     iconHeight: undefined,
     description: undefined,
     iconRight: Expensicons.ArrowRight,
     iconStyles: [],
     iconFill: undefined,
+    secondaryIconFill: undefined,
     focused: false,
     disabled: false,
     isSelected: false,
@@ -131,7 +133,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                     disabled={props.disabled}
                     ref={ref}
                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.MENUITEM}
-                    accessibilityLabel={props.title}
+                    accessibilityLabel={props.title ? props.title.toString() : ''}
                 >
                     {({pressed}) => (
                         <>
@@ -152,8 +154,8 @@ const MenuItem = React.forwardRef((props, ref) => {
                                             size={props.avatarSize}
                                             secondAvatarStyle={[
                                                 StyleUtils.getBackgroundAndBorderStyle(themeColors.sidebar),
-                                                pressed ? StyleUtils.getBackgroundAndBorderStyle(themeColors.buttonPressedBG) : undefined,
-                                                isHovered && !pressed ? StyleUtils.getBackgroundAndBorderStyle(themeColors.border) : undefined,
+                                                pressed && props.interactive ? StyleUtils.getBackgroundAndBorderStyle(themeColors.buttonPressedBG) : undefined,
+                                                isHovered && !pressed && props.interactive ? StyleUtils.getBackgroundAndBorderStyle(themeColors.border) : undefined,
                                             ]}
                                         />
                                     )}
@@ -161,6 +163,8 @@ const MenuItem = React.forwardRef((props, ref) => {
                                         <View style={[styles.popoverMenuIcon, ...props.iconStyles, StyleUtils.getAvatarWidthStyle(props.avatarSize)]}>
                                             {props.iconType === CONST.ICON_TYPE_ICON && (
                                                 <Icon
+                                                    hovered={isHovered}
+                                                    pressed={pressed}
                                                     src={props.icon}
                                                     width={props.iconWidth}
                                                     height={props.iconHeight}
@@ -191,6 +195,19 @@ const MenuItem = React.forwardRef((props, ref) => {
                                                     size={props.avatarSize}
                                                 />
                                             )}
+                                        </View>
+                                    )}
+                                    {Boolean(props.secondaryIcon) && (
+                                        <View style={[styles.popoverMenuIcon, ...props.iconStyles]}>
+                                            <Icon
+                                                src={props.secondaryIcon}
+                                                width={props.iconWidth}
+                                                height={props.iconHeight}
+                                                fill={
+                                                    props.secondaryIconFill ||
+                                                    StyleUtils.getIconFillColor(getButtonState(props.focused || isHovered, pressed, props.success, props.disabled, props.interactive), true)
+                                                }
+                                            />
                                         </View>
                                     )}
                                     <View style={[styles.justifyContentCenter, styles.flex1, StyleUtils.getMenuItemTextContainerStyle(props.isSmallAvatarSubscriptMenu)]}>

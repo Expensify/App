@@ -3,6 +3,7 @@ import AdminRoomAvatar from '../../../assets/images/avatars/admin-room.svg';
 import Android from '../../../assets/images/android.svg';
 import AnnounceRoomAvatar from '../../../assets/images/avatars/announce-room.svg';
 import Apple from '../../../assets/images/apple.svg';
+import AppleLogo from '../../../assets/images/signIn/apple-logo.svg';
 import ArrowRight from '../../../assets/images/arrow-right.svg';
 import ArrowRightLong from '../../../assets/images/arrow-right-long.svg';
 import ArrowsUpDown from '../../../assets/images/arrows-updown.svg';
@@ -15,6 +16,7 @@ import Bug from '../../../assets/images/bug.svg';
 import Building from '../../../assets/images/building.svg';
 import Calendar from '../../../assets/images/calendar.svg';
 import Camera from '../../../assets/images/camera.svg';
+import Car from '../../../assets/images/car.svg';
 import Cash from '../../../assets/images/cash.svg';
 import ChatBubble from '../../../assets/images/chatbubble.svg';
 import Checkmark from '../../../assets/images/checkmark.svg';
@@ -31,8 +33,10 @@ import Document from '../../../assets/images/document.svg';
 import DeletedRoomAvatar from '../../../assets/images/avatars/deleted-room.svg';
 import DomainRoomAvatar from '../../../assets/images/avatars/domain-room.svg';
 import DotIndicator from '../../../assets/images/dot-indicator.svg';
+import DotIndicatorUnfilled from '../../../assets/images/dot-indicator-unfilled.svg';
 import DownArrow from '../../../assets/images/down.svg';
 import Download from '../../../assets/images/download.svg';
+import DragHandles from '../../../assets/images/drag-handles.svg';
 import Emoji from '../../../assets/images/emoji.svg';
 import Exclamation from '../../../assets/images/exclamation.svg';
 import Exit from '../../../assets/images/exit.svg';
@@ -48,6 +52,7 @@ import FlagLevelThree from '../../../assets/images/flag_level_03.svg';
 import Gallery from '../../../assets/images/gallery.svg';
 import Gear from '../../../assets/images/gear.svg';
 import Globe from '../../../assets/images/globe.svg';
+import GoogleLogo from '../../../assets/images/signIn/google-logo.svg';
 import Hashtag from '../../../assets/images/hashtag.svg';
 import History from '../../../assets/images/history.svg';
 import Hourglass from '../../../assets/images/hourglass.svg';
@@ -59,8 +64,9 @@ import Key from '../../../assets/images/key.svg';
 import Keyboard from '../../../assets/images/keyboard.svg';
 import Link from '../../../assets/images/link.svg';
 import LinkCopy from '../../../assets/images/link-copy.svg';
+import Location from '../../../assets/images/location.svg';
 import Lock from '../../../assets/images/lock.svg';
-import LoungeAccess from '../../../assets/images/lounge-access.svg';
+import LoungeAccess from './svgs/LoungeAccessIcon';
 import Luggage from '../../../assets/images/luggage.svg';
 import MagnifyingGlass from '../../../assets/images/magnifying-glass.svg';
 import Mail from '../../../assets/images/mail.svg';
@@ -124,6 +130,7 @@ export {
     Android,
     AnnounceRoomAvatar,
     Apple,
+    AppleLogo,
     ArrowRight,
     ArrowRightLong,
     ArrowsUpDown,
@@ -136,6 +143,7 @@ export {
     Building,
     Calendar,
     Camera,
+    Car,
     Cash,
     ChatBubble,
     Checkmark,
@@ -152,9 +160,11 @@ export {
     Document,
     DomainRoomAvatar,
     DotIndicator,
+    DotIndicatorUnfilled,
     DownArrow,
     Download,
     DragAndDrop,
+    DragHandles,
     Emoji,
     Exclamation,
     Exit,
@@ -174,6 +184,7 @@ export {
     Gallery,
     Gear,
     Globe,
+    GoogleLogo,
     Hashtag,
     History,
     Hourglass,
@@ -185,6 +196,7 @@ export {
     Keyboard,
     Link,
     LinkCopy,
+    Location,
     Lock,
     LoungeAccess,
     Luggage,

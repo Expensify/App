@@ -201,7 +201,7 @@ function WorkspaceInvitePage(props) {
                 const sections = didScreenTransitionEnd ? getSections() : [];
                 return (
                     <FullPageNotFoundView
-                        shouldShow={_.isEmpty(props.policy) || !Policy.isPolicyOwner(props.policy)}
+                        shouldShow={_.isEmpty(props.policy) || !PolicyUtils.isPolicyAdmin(props.policy)}
                         subtitleKey={_.isEmpty(props.policy) ? undefined : 'workspace.common.notAuthorized'}
                         onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
                     >
@@ -228,6 +228,7 @@ function WorkspaceInvitePage(props) {
                                 onChangeText={setSearchTerm}
                                 onConfirmSelection={inviteUser}
                                 headerMessage={headerMessage}
+                                showScrollIndicator
                                 hideSectionHeaders
                                 boldStyle
                                 shouldDelayFocus
