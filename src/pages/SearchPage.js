@@ -43,16 +43,16 @@ function SearchPage(props) {
     const {
         recentReports: initialRecentReports,
         personalDetails: initialPersonalDetails,
-        userToInvite: initialUserToInvite
+        userToInvite: initialUserToInvite,
         // Ignoring the rule because in this case we need the data only initially
         // eslint-disable-next-line react-hooks/exhaustive-deps
     } = useMemo(() => OptionsListUtils.getSearchOptions(props.reports, props.personalDetails, '', props.betas), []);
 
-    const [searchValue, setSearchValue] = useState('')
+    const [searchValue, setSearchValue] = useState('');
     const [searchOptions, setSearchOptions] = useState({
         recentReports: initialRecentReports,
         personalDetails: initialPersonalDetails,
-        userToInvite: initialUserToInvite
+        userToInvite: initialUserToInvite,
     });
 
     const {translate} = useLocalize();
@@ -61,31 +61,26 @@ function SearchPage(props) {
         const {
             recentReports: localRecentReports,
             personalDetails: localPersonalDetails,
-            userToInvite: localUserToInvite
-        } = OptionsListUtils.getSearchOptions(
-            props.reports,
-            props.personalDetails,
-            searchValue.trim(),
-            props.betas,
-        );
+            userToInvite: localUserToInvite,
+        } = OptionsListUtils.getSearchOptions(props.reports, props.personalDetails, searchValue.trim(), props.betas);
 
         setSearchOptions({
             recentReports: localRecentReports,
             personalDetails: localPersonalDetails,
-            userToInvite: localUserToInvite
-        })
-    }, [props.reports, props.personalDetails, searchValue, props.betas])
+            userToInvite: localUserToInvite,
+        });
+    }, [props.reports, props.personalDetails, searchValue, props.betas]);
 
     const debouncedUpdateOptions = useMemo(() => _.debounce(updateOptions, 75), [updateOptions]);
 
     useEffect(() => {
         Timing.start(CONST.TIMING.SEARCH_RENDER);
         Performance.markStart(CONST.TIMING.SEARCH_RENDER);
-    }, [])
+    }, []);
 
     useEffect(() => {
-        debouncedUpdateOptions()
-    }, [searchValue, debouncedUpdateOptions])
+        debouncedUpdateOptions();
+    }, [searchValue, debouncedUpdateOptions]);
 
     /**
      * Returns the sections needed for the OptionsSelector
@@ -123,16 +118,16 @@ function SearchPage(props) {
         }
 
         return sections;
-    }
+    };
 
     const searchRendered = () => {
         Timing.end(CONST.TIMING.SEARCH_RENDER);
         Performance.markEnd(CONST.TIMING.SEARCH_RENDER);
-    }
+    };
 
     const onChangeText = (value = '') => {
-        setSearchValue(value)
-    }
+        setSearchValue(value);
+    };
 
     /**
      * Reset the search value and redirect to the selected report
@@ -144,12 +139,12 @@ function SearchPage(props) {
             return;
         }
         if (option.reportID) {
-            setSearchValue('')
+            setSearchValue('');
             Navigation.dismissModal(option.reportID);
         } else {
             Report.navigateToAndOpenReport([option.login]);
         }
-    }
+    };
 
     const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(props.personalDetails);
     const headerMessage = OptionsListUtils.getHeaderMessage(
@@ -161,7 +156,7 @@ function SearchPage(props) {
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                 <>
-                    <HeaderWithBackButton title={translate('common.search')}/>
+                    <HeaderWithBackButton title={translate('common.search')} />
                     <View style={[styles.flex1, styles.w100, styles.pRelative]}>
                         <OptionsSelector
                             sections={getSections()}
@@ -180,11 +175,11 @@ function SearchPage(props) {
                 </>
             )}
         </ScreenWrapper>
-    )
+    );
 }
 
 SearchPage.propTypes = propTypes;
-SearchPage.defaultProps = defaultProps
+SearchPage.defaultProps = defaultProps;
 SearchPage.displayName = 'SearchPage';
 export default withOnyx({
     reports: {
