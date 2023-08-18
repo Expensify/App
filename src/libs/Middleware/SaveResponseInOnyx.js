@@ -30,7 +30,7 @@ function SaveResponseInOnyx(response, request) {
         // Supports both the old format and the new format
         const onyxUpdates = _.isArray(responseData) ? responseData : responseData.onyxData;
         // If there is an OnyxUpdate for using memory only keys, enable them
-        _.each(onyxUpdates, ({key, value}) => {
+        _.find(onyxUpdates, ({key, value}) => {
             if (key !== ONYXKEYS.IS_USING_MEMORY_ONLY_KEYS || !value) {
                 return;
             }
