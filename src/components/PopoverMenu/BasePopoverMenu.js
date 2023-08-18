@@ -131,6 +131,6 @@ function PopoverMenu(props) {
 
 PopoverMenu.propTypes = propTypes;
 PopoverMenu.defaultProps = defaultProps;
-PopoverMenu.displayName = 'PopoverMenu';
+PopoverMenu.displayName = 'BasePopoverMenu';
 
 export default React.memo(withWindowDimensions(PopoverMenu));

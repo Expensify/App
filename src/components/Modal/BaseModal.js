@@ -30,6 +30,7 @@ class BaseModal extends PureComponent {
         super(props);
 
         this.hideModal = this.hideModal.bind(this);
+        this.onBackdropPress = this.onBackdropPress.bind(this);
     }
 
     componentDidMount() {
@@ -113,9 +114,7 @@ class BaseModal extends PureComponent {
         );
         return (
             <ReactNativeModal
-                onBackdropPress={(e) => {
-                    this.onBackdropPress(e);
-                }}
+                onBackdropPress={this.onBackdropPress}
                 // Note: Escape key on web/desktop will trigger onBackButtonPress callback
                 // eslint-disable-next-line react/jsx-props-no-multi-spaces
                 onBackButtonPress={this.props.onClose}
@@ -136,9 +135,7 @@ class BaseModal extends PureComponent {
                 hasBackdrop={this.props.fullscreen}
                 customBackdrop={
                     this.props.customBackdrop &&
-                    this.props.customBackdrop((e) => {
-                        this.onBackdropPress(e);
-                    })
+                    this.props.customBackdrop(this.onBackdropPress)
                 }
                 coverScreen={!this.props.isSmallScreenWidth || this.props.coverScreen}
                 style={modalStyle}
