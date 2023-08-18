@@ -6,6 +6,7 @@ import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 import CONST from '../../CONST';
+import * as ActiveClientManager from '../ActiveClientManager';
 
 let authToken;
 Onyx.connect({
@@ -66,6 +67,13 @@ const init = () => {
          * @param {String[]} [token.errors]
          */
         callback: (token) => {
+            // Only the leader should be in charge of the mapbox token, or else when you have multiple tabs open, the Onyx connection fires multiple times
+            // and it sets up duplicate refresh timers. This would be a big waste of tokens.
+            if (!ActiveClientManager.isClientTheLeader()) {
+                console.debug('[MapboxToken] This client is not the leader so ignoring onyx callback');
+                return;
+            }
+
             // If the user has logged out, don't do anything and ignore changes to the access token
             if (!authToken) {
                 console.debug('[MapboxToken] Ignoring changes to token because user signed out');
@@ -76,7 +84,7 @@ const init = () => {
             // The API sets a token in Onyx with a 30 minute expiration.
             if (_.isEmpty(token)) {
                 console.debug('[MapboxToken] Token does not exist so fetching one');
-                API.write('GetMapboxAccessToken');
+                API.read('GetMapboxAccessToken');
                 isCurrentlyFetchingToken = true;
                 return;
             }
