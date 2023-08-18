@@ -242,7 +242,8 @@ function BaseSelectionList({
     };
 
     const renderItem = ({item, index, section}) => {
-        const isFocused = focusedIndex === index + lodashGet(section, 'indexOffset', 0);
+        const isDisabled = section.isDisabled;
+        const isFocused = !isDisabled && focusedIndex === index + lodashGet(section, 'indexOffset', 0);
 
         if (canSelectMultiple) {
             return (
@@ -259,6 +260,7 @@ function BaseSelectionList({
             <RadioListItem
                 item={item}
                 isFocused={isFocused}
+                isDisabled={isDisabled}
                 onSelectRow={() => selectRow(item, index)}
             />
         );

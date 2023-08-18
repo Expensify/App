@@ -37,10 +37,10 @@ function EditRequestCreatedPage({defaultCreated, onSubmit}) {
                 enabledWhenOffline
             >
                 <NewDatePicker
-                    // We will add date limitations as a follow-up
                     inputID="created"
                     label={translate('common.date')}
                     defaultValue={defaultCreated}
+                    maxDate={new Date()}
                 />
             </Form>
         </ScreenWrapper>
