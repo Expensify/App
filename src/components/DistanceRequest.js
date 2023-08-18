@@ -55,7 +55,7 @@ const propTypes = {
 
         /** Errors related to this transaction */
         errorFields: {
-            /** Errors related to fetching the route */
+            /** Error related to fetching the route */
             route: PropTypes.string,
         }
     }),
@@ -118,12 +118,12 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
             waypoint && typeof waypoint.address === 'string' && waypoint.address.trim() !== ''
         ).length;
     
-        if (nonEmptyWaypoints < 2 || isLoadingRoute) {
+        if (isOffline || nonEmptyWaypoints < 2 || isLoadingRoute) {
             return;
         }
 
         Transaction.getRoute(transactionID, waypoints);
-    }, [waypoints, transactionID, isLoadingRoute]);
+    }, [waypoints, transactionID, isLoadingRoute, isOffline]);
 
     useEffect(updateGradientVisibility, [scrollContainerHeight, scrollContentHeight]);
 
