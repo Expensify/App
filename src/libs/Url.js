@@ -19,7 +19,7 @@ function addTrailingForwardSlash(url) {
 function getPathFromURL(url) {
     try {
         const parsedUrl = new URL(url);
-        const path = parsedUrl.pathname + parsedUrl.search;
+        const path = parsedUrl.pathname + parsedUrl.search + parsedUrl.hash;
         return path.substring(1); // Remove the leading '/'
     } catch (error) {
         console.error('Error parsing URL:', error);
