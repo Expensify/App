@@ -24,6 +24,9 @@ import * as ErrorUtils from '../../libs/ErrorUtils';
 import DotIndicatorMessage from '../../components/DotIndicatorMessage';
 import * as CloseAccount from '../../libs/actions/CloseAccount';
 import CONST from '../../CONST';
+import CONFIG from '../../CONFIG';
+import AppleSignIn from '../../components/SignInButtons/AppleSignIn';
+import GoogleSignIn from '../../components/SignInButtons/GoogleSignIn';
 import isInputAutoFilled from '../../libs/isInputAutoFilled';
 import * as PolicyUtils from '../../libs/PolicyUtils';
 import Log from '../../libs/Log';
@@ -107,6 +110,10 @@ function LoginForm(props) {
         },
         [props.account, props.closeAccount, input, setFormError, setLogin],
     );
+
+    function getSignInWithStyles() {
+        return props.isSmallScreenWidth ? [styles.mt1] : [styles.mt5, styles.mb5];
+    }
 
     /**
      * Check that all the form fields are valid, then trigger the submit callback
@@ -228,6 +235,29 @@ function LoginForm(props) {
                             isAlertVisible={!_.isEmpty(serverErrorText)}
                             containerStyles={[styles.mh0]}
                         />
+                        {
+                            // This feature has a few behavioral and visual differences in development mode. To prevent confusion
+                            // for developers about possible regressions, we won't render
+                            // buttons in development mode.
+                            // For more information about these differences and how to test in development mode,
+                            // see`Expensify/App/contributingGuides/APPLE_GOOGLE_SIGNIN.md`
+                            CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.DEV && (
+                                <View style={[getSignInWithStyles()]}>
+                                    <Text
+                                        accessibilityElementsHidden
+                                        importantForAccessibility="no-hide-descendants"
+                                        style={[styles.textLabelSupporting, styles.textAlignCenter, styles.mb3, styles.mt2]}
+                                    >
+                                        {props.translate('common.signInWith')}
+                                    </Text>
+
+                                    <View style={props.isSmallScreenWidth ? styles.loginButtonRowSmallScreen : styles.loginButtonRow}>
+                                        <AppleSignIn />
+                                        <GoogleSignIn />
+                                    </View>
+                                </View>
+                            )
+                        }
                     </View>
                 )
             }

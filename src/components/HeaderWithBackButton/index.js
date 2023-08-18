@@ -47,120 +47,116 @@ function HeaderWithBackButton({
     },
     threeDotsMenuItems = [],
     children = null,
-    statusBar = null,
 }) {
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
     const {translate} = useLocalize();
     const {isKeyboardShown} = useKeyboardState();
     return (
-        <>
-            <View style={[styles.headerBar, shouldShowBorderBottom && !statusBar && styles.borderBottom, shouldShowBackButton && styles.pl2]}>
-                <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden]}>
-                    {shouldShowBackButton && (
-                        <Tooltip text={translate('common.back')}>
+        <View style={[styles.headerBar, shouldShowBorderBottom && styles.borderBottom, shouldShowBackButton && styles.pl2]}>
+            <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden]}>
+                {shouldShowBackButton && (
+                    <Tooltip text={translate('common.back')}>
+                        <PressableWithoutFeedback
+                            onPress={() => {
+                                if (isKeyboardShown) {
+                                    Keyboard.dismiss();
+                                }
+                                onBackButtonPress();
+                            }}
+                            style={[styles.touchableButtonImage]}
+                            accessibilityRole="button"
+                            accessibilityLabel={translate('common.back')}
+                        >
+                            <Icon
+                                src={Expensicons.BackArrow}
+                                fill={iconFill}
+                            />
+                        </PressableWithoutFeedback>
+                    </Tooltip>
+                )}
+                {shouldShowAvatarWithDisplay && (
+                    <AvatarWithDisplayName
+                        report={report}
+                        policies={policies}
+                        personalDetails={personalDetails}
+                    />
+                )}
+                {!shouldShowAvatarWithDisplay && (
+                    <Header
+                        title={title}
+                        subtitle={stepCounter ? translate('stepCounter', stepCounter) : subtitle}
+                        textStyles={titleColor ? [StyleUtils.getTextColorStyle(titleColor)] : []}
+                    />
+                )}
+                <View style={[styles.reportOptions, styles.flexRow, styles.pr5, styles.alignItemsCenter]}>
+                    {children}
+                    {shouldShowDownloadButton && (
+                        <Tooltip text={translate('common.download')}>
                             <PressableWithoutFeedback
-                                onPress={() => {
-                                    if (isKeyboardShown) {
-                                        Keyboard.dismiss();
+                                onPress={(e) => {
+                                    // Blur the pressable in case this button triggers a Growl notification
+                                    // We do not want to overlap Growl with the Tooltip (#15271)
+                                    e.currentTarget.blur();
+
+                                    if (!isDownloadButtonActive) {
+                                        return;
                                     }
-                                    onBackButtonPress();
+
+                                    onDownloadButtonPress();
+                                    temporarilyDisableDownloadButton(true);
                                 }}
                                 style={[styles.touchableButtonImage]}
                                 accessibilityRole="button"
-                                accessibilityLabel={translate('common.back')}
+                                accessibilityLabel={translate('common.download')}
                             >
                                 <Icon
-                                    src={Expensicons.BackArrow}
+                                    src={Expensicons.Download}
+                                    fill={iconFill || StyleUtils.getIconFillColor(getButtonState(false, false, !isDownloadButtonActive))}
+                                />
+                            </PressableWithoutFeedback>
+                        </Tooltip>
+                    )}
+                    {shouldShowGetAssistanceButton && (
+                        <Tooltip text={translate('getAssistancePage.questionMarkButtonTooltip')}>
+                            <PressableWithoutFeedback
+                                onPress={() => Navigation.navigate(ROUTES.getGetAssistanceRoute(guidesCallTaskID))}
+                                style={[styles.touchableButtonImage]}
+                                accessibilityRole="button"
+                                accessibilityLabel={translate('getAssistancePage.questionMarkButtonTooltip')}
+                            >
+                                <Icon
+                                    src={Expensicons.QuestionMark}
                                     fill={iconFill}
                                 />
                             </PressableWithoutFeedback>
                         </Tooltip>
                     )}
-                    {shouldShowAvatarWithDisplay && (
-                        <AvatarWithDisplayName
-                            report={report}
-                            policies={policies}
-                            personalDetails={personalDetails}
+                    {shouldShowPinButton && <PinButton report={report} />}
+                    {shouldShowThreeDotsButton && (
+                        <ThreeDotsMenu
+                            menuItems={threeDotsMenuItems}
+                            onIconPress={onThreeDotsButtonPress}
+                            anchorPosition={threeDotsAnchorPosition}
                         />
                     )}
-                    {!shouldShowAvatarWithDisplay && (
-                        <Header
-                            title={title}
-                            subtitle={stepCounter ? translate('stepCounter', stepCounter) : subtitle}
-                            textStyles={titleColor ? [StyleUtils.getTextColorStyle(titleColor)] : []}
-                        />
+                    {shouldShowCloseButton && (
+                        <Tooltip text={translate('common.close')}>
+                            <PressableWithoutFeedback
+                                onPress={onCloseButtonPress}
+                                style={[styles.touchableButtonImage]}
+                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                accessibilityLabel={translate('common.close')}
+                            >
+                                <Icon
+                                    src={Expensicons.Close}
+                                    fill={iconFill}
+                                />
+                            </PressableWithoutFeedback>
+                        </Tooltip>
                     )}
-                    <View style={[styles.reportOptions, styles.flexRow, styles.pr5, styles.alignItemsCenter]}>
-                        {children}
-                        {shouldShowDownloadButton && (
-                            <Tooltip text={translate('common.download')}>
-                                <PressableWithoutFeedback
-                                    onPress={(e) => {
-                                        // Blur the pressable in case this button triggers a Growl notification
-                                        // We do not want to overlap Growl with the Tooltip (#15271)
-                                        e.currentTarget.blur();
-
-                                        if (!isDownloadButtonActive) {
-                                            return;
-                                        }
-
-                                        onDownloadButtonPress();
-                                        temporarilyDisableDownloadButton(true);
-                                    }}
-                                    style={[styles.touchableButtonImage]}
-                                    accessibilityRole="button"
-                                    accessibilityLabel={translate('common.download')}
-                                >
-                                    <Icon
-                                        src={Expensicons.Download}
-                                        fill={iconFill || StyleUtils.getIconFillColor(getButtonState(false, false, !isDownloadButtonActive))}
-                                    />
-                                </PressableWithoutFeedback>
-                            </Tooltip>
-                        )}
-                        {shouldShowGetAssistanceButton && (
-                            <Tooltip text={translate('getAssistancePage.questionMarkButtonTooltip')}>
-                                <PressableWithoutFeedback
-                                    onPress={() => Navigation.navigate(ROUTES.getGetAssistanceRoute(guidesCallTaskID))}
-                                    style={[styles.touchableButtonImage]}
-                                    accessibilityRole="button"
-                                    accessibilityLabel={translate('getAssistancePage.questionMarkButtonTooltip')}
-                                >
-                                    <Icon
-                                        src={Expensicons.QuestionMark}
-                                        fill={iconFill}
-                                    />
-                                </PressableWithoutFeedback>
-                            </Tooltip>
-                        )}
-                        {shouldShowPinButton && <PinButton report={report} />}
-                        {shouldShowThreeDotsButton && (
-                            <ThreeDotsMenu
-                                menuItems={threeDotsMenuItems}
-                                onIconPress={onThreeDotsButtonPress}
-                                anchorPosition={threeDotsAnchorPosition}
-                            />
-                        )}
-                        {shouldShowCloseButton && (
-                            <Tooltip text={translate('common.close')}>
-                                <PressableWithoutFeedback
-                                    onPress={onCloseButtonPress}
-                                    style={[styles.touchableButtonImage]}
-                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                                    accessibilityLabel={translate('common.close')}
-                                >
-                                    <Icon
-                                        src={Expensicons.Close}
-                                        fill={iconFill}
-                                    />
-                                </PressableWithoutFeedback>
-                            </Tooltip>
-                        )}
-                    </View>
                 </View>
             </View>
-            {statusBar}
-        </>
+        </View>
     );
 }
 

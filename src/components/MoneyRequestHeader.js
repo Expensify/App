@@ -19,7 +19,8 @@ import * as IOU from '../libs/actions/IOU';
 import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 import ConfirmModal from './ConfirmModal';
 import useLocalize from '../hooks/useLocalize';
-import Text from './Text';
+import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
+import * as TransactionUtils from '../libs/TransactionUtils';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -71,31 +72,8 @@ function MoneyRequestHeader(props) {
         setIsDeleteModalVisible(false);
     }, [parentReportAction, setIsDeleteModalVisible]);
 
-    const isScanning = !ReportActionsUtils.areAllRequestsBeingSmartScanned(parentReportAction);
-
-    const getStatusBar = () => (
-        <View
-            style={[
-                styles.dFlex,
-                styles.flexRow,
-                styles.alignItemsCenter,
-                styles.flexGrow1,
-                styles.justifyContentBetween,
-                styles.overflowHidden,
-                styles.ph5,
-                styles.pv3,
-                styles.borderBottom,
-                styles.w100,
-            ]}
-        >
-            <View style={[styles.moneyRequestHeaderStatusBarBadge]}>
-                <Text style={[styles.textStrong, styles.textLabel]}>{translate('iou.receiptStatusTitle')}</Text>
-            </View>
-            <View style={[styles.flexShrink1]}>
-                <Text style={[styles.textLabelSupporting]}>{translate('iou.receiptStatusText')}</Text>
-            </View>
-        </View>
-    );
+    const transaction = TransactionUtils.getLinkedTransaction(parentReportAction);
+    const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
 
     return (
         <>
@@ -107,7 +85,7 @@ function MoneyRequestHeader(props) {
                     threeDotsMenuItems={[
                         {
                             icon: Expensicons.Trashcan,
-                            text: translate('reportActionContextMenu.deleteAction', {isMoneyRequest: ReportActionsUtils.isMoneyRequestAction(parentReportAction)}),
+                            text: translate('reportActionContextMenu.deleteAction', {action: parentReportAction}),
                             onSelected: () => setIsDeleteModalVisible(true),
                         },
                     ]}
@@ -117,9 +95,8 @@ function MoneyRequestHeader(props) {
                     personalDetails={props.personalDetails}
                     shouldShowBackButton={props.isSmallScreenWidth}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.HOME, false, true)}
-                    statusBar={isScanning ? getStatusBar() : null}
-                    shouldShowBorderBottom
                 />
+                {isScanning && <MoneyRequestHeaderStatusBar />}
             </View>
             <ConfirmModal
                 title={translate('iou.deleteRequest')}

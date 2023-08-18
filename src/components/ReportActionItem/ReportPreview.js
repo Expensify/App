@@ -103,15 +103,17 @@ function ReportPreview(props) {
 
     const iouSettled = ReportUtils.isSettled(props.iouReportID);
     const numberOfRequests = ReportActionUtils.getNumberOfMoneyRequests(props.action);
-    const numberOfScanningReceipts = ReportActionUtils.getNumberOfScanningReceipts(props.iouReport);
     const moneyRequestComment = lodashGet(props.action, 'childLastMoneyRequestComment', '');
 
-    const transactions = TransactionUtils.getReportPreviewTransactionsWithReceipts(props.action);
-    const hasReceipts = transactions.length > 0;
-    const isScanning = hasReceipts && !ReportActionUtils.areAllRequestsBeingSmartScanned(props.action);
+    const transactionsWithReceipts = ReportUtils.getTransactionsWithReceipts(props.iouReport);
+    const numberOfScanningReceipts = _.filter(transactionsWithReceipts, (transaction) => TransactionUtils.isReceiptBeingScanned(transaction)).length;
+    const hasReceipts = transactionsWithReceipts.length > 0;
+    const isScanning = hasReceipts && ReportUtils.areAllRequestsBeingSmartScanned(props.iouReport, props.action);
+    const lastThreeTransactionsWithReceipts = ReportUtils.getReportPreviewDisplayTransactions(props.action);
+
     const hasOnlyOneReceiptRequest = numberOfRequests === 1 && hasReceipts;
     const previewSubtitle = hasOnlyOneReceiptRequest
-        ? transactions[0].merchant
+        ? transactionsWithReceipts[0].merchant
         : props.translate('iou.requestCount', {
               count: numberOfRequests,
               scanningReceipts: numberOfScanningReceipts,
@@ -164,10 +166,10 @@ function ReportPreview(props) {
                 <View style={[styles.reportPreviewBox, props.isHovered || isScanning ? styles.reportPreviewBoxHoverBorder : undefined]}>
                     {hasReceipts && (
                         <ReportActionItemImages
-                            images={_.map(transactions, ({receipt, filename}) => ReceiptUtils.getThumbnailAndImageURIs(receipt.source, filename))}
+                            images={_.map(lastThreeTransactionsWithReceipts, ({receipt, filename}) => ReceiptUtils.getThumbnailAndImageURIs(receipt.source, filename))}
                             size={3}
-                            total={ReportActionUtils.getNumberOfMoneyRequests(props.action)}
-                            hoverStyle={props.isHovered || isScanning ? styles.reportPreviewBoxHoverBorder : undefined}
+                            total={transactionsWithReceipts.length}
+                            isHovered={props.isHovered || isScanning}
                         />
                     )}
                     <View style={styles.reportPreviewBoxBody}>
@@ -175,6 +177,7 @@ function ReportPreview(props) {
                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                                 <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh16]}>{getPreviewMessage()}</Text>
                             </View>
+                            <Icon src={Expensicons.ArrowRight} />
                         </View>
                         <View style={styles.flexRow}>
                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>

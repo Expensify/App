@@ -1,4 +1,5 @@
 import CONST from '../CONST';
+import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 
 /* eslint-disable max-len */
 export default {
@@ -28,10 +29,14 @@ export default {
         workspaces: 'Espacios de trabajo',
         profile: 'Perfil',
         payments: 'Pagos',
+        wallet: 'Billetera',
         preferences: 'Preferencias',
         view: 'Ver',
         not: 'No',
         signIn: 'Conectarse',
+        signInWithGoogle: 'Iniciar sesión con Google',
+        signInWithApple: 'Iniciar sesión con Apple',
+        signInWith: 'Iniciar sesión con',
         continue: 'Continuar',
         firstName: 'Nombre',
         lastName: 'Apellidos',
@@ -191,6 +196,11 @@ export default {
         redirectedToDesktopApp: 'Te hemos redirigido a la aplicación de escritorio.',
         youCanAlso: 'También puedes',
         openLinkInBrowser: 'abrir este enlace en tu navegador',
+        loggedInAs: ({email}) => `Has iniciado sesión como ${email}. Haga clic en "Abrir enlace" en el aviso para iniciar sesión en la aplicación de escritorio con esta cuenta.`,
+        doNotSeePrompt: '¿No ves el aviso?',
+        tryAgain: 'Inténtalo de nuevo',
+        or: ', o',
+        continueInWeb: 'continuar en la web',
     },
     validateCodeModal: {
         successfulSignInTitle: 'Abracadabra,\n¡sesión iniciada!',
@@ -239,7 +249,17 @@ export default {
         hero: {
             header: 'Divida las facturas, solicite pagos y chatee con sus amigos.',
             body: 'Bienvenido al futuro de Expensify, tu nuevo lugar de referencia para la colaboración financiera con amigos y compañeros de equipo por igual.',
+            demoHeadline: '¡Bienvenido a SaaStr! Entra y empieza a establecer contactos.',
         },
+    },
+    thirdPartySignIn: {
+        alreadySignedIn: ({email}) => `Ya has iniciado sesión con ${email}.`,
+        goBackMessage: ({provider}) => `No quieres iniciar sesión con ${provider}?`,
+        continueWithMyCurrentSession: 'Continuar con mi sesión actual',
+        redirectToDesktopMessage: 'Lo redirigiremos a la aplicación de escritorio una vez que termine de iniciar sesión.',
+        signInAgreementMessage: 'Al iniciar sesión, aceptas las',
+        termsOfService: 'Términos de servicio',
+        privacy: 'Privacidad',
     },
     reportActionCompose: {
         addAction: 'Acción',
@@ -274,8 +294,8 @@ export default {
         markAsUnread: 'Marcar como no leído',
         markAsRead: 'Marcar como leído',
         editComment: 'Editar comentario',
-        deleteAction: ({isMoneyRequest = false}) => `Eliminar ${isMoneyRequest ? 'pedido' : 'comentario'}`,
-        deleteConfirmation: ({isMoneyRequest = false}) => `¿Estás seguro de que quieres eliminar este ${isMoneyRequest ? 'pedido' : 'comentario'}`,
+        deleteAction: ({action}) => `Eliminar ${ReportActionsUtils.isMoneyRequestAction(action) ? 'pedido' : 'comentario'}`,
+        deleteConfirmation: ({action}) => `¿Estás seguro de que quieres eliminar este ${ReportActionsUtils.isMoneyRequestAction(action) ? 'pedido' : 'comentario'}`,
         onlyVisible: 'Visible sólo para',
         replyInThread: 'Responder en el hilo',
         flagAsOffensive: 'Marcar como ofensivo',
@@ -382,9 +402,9 @@ export default {
         pending: 'Pendiente',
         deleteReceipt: 'Eliminar recibo',
         receiptScanning: 'Escaneo de recibo en curso…',
-        receiptStatusTitle: 'Escaneado…',
-        receiptStatusText: 'Solo tú puedes ver este recibo cuando se está escaneando. Vuelve más tarde o ingresa los detalles ahora.',
-        requestCount: ({count, scanningReceipts = 0}) => `${count} solicitudes${scanningReceipts > 0 ? `, ${scanningReceipts} escaneo` : ''}`,
+        receiptStatusTitle: 'Escaneando…',
+        receiptStatusText: 'Solo tú puedes ver este recibo cuando se está escaneando. Vuelve más tarde o introduce los detalles ahora.',
+        requestCount: ({count, scanningReceipts = 0}) => `${count} solicitudes${scanningReceipts > 0 ? `, ${scanningReceipts} escaneando` : ''}`,
         deleteRequest: 'Eliminar pedido',
         deleteConfirmation: '¿Estás seguro de que quieres eliminar este pedido?',
         settledExpensify: 'Pagado',
@@ -652,7 +672,7 @@ export default {
             password: 'Por favor, introduce tu contraseña de Expensify',
         },
     },
-    paymentsPage: {
+    walletPage: {
         paymentMethodsTitle: 'Métodos de pago',
         setDefaultConfirmation: 'Marcar como método de pago predeterminado',
         setDefaultSuccess: 'Método de pago configurado',
@@ -679,8 +699,8 @@ export default {
         transferDetailBankAccount: 'Tu dinero debería llegar en 1-3 días laborables.',
         transferDetailDebitCard: 'Tu dinero debería llegar de inmediato.',
         failedTransfer: 'Tu saldo no se ha acreditado completamente. Por favor, transfiere los fondos a una cuenta bancaria.',
-        notHereSubTitle: 'Por favor, transfiere el saldo desde la página de pagos',
-        goToPayment: 'Ir a pagos',
+        notHereSubTitle: 'Por favor, transfiere el saldo desde la página de billetera',
+        goToWallet: 'Ir a billetera',
     },
     chooseTransferAccountPage: {
         chooseAccount: 'Elegir cuenta',
@@ -884,6 +904,23 @@ export default {
         clearStatus: 'Borrar estado',
         save: 'Guardar',
         message: 'Mensaje',
+        untilTomorrow: 'Hasta mañana',
+        untilTime: ({time}) => {
+            // Check for HH:MM AM/PM format and starts with '01:'
+            if (CONST.REGEX.TIME_STARTS_01.test(time)) {
+                return `Hasta la ${time}`;
+            }
+            // Check for any HH:MM AM/PM format not starting with '01:'
+            if (CONST.REGEX.TIME_FORMAT.test(time)) {
+                return `Hasta las ${time}`;
+            }
+            // Check for date-time format like "06-29 11:30 AM"
+            if (CONST.REGEX.DATE_TIME_FORMAT.test(time)) {
+                return `Hasta el día ${time}`;
+            }
+            // Default case
+            return `Hasta ${time}`;
+        },
     },
     stepCounter: ({step, total, text}) => {
         let result = `Paso ${step}`;
@@ -2057,10 +2094,15 @@ export default {
     },
     distance: {
         addStop: 'Agregar parada',
+        address: 'Dirección',
+        waypointEditor: 'Editor de puntos de ruta',
         waypointDescription: {
             start: 'Comienzo',
             finish: 'Final',
             stop: 'Parada',
+        },
+        errors: {
+            selectSuggestedAddress: 'Por favor, selecciona una dirección sugerida',
         },
     },
     countrySelectorModal: {

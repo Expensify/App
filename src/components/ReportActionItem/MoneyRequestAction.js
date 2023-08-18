@@ -100,12 +100,9 @@ function MoneyRequestAction(props) {
             const participantAccountIDs = _.uniq([props.session.accountID, Number(props.action.actorAccountID)]);
             const thread = ReportUtils.buildOptimisticChatReport(
                 participantAccountIDs,
-                props.translate(ReportActionsUtils.isSentMoneyReportAction(props.action) ? 'iou.threadSentMoneyReportName' : 'iou.threadRequestReportName', {
-                    formattedAmount: ReportActionsUtils.getFormattedAmount(props.action),
-                    comment: props.action.originalMessage.comment,
-                }),
+                ReportUtils.getTransactionReportName(props.action),
                 '',
-                CONST.POLICY.OWNER_EMAIL_FAKE,
+                lodashGet(props.iouReport, 'policyID', CONST.POLICY.OWNER_EMAIL_FAKE),
                 CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
                 false,
                 '',
@@ -150,7 +147,7 @@ function MoneyRequestAction(props) {
             checkIfContextMenuActive={props.checkIfContextMenuActive}
             shouldShowPendingConversionMessage={shouldShowPendingConversionMessage}
             onPreviewPressed={onMoneyRequestPreviewPressed}
-            containerStyles={[styles.cursorPointer, props.isHovered ? styles.moneyRequestPreviewBoxHover : undefined, ...props.style]}
+            containerStyles={[styles.cursorPointer, props.isHovered ? styles.reportPreviewBoxHoverBorder : undefined, ...props.style]}
             isHovered={props.isHovered}
         />
     );
