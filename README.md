@@ -98,7 +98,7 @@ This command invokes a script that assists you with obtaining the token and sett
      ```
 
     - For Gradle (Android):
-      If the `.gradle` directory doesn't exist in your user home, create it. Inside, create (or edit) the `gradle.properties` file to add:
+      If the `.gradle` directory doesn't exist in your user home directory, create it. Inside, create (or edit) the `gradle.properties` file to add:
 
       ```bash
       MAPBOX_DOWNLOADS_TOKEN=YOUR_SECRET_MAPBOX_ACCESS_TOKEN
