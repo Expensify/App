@@ -38,7 +38,6 @@ import DownArrow from '../../../assets/images/down.svg';
 import Download from '../../../assets/images/download.svg';
 import DragHandles from '../../../assets/images/drag-handles.svg';
 import Emoji from '../../../assets/images/emoji.svg';
-import EmptyStateRoutePending from '../../../assets/images/emptystate__routepending.svg';
 import Exclamation from '../../../assets/images/exclamation.svg';
 import Exit from '../../../assets/images/exit.svg';
 import ExpensifyCard from '../../../assets/images/expensifycard.svg';
@@ -167,7 +166,6 @@ export {
     DragAndDrop,
     DragHandles,
     Emoji,
-    EmptyStateRoutePending,
     Exclamation,
     Exit,
     ExpensifyCard,

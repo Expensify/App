@@ -182,10 +182,6 @@ const CONST = {
             // If the length is longer than 13 digits, we show the first 6 and last 4 digits, hiding the rest with X
             MASKED_US_ACCOUNT_NUMBER: /^[X]{0,9}[0-9]{4}$|^[0-9]{6}[X]{4,7}[0-9]{4}$/,
             SWIFT_BIC: /^[A-Za-z0-9]{8,11}$/,
-
-            TIME_STARTS_01: /^01:\d{2} [AP]M$/,
-            TIME_FORMAT: /^\d{2}:\d{2} [AP]M$/,
-            DATE_TIME_FORMAT: /^\d{2}-\d{2} \d{2}:\d{2} [AP]M$/,
         },
         VERIFICATION_MAX_ATTEMPTS: 7,
         STATE: {
@@ -1172,6 +1168,10 @@ const CONST = {
             VALIDATE_LOGIN: /\/v($|(\/\/*))/,
             UNLINK_LOGIN: /\/u($|(\/\/*))/,
         },
+
+        TIME_STARTS_01: /^01:\d{2} [AP]M$/,
+        TIME_FORMAT: /^\d{2}:\d{2} [AP]M$/,
+        DATE_TIME_FORMAT: /^\d{2}-\d{2} \d{2}:\d{2} [AP]M$/,
     },
 
     PRONOUNS: {
@@ -2541,7 +2541,6 @@ const CONST = {
         DISTANCE: 'distance',
     },
     STATUS_TEXT_MAX_LENGTH: 100,
-    SF_COORDINATES: [-122.4194, 37.7749],
     NAVIGATION: {
         TYPE: {
             FORCED_UP: 'FORCED_UP',
