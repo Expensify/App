@@ -42,13 +42,16 @@ function init() {
                 break;
             }
             case 'connected':
-                Log.info('[PusherConnectionManager] connected event');
+                Log.hmmm('[PusherConnectionManager] connected event');
                 break;
             case 'disconnected':
-                Log.info('[PusherConnectionManager] disconnected event');
+                Log.hmmm('[PusherConnectionManager] disconnected event');
+                break;
+            case 'state_change':
+                Log.hmmm('[PusherConnectionManager] state change', {states: error});
                 break;
             default:
-                Log.info('[PusherConnectionManager] unhandled event', false, {eventName});
+                Log.hmmm('[PusherConnectionManager] unhandled event', {eventName});
                 break;
         }
     });

@@ -226,17 +226,16 @@ function BasePaymentsPage(props) {
     );
 
     const makeDefaultPaymentMethod = useCallback(() => {
-        const paymentCardList = props.fundList || props.cardList || {};
-        const paymentCardOnyxKey = props.fundList ? ONYXKEYS.FUND_LIST : ONYXKEYS.CARD_LIST;
+        const paymentCardList = props.fundList || {};
         // Find the previous default payment method so we can revert if the MakeDefaultPaymentMethod command errors
         const paymentMethods = PaymentUtils.formatPaymentMethods(props.bankAccountList, paymentCardList);
 
         const previousPaymentMethod = _.find(paymentMethods, (method) => method.isDefault);
         const currentPaymentMethod = _.find(paymentMethods, (method) => method.methodID === paymentMethod.methodID);
         if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
-            PaymentMethods.makeDefaultPaymentMethod(paymentMethod.selectedPaymentMethod.bankAccountID, null, previousPaymentMethod, currentPaymentMethod, paymentCardOnyxKey);
+            PaymentMethods.makeDefaultPaymentMethod(paymentMethod.selectedPaymentMethod.bankAccountID, null, previousPaymentMethod, currentPaymentMethod);
         } else if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
-            PaymentMethods.makeDefaultPaymentMethod(null, paymentMethod.selectedPaymentMethod.fundID, previousPaymentMethod, currentPaymentMethod, paymentCardOnyxKey);
+            PaymentMethods.makeDefaultPaymentMethod(null, paymentMethod.selectedPaymentMethod.fundID, previousPaymentMethod, currentPaymentMethod);
         }
         resetSelectedPaymentMethodData();
     }, [
@@ -245,7 +244,6 @@ function BasePaymentsPage(props) {
         paymentMethod.selectedPaymentMethod.fundID,
         paymentMethod.selectedPaymentMethodType,
         props.bankAccountList,
-        props.cardList,
         props.fundList,
         resetSelectedPaymentMethodData,
     ]);
@@ -358,7 +356,7 @@ function BasePaymentsPage(props) {
 
         if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.BANK_ACCOUNT && _.isEmpty(props.bankAccountList[paymentMethod.methodID])) {
             shouldResetPaymentMethodData = true;
-        } else if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD && _.isEmpty(props.cardList[paymentMethod.methodID])) {
+        } else if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD && _.isEmpty(props.fundList[paymentMethod.methodID])) {
             shouldResetPaymentMethodData = true;
         } else if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PAYPAL && _.isEmpty(props.payPalMeData)) {
             shouldResetPaymentMethodData = true;
@@ -369,7 +367,7 @@ function BasePaymentsPage(props) {
                 hideDefaultDeleteMenu();
             }
         }
-    }, [hideDefaultDeleteMenu, paymentMethod.methodID, paymentMethod.selectedPaymentMethodType, props.bankAccountList, props.cardList, props.payPalMeData, shouldShowDefaultDeleteMenu]);
+    }, [hideDefaultDeleteMenu, paymentMethod.methodID, paymentMethod.selectedPaymentMethodType, props.bankAccountList, props.fundList, props.payPalMeData, shouldShowDefaultDeleteMenu]);
 
     const isPayPalMeSelected = paymentMethod.formattedSelectedPaymentMethod.type === CONST.PAYMENT_METHODS.PAYPAL;
     const shouldShowMakeDefaultButton =
@@ -508,9 +506,6 @@ export default compose(
         },
         bankAccountList: {
             key: ONYXKEYS.BANK_ACCOUNT_LIST,
-        },
-        cardList: {
-            key: ONYXKEYS.CARD_LIST,
         },
         fundList: {
             key: ONYXKEYS.FUND_LIST,

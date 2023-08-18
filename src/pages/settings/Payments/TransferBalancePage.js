@@ -49,10 +49,7 @@ const propTypes = {
         }),
     ),
 
-    /** List of card objects */
-    cardList: PropTypes.objectOf(cardPropTypes),
-
-    /** List of card objects */
+    /** List of user's card objects */
     fundList: PropTypes.objectOf(cardPropTypes),
 
     /** Wallet balance transfer props */
@@ -63,14 +60,13 @@ const propTypes = {
 
 const defaultProps = {
     bankAccountList: {},
-    cardList: null,
     fundList: null,
     userWallet: {},
     walletTransfer: {},
 };
 
 function TransferBalancePage(props) {
-    const paymentCardList = props.fundList || props.cardList || {};
+    const paymentCardList = props.fundList || {};
 
     const paymentTypes = [
         {
@@ -265,9 +261,6 @@ export default compose(
         },
         bankAccountList: {
             key: ONYXKEYS.BANK_ACCOUNT_LIST,
-        },
-        cardList: {
-            key: ONYXKEYS.CARD_LIST,
         },
         fundList: {
             key: ONYXKEYS.FUND_LIST,
