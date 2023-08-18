@@ -2119,11 +2119,10 @@ const styles = {
         outline: 'none',
     },
 
-    pdfPasswordForm: {
-        wideScreenWidth: {
-            width: 350,
-        },
-    },
+    getPDFPasswordFormStyle: (isSmallScreenWidth) => ({
+        width: isSmallScreenWidth ? '100%' : 350,
+        ...(isSmallScreenWidth && flex.flex1),
+    }),
 
     modalCenterContentContainer: {
         flex: 1,
@@ -3728,8 +3727,35 @@ const styles = {
         flexDirection: 'row',
         alignItems: 'center',
     },
+
     rotate90: {
         transform: [{rotate: '90deg'}],
+    },
+
+    distanceRequestContainer: (maxHeight) => ({
+        ...flex.flexShrink2,
+        minHeight: variables.baseMenuItemHeight,
+        maxHeight,
+    }),
+
+    mapViewContainer: {
+        ...flex.flex1,
+        ...spacing.p4,
+        ...spacing.flex1,
+        minHeight: 300,
+        maxHeight: 500,
+    },
+
+    mapView: {
+        flex: 1,
+        borderRadius: 20,
+        overflow: 'hidden',
+    },
+
+    mapPendingView: {
+        backgroundColor: themeColors.highlightBG,
+        ...flex.flex1,
+        borderRadius: variables.componentBorderRadiusLarge,
     },
 
     userReportStatusEmoji: {

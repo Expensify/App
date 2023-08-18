@@ -70,20 +70,20 @@ export default {
                                 path: ROUTES.SETTINGS_SECURITY,
                                 exact: true,
                             },
-                            Settings_Payments: {
-                                path: ROUTES.SETTINGS_PAYMENTS,
+                            Settings_Wallet: {
+                                path: ROUTES.SETTINGS_WALLET,
                                 exact: true,
                             },
-                            Settings_Payments_EnablePayments: {
+                            Settings_Wallet_EnablePayments: {
                                 path: ROUTES.SETTINGS_ENABLE_PAYMENTS,
                                 exact: true,
                             },
-                            Settings_Payments_Transfer_Balance: {
-                                path: ROUTES.SETTINGS_PAYMENTS_TRANSFER_BALANCE,
+                            Settings_Wallet_Transfer_Balance: {
+                                path: ROUTES.SETTINGS_WALLET_TRANSFER_BALANCE,
                                 exact: true,
                             },
-                            Settings_Payments_Choose_Transfer_Account: {
-                                path: ROUTES.SETTINGS_PAYMENTS_CHOOSE_TRANSFER_ACCOUNT,
+                            Settings_Wallet_Choose_Transfer_Account: {
+                                path: ROUTES.SETTINGS_WALLET_CHOOSE_TRANSFER_ACCOUNT,
                                 exact: true,
                             },
                             Settings_Add_Paypal_Me: {
