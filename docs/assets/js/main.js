@@ -97,7 +97,7 @@ function closeSidebarOnClickOutside(event) {
         return;
     }
     closeSidebar();
-};
+}
 
 function openSidebar() {
     document.getElementById('sidebar-layer').style.display = 'block';
