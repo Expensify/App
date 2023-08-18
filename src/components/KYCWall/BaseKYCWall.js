@@ -96,7 +96,7 @@ class KYCWall extends React.Component {
      * @param {String} iouPaymentType
      */
     continue(event, iouPaymentType) {
-       if (this.state.shouldShowAddPaymentMenu) {
+        if (this.state.shouldShowAddPaymentMenu) {
             this.setState({shouldShowAddPaymentMenu: false});
             return;
         }
