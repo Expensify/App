@@ -64,7 +64,14 @@ function BaseAnchorForCommentsOnly({onPressIn, onPressOut, href = '', rel = '', 
                     lodashGet(linkRef, 'current'),
                 );
             }}
-            onPress={linkProps.onPress}
+            onPress={(event) => {
+                if (!linkProps.onPress) {
+                    return;
+                }
+
+                event.preventDefault();
+                linkProps.onPress();
+            }}
             onPressIn={onPressIn}
             onPressOut={onPressOut}
             accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
@@ -80,14 +87,6 @@ function BaseAnchorForCommentsOnly({onPressIn, onPressOut, href = '', rel = '', 
                         target: isEmail || !linkProps.href ? '_self' : target,
                     }}
                     href={linkProps.href || href}
-                    onPress={(event) => {
-                        if (!linkProps.onPress) {
-                            return;
-                        }
-
-                        event.preventDefault();
-                        linkProps.onPress();
-                    }}
                     suppressHighlighting
                     // Add testID so it gets selected as an anchor tag by SelectionScraper
                     testID="a"
