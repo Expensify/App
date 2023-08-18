@@ -7,6 +7,7 @@ import NotificationType from './NotificationType';
 import * as PushNotification from '../../actions/PushNotification';
 import ONYXKEYS from '../../../ONYXKEYS';
 import configureForegroundNotifications from './configureForegroundNotifications';
+import subscribeToReportCommentPushNotifications from './subscribeToReportCommentPushNotifications';
 
 let isUserOptedInToPushNotifications = false;
 Onyx.connect({
@@ -184,6 +185,28 @@ function onSelected(notificationType, callback) {
 function clearNotifications() {
     Airship.push.clearNotifications();
 }
+
+/**
+ * Manage push notification subscriptions on sign-in/sign-out.
+ *
+ * On Android, AuthScreens unmounts when the app is closed with the back button so we manage the
+ * push subscription when the session changes here.
+ */
+Onyx.connect({
+    key: ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID,
+    callback: (notificationID) => {
+        if (notificationID) {
+            register(notificationID);
+
+            // Prevent issue where report linking fails after users switch accounts without closing the app
+            init();
+            subscribeToReportCommentPushNotifications();
+        } else {
+            deregister();
+            clearNotifications();
+        }
+    },
+});
 
 export default {
     init,
