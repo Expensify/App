@@ -474,6 +474,7 @@ const CONST = {
 
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'http://localhost:',
+    DEV_NEW_EXPENSIFY_URL_WITH_PORT_REGEX: /^(http):\/\/(localhost):[0-9]{1,4}\//,
 
     OPTION_TYPE: {
         REPORT: 'report',
