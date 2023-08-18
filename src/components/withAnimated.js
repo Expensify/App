@@ -1,18 +1,19 @@
 import React from 'react';
 import {Animated} from 'react-native';
 
-export default function withAnimated(WrappedComponent) {
-    const displayName = WrappedComponent.displayName || WrappedComponent.name || 'Component';
+function withAnimated(WrappedComponent) {
     
     // eslint-disable-next-line react/prefer-stateless-function
     class WithAnimated extends React.Component {
-        static displayName = `WithAnimated(${displayName})`;
-
         render() {
             // eslint-disable-next-line react/jsx-props-no-spreading
             return <WrappedComponent {...this.props} />;
         }
     }
+    
+    const displayName = WrappedComponent.displayName || WrappedComponent.name || 'Component';
+    WithAnimated.displayName = `WithAnimated(${displayName})`;
 
     return Animated.createAnimatedComponent(WithAnimated);
 }
+export default withAnimated;
