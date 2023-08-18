@@ -530,7 +530,7 @@ function ReportActionCompose({
             setSuggestionValues((prevState) => ({...prevState, ...nextState}));
             setHighlightedEmojiIndex(0);
         },
-        [value, windowHeight, composerHeight, isSmallScreenWidth, preferredLocale, setHighlightedEmojiIndex],
+        [value, windowHeight, composerHeight, isSmallScreenWidth, preferredLocale, setHighlightedEmojiIndex, resetSuggestions],
     );
 
     const getMentionOptions = useCallback(
@@ -631,7 +631,7 @@ function ReportActionCompose({
             }));
             setHighlightedMentionIndex(0);
         },
-        [getMentionOptions, setHighlightedMentionIndex, value, selection],
+        [getMentionOptions, setHighlightedMentionIndex, value, selection, resetSuggestions],
     );
 
     const onSelectionChange = useCallback(
@@ -647,7 +647,7 @@ function ReportActionCompose({
             calculateEmojiSuggestion(e.nativeEvent.selection.end);
             calculateMentionSuggestion(e.nativeEvent.selection.end);
         },
-        [calculateEmojiSuggestion, calculateMentionSuggestion, resetSuggestions, value],
+        [calculateEmojiSuggestion, calculateMentionSuggestion],
     );
 
     const setUpComposeFocusManager = useCallback(() => {
