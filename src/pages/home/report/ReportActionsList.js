@@ -90,6 +90,12 @@ function isMessageUnread(message, lastReadTime) {
     return Boolean(message && lastReadTime && message.created && lastReadTime < message.created);
 }
 
+function getFirstActionVisible(sortedReportActions, isOffline) {
+    const sortedFilterReportActions = sortedReportActions.filter((action) => !ReportActionsUtils.isDeletedAction(action) || action.childVisibleActionCount > 0 || isOffline);
+    console.log(sortedFilterReportActions);
+    return sortedFilterReportActions.length > 1 ? sortedFilterReportActions[sortedFilterReportActions.length - 2] : null;
+}
+
 function ReportActionsList({
     report,
     sortedReportActions,
@@ -113,6 +119,7 @@ function ReportActionsList({
     const scrollingVerticalOffset = useRef(0);
     const readActionSkipped = useRef(false);
     const reportActionSize = useRef(sortedReportActions.length);
+    const firstVisibleAction = getFirstActionVisible(sortedReportActions, isOffline);
 
     // Considering that renderItem is enclosed within a useCallback, marking it as "read" twice will retain the value as "true," preventing the useCallback from re-executing.
     // However, if we create and listen to an object, it will lead to a new useCallback execution.
@@ -246,7 +253,8 @@ function ReportActionsList({
                 reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED &&
                 ReportUtils.isChatThread(report) &&
                 !ReportActionsUtils.isTransactionThread(ReportActionsUtils.getParentReportAction(report));
-            const shouldHideThreadDividerLine = sortedReportActions.length > 1 && sortedReportActions[sortedReportActions.length - 2].reportActionID === currentUnreadMarker.current;
+            console.log(currentUnreadMarker.current);
+            const shouldHideThreadDividerLine = !!firstVisibleAction && firstVisibleAction.reportActionID === currentUnreadMarker.current;
 
             return shouldDisplayParentAction ? (
                 <ReportActionItemParentAction
