@@ -1935,6 +1935,63 @@ function flagComment(reportID, reportAction, severity) {
     API.write('FlagComment', parameters, {optimisticData, successData, failureData});
 }
 
+const addPrivateNotes = (reportID, note) => {
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                privateNotes: {
+                    [userAccountID]: {
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    errors: null,
+                    notes
+                    },
+                }
+            },
+        },
+    ];
+
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                privateNotes: {
+                    [userAccountID]: {
+                        pendingAction: null,
+                        errors: null,
+                    },
+                }
+            },
+        },
+    ];
+
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                privateNotes: {
+                    [userAccountID]: {
+                        errors: ErrorUtils.getMicroSecondOnyxError('Private notes couldn\'t be saved'),
+                        notes,
+                    },
+                }
+            },
+        },
+    ];
+
+    API.write(
+        'UpdateReportPrivateNote',
+        {
+            reportID,
+            notes,
+        },
+        {optimisticData, successData, failureData},
+    );
+};
+
 export {
     addComment,
     addAttachment,
@@ -1982,4 +2039,5 @@ export {
     setLastOpenedPublicRoom,
     flagComment,
     openLastOpenedPublicRoom,
+    addPrivateNotes,
 };
