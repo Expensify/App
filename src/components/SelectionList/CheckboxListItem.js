@@ -9,11 +9,9 @@ import {checkboxListItemPropTypes} from './selectionListPropTypes';
 import Checkbox from '../Checkbox';
 import Avatar from '../Avatar';
 import OfflineWithFeedback from '../OfflineWithFeedback';
-import useLocalize from '../../hooks/useLocalize';
 import CONST from '../../CONST';
 
 function CheckboxListItem({item, isFocused = false, onSelectRow, onDismissError = () => {}}) {
-    const {translate} = useLocalize();
     const hasError = !_.isEmpty(item.errors);
 
     return (
@@ -65,11 +63,7 @@ function CheckboxListItem({item, isFocused = false, onSelectRow, onDismissError 
                         </Text>
                     )}
                 </View>
-                {item.isAdmin && (
-                    <View style={[styles.badge, styles.peopleBadge]}>
-                        <Text style={styles.peopleBadgeText}>{translate('common.admin')}</Text>
-                    </View>
-                )}
+                {Boolean(item.rightElement) && item.rightElement}
             </PressableWithFeedback>
         </OfflineWithFeedback>
     );

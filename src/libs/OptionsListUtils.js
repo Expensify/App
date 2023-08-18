@@ -1022,7 +1022,7 @@ function formatMemberForList(member, isSelected) {
         isDisabled: false,
         accountID,
         login: lodashGet(member, 'login', ''),
-        isAdmin: false,
+        rightElement: null,
         avatar: {
             source: UserUtils.getAvatar(avatarSource, accountID),
             name: lodashGet(member, 'participantsList[0].login', '') || lodashGet(member, 'displayName', ''),

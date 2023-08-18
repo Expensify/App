@@ -31,6 +31,7 @@ import usePrevious from '../../hooks/usePrevious';
 import Log from '../../libs/Log';
 import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
 import SelectionList from '../../components/SelectionList';
+import Text from '../../components/Text';
 
 const propTypes = {
     /** All personal details asssociated with user */
@@ -301,13 +302,19 @@ function WorkspaceMembersPage(props) {
                 }
             }
 
+            const isAdmin = props.session.email === details.login || policyMember.role === CONST.POLICY.ROLE.ADMIN;
+
             result.push({
                 keyForList: accountID,
                 isSelected: _.contains(selectedEmployees, Number(accountID)),
                 isDisabled: accountID === props.session.accountID || details.login === props.policy.owner || policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 text: props.formatPhoneNumber(details.displayName),
                 alternateText: props.formatPhoneNumber(details.login),
-                isAdmin: props.session.email === details.login || policyMember.role === CONST.POLICY.ROLE.ADMIN,
+                rightElement: isAdmin ? (
+                    <View style={[styles.badge, styles.peopleBadge]}>
+                        <Text style={styles.peopleBadgeText}>{props.translate('common.admin')}</Text>
+                    </View>
+                ) : null,
                 avatar: {
                     source: UserUtils.getAvatar(details.avatar, accountID),
                     name: details.login,

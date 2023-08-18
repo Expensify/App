@@ -26,8 +26,8 @@ const checkboxListItemPropTypes = {
         /** User login */
         login: PropTypes.string,
 
-        /** Whether this user is an admin */
-        isAdmin: PropTypes.bool,
+        /** Element to show on the right side of the item */
+        rightElement: PropTypes.element,
 
         /** Avatar for the user */
         avatar: PropTypes.shape({

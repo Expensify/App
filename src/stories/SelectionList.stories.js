@@ -1,7 +1,10 @@
 import React, {useMemo, useState} from 'react';
 import _ from 'underscore';
+import {View} from 'react-native';
 import SelectionList from '../components/SelectionList';
 import CONST from '../CONST';
+import styles from '../styles/styles';
+import Text from '../components/Text';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
@@ -216,6 +219,7 @@ function MultipleSelection(args) {
             const data = _.map(section.data, (item, index) => {
                 allIds.push(item.keyForList);
                 const isSelected = _.contains(selectedIds, item.keyForList);
+                const isAdmin = index + section.indexOffset === 0;
 
                 return {
                     ...item,
@@ -223,7 +227,11 @@ function MultipleSelection(args) {
                     alternateText: `${item.keyForList}@email.com`,
                     accountID: item.keyForList,
                     login: item.text,
-                    isAdmin: index + section.indexOffset === 0,
+                    rightElement: isAdmin && (
+                        <View style={[styles.badge, styles.peopleBadge]}>
+                            <Text style={styles.peopleBadgeText}>Admin</Text>
+                        </View>
+                    ),
                 };
             });
 
@@ -273,6 +281,7 @@ function WithSectionHeader(args) {
             const data = _.map(section.data, (item, itemIndex) => {
                 allIds.push(item.keyForList);
                 const isSelected = _.contains(selectedIds, item.keyForList);
+                const isAdmin = itemIndex + section.indexOffset === 0;
 
                 return {
                     ...item,
@@ -280,7 +289,11 @@ function WithSectionHeader(args) {
                     alternateText: `${item.keyForList}@email.com`,
                     accountID: item.keyForList,
                     login: item.text,
-                    isAdmin: itemIndex + section.indexOffset === 0,
+                    rightElement: isAdmin && (
+                        <View style={[styles.badge, styles.peopleBadge]}>
+                            <Text style={styles.peopleBadgeText}>Admin</Text>
+                        </View>
+                    ),
                 };
             });
 
@@ -328,6 +341,7 @@ function WithConfirmButton(args) {
             const data = _.map(section.data, (item, itemIndex) => {
                 allIds.push(item.keyForList);
                 const isSelected = _.contains(selectedIds, item.keyForList);
+                const isAdmin = itemIndex + section.indexOffset === 0;
 
                 return {
                     ...item,
@@ -335,7 +349,11 @@ function WithConfirmButton(args) {
                     alternateText: `${item.keyForList}@email.com`,
                     accountID: item.keyForList,
                     login: item.text,
-                    isAdmin: itemIndex + section.indexOffset === 0,
+                    rightElement: isAdmin && (
+                        <View style={[styles.badge, styles.peopleBadge]}>
+                            <Text style={styles.peopleBadgeText}>Admin</Text>
+                        </View>
+                    ),
                 };
             });
 

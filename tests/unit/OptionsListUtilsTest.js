@@ -646,8 +646,8 @@ describe('OptionsListUtils', () => {
         // `isDisabled` is always false
         expect(_.every(formattedMembers, (personalDetail) => !personalDetail.isDisabled)).toBe(true);
 
-        // `isAdmin` is always false
-        expect(_.every(formattedMembers, (personalDetail) => !personalDetail.isAdmin)).toBe(true);
+        // `rightElement` is always null
+        expect(_.every(formattedMembers, (personalDetail) => !personalDetail.rightElement)).toBe(null);
 
         // The PERSONAL_DETAILS list doesn't specify `participantsList[n].avatar`, so the default one should be used
         expect(_.every(formattedMembers, (personalDetail) => Boolean(personalDetail.avatar.source))).toBe(true);
