@@ -4,6 +4,7 @@ import React from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
+import {withOnyx} from 'react-native-onyx';
 import styles from '../../../styles/styles';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -35,6 +36,9 @@ import * as UserUtils from '../../../libs/UserUtils';
 import KeyboardShortcut from '../../../libs/KeyboardShortcut';
 import onyxSubscribe from '../../../libs/onyxSubscribe';
 import personalDetailsPropType from '../../personalDetailsPropType';
+import * as ReportActionContextMenu from '../report/ContextMenu/ReportActionContextMenu';
+import withCurrentReportID from '../../../components/withCurrentReportID';
+import OptionRowLHNData from '../../../components/LHNOptionsList/OptionRowLHNData';
 
 const basePropTypes = {
     /** Toggles the navigation menu open and closed */
@@ -58,6 +62,15 @@ const propTypes = {
 
     priorityMode: PropTypes.oneOf(_.values(CONST.PRIORITY_MODE)),
 
+    /** The top most report id */
+    currentReportID: PropTypes.string,
+
+    /* Onyx Props */
+    report: PropTypes.shape({
+        /** reportID (only present when there is a matching report) */
+        reportID: PropTypes.string,
+    }),
+
     ...withLocalizePropTypes,
 };
 
@@ -66,6 +79,8 @@ const defaultProps = {
         avatar: '',
     },
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
+    currentReportID: '',
+    report: {},
 };
 
 class SidebarLinks extends React.PureComponent {
@@ -109,6 +124,8 @@ class SidebarLinks extends React.PureComponent {
             true,
             true,
         );
+
+        ReportActionContextMenu.hideContextMenu(false);
     }
 
     componentWillUnmount() {
@@ -158,6 +175,8 @@ class SidebarLinks extends React.PureComponent {
     }
 
     render() {
+        const viewMode = this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT;
+
         return (
             <View style={[styles.flex1, styles.h100]}>
                 <View
@@ -210,14 +229,24 @@ class SidebarLinks extends React.PureComponent {
                     </PressableWithoutFeedback>
                 </View>
                 {this.props.isLoading ? (
-                    <OptionsListSkeletonView shouldAnimate />
+                    <>
+                        {lodashGet(this.props.report, 'reportID') && (
+                            <OptionRowLHNData
+                                reportID={this.props.currentReportID}
+                                viewMode={viewMode}
+                                shouldDisableFocusOptions={this.props.isSmallScreenWidth}
+                                onSelectRow={this.showReportPage}
+                            />
+                        )}
+                        <OptionsListSkeletonView shouldAnimate />
+                    </>
                 ) : (
                     <LHNOptionsList
                         contentContainerStyles={[styles.sidebarListContainer, {paddingBottom: StyleUtils.getSafeAreaMargins(this.props.insets).marginBottom}]}
                         data={this.props.optionListItems}
                         onSelectRow={this.showReportPage}
                         shouldDisableFocusOptions={this.props.isSmallScreenWidth}
-                        optionMode={this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT}
+                        optionMode={viewMode}
                     />
                 )}
             </View>
@@ -227,5 +256,15 @@ class SidebarLinks extends React.PureComponent {
 
 SidebarLinks.propTypes = propTypes;
 SidebarLinks.defaultProps = defaultProps;
-export default compose(withLocalize, withCurrentUserPersonalDetails, withWindowDimensions)(SidebarLinks);
+export default compose(
+    withLocalize,
+    withCurrentUserPersonalDetails,
+    withWindowDimensions,
+    withCurrentReportID,
+    withOnyx({
+        report: {
+            key: ({currentReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${currentReportID}`,
+        },
+    }),
+)(SidebarLinks);
 export {basePropTypes};

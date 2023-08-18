@@ -13,6 +13,7 @@ jest.mock('../../src/components/Icon/Expensicons');
 
 const ONYXKEYS = {
     PERSONAL_DETAILS_LIST: 'personalDetailsList',
+    IS_LOADING_REPORT_DATA: 'isLoadingReportData',
     NVP_PRIORITY_MODE: 'nvp_priorityMode',
     SESSION: 'session',
     BETAS: 'betas',
@@ -28,6 +29,7 @@ describe('Sidebar', () => {
         Onyx.init({
             keys: ONYXKEYS,
             registerStorageEventListener: () => {},
+            safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         }),
     );
 
@@ -64,6 +66,7 @@ describe('Sidebar', () => {
                             [ONYXKEYS.BETAS]: betas,
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
+                            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
                         }),
                     )
@@ -106,6 +109,7 @@ describe('Sidebar', () => {
                             [ONYXKEYS.BETAS]: betas,
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
+                            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
                             [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]: {[action.reportActionId]: action},
                         }),

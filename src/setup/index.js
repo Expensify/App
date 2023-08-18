@@ -33,12 +33,12 @@ export default function () {
             [ONYXKEYS.SESSION]: {loading: false},
             [ONYXKEYS.ACCOUNT]: CONST.DEFAULT_ACCOUNT_DATA,
             [ONYXKEYS.NETWORK]: {isOffline: false},
-            [ONYXKEYS.IOU]: {
-                loading: false,
-                error: false,
-            },
             [ONYXKEYS.IS_SIDEBAR_LOADED]: false,
             [ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT]: true,
+            [ONYXKEYS.MODAL]: {
+                isVisible: false,
+                willAlertModalBecomeVisible: false,
+            },
         },
     });
 

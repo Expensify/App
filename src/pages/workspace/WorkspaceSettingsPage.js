@@ -60,7 +60,7 @@ function WorkspaceSettingsPage(props) {
             const outputCurrency = values.currency;
             Policy.updateGeneralSettings(props.policy.id, values.name.trim(), outputCurrency);
             Keyboard.dismiss();
-            Navigation.navigate(ROUTES.getWorkspaceInitialRoute(props.policy.id));
+            Navigation.goBack(ROUTES.getWorkspaceInitialRoute(props.policy.id));
         },
         [props.policy.id, props.policy.isPolicyUpdating],
     );
@@ -135,6 +135,7 @@ function WorkspaceSettingsPage(props) {
                             containerStyles={[styles.mt4]}
                             defaultValue={props.policy.name}
                             maxLength={CONST.WORKSPACE_NAME_CHARACTER_LIMIT}
+                            spellCheck={false}
                         />
                         <View style={[styles.mt4]}>
                             <Picker

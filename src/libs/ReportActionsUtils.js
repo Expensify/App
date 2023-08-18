@@ -8,7 +8,6 @@ import * as CollectionUtils from './CollectionUtils';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import Log from './Log';
-import * as CurrencyUtils from './CurrencyUtils';
 import isReportMessageAttachment from './isReportMessageAttachment';
 
 const allReports = {};
@@ -74,7 +73,7 @@ function isDeletedParentAction(reportAction) {
  * @returns {Boolean}
  */
 function isPendingRemove(reportAction) {
-    return lodashGet(reportAction, 'message[0].moderationDecisions[0].decision') === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE;
+    return lodashGet(reportAction, 'message[0].moderationDecision.decision') === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE;
 }
 
 /**
@@ -91,6 +90,14 @@ function isMoneyRequestAction(reportAction) {
  */
 function isReportPreviewAction(reportAction) {
     return lodashGet(reportAction, 'actionName', '') === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW;
+}
+
+/**
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
+function isModifiedExpenseAction(reportAction) {
+    return lodashGet(reportAction, 'actionName', '') === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE;
 }
 
 function isWhisperAction(action) {
@@ -120,6 +127,17 @@ function getParentReportAction(report, allReportActionsParam = undefined) {
 }
 
 /**
+ * Find the reportAction having the given childReportID in parent report actions
+ *
+ * @param {String} childReportID
+ * @param {String} parentReportID
+ * @returns {Object}
+ */
+function getParentReportActionInReport(childReportID, parentReportID) {
+    return _.find(allReportActions[parentReportID], (reportAction) => reportAction && `${reportAction.childReportID}` === `${childReportID}`);
+}
+
+/**
  * Determines if the given report action is sent money report action by checking for 'pay' type and presence of IOUDetails object.
  *
  * @param {Object} reportAction
@@ -132,19 +150,6 @@ function isSentMoneyReportAction(reportAction) {
         lodashGet(reportAction, 'originalMessage.type') === CONST.IOU.REPORT_ACTION_TYPE.PAY &&
         _.has(reportAction.originalMessage, 'IOUDetails')
     );
-}
-
-/**
- * Returns the formatted amount of a money request. The request and money sent (from send money flow) have
- * currency and amount in IOUDetails object.
- *
- * @param {Object} reportAction
- * @returns {Number}
- */
-function getFormattedAmount(reportAction) {
-    return lodashGet(reportAction, 'originalMessage.type', '') === CONST.IOU.REPORT_ACTION_TYPE.PAY && lodashGet(reportAction, 'originalMessage.IOUDetails', false)
-        ? CurrencyUtils.convertToDisplayString(lodashGet(reportAction, 'originalMessage.IOUDetails.amount', 0), lodashGet(reportAction, 'originalMessage.IOUDetails.currency', ''))
-        : CurrencyUtils.convertToDisplayString(lodashGet(reportAction, 'originalMessage.amount', 0), lodashGet(reportAction, 'originalMessage.currency', ''));
 }
 
 /**
@@ -561,12 +566,21 @@ function isMessageDeleted(reportAction) {
     return lodashGet(reportAction, ['message', 0, 'isDeletedParentAction'], false);
 }
 
+/**
+ * @param {*} reportAction
+ * @returns {Boolean}
+ */
+function isSplitBillAction(reportAction) {
+    return lodashGet(reportAction, 'originalMessage.type', '') === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
+}
+
 export {
     getSortedReportActions,
     getLastVisibleAction,
     getLastVisibleMessage,
     getMostRecentIOURequestActionID,
     extractLinksFromMessageHtml,
+    isCreatedAction,
     isDeletedAction,
     shouldReportActionBeVisible,
     shouldReportActionBeVisibleAsLastAction,
@@ -582,14 +596,16 @@ export {
     getReportPreviewAction,
     isCreatedTaskReportAction,
     getParentReportAction,
+    getParentReportActionInReport,
     isTransactionThread,
-    getFormattedAmount,
     isSentMoneyReportAction,
     isDeletedParentAction,
     isReportPreviewAction,
+    isModifiedExpenseAction,
     getIOUReportIDFromReportActionPreview,
     isMessageDeleted,
     isWhisperAction,
     isPendingRemove,
     getReportAction,
+    isSplitBillAction,
 };

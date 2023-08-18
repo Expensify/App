@@ -30,8 +30,8 @@ const propTypes = {
     /** When the button is opened via an IOU, ID for the chatReport that the IOU is linked to */
     chatReportID: PropTypes.string,
 
-    /** List of cards */
-    cardList: PropTypes.objectOf(cardPropTypes),
+    /** List of user's cards */
+    fundList: PropTypes.objectOf(cardPropTypes),
 
     /** List of bank accounts */
     bankAccountList: PropTypes.objectOf(bankAccountPropTypes),
@@ -53,7 +53,7 @@ const defaultProps = {
     isDisabled: false,
     chatReportID: '',
     bankAccountList: {},
-    cardList: {},
+    fundList: null,
     chatReport: null,
     reimbursementAccount: {},
     addDebitCardRoute: '',

@@ -6,6 +6,10 @@ import Modal from '../Modal';
 import HeaderWithBackButton from '../HeaderWithBackButton';
 import SelectionListRadio from '../SelectionListRadio';
 import useLocalize from '../../hooks/useLocalize';
+import ScreenWrapper from '../ScreenWrapper';
+import styles from '../../styles/styles';
+import searchCountryOptions from '../../libs/searchCountryOptions';
+import StringUtils from '../../libs/StringUtils';
 
 const propTypes = {
     /** Whether the modal is visible */
@@ -25,24 +29,19 @@ const propTypes = {
 
     /** Function to call when the user types in the search input */
     setSearchValue: PropTypes.func.isRequired,
+
+    /** Label to display on field */
+    label: PropTypes.string,
 };
 
 const defaultProps = {
     currentState: '',
     onClose: () => {},
     onStateSelected: () => {},
+    label: undefined,
 };
 
-function filterOptions(searchValue, data) {
-    const trimmedSearchValue = searchValue.trim();
-    if (trimmedSearchValue.length === 0) {
-        return [];
-    }
-
-    return _.filter(data, (country) => country.text.toLowerCase().includes(searchValue.toLowerCase()));
-}
-
-function StateSelectorModal({currentState, isVisible, onClose, onStateSelected, searchValue, setSearchValue}) {
+function StateSelectorModal({currentState, isVisible, onClose, onStateSelected, searchValue, setSearchValue, label}) {
     const {translate} = useLocalize();
 
     const countryStates = useMemo(
@@ -52,12 +51,13 @@ function StateSelectorModal({currentState, isVisible, onClose, onStateSelected, 
                 keyForList: state.stateISO,
                 text: state.stateName,
                 isSelected: currentState === state.stateISO,
+                searchValue: StringUtils.sanitizeString(`${state.stateISO}${state.stateName}`),
             })),
         [translate, currentState],
     );
 
-    const filteredData = filterOptions(searchValue, countryStates);
-    const headerMessage = searchValue.trim() && !filteredData.length ? translate('common.noResultsFound') : '';
+    const searchResults = searchCountryOptions(searchValue, countryStates);
+    const headerMessage = searchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';
 
     return (
         <Modal
@@ -68,24 +68,30 @@ function StateSelectorModal({currentState, isVisible, onClose, onStateSelected, 
             hideModalContentWhileAnimating
             useNativeDriver
         >
-            <HeaderWithBackButton
-                title={translate('common.state')}
-                shouldShowBackButton
-                onBackButtonPress={onClose}
-            />
-            <SelectionListRadio
-                headerMessage={headerMessage}
-                textInputLabel={translate('common.state')}
-                textInputPlaceholder={translate('stateSelectorModal.placeholderText')}
-                textInputValue={searchValue}
-                sections={[{data: filteredData, indexOffset: 0}]}
-                onSelectRow={onStateSelected}
-                onChangeText={setSearchValue}
-                shouldFocusOnSelectRow
-                shouldHaveOptionSeparator
-                shouldDelayFocus
-                initiallyFocusedOptionKey={currentState}
-            />
+            <ScreenWrapper
+                style={[styles.pb0]}
+                includePaddingTop={false}
+                includeSafeAreaPaddingBottom={false}
+            >
+                <HeaderWithBackButton
+                    title={label || translate('common.state')}
+                    shouldShowBackButton
+                    onBackButtonPress={onClose}
+                />
+                <SelectionListRadio
+                    headerMessage={headerMessage}
+                    textInputLabel={label || translate('common.state')}
+                    textInputPlaceholder={translate('stateSelectorModal.placeholderText')}
+                    textInputValue={searchValue}
+                    sections={[{data: searchResults, indexOffset: 0}]}
+                    onSelectRow={onStateSelected}
+                    onChangeText={setSearchValue}
+                    shouldFocusOnSelectRow
+                    shouldHaveOptionSeparator
+                    shouldDelayFocus
+                    initiallyFocusedOptionKey={currentState}
+                />
+            </ScreenWrapper>
         </Modal>
     );
 }
