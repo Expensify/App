@@ -271,7 +271,6 @@ function applyHTTPSOnyxUpdates({request, responseData}) {
  * @param {Object} data.multipleEvents
  */
 function applyPusherOnyxUpdates({multipleEvents}) {
-    console.log('timxxx', 1, multipleEvents);
     _.each(multipleEvents, (multipleEvent) => {
         PusherUtils.triggerMultiEventHandler(multipleEvent.eventType, multipleEvent.data);
     });
