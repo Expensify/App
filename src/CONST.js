@@ -33,6 +33,10 @@ const CONST = {
     ANIMATED_TRANSITION: 300,
     ANIMATED_TRANSITION_FROM_VALUE: 100,
     ANIMATION_IN_TIMING: 100,
+    ANIMATION_DIRECTION: {
+        IN: 'in',
+        OUT: 'out',
+    },
     ARROW_HIDE_DELAY: 3000,
 
     API_ATTACHMENT_VALIDATIONS: {
@@ -2534,6 +2538,13 @@ const CONST = {
         AFTER_WEEK: 'afterWeek',
         CUSTOM: 'custom',
     },
+    TWO_FACTOR_AUTH_STEPS: {
+        CODES: 'CODES',
+        VERIFY: 'VERIFY',
+        SUCCESS: 'SUCCESS',
+        ENABLED: 'ENABLED',
+        DISABLED: 'DISABLED',
+    },
     TAB: {
         RECEIPT_TAB_ID: 'ReceiptTab',
         MANUAL: 'manual',
@@ -2541,6 +2552,7 @@ const CONST = {
         DISTANCE: 'distance',
     },
     STATUS_TEXT_MAX_LENGTH: 100,
+    SF_COORDINATES: [-122.4194, 37.7749],
     NAVIGATION: {
         TYPE: {
             FORCED_UP: 'FORCED_UP',
