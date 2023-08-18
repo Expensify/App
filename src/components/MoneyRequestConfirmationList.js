@@ -59,7 +59,7 @@ const propTypes = {
     iouType: PropTypes.string,
 
     /** IOU date */
-    iouDate: PropTypes.string,
+    iouCreated: PropTypes.string,
 
     /** IOU merchant */
     iouMerchant: PropTypes.string,
@@ -408,7 +408,7 @@ function MoneyRequestConfirmationList(props) {
                 <>
                     <MenuItemWithTopDescription
                         shouldShowRightIcon={!props.isReadOnly}
-                        title={props.iouDate || format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}
+                        title={props.iouCreated || format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}
                         description={translate('common.date')}
                         style={[styles.moneyRequestMenuItem, styles.mb2]}
                         onPress={() => Navigation.navigate(ROUTES.getMoneyRequestCreatedRoute(props.iouType, props.reportID))}

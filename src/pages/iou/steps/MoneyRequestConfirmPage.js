@@ -263,8 +263,7 @@ function MoneyRequestConfirmPage(props) {
                         policyID={props.report.policyID}
                         bankAccountRoute={ReportUtils.getBankAccountRoute(props.report)}
                         iouMerchant={props.iou.merchant}
-                        iouModifiedMerchant={props.iou.modifiedMerchant}
-                        iouDate={props.iou.created}
+                        iouCreated={props.iou.created}
                     />
                 </View>
             )}
