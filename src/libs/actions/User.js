@@ -19,7 +19,6 @@ import * as ErrorUtils from '../ErrorUtils';
 import * as Session from './Session';
 import * as PersonalDetails from './PersonalDetails';
 import * as OnyxUpdates from './OnyxUpdates';
-import * as MemoryOnlyKeys from './MemoryOnlyKeys/MemoryOnlyKeys';
 
 let currentUserAccountID = '';
 let currentEmail = '';
