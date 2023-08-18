@@ -113,6 +113,8 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, polic
                 disabled={isSettled || !canEdit}
                 shouldShowRightIcon={canEdit}
                 onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DESCRIPTION))}
+                wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
+                numberOfLinesTitle={0}
             />
             <MenuItemWithTopDescription
                 description={translate('common.date')}
