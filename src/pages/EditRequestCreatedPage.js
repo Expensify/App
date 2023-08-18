@@ -31,7 +31,7 @@ function EditRequestCreatedPage({defaultCreated, onSubmit}) {
             />
             <Form
                 style={[styles.flexGrow1, styles.ph5]}
-                formID={ONYXKEYS.FORMS.MONEY_REQUEST_CREATED_FORM}
+                formID={ONYXKEYS.FORMS.MONEY_REQUEST_DATE_FORM}
                 onSubmit={onSubmit}
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline

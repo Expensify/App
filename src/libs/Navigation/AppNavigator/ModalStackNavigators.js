@@ -71,10 +71,10 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
-            const MoneyRequestCreatedPage = require('../../../pages/iou/MoneyRequestCreatedPage').default;
-            return MoneyRequestCreatedPage;
+            const MoneyRequestDatePage = require('../../../pages/iou/MoneyRequestDatePage').default;
+            return MoneyRequestDatePage;
         },
-        name: 'Money_Request_Created',
+        name: 'Money_Request_Date',
     },
     {
         getComponent: () => {

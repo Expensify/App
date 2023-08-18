@@ -51,7 +51,7 @@ const defaultProps = {
     },
 };
 
-function MoneyRequestCreatedPage({iou, route}) {
+function MoneyRequestDatePage({iou, route}) {
     const {translate} = useLocalize();
     const iouType = lodashGet(route, 'params.iouType', '');
     const reportID = lodashGet(route, 'params.reportID', '');
@@ -94,7 +94,7 @@ function MoneyRequestCreatedPage({iou, route}) {
             />
             <Form
                 style={[styles.flexGrow1, styles.ph5]}
-                formID={ONYXKEYS.FORMS.MONEY_REQUEST_CREATED_FORM}
+                formID={ONYXKEYS.FORMS.MONEY_REQUEST_DATE_FORM}
                 onSubmit={(value) => updateDate(value)}
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
@@ -110,11 +110,11 @@ function MoneyRequestCreatedPage({iou, route}) {
     );
 }
 
-MoneyRequestCreatedPage.propTypes = propTypes;
-MoneyRequestCreatedPage.defaultProps = defaultProps;
+MoneyRequestDatePage.propTypes = propTypes;
+MoneyRequestDatePage.defaultProps = defaultProps;
 
 export default withOnyx({
     iou: {
         key: ONYXKEYS.IOU,
     },
-})(MoneyRequestCreatedPage);
+})(MoneyRequestDatePage);

@@ -93,7 +93,7 @@ export default {
     MONEY_REQUEST_AMOUNT: ':iouType/new/amount/:reportID?',
     MONEY_REQUEST_PARTICIPANTS: ':iouType/new/participants/:reportID?',
     MONEY_REQUEST_CONFIRMATION: ':iouType/new/confirmation/:reportID?',
-    MONEY_REQUEST_CREATED: ':iouType/new/date/:reportID?',
+    MONEY_REQUEST_DATE: ':iouType/new/date/:reportID?',
     MONEY_REQUEST_CURRENCY: ':iouType/new/currency/:reportID?',
     MONEY_REQUEST_DESCRIPTION: ':iouType/new/description/:reportID?',
     MONEY_REQUEST_MERCHANT: ':iouType/new/merchant/:reportID?',
