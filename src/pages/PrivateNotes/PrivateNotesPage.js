@@ -4,7 +4,7 @@ import {View, Keyboard} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import withLocalize from '../../components/withLocalize';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import Navigation from '../../libs/Navigation/Navigation';
@@ -17,8 +17,11 @@ import Text from '../../components/Text';
 import ROUTES from '../../ROUTES';
 import Form from '../../components/Form';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
+import reportPropTypes from '../reportPropTypes';
 
 const propTypes = {
+    /** The report currently being looked at */
+    report: reportPropTypes,
     route: PropTypes.shape({
         /** Params from the URL path */
         params: PropTypes.shape({
@@ -27,6 +30,13 @@ const propTypes = {
             accountID: PropTypes.string,
         }),
     }).isRequired,
+
+    /** Returns translated string for given locale and phrase */
+    translate: PropTypes.func.isRequired,
+};
+
+const defaultProps = {
+    report: {},
 };
 
 class PrivateNotesPage extends React.Component {
@@ -34,7 +44,7 @@ class PrivateNotesPage extends React.Component {
         super(props);
 
         this.state = {
-            privateNote: lodashGet(this.props.report, 'privateNotes.' + this.props.route.params.accountID + '.note', ''),
+            privateNote: lodashGet(this.props.report, `privateNotes.${this.props.route.params.accountID}.note`, ''),
         };
     }
 
@@ -47,11 +57,7 @@ class PrivateNotesPage extends React.Component {
 
     savePrivateNote() {
         Keyboard.dismiss();
-        Policy.addMembersToWorkspace(this.props.invitedEmailsToAccountIDsDraft, this.state.privateNote, this.props.route.params.policyID, this.props.betas);
-        Policy.setWorkspaceInviteMembersDraft(this.props.route.params.policyID, {});
-        // Pop the invite message page before navigating to the members page.
-        Navigation.goBack();
-        Navigation.navigate(ROUTES.getWorkspaceMembersRoute(this.props.route.params.policyID));
+        
     }
 
     focusWelcomeMessageInput() {
@@ -70,14 +76,13 @@ class PrivateNotesPage extends React.Component {
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <FullPageNotFoundView
-                    shouldShow={_.isEmpty(this.props.report) || _.isEmpty(this.props.reports.privateNotes) || !_.has(props.report, 'privateNotes.' + this.props.route.params.accountID + '.note')}
-                    subtitleKey={'privateNotes.notesUnavailable'}
+                    shouldShow={_.isEmpty(this.props.report) || _.isEmpty(this.props.report.privateNotes) || !_.has(this.props.report, `privateNotes.${this.props.route.params.accountID}.note`)}
+                    subtitleKey='privateNotes.notesUnavailable'
                     onBackButtonPress={() => Navigation.goBack(ROUTES.PRIVATE_NOTES_LIST)}
                 >
                     <HeaderWithBackButton
                         title={this.props.translate('privateNotes.title')}
-                        subtitle={policyName}
-                        shouldShowGetAssistanceButton
+                        subtitle='Users note'
                         shouldShowBackButton
                         onCloseButtonPress={() => Navigation.dismissModal()}
                         onBackButtonPress={() => Navigation.goBack()}

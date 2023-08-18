@@ -747,7 +747,15 @@ const PrivateNotesModalStackNavigator = createModalStackNavigator([
         },
         name: 'PrivateNotes_Root',
     },
+    {
+        getComponent: () => {
+            const PrivateNotesListPage = require('../../../pages/PrivateNotes/PrivateNotesListPage').default;
+            return PrivateNotesListPage;
+        },
+        name: 'PrivateNotes_List',
+    },
 ]);
+
 
 
 export {
