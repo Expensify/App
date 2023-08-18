@@ -5,7 +5,6 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import TextInput from '../../components/TextInput';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import Form from '../../components/Form';
@@ -13,15 +12,12 @@ import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/styles';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
-import compose from '../../libs/compose';
 import * as IOU from '../../libs/actions/IOU';
 import optionPropTypes from '../../components/optionPropTypes';
 import CONST from '../../CONST';
 import useLocalize from '../../hooks/useLocalize';
 
 const propTypes = {
-    ...withLocalizePropTypes,
-
     /** Onyx Props */
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     iou: PropTypes.shape({
@@ -123,9 +119,8 @@ function MoneyRequestDescriptionPage({iou, route}) {
 MoneyRequestDescriptionPage.propTypes = propTypes;
 MoneyRequestDescriptionPage.defaultProps = defaultProps;
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        iou: {key: ONYXKEYS.IOU},
-    }),
-)(MoneyRequestDescriptionPage);
+export default withOnyx({
+    iou: {
+        key: ONYXKEYS.IOU
+    },
+})(MoneyRequestDescriptionPage);
