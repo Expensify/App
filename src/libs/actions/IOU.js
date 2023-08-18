@@ -633,7 +633,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
     splitChatReport.lastMessageText = splitIOUReportAction.message[0].text;
     splitChatReport.lastMessageHtml = splitIOUReportAction.message[0].html;
 
-    // If we have an existing groupChatReport use it's pending fields, otherwise indicate that we are adding a chat
+    // If we have an existing splitChatReport (group chat or workspace) use it's pending fields, otherwise indicate that we are adding a chat
     if (!existingSplitChatReport) {
         splitChatReport.pendingFields = {
             createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,

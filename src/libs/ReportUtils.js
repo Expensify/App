@@ -119,16 +119,6 @@ function isExpenseReport(report) {
 }
 
 /**
- * Checks if a report is an expense report that belongs to a Control policy.
- *
- * @param {Object} report
- * @returns {Boolean}
- */
-function isControlPolicyExpenseReport(report) {
-    return isExpenseReport(report) && getPolicyType(report, allPolicies) === CONST.POLICY.TYPE.CORPORATE;
-}
-
-/**
  * Checks if a report is an IOU report.
  *
  * @param {Object} report
@@ -375,17 +365,6 @@ function isPublicRoom(report) {
 function isPublicAnnounceRoom(report) {
     const visibility = lodashGet(report, 'visibility', '');
     return visibility === CONST.REPORT.VISIBILITY.PUBLIC_ANNOUNCE;
-}
-
-/**
- * Get the policy type from a given report
- * @param {Object} report
- * @param {String} report.policyID
- * @param {Object} policies must have Onyxkey prefix (i.e 'policy_') for keys
- * @returns {String}
- */
-function getPolicyType(report, policies) {
-    return lodashGet(policies || allPolicies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'type'], '');
 }
 
 /**
@@ -1782,18 +1761,6 @@ function buildOptimisticApprovedReportAction(amount, currency, expenseReportID) 
         expenseReportID,
     };
 
-    const currencyUnit = CurrencyUtils.getCurrencyUnit(currency);
-    const formattedAmount = NumberFormatUtils.format(preferredLocale, Math.abs(amount) / currencyUnit, {style: 'currency', currency});
-    const iouMessage = `approved ${formattedAmount}`;
-    const message = [
-        {
-            html: _.escape(iouMessage),
-            text: iouMessage,
-            isEdited: false,
-            type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
-        },
-    ];
-
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
         actorAccountID: currentUserAccountID,
@@ -1801,7 +1768,7 @@ function buildOptimisticApprovedReportAction(amount, currency, expenseReportID) 
         avatar: lodashGet(currentUserPersonalDetails, 'avatar', UserUtils.getDefaultAvatar(currentUserAccountID)),
         isAttachment: false,
         originalMessage,
-        message,
+        message: getIOUReportActionMessage(CONST.REPORT.ACTIONS.TYPE.APPROVED, Math.abs(amount), '', currency),
         person: [
             {
                 style: 'strong',
@@ -1914,6 +1881,9 @@ function getIOUReportActionMessage(type, total, comment, currency, paymentType =
 
     let iouMessage;
     switch (type) {
+        case CONST.REPORT.ACTIONS.TYPE.APPROVED:
+            iouMessage = `approved ${amount}`;
+            break;
         case CONST.IOU.REPORT_ACTION_TYPE.CREATE:
             iouMessage = `requested ${amount}${comment && ` for ${comment}`}`;
             break;
@@ -3327,7 +3297,6 @@ export {
     isCurrentUserSubmitter,
     isExpenseReport,
     isExpenseRequest,
-    isControlPolicyExpenseReport,
     isIOUReport,
     isTaskReport,
     isOpenTaskReport,
