@@ -54,10 +54,10 @@ const propTypes = {
         }),
 
         /** Errors related to this transaction */
-        errorFields: {
+        errorFields: PropTypes.shape({
             /** Error related to fetching the route */
             route: PropTypes.string,
-        }
+        }),
     }),
 
     /** Data about Mapbox token for calling Mapbox API */
