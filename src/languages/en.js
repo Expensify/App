@@ -244,7 +244,7 @@ export default {
         welcomeEnterMagicCode: ({login}) => `Please enter the magic code sent to ${login}. It should arrive within a minute or two.`,
     },
     mobileBanner: {
-        downloadTheApp: 'Download the App',
+        downloadTheApp: 'Download the app',
         keepTheConversationGoing: 'Keep the conversation going in New Expensify.',
     },
     login: {
