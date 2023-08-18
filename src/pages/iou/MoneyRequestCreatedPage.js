@@ -115,6 +115,6 @@ MoneyRequestCreatedPage.defaultProps = defaultProps;
 
 export default withOnyx({
     iou: {
-        key: ONYXKEYS.IOU
+        key: ONYXKEYS.IOU,
     },
 })(MoneyRequestCreatedPage);

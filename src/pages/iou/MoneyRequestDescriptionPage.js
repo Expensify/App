@@ -115,7 +115,6 @@ function MoneyRequestDescriptionPage({iou, route}) {
             </Form>
         </ScreenWrapper>
     );
-
 }
 
 MoneyRequestDescriptionPage.propTypes = propTypes;
@@ -123,6 +122,6 @@ MoneyRequestDescriptionPage.defaultProps = defaultProps;
 
 export default withOnyx({
     iou: {
-        key: ONYXKEYS.IOU
+        key: ONYXKEYS.IOU,
     },
 })(MoneyRequestDescriptionPage);
