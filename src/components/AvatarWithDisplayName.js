@@ -18,6 +18,7 @@ import * as OptionsListUtils from '../libs/OptionsListUtils';
 import Text from './Text';
 import * as StyleUtils from '../styles/StyleUtils';
 import ParentNavigationSubtitle from './ParentNavigationSubtitle';
+import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -61,6 +62,32 @@ function AvatarWithDisplayName(props) {
     const shouldShowSubscriptAvatar = ReportUtils.shouldReportShowSubscript(props.report);
     const isExpenseRequest = ReportUtils.isExpenseRequest(props.report);
     const defaultSubscriptSize = isExpenseRequest ? CONST.AVATAR_SIZE.SMALL_NORMAL : props.size;
+    const isExpenseReport = ReportUtils.isExpenseReport(props.report);
+    const getAvatars = () => {
+        if (isExpenseReport) {
+            return (
+                <MultipleAvatars
+                    icons={icons}
+                    size={props.size}
+                    secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(themeColors.highlightBG)]}
+                />
+            );
+        }
+        return (
+            <PressableWithoutFeedback
+                onPress={() => ReportUtils.navigateToDetailsPage(props.report)}
+                accessibilityLabel={title}
+                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+            >
+                <MultipleAvatars
+                    icons={icons}
+                    size={props.size}
+                    secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(themeColors.highlightBG)]}
+                />
+            </PressableWithoutFeedback>
+        );
+    };
+
     return (
         <View style={[styles.appContentHeaderTitle, styles.flex1]}>
             {Boolean(props.report && title) && (
@@ -73,11 +100,7 @@ function AvatarWithDisplayName(props) {
                             size={defaultSubscriptSize}
                         />
                     ) : (
-                        <MultipleAvatars
-                            icons={icons}
-                            size={props.size}
-                            secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(themeColors.highlightBG)]}
-                        />
+                        getAvatars()
                     )}
                     <View style={[styles.flex1, styles.flexColumn, shouldShowSubscriptAvatar && !isExpenseRequest ? styles.ml4 : {}]}>
                         <DisplayNames
