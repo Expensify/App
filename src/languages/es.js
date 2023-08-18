@@ -2110,4 +2110,9 @@ export default {
     stateSelectorModal: {
         placeholderText: 'Buscar para ver opciones',
     },
+    privateNotes: {
+        title: 'Private notes',
+        personalNoteMessage: 'Keep notes about this chat here. You are the only person who can add, edit or view these notes.',
+        sharedNoteMessage: 'Keep notes about this chat here. Expensify employee and other users on team.expensify.com domain can view these notes.',
+    }
 };
