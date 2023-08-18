@@ -112,6 +112,7 @@ function PronounsPage(props) {
                 sections={[{data: filteredPronounsList, indexOffset: 0}]}
                 onSelectRow={updatePronouns}
                 onChangeText={onChangeText}
+                shouldDelayFocus
                 initiallyFocusedOptionKey={initiallyFocusedOption.keyForList}
             />
         </ScreenWrapper>
