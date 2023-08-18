@@ -1418,10 +1418,9 @@ function getParentReport(report) {
  * @returns {String}
  */
 function getThreadReportNameHtml(parentReportActionMessageHtml) {
-    const blockTags = ['br', 'h1', 'pre', 'code', 'div', 'blockquote', 'p', 'li', 'comment', 'div'];
-    const blockOpeningTagRegExp = `(?:<(?:${blockTags.join('|')})(?:[^>]*)>|\\r\\n|\\n|\\r)`;
+    const blockTags = ['br', 'h1', 'pre', 'div', 'blockquote', 'p', 'li', 'div'];
     const blockTagRegExp = `(?:<\\/?(?:${blockTags.join('|')})(?:[^>]*)>|\\r\\n|\\n|\\r)`;
-    const threadHeaderHtmlRegExp = new RegExp(`^(?:<([^>]+)>)?((?:(?!${blockOpeningTagRegExp}).)*)(${blockTagRegExp}.*)`, 'gmi');
+    const threadHeaderHtmlRegExp = new RegExp(`^(?:<([^>]+)>)?((?:(?!${blockTagRegExp}).)*)(${blockTagRegExp}.*)`, 'gmi');
     return parentReportActionMessageHtml.replace(threadHeaderHtmlRegExp, (match, g1, g2) => {
         if (!g1 || g1 === 'h1') {
             return g2;
