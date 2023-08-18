@@ -118,7 +118,6 @@ export default {
     canUseWallet,
     canUseCommentLinking,
     canUsePolicyRooms,
-    canUsePolicyExpenseChat,
     canUseTasks,
     canUseScanReceipts,
     canUseCustomStatus,
