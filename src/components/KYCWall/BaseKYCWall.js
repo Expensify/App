@@ -136,12 +136,7 @@ class KYCWall extends React.Component {
             <>
                 <AddPaymentMethodMenu
                     isVisible={this.state.shouldShowAddPaymentMenu}
-                    onClose={() => {
-                        /* a small delay will schedule this to run after the continue method preventing rerendering of the menu when clicking the menu item */
-                        setTimeout(() => {
-                            this.setState({shouldShowAddPaymentMenu: false});
-                        }, 10);
-                    }}
+                    onClose={() => this.setState({shouldShowAddPaymentMenu: false})}
                     anchorRef={this.anchorRef}
                     anchorPosition={{
                         vertical: this.state.anchorPositionVertical,
