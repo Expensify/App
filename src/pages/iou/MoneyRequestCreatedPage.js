@@ -1,12 +1,10 @@
 import React, {Component} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import {format} from 'date-fns';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import CONST from '../../CONST';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import Form from '../../components/Form';
 import ONYXKEYS from '../../ONYXKEYS';
