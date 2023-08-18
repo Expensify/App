@@ -503,7 +503,7 @@ function ReportActionCompose({
         (selectionEnd) => {
             if (shouldBlockEmojiCalc.current || !this.state.value) {
                 shouldBlockEmojiCalc.current = false;
-                resetSuggestions()
+                resetSuggestions();
                 return;
             }
             const leftString = value.substring(0, selectionEnd);
@@ -585,7 +585,7 @@ function ReportActionCompose({
         (selectionEnd) => {
             if (shouldBlockMentionCalc.current || this.state.selection.end < 1) {
                 shouldBlockMentionCalc.current = false;
-                resetSuggestions()
+                resetSuggestions();
                 return;
             }
 
