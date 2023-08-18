@@ -66,6 +66,45 @@ For an M1 Mac, read this [SO](https://stackoverflow.com/c/expensify/questions/11
 ## Running the MacOS desktop app 🖥
 * To run the **Development app**, run: `npm run desktop`, this will start a new Electron process running on your MacOS desktop in the `dist/Mac` folder.
 
+## Setting up Mapbox SDK Credentials
+
+Our app uses the Mapbox SDK to display maps. Because Mapbox SDKs are closed-source, authentication is required during download. Developers need to obtain a secret token from Mapbox and store it locally. This enables tools like CocoaPods (for iOS) and Gradle (for Android) to access the Mapbox SDK during the build process.
+
+To streamline this process, run:
+
+```bash
+npm run configure-mapbox
+```
+
+This command invokes a script that assists you with obtaining the token and setting up your environment. If you encounter issues with the script, follow the manual steps below:
+
+1. Go to [the account page on Mapbox](https://account.mapbox.com/access-tokens/). If you don't have a Mapbox account, create one.
+2. Create a secret token:
+   - Click the "Create a token" button.
+   - Provide a descriptive name for the token (e.g., Token for SDK downloads).
+   - Ensure the checkbox next to "Downloads:Read" under "Secret scopes" is ticked.
+   - All checkboxes under the "Public scopes" should be ticked by default. Leave them as they are.
+   - Click the "Create token" button at the bottom of the page.
+   - IMPORTANT: Copy the value of the newly created token. This is your only opportunity to do so.
+3. Store the credential:
+   - For CocoaPods (iOS):
+     If you don’t have a `.netrc` file in your user home directory, create one. This file stores credentials for accessing remote servers. CocoaPods will use this for dependencies requiring authentication. Append the following content to the file.
+
+     ```bash
+     machine api.mapbox.com
+     login mapbox
+     password YOUR_SECRET_MAPBOX_ACCESS_TOKEN
+     ```
+
+    - For Gradle (Android):
+      If the `.gradle` directory doesn't exist in your user home, create it. Inside, create (or edit) the `gradle.properties` file to add:
+
+      ```bash
+      MAPBOX_DOWNLOADS_TOKEN=YOUR_SECRET_MAPBOX_ACCESS_TOKEN
+      ```
+
+    Replace YOUR_SECRET_MAPBOX_ACCESS_TOKEN with your actual token in the above examples.
+
 ## Troubleshooting
 1. If you are having issues with **_Getting Started_**, please reference [React Native's Documentation](https://reactnative.dev/docs/environment-setup)
 2. If you are running into CORS errors like (in the browser dev console)
