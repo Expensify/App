@@ -21,6 +21,7 @@ import useNetwork from '../hooks/useNetwork';
 import useLocalize from '../hooks/useLocalize';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
+import OfflineWithFeedback from './OfflineWithFeedback';
 
 const MAX_WAYPOINTS = 25;
 const MAX_WAYPOINTS_TO_DISPLAY = 4;
@@ -51,6 +52,12 @@ const propTypes = {
                 address: PropTypes.string,
             }),
         }),
+
+        /** Errors related to this transaction */
+        errorFields: {
+            /** Errors related to fetching the route */
+            route: PropTypes.string,
+        }
     }),
 
     /** Data about Mapbox token for calling Mapbox API */
@@ -122,6 +129,13 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
 
     return (
         <>
+            <OfflineWithFeedback
+                errors={lodashGet(transaction, 'errorFields', null)}
+                onClose={() => {
+                    console.log('remove error');
+                }}
+                errorRowStyles={[styles.mbn1]}
+            >
             <View
                 style={styles.distanceRequestContainer(scrollContainerMaxHeight)}
                 onLayout={(event = {}) => setScrollContainerHeight(lodashGet(event, 'nativeEvent.layout.height', 0))}
@@ -190,7 +204,10 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
                             zoom: DEFAULT_ZOOM_LEVEL,
                         }}
                         directionCoordinates={lodashGet(transaction, 'routes.route0.geometry.coordinates', [])}
-                        directionStyle={styles.mapDirection}
+                        directionStyle={{
+                            width: 15,
+                            color: '#002140'
+                        }}
                         styleURL='mapbox://styles/shawnborton/cllcoiqds00cs01r80kp34tmq'
                         style={styles.mapView}
                     />
@@ -204,6 +221,7 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
                     </View>
                 )}
             </View>
+            </OfflineWithFeedback>
         </>
     );
 }
