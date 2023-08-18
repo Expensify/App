@@ -98,7 +98,7 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, polic
                     style={[StyleUtils.getReportWelcomeBackgroundImageStyle(true)]}
                 />
             </View>
-            <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.amount')}>
+            <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.amount') || lodashGet(transaction, 'pendingAction')}>
                 <MenuItemWithTopDescription
                     title={formattedTransactionAmount}
                     shouldShowTitleIcon={isSettled}
@@ -110,7 +110,7 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, polic
                     onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.AMOUNT))}
                 />
             </OfflineWithFeedback>
-            <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.comment')}>
+            <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.comment') || lodashGet(transaction, 'pendingAction')}>
                 <MenuItemWithTopDescription
                     description={translate('common.description')}
                     title={transactionDescription}
@@ -119,7 +119,7 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, polic
                     onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DESCRIPTION))}
                 />
             </OfflineWithFeedback>
-            <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.created')}>
+            <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.created') || lodashGet(transaction, 'pendingAction')}>
                 <MenuItemWithTopDescription
                     description={translate('common.date')}
                     title={transactionDate}
