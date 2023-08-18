@@ -242,6 +242,9 @@ export default {
     // This can be either "light", "dark" or "system"
     PREFERRED_THEME: 'preferredTheme',
 
+    // Denotes if the Download App Banner has been dismissed
+    SHOW_DOWNLOAD_APP_BANNER: 'showDownloadAppBanner',
+
     // Whether we're checking if the room is public or not
     IS_CHECKING_PUBLIC_ROOM: 'isCheckingPublicRoom',
 

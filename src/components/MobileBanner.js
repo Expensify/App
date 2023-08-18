@@ -1,5 +1,8 @@
 import React, {useState} from 'react';
 import {View} from 'react-native';
+import PropTypes from 'prop-types';
+import {withOnyx} from 'react-native-onyx';
+import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
@@ -14,12 +17,23 @@ import useLocalize from '../hooks/useLocalize';
 import * as Link from '../libs/actions/Link';
 import * as Browser from '../libs/Browser';
 import getOperatingSystem from '../libs/getOperatingSystem';
+import setShowDownloadAppBanner from '../libs/actions/DownloadAppBanner';
 
-function MobileBanner() {
-    const [shouldShowBanner, setshouldShowBanner] = useState(Browser.isMobile());
+
+const propTypes = {
+    showDownloadAppBanner: PropTypes.bool,
+}
+
+const defaultProps = {
+    showDownloadAppBanner: true,
+}
+
+function MobileBanner({showDownloadAppBanner}) {
+    const [shouldShowBanner, setshouldShowBanner] = useState(Browser.isMobile() && showDownloadAppBanner);
     const {translate} = useLocalize();
 
     const handleCloseBanner = () => {
+        setShowDownloadAppBanner(false);
         setshouldShowBanner(false);
     };
 
@@ -83,5 +97,10 @@ function MobileBanner() {
 }
 
 MobileBanner.displayName = 'MobileBanner';
+MobileBanner.propTypes = propTypes;
+MobileBanner.defaultProps = defaultProps;
 
-export default MobileBanner;
+export default withOnyx({
+    showDownloadAppBanner: {
+        key: ONYXKEYS.SHOW_DOWNLOAD_APP_BANNER,
+}})(MobileBanner);
