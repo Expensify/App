@@ -7,7 +7,6 @@ import ONYXKEYS from '../ONYXKEYS';
 import DateUtils from './DateUtils';
 import * as NumberUtils from './NumberUtils';
 
-
 let allTransactions = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION,
@@ -176,7 +175,7 @@ function getCurrency(transaction) {
  */
 function getCreated(transaction) {
     const created = lodashGet(transaction, 'modifiedCreated', '') || lodashGet(transaction, 'created', '');
-    const createdDate  = parseISO(created);
+    const createdDate = parseISO(created);
     if (createdDate) {
         return format(createdDate, CONST.DATE.FNS_FORMAT_STRING);
     }
