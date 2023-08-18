@@ -72,7 +72,7 @@ Onyx.connect({
  * @param {String} id
  */
 function resetMoneyRequestInfo(id = '') {
-    const date = currentDate || moment().format('YYYY-MM-DD');
+    const created = currentDate || moment().format('YYYY-MM-DD');
     Onyx.merge(ONYXKEYS.IOU, {
         id,
         amount: 0,
@@ -80,7 +80,7 @@ function resetMoneyRequestInfo(id = '') {
         comment: '',
         participants: [],
         merchant: '',
-        date,
+        created,
         receiptPath: '',
         receiptSource: '',
     });

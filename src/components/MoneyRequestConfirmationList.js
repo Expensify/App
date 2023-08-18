@@ -1,6 +1,7 @@
 import React, {useCallback, useMemo, useReducer, useState} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import {format} from 'date-fns';
 import _ from 'underscore';
 import {View} from 'react-native';
 import Str from 'expensify-common/lib/str';
@@ -407,7 +408,7 @@ function MoneyRequestConfirmationList(props) {
                 <>
                     <MenuItemWithTopDescription
                         shouldShowRightIcon={!props.isReadOnly}
-                        title={props.iouDate}
+                        title={props.iouDate || format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}
                         description={translate('common.date')}
                         style={[styles.moneyRequestMenuItem, styles.mb2]}
                         onPress={() => Navigation.navigate(ROUTES.getMoneyRequestCreatedRoute(props.iouType, props.reportID))}
