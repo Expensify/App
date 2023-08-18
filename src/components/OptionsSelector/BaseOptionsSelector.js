@@ -96,18 +96,6 @@ class BaseOptionsSelector extends Component {
         );
 
         this.scrollToIndex(this.props.selectedOptions.length ? 0 : this.state.focusedIndex, false);
-
-        if (!this.props.autoFocus) {
-            return;
-        }
-
-        if (this.props.shouldShowTextInput) {
-            if (this.props.shouldDelayFocus) {
-                this.focusTimeout = setTimeout(() => this.textInput.focus(), CONST.ANIMATED_TRANSITION);
-            } else {
-                this.textInput.focus();
-            }
-        }
     }
 
     componentDidUpdate(prevProps) {
@@ -339,6 +327,8 @@ class BaseOptionsSelector extends Component {
                 selectTextOnFocus
                 blurOnSubmit={Boolean(this.state.allOptions.length)}
                 spellCheck={false}
+                autoFocus={this.props.autoFocus}
+                shouldDelayFocus={this.props.shouldDelayFocus}
             />
         );
         const optionsList = (

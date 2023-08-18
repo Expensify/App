@@ -155,7 +155,10 @@ function WorkspaceInitialPage(props) {
         {
             translationKey: 'workspace.common.bankAccount',
             icon: Expensicons.Bank,
-            action: () => (policy.outputCurrency === CONST.CURRENCY.USD ? ReimbursementAccount.navigateToBankAccountRoute(policy.id) : setIsCurrencyModalOpen(true)),
+            action: () =>
+                policy.outputCurrency === CONST.CURRENCY.USD
+                    ? ReimbursementAccount.navigateToBankAccountRoute(policy.id, Navigation.getActiveRoute().replace(/\?.*/, ''))
+                    : setIsCurrencyModalOpen(true),
             brickRoadIndicator: !_.isEmpty(props.reimbursementAccount.errors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '',
         },
     ];
@@ -183,7 +186,7 @@ function WorkspaceInitialPage(props) {
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView
                     onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
-                    shouldShow={_.isEmpty(props.policy) || !Policy.isPolicyOwner(props.policy)}
+                    shouldShow={_.isEmpty(props.policy) || !PolicyUtils.isPolicyAdmin(props.policy)}
                     subtitleKey={_.isEmpty(props.policy) ? undefined : 'workspace.common.notAuthorized'}
                 >
                     <HeaderWithBackButton

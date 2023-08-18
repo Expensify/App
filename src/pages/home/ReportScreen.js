@@ -155,8 +155,7 @@ class ReportScreen extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        // If composer should be hidden, hide emoji picker as well
-        if (ReportUtils.shouldHideComposer(this.props.report)) {
+        if (ReportUtils.shouldDisableWriteActions(this.props.report)) {
             EmojiPickerAction.hideEmojiPicker(true);
         }
 
@@ -216,7 +215,6 @@ class ReportScreen extends React.Component {
         if (this.props.report.reportID && this.props.report.reportID === getReportID(this.props.route)) {
             return;
         }
-
         Report.openReport(reportIDFromPath);
     }
 
@@ -299,6 +297,7 @@ class ReportScreen extends React.Component {
                         shouldShowCloseButton={false}
                         shouldShowBackButton={this.props.isSmallScreenWidth}
                         onBackButtonPress={Navigation.goBack}
+                        shouldShowLink={false}
                     >
                         <OfflineWithFeedback
                             pendingAction={addWorkspaceRoomOrChatPendingAction}
