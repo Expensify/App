@@ -1,7 +1,7 @@
 import React from 'react';
 import {Animated} from 'react-native';
 
-function withAnimated(WrappedComponent) {
+export default function withAnimated(WrappedComponent) {
     const displayName = WrappedComponent.displayName || WrappedComponent.name || 'Component';
     
     // eslint-disable-next-line react/prefer-stateless-function
@@ -16,5 +16,3 @@ function withAnimated(WrappedComponent) {
 
     return Animated.createAnimatedComponent(WithAnimated);
 }
-
-export default withAnimated;

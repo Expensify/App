@@ -9,7 +9,7 @@ import themeColors from '../styles/themes/default';
 import Tooltip from './Tooltip';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
-import {withAnimated} from './withAnimated';
+import withAnimated from './withAnimated';
 
 const AnimatedIcon = withAnimated(Icon);
 
