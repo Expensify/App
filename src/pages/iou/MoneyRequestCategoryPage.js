@@ -19,7 +19,7 @@ const propTypes = {
             /** The type of IOU report, i.e. bill, request, send */
             iouType: PropTypes.string,
 
-            /** reportID for the transaction thread */
+            /** The report ID of the IOU */
             reportID: PropTypes.string,
         }),
     }).isRequired,
@@ -36,10 +36,9 @@ function MoneyRequestCategoryPage({route, report}) {
     const {translate} = useLocalize();
 
     const reportID = lodashGet(route, 'params.reportID', '');
+    const iouType = lodashGet(route, 'params.iouType', '');
 
     const navigateBack = () => {
-        const iouType = lodashGet(route, 'params.iouType', '');
-
         Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID));
     };
 
@@ -53,7 +52,11 @@ function MoneyRequestCategoryPage({route, report}) {
                 onBackButtonPress={navigateBack}
             />
 
-            <CategoryPicker policyID={report.policyID} />
+            <CategoryPicker
+                policyID={report.policyID}
+                reportID={reportID}
+                iouType={iouType}
+            />
         </ScreenWrapper>
     );
 }

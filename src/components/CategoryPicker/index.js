@@ -1,26 +1,43 @@
 import React from 'react';
 import _ from 'underscore';
-import {View, Text} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 import {propTypes, defaultProps} from './categoryPickerPropTypes';
+import OptionsList from '../OptionsList';
+import styles from '../../styles/styles';
+import ScreenWrapper from '../ScreenWrapper';
+import Navigation from '../../libs/Navigation/Navigation';
+import ROUTES from '../../ROUTES';
 
-function CategoryPicker({policyCategories}) {
-    if (policyCategories === null) {
-        return null;
-    }
+function CategoryPicker({policyCategories, reportID, iouType}) {
+    const categoryList = _.chain(policyCategories)
+        .values()
+        .map((category) => ({
+            text: category.name,
+            keyForList: category.name,
+            tooltipText: category.name,
+        }))
+        .value();
+
+    const navigateBack = () => {
+        Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID));
+    };
 
     return (
-        <View>
-            {_.chain(policyCategories)
-                .values()
-                .map((category) => (
-                    <View key={category.name}>
-                        <Text>{category.name}</Text>
-                    </View>
-                ))
-                .value()}
-        </View>
+        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+            {({safeAreaPaddingBottomStyle}) => (
+                <OptionsList
+                    optionHoveredStyle={styles.hoveredComponentBG}
+                    contentContainerStyles={[safeAreaPaddingBottomStyle]}
+                    sections={[
+                        {
+                            data: categoryList,
+                        },
+                    ]}
+                    onSelectRow={navigateBack}
+                />
+            )}
+        </ScreenWrapper>
     );
 }
 
