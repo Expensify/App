@@ -6,7 +6,7 @@ import Text from '../Text';
 import Tooltip from '../Tooltip';
 import DisplayNamesTooltipItem from './DisplayNamesTooltipItem';
 import {defaultProps, propTypes} from './displayNamesPropTypes';
-import RenderHTML from "../RenderHTML";
+import RenderHTML from '../RenderHTML';
 
 function DisplayNamesWithToolTip(props) {
     const containerRef = useRef(null);

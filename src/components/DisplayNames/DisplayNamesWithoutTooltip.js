@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import styles from '../../styles/styles';
 import Text from '../Text';
-import RenderHTML from "../RenderHTML";
+import RenderHTML from '../RenderHTML';
 
 const propTypes = {
     /** The full title of the DisplayNames component (not split up) */

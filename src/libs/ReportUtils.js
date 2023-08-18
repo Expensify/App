@@ -1427,11 +1427,11 @@ function getThreadReportNameHtml(parentReportActionMessageHtml) {
             return g2;
         }
         if (g1 === 'pre') {
-            return `<code>${g2}</code>`
+            return `<code>${g2}</code>`;
         }
         const parser = new ExpensiMark();
         if (parser.containsNonPairTag(g2)) {
-            return `<${g1}>${g2}`
+            return `<${g1}>${g2}`;
         }
         return `<${g1}>${g2}</${g1}>`;
     });
@@ -1455,9 +1455,7 @@ function getReportName(report, policy = undefined, isThreadHeader = false) {
 
         const isAttachment = _.has(parentReportAction, 'isAttachment') ? parentReportAction.isAttachment : isReportMessageAttachment(_.last(lodashGet(parentReportAction, 'message', [{}])));
         const messageHtml = lodashGet(parentReportAction, ['message', 0, 'html']);
-        const parentReportActionMessage = isThreadHeader
-            ? getThreadReportNameHtml(messageHtml)
-            : lodashGet(parentReportAction, ['message', 0, 'text'], '').replace(/(\r\n|\n|\r)/gm, ' ');
+        const parentReportActionMessage = isThreadHeader ? getThreadReportNameHtml(messageHtml) : lodashGet(parentReportAction, ['message', 0, 'text'], '').replace(/(\r\n|\n|\r)/gm, ' ');
         if (isAttachment && parentReportActionMessage) {
             return `[${Localize.translateLocal('common.attachment')}]`;
         }

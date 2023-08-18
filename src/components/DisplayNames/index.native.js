@@ -1,7 +1,7 @@
 import React from 'react';
 import {propTypes, defaultProps} from './displayNamesPropTypes';
 import Text from '../Text';
-import RenderHTML from "../RenderHTML";
+import RenderHTML from '../RenderHTML';
 
 // As we don't have to show tooltips of the Native platform so we simply render the full display names list.
 function DisplayNames(props) {
