@@ -291,21 +291,6 @@ function ReportActionsList({
         [sortedReportActions],
     );
 
-    const renderCell = useCallback(
-        ({index, style, ...rendererProps}) => {
-            const zIndexOffset = {zIndex: sortedReportActions.length - index};
-
-            return (
-                <View
-                    style={[style, zIndexOffset]}
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...rendererProps}
-                />
-            );
-        },
-        [sortedReportActions],
-    );
-
     // Native mobile does not render updates flatlist the changes even though component did update called.
     // To notify there something changes we can use extraData prop to flatlist
     const extraData = [isSmallScreenWidth ? currentUnreadMarker.current : undefined, ReportUtils.isArchivedRoom(report)];
