@@ -23,6 +23,7 @@ class KYCWall extends React.Component {
 
         this.continue = this.continue.bind(this);
         this.setMenuPosition = this.setMenuPosition.bind(this);
+        this.anchorRef = React.createRef(null);
 
         this.state = {
             shouldShowAddPaymentMenu: false,
@@ -95,7 +96,8 @@ class KYCWall extends React.Component {
      * @param {String} iouPaymentType
      */
     continue(event, iouPaymentType) {
-        if (this.state.shouldShowAddPaymentMenu) {
+       if (this.state.shouldShowAddPaymentMenu) {
+            this.setState({shouldShowAddPaymentMenu: false});
             return;
         }
         this.setState({transferBalanceButton: event.nativeEvent.target});
@@ -140,6 +142,7 @@ class KYCWall extends React.Component {
                             this.setState({shouldShowAddPaymentMenu: false});
                         }, 10);
                     }}
+                    anchorRef={this.anchorRef}
                     anchorPosition={{
                         vertical: this.state.anchorPositionVertical,
                         horizontal: this.state.anchorPositionHorizontal,

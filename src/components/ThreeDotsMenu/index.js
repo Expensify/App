@@ -106,6 +106,8 @@ function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, me
                 anchorAlignment={anchorAlignment}
                 onItemSelected={hidePopoverMenu}
                 menuItems={menuItems}
+                withoutOverlay
+                anchorRef={buttonRef}
             />
         </>
     );

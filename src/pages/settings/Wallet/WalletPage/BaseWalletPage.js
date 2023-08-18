@@ -299,8 +299,9 @@ function BaseWalletPage(props) {
                                     addDebitCardRoute={ROUTES.SETTINGS_ADD_DEBIT_CARD}
                                     popoverPlacement="bottom"
                                 >
-                                    {(triggerKYCFlow) => (
+                                    {(triggerKYCFlow, buttonRef) => (
                                         <MenuItem
+                                            ref={buttonRef}
                                             title={translate('common.transferBalance')}
                                             icon={Expensicons.Transfer}
                                             onPress={triggerKYCFlow}

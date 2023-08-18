@@ -45,6 +45,7 @@ const propTypes = {
         horizontal: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL)),
         vertical: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL)),
     }),
+    buttonRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
 };
 
 const defaultProps = {
@@ -56,6 +57,7 @@ const defaultProps = {
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP, // we assume that popover menu opens below the button, anchor is at TOP
     },
+    buttonRef: () => {},
 };
 
 function ButtonWithDropdownMenu(props) {
@@ -90,6 +92,7 @@ function ButtonWithDropdownMenu(props) {
                 <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, ...props.style]}>
                     <Button
                         success
+                        ref={props.buttonRef}
                         onPress={(event) => props.onPress(event, selectedItem.value)}
                         text={selectedItem.text}
                         isDisabled={props.isDisabled}
