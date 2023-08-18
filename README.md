@@ -51,7 +51,7 @@ For an M1 Mac, read this [SO](https://stackoverflow.com/c/expensify/questions/11
     * If you get the error `Could not find 'bundler'`, install the bundler gem first: `gem install bundler` and try again.
     * If you are using MacOS and get the error `Gem::FilePermissionError` when trying to install the bundler gem, you're likely using system Ruby, which requires administrator permission to modify. To get around this, install another version of Ruby with a version manager like [rbenv](https://github.com/rbenv/rbenv#installation).
 * Before installing iOS dependencies, make sure that you have set up the Mapbox SDK credentials. Please refer to [Setting up Mapbox SDK Credentials](#setting-up-mapbox-sdk-credentials).
-* To install the CocoaPods dependencies, run: `npm install && npm run pod-install`
+* To install the iOS dependencies, run: `npm install && npm run pod-install`
 * If you are an Expensify employee and want to point the emulator to your local VM, follow [this](https://stackoverflow.com/c/expensify/questions/7699)
 * To run a on a **Development Simulator**: `npm run ios`
 * Changes applied to Javascript will be applied automatically, any changes to native code will require a recompile
