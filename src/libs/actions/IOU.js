@@ -1692,6 +1692,13 @@ function setMoneyRequestAmount(amount) {
 }
 
 /**
+ * @param {String} created
+ */
+function setMoneyRequestCreated(created) {
+    Onyx.merge(ONYXKEYS.IOU, {created});
+}
+
+/**
  * @param {String} currency
  */
 function setMoneyRequestCurrency(currency) {
@@ -1784,6 +1791,7 @@ export {
     resetMoneyRequestInfo,
     setMoneyRequestId,
     setMoneyRequestAmount,
+    setMoneyRequestCreated,
     setMoneyRequestCurrency,
     setMoneyRequestDescription,
     setMoneyRequestMerchant,

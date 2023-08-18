@@ -323,6 +323,7 @@ export default {
                             Money_Request_Amount: ROUTES.MONEY_REQUEST_AMOUNT,
                             Money_Request_Participants: ROUTES.MONEY_REQUEST_PARTICIPANTS,
                             Money_Request_Confirmation: ROUTES.MONEY_REQUEST_CONFIRMATION,
+                            Money_Request_Created: ROUTES.MONEY_REQUEST_CREATED,
                             Money_Request_Currency: ROUTES.MONEY_REQUEST_CURRENCY,
                             Money_Request_Description: ROUTES.MONEY_REQUEST_DESCRIPTION,
                             Money_Request_Merchant: ROUTES.MONEY_REQUEST_MERCHANT,
