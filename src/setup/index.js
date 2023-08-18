@@ -36,6 +36,10 @@ export default function () {
             [ONYXKEYS.NETWORK]: {isOffline: false},
             [ONYXKEYS.IS_SIDEBAR_LOADED]: false,
             [ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT]: true,
+            [ONYXKEYS.MODAL]: {
+                isVisible: false,
+                willAlertModalBecomeVisible: false,
+            },
         },
     });
 

@@ -302,12 +302,6 @@ class ReportActionCompose extends React.Component {
     onSelectionChange(e) {
         LayoutAnimation.configureNext(LayoutAnimation.create(50, LayoutAnimation.Types.easeInEaseOut, LayoutAnimation.Properties.opacity));
         this.setState({selection: e.nativeEvent.selection});
-        if (!this.state.value || e.nativeEvent.selection.end < 1) {
-            this.resetSuggestions();
-            this.shouldBlockEmojiCalc = false;
-            this.shouldBlockMentionCalc = false;
-            return;
-        }
         this.calculateEmojiSuggestion();
         this.calculateMentionSuggestion();
     }
@@ -533,8 +527,9 @@ class ReportActionCompose extends React.Component {
      * Calculates and cares about the content of an Emoji Suggester
      */
     calculateEmojiSuggestion() {
-        if (this.shouldBlockEmojiCalc) {
+        if (this.shouldBlockEmojiCalc || !this.state.value) {
             this.shouldBlockEmojiCalc = false;
+            this.resetSuggestions();
             return;
         }
 
@@ -564,8 +559,9 @@ class ReportActionCompose extends React.Component {
     }
 
     calculateMentionSuggestion() {
-        if (this.shouldBlockMentionCalc) {
+        if (this.shouldBlockMentionCalc || this.state.selection.end < 1) {
             this.shouldBlockMentionCalc = false;
+            this.resetSuggestions();
             return;
         }
 
@@ -734,6 +730,11 @@ class ReportActionCompose extends React.Component {
             return;
         }
 
+        // If the space key is pressed, do not focus
+        if (e.code === 'Space') {
+            return;
+        }
+
         // if we're typing on another input/text area, do not focus
         if (['INPUT', 'TEXTAREA'].includes(e.target.nodeName)) {
             return;
@@ -879,7 +880,7 @@ class ReportActionCompose extends React.Component {
             const lastReportAction = _.find([...this.props.reportActions, parentReportAction], (action) => ReportUtils.canEditReportAction(action));
 
             if (lastReportAction !== -1 && lastReportAction) {
-                Report.saveReportActionDraft(this.props.reportID, lastReportAction.reportActionID, _.last(lastReportAction.message).html);
+                Report.saveReportActionDraft(this.props.reportID, lastReportAction, _.last(lastReportAction.message).html);
             }
         }
     }
