@@ -55,10 +55,21 @@ function SplitBillDetailsPage(props) {
     const reportAction = props.reportActions[`${props.route.params.reportActionID.toString()}`];
     const transaction = TransactionUtils.getLinkedTransaction(reportAction);
     const participantAccountIDs = reportAction.originalMessage.participantAccountIDs;
-    const participants = OptionsListUtils.getParticipantsOptions(
-        _.map(participantAccountIDs, (accountID) => ({accountID, selected: true})),
-        props.personalDetails,
-    );
+
+    // In case this is workspace split bill, we manually add the workspace as the second participant of the split bill
+    // because we don't save any accountID in the report action's originalMessage other than the payee's accountID
+    let participants;
+    if (ReportUtils.isPolicyExpenseChat(props.report)) {
+        participants = [
+            ...OptionsListUtils.getParticipantsOptions([{accountID: participantAccountIDs[0], selected: true}], props.personalDetails),
+            ...OptionsListUtils.getPolicyExpenseReportOptions({...props.report, selected: true}),
+        ];
+    } else {
+        participants = OptionsListUtils.getParticipantsOptions(
+            _.map(participantAccountIDs, (accountID) => ({accountID, selected: true})),
+            props.personalDetails,
+        );
+    }
     const payeePersonalDetails = props.personalDetails[reportAction.actorAccountID];
     const participantsExcludingPayee = _.filter(participants, (participant) => participant.accountID !== reportAction.actorAccountID);
     const {amount: splitAmount, currency: splitCurrency, comment: splitComment} = ReportUtils.getTransactionDetails(transaction);
