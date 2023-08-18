@@ -16,7 +16,7 @@ import useWindowDimensions from '../../hooks/useWindowDimensions';
 
 function AutoCompleteSuggestions({parentContainerRef, ...props}) {
     const containerRef = React.useRef(null);
-    const {windowHeight} = useWindowDimensions();
+    const {windowHeight, windowWidth} = useWindowDimensions();
     const [{width, left, bottom}, setContainerState] = React.useState({
         width: 0,
         left: 0,
@@ -41,7 +41,7 @@ function AutoCompleteSuggestions({parentContainerRef, ...props}) {
             return;
         }
         parentContainerRef.current.measureInWindow((x, y, w) => setContainerState({left: x, bottom: windowHeight - y, width: w}));
-    }, [parentContainerRef, windowHeight]);
+    }, [parentContainerRef, windowHeight, windowWidth]);
 
     const componentToRender = (
         <BaseAutoCompleteSuggestions
