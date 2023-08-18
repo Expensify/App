@@ -8,10 +8,7 @@ import * as CollectionUtils from './CollectionUtils';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import Log from './Log';
-import * as CurrencyUtils from './CurrencyUtils';
 import isReportMessageAttachment from './isReportMessageAttachment';
-import * as TransactionUtils from './TransactionUtils';
-import * as ReceiptUtils from './ReceiptUtils';
 
 const allReports = {};
 Onyx.connect({
@@ -36,19 +33,6 @@ Onyx.connect({
 
         const reportID = CollectionUtils.extractCollectionItemID(key);
         allReportActions[reportID] = actions;
-    },
-});
-
-const allTransactions = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.TRANSACTION,
-    callback: (actions, key) => {
-        if (!key || !actions) {
-            return;
-        }
-
-        const transactionID = CollectionUtils.extractCollectionItemID(key);
-        allTransactions[transactionID] = actions;
     },
 });
 
@@ -166,19 +150,6 @@ function isSentMoneyReportAction(reportAction) {
         lodashGet(reportAction, 'originalMessage.type') === CONST.IOU.REPORT_ACTION_TYPE.PAY &&
         _.has(reportAction.originalMessage, 'IOUDetails')
     );
-}
-
-/**
- * Returns the formatted amount of a money request. The request and money sent (from send money flow) have
- * currency and amount in IOUDetails object.
- *
- * @param {Object} reportAction
- * @returns {Number}
- */
-function getFormattedAmount(reportAction) {
-    return lodashGet(reportAction, 'originalMessage.type', '') === CONST.IOU.REPORT_ACTION_TYPE.PAY && lodashGet(reportAction, 'originalMessage.IOUDetails', false)
-        ? CurrencyUtils.convertToDisplayString(lodashGet(reportAction, 'originalMessage.IOUDetails.amount', 0), lodashGet(reportAction, 'originalMessage.IOUDetails.currency', ''))
-        : CurrencyUtils.convertToDisplayString(lodashGet(reportAction, 'originalMessage.amount', 0), lodashGet(reportAction, 'originalMessage.currency', ''));
 }
 
 /**
@@ -596,56 +567,6 @@ function isMessageDeleted(reportAction) {
 }
 
 /**
- * Get the transactions related to a report preview
- *
- * @param {Object} reportPreviewAction
- * @returns {Object}
- */
-function getReportPreviewTransactionsWithReceipts(reportPreviewAction) {
-    const transactionIDs = lodashGet(reportPreviewAction, ['childLastReceiptTransactionIDs'], '').split(',');
-    return _.reduce(
-        transactionIDs,
-        (transactions, transactionID) => {
-            const transaction = allTransactions[transactionID];
-            if (transaction) {
-                transactions.push(transaction);
-            }
-            return transactions;
-        },
-        [],
-    );
-}
-
-/**
- * @param {Object} iouReportAction
- * @returns {Object}
- */
-function getTransaction(iouReportAction) {
-    const transactionID = lodashGet(iouReportAction, ['originalMessage', 'IOUTransactionID']);
-    return allTransactions[transactionID] || {};
-}
-
-/**
- * Checks if the IOU or expense report has either no smartscanned receipts or at least one is already done scanning
- *
- * @param {Object|null} reportAction
- * @returns {Boolean}
- */
-function hasReadyMoneyRequests(reportAction) {
-    if (isReportPreviewAction(reportAction)) {
-        const transactions = getReportPreviewTransactionsWithReceipts(reportAction);
-        return _.some(transactions, (transaction) => !ReceiptUtils.isBeingScanned(transaction.receipt));
-    }
-
-    if (isMoneyRequestAction(reportAction)) {
-        const transaction = getTransaction(reportAction);
-        return !TransactionUtils.hasReceipt(transaction) || !ReceiptUtils.isBeingScanned(transaction.receipt);
-    }
-
-    return true;
-}
-
-/**
  * Returns the number of money requests associated with a report preview
  *
  * @param {Object|null} reportPreviewAction
@@ -656,26 +577,19 @@ function getNumberOfMoneyRequests(reportPreviewAction) {
 }
 
 /**
- * Returns the number of receipts associated with an IOU report that are still being scanned.
- * Note that we search the IOU report for this number, since scanning receipts will be whispers
- * in the IOU report for only the submitter and we can get an accurate count.
- *
- * @param {Object|null} iouReport
- * @returns {Number}
+ * @param {*} reportAction
+ * @returns {Boolean}
  */
-function getNumberOfScanningReceipts(iouReport) {
-    const reportActions = lodashGet(allReportActions, lodashGet(iouReport, 'reportID'), []);
-    return _.reduce(
-        reportActions,
-        (count, reportAction) => {
-            if (!isMoneyRequestAction(reportAction)) {
-                return count;
-            }
-            const transaction = getTransaction(reportAction);
-            return count + Number(TransactionUtils.hasReceipt(transaction) && ReceiptUtils.isBeingScanned(transaction.receipt));
-        },
-        0,
-    );
+function isSplitBillAction(reportAction) {
+    return lodashGet(reportAction, 'originalMessage.type', '') === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
+}
+
+/**
+ * @param {*} reportID
+ * @returns {[Object]}
+ */
+function getAllReportActions(reportID) {
+    return lodashGet(allReportActions, reportID, []);
 }
 
 export {
@@ -702,7 +616,6 @@ export {
     getParentReportAction,
     getParentReportActionInReport,
     isTransactionThread,
-    getFormattedAmount,
     isSentMoneyReportAction,
     isDeletedParentAction,
     isReportPreviewAction,
@@ -712,9 +625,7 @@ export {
     isWhisperAction,
     isPendingRemove,
     getReportAction,
-    getReportPreviewTransactionsWithReceipts,
-    hasReadyMoneyRequests,
-    getTransaction,
     getNumberOfMoneyRequests,
-    getNumberOfScanningReceipts,
+    isSplitBillAction,
+    getAllReportActions,
 };

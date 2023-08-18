@@ -25,7 +25,7 @@ import HeaderGap from './HeaderGap';
 import SafeAreaConsumer from './SafeAreaConsumer';
 import addEncryptedAuthTokenToURL from '../libs/addEncryptedAuthTokenToURL';
 import reportPropTypes from '../pages/reportPropTypes';
-import * as Expensicons from './Icon/Expensicons';
+import tryResolveUrlFromApiRoot from '../libs/tryResolveUrlFromApiRoot';
 
 /**
  * Modal render prop component that exposes modal launching triggers that can be used
@@ -72,6 +72,9 @@ const propTypes = {
     ...withLocalizePropTypes,
 
     ...windowDimensionsPropTypes,
+
+    /** Denotes whether it is a workspace avatar or not */
+    isWorkspaceAvatar: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -87,6 +90,7 @@ const defaultProps = {
     onModalShow: () => {},
     onModalHide: () => {},
     onCarouselAttachmentChange: () => {},
+    isWorkspaceAvatar: false,
 };
 
 function AttachmentModal(props) {
@@ -101,6 +105,7 @@ function AttachmentModal(props) {
     const [modalType, setModalType] = useState(CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE);
     const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
     const [confirmButtonFadeAnimation] = useState(new Animated.Value(1));
+    const [shouldShowDownloadButton, setShouldShowDownloadButton] = React.useState(true);
     const [file, setFile] = useState(
         props.originalFileName
             ? {
@@ -114,13 +119,13 @@ function AttachmentModal(props) {
 
     /**
      * Keeps the attachment source in sync with the attachment displayed currently in the carousel.
-     * @param {{ source: String, isAuthTokenRequired: Boolean, file: { name: string } }} attachment
+     * @param {{ source: String, isAuthTokenRequired: Boolean, file: { name: string }, isReceipt: Boolean }} attachment
      */
     const onNavigate = useCallback(
         (attachment) => {
             setSource(attachment.source);
             setFile(attachment.file);
-            setIsAttachmentReceipt(attachment.receipt);
+            setIsAttachmentReceipt(attachment.isReceipt);
             setIsAuthTokenRequired(attachment.isAuthTokenRequired);
             onCarouselAttachmentChange(attachment);
         },
@@ -139,6 +144,16 @@ function AttachmentModal(props) {
                 ? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE
                 : CONST.MODAL.MODAL_TYPE.CENTERED,
         [translate],
+    );
+
+    const setDownloadButtonVisibility = useCallback(
+        (shouldShowButton) => {
+            if (shouldShowDownloadButton === shouldShowButton) {
+                return;
+            }
+            setShouldShowDownloadButton(shouldShowButton);
+        },
+        [shouldShowDownloadButton],
     );
 
     /**
@@ -324,28 +339,10 @@ function AttachmentModal(props) {
                 <HeaderWithBackButton
                     title={props.headerTitle || translate(isAttachmentReceipt ? 'common.receipt' : 'common.attachment')}
                     shouldShowBorderBottom
-                    shouldShowDownloadButton={props.allowDownload}
+                    shouldShowDownloadButton={props.allowDownload && shouldShowDownloadButton}
                     onDownloadButtonPress={() => downloadAttachment(source)}
                     shouldShowCloseButton={!props.isSmallScreenWidth}
                     shouldShowBackButton={props.isSmallScreenWidth}
-                    shouldShowThreeDotsButton={isAttachmentReceipt}
-                    threeDotsMenuItems={[
-                        {
-                            icon: Expensicons.Camera,
-                            text: props.translate('common.replace'),
-                            onSelected: () => {}, // TODO
-                        },
-                        {
-                            icon: Expensicons.Download,
-                            text: props.translate('common.download'),
-                            onSelected: () => downloadAttachment(source),
-                        },
-                        {
-                            icon: Expensicons.Trashcan,
-                            text: props.translate('iou.deleteReceipt'),
-                            onSelected: () => {}, // TODO
-                        },
-                    ]}
                     onBackButtonPress={closeModal}
                     onCloseButtonPress={closeModal}
                 />
@@ -354,9 +351,10 @@ function AttachmentModal(props) {
                         <AttachmentCarousel
                             report={props.report}
                             onNavigate={onNavigate}
-                            source={props.source}
+                            source={tryResolveUrlFromApiRoot(props.source)}
                             onClose={closeModal}
                             onToggleKeyboard={updateConfirmButtonVisibility}
+                            setDownloadButtonVisibility={setDownloadButtonVisibility}
                         />
                     ) : (
                         Boolean(sourceForAttachmentView) &&
@@ -367,6 +365,7 @@ function AttachmentModal(props) {
                                 isAuthTokenRequired={isAuthTokenRequired}
                                 file={file}
                                 onToggleKeyboard={updateConfirmButtonVisibility}
+                                isWorkspaceAvatar={props.isWorkspaceAvatar}
                             />
                         )
                     )}

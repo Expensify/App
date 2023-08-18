@@ -616,6 +616,7 @@ function getOptions(
         includeTasks = false,
         includeMoneyRequests = false,
         excludeUnknownUsers = false,
+        includeP2P = true,
     },
 ) {
     if (!isPersonalDetailsReady(personalDetails)) {
@@ -631,7 +632,7 @@ function getOptions(
     // This is a temporary fix for all the logic that's been breaking because of the new privacy changes
     // See https://github.com/Expensify/Expensify/issues/293465 for more context
     // eslint-disable-next-line no-param-reassign
-    personalDetails = _.pick(personalDetails, (detail) => Boolean(detail.login));
+    personalDetails = !includeP2P ? {} : _.pick(personalDetails, (detail) => Boolean(detail.login));
 
     let recentReportOptions = [];
     let personalDetailsOptions = [];
@@ -640,7 +641,7 @@ function getOptions(
     const searchValue = parsedPhoneNumber.possible ? parsedPhoneNumber.number.e164 : searchInputValue.toLowerCase();
 
     // Filter out all the reports that shouldn't be displayed
-    const filteredReports = _.filter(reports, (report) => ReportUtils.shouldReportBeInOptionList(report, Navigation.getTopmostReportId(), false, null, betas, policies));
+    const filteredReports = _.filter(reports, (report) => ReportUtils.shouldReportBeInOptionList(report, Navigation.getTopmostReportId(), false, betas, policies));
 
     // Sorting the reports works like this:
     // - Order everything by the last message timestamp (descending)
@@ -668,6 +669,11 @@ function getOptions(
         const accountIDs = report.participantAccountIDs || [];
 
         if (isPolicyExpenseChat && report.isOwnPolicyExpenseChat && !includeOwnedWorkspaceChats) {
+            return;
+        }
+
+        // When passing includeP2P false we are trying to hide features from users that are not ready for P2P and limited to workspace chats only.
+        if (!includeP2P && !isPolicyExpenseChat) {
             return;
         }
 
@@ -898,9 +904,10 @@ function getSearchOptions(reports, personalDetails, searchValue = '', betas) {
  * @returns {Object}
  */
 function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail, amountText) {
+    const formattedLogin = LocalePhoneNumber.formatPhoneNumber(personalDetail.login);
     return {
-        text: personalDetail.displayName ? personalDetail.displayName : personalDetail.login,
-        alternateText: personalDetail.login || personalDetail.displayName,
+        text: personalDetail.displayName || formattedLogin,
+        alternateText: formattedLogin || personalDetail.displayName,
         icons: [
             {
                 source: UserUtils.getAvatar(personalDetail.avatar, personalDetail.accountID),
@@ -939,9 +946,10 @@ function getIOUConfirmationOptionsFromParticipants(participants, amountText) {
  * @param {Array} [selectedOptions]
  * @param {Array} [excludeLogins]
  * @param {Boolean} [includeOwnedWorkspaceChats]
+ * @param {boolean} [includeP2P]
  * @returns {Object}
  */
-function getNewChatOptions(reports, personalDetails, betas = [], searchValue = '', selectedOptions = [], excludeLogins = [], includeOwnedWorkspaceChats = false) {
+function getNewChatOptions(reports, personalDetails, betas = [], searchValue = '', selectedOptions = [], excludeLogins = [], includeOwnedWorkspaceChats = false, includeP2P = true) {
     return getOptions(reports, personalDetails, {
         betas,
         searchInputValue: searchValue.trim(),
@@ -951,6 +959,7 @@ function getNewChatOptions(reports, personalDetails, betas = [], searchValue = '
         maxRecentReportsToShow: 5,
         excludeLogins,
         includeOwnedWorkspaceChats,
+        includeP2P,
     });
 }
 

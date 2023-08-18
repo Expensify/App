@@ -26,10 +26,9 @@ import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import * as IOUUtils from '../../libs/IOUUtils';
 import * as ReportUtils from '../../libs/ReportUtils';
+import * as TransactionUtils from '../../libs/TransactionUtils';
 import refPropTypes from '../refPropTypes';
 import PressableWithFeedback from '../Pressable/PressableWithoutFeedback';
-import * as ReportActionUtils from '../../libs/ReportActionsUtils';
-import * as TransactionUtils from '../../libs/TransactionUtils';
 import * as ReceiptUtils from '../../libs/ReceiptUtils';
 import ReportActionItemImages from './ReportActionItemImages';
 
@@ -135,21 +134,21 @@ function MoneyRequestPreview(props) {
     const sessionAccountID = lodashGet(props.session, 'accountID', null);
     const managerID = props.iouReport.managerID || '';
     const ownerAccountID = props.iouReport.ownerAccountID || '';
+    const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.chatReport);
+
     const participantAccountIDs = props.isBillSplit ? lodashGet(props.action, 'originalMessage.participantAccountIDs', []) : [managerID, ownerAccountID];
     const participantAvatars = OptionsListUtils.getAvatarsForAccountIDs(participantAccountIDs, props.personalDetails);
+    if (isPolicyExpenseChat && props.isBillSplit) {
+        participantAvatars.push(ReportUtils.getWorkspaceIcon(props.chatReport));
+    }
 
     // Pay button should only be visible to the manager of the report.
     const isCurrentUserManager = managerID === sessionAccountID;
 
-    const moneyRequestAction = ReportUtils.getMoneyRequestAction(props.action);
-
-    const requestAmount = moneyRequestAction.amount;
-    const requestCurrency = moneyRequestAction.currency;
-    const requestComment = moneyRequestAction.comment.trim();
-
-    const transaction = ReportActionUtils.getTransaction(props.action);
+    const transaction = TransactionUtils.getLinkedTransaction(props.action);
+    const {amount: requestAmount, currency: requestCurrency, comment: requestComment, merchant: requestMerchant} = ReportUtils.getTransactionDetails(transaction);
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
-    const isScanning = !ReportActionUtils.hasReadyMoneyRequests(props.action);
+    const isScanning = hasReceipt && TransactionUtils.isReceiptBeingScanned(transaction);
 
     const getSettledMessage = () => {
         switch (lodashGet(props.action, 'originalMessage.paymentType', '')) {
@@ -206,13 +205,11 @@ function MoneyRequestPreview(props) {
                 errorRowStyles={[styles.mbn1]}
                 needsOffscreenAlphaCompositing
             >
-                <View style={[styles.moneyRequestPreviewBox, ...props.containerStyles, isScanning ? styles.moneyRequestPreviewBoxHover : undefined]}>
+                <View style={[styles.moneyRequestPreviewBox, isScanning ? styles.reportPreviewBoxHoverBorder : undefined, ...props.containerStyles]}>
                     {hasReceipt && (
                         <ReportActionItemImages
                             images={[ReceiptUtils.getThumbnailAndImageURIs(transaction.receipt.source, transaction.filename)]}
-                            size={1}
-                            total={1}
-                            hoverStyle={isScanning ? styles.moneyRequestPreviewBoxHover : undefined}
+                            isHovered={isScanning}
                         />
                     )}
                     <View style={styles.moneyRequestPreviewBoxText}>
@@ -227,10 +224,11 @@ function MoneyRequestPreview(props) {
                                             height={4}
                                             additionalStyles={[styles.mr1, styles.ml1]}
                                         />
-                                        <Text style={[styles.textLabelSupporting, styles.lh16]}>{getSettledMessage()}</Text>
+                                        <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh16]}>{getSettledMessage()}</Text>
                                     </>
                                 )}
                             </View>
+                            <Icon src={Expensicons.ArrowRight} />
                         </View>
                         <View style={[styles.flexRow]}>
                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
@@ -256,9 +254,9 @@ function MoneyRequestPreview(props) {
                                 </View>
                             )}
                         </View>
-                        {moneyRequestAction.merchant && (
+                        {requestMerchant && (
                             <View style={[styles.flexRow]}>
-                                <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh16]}>{moneyRequestAction.merchant}</Text>
+                                <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh16]}>{requestMerchant}</Text>
                             </View>
                         )}
                         <View style={[styles.flexRow]}>
@@ -271,7 +269,10 @@ function MoneyRequestPreview(props) {
                             {props.isBillSplit && !_.isEmpty(participantAccountIDs) && (
                                 <Text style={[styles.textLabel, styles.colorMuted, styles.ml1]}>
                                     {props.translate('iou.amountEach', {
-                                        amount: CurrencyUtils.convertToDisplayString(IOUUtils.calculateAmount(participantAccountIDs.length - 1, requestAmount), requestCurrency),
+                                        amount: CurrencyUtils.convertToDisplayString(
+                                            IOUUtils.calculateAmount(isPolicyExpenseChat ? 1 : participantAccountIDs.length - 1, requestAmount, requestCurrency),
+                                            requestCurrency,
+                                        ),
                                     })}
                                 </Text>
                             )}
@@ -309,6 +310,9 @@ export default compose(
     withOnyx({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+        },
+        chatReport: {
+            key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
         },
         iouReport: {
             key: ({iouReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,

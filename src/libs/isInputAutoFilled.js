@@ -6,7 +6,7 @@ import isSelectorSupported from './isSelectorSupported';
  * @return {Boolean}
  */
 export default function isInputAutoFilled(input) {
-    if (!input.matches) return false;
+    if (!input || !input.matches) return false;
     if (isSelectorSupported(':autofill')) {
         return input.matches(':-webkit-autofill') || input.matches(':autofill');
     }

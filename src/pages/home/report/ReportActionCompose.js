@@ -734,6 +734,11 @@ class ReportActionCompose extends React.Component {
             return;
         }
 
+        // If the space key is pressed, do not focus
+        if (e.code === 'Space') {
+            return;
+        }
+
         // if we're typing on another input/text area, do not focus
         if (['INPUT', 'TEXTAREA'].includes(e.target.nodeName)) {
             return;
@@ -879,7 +884,7 @@ class ReportActionCompose extends React.Component {
             const lastReportAction = _.find([...this.props.reportActions, parentReportAction], (action) => ReportUtils.canEditReportAction(action));
 
             if (lastReportAction !== -1 && lastReportAction) {
-                Report.saveReportActionDraft(this.props.reportID, lastReportAction.reportActionID, _.last(lastReportAction.message).html);
+                Report.saveReportActionDraft(this.props.reportID, lastReportAction, _.last(lastReportAction.message).html);
             }
         }
     }

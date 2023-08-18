@@ -27,7 +27,7 @@ const propTypes = {
     betas: PropTypes.arrayOf(PropTypes.string),
 
     /** All of the personal details for everyone */
-    personalDetails: personalDetailsPropType,
+    personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
     /** All reports shared with the user */
     reports: PropTypes.objectOf(reportPropTypes),
@@ -49,11 +49,7 @@ function TaskShareDestinationSelectorModal(props) {
     const filteredReports = useMemo(() => {
         const reports = {};
         _.keys(props.reports).forEach((reportKey) => {
-            if (
-                !ReportUtils.isAllowedToComment(props.reports[reportKey]) ||
-                ReportUtils.isArchivedRoom(props.reports[reportKey]) ||
-                ReportUtils.isExpensifyOnlyParticipantInReport(props.reports[reportKey])
-            ) {
+            if (ReportUtils.shouldDisableWriteActions(props.reports[reportKey]) || ReportUtils.isExpensifyOnlyParticipantInReport(props.reports[reportKey])) {
                 return;
             }
             reports[reportKey] = props.reports[reportKey];

@@ -1,4 +1,5 @@
 import {View} from 'react-native';
+import PropTypes from 'prop-types';
 import React from 'react';
 import * as StyleUtils from '../../styles/StyleUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
@@ -8,7 +9,14 @@ import styles from '../../styles/styles';
 import variables from '../../styles/variables';
 
 const propTypes = {
+    /** Override the green headline copy */
+    customHeadline: PropTypes.string,
+
     ...windowDimensionsPropTypes,
+};
+
+const defaultProps = {
+    customHeadline: '',
 };
 
 function SignInPageHero(props) {
@@ -25,7 +33,7 @@ function SignInPageHero(props) {
         >
             <View style={[styles.flex1, styles.alignSelfCenter, styles.gap7]}>
                 <SignInHeroImage />
-                <SignInHeroCopy />
+                <SignInHeroCopy customHeadline={props.customHeadline} />
             </View>
         </View>
     );
@@ -33,5 +41,6 @@ function SignInPageHero(props) {
 
 SignInPageHero.displayName = 'SignInPageHero';
 SignInPageHero.propTypes = propTypes;
+SignInPageHero.defaultProps = defaultProps;
 
 export default withWindowDimensions(SignInPageHero);

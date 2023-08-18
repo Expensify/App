@@ -19,7 +19,8 @@ import * as IOU from '../libs/actions/IOU';
 import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 import ConfirmModal from './ConfirmModal';
 import useLocalize from '../hooks/useLocalize';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
+import * as TransactionUtils from '../libs/TransactionUtils';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -44,7 +45,6 @@ const propTypes = {
     }),
 
     ...windowDimensionsPropTypes,
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -72,7 +72,8 @@ function MoneyRequestHeader(props) {
         setIsDeleteModalVisible(false);
     }, [parentReportAction, setIsDeleteModalVisible]);
 
-    const isScanning = !ReportActionsUtils.hasReadyMoneyRequests(parentReportAction);
+    const transaction = TransactionUtils.getLinkedTransaction(parentReportAction);
+    const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
 
     return (
         <>
@@ -84,7 +85,7 @@ function MoneyRequestHeader(props) {
                     threeDotsMenuItems={[
                         {
                             icon: Expensicons.Trashcan,
-                            text: translate('reportActionContextMenu.deleteAction', {isMoneyRequest: ReportActionsUtils.isMoneyRequestAction(parentReportAction)}),
+                            text: translate('reportActionContextMenu.deleteAction', {action: parentReportAction}),
                             onSelected: () => setIsDeleteModalVisible(true),
                         },
                     ]}
@@ -94,11 +95,8 @@ function MoneyRequestHeader(props) {
                     personalDetails={props.personalDetails}
                     shouldShowBackButton={props.isSmallScreenWidth}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.HOME, false, true)}
-                    shouldShowBorderBottom
-                    shouldShowStatusBar={isScanning}
-                    statusBarBadgeText={props.translate('iou.receiptStatusTitle')}
-                    statusBarDescription={props.translate('iou.receiptStatusText')}
                 />
+                {isScanning && <MoneyRequestHeaderStatusBar />}
             </View>
             <ConfirmModal
                 title={translate('iou.deleteRequest')}
@@ -120,7 +118,6 @@ MoneyRequestHeader.defaultProps = defaultProps;
 
 export default compose(
     withWindowDimensions,
-    withLocalize,
     withOnyx({
         session: {
             key: ONYXKEYS.SESSION,

@@ -1,5 +1,6 @@
 import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
 import CONST from '../CONST';
+import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 
 /* eslint-disable max-len */
 export default {
@@ -29,10 +30,14 @@ export default {
         workspaces: 'Workspaces',
         profile: 'Profile',
         payments: 'Payments',
+        wallet: 'Wallet',
         preferences: 'Preferences',
         view: 'View',
         not: 'Not',
         signIn: 'Sign in',
+        signInWithGoogle: 'Sign in with Google',
+        signInWithApple: 'Sign in with Apple',
+        signInWith: 'Sign in with',
         continue: 'Continue',
         firstName: 'First name',
         lastName: 'Last name',
@@ -192,6 +197,11 @@ export default {
         redirectedToDesktopApp: "We've redirected you to the desktop app.",
         youCanAlso: 'You can also',
         openLinkInBrowser: 'open this link in your browser',
+        loggedInAs: ({email}) => `You're logged in as ${email}. Click "Open link" in the prompt to log into the desktop app with this account.`,
+        doNotSeePrompt: "Can't see the prompt?",
+        tryAgain: 'Try again',
+        or: ', or',
+        continueInWeb: 'continue to the web app',
     },
     validateCodeModal: {
         successfulSignInTitle: 'Abracadabra,\nyou are signed in!',
@@ -240,7 +250,17 @@ export default {
         hero: {
             header: 'Split bills, request payments, and chat with friends.',
             body: 'Welcome to the future of Expensify, your new go-to place for financial collaboration with friends and teammates alike.',
+            demoHeadline: 'Welcome to SaaStr! Hop in to start networking now.',
         },
+    },
+    thirdPartySignIn: {
+        alreadySignedIn: ({email}) => `You are already signed in as ${email}.`,
+        goBackMessage: ({provider}) => `Don't want to sign in with ${provider}?`,
+        continueWithMyCurrentSession: 'Continue with my current session',
+        redirectToDesktopMessage: "We'll redirect you to the desktop app once you finish signing in.",
+        signInAgreementMessage: 'By logging in, you agree to the',
+        termsOfService: 'Terms of Service',
+        privacy: 'Privacy',
     },
     reportActionCompose: {
         addAction: 'Actions',
@@ -275,8 +295,8 @@ export default {
         markAsUnread: 'Mark as unread',
         markAsRead: 'Mark as read',
         editComment: 'Edit comment',
-        deleteAction: ({isMoneyRequest}) => `Delete ${isMoneyRequest ? 'request' : 'comment'}`,
-        deleteConfirmation: ({isMoneyRequest}) => `Are you sure you want to delete this ${isMoneyRequest ? 'request' : 'comment'}?`,
+        deleteAction: ({action}) => `Delete ${ReportActionsUtils.isMoneyRequestAction(action) ? 'request' : 'comment'}`,
+        deleteConfirmation: ({action}) => `Are you sure you want to delete this ${ReportActionsUtils.isMoneyRequestAction(action) ? 'request' : 'comment'}?`,
         onlyVisible: 'Only visible to',
         replyInThread: 'Reply in thread',
         flagAsOffensive: 'Flag as offensive',
@@ -651,7 +671,7 @@ export default {
             password: 'Please enter your Expensify password',
         },
     },
-    paymentsPage: {
+    walletPage: {
         paymentMethodsTitle: 'Payment methods',
         setDefaultConfirmation: 'Make default payment method',
         setDefaultSuccess: 'Default payment method set!',
@@ -678,8 +698,8 @@ export default {
         transferDetailBankAccount: 'Your money should arrive in the next 1-3 business days.',
         transferDetailDebitCard: 'Your money should arrive immediately.',
         failedTransfer: 'Your balance isn’t fully settled. Please transfer to a bank account.',
-        notHereSubTitle: 'Please transfer your balance from the payments page',
-        goToPayment: 'Go to Payments',
+        notHereSubTitle: 'Please transfer your balance from the wallet page',
+        goToWallet: 'Go to Wallet',
     },
     chooseTransferAccountPage: {
         chooseAccount: 'Choose account',
@@ -880,6 +900,8 @@ export default {
         clearStatus: 'Clear status',
         save: 'Save',
         message: 'Message',
+        untilTomorrow: 'Until tomorrow',
+        untilTime: ({time}) => `Until ${time}`,
     },
     stepCounter: ({step, total, text}) => {
         let result = `Step ${step}`;
@@ -1585,10 +1607,15 @@ export default {
     },
     distance: {
         addStop: 'Add stop',
+        address: 'Address',
+        waypointEditor: 'Waypoint Editor',
         waypointDescription: {
             start: 'Start',
             finish: 'Finish',
             stop: 'Stop',
+        },
+        errors: {
+            selectSuggestedAddress: 'Please select a suggested address',
         },
     },
     countrySelectorModal: {

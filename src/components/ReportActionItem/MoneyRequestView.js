@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Image} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
@@ -14,19 +14,18 @@ import MenuItemWithTopDescription from '../MenuItemWithTopDescription';
 import styles from '../../styles/styles';
 import * as ReportUtils from '../../libs/ReportUtils';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
+import * as TransactionUtils from '../../libs/TransactionUtils';
 import * as StyleUtils from '../../styles/StyleUtils';
 import CONST from '../../CONST';
 import * as Expensicons from '../Icon/Expensicons';
 import iouReportPropTypes from '../../pages/iouReportPropTypes';
-import DateUtils from '../../libs/DateUtils';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import EmptyStateBackgroundImage from '../../../assets/images/empty-state_background-fade.png';
 import useLocalize from '../../hooks/useLocalize';
-import * as TransactionUtils from '../../libs/TransactionUtils';
 import * as ReceiptUtils from '../../libs/ReceiptUtils';
-import withLocalize from '../withLocalize';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
-import MoneyRequestImage from './MoneyRequestImage';
+import Image from '../Image';
+import ReportActionItemImage from './ReportActionItemImage';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -69,12 +68,11 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, polic
     const {translate} = useLocalize();
 
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
-    const {amount: transactionAmount, currency: transactionCurrency, comment: transactionDescription} = ReportUtils.getMoneyRequestAction(parentReportAction);
-    const formattedTransactionAmount = transactionAmount && transactionCurrency && CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency);
-    const transactionDate = lodashGet(parentReportAction, ['created']);
-    const formattedTransactionDate = DateUtils.getDateStringFromISOTimestamp(transactionDate);
-
     const moneyRequestReport = parentReport;
+    const transaction = TransactionUtils.getLinkedTransaction(parentReportAction);
+    const {created: transactionDate, amount: transactionAmount, currency: transactionCurrency, comment: transactionDescription} = ReportUtils.getTransactionDetails(transaction);
+    const formattedTransactionAmount = transactionAmount && transactionCurrency && CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency);
+
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
     const isAdmin = Policy.isAdminOfFreePolicy([policy]) && ReportUtils.isExpenseReport(moneyRequestReport);
     const isRequestor = ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(session, 'accountID', null) === parentReportAction.actorAccountID;
@@ -87,11 +85,16 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, polic
         description += ` • ${translate('iou.pending')}`;
     }
 
-    const transaction = ReportActionsUtils.getTransaction(parentReportAction);
+    // A temporary solution to hide the transaction detail
+    // This will be removed after we properly add the transaction as a prop
+    if (ReportActionsUtils.isDeletedAction(parentReportAction)) {
+        return null;
+    }
+
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
-    let receiptUris;
+    let receiptURIs;
     if (hasReceipt) {
-        receiptUris = ReceiptUtils.getThumbnailAndImageURIs(transaction.receipt.source, transaction.filename);
+        receiptURIs = ReceiptUtils.getThumbnailAndImageURIs(transaction.receipt.source, transaction.filename);
     }
 
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
@@ -105,7 +108,15 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, polic
                     style={[StyleUtils.getReportWelcomeBackgroundImageStyle(true)]}
                 />
             </View>
-            {hasReceipt && <MoneyRequestImage image={receiptUris} />}
+            {hasReceipt && (
+                <View style={styles.moneyRequestViewImage}>
+                    <ReportActionItemImage
+                        thumbnail={receiptURIs.thumbnail}
+                        image={receiptURIs.image}
+                        enablePreviewModal
+                    />
+                </View>
+            )}
             <MenuItemWithTopDescription
                 title={formattedTransactionAmount}
                 shouldShowTitleIcon={isSettled}
@@ -125,7 +136,7 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, polic
             />
             <MenuItemWithTopDescription
                 description={translate('common.date')}
-                title={formattedTransactionDate}
+                title={transactionDate}
                 disabled={isSettled || !canEdit}
                 shouldShowRightIcon={canEdit}
                 onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DATE))}
@@ -150,7 +161,6 @@ MoneyRequestView.displayName = 'MoneyRequestView';
 
 export default compose(
     withCurrentUserPersonalDetails,
-    withLocalize,
     withOnyx({
         parentReport: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`,

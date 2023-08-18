@@ -38,7 +38,8 @@ function validateReceipt(file) {
  * @returns {Object}
  */
 function getThumbnailAndImageURIs(path, filename) {
-    if (path.startsWith('blob:')) {
+    // For local files, we won't have a thumbnail yet
+    if (path.startsWith('blob:') || path.startsWith('file:')) {
         return {thumbnail: null, image: path};
     }
 
@@ -64,8 +65,4 @@ function getThumbnailAndImageURIs(path, filename) {
     return {thumbnail: null, image};
 }
 
-function isBeingScanned(receipt) {
-    return receipt.state === CONST.IOU.RECEIPT_STATE.SCANREADY || receipt.state === CONST.IOU.RECEIPT_STATE.SCANNING;
-}
-
-export {validateReceipt, getThumbnailAndImageURIs, isBeingScanned};
+export {validateReceipt, getThumbnailAndImageURIs};

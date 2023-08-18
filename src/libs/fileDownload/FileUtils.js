@@ -152,9 +152,11 @@ const readFileAsync = (path, fileName) =>
                 return res.blob();
             })
             .then((blob) => {
-                const cleanName = cleanFileName(fileName);
-                const file = new File([blob], cleanName);
+                const file = new File([blob], cleanFileName(fileName));
                 file.source = path;
+                // For some reason, the File object on iOS does not have a uri property
+                // so images aren't uploaded correctly to the backend
+                file.uri = path;
                 resolve(file);
             })
             .catch((e) => {

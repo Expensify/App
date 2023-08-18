@@ -1162,6 +1162,13 @@ const styles = {
         marginBottom: 4,
     },
 
+    desktopRedirectPage: {
+        backgroundColor: themeColors.appBG,
+        minHeight: '100%',
+        flex: 1,
+        alignItems: 'center',
+    },
+
     signInPage: {
         backgroundColor: themeColors.highlightBG,
         minHeight: '100%',
@@ -1213,6 +1220,11 @@ const styles = {
         minHeight: 24,
     },
 
+    signInPageContentTopSpacerSmallScreens: {
+        maxHeight: 132,
+        minHeight: 45,
+    },
+
     signInPageLeftContainer: {
         paddingLeft: 40,
         paddingRight: 40,
@@ -1223,11 +1235,11 @@ const styles = {
     },
 
     signInPageWelcomeFormContainer: {
-        maxWidth: 300,
+        maxWidth: CONST.SIGN_IN_FORM_WIDTH,
     },
 
     signInPageWelcomeTextContainer: {
-        width: 300,
+        width: CONST.SIGN_IN_FORM_WIDTH,
     },
 
     changeExpensifyLoginLinkContainer: {
@@ -2358,7 +2370,6 @@ const styles = {
 
     roomHeaderAvatar: {
         backgroundColor: themeColors.appBG,
-        marginLeft: -16,
         borderRadius: 100,
         borderColor: themeColors.componentBG,
         borderWidth: 4,
@@ -2652,11 +2663,6 @@ const styles = {
 
     moneyRequestPreviewBoxText: {
         padding: 16,
-    },
-
-    moneyRequestPreviewBoxHover: {
-        backgroundColor: themeColors.border,
-        borderColor: themeColors.border,
     },
 
     moneyRequestPreviewBoxLoading: {
@@ -3605,6 +3611,49 @@ const styles = {
         textAlign: 'center',
     },
 
+    loginButtonRow: {
+        justifyContent: 'center',
+        width: '100%',
+        ...flex.flexRow,
+    },
+
+    loginButtonRowSmallScreen: {
+        justifyContent: 'center',
+        width: '100%',
+        marginBottom: 10,
+        ...flex.flexRow,
+    },
+
+    appleButtonContainer: {
+        width: 40,
+        height: 40,
+        marginRight: 20,
+    },
+
+    signInIconButton: {
+        margin: 10,
+        marginTop: 0,
+        padding: 2,
+    },
+
+    googleButtonContainer: {
+        width: 40,
+        height: 40,
+        marginLeft: 12,
+        alignItems: 'center',
+    },
+
+    googlePillButtonContainer: {
+        height: 40,
+        width: 219,
+    },
+
+    thirdPartyLoadingContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: 450,
+    },
+
     tabSelectorButton: (isSelected) => ({
         height: 40,
         padding: 12,
@@ -3682,7 +3731,7 @@ const styles = {
         backgroundColor: themeColors.border,
     },
 
-    reportPreviewBoxText: {
+    reportPreviewBoxBody: {
         padding: 16,
     },
 
@@ -3709,7 +3758,7 @@ const styles = {
 
     reportActionItemImagesMore: {
         position: 'absolute',
-        borderRadius: '50%',
+        borderRadius: 18,
         backgroundColor: themeColors.cardBG,
         width: 36,
         height: 36,
@@ -3718,10 +3767,11 @@ const styles = {
         alignItems: 'center',
     },
 
-    headerStatusBarBadge: {
+    moneyRequestHeaderStatusBarBadge: {
         padding: 8,
         borderRadius: variables.componentBorderRadiusMedium,
         marginRight: 16,
+        backgroundColor: themeColors.border,
     },
 
     staticHeaderImage: {
@@ -3744,6 +3794,12 @@ const styles = {
         borderColor: themeColors.cardBG,
         borderRadius: variables.componentBorderRadiusLarge,
         height: 200,
+        maxWidth: 400,
+    },
+
+    userReportStatusEmoji: {
+        fontSize: variables.fontSizeNormal,
+        marginRight: 4,
     },
 };
 
