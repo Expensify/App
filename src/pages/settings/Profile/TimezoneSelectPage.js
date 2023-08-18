@@ -76,8 +76,8 @@ function TimezoneSelectPage(props) {
                 textInputValue={timezoneInputText}
                 onChangeText={filterShownTimezones}
                 onSelectRow={saveSelectedTimezone}
-                shouldDelayFocus
                 sections={[{data: timezoneOptions, indexOffset: 0, isDisabled: timezone.current.automatic}]}
+                shouldDelayFocus
                 initiallyFocusedOptionKey={_.get(_.filter(timezoneOptions, (tz) => tz.text === timezone.current.selected)[0], 'keyForList')}
             />
         </ScreenWrapper>
