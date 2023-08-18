@@ -3158,6 +3158,26 @@ function getTaskAssigneeChatOnyxData(accountID, assigneeEmail, assigneeAccountID
     };
 }
 
+function navigateToPrivateNotesPage(report, accountID) {
+    if (_.isEmpty(report)) {
+        return;
+    }
+
+    const privateNotes = lodashGet(report, 'privateNotes', {});
+
+    // Redirect the user to privateNotesList page in case there are multiple notes and accountID is not set 
+    // if (_.isEmpty(accountID) && Object.keys(privateNotes) > 1) {
+    //     Navigation.navigate(ROUTES.getPrivateNotesListRoute(reportID));
+    // }
+    
+    // Default the accountID to current user's accountID in case it is empty
+    if (_.isEmpty(accountID)) {
+        accountID = currentUserAccountID;
+    }
+    Navigation.navigate(ROUTES.getPrivateNotesRoute(reportID, accountID));
+}
+
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -3286,4 +3306,5 @@ export {
     getTransactionReportName,
     getTransactionDetails,
     getTaskAssigneeChatOnyxData,
+    navigateToPrivateNotesPage,
 };

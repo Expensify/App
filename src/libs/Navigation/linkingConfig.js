@@ -231,6 +231,11 @@ export default {
                             GetAssistance: {
                                 path: ROUTES.GET_ASSISTANCE,
                             },
+                            Private_Notes: {
+                                screens: {
+                                    PrivateNotes_Root: ROUTES.PRIVATE_NOTES,
+                                },
+                            },                            
                         },
                     },
                     Report_Details: {

@@ -156,6 +156,10 @@ export default {
     GOOGLE_SIGN_IN: 'sign-in-with-google',
     DESKTOP_SIGN_IN_REDIRECT: 'desktop-signin-redirect',
 
+    // Routes related to private notes added to the report
+    PRIVATE_NOTES: 'r/:reportID/notes/:accountID',
+    getPrivateNotesRoute: (reportID, accountID) => `r/${reportID}/notes/${accountID}`,
+
     // This is a special validation URL that will take the user to /workspace/new after validation. This is used
     // when linking users from e.com in order to share a session in this app.
     ENABLE_PAYMENTS: 'enable-payments',

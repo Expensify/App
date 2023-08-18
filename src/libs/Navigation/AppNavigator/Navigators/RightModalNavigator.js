@@ -93,6 +93,10 @@ function RightModalNavigator() {
                 name="EditRequest"
                 component={ModalStackNavigators.EditRequestStackNavigator}
             />
+            <Stack.Screen
+                name="PrivateNotes"
+                component={ModalStackNavigators.PrivateNotesModalStackNavigator}
+            />
         </Stack.Navigator>
     );
 }
