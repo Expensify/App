@@ -1442,10 +1442,10 @@ function getThreadReportNameHtml(parentReportActionMessageHtml) {
  *
  * @param {Object} report
  * @param {Object} [policy]
- * @param {Boolean} isThreadHeader
+ * @param {Boolean} shouldRenderHTML
  * @returns {String}
  */
-function getReportName(report, policy = undefined, isThreadHeader = false) {
+function getReportName(report, policy = undefined, shouldRenderHTML = false) {
     let formattedName;
     if (isChatThread(report)) {
         const parentReportAction = ReportActionsUtils.getParentReportAction(report);
@@ -1455,7 +1455,7 @@ function getReportName(report, policy = undefined, isThreadHeader = false) {
 
         const isAttachment = _.has(parentReportAction, 'isAttachment') ? parentReportAction.isAttachment : isReportMessageAttachment(_.last(lodashGet(parentReportAction, 'message', [{}])));
         const messageHtml = lodashGet(parentReportAction, ['message', 0, 'html']);
-        const parentReportActionMessage = isThreadHeader ? getThreadReportNameHtml(messageHtml) : lodashGet(parentReportAction, ['message', 0, 'text'], '').replace(/(\r\n|\n|\r)/gm, ' ');
+        const parentReportActionMessage = shouldRenderHTML ? getThreadReportNameHtml(messageHtml) : lodashGet(parentReportAction, ['message', 0, 'text'], '').replace(/(\r\n|\n|\r)/gm, ' ');
         if (isAttachment && parentReportActionMessage) {
             return `[${Localize.translateLocal('common.attachment')}]`;
         }
