@@ -32,10 +32,11 @@ function SaveResponseInOnyx(response, request) {
         // If there is an OnyxUpdate for using memory only keys, enable them
         _.find(onyxUpdates, ({key, value}) => {
             if (key !== ONYXKEYS.IS_USING_MEMORY_ONLY_KEYS || !value) {
-                return;
+                return false;
             }
 
             MemoryOnlyKeys.enable();
+            return true;
         });
 
         // Save the update IDs to Onyx so they can be used to fetch incremental updates if the client gets out of sync from the server
