@@ -1,6 +1,6 @@
 import * as MemoryOnlyKeys from '../MemoryOnlyKeys';
 
-const exposeGlobalMethods = () => {
+const exposeGlobalMemoryOnlyKeysMethods = () => {
     window.enableMemoryOnlyKeys = () => {
         MemoryOnlyKeys.enable();
     };
@@ -9,4 +9,4 @@ const exposeGlobalMethods = () => {
     };
 };
 
-export default exposeGlobalMethods;
+export default exposeGlobalMemoryOnlyKeysMethods;
