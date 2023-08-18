@@ -588,6 +588,20 @@ function isSplitBillAction(reportAction) {
     return lodashGet(reportAction, 'originalMessage.type', '') === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
 }
 
+/**
+ *
+ * @param {*} reportAction
+ * @returns {Boolean}
+ */
+function isTaskAction(reportAction) {
+    const reportActionName = lodashGet(reportAction, 'actionName', '');
+    return (
+        reportActionName === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED ||
+        reportActionName === CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED ||
+        reportActionName === CONST.REPORT.ACTIONS.TYPE.TASKREOPENED
+    );
+}
+
 export {
     getSortedReportActions,
     getLastVisibleAction,
@@ -623,4 +637,5 @@ export {
     isPendingRemove,
     getReportAction,
     isSplitBillAction,
+    isTaskAction,
 };
