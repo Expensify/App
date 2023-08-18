@@ -3753,6 +3753,11 @@ const styles = {
         overflow: 'hidden',
     },
 
+    mapDirection: {
+        width: 15,
+        color: Colors.blue800,
+    },
+
     mapPendingView: {
         backgroundColor: themeColors.highlightBG,
         ...flex.flex1,

@@ -190,6 +190,8 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
                             zoom: DEFAULT_ZOOM_LEVEL,
                         }}
                         directionCoordinates={lodashGet(transaction, 'routes.route0.geometry.coordinates', [])}
+                        directionStyle={styles.mapDirection}
+                        styleURL='mapbox://styles/shawnborton/cllcoiqds00cs01r80kp34tmq'
                         style={styles.mapView}
                     />
                 ) : (
