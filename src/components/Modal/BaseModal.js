@@ -133,10 +133,7 @@ class BaseModal extends PureComponent {
                 backdropOpacity={hideBackdrop ? 0 : variables.overlayOpacity}
                 backdropTransitionOutTiming={0}
                 hasBackdrop={this.props.fullscreen}
-                customBackdrop={
-                    this.props.customBackdrop &&
-                    this.props.customBackdrop(this.onBackdropPress)
-                }
+                customBackdrop={this.props.customBackdrop && this.props.customBackdrop(this.onBackdropPress)}
                 coverScreen={!this.props.isSmallScreenWidth || this.props.coverScreen}
                 style={modalStyle}
                 deviceHeight={this.props.windowHeight}
