@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import refPropType from '../refPropTypes';
 
 const propTypes = {
     /** Array of suggestions */
@@ -31,8 +32,7 @@ const propTypes = {
     /** Ref of the container enclosing the menu.
      * This is needed to render the menu in correct position inside a portal
      */
-    // eslint-disable-next-line react/forbid-prop-types
-    parentContainerRef: PropTypes.shape({current: PropTypes.object}),
+    parentContainerRef: refPropType,
 };
 
 const defaultProps = {

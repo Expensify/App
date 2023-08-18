@@ -10,6 +10,7 @@ import Avatar from './Avatar';
 import AutoCompleteSuggestions from './AutoCompleteSuggestions';
 import getStyledTextArray from '../libs/GetStyledTextArray';
 import avatarPropTypes from './avatarPropTypes';
+import refPropType from './refPropTypes';
 
 const propTypes = {
     /** The index of the highlighted mention */
@@ -46,8 +47,7 @@ const propTypes = {
     /** Ref of the container enclosing the menu.
      * This is needed to render the menu in correct position inside a portal
      */
-    // eslint-disable-next-line react/forbid-prop-types
-    containerRef: PropTypes.shape({current: PropTypes.object}),
+    containerRef: refPropType,
 };
 
 const defaultProps = {

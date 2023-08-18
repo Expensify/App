@@ -8,6 +8,7 @@ import * as EmojiUtils from '../libs/EmojiUtils';
 import Text from './Text';
 import getStyledTextArray from '../libs/GetStyledTextArray';
 import AutoCompleteSuggestions from './AutoCompleteSuggestions';
+import refPropType from './refPropTypes';
 
 const propTypes = {
     /** The index of the highlighted emoji */
@@ -49,8 +50,7 @@ const propTypes = {
     /** Ref of the container enclosing the menu.
      * This is needed to render the menu in correct position inside a portal
      */
-    // eslint-disable-next-line react/forbid-prop-types
-    containerRef: PropTypes.shape({current: PropTypes.object}),
+    containerRef: refPropType,
 };
 
 const defaultProps = {highlightedEmojiIndex: 0, containerRef: {current: null}};
