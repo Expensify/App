@@ -19,6 +19,8 @@ import * as ReportActionsUtils from '../ReportActionsUtils';
 import Timing from './Timing';
 import * as Browser from '../Browser';
 import * as SequentialQueue from '../Network/SequentialQueue';
+import PusherUtils from '../PusherUtils';
+import * as QueuedOnyxUpdates from './QueuedOnyxUpdates';
 
 let currentUserAccountID;
 let currentUserEmail;
@@ -237,15 +239,41 @@ function getMissingOnyxUpdates(updateIDFrom = 0, updateIDTo = 0) {
 /**
  * @param {Object} data
  * @param {Object} data.request
- * @param {Object} data.response
+ * @param {Object} data.responseData
  */
-function applyHTTPSOnyxUpdates({request, response}) {}
+function applyHTTPSOnyxUpdates({request, responseData}) {
+    // For most requests we can immediately update Onyx. For write requests we queue the updates and apply them after the sequential queue has flushed to prevent a replay effect in
+    // the UI. See https://github.com/Expensify/App/issues/12775 for more info.
+    const updateHandler = request.data.apiRequestType === CONST.API_REQUEST_TYPE.WRITE ? QueuedOnyxUpdates.queueOnyxUpdates : Onyx.update;
+
+    // First apply any onyx data updates that are being sent back from the API. We wait for this to complete and then
+    // apply successData or failureData. This ensures that we do not update any pending, loading, or other UI states contained
+    // in successData/failureData until after the component has received and API data.
+    const onyxDataUpdatePromise = responseData.onyxData ? updateHandler(responseData.onyxData) : Promise.resolve();
+
+    onyxDataUpdatePromise
+        .then(() => {
+            // Handle the request's success/failure data (client-side data)
+            if (responseData.jsonCode === 200 && request.successData) {
+                return updateHandler(request.successData);
+            }
+            if (responseData.jsonCode !== 200 && request.failureData) {
+                return updateHandler(request.failureData);
+            }
+            return Promise.resolve();
+        })
+        .then(() => responseData);
+}
 
 /**
  * @param {Object} data
- * @param {Object} data.onyxData
+ * @param {Object} data.multipleEvents
  */
-function applyPusherOnyxUpdates({onyxData}) {}
+function applyPusherOnyxUpdates({multipleEvents}) {
+    _.each(multipleEvents, (multipleEvent) => {
+        PusherUtils.triggerMultiEventHandler(multipleEvent.eventType, multipleEvent.data);
+    });
+}
 
 /**
  * @param {Object[]} updateParams
@@ -253,7 +281,7 @@ function applyPusherOnyxUpdates({onyxData}) {}
  * @param {Object} updateParams.data
  * @param {Object} [updateParams.data.request] Exists if updateParams.type === 'https'
  * @param {Object} [updateParams.data.response] Exists if updateParams.type === 'https'
- * @param {Object} [updateParams.data.onyxData] Exists if updateParams.type === 'pusher'
+ * @param {Object} [updateParams.data.multipleEvents] Exists if updateParams.type === 'pusher'
  */
 function applyOnyxUpdates({type, data}) {
     if (type === CONST.ONYX_UPDATE_TYPES.HTTPS) {
@@ -293,7 +321,12 @@ Onyx.connect({
                 lastUpdateIDAppliedToClient,
             });
             SequentialQueue.pause();
-            getMissingOnyxUpdates(lastUpdateIDAppliedToClient, lastUpdateIDFromServer).finally(SequentialQueue.unpause);
+            getMissingOnyxUpdates(lastUpdateIDAppliedToClient, lastUpdateIDFromServer).finally(() => {
+                applyOnyxUpdates(updateParams);
+                SequentialQueue.unpause();
+            });
+        } else {
+            applyOnyxUpdates(updateParams);
         }
 
         if (lastUpdateIDFromServer > lastUpdateIDAppliedToClient) {
