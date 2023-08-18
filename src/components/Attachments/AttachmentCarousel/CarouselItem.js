@@ -11,9 +11,19 @@ import AttachmentView from '../AttachmentView';
 const propTypes = {
     /** Attachment required information such as the source and file name */
     item: PropTypes.shape({
+        /** Whether source URL requires authentication */
         isAuthTokenRequired: PropTypes.bool,
+
+        /** The source (URL) of the attachment */
         source: PropTypes.string,
-        file: PropTypes.shape({name: PropTypes.string}),
+
+        /** File additional information of the attachment */
+        file: PropTypes.shape({
+            /** File name of the attachment */
+            name: PropTypes.string,
+        }),
+
+        /** Whether the attachment is hidden by moderation */
         isHidden: PropTypes.bool,
     }).isRequired,
 
@@ -49,6 +59,7 @@ function CarouselItem({item, isFocused, onPress}) {
                     <Text
                         style={styles.buttonSmallText}
                         selectable={false}
+                        dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                     >
                         {translate('moderation.revealMessage')}
                     </Text>
