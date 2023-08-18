@@ -27,7 +27,20 @@ const propTypes = {
         created: PropTypes.string,
         merchant: PropTypes.string,
         participants: PropTypes.arrayOf(optionPropTypes),
+        receiptPath: PropTypes.string,
     }),
+
+    /** Route from navigation */
+    route: PropTypes.shape({
+        /** Params from the route */
+        params: PropTypes.shape({
+            /** Which field we are editing */
+            field: PropTypes.string,
+
+            /** reportID for the "transaction thread" */
+            threadReportID: PropTypes.string,
+        }),
+    }).isRequired,
 };
 
 const defaultProps = {
@@ -37,6 +50,7 @@ const defaultProps = {
         comment: '',
         merchant: '',
         participants: [],
+        receiptPath: '',
     },
 };
 
