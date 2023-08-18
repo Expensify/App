@@ -50,7 +50,7 @@ const defaultProps = {
     withoutOverlay: false,
 };
 
-function PopoverMenu(props) {
+function BasePopoverMenu(props) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const [selectedItemIndex, setSelectedItemIndex] = useState(null);
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: -1, maxIndex: props.menuItems.length - 1, isActive: props.isVisible});
@@ -129,8 +129,8 @@ function PopoverMenu(props) {
     );
 }
 
-PopoverMenu.propTypes = propTypes;
-PopoverMenu.defaultProps = defaultProps;
-PopoverMenu.displayName = 'BasePopoverMenu';
+BasePopoverMenu.propTypes = propTypes;
+BasePopoverMenu.defaultProps = defaultProps;
+BasePopoverMenu.displayName = 'BasePopoverMenu';
 
-export default React.memo(withWindowDimensions(PopoverMenu));
+export default React.memo(withWindowDimensions(BasePopoverMenu));
