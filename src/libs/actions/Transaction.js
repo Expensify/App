@@ -64,6 +64,10 @@ function saveWaypoint(transactionID, index, waypoint) {
                 [`waypoint${index}`]: waypoint,
             },
         },
+        // Empty out errors when we're saving a new waypoint as this indicates the user is updating their input
+        errorFields: {
+            route: null,
+        },
     });
 }
 
@@ -121,7 +125,7 @@ function getRoute(transactionID, waypoints) {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                     value: {
-                        routes: {
+                        comment: {
                             isLoading: true,
                         },
                         errorFields: {
@@ -136,7 +140,7 @@ function getRoute(transactionID, waypoints) {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                     value: {
-                        routes: {
+                        comment: {
                             isLoading: false,
                         },
                     },
@@ -147,7 +151,7 @@ function getRoute(transactionID, waypoints) {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                     value: {
-                        routes: {
+                        comment: {
                             isLoading: false,
                         },
                     },
