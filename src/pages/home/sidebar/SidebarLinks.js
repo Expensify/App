@@ -92,10 +92,6 @@ class SidebarLinks extends React.PureComponent {
         if (this.props.isSmallScreenWidth) {
             App.confirmReadyToOpenApp();
         }
-
-        this.state = {
-            firstLoadedReportID: '',
-        };
     }
 
     componentDidMount() {
@@ -128,17 +124,6 @@ class SidebarLinks extends React.PureComponent {
         );
 
         ReportActionContextMenu.hideContextMenu(false);
-    }
-
-    componentDidUpdate() {
-        const firstLoadedReportID = this.props.optionListItems[0];
-        if (!this.props.isLoading || this.state.firstLoadedReportID || !firstLoadedReportID) {
-            return;
-        }
-
-        this.setState({
-            firstLoadedReportID,
-        });
     }
 
     componentWillUnmount() {
@@ -189,6 +174,8 @@ class SidebarLinks extends React.PureComponent {
 
     render() {
         const viewMode = this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT;
+
+        const firstAccessReportID = this.props.optionListItems.includes(this.props.firstAccessReportID) ? this.props.firstAccessReportID : '';
 
         return (
             <View style={[styles.flex1, styles.h100]}>
@@ -243,9 +230,9 @@ class SidebarLinks extends React.PureComponent {
                 </View>
                 {this.props.isLoading ? (
                     <>
-                        {this.state.firstLoadedReportID && (
+                        {firstAccessReportID && (
                             <OptionRowLHNData
-                                reportID={this.state.firstLoadedReportID}
+                                reportID={firstAccessReportID}
                                 viewMode={viewMode}
                                 shouldDisableFocusOptions={this.props.isSmallScreenWidth}
                                 onSelectRow={this.showReportPage}

@@ -1,4 +1,4 @@
-import React, {useMemo, useRef} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import _ from 'underscore';
 import {deepEqual} from 'fast-equals';
 import {withOnyx} from 'react-native-onyx';
@@ -66,6 +66,8 @@ const defaultProps = {
 function SidebarLinksData({isFocused, allReportActions, betas, chatReports, currentReportID, insets, isLoadingReportData, isSmallScreenWidth, onLinkClick, policies, priorityMode}) {
     const {translate} = useLocalize();
 
+    const [isFirstTimeReportLoading, setIsFirstTimeReportLoading] = useState(SessionUtils.didUserLogInDuringSession());
+
     const reportIDsRef = useRef([]);
     const optionListItems = useMemo(() => {
         const reportIDs = SidebarUtils.getOrderedReportIDs(currentReportID, chatReports, betas, policies, priorityMode, allReportActions);
@@ -76,7 +78,14 @@ function SidebarLinksData({isFocused, allReportActions, betas, chatReports, curr
         return reportIDs;
     }, [allReportActions, betas, chatReports, currentReportID, policies, priorityMode]);
 
-    const isLoading = SessionUtils.didUserLogInDuringSession() && isLoadingReportData;
+    useEffect(() => {
+        if (!isFirstTimeReportLoading) {
+            return;
+        }
+        setIsFirstTimeReportLoading(isLoadingReportData);
+    }, [isFirstTimeReportLoading, isLoadingReportData]);
+
+    const firstAccessReportID = useRef(currentReportID);
 
     return (
         <View
@@ -91,8 +100,9 @@ function SidebarLinksData({isFocused, allReportActions, betas, chatReports, curr
                 isSmallScreenWidth={isSmallScreenWidth}
                 priorityMode={priorityMode}
                 // Data props:
-                isLoading={isLoading}
+                isLoading={isFirstTimeReportLoading}
                 optionListItems={optionListItems}
+                firstAccessReportID={firstAccessReportID.current}
             />
         </View>
     );
