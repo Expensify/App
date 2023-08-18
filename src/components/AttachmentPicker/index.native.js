@@ -82,6 +82,15 @@ const getDataForUpload = (fileData) => {
     });
 };
 
+
+/**
+ * This component renders a function as a child and
+ * returns a "show attachment picker" method that takes
+ * a callback. This is the ios/android implementation
+ * opening a modal with attachment options
+ * @param {propTypes} props
+ * @returns {JSX.Element}
+ */
 function AttachmentPicker({type, children}) {
     const [isVisible, setIsVisible] = useState(false);
 
