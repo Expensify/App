@@ -18,6 +18,7 @@ import * as Session from './Session';
 import * as ReportActionsUtils from '../ReportActionsUtils';
 import Timing from './Timing';
 import * as Browser from '../Browser';
+import * as SequentialQueue from '../Network/SequentialQueue';
 
 let currentUserAccountID;
 let currentUserEmail;
@@ -211,20 +212,22 @@ function reconnectApp(updateIDFrom = 0) {
  * Fetches data when the client has discovered it missed some Onyx updates from the server
  * @param {Number} [updateIDFrom] the ID of the Onyx update that we want to start fetching from
  * @param {Number} [updateIDTo] the ID of the Onyx update that we want to fetch up to
+ * @return {Promise}
  */
 function getMissingOnyxUpdates(updateIDFrom = 0, updateIDTo = 0) {
     console.debug(`[OnyxUpdates] Fetching missing updates updateIDFrom: ${updateIDFrom} and updateIDTo: ${updateIDTo}`);
 
-    API.write(
+    // It is SUPER BAD FORM to return promises from action methods.
+    // DO NOT FOLLOW THIS PATTERN!!!!!
+    // It was absolutely necessary in order to block OnyxUpdates while fetching the missing updates from the server or else the udpates aren't applied in the proper order.
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    return API.makeRequestWithSideEffects(
         'GetMissingOnyxMessages',
         {
             updateIDFrom,
             updateIDTo,
         },
         getOnyxDataForOpenOrReconnect(),
-
-        // Set this to true so that the request will be prioritized at the front of the sequential queue
-        true,
     );
 }
 
@@ -259,7 +262,8 @@ Onyx.connect({
                 previousUpdateIDFromServer,
                 lastUpdateIDAppliedToClient,
             });
-            getMissingOnyxUpdates(lastUpdateIDAppliedToClient, lastUpdateIDFromServer);
+            SequentialQueue.pause();
+            getMissingOnyxUpdates(lastUpdateIDAppliedToClient, lastUpdateIDFromServer).finally(SequentialQueue.unpause);
         }
 
         if (lastUpdateIDFromServer > lastUpdateIDAppliedToClient) {
@@ -373,6 +377,21 @@ function setUpPoliciesAndNavigate(session, shouldNavigateToAdminChat) {
     }
 }
 
+function redirectThirdPartyDesktopSignIn() {
+    const currentUrl = getCurrentUrl();
+    if (!currentUrl) {
+        return;
+    }
+    const url = new URL(currentUrl);
+
+    if (url.pathname === `/${ROUTES.GOOGLE_SIGN_IN}` || url.pathname === `/${ROUTES.APPLE_SIGN_IN}`) {
+        Navigation.isNavigationReady().then(() => {
+            Navigation.goBack();
+            Navigation.navigate(ROUTES.DESKTOP_SIGN_IN_REDIRECT);
+        });
+    }
+}
+
 function openProfile(personalDetails) {
     const oldTimezoneData = personalDetails.timezone || {};
     let newTimezoneData = oldTimezoneData;
@@ -443,6 +462,7 @@ export {
     setSidebarLoaded,
     setUpPoliciesAndNavigate,
     openProfile,
+    redirectThirdPartyDesktopSignIn,
     openApp,
     reconnectApp,
     confirmReadyToOpenApp,
