@@ -45,7 +45,7 @@ export default (isSmallScreenWidth) => ({
         },
     },
     // eslint-disable-next-line rulesdir/no-negated-variables
-    notFoundScreen: {
+    fullScreen: {
         ...commonScreenOptions,
         cardStyleInterpolator: (props) => modalCardStyleInterpolator(isSmallScreenWidth, true, props),
         cardStyle: {

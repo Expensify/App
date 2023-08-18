@@ -273,7 +273,7 @@ class AuthScreens extends React.Component {
                     />
                     <RootStack.Screen
                         name={SCREENS.NOT_FOUND}
-                        options={screenOptions.notFoundScreen}
+                        options={screenOptions.fullScreen}
                         component={NotFoundPage}
                     />
                     <RootStack.Screen
@@ -283,8 +283,8 @@ class AuthScreens extends React.Component {
                         listeners={modalScreenListeners}
                     />
                     <RootStack.Screen
-                        name="DesktopSignInRedirect"
-                        options={defaultScreenOptions}
+                        name={SCREENS.DESKTOP_SIGN_IN_REDIRECT}
+                        options={screenOptions.fullScreen}
                         component={DesktopSignInRedirectPage}
                     />
                 </RootStack.Navigator>
