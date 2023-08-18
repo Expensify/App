@@ -93,7 +93,7 @@ function WorkspaceMembersPage(props) {
      */
     const validateSelection = useCallback(() => {
         const newErrors = {};
-        const ownerAccountID = props.policy.owner ?_.first(PersonalDetailsUtils.getAccountIDsByLogins([props.policy.owner])) : undefined;
+        const ownerAccountID = props.policy.owner ? _.first(PersonalDetailsUtils.getAccountIDsByLogins([props.policy.owner])) : undefined;
         _.each(selectedEmployees, (member) => {
             if (member !== ownerAccountID && member !== props.session.accountID) {
                 return;
