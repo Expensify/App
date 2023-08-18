@@ -5,6 +5,7 @@ import BaseAutoCompleteSuggestions from './BaseAutoCompleteSuggestions';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 import {propTypes} from './autoCompleteSuggestionsPropTypes';
 import * as StyleUtils from '../../styles/StyleUtils';
+import useWindowDimensions from '../../hooks/useWindowDimensions';
 
 /**
  * On the mobile-web platform, when long-pressing on auto-complete suggestions,
@@ -15,11 +16,11 @@ import * as StyleUtils from '../../styles/StyleUtils';
 
 function AutoCompleteSuggestions({parentContainerRef, ...props}) {
     const containerRef = React.useRef(null);
-    const [containerState, setContainerState] = React.useState({
+    const {windowHeight} = useWindowDimensions();
+    const [{width, left, bottom}, setContainerState] = React.useState({
         width: 0,
-        height: 0,
-        x: 0,
-        y: 0,
+        left: 0,
+        bottom: 0,
     });
     React.useEffect(() => {
         const container = containerRef.current;
@@ -39,26 +40,24 @@ function AutoCompleteSuggestions({parentContainerRef, ...props}) {
         if (!parentContainerRef || !parentContainerRef.current) {
             return;
         }
-        parentContainerRef.current.measureInWindow((x, y, width, height) => setContainerState({x, y, width, height}));
-    }, [parentContainerRef]);
+        parentContainerRef.current.measureInWindow((x, y, w) => setContainerState({left: x, bottom: windowHeight - y, width: w}));
+    }, [parentContainerRef, windowHeight]);
 
-    if (!containerState.width || !containerState.height) {
-        return (
-            <BaseAutoCompleteSuggestions
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...props}
-                ref={containerRef}
-            />
-        );
+    const componentToRender = (
+        <BaseAutoCompleteSuggestions
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            ref={containerRef}
+        />
+    );
+
+    if (!width) {
+        return componentToRender;
     }
 
     return ReactDOM.createPortal(
-        <View style={StyleUtils.getBaseAutoCompleteSuggestionContainerStyle(containerState)}>
-            <BaseAutoCompleteSuggestions
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...props}
-                ref={containerRef}
-            />
+        <View style={StyleUtils.getBaseAutoCompleteSuggestionContainerStyle({left, width, bottom})}>
+            {componentToRender}
         </View>,
         document.querySelector('body'),
     );

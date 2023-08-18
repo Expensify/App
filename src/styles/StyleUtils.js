@@ -1057,8 +1057,8 @@ function getAutoCompleteSuggestionItemStyle(highlightedEmojiIndex, rowHeight, ho
  * @returns {Object}
  */
 
-function getBaseAutoCompleteSuggestionContainerStyle({x, y, width}) {
-    return {position: 'fixed', top: y, left: x, width};
+function getBaseAutoCompleteSuggestionContainerStyle({left, bottom, width}) {
+    return {position: 'fixed', bottom, left, width};
 }
 
 /**
