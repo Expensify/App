@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {Fragment} from 'react';
 import {View, Text} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -48,23 +48,24 @@ function ReportActionItemMessage(props) {
                     // Threaded messages display "[Deleted message]" instead of being hidden altogether.
                     // While offline we display the previous message with a strikethrough style. Once online we want to
                     // immediately display "[Deleted message]" while the delete action is pending.
-                    (!isOffline && hasCommentThread && props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) || fragment.isDeletedParentAction ? (
-                        <RenderHTML html={`<comment>${props.translate('parentReportAction.deletedMessage')}</comment>`} />
-                    ) : (
-                        <View style={!props.displayAsGroup && isAttachment ? styles.mt2 : {}}>
-                            <ReportActionItemFragment
-                                key={`actionFragment-${props.action.reportActionID}-${index}`}
-                                fragment={fragment}
-                                isAttachment={props.action.isAttachment}
-                                attachmentInfo={props.action.attachmentInfo}
-                                pendingAction={props.action.pendingAction}
-                                source={lodashGet(props.action, 'originalMessage.source')}
-                                accountID={props.action.actorAccountID}
-                                loading={props.action.isLoading}
-                                style={props.style}
-                            />
-                        </View>
-                    ),
+                    <Fragment key={`actionFragment-${props.action.reportActionID}-${index}`}>
+                        {(!isOffline && hasCommentThread && props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) || fragment.isDeletedParentAction ? (
+                            <RenderHTML html={`<comment>${props.translate('parentReportAction.deletedMessage')}</comment>`} />
+                        ) : (
+                            <View style={!props.displayAsGroup && isAttachment ? styles.mt2 : {}}>
+                                <ReportActionItemFragment
+                                    fragment={fragment}
+                                    isAttachment={props.action.isAttachment}
+                                    attachmentInfo={props.action.attachmentInfo}
+                                    pendingAction={props.action.pendingAction}
+                                    source={lodashGet(props.action, 'originalMessage.source')}
+                                    accountID={props.action.actorAccountID}
+                                    loading={props.action.isLoading}
+                                    style={props.style}
+                                />
+                            </View>
+                        )}
+                    </Fragment>
                 )
             ) : (
                 <Text style={[styles.textLabelSupporting, styles.lh20]}>{props.translate('moderation.flaggedContent')}</Text>
