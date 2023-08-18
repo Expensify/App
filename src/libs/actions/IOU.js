@@ -954,7 +954,15 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
     // STEP 2: Build new modified expense report action.
     const updatedReportAction = ReportUtils.buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges, isFromExpenseReport);
     const updatedTransaction = TransactionUtils.getUpdatedTransaction(transaction, transactionChanges, isFromExpenseReport);
+
     // STEP 3: Compute the IOU total and update the report preview message so LHN amount owed is correct
+    // Should only update if the transaction matches the currency of the report, else we wait for the update
+    // from the server with the currency conversion
+    const updatedIouReport = {...iouReport};
+    if (updatedTransaction.currency === iouReport.currency && updatedTransaction.modifiedAmount) {
+        updatedIouReport.total = updatedIouReport.total - TransactionUtils.getAmount(transaction) + TransactionUtils.getAmount(updatedTransaction);
+    }
+
     // STEP 4: Compose the optimistic data
     const optimisticData = [
         {
@@ -969,6 +977,11 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: updatedTransaction,
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+            value: updatedIouReport,
+        },
     ];
 
     const successData = [
@@ -982,6 +995,11 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {pendingAction: null},
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
             value: {pendingAction: null},
         },
     ];
@@ -1001,7 +1019,7 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.report}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
             value: iouReport,
         },
     ];
