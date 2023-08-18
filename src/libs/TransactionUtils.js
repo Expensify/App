@@ -64,7 +64,7 @@ function buildOptimisticTransaction(
         currency,
         reportID,
         comment: commentJSON,
-        merchant,
+        merchant: merchant || CONST.REPORT.TYPE.IOU,
         created: created || DateUtils.getDBTime(),
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         receipt,
