@@ -28,12 +28,17 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, onClose,
     const [shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows] = useCarouselArrows();
 
     useEffect(() => {
+        // Even an empty chat will have the 'created' report action, if its not there
+        // then we are coming from a deep link and actions are not yet loaded. We should
+        // wait until actions load.
+        if (_.isEmpty(reportActions)) return;
+
         const attachmentsFromReport = extractAttachmentsFromReport(report, reportActions);
 
-        const initialPage = _.findIndex(attachmentsFromReport, (a) => a.source === source);
+        const initialPage = _.findIndex(attachmentsFromReport, (a) => a.source.includes(source));
 
         // Dismiss the modal when deleting an attachment during its display in preview.
-        if (initialPage === -1 && _.find(attachments, (a) => a.source === source)) {
+        if (initialPage === -1 && _.find(attachments, (a) => a.source.includes(source))) {
             Navigation.dismissModal();
         } else {
             setPage(initialPage);
