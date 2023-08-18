@@ -2,7 +2,6 @@ import React from 'react';
 import {Animated} from 'react-native';
 
 function withAnimated(WrappedComponent) {
-    
     // eslint-disable-next-line react/prefer-stateless-function
     class WithAnimated extends React.Component {
         render() {
@@ -10,7 +9,7 @@ function withAnimated(WrappedComponent) {
             return <WrappedComponent {...this.props} />;
         }
     }
-    
+
     const displayName = WrappedComponent.displayName || WrappedComponent.name || 'Component';
     WithAnimated.displayName = `WithAnimated(${displayName})`;
 
