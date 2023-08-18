@@ -151,54 +151,56 @@ const personalDetailsSelector = (personalDetails) =>
  * Thats also why the React.memo is used on the outer component here, as we just
  * use it to prevent re-renders from parent re-renders.
  */
-export default compose(
-    withCurrentReportID,
-    withReportCommentDrafts({
-        propName: 'comment',
-        transformValue: (drafts, props) => {
-            const draftKey = `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${props.reportID}`;
-            return lodashGet(drafts, draftKey, '');
-        },
-    }),
-    withOnyx({
-        fullReport: {
-            key: (props) => ONYXKEYS.COLLECTION.REPORT + props.reportID,
-        },
-        reportActions: {
-            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            canEvict: false,
-        },
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            selector: personalDetailsSelector,
-        },
-        preferredLocale: {
-            key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-        },
-        policies: {
-            key: ONYXKEYS.COLLECTION.POLICY,
-        },
-    }),
-    /** The second withOnyx is needed here since fullReport only available after we successfully retrieve it from the previous withOnyx */
-    withOnyx({
-        parentReportActions: {
-            key: ({fullReport}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fullReport.parentReportID}`,
-            canEvict: false,
-        },
-    }),
-)(
-    memo(OptionRowLHNData, (prevProps, nextProps) => {
-        const prevParentReportActions = prevProps.parentReportActions[prevProps.fullReport.parentReportActionID];
-        const nextParentReportActions = nextProps.parentReportActions[nextProps.fullReport.parentReportActionID];
-        if (prevParentReportActions !== nextParentReportActions) {
-            return false;
-        }
+export default React.memo(
+    compose(
+        withCurrentReportID,
+        withReportCommentDrafts({
+            propName: 'comment',
+            transformValue: (drafts, props) => {
+                const draftKey = `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${props.reportID}`;
+                return lodashGet(drafts, draftKey, '');
+            },
+        }),
+        withOnyx({
+            fullReport: {
+                key: (props) => ONYXKEYS.COLLECTION.REPORT + props.reportID,
+            },
+            reportActions: {
+                key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+                canEvict: false,
+            },
+            personalDetails: {
+                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                selector: personalDetailsSelector,
+            },
+            preferredLocale: {
+                key: ONYXKEYS.NVP_PREFERRED_LOCALE,
+            },
+            policies: {
+                key: ONYXKEYS.COLLECTION.POLICY,
+            },
+        }),
+        /** The second withOnyx is needed here since fullReport only available after we successfully retrieve it from the previous withOnyx */
+        withOnyx({
+            parentReportActions: {
+                key: ({fullReport}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fullReport.parentReportID}`,
+                canEvict: false,
+            },
+        }),
+    )(
+        memo(OptionRowLHNData, (prevProps, nextProps) => {
+            const prevParentReportActions = prevProps.parentReportActions[prevProps.fullReport.parentReportActionID];
+            const nextParentReportActions = nextProps.parentReportActions[nextProps.fullReport.parentReportActionID];
+            if (prevParentReportActions !== nextParentReportActions) {
+                return false;
+            }
 
-        const prevPolicy = lodashGet(prevProps.policies, [`${ONYXKEYS.COLLECTION.POLICY}${prevProps.fullReport.policyID}`], '');
-        const nextPolicy = lodashGet(nextProps.policies, [`${ONYXKEYS.COLLECTION.POLICY}${nextProps.fullReport.policyID}`], '');
-        if (prevPolicy !== nextPolicy) {
-            return false;
-        }
-        return _.isEqual(_.omit(prevProps, 'parentReportActions', 'policies'), _.omit(nextProps, 'parentReportActions', 'policies'));
-    }),
+            const prevPolicy = lodashGet(prevProps.policies, [`${ONYXKEYS.COLLECTION.POLICY}${prevProps.fullReport.policyID}`], '');
+            const nextPolicy = lodashGet(nextProps.policies, [`${ONYXKEYS.COLLECTION.POLICY}${nextProps.fullReport.policyID}`], '');
+            if (prevPolicy !== nextPolicy) {
+                return false;
+            }
+            return _.isEqual(_.omit(prevProps, 'parentReportActions', 'policies'), _.omit(nextProps, 'parentReportActions', 'policies'));
+        }),
+    ),
 );
