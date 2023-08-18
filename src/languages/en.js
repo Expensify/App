@@ -1587,12 +1587,9 @@ export default {
             finish: 'Finish',
             stop: 'Stop',
         },
-<<<<<<< HEAD
-=======
         errors: {
             selectSuggestedAddress: 'Please select a suggested address',
         },
->>>>>>> f6fad4e (Merge pull request #25492 from Expensify/revert-24306-hayata-add-map)
     },
     countrySelectorModal: {
         placeholderText: 'Search to see options',

@@ -15,11 +15,6 @@ import Button from './Button';
 import styles from '../styles/styles';
 import variables from '../styles/variables';
 import LinearGradient from './LinearGradient';
-<<<<<<< HEAD
-=======
-import Navigation from '../libs/Navigation/Navigation';
-import ROUTES from '../ROUTES';
->>>>>>> f6fad4e (Merge pull request #25492 from Expensify/revert-24306-hayata-add-map)
 
 const MAX_WAYPOINTS = 25;
 const MAX_WAYPOINTS_TO_DISPLAY = 4;
@@ -71,11 +66,7 @@ function DistanceRequest({transactionID, transaction, translate}) {
     const scrollContainerMaxHeight = variables.baseMenuItemHeight * MAX_WAYPOINTS_TO_DISPLAY + halfMenuItemHeight;
 
     useEffect(() => {
-<<<<<<< HEAD
         if (!transaction.transactionID || !_.isEmpty(waypoints)) {
-=======
-        if (!transactionID || !_.isEmpty(waypoints)) {
->>>>>>> f6fad4e (Merge pull request #25492 from Expensify/revert-24306-hayata-add-map)
             return;
         }
         // Create the initial start and stop waypoints
