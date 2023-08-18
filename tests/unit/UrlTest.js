@@ -59,9 +59,13 @@ describe('Url', () => {
             ).toEqual(
                 'maps/place/Taj+Mahal+@is~%22Awesome%22/@27.1751496,78.0399535,17z/data=!4m12!1m6!3m5!1s0x39747121d702ff6d:0xdd2ae4803f767dde!2sTaj+Mahal!8m2!3d27.1751448!4d78.0421422!3m4!1s0x39747121d702ff6d:0xdd2ae4803f767dde!8m2!3d27.1751448!4d78.0421422',
             );
+            expect(
+                Url.getPathFromURL(
+                    'https://new.expensify.com/r/443044983936732/attachment?source=https://www.expensify.com/chat-attachments/3915228701265930556/w_a758d3c8444a64f98d37205b17141388064d458e.jpg',
+                ),
+            ).toEqual('r/443044983936732/attachment?source=https://www.expensify.com/chat-attachments/3915228701265930556/w_a758d3c8444a64f98d37205b17141388064d458e.jpg');
         });
     });
-
     describe('hasSameExpensifyOrigin()', () => {
         describe('happy path', () => {
             it('It should work correctly', () => {
