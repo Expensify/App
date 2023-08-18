@@ -19,14 +19,13 @@ import * as Browser from '../libs/Browser';
 import getOperatingSystem from '../libs/getOperatingSystem';
 import setShowDownloadAppBanner from '../libs/actions/DownloadAppBanner';
 
-
 const propTypes = {
     showDownloadAppBanner: PropTypes.bool,
-}
+};
 
 const defaultProps = {
     showDownloadAppBanner: true,
-}
+};
 
 function MobileBanner({showDownloadAppBanner}) {
     const [shouldShowBanner, setshouldShowBanner] = useState(Browser.isMobile() && showDownloadAppBanner);
@@ -103,4 +102,5 @@ MobileBanner.defaultProps = defaultProps;
 export default withOnyx({
     showDownloadAppBanner: {
         key: ONYXKEYS.SHOW_DOWNLOAD_APP_BANNER,
-}})(MobileBanner);
+    },
+})(MobileBanner);
