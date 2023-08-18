@@ -152,7 +152,7 @@ class KYCWall extends React.Component {
                         }
                     }}
                 />
-                {this.props.children(this.continue)}
+                {this.props.children(this.continue, this.anchorRef)}
             </>
         );
     }
