@@ -112,7 +112,7 @@ function getRoute(transactionID, waypoints) {
         'GetRoute',
         {
             transactionID,
-            waypoints,
+            waypoints: JSON.stringify(waypoints),
         },
         {
             optimisticData: [
@@ -121,7 +121,7 @@ function getRoute(transactionID, waypoints) {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                     value: {
-                        route: {
+                        routes: {
                             isLoading: true,
                         },
                         errorFields: {
@@ -136,7 +136,7 @@ function getRoute(transactionID, waypoints) {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                     value: {
-                        route: {
+                        routes: {
                             isLoading: false,
                         },
                     },
@@ -147,7 +147,7 @@ function getRoute(transactionID, waypoints) {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                     value: {
-                        route: {
+                        routes: {
                             isLoading: false,
                         },
                     },

@@ -78,6 +78,7 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
 
     const waypoints = lodashGet(transaction, 'comment.waypoints', {});
     const numberOfWaypoints = _.size(waypoints);
+
     const lastWaypointIndex = numberOfWaypoints - 1;
     const isLoadingRoute = lodashGet(transaction, 'route.isLoading', false);
 
@@ -106,12 +107,16 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
 
     // Handle fetching the route when there are at least 2 waypoints
     useEffect(() => {
-        if (numberOfWaypoints < 1 || isLoadingRoute) {
+        const nonEmptyWaypoints = _.filter(waypoints, waypoint => 
+            waypoint && typeof waypoint.address === 'string' && waypoint.address.trim() !== ''
+        ).length;
+    
+        if (nonEmptyWaypoints < 2 || isLoadingRoute) {
             return;
         }
 
         Transaction.getRoute(transactionID, waypoints);
-    }, [numberOfWaypoints, waypoints, transactionID, isLoadingRoute]);
+    }, [waypoints, transactionID, isLoadingRoute]);
 
     useEffect(updateGradientVisibility, [scrollContainerHeight, scrollContentHeight]);
 
@@ -184,6 +189,7 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
                             location: CONST.SF_COORDINATES,
                             zoom: DEFAULT_ZOOM_LEVEL,
                         }}
+                        directionCoordinates={lodashGet(transaction, 'routes.route0.geometry.coordinates', [])}
                         style={styles.mapView}
                     />
                 ) : (
@@ -206,7 +212,6 @@ DistanceRequest.defaultProps = defaultProps;
 export default withOnyx({
     transaction: {
         key: (props) => `${ONYXKEYS.COLLECTION.TRANSACTION}${props.transactionID}`,
-        selector: (transaction) => (transaction ? {transactionID: transaction.transactionID, comment: {waypoints: lodashGet(transaction, 'comment.waypoints')}} : null),
     },
     mapboxAccessToken: {
         key: ONYXKEYS.MAPBOX_ACCESS_TOKEN,
