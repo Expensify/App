@@ -2095,11 +2095,6 @@ export default {
             finish: 'Final',
             stop: 'Parada',
         },
-        mapPending: {
-            title: 'Mapa pendiente',
-            subtitle: 'El mapa se generará cuando vuelvas a estar en línea',
-            onlineSubtitle: 'Un momento mientras configuramos el mapa',
-        },
         errors: {
             selectSuggestedAddress: 'Por favor, selecciona una dirección sugerida',
         },
