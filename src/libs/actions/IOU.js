@@ -736,8 +736,9 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
 
     const hasMultipleParticipants = participants.length > 1;
     _.each(participants, (participant) => {
-        const email = isOwnPolicyExpenseChat ? '' : OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login).toLowerCase();
-        const accountID = isOwnPolicyExpenseChat ? 0 : Number(participant.accountID);
+        // In case the participant is a worskapce, email & accountID should remain undefined and won't be used in the rest of this code
+        const email = !_.isEmpty(participant.login) ? OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login).toLowerCase() : '';
+        const accountID = !_.isEmpty(participant.accountID) ? Number(participant.accountID) : undefined;
         if (email === currentUserEmail) {
             return;
         }
@@ -750,7 +751,10 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
 
         // If this is a split between two people only and the function
         // wasn't provided with an existing group chat report id
-        // or, if this is workspace chat, then the oneOnOneChatReport is the same as the splitChatReport
+        //
+        // or, if the split is being made from the workspace chat, then the oneOnOneChatReport is the same as the splitChatReport
+        // in this case existingSplitChatReport will belong to the policy expense chat and we won't be
+        // entering code that creates optimistic personal details
         if ((!hasMultipleParticipants && !existingSplitChatReportID) || isOwnPolicyExpenseChat) {
             oneOnOneChatReport = splitChatReport;
             shouldCreateOptimisticPersonalDetails = !existingSplitChatReport;
@@ -841,7 +845,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
             isNewOneOnOneIOUReport,
         );
 
-        const splitData = {
+        const individualSplit = {
             email,
             accountID,
             amount: splitAmount,
@@ -854,7 +858,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
             reportPreviewReportActionID: oneOnOneReportPreviewAction.reportActionID,
         };
 
-        splits.push(splitData);
+        splits.push(individualSplit);
         optimisticData.push(...oneOnOneOptimisticData);
         successData.push(...oneOnOneSuccessData);
         failureData.push(...oneOnOneFailureData);
@@ -885,10 +889,10 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
  * @param {Number} amount - always in smallest currency unit
  * @param {String} comment
  * @param {String} currency
- * @param {String} existingGroupChatReportID
+ * @param {String} existingSplitChatReport - Either a group DM or a workspace chat
  */
-function splitBill(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, existingGroupChatReportID = '') {
-    const {splitData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, existingGroupChatReportID);
+function splitBill(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, existingSplitChatReportID = '') {
+    const {splitData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, existingSplitChatReportID);
 
     API.write(
         'SplitBill',
