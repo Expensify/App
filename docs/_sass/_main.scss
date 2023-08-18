@@ -1,9 +1,11 @@
 @import 'breakpoints';
 @import 'colors';
 @import 'fonts';
+@import 'search-bar';
 
 $color-appBG: $color-green-appBG;
 $color-highlightBG: $color-green-highlightBG;
+$color-accent : $color-green400;
 $color-borders: $color-green-borders;
 $color-icons: $color-green-icons;
 $color-text: $color-white;
@@ -11,6 +13,8 @@ $color-link: $color-blue300;
 $color-link-hovered: $color-blue200;
 $color-success: $color-green400;
 $color-text-supporting: $color-light-gray-green;
+$color-green-hover: $color-green-hover;
+$color-gray-label: $color-gray-label;
 
 * {
     margin: 0;
@@ -180,6 +184,18 @@ button {
     margin-left: auto;
     margin-right: auto;
     align-content: center;
+}
+
+.flex {
+    display: -webkit-box;
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: -moz-flex;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-flow: row wrap;
+    flex-flow: row wrap;
+    align-content: space-between;
 }
 
 #lhn {
@@ -524,6 +540,7 @@ button {
 .base-icon {
     width: 20px;
     height: 20px;
+    cursor: pointer;
 }
 
 .homepage {
