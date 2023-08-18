@@ -110,7 +110,7 @@ class MoneyRequestCreatedPage extends Component {
                     <NewDatePicker
                         inputID="moneyRequestCreated"
                         label={this.props.translate('common.date')}
-                        defaultValue={this.props.iou.created || format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}
+                        defaultValue={this.props.iou.created}
                         maxDate={new Date()}
                     />
                 </Form>

@@ -26,6 +26,7 @@ Onyx.connect({
  * @param {String} currency
  * @param {String} reportID
  * @param {String} [comment]
+ * @param {String} [created]
  * @param {String} [source]
  * @param {String} [originalTransactionID]
  * @param {String} [merchant]
@@ -38,6 +39,7 @@ function buildOptimisticTransaction(
     currency,
     reportID,
     comment = '',
+    created = '',
     source = '',
     originalTransactionID = '',
     merchant = CONST.REPORT.TYPE.IOU,
@@ -63,7 +65,7 @@ function buildOptimisticTransaction(
         reportID,
         comment: commentJSON,
         merchant,
-        created: DateUtils.getDBTime(),
+        created: created || DateUtils.getDBTime(),
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         receipt,
     };

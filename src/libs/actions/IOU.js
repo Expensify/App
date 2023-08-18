@@ -310,6 +310,8 @@ function buildOnyxDataForMoneyRequest(
  * @param {String} comment
  * @param {Number} amount
  * @param {String} currency
+ * @param {String} created
+ * @param {String} merchant
  * @param {Number} payeeAccountID
  * @param {String} payeeEmail
  * @param {Object} [receipt]
@@ -328,7 +330,7 @@ function buildOnyxDataForMoneyRequest(
  * @returns {Object} data.onyxData.failureData
  * @param {String} [existingTransactionID]
  */
-function getMoneyRequestInformation(report, participant, comment, amount, currency, payeeAccountID, payeeEmail, receipt = undefined, existingTransactionID = null) {
+function getMoneyRequestInformation(report, participant, comment, amount, currency, created, merchant, payeeAccountID, payeeEmail, receipt = undefined, existingTransactionID = null) {
     const payerEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login);
     const payerAccountID = Number(participant.accountID);
     const isPolicyExpenseChat = participant.isPolicyExpenseChat;
@@ -383,9 +385,10 @@ function getMoneyRequestInformation(report, participant, comment, amount, curren
         currency,
         iouReport.reportID,
         comment,
+        created,
         '',
         '',
-        undefined,
+        merchant,
         receiptObject,
         existingTransactionID,
     );
@@ -495,6 +498,8 @@ function createDistanceRequest(report, payeeEmail, payeeAccountID, participant, 
         comment,
         0,
         'USD',
+        created,
+        '',
         payeeAccountID,
         payeeEmail,
         null,
@@ -526,19 +531,23 @@ function createDistanceRequest(report, payeeEmail, payeeAccountID, participant, 
  * @param {Object} report
  * @param {Number} amount - always in the smallest unit of the currency
  * @param {String} currency
+ * @param {String} created
+ * @param {String} merchant
  * @param {String} payeeEmail
  * @param {Number} payeeAccountID
  * @param {Object} participant
  * @param {String} comment
  * @param {Object} [receipt]
  */
-function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, participant, comment, receipt = undefined) {
+function requestMoney(report, amount, currency, created, merchant, payeeEmail, payeeAccountID, participant, comment, receipt = undefined) {
     const {payerEmail, iouReport, chatReport, transaction, iouAction, createdChatReportActionID, createdIOUReportActionID, reportPreviewAction, onyxData} = getMoneyRequestInformation(
         report,
         participant,
         comment,
         amount,
         currency,
+        created,
+        merchant,
         payeeAccountID,
         payeeEmail,
         receipt,
@@ -607,6 +616,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
         currency,
         CONST.REPORT.SPLIT_REPORTID,
         comment,
+        '',
         '',
         '',
         `${Localize.translateLocal('iou.splitBill')} ${Localize.translateLocal('common.with')} ${formattedParticipants} [${DateUtils.getDBTime().slice(0, 10)}]`,
@@ -782,6 +792,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
             currency,
             oneOnOneIOUReport.reportID,
             comment,
+            '',
             CONST.IOU.MONEY_REQUEST_TYPE.SPLIT,
             splitTransaction.transactionID,
         );
