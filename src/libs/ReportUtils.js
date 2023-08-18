@@ -230,40 +230,6 @@ function isCurrentUserSubmitter(reportID) {
 }
 
 /**
- * Can only delete if the author is this user and the action is an ADDCOMMENT action or an IOU action in an unsettled report, or if the user is a
- * policy admin
- *
- * @param {Object} reportAction
- * @param {String} reportID
- * @returns {Boolean}
- */
-function canDeleteReportAction(reportAction, reportID) {
-    // For now, users cannot delete split actions
-    if (ReportActionsUtils.isMoneyRequestAction(reportAction) && lodashGet(reportAction, 'originalMessage.type') === CONST.IOU.REPORT_ACTION_TYPE.SPLIT) {
-        return false;
-    }
-    const isActionOwner = reportAction.actorAccountID === currentUserAccountID;
-    if (isActionOwner && ReportActionsUtils.isMoneyRequestAction(reportAction) && !isSettled(reportAction.originalMessage.IOUReportID)) {
-        return true;
-    }
-    if (
-        reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT ||
-        reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
-        ReportActionsUtils.isCreatedTaskReportAction(reportAction) ||
-        (ReportActionsUtils.isMoneyRequestAction(reportAction) && isSettled(reportAction.originalMessage.IOUReportID)) ||
-        reportAction.actorAccountID === CONST.ACCOUNT_ID.CONCIERGE
-    ) {
-        return false;
-    }
-    if (isActionOwner) {
-        return true;
-    }
-    const report = lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {});
-    const policy = lodashGet(allPolicies, `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`) || {};
-    return policy.role === CONST.POLICY.ROLE.ADMIN;
-}
-
-/**
  * Whether the provided report is an Admin room
  * @param {Object} report
  * @param {String} report.chatType
@@ -324,6 +290,17 @@ function isUserCreatedPolicyRoom(report) {
 }
 
 /**
+ * Get the policy type from a given report
+ * @param {Object} report
+ * @param {String} report.policyID
+ * @param {Object} policies must have Onyxkey prefix (i.e 'policy_') for keys
+ * @returns {String}
+ */
+function getPolicyType(report, policies) {
+    return lodashGet(policies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'type'], '');
+}
+
+/**
  * Whether the provided report is a Policy Expense chat.
  * @param {Object} report
  * @param {String} report.chatType
@@ -331,6 +308,22 @@ function isUserCreatedPolicyRoom(report) {
  */
 function isPolicyExpenseChat(report) {
     return getChatType(report) === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT;
+}
+
+/** Wether the provided report belongs to a Control policy and is an epxense chat
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isControlPolicyExpenseChat(report) {
+    return isPolicyExpenseChat(report) && getPolicyType(report, allPolicies) === CONST.POLICY.TYPE.CORPORATE;
+}
+
+/** Wether the provided report belongs to a Control policy and is an epxense report
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isControlPolicyExpenseReport(report) {
+    return isExpenseReport(report) && getPolicyType(report, allPolicies) === CONST.POLICY.TYPE.CORPORATE;
 }
 
 /**
@@ -363,17 +356,6 @@ function isPublicRoom(report) {
 function isPublicAnnounceRoom(report) {
     const visibility = lodashGet(report, 'visibility', '');
     return visibility === CONST.REPORT.VISIBILITY.PUBLIC_ANNOUNCE;
-}
-
-/**
- * Get the policy type from a given report
- * @param {Object} report
- * @param {String} report.policyID
- * @param {Object} policies must have Onyxkey prefix (i.e 'policy_') for keys
- * @returns {String}
- */
-function getPolicyType(report, policies) {
-    return lodashGet(policies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'type'], '');
 }
 
 /**
@@ -742,6 +724,40 @@ function isMoneyRequestReport(reportOrID) {
 }
 
 /**
+ * Can only delete if the author is this user and the action is an ADDCOMMENT action or an IOU action in an unsettled report, or if the user is a
+ * policy admin
+ *
+ * @param {Object} reportAction
+ * @param {String} reportID
+ * @returns {Boolean}
+ */
+function canDeleteReportAction(reportAction, reportID) {
+    // For now, users cannot delete split actions
+    if (ReportActionsUtils.isMoneyRequestAction(reportAction) && lodashGet(reportAction, 'originalMessage.type') === CONST.IOU.REPORT_ACTION_TYPE.SPLIT) {
+        return false;
+    }
+    const isActionOwner = reportAction.actorAccountID === currentUserAccountID;
+    if (isActionOwner && ReportActionsUtils.isMoneyRequestAction(reportAction) && !isSettled(reportAction.originalMessage.IOUReportID)) {
+        return true;
+    }
+    if (
+        reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT ||
+        reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
+        ReportActionsUtils.isCreatedTaskReportAction(reportAction) ||
+        (ReportActionsUtils.isMoneyRequestAction(reportAction) && isSettled(reportAction.originalMessage.IOUReportID)) ||
+        reportAction.actorAccountID === CONST.ACCOUNT_ID.CONCIERGE
+    ) {
+        return false;
+    }
+    if (isActionOwner) {
+        return true;
+    }
+    const report = lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {});
+    const policy = lodashGet(allPolicies, `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`) || {};
+    return policy.role === CONST.POLICY.ROLE.ADMIN && !isDM(report);
+}
+
+/**
  * Get welcome message based on room type
  * @param {Object} report
  * @returns {Object}
@@ -1106,7 +1122,7 @@ function isWaitingForIOUActionFromCurrentUser(report) {
     }
 
     // Money request waiting for current user to add their credit bank account
-    if (report.ownerAccountID === currentUserAccountID && report.isWaitingOnBankAccount) {
+    if (report.hasOutstandingIOU && report.ownerAccountID === currentUserAccountID && report.isWaitingOnBankAccount) {
         return true;
     }
 
@@ -1480,12 +1496,12 @@ function getRootReportAndWorkspaceName(report) {
 
     if (isIOURequest(report)) {
         return {
-            rootReportName: lodashGet(report, 'displayName', ''),
+            rootReportName: getReportName(report),
         };
     }
     if (isExpenseRequest(report)) {
         return {
-            rootReportName: lodashGet(report, 'displayName', ''),
+            rootReportName: getReportName(report),
             workspaceName: isIOUReport(report) ? CONST.POLICY.OWNER_EMAIL_FAKE : getPolicyName(report, true),
         };
     }
@@ -1878,6 +1894,7 @@ function getIOUReportActionMessage(type, total, comment, currency, paymentType =
  * @param {Boolean} [isSettlingUp] - Whether we are settling up an IOU.
  * @param {Boolean} [isSendMoneyFlow] - Whether this is send money flow
  * @param {Object} [receipt]
+ * @param {Boolean} [isOwnPolicyExpenseChat] - Whether this is an expense report create from the current user's policy expense chat
  * @returns {Object}
  */
 function buildOptimisticIOUReportAction(
@@ -1892,6 +1909,7 @@ function buildOptimisticIOUReportAction(
     isSettlingUp = false,
     isSendMoneyFlow = false,
     receipt = {},
+    isOwnPolicyExpenseChat = false,
 ) {
     const IOUReportID = iouReportID || generateReportID();
 
@@ -1924,7 +1942,12 @@ function buildOptimisticIOUReportAction(
     // IOUs of type split only exist in group DMs and those don't have an iouReport so we need to delete the IOUReportID key
     if (type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT) {
         delete originalMessage.IOUReportID;
-        originalMessage.participantAccountIDs = [currentUserAccountID, ..._.pluck(participants, 'accountID')];
+        // Split bill made from a policy expense chat only have the payee's accountID as the participant because the payer could be any policy admin
+        if (isOwnPolicyExpenseChat) {
+            originalMessage.participantAccountIDs = [currentUserAccountID];
+        } else {
+            originalMessage.participantAccountIDs = [currentUserAccountID, ..._.pluck(participants, 'accountID')];
+        }
     }
 
     return {
@@ -2822,7 +2845,7 @@ function getMoneyRequestOptions(report, reportParticipants, betas) {
     // unless there are no participants at all (e.g. #admins room for a policy with only 1 admin)
     // DM chats will have the Split Bill option only when there are at least 3 people in the chat.
     // There is no Split Bill option for Workspace chats
-    if (isChatRoom(report) || (hasMultipleParticipants && !isPolicyExpenseChat(report))) {
+    if (isChatRoom(report) || (hasMultipleParticipants && !isPolicyExpenseChat(report)) || isControlPolicyExpenseChat(report)) {
         return [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT];
     }
 
@@ -3197,6 +3220,8 @@ export {
     formatReportLastMessageText,
     chatIncludesConcierge,
     isPolicyExpenseChat,
+    isControlPolicyExpenseChat,
+    isControlPolicyExpenseReport,
     getIconsForParticipants,
     getIcons,
     getRoomWelcomeMessage,
@@ -3234,6 +3259,7 @@ export {
     getAllPolicyReports,
     getIOUReportActionMessage,
     getDisplayNameForParticipant,
+    getWorkspaceIcon,
     isOptimisticPersonalDetail,
     shouldDisableDetailPage,
     isChatReport,

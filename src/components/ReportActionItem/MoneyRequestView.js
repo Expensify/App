@@ -100,7 +100,7 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, polic
             </View>
             <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.amount') || lodashGet(transaction, 'pendingAction')}>
                 <MenuItemWithTopDescription
-                    title={formattedTransactionAmount}
+                    title={formattedTransactionAmount ? formattedTransactionAmount.toString() : ''}
                     shouldShowTitleIcon={isSettled}
                     titleIcon={Expensicons.Checkmark}
                     description={description}
