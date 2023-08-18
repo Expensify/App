@@ -65,7 +65,7 @@ function getAccountIDsByLogins(logins) {
             const currentDetail = _.find(personalDetails, (detail) => detail.login === login);
             if (!currentDetail) {
                 // generate an account ID because in this case the detail is probably new, so we don't have a real accountID yet
-                foundAccountIDs.push(UserUtils.generateAccountID(login || ''));
+                foundAccountIDs.push(UserUtils.generateAccountID(login));
             } else {
                 foundAccountIDs.push(Number(currentDetail.accountID));
             }
