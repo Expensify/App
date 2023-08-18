@@ -29,7 +29,19 @@ function PopoverReactionList(props) {
         innerReactionListRef.current.showReactionList(event, reactionListAnchor);
     };
 
-    useImperativeHandle(props.innerRef, () => ({showReactionList}), []);
+    const hideReactionList = () => {
+        innerReactionListRef.current.hideReactionList();
+    };
+
+    /**
+     * Whether PopoverReactionList is active for the Report Action.
+     *
+     * @param {Number|String} actionID
+     * @return {Boolean}
+     */
+    const isActiveReportAction = (actionID) => Boolean(actionID) && reactionListReportActionID === actionID;
+
+    useImperativeHandle(props.innerRef, () => ({showReactionList, hideReactionList, isActiveReportAction}));
 
     return (
         <BasePopoverReactionList
