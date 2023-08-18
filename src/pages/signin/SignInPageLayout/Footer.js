@@ -160,8 +160,8 @@ function Footer(props) {
 
     return (
         <View style={[styles.flex1]}>
-            <View style={[props.isSmallScreenWidth ? StyleUtils.getBackgroundColorStyle(themeColors.signInPage) : {}]}>
-                {props.isSmallScreenWidth ? (
+            <View style={[...(isVertical ? [StyleUtils.getBackgroundColorStyle(themeColors.signInPage), styles.overflowHidden] : [{}])]}>
+                {isVertical ? (
                     <View style={[styles.signInPageGradientMobile]}>
                         <SignInGradient height="100%" />
                     </View>
