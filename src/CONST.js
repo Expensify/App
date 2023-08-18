@@ -2,6 +2,7 @@ import lodashGet from 'lodash/get';
 import Config from 'react-native-config';
 import * as KeyCommand from 'react-native-key-command';
 import * as Url from './libs/Url';
+import SCREENS from './SCREENS';
 
 const CLOUDFRONT_DOMAIN = 'cloudfront.net';
 const CLOUDFRONT_URL = `https://d2k5nsl2zxldvw.${CLOUDFRONT_DOMAIN}`;
@@ -428,6 +429,15 @@ const CONST = {
 
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'http://localhost:',
+
+    SIGN_IN_FORM_WIDTH: 300,
+
+    DEEPLINK_PROMPT_DENYLIST: [SCREENS.HOME, SCREENS.SIGN_IN_WITH_APPLE_DESKTOP, SCREENS.SIGN_IN_WITH_GOOGLE_DESKTOP],
+
+    SIGN_IN_METHOD: {
+        APPLE: 'Apple',
+        GOOGLE: 'Google',
+    },
 
     OPTION_TYPE: {
         REPORT: 'report',
@@ -2531,6 +2541,7 @@ const CONST = {
         DISTANCE: 'distance',
     },
     STATUS_TEXT_MAX_LENGTH: 100,
+    SF_COORDINATES: [-122.4194, 37.7749],
     NAVIGATION: {
         TYPE: {
             FORCED_UP: 'FORCED_UP',
