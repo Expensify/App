@@ -92,7 +92,7 @@ function ImageView({isAuthTokenRequired, url, onScaleChanged, onPress, style}) {
         }
     }, []);
 
-    const imageLoadingStart = React.useCallback(() => {
+    const imageLoadingStart = () => {
         if (isLoading) {
             return;
         }
@@ -101,11 +101,12 @@ function ImageView({isAuthTokenRequired, url, onScaleChanged, onPress, style}) {
         setImageHeight(0);
         setImageWidth(0);
         setIsLoading(true);
-    }, [isLoading, resetImageZoom]);
+    };
 
-    // React.useEffect(() => {
-    //     imageLoadingStart();
-    // }, [imageLoadingStart, url]);
+    React.useEffect(() => {
+        imageLoadingStart();
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- adding imageLoadingStart to deps array causes the component to be stuck on loading
+    }, [url]);
 
     /**
      * The `ImageZoom` component requires image dimensions which
@@ -135,6 +136,38 @@ function ImageView({isAuthTokenRequired, url, onScaleChanged, onPress, style}) {
         setIsLoading(false);
     };
 
+    const onStartShouldSetPanResponder = () => {
+        const isDoubleClick = new Date().getTime() - lastClickTime.current <= DOUBLE_CLICK_INTERVAL;
+        lastClickTime.current = new Date().getTime()
+
+        // Let ImageZoom handle the event if the tap is more than one touchPoint or if we are zoomed in
+        if (numberOfTouches.current === 2 || imageZoomScale.current !== 1) {
+            return true;
+        }
+
+        // When we have a double click and the zoom scale is 1 then programmatically zoom the image
+        // but let the tap fall through to the parent so we can register a swipe down to dismiss
+        if (isDoubleClick) {
+            zoom.current.centerOn({
+                x: 0,
+                y: 0,
+                scale: 2,
+                duration: 100,
+            });
+
+            // onMove will be called after the zoom animation.
+            // So it's possible to zoom and swipe and stuck in between the images.
+            // Sending scale just when we actually trigger the animation makes this nearly impossible.
+            // you should be really fast to catch in between state updates.
+            // And this lucky case will be fixed by migration to UI thread only code
+            // with gesture handler and reanimated.
+            onScaleChanged(2);
+        }
+
+        // We must be either swiping down or double tapping since we are at zoom scale 1
+        return false;
+    }
+
     // Default windowHeight accounts for the modal header height
     const calculatedWindowHeight = windowHeight - variables.contentHeaderHeight;
     const hasImageDimensions = imageWidth !== 0 && imageHeight !== 0;
@@ -151,44 +184,13 @@ function ImageView({isAuthTokenRequired, url, onScaleChanged, onPress, style}) {
         >
             {Boolean(containerHeight) && (
                 <ImageZoom
-                    // ref={(el) => (this.zoom = el)}
                     ref={zoom}
                     onClick={onPress}
                     cropWidth={windowWidth}
                     cropHeight={calculatedWindowHeight}
                     imageWidth={imageWidth}
                     imageHeight={imageHeight}
-                    onStartShouldSetPanResponder={() => {
-                        const isDoubleClick = new Date().getTime() - lastClickTime.current <= DOUBLE_CLICK_INTERVAL;
-                        lastClickTime.current = new Date().getTime()
-
-                        // Let ImageZoom handle the event if the tap is more than one touchPoint or if we are zoomed in
-                        if (numberOfTouches.current === 2 || imageZoomScale.current !== 1) {
-                            return true;
-                        }
-
-                        // When we have a double click and the zoom scale is 1 then programmatically zoom the image
-                        // but let the tap fall through to the parent so we can register a swipe down to dismiss
-                        if (isDoubleClick) {
-                            zoom.current.centerOn({
-                                x: 0,
-                                y: 0,
-                                scale: 2,
-                                duration: 100,
-                            });
-
-                            // onMove will be called after the zoom animation.
-                            // So it's possible to zoom and swipe and stuck in between the images.
-                            // Sending scale just when we actually trigger the animation makes this nearly impossible.
-                            // you should be really fast to catch in between state updates.
-                            // And this lucky case will be fixed by migration to UI thread only code
-                            // with gesture handler and reanimated.
-                            onScaleChanged(2);
-                        }
-
-                        // We must be either swiping down or double tapping since we are at zoom scale 1
-                        return false;
-                    }}
+                    onStartShouldSetPanResponder={onStartShouldSetPanResponder}
                     onMove={({scale}) => {
                         onScaleChanged(scale);
                         imageZoomScale.current = scale
