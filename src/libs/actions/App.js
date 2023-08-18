@@ -240,6 +240,7 @@ function getMissingOnyxUpdates(updateIDFrom = 0, updateIDTo = 0) {
  * @param {Object} data
  * @param {Object} data.request
  * @param {Object} data.responseData
+ * @returns {Promise}
  */
 function applyHTTPSOnyxUpdates({request, responseData}) {
     // For most requests we can immediately update Onyx. For write requests we queue the updates and apply them after the sequential queue has flushed to prevent a replay effect in
@@ -251,7 +252,7 @@ function applyHTTPSOnyxUpdates({request, responseData}) {
     // in successData/failureData until after the component has received and API data.
     const onyxDataUpdatePromise = responseData.onyxData ? updateHandler(responseData.onyxData) : Promise.resolve();
 
-    onyxDataUpdatePromise
+    return onyxDataUpdatePromise
         .then(() => {
             // Handle the request's success/failure data (client-side data)
             if (responseData.jsonCode === 200 && request.successData) {
@@ -270,6 +271,7 @@ function applyHTTPSOnyxUpdates({request, responseData}) {
  * @param {Object} data.multipleEvents
  */
 function applyPusherOnyxUpdates({multipleEvents}) {
+    console.log('timxxx', 1, multipleEvents);
     _.each(multipleEvents, (multipleEvent) => {
         PusherUtils.triggerMultiEventHandler(multipleEvent.eventType, multipleEvent.data);
     });
@@ -282,13 +284,15 @@ function applyPusherOnyxUpdates({multipleEvents}) {
  * @param {Object} [updateParams.data.request] Exists if updateParams.type === 'https'
  * @param {Object} [updateParams.data.response] Exists if updateParams.type === 'https'
  * @param {Object} [updateParams.data.multipleEvents] Exists if updateParams.type === 'pusher'
+ * @returns {Promise}
  */
 function applyOnyxUpdates({type, data}) {
     if (type === CONST.ONYX_UPDATE_TYPES.HTTPS) {
-        applyHTTPSOnyxUpdates(data);
+        return applyHTTPSOnyxUpdates(data);
     }
     if (type === CONST.ONYX_UPDATE_TYPES.PUSHER) {
         applyPusherOnyxUpdates(data);
+        return new Promise().resolve();
     }
 }
 
@@ -322,8 +326,7 @@ Onyx.connect({
             });
             SequentialQueue.pause();
             getMissingOnyxUpdates(lastUpdateIDAppliedToClient, lastUpdateIDFromServer).finally(() => {
-                applyOnyxUpdates(updateParams);
-                SequentialQueue.unpause();
+                applyOnyxUpdates(updateParams).then(SequentialQueue.unpause);
             });
         } else {
             applyOnyxUpdates(updateParams);
