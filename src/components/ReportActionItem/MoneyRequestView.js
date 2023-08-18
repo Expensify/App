@@ -98,11 +98,7 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, polic
                     style={[StyleUtils.getReportWelcomeBackgroundImageStyle(true)]}
                 />
             </View>
-            <OfflineWithFeedback
-                // wrapping only the menu items - we don't want the background image to be greyed out;
-                // we want to grey out the items as soon as the user goes offline
-                pendingAction={CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}
-            >
+            <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.amount')}>
                 <MenuItemWithTopDescription
                     title={formattedTransactionAmount}
                     shouldShowTitleIcon={isSettled}
@@ -113,6 +109,8 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, polic
                     shouldShowRightIcon={canEdit}
                     onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.AMOUNT))}
                 />
+            </OfflineWithFeedback>
+            <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.comment')}>
                 <MenuItemWithTopDescription
                     description={translate('common.description')}
                     title={transactionDescription}
@@ -120,6 +118,8 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, polic
                     shouldShowRightIcon={canEdit}
                     onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DESCRIPTION))}
                 />
+            </OfflineWithFeedback>
+            <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.created')}>
                 <MenuItemWithTopDescription
                     description={translate('common.date')}
                     title={transactionDate}

@@ -86,7 +86,12 @@ function getUpdatedTransaction(transaction, transactionChanges, isFromExpenseRep
     if (_.has(transactionChanges, 'currency')) {
         updatedTransaction.modifiedCurrency = transactionChanges.currency;
     }
-    updatedTransaction.pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
+    updatedTransaction.pendingFields = {
+        ...(_.has(transactionChanges, 'comment') && {comment: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+        ...(_.has(transactionChanges, 'created') && {created: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+        ...(_.has(transactionChanges, 'amount') && {amount: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+        ...(_.has(transactionChanges, 'currency') && {currency: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+    };
 
     return updatedTransaction;
 }

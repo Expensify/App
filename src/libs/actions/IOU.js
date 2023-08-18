@@ -841,7 +841,14 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: {pendingAction: null},
+            value: {
+                pendingFields: {
+                    comment: null,
+                    amount: null,
+                    created: null,
+                    currency: null,
+                },
+            },
         },
     ];
 
