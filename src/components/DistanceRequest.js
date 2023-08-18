@@ -21,7 +21,9 @@ import useNetwork from '../hooks/useNetwork';
 import useLocalize from '../hooks/useLocalize';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
-import OfflineWithFeedback from './OfflineWithFeedback';
+import ScreenWrapper from './ScreenWrapper';
+import DotIndicatorMessage from './DotIndicatorMessage';
+import * as ErrorUtils from '../libs/ErrorUtils';
 
 const MAX_WAYPOINTS = 25;
 const MAX_WAYPOINTS_TO_DISPLAY = 4;
@@ -53,11 +55,8 @@ const propTypes = {
             }),
         }),
 
-        /** Errors related to this transaction */
-        errorFields: PropTypes.shape({
-            /** Error related to fetching the route */
-            route: PropTypes.string,
-        }),
+       /** Server side errors keyed by microtime */
+       errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
     }),
 
     /** Data about Mapbox token for calling Mapbox API */
@@ -88,6 +87,7 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
 
     const lastWaypointIndex = numberOfWaypoints - 1;
     const isLoadingRoute = lodashGet(transaction, 'route.isLoading', false);
+    const hasRouteError = Boolean(lodashGet(transaction, 'errorFields.route'));
 
     // Show up to the max number of waypoints plus 1/2 of one to hint at scrolling
     const halfMenuItemHeight = Math.floor(variables.baseMenuItemHeight / 2);
@@ -128,14 +128,9 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
     useEffect(updateGradientVisibility, [scrollContainerHeight, scrollContentHeight]);
 
     return (
-        <>
-            <OfflineWithFeedback
-                errors={lodashGet(transaction, 'errorFields', null)}
-                onClose={() => {
-                    console.log('remove error');
-                }}
-                errorRowStyles={[styles.mbn1]}
-            >
+        <ScreenWrapper
+            shouldEnableMaxHeight
+        >
             <View
                 style={styles.distanceRequestContainer(scrollContainerMaxHeight)}
                 onLayout={(event = {}) => setScrollContainerHeight(lodashGet(event, 'nativeEvent.layout.height', 0))}
@@ -182,6 +177,13 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
                         colors={[theme.transparent, theme.modalBackground]}
                     />
                 )}
+                {hasRouteError && (
+                    <DotIndicatorMessage
+                        style={[styles.mh5, styles.mv3]}
+                        messages={ErrorUtils.getLatestErrorField(transaction, 'route')}
+                        type="error"
+                    />
+                )}
             </View>
             <View style={[styles.flexRow, styles.justifyContentCenter, styles.pt1]}>
                 <Button
@@ -221,8 +223,7 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
                     </View>
                 )}
             </View>
-            </OfflineWithFeedback>
-        </>
+        </ScreenWrapper>
     );
 }
 
