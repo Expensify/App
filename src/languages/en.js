@@ -1587,9 +1587,6 @@ export default {
             finish: 'Finish',
             stop: 'Stop',
         },
-        errors: {
-            selectSuggestedAddress: 'Please select a suggested address',
-        },
     },
     countrySelectorModal: {
         placeholderText: 'Search to see options',
