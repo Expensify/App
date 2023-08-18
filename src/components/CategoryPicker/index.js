@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -10,14 +10,22 @@ import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 
 function CategoryPicker({policyCategories, reportID, iouType}) {
-    const categoryList = _.chain(policyCategories)
-        .values()
-        .map((category) => ({
-            text: category.name,
-            keyForList: category.name,
-            tooltipText: category.name,
-        }))
-        .value();
+    const sections = useMemo(() => {
+        const categoryList = _.chain(policyCategories)
+            .values()
+            .map((category) => ({
+                text: category.name,
+                keyForList: category.name,
+                tooltipText: category.name,
+            }))
+            .value();
+
+        return [
+            {
+                data: categoryList,
+            },
+        ];
+    }, [policyCategories]);
 
     const navigateBack = () => {
         Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID));
@@ -29,11 +37,7 @@ function CategoryPicker({policyCategories, reportID, iouType}) {
                 <OptionsList
                     optionHoveredStyle={styles.hoveredComponentBG}
                     contentContainerStyles={[safeAreaPaddingBottomStyle]}
-                    sections={[
-                        {
-                            data: categoryList,
-                        },
-                    ]}
+                    sections={sections}
                     onSelectRow={navigateBack}
                 />
             )}
