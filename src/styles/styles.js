@@ -564,7 +564,7 @@ const styles = {
     },
 
     buttonDivider: {
-        height: 28,
+        height: variables.dropDownButtonDivider,
         borderWidth: 0.7,
         borderColor: themeColors.text,
     },
