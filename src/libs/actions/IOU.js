@@ -779,6 +779,8 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
             } else {
                 oneOnOneIOUReport = IOUUtils.updateIOUOwnerAndTotal(oneOnOneIOUReport, currentUserAccountID, splitAmount, currency);
             }
+        } else if (isOwnPolicyExpenseChat) {
+            oneOnOneIOUReport = ReportUtils.buildOptimisticExpenseReport(oneOnOneChatReport.reportID, oneOnOneChatReport.policyID, -splitAmount, currentUserAccountID, currency);
         } else {
             oneOnOneIOUReport = ReportUtils.buildOptimisticIOUReport(currentUserAccountID, accountID, splitAmount, oneOnOneChatReport.reportID, currency);
         }
