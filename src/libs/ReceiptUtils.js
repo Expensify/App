@@ -9,7 +9,6 @@ import ReceiptHTML from '../../assets/images/receipt-html.png';
 import ReceiptDoc from '../../assets/images/receipt-doc.png';
 import ReceiptGeneric from '../../assets/images/receipt-generic.png';
 import ReceiptSVG from '../../assets/images/receipt-svg.png';
-import CONFIG from '../CONFIG';
 
 function validateReceipt(file) {
     const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(file, 'name', ''));
