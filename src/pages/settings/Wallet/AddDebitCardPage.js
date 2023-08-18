@@ -104,7 +104,7 @@ function DebitCardPage(props) {
         >
             <HeaderWithBackButton
                 title={translate('addDebitCardPage.addADebitCard')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PAYMENTS)}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)}
             />
             <Form
                 formID={ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM}

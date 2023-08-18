@@ -85,7 +85,7 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
-            const AddDebitCardPage = require('../../../pages/settings/Payments/AddDebitCardPage').default;
+            const AddDebitCardPage = require('../../../pages/settings/Wallet/AddDebitCardPage').default;
             return AddDebitCardPage;
         },
         name: 'IOU_Send_Add_Debit_Card',
@@ -475,28 +475,28 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
-            const SettingsPaymentsPage = require('../../../pages/settings/Payments/PaymentsPage').default;
-            return SettingsPaymentsPage;
+            const SettingsWalletPage = require('../../../pages/settings/Wallet/WalletPage').default;
+            return SettingsWalletPage;
         },
-        name: 'Settings_Payments',
+        name: 'Settings_Wallet',
     },
     {
         getComponent: () => {
-            const TransferBalancePage = require('../../../pages/settings/Payments/TransferBalancePage').default;
+            const TransferBalancePage = require('../../../pages/settings/Wallet/TransferBalancePage').default;
             return TransferBalancePage;
         },
-        name: 'Settings_Payments_Transfer_Balance',
+        name: 'Settings_Wallet_Transfer_Balance',
     },
     {
         getComponent: () => {
-            const ChooseTransferAccountPage = require('../../../pages/settings/Payments/ChooseTransferAccountPage').default;
+            const ChooseTransferAccountPage = require('../../../pages/settings/Wallet/ChooseTransferAccountPage').default;
             return ChooseTransferAccountPage;
         },
-        name: 'Settings_Payments_Choose_Transfer_Account',
+        name: 'Settings_Wallet_Choose_Transfer_Account',
     },
     {
         getComponent: () => {
-            const SettingsAddPayPalMePage = require('../../../pages/settings/Payments/AddPayPalMePage').default;
+            const SettingsAddPayPalMePage = require('../../../pages/settings/Wallet/AddPayPalMePage').default;
             return SettingsAddPayPalMePage;
         },
         name: 'Settings_Add_Paypal_Me',
@@ -506,11 +506,11 @@ const SettingsModalStackNavigator = createModalStackNavigator([
             const EnablePaymentsPage = require('../../../pages/EnablePayments/EnablePaymentsPage').default;
             return EnablePaymentsPage;
         },
-        name: 'Settings_Payments_EnablePayments',
+        name: 'Settings_Wallet_EnablePayments',
     },
     {
         getComponent: () => {
-            const AddDebitCardPage = require('../../../pages/settings/Payments/AddDebitCardPage').default;
+            const AddDebitCardPage = require('../../../pages/settings/Wallet/AddDebitCardPage').default;
             return AddDebitCardPage;
         },
         name: 'Settings_Add_Debit_Card',

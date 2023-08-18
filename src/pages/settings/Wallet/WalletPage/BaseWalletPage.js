@@ -22,7 +22,7 @@ import AddPaymentMethodMenu from '../../../../components/AddPaymentMethodMenu';
 import CONST from '../../../../CONST';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
 import KYCWall from '../../../../components/KYCWall';
-import {propTypes, defaultProps} from './paymentsPagePropTypes';
+import {propTypes, defaultProps} from './walletPagePropTypes';
 import {withNetwork} from '../../../../components/OnyxProvider';
 import * as PaymentUtils from '../../../../libs/PaymentUtils';
 import OfflineWithFeedback from '../../../../components/OfflineWithFeedback';
@@ -33,7 +33,7 @@ import variables from '../../../../styles/variables';
 import useLocalize from '../../../../hooks/useLocalize';
 import useWindowDimensions from '../../../../hooks/useWindowDimensions';
 
-function BasePaymentsPage(props) {
+function BaseWalletPage(props) {
     const {translate} = useLocalize();
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
     const [shouldShowAddPaymentMenu, setShouldShowAddPaymentMenu] = useState(false);
@@ -255,7 +255,7 @@ function BasePaymentsPage(props) {
     }, [paymentMethod.selectedPaymentMethod.bankAccountID, paymentMethod.selectedPaymentMethod.fundID, paymentMethod.selectedPaymentMethodType, resetSelectedPaymentMethodData]);
 
     const navigateToTransferBalancePage = () => {
-        Navigation.navigate(ROUTES.SETTINGS_PAYMENTS_TRANSFER_BALANCE);
+        Navigation.navigate(ROUTES.SETTINGS_WALLET_TRANSFER_BALANCE);
     };
 
     const navigateToAddPaypalRoute = () => {
@@ -308,14 +308,14 @@ function BasePaymentsPage(props) {
                         )}
                     </>
                 )}
-                <Text style={[styles.ph5, styles.textLabelSupporting, styles.mb1]}>{translate('paymentsPage.paymentMethodsTitle')}</Text>
+                <Text style={[styles.ph5, styles.textLabelSupporting, styles.mb1]}>{translate('walletPage.paymentMethodsTitle')}</Text>
             </>
         ),
         [props.betas, props.network.isOffline, props.userWallet.currentBalance, props.walletTerms.errors, shouldShowLoadingSpinner, translate],
     );
 
     useEffect(() => {
-        PaymentMethods.openPaymentsPage();
+        PaymentMethods.openWalletPage();
     }, []);
 
     useEffect(() => {
@@ -331,7 +331,7 @@ function BasePaymentsPage(props) {
         if (props.network.isOffline) {
             return;
         }
-        PaymentMethods.openPaymentsPage();
+        PaymentMethods.openWalletPage();
     }, [props.network.isOffline]);
 
     useEffect(() => {
@@ -377,7 +377,7 @@ function BasePaymentsPage(props) {
     return (
         <ScreenWrapper>
             <HeaderWithBackButton
-                title={translate('common.payments')}
+                title={translate('common.wallet')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
             />
             <View style={[styles.flex1, styles.mb4]}>
@@ -437,7 +437,7 @@ function BasePaymentsPage(props) {
                                     setShouldShowDefaultDeleteMenu(false);
                                     makeDefaultPaymentMethod();
                                 }}
-                                text={translate('paymentsPage.setDefaultConfirmation')}
+                                text={translate('walletPage.setDefaultConfirmation')}
                             />
                         )}
                         {isPayPalMeSelected && (
@@ -466,8 +466,8 @@ function BasePaymentsPage(props) {
                         }}
                         onCancel={hideDefaultDeleteMenu}
                         contentStyles={!isSmallScreenWidth ? [styles.sidebarPopover, styles.willChangeTransform] : undefined}
-                        title={translate('paymentsPage.deleteAccount')}
-                        prompt={translate('paymentsPage.deleteConfirmation')}
+                        title={translate('walletPage.deleteAccount')}
+                        prompt={translate('walletPage.deleteConfirmation')}
                         confirmText={translate('common.delete')}
                         cancelText={translate('common.cancel')}
                         anchorPosition={{
@@ -483,9 +483,9 @@ function BasePaymentsPage(props) {
     );
 }
 
-BasePaymentsPage.propTypes = propTypes;
-BasePaymentsPage.defaultProps = defaultProps;
-BasePaymentsPage.displayName = BasePaymentsPage;
+BaseWalletPage.propTypes = propTypes;
+BaseWalletPage.defaultProps = defaultProps;
+BaseWalletPage.displayName = BaseWalletPage;
 
 export default compose(
     withNetwork(),
@@ -515,4 +515,4 @@ export default compose(
             key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
         },
     }),
-)(BasePaymentsPage);
+)(BaseWalletPage);

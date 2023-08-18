@@ -119,7 +119,7 @@ function TransferBalancePage(props) {
             return;
         }
 
-        Navigation.navigate(ROUTES.SETTINGS_PAYMENTS_CHOOSE_TRANSFER_ACCOUNT);
+        Navigation.navigate(ROUTES.SETTINGS_WALLET_CHOOSE_TRANSFER_ACCOUNT);
     }
 
     useEffect(() => {
@@ -176,13 +176,13 @@ function TransferBalancePage(props) {
                 titleKey="notFound.pageNotFound"
                 subtitleKey="transferAmountPage.notHereSubTitle"
                 shouldShowLink
-                linkKey="transferAmountPage.goToPayment"
-                onLinkPress={() => Navigation.goBack(ROUTES.SETTINGS_PAYMENTS)}
+                linkKey="transferAmountPage.goToWallet"
+                onLinkPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)}
             >
                 <HeaderWithBackButton
                     title={props.translate('common.transferBalance')}
                     shouldShowBackButton
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PAYMENTS)}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)}
                 />
                 <View style={[styles.flexGrow1, styles.flexShrink1, styles.flexBasisAuto, styles.justifyContentCenter]}>
                     <CurrentWalletBalance balanceStyles={[styles.transferBalanceBalance]} />
