@@ -88,7 +88,7 @@ function getVBBADataForOnyx() {
                 key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
                 value: {
                     isLoading: false,
-                    errors: ErrorUtils.getMicroSecondOnyxError('paymentsPage.addBankAccountFailure'),
+                    errors: ErrorUtils.getMicroSecondOnyxError('walletPage.addBankAccountFailure'),
                 },
             },
         ],
@@ -165,7 +165,7 @@ function addPersonalBankAccount(account) {
                 key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
                 value: {
                     isLoading: false,
-                    errors: ErrorUtils.getMicroSecondOnyxError('paymentsPage.addBankAccountFailure'),
+                    errors: ErrorUtils.getMicroSecondOnyxError('walletPage.addBankAccountFailure'),
                 },
             },
         ],
