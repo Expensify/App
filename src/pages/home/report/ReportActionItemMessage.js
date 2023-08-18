@@ -44,7 +44,7 @@ function ReportActionItemMessage(props) {
     return (
         <View style={[styles.chatItemMessage, ...props.style]}>
             {!props.isHidden ? (
-                _.map(messages, (fragment, index) =>
+                _.map(messages, (fragment, index) => (
                     // Threaded messages display "[Deleted message]" instead of being hidden altogether.
                     // While offline we display the previous message with a strikethrough style. Once online we want to
                     // immediately display "[Deleted message]" while the delete action is pending.
@@ -66,7 +66,7 @@ function ReportActionItemMessage(props) {
                             </View>
                         )}
                     </Fragment>
-                )
+                ))
             ) : (
                 <Text style={[styles.textLabelSupporting, styles.lh20]}>{props.translate('moderation.flaggedContent')}</Text>
             )}
