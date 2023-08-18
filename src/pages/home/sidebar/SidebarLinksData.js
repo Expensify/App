@@ -69,6 +69,8 @@ function SidebarLinksData({isFocused, allReportActions, betas, chatReports, curr
     const [isFirstTimeReportLoading, setIsFirstTimeReportLoading] = useState(SessionUtils.didUserLogInDuringSession());
 
     const reportIDsRef = useRef([]);
+    const firstAccessReportID = useRef(currentReportID);
+
     const optionListItems = useMemo(() => {
         const reportIDs = SidebarUtils.getOrderedReportIDs(currentReportID, chatReports, betas, policies, priorityMode, allReportActions);
         if (deepEqual(reportIDsRef.current, reportIDs)) {
@@ -84,8 +86,6 @@ function SidebarLinksData({isFocused, allReportActions, betas, chatReports, curr
         }
         setIsFirstTimeReportLoading(isLoadingReportData);
     }, [isFirstTimeReportLoading, isLoadingReportData]);
-
-    const firstAccessReportID = useRef(currentReportID);
 
     return (
         <View
