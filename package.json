@@ -183,7 +183,6 @@
     "@types/jest-when": "^3.5.2",
     "@types/js-yaml": "^4.0.5",
     "@types/lodash": "^4.14.195",
-    "@types/metro-config": "^0.76.3",
     "@types/mock-fs": "^4.13.1",
     "@types/pusher-js": "^5.1.0",
     "@types/react": "^18.2.12",
