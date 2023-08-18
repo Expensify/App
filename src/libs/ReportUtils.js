@@ -1317,35 +1317,6 @@ function containsHtml(text) {
 }
 
 /**
- * Get the formatted title in HTML for a thread based on parent message.
- * Only the first line of the message should display.
- *
- * @param {Object} parentReportAction
- * @returns {String}
- */
-function getThreadReportNameHtml(parentReportAction) {
-    const messageHtml = lodashGet(parentReportAction, ['message', 0, 'html']);
-    if (!messageHtml || !containsHtml(messageHtml)) {
-        return '';
-    }
-
-    const blockTags = ['br', 'h1', 'pre', 'code', 'div', 'blockquote', 'p', 'li', 'comment', 'div'];
-    const blockTagRegExp = `(?:<\\/?(?:${blockTags.join('|')})(?:[^>]*)>|\\r\\n|\\n|\\r)`;
-    const threadHeaderHtmlRegExp = new RegExp(`^(?:<([^>]+)>)?((?:(?!${blockTagRegExp}).)*)(${blockTagRegExp}.*)`, 'gmi');
-    return messageHtml.replace(threadHeaderHtmlRegExp, (match, g1, g2) => {
-        if (!g1 || g1 === 'h1') {
-            return g2;
-        }
-
-        if (g1 === 'pre') {
-            return `<code>${g2}</code>`
-        }
-
-        return `<${g1}>${g2}</${g1}>`;
-    });
-}
-
-/**
  * Get the report action message when expense has been modified.
  *
  * @param {Object} reportAction
@@ -1429,14 +1400,41 @@ function getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges, i
 }
 
 /**
+ * Get the formatted title in HTML for a thread based on parent message.
+ * Only the first line of the message should display.
+ *
+ * @param {Object} parentReportActionMessageHtml
+ * @returns {String}
+ */
+function getThreadReportNameHtml(parentReportActionMessageHtml) {
+    const blockTags = ['br', 'h1', 'pre', 'code', 'div', 'blockquote', 'p', 'li', 'comment', 'div'];
+    const blockOpeningTagRegExp = `(?:<(?:${blockTags.join('|')})(?:[^>]*)>|\\r\\n|\\n|\\r)`;
+    const blockTagRegExp = `(?:<\\/?(?:${blockTags.join('|')})(?:[^>]*)>|\\r\\n|\\n|\\r)`;
+    const threadHeaderHtmlRegExp = new RegExp(`^(?:<([^>]+)>)?((?:(?!${blockOpeningTagRegExp}).)*)(${blockTagRegExp}.*)`, 'gmi');
+    return parentReportActionMessageHtml.replace(threadHeaderHtmlRegExp, (match, g1, g2) => {
+        if (!g1 || g1 === 'h1') {
+            return g2;
+        }
+        if (g1 === 'pre') {
+            return `<code>${g2}</code>`
+        }
+        const parser = new ExpensiMark();
+        if (parser.containsNonPairTag(g2)) {
+            return `<${g1}>${g2}`
+        }
+        return `<${g1}>${g2}</${g1}>`;
+    });
+}
+
+/**
  * Get the title for a report.
  *
  * @param {Object} report
  * @param {Object} [policy]
- * @param {Boolean} isThreadTitle
+ * @param {Boolean} isThreadHeader
  * @returns {String}
  */
-function getReportName(report, policy = undefined, isThreadTitle = false) {
+function getReportName(report, policy = undefined, isThreadHeader = false) {
     let formattedName;
     if (isChatThread(report)) {
         const parentReportAction = ReportActionsUtils.getParentReportAction(report);
@@ -1445,8 +1443,9 @@ function getReportName(report, policy = undefined, isThreadTitle = false) {
         }
 
         const isAttachment = _.has(parentReportAction, 'isAttachment') ? parentReportAction.isAttachment : isReportMessageAttachment(_.last(lodashGet(parentReportAction, 'message', [{}])));
-        const parentReportActionMessage = isThreadTitle
-            ? getThreadReportNameHtml(parentReportAction)
+        const messageHtml = lodashGet(parentReportAction, ['message', 0, 'html']);
+        const parentReportActionMessage = isThreadHeader
+            ? getThreadReportNameHtml(messageHtml)
             : lodashGet(parentReportAction, ['message', 0, 'text'], '').replace(/(\r\n|\n|\r)/gm, ' ');
         if (isAttachment && parentReportActionMessage) {
             return `[${Localize.translateLocal('common.attachment')}]`;
