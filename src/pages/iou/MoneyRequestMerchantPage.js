@@ -1,11 +1,10 @@
-import React, {Component} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import TextInput from '../../components/TextInput';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import Form from '../../components/Form';
@@ -13,14 +12,12 @@ import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/styles';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
-import compose from '../../libs/compose';
 import * as IOU from '../../libs/actions/IOU';
 import optionPropTypes from '../../components/optionPropTypes';
 import CONST from '../../CONST';
+import useLocalize from '../../hooks/useLocalize';
 
 const propTypes = {
-    ...withLocalizePropTypes,
-
     /** Onyx Props */
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     iou: PropTypes.shape({
@@ -43,41 +40,26 @@ const defaultProps = {
     },
 };
 
-class MoneyRequestMerchantPage extends Component {
-    constructor(props) {
-        super(props);
+function MoneyRequestMerchantPage({iou, route}) {
+    const {translate} = useLocalize();
+    const inputRef = useRef(null);
+    const iouType = lodashGet(route, 'params.iouType', '');
+    const reportID = lodashGet(route, 'params.reportID', '');
 
-        this.updateMerchant = this.updateMerchant.bind(this);
-        this.navigateBack = this.navigateBack.bind(this);
-        this.iouType = lodashGet(props.route, 'params.iouType', '');
-        this.reportID = lodashGet(props.route, 'params.reportID', '');
-    }
-
-    componentDidMount() {
-        const moneyRequestId = `${this.iouType}${this.reportID}`;
-        const shouldReset = this.props.iou.id !== moneyRequestId;
+    useEffect(() => {
+        const moneyRequestId = `${iouType}${reportID}`;
+        const shouldReset = iou.id !== moneyRequestId;
         if (shouldReset) {
             IOU.resetMoneyRequestInfo(moneyRequestId);
         }
 
-        if (_.isEmpty(this.props.iou.participants) || (this.props.iou.amount === 0 && !this.props.iou.receiptPath) || shouldReset) {
-            Navigation.goBack(ROUTES.getMoneyRequestRoute(this.iouType, this.reportID), true);
+        if (_.isEmpty(iou.participants) || (iou.amount === 0 && !iou.receiptPath) || shouldReset) {
+            Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType, reportID), true);
         }
-    }
+    }, [iou.id, iou.participants, iou.amount, iou.receiptPath, iouType, reportID]);
 
-    // eslint-disable-next-line rulesdir/prefer-early-return
-    componentDidUpdate(prevProps) {
-        // ID in Onyx could change by initiating a new request in a separate browser tab or completing a request
-        if (_.isEmpty(this.props.iou.participants) || (this.props.iou.amount === 0 && !this.props.iou.receiptPath) || prevProps.iou.id !== this.props.iou.id) {
-            // The ID is cleared on completing a request. In that case, we will do nothing.
-            if (this.props.iou.id) {
-                Navigation.goBack(ROUTES.getMoneyRequestRoute(this.iouType, this.reportID), true);
-            }
-        }
-    }
-
-    navigateBack() {
-        Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(this.iouType, this.reportID));
+    function navigateBack() {
+        Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID));
     }
 
     /**
@@ -86,52 +68,49 @@ class MoneyRequestMerchantPage extends Component {
      * @param {Object} value
      * @param {String} value.moneyRequestMerchant
      */
-    updateMerchant(value) {
+    function updateMerchant(value) {
         IOU.setMoneyRequestMerchant(value.moneyRequestMerchant);
-        this.navigateBack();
+        navigateBack();
     }
 
-    render() {
-        return (
-            <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
-                shouldEnableMaxHeight
-                onEntryTransitionEnd={() => this.merchantInputRef && this.merchantInputRef.focus()}
+    return (
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            shouldEnableMaxHeight
+            onEntryTransitionEnd={() => inputRef.current && inputRef.current.focus()}
+        >
+            <HeaderWithBackButton
+                title={translate('common.merchant')}
+                onBackButtonPress={() => navigateBack()}
+            />
+            <Form
+                style={[styles.flexGrow1, styles.ph5]}
+                formID={ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM}
+                onSubmit={(value) => updateMerchant(value)}
+                submitButtonText={translate('common.save')}
+                enabledWhenOffline
             >
-                <HeaderWithBackButton
-                    title={this.props.translate('common.merchant')}
-                    onBackButtonPress={this.navigateBack}
-                />
-                <Form
-                    style={[styles.flexGrow1, styles.ph5]}
-                    formID={ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM}
-                    onSubmit={this.updateMerchant}
-                    submitButtonText={this.props.translate('common.save')}
-                    enabledWhenOffline
-                >
-                    <View style={styles.mb4}>
-                        <TextInput
-                            inputID="moneyRequestMerchant"
-                            name="moneyRequestMerchant"
-                            defaultValue={this.props.iou.merchant}
-                            label={this.props.translate('common.merchant')}
-                            accessibilityLabel={this.props.translate('common.merchant')}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                            ref={(el) => (this.merchantInputRef = el)}
-                        />
-                    </View>
-                </Form>
-            </ScreenWrapper>
-        );
-    }
+                <View style={styles.mb4}>
+                    <TextInput
+                        inputID="moneyRequestMerchant"
+                        name="moneyRequestMerchant"
+                        defaultValue={iou.merchant}
+                        label={translate('common.merchant')}
+                        accessibilityLabel={translate('common.merchant')}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        ref={(el) => (inputRef.current = el)}
+                    />
+                </View>
+            </Form>
+        </ScreenWrapper>
+    );
 }
 
 MoneyRequestMerchantPage.propTypes = propTypes;
 MoneyRequestMerchantPage.defaultProps = defaultProps;
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        iou: {key: ONYXKEYS.IOU},
-    }),
-)(MoneyRequestMerchantPage);
+export default withOnyx({
+    iou: {
+        key: ONYXKEYS.IOU,
+    },
+})(MoneyRequestMerchantPage);

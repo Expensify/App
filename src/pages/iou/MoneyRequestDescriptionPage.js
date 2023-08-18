@@ -88,7 +88,7 @@ function MoneyRequestDescriptionPage({iou, route}) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
-            onEntryTransitionEnd={() => inputRef && inputRef.focus()}
+            onEntryTransitionEnd={() => inputRef.current && inputRef.current.focus()}
         >
             <HeaderWithBackButton
                 title={translate('common.description')}
