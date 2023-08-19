@@ -1610,6 +1610,11 @@ export default {
             finish: 'Finish',
             stop: 'Stop',
         },
+        mapPending: {
+            title: 'Map pending',
+            subtitle: 'The map will be generated when you go back online',
+            onlineSubtitle: 'One moment while we set up the map',
+        },
         errors: {
             selectSuggestedAddress: 'Please select a suggested address',
         },
