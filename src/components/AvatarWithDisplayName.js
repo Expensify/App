@@ -19,8 +19,8 @@ import Text from './Text';
 import * as StyleUtils from '../styles/StyleUtils';
 import ParentNavigationSubtitle from './ParentNavigationSubtitle';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
-import Navigation from "../libs/Navigation/Navigation";
-import ROUTES from "../ROUTES";
+import Navigation from '../libs/Navigation/Navigation';
+import ROUTES from '../ROUTES';
 
 const propTypes = {
     /** The report currently being looked at */
