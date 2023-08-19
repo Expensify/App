@@ -38,7 +38,7 @@ function SaveResponseInOnyx(response, request) {
         });
 
         // Save the update IDs to Onyx so they can be used to fetch incremental updates if the client gets out of sync from the server
-        OnyxUpdates.saveUpdateIDs(
+        OnyxUpdates.saveUpdateInformation(
             {
                 updateType: CONST.ONYX_UPDATE_TYPES.HTTPS,
                 data: {

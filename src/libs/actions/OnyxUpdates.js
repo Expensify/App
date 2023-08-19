@@ -11,7 +11,7 @@ import ONYXKEYS from '../../ONYXKEYS';
  * @param {Number} [lastUpdateID]
  * @param {Number} [previousUpdateID]
  */
-function saveUpdateIDs(updateParams, lastUpdateID = 0, previousUpdateID = 0) {
+function saveUpdateInformation(updateParams, lastUpdateID = 0, previousUpdateID = 0) {
     // Return early if there were no updateIDs
     if (!lastUpdateID) {
         return;
@@ -25,4 +25,4 @@ function saveUpdateIDs(updateParams, lastUpdateID = 0, previousUpdateID = 0) {
 }
 
 // eslint-disable-next-line import/prefer-default-export
-export {saveUpdateIDs};
+export {saveUpdateInformation};

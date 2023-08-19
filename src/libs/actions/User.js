@@ -563,7 +563,7 @@ function subscribeToUserEvents() {
             return;
         }
 
-        OnyxUpdates.saveUpdateIDs(
+        OnyxUpdates.saveUpdateInformation(
             {
                 updateType: CONST.ONYX_UPDATE_TYPES.PUSHER,
                 data: {
