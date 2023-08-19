@@ -1858,7 +1858,7 @@ function buildOptimisticExpenseReport(chatReportID, policyID, payeeAccountID, to
  * @returns {Array}
  */
 function getIOUReportActionMessage(iouReportID, type, total, comment, currency, paymentType = '', isSettlingUp = false) {
-    let amount =
+    const amount =
         type === CONST.IOU.REPORT_ACTION_TYPE.PAY
             ? CurrencyUtils.convertToDisplayString(getMoneyRequestTotal(getReport(iouReportID)), currency)
             : CurrencyUtils.convertToDisplayString(total, currency);
