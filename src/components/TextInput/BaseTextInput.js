@@ -190,9 +190,9 @@ function BaseTextInput(props) {
         // We can't use inputValue here directly, as it might contain
         // the defaultValue, which doesn't get updated when the text changes.
         // We can't use props.value either, as it might be undefined.
-        if (hasValueRef.current || isFocused) {
+        if (hasValueRef.current || isFocused || isInputAutoFilled(input.current)) {
             activateLabel();
-        } else if (!hasValueRef.current && !isFocused) {
+        } else {
             deactivateLabel();
         }
     }, [activateLabel, deactivateLabel, inputValue, isFocused]);
