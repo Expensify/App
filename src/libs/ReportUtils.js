@@ -82,6 +82,15 @@ function getChatType(report) {
 }
 
 /**
+ * @param {String} policyID
+ * @returns {Object}
+ */
+function getPolicy(policyID) {
+    const policy = lodashGet(allPolicies, `${ONYXKEYS.COLLECTION.POLICY}${policyID}`) || {};
+    return policy;
+}
+
+/**
  * Returns the concatenated title for the PrimaryLogins of a report
  *
  * @param {Array} accountIDs
@@ -168,10 +177,22 @@ function isCompletedTaskReport(report) {
     return isTaskReport(report) && report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && report.statusNum === CONST.REPORT.STATUS.APPROVED;
 }
 
+/**
+ * Checks if the current user is the maanger of the supplied report
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
 function isReportManager(report) {
     return lodashGet(report, 'managerID') === currentUserAccountID;
 }
 
+/**
+ * Checks if the supplied report has been approved
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
 function isReportApproved(report) {
     return lodashGet(report, 'stateNum') === CONST.REPORT.STATE_NUM.SUBMITTED && lodashGet(report, 'statusNum') === CONST.REPORT.STATUS.APPROVED;
 }
@@ -1754,35 +1775,6 @@ function buildOptimisticTaskCommentReportAction(taskReportID, taskTitle, taskAss
     return reportAction;
 }
 
-function buildOptimisticApprovedReportAction(amount, currency, expenseReportID) {
-    const originalMessage = {
-        amount,
-        currency,
-        expenseReportID,
-    };
-
-    return {
-        actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
-        actorAccountID: currentUserAccountID,
-        automatic: false,
-        avatar: lodashGet(currentUserPersonalDetails, 'avatar', UserUtils.getDefaultAvatar(currentUserAccountID)),
-        isAttachment: false,
-        originalMessage,
-        message: getIOUReportActionMessage(expenseReportID, CONST.REPORT.ACTIONS.TYPE.APPROVED, Math.abs(amount), '', currency),
-        person: [
-            {
-                style: 'strong',
-                text: lodashGet(currentUserPersonalDetails, 'displayName', currentUserEmail),
-                type: 'TEXT',
-            },
-        ],
-        reportActionID: NumberUtils.rand64(),
-        shouldShow: true,
-        created: DateUtils.getDBTime(),
-        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-    };
-}
-
 /**
  * Builds an optimistic IOU report with a randomly generated reportID
  *
@@ -2005,6 +1997,43 @@ function buildOptimisticIOUReportAction(
         created: DateUtils.getDBTime(),
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         receipt,
+    };
+}
+/**
+ * Builds an optimistic APPROVED report action with a randomly generated reportActionID.
+ *
+ * @param {Number} amount
+ * @param {String} currency
+ * @param {Number} expenseReportID
+ *
+ * @returns {Object}
+ */
+function buildOptimisticApprovedReportAction(amount, currency, expenseReportID) {
+    const originalMessage = {
+        amount,
+        currency,
+        expenseReportID,
+    };
+
+    return {
+        actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+        actorAccountID: currentUserAccountID,
+        automatic: false,
+        avatar: lodashGet(currentUserPersonalDetails, 'avatar', UserUtils.getDefaultAvatar(currentUserAccountID)),
+        isAttachment: false,
+        originalMessage,
+        message: getIOUReportActionMessage(expenseReportID, CONST.REPORT.ACTIONS.TYPE.APPROVED, Math.abs(amount), '', currency),
+        person: [
+            {
+                style: 'strong',
+                text: lodashGet(currentUserPersonalDetails, 'displayName', currentUserEmail),
+                type: 'TEXT',
+            },
+        ],
+        reportActionID: NumberUtils.rand64(),
+        shouldShow: true,
+        created: DateUtils.getDBTime(),
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
     };
 }
 
@@ -3003,7 +3032,7 @@ function isReportDataReady() {
  * @returns {Object}
  */
 function getTaskParentReportActionIDInAssigneeReport(taskReport) {
-    const assigneeChatReportID = lodashGet(getChatByParticipants(isTaskAssignee(taskReport) ? [taskReport.ownerAccountID] : [taskReport.managerID]), 'reportID');
+    const assigneeChatReportID = lodashGet(getChatByParticipants(isReportManager(taskReport) ? [taskReport.ownerAccountID] : [taskReport.managerID]), 'reportID');
     if (!assigneeChatReportID || assigneeChatReportID === taskReport.parentReportID) {
         return {};
     }
@@ -3062,15 +3091,6 @@ function getReportOfflinePendingActionAndErrors(report) {
     const addWorkspaceRoomOrChatPendingAction = lodashGet(report, 'pendingFields.addWorkspaceRoom') || lodashGet(report, 'pendingFields.createChat');
     const addWorkspaceRoomOrChatErrors = getAddWorkspaceRoomOrChatReportErrors(report);
     return {addWorkspaceRoomOrChatPendingAction, addWorkspaceRoomOrChatErrors};
-}
-
-/**
- * @param {String} policyID
- * @returns {Object}
- */
-function getPolicy(policyID) {
-    const policy = lodashGet(allPolicies, `${ONYXKEYS.COLLECTION.POLICY}${policyID}`) || {};
-    return policy;
 }
 
 /*
