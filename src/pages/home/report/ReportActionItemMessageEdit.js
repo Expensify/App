@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import React, {useState, useRef, useMemo, useEffect, useCallback} from 'react';
-import {InteractionManager, Keyboard, View} from 'react-native';
+import {InteractionManager, Keyboard, Platform, View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
@@ -41,6 +41,7 @@ import useReportScrollManager from '../../../hooks/useReportScrollManager';
 import * as EmojiPickerAction from '../../../libs/actions/EmojiPickerAction';
 import focusWithDelay from '../../../libs/focusWithDelay';
 import ONYXKEYS from '../../../ONYXKEYS';
+import getOperatingSystem from '../../../libs/getOperatingSystem';
 
 const propTypes = {
     /** All the data of the action */
@@ -125,10 +126,10 @@ function ReportActionItemMessageEdit(props) {
     }, [isFocused]);
 
     useEffect(() => {
-        // For mobile Safari and mobile Chrome, updating the selection prop on an unfocused input will cause it to automatically gain focus
+        // For every platform execept Android, updating the selection prop on an unfocused input will cause it to automatically gain focus
         // and subsequent programmatic focus shifts (e.g., modal focus trap) to show the blue frame (:focus-visible style),
         // so we need to ensure that it is only updated after focus.
-        if (Browser.isMobileSafari() || Browser.isMobileChrome()) {
+        if (getOperatingSystem() !== CONST.OS.ANDROID) {
             setDraft((prevDraft) => {
                 setSelection({
                     start: prevDraft.length,
