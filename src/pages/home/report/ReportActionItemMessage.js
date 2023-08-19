@@ -36,8 +36,7 @@ const defaultProps = {
 };
 
 function ReportActionItemMessage(props) {
-    const messages = _.compact(props.action.previousMessage || props.action.message);
-    const isAttachment = ReportUtils.isReportMessageAttachment(_.last(messages));
+    const fragments = _.compact(props.action.previousMessage || props.action.message);
     const isIOUReport = ReportActionsUtils.isMoneyRequestAction(props.action);
     let iouMessage;
     if (isIOUReport) {
@@ -48,9 +47,9 @@ function ReportActionItemMessage(props) {
     }
 
     return (
-        <View style={[styles.chatItemMessage, !props.displayAsGroup && isAttachment ? styles.mt2 : {}, ...props.style]}>
+        <View style={[styles.chatItemMessage, ...props.style]}>
             {!props.isHidden ? (
-                _.map(messages, (fragment, index) => (
+                _.map(fragments, (fragment, index) => (
                     <ReportActionItemFragment
                         key={`actionFragment-${props.action.reportActionID}-${index}`}
                         fragment={fragment}
@@ -60,6 +59,7 @@ function ReportActionItemMessage(props) {
                         pendingAction={props.action.pendingAction}
                         source={lodashGet(props.action, 'originalMessage.source')}
                         accountID={props.action.actorAccountID}
+                        displayAsGroup={props.displayAsGroup}
                         style={props.style}
                     />
                 ))
