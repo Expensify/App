@@ -8,14 +8,19 @@ import HTMLEngineProvider from '../src/components/HTMLEngineProvider';
 import OnyxProvider from '../src/components/OnyxProvider';
 import {LocaleContextProvider} from '../src/components/withLocalize';
 import ONYXKEYS from '../src/ONYXKEYS';
+import {KeyboardStateProvider} from '../src/components/withKeyboardState';
+import {EnvironmentProvider} from '../src/components/withEnvironment';
 
 Onyx.init({
     keys: ONYXKEYS,
+    initialKeyStates: {
+        [ONYXKEYS.NETWORK]: {isOffline: false},
+    },
 });
 
 const decorators = [
     (Story) => (
-        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, HTMLEngineProvider, SafeAreaProvider, PortalProvider]}>
+        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, HTMLEngineProvider, SafeAreaProvider, PortalProvider, EnvironmentProvider, KeyboardStateProvider]}>
             <Story />
         </ComposeProviders>
     ),

@@ -8,6 +8,9 @@ import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
 import * as StyleUtils from '../styles/StyleUtils';
 import CONST from '../CONST';
+import withNavigationFallback from '../components/withNavigationFallback';
+
+const ComposerWithNavigation = withNavigationFallback(Composer);
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
@@ -16,7 +19,7 @@ import CONST from '../CONST';
  */
 const story = {
     title: 'Components/Composer',
-    component: Composer,
+    component: ComposerWithNavigation,
 };
 
 const parser = new ExpensiMark();
@@ -29,7 +32,7 @@ function Default(args) {
     return (
         <View>
             <View style={[styles.border, styles.p4]}>
-                <Composer
+                <ComposerWithNavigation
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...args}
                     multiline
