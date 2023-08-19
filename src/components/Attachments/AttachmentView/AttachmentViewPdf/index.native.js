@@ -9,6 +9,7 @@ function AttachmentViewPdf({file, encryptedSourceUrl, isFocused, isUsedInCarouse
 
     useEffect(() => {
         attachmentCarouselPagerContext.onPinchGestureChange(false);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we just want to call this function when component is mounted
     }, []);
 
     const onScaleChanged = useCallback(
