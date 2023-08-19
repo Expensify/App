@@ -77,40 +77,42 @@ Onyx.connect({
     callback: (val) => (lastUpdateIDAppliedToClient = val),
 });
 
-Onyx.connect({
-    key: ONYXKEYS.ONYX_UPDATES_FROM_SERVER,
-    callback: (val) => {
-        if (!val) {
-            return;
-        }
+export default () => {
+    Onyx.connect({
+        key: ONYXKEYS.ONYX_UPDATES_FROM_SERVER,
+        callback: (val) => {
+            if (!val) {
+                return;
+            }
 
-        const {lastUpdateIDFromServer, previousUpdateIDFromServer, updateParams} = val;
-        console.debug('[OnyxUpdates] Received lastUpdateID from server', lastUpdateIDFromServer);
-        console.debug('[OnyxUpdates] Received previousUpdateID from server', previousUpdateIDFromServer);
-        console.debug('[OnyxUpdates] Last update ID applied to the client', lastUpdateIDAppliedToClient);
+            const {lastUpdateIDFromServer, previousUpdateIDFromServer, updateParams} = val;
+            console.debug('[OnyxUpdates] Received lastUpdateID from server', lastUpdateIDFromServer);
+            console.debug('[OnyxUpdates] Received previousUpdateID from server', previousUpdateIDFromServer);
+            console.debug('[OnyxUpdates] Last update ID applied to the client', lastUpdateIDAppliedToClient);
 
-        // If the previous update from the server does not match the last update the client got, then the client is missing some updates.
-        // getMissingOnyxUpdates will fetch updates starting from the last update this client got and going to the last update the server sent.
-        if (lastUpdateIDAppliedToClient && previousUpdateIDFromServer && lastUpdateIDAppliedToClient < previousUpdateIDFromServer) {
-            console.debug('[OnyxUpdates] Gap detected in update IDs so fetching incremental updates');
-            Log.info('Gap detected in update IDs from server so fetching incremental updates', true, {
-                lastUpdateIDFromServer,
-                previousUpdateIDFromServer,
-                lastUpdateIDAppliedToClient,
-            });
+            // If the previous update from the server does not match the last update the client got, then the client is missing some updates.
+            // getMissingOnyxUpdates will fetch updates starting from the last update this client got and going to the last update the server sent.
+            if (lastUpdateIDAppliedToClient && previousUpdateIDFromServer && lastUpdateIDAppliedToClient < previousUpdateIDFromServer) {
+                console.debug('[OnyxUpdates] Gap detected in update IDs so fetching incremental updates');
+                Log.info('Gap detected in update IDs from server so fetching incremental updates', true, {
+                    lastUpdateIDFromServer,
+                    previousUpdateIDFromServer,
+                    lastUpdateIDAppliedToClient,
+                });
 
-            SequentialQueue.pause();
+                SequentialQueue.pause();
 
-            App.getMissingOnyxUpdates(lastUpdateIDAppliedToClient, lastUpdateIDFromServer).finally(() => {
-                applyOnyxUpdates(updateParams).then(SequentialQueue.unpause);
-            });
-        } else {
-            applyOnyxUpdates(updateParams);
-        }
+                App.getMissingOnyxUpdates(lastUpdateIDAppliedToClient, lastUpdateIDFromServer).finally(() => {
+                    applyOnyxUpdates(updateParams).then(SequentialQueue.unpause);
+                });
+            } else {
+                applyOnyxUpdates(updateParams);
+            }
 
-        if (lastUpdateIDFromServer > lastUpdateIDAppliedToClient) {
-            // Update this value so that it matches what was just received from the server
-            Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, lastUpdateIDFromServer || 0);
-        }
-    },
-});
+            if (lastUpdateIDFromServer > lastUpdateIDAppliedToClient) {
+                // Update this value so that it matches what was just received from the server
+                Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, lastUpdateIDFromServer || 0);
+            }
+        },
+    });
+};
