@@ -13,7 +13,11 @@ export default {
             UnlinkLogin: ROUTES.UNLINK_LOGIN,
             [SCREENS.TRANSITION_BETWEEN_APPS]: ROUTES.TRANSITION_BETWEEN_APPS,
             Concierge: ROUTES.CONCIERGE,
+            AppleSignInDesktop: ROUTES.APPLE_SIGN_IN,
+            GoogleSignInDesktop: ROUTES.GOOGLE_SIGN_IN,
+            DesktopSignInRedirect: ROUTES.DESKTOP_SIGN_IN_REDIRECT,
             [SCREENS.REPORT_ATTACHMENTS]: ROUTES.REPORT_ATTACHMENTS,
+            SaaStrHome: ROUTES.SAASTR_HOME,
 
             // Sidebar
             [SCREENS.HOME]: {
@@ -66,20 +70,20 @@ export default {
                                 path: ROUTES.SETTINGS_SECURITY,
                                 exact: true,
                             },
-                            Settings_Payments: {
-                                path: ROUTES.SETTINGS_PAYMENTS,
+                            Settings_Wallet: {
+                                path: ROUTES.SETTINGS_WALLET,
                                 exact: true,
                             },
-                            Settings_Payments_EnablePayments: {
+                            Settings_Wallet_EnablePayments: {
                                 path: ROUTES.SETTINGS_ENABLE_PAYMENTS,
                                 exact: true,
                             },
-                            Settings_Payments_Transfer_Balance: {
-                                path: ROUTES.SETTINGS_PAYMENTS_TRANSFER_BALANCE,
+                            Settings_Wallet_Transfer_Balance: {
+                                path: ROUTES.SETTINGS_WALLET_TRANSFER_BALANCE,
                                 exact: true,
                             },
-                            Settings_Payments_Choose_Transfer_Account: {
-                                path: ROUTES.SETTINGS_PAYMENTS_CHOOSE_TRANSFER_ACCOUNT,
+                            Settings_Wallet_Choose_Transfer_Account: {
+                                path: ROUTES.SETTINGS_WALLET_CHOOSE_TRANSFER_ACCOUNT,
                                 exact: true,
                             },
                             Settings_Add_Paypal_Me: {
@@ -329,6 +333,7 @@ export default {
                             Money_Request_Confirmation: ROUTES.MONEY_REQUEST_CONFIRMATION,
                             Money_Request_Currency: ROUTES.MONEY_REQUEST_CURRENCY,
                             Money_Request_Description: ROUTES.MONEY_REQUEST_DESCRIPTION,
+                            Money_Request_Waypoint: ROUTES.MONEY_REQUEST_WAYPOINT,
                             IOU_Send_Enable_Payments: ROUTES.IOU_SEND_ENABLE_PAYMENTS,
                             IOU_Send_Add_Bank_Account: ROUTES.IOU_SEND_ADD_BANK_ACCOUNT,
                             IOU_Send_Add_Debit_Card: ROUTES.IOU_SEND_ADD_DEBIT_CARD,
@@ -369,6 +374,7 @@ export default {
                     EditRequest: {
                         screens: {
                             EditRequest_Root: ROUTES.EDIT_REQUEST,
+                            EditRequest_Currency: ROUTES.EDIT_CURRENCY_REQUEST,
                         },
                     },
                 },
