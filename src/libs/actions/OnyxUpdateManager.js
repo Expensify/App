@@ -106,13 +106,14 @@ export default () => {
             // lastUpdateIDAppliedToClient will always be null. For this case, reconnectApp() will be triggered for them
             // to kick start the reliable updates.
             if (!lastUpdateIDAppliedToClient && previousUpdateIDFromServer > 0) {
+                console.debug('[OnyxUpdateManager] Client has not gotten reliable updates before so reconnecting the app to start the process');
                 App.reconnectApp();
             }
 
             // If the previous update from the server does not match the last update the client got, then the client is missing some updates.
             // getMissingOnyxUpdates will fetch updates starting from the last update this client got and going to the last update the server sent.
             if (lastUpdateIDAppliedToClient && previousUpdateIDFromServer && lastUpdateIDAppliedToClient < previousUpdateIDFromServer) {
-                console.debug('[OnyxUpdateManager] Gap detected in update IDs so fetching incremental updates');
+                console.debug(`[OnyxUpdateManager] Client is behind the server by ${previousUpdateIDFromServer - lastUpdateIDAppliedToClient} so fetching incremental updates`);
                 Log.info('Gap detected in update IDs from server so fetching incremental updates', true, {
                     lastUpdateIDFromServer,
                     previousUpdateIDFromServer,
@@ -140,6 +141,7 @@ export default () => {
                     });
                 });
             } else {
+                console.debug(`[OnyxUpdateManager] Client is in sync with the server`);
                 applyOnyxUpdates(updateParams);
             }
 
