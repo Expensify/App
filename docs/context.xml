@@ -25,7 +25,7 @@
             <search_restrict_args lr="" cr="" gl="" filter="0" sort="" as_siteseach="" as_oq=""></search_restrict_args>
         </image_advanced_options>
         <search_options link_target=""></search_options>
-        <custom_search_control_options no_results_string="Oops no results found, Please try again..."></custom_search_control_options>
+        <custom_search_control_options no_results_string="Oops, I couldn't find that. Please try again!"></custom_search_control_options>
     </cse_advance_settings>
     <sort_by_keys label="Relevance" key=""></sort_by_keys>
     <sort_by_keys label="Date" key="date"></sort_by_keys>
