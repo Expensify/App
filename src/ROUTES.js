@@ -59,11 +59,7 @@ export default {
     SETTINGS_CONTACT_METHOD_DETAILS: `${SETTINGS_CONTACT_METHODS}/:contactMethod/details`,
     getEditContactMethodRoute: (contactMethod) => `${SETTINGS_CONTACT_METHODS}/${encodeURIComponent(contactMethod)}/details`,
     SETTINGS_NEW_CONTACT_METHOD: `${SETTINGS_CONTACT_METHODS}/new`,
-    SETTINGS_2FA_IS_ENABLED: 'settings/security/two-factor-auth/enabled',
-    SETTINGS_2FA_DISABLE: 'settings/security/two-factor-auth/disable',
-    SETTINGS_2FA_CODES: 'settings/security/two-factor-auth/codes',
-    SETTINGS_2FA_VERIFY: 'settings/security/two-factor-auth/verify',
-    SETTINGS_2FA_SUCCESS: 'settings/security/two-factor-auth/success',
+    SETTINGS_2FA: 'settings/security/two-factor-auth',
     SETTINGS_STATUS,
     SETTINGS_STATUS_SET,
     NEW_GROUP: 'new/group',
@@ -207,4 +203,5 @@ export default {
             isSubReportPageRoute: pathSegments.length > 2,
         };
     },
+    SIGN_IN_MODAL: 'sign-in-modal',
 };

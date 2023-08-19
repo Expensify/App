@@ -157,11 +157,12 @@ function Footer(props) {
     const pageFooterWrapper = [styles.footerWrapper, imageDirection, imageStyle, isVertical ? styles.pl10 : {}];
     const footerColumns = [styles.footerColumnsContainer, columnDirection];
     const footerColumn = isVertical ? [styles.p4] : [styles.p4, props.isMediumScreenWidth ? styles.w50 : styles.w25];
+    const footerWrapper = isVertical ? [StyleUtils.getBackgroundColorStyle(themeColors.signInPage), styles.overflowHidden] : [];
 
     return (
         <View style={[styles.flex1]}>
-            <View style={[props.isSmallScreenWidth ? StyleUtils.getBackgroundColorStyle(themeColors.signInPage) : {}]}>
-                {props.isSmallScreenWidth ? (
+            <View style={footerWrapper}>
+                {isVertical ? (
                     <View style={[styles.signInPageGradientMobile]}>
                         <SignInGradient height="100%" />
                     </View>
