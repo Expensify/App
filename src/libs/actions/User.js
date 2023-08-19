@@ -565,7 +565,7 @@ function subscribeToUserEvents() {
 
         OnyxUpdates.saveUpdateInformation(
             {
-                updateType: CONST.ONYX_UPDATE_TYPES.PUSHER,
+                type: CONST.ONYX_UPDATE_TYPES.PUSHER,
                 data: {
                     multipleEvents: pushJSON.updates,
                 },

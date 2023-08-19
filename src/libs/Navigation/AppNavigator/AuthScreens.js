@@ -35,7 +35,6 @@ import DesktopSignInRedirectPage from '../../../pages/signin/DesktopSignInRedire
 import styles from '../../../styles/styles';
 import * as SessionUtils from '../../SessionUtils';
 import getNavigationModalCardStyle from '../../../styles/getNavigationModalCardStyles';
-import OnyxUpdateManager from '../../actions/OnyxUpdateManager';
 
 let timezone;
 let currentAccountID;
@@ -126,7 +125,6 @@ class AuthScreens extends React.Component {
     }
 
     componentDidMount() {
-        OnyxUpdateManager();
         NetworkConnection.listenForReconnect();
         NetworkConnection.onReconnect(() => App.reconnectApp(this.props.lastUpdateIDAppliedToClient));
         PusherConnectionManager.init();

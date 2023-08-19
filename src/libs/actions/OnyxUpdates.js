@@ -17,7 +17,8 @@ function saveUpdateInformation(updateParams, lastUpdateID = 0, previousUpdateID 
         return;
     }
 
-    Onyx.merge(ONYXKEYS.ONYX_UPDATES_FROM_SERVER, {
+    // Always use set() here so that the updateParams are never merged and always unique to the request that came in
+    Onyx.set(ONYXKEYS.ONYX_UPDATES_FROM_SERVER, {
         lastUpdateIDFromServer: lastUpdateID,
         previousUpdateIDFromServer: previousUpdateID,
         updateParams,

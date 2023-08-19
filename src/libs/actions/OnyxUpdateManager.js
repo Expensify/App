@@ -8,8 +8,14 @@ import PusherUtils from '../PusherUtils';
 import * as QueuedOnyxUpdates from './QueuedOnyxUpdates';
 import * as App from './App';
 
-// The next 40ish lines of code are used for detecting when there is a gap of OnyxUpdates between what was last applied to the client and the updates the server has.
-// When a gap is detected, the missing updates are fetched from the API.
+// This file is in charge of looking at the updateIDs coming from the server and comparing them to the last updateID that the client has.
+// If the client is behind the server, then we need to pause everything, get the missing updates from the server, apply those updates,
+// then restart everything. This will ensure that the client is up-to-date with the server and all the updates have been applied
+// in the correct order.
+// It's important that this file is separate and not imported by OnyxUpdates.js, so that there are no circular dependencies. Onyx
+// is used as a pub/sub mechanism to break out of the circular dependencies.
+// The circular dependency happen because this file calls the API GetMissingOnyxUpdates which uses the SaveResponseInOnyx.js file
+// (as a middleware). Therefore, SaveResponseInOnyx.js can't import and use this file directly.
 
 /**
  * @param {Object} data
@@ -18,6 +24,7 @@ import * as App from './App';
  * @returns {Promise}
  */
 function applyHTTPSOnyxUpdates({request, responseData}) {
+    console.debug('[OnyxUpdateManager] Applying https update');
     // For most requests we can immediately update Onyx. For write requests we queue the updates and apply them after the sequential queue has flushed to prevent a replay effect in
     // the UI. See https://github.com/Expensify/App/issues/12775 for more info.
     const updateHandler = request.data.apiRequestType === CONST.API_REQUEST_TYPE.WRITE ? QueuedOnyxUpdates.queueOnyxUpdates : Onyx.update;
@@ -49,6 +56,7 @@ function applyHTTPSOnyxUpdates({request, responseData}) {
  * @returns {Promise}
  */
 function applyPusherOnyxUpdates({multipleEvents}) {
+    console.debug('[OnyxUpdateManager] Applying pusher update');
     const pusherEventPromises = _.reduce(
         multipleEvents,
         (result, multipleEvent) => {
@@ -72,6 +80,7 @@ function applyPusherOnyxUpdates({multipleEvents}) {
  * @returns {Promise}
  */
 function applyOnyxUpdates({type, data}) {
+    console.debug(`[OnyxUpdateManager] Applying update type: ${type}`, data);
     if (type === CONST.ONYX_UPDATE_TYPES.HTTPS) {
         return applyHTTPSOnyxUpdates(data);
     }
@@ -97,9 +106,6 @@ export default () => {
             }
 
             const {lastUpdateIDFromServer, previousUpdateIDFromServer, updateParams} = val;
-            console.debug('[OnyxUpdateManager] Received lastUpdateID from server', lastUpdateIDFromServer);
-            console.debug('[OnyxUpdateManager] Received previousUpdateID from server', previousUpdateIDFromServer);
-            console.debug('[OnyxUpdateManager] Last update ID applied to the client', lastUpdateIDAppliedToClient);
 
             // This can happen when a user has just started getting reliable updates from the server but they haven't
             // had an OpenApp or ReconnectApp call yet. This can result in never getting reliable updates because
