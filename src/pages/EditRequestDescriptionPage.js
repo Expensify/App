@@ -10,6 +10,8 @@ import styles from '../styles/styles';
 import Navigation from '../libs/Navigation/Navigation';
 import CONST from '../CONST';
 import useLocalize from '../hooks/useLocalize';
+import * as Browser from "../libs/Browser"
+import focusAndUpdateMultilineInputRange from "../libs/focusAndUpdateMultilineInputRange"
 
 const propTypes = {
     /** Transaction default description value */
@@ -26,7 +28,7 @@ function EditRequestDescriptionPage({defaultDescription, onSubmit}) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
-            onEntryTransitionEnd={() => descriptionInputRef.current && descriptionInputRef.current.focus()}
+            onEntryTransitionEnd={() => focusAndUpdateMultilineInputRange(descriptionInputRef.current)}
         >
             <HeaderWithBackButton
                 title={translate('common.description')}
@@ -49,6 +51,10 @@ function EditRequestDescriptionPage({defaultDescription, onSubmit}) {
                         accessibilityLabel={translate('moneyRequestConfirmationList.whatsItFor')}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         ref={(e) => (descriptionInputRef.current = e)}
+                        autoGrowHeight
+                        containerStyles={[styles.autoGrowHeightMultilineInput]}
+                        textAlignVertical="top"
+                        submitOnEnter={!Browser.isMobile()}
                     />
                 </View>
             </Form>

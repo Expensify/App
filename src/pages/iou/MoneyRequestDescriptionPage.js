@@ -18,6 +18,7 @@ import * as IOU from '../../libs/actions/IOU';
 import optionPropTypes from '../../components/optionPropTypes';
 import CONST from '../../CONST';
 import focusAndUpdateMultilineInputRange from '../../libs/focusAndUpdateMultilineInputRange';
+import * as Browser from '../../libs/Browser';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -119,7 +120,7 @@ class MoneyRequestDescriptionPage extends Component {
                             autoGrowHeight
                             containerStyles={[styles.autoGrowHeightMultilineInput]}
                             textAlignVertical="top"
-                            submitOnEnter
+                            submitOnEnter={!Browser.isMobile()}
                         />
                     </View>
                 </Form>
