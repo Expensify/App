@@ -334,7 +334,6 @@ function ReportActionCompose({
     const actionButtonRef = useRef(null);
 
     const reportParticipants = useMemo(() => _.without(lodashGet(report, 'participantAccountIDs', []), currentUserPersonalDetails.accountID), [currentUserPersonalDetails.accountID, report]);
-    const participantsWithoutExpensifyAccountIDs = useMemo(() => _.difference(reportParticipants, CONST.EXPENSIFY_ACCOUNT_IDS), [reportParticipants]);
 
     const shouldShowReportRecipientLocalTime = useMemo(
         () => ReportUtils.canShowReportRecipientLocalTime(personalDetails, report, currentUserPersonalDetails.accountID) && !isComposerFullSize,
@@ -1009,7 +1008,8 @@ function ReportActionCompose({
         updateComment(comment);
     }, [prevCommentProp, prevPreferredLocale, prevReportId, comment, preferredLocale, report.reportID, updateComment, value]);
 
-    const reportRecipient = personalDetails[participantsWithoutExpensifyAccountIDs[0]];
+    const reportRecipientAcountIDs = ReportUtils.getReportRecipientAccountIDs(report, currentUserPersonalDetails.accountID);
+    const reportRecipient = personalDetails[reportRecipientAcountIDs[0]];
     const shouldUseFocusedColor = !isBlockedFromConcierge && !disabled && isFocused;
     const isFullSizeComposerAvailable = isFullComposerAvailable && !_.isEmpty(value);
     const hasReportRecipient = _.isObject(reportRecipient) && !_.isEmpty(reportRecipient);
