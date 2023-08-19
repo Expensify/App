@@ -78,6 +78,7 @@ Onyx.connect({
 });
 
 export default () => {
+    console.debug('[OnyxUpdateManager] Listening for updates from the server');
     Onyx.connect({
         key: ONYXKEYS.ONYX_UPDATES_FROM_SERVER,
         callback: (val) => {
@@ -86,14 +87,14 @@ export default () => {
             }
 
             const {lastUpdateIDFromServer, previousUpdateIDFromServer, updateParams} = val;
-            console.debug('[OnyxUpdates] Received lastUpdateID from server', lastUpdateIDFromServer);
-            console.debug('[OnyxUpdates] Received previousUpdateID from server', previousUpdateIDFromServer);
-            console.debug('[OnyxUpdates] Last update ID applied to the client', lastUpdateIDAppliedToClient);
+            console.debug('[OnyxUpdateManager] Received lastUpdateID from server', lastUpdateIDFromServer);
+            console.debug('[OnyxUpdateManager] Received previousUpdateID from server', previousUpdateIDFromServer);
+            console.debug('[OnyxUpdateManager] Last update ID applied to the client', lastUpdateIDAppliedToClient);
 
             // If the previous update from the server does not match the last update the client got, then the client is missing some updates.
             // getMissingOnyxUpdates will fetch updates starting from the last update this client got and going to the last update the server sent.
             if (lastUpdateIDAppliedToClient && previousUpdateIDFromServer && lastUpdateIDAppliedToClient < previousUpdateIDFromServer) {
-                console.debug('[OnyxUpdates] Gap detected in update IDs so fetching incremental updates');
+                console.debug('[OnyxUpdateManager] Gap detected in update IDs so fetching incremental updates');
                 Log.info('Gap detected in update IDs from server so fetching incremental updates', true, {
                     lastUpdateIDFromServer,
                     previousUpdateIDFromServer,
