@@ -14,6 +14,10 @@ buildscript {
         multiDexEnabled = true
         googlePlayServicesVersion = "17.0.0"
         kotlinVersion = '1.6.20'
+
+        // This property configures the type of Mapbox SDK used by the @rnmapbox/maps library.
+        // "mapbox" indicates the usage of the Mapbox SDK.
+        RNMapboxMapsImpl = "mapbox"
     }
     repositories {
         google()
@@ -47,6 +51,24 @@ allprojects {
         maven {
             // All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
             url("$rootDir/../node_modules/react-native/android")
+        }
+        maven {
+            // Mapbox SDK requires authentication to download from Mapbox's private Maven repository.
+            url 'https://api.mapbox.com/downloads/v2/releases/maven'
+            authentication {
+                basic(BasicAuthentication)
+            }
+            credentials {
+                // 'mapbox' is the fixed username for Mapbox's Maven repository.
+                username = 'mapbox'
+
+                // The value for password is read from the 'MAPBOX_DOWNLOADS_TOKEN' gradle property. 
+                // Run "npm run setup-mapbox-sdk" to set this property in «USER_HOME»/.gradle/gradle.properties
+
+                // Example gradle.properties entry:
+                // MAPBOX_DOWNLOADS_TOKEN=YOUR_SECRET_TOKEN_HERE
+                password = project.properties['MAPBOX_DOWNLOADS_TOKEN'] ?: ""
+            }
         }
     }
 }
