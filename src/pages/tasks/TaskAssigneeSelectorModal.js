@@ -76,6 +76,7 @@ function TaskAssigneeSelectorModal(props) {
     const [filteredPersonalDetails, setFilteredPersonalDetails] = useState([]);
     const [filteredUserToInvite, setFilteredUserToInvite] = useState(null);
     const [filteredCurrentUserOption, setFilteredCurrentUserOption] = useState(null);
+    const [isLoading, setIsLoading] = React.useState(true);
 
     const updateOptions = useCallback(() => {
         const {recentReports, personalDetails, userToInvite, currentUserOption} = OptionsListUtils.getNewChatOptions(
@@ -94,7 +95,10 @@ function TaskAssigneeSelectorModal(props) {
         setFilteredRecentReports(recentReports);
         setFilteredPersonalDetails(personalDetails);
         setFilteredCurrentUserOption(currentUserOption);
-    }, [props, searchValue]);
+        if (isLoading) {
+            setIsLoading(false);
+        }
+    }, [props, searchValue, isLoading]);
 
     useEffect(() => {
         const debouncedSearch = _.debounce(updateOptions, 200);
@@ -195,7 +199,7 @@ function TaskAssigneeSelectorModal(props) {
                             onChangeText={onChangeText}
                             headerMessage={headerMessage}
                             showTitleTooltip
-                            shouldShowOptions={didScreenTransitionEnd}
+                            shouldShowOptions={didScreenTransitionEnd && !isLoading}
                             textInputLabel={props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                         />
