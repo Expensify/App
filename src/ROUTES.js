@@ -203,4 +203,5 @@ export default {
             isSubReportPageRoute: pathSegments.length > 2,
         };
     },
+    SIGN_IN_MODAL: 'sign-in-modal',
 };

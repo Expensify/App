@@ -353,6 +353,11 @@ export default {
                             EditRequest_Currency: ROUTES.EDIT_CURRENCY_REQUEST,
                         },
                     },
+                    SignIn: {
+                        screens: {
+                            SignIn_Root: ROUTES.SIGN_IN_MODAL,
+                        },
+                    },
                 },
             },
         },

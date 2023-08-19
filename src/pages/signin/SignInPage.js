@@ -46,6 +46,9 @@ const propTypes = {
         validateCode: PropTypes.string,
     }),
 
+    /** Whether or not the sign in page is being rendered in the RHP modal */
+    isInModal: PropTypes.bool,
+
     /** Override the green headline copy */
     customHeadline: PropTypes.string,
 };
@@ -53,6 +56,7 @@ const propTypes = {
 const defaultProps = {
     account: {},
     credentials: {},
+    isInModal: false,
     customHeadline: '',
 };
 
@@ -81,9 +85,10 @@ function getRenderOptions({hasLogin, hasValidateCode, hasAccount, isPrimaryLogin
     };
 }
 
-function SignInPage({credentials, account, customHeadline}) {
+function SignInPage({credentials, account, isInModal, customHeadline}) {
     const {translate, formatPhoneNumber} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
+    const shouldShowSmallScreen = isSmallScreenWidth || isInModal;
     const safeAreaInsets = useSafeAreaInsets();
 
     useEffect(() => Performance.measureTTI(), []);
@@ -119,19 +124,19 @@ function SignInPage({credentials, account, customHeadline}) {
             // replacing spaces with "hard spaces" to prevent breaking the number
             const userLoginToDisplay = Str.isSMSLogin(userLogin) ? formatPhoneNumber(userLogin).replace(/ /g, '\u00A0') : userLogin;
             if (account.validated) {
-                welcomeHeader = isSmallScreenWidth ? '' : translate('welcomeText.welcomeBack');
-                welcomeText = isSmallScreenWidth
+                welcomeHeader = shouldShowSmallScreen ? '' : translate('welcomeText.welcomeBack');
+                welcomeText = shouldShowSmallScreen
                     ? `${translate('welcomeText.welcomeBack')} ${translate('welcomeText.welcomeEnterMagicCode', {login: userLoginToDisplay})}`
                     : translate('welcomeText.welcomeEnterMagicCode', {login: userLoginToDisplay});
             } else {
-                welcomeHeader = isSmallScreenWidth ? '' : translate('welcomeText.welcome');
-                welcomeText = isSmallScreenWidth
+                welcomeHeader = shouldShowSmallScreen ? '' : translate('welcomeText.welcome');
+                welcomeText = shouldShowSmallScreen
                     ? `${translate('welcomeText.welcome')} ${translate('welcomeText.newFaceEnterMagicCode', {login: userLoginToDisplay})}`
                     : translate('welcomeText.newFaceEnterMagicCode', {login: userLoginToDisplay});
             }
         }
     } else if (shouldShowUnlinkLoginForm || shouldShowEmailDeliveryFailurePage) {
-        welcomeHeader = isSmallScreenWidth ? headerText : translate('welcomeText.welcomeBack');
+        welcomeHeader = shouldShowSmallScreen ? headerText : translate('welcomeText.welcomeBack');
 
         // Don't show any welcome text if we're showing the user the email delivery failed view
         if (shouldShowEmailDeliveryFailurePage) {
@@ -148,8 +153,9 @@ function SignInPage({credentials, account, customHeadline}) {
             <SignInPageLayout
                 welcomeHeader={welcomeHeader}
                 welcomeText={welcomeText}
-                shouldShowWelcomeHeader={shouldShowWelcomeHeader || !isSmallScreenWidth}
+                shouldShowWelcomeHeader={shouldShowWelcomeHeader || !isSmallScreenWidth || !isInModal}
                 shouldShowWelcomeText={shouldShowWelcomeText}
+                isInModal={isInModal}
                 customHeadline={customHeadline}
             >
                 {/* LoginForm must use the isVisible prop. This keeps it mounted, but visually hidden
