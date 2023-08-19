@@ -38,16 +38,27 @@ function applyHTTPSOnyxUpdates({request, responseData}) {
             }
             return Promise.resolve();
         })
-        .then(() => responseData);
+        .then(() => {
+            console.debug('[OnyxUpdateManager] Done applying HTTPS update');
+        });
 }
 
 /**
  * @param {Object} data
  * @param {Object} data.multipleEvents
+ * @returns {Promise}
  */
 function applyPusherOnyxUpdates({multipleEvents}) {
-    _.each(multipleEvents, (multipleEvent) => {
-        PusherUtils.triggerMultiEventHandler(multipleEvent.eventType, multipleEvent.data);
+    const pusherEventPromises = _.reduce(
+        multipleEvents,
+        (result, multipleEvent) => {
+            result.push(PusherUtils.triggerMultiEventHandler(multipleEvent.eventType, multipleEvent.data));
+            return result;
+        },
+        [],
+    );
+    return Promise.all(pusherEventPromises).then(() => {
+        console.debug('[OnyxUpdateManager] Done applying Pusher update');
     });
 }
 
@@ -65,8 +76,7 @@ function applyOnyxUpdates({type, data}) {
         return applyHTTPSOnyxUpdates(data);
     }
     if (type === CONST.ONYX_UPDATE_TYPES.PUSHER) {
-        applyPusherOnyxUpdates(data);
-        return new Promise().resolve();
+        return applyPusherOnyxUpdates(data);
     }
 }
 
@@ -91,6 +101,14 @@ export default () => {
             console.debug('[OnyxUpdateManager] Received previousUpdateID from server', previousUpdateIDFromServer);
             console.debug('[OnyxUpdateManager] Last update ID applied to the client', lastUpdateIDAppliedToClient);
 
+            // This can happen when a user has just started getting reliable updates from the server but they haven't
+            // had an OpenApp or ReconnectApp call yet. This can result in never getting reliable updates because
+            // lastUpdateIDAppliedToClient will always be null. For this case, reconnectApp() will be triggered for them
+            // to kick start the reliable updates.
+            if (!lastUpdateIDAppliedToClient && previousUpdateIDFromServer > 0) {
+                App.reconnectApp();
+            }
+
             // If the previous update from the server does not match the last update the client got, then the client is missing some updates.
             // getMissingOnyxUpdates will fetch updates starting from the last update this client got and going to the last update the server sent.
             if (lastUpdateIDAppliedToClient && previousUpdateIDFromServer && lastUpdateIDAppliedToClient < previousUpdateIDFromServer) {
@@ -101,10 +119,25 @@ export default () => {
                     lastUpdateIDAppliedToClient,
                 });
 
+                // Pause the sequential queue while the missing Onyx updates are fetched from the server. This is important
+                // so that the updates are applied in their correct and specific order. If this queue was not paused, then
+                // there would be a lot of onyx data being applied while we are fetching the missing updates and that would
+                // put them all out of order.
                 SequentialQueue.pause();
 
                 App.getMissingOnyxUpdates(lastUpdateIDAppliedToClient, lastUpdateIDFromServer).finally(() => {
-                    applyOnyxUpdates(updateParams).then(SequentialQueue.unpause);
+                    console.debug('[OnyxUpdateManager] Done Getting missing onyx updates');
+
+                    // The onyx update from the initial request could have been either from HTTPS or Pusher.
+                    // Now that the missing onyx updates have been applied, we can apply the original onyxUpdates from
+                    // the API request.
+                    applyOnyxUpdates(updateParams).then(() => {
+                        console.debug('[OnyxUpdateManager] Done applying all updates');
+
+                        // Finally, the missing updates were applied, the original update was applied, and now the
+                        // sequential queue is free to continue.
+                        SequentialQueue.unpause();
+                    });
                 });
             } else {
                 applyOnyxUpdates(updateParams);
