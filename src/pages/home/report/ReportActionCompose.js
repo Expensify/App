@@ -362,7 +362,7 @@ function ReportActionCompose({
 
         return translate('reportActionCompose.writeSomething');
     }, [report, blockedFromConcierge, translate, conciergePlaceholderRandomIndex]);
-    
+
     /**
      * Focus the composer text input
      * @param {Boolean} [shouldDelay=false] Impose delay before focusing the composer
@@ -371,10 +371,10 @@ function ReportActionCompose({
     const focus = useCallback((shouldDelay) => {
         focusWithDelay(textInputRef.current)(shouldDelay);
     }, []);
-    
+
     const willOpenNextModal = useRef(false);
     const isKeyboardVisibleWhenShowingModal = useRef(false);
-    
+
     const restoreKeyboardState = useCallback(() => {
         if (!isKeyboardVisibleWhenShowingModal.current) {
             return;
@@ -1150,10 +1150,10 @@ function ReportActionCompose({
                                                             ref={actionButtonRef}
                                                             onPress={(e) => {
                                                                 e.preventDefault();
-                                                                    if (!willBlurTextInputOnTapOutside) {
-                                                                        isKeyboardVisibleWhenShowingModal.current = textInputRef.current.isFocused();
-                                                                    }
-                                                                    textInputRef.current.blur();
+                                                                if (!willBlurTextInputOnTapOutside) {
+                                                                    isKeyboardVisibleWhenShowingModal.current = textInputRef.current.isFocused();
+                                                                }
+                                                                textInputRef.current.blur();
 
                                                                 // Drop focus to avoid blue focus ring.
                                                                 actionButtonRef.current.blur();
@@ -1222,7 +1222,7 @@ function ReportActionCompose({
                                         }}
                                         onPasteFile={displayFileInModal}
                                         shouldClear={textInputShouldClear}
-                                            onClear={() => setTextInputShouldClear(false)}
+                                        onClear={() => setTextInputShouldClear(false)}
                                         isDisabled={isBlockedFromConcierge || disabled}
                                         selection={selection}
                                         onSelectionChange={onSelectionChange}
