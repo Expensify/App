@@ -126,6 +126,7 @@ function MoneyRequestConfirmationList(props) {
 
     // A flag and a toggler for showing the rest of the form fields
     const [showAllFields, toggleShowAllFields] = useReducer((state) => !state, false);
+    const isTypeRequest = props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST;
 
     /**
      * Returns the participants with amount
@@ -407,20 +408,20 @@ function MoneyRequestConfirmationList(props) {
             {showAllFields && (
                 <>
                     <MenuItemWithTopDescription
-                        shouldShowRightIcon={!props.isReadOnly}
+                        shouldShowRightIcon={!props.isReadOnly && isTypeRequest}
                         title={props.iouCreated || format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}
                         description={translate('common.date')}
                         style={[styles.moneyRequestMenuItem, styles.mb2]}
                         onPress={() => Navigation.navigate(ROUTES.getMoneyRequestCreatedRoute(props.iouType, props.reportID))}
-                        disabled={didConfirm || props.isReadOnly}
+                        disabled={didConfirm || props.isReadOnly || !isTypeRequest}
                     />
                     <MenuItemWithTopDescription
-                        shouldShowRightIcon={!props.isReadOnly}
+                        shouldShowRightIcon={!props.isReadOnly && isTypeRequest}
                         title={props.iouMerchant}
                         description={translate('common.merchant')}
                         style={[styles.moneyRequestMenuItem, styles.mb2]}
                         onPress={() => Navigation.navigate(ROUTES.getMoneyRequestMerchantRoute(props.iouType, props.reportID))}
-                        disabled={didConfirm || props.isReadOnly}
+                        disabled={didConfirm || props.isReadOnly || !isTypeRequest}
                     />
                 </>
             )}
