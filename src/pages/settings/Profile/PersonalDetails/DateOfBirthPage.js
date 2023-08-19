@@ -2,6 +2,7 @@ import moment from 'moment';
 import PropTypes from 'prop-types';
 import React, {useCallback} from 'react';
 import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import CONST from '../../../../CONST';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import ROUTES from '../../../../ROUTES';
@@ -15,6 +16,8 @@ import * as ValidationUtils from '../../../../libs/ValidationUtils';
 import * as PersonalDetails from '../../../../libs/actions/PersonalDetails';
 import compose from '../../../../libs/compose';
 import styles from '../../../../styles/styles';
+import usePrivatePersonalDetails from '../../../../hooks/usePrivatePersonalDetails';
+import FullscreenLoadingIndicator from '../../../../components/FullscreenLoadingIndicator';
 
 const propTypes = {
     /* Onyx Props */
@@ -34,26 +37,31 @@ const defaultProps = {
 };
 
 function DateOfBirthPage({translate, privatePersonalDetails}) {
+    usePrivatePersonalDetails();
+
     /**
      * @param {Object} values
      * @param {String} values.dob - date of birth
      * @returns {Object} - An object containing the errors for each inputID
      */
     const validate = useCallback((values) => {
-        const errors = {};
+        const requiredFields = ['dob'];
+        const errors = ValidationUtils.getFieldRequiredErrors(values, requiredFields);
+
         const minimumAge = CONST.DATE_BIRTH.MIN_AGE;
         const maximumAge = CONST.DATE_BIRTH.MAX_AGE;
-
-        if (!values.dob || !ValidationUtils.isValidDate(values.dob)) {
-            errors.dob = 'common.error.fieldRequired';
-        }
         const dateError = ValidationUtils.getAgeRequirementError(values.dob, minimumAge, maximumAge);
-        if (dateError) {
+
+        if (values.dob && dateError) {
             errors.dob = dateError;
         }
 
         return errors;
     }, []);
+
+    if (lodashGet(privatePersonalDetails, 'isLoading', true)) {
+        return <FullscreenLoadingIndicator />;
+    }
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>

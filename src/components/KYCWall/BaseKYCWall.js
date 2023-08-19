@@ -23,6 +23,7 @@ class KYCWall extends React.Component {
 
         this.continue = this.continue.bind(this);
         this.setMenuPosition = this.setMenuPosition.bind(this);
+        this.anchorRef = React.createRef(null);
 
         this.state = {
             shouldShowAddPaymentMenu: false,
@@ -69,7 +70,7 @@ class KYCWall extends React.Component {
         }
 
         return {
-            anchorPositionVertical: domRect.top - 8,
+            anchorPositionVertical: domRect.top - CONST.MODAL.POPOVER_MENU_PADDING,
             anchorPositionHorizontal: domRect.left,
         };
     }
@@ -95,13 +96,18 @@ class KYCWall extends React.Component {
      * @param {String} iouPaymentType
      */
     continue(event, iouPaymentType) {
+        if (this.state.shouldShowAddPaymentMenu) {
+            this.setState({shouldShowAddPaymentMenu: false});
+            return;
+        }
         this.setState({transferBalanceButton: event.nativeEvent.target});
         const isExpenseReport = ReportUtils.isExpenseReport(this.props.iouReport);
+        const paymentCardList = this.props.fundList || {};
 
         // Check to see if user has a valid payment method on file and display the add payment popover if they don't
         if (
             (isExpenseReport && lodashGet(this.props.reimbursementAccount, 'achData.state', '') !== CONST.BANK_ACCOUNT.STATE.OPEN) ||
-            (!isExpenseReport && !PaymentUtils.hasExpensifyPaymentMethod(this.props.cardList, this.props.bankAccountList))
+            (!isExpenseReport && !PaymentUtils.hasExpensifyPaymentMethod(paymentCardList, this.props.bankAccountList))
         ) {
             Log.info('[KYC Wallet] User does not have valid payment method');
             const clickedElementLocation = getClickedTargetLocation(event.nativeEvent.target);
@@ -112,7 +118,6 @@ class KYCWall extends React.Component {
             });
             return;
         }
-
         if (!isExpenseReport) {
             // Ask the user to upgrade to a gold wallet as this means they have not yet gone through our Know Your Customer (KYC) checks
             const hasGoldWallet = this.props.userWallet.tierName && this.props.userWallet.tierName === CONST.WALLET.TIER_NAME.GOLD;
@@ -122,7 +127,6 @@ class KYCWall extends React.Component {
                 return;
             }
         }
-
         Log.info('[KYC Wallet] User has valid payment method and passed KYC checks or did not need them');
         this.props.onSuccessfulKYC(iouPaymentType);
     }
@@ -133,6 +137,7 @@ class KYCWall extends React.Component {
                 <AddPaymentMethodMenu
                     isVisible={this.state.shouldShowAddPaymentMenu}
                     onClose={() => this.setState({shouldShowAddPaymentMenu: false})}
+                    anchorRef={this.anchorRef}
                     anchorPosition={{
                         vertical: this.state.anchorPositionVertical,
                         horizontal: this.state.anchorPositionHorizontal,
@@ -147,7 +152,7 @@ class KYCWall extends React.Component {
                         }
                     }}
                 />
-                {this.props.children(this.continue)}
+                {this.props.children(this.continue, this.anchorRef)}
             </>
         );
     }
@@ -160,8 +165,8 @@ export default withOnyx({
     userWallet: {
         key: ONYXKEYS.USER_WALLET,
     },
-    cardList: {
-        key: ONYXKEYS.CARD_LIST,
+    fundList: {
+        key: ONYXKEYS.FUND_LIST,
     },
     bankAccountList: {
         key: ONYXKEYS.BANK_ACCOUNT_LIST,

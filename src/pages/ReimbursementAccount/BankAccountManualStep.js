@@ -33,25 +33,27 @@ function BankAccountManualStep(props) {
      */
     const validate = useCallback(
         (values) => {
-            const errorFields = {};
+            const requiredFields = ['routingNumber', 'accountNumber'];
+            const errors = ValidationUtils.getFieldRequiredErrors(values, requiredFields);
             const routingNumber = values.routingNumber && values.routingNumber.trim();
 
             if (
-                !values.accountNumber ||
-                (!CONST.BANK_ACCOUNT.REGEX.US_ACCOUNT_NUMBER.test(values.accountNumber.trim()) && !CONST.BANK_ACCOUNT.REGEX.MASKED_US_ACCOUNT_NUMBER.test(values.accountNumber.trim()))
+                values.accountNumber &&
+                !CONST.BANK_ACCOUNT.REGEX.US_ACCOUNT_NUMBER.test(values.accountNumber.trim()) &&
+                !CONST.BANK_ACCOUNT.REGEX.MASKED_US_ACCOUNT_NUMBER.test(values.accountNumber.trim())
             ) {
-                errorFields.accountNumber = 'bankAccount.error.accountNumber';
-            } else if (values.accountNumber === routingNumber) {
-                errorFields.accountNumber = translate('bankAccount.error.routingAndAccountNumberCannotBeSame');
+                errors.accountNumber = 'bankAccount.error.accountNumber';
+            } else if (values.accountNumber && values.accountNumber === routingNumber) {
+                errors.accountNumber = translate('bankAccount.error.routingAndAccountNumberCannotBeSame');
             }
-            if (!routingNumber || !CONST.BANK_ACCOUNT.REGEX.SWIFT_BIC.test(routingNumber) || !ValidationUtils.isValidRoutingNumber(routingNumber)) {
-                errorFields.routingNumber = 'bankAccount.error.routingNumber';
+            if (routingNumber && (!CONST.BANK_ACCOUNT.REGEX.SWIFT_BIC.test(routingNumber) || !ValidationUtils.isValidRoutingNumber(routingNumber))) {
+                errors.routingNumber = 'bankAccount.error.routingNumber';
             }
             if (!values.acceptTerms) {
-                errorFields.acceptTerms = 'common.error.acceptTerms';
+                errors.acceptTerms = 'common.error.acceptTerms';
             }
 
-            return errorFields;
+            return errors;
         },
         [translate],
     );
@@ -59,7 +61,7 @@ function BankAccountManualStep(props) {
     const submit = useCallback(
         (values) => {
             BankAccounts.connectBankAccountManually(
-                lodashGet(reimbursementAccount, ['achData.bankAccountID']) || 0,
+                lodashGet(reimbursementAccount, 'achData.bankAccountID') || 0,
                 values.accountNumber,
                 values.routingNumber,
                 lodashGet(reimbursementAccountDraft, ['plaidMask']),
@@ -68,7 +70,7 @@ function BankAccountManualStep(props) {
         [reimbursementAccount, reimbursementAccountDraft],
     );
 
-    const shouldDisableInputs = Boolean(lodashGet(reimbursementAccount, ['achData.bankAccountID']));
+    const shouldDisableInputs = Boolean(lodashGet(reimbursementAccount, 'achData.bankAccountID'));
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>

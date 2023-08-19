@@ -42,6 +42,9 @@ export default {
     // Has information about the network status (offline/online)
     NETWORK: 'network',
 
+    // draft status
+    CUSTOM_STATUS_DRAFT: 'customStatusDraft',
+
     // Contains all the personalDetails the user has access to, keyed by accountID
     PERSONAL_DETAILS_LIST: 'personalDetailsList',
 
@@ -64,6 +67,10 @@ export default {
     // Saves the current country code which is displayed when the user types a phone number without
     // an international code
     COUNTRY_CODE: 'countryCode',
+
+    // The 'country' field in this code represents the return country based on the user's IP address.
+    // It is expected to provide a two-letter country code such as US for United States, and so on.
+    COUNTRY: 'country',
 
     // Contains all the users settings for the Settings page and sub pages
     USER: 'user',
@@ -111,6 +118,7 @@ export default {
         DOWNLOAD: 'download_',
         POLICY: 'policy_',
         POLICY_MEMBERS: 'policyMembers_',
+        POLICY_CATEGORIES: 'policyCategories_',
         WORKSPACE_INVITE_MEMBERS_DRAFT: 'workspaceInviteMembersDraft_',
         REPORT: 'report_',
         REPORT_ACTIONS: 'reportActions_',
@@ -149,7 +157,10 @@ export default {
     BANK_ACCOUNT_LIST: 'bankAccountList',
 
     // The user's credit cards
-    CARD_LIST: 'cardList',
+    FUND_LIST: 'fundList',
+
+    // The user's Expensify cards
+    CORPORATE_CARD_LIST: 'corporateCardList',
 
     // Stores information about the user's saved statements
     WALLET_STATEMENT: 'walletStatement',
@@ -210,7 +221,15 @@ export default {
         NEW_TASK_FORM: 'newTaskForm',
         EDIT_TASK_FORM: 'editTaskForm',
         MONEY_REQUEST_DESCRIPTION_FORM: 'moneyRequestDescriptionForm',
+        MONEY_REQUEST_AMOUNT_FORM: 'moneyRequestAmountForm',
+        MONEY_REQUEST_CREATED_FORM: 'moneyRequestCreatedForm',
         NEW_CONTACT_METHOD_FORM: 'newContactMethodForm',
+        PAYPAL_FORM: 'payPalForm',
+        WAYPOINT_FORM: 'waypointForm',
+        WAYPOINT_FORM_DRAFT: 'waypointFormDraft',
+        SETTINGS_STATUS_SET_FORM: 'settingsStatusSetForm',
+        SETTINGS_STATUS_CLEAR_AFTER_FORM: 'settingsStatusClearAfterForm',
+        SETTINGS_STATUS_SET_CLEAR_AFTER_FORM: 'settingsStatusSetClearAfterForm',
     },
 
     // Whether we should show the compose input or not
@@ -234,4 +253,19 @@ export default {
 
     // Experimental memory only Onyx mode flag
     IS_USING_MEMORY_ONLY_KEYS: 'isUsingMemoryOnlyKeys',
+
+    // Information about the onyx updates IDs that were received from the server
+    ONYX_UPDATES_FROM_SERVER: 'onyxUpdatesFromServer',
+
+    // The last update ID that was applied to the client
+    ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT: 'OnyxUpdatesLastUpdateIDAppliedToClient',
+
+    // The access token to be used with the Mapbox library
+    MAPBOX_ACCESS_TOKEN: 'mapboxAccessToken',
+
+    // Manual request tab selector
+    SELECTED_TAB: 'selectedTab',
+
+    // Receipt upload modal
+    RECEIPT_MODAL: 'receiptModal',
 };

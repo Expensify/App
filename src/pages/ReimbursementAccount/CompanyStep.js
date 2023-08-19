@@ -7,6 +7,7 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import {parsePhoneNumber} from 'awesome-phonenumber';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
+import StatePicker from '../../components/StatePicker';
 import CONST from '../../CONST';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
 import Text from '../../components/Text';
@@ -15,7 +16,6 @@ import TextInput from '../../components/TextInput';
 import styles from '../../styles/styles';
 import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import TextLink from '../../components/TextLink';
-import StatePicker from '../../components/StatePicker';
 import withLocalize from '../../components/withLocalize';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import compose from '../../libs/compose';
@@ -63,10 +63,6 @@ class CompanyStep extends React.Component {
         this.defaultWebsite = lodashGet(props, 'user.isFromPublicDomain', false) ? 'https://' : `https://www.${Str.extractEmailDomain(props.session.email, '')}`;
     }
 
-    componentWillUnmount() {
-        BankAccounts.resetReimbursementAccount();
-    }
-
     /**
      * @param {Array} fieldNames
      *
@@ -84,52 +80,45 @@ class CompanyStep extends React.Component {
      * @returns {Object} - Object containing the errors for each inputID, e.g. {inputID1: error1, inputID2: error2}
      */
     validate(values) {
-        const errors = {};
+        const requiredFields = [
+            'companyName',
+            'addressStreet',
+            'addressZipCode',
+            'addressCity',
+            'addressState',
+            'companyPhone',
+            'website',
+            'companyTaxID',
+            'incorporationType',
+            'incorporationDate',
+            'incorporationState',
+        ];
+        const errors = ValidationUtils.getFieldRequiredErrors(values, requiredFields);
 
-        if (!values.companyName) {
-            errors.companyName = 'bankAccount.error.companyName';
-        }
-
-        if (!values.addressStreet || !ValidationUtils.isValidAddress(values.addressStreet)) {
+        if (values.addressStreet && !ValidationUtils.isValidAddress(values.addressStreet)) {
             errors.addressStreet = 'bankAccount.error.addressStreet';
         }
 
-        if (!values.addressZipCode || !ValidationUtils.isValidZipCode(values.addressZipCode)) {
+        if (values.addressZipCode && !ValidationUtils.isValidZipCode(values.addressZipCode)) {
             errors.addressZipCode = 'bankAccount.error.zipCode';
         }
 
-        if (!values.addressCity) {
-            errors.addressCity = 'bankAccount.error.addressCity';
-        }
-
-        if (!values.addressState) {
-            errors.addressState = 'bankAccount.error.addressState';
-        }
-
-        if (!values.companyPhone || !ValidationUtils.isValidUSPhone(values.companyPhone, true)) {
+        if (values.companyPhone && !ValidationUtils.isValidUSPhone(values.companyPhone, true)) {
             errors.companyPhone = 'bankAccount.error.phoneNumber';
         }
 
-        if (!values.website || !ValidationUtils.isValidWebsite(values.website)) {
+        if (values.website && !ValidationUtils.isValidWebsite(values.website)) {
             errors.website = 'bankAccount.error.website';
         }
 
-        if (!values.companyTaxID || !ValidationUtils.isValidTaxID(values.companyTaxID)) {
+        if (values.companyTaxID && !ValidationUtils.isValidTaxID(values.companyTaxID)) {
             errors.companyTaxID = 'bankAccount.error.taxID';
         }
 
-        if (!values.incorporationType) {
-            errors.incorporationType = 'bankAccount.error.companyType';
-        }
-
-        if (!values.incorporationDate || !ValidationUtils.isValidDate(values.incorporationDate)) {
+        if (values.incorporationDate && !ValidationUtils.isValidDate(values.incorporationDate)) {
             errors.incorporationDate = 'common.error.dateInvalid';
-        } else if (!values.incorporationDate || !ValidationUtils.isValidPastDate(values.incorporationDate)) {
+        } else if (values.incorporationDate && !ValidationUtils.isValidPastDate(values.incorporationDate)) {
             errors.incorporationDate = 'bankAccount.error.incorporationDateFuture';
-        }
-
-        if (!values.incorporationState) {
-            errors.incorporationState = 'bankAccount.error.incorporationState';
         }
 
         if (!values.hasNoConnectionToCannabis) {
@@ -175,7 +164,7 @@ class CompanyStep extends React.Component {
                     onSubmit={this.submit}
                     scrollContextEnabled
                     submitButtonText={this.props.translate('common.saveAndContinue')}
-                    style={[styles.ph5, styles.flexGrow1]}
+                    style={[styles.mh5, styles.flexGrow1]}
                 >
                     <Text>{this.props.translate('companyStep.subtitle')}</Text>
                     <TextInput
@@ -260,7 +249,7 @@ class CompanyStep extends React.Component {
                             shouldSaveDraft
                         />
                     </View>
-                    <View style={styles.mt4}>
+                    <View style={[styles.mt4, styles.mhn5]}>
                         <StatePicker
                             inputID="incorporationState"
                             label={this.props.translate('companyStep.incorporationState')}

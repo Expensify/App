@@ -14,27 +14,8 @@ import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as UserUtils from './UserUtils';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 
-// Note: Earlier SidebarUtils.getOrderedReportIDs() used to have no parameters. All the needed data was loaded here directly
-// using Onyx.connect. We then had to connect SidebarLinks additionally to all the keys that were used in SidebarUtils.getOrderedReportIDs().
-// That's because we wanted to cause a re-render in SidebarLinks to run SidebarUtils.getOrderedReportIDs() again.
-// This caused bugs in the past as we were forgetting to include e.g. very nested data.
-// Now we pass all the data from SidebarLinks props to SidebarUtils.getOrderedReportIDs().
-// This makes the code easier to understand and less error prone.
-
-// However, in getOptionData() we still use Onyx.connect() to get some of the data.
-// That's because we can't connect to specific nested data. Once we added dependent
-// selectors to Onyx, we can remove this as well.
-
-let allReports;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
-    callback: (val) => (allReports = val),
-});
-
 const visibleReportActionItems = {};
 const lastReportActions = {};
-const reportActions = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     callback: (actions, key) => {
@@ -53,8 +34,6 @@ Onyx.connect({
             (reportAction, actionKey) => ReportActionsUtils.shouldReportActionBeVisible(reportAction, actionKey) && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED,
         );
         visibleReportActionItems[reportID] = _.last(reportActionsForDisplay);
-
-        reportActions[key] = actions;
     },
 });
 
@@ -107,9 +86,8 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
     const isInDefaultMode = !isInGSDMode;
 
     // Filter out all the reports that shouldn't be displayed
-    const reportsToDisplay = _.filter(allReportsDict, (report) =>
-        ReportUtils.shouldReportBeInOptionList(report, currentReportId, isInGSDMode, allReportsDict, betas, policies, allReportActions),
-    );
+    const reportsToDisplay = _.filter(allReportsDict, (report) => ReportUtils.shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas, policies, allReportActions, true));
+
     if (_.isEmpty(reportsToDisplay)) {
         // Display Concierge chat report when there is no report to be displayed
         const conciergeChatReport = _.find(allReportsDict, ReportUtils.isConciergeChatReport);
@@ -134,7 +112,7 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
     // 1. Pinned - Always sorted by reportDisplayName
     // 2. Outstanding IOUs - Always sorted by iouReportAmount with the largest amounts at the top of the group
     // 3. Drafts - Always sorted by reportDisplayName
-    // 4. Non-archived reports
+    // 4. Non-archived reports and settled IOUs
     //      - Sorted by lastVisibleActionCreated in default (most recent) view mode
     //      - Sorted by reportDisplayName in GSD (focus) view mode
     // 5. Archived reports
@@ -145,14 +123,13 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
     let draftReports = [];
     let nonArchivedReports = [];
     let archivedReports = [];
-
     _.each(reportsToDisplay, (report) => {
         if (report.isPinned) {
             pinnedReports.push(report);
             return;
         }
 
-        if (report.hasOutstandingIOU && !ReportUtils.isIOUOwnedByCurrentUser(report, allReportsDict)) {
+        if (ReportUtils.isWaitingForIOUActionFromCurrentUser(report)) {
             outstandingIOUReports.push(report);
             return;
         }
@@ -163,11 +140,6 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
         }
 
         if (ReportUtils.isArchivedRoom(report)) {
-            archivedReports.push(report);
-            return;
-        }
-
-        if (ReportUtils.isTaskReport(report) && ReportUtils.isCompletedTaskReport(report)) {
             archivedReports.push(report);
             return;
         }
@@ -198,12 +170,13 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
  * Gets all the data necessary for rendering an OptionRowLHN component
  *
  * @param {Object} report
+ * @param {Object} reportActions
  * @param {Object} personalDetails
  * @param {String} preferredLocale
  * @param {Object} [policy]
  * @returns {Object}
  */
-function getOptionData(report, personalDetails, preferredLocale, policy) {
+function getOptionData(report, reportActions, personalDetails, preferredLocale, policy) {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
     // a null check here and return early.
@@ -223,6 +196,7 @@ function getOptionData(report, personalDetails, preferredLocale, policy) {
         participantsList: null,
         login: null,
         accountID: null,
+        managerID: null,
         reportID: null,
         phoneNumber: null,
         payPalMeAddress: null,
@@ -242,7 +216,9 @@ function getOptionData(report, personalDetails, preferredLocale, policy) {
         isPolicyExpenseChat: false,
         isMoneyRequestReport: false,
         isExpenseRequest: false,
+        isWaitingOnBankAccount: false,
         isLastMessageDeletedParentAction: false,
+        isAllowedToComment: true,
     };
 
     const participantPersonalDetailList = _.values(OptionsListUtils.getPersonalDetailsForAccountIDs(report.participantAccountIDs, personalDetails));
@@ -264,6 +240,7 @@ function getOptionData(report, personalDetails, preferredLocale, policy) {
     result.allReportErrors = OptionsListUtils.getAllReportErrors(report, reportActions);
     result.brickRoadIndicator = !_.isEmpty(result.allReportErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
     result.ownerAccountID = report.ownerAccountID;
+    result.managerID = report.managerID;
     result.reportID = report.reportID;
     result.isUnread = ReportUtils.isUnread(report);
     result.isUnreadWithMention = ReportUtils.isUnreadWithMention(report);
@@ -274,6 +251,10 @@ function getOptionData(report, personalDetails, preferredLocale, policy) {
     result.tooltipText = ReportUtils.getReportParticipantsTitle(report.participantAccountIDs || []);
     result.hasOutstandingIOU = report.hasOutstandingIOU;
     result.parentReportID = report.parentReportID || null;
+    result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
+    result.notificationPreference = report.notificationPreference || null;
+    result.isAllowedToComment = !ReportUtils.shouldDisableWriteActions(report);
+
     const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
     const subtitle = ReportUtils.getChatRoomSubtitle(report);
 
@@ -347,8 +328,8 @@ function getOptionData(report, personalDetails, preferredLocale, policy) {
         result.alternateText = lastMessageText || formattedLogin;
     }
 
-    result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result, allReports);
-    result.iouReportAmount = ReportUtils.getMoneyRequestTotal(result, allReports);
+    result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result);
+    result.iouReportAmount = ReportUtils.getMoneyRequestTotal(result);
 
     if (!hasMultipleParticipants) {
         result.accountID = personalDetail.accountID;

@@ -11,5 +11,8 @@ export default {
     TRANSITION_BETWEEN_APPS: 'TransitionBetweenApps',
     SETTINGS: {
         PREFERENCES: 'Settings_Preferences',
+        WORKSPACES: 'Settings_Workspaces',
     },
+    SIGN_IN_WITH_APPLE_DESKTOP: 'AppleSignInDesktop',
+    SIGN_IN_WITH_GOOGLE_DESKTOP: 'GoogleSignInDesktop',
 };

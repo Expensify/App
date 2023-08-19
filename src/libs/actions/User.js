@@ -18,6 +18,7 @@ import * as ReportActionsUtils from '../ReportActionsUtils';
 import * as ErrorUtils from '../ErrorUtils';
 import * as Session from './Session';
 import * as PersonalDetails from './PersonalDetails';
+import * as OnyxUpdates from './OnyxUpdates';
 
 let currentUserAccountID = '';
 let currentEmail = '';
@@ -236,7 +237,7 @@ function deleteContactMethod(contactMethod, loginList) {
         },
         {optimisticData, successData, failureData},
     );
-    Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
+    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS);
 }
 
 /**
@@ -254,6 +255,19 @@ function clearContactMethodErrors(contactMethod, fieldName) {
             pendingFields: {
                 [fieldName]: null,
             },
+        },
+    });
+}
+
+/**
+ * Resets the state indicating whether a validation code has been sent to a specific contact method.
+ *
+ * @param {String} contactMethod - The identifier of the contact method to reset.
+ */
+function resetContactMethodValidateCodeSentState(contactMethod) {
+    Onyx.merge(ONYXKEYS.LOGIN_LIST, {
+        [contactMethod]: {
+            validateCodeSent: false,
         },
     });
 }
@@ -503,7 +517,7 @@ function deletePaypalMeAddress() {
     ];
 
     API.write('DeletePaypalMeAddress', {}, {optimisticData, successData});
-    Growl.show(Localize.translateLocal('paymentsPage.deletePayPalSuccess'), CONST.GROWL.SUCCESS, 3000);
+    Growl.show(Localize.translateLocal('walletPage.deletePayPalSuccess'), CONST.GROWL.SUCCESS, 3000);
 }
 
 function triggerNotifications(onyxUpdates) {
@@ -532,7 +546,22 @@ function subscribeToUserEvents() {
     // Handles the mega multipleEvents from Pusher which contains an array of single events.
     // Each single event is passed to PusherUtils in order to trigger the callbacks for that event
     PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.MULTIPLE_EVENTS, currentUserAccountID, (pushJSON) => {
-        _.each(pushJSON, (multipleEvent) => {
+        let updates;
+
+        // The data for this push event comes in two different formats:
+        // 1. Original format - this is what was sent before the RELIABLE_UPDATES project and will go away once RELIABLE_UPDATES is fully complete
+        //     - The data is an array of objects, where each object is an onyx update
+        //       Example: [{onyxMethod: 'whatever', key: 'foo', value: 'bar'}]
+        // 1. Reliable updates format - this is what was sent with the RELIABLE_UPDATES project and will be the format from now on
+        //     - The data is an object, containing updateIDs from the server and an array of onyx updates (this array is the same format as the original format above)
+        //       Example: {lastUpdateID: 1, previousUpdateID: 0, updates: [{onyxMethod: 'whatever', key: 'foo', value: 'bar'}]}
+        if (_.isArray(pushJSON)) {
+            updates = pushJSON;
+        } else {
+            updates = pushJSON.updates;
+            OnyxUpdates.saveUpdateIDs(Number(pushJSON.lastUpdateID || 0), Number(pushJSON.previousUpdateID || 0));
+        }
+        _.each(updates, (multipleEvent) => {
             PusherUtils.triggerMultiEventHandler(multipleEvent.eventType, multipleEvent.data);
         });
     });
@@ -544,6 +573,7 @@ function subscribeToUserEvents() {
             if (!currentUserAccountID) {
                 return;
             }
+
             Onyx.update(pushJSON);
             triggerNotifications(pushJSON);
         });
@@ -611,7 +641,7 @@ function updateChatPriorityMode(mode) {
         },
         {optimisticData},
     );
-    Navigation.navigate(ROUTES.SETTINGS_PREFERENCES);
+    Navigation.goBack(ROUTES.SETTINGS_PREFERENCES);
 }
 
 /**
@@ -766,7 +796,7 @@ function setContactMethodAsDefault(newDefaultContactMethod) {
         },
     ];
     API.write('SetContactMethodAsDefault', {partnerUserID: newDefaultContactMethod}, {optimisticData, successData, failureData});
-    Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
+    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS);
 }
 
 /**
@@ -790,6 +820,69 @@ function updateTheme(theme) {
     );
 
     Navigation.navigate(ROUTES.SETTINGS_PREFERENCES);
+}
+
+/**
+ * Sets a custom status
+ *
+ * @param {Object} status
+ * @param {String} status.text
+ * @param {String} status.emojiCode
+ * @param {String} status.clearAfter - ISO 8601 format string, which represents the time when the status should be cleared
+ */
+function updateCustomStatus(status) {
+    API.write('UpdateStatus', status, {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                value: {
+                    [currentUserAccountID]: {
+                        status,
+                    },
+                },
+            },
+        ],
+    });
+}
+
+/**
+ * Clears the custom status
+ */
+function clearCustomStatus() {
+    API.write('ClearStatus', undefined, {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                value: {
+                    [currentUserAccountID]: {
+                        status: null, // Clearing the field
+                    },
+                },
+            },
+        ],
+    });
+}
+
+/**
+ * Sets a custom status
+ *
+ * @param {Object} status
+ * @param {String} status.text
+ * @param {String} status.emojiCode
+ * @param {String} status.clearAfter - ISO 8601 format string, which represents the time when the status should be cleared
+ */
+function updateDraftCustomStatus(status) {
+    Onyx.merge(ONYXKEYS.CUSTOM_STATUS_DRAFT, status);
+}
+
+/**
+ * Clear the custom draft status
+ *
+ */
+function clearDraftCustomStatus() {
+    Onyx.merge(ONYXKEYS.CUSTOM_STATUS_DRAFT, {text: '', emojiCode: '', clearAfter: ''});
 }
 
 export {
@@ -816,4 +909,9 @@ export {
     updateChatPriorityMode,
     setContactMethodAsDefault,
     updateTheme,
+    resetContactMethodValidateCodeSentState,
+    updateCustomStatus,
+    clearCustomStatus,
+    updateDraftCustomStatus,
+    clearDraftCustomStatus,
 };

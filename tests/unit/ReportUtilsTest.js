@@ -284,81 +284,66 @@ describe('ReportUtils', () => {
         });
     });
 
-    describe('hasOutstandingIOU', () => {
+    describe('isWaitingForIOUActionFromCurrentUser', () => {
         it('returns false when there is no report', () => {
-            expect(ReportUtils.hasOutstandingIOU()).toBe(false);
+            expect(ReportUtils.isWaitingForIOUActionFromCurrentUser()).toBe(false);
         });
-        it('returns false when the report has no iouReportID', () => {
-            const report = LHNTestUtils.getFakeReport();
-            expect(ReportUtils.hasOutstandingIOU(report)).toBe(false);
-        });
-        it('returns false when there is no iouReports collection', () => {
+        it('returns false when the matched IOU report does not have an owner accountID', () => {
             const report = {
                 ...LHNTestUtils.getFakeReport(),
-                iouReportID: '1',
-            };
-            expect(ReportUtils.hasOutstandingIOU(report)).toBe(false);
-        });
-        it('returns false when there is no matching IOU report', () => {
-            const report = {
-                ...LHNTestUtils.getFakeReport(),
-                iouReportID: '1',
-            };
-            const iouReports = {};
-            expect(ReportUtils.hasOutstandingIOU(report, iouReports)).toBe(false);
-        });
-        it('returns false when the matched IOU report does not have an owner email', () => {
-            const report = {
-                ...LHNTestUtils.getFakeReport(),
-                iouReportID: '1',
-            };
-            const iouReports = {
-                report_1: {
-                    reportID: '1',
-                },
-            };
-            expect(ReportUtils.hasOutstandingIOU(report, iouReports)).toBe(false);
-        });
-        it('returns false when the matched IOU report does not have an owner email', () => {
-            const report = {
-                ...LHNTestUtils.getFakeReport(),
-                iouReportID: '1',
-            };
-            const iouReports = {
-                report_1: {
-                    reportID: '1',
-                    ownerAccountID: 99,
-                },
-            };
-            expect(ReportUtils.hasOutstandingIOU(report, iouReports)).toBe(false);
-        });
-        it('returns true when the report has an oustanding IOU', () => {
-            const report = {
-                ...LHNTestUtils.getFakeReport(),
-                iouReportID: '1',
+                ownerAccountID: undefined,
                 hasOutstandingIOU: true,
             };
-            const iouReports = {
-                report_1: {
-                    reportID: '1',
-                    ownerAccountID: 99,
-                },
-            };
-            expect(ReportUtils.hasOutstandingIOU(report, iouReports)).toBe(true);
+            expect(ReportUtils.isWaitingForIOUActionFromCurrentUser(report)).toBe(false);
         });
-        it('returns false when the report has no oustanding IOU', () => {
+        it('returns false when the linked iou report has an oustanding IOU', () => {
             const report = {
                 ...LHNTestUtils.getFakeReport(),
                 iouReportID: '1',
+            };
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {
+                reportID: '1',
+                ownerAccountID: 99,
+                hasOutstandingIOU: true,
+            }).then(() => {
+                expect(ReportUtils.isWaitingForIOUActionFromCurrentUser(report)).toBe(false);
+            });
+        });
+        it('returns false when the report has no oustanding IOU but is waiting for a bank account and the logged user is the report owner', () => {
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
                 hasOutstandingIOU: false,
+                ownerAccountID: currentUserAccountID,
+                isWaitingOnBankAccount: true,
             };
-            const iouReports = {
-                report_1: {
-                    reportID: '1',
-                    ownerAccountID: 99,
-                },
+            expect(ReportUtils.isWaitingForIOUActionFromCurrentUser(report)).toBe(false);
+        });
+        it('returns true when the report has oustanding IOU and is waiting for a bank account and the logged user is the report owner', () => {
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                hasOutstandingIOU: true,
+                ownerAccountID: currentUserAccountID,
+                isWaitingOnBankAccount: true,
             };
-            expect(ReportUtils.hasOutstandingIOU(report, iouReports)).toBe(false);
+            expect(ReportUtils.isWaitingForIOUActionFromCurrentUser(report)).toBe(true);
+        });
+        it('returns false when the report has no oustanding IOU but is waiting for a bank account and the logged user is not the report owner', () => {
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                hasOutstandingIOU: false,
+                ownerAccountID: 97,
+                isWaitingOnBankAccount: true,
+            };
+            expect(ReportUtils.isWaitingForIOUActionFromCurrentUser(report)).toBe(false);
+        });
+        it('returns true when the report has oustanding IOU', () => {
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                ownerAccountID: 99,
+                hasOutstandingIOU: true,
+                isWaitingOnBankAccount: false,
+            };
+            expect(ReportUtils.isWaitingForIOUActionFromCurrentUser(report)).toBe(true);
         });
     });
 
@@ -455,6 +440,26 @@ describe('ReportUtils', () => {
         it("shouldn't get the correct reportID from a deep link", () => {
             expect(ReportUtils.getReportIDFromLink('new-expensify-not-valid://r/75431276')).toBe('');
             expect(ReportUtils.getReportIDFromLink('new-expensify://settings')).toBe('');
+        });
+    });
+
+    describe('sortReportsByLastRead', () => {
+        it('should filter out report without reportID & lastReadTime and sort lastReadTime in ascending order', () => {
+            const reports = {
+                1: {reportID: 1, lastReadTime: '2023-07-08 07:15:44.030'},
+                2: {reportID: 2, lastReadTime: null},
+                3: {reportID: 3, lastReadTime: '2023-07-06 07:15:44.030'},
+                4: {reportID: 4, lastReadTime: '2023-07-07 07:15:44.030', type: CONST.REPORT.TYPE.IOU},
+                5: {lastReadTime: '2023-07-09 07:15:44.030'},
+                6: {reportID: 6},
+                7: {},
+            };
+            const sortedReports = [
+                {reportID: 3, lastReadTime: '2023-07-06 07:15:44.030'},
+                {reportID: 4, lastReadTime: '2023-07-07 07:15:44.030', type: CONST.REPORT.TYPE.IOU},
+                {reportID: 1, lastReadTime: '2023-07-08 07:15:44.030'},
+            ];
+            expect(ReportUtils.sortReportsByLastRead(reports)).toEqual(sortedReports);
         });
     });
 });

@@ -26,6 +26,7 @@ import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import * as IOUUtils from '../../libs/IOUUtils';
 import * as ReportUtils from '../../libs/ReportUtils';
+import * as TransactionUtils from '../../libs/TransactionUtils';
 import refPropTypes from '../refPropTypes';
 import PressableWithFeedback from '../Pressable/PressableWithoutFeedback';
 
@@ -131,17 +132,19 @@ function IOUPreview(props) {
     const sessionAccountID = lodashGet(props.session, 'accountID', null);
     const managerID = props.iouReport.managerID || '';
     const ownerAccountID = props.iouReport.ownerAccountID || '';
+    const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.chatReport);
+
     const participantAccountIDs = props.isBillSplit ? lodashGet(props.action, 'originalMessage.participantAccountIDs', []) : [managerID, ownerAccountID];
     const participantAvatars = OptionsListUtils.getAvatarsForAccountIDs(participantAccountIDs, props.personalDetails);
+    if (isPolicyExpenseChat && props.isBillSplit) {
+        participantAvatars.push(ReportUtils.getWorkspaceIcon(props.chatReport));
+    }
 
     // Pay button should only be visible to the manager of the report.
     const isCurrentUserManager = managerID === sessionAccountID;
 
-    const moneyRequestAction = ReportUtils.getMoneyRequestAction(props.action);
-
-    const requestAmount = moneyRequestAction.amount;
-    const requestCurrency = moneyRequestAction.currency;
-    const requestComment = moneyRequestAction.comment.trim();
+    const transaction = TransactionUtils.getLinkedTransaction(props.action);
+    const {amount: requestAmount, currency: requestCurrency, comment: requestComment} = ReportUtils.getTransactionDetails(transaction);
 
     const getSettledMessage = () => {
         switch (lodashGet(props.action, 'originalMessage.paymentType', '')) {
@@ -165,7 +168,13 @@ function IOUPreview(props) {
             return props.translate('iou.split');
         }
 
-        return `${props.translate('iou.cash')}${!props.iouReport.hasOutstandingIOU ? ` • ${props.translate('iou.settledExpensify')}` : ''}`;
+        let message = props.translate('iou.cash');
+        if (props.iouReport.isWaitingOnBankAccount) {
+            message += ` • ${props.translate('iou.pending')}`;
+        } else if (ReportUtils.isSettled(props.iouReport.reportID)) {
+            message += ` • ${props.translate('iou.settledExpensify')}`;
+        }
+        return message;
     };
 
     const childContainer = (
@@ -200,7 +209,7 @@ function IOUPreview(props) {
                     <View style={[styles.flexRow]}>
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                             <Text style={styles.textHeadline}>{CurrencyUtils.convertToDisplayString(requestAmount, requestCurrency)}</Text>
-                            {!props.iouReport.hasOutstandingIOU && !props.isBillSplit && (
+                            {ReportUtils.isSettled(props.iouReport.reportID) && !props.isBillSplit && (
                                 <View style={styles.defaultCheckmarkWrapper}>
                                     <Icon
                                         src={Expensicons.Checkmark}
@@ -231,7 +240,10 @@ function IOUPreview(props) {
                         {props.isBillSplit && !_.isEmpty(participantAccountIDs) && (
                             <Text style={[styles.textLabel, styles.colorMuted, styles.ml1]}>
                                 {props.translate('iou.amountEach', {
-                                    amount: CurrencyUtils.convertToDisplayString(IOUUtils.calculateAmount(participantAccountIDs.length - 1, requestAmount), requestCurrency),
+                                    amount: CurrencyUtils.convertToDisplayString(
+                                        IOUUtils.calculateAmount(isPolicyExpenseChat ? 1 : participantAccountIDs.length - 1, requestAmount, requestCurrency),
+                                        requestCurrency,
+                                    ),
                                 })}
                             </Text>
                         )}
@@ -268,6 +280,9 @@ export default compose(
     withOnyx({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+        },
+        chatReport: {
+            key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
         },
         iouReport: {
             key: ({iouReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,

@@ -116,7 +116,7 @@ function BaseValidateCodeForm(props) {
         if (!input2FARef.current || prevRequiresTwoFactorAuth || !props.account.requiresTwoFactorAuth) {
             return;
         }
-        input2FARef.current.resetFocus();
+        input2FARef.current.focus();
     }, [props.account.requiresTwoFactorAuth, prevRequiresTwoFactorAuth]);
 
     useEffect(() => {
@@ -223,6 +223,9 @@ function BaseValidateCodeForm(props) {
      * Check that all the form fields are valid, then trigger the submit callback
      */
     const validateAndSubmitForm = useCallback(() => {
+        if (props.account.isLoading) {
+            return;
+        }
         const requiresTwoFactorAuth = props.account.requiresTwoFactorAuth;
         if (requiresTwoFactorAuth) {
             if (input2FARef.current) {
@@ -273,7 +276,7 @@ function BaseValidateCodeForm(props) {
         } else {
             Session.signIn(validateCode, recoveryCodeOr2faCode, props.preferredLocale);
         }
-    }, [props.account.requiresTwoFactorAuth, props.credentials, props.preferredLocale, twoFactorAuthCode, validateCode, isUsingRecoveryCode, recoveryCode]);
+    }, [props.account, props.credentials, props.preferredLocale, twoFactorAuthCode, validateCode, isUsingRecoveryCode, recoveryCode]);
 
     return (
         <>
@@ -336,7 +339,7 @@ function BaseValidateCodeForm(props) {
                         autoFocus
                     />
                     {hasError && <FormHelpMessage message={ErrorUtils.getLatestErrorMessage(props.account)} />}
-                    <View>
+                    <View style={[styles.alignItemsStart]}>
                         {timeRemaining > 0 && !props.network.isOffline ? (
                             <Text style={[styles.mt2]}>
                                 {props.translate('validateCodeForm.requestNewCode')}

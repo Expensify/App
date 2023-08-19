@@ -31,24 +31,31 @@ import RightModalNavigator from './Navigators/RightModalNavigator';
 import CentralPaneNavigator from './Navigators/CentralPaneNavigator';
 import NAVIGATORS from '../../../NAVIGATORS';
 import FullScreenNavigator from './Navigators/FullScreenNavigator';
+import DesktopSignInRedirectPage from '../../../pages/signin/DesktopSignInRedirectPage';
 import styles from '../../../styles/styles';
 import * as SessionUtils from '../../SessionUtils';
 import getNavigationModalCardStyle from '../../../styles/getNavigationModalCardStyles';
 
-let currentUserEmail;
+let timezone;
+let currentAccountID;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
-        // When signed out, val is undefined
-        if (!val) {
+        // When signed out, val hasn't accountID
+        if (!_.has(val, 'accountID')) {
+            timezone = null;
             return;
         }
 
-        currentUserEmail = val.email;
+        currentAccountID = val.accountID;
+        if (Navigation.isActiveRoute(ROUTES.SIGN_IN_MODAL)) {
+            // This means sign in in RHP was successful, so we can dismiss the modal and subscribe to user events
+            Navigation.dismissModal();
+            User.subscribeToUserEvents();
+        }
     },
 });
 
-let timezone;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => {
@@ -56,7 +63,7 @@ Onyx.connect({
             return;
         }
 
-        timezone = lodashGet(val, [currentUserEmail, 'timezone'], {});
+        timezone = lodashGet(val, [currentAccountID, 'timezone'], {});
         const currentTimezone = moment.tz.guess(true);
 
         // If the current timezone is different than the user's timezone, and their timezone is set to automatic
@@ -95,6 +102,9 @@ const propTypes = {
     /** Opt-in experimental mode that prevents certain Onyx keys from persisting to disk */
     isUsingMemoryOnlyKeys: PropTypes.bool,
 
+    /** The last Onyx update ID was applied to the client */
+    lastUpdateIDAppliedToClient: PropTypes.number,
+
     ...windowDimensionsPropTypes,
 };
 
@@ -104,6 +114,7 @@ const defaultProps = {
         email: null,
     },
     lastOpenedPublicRoomID: null,
+    lastUpdateIDAppliedToClient: null,
 };
 
 class AuthScreens extends React.Component {
@@ -115,7 +126,7 @@ class AuthScreens extends React.Component {
 
     componentDidMount() {
         NetworkConnection.listenForReconnect();
-        NetworkConnection.onReconnect(() => App.reconnectApp());
+        NetworkConnection.onReconnect(() => App.reconnectApp(this.props.lastUpdateIDAppliedToClient));
         PusherConnectionManager.init();
         Pusher.init({
             appKey: CONFIG.PUSHER.APP_KEY,
@@ -130,13 +141,15 @@ class AuthScreens extends React.Component {
         // Note: If a Guide has enabled the memory only key mode then we do want to run OpenApp as their app will not be rehydrated with
         // the correct state on refresh. They are explicitly opting out of storing data they would need (i.e. reports_) to take advantage of
         // the optimizations performed during ReconnectApp.
-        if (this.props.isUsingMemoryOnlyKeys || SessionUtils.didUserLogInDuringSession()) {
+        const shouldGetAllData = this.props.isUsingMemoryOnlyKeys || SessionUtils.didUserLogInDuringSession();
+        if (shouldGetAllData) {
             App.openApp();
         } else {
-            App.reconnectApp();
+            App.reconnectApp(this.props.lastUpdateIDAppliedToClient);
         }
 
         App.setUpPoliciesAndNavigate(this.props.session, !this.props.isSmallScreenWidth);
+        App.redirectThirdPartyDesktopSignIn();
 
         if (this.props.lastOpenedPublicRoomID) {
             // Re-open the last opened public room if the user logged in from a public room link
@@ -212,7 +225,6 @@ class AuthScreens extends React.Component {
             // we want pop in RHP since there are some flows that would work weird otherwise
             animationTypeForReplace: 'pop',
             cardStyle: getNavigationModalCardStyle({
-                windowHeight: this.props.windowHeight,
                 isSmallScreenWidth: this.props.isSmallScreenWidth,
             }),
         };
@@ -303,6 +315,11 @@ class AuthScreens extends React.Component {
                     component={RightModalNavigator}
                     listeners={modalScreenListeners}
                 />
+                <RootStack.Screen
+                    name="DesktopSignInRedirect"
+                    options={defaultScreenOptions}
+                    component={DesktopSignInRedirectPage}
+                />
             </RootStack.Navigator>
         );
     }
@@ -321,6 +338,9 @@ export default compose(
         },
         isUsingMemoryOnlyKeys: {
             key: ONYXKEYS.IS_USING_MEMORY_ONLY_KEYS,
+        },
+        lastUpdateIDAppliedToClient: {
+            key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
         },
     }),
 )(AuthScreens);

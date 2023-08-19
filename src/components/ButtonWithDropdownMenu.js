@@ -39,6 +39,15 @@ const propTypes = {
             iconDescription: PropTypes.string,
         }),
     ).isRequired,
+
+    /** The anchor alignment of the popover menu */
+    anchorAlignment: PropTypes.shape({
+        horizontal: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL)),
+        vertical: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL)),
+    }),
+
+    /* ref for the button */
+    buttonRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
 };
 
 const defaultProps = {
@@ -46,6 +55,11 @@ const defaultProps = {
     isDisabled: false,
     menuHeaderText: '',
     style: [],
+    anchorAlignment: {
+        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP, // we assume that popover menu opens below the button, anchor is at TOP
+    },
+    buttonRef: () => {},
 };
 
 function ButtonWithDropdownMenu(props) {
@@ -66,10 +80,13 @@ function ButtonWithDropdownMenu(props) {
         caretButton.current.measureInWindow((x, y, w, h) => {
             setPopoverAnchorPosition({
                 horizontal: x + w,
-                vertical: y + h,
+                vertical:
+                    props.anchorAlignment.vertical === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP
+                        ? y + h + CONST.MODAL.POPOVER_MENU_PADDING // if vertical anchorAlignment is TOP, menu will open below the button and we need to add the height of button and padding
+                        : y - CONST.MODAL.POPOVER_MENU_PADDING, // if it is BOTTOM, menu will open above the button so NO need to add height but DO subtract padding
             });
         });
-    }, [windowWidth, windowHeight, isMenuVisible]);
+    }, [windowWidth, windowHeight, isMenuVisible, props.anchorAlignment.vertical]);
 
     return (
         <View>
@@ -77,6 +94,7 @@ function ButtonWithDropdownMenu(props) {
                 <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, ...props.style]}>
                     <Button
                         success
+                        ref={props.buttonRef}
                         onPress={(event) => props.onPress(event, selectedItem.value)}
                         text={selectedItem.text}
                         isDisabled={props.isDisabled}
@@ -91,7 +109,7 @@ function ButtonWithDropdownMenu(props) {
                         success
                         isDisabled={props.isDisabled}
                         style={[styles.pl0]}
-                        onPress={() => setIsMenuVisible(true)}
+                        onPress={() => setIsMenuVisible(!isMenuVisible)}
                         shouldRemoveLeftBorderRadius
                     >
                         <Icon
@@ -117,10 +135,9 @@ function ButtonWithDropdownMenu(props) {
                     onClose={() => setIsMenuVisible(false)}
                     onItemSelected={() => setIsMenuVisible(false)}
                     anchorPosition={popoverAnchorPosition}
-                    anchorAlignment={{
-                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                    }}
+                    anchorRef={caretButton}
+                    withoutOverlay
+                    anchorAlignment={props.anchorAlignment}
                     headerText={props.menuHeaderText}
                     menuItems={_.map(props.options, (item, index) => ({
                         ...item,

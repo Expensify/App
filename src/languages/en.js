@@ -30,10 +30,14 @@ export default {
         workspaces: 'Workspaces',
         profile: 'Profile',
         payments: 'Payments',
+        wallet: 'Wallet',
         preferences: 'Preferences',
         view: 'View',
         not: 'Not',
         signIn: 'Sign in',
+        signInWithGoogle: 'Sign in with Google',
+        signInWithApple: 'Sign in with Apple',
+        signInWith: 'Sign in with',
         continue: 'Continue',
         firstName: 'First name',
         lastName: 'Last name',
@@ -149,6 +153,8 @@ export default {
         someone: 'Someone',
         total: 'Total',
         edit: 'Edit',
+        showMore: 'Show more',
+        merchant: 'Merchant',
     },
     anonymousReportFooter: {
         logoTagline: 'Join in on the discussion.',
@@ -168,6 +174,7 @@ export default {
         sizeNotMet: 'Attachment size must be greater than 240 bytes.',
         wrongFileType: 'Attachment is the wrong type',
         notAllowedExtension: 'This filetype is not allowed',
+        folderNotAllowedMessage: 'Uploading a folder is not allowed. Try a different file.',
     },
     avatarCropModal: {
         title: 'Edit photo',
@@ -188,6 +195,11 @@ export default {
         redirectedToDesktopApp: "We've redirected you to the desktop app.",
         youCanAlso: 'You can also',
         openLinkInBrowser: 'open this link in your browser',
+        loggedInAs: ({email}) => `You're logged in as ${email}. Click "Open link" in the prompt to log into the desktop app with this account.`,
+        doNotSeePrompt: "Can't see the prompt?",
+        tryAgain: 'Try again',
+        or: ', or',
+        continueInWeb: 'continue to the web app',
     },
     validateCodeModal: {
         successfulSignInTitle: 'Abracadabra,\nyou are signed in!',
@@ -236,7 +248,17 @@ export default {
         hero: {
             header: 'Split bills, request payments, and chat with friends.',
             body: 'Welcome to the future of Expensify, your new go-to place for financial collaboration with friends and teammates alike.',
+            demoHeadline: 'Welcome to SaaStr! Hop in to start networking now.',
         },
+    },
+    thirdPartySignIn: {
+        alreadySignedIn: ({email}) => `You are already signed in as ${email}.`,
+        goBackMessage: ({provider}) => `Don't want to sign in with ${provider}?`,
+        continueWithMyCurrentSession: 'Continue with my current session',
+        redirectToDesktopMessage: "We'll redirect you to the desktop app once you finish signing in.",
+        signInAgreementMessage: 'By logging in, you agree to the',
+        termsOfService: 'Terms of Service',
+        privacy: 'Privacy',
     },
     reportActionCompose: {
         addAction: 'Actions',
@@ -288,6 +310,8 @@ export default {
         beginningOfChatHistoryDomainRoomPartTwo: ' to chat with colleagues, share tips, and ask questions.',
         beginningOfChatHistoryAdminRoomPartOne: ({workspaceName}) => `Collaboration among ${workspaceName} admins starts here! 🎉\nUse `,
         beginningOfChatHistoryAdminRoomPartTwo: ' to chat about topics such as workspace configurations and more.',
+        beginningOfChatHistoryAdminOnlyPostingRoomPartOne: 'Use ',
+        beginningOfChatHistoryAdminOnlyPostingRoomPartTwo: ({workspaceName}) => ` to hear about important announcements related to ${workspaceName}`,
         beginningOfChatHistoryAnnounceRoomPartOne: ({workspaceName}) => `Collaboration between all ${workspaceName} members starts here! 🎉\nUse `,
         beginningOfChatHistoryAnnounceRoomPartTwo: ({workspaceName}) => ` to chat about anything ${workspaceName} related.`,
         beginningOfChatHistoryUserRoomPartOne: 'Collaboration starts here! 🎉\nUse this space to chat about anything ',
@@ -298,7 +322,7 @@ export default {
         beginningOfChatHistoryPolicyExpenseChatPartThree: ' starts here! 🎉 This is the place to chat, request money and settle up.',
         chatWithAccountManager: 'Chat with your account manager here',
         sayHello: 'Say hello!',
-        usePlusButton: '\n\nYou can also use the + button below to send or request money!',
+        usePlusButton: '\n\nYou can also use the + button below to request money or assign a task!',
     },
     reportAction: {
         asCopilot: 'as copilot for',
@@ -341,16 +365,42 @@ export default {
         listOfChatMessages: 'List of chat messages',
         listOfChats: 'List of chats',
     },
+    tabSelector: {
+        manual: 'Manual',
+        scan: 'Scan',
+        distance: 'Distance',
+    },
+    receipt: {
+        upload: 'Upload receipt',
+        dragReceiptBeforeEmail: 'Drag a receipt onto this page, forward a receipt to ',
+        dragReceiptAfterEmail: ' or choose a file to upload below.',
+        chooseReceipt: 'Choose a receipt to upload or forward a receipt to ',
+        chooseFile: 'Choose File',
+        givePermission: 'Give permission',
+        takePhoto: 'Take a photo',
+        cameraAccess: 'Camera access is required to take pictures of receipts.',
+        cameraErrorTitle: 'Camera Error',
+        cameraErrorMessage: 'An error occurred while taking a photo, please try again',
+        dropTitle: 'Let it go',
+        dropMessage: 'Drop your file here',
+        flash: 'flash',
+        shutter: 'shutter',
+        gallery: 'gallery',
+    },
     iou: {
         amount: 'Amount',
         cash: 'Cash',
         split: 'Split',
+        request: 'Request',
         participants: 'Participants',
         splitBill: 'Split bill',
         requestMoney: 'Request money',
         sendMoney: 'Send money',
         pay: 'Pay',
         viewDetails: 'View details',
+        pending: 'Pending',
+        deleteRequest: 'Delete request',
+        deleteConfirmation: 'Are you sure that you want to delete this request?',
         settledExpensify: 'Paid',
         settledElsewhere: 'Paid elsewhere',
         settledPaypalMe: 'Paid using Paypal.me',
@@ -365,6 +415,8 @@ export default {
         payerPaidAmount: ({payer, amount}) => `${payer} paid ${amount}`,
         payerPaid: ({payer}) => `${payer} paid: `,
         payerSettled: ({amount}) => `paid ${amount}`,
+        waitingOnBankAccount: ({submitterDisplayName}) => `started settling up, payment is held until ${submitterDisplayName} adds a bank account`,
+        settledAfterAddedBankAccount: ({submitterDisplayName, amount}) => `${submitterDisplayName} added a bank account. The ${amount} payment has been made.`,
         paidElsewhereWithAmount: ({amount}) => `paid ${amount} elsewhere`,
         paidUsingPaypalWithAmount: ({amount}) => `paid ${amount} using Paypal.me`,
         paidUsingExpensifyWithAmount: ({amount}) => `paid ${amount} using Expensify`,
@@ -372,11 +424,13 @@ export default {
         pendingConversionMessage: "Total will update when you're back online",
         threadRequestReportName: ({formattedAmount, comment}) => `${formattedAmount} request${comment ? ` for ${comment}` : ''}`,
         threadSentMoneyReportName: ({formattedAmount, comment}) => `${formattedAmount} sent${comment ? ` for ${comment}` : ''}`,
+        requestCount: ({count}) => `${count} requests`,
         error: {
             invalidSplit: 'Split amounts do not equal total amount',
             other: 'Unexpected error, please try again later',
             genericCreateFailureMessage: 'Unexpected error requesting money, please try again later',
             genericDeleteFailureMessage: 'Unexpected error deleting the money request, please try again later',
+            genericEditFailureMessage: 'Unexpected error editing the money request, please try again later',
         },
     },
     notificationPreferencesPage: {
@@ -396,7 +450,6 @@ export default {
         uploadPhoto: 'Upload photo',
         removePhoto: 'Remove photo',
         editImage: 'Edit photo',
-        imageUploadFailed: 'Image upload failed',
         deleteWorkspaceError: 'Sorry, there was an unexpected problem deleting your workspace avatar.',
         sizeExceeded: ({maxUploadSizeInMB}) => `The selected image exceeds the maximum upload size of ${maxUploadSizeInMB}MB.`,
         resolutionConstraints: ({minHeightInPx, minWidthInPx, maxHeightInPx, maxWidthInPx}) =>
@@ -609,7 +662,7 @@ export default {
         growlMessageOnSave: 'Your debit card was successfully added',
         expensifyPassword: 'Expensify password',
         error: {
-            invalidName: 'Name can only include latin letters and numbers.',
+            invalidName: 'Name can only include letters.',
             addressZipCode: 'Please enter a valid zip code',
             debitCardNumber: 'Please enter a valid debit card number',
             expirationDate: 'Please select a valid expiration date',
@@ -621,7 +674,7 @@ export default {
             password: 'Please enter your Expensify password',
         },
     },
-    paymentsPage: {
+    walletPage: {
         paymentMethodsTitle: 'Payment methods',
         setDefaultConfirmation: 'Make default payment method',
         setDefaultSuccess: 'Default payment method set!',
@@ -648,8 +701,8 @@ export default {
         transferDetailBankAccount: 'Your money should arrive in the next 1-3 business days.',
         transferDetailDebitCard: 'Your money should arrive immediately.',
         failedTransfer: 'Your balance isn’t fully settled. Please transfer to a bank account.',
-        notHereSubTitle: 'Please transfer your balance from the payments page',
-        goToPayment: 'Go to Payments',
+        notHereSubTitle: 'Please transfer your balance from the wallet page',
+        goToWallet: 'Go to Wallet',
     },
     chooseTransferAccountPage: {
         chooseAccount: 'Choose account',
@@ -788,7 +841,7 @@ export default {
         error: {
             dateShouldBeBefore: ({dateString}) => `Date should be before ${dateString}.`,
             dateShouldBeAfter: ({dateString}) => `Date should be after ${dateString}.`,
-            hasInvalidCharacter: 'Name can only include latin letters and numbers.',
+            hasInvalidCharacter: 'Name can only include letters.',
             incorrectZipFormat: ({zipFormat}) => `Incorrect zip code format.${zipFormat ? ` Acceptable format: ${zipFormat}` : ''}`,
         },
     },
@@ -841,6 +894,17 @@ export default {
         passwordNotSet: 'We were unable to set your new password. We have sent you a new password link to try again.',
         setPasswordLinkInvalid: 'This set password link is invalid or has expired. A new one is waiting for you in your email inbox!',
         validateAccount: 'Verify account',
+    },
+    statusPage: {
+        status: 'Status',
+        setStatusTitle: 'Set your status',
+        statusExplanation: "Add an emoji to give your colleagues and friends an easy way to know what's going on. You can optionally add a message too!",
+        today: 'Today',
+        clearStatus: 'Clear status',
+        save: 'Save',
+        message: 'Message',
+        untilTomorrow: 'Until tomorrow',
+        untilTime: ({time}) => `Until ${time}`,
     },
     stepCounter: ({step, total, text}) => {
         let result = `Step ${step}`;
@@ -925,6 +989,7 @@ export default {
     messages: {
         errorMessageInvalidPhone: `Please enter a valid phone number without brackets or dashes. If you're outside the US please include your country code (e.g. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
         errorMessageInvalidEmail: 'Invalid email',
+        userIsAlreadyMemberOfWorkspace: ({login, workspace}) => `${login} is already a member of ${workspace}`,
     },
     onfidoStep: {
         acceptTerms: 'By continuing with the request to activate your Expensify wallet, you confirm that you have read, understand and accept ',
@@ -1134,6 +1199,11 @@ export default {
         emptyWorkspace: {
             title: 'Create a new workspace',
             subtitle: "Workspaces are where you'll chat with your team, reimburse expenses, issue cards, send invoices, pay bills, and more — all in one place.",
+            features: {
+                trackAndCollect: 'Track and collect receipts',
+                companyCards: 'Company credit cards',
+                reimbursements: 'Easy reimbursements',
+            },
         },
         new: {
             newWorkspace: 'New workspace',
@@ -1401,6 +1471,7 @@ export default {
         copy: 'Copy',
         paste: 'Paste',
         pasteAndMatchStyle: 'Paste and Match Style',
+        pasteAsPlainText: 'Paste as Plain Text',
         delete: 'Delete',
         selectAll: 'Select All',
         speechSubmenu: 'Speech',
@@ -1501,11 +1572,14 @@ export default {
     },
     parentReportAction: {
         deletedMessage: '[Deleted message]',
+        deletedRequest: '[Deleted request]',
         hiddenMessage: '[Hidden message]',
     },
     threads: {
         replies: 'Replies',
         reply: 'Reply',
+        from: 'From',
+        in: 'In',
         parentNavigationSummary: ({rootReportName, workspaceName}) => `From ${rootReportName}${workspaceName ? ` in ${workspaceName}` : ''}`,
     },
     qrCodes: {
@@ -1533,5 +1607,29 @@ export default {
         levelOneResult: 'Sends anonymous warning and message is reported for review.',
         levelTwoResult: 'Message hidden from channel, plus anonymous warning and message is reported for review.',
         levelThreeResult: 'Message removed from channel plus anonymous warning and message is reported for review.',
+    },
+    distance: {
+        addStop: 'Add stop',
+        address: 'Address',
+        waypointEditor: 'Waypoint Editor',
+        waypointDescription: {
+            start: 'Start',
+            finish: 'Finish',
+            stop: 'Stop',
+        },
+        mapPending: {
+            title: 'Map pending',
+            subtitle: 'The map will be generated when you go back online',
+            onlineSubtitle: 'One moment while we set up the map',
+        },
+        errors: {
+            selectSuggestedAddress: 'Please select a suggested address',
+        },
+    },
+    countrySelectorModal: {
+        placeholderText: 'Search to see options',
+    },
+    stateSelectorModal: {
+        placeholderText: 'Search to see options',
     },
 };
