@@ -7,9 +7,10 @@ import ComposeProviders from '../src/components/ComposeProviders';
 import HTMLEngineProvider from '../src/components/HTMLEngineProvider';
 import OnyxProvider from '../src/components/OnyxProvider';
 import {LocaleContextProvider} from '../src/components/withLocalize';
-import ONYXKEYS from '../src/ONYXKEYS';
 import {KeyboardStateProvider} from '../src/components/withKeyboardState';
 import {EnvironmentProvider} from '../src/components/withEnvironment';
+import {WindowDimensionsProvider} from '../src/components/withWindowDimensions';
+import ONYXKEYS from '../src/ONYXKEYS';
 
 Onyx.init({
     keys: ONYXKEYS,
@@ -20,7 +21,9 @@ Onyx.init({
 
 const decorators = [
     (Story) => (
-        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, HTMLEngineProvider, SafeAreaProvider, PortalProvider, EnvironmentProvider, KeyboardStateProvider]}>
+        <ComposeProviders
+            components={[OnyxProvider, LocaleContextProvider, HTMLEngineProvider, SafeAreaProvider, PortalProvider, EnvironmentProvider, KeyboardStateProvider, WindowDimensionsProvider]}
+        >
             <Story />
         </ComposeProviders>
     ),
