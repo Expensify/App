@@ -16,6 +16,7 @@ import * as Illustrations from '../../Icon/Illustrations';
 import variables from '../../../styles/variables';
 import compose from '../../../libs/compose';
 import withLocalize from '../../withLocalize';
+import FullscreenLoadingIndicator from '../../FullscreenLoadingIndicator';
 
 function AttachmentCarousel({report, reportActions, source, onNavigate, onClose, setDownloadButtonVisibility, translate}) {
     const pagerRef = useRef(null);
@@ -106,6 +107,13 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, onClose,
         ),
         [activeSource, setShouldShowArrows, shouldShowArrows],
     );
+
+    // Even an empty chat will have the 'created' report action, if its not there
+    // then we are coming from a deep link and actions are not yet loaded. We should
+    // wait until actions load.
+    if (report.isLoadingReportActions || _.isEmpty(reportActions)) {
+        return <FullscreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />;
+    }
 
     return (
         <View

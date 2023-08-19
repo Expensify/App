@@ -19,6 +19,7 @@ import Navigation from '../../../libs/Navigation/Navigation';
 import BlockingView from '../../BlockingViews/BlockingView';
 import * as Illustrations from '../../Icon/Illustrations';
 import variables from '../../../styles/variables';
+import FullscreenLoadingIndicator from '../../FullscreenLoadingIndicator';
 
 const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
 const viewabilityConfig = {
@@ -167,6 +168,13 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, setDownl
         ),
         [activeSource, setShouldShowArrows, shouldShowArrows],
     );
+
+    // Even an empty chat will have the 'created' report action, if its not there
+    // then we are coming from a deep link and actions are not yet loaded. We should
+    // wait until actions load.
+    if (report.isLoadingReportActions || _.isEmpty(reportActions)) {
+        return <FullscreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />;
+    }
 
     return (
         <View
