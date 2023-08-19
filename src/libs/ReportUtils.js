@@ -3030,6 +3030,19 @@ function getTaskAssigneeChatOnyxData(accountID, assigneeEmail, assigneeAccountID
     };
 }
 
+/**
+ * Returns an array of the participants Ids of a report
+ *
+ * @param {Object} report
+ * @returns {Array}
+ */
+function getParticipantsIDs(report) {
+    if (isMoneyRequestReport(report)) {
+        return [report.managerID, report.ownerAccountID];
+    }
+    return lodashGet(report, 'participantAccountIDs', []);
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -3152,4 +3165,5 @@ export {
     shouldDisableRename,
     hasSingleParticipant,
     getTaskAssigneeChatOnyxData,
+    getParticipantsIDs,
 };

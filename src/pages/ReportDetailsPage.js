@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import {View, ScrollView} from 'react-native';
-import lodashGet from 'lodash/get';
 import RoomHeaderAvatars from '../components/RoomHeaderAvatars';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
@@ -74,7 +73,7 @@ function ReportDetailsPage(props) {
     const chatRoomSubtitle = useMemo(() => ReportUtils.getChatRoomSubtitle(props.report), [props.report, policy]);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(props.report);
     const canLeaveRoom = useMemo(() => ReportUtils.canLeaveRoom(props.report, !_.isEmpty(policy)), [policy, props.report]);
-    const participants = useMemo(() => lodashGet(props.report, 'participantAccountIDs', []), [props.report]);
+    const participants = useMemo(() => ReportUtils.getParticipantsIDs(props.report), [props.report]);
 
     const menuItems = useMemo(() => {
         const items = [

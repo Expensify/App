@@ -54,10 +54,8 @@ const defaultProps = {
  * @param {Object} translate The localize
  * @return {Array}
  */
-const getAllParticipants = (report, personalDetails, translate) => {
-    const {participantAccountIDs} = report;
-
-    return _.chain(participantAccountIDs)
+const getAllParticipants = (report, personalDetails, translate) =>
+    _.chain(ReportUtils.getParticipantsIDs(report))
         .map((accountID, index) => {
             const userPersonalDetail = lodashGet(personalDetails, accountID, {displayName: personalDetails.displayName || translate('common.hidden'), avatar: ''});
             const userLogin = LocalePhoneNumber.formatPhoneNumber(userPersonalDetail.login || '') || translate('common.hidden');
@@ -83,7 +81,6 @@ const getAllParticipants = (report, personalDetails, translate) => {
         })
         .sortBy((participant) => participant.displayName.toLowerCase())
         .value();
-};
 
 function ReportParticipantsPage(props) {
     const participants = _.map(getAllParticipants(props.report, props.personalDetails, props.translate), (participant) => ({
