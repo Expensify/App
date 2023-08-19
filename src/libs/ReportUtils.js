@@ -1525,8 +1525,7 @@ function navigateToDetailsPage(report) {
         Navigation.navigate(ROUTES.getReportDetailsRoute(report.reportID));
         return;
     }
-
-    if (!isIOUReport(report) && participantAccountIDs.length === 1) {
+    if (participantAccountIDs.length === 1) {
         Navigation.navigate(ROUTES.getProfileRoute(participantAccountIDs[0]));
         return;
     }

@@ -19,6 +19,8 @@ import Text from './Text';
 import * as StyleUtils from '../styles/StyleUtils';
 import ParentNavigationSubtitle from './ParentNavigationSubtitle';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
+import Navigation from "../libs/Navigation/Navigation";
+import ROUTES from "../ROUTES";
 
 const propTypes = {
     /** The report currently being looked at */
@@ -75,7 +77,7 @@ function AvatarWithDisplayName(props) {
         }
         return (
             <PressableWithoutFeedback
-                onPress={() => ReportUtils.navigateToDetailsPage(props.report)}
+                onPress={() => Navigation.navigate(ROUTES.getReportParticipantsRoute(props.report.reportID))}
                 accessibilityLabel={title}
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
             >
