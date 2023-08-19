@@ -72,8 +72,9 @@ function ReportWelcomeText(props) {
                     <>
                         <Text>{props.translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartOne')}</Text>
                         <Text style={[styles.textStrong]}>
-                            {/* Use the policyExpenseChat owner's first name or their email if it's undefined or an empty string */}
-                            {lodashGet(props.personalDetails, [props.report.ownerAccountID, 'firstName']) || props.report.ownerEmail}
+                            {/* Use the policyExpenseChat owner's first name or their display name if it's undefined or an empty string */}
+                            {lodashGet(props.personalDetails, [props.report.ownerAccountID, 'firstName']) ||
+                                lodashGet(props.personalDetails, [props.report.ownerAccountID, 'displayName'], '')}
                         </Text>
                         <Text>{props.translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartTwo')}</Text>
                         <Text style={[styles.textStrong]}>{ReportUtils.getPolicyName(props.report)}</Text>
@@ -86,6 +87,7 @@ function ReportWelcomeText(props) {
                         <Text
                             style={[styles.textStrong]}
                             onPress={() => Navigation.navigate(ROUTES.getReportDetailsRoute(props.report.reportID))}
+                            suppressHighlighting
                         >
                             {ReportUtils.getReportName(props.report)}
                         </Text>
@@ -98,17 +100,17 @@ function ReportWelcomeText(props) {
                         {_.map(displayNamesWithTooltips, ({displayName, pronouns, accountID}, index) => (
                             <Text key={`${displayName}${pronouns}${index}`}>
                                 <UserDetailsTooltip accountID={accountID}>
-                                    <Text
-                                        style={[styles.textStrong]}
-                                        onPress={() => {
-                                            const accountDetails = props.personalDetails[participantAccountIDs[index]];
-                                            if (accountDetails && accountDetails.accountID) {
-                                                Navigation.navigate(ROUTES.getProfileRoute(accountDetails.accountID));
-                                            }
-                                        }}
-                                    >
-                                        {displayName}
-                                    </Text>
+                                    {ReportUtils.isOptimisticPersonalDetail(accountID) ? (
+                                        <Text style={[styles.textStrong]}>{displayName}</Text>
+                                    ) : (
+                                        <Text
+                                            style={[styles.textStrong]}
+                                            onPress={() => Navigation.navigate(ROUTES.getProfileRoute(accountID))}
+                                            suppressHighlighting
+                                        >
+                                            {displayName}
+                                        </Text>
+                                    )}
                                 </UserDetailsTooltip>
                                 {!_.isEmpty(pronouns) && <Text>{` (${pronouns})`}</Text>}
                                 {index === displayNamesWithTooltips.length - 1 && <Text>.</Text>}
@@ -118,9 +120,7 @@ function ReportWelcomeText(props) {
                         ))}
                     </Text>
                 )}
-                {(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.SEND) || moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)) && (
-                    <Text>{props.translate('reportActionsView.usePlusButton')}</Text>
-                )}
+                {moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST) && <Text>{props.translate('reportActionsView.usePlusButton')}</Text>}
             </Text>
         </>
     );

@@ -190,9 +190,9 @@ function BaseTextInput(props) {
         // We can't use inputValue here directly, as it might contain
         // the defaultValue, which doesn't get updated when the text changes.
         // We can't use props.value either, as it might be undefined.
-        if (hasValueRef.current || isFocused) {
+        if (hasValueRef.current || isFocused || isInputAutoFilled(input.current)) {
             activateLabel();
-        } else if (!hasValueRef.current && !isFocused) {
+        } else {
             deactivateLabel();
         }
     }, [activateLabel, deactivateLabel, inputValue, isFocused]);
@@ -244,12 +244,16 @@ function BaseTextInput(props) {
 
     return (
         <>
-            <View>
+            <View style={styles.pointerEventsNone}>
                 <PressableWithoutFeedback
                     onPress={onPress}
                     focusable={false}
                     accessibilityLabel={props.label}
-                    style={[props.autoGrowHeight && styles.autoGrowHeightInputContainer(textInputHeight, maxHeight), !isMultiline && styles.componentHeightLarge, ...props.containerStyles]}
+                    style={[
+                        props.autoGrowHeight && styles.autoGrowHeightInputContainer(textInputHeight, variables.componentSizeLarge, maxHeight),
+                        !isMultiline && styles.componentHeightLarge,
+                        ...props.containerStyles,
+                    ]}
                 >
                     <View
                         // When autoGrowHeight is true we calculate the width for the textInput, so it will break lines properly
@@ -391,7 +395,8 @@ function BaseTextInput(props) {
                         setTextInputHeight(e.nativeEvent.layout.height);
                     }}
                 >
-                    {props.value || props.placeholder}
+                    {/* \u200B added to solve the issue of not expanding the text input enough when the value ends with '\n' (https://github.com/Expensify/App/issues/21271) */}
+                    {props.value ? `${props.value}${props.value.endsWith('\n') ? '\u200B' : ''}` : props.placeholder}
                 </Text>
             )}
         </>

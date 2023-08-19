@@ -6,7 +6,7 @@ import RHPScreenOptions from '../RHPScreenOptions';
 
 const Stack = createStackNavigator();
 
-function RigthModalNavigator() {
+function RightModalNavigator() {
     return (
         <Stack.Navigator screenOptions={RHPScreenOptions}>
             <Stack.Screen
@@ -86,10 +86,6 @@ function RigthModalNavigator() {
                 component={ModalStackNavigators.WalletStatementStackNavigator}
             />
             <Stack.Screen
-                name="Select_Year"
-                component={ModalStackNavigators.YearPickerStackNavigator}
-            />
-            <Stack.Screen
                 name="Flag_Comment"
                 component={ModalStackNavigators.FlagCommentStackNavigator}
             />
@@ -101,4 +97,4 @@ function RigthModalNavigator() {
     );
 }
 
-export default RigthModalNavigator;
+export default RightModalNavigator;

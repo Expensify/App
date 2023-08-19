@@ -13,8 +13,10 @@ import Form from '../../components/Form';
 import TextInput from '../../components/TextInput';
 import Permissions from '../../libs/Permissions';
 import ROUTES from '../../ROUTES';
-import * as TaskUtils from '../../libs/actions/Task';
+import * as Task from '../../libs/actions/Task';
 import focusAndUpdateMultilineInputRange from '../../libs/focusAndUpdateMultilineInputRange';
+import CONST from '../../CONST';
+import * as Browser from '../../libs/Browser';
 
 const propTypes = {
     /** Beta features list */
@@ -42,8 +44,8 @@ function NewTaskDescriptionPage(props) {
     // On submit, we want to call the assignTask function and wait to validate
     // the response
     const onSubmit = (values) => {
-        TaskUtils.setDescriptionValue(values.taskDescription);
-        Navigation.navigate(ROUTES.NEW_TASK);
+        Task.setDescriptionValue(values.taskDescription);
+        Navigation.goBack(ROUTES.NEW_TASK);
     };
 
     if (!Permissions.canUseTasks(props.betas)) {
@@ -54,10 +56,11 @@ function NewTaskDescriptionPage(props) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             onEntryTransitionEnd={() => focusAndUpdateMultilineInputRange(inputRef.current)}
+            shouldEnableMaxHeight
         >
             <HeaderWithBackButton
-                title={props.translate('newTaskPage.description')}
-                onCloseButtonPress={() => TaskUtils.dismissModalAndClearOutTaskInfo()}
+                title={props.translate('task.description')}
+                onCloseButtonPress={() => Task.dismissModalAndClearOutTaskInfo()}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.NEW_TASK)}
             />
             <Form
@@ -72,9 +75,11 @@ function NewTaskDescriptionPage(props) {
                         defaultValue={props.task.description}
                         inputID="taskDescription"
                         label={props.translate('newTaskPage.descriptionOptional')}
+                        accessibilityLabel={props.translate('newTaskPage.descriptionOptional')}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         ref={(el) => (inputRef.current = el)}
                         autoGrowHeight
-                        submitOnEnter
+                        submitOnEnter={!Browser.isMobile()}
                         containerStyles={[styles.autoGrowHeightMultilineInput]}
                         textAlignVertical="top"
                     />

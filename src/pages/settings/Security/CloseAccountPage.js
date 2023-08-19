@@ -2,7 +2,6 @@ import React, {useState, useEffect} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import Navigation from '../../../libs/Navigation/Navigation';
@@ -20,6 +19,7 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import Form from '../../../components/Form';
 import CONST from '../../../CONST';
 import ConfirmModal from '../../../components/ConfirmModal';
+import * as ValidationUtils from '../../../libs/ValidationUtils';
 
 const propTypes = {
     /** Session of currently logged in user */
@@ -63,10 +63,11 @@ function CloseAccountPage(props) {
     };
 
     const validate = (values) => {
+        const requiredFields = ['phoneOrEmail'];
         const userEmailOrPhone = props.formatPhoneNumber(props.session.email);
-        const errors = {};
+        const errors = ValidationUtils.getFieldRequiredErrors(values, requiredFields);
 
-        if (_.isEmpty(values.phoneOrEmail) || userEmailOrPhone.toLowerCase() !== values.phoneOrEmail.toLowerCase()) {
+        if (values.phoneOrEmail && userEmailOrPhone.toLowerCase() !== values.phoneOrEmail.toLowerCase()) {
             errors.phoneOrEmail = 'closeAccountPage.enterYourDefaultContactMethod';
         }
         return errors;
@@ -95,15 +96,19 @@ function CloseAccountPage(props) {
                         autoGrowHeight
                         textAlignVertical="top"
                         label={props.translate('closeAccountPage.enterMessageHere')}
+                        accessibilityLabel={props.translate('closeAccountPage.enterMessageHere')}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         containerStyles={[styles.mt5, styles.autoGrowHeightMultilineInput]}
                     />
                     <Text style={[styles.mt5]}>
-                        {props.translate('closeAccountPage.enterDefaultContactToConfirm')} <Text style={[styles.textStrong]}>{userEmailOrPhone}</Text>.
+                        {props.translate('closeAccountPage.enterDefaultContactToConfirm')} <Text style={[styles.textStrong]}>{userEmailOrPhone}</Text>
                     </Text>
                     <TextInput
                         inputID="phoneOrEmail"
                         autoCapitalize="none"
                         label={props.translate('closeAccountPage.enterDefaultContact')}
+                        accessibilityLabel={props.translate('closeAccountPage.enterDefaultContact')}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         containerStyles={[styles.mt5]}
                         autoCorrect={false}
                         keyboardType={Str.isValidEmail(userEmailOrPhone) ? CONST.KEYBOARD_TYPE.EMAIL_ADDRESS : CONST.KEYBOARD_TYPE.DEFAULT}
@@ -117,6 +122,7 @@ function CloseAccountPage(props) {
                         prompt={props.translate('closeAccountPage.closeAccountPermanentlyDeleteData')}
                         confirmText={props.translate('common.yesContinue')}
                         cancelText={props.translate('common.cancel')}
+                        shouldDisableConfirmButtonWhenOffline
                         shouldShowCancelButton
                     />
                 </View>

@@ -56,6 +56,7 @@ const defaultProps = {
 function IOUCurrencySelection(props) {
     const [searchValue, setSearchValue] = useState('');
     const selectedCurrencyCode = lodashGet(props.route, 'params.currency', props.iou.currency, CONST.CURRENCY.USD);
+
     const iouType = lodashGet(props.route, 'params.iouType', CONST.IOU.MONEY_REQUEST_TYPE.REQUEST);
     const reportID = lodashGet(props.route, 'params.reportID', '');
 

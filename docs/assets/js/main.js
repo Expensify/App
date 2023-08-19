@@ -44,8 +44,20 @@ function clamp(num, min, max) {
 function isInRange(num, min, max) {
     return num >= min && num <= max;
 }
-
+/**
+ * Checks if the user has navigated within the docs using internal links and uses browser history to navigate back.
+ * If a page is directly accessed (e.g., via deep link, bookmark, or opened in a new tab),the user will be navigated
+ * back to the relevant hub page of that article.
+ */
 function navigateBack() {
+    const currentHost = window.location.host;
+    const referrer = document.referrer;
+
+    if (referrer.includes(currentHost) && window.history.length > 1) {
+        window.history.back();
+        return;
+    }
+
     const hubs = JSON.parse(document.getElementById('hubs-data').value);
     const hubToNavigate = hubs.find((hub) => window.location.pathname.includes(hub)); // eslint-disable-line rulesdir/prefer-underscore-method
     if (hubToNavigate) {
@@ -63,8 +75,92 @@ function injectFooterCopywrite() {
     footer.innerHTML = `&copy;2008-${new Date().getFullYear()} Expensify, Inc.`;
 }
 
+function openSidebar() {
+    document.getElementById('sidebar-layer').style.display = 'block';
+
+    // Make body unscrollable
+    const yAxis = document.documentElement.style.getPropertyValue('y-axis');
+    const body = document.body;
+    body.style.position = 'fixed';
+    body.style.top = `-${yAxis}`;
+}
+
+function closeSidebar() {
+    document.getElementById('sidebar-layer').style.display = 'none';
+
+    // Make the body scrollable again
+    const body = document.body;
+    const scrollY = body.style.top;
+
+    // Reset the position and top styles of the body element
+    body.style.position = '';
+    body.style.top = '';
+
+    // Scroll to the original scroll position
+    window.scrollTo(0, parseInt(scrollY || '0', 10) * -1);
+}
+
+// Function to adapt & fix cropped SVG viewBox from Google based on viewport (Mobile or Tablet-Desktop)
+function changeSVGViewBoxGoogle() {
+    // Get all inline Google SVG elements on the page
+    const svgsGoogle = document.querySelectorAll('svg');
+
+    // Create a media query for screens wider than tablet
+    const mediaQuery = window.matchMedia('(min-width: 800px)');
+
+    // Check if the viewport is smaller than tablet
+    if (!mediaQuery.matches) {
+        Array.from(svgsGoogle).forEach((svg) => {
+            // Set the viewBox attribute to '0 0 13 13' to make the svg fit in the mobile view
+            svg.setAttribute('viewBox', '0 0 13 13');
+            svg.setAttribute('height', '13');
+            svg.setAttribute('width', '13');
+        });
+    } else {
+        Array.from(svgsGoogle).forEach((svg) => {
+            // Set the viewBox attribute to '0 0 20 20' to make the svg fit in the tablet-desktop view
+            svg.setAttribute('viewBox', '0 0 20 20');
+            svg.setAttribute('height', '16');
+            svg.setAttribute('width', '16');
+        });
+    }
+}
+
+// Function to insert element after another
+// In this case, we insert the label element after the Google Search Input so we can have the same label animation effect
+function insertElementAfter(referenceNode, newNode) {
+    referenceNode.parentNode.insertBefore(newNode, referenceNode.nextSibling);
+}
+
+// Need to wait up until page is load, so the svg viewBox can be changed
+// And the search label can be inserted
+window.addEventListener('load', () => {
+    changeSVGViewBoxGoogle();
+
+    // Add required into the search input
+    const searchInput = document.getElementById('gsc-i-id1');
+    searchInput.setAttribute('required', '');
+
+    // Insert search label after the search input
+    const searchLabel = document.createElement('label');
+    searchLabel.classList.add('search-label');
+    searchLabel.innerHTML = 'Search for something...';
+    insertElementAfter(searchInput, searchLabel);
+});
+
 window.addEventListener('DOMContentLoaded', () => {
     injectFooterCopywrite();
+
+    // Handle open & close the sidebar
+    const buttonOpenSidebar = document.getElementById('toggle-search-open');
+    if (buttonOpenSidebar) {
+        buttonOpenSidebar.addEventListener('click', openSidebar);
+    }
+
+    const buttonCloseSidebar = document.getElementById('toggle-search-close');
+    if (buttonCloseSidebar) {
+        buttonCloseSidebar.addEventListener('click', closeSidebar);
+    }
 
     if (window.tocbot) {
         window.tocbot.init({
@@ -127,5 +223,8 @@ window.addEventListener('DOMContentLoaded', () => {
         const scrollingElement = e.target.scrollingElement;
         const scrollPercentageInArticleContent = clamp(scrollingElement.scrollTop - articleContent.offsetTop, 0, articleContent.scrollHeight) / articleContent.scrollHeight;
         lhnContent.scrollTop = scrollPercentageInArticleContent * lhnContent.scrollHeight;
+
+        // Count property of y-axis to keep scroll position & reference it later for making the body fixed when sidebar opened
+        document.documentElement.style.setProperty('y-axis', `${window.scrollY}px`);
     });
 });

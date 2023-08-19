@@ -11,9 +11,13 @@ export default {
             // Main Routes
             ValidateLogin: ROUTES.VALIDATE_LOGIN,
             UnlinkLogin: ROUTES.UNLINK_LOGIN,
-            [SCREENS.TRANSITION_FROM_OLD_DOT]: ROUTES.TRANSITION_FROM_OLD_DOT,
+            [SCREENS.TRANSITION_BETWEEN_APPS]: ROUTES.TRANSITION_BETWEEN_APPS,
             Concierge: ROUTES.CONCIERGE,
+            AppleSignInDesktop: ROUTES.APPLE_SIGN_IN,
+            GoogleSignInDesktop: ROUTES.GOOGLE_SIGN_IN,
+            DesktopSignInRedirect: ROUTES.DESKTOP_SIGN_IN_REDIRECT,
             [SCREENS.REPORT_ATTACHMENTS]: ROUTES.REPORT_ATTACHMENTS,
+            SaaStrHome: ROUTES.SAASTR_HOME,
 
             // Sidebar
             [SCREENS.HOME]: {
@@ -38,11 +42,11 @@ export default {
                             Settings_Root: {
                                 path: ROUTES.SETTINGS,
                             },
-                            Settings_Workspaces: {
+                            [SCREENS.SETTINGS.WORKSPACES]: {
                                 path: ROUTES.SETTINGS_WORKSPACES,
                                 exact: true,
                             },
-                            Settings_Preferences: {
+                            [SCREENS.SETTINGS.PREFERENCES]: {
                                 path: ROUTES.SETTINGS_PREFERENCES,
                                 exact: true,
                             },
@@ -54,32 +58,32 @@ export default {
                                 path: ROUTES.SETTINGS_LANGUAGE,
                                 exact: true,
                             },
-                            Settings_Close: {
-                                path: ROUTES.SETTINGS_CLOSE,
+                            Settings_Preferences_Theme: {
+                                path: ROUTES.SETTINGS_THEME,
                                 exact: true,
                             },
-                            Settings_Password: {
-                                path: ROUTES.SETTINGS_PASSWORD,
+                            Settings_Close: {
+                                path: ROUTES.SETTINGS_CLOSE,
                                 exact: true,
                             },
                             Settings_Security: {
                                 path: ROUTES.SETTINGS_SECURITY,
                                 exact: true,
                             },
-                            Settings_Payments: {
-                                path: ROUTES.SETTINGS_PAYMENTS,
+                            Settings_Wallet: {
+                                path: ROUTES.SETTINGS_WALLET,
                                 exact: true,
                             },
-                            Settings_Payments_EnablePayments: {
+                            Settings_Wallet_EnablePayments: {
                                 path: ROUTES.SETTINGS_ENABLE_PAYMENTS,
                                 exact: true,
                             },
-                            Settings_Payments_Transfer_Balance: {
-                                path: ROUTES.SETTINGS_PAYMENTS_TRANSFER_BALANCE,
+                            Settings_Wallet_Transfer_Balance: {
+                                path: ROUTES.SETTINGS_WALLET_TRANSFER_BALANCE,
                                 exact: true,
                             },
-                            Settings_Payments_Choose_Transfer_Account: {
-                                path: ROUTES.SETTINGS_PAYMENTS_CHOOSE_TRANSFER_ACCOUNT,
+                            Settings_Wallet_Choose_Transfer_Account: {
+                                path: ROUTES.SETTINGS_WALLET_CHOOSE_TRANSFER_ACCOUNT,
                                 exact: true,
                             },
                             Settings_Add_Paypal_Me: {
@@ -176,6 +180,14 @@ export default {
                                 path: ROUTES.SETTINGS_SHARE_CODE,
                                 exact: true,
                             },
+                            Settings_Status: {
+                                path: ROUTES.SETTINGS_STATUS,
+                                exact: true,
+                            },
+                            Settings_Status_Set: {
+                                path: ROUTES.SETTINGS_STATUS_SET,
+                                exact: true,
+                            },
                             Workspace_Initial: {
                                 path: ROUTES.WORKSPACE_INITIAL,
                             },
@@ -218,9 +230,6 @@ export default {
                             },
                             GetAssistance: {
                                 path: ROUTES.GET_ASSISTANCE,
-                            },
-                            YearPicker_Root: {
-                                path: ROUTES.SELECT_YEAR,
                             },
                         },
                     },
@@ -289,17 +298,34 @@ export default {
                     Participants: {
                         screens: {
                             ReportParticipants_Root: ROUTES.REPORT_PARTICIPANTS,
-                            ReportParticipants_Details: ROUTES.REPORT_PARTICIPANT,
                         },
                     },
                     MoneyRequest: {
                         screens: {
-                            Money_Request: ROUTES.MONEY_REQUEST,
+                            Money_Request: {
+                                path: ROUTES.MONEY_REQUEST,
+                                exact: true,
+                                screens: {
+                                    manual: {
+                                        path: ROUTES.MONEY_REQUEST_MANUAL_TAB,
+                                        exact: true,
+                                    },
+                                    scan: {
+                                        path: ROUTES.MONEY_REQUEST_SCAN_TAB,
+                                        exact: true,
+                                    },
+                                    distance: {
+                                        path: ROUTES.MONEY_REQUEST_DISTANCE_TAB,
+                                        exact: true,
+                                    },
+                                },
+                            },
                             Money_Request_Amount: ROUTES.MONEY_REQUEST_AMOUNT,
                             Money_Request_Participants: ROUTES.MONEY_REQUEST_PARTICIPANTS,
                             Money_Request_Confirmation: ROUTES.MONEY_REQUEST_CONFIRMATION,
                             Money_Request_Currency: ROUTES.MONEY_REQUEST_CURRENCY,
                             Money_Request_Description: ROUTES.MONEY_REQUEST_DESCRIPTION,
+                            Money_Request_Waypoint: ROUTES.MONEY_REQUEST_WAYPOINT,
                             IOU_Send_Enable_Payments: ROUTES.IOU_SEND_ENABLE_PAYMENTS,
                             IOU_Send_Add_Bank_Account: ROUTES.IOU_SEND_ADD_BANK_ACCOUNT,
                             IOU_Send_Add_Debit_Card: ROUTES.IOU_SEND_ADD_DEBIT_CARD,
@@ -340,6 +366,7 @@ export default {
                     EditRequest: {
                         screens: {
                             EditRequest_Root: ROUTES.EDIT_REQUEST,
+                            EditRequest_Currency: ROUTES.EDIT_CURRENCY_REQUEST,
                         },
                     },
                 },

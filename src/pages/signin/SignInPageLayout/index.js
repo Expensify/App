@@ -22,11 +22,11 @@ const propTypes = {
     children: PropTypes.node.isRequired,
 
     /** Welcome text to show in the header of the form, changes depending
-     * on form type (set password, sign in, etc.) */
+     * on form type (for example, sign in) */
     welcomeText: PropTypes.string.isRequired,
 
     /** Welcome header to show in the header of the form, changes depending
-     * on form type (set password, sign in, etc.) and small vs large screens */
+     * on form type (for example, sign in) and small vs large screens */
     welcomeHeader: PropTypes.string.isRequired,
 
     /** Whether to show welcome text on a particular page */
@@ -35,8 +35,15 @@ const propTypes = {
     /** Whether to show welcome header on a particular page */
     shouldShowWelcomeHeader: PropTypes.bool.isRequired,
 
+    /** Override the green headline copy */
+    customHeadline: PropTypes.string,
+
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    customHeadline: '',
 };
 
 function SignInPageLayout(props) {
@@ -108,7 +115,7 @@ function SignInPageLayout(props) {
                                         props.isLargeScreenWidth ? styles.ph25 : {},
                                     ]}
                                 >
-                                    <SignInPageHero />
+                                    <SignInPageHero customHeadline={props.customHeadline} />
                                     <Footer scrollPageToTop={scrollPageToTop} />
                                 </View>
                             </View>
@@ -126,7 +133,6 @@ function SignInPageLayout(props) {
                             isSmallScreen
                             pointerEvents="none"
                             width={variables.signInHeroBackgroundWidthMobile}
-                            style={styles.signInBackgroundMobile}
                         />
                         <SignInPageContent
                             welcomeHeader={props.welcomeHeader}
@@ -148,5 +154,6 @@ function SignInPageLayout(props) {
 
 SignInPageLayout.propTypes = propTypes;
 SignInPageLayout.displayName = 'SignInPageLayout';
+SignInPageLayout.defaultProps = defaultProps;
 
 export default compose(withWindowDimensions, withSafeAreaInsets, withLocalize)(SignInPageLayout);

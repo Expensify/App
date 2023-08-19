@@ -21,6 +21,7 @@ const propTypes = {
 };
 
 function BaseSelectionListRadio(props) {
+    const firstLayoutRef = useRef(true);
     const listRef = useRef(null);
     const textInputRef = useRef(null);
     const focusTimeoutRef = useRef(null);
@@ -157,12 +158,14 @@ function BaseSelectionListRadio(props) {
     };
 
     const renderItem = ({item, index, section}) => {
-        const isFocused = focusedIndex === index + lodashGet(section, 'indexOffset', 0);
+        const isDisabled = section.isDisabled;
+        const isFocused = !isDisabled && focusedIndex === index + lodashGet(section, 'indexOffset', 0);
 
         return (
             <RadioListItem
                 item={item}
                 isFocused={isFocused}
+                isDisabled={isDisabled}
                 onSelectRow={props.onSelectRow}
             />
         );
@@ -186,22 +189,20 @@ function BaseSelectionListRadio(props) {
         };
     }, [props.shouldDelayFocus, shouldShowTextInput]);
 
-    useKeyboardShortcut(
-        CONST.KEYBOARD_SHORTCUTS.ENTER,
-        () => {
-            const focusedOption = flattenedSections.allOptions[focusedIndex];
+    const selectFocusedOption = () => {
+        const focusedOption = flattenedSections.allOptions[focusedIndex];
 
-            if (!focusedOption) {
-                return;
-            }
+        if (!focusedOption) {
+            return;
+        }
 
-            props.onSelectRow(focusedOption);
-        },
-        {
-            captureOnInputs: true,
-            shouldBubble: () => !flattenedSections.allOptions[focusedIndex],
-        },
-    );
+        props.onSelectRow(focusedOption);
+    };
+
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
+        captureOnInputs: true,
+        shouldBubble: () => !flattenedSections.allOptions[focusedIndex],
+    });
 
     return (
         <ArrowKeyFocusManager
@@ -217,16 +218,20 @@ function BaseSelectionListRadio(props) {
                 {({safeAreaPaddingBottomStyle}) => (
                     <View style={[styles.flex1, !props.isKeyboardShown && safeAreaPaddingBottomStyle]}>
                         {shouldShowTextInput && (
-                            <View style={[styles.ph5, styles.pv5]}>
+                            <View style={[styles.ph5, styles.pb3]}>
                                 <TextInput
                                     ref={textInputRef}
                                     label={props.textInputLabel}
+                                    accessibilityLabel={props.textInputLabel}
+                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                                     value={props.textInputValue}
                                     placeholder={props.textInputPlaceholder}
                                     maxLength={props.textInputMaxLength}
                                     onChangeText={props.onChangeText}
                                     keyboardType={props.keyboardType}
                                     selectTextOnFocus
+                                    spellCheck={false}
+                                    onSubmitEditing={selectFocusedOption}
                                 />
                             </View>
                         )}
@@ -252,7 +257,13 @@ function BaseSelectionListRadio(props) {
                             maxToRenderPerBatch={5}
                             windowSize={5}
                             viewabilityConfig={{viewAreaCoveragePercentThreshold: 95}}
-                            onLayout={() => scrollToIndex(focusedIndex, false)}
+                            onLayout={() => {
+                                if (!firstLayoutRef.current) {
+                                    return;
+                                }
+                                scrollToIndex(focusedIndex, false);
+                                firstLayoutRef.current = false;
+                            }}
                         />
                     </View>
                 )}

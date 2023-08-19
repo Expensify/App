@@ -1,6 +1,7 @@
 /* eslint-disable es/no-optional-chaining */
 import React, {useState, useEffect, useMemo, useCallback} from 'react';
 import {View} from 'react-native';
+import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -18,14 +19,14 @@ import personalDetailsPropType from '../personalDetailsPropType';
 import reportPropTypes from '../reportPropTypes';
 import ROUTES from '../../ROUTES';
 
-import * as TaskUtils from '../../libs/actions/Task';
+import * as Task from '../../libs/actions/Task';
 
 const propTypes = {
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
 
     /** All of the personal details for everyone */
-    personalDetails: personalDetailsPropType,
+    personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
     /** All reports shared with the user */
     reports: PropTypes.objectOf(reportPropTypes),
@@ -107,6 +108,13 @@ function TaskAssigneeSelectorModal(props) {
         setSearchValue(newSearchTerm);
     };
 
+    const report = useMemo(() => {
+        if (!props.route.params || !props.route.params.reportID) {
+            return null;
+        }
+        return props.reports[`${ONYXKEYS.COLLECTION.REPORT}${props.route.params.reportID}`];
+    }, [props.reports, props.route.params]);
+
     const sections = useMemo(() => {
         const sectionsList = [];
         let indexOffset = 0;
@@ -158,17 +166,16 @@ function TaskAssigneeSelectorModal(props) {
         if (!props.route.params && option.accountID) {
             // Clear out the state value, set the assignee and navigate back to the NewTaskPage
             setSearchValue('');
-            TaskUtils.setAssigneeValue(option.login, option.accountID, props.task.shareDestination, OptionsListUtils.isCurrentUser(option));
-            return Navigation.goBack();
+            Task.setAssigneeValue(option.login, option.accountID, props.task.shareDestination, OptionsListUtils.isCurrentUser(option));
+            return Navigation.goBack(ROUTES.NEW_TASK);
         }
 
         // Check to see if we're editing a task and if so, update the assignee
-        if (props.route.params.reportID && props.task.report.reportID === props.route.params.reportID) {
-            // There was an issue where sometimes a new assignee didn't have a DM thread
-            // This would cause the app to crash, so we need to make sure we have a DM thread
-            TaskUtils.setAssigneeValue(option.login, option.accountID, props.task.shareDestination, OptionsListUtils.isCurrentUser(option));
+        if (report) {
+            const assigneeChatReport = Task.setAssigneeValue(option.login, option.accountID, props.route.params.reportID, OptionsListUtils.isCurrentUser(option));
+
             // Pass through the selected assignee
-            TaskUtils.editTaskAndNavigate(props.task.report, props.session.email, props.session.accountID, {assignee: option.login, assigneeAccountID: option.accountID});
+            Task.editTaskAssigneeAndNavigate(props.task.report, props.session.accountID, option.login, option.accountID, assigneeChatReport);
         }
     };
 
@@ -177,8 +184,8 @@ function TaskAssigneeSelectorModal(props) {
             {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                 <>
                     <HeaderWithBackButton
-                        title={props.translate('newTaskPage.assignee')}
-                        onBackButtonPress={() => Navigation.goBack(ROUTES.NEW_TASK)}
+                        title={props.translate('task.assignee')}
+                        onBackButtonPress={() => (lodashGet(props.route.params, 'reportID') ? Navigation.dismissModal() : Navigation.goBack(ROUTES.NEW_TASK))}
                     />
                     <View style={[styles.flex1, styles.w100, styles.pRelative]}>
                         <OptionsSelector
@@ -189,7 +196,7 @@ function TaskAssigneeSelectorModal(props) {
                             headerMessage={headerMessage}
                             showTitleTooltip
                             shouldShowOptions={didScreenTransitionEnd}
-                            placeholderText={props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                            textInputLabel={props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                         />
                     </View>

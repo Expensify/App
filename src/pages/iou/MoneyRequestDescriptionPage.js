@@ -16,6 +16,7 @@ import ROUTES from '../../ROUTES';
 import compose from '../../libs/compose';
 import * as IOU from '../../libs/actions/IOU';
 import optionPropTypes from '../../components/optionPropTypes';
+import CONST from '../../CONST';
 import focusAndUpdateMultilineInputRange from '../../libs/focusAndUpdateMultilineInputRange';
 
 const propTypes = {
@@ -57,7 +58,7 @@ class MoneyRequestDescriptionPage extends Component {
             IOU.resetMoneyRequestInfo(moneyRequestId);
         }
 
-        if (_.isEmpty(this.props.iou.participants) || this.props.iou.amount === 0 || shouldReset) {
+        if (_.isEmpty(this.props.iou.participants) || (this.props.iou.amount === 0 && !this.props.iou.receiptPath) || shouldReset) {
             Navigation.goBack(ROUTES.getMoneyRequestRoute(this.iouType, this.reportID), true);
         }
     }
@@ -65,7 +66,7 @@ class MoneyRequestDescriptionPage extends Component {
     // eslint-disable-next-line rulesdir/prefer-early-return
     componentDidUpdate(prevProps) {
         // ID in Onyx could change by initiating a new request in a separate browser tab or completing a request
-        if (_.isEmpty(this.props.iou.participants) || this.props.iou.amount === 0 || prevProps.iou.id !== this.props.iou.id) {
+        if (_.isEmpty(this.props.iou.participants) || (this.props.iou.amount === 0 && !this.props.iou.receiptPath) || prevProps.iou.id !== this.props.iou.id) {
             // The ID is cleared on completing a request. In that case, we will do nothing.
             if (this.props.iou.id) {
                 Navigation.goBack(ROUTES.getMoneyRequestRoute(this.iouType, this.reportID), true);
@@ -112,6 +113,8 @@ class MoneyRequestDescriptionPage extends Component {
                             name="moneyRequestComment"
                             defaultValue={this.props.iou.comment}
                             label={this.props.translate('moneyRequestConfirmationList.whatsItFor')}
+                            accessibilityLabel={this.props.translate('moneyRequestConfirmationList.whatsItFor')}
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                             ref={(el) => (this.descriptionInputRef = el)}
                             autoGrowHeight
                             containerStyles={[styles.autoGrowHeightMultilineInput]}

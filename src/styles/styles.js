@@ -1,4 +1,5 @@
 import {defaultStyles as defaultPickerStyles} from 'react-native-picker-select/src/styles';
+import lodashClamp from 'lodash/clamp';
 import fontFamily from './fontFamily';
 import addOutlineWidth from './addOutlineWidth';
 import themeColors from './themes/default';
@@ -21,13 +22,14 @@ import pointerEventsAuto from './pointerEventsAuto';
 import getPopOverVerticalOffset from './getPopOverVerticalOffset';
 import overflowXHidden from './overflowXHidden';
 import CONST from '../CONST';
+import * as Browser from '../libs/Browser';
 import cursor from './utilities/cursor';
 import userSelect from './utilities/userSelect';
 import textUnderline from './utilities/textUnderline';
+import Colors from './colors';
 
-function getTransparentColor(color, transparency = '') {
-    return `${color}${transparency}`;
-}
+// touchCallout is an iOS safari only property that controls the display of the callout information when you touch and hold a target
+const touchCalloutNone = Browser.isMobileSafari() ? {WebkitTouchCallout: 'none'} : {};
 
 const picker = {
     backgroundColor: themeColors.transparent,
@@ -133,6 +135,7 @@ const webViewStyles = {
             borderColor: themeColors.border,
             borderRadius: variables.componentBorderRadiusNormal,
             borderWidth: 1,
+            ...touchCalloutNone,
         },
 
         p: {
@@ -201,6 +204,9 @@ const styles = {
     },
     emojiSuggestionsText: {
         fontSize: variables.fontSizeMedium,
+        flex: 1,
+        ...wordBreak.breakWord,
+        ...spacing.pr4,
     },
 
     mentionSuggestionsAvatarContainer: {
@@ -243,6 +249,14 @@ const styles = {
 
     linkMutedHovered: {
         color: themeColors.textMutedReversed,
+    },
+
+    highlightBG: {
+        backgroundColor: themeColors.highlightBG,
+    },
+
+    appBG: {
+        backgroundColor: themeColors.appBG,
     },
 
     h1: {
@@ -515,6 +529,11 @@ const styles = {
         textAlign: 'center',
     },
 
+    buttonDefaultHovered: {
+        backgroundColor: themeColors.buttonHoveredBG,
+        borderWidth: 0,
+    },
+
     buttonSuccess: {
         backgroundColor: themeColors.success,
         borderWidth: 0,
@@ -754,6 +773,39 @@ const styles = {
         borderColor: themeColors.danger,
     },
 
+    uploadReceiptView: (isSmallScreenWidth) => ({
+        borderRadius: variables.componentBorderRadiusLarge,
+        borderWidth: isSmallScreenWidth ? 0 : 2,
+        borderColor: themeColors.borderFocus,
+        borderStyle: 'dotted',
+        marginBottom: 20,
+        marginLeft: 20,
+        marginRight: 20,
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 40,
+        gap: 4,
+        flex: 1,
+    }),
+
+    cameraView: {
+        flex: 1,
+        overflow: 'hidden',
+        padding: 10,
+        borderRadius: 28,
+        borderStyle: 'solid',
+        borderWidth: 8,
+        backgroundColor: Colors.greenHighlightBackground,
+        borderColor: Colors.greenAppBackground,
+    },
+
+    permissionView: {
+        paddingVertical: 108,
+        paddingHorizontal: 61,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+
     headerAnonymousFooter: {
         color: themeColors.heading,
         fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
@@ -827,6 +879,7 @@ const styles = {
         alignItems: 'center',
         paddingHorizontal: 15,
         paddingRight: 5,
+        ...userSelect.userSelectNone,
     },
 
     calendarDayRoot: {
@@ -834,6 +887,7 @@ const styles = {
         height: 45,
         justifyContent: 'center',
         alignItems: 'center',
+        ...userSelect.userSelectNone,
     },
 
     calendarDayContainer: {
@@ -849,9 +903,15 @@ const styles = {
         backgroundColor: themeColors.buttonDefaultBG,
     },
 
-    autoGrowHeightInputContainer: (textInputHeight, maxHeight) => ({
-        height: textInputHeight >= maxHeight ? maxHeight : textInputHeight,
-        minHeight: variables.componentSizeLarge,
+    /**
+     * @param {number} textInputHeight
+     * @param {number} minHeight
+     * @param {number} maxHeight
+     * @returns {object}
+     */
+    autoGrowHeightInputContainer: (textInputHeight, minHeight, maxHeight) => ({
+        height: lodashClamp(textInputHeight, minHeight, maxHeight),
+        minHeight,
     }),
 
     autoGrowHeightHiddenInput: (maxWidth, maxHeight) => ({
@@ -1049,6 +1109,20 @@ const styles = {
         color: themeColors.textSupporting,
     },
 
+    textReceiptUpload: {
+        ...headlineFont,
+        fontSize: variables.fontSizeXLarge,
+        color: themeColors.textLight,
+        textAlign: 'center',
+    },
+
+    subTextReceiptUpload: {
+        fontFamily: fontFamily.EXP_NEUE,
+        lineHeight: variables.lineHeightLarge,
+        textAlign: 'center',
+        color: themeColors.textLight,
+    },
+
     furtherDetailsText: {
         fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeSmall,
@@ -1088,6 +1162,13 @@ const styles = {
         marginBottom: 4,
     },
 
+    desktopRedirectPage: {
+        backgroundColor: themeColors.appBG,
+        minHeight: '100%',
+        flex: 1,
+        alignItems: 'center',
+    },
+
     signInPage: {
         backgroundColor: themeColors.highlightBG,
         minHeight: '100%',
@@ -1120,14 +1201,7 @@ const styles = {
         left: 0,
     },
 
-    signInBackgroundDesktop: {
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        minHeight: 700,
-    },
-
-    signInBackgroundMobile: {
+    signInBackground: {
         position: 'absolute',
         bottom: 0,
         left: 0,
@@ -1146,6 +1220,11 @@ const styles = {
         minHeight: 24,
     },
 
+    signInPageContentTopSpacerSmallScreens: {
+        maxHeight: 132,
+        minHeight: 45,
+    },
+
     signInPageLeftContainer: {
         paddingLeft: 40,
         paddingRight: 40,
@@ -1156,11 +1235,11 @@ const styles = {
     },
 
     signInPageWelcomeFormContainer: {
-        maxWidth: 300,
+        maxWidth: CONST.SIGN_IN_FORM_WIDTH,
     },
 
     signInPageWelcomeTextContainer: {
-        width: 300,
+        width: CONST.SIGN_IN_FORM_WIDTH,
     },
 
     changeExpensifyLoginLinkContainer: {
@@ -1173,6 +1252,11 @@ const styles = {
     sidebar: {
         backgroundColor: themeColors.sidebar,
         height: '100%',
+    },
+
+    sidebarAnimatedWrapperContainer: {
+        height: '100%',
+        position: 'absolute',
     },
 
     sidebarFooter: {
@@ -1431,8 +1515,6 @@ const styles = {
     },
 
     appContentHeader: {
-        borderBottomWidth: 1,
-        borderColor: themeColors.border,
         height: variables.contentHeaderHeight,
         justifyContent: 'center',
         display: 'flex',
@@ -1465,7 +1547,7 @@ const styles = {
     chatContentScrollView: {
         flexGrow: 1,
         justifyContent: 'flex-start',
-        paddingVertical: 16,
+        paddingBottom: 16,
     },
 
     // Chat Item
@@ -1527,13 +1609,6 @@ const styles = {
         ...wordBreak.breakWord,
     },
 
-    chatItemMessageLink: {
-        color: themeColors.link,
-        fontSize: variables.fontSizeNormal,
-        fontFamily: fontFamily.EXP_NEUE,
-        lineHeight: variables.lineHeightXLarge,
-    },
-
     chatItemComposeWithFirstRow: {
         minHeight: 90,
     },
@@ -1584,6 +1659,10 @@ const styles = {
 
     chatItemReactionsDraftRight: {
         marginLeft: 52,
+    },
+    chatFooterAtTheTop: {
+        flexGrow: 1,
+        justifyContent: 'flex-start',
     },
 
     // Be extremely careful when editing the compose styles, as it is easy to introduce regressions.
@@ -1750,15 +1829,6 @@ const styles = {
         marginRight: 4,
     },
 
-    navigationModalCard: (isSmallScreenWidth) => ({
-        position: 'absolute',
-        top: 0,
-        right: 0,
-        width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
-        backgroundColor: 'transparent',
-        height: '100%',
-    }),
-
     navigationModalOverlay: {
         ...userSelect.userSelectNone,
         position: 'absolute',
@@ -1840,6 +1910,12 @@ const styles = {
         right: -1,
     },
 
+    secondAvatarSubscriptSmallNormal: {
+        position: 'absolute',
+        bottom: 0,
+        right: 0,
+    },
+
     leftSideLargeAvatar: {
         left: 15,
     },
@@ -1913,9 +1989,19 @@ const styles = {
         width: variables.avatarSizeNormal,
     },
 
+    emptyAvatarSmallNormal: {
+        height: variables.avatarSizeSmallNormal,
+        width: variables.avatarSizeSmallNormal,
+    },
+
     emptyAvatarSmall: {
         height: variables.avatarSizeSmall,
         width: variables.avatarSizeSmall,
+    },
+
+    emptyAvatarSmaller: {
+        height: variables.avatarSizeSmaller,
+        width: variables.avatarSizeSmaller,
     },
 
     emptyAvatarMedium: {
@@ -1932,7 +2018,15 @@ const styles = {
         marginRight: variables.avatarChatSpacing,
     },
 
+    emptyAvatarMarginChat: {
+        marginRight: variables.avatarChatSpacing - 12,
+    },
+
     emptyAvatarMarginSmall: {
+        marginRight: variables.avatarChatSpacing - 4,
+    },
+
+    emptyAvatarMarginSmaller: {
         marginRight: variables.avatarChatSpacing - 4,
     },
 
@@ -2015,15 +2109,20 @@ const styles = {
         height: '100%',
         justifyContent: 'center',
         overflow: 'hidden',
-        overflowY: 'auto',
         alignItems: 'center',
     },
 
-    pdfPasswordForm: {
-        wideScreenWidth: {
-            width: 350,
-        },
+    PDFViewList: {
+        overflowX: 'hidden',
+        // There properties disable "focus" effect on list
+        boxShadow: 'none',
+        outline: 'none',
     },
+
+    getPDFPasswordFormStyle: (isSmallScreenWidth) => ({
+        width: isSmallScreenWidth ? '100%' : 350,
+        ...(isSmallScreenWidth && flex.flex1),
+    }),
 
     modalCenterContentContainer: {
         flex: 1,
@@ -2270,7 +2369,6 @@ const styles = {
 
     roomHeaderAvatar: {
         backgroundColor: themeColors.appBG,
-        marginLeft: -16,
         borderRadius: 100,
         borderColor: themeColors.componentBG,
         borderWidth: 4,
@@ -2316,14 +2414,15 @@ const styles = {
         padding: 20,
     },
 
-    pageWrapperNotCentered: {
-        width: '100%',
-        padding: 20,
-    },
-
     avatarSectionWrapper: {
         width: '100%',
         alignItems: 'center',
+        paddingHorizontal: 20,
+        paddingBottom: 20,
+    },
+
+    avatarSectionWrapperSkeleton: {
+        width: '100%',
         paddingHorizontal: 20,
         paddingBottom: 20,
     },
@@ -2410,11 +2509,11 @@ const styles = {
         alignSelf: 'flex-start',
     },
 
-    attachmentModalArrowsContainer: {
-        display: 'flex',
-        justifyContent: 'center',
+    attachmentCarouselContainer: {
         height: '100%',
         width: '100%',
+        display: 'flex',
+        justifyContent: 'center',
         ...cursor.cursorUnset,
     },
 
@@ -2462,6 +2561,10 @@ const styles = {
         backgroundColor: themeColors.appBG,
     },
 
+    switchThumbTransformation: (translateX) => ({
+        transform: [{translateX}],
+    }),
+
     radioButtonContainer: {
         backgroundColor: themeColors.componentBG,
         borderRadius: 10,
@@ -2476,17 +2579,6 @@ const styles = {
     checkboxPressable: {
         borderRadius: 6,
         padding: 2,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-
-    checkboxContainer: {
-        backgroundColor: themeColors.componentBG,
-        borderRadius: 4,
-        height: 20,
-        width: 20,
-        borderColor: themeColors.borderLighter,
-        borderWidth: 2,
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -2507,14 +2599,21 @@ const styles = {
         lineHeight: variables.inputHeight,
     },
 
-    magicCodeInputTransparent: {
+    // Manually style transparent, in iOS Safari, an input in a container with its opacity set to
+    // 0 (completely transparent) cannot handle user interaction, hence the Paste option is never shown
+    inputTransparent: {
         color: 'transparent',
-        caretColor: 'transparent',
-        WebkitTextFillColor: 'transparent',
-        // After setting the input text color to transparent, it acquires the background-color.
-        // However, it is not possible to override the background-color directly as explained in this resource: https://developer.mozilla.org/en-US/docs/Web/CSS/:autofill
-        // Therefore, the transition effect needs to be delayed.
-        transitionDelay: '99999s',
+        // These properties are available in browser only
+        ...(Browser.getBrowser()
+            ? {
+                  caretColor: 'transparent',
+                  WebkitTextFillColor: 'transparent',
+                  // After setting the input text color to transparent, it acquires the background-color.
+                  // However, it is not possible to override the background-color directly as explained in this resource: https://developer.mozilla.org/en-US/docs/Web/CSS/:autofill
+                  // Therefore, the transition effect needs to be delayed.
+                  transitionDelay: '99999s',
+              }
+            : {}),
     },
 
     iouAmountText: {
@@ -2550,14 +2649,14 @@ const styles = {
     },
 
     requestPreviewBox: {
-        marginTop: 8,
+        marginTop: 12,
         maxWidth: variables.sideBarWidth,
     },
 
     iouPreviewBox: {
         backgroundColor: themeColors.cardBG,
-        borderRadius: variables.componentBorderRadiusCard,
-        padding: 20,
+        borderRadius: variables.componentBorderRadiusLarge,
+        padding: 16,
         maxWidth: variables.sideBarWidth,
         width: '100%',
     },
@@ -3125,41 +3224,33 @@ const styles = {
         marginLeft: 6,
     },
 
-    fullScreenTransparentOverlay: {
+    fullScreen: {
         position: 'absolute',
-        width: '100%',
-        height: '100%',
         top: 0,
         left: 0,
         right: 0,
         bottom: 0,
+    },
+
+    invisibleOverlay: {
+        backgroundColor: themeColors.transparent,
+        zIndex: 1000,
+    },
+
+    reportDropOverlay: {
         backgroundColor: themeColors.dropUIBG,
         zIndex: 2,
     },
 
-    textPill: {
-        backgroundColor: themeColors.border,
-        borderRadius: 10,
-        overflow: 'hidden',
-        paddingVertical: 2,
-        flexShrink: 0,
-        maxWidth: variables.badgeMaxWidth,
-        fontSize: variables.fontSizeSmall,
-        ...whiteSpace.pre,
-        ...spacing.ph2,
+    receiptDropOverlay: {
+        backgroundColor: themeColors.receiptDropUIBG,
+        zIndex: 2,
     },
 
-    dropZoneTopInvisibleOverlay: {
+    receiptImageWrapper: (receiptImageTopPosition) => ({
         position: 'absolute',
-        width: '100%',
-        height: '100%',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: themeColors.dropTransparentOverlay,
-        zIndex: 1000,
-    },
+        top: receiptImageTopPosition,
+    }),
 
     cardSection: {
         backgroundColor: themeColors.cardBG,
@@ -3383,7 +3474,7 @@ const styles = {
     linkPreviewWrapper: {
         marginTop: 16,
         borderLeftWidth: 4,
-        borderLeftColor: getTransparentColor(themeColors.inverse, 33),
+        borderLeftColor: themeColors.border,
         paddingLeft: 12,
     },
 
@@ -3412,9 +3503,64 @@ const styles = {
         maxWidth: 375,
     },
 
+    formSpaceVertical: {
+        height: 20,
+        width: 1,
+    },
+
     taskCheckbox: {
         height: 16,
         width: 16,
+    },
+
+    taskTitleMenuItem: {
+        ...writingDirection.ltr,
+        ...headlineFont,
+        ...spacing.flexWrap,
+        ...spacing.flex1,
+        fontSize: variables.fontSizeXLarge,
+        maxWidth: '100%',
+        ...wordBreak.breakWord,
+    },
+
+    taskDescriptionMenuItem: {
+        maxWidth: '100%',
+        ...wordBreak.breakWord,
+    },
+
+    taskTitleDescription: {
+        fontFamily: fontFamily.EXP_NEUE,
+        fontSize: variables.fontSizeLabel,
+        color: themeColors.textSupporting,
+        lineHeight: variables.lineHeightNormal,
+        ...spacing.mb1,
+    },
+
+    taskMenuItemCheckbox: {
+        height: 27,
+        ...spacing.mr3,
+    },
+
+    reportHorizontalRule: {
+        borderBottomWidth: 1,
+        borderColor: themeColors.border,
+        ...spacing.mh5,
+        ...spacing.mv2,
+    },
+
+    assigneeTextStyle: {
+        fontFamily: fontFamily.EXP_NEUE_BOLD,
+        fontWeight: fontWeightBold,
+        minHeight: variables.avatarSizeSubscript,
+    },
+
+    taskRightIconContainer: {
+        width: variables.componentSizeNormal,
+        marginLeft: 'auto',
+        ...spacing.mt1,
+        ...pointerEventsAuto,
+        ...spacing.dFlex,
+        ...spacing.alignItemsCenter,
     },
 
     shareCodePage: {
@@ -3463,6 +3609,131 @@ const styles = {
     qrShareTitle: {
         marginTop: 15,
         textAlign: 'center',
+    },
+
+    loginButtonRow: {
+        justifyContent: 'center',
+        width: '100%',
+        ...flex.flexRow,
+    },
+
+    loginButtonRowSmallScreen: {
+        justifyContent: 'center',
+        width: '100%',
+        marginBottom: 10,
+        ...flex.flexRow,
+    },
+
+    appleButtonContainer: {
+        width: 40,
+        height: 40,
+        marginRight: 20,
+    },
+
+    signInIconButton: {
+        margin: 10,
+        marginTop: 0,
+        padding: 2,
+    },
+
+    googleButtonContainer: {
+        width: 40,
+        height: 40,
+        marginLeft: 12,
+        alignItems: 'center',
+    },
+
+    googlePillButtonContainer: {
+        height: 40,
+        width: 219,
+    },
+
+    thirdPartyLoadingContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: 450,
+    },
+
+    tabSelectorButton: (isSelected) => ({
+        height: 40,
+        padding: 12,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: variables.buttonBorderRadius,
+        backgroundColor: isSelected ? themeColors.midtone : themeColors.appBG,
+    }),
+
+    tabSelector: {
+        flexDirection: 'row',
+        paddingHorizontal: 20,
+        paddingBottom: 12,
+    },
+
+    tabText: (isSelected) => ({
+        marginHorizontal: 8,
+        fontFamily: isSelected ? fontFamily.EXP_NEUE_BOLD : fontFamily.EXP_NEUE,
+        fontWeight: isSelected ? fontWeightBold : 400,
+        color: isSelected ? themeColors.textLight : themeColors.textSupporting,
+    }),
+
+    /**
+     * @param {String} backgroundColor
+     * @param {Number} height
+     * @returns {Object}
+     */
+    overscrollSpacer: (backgroundColor, height) => ({
+        backgroundColor,
+        height,
+        width: '100%',
+        position: 'absolute',
+        top: -height,
+        left: 0,
+        right: 0,
+    }),
+
+    willChangeTransform: {
+        willChange: 'transform',
+    },
+
+    emojiPickerButtonDropdown: {
+        justifyContent: 'center',
+        backgroundColor: themeColors.activeComponentBG,
+        width: 86,
+        height: 52,
+        borderRadius: 26,
+        alignItems: 'center',
+        paddingLeft: 10,
+        paddingRight: 4,
+        marginBottom: 32,
+        alignSelf: 'flex-start',
+    },
+
+    emojiPickerButtonDropdownIcon: {
+        fontSize: 30,
+    },
+
+    moneyRequestImage: {
+        height: 200,
+        borderRadius: 16,
+        margin: 20,
+    },
+
+    staticHeaderImage: {
+        minHeight: 240,
+    },
+
+    emojiPickerButtonDropdownContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    rotate90: {
+        transform: [{rotate: '90deg'}],
+    },
+
+    userReportStatusEmoji: {
+        fontSize: variables.fontSizeNormal,
+        marginRight: 4,
     },
 };
 

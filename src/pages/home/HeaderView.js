@@ -5,7 +5,6 @@ import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import styles from '../../styles/styles';
-import themeColors from '../../styles/themes/default';
 import Icon from '../../components/Icon';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import compose from '../../libs/compose';
@@ -29,8 +28,8 @@ import * as Task from '../../libs/actions/Task';
 import reportActionPropTypes from './report/reportActionPropTypes';
 import PressableWithoutFeedback from '../../components/Pressable/PressableWithoutFeedback';
 import PinButton from '../../components/PinButton';
-import Navigation from '../../libs/Navigation/Navigation';
-import ROUTES from '../../ROUTES';
+import TaskHeaderActionButton from '../../components/TaskHeaderActionButton';
+import ParentNavigationSubtitle from '../../components/ParentNavigationSubtitle';
 
 const propTypes = {
     /** Toggles the navigationMenu open and closed */
@@ -90,9 +89,9 @@ function HeaderView(props) {
     const reportHeaderData = !isTaskReport && !isChatThread && props.report.parentReportID ? props.parentReport : props.report;
     const title = ReportUtils.getReportName(reportHeaderData);
     const subtitle = ReportUtils.getChatRoomSubtitle(reportHeaderData);
-    const parentNavigationSubtitle = ReportUtils.getParentNavigationSubtitle(reportHeaderData);
-    const isConcierge = participants.length === 1 && _.contains(participants, CONST.ACCOUNT_ID.CONCIERGE);
-    const isAutomatedExpensifyAccount = participants.length === 1 && ReportUtils.hasAutomatedExpensifyAccountIDs(participants);
+    const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(reportHeaderData);
+    const isConcierge = ReportUtils.hasSingleParticipant(props.report) && _.contains(participants, CONST.ACCOUNT_ID.CONCIERGE);
+    const isAutomatedExpensifyAccount = ReportUtils.hasSingleParticipant(props.report) && ReportUtils.hasAutomatedExpensifyAccountIDs(participants);
     const guideCalendarLink = lodashGet(props.account, 'guideCalendarLink');
 
     // We hide the button when we are chatting with an automated Expensify account since it's not possible to contact
@@ -100,26 +99,26 @@ function HeaderView(props) {
     const shouldShowCallButton = (isConcierge && guideCalendarLink) || (!isAutomatedExpensifyAccount && !isTaskReport);
     const threeDotMenuItems = [];
     if (isTaskReport) {
-        const isTaskAssigneeOrTaskOwner = Task.isTaskAssigneeOrTaskOwner(props.report, props.session.accountID);
-        if (props.report.stateNum === CONST.REPORT.STATE_NUM.OPEN && props.report.statusNum === CONST.REPORT.STATUS.OPEN && isTaskAssigneeOrTaskOwner) {
+        const canModifyTask = Task.canModifyTask(props.report, props.session.accountID);
+        if (ReportUtils.isOpenTaskReport(props.report) && canModifyTask) {
             threeDotMenuItems.push({
                 icon: Expensicons.Checkmark,
-                text: props.translate('newTaskPage.markAsDone'),
-                onSelected: () => Task.completeTask(props.report.reportID, title),
+                text: props.translate('task.markAsDone'),
+                onSelected: () => Task.completeTask(props.report, title),
             });
         }
 
         // Task is marked as completed
-        if (props.report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.report.statusNum === CONST.REPORT.STATUS.APPROVED && isTaskAssigneeOrTaskOwner) {
+        if (ReportUtils.isCompletedTaskReport(props.report) && canModifyTask) {
             threeDotMenuItems.push({
                 icon: Expensicons.Checkmark,
-                text: props.translate('newTaskPage.markAsIncomplete'),
-                onSelected: () => Task.reopenTask(props.report.reportID, title),
+                text: props.translate('task.markAsIncomplete'),
+                onSelected: () => Task.reopenTask(props.report, title),
             });
         }
 
         // Task is not closed
-        if (props.report.stateNum !== CONST.REPORT.STATE_NUM.SUBMITTED && props.report.statusNum !== CONST.REPORT.STATUS.CLOSED && isTaskAssigneeOrTaskOwner) {
+        if (props.report.stateNum !== CONST.REPORT.STATE_NUM.SUBMITTED && props.report.statusNum !== CONST.REPORT.STATUS.CLOSED && canModifyTask) {
             threeDotMenuItems.push({
                 icon: Expensicons.Trashcan,
                 text: props.translate('common.cancel'),
@@ -130,11 +129,15 @@ function HeaderView(props) {
     const shouldShowThreeDotsButton = !!threeDotMenuItems.length;
 
     const shouldShowSubscript = ReportUtils.shouldReportShowSubscript(props.report);
+    const defaultSubscriptSize = ReportUtils.isExpenseRequest(props.report) ? CONST.AVATAR_SIZE.SMALL_NORMAL : CONST.AVATAR_SIZE.DEFAULT;
     const icons = ReportUtils.getIcons(reportHeaderData, props.personalDetails);
     const brickRoadIndicator = ReportUtils.hasReportNameError(props.report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
+    const shouldShowBorderBottom = !isTaskReport || !props.isSmallScreenWidth;
+    const shouldDisableDetailPage = ReportUtils.shouldDisableDetailPage(props.report);
+
     return (
         <View
-            style={[styles.appContentHeader, isTaskReport && {backgroundColor: themeColors.highlightBG, borderBottomWidth: 0}]}
+            style={[styles.appContentHeader, shouldShowBorderBottom && styles.borderBottom]}
             nativeID="drag-area"
         >
             <View style={[styles.appContentHeaderTitle, !props.isSmallScreenWidth && styles.pl5]}>
@@ -161,7 +164,7 @@ function HeaderView(props) {
                         <PressableWithoutFeedback
                             onPress={() => ReportUtils.navigateToDetailsPage(props.report)}
                             style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
-                            disabled={isTaskReport}
+                            disabled={shouldDisableDetailPage}
                             accessibilityLabel={title}
                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         >
@@ -169,8 +172,7 @@ function HeaderView(props) {
                                 <SubscriptAvatar
                                     mainAvatar={icons[0]}
                                     secondaryAvatar={icons[1]}
-                                    mainTooltip={props.report.ownerEmail}
-                                    secondaryTooltip={subtitle}
+                                    size={defaultSubscriptSize}
                                 />
                             ) : (
                                 <MultipleAvatars
@@ -187,21 +189,12 @@ function HeaderView(props) {
                                     textStyles={[styles.headerText, styles.pre]}
                                     shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || isChatThread || isTaskReport}
                                 />
-                                {!_.isEmpty(parentNavigationSubtitle) && (
-                                    <PressableWithoutFeedback
-                                        onPress={() => {
-                                            Navigation.navigate(ROUTES.getReportRoute(props.report.parentReportID));
-                                        }}
-                                        accessibilityLabel={parentNavigationSubtitle}
-                                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
-                                    >
-                                        <Text
-                                            style={[styles.optionAlternateText, styles.textLabelSupporting, styles.link]}
-                                            numberOfLines={1}
-                                        >
-                                            {parentNavigationSubtitle}
-                                        </Text>
-                                    </PressableWithoutFeedback>
+                                {!_.isEmpty(parentNavigationSubtitleData) && (
+                                    <ParentNavigationSubtitle
+                                        parentNavigationSubtitleData={parentNavigationSubtitleData}
+                                        parentReportID={props.report.parentReportID}
+                                        pressableStyles={[styles.alignSelfStart, styles.mw100]}
+                                    />
                                 )}
                                 {!_.isEmpty(subtitle) && (
                                     <Text
@@ -222,6 +215,7 @@ function HeaderView(props) {
                             )}
                         </PressableWithoutFeedback>
                         <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
+                            {isTaskReport && !props.isSmallScreenWidth && ReportUtils.isOpenTaskReport(props.report) && <TaskHeaderActionButton report={props.report} />}
                             {shouldShowCallButton && (
                                 <VideoChatButtonAndMenu
                                     isConcierge={isConcierge}

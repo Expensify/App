@@ -6,6 +6,9 @@ const propTypes = {
     /** URL to full-sized image */
     sourceURL: PropTypes.string,
 
+    /** PDF file name */
+    fileName: PropTypes.string,
+
     /** Additional style props */
     style: stylePropTypes,
 
@@ -29,8 +32,9 @@ const propTypes = {
 
 const defaultProps = {
     sourceURL: '',
+    fileName: '',
     style: {},
-    onPress: () => {},
+    onPress: undefined,
     onToggleKeyboard: () => {},
     onScaleChanged: () => {},
     onLoadComplete: () => {},

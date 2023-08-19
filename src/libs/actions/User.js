@@ -18,6 +18,7 @@ import * as ReportActionsUtils from '../ReportActionsUtils';
 import * as ErrorUtils from '../ErrorUtils';
 import * as Session from './Session';
 import * as PersonalDetails from './PersonalDetails';
+import * as OnyxUpdates from './OnyxUpdates';
 
 let currentUserAccountID = '';
 let currentEmail = '';
@@ -40,45 +41,6 @@ Onyx.connect({
         myPersonalDetails = val[currentUserAccountID];
     },
 });
-
-/**
- * Changes a password for a given account
- *
- * @param {String} oldPassword
- * @param {String} password
- */
-function updatePassword(oldPassword, password) {
-    API.write(
-        'UpdatePassword',
-        {
-            oldPassword,
-            password,
-        },
-        {
-            optimisticData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.ACCOUNT,
-                    value: {...CONST.DEFAULT_ACCOUNT_DATA, isLoading: true},
-                },
-            ],
-            successData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.ACCOUNT,
-                    value: {isLoading: false},
-                },
-            ],
-            failureData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.ACCOUNT,
-                    value: {isLoading: false},
-                },
-            ],
-        },
-    );
-}
 
 /**
  * Attempt to close the user's account
@@ -224,13 +186,6 @@ function updateNewsletterSubscription(isSubscribed) {
 function deleteContactMethod(contactMethod, loginList) {
     const oldLoginData = loginList[contactMethod];
 
-    // If the contact method failed to be added to the account, then it should only be deleted locally.
-    if (lodashGet(oldLoginData, 'errorFields.addedLogin', null)) {
-        Onyx.merge(ONYXKEYS.LOGIN_LIST, {[contactMethod]: null});
-        Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
-        return;
-    }
-
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -282,7 +237,7 @@ function deleteContactMethod(contactMethod, loginList) {
         },
         {optimisticData, successData, failureData},
     );
-    Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
+    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS);
 }
 
 /**
@@ -305,12 +260,24 @@ function clearContactMethodErrors(contactMethod, fieldName) {
 }
 
 /**
+ * Resets the state indicating whether a validation code has been sent to a specific contact method.
+ *
+ * @param {String} contactMethod - The identifier of the contact method to reset.
+ */
+function resetContactMethodValidateCodeSentState(contactMethod) {
+    Onyx.merge(ONYXKEYS.LOGIN_LIST, {
+        [contactMethod]: {
+            validateCodeSent: false,
+        },
+    });
+}
+
+/**
  * Adds a secondary login to a user's account
  *
  * @param {String} contactMethod
- * @param {String} password
  */
-function addNewContactMethodAndNavigate(contactMethod, password) {
+function addNewContactMethodAndNavigate(contactMethod) {
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -359,7 +326,7 @@ function addNewContactMethodAndNavigate(contactMethod, password) {
         },
     ];
 
-    API.write('AddNewContactMethod', {partnerUserID: contactMethod, password}, {optimisticData, successData, failureData});
+    API.write('AddNewContactMethod', {partnerUserID: contactMethod}, {optimisticData, successData, failureData});
     Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS);
 }
 
@@ -550,7 +517,7 @@ function deletePaypalMeAddress() {
     ];
 
     API.write('DeletePaypalMeAddress', {}, {optimisticData, successData});
-    Growl.show(Localize.translateLocal('paymentsPage.deletePayPalSuccess'), CONST.GROWL.SUCCESS, 3000);
+    Growl.show(Localize.translateLocal('walletPage.deletePayPalSuccess'), CONST.GROWL.SUCCESS, 3000);
 }
 
 function triggerNotifications(onyxUpdates) {
@@ -570,11 +537,26 @@ function triggerNotifications(onyxUpdates) {
  * Handles the newest events from Pusher where a single mega multipleEvents contains
  * an array of singular events all in one event
  */
-function subscribeToUserEventsUsingMultipleEventType() {
+function subscribeToUserEvents() {
+    // If we don't have the user's accountID yet (because the app isn't fully setup yet) we can't subscribe so return early
+    if (!currentUserAccountID) {
+        return;
+    }
+
     // Handles the mega multipleEvents from Pusher which contains an array of single events.
     // Each single event is passed to PusherUtils in order to trigger the callbacks for that event
     PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.MULTIPLE_EVENTS, currentUserAccountID, (pushJSON) => {
-        _.each(pushJSON, (multipleEvent) => {
+        let updates;
+
+        // This is the old format where each update was just an array, with the new changes it's an object with
+        // lastUpdateID, previousUpdateID and updates
+        if (_.isArray(pushJSON)) {
+            updates = pushJSON;
+        } else {
+            updates = pushJSON.updates;
+            OnyxUpdates.saveUpdateIDs(Number(pushJSON.lastUpdateID || 0), Number(pushJSON.previousUpdateID || 0));
+        }
+        _.each(updates, (multipleEvent) => {
             PusherUtils.triggerMultiEventHandler(multipleEvent.eventType, multipleEvent.data);
         });
     });
@@ -590,39 +572,6 @@ function subscribeToUserEventsUsingMultipleEventType() {
             triggerNotifications(pushJSON);
         });
     });
-}
-
-/**
- * Handles the older Pusher events where each event was pushed separately. This is considered legacy code
- * and should not be updated. Once the server is sending all pusher events using the multipleEvents type,
- * then this code can be removed. This will be handled in https://github.com/Expensify/Expensify/issues/279347
- * @deprecated
- */
-function subscribeToUserDeprecatedEvents() {
-    // Receive any relevant Onyx updates from the server
-    PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.ONYX_API_UPDATE, currentUserAccountID, (pushJSON) => {
-        SequentialQueue.getCurrentRequest().then(() => {
-            // If we don't have the currentUserAccountID (user is logged out) we don't want to update Onyx with data from Pusher
-            if (!currentUserAccountID) {
-                return;
-            }
-            Onyx.update(pushJSON);
-            triggerNotifications(pushJSON);
-        });
-    });
-}
-
-/**
- * Initialize our pusher subscription to listen for user changes
- */
-function subscribeToUserEvents() {
-    // If we don't have the user's accountID yet we can't subscribe so return early
-    if (!currentUserAccountID) {
-        return;
-    }
-
-    subscribeToUserEventsUsingMultipleEventType();
-    subscribeToUserDeprecatedEvents();
 }
 
 /**
@@ -686,7 +635,7 @@ function updateChatPriorityMode(mode) {
         },
         {optimisticData},
     );
-    Navigation.navigate(ROUTES.SETTINGS_PREFERENCES);
+    Navigation.goBack(ROUTES.SETTINGS_PREFERENCES);
 }
 
 /**
@@ -841,11 +790,96 @@ function setContactMethodAsDefault(newDefaultContactMethod) {
         },
     ];
     API.write('SetContactMethodAsDefault', {partnerUserID: newDefaultContactMethod}, {optimisticData, successData, failureData});
-    Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
+    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS);
+}
+
+/**
+ * @param {String} theme
+ */
+function updateTheme(theme) {
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.PREFERRED_THEME,
+            value: theme,
+        },
+    ];
+
+    API.write(
+        'UpdateTheme',
+        {
+            value: theme,
+        },
+        {optimisticData},
+    );
+
+    Navigation.navigate(ROUTES.SETTINGS_PREFERENCES);
+}
+
+/**
+ * Sets a custom status
+ *
+ * @param {Object} status
+ * @param {String} status.text
+ * @param {String} status.emojiCode
+ * @param {String} status.clearAfter - ISO 8601 format string, which represents the time when the status should be cleared
+ */
+function updateCustomStatus(status) {
+    API.write('UpdateStatus', status, {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                value: {
+                    [currentUserAccountID]: {
+                        status,
+                    },
+                },
+            },
+        ],
+    });
+}
+
+/**
+ * Clears the custom status
+ */
+function clearCustomStatus() {
+    API.write('ClearStatus', undefined, {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                value: {
+                    [currentUserAccountID]: {
+                        status: null, // Clearing the field
+                    },
+                },
+            },
+        ],
+    });
+}
+
+/**
+ * Sets a custom status
+ *
+ * @param {Object} status
+ * @param {String} status.text
+ * @param {String} status.emojiCode
+ * @param {String} status.clearAfter - ISO 8601 format string, which represents the time when the status should be cleared
+ */
+function updateDraftCustomStatus(status) {
+    Onyx.merge(ONYXKEYS.CUSTOM_STATUS_DRAFT, status);
+}
+
+/**
+ * Clear the custom draft status
+ *
+ */
+function clearDraftCustomStatus() {
+    Onyx.merge(ONYXKEYS.CUSTOM_STATUS_DRAFT, {text: '', emojiCode: '', clearAfter: ''});
 }
 
 export {
-    updatePassword,
     closeAccount,
     resendValidateCode,
     requestContactMethodValidateCode,
@@ -868,4 +902,10 @@ export {
     addPaypalMeAddress,
     updateChatPriorityMode,
     setContactMethodAsDefault,
+    updateTheme,
+    resetContactMethodValidateCodeSentState,
+    updateCustomStatus,
+    clearCustomStatus,
+    updateDraftCustomStatus,
+    clearDraftCustomStatus,
 };

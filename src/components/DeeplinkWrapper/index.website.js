@@ -1,157 +1,101 @@
 import PropTypes from 'prop-types';
-import React, {PureComponent} from 'react';
-import {withOnyx} from 'react-native-onyx';
-import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
-import styles from '../../styles/styles';
+import {useRef, useState, useEffect} from 'react';
+import Str from 'expensify-common/lib/str';
+import _ from 'underscore';
+import * as Browser from '../../libs/Browser';
+import ROUTES from '../../ROUTES';
+import * as App from '../../libs/actions/App';
 import CONST from '../../CONST';
 import CONFIG from '../../CONFIG';
-import * as Browser from '../../libs/Browser';
-import ONYXKEYS from '../../ONYXKEYS';
-import * as Authentication from '../../libs/Authentication';
-import DeeplinkRedirectLoadingIndicator from './DeeplinkRedirectLoadingIndicator';
-import * as Session from '../../libs/actions/Session';
+import shouldPreventDeeplinkPrompt from '../../libs/Navigation/shouldPreventDeeplinkPrompt';
+import navigationRef from '../../libs/Navigation/navigationRef';
+import Navigation from '../../libs/Navigation/Navigation';
 
 const propTypes = {
     /** Children to render. */
     children: PropTypes.node.isRequired,
-
-    /** Session info for the currently logged-in user. */
-    session: PropTypes.shape({
-        /** Currently logged-in user email */
-        email: PropTypes.string,
-
-        /** Currently logged-in user authToken */
-        authToken: PropTypes.string,
-    }),
+    /** User authentication status */
+    isAuthenticated: PropTypes.bool.isRequired,
 };
 
-const defaultProps = {
-    session: {
-        email: '',
-        authToken: '',
-    },
-};
+function isMacOSWeb() {
+    return !Browser.isMobile() && typeof navigator === 'object' && typeof navigator.userAgent === 'string' && /Mac/i.test(navigator.userAgent) && !/Electron/i.test(navigator.userAgent);
+}
 
-class DeeplinkWrapper extends PureComponent {
-    constructor(props) {
-        super(props);
+function promptToOpenInDesktopApp() {
+    // If the current url path is /transition..., meaning it was opened from oldDot, during this transition period:
+    // 1. The user session may not exist, because sign-in has not been completed yet.
+    // 2. There may be non-idempotent operations (e.g. create a new workspace), which obviously should not be executed again in the desktop app.
+    // So we need to wait until after sign-in and navigation are complete before starting the deeplink redirect.
+    if (Str.startsWith(window.location.pathname, Str.normalizeUrl(ROUTES.TRANSITION_BETWEEN_APPS))) {
+        App.beginDeepLinkRedirectAfterTransition();
+    } else {
+        // Match any magic link (/v/<account id>/<6 digit code>)
+        const isMagicLink = CONST.REGEX.ROUTES.VALIDATE_LOGIN.test(window.location.pathname);
 
-        this.state = {
-            appInstallationCheckStatus:
-                this.isMacOSWeb() && CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.DEV ? CONST.DESKTOP_DEEPLINK_APP_STATE.CHECKING : CONST.DESKTOP_DEEPLINK_APP_STATE.NOT_INSTALLED,
-            shouldOpenLinkInBrowser: false,
-        };
-        this.focused = true;
-        this.openLinkInBrowser = this.openLinkInBrowser.bind(this);
+        App.beginDeepLinkRedirect(!isMagicLink);
     }
+}
+function DeeplinkWrapper({children, isAuthenticated}) {
+    const [currentScreen, setCurrentScreen] = useState();
+    const [hasShownPrompt, setHasShownPrompt] = useState(false);
+    const removeListener = useRef();
 
-    componentDidMount() {
-        if (!this.isMacOSWeb() || CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.DEV) {
-            return;
+    useEffect(() => {
+        // If we've shown the prompt and still have a listener registered,
+        // remove the listener and reset its ref to undefined
+        if (hasShownPrompt && removeListener.current !== undefined) {
+            removeListener.current();
+            removeListener.current = undefined;
         }
 
-        window.addEventListener('blur', () => {
-            this.focused = false;
-        });
+        if (isAuthenticated === false) {
+            setHasShownPrompt(false);
+            Navigation.isNavigationReady().then(() => {
+                // Get initial route
+                const initialRoute = navigationRef.current.getCurrentRoute();
+                setCurrentScreen(initialRoute.name);
 
-        const expensifyUrl = new URL(CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL);
-        const params = new URLSearchParams();
-        params.set('exitTo', `${window.location.pathname}${window.location.search}${window.location.hash}`);
-        if (!this.props.session.authToken) {
-            const expensifyDeeplinkUrl = `${CONST.DEEPLINK_BASE_URL}${expensifyUrl.host}/transition?${params.toString()}`;
-            this.openRouteInDesktopApp(expensifyDeeplinkUrl);
-            return;
-        }
-
-        // There's no support for anonymous users on desktop
-        if (Session.isAnonymousUser()) {
-            return;
-        }
-
-        Authentication.getShortLivedAuthToken()
-            .then((shortLivedAuthToken) => {
-                params.set('email', this.props.session.email);
-                params.set('shortLivedAuthToken', `${shortLivedAuthToken}`);
-                const expensifyDeeplinkUrl = `${CONST.DEEPLINK_BASE_URL}${expensifyUrl.host}/transition?${params.toString()}`;
-                this.openRouteInDesktopApp(expensifyDeeplinkUrl);
-            })
-            .catch(() => {
-                // If the request is successful, we call the updateAppInstallationCheckStatus before the prompt pops up.
-                // If not, we only need to make sure that the state will be updated.
-                this.updateAppInstallationCheckStatus();
+                removeListener.current = navigationRef.current.addListener('state', (event) => {
+                    setCurrentScreen(Navigation.getRouteNameFromStateEvent(event));
+                });
             });
-    }
-
-    updateAppInstallationCheckStatus() {
-        setTimeout(() => {
-            if (!this.focused) {
-                this.setState({appInstallationCheckStatus: CONST.DESKTOP_DEEPLINK_APP_STATE.INSTALLED});
-            } else {
-                this.setState({appInstallationCheckStatus: CONST.DESKTOP_DEEPLINK_APP_STATE.NOT_INSTALLED});
-            }
-        }, 500);
-    }
-
-    openRouteInDesktopApp(expensifyDeeplinkUrl) {
-        this.updateAppInstallationCheckStatus();
-
-        const browser = Browser.getBrowser();
-
-        // This check is necessary for Safari, otherwise, if the user
-        // does NOT have the Expensify desktop app installed, it's gonna
-        // show an error in the page saying that the address is invalid
-        // It is also necessary for Firefox, otherwise the window.location.href redirect
-        // will abort the fetch request from NetInfo, which will cause the app to go offline temporarily.
-        if (browser === CONST.BROWSER.SAFARI || browser === CONST.BROWSER.FIREFOX) {
-            const iframe = document.createElement('iframe');
-            iframe.style.display = 'none';
-            document.body.appendChild(iframe);
-            iframe.contentWindow.location.href = expensifyDeeplinkUrl;
-
-            // Since we're creating an iframe for Safari to handle
-            // deeplink we need to give this iframe some time for
-            // it to do what it needs to do. After that we can just
-            // remove the iframe.
-            setTimeout(() => {
-                if (!iframe.parentNode) {
-                    return;
-                }
-
-                iframe.parentNode.removeChild(iframe);
-            }, 100);
+        }
+    }, [hasShownPrompt, isAuthenticated]);
+    useEffect(() => {
+        // According to the design, we don't support unlink in Desktop app https://github.com/Expensify/App/issues/19681#issuecomment-1610353099
+        const isUnsupportedDeeplinkRoute = _.some([CONST.REGEX.ROUTES.UNLINK_LOGIN], (unsupportRouteRegex) => {
+            const routeRegex = new RegExp(unsupportRouteRegex);
+            return routeRegex.test(window.location.pathname);
+        });
+        // Making a few checks to exit early before checking authentication status
+        if (!isMacOSWeb() || isUnsupportedDeeplinkRoute || CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.DEV || hasShownPrompt) {
+            return;
+        }
+        // We want to show the prompt immediately if the user is already authenticated.
+        // Otherwise, we want to wait until the navigation state is set up
+        // and we know the user is on a screen that supports deeplinks.
+        if (isAuthenticated) {
+            promptToOpenInDesktopApp();
+            setHasShownPrompt(true);
         } else {
-            window.location.href = expensifyDeeplinkUrl;
+            // Navigation state is not set up yet, we're unsure if we should show the deep link prompt or not
+            if (currentScreen === undefined || isAuthenticated === false) {
+                return;
+            }
+
+            const preventPrompt = shouldPreventDeeplinkPrompt(currentScreen);
+            if (preventPrompt === true) {
+                return;
+            }
+
+            promptToOpenInDesktopApp();
+            setHasShownPrompt(true);
         }
-    }
+    }, [currentScreen, hasShownPrompt, isAuthenticated]);
 
-    isMacOSWeb() {
-        return !Browser.isMobile() && typeof navigator === 'object' && typeof navigator.userAgent === 'string' && /Mac/i.test(navigator.userAgent) && !/Electron/i.test(navigator.userAgent);
-    }
-
-    openLinkInBrowser() {
-        this.setState({shouldOpenLinkInBrowser: true});
-    }
-
-    shouldShowDeeplinkLoadingIndicator() {
-        const routeRegex = new RegExp(CONST.REGEX.ROUTES.VALIDATE_LOGIN);
-        return routeRegex.test(window.location.pathname);
-    }
-
-    render() {
-        if (this.state.appInstallationCheckStatus === CONST.DESKTOP_DEEPLINK_APP_STATE.CHECKING) {
-            return <FullScreenLoadingIndicator style={styles.flex1} />;
-        }
-
-        if (this.state.appInstallationCheckStatus === CONST.DESKTOP_DEEPLINK_APP_STATE.INSTALLED && this.shouldShowDeeplinkLoadingIndicator() && !this.state.shouldOpenLinkInBrowser) {
-            return <DeeplinkRedirectLoadingIndicator openLinkInBrowser={this.openLinkInBrowser} />;
-        }
-
-        return this.props.children;
-    }
+    return children;
 }
 
 DeeplinkWrapper.propTypes = propTypes;
-DeeplinkWrapper.defaultProps = defaultProps;
-export default withOnyx({
-    session: {key: ONYXKEYS.SESSION},
-})(DeeplinkWrapper);
+export default DeeplinkWrapper;

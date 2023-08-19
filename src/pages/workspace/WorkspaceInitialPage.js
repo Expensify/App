@@ -60,7 +60,7 @@ function openEditor(policyID) {
  * @param {string} policyID
  */
 function dismissError(policyID) {
-    Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
+    Navigation.goBack(ROUTES.SETTINGS_WORKSPACES);
     Policy.removeWorkspace(policyID);
 }
 
@@ -78,8 +78,7 @@ function WorkspaceInitialPage(props) {
         Policy.deleteWorkspace(policy.id, policyReports, policy.name);
         setIsDeleteModalOpen(false);
         // Pop the deleted workspace page before opening workspace settings.
-        Navigation.goBack();
-        Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
+        Navigation.goBack(ROUTES.SETTINGS_WORKSPACES);
     }, [props.reports, policy]);
 
     useEffect(() => {
@@ -104,7 +103,7 @@ function WorkspaceInitialPage(props) {
      */
     const goToRoom = useCallback(
         (type) => {
-            const room = _.find(props.reports, (report) => report && report.policyID === policy.id && report.chatType === type);
+            const room = _.find(props.reports, (report) => report && report.policyID === policy.id && report.chatType === type && !ReportUtils.isThread(report));
             Navigation.navigate(ROUTES.getReportRoute(room.reportID));
         },
         [props.reports, policy],
@@ -156,7 +155,10 @@ function WorkspaceInitialPage(props) {
         {
             translationKey: 'workspace.common.bankAccount',
             icon: Expensicons.Bank,
-            action: () => (policy.outputCurrency === CONST.CURRENCY.USD ? ReimbursementAccount.navigateToBankAccountRoute(policy.id) : setIsCurrencyModalOpen(true)),
+            action: () =>
+                policy.outputCurrency === CONST.CURRENCY.USD
+                    ? ReimbursementAccount.navigateToBankAccountRoute(policy.id, Navigation.getActiveRoute().replace(/\?.*/, ''))
+                    : setIsCurrencyModalOpen(true),
             brickRoadIndicator: !_.isEmpty(props.reimbursementAccount.errors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '',
         },
     ];
@@ -184,7 +186,7 @@ function WorkspaceInitialPage(props) {
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView
                     onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
-                    shouldShow={_.isEmpty(props.policy) || !Policy.isPolicyOwner(props.policy)}
+                    shouldShow={_.isEmpty(props.policy) || !PolicyUtils.isPolicyAdmin(props.policy)}
                     subtitleKey={_.isEmpty(props.policy) ? undefined : 'workspace.common.notAuthorized'}
                 >
                     <HeaderWithBackButton

@@ -12,6 +12,7 @@ import NAVIGATORS from '../../NAVIGATORS';
 import originalGetTopmostReportId from './getTopmostReportId';
 import getStateFromPath from './getStateFromPath';
 import SCREENS from '../../SCREENS';
+import CONST from '../../CONST';
 
 let resolveNavigationIsReadyPromise;
 const navigationIsReadyPromise = new Promise((resolve) => {
@@ -114,8 +115,20 @@ function goBack(fallbackRoute = ROUTES.HOME, shouldEnforceFallback = false, shou
         return;
     }
 
-    if (shouldEnforceFallback || (!getActiveRouteIndex(navigationRef.current.getState()) && fallbackRoute)) {
-        navigate(fallbackRoute, 'UP');
+    const isFirstRouteInNavigator = !getActiveRouteIndex(navigationRef.current.getState());
+
+    if (isFirstRouteInNavigator) {
+        const rootState = navigationRef.getRootState();
+        const lastRoute = _.last(rootState.routes);
+        // If the user comes from a different flow (there is more than one route in RHP) we should go back to the previous flow on UP button press instead of using the fallbackRoute.
+        if (lastRoute.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR && lastRoute.state.index > 0) {
+            navigationRef.current.goBack();
+            return;
+        }
+    }
+
+    if (shouldEnforceFallback || (isFirstRouteInNavigator && fallbackRoute)) {
+        navigate(fallbackRoute, CONST.NAVIGATION.TYPE.UP);
         return;
     }
 
@@ -187,6 +200,22 @@ function getActiveRoute() {
     return '';
 }
 
+/** Returns the active route name from a state event from the navigationRef
+ * @param {Object} event
+ * @returns {String | undefined}
+ * */
+function getRouteNameFromStateEvent(event) {
+    if (!event.data.state) {
+        return;
+    }
+    const currentRouteName = event.data.state.routes.slice(-1).name;
+
+    // Check to make sure we have a route name
+    if (currentRouteName) {
+        return currentRouteName;
+    }
+}
+
 /**
  * Check whether the passed route is currently Active or not.
  *
@@ -238,6 +267,7 @@ export default {
     isNavigationReady,
     setIsNavigationReady,
     getTopmostReportId,
+    getRouteNameFromStateEvent,
 };
 
 export {navigationRef};

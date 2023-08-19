@@ -3,7 +3,6 @@ import _ from 'underscore';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import styles from '../styles/styles';
 import ONYXKEYS from '../ONYXKEYS';
@@ -21,12 +20,13 @@ import withReportOrNotFound from './home/report/withReportOrNotFound';
 import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
 import CONST from '../CONST';
 import * as UserUtils from '../libs/UserUtils';
+import * as LocalePhoneNumber from '../libs/LocalePhoneNumber';
 
 const propTypes = {
     /* Onyx Props */
 
     /** The personal details of the person who is logged in */
-    personalDetails: personalDetailsPropType,
+    personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
     /** The active report */
     report: reportPropTypes.isRequired,
@@ -51,15 +51,16 @@ const defaultProps = {
  *
  * @param {Object} report The active report object
  * @param {Object} personalDetails The personal details of the users
+ * @param {Object} translate The localize
  * @return {Array}
  */
-const getAllParticipants = (report, personalDetails) => {
+const getAllParticipants = (report, personalDetails, translate) => {
     const {participantAccountIDs} = report;
 
     return _.chain(participantAccountIDs)
         .map((accountID, index) => {
-            const userPersonalDetail = lodashGet(personalDetails, accountID, {displayName: personalDetails.displayName || 'Hidden', avatar: ''});
-            const userLogin = Str.removeSMSDomain(userPersonalDetail.login || '') || 'Hidden';
+            const userPersonalDetail = lodashGet(personalDetails, accountID, {displayName: personalDetails.displayName || translate('common.hidden'), avatar: ''});
+            const userLogin = LocalePhoneNumber.formatPhoneNumber(userPersonalDetail.login || '') || translate('common.hidden');
 
             return {
                 alternateText: userLogin,
@@ -85,15 +86,21 @@ const getAllParticipants = (report, personalDetails) => {
 };
 
 function ReportParticipantsPage(props) {
-    const participants = getAllParticipants(props.report, props.personalDetails);
+    const participants = _.map(getAllParticipants(props.report, props.personalDetails, props.translate), (participant) => ({
+        ...participant,
+        isDisabled: ReportUtils.isOptimisticPersonalDetail(participant.accountID),
+    }));
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             {({safeAreaPaddingBottomStyle}) => (
-                <FullPageNotFoundView shouldShow={_.isEmpty(props.report)}>
+                <FullPageNotFoundView shouldShow={_.isEmpty(props.report) || ReportUtils.isArchivedRoom(props.report)}>
                     <HeaderWithBackButton
                         title={props.translate(
-                            ReportUtils.isChatRoom(props.report) || ReportUtils.isPolicyExpenseChat(props.report) || ReportUtils.isChatThread(props.report)
+                            ReportUtils.isChatRoom(props.report) ||
+                                ReportUtils.isPolicyExpenseChat(props.report) ||
+                                ReportUtils.isChatThread(props.report) ||
+                                ReportUtils.isTaskReport(props.report)
                                 ? 'common.members'
                                 : 'common.details',
                         )}
@@ -113,10 +120,11 @@ function ReportParticipantsPage(props) {
                                     },
                                 ]}
                                 onSelectRow={(option) => {
-                                    Navigation.navigate(ROUTES.getReportParticipantRoute(props.route.params.reportID, option.accountID));
+                                    Navigation.navigate(ROUTES.getProfileRoute(option.accountID));
                                 }}
                                 hideSectionHeaders
                                 showTitleTooltip
+                                showScrollIndicator
                                 disableFocusOptions
                                 boldStyle
                                 optionHoveredStyle={styles.hoveredComponentBG}

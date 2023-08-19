@@ -2,7 +2,7 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {View} from 'react-native';
+import {View, InteractionManager} from 'react-native';
 import Button from '../Button';
 import FixedFooter from '../FixedFooter';
 import OptionsList from '../OptionsList';
@@ -50,6 +50,7 @@ class BaseOptionsSelector extends Component {
         this.updateFocusedIndex = this.updateFocusedIndex.bind(this);
         this.scrollToIndex = this.scrollToIndex.bind(this);
         this.selectRow = this.selectRow.bind(this);
+        this.selectFocusedOption = this.selectFocusedOption.bind(this);
         this.relatedTarget = null;
 
         const allOptions = this.flattenSections();
@@ -66,22 +67,7 @@ class BaseOptionsSelector extends Component {
         const enterConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
         this.unsubscribeEnter = KeyboardShortcut.subscribe(
             enterConfig.shortcutKey,
-            () => {
-                const focusedOption = this.state.allOptions[this.state.focusedIndex];
-                if (!focusedOption || !this.props.isFocused) {
-                    return;
-                }
-                if (this.props.canSelectMultipleOptions) {
-                    this.selectRow(focusedOption);
-                } else if (!this.state.shouldDisableRowSelection) {
-                    this.setState({shouldDisableRowSelection: true});
-                    let result = this.selectRow(focusedOption);
-                    if (!(result instanceof Promise)) {
-                        result = Promise.resolve();
-                    }
-                    setTimeout(() => result.finally(() => this.setState({shouldDisableRowSelection: false})), 500);
-                }
-            },
+            this.selectFocusedOption,
             enterConfig.descriptionKey,
             enterConfig.modifiers,
             true,
@@ -110,27 +96,31 @@ class BaseOptionsSelector extends Component {
         );
 
         this.scrollToIndex(this.props.selectedOptions.length ? 0 : this.state.focusedIndex, false);
-
-        if (!this.props.autoFocus) {
-            return;
-        }
-
-        if (this.props.shouldShowTextInput) {
-            if (this.props.shouldDelayFocus) {
-                this.focusTimeout = setTimeout(() => this.textInput.focus(), CONST.ANIMATED_TRANSITION);
-            } else {
-                this.textInput.focus();
-            }
-        }
     }
 
     componentDidUpdate(prevProps) {
+        if (this.textInput && this.props.autoFocus && !prevProps.isFocused && this.props.isFocused) {
+            InteractionManager.runAfterInteractions(() => {
+                // If we automatically focus on a text input when mounting a component,
+                // let's automatically focus on it when the component updates as well (eg, when navigating back from a page)
+                this.textInput.focus();
+            });
+        }
+
         if (_.isEqual(this.props.sections, prevProps.sections)) {
             return;
         }
 
         const newOptions = this.flattenSections();
+
+        if (prevProps.preferredLocale !== this.props.preferredLocale) {
+            this.setState({
+                allOptions: newOptions,
+            });
+            return;
+        }
         const newFocusedIndex = this.props.selectedOptions.length;
+
         // eslint-disable-next-line react/no-did-update-set-state
         this.setState(
             {
@@ -187,6 +177,31 @@ class BaseOptionsSelector extends Component {
         }
 
         return defaultIndex;
+    }
+
+    selectFocusedOption() {
+        const focusedOption = this.state.allOptions[this.state.focusedIndex];
+
+        if (!focusedOption || !this.props.isFocused) {
+            return;
+        }
+
+        if (this.props.canSelectMultipleOptions) {
+            this.selectRow(focusedOption);
+        } else if (!this.state.shouldDisableRowSelection) {
+            this.setState({shouldDisableRowSelection: true});
+
+            let result = this.selectRow(focusedOption);
+            if (!(result instanceof Promise)) {
+                result = Promise.resolve();
+            }
+
+            setTimeout(() => {
+                result.finally(() => {
+                    this.setState({shouldDisableRowSelection: false});
+                });
+            }, 500);
+        }
     }
 
     /**
@@ -296,7 +311,10 @@ class BaseOptionsSelector extends Component {
                 ref={(el) => (this.textInput = el)}
                 value={this.props.value}
                 label={this.props.textInputLabel}
+                accessibilityLabel={this.props.textInputLabel}
+                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                 onChangeText={this.props.onChangeText}
+                onSubmitEditing={this.selectFocusedOption}
                 placeholder={this.props.placeholderText}
                 maxLength={this.props.maxLength}
                 keyboardType={this.props.keyboardType}
@@ -308,6 +326,9 @@ class BaseOptionsSelector extends Component {
                 }}
                 selectTextOnFocus
                 blurOnSubmit={Boolean(this.state.allOptions.length)}
+                spellCheck={false}
+                autoFocus={this.props.autoFocus}
+                shouldDelayFocus={this.props.shouldDelayFocus}
             />
         );
         const optionsList = (
@@ -337,6 +358,7 @@ class BaseOptionsSelector extends Component {
                 contentContainerStyles={[safeAreaPaddingBottomStyle, ...this.props.contentContainerStyles]}
                 listContainerStyles={this.props.listContainerStyles}
                 isLoading={!this.props.shouldShowOptions}
+                showScrollIndicator={this.props.showScrollIndicator}
             />
         );
         return (
