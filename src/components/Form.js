@@ -135,8 +135,34 @@ function Form(props) {
 
             // Validate the input for html tags. It should supercede any other error
             _.each(trimmedStringValues, (inputValue, inputID) => {
+
+                const m = inputValue.search(CONST.VALIDATE_FOR_HTML_TAG_REGEX);
+                const matches = inputValue.match(CONST.VALIDATE_FOR_HTML_TAG_REGEX);
+
+                // add any html tags that are considered valid workspace names to ignoreRegxList
+                const ignoreRegxList = [/<>/, /< >/, /<->/, /<-->/, /<br>/, /<br\/>/];
+                let isMatch = ignoreRegxList.some(r => r.test(inputValue));
+                const leadingSpaceRegex = inputValue.search(/<([\s]+[\s\w~!@#$%^&*(){}[\];':"`|?.,/\\\+\-=<]+.*[\s]*)>/g);
+
                 // Return early if there is no value OR the value is not a string OR there are no HTML characters
-                if (!inputValue || !_.isString(inputValue) || inputValue.search(CONST.VALIDATE_FOR_HTML_TAG_REGEX) === -1) {
+                if (!inputValue || !_.isString(inputValue) || (leadingSpaceRegex === -1 && m === -1) ) {
+                    return;
+                }
+
+                if(matches)
+                {
+                    for(let x of matches)
+                    {
+                        isMatch = ignoreRegxList.some(r => r.test(x));
+                        if(isMatch == false)
+                        {
+                            break;
+                        }
+                    }
+                }
+
+                if(isMatch == true && leadingSpaceRegex === -1)
+                {
                     return;
                 }
 
