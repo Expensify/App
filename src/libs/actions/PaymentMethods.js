@@ -13,7 +13,7 @@ import ROUTES from '../../ROUTES';
 
 function deletePayPalMe() {
     User.deletePaypalMeAddress();
-    Growl.show(Localize.translateLocal('paymentsPage.deletePayPalSuccess'), CONST.GROWL.SUCCESS, 3000);
+    Growl.show(Localize.translateLocal('walletPage.deletePayPalSuccess'), CONST.GROWL.SUCCESS, 3000);
 }
 
 /**
@@ -35,7 +35,7 @@ function continueSetup() {
     kycWallRef.current.continue();
 }
 
-function openPaymentsPage() {
+function openWalletPage() {
     const onyxData = {
         optimisticData: [
             {
@@ -272,7 +272,7 @@ function saveWalletTransferMethodType(filterPaymentMethodType) {
 
 function dismissSuccessfulTransferBalancePage() {
     Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {shouldShowSuccess: false});
-    Navigation.goBack(ROUTES.SETTINGS_PAYMENTS);
+    Navigation.goBack(ROUTES.SETTINGS_WALLET);
 }
 
 /**
@@ -347,7 +347,7 @@ export {
     deletePayPalMe,
     deletePaymentCard,
     addPaymentCard,
-    openPaymentsPage,
+    openWalletPage,
     makeDefaultPaymentMethod,
     kycWallRef,
     continueSetup,

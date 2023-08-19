@@ -38,8 +38,10 @@ const defaultProps = {
 };
 
 const validate = (values) => {
-    const errors = {};
-    if (!ValidationUtils.isValidPaypalUsername(values.payPalMeUsername)) {
+    const requiredFields = ['payPalMeUsername'];
+    const errors = ValidationUtils.getFieldRequiredErrors(values, requiredFields);
+
+    if (values.payPalMeUsername && !ValidationUtils.isValidPaypalUsername(values.payPalMeUsername)) {
         errors.payPalMeUsername = 'addPayPalMePage.formatError';
     }
 
@@ -60,7 +62,7 @@ function AddPayPalMePage(props) {
         (values) => {
             User.addPaypalMeAddress(values.payPalMeUsername);
             Growl.show(growlMessageOnSave, CONST.GROWL.SUCCESS, 3000);
-            Navigation.goBack(ROUTES.SETTINGS_PAYMENTS);
+            Navigation.goBack(ROUTES.SETTINGS_WALLET);
         },
         [growlMessageOnSave],
     );
@@ -69,7 +71,7 @@ function AddPayPalMePage(props) {
         <ScreenWrapper onEntryTransitionEnd={() => payPalMeInput.current && payPalMeInput.current.focus()}>
             <HeaderWithBackButton
                 title={props.translate('common.payPalMe')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PAYMENTS)}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)}
             />
             <Form
                 style={[styles.flex1, styles.p5]}
