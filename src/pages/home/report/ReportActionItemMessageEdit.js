@@ -30,6 +30,7 @@ import refPropTypes from '../../../components/refPropTypes';
 import * as ComposerUtils from '../../../libs/ComposerUtils';
 import * as ComposerActions from '../../../libs/actions/Composer';
 import * as User from '../../../libs/actions/User';
+import * as Browser from '../../../libs/Browser';
 import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
 import getButtonState from '../../../libs/getButtonState';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
@@ -124,16 +125,18 @@ function ReportActionItemMessageEdit(props) {
     }, [isFocused]);
 
     useEffect(() => {
-        // For mobile Safari, updating the selection prop on an unfocused input will cause it to automatically gain focus
+        // For mobile Safari and mobile Chrome, updating the selection prop on an unfocused input will cause it to automatically gain focus
         // and subsequent programmatic focus shifts (e.g., modal focus trap) to show the blue frame (:focus-visible style),
         // so we need to ensure that it is only updated after focus.
-        setDraft((prevDraft) => {
-            setSelection({
-                start: prevDraft.length,
-                end: prevDraft.length,
+        if (Browser.isMobileSafari() || Browser.isMobileChrome()) {
+            setDraft((prevDraft) => {
+                setSelection({
+                    start: prevDraft.length,
+                    end: prevDraft.length,
+                });
+                return prevDraft;
             });
-            return prevDraft;
-        });
+        }
 
         return () => {
             // Skip if this is not the focused message so the other edit composer stays focused.
