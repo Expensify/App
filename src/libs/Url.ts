@@ -4,7 +4,7 @@ import 'react-native-url-polyfill/auto';
  * @param {String} url
  * @returns {String}
  */
-function addTrailingForwardSlash(url) {
+function addTrailingForwardSlash(url:string):string {
     if (!url.endsWith('/')) {
         return `${url}/`;
     }
@@ -16,10 +16,10 @@ function addTrailingForwardSlash(url) {
  * @param {String} url
  * @returns {String}
  */
-function getPathFromURL(url) {
+function getPathFromURL(url:string): string {
     try {
-        const parsedUrl = new URL(url);
-        const path = parsedUrl.pathname + parsedUrl.search + parsedUrl.hash;
+        const parsedUrl: URL = new URL(url);
+        const path: string = parsedUrl.pathname + parsedUrl.search + parsedUrl.hash;
         return path.substring(1); // Remove the leading '/'
     } catch (error) {
         console.error('Error parsing URL:', error);
@@ -33,11 +33,11 @@ function getPathFromURL(url) {
  * @param {String} url2
  * @returns {Boolean}
  */
-function hasSameExpensifyOrigin(url1, url2) {
-    const removeW3 = (host) => host.replace(/^www\./i, '');
+function hasSameExpensifyOrigin(url1: string, url2: string): boolean {
+    const removeW3 = (host: string): string => host.replace(/^www\./i, '');
     try {
-        const parsedUrl1 = new URL(url1);
-        const parsedUrl2 = new URL(url2);
+        const parsedUrl1: URL = new URL(url1);
+        const parsedUrl2: URL = new URL(url2);
 
         return removeW3(parsedUrl1.host) === removeW3(parsedUrl2.host);
     } catch (error) {
