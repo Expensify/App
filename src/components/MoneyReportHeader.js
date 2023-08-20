@@ -3,6 +3,7 @@ import {withOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
+import withLocalize from './withLocalize';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import iouReportPropTypes from '../pages/iouReportPropTypes';
 import * as ReportUtils from '../libs/ReportUtils';
@@ -108,10 +109,11 @@ function MoneyReportHeader(props) {
                     </View>
                 )}
                 {shouldShowApprovedButton && !props.isSmallScreenWidth && (
-                    <View style={[styles.pv2]}>
+                    <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
                         <Button
                             success
-                            text="Approve"
+                            text={props.translate('iou.approve')}
+                            style={[styles.mnw120]}
                             onPress={() => IOU.approveMoneyRequest(props.report)}
                         />
                     </View>
@@ -135,11 +137,14 @@ function MoneyReportHeader(props) {
             )}
             {shouldShowApprovedButton && props.isSmallScreenWidth && (
                 <View style={[styles.ph5, styles.pb2, props.isSmallScreenWidth && styles.borderBottom]}>
-                    <Button
-                        success
-                        text="Approve"
-                        onPress={() => IOU.approveMoneyRequest(props.report)}
-                    />
+                    <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
+                        <Button
+                            success
+                            text={props.translate('iou.approve')}
+                            style={[styles.w100]}
+                            onPress={() => IOU.approveMoneyRequest(props.report)}
+                        />
+                    </View>
                 </View>
             )}
         </View>
@@ -151,6 +156,7 @@ MoneyReportHeader.propTypes = propTypes;
 MoneyReportHeader.defaultProps = defaultProps;
 
 export default compose(
+    withLocalize,
     withWindowDimensions,
     withOnyx({
         chatReport: {

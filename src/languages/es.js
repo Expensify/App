@@ -388,6 +388,7 @@ export default {
     },
     iou: {
         amount: 'Importe',
+        approve: 'Aprobar',
         approved: 'Aprobado',
         cash: 'Efectivo',
         split: 'Dividir',
