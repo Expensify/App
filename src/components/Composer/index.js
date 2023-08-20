@@ -18,8 +18,8 @@ import Text from '../Text';
 import isEnterWhileComposition from '../../libs/KeyboardShortcut/isEnterWhileComposition';
 import CONST from '../../CONST';
 import withNavigation from '../withNavigation';
-import ReportActionComposeFocusManager from "../../libs/ReportActionComposeFocusManager";
-import willBlurTextInputOnTapOutside from "../../libs/willBlurTextInputOnTapOutside";
+import ReportActionComposeFocusManager from '../../libs/ReportActionComposeFocusManager';
+import willBlurTextInputOnTapOutside from '../../libs/willBlurTextInputOnTapOutside';
 
 const propTypes = {
     /** Maximum number of lines in the text input */
@@ -161,7 +161,7 @@ function Composer({
 }) {
     const textRef = useRef(null);
     const textInput = useRef(null);
-    const willBlurTextInputOnTapOutsideRef= useRef();
+    const willBlurTextInputOnTapOutsideRef = useRef();
     willBlurTextInputOnTapOutsideRef.current = willBlurTextInputOnTapOutside();
     const initialValue = defaultValue ? `${defaultValue}` : `${value || ''}`;
     const [numberOfLines, setNumberOfLines] = useState(numberOfLinesProp);
@@ -358,10 +358,13 @@ function Composer({
         updateNumberOfLines();
     }, [updateNumberOfLines]);
 
-    useEffect(() => () => {
-        ReportActionComposeFocusManager.clear();
-        ReportActionComposeFocusManager.focus();
-    }, []);
+    useEffect(
+        () => () => {
+            ReportActionComposeFocusManager.clear();
+            ReportActionComposeFocusManager.focus();
+        },
+        [],
+    );
 
     useEffect(() => {
         // we need to handle listeners on navigation focus/blur as Composer is not unmounting
@@ -379,6 +382,8 @@ function Composer({
         }
 
         return () => {
+            ReportActionComposeFocusManager.clear();
+            ReportActionComposeFocusManager.focus();
             unsubscribeFocus();
             unsubscribeBlur();
             document.removeEventListener('paste', handlePaste);
