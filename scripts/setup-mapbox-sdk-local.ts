@@ -1,7 +1,7 @@
 import axios from 'axios';
 import {saveMapboxToken} from './setup-mapbox-sdk';
 
-const TOKEN_ENDPOINT = 'https://my-json-server.typicode.com/hayata-suenaga/mapbox-mock-response/token';
+const TOKEN_ENDPOINT = 'https://www.expensify.com/api.php?command=GetMapboxSDKToken';
 
 (async function main() {
     try {
