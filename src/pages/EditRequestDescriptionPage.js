@@ -10,8 +10,12 @@ import styles from '../styles/styles';
 import Navigation from '../libs/Navigation/Navigation';
 import CONST from '../CONST';
 import useLocalize from '../hooks/useLocalize';
+import ROUTES from '../ROUTES';
 
 const propTypes = {
+    /** reportID for the transaction thread */
+    reportID: PropTypes.string.isRequired,
+
     /** Transaction default description value */
     defaultDescription: PropTypes.string.isRequired,
 
@@ -19,7 +23,7 @@ const propTypes = {
     onSubmit: PropTypes.func.isRequired,
 };
 
-function EditRequestDescriptionPage({defaultDescription, onSubmit}) {
+function EditRequestDescriptionPage({reportID, defaultDescription, onSubmit}) {
     const {translate} = useLocalize();
     const descriptionInputRef = useRef(null);
     return (
@@ -30,7 +34,7 @@ function EditRequestDescriptionPage({defaultDescription, onSubmit}) {
         >
             <HeaderWithBackButton
                 title={translate('common.description')}
-                onBackButtonPress={() => Navigation.goBack()}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.getReportRoute(reportID))}
             />
             <Form
                 style={[styles.flexGrow1, styles.ph5]}
