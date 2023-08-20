@@ -375,7 +375,6 @@ function Composer({
 
         return () => {
             ReportActionComposeFocusManager.clear();
-            ReportActionComposeFocusManager.focus();
             unsubscribeFocus();
             unsubscribeBlur();
             document.removeEventListener('paste', handlePaste);
