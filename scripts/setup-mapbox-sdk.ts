@@ -2,7 +2,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 const NETRC_PATH = path.join(process.env.HOME || '', '.netrc');
-const GRADLE_PROPERTIES_PATH = path.join(process.env.HOME || '', '.gradle', 'gradle.properties');
+const USER_GRADLE_DIR = path.join(process.env.HOME || '', '.gradle');
+const GRADLE_PROPERTIES_PATH = path.join(USER_GRADLE_DIR, 'gradle.properties');
 
 export async function saveMapboxToken(token: string) {
     try {
@@ -18,8 +19,8 @@ export async function saveMapboxToken(token: string) {
         }
 
         // Ensure the .gradle directory exists
-        if (!fs.existsSync(path.join(process.env.HOME || '', '.gradle'))) {
-            fs.mkdirSync(path.join(process.env.HOME || '', '.gradle'));
+        if (!fs.existsSync(USER_GRADLE_DIR)) {
+            fs.mkdirSync(USER_GRADLE_DIR);
         }
 
         // Android Configuration for gradle.properties
