@@ -7,7 +7,7 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "configure-mapbox": "scripts/setup-mapbox-sdk-walkthrough.sh",
+    "configure-mapbox": "ts-node scripts/setup-mapbox-sdk.ts",
     "postinstall": "scripts/postInstall.sh",
     "clean": "npx react-native clean-project-auto",
     "android": "scripts/set-pusher-suffix.sh && npx react-native run-android --variant=developmentDebug --appId=com.expensify.chat.dev",
