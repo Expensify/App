@@ -2,12 +2,13 @@ import * as fs from 'fs';
 import * as path from 'path';
 import axios from 'axios';
 
+const TOKEN_ENDPOINT = 'https://www.expensify.com/api.php?command=GetMapboxSDKToken';
 const NETRC_PATH = path.join(process.env.HOME || '', '.netrc');
 const GRADLE_PROPERTIES_PATH = path.join(process.env.HOME || '', '.gradle', 'gradle.properties');
 
 async function main(): Promise<void> {
     try {
-        const response = await axios.get('https://www.expensify.com/api.php?command=GetMapboxSDKToken');
+        const response = await axios.get(TOKEN_ENDPOINT);
         const TOKEN = response.data.token;
 
         // iOS Configuration for .netrc
