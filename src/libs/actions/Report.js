@@ -1242,7 +1242,7 @@ function updateNotificationPreferenceAndNavigate(reportID, previousValue, newVal
 function updateWelcomeMessage(reportID, previousValue, newValue) {
     // No change needed, navigate back
     if (previousValue === newValue) {
-        Navigation.goBack();
+        Navigation.goBack(ROUTES.getReportSettingsRoute(reportID));
         return;
     }
 
@@ -1262,7 +1262,7 @@ function updateWelcomeMessage(reportID, previousValue, newValue) {
         },
     ];
     API.write('UpdateWelcomeMessage', {reportID, welcomeMessage: parsedWelcomeMessage}, {optimisticData, failureData});
-    Navigation.goBack();
+    Navigation.goBack(ROUTES.getReportSettingsRoute(reportID));
 }
 
 /**
