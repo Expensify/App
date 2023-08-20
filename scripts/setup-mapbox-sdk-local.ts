@@ -6,9 +6,9 @@ const TOKEN_ENDPOINT = 'https://my-json-server.typicode.com/hayata-suenaga/mapbo
 (async function main() {
     try {
         const response = await axios.get(TOKEN_ENDPOINT);
-        const token = response.data.token;
-        if (token === undefined) {
-            throw new Error('Token could not be fetched');
+        const token = response.data?.token;
+        if (typeof token !== 'string') {
+            throw new Error('Token could not be fetched or token is of a wrong type');
         }
         await saveMapboxToken(token);
     } catch (error) {
