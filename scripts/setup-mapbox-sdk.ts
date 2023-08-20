@@ -7,7 +7,7 @@ const GRADLE_PROPERTIES_PATH = path.join(process.env.HOME || '', '.gradle', 'gra
 
 async function main(): Promise<void> {
     try {
-        const response = await axios.get('https://my-json-server.typicode.com/hayata-suenaga/mapbox-mock-response/token');
+        const response = await axios.get('https://www.expensify.com/api.php?command=GetMapboxSDKToken');
         const TOKEN = response.data.token;
 
         // iOS Configuration for .netrc
