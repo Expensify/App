@@ -33,6 +33,7 @@ import reimbursementAccountDraftPropTypes from './ReimbursementAccountDraftPropT
 import withPolicy from '../workspace/withPolicy';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import * as PolicyUtils from '../../libs/PolicyUtils';
+import shouldReopenOnfido from '../../libs/shouldReopenOnfido';
 
 const propTypes = {
     /** Plaid SDK token to use to initialize the widget */
@@ -102,6 +103,7 @@ class ReimbursementAccountPage extends React.Component {
         this.continue = this.continue.bind(this);
         this.getDefaultStateForField = this.getDefaultStateForField.bind(this);
         this.goBack = this.goBack.bind(this);
+        this.requestorStepRef = React.createRef();
 
         // The first time we open this page, the props.reimbursementAccount has not been loaded from the server.
         // Calculating shouldShowContinueSetupButton on the default data doesn't make sense, and we should recalculate
@@ -342,7 +344,6 @@ class ReimbursementAccountPage extends React.Component {
                         shouldShow
                         onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
                         subtitleKey={_.isEmpty(this.props.policy) ? undefined : 'workspace.common.notAuthorized'}
-                        shouldShowLink
                     />
                 </ScreenWrapper>
             );
@@ -358,7 +359,8 @@ class ReimbursementAccountPage extends React.Component {
 
         // Show loading indicator when page is first time being opened and props.reimbursementAccount yet to be loaded from the server
         // or when data is being loaded. Don't show the loading indicator if we're offline and restarted the bank account setup process
-        if ((!this.state.hasACHDataBeenLoaded || isLoading) && shouldShowOfflineLoader) {
+        // On Android, when we open the app from the background, Onfido activity gets destroyed, so we need to reopen it.
+        if ((!this.state.hasACHDataBeenLoaded || isLoading) && shouldShowOfflineLoader && (shouldReopenOnfido || !this.requestorStepRef.current)) {
             const isSubmittingVerificationsData = _.contains([CONST.BANK_ACCOUNT.STEP.COMPANY, CONST.BANK_ACCOUNT.STEP.REQUESTOR, CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT], currentStep);
             return (
                 <ReimbursementAccountLoadingIndicator
@@ -439,6 +441,7 @@ class ReimbursementAccountPage extends React.Component {
             const shouldShowOnfido = this.props.onfidoToken && !achData.isOnfidoSetupComplete;
             return (
                 <RequestorStep
+                    ref={this.requestorStepRef}
                     reimbursementAccount={this.props.reimbursementAccount}
                     reimbursementAccountDraft={this.props.reimbursementAccountDraft}
                     onBackButtonPress={this.goBack}

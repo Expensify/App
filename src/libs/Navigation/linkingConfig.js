@@ -156,24 +156,8 @@ export default {
                                 path: ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS,
                                 exact: true,
                             },
-                            Settings_TwoFactorAuthIsEnabled: {
-                                path: ROUTES.SETTINGS_2FA_IS_ENABLED,
-                                exact: true,
-                            },
-                            Settings_TwoFactorAuthDisable: {
-                                path: ROUTES.SETTINGS_2FA_DISABLE,
-                                exact: true,
-                            },
-                            Settings_TwoFactorAuthCodes: {
-                                path: ROUTES.SETTINGS_2FA_CODES,
-                                exact: true,
-                            },
-                            Settings_TwoFactorAuthVerify: {
-                                path: ROUTES.SETTINGS_2FA_VERIFY,
-                                exact: true,
-                            },
-                            Settings_TwoFactorAuthSuccess: {
-                                path: ROUTES.SETTINGS_2FA_SUCCESS,
+                            Settings_TwoFactorAuth: {
+                                path: ROUTES.SETTINGS_2FA,
                                 exact: true,
                             },
                             Settings_Share_Code: {
@@ -367,6 +351,11 @@ export default {
                         screens: {
                             EditRequest_Root: ROUTES.EDIT_REQUEST,
                             EditRequest_Currency: ROUTES.EDIT_CURRENCY_REQUEST,
+                        },
+                    },
+                    SignIn: {
+                        screens: {
+                            SignIn_Root: ROUTES.SIGN_IN_MODAL,
                         },
                     },
                 },
