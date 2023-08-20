@@ -240,12 +240,7 @@ function canEditReportAction(reportAction) {
  */
 function isSettled(reportID) {
     const report = lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {});
-
-    if (_.isEmpty(report) || report.isWaitingOnBankAccount) {
-        return false;
-    }
-
-    return report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && report.statusNum === CONST.REPORT.STATUS.REIMBURSED;
+    return !_.isEmpty(report) && !report.isWaitingOnBankAccount && report.stateNum > CONST.REPORT.STATE_NUM.PROCESSING;
 }
 
 /**
@@ -1169,6 +1164,11 @@ function isWaitingForIOUActionFromCurrentUser(report) {
 
     // Money request waiting for current user to add their credit bank account
     if (report.hasOutstandingIOU && report.ownerAccountID === currentUserAccountID && report.isWaitingOnBankAccount) {
+        return true;
+    }
+
+    // Money request waiting for current user to Pay (from expense or iou report)
+    if (report.hasOutstandingIOU && report.ownerAccountID && (report.ownerAccountID !== currentUserAccountID || currentUserAccountID === report.managerID)) {
         return true;
     }
 
