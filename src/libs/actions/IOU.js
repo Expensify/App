@@ -737,8 +737,8 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
     const hasMultipleParticipants = participants.length > 1;
     _.each(participants, (participant) => {
         // In case the participant is a worskapce, email & accountID should remain undefined and won't be used in the rest of this code
-        const email = !_.isEmpty(participant.login) ? OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login).toLowerCase() : '';
-        const accountID = !_.isEmpty(participant.accountID) ? Number(participant.accountID) : undefined;
+        const email = isOwnPolicyExpenseChat ? '' : OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login).toLowerCase();
+        const accountID = isOwnPolicyExpenseChat ? 0 : Number(participant.accountID);
         if (email === currentUserEmail) {
             return;
         }
