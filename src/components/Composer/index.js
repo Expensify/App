@@ -19,7 +19,6 @@ import isEnterWhileComposition from '../../libs/KeyboardShortcut/isEnterWhileCom
 import CONST from '../../CONST';
 import withNavigation from '../withNavigation';
 import ReportActionComposeFocusManager from '../../libs/ReportActionComposeFocusManager';
-import willBlurTextInputOnTapOutside from '../../libs/willBlurTextInputOnTapOutside';
 
 const propTypes = {
     /** Maximum number of lines in the text input */
@@ -453,7 +452,7 @@ function Composer({
                 onKeyPress={handleKeyPress}
                 onFocus={(e) => {
                     ReportActionComposeFocusManager.onComposerFocus(() => {
-                        if (!willBlurTextInputOnTapOutside() || !textInput.current) {
+                        if (!textInput.current) {
                             return;
                         }
 
