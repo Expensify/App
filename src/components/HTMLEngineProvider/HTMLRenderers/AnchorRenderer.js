@@ -28,6 +28,7 @@ function AnchorRenderer(props) {
     const hasSameOrigin = Url.hasSameExpensifyOrigin(attrHref, environmentURL);
     const hasExpensifyOrigin = Url.hasSameExpensifyOrigin(attrHref, CONFIG.EXPENSIFY.EXPENSIFY_URL) || Url.hasSameExpensifyOrigin(attrHref, CONFIG.EXPENSIFY.STAGING_API_ROOT);
     const internalNewExpensifyPath =
+        (attrHref.startsWith(CONST.DEV_NEW_EXPENSIFY_URL) && attrHref.replace(CONST.DEV_NEW_EXPENSIFY_URL_WITH_PORT_REGEX, '')) ||
         (Url.hasSameExpensifyOrigin(attrHref, CONST.NEW_EXPENSIFY_URL) ||
             Url.hasSameExpensifyOrigin(attrHref, CONST.STAGING_NEW_EXPENSIFY_URL) ||
             attrHref.startsWith(CONST.DEV_NEW_EXPENSIFY_URL)) &&
