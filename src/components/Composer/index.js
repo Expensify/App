@@ -161,8 +161,6 @@ function Composer({
 }) {
     const textRef = useRef(null);
     const textInput = useRef(null);
-    const willBlurTextInputOnTapOutsideRef = useRef();
-    willBlurTextInputOnTapOutsideRef.current = willBlurTextInputOnTapOutside();
     const initialValue = defaultValue ? `${defaultValue}` : `${value || ''}`;
     const [numberOfLines, setNumberOfLines] = useState(numberOfLinesProp);
     const [selection, setSelection] = useState({
@@ -455,7 +453,7 @@ function Composer({
                 onKeyPress={handleKeyPress}
                 onFocus={(e) => {
                     ReportActionComposeFocusManager.onComposerFocus(() => {
-                        if (!willBlurTextInputOnTapOutsideRef.current || !textInput.current) {
+                        if (!willBlurTextInputOnTapOutside() || !textInput.current) {
                             return;
                         }
 
