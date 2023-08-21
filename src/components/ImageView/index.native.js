@@ -98,8 +98,8 @@ function ImageView({isAuthTokenRequired, url, onScaleChanged, onPress, style}) {
         if (isLoading) {
             return;
         }
+        
         resetImageZoom();
-
         setImageHeight(0);
         setImageWidth(0);
         setIsLoading(true);
@@ -118,27 +118,27 @@ function ImageView({isAuthTokenRequired, url, onScaleChanged, onPress, style}) {
      * @param {Object} nativeEvent
      */
     const configureImageZoom = ({nativeEvent}) => {
-        let imgWidth = nativeEvent.width;
-        let imgHeight = nativeEvent.height;
+        let imageZoomWidth = nativeEvent.width;
+        let imageZoomHeight = nativeEvent.height;
         const roundedContainerWidth = Math.round(windowWidth);
         const roundedContainerHeight = Math.round(containerHeight || windowHeight);
 
-        const aspectRatio = Math.min(roundedContainerHeight / imgHeight, roundedContainerWidth / imgWidth);
+        const aspectRatio = Math.min(roundedContainerHeight / imageZoomHeight, roundedContainerWidth / imageZoomWidth);
 
-        imgHeight *= aspectRatio;
-        imgWidth *= aspectRatio;
+        imageZoomHeight *= aspectRatio;
+        imageZoomWidth *= aspectRatio;
 
         // Resize the image to max dimensions possible on the Native platforms to prevent crashes on Android. To keep the same behavior, apply to IOS as well.
         const maxDimensionsScale = 11;
-        imgWidth = Math.min(imgWidth, roundedContainerWidth * maxDimensionsScale);
-        imgHeight = Math.min(imgHeight, roundedContainerHeight * maxDimensionsScale);
+        imageZoomWidth = Math.min(imageZoomWidth, roundedContainerWidth * maxDimensionsScale);
+        imageZoomHeight = Math.min(imageZoomHeight, roundedContainerHeight * maxDimensionsScale);
 
-        setImageHeight(imgHeight);
-        setImageWidth(imgWidth);
+        setImageHeight(imageZoomHeight);
+        setImageWidth(imageZoomWidth);
         setIsLoading(false);
     };
 
-    const onStartShouldSetPanResponder = () => {
+    const configurePanResponder = () => {
         const isDoubleClick = new Date().getTime() - lastClickTime.current <= DOUBLE_CLICK_INTERVAL;
         lastClickTime.current = new Date().getTime();
 
@@ -192,7 +192,7 @@ function ImageView({isAuthTokenRequired, url, onScaleChanged, onPress, style}) {
                     cropHeight={calculatedWindowHeight}
                     imageWidth={imageWidth}
                     imageHeight={imageHeight}
-                    onStartShouldSetPanResponder={onStartShouldSetPanResponder}
+                    onStartShouldSetPanResponder={configurePanResponder}
                     onMove={({scale}) => {
                         onScaleChanged(scale);
                         imageZoomScale.current = scale;
