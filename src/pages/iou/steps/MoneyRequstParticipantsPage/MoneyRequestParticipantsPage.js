@@ -50,12 +50,8 @@ function MoneyRequestParticipantsPage({iou, translate, route}) {
     const [headerTitle, setHeaderTitle] = useState();
 
     useEffect(() => {
-        setHeaderTitle(
-            _.isEmpty(iou.participants) ?
-            translate('tabSelector.manual') :
-            translate('iou.split')
-        )
-    }, [iou.participants, translate])
+        setHeaderTitle(_.isEmpty(iou.participants) ? translate('tabSelector.manual') : translate('iou.split'));
+    }, [iou.participants, translate]);
 
     const navigateToNextStep = (moneyRequestType) => {
         IOU.setMoneyRequestId(moneyRequestType);

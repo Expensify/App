@@ -68,7 +68,7 @@ function MoneyRequestParticipantsSplitSelector({
     navigateToRequest,
     navigateToSplit,
     onAddParticipants,
-    safeAreaPaddingBottomStyle
+    safeAreaPaddingBottomStyle,
 }) {
     const [searchTerm, setSearchTerm] = useState('');
     const [newChatOptions, setNewChatOptions] = useState({
@@ -137,7 +137,7 @@ function MoneyRequestParticipantsSplitSelector({
     const addSingleParticipant = (option) => {
         onAddParticipants([{accountID: option.accountID, login: option.login, isPolicyExpenseChat: option.isPolicyExpenseChat, reportID: option.reportID, selected: true}]);
         navigateToRequest();
-    }
+    };
 
     /**
      * Removes a selected option from list if already selected. If not already selected add this option to the list.

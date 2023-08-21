@@ -264,7 +264,11 @@ class OptionRow extends Component {
                                     {this.props.showSelectedState && (
                                         <>
                                             {this.props.shouldShowSelectedStateAsButton && !this.props.isSelected ? (
-                                                <Button text={this.props.selectedStateButtonText} onPress={() => this.props.onSelectedStatePressed(this.props.option)} small />
+                                                <Button
+                                                    text={this.props.selectedStateButtonText}
+                                                    onPress={() => this.props.onSelectedStatePressed(this.props.option)}
+                                                    small
+                                                />
                                             ) : (
                                                 <PressableWithFeedback
                                                     onPress={() => this.props.onSelectedStatePressed(this.props.option)}

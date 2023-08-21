@@ -66,7 +66,4 @@ NewChatSelectorPage.propTypes = propTypes;
 NewChatSelectorPage.defaultProps = defaultProps;
 NewChatSelectorPage.displayName = 'NewChatPage';
 
-export default compose(
-    withLocalize,
-    withWindowDimensions,
-)(NewChatSelectorPage);
+export default compose(withLocalize, withWindowDimensions)(NewChatSelectorPage);
