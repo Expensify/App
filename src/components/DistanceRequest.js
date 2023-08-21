@@ -82,7 +82,7 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
 
     const waypointMarkers = _.filter(
         _.map(waypoints, (waypoint, key) => {
-            if (waypoint.lng === undefined || waypoint.lat === undefined) {
+            if (!waypoint || waypoint.lng === undefined || waypoint.lat === undefined) {
                 return;
             }
 
