@@ -1,5 +1,4 @@
 import React from 'react';
-import {Linking} from 'react-native';
 import {TNodeChildrenRenderer} from 'react-native-render-html';
 import lodashGet from 'lodash/get';
 import htmlRendererPropTypes from './htmlRendererPropTypes';
@@ -63,7 +62,7 @@ function AnchorRenderer(props) {
             Link.openOldDotLink(internalExpensifyPath);
             return;
         }
-        Linking.openURL(attrHref);
+        Link.openExternalLink(attrHref);
     };
 
     if (!HTMLEngineUtils.isInsideComment(props.tnode)) {

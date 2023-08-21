@@ -136,9 +136,6 @@ const ONYXKEYS = {
     /** The user's bank accounts */
     BANK_ACCOUNT_LIST: 'bankAccountList',
 
-    /** The user's credit cards */
-    CARD_LIST: 'cardList',
-
     /** The user's credit cards (renamed from cardList) */
     FUND_LIST: 'fundList',
 
@@ -266,6 +263,8 @@ const ONYXKEYS = {
         MONEY_REQUEST_CREATED_FORM: 'moneyRequestCreatedForm',
         NEW_CONTACT_METHOD_FORM: 'newContactMethodForm',
         PAYPAL_FORM: 'payPalForm',
+        WAYPOINT_FORM: 'waypointForm',
+        WAYPOINT_FORM_DRAFT: 'waypointFormDraft',
         SETTINGS_STATUS_SET_FORM: 'settingsStatusSetForm',
         SETTINGS_STATUS_CLEAR_AFTER_FORM: 'settingsStatusClearAfterForm',
         SETTINGS_STATUS_SET_CLEAR_AFTER_FORM: 'settingsStatusSetClearAfterForm',
@@ -319,7 +318,6 @@ type OnyxValues = {
     [ONYXKEYS.WALLET_ADDITIONAL_DETAILS]: OnyxTypes.WalletAdditionalDetails;
     [ONYXKEYS.WALLET_TERMS]: OnyxTypes.WalletTerms;
     [ONYXKEYS.BANK_ACCOUNT_LIST]: Record<string, OnyxTypes.BankAccount>;
-    [ONYXKEYS.CARD_LIST]: Record<string, OnyxTypes.Card>;
     [ONYXKEYS.FUND_LIST]: Record<string, OnyxTypes.Card>;
     [ONYXKEYS.WALLET_STATEMENT]: OnyxTypes.WalletStatement;
     [ONYXKEYS.PERSONAL_BANK_ACCOUNT]: OnyxTypes.PersonalBankAccount;
@@ -387,6 +385,8 @@ type OnyxValues = {
     [ONYXKEYS.FORMS.MONEY_REQUEST_CREATED_FORM]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.PAYPAL_FORM]: OnyxTypes.Form;
+    [ONYXKEYS.FORMS.WAYPOINT_FORM]: OnyxTypes.Form;
+    [ONYXKEYS.FORMS.WAYPOINT_FORM_DRAFT]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.SETTINGS_STATUS_CLEAR_AFTER_FORM]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.SETTINGS_STATUS_SET_CLEAR_AFTER_FORM]: OnyxTypes.Form;
