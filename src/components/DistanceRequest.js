@@ -206,6 +206,7 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
                         }}
                         style={styles.mapView}
                         waypoints={waypointMarkers}
+                        styleURL={CONST.MAPBOX_STYLE_URL}
                     />
                 ) : (
                     <View style={[styles.mapPendingView]}>
