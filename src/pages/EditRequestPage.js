@@ -46,6 +46,8 @@ function EditRequestPage({report, route, parentReport}) {
     const transaction = TransactionUtils.getLinkedTransaction(parentReportAction);
     const {amount: transactionAmount, currency: transactionCurrency, comment: transactionDescription} = ReportUtils.getTransactionDetails(transaction);
 
+    const defaultCurrency = lodashGet(route, 'params.currency', '') || transactionCurrency;
+
     // Take only the YYYY-MM-DD value
     const transactionCreated = TransactionUtils.getCreated(transaction);
     const fieldToEdit = lodashGet(route, ['params', 'field'], '');
@@ -103,19 +105,19 @@ function EditRequestPage({report, route, parentReport}) {
         return (
             <EditRequestAmountPage
                 defaultAmount={transactionAmount}
-                defaultCurrency={transactionCurrency}
+                defaultCurrency={defaultCurrency}
                 reportID={report.reportID}
                 onSubmit={(transactionChanges) => {
-                    const amount = CurrencyUtils.convertToBackendAmount(transactionCurrency, Number.parseFloat(transactionChanges));
+                    const amount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(transactionChanges));
                     // In case the amount hasn't been changed, do not make the API request.
-                    if (amount === transactionAmount) {
+                    if (amount === transactionAmount && transactionCurrency === defaultCurrency) {
                         Navigation.dismissModal();
                         return;
                     }
                     // Temporarily disabling currency editing and it will be enabled as a quick follow up
                     editMoneyRequest({
                         amount,
-                        currency: transactionCurrency,
+                        currency: defaultCurrency,
                     });
                 }}
             />
