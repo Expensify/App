@@ -214,6 +214,7 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
                             icon={Expensicons.EmptyStateRoutePending}
                             title={translate('distance.mapPending.title')}
                             subtitle={isOffline ? translate('distance.mapPending.subtitle') : translate('distance.mapPending.onlineSubtitle')}
+                            shouldShowLink={false}
                         />
                     </View>
                 )}
