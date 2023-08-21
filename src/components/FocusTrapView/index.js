@@ -14,15 +14,15 @@ const propTypes = {
     /** Whether to disable auto focus
      *  It is used when the component inside the FocusTrap have their own auto focus logic
      */
-    shouldDisableAutoFocus: PropTypes.bool,
+    shouldEnableAutoFocus: PropTypes.bool,
 };
 
 const defaultProps = {
     enabled: true,
-    shouldDisableAutoFocus: false,
+    shouldEnableAutoFocus: false,
 };
 
-function FocusTrapView({enabled, shouldDisableAutoFocus, ...props}) {
+function FocusTrapView({enabled, shouldEnableAutoFocus, ...props}) {
     const isFocused = useIsFocused();
 
     /**
@@ -45,7 +45,7 @@ function FocusTrapView({enabled, shouldDisableAutoFocus, ...props}) {
         <FocusTrap
             active={enabled && isFocused}
             focusTrapOptions={{
-                initialFocus: () => !shouldDisableAutoFocus && ref.current,
+                initialFocus: () => shouldEnableAutoFocus && ref.current,
                 fallbackFocus: () => ref.current,
                 clickOutsideDeactivates: true,
             }}

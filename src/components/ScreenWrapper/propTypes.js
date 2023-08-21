@@ -50,7 +50,7 @@ const propTypes = {
     shouldDisableFocusTrap: PropTypes.bool,
 
     /** Whether to disable auto focus of the focus trap */
-    shouldDisableAutoFocus: PropTypes.bool,
+    shouldEnableAutoFocus: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -66,7 +66,7 @@ const defaultProps = {
     shouldShowOfflineIndicator: true,
     offlineIndicatorStyle: [],
     shouldDisableFocusTrap: false,
-    shouldDisableAutoFocus: false,
+    shouldEnableAutoFocus: false,
 };
 
 export {propTypes, defaultProps};

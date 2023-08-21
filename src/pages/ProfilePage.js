@@ -140,7 +140,7 @@ function ProfilePage(props) {
     const statusContent = `${statusEmojiCode}  ${statusText}`;
 
     return (
-        <ScreenWrapper>
+        <ScreenWrapper shouldEnableAutoFocus>
             <HeaderWithBackButton
                 title={props.translate('common.profile')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.HOME)}
