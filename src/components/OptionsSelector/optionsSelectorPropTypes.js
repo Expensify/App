@@ -6,6 +6,9 @@ const propTypes = {
     /** Callback to fire when a row is tapped */
     onSelectRow: PropTypes.func,
 
+    /** Boolean to indicate if onSelectRow should be debounced */
+    shouldDebounceRowSelect: PropTypes.bool,
+
     /** Sections for the section list */
     sections: PropTypes.arrayOf(
         PropTypes.shape({
@@ -110,6 +113,7 @@ const propTypes = {
 
 const defaultProps = {
     onSelectRow: undefined,
+    shouldDebounceRowSelect: false,
     textInputLabel: '',
     placeholderText: '',
     keyboardType: 'default',

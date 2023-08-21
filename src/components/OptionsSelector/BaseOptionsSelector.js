@@ -336,6 +336,7 @@ class BaseOptionsSelector extends Component {
                 ref={(el) => (this.list = el)}
                 optionHoveredStyle={this.props.optionHoveredStyle}
                 onSelectRow={this.props.onSelectRow ? this.selectRow : undefined}
+                shouldDebounceRowSelect={this.props.shouldDebounceRowSelect}
                 sections={this.props.sections}
                 focusedIndex={this.state.focusedIndex}
                 selectedOptions={this.props.selectedOptions}
