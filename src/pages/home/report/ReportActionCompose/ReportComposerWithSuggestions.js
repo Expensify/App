@@ -82,6 +82,8 @@ const propTypes = {
     /** The actions from the parent report */
     parentReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 
+    isFullComposerAvailable: PropTypes.bool.isRequired,
+
     ...withLocalizePropTypes,
     ...keyboardStatePropTypes,
 };
@@ -122,7 +124,7 @@ function ReportComposerWithSuggestions({
     setTextInputShouldClear,
     isBlockedFromConcierge,
     disabled,
-    isFullSizeComposerAvailable,
+    isFullComposerAvailable,
     setIsFullComposerAvailable,
     setIsCommentEmpty,
     submitForm,
@@ -502,7 +504,7 @@ function ReportComposerWithSuggestions({
                     isDisabled={isBlockedFromConcierge || disabled}
                     selection={selection}
                     onSelectionChange={onSelectionChange}
-                    isFullComposerAvailable={isFullSizeComposerAvailable}
+                    isFullComposerAvailable={isFullComposerAvailable}
                     setIsFullComposerAvailable={setIsFullComposerAvailable}
                     isComposerFullSize={isComposerFullSize}
                     value={value}

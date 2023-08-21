@@ -275,7 +275,7 @@ function ReportActionCompose({
 
     const reportRecipient = personalDetails[participantsWithoutExpensifyAccountIDs[0]];
     const shouldUseFocusedColor = !isBlockedFromConcierge && !disabled && isFocused;
-    const isFullSizeComposerAvailable = isFullComposerAvailable; // && !_.isEmpty(value); // TODO: fix this somehow again
+
     const hasReportRecipient = _.isObject(reportRecipient) && !_.isEmpty(reportRecipient);
 
     const isSendDisabled = isCommentEmpty || isBlockedFromConcierge || disabled || hasExceededMaxCommentLength;
@@ -310,7 +310,7 @@ function ReportActionCompose({
                                     reportID={reportID}
                                     report={report}
                                     reportParticipants={reportParticipants}
-                                    isFullSizeComposerAvailable={isFullSizeComposerAvailable}
+                                    isFullComposerAvailable={isFullComposerAvailable}
                                     isComposerFullSize={isComposerFullSize}
                                     updateShouldShowSuggestionMenuToFalse={updateShouldShowSuggestionMenuToFalse}
                                     isBlockedFromConcierge={isBlockedFromConcierge}
@@ -334,7 +334,7 @@ function ReportActionCompose({
                                     setTextInputShouldClear={setTextInputShouldClear}
                                     isBlockedFromConcierge={isBlockedFromConcierge}
                                     disabled={disabled}
-                                    isFullSizeComposerAvailable={isFullSizeComposerAvailable}
+                                    isFullComposerAvailable={isFullComposerAvailable}
                                     setIsFullComposerAvailable={setIsFullComposerAvailable}
                                     setIsCommentEmpty={setIsCommentEmpty}
                                     submitForm={submitForm}
