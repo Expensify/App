@@ -1,5 +1,5 @@
 import lodashGet from 'lodash/get';
-import React, {useState, useRef, useMemo, useEffect, useCallback, useContext} from 'react';
+import React, {useState, useRef, useMemo, useEffect, useCallback} from 'react';
 import {InteractionManager, Keyboard, View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -37,7 +37,7 @@ import useWindowDimensions from '../../../hooks/useWindowDimensions';
 import useReportScrollManager from '../../../hooks/useReportScrollManager';
 import * as EmojiPickerAction from '../../../libs/actions/EmojiPickerAction';
 import focusWithDelay from '../../../libs/focusWithDelay';
-import ReportActionListFrozenScrollContext from "./ReportActionListFrozenScrollContext";
+import useFrozenScroll from "../../../hooks/useFrozenScroll";
 
 const propTypes = {
     /** All the data of the action */
@@ -104,7 +104,7 @@ function ReportActionItemMessageEdit(props) {
     const isFocusedRef = useRef(false);
     const insertedEmojis = useRef([]);
 
-    const {setShouldFreezeScroll} = useContext(ReportActionListFrozenScrollContext)
+    const {setShouldFreezeScroll} = useFrozenScroll();
 
     useEffect(() => {
         // required for keeping last state of isFocused variable
@@ -217,7 +217,7 @@ function ReportActionItemMessageEdit(props) {
                 keyboardDidHideListener.remove();
             });
         }
-    }, [props.action.reportActionID, debouncedSaveDraft, props.index, props.reportID, reportScrollManager]);
+    }, [setShouldFreezeScroll, props.action.reportActionID, debouncedSaveDraft, props.index, props.reportID, reportScrollManager]);
 
     /**
      * Save the draft of the comment to be the new comment message. This will take the comment out of "edit mode" with

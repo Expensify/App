@@ -20,7 +20,7 @@ import reportPropTypes from '../../reportPropTypes';
 import networkPropTypes from '../../../components/networkPropTypes';
 import withLocalize from '../../../components/withLocalize';
 import useReportScrollManager from '../../../hooks/useReportScrollManager';
-import ReportActionListFrozenScrollContext from "./ReportActionListFrozenScrollContext";
+import useFrozenScroll from "../../../hooks/useFrozenScroll";
 
 const propTypes = {
     /** Position of the "New" line marker */
@@ -83,6 +83,10 @@ function keyExtractor(item) {
     return item.reportActionID;
 }
 
+const maintainVisibleContentPositionOptions = {
+    minIndexForVisible: 1,
+}
+
 function ReportActionsList(props) {
     const reportScrollManager = useReportScrollManager();
     const opacity = useSharedValue(0);
@@ -93,8 +97,7 @@ function ReportActionsList(props) {
         opacity.value = withTiming(1, {duration: 100});
     }, [opacity]);
     const [skeletonViewHeight, setSkeletonViewHeight] = useState(0);
-    const [shouldFreezeScroll, setShouldFreezeScroll] = useState(false);
-
+    const {shouldFreezeScroll} = useFrozenScroll();
     const windowHeight = props.windowHeight;
 
     /**
@@ -164,13 +167,12 @@ function ReportActionsList(props) {
 
     return (
         <Animated.View style={[animatedStyles, styles.flex1, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}]}>
-            <ReportActionListFrozenScrollContext.Provider value={{setShouldFreezeScroll}}>
                 <InvertedFlatList
                     accessibilityLabel={props.translate('sidebarScreen.listOfChatMessages')}
                     ref={reportScrollManager.ref}
                     data={props.sortedReportActions}
                     renderItem={renderItem}
-                    contentContainerStyle={[styles.chatContentScrollView, shouldShowReportRecipientLocalTime || shouldOmitBottomSpace ? styles.pt0 : {}]}
+                    contentContainerStyle={styles.chatContentScrollView}
                     keyExtractor={keyExtractor}
                     initialRowHeight={32}
                     initialNumToRender={calculateInitialNumToRender()}
@@ -202,11 +204,8 @@ function ReportActionsList(props) {
                     }}
                     onScroll={props.onScroll}
                     extraData={extraData}
-                    maintainVisibleContentPosition={shouldFreezeScroll ? {
-                        minIndexForVisible: 1,
-                    } : null}
+                    maintainVisibleContentPosition={shouldFreezeScroll ? maintainVisibleContentPositionOptions : null}
                 />
-            </ReportActionListFrozenScrollContext.Provider>
         </Animated.View>
     );
 }

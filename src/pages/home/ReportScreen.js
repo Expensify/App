@@ -37,6 +37,7 @@ import * as ComposerActions from '../../libs/actions/Composer';
 import ReportScreenContext from './ReportScreenContext';
 import TaskHeaderActionButton from '../../components/TaskHeaderActionButton';
 import DragAndDropProvider from '../../components/DragAndDrop/Provider';
+import {ReportActionListFrozenScrollContextProvider} from "./report/ReportActionListFrozenScrollContext";
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -289,103 +290,106 @@ class ReportScreen extends React.Component {
                     reactionListRef: this.reactionListRef,
                 }}
             >
-                <ScreenWrapper
-                    style={screenWrapperStyle}
-                    shouldEnableKeyboardAvoidingView={isTopMostReportId}
-                >
-                    <FullPageNotFoundView
-                        shouldShow={(!this.props.report.reportID && !this.props.report.isLoadingReportActions && !isLoading) || shouldHideReport}
-                        subtitleKey="notFound.noAccess"
-                        shouldShowCloseButton={false}
-                        shouldShowBackButton={this.props.isSmallScreenWidth}
-                        onBackButtonPress={Navigation.goBack}
+                <ReportActionListFrozenScrollContextProvider>
+                    <ScreenWrapper
+                        style={screenWrapperStyle}
+                        shouldEnableKeyboardAvoidingView={isTopMostReportId}
                     >
-                        <OfflineWithFeedback
-                            pendingAction={addWorkspaceRoomOrChatPendingAction}
-                            errors={addWorkspaceRoomOrChatErrors}
-                            shouldShowErrorMessages={false}
-                            needsOffscreenAlphaCompositing
+                        <FullPageNotFoundView
+                            shouldShow={(!this.props.report.reportID && !this.props.report.isLoadingReportActions && !isLoading) || shouldHideReport}
+                            subtitleKey="notFound.noAccess"
+                            shouldShowCloseButton={false}
+                            shouldShowBackButton={this.props.isSmallScreenWidth}
+                            onBackButtonPress={Navigation.goBack}
                         >
-                            {headerView}
-                            {ReportUtils.isTaskReport(this.props.report) && this.props.isSmallScreenWidth && ReportUtils.isOpenTaskReport(this.props.report) && (
-                                <View style={[styles.borderBottom]}>
-                                    <View style={[styles.appBG, styles.pl0]}>
-                                        <View style={[styles.ph5, styles.pb3]}>
-                                            <TaskHeaderActionButton report={this.props.report} />
+                            <OfflineWithFeedback
+                                pendingAction={addWorkspaceRoomOrChatPendingAction}
+                                errors={addWorkspaceRoomOrChatErrors}
+                                shouldShowErrorMessages={false}
+                                needsOffscreenAlphaCompositing
+                            >
+                                {headerView}
+                                {ReportUtils.isTaskReport(this.props.report) && this.props.isSmallScreenWidth && ReportUtils.isOpenTaskReport(this.props.report) && (
+                                    <View style={[styles.borderBottom]}>
+                                        <View style={[styles.appBG, styles.pl0]}>
+                                            <View style={[styles.ph5, styles.pb3]}>
+                                                <TaskHeaderActionButton report={this.props.report}/>
+                                            </View>
                                         </View>
                                     </View>
-                                </View>
+                                )}
+                            </OfflineWithFeedback>
+                            {Boolean(this.props.accountManagerReportID) && ReportUtils.isConciergeChatReport(this.props.report) && this.state.isBannerVisible && (
+                                <Banner
+                                    containerStyles={[styles.mh4, styles.mt4, styles.p4, styles.bgDark]}
+                                    textStyles={[styles.colorReversed]}
+                                    text={this.props.translate('reportActionsView.chatWithAccountManager')}
+                                    onClose={this.dismissBanner}
+                                    onPress={this.chatWithAccountManager}
+                                    shouldShowCloseButton
+                                />
                             )}
-                        </OfflineWithFeedback>
-                        {Boolean(this.props.accountManagerReportID) && ReportUtils.isConciergeChatReport(this.props.report) && this.state.isBannerVisible && (
-                            <Banner
-                                containerStyles={[styles.mh4, styles.mt4, styles.p4, styles.bgDark]}
-                                textStyles={[styles.colorReversed]}
-                                text={this.props.translate('reportActionsView.chatWithAccountManager')}
-                                onClose={this.dismissBanner}
-                                onPress={this.chatWithAccountManager}
-                                shouldShowCloseButton
-                            />
-                        )}
-                        <DragAndDropProvider isDisabled={!this.isReportReadyForDisplay()}>
-                            <View
-                                style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
-                                onLayout={(event) => {
-                                    // Rounding this value for comparison because they can look like this: 411.9999694824219
-                                    const skeletonViewContainerHeight = Math.round(event.nativeEvent.layout.height);
+                            <DragAndDropProvider isDisabled={!this.isReportReadyForDisplay()}>
+                                <View
+                                    style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
+                                    onLayout={(event) => {
+                                        // Rounding this value for comparison because they can look like this: 411.9999694824219
+                                        const skeletonViewContainerHeight = Math.round(event.nativeEvent.layout.height);
 
-                                    // Only set state when the height changes to avoid unnecessary renders
-                                    if (reportActionsListViewHeight === skeletonViewContainerHeight) return;
+                                        // Only set state when the height changes to avoid unnecessary renders
+                                        if (reportActionsListViewHeight === skeletonViewContainerHeight) return;
 
-                                    // The height can be 0 if the component unmounts - we are not interested in this value and want to know how much space it
-                                    // takes up so we can set the skeleton view container height.
-                                    if (skeletonViewContainerHeight === 0) {
-                                        return;
-                                    }
-                                    reportActionsListViewHeight = skeletonViewContainerHeight;
-                                    this.setState({skeletonViewContainerHeight});
-                                }}
-                            >
-                                {this.isReportReadyForDisplay() && !isLoadingInitialReportActions && !isLoading && (
-                                    <ReportActionsView
-                                        reportActions={this.props.reportActions}
-                                        report={this.props.report}
-                                        isComposerFullSize={this.props.isComposerFullSize}
-                                        parentViewHeight={this.state.skeletonViewContainerHeight}
-                                        policy={policy}
-                                    />
-                                )}
-
-                                {/* Note: The report should be allowed to mount even if the initial report actions are not loaded. If we prevent rendering the report while they are loading then
-                            we'll unnecessarily unmount the ReportActionsView which will clear the new marker lines initial state. */}
-                                {(!this.isReportReadyForDisplay() || isLoadingInitialReportActions || isLoading) && (
-                                    <ReportActionsSkeletonView containerHeight={this.state.skeletonViewContainerHeight} />
-                                )}
-
-                                {this.isReportReadyForDisplay() && (
-                                    <>
-                                        <ReportFooter
-                                            pendingAction={addWorkspaceRoomOrChatPendingAction}
-                                            isOffline={this.props.network.isOffline}
+                                        // The height can be 0 if the component unmounts - we are not interested in this value and want to know how much space it
+                                        // takes up so we can set the skeleton view container height.
+                                        if (skeletonViewContainerHeight === 0) {
+                                            return;
+                                        }
+                                        reportActionsListViewHeight = skeletonViewContainerHeight;
+                                        this.setState({skeletonViewContainerHeight});
+                                    }}
+                                >
+                                    {this.isReportReadyForDisplay() && !isLoadingInitialReportActions && !isLoading && (
+                                        <ReportActionsView
                                             reportActions={this.props.reportActions}
                                             report={this.props.report}
                                             isComposerFullSize={this.props.isComposerFullSize}
-                                            onSubmitComment={this.onSubmitComment}
-                                            policies={this.props.policies}
+                                            parentViewHeight={this.state.skeletonViewContainerHeight}
+                                            policy={policy}
                                         />
-                                    </>
-                                )}
+                                    )}
 
-                                {!this.isReportReadyForDisplay() && (
-                                    <ReportFooter
-                                        shouldDisableCompose
-                                        isOffline={this.props.network.isOffline}
-                                    />
-                                )}
-                            </View>
-                        </DragAndDropProvider>
-                    </FullPageNotFoundView>
-                </ScreenWrapper>
+                                    {/* Note: The report should be allowed to mount even if the initial report actions are not loaded. If we prevent rendering the report while they are loading then
+                            we'll unnecessarily unmount the ReportActionsView which will clear the new marker lines initial state. */}
+                                    {(!this.isReportReadyForDisplay() || isLoadingInitialReportActions || isLoading) && (
+                                        <ReportActionsSkeletonView
+                                            containerHeight={this.state.skeletonViewContainerHeight}/>
+                                    )}
+
+                                    {this.isReportReadyForDisplay() && (
+                                        <>
+                                            <ReportFooter
+                                                pendingAction={addWorkspaceRoomOrChatPendingAction}
+                                                isOffline={this.props.network.isOffline}
+                                                reportActions={this.props.reportActions}
+                                                report={this.props.report}
+                                                isComposerFullSize={this.props.isComposerFullSize}
+                                                onSubmitComment={this.onSubmitComment}
+                                                policies={this.props.policies}
+                                            />
+                                        </>
+                                    )}
+
+                                    {!this.isReportReadyForDisplay() && (
+                                        <ReportFooter
+                                            shouldDisableCompose
+                                            isOffline={this.props.network.isOffline}
+                                        />
+                                    )}
+                                </View>
+                            </DragAndDropProvider>
+                        </FullPageNotFoundView>
+                    </ScreenWrapper>
+                </ReportActionListFrozenScrollContextProvider>
             </ReportScreenContext.Provider>
         );
     }
