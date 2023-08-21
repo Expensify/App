@@ -1,8 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import * as Animatable from 'react-native-animatable';
-import CONST from '../CONST';
-import styles from '../styles/styles';
+import CONST from '../../CONST';
+import styles from '../../styles/styles';
 
 const propTypes = {
     /** Children to wrap in AnimatedStep. */
@@ -14,27 +14,37 @@ const propTypes = {
 
     /** Whether we're animating the step in or out */
     direction: PropTypes.oneOf(['in', 'out']),
+
+    /** Callback to fire when the animation ends */
+    onAnimationEnd: PropTypes.func,
 };
 
 const defaultProps = {
     direction: 'in',
     style: [],
+    onAnimationEnd: () => {},
 };
 
-function AnimatedStep(props) {
-    function getAnimationStyle(direction) {
-        let animationStyle;
+function getAnimationStyle(direction) {
+    let transitionValue;
 
-        if (direction === 'in') {
-            animationStyle = styles.makeSlideInTranslation('translateX', CONST.ANIMATED_TRANSITION_FROM_VALUE);
-        } else if (direction === 'out') {
-            animationStyle = styles.makeSlideInTranslation('translateX', -CONST.ANIMATED_TRANSITION_FROM_VALUE);
-        }
-        return animationStyle;
+    if (direction === 'in') {
+        transitionValue = CONST.ANIMATED_TRANSITION_FROM_VALUE;
+    } else if (direction === 'out') {
+        transitionValue = -CONST.ANIMATED_TRANSITION_FROM_VALUE;
     }
+    return styles.makeSlideInTranslation('translateX', transitionValue);
+}
 
+function AnimatedStep(props) {
     return (
         <Animatable.View
+            onAnimationEnd={() => {
+                if (!props.onAnimationEnd) {
+                    return;
+                }
+                props.onAnimationEnd();
+            }}
             duration={CONST.ANIMATED_TRANSITION}
             animation={getAnimationStyle(props.direction)}
             useNativeDriver
