@@ -131,7 +131,10 @@ export default {
     DETAILS: 'details',
     getDetailsRoute: (login) => `details?login=${encodeURIComponent(login)}`,
     PROFILE: 'a/:accountID',
-    getProfileRoute: (accountID) => `a/${accountID}`,
+    getProfileRoute: (accountID, backTo = '') => {
+        const backToParam = backTo ? `?backTo=${encodeURIComponent(backTo)}` : '';
+        return `a/${accountID}${backToParam}`;
+    },
     REPORT_PARTICIPANTS: 'r/:reportID/participants',
     getReportParticipantsRoute: (reportID) => `r/${reportID}/participants`,
     REPORT_WITH_ID_DETAILS: 'r/:reportID/details',
