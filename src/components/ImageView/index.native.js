@@ -139,8 +139,9 @@ function ImageView({isAuthTokenRequired, url, onScaleChanged, onPress, style}) {
     };
 
     const configurePanResponder = () => {
-        const isDoubleClick = new Date().getTime() - lastClickTime.current <= DOUBLE_CLICK_INTERVAL;
-        lastClickTime.current = new Date().getTime();
+        const currentTimestamp = new Date().getTime() 
+        const isDoubleClick = currentTimestamp - lastClickTime.current <= DOUBLE_CLICK_INTERVAL;
+        lastClickTime.current = currentTimestamp;
 
         // Let ImageZoom handle the event if the tap is more than one touchPoint or if we are zoomed in
         if (numberOfTouches.current === 2 || imageZoomScale.current !== 1) {
