@@ -183,7 +183,6 @@ class OptionRow extends Component {
                                     e.preventDefault();
                                 }
                                 let result = this.onSelectRow(this.props.option, pressableRef);
-                                result = this.onSelectRow(this.props.option, pressableRef);
                                 if (!(result instanceof Promise)) {
                                     result = Promise.resolve();
                                 }
