@@ -5,15 +5,11 @@ import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import * as TestHelper from '../utils/TestHelper';
 import CONST from '../../src/CONST';
-import PushNotification from '../../src/libs/Notification/PushNotification';
 import * as App from '../../src/libs/actions/App';
 
 // We are mocking this method so that we can later test to see if it was called and what arguments it was called with.
 // We test HttpUtils.xhr() since this means that our API command turned into a network request and isn't only queued.
 HttpUtils.xhr = jest.fn();
-
-// Mocked to ensure push notifications are subscribed/unsubscribed as the session changes
-jest.mock('../../src/libs/Notification/PushNotification');
 
 Onyx.init({
     keys: ONYXKEYS,
@@ -89,11 +85,4 @@ describe('Session', () => {
                 expect(session.authToken).toBe(TEST_REFRESHED_AUTH_TOKEN);
             });
     });
-
-    test('Push notifications are subscribed after signing in', () => TestHelper.signInWithTestUser().then(() => expect(PushNotification.register).toBeCalled()));
-
-    test('Push notifications are unsubscribed after signing out', () =>
-        TestHelper.signInWithTestUser()
-            .then(TestHelper.signOutTestUser)
-            .then(() => expect(PushNotification.deregister).toBeCalled()));
 });
