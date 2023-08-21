@@ -12,6 +12,8 @@ import * as EmojiUtils from '../../../libs/EmojiUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
+import * as ReportUtils from '../../../libs/ReportUtils';
+import * as ReportActionUtils from '../../../libs/ReportActionsUtils';
 import compose from '../../../libs/compose';
 import convertToLTR from '../../../libs/convertToLTR';
 import {withNetwork} from '../../../components/OnyxProvider';
@@ -46,6 +48,15 @@ const propTypes = {
         source: PropTypes.string,
     }),
 
+    /** is this fragment an IOU */
+    isIOUReport: PropTypes.bool,
+
+    /** report ID of the IOU */
+    IOUReportID: PropTypes.string,
+
+    /** report action ID */
+    IOUReportActionID: PropTypes.string,
+
     /** Does this fragment belong to a reportAction that has not yet loaded? */
     loading: PropTypes.bool,
 
@@ -78,6 +89,9 @@ const defaultProps = {
         type: '',
         source: '',
     },
+    isIOUReport: false,
+    IOUReportID: '',
+    IOUReportActionID: '',
     loading: false,
     isSingleLine: false,
     source: '',
@@ -104,7 +118,8 @@ function ReportActionItemFragment(props) {
                 );
             }
             const {html, text} = props.fragment;
-
+            const IOUText = props.isIOUReport && ReportUtils.getReportPreviewMessage(ReportUtils.getReport(props.IOUReportID), ReportActionUtils.getReportAction(props.IOUReportActionID))
+            
             // Threaded messages display "[Deleted message]" instead of being hidden altogether.
             // While offline we display the previous message with a strikethrough style. Once online we want to
             // immediately display "[Deleted message]" while the delete action is pending.
@@ -127,13 +142,13 @@ function ReportActionItemFragment(props) {
                 return <RenderHTML html={props.source === 'email' ? `<email-comment>${htmlContent}</email-comment>` : `<comment>${htmlContent}</comment>`} />;
             }
             const containsOnlyEmojis = EmojiUtils.containsOnlyEmojis(text);
-
+            
             return (
                 <Text
                     selectable={!DeviceCapabilities.canUseTouchScreen() || !props.isSmallScreenWidth}
                     style={[containsOnlyEmojis ? styles.onlyEmojisText : undefined, styles.ltr, ...props.style]}
                 >
-                    {convertToLTR(text)}
+                    {props.isIOUReport ? IOUText : convertToLTR(text)}
                     {Boolean(props.fragment.isEdited) && (
                         <Text
                             fontSize={variables.fontSizeSmall}
