@@ -102,7 +102,7 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
                     <MarkerComponent
                         width={20}
                         height={20}
-                        fill={theme.iconReversed}
+                        fill={theme.icon}
                     />
                 ),
             };
