@@ -80,7 +80,7 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
     const numberOfWaypoints = _.size(waypoints);
     const lastWaypointIndex = numberOfWaypoints - 1;
 
-    const waypointsData = _.filter(
+    const waypointMarkers = _.filter(
         _.map(waypoints, (waypoint, key) => {
             if (waypoint.lng === undefined || waypoint.lat === undefined) {
                 return;
@@ -205,7 +205,7 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
                             zoom: DEFAULT_ZOOM_LEVEL,
                         }}
                         style={styles.mapView}
-                        waypoints={waypointsData}
+                        waypoints={waypointMarkers}
                     />
                 ) : (
                     <View style={[styles.mapPendingView]}>
