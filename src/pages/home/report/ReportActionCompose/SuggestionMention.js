@@ -171,8 +171,9 @@ function SuggestionMention({isComposerFullSize, personalDetails, value, setValue
 
     const calculateMentionSuggestion = useCallback(
         (selectionEnd) => {
-            if (shouldBlockCalc.current) {
+            if (shouldBlockCalc.current || selectionEnd < 1) {
                 shouldBlockCalc.current = false;
+                resetSuggestions();
                 return;
             }
 
@@ -218,20 +219,14 @@ function SuggestionMention({isComposerFullSize, personalDetails, value, setValue
             }));
             setHighlightedMentionIndex(0);
         },
-        [getMentionOptions, personalDetails, setHighlightedMentionIndex, value],
+        [getMentionOptions, personalDetails, resetSuggestions, setHighlightedMentionIndex, value],
     );
 
     const onSelectionChange = useCallback(
         (e) => {
-            if (!value || e.nativeEvent.selection.end < 1) {
-                resetSuggestions();
-                shouldBlockCalc.current = false;
-                return true;
-            }
-
             calculateMentionSuggestion(e.nativeEvent.selection.end);
         },
-        [calculateMentionSuggestion, resetSuggestions, value],
+        [calculateMentionSuggestion],
     );
 
     const updateShouldShowSuggestionMenuToFalse = useCallback(() => {

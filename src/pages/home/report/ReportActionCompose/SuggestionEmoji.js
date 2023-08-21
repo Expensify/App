@@ -165,8 +165,9 @@ function SuggestionEmoji({
      */
     const calculateEmojiSuggestion = useCallback(
         (selectionEnd) => {
-            if (shouldBlockCalc.current) {
+            if (shouldBlockCalc.current || !value) {
                 shouldBlockCalc.current = false;
+                resetSuggestions();
                 return;
             }
             const leftString = value.substring(0, selectionEnd);
@@ -193,17 +194,11 @@ function SuggestionEmoji({
             setSuggestionValues((prevState) => ({...prevState, ...nextState}));
             setHighlightedEmojiIndex(0);
         },
-        [value, windowHeight, composerHeight, isSmallScreenWidth, preferredLocale, setHighlightedEmojiIndex],
+        [value, windowHeight, composerHeight, isSmallScreenWidth, preferredLocale, setHighlightedEmojiIndex, resetSuggestions],
     );
 
     const onSelectionChange = useCallback(
         (e) => {
-            if (!value || e.nativeEvent.selection.end < 1) {
-                resetSuggestions();
-                shouldBlockCalc.current = false;
-                return true;
-            }
-
             /**
              * we pass here e.nativeEvent.selection.end directly to calculateEmojiSuggestion
              * because in other case calculateEmojiSuggestion will have an old calculation value
@@ -211,7 +206,7 @@ function SuggestionEmoji({
              */
             calculateEmojiSuggestion(e.nativeEvent.selection.end);
         },
-        [calculateEmojiSuggestion, resetSuggestions, value],
+        [calculateEmojiSuggestion],
     );
 
     const setShouldBlockSuggestionCalc = useCallback(
