@@ -1197,6 +1197,7 @@ function ReportActionCompose({
                                         shouldClear={textInputShouldClear}
                                         onClear={() => setTextInputShouldClear(false)}
                                         isDisabled={isBlockedFromConcierge || disabled}
+                                        isReportActionCompose
                                         selection={selection}
                                         onSelectionChange={onSelectionChange}
                                         isFullComposerAvailable={isFullSizeComposerAvailable}

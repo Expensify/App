@@ -47,7 +47,7 @@ function focus() {
 function clear(isMainComposer = false) {
     if (isMainComposer) {
         mainComposerFocusCallback = null;
-    } else if (mainComposerFocusCallback) {
+    } else {
         focusCallback = null;
     }
 }

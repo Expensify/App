@@ -80,6 +80,9 @@ const propTypes = {
     /** Function to check whether composer is covered up or not */
     checkComposerVisibility: PropTypes.func,
 
+    /** Whether this is the report action compose */
+    isReportActionCompose: PropTypes.bool,
+
     ...withLocalizePropTypes,
 
     ...windowDimensionsPropTypes,
@@ -107,6 +110,7 @@ const defaultProps = {
     setIsFullComposerAvailable: () => {},
     shouldCalculateCaretPosition: false,
     checkComposerVisibility: () => false,
+    isReportActionCompose: false,
 };
 
 /**
@@ -156,6 +160,7 @@ function Composer({
     setIsFullComposerAvailable,
     checkComposerVisibility,
     selection: selectionProp,
+    isReportActionCompose,
     ...props
 }) {
     const textRef = useRef(null);
@@ -371,7 +376,9 @@ function Composer({
         }
 
         return () => {
-            ReportActionComposeFocusManager.clear();
+            if (!isReportActionCompose) {
+                ReportActionComposeFocusManager.clear();
+            }
             unsubscribeFocus();
             unsubscribeBlur();
             document.removeEventListener('paste', handlePaste);
