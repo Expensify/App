@@ -32,6 +32,10 @@ Onyx.connect({
     },
 });
 
+function createSbeDemoWorkspaceAndNavigate() {
+    // TODO: reuse lots of code
+}
+
 function createSaastrDemoWorkspaceAndNavigate() {
     // Try to navigate to existing SaaStr expense chat if it exists in Onyx
     const saastrWorkspaceChatReportID = ReportUtils.getPolicyExpenseChatReportIDByOwner(CONST.EMAIL.SAASTR);
@@ -243,4 +247,7 @@ function createSaastrDemoWorkspaceAndNavigate() {
     Navigation.navigate(ROUTES.getReportRoute(expenseChatReportID));
 }
 
-export {createSaastrDemoWorkspaceAndNavigate};
+export {
+    createSaastrDemoWorkspaceAndNavigate,
+    createSbeDemoWorkspaceAndNavigate,
+};

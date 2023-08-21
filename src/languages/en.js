@@ -1626,5 +1626,8 @@ export default {
         saastr: {
             signInWelcome: 'Welcome to SaaStr! Hop in to start networking now.',
         },
+        sbe: {
+            signInWelcome: 'Welcome to Small Business Expo! Get paid back for your ride.',
+        },
     },
 };

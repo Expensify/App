@@ -27,6 +27,7 @@ export default {
                 screens: {
                     [SCREENS.REPORT]: ROUTES.REPORT_WITH_ID,
                     [CONST.DEMO_PAGES.SAASTR]: ROUTES.SAASTR,
+                    [CONST.DEMO_PAGES.SBE]: ROUTES.SBE,
                 },
             },
             [NAVIGATORS.FULL_SCREEN_NAVIGATOR]: {

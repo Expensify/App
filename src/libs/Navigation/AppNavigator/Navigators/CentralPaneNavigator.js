@@ -38,6 +38,14 @@ function CentralPaneNavigator() {
                     }}
                     component={DemoSetupPage}
                 />
+                <Stack.Screen
+                    name={CONST.DEMO_PAGES.SBE}
+                    options={{
+                        headerShown: false,
+                        title: 'New Expensify',
+                    }}
+                    component={DemoSetupPage}
+                />
             </Stack.Navigator>
         </FreezeWrapper>
     );

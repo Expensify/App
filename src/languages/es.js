@@ -2113,5 +2113,8 @@ export default {
         saastr: {
             signInWelcome: '¡Bienvenido a SaaStr! Entra y empieza a establecer contactos.',
         },
+        sbe: {
+            signInWelcome: '¡Bienvenido a Small Business Expo! Recupera el dinero de tu viaje.',
+        },
     },
 };

@@ -183,6 +183,7 @@ export default {
 
     // These are some on-off routes that will be removed once they're no longer needed (see GH issues for details)
     SAASTR: 'saastr',
+    SBE: 'sbe',
 
     /**
      * @param {String} route

@@ -26,6 +26,8 @@ function DemoSetupPage(props) {
         // Depending on the route that the user hit to get here, run a specific demo flow
         if (props.route.name === CONST.DEMO_PAGES.SAASTR) {
             DemoActions.createSaastrDemoWorkspaceAndNavigate();
+        } else if (props.route.name === CONST.DEMO_PAGES.SBE) {
+            DemoActions.createSbeDemoWorkspaceAndNavigate();
         }
     });
 

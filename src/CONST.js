@@ -860,6 +860,7 @@ const CONST = {
         QA_TRAVIS: 'qa+travisreceipts@expensify.com',
         RECEIPTS: 'receipts@expensify.com',
         SAASTR: 'saastr@expensify.com',
+        SBE: 'sbe@expensify.com',
         STUDENT_AMBASSADOR: 'studentambassadors@expensify.com',
         SVFG: 'svfg@expensify.com',
     },
@@ -880,6 +881,7 @@ const CONST = {
         RECEIPTS: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_RECEIPTS', -1)),
         REWARDS: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_REWARDS', 11023767)), // rewards@expensify.com
         SAASTR: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_SAASTR', 15252830)),
+        SBE: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_SBE', -1)), // TODO: replace with prod account ID
         STUDENT_AMBASSADOR: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_STUDENT_AMBASSADOR', 10476956)),
         SVFG: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_SVFG', 2012843)),
     },
@@ -1211,6 +1213,8 @@ const CONST = {
             this.EMAIL.QA,
             this.EMAIL.QA_TRAVIS,
             this.EMAIL.RECEIPTS,
+            this.EMAIL.SAASTR,
+            this.EMAIL.SBE,
             this.EMAIL.STUDENT_AMBASSADOR,
             this.EMAIL.SVFG,
         ];
@@ -1231,6 +1235,8 @@ const CONST = {
             this.ACCOUNT_ID.QA_TRAVIS,
             this.ACCOUNT_ID.RECEIPTS,
             this.ACCOUNT_ID.REWARDS,
+            this.ACCOUNT_ID.SAASTR,
+            this.ACCOUNT_ID.SBE,
             this.ACCOUNT_ID.STUDENT_AMBASSADOR,
             this.ACCOUNT_ID.SVFG,
         ];
@@ -2568,6 +2574,7 @@ const CONST = {
     },
     DEMO_PAGES: {
         SAASTR: 'SaaStrDemoSetup',
+        SBE: 'SbeDemoSetup',
     },
 };
 

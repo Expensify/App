@@ -470,9 +470,20 @@ function beginDeepLinkRedirectAfterTransition(shouldAuthenticateWithCurrentAccou
  * @param {String} url - URL user is navigating to via deep link (or regular link in web)
  */
 function runDemoByURL(url = '') {
+    if (!url) {
+        url = '';
+    }
+    url = url.toLowerCase();
+
     if (url.endsWith(ROUTES.SAASTR)) {
         Onyx.merge(ONYXKEYS.DEMO_INFO, {
             saastr: {
+                isBeginningDemo: true,
+            },
+        });
+    } else if (url.endsWith(ROUTES.SBE)) {
+        Onyx.merge(ONYXKEYS.DEMO_INFO, {
+            sbe: {
                 isBeginningDemo: true,
             },
         });
