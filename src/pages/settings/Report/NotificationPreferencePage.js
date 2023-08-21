@@ -28,7 +28,7 @@ const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
 function NotificationPreferencePage(props) {
     const shouldDisableNotificationPreferences = ReportUtils.shouldDisableSettings(props.report) || ReportUtils.isArchivedRoom(props.report);
     const notificationPreferenceOptions = _.chain(props.translate('notificationPreferencesPage.notificationPreferences'))
-        .reject(preference => preference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN)
+        .reject((preference) => preference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN)
         .map((preference, key) => ({
             value: key,
             text: preference,
