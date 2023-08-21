@@ -14,8 +14,10 @@ const propTypes = {
     /** Whether to enable the FocusTrap */
     enabled: PropTypes.bool,
 
-    /** Whether to disable auto focus
-     *  It is used when the component inside the FocusTrap have their own auto focus logic */
+    /**
+     *  Whether to disable auto focus
+     *  It is used when the component inside the FocusTrap have their own auto focus logic
+     */
     shouldEnableAutoFocus: PropTypes.bool,
 };
 
@@ -62,7 +64,6 @@ function FocusTrapView({enabled, shouldEnableAutoFocus, ...props}) {
             />
         </FocusTrap>
     ) : (
-        // eslint-disable-next-line react/jsx-props-no-spreading
         props.children
     );
 }
