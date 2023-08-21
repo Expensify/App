@@ -131,6 +131,8 @@ function ReportActionItem(props) {
     const textInputRef = useRef();
     const popoverAnchorRef = useRef();
     const downloadedPreviews = useRef([]);
+    const originalReportID = ReportUtils.getOriginalReportID(props.report.reportID, props.action);
+    const originalReport = props.report.reportID === originalReportID ? props.report : ReportUtils.getReport(originalReportID);
 
     useEffect(
         () => () => {
@@ -213,7 +215,6 @@ function ReportActionItem(props) {
             }
 
             setIsContextMenuActive(true);
-
             const selection = SelectionScraper.getCurrentSelection();
             ReportActionContextMenu.showContextMenu(
                 ContextMenuActions.CONTEXT_MENU_TYPES.REPORT_ACTION,
@@ -225,11 +226,11 @@ function ReportActionItem(props) {
                 props.draftMessage,
                 () => {},
                 toggleContextMenuFromActiveReportAction,
-                ReportUtils.isArchivedRoom(props.report),
-                ReportUtils.chatIncludesChronos(props.report),
+                ReportUtils.isArchivedRoom(originalReport),
+                ReportUtils.chatIncludesChronos(originalReport),
             );
         },
-        [props.draftMessage, props.action, props.report, toggleContextMenuFromActiveReportAction],
+        [props.draftMessage, props.action, props.report.reportID, toggleContextMenuFromActiveReportAction, originalReport],
     );
 
     const toggleReaction = useCallback(
@@ -468,12 +469,10 @@ function ReportActionItem(props) {
         const parentReportAction = ReportActionsUtils.getParentReportAction(props.report);
         if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
             return (
-                <OfflineWithFeedback pendingAction={props.action.pendingAction}>
-                    <MoneyRequestView
-                        report={props.report}
-                        shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
-                    />
-                </OfflineWithFeedback>
+                <MoneyRequestView
+                    report={props.report}
+                    shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
+                />
             );
         }
         if (ReportUtils.isTaskReport(props.report)) {
@@ -540,11 +539,11 @@ function ReportActionItem(props) {
                         <MiniReportActionContextMenu
                             reportID={props.report.reportID}
                             reportAction={props.action}
-                            isArchivedRoom={ReportUtils.isArchivedRoom(props.report)}
+                            isArchivedRoom={ReportUtils.isArchivedRoom(originalReport)}
                             displayAsGroup={props.displayAsGroup}
                             isVisible={hovered && !props.draftMessage && !hasErrors}
                             draftMessage={props.draftMessage}
-                            isChronosReport={ReportUtils.chatIncludesChronos(props.report)}
+                            isChronosReport={ReportUtils.chatIncludesChronos(originalReport)}
                         />
                         <View
                             style={StyleUtils.getReportActionItemStyle(

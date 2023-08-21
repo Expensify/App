@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import {format} from 'date-fns';
+import {format, parseISO, isValid} from 'date-fns';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import CONST from '../CONST';
@@ -99,7 +99,12 @@ function getUpdatedTransaction(transaction, transactionChanges, isFromExpenseRep
     if (_.has(transactionChanges, 'currency')) {
         updatedTransaction.modifiedCurrency = transactionChanges.currency;
     }
-    updatedTransaction.pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
+    updatedTransaction.pendingFields = {
+        ...(_.has(transactionChanges, 'comment') && {comment: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+        ...(_.has(transactionChanges, 'created') && {created: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+        ...(_.has(transactionChanges, 'amount') && {amount: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+        ...(_.has(transactionChanges, 'currency') && {currency: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+    };
 
     return updatedTransaction;
 }
@@ -187,9 +192,11 @@ function getMerchant(transaction) {
  */
 function getCreated(transaction) {
     const created = lodashGet(transaction, 'modifiedCreated', '') || lodashGet(transaction, 'created', '');
-    if (created) {
-        return format(new Date(created), CONST.DATE.FNS_FORMAT_STRING);
+    const createdDate = parseISO(created);
+    if (isValid(createdDate)) {
+        return format(createdDate, CONST.DATE.FNS_FORMAT_STRING);
     }
+
     return '';
 }
 

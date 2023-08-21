@@ -23,6 +23,7 @@ import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import EmptyStateBackgroundImage from '../../../assets/images/empty-state_background-fade.png';
 import useLocalize from '../../hooks/useLocalize';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
+import OfflineWithFeedback from '../OfflineWithFeedback';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -103,36 +104,44 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, polic
                     style={[StyleUtils.getReportWelcomeBackgroundImageStyle(true)]}
                 />
             </View>
-            <MenuItemWithTopDescription
-                title={formattedTransactionAmount ? formattedTransactionAmount.toString() : ''}
-                shouldShowTitleIcon={isSettled}
-                titleIcon={Expensicons.Checkmark}
-                description={description}
-                titleStyle={styles.newKansasLarge}
-                disabled={isSettled || !canEdit}
-                shouldShowRightIcon={canEdit}
-                onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.AMOUNT))}
-            />
-            <MenuItemWithTopDescription
-                description={translate('common.description')}
-                title={transactionDescription}
-                disabled={isSettled || !canEdit}
-                shouldShowRightIcon={canEdit}
-                onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DESCRIPTION))}
-            />
-            <MenuItemWithTopDescription
-                description={translate('common.date')}
-                title={transactionDate}
-                disabled={isSettled || !canEdit}
-                shouldShowRightIcon={canEdit}
-                onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DATE))}
-            />
-            <MenuItemWithTopDescription
-                description={translate('common.merchant')}
-                title={transactionMerchant}
-                shouldShowRightIcon={false}
-                disabled
-            />
+            <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.amount') || lodashGet(transaction, 'pendingAction')}>
+                <MenuItemWithTopDescription
+                    title={formattedTransactionAmount ? formattedTransactionAmount.toString() : ''}
+                    shouldShowTitleIcon={isSettled}
+                    titleIcon={Expensicons.Checkmark}
+                    description={description}
+                    titleStyle={styles.newKansasLarge}
+                    disabled={isSettled || !canEdit}
+                    shouldShowRightIcon={canEdit}
+                    onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.AMOUNT))}
+                />
+            </OfflineWithFeedback>
+            <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.comment') || lodashGet(transaction, 'pendingAction')}>
+                <MenuItemWithTopDescription
+                    description={translate('common.description')}
+                    title={transactionDescription}
+                    disabled={isSettled || !canEdit}
+                    shouldShowRightIcon={canEdit}
+                    onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DESCRIPTION))}
+                />
+            </OfflineWithFeedback>
+            <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.created') || lodashGet(transaction, 'pendingAction')}>
+                <MenuItemWithTopDescription
+                    description={translate('common.date')}
+                    title={transactionDate}
+                    disabled={isSettled || !canEdit}
+                    shouldShowRightIcon={canEdit}
+                    onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DATE))}
+                />
+            </OfflineWithFeedback>
+            <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.merchant') || lodashGet(transaction, 'pendingAction')}>
+                <MenuItemWithTopDescription
+                    description={translate('common.merchant')}
+                    title={transactionMerchant}
+                    shouldShowRightIcon={false}
+                    disabled
+                />
+            </OfflineWithFeedback>
             {shouldShowHorizontalRule && <View style={styles.reportHorizontalRule} />}
         </View>
     );

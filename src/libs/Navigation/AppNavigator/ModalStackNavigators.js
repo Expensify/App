@@ -725,6 +725,16 @@ const EditRequestStackNavigator = createModalStackNavigator([
     },
 ]);
 
+const SignInModalStackNavigator = createModalStackNavigator([
+    {
+        getComponent: () => {
+            const SignInModal = require('../../../pages/signin/SignInModal').default;
+            return SignInModal;
+        },
+        name: 'SignIn_Root',
+    },
+]);
+
 export {
     MoneyRequestModalStackNavigator,
     SplitDetailsModalStackNavigator,
@@ -746,4 +756,5 @@ export {
     WalletStatementStackNavigator,
     FlagCommentStackNavigator,
     EditRequestStackNavigator,
+    SignInModalStackNavigator,
 };
