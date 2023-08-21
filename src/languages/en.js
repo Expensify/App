@@ -446,6 +446,7 @@ export default {
             always: 'Immediately',
             daily: 'Daily',
             mute: 'Mute',
+            hidden: 'Hidden',
         },
     },
     loginField: {
