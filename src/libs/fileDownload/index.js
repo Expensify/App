@@ -1,7 +1,7 @@
+import * as ApiUtils from '@libs/ApiUtils';
+import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import * as Link from '@userActions/Link';
-import * as ApiUtils from '../ApiUtils';
 import * as FileUtils from './FileUtils';
-import tryResolveUrlFromApiRoot from '../tryResolveUrlFromApiRoot';
 
 /**
  * Downloading attachment in web, desktop
@@ -18,7 +18,8 @@ export default function fileDownload(url, fileName) {
         return Promise.resolve();
     }
 
-    return fetch(url)
+    return (
+        fetch(url)
             .then((response) => response.blob())
             .then((blob) => {
                 // Create blob link to download
@@ -46,5 +47,6 @@ export default function fileDownload(url, fileName) {
                 link.parentNode.removeChild(link);
             })
             // file could not be downloaded, open sourceURL in new tab
-            .catch(() => Link.openExternalLink(url));
+            .catch(() => Link.openExternalLink(url))
+    );
 }
