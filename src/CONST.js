@@ -2546,6 +2546,9 @@ const CONST = {
         DISABLED: 'DISABLED',
     },
     TAB: {
+        NEW_CHAT_TAB_ID: 'NewChatTab',
+        NEW_CHAT: 'chat',
+        NEW_ROOM: 'room',
         RECEIPT_TAB_ID: 'ReceiptTab',
         MANUAL: 'manual',
         SCAN: 'scan',
