@@ -5,6 +5,7 @@ import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes,
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import CONST from '../../../CONST';
+import TIMEZONES from '../../../TIMEZONES';
 import * as PersonalDetails from '../../../libs/actions/PersonalDetails';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
@@ -36,7 +37,7 @@ function TimezoneSelectPage(props) {
     const {translate} = useLocalize();
     const timezone = useRef(getUserTimezone(props.currentUserPersonalDetails));
     const allTimezones = useRef(
-        _.chain(Intl.supportedValuesOf('timeZone'))
+        _.chain(TIMEZONES)
             .filter((tz) => !tz.startsWith('Etc/GMT'))
             .map((text) => ({
                 text,
