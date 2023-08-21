@@ -67,11 +67,12 @@ function ThreePaneView(props) {
                                 ]}
                             >
                                 <View style={[styles.flex1, styles.flexColumn]}>
-                                    {/* The PressableWithoutFeedback with 30px height was added to make whole dimmed area pressable
-                                    on all web devices, but aslo make the top of the desktop apps draggable.
-                                    Please remember that in latestest Electron update, buttons can't be both draggable and clickable  */}
+                                    {/* In the latest Electron version buttons can't be both clickable and draggable. 
+                                    That's why we added this workaround. Because of two Pressable components on the desktop app 
+                                    we have 30px draggable ba at the top and the rest of the dimmed area is clickable. On other devices,
+                                    everything behaves normally like one big pressable */}
                                     <PressableWithoutFeedback
-                                        style={[styles.w100, {height: 30}]}
+                                        style={[styles.draggableTopBar]}
                                         onPress={() => props.navigation.goBack()}
                                         accessibilityLabel={translate('common.close')}
                                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
