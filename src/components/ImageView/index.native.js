@@ -35,6 +35,8 @@ const defaultProps = {
     style: {},
 };
 
+// Use the default double click interval from the ImageZoom library
+// https://github.com/ascoders/react-native-image-zoom/blob/master/src/image-zoom/image-zoom.type.ts#L79
 const DOUBLE_CLICK_INTERVAL = 175;
 
 function ImageView({isAuthTokenRequired, url, onScaleChanged, onPress, style}) {
@@ -43,12 +45,12 @@ function ImageView({isAuthTokenRequired, url, onScaleChanged, onPress, style}) {
     const [isLoading, setIsLoading] = useState(true);
     const [imageWidth, setImageWidth] = useState(0);
     const [imageHeight, setImageHeight] = useState(0);
-    const [containerHeight, setContainerHeight] = useState();
+    const [containerHeight, setContainerHeight] = useState(null);
 
     const imageZoomScale = useRef(1);
     const lastClickTime = useRef(0);
     const numberOfTouches = useRef(0);
-    const zoom = useRef();
+    const zoom = useRef(null);
 
     /**
      * Updates the amount of active touches on the PanResponder on our ImageZoom overlay View
