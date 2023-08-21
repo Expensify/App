@@ -8,7 +8,6 @@ import withCurrentUserPersonalDetails from '../../../components/withCurrentUserP
 import PressableWithoutFeedback from '../../../components/Pressable/PressableWithoutFeedback';
 import personalDetailsPropType from '../../personalDetailsPropType';
 import PressableAvatarWithIndicator from './PressableAvatarWithIndicator';
-import Button from '../../../components/Button';
 import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
 import Navigation from '../../../libs/Navigation/Navigation';
@@ -19,6 +18,7 @@ import useLocalize from '../../../hooks/useLocalize';
 import ONYXKEYS from '../../../ONYXKEYS';
 import ROUTES from '../../../ROUTES';
 import CONST from '../../../CONST';
+import SignInButton from './SignInButton';
 
 const propTypes = {
     /** The personal details of the person who is logged in */
@@ -55,22 +55,7 @@ function SignInOrAvatarWithOptionalStatus({currentUserPersonalDetails, isCreateM
     }, [isCreateMenuOpen]);
 
     if (Session.isAnonymousUser()) {
-        return (
-            <PressableWithoutFeedback
-                accessibilityLabel={translate('sidebarScreen.buttonMySettings')}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                onPress={Session.signOutAndRedirectToSignIn}
-            >
-                <View style={styles.signInButtonAvatar}>
-                    <Button
-                        medium
-                        success
-                        text={translate('common.signIn')}
-                        onPress={Session.signOutAndRedirectToSignIn}
-                    />
-                </View>
-            </PressableWithoutFeedback>
-        );
+        return <SignInButton />;
     }
     if (emojiStatus) {
         return (

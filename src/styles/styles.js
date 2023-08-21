@@ -3745,6 +3745,7 @@ const styles = {
         borderRadius: 42,
         paddingHorizontal: 2,
         marginVertical: -2,
+        marginRight: -2,
     },
     sidebarStatusAvatar: {
         flex: 1,
