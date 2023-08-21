@@ -4,6 +4,6 @@ export default PropTypes.shape({
     /** Name of a category */
     name: PropTypes.string.isRequired,
 
-    /** Flag that determine is a category active */
+    /** Flag that determines if a category is active */
     enabled: PropTypes.bool.isRequired,
 });

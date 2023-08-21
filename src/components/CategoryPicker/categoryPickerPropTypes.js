@@ -5,7 +5,7 @@ const propTypes = {
     /** The report ID of the IOU */
     reportID: PropTypes.string.isRequired,
 
-    /** The policyID of we are getting categories */
+    /** The policyID we are getting categories for */
     policyID: PropTypes.string,
 
     /** The type of IOU report, i.e. bill, request, send */
