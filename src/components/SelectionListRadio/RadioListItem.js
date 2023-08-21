@@ -35,7 +35,7 @@ const defaultProps = {
 };
 
 function RadioListItem(props) {
-  const isFocused = !props.disableIsFocusStyle && props.isFocused
+    const isFocused = !props.disableIsFocusStyle && props.isFocused;
     return (
         <PressableWithFeedback
             onPress={() => props.onSelectRow(props.item)}

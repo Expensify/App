@@ -37,11 +37,10 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
     const defaultEmoji = draftEmojiCode || currentUserEmojiCode;
     const defaultText = draftEmojiCode ? draftText : currentUserStatusText;
     const customStatus = draftEmojiCode ? `${draftEmojiCode} ${draftText}` : `${currentUserEmojiCode || ''} ${currentUserStatusText || ''}`;
-    
     const hasDraftStatus = !!draftEmojiCode || !!draftText;
     const formattedClearAfter = DateUtils.formatDateTo12Hour(lodashGet(currentUserPersonalDetails, 'status.clearAfter', ''));
     const formattedClearAfterDraft = DateUtils.formatDateTo12Hour(draftClearAfter);
-    const customClearAfter = draftClearAfter ? formattedClearAfterDraft : formattedClearAfter ||'';
+    const customClearAfter = draftClearAfter ? formattedClearAfterDraft : formattedClearAfter || '';
 
     const updateStatus = useCallback(() => {
         const endOfDay = moment().endOf('day').format('YYYY-MM-DD HH:mm:ss');
