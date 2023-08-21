@@ -94,7 +94,7 @@ export default [
         successTextTranslateKey: 'common.download',
         successIcon: Expensicons.Download,
         shouldShow: (type, reportAction) => {
-            const isAttachment = ReportUtils.isReportActionAttachment(reportAction);
+            const isAttachment = ReportActionUtils.isReportActionAttachment(reportAction);
             const messageHtml = lodashGet(reportAction, ['message', 0, 'html']);
             return isAttachment && messageHtml !== CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML && reportAction.reportActionID && !ReportActionUtils.isMessageDeleted(reportAction);
         },
@@ -188,7 +188,7 @@ export default [
         // the `text` and `icon`
         onPress: (closePopover, {reportAction, selection}) => {
             const isReportPreviewAction = ReportActionUtils.isReportPreviewAction(reportAction);
-            const isAttachment = ReportUtils.isReportActionAttachment(reportAction);
+            const isAttachment = ReportActionUtils.isReportActionAttachment(reportAction);
             const messageHtml = lodashGet(reportAction, ['message', 0, 'html'], '');
 
             if (!isAttachment) {
@@ -223,7 +223,7 @@ export default [
         successIcon: Expensicons.Checkmark,
         successTextTranslateKey: 'reportActionContextMenu.copied',
         shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget) => {
-            const isAttachment = ReportUtils.isReportActionAttachment(reportAction);
+            const isAttachment = ReportActionUtils.isReportActionAttachment(reportAction);
 
             // Only hide the copylink menu item when context menu is opened over img element.
             const isAttachmentTarget = lodashGet(menuTarget, 'tagName') === 'IMG' && isAttachment;
