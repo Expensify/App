@@ -24,6 +24,8 @@ const propTypes = {
         id: PropTypes.string,
         amount: PropTypes.number,
         comment: PropTypes.string,
+        created: PropTypes.string,
+        merchant: PropTypes.string,
         participants: PropTypes.arrayOf(optionPropTypes),
         receiptPath: PropTypes.string,
     }),
@@ -46,12 +48,13 @@ const defaultProps = {
         id: '',
         amount: 0,
         comment: '',
+        merchant: '',
         participants: [],
         receiptPath: '',
     },
 };
 
-function MoneyRequestDescriptionPage({iou, route}) {
+function MoneyRequestMerchantPage({iou, route}) {
     const {translate} = useLocalize();
     const inputRef = useRef(null);
     const iouType = lodashGet(route, 'params.iouType', '');
@@ -77,10 +80,10 @@ function MoneyRequestDescriptionPage({iou, route}) {
      * Sets the money request comment by saving it to Onyx.
      *
      * @param {Object} value
-     * @param {String} value.moneyRequestComment
+     * @param {String} value.moneyRequestMerchant
      */
-    function updateComment(value) {
-        IOU.setMoneyRequestDescription(value.moneyRequestComment);
+    function updateMerchant(value) {
+        IOU.setMoneyRequestMerchant(value.moneyRequestMerchant);
         navigateBack();
     }
 
@@ -91,23 +94,23 @@ function MoneyRequestDescriptionPage({iou, route}) {
             onEntryTransitionEnd={() => inputRef.current && inputRef.current.focus()}
         >
             <HeaderWithBackButton
-                title={translate('common.description')}
+                title={translate('common.merchant')}
                 onBackButtonPress={() => navigateBack()}
             />
             <Form
                 style={[styles.flexGrow1, styles.ph5]}
-                formID={ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM}
-                onSubmit={(value) => updateComment(value)}
+                formID={ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM}
+                onSubmit={(value) => updateMerchant(value)}
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
             >
                 <View style={styles.mb4}>
                     <TextInput
-                        inputID="moneyRequestComment"
-                        name="moneyRequestComment"
-                        defaultValue={iou.comment}
-                        label={translate('moneyRequestConfirmationList.whatsItFor')}
-                        accessibilityLabel={translate('moneyRequestConfirmationList.whatsItFor')}
+                        inputID="moneyRequestMerchant"
+                        name="moneyRequestMerchant"
+                        defaultValue={iou.merchant}
+                        label={translate('common.merchant')}
+                        accessibilityLabel={translate('common.merchant')}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         ref={(el) => (inputRef.current = el)}
                     />
@@ -117,11 +120,11 @@ function MoneyRequestDescriptionPage({iou, route}) {
     );
 }
 
-MoneyRequestDescriptionPage.propTypes = propTypes;
-MoneyRequestDescriptionPage.defaultProps = defaultProps;
+MoneyRequestMerchantPage.propTypes = propTypes;
+MoneyRequestMerchantPage.defaultProps = defaultProps;
 
 export default withOnyx({
     iou: {
         key: ONYXKEYS.IOU,
     },
-})(MoneyRequestDescriptionPage);
+})(MoneyRequestMerchantPage);
