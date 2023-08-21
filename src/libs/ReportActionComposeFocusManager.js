@@ -2,7 +2,8 @@ import _ from 'underscore';
 import React from 'react';
 
 const composerRef = React.createRef();
-// There are two types of composer: general composer (edit composer) and main composer
+// There are two types of composer: general composer (edit composer) and main composer.
+// The general composer callback will take priority if it exists.
 let focusCallback = null;
 let mainComposerFocusCallback = null;
 
