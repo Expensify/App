@@ -1034,6 +1034,9 @@ const CONST = {
         AMOUNT_MAX_LENGTH: 10,
         RECEIPT_STATE: {
             SCANREADY: 'SCANREADY',
+            SCANNING: 'SCANNING',
+            SCANCOMPLETE: 'SCANCOMPLETE',
+            SCANFAILED: 'SCANFAILED',
         },
         FILE_TYPES: {
             HTML: 'html',
