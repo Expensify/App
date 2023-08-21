@@ -391,7 +391,7 @@ function getLastMessageTextForReport(report) {
         lastMessageTextFromReport = ReportUtils.getModifiedExpenseMessage(lastReportAction);
     } else {
         lastMessageTextFromReport = report ? report.lastMessageText || '' : '';
-        
+
         // Yeah this is a bit ugly. If the latest report action that is not a whisper has been moderated as pending remove
         // then set the last message text to the text of the latest visible action that is not a whisper or the report creation message.
         const lastNonWhisper = _.find(allSortedReportActions[report.reportID], (action) => !ReportActionUtils.isWhisperAction(action)) || {};
@@ -401,8 +401,8 @@ function getLastMessageTextForReport(report) {
                     allSortedReportActions[report.reportID],
                     (action) => ReportActionUtils.shouldReportActionBeVisibleAsLastAction(action) && !ReportActionUtils.isCreatedAction(action),
                 ) || {};
-                    lastMessageTextFromReport = lodashGet(latestVisibleAction, 'message[0].text', '');
-                }
+                lastMessageTextFromReport = lodashGet(latestVisibleAction, 'message[0].text', '');
+            }
     }
     return lastMessageTextFromReport;
 }
