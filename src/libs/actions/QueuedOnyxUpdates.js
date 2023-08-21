@@ -7,7 +7,7 @@ let queuedOnyxUpdates = [];
  * @returns {Promise<void>}
  */
 function queueOnyxUpdates(updates) {
-    queuedOnyxUpdates.concat(updates);
+    queuedOnyxUpdates = queuedOnyxUpdates.concat(updates);
     return Promise.resolve();
 }
 
