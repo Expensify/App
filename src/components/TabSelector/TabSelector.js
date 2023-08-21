@@ -29,12 +29,18 @@ const defaultProps = {
 
 const getIcon = (route) => {
     switch (route) {
+        case CONST.TAB.MANUAL:
+            return Expensicons.Pencil;
         case CONST.TAB.SCAN:
             return Expensicons.Receipt;
+        case CONST.TAB.NEW_CHAT:
+            return Expensicons.User;
+        case CONST.TAB.NEW_ROOM:
+            return Expensicons.Hashtag;
         case CONST.TAB.DISTANCE:
             return Expensicons.Car;
         default:
-            return Expensicons.Pencil;
+            throw new Error(`Route ${route} has no icon set.`);
     }
 };
 
