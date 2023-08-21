@@ -248,7 +248,6 @@ export default {
         hero: {
             header: 'Split bills, request payments, and chat with friends.',
             body: 'Welcome to the future of Expensify, your new go-to place for financial collaboration with friends and teammates alike.',
-            demoHeadline: 'Welcome to SaaStr! Hop in to start networking now.',
         },
     },
     thirdPartySignIn: {
