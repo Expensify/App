@@ -549,8 +549,7 @@ function ReportActionItem(props) {
                         <View
                             style={StyleUtils.getReportActionItemStyle(
                                 hovered || isWhisper || isContextMenuActive || props.draftMessage,
-                                // TODO: Is `action.isLoading` ever truthy?
-                                (props.network.isOffline && props.action.isLoading) || props.action.error,
+                                props.action.error,
                             )}
                         >
                             <OfflineWithFeedback
