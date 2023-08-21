@@ -1,4 +1,5 @@
 import overflowAuto from './overflowAuto';
+import overscrollBehaviorContain from './overscrollBehaviorContain';
 
 /**
  * Overflow utility styles with Bootstrap inspired naming.
@@ -22,9 +23,7 @@ export default {
         overscrollBehavior: 'none',
     },
 
-    overscrollBehaviorContain: {
-        overscrollBehavior: 'contain',
-    },
+    overscrollBehaviorContain,
 
     overflowAuto,
 };
