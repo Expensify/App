@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
+import _ from 'underscore';
 import styles from '../styles/styles';
 import Button from './Button';
 import FormAlertWrapper from './FormAlertWrapper';
@@ -61,6 +62,8 @@ const defaultProps = {
 };
 
 function FormAlertWithSubmitButton(props) {
+    const buttonMarginStyle = _.isEmpty(props.footerContent) ? {} : styles.mb3;
+
     return (
         <FormAlertWrapper
             containerStyles={[styles.mh5, styles.mb5, styles.justifyContentEnd, ...props.containerStyles]}
@@ -76,7 +79,7 @@ function FormAlertWithSubmitButton(props) {
                             success
                             isDisabled
                             text={props.buttonText}
-                            style={[styles.mb3]}
+                            style={buttonMarginStyle}
                             danger={props.isSubmitActionDangerous}
                         />
                     ) : (
@@ -84,6 +87,7 @@ function FormAlertWithSubmitButton(props) {
                             success
                             pressOnEnter={!props.disablePressOnEnter}
                             text={props.buttonText}
+                            style={buttonMarginStyle}
                             onPress={props.onSubmit}
                             isDisabled={props.isDisabled}
                             isLoading={props.isLoading}

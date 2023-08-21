@@ -1162,6 +1162,13 @@ const styles = {
         marginBottom: 4,
     },
 
+    desktopRedirectPage: {
+        backgroundColor: themeColors.appBG,
+        minHeight: '100%',
+        flex: 1,
+        alignItems: 'center',
+    },
+
     signInPage: {
         backgroundColor: themeColors.highlightBG,
         minHeight: '100%',
@@ -1194,14 +1201,7 @@ const styles = {
         left: 0,
     },
 
-    signInBackgroundDesktop: {
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        minHeight: 700,
-    },
-
-    signInBackgroundMobile: {
+    signInBackground: {
         position: 'absolute',
         bottom: 0,
         left: 0,
@@ -1220,6 +1220,11 @@ const styles = {
         minHeight: 24,
     },
 
+    signInPageContentTopSpacerSmallScreens: {
+        maxHeight: 132,
+        minHeight: 45,
+    },
+
     signInPageLeftContainer: {
         paddingLeft: 40,
         paddingRight: 40,
@@ -1230,11 +1235,11 @@ const styles = {
     },
 
     signInPageWelcomeFormContainer: {
-        maxWidth: 300,
+        maxWidth: CONST.SIGN_IN_FORM_WIDTH,
     },
 
     signInPageWelcomeTextContainer: {
-        width: 300,
+        width: CONST.SIGN_IN_FORM_WIDTH,
     },
 
     changeExpensifyLoginLinkContainer: {
@@ -2013,6 +2018,10 @@ const styles = {
         marginRight: variables.avatarChatSpacing,
     },
 
+    emptyAvatarMarginChat: {
+        marginRight: variables.avatarChatSpacing - 12,
+    },
+
     emptyAvatarMarginSmall: {
         marginRight: variables.avatarChatSpacing - 4,
     },
@@ -2100,15 +2109,20 @@ const styles = {
         height: '100%',
         justifyContent: 'center',
         overflow: 'hidden',
-        overflowY: 'auto',
         alignItems: 'center',
     },
 
-    pdfPasswordForm: {
-        wideScreenWidth: {
-            width: 350,
-        },
+    PDFViewList: {
+        overflowX: 'hidden',
+        // There properties disable "focus" effect on list
+        boxShadow: 'none',
+        outline: 'none',
     },
+
+    getPDFPasswordFormStyle: (isSmallScreenWidth) => ({
+        width: isSmallScreenWidth ? '100%' : 350,
+        ...(isSmallScreenWidth && flex.flex1),
+    }),
 
     modalCenterContentContainer: {
         flex: 1,
@@ -2355,7 +2369,6 @@ const styles = {
 
     roomHeaderAvatar: {
         backgroundColor: themeColors.appBG,
-        marginLeft: -16,
         borderRadius: 100,
         borderColor: themeColors.componentBG,
         borderWidth: 4,
@@ -3598,6 +3611,49 @@ const styles = {
         textAlign: 'center',
     },
 
+    loginButtonRow: {
+        justifyContent: 'center',
+        width: '100%',
+        ...flex.flexRow,
+    },
+
+    loginButtonRowSmallScreen: {
+        justifyContent: 'center',
+        width: '100%',
+        marginBottom: 10,
+        ...flex.flexRow,
+    },
+
+    appleButtonContainer: {
+        width: 40,
+        height: 40,
+        marginRight: 20,
+    },
+
+    signInIconButton: {
+        margin: 10,
+        marginTop: 0,
+        padding: 2,
+    },
+
+    googleButtonContainer: {
+        width: 40,
+        height: 40,
+        marginLeft: 12,
+        alignItems: 'center',
+    },
+
+    googlePillButtonContainer: {
+        height: 40,
+        width: 219,
+    },
+
+    thirdPartyLoadingContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: 450,
+    },
+
     tabSelectorButton: (isSelected) => ({
         height: 40,
         padding: 12,
@@ -3640,10 +3696,71 @@ const styles = {
         willChange: 'transform',
     },
 
+    emojiPickerButtonDropdown: {
+        justifyContent: 'center',
+        backgroundColor: themeColors.activeComponentBG,
+        width: 86,
+        height: 52,
+        borderRadius: 26,
+        alignItems: 'center',
+        paddingLeft: 10,
+        paddingRight: 4,
+        marginBottom: 32,
+        alignSelf: 'flex-start',
+    },
+
+    emojiPickerButtonDropdownIcon: {
+        fontSize: 30,
+    },
+
     moneyRequestImage: {
         height: 200,
         borderRadius: 16,
         margin: 20,
+    },
+
+    staticHeaderImage: {
+        minHeight: 240,
+    },
+
+    emojiPickerButtonDropdownContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+
+    rotate90: {
+        transform: [{rotate: '90deg'}],
+    },
+
+    distanceRequestContainer: (maxHeight) => ({
+        ...flex.flexShrink2,
+        minHeight: variables.baseMenuItemHeight,
+        maxHeight,
+    }),
+
+    mapViewContainer: {
+        ...flex.flex1,
+        ...spacing.p4,
+        ...spacing.flex1,
+        minHeight: 300,
+        maxHeight: 500,
+    },
+
+    mapView: {
+        flex: 1,
+        borderRadius: 20,
+        overflow: 'hidden',
+    },
+
+    mapPendingView: {
+        backgroundColor: themeColors.highlightBG,
+        ...flex.flex1,
+        borderRadius: variables.componentBorderRadiusLarge,
+    },
+
+    userReportStatusEmoji: {
+        fontSize: variables.fontSizeNormal,
+        marginRight: 4,
     },
 };
 

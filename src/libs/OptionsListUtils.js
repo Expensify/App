@@ -349,10 +349,8 @@ function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolic
 function getAllReportErrors(report, reportActions) {
     const reportErrors = report.errors || {};
     const reportErrorFields = report.errorFields || {};
-    const reportID = report.reportID;
-    const reportsActions = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] || {};
     const reportActionErrors = _.reduce(
-        reportsActions,
+        reportActions,
         (prevReportActionErrors, action) => (!action || _.isEmpty(action.errors) ? prevReportActionErrors : _.extend(prevReportActionErrors, action.errors)),
         {},
     );
@@ -387,6 +385,8 @@ function getLastMessageTextForReport(report) {
     } else if (ReportActionUtils.isReportPreviewAction(lastReportAction)) {
         const iouReport = ReportUtils.getReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(lastReportAction));
         lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(iouReport, lastReportAction);
+    } else if (ReportActionUtils.isModifiedExpenseAction(lastReportAction)) {
+        lastMessageTextFromReport = ReportUtils.getModifiedExpenseMessage(lastReportAction);
     } else {
         lastMessageTextFromReport = report ? report.lastMessageText || '' : '';
 
@@ -616,6 +616,7 @@ function getOptions(
         includeTasks = false,
         includeMoneyRequests = false,
         excludeUnknownUsers = false,
+        includeP2P = true,
     },
 ) {
     if (!isPersonalDetailsReady(personalDetails)) {
@@ -631,7 +632,7 @@ function getOptions(
     // This is a temporary fix for all the logic that's been breaking because of the new privacy changes
     // See https://github.com/Expensify/Expensify/issues/293465 for more context
     // eslint-disable-next-line no-param-reassign
-    personalDetails = _.pick(personalDetails, (detail) => Boolean(detail.login));
+    personalDetails = !includeP2P ? {} : _.pick(personalDetails, (detail) => Boolean(detail.login));
 
     let recentReportOptions = [];
     let personalDetailsOptions = [];
@@ -640,7 +641,7 @@ function getOptions(
     const searchValue = parsedPhoneNumber.possible ? parsedPhoneNumber.number.e164 : searchInputValue.toLowerCase();
 
     // Filter out all the reports that shouldn't be displayed
-    const filteredReports = _.filter(reports, (report) => ReportUtils.shouldReportBeInOptionList(report, Navigation.getTopmostReportId(), false, null, betas, policies));
+    const filteredReports = _.filter(reports, (report) => ReportUtils.shouldReportBeInOptionList(report, Navigation.getTopmostReportId(), false, betas, policies));
 
     // Sorting the reports works like this:
     // - Order everything by the last message timestamp (descending)
@@ -668,6 +669,11 @@ function getOptions(
         const accountIDs = report.participantAccountIDs || [];
 
         if (isPolicyExpenseChat && report.isOwnPolicyExpenseChat && !includeOwnedWorkspaceChats) {
+            return;
+        }
+
+        // When passing includeP2P false we are trying to hide features from users that are not ready for P2P and limited to workspace chats only.
+        if (!includeP2P && !isPolicyExpenseChat) {
             return;
         }
 
@@ -898,9 +904,10 @@ function getSearchOptions(reports, personalDetails, searchValue = '', betas) {
  * @returns {Object}
  */
 function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail, amountText) {
+    const formattedLogin = LocalePhoneNumber.formatPhoneNumber(personalDetail.login);
     return {
-        text: personalDetail.displayName ? personalDetail.displayName : personalDetail.login,
-        alternateText: personalDetail.login || personalDetail.displayName,
+        text: personalDetail.displayName || formattedLogin,
+        alternateText: formattedLogin || personalDetail.displayName,
         icons: [
             {
                 source: UserUtils.getAvatar(personalDetail.avatar, personalDetail.accountID),
@@ -939,9 +946,10 @@ function getIOUConfirmationOptionsFromParticipants(participants, amountText) {
  * @param {Array} [selectedOptions]
  * @param {Array} [excludeLogins]
  * @param {Boolean} [includeOwnedWorkspaceChats]
+ * @param {boolean} [includeP2P]
  * @returns {Object}
  */
-function getNewChatOptions(reports, personalDetails, betas = [], searchValue = '', selectedOptions = [], excludeLogins = [], includeOwnedWorkspaceChats = false) {
+function getNewChatOptions(reports, personalDetails, betas = [], searchValue = '', selectedOptions = [], excludeLogins = [], includeOwnedWorkspaceChats = false, includeP2P = true) {
     return getOptions(reports, personalDetails, {
         betas,
         searchInputValue: searchValue.trim(),
@@ -951,6 +959,7 @@ function getNewChatOptions(reports, personalDetails, betas = [], searchValue = '
         maxRecentReportsToShow: 5,
         excludeLogins,
         includeOwnedWorkspaceChats,
+        includeP2P,
     });
 }
 
@@ -1023,9 +1032,10 @@ function getMemberInviteOptions(personalDetails, betas = [], searchValue = '', e
  * @param {Boolean} hasUserToInvite
  * @param {String} searchValue
  * @param {Boolean} [maxParticipantsReached]
+ * @param {Boolean} [hasMatchedParticipant]
  * @return {String}
  */
-function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, maxParticipantsReached = false) {
+function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, maxParticipantsReached = false, hasMatchedParticipant = false) {
     if (maxParticipantsReached) {
         return Localize.translate(preferredLocale, 'common.maxParticipantsReached', {count: CONST.REPORT.MAXIMUM_PARTICIPANTS});
     }
@@ -1047,7 +1057,9 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
         if (/@/.test(searchValue) && !isValidEmail) {
             return Localize.translate(preferredLocale, 'messages.errorMessageInvalidEmail');
         }
-
+        if (hasMatchedParticipant && (isValidEmail || isValidPhone)) {
+            return '';
+        }
         return Localize.translate(preferredLocale, 'common.noResultsFound');
     }
 

@@ -49,23 +49,30 @@ If you've found a vulnerability, please email security@expensify.com with the su
 ## Payment for Contributions
 We hire and pay external contributors via Upwork.com. If you'd like to be paid for contributing or reporting a bug, please create an Upwork account, apply for an available job in [GitHub](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3A%22Help+Wanted%22), and finally apply for the job in Upwork once your proposal gets selected in GitHub. If you think your compensation should be increased for a specific job, you can request a reevaluation by commenting in the Github issue where the Upwork job was posted. 
 
-Payment for your contributions and bug reports will be made no less than 7 days after the pull request is deployed to production to allow for regression testing. If a regression occurs, payment will be issued 7 days after all regressions are fixed (ie: deployed to production). A 50% penalty will be applied to the Contributor and Contributor+ for each regression on an issue. If you have not received payment after 8 days of the PR being deployed to production, and there are no regressions, please email contributors@expensify.com referencing the GH issue and your GH handle. 
+Payment for your contributions and bug reports will be made no less than 7 days after the pull request is deployed to production to allow for [regression](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#regressions) testing. If you have not received payment after 8 days of the PR being deployed to production, and there are no [regressions](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#regressions), please add a comment to the issue mentioning the BugZero team member (Look for the melvin-bot "Triggered auto assignment to... (`Bug`)" to see who this is).
 
 New contributors are limited to working on one job at a time, however experienced contributors may work on numerous jobs simultaneously.
 
 Please be aware that compensation for any support in solving an issue is provided **entirely at Expensify’s discretion**. Personal time or resources applied towards investigating a proposal **will not guarantee compensation**. Compensation is only guaranteed to those who **[propose a solution and get hired for that job](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#propose-a-solution-for-the-job)**. We understand there may be cases where a selected proposal may take inspiration from a previous proposal. Unfortunately, it’s not possible for us to evaluate every individual case and we have no process that can efficiently do so. Issues with higher rewards come with higher risk factors so try to keep things civil and make the best proposal you can. Once again, **any information provided may not necessarily lead to you getting hired for that issue or compensated in any way.**
 
-**Important:** Payment amounts are variable, dependent on when your PR is merged. Your PR will be reviewed by a Contributor+ (C+) team member and an internal engineer.  All tests must pass and all code must pass lint checks before a merge. 
+**Important:** Payment amounts are variable, dependent on when your PR is merged and if there are any [regressions](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#regressions). Your PR will be reviewed by a [Contributor+ (C+)](https://github.com/Expensify/App/blob/main/contributingGuides/HOW_TO_BECOME_A_CONTRIBUTOR_PLUS.md). team member and an internal engineer.  All tests must pass and all code must pass lint checks before a merge. 
 
-**Payment timeline** all based on the day and timestamp the contributor has an accepted proposal and is assigned to the Github issue
+**Payment timelines** are based on the day and timestamp the contributor is assigned to the Github issue by an Expensify employee: 
 - Merged PR within 3 business days (72 hours) - 50% **bonus**
 - Merged PR within 6 business days (144 hours) - 0% bonus 
 - Merged PR within 9 business days (216 hours) - 50% **penalty**  
 - No PR within 12 business days - **Contract terminated**  
 
-If the PR causes a regression at any point within the regression period (starting when the code is merged and ending 7 days after being deployed to production), contributors are not eligible for the 50% bonus.
-
 We specify exact hours to make sure we can clearly decide what is eligible for the bonus given our team is global and contributors span across all the timezones.
+
+### Regressions
+
+If a PR causes a regression at any point within the regression period (starting when the code is merged and ending 168 hours (that's 7 days) after being deployed to production): 
+- payments will be issued 7 days after all regressions are fixed (ie: deployed to production)
+- a 50% penalty will be applied to the Contributor and [Contributor+](https://github.com/Expensify/App/blob/main/contributingGuides/HOW_TO_BECOME_A_CONTRIBUTOR_PLUS.md) for each regression on an issue
+- the assigned Contributor and [Contributor+](https://github.com/Expensify/App/blob/main/contributingGuides/HOW_TO_BECOME_A_CONTRIBUTOR_PLUS.md) are not eligible for the 50% urgency bonus
+
+The 168 hours (aka 7 days) will be measured by calculating the time between when the PR is merged, and when a bug is posted to the #expensify-bugs Slack channel.
 
 ## Finding Jobs
 A job could be fixing a bug or working on a new feature. There are two ways you can find a job that you can contribute to:
@@ -182,7 +189,7 @@ Additionally if you want to discuss an idea with the open source community witho
 Follow all the above above steps and processes. When you find a job you'd like to work on:
 - Post “I’m from [agency], I’d like to work on this job”
   - If no proposals have been submitted by other contributors, BugZero (BZ) team member or an internal engineer will assign the issue to you. 
-  - If there are existing proposals, BZ will put the issue on hold. Contributor+ (C+) will review the existing proposals.  If a contributor’s proposal is accepted then the contributor will be assigned to the issue.  If not the issue will be assigned to the agency-employee. 
+  - If there are existing proposals, BZ will put the issue on hold. [Contributor+](https://github.com/Expensify/App/blob/main/contributingGuides/HOW_TO_BECOME_A_CONTRIBUTOR_PLUS.md) will review the existing proposals.  If a contributor’s proposal is accepted then the contributor will be assigned to the issue.  If not the issue will be assigned to the agency-employee. 
 - Once assigned follow the steps [here](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#propose-a-solution-for-the-job) to submit your proposal 
 
 #### Guide on Acronyms used within Expensify Communication

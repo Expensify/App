@@ -25,6 +25,7 @@ import HeaderGap from './HeaderGap';
 import SafeAreaConsumer from './SafeAreaConsumer';
 import addEncryptedAuthTokenToURL from '../libs/addEncryptedAuthTokenToURL';
 import reportPropTypes from '../pages/reportPropTypes';
+import tryResolveUrlFromApiRoot from '../libs/tryResolveUrlFromApiRoot';
 
 /**
  * Modal render prop component that exposes modal launching triggers that can be used
@@ -71,6 +72,9 @@ const propTypes = {
     ...withLocalizePropTypes,
 
     ...windowDimensionsPropTypes,
+
+    /** Denotes whether it is a workspace avatar or not */
+    isWorkspaceAvatar: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -86,6 +90,7 @@ const defaultProps = {
     onModalShow: () => {},
     onModalHide: () => {},
     onCarouselAttachmentChange: () => {},
+    isWorkspaceAvatar: false,
 };
 
 function AttachmentModal(props) {
@@ -99,6 +104,7 @@ function AttachmentModal(props) {
     const [modalType, setModalType] = useState(CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE);
     const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
     const [confirmButtonFadeAnimation] = useState(new Animated.Value(1));
+    const [shouldShowDownloadButton, setShouldShowDownloadButton] = React.useState(true);
     const [file, setFile] = useState(
         props.originalFileName
             ? {
@@ -136,6 +142,16 @@ function AttachmentModal(props) {
                 ? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE
                 : CONST.MODAL.MODAL_TYPE.CENTERED,
         [translate],
+    );
+
+    const setDownloadButtonVisibility = useCallback(
+        (shouldShowButton) => {
+            if (shouldShowDownloadButton === shouldShowButton) {
+                return;
+            }
+            setShouldShowDownloadButton(shouldShowButton);
+        },
+        [shouldShowDownloadButton],
     );
 
     /**
@@ -184,16 +200,6 @@ function AttachmentModal(props) {
      * @returns {Boolean}
      */
     const isValidFile = useCallback((_file) => {
-        const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(_file, 'name', ''));
-        if (_.contains(CONST.API_ATTACHMENT_VALIDATIONS.UNALLOWED_EXTENSIONS, fileExtension.toLowerCase())) {
-            const invalidReason = 'attachmentPicker.notAllowedExtension';
-
-            setIsAttachmentInvalid(true);
-            setAttachmentInvalidReasonTitle('attachmentPicker.wrongFileType');
-            setAttachmentInvalidReason(invalidReason);
-            return false;
-        }
-
         if (lodashGet(_file, 'size', 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
             setIsAttachmentInvalid(true);
             setAttachmentInvalidReasonTitle('attachmentPicker.attachmentTooLarge');
@@ -330,7 +336,7 @@ function AttachmentModal(props) {
                 <HeaderWithBackButton
                     title={props.headerTitle || translate('common.attachment')}
                     shouldShowBorderBottom
-                    shouldShowDownloadButton={props.allowDownload}
+                    shouldShowDownloadButton={props.allowDownload && shouldShowDownloadButton}
                     onDownloadButtonPress={() => downloadAttachment(source)}
                     shouldShowCloseButton={!props.isSmallScreenWidth}
                     shouldShowBackButton={props.isSmallScreenWidth}
@@ -342,9 +348,10 @@ function AttachmentModal(props) {
                         <AttachmentCarousel
                             report={props.report}
                             onNavigate={onNavigate}
-                            source={props.source}
+                            source={tryResolveUrlFromApiRoot(props.source)}
                             onClose={closeModal}
                             onToggleKeyboard={updateConfirmButtonVisibility}
+                            setDownloadButtonVisibility={setDownloadButtonVisibility}
                         />
                     ) : (
                         Boolean(sourceForAttachmentView) &&
@@ -355,6 +362,7 @@ function AttachmentModal(props) {
                                 isAuthTokenRequired={isAuthTokenRequired}
                                 file={file}
                                 onToggleKeyboard={updateConfirmButtonVisibility}
+                                isWorkspaceAvatar={props.isWorkspaceAvatar}
                             />
                         )
                     )}
