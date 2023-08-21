@@ -32,7 +32,7 @@ import * as ReimbursementAccountProps from './reimbursementAccountPropTypes';
 import reimbursementAccountDraftPropTypes from './ReimbursementAccountDraftPropTypes';
 import withPolicy from '../workspace/withPolicy';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
-import * as Policy from '../../libs/actions/Policy';
+import * as PolicyUtils from '../../libs/PolicyUtils';
 
 const propTypes = {
     /** Plaid SDK token to use to initialize the widget */
@@ -170,7 +170,9 @@ class ReimbursementAccountPage extends React.Component {
         // When the step changes we will navigate to update the route params. This is mostly cosmetic as we only use
         // the route params when the component first mounts to jump to a specific route instead of picking up where the
         // user left off in the flow.
-        Navigation.navigate(ROUTES.getBankAccountRoute(this.getRouteForCurrentStep(currentStep), lodashGet(this.props.route.params, 'policyID')));
+        const backTo = lodashGet(this.props.route.params, 'backTo');
+        const policyId = lodashGet(this.props.route.params, 'policyID');
+        Navigation.navigate(ROUTES.getBankAccountRoute(this.getRouteForCurrentStep(currentStep), policyId, backTo));
     }
 
     /*
@@ -280,6 +282,7 @@ class ReimbursementAccountPage extends React.Component {
         const currentStep = achData.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
         const subStep = achData.subStep;
         const shouldShowOnfido = this.props.onfidoToken && !achData.isOnfidoSetupComplete;
+        const backTo = lodashGet(this.props.route.params, 'backTo');
         switch (currentStep) {
             case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
                 if (this.hasInProgressVBBA()) {
@@ -288,7 +291,7 @@ class ReimbursementAccountPage extends React.Component {
                 if (subStep) {
                     BankAccounts.setBankAccountSubStep(null);
                 } else {
-                    Navigation.goBack();
+                    Navigation.goBack(backTo);
                 }
                 break;
             case CONST.BANK_ACCOUNT.STEP.COMPANY:
@@ -313,11 +316,11 @@ class ReimbursementAccountPage extends React.Component {
                         shouldShowContinueSetupButton: true,
                     });
                 } else {
-                    Navigation.goBack();
+                    Navigation.goBack(backTo);
                 }
                 break;
             default:
-                Navigation.goBack();
+                Navigation.goBack(backTo);
         }
     }
 
@@ -332,7 +335,7 @@ class ReimbursementAccountPage extends React.Component {
         const policyName = lodashGet(this.props.policy, 'name');
         const policyID = lodashGet(this.props.route.params, 'policyID');
 
-        if (_.isEmpty(this.props.policy) || !Policy.isPolicyOwner(this.props.policy)) {
+        if (_.isEmpty(this.props.policy) || !PolicyUtils.isPolicyAdmin(this.props.policy)) {
             return (
                 <ScreenWrapper>
                     <FullPageNotFoundView
@@ -399,6 +402,9 @@ class ReimbursementAccountPage extends React.Component {
                     reimbursementAccount={this.props.reimbursementAccount}
                     continue={this.continue}
                     policyName={policyName}
+                    onBackButtonPress={() => {
+                        Navigation.goBack(lodashGet(this.props.route.params, 'backTo'));
+                    }}
                 />
             );
         }

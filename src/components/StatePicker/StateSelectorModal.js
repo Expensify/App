@@ -9,6 +9,7 @@ import useLocalize from '../../hooks/useLocalize';
 import ScreenWrapper from '../ScreenWrapper';
 import styles from '../../styles/styles';
 import searchCountryOptions from '../../libs/searchCountryOptions';
+import StringUtils from '../../libs/StringUtils';
 
 const propTypes = {
     /** Whether the modal is visible */
@@ -50,7 +51,7 @@ function StateSelectorModal({currentState, isVisible, onClose, onStateSelected, 
                 keyForList: state.stateISO,
                 text: state.stateName,
                 isSelected: currentState === state.stateISO,
-                searchValue: `${state.stateISO}${state.stateName}`.toLowerCase().replaceAll(CONST.REGEX.NON_ALPHABETIC_AND_NON_LATIN_CHARS, ''),
+                searchValue: StringUtils.sanitizeString(`${state.stateISO}${state.stateName}`),
             })),
         [translate, currentState],
     );

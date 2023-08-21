@@ -13,6 +13,9 @@ class Form extends React.Component {
             return;
         }
 
+        // Prevent the browser from applying its own validation, which affects the email input
+        this.form.setAttribute('novalidate', '');
+
         // Password Managers need these attributes to be able to identify the form elements properly.
         this.form.setAttribute('method', 'post');
         this.form.setAttribute('action', '/');

@@ -38,12 +38,16 @@ const propTypes = {
     /** A reference so we can expose scrollPageToTop */
     innerRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
 
+    /** Override the green headline copy */
+    customHeadline: PropTypes.string,
+
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     innerRef: () => {},
+    customHeadline: '',
 };
 
 function SignInPageLayout(props) {
@@ -119,7 +123,7 @@ function SignInPageLayout(props) {
                                         props.isLargeScreenWidth ? styles.ph25 : {},
                                     ]}
                                 >
-                                    <SignInPageHero />
+                                    <SignInPageHero customHeadline={props.customHeadline} />
                                     <Footer scrollPageToTop={scrollPageToTop} />
                                 </View>
                             </View>
@@ -159,6 +163,7 @@ function SignInPageLayout(props) {
 SignInPageLayout.propTypes = propTypes;
 SignInPageLayout.defaultProps = defaultProps;
 SignInPageLayout.displayName = 'SignInPageLayout';
+SignInPageLayout.defaultProps = defaultProps;
 
 export default compose(
     withWindowDimensions,

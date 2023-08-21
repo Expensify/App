@@ -11,6 +11,10 @@ runs:
   steps:
     - uses: Expensify/App/.github/actions/composite/setupNode@main
 
+    - name: Setup credentails for Mapbox SDK
+      run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
+      shell: bash
+
     - uses: ruby/setup-ruby@eae47962baca661befdfd24e4d6c34ade04858f7
       with:
         ruby-version: '2.7'

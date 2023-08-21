@@ -31,6 +31,7 @@ import RightModalNavigator from './Navigators/RightModalNavigator';
 import CentralPaneNavigator from './Navigators/CentralPaneNavigator';
 import NAVIGATORS from '../../../NAVIGATORS';
 import FullScreenNavigator from './Navigators/FullScreenNavigator';
+import DesktopSignInRedirectPage from '../../../pages/signin/DesktopSignInRedirectPage';
 import styles from '../../../styles/styles';
 import * as SessionUtils from '../../SessionUtils';
 import getNavigationModalCardStyle from '../../../styles/getNavigationModalCardStyles';
@@ -143,6 +144,7 @@ class AuthScreens extends React.Component {
         }
 
         App.setUpPoliciesAndNavigate(this.props.session, !this.props.isSmallScreenWidth);
+        App.redirectThirdPartyDesktopSignIn();
 
         if (this.props.lastOpenedPublicRoomID) {
             // Re-open the last opened public room if the user logged in from a public room link
@@ -307,6 +309,11 @@ class AuthScreens extends React.Component {
                     options={rightModalNavigatorScreenOptions}
                     component={RightModalNavigator}
                     listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
+                    name="DesktopSignInRedirect"
+                    options={defaultScreenOptions}
+                    component={DesktopSignInRedirectPage}
                 />
             </RootStack.Navigator>
         );

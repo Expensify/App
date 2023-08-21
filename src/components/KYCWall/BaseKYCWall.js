@@ -97,7 +97,7 @@ class KYCWall extends React.Component {
     continue(event, iouPaymentType) {
         this.setState({transferBalanceButton: event.nativeEvent.target});
         const isExpenseReport = ReportUtils.isExpenseReport(this.props.iouReport);
-        const paymentCardList = this.props.fundList || this.props.cardList || {};
+        const paymentCardList = this.props.fundList || {};
 
         // Check to see if user has a valid payment method on file and display the add payment popover if they don't
         if (
@@ -160,9 +160,6 @@ KYCWall.defaultProps = defaultProps;
 export default withOnyx({
     userWallet: {
         key: ONYXKEYS.USER_WALLET,
-    },
-    cardList: {
-        key: ONYXKEYS.CARD_LIST,
     },
     fundList: {
         key: ONYXKEYS.FUND_LIST,

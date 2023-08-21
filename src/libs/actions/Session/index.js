@@ -197,55 +197,87 @@ function resendValidateCode(login = credentials.login) {
 }
 
 /**
- * Checks the API to see if an account exists for the given login
+
+/**
+ * Constructs the state object for the BeginSignIn && BeginAppleSignIn API calls.
+ *  @returns {Object}
+ */
+function signInAttemptState() {
+    return {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.ACCOUNT,
+                value: {
+                    ...CONST.DEFAULT_ACCOUNT_DATA,
+                    isLoading: true,
+                    message: null,
+                    loadingForm: CONST.FORMS.LOGIN_FORM,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.ACCOUNT,
+                value: {
+                    isLoading: false,
+                    loadingForm: null,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.CREDENTIALS,
+                value: {
+                    validateCode: null,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.ACCOUNT,
+                value: {
+                    isLoading: false,
+                    loadingForm: null,
+                    // eslint-disable-next-line rulesdir/prefer-localization
+                    errors: ErrorUtils.getMicroSecondOnyxError('loginForm.cannotGetAccountDetails'),
+                },
+            },
+        ],
+    };
+}
+
+/**
+ * Checks the API to see if an account exists for the given login.
  *
  * @param {String} login
  */
 function beginSignIn(login) {
-    const optimisticData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                ...CONST.DEFAULT_ACCOUNT_DATA,
-                isLoading: true,
-                message: null,
-                loadingForm: CONST.FORMS.LOGIN_FORM,
-            },
-        },
-    ];
-
-    const successData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: false,
-                loadingForm: null,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.CREDENTIALS,
-            value: {
-                validateCode: null,
-            },
-        },
-    ];
-
-    const failureData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: false,
-                loadingForm: null,
-                errors: ErrorUtils.getMicroSecondOnyxError('loginForm.cannotGetAccountDetails'),
-            },
-        },
-    ];
-
+    const {optimisticData, successData, failureData} = signInAttemptState();
     API.read('BeginSignIn', {email: login}, {optimisticData, successData, failureData});
+}
+
+/**
+ * Given an idToken from Sign in with Apple, checks the API to see if an account
+ * exists for that email address and signs the user in if so.
+ *
+ * @param {String} idToken
+ */
+function beginAppleSignIn(idToken) {
+    const {optimisticData, successData, failureData} = signInAttemptState();
+    API.write('SignInWithApple', {idToken}, {optimisticData, successData, failureData});
+}
+
+/**
+ * Shows Google sign-in process, and if an auth token is successfully obtained,
+ * passes the token on to the Expensify API to sign in with
+ *
+ * @param {String} token
+ */
+function beginGoogleSignIn(token) {
+    const {optimisticData, successData, failureData} = signInAttemptState();
+    API.write('SignInWithGoogle', {token}, {optimisticData, successData, failureData});
 }
 
 /**
@@ -741,6 +773,8 @@ function validateTwoFactorAuth(twoFactorAuthCode) {
 
 export {
     beginSignIn,
+    beginAppleSignIn,
+    beginGoogleSignIn,
     setSupportAuthToken,
     checkIfActionIsAllowed,
     signIn,

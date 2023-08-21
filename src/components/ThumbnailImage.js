@@ -1,10 +1,11 @@
 import lodashClamp from 'lodash/clamp';
 import React, {useCallback, useState} from 'react';
-import {View} from 'react-native';
+import {View, Dimensions} from 'react-native';
 import PropTypes from 'prop-types';
 import ImageWithSizeCalculation from './ImageWithSizeCalculation';
 import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
+import * as DeviceCapabilities from '../libs/DeviceCapabilities';
 import useWindowDimensions from '../hooks/useWindowDimensions';
 
 const propTypes = {
@@ -41,12 +42,17 @@ const defaultProps = {
  */
 
 function calculateThumbnailImageSize(width, height, windowHeight) {
+    if (!width || !height) {
+        return {};
+    }
     // Width of the thumbnail works better as a constant than it does
     // a percentage of the screen width since it is relative to each screen
     // Note: Clamp minimum width 40px to support touch device
     let thumbnailScreenWidth = lodashClamp(width, 40, 250);
     const imageHeight = height / (width / thumbnailScreenWidth);
-    let thumbnailScreenHeight = lodashClamp(imageHeight, 40, windowHeight * 0.4);
+    // On mWeb, when soft keyboard opens, window height changes, making thumbnail height inconsistent. We use screen height instead.
+    const screenHeight = DeviceCapabilities.canUseTouchScreen() ? Dimensions.get('screen').height : windowHeight;
+    let thumbnailScreenHeight = lodashClamp(imageHeight, 40, screenHeight * 0.4);
     const aspectRatio = height / width;
 
     // If thumbnail height is greater than its width, then the image is portrait otherwise landscape.
