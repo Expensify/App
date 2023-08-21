@@ -5,6 +5,7 @@ import * as KeyCommand from 'react-native-key-command';
 import bindHandlerToKeydownEvent from './bindHandlerToKeydownEvent';
 import getOperatingSystem from '../getOperatingSystem';
 import CONST from '../../CONST';
+import {useState} from 'react';
 
 const operatingSystem = getOperatingSystem();
 
@@ -12,13 +13,35 @@ const operatingSystem = getOperatingSystem();
 const eventHandlers = {};
 
 // Documentation information for keyboard shortcuts that are displayed in the keyboard shortcuts informational modal
-const documentedShortcuts = {};
+let documentedShortcuts = {};
 
 /**
  * @returns {Array}
  */
 function getDocumentedShortcuts() {
     return _.sortBy(_.values(documentedShortcuts), 'displayName');
+}
+
+let updateState = () => {};
+
+const updateDocumentedShortcuts = (displayName, value) => {
+    let newData;
+    if (!value) {
+        newData = _.omit(documentedShortcuts, displayName)
+    } else {
+        newData = {
+            ...documentedShortcuts,
+            [displayName]: value,
+        }
+    }
+    documentedShortcuts = newData;
+    updateState(documentedShortcuts);
+};
+
+const useDocumentedShortcuts = () => {
+    const [ds, setDocumentedShortcuts] = useState(documentedShortcuts);
+    updateState = setDocumentedShortcuts;
+    return ds;
 }
 
 /**
@@ -83,6 +106,7 @@ _.each(CONST.KEYBOARD_SHORTCUTS, (shortcut) => {
  */
 function unsubscribe(displayName, callbackID) {
     eventHandlers[displayName] = _.reject(eventHandlers[displayName], (callback) => callback.id === callbackID);
+    updateDocumentedShortcuts(displayName, undefined);
 }
 
 /**
@@ -133,6 +157,13 @@ function subscribe(key, callback, descriptionKey, modifiers = 'shift', captureOn
     });
 
     if (descriptionKey) {
+        console.log('add documented shortcuts', documentedShortcuts);
+        updateDocumentedShortcuts(displayName, {
+            shortcutKey: key,
+            descriptionKey,
+            displayName,
+            modifiers,
+        })
         documentedShortcuts[displayName] = {
             shortcutKey: key,
             descriptionKey,
@@ -162,6 +193,7 @@ function subscribe(key, callback, descriptionKey, modifiers = 'shift', captureOn
 const KeyboardShortcut = {
     subscribe,
     getDocumentedShortcuts,
+    useDocumentedShortcuts,
 };
 
 export default KeyboardShortcut;

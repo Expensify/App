@@ -41,7 +41,7 @@ const openShortcutModalConfig = CONST.KEYBOARD_SHORTCUTS.SHORTCUT_MODAL;
 function KeyboardShortcutsModal({isShortcutsModalOpen = false, isSmallScreenWidth, translate}) {
     const subscribedOpenModalShortcuts = useRef([]);
     const modalType = isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE;
-    const shortcuts = KeyboardShortcut.getDocumentedShortcuts();
+    const shortcuts = KeyboardShortcut.useDocumentedShortcuts();
 
     /*
      * Subscribe shortcuts that only are used when the modal is open
