@@ -1,6 +1,3 @@
-import * as fs from 'fs';
-import * as path from 'path';
-
 /**
  * Mapbox SDK Configuration Script for iOS and Android
  * ===================================================
@@ -32,6 +29,9 @@ import * as path from 'path';
  * To run this script, pass the secret Mapbox access token as a command-line argument:
  * `ts-node ./scripts/setup-mapbox-sdk.ts YOUR_MAPBOX_ACCESS_TOKEN`
  */
+
+import * as fs from 'fs';
+import * as path from 'path';
 
 const NETRC_PATH = path.join(process.env.HOME || '', '.netrc');
 const USER_GRADLE_DIR = path.join(process.env.HOME || '', '.gradle');
