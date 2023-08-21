@@ -35,6 +35,7 @@ buildscript {
     }
 }
 
+
 allprojects {
     configurations.all {
         resolutionStrategy {
