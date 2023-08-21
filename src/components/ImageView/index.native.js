@@ -1,4 +1,4 @@
-import React, {useState, useCallback, useRef, memo, useEffect} from 'react';
+import React, {useState, useCallback, useRef, useEffect} from 'react';
 import PropTypes from 'prop-types';
 import {View, PanResponder} from 'react-native';
 import ImageZoom from 'react-native-image-pan-zoom';
@@ -243,4 +243,4 @@ ImageView.propTypes = propTypes;
 ImageView.defaultProps = defaultProps;
 ImageView.displayName = 'ImageView';
 
-export default memo(ImageView);
+export default ImageView;
