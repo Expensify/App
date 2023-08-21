@@ -145,7 +145,7 @@ function NewRequestAmountPage({route, iou, report}) {
     };
 
     const navigateToNextPage = (currentAmount) => {
-        const amountInSmallestCurrencyUnits = CurrencyUtils.convertToSmallestUnit(currency, Number.parseFloat(currentAmount));
+        const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(currentAmount));
         IOU.setMoneyRequestAmount(amountInSmallestCurrencyUnits);
         IOU.setMoneyRequestCurrency(currency);
 
@@ -177,6 +177,7 @@ function NewRequestAmountPage({route, iou, report}) {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
+            shouldEnableKeyboardAvoidingView={false}
             onEntryTransitionEnd={focusTextInput}
         >
             {({safeAreaPaddingBottomStyle}) => (

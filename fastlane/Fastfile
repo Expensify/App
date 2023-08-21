@@ -203,6 +203,7 @@ platform :ios do
     build_app(
         workspace: "./ios/NewExpensify.xcworkspace",
         scheme: "New Expensify",
+        output_name: "New Expensify.ipa",
         export_options: {
             manageAppVersionAndBuildNumber: false
         }

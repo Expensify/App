@@ -252,6 +252,7 @@ describe('actions/Report', () => {
                 jest.advanceTimersByTime(10);
                 currentTime = DateUtils.getDBTime();
                 Report.openReport(REPORT_ID);
+                Report.readNewestAction(REPORT_ID);
                 return waitForPromisesToResolve();
             })
             .then(() => {
