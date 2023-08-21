@@ -43,8 +43,10 @@ function ImageView({isAuthTokenRequired, url, onScaleChanged, onPress, style}) {
     const {windowWidth, windowHeight} = useWindowDimensions();
 
     const [isLoading, setIsLoading] = useState(true);
-    const [imageWidth, setImageWidth] = useState(0);
-    const [imageHeight, setImageHeight] = useState(0);
+    const [imageDimensions, setImageDimensions] = useState({
+        width: 0,
+        height: 0
+    })
     const [containerHeight, setContainerHeight] = useState(null);
 
     const imageZoomScale = useRef(1);
@@ -100,8 +102,10 @@ function ImageView({isAuthTokenRequired, url, onScaleChanged, onPress, style}) {
         }
         
         resetImageZoom();
-        setImageHeight(0);
-        setImageWidth(0);
+        setImageDimensions({
+            width: 0,
+            height: 0
+        })
         setIsLoading(true);
     };
 
@@ -133,8 +137,10 @@ function ImageView({isAuthTokenRequired, url, onScaleChanged, onPress, style}) {
         imageZoomWidth = Math.min(imageZoomWidth, roundedContainerWidth * maxDimensionsScale);
         imageZoomHeight = Math.min(imageZoomHeight, roundedContainerHeight * maxDimensionsScale);
 
-        setImageHeight(imageZoomHeight);
-        setImageWidth(imageZoomWidth);
+        setImageDimensions({
+            height: imageZoomHeight,
+            width: imageZoomWidth
+        })
         setIsLoading(false);
     };
 
@@ -173,7 +179,7 @@ function ImageView({isAuthTokenRequired, url, onScaleChanged, onPress, style}) {
 
     // Default windowHeight accounts for the modal header height
     const calculatedWindowHeight = windowHeight - variables.contentHeaderHeight;
-    const hasImageDimensions = imageWidth !== 0 && imageHeight !== 0;
+    const hasImageDimensions = imageDimensions.width !== 0 && imageDimensions.height !== 0;
     const shouldShowLoadingIndicator = isLoading || !hasImageDimensions;
 
     // Zoom view should be loaded only after measuring actual image dimensions, otherwise it causes blurred images on Android
@@ -191,8 +197,8 @@ function ImageView({isAuthTokenRequired, url, onScaleChanged, onPress, style}) {
                     onClick={onPress}
                     cropWidth={windowWidth}
                     cropHeight={calculatedWindowHeight}
-                    imageWidth={imageWidth}
-                    imageHeight={imageHeight}
+                    imageWidth={imageDimensions.width}
+                    imageHeight={imageDimensions.height}
                     onStartShouldSetPanResponder={configurePanResponder}
                     onMove={({scale}) => {
                         onScaleChanged(scale);
