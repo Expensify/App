@@ -1,13 +1,13 @@
 import 'react-native-url-polyfill/auto';
 
-function addTrailingForwardSlash(url:string):string {
+function addTrailingForwardSlash(url: string): string {
     if (!url.endsWith('/')) {
         return `${url}/`;
     }
     return url;
 }
 
-function getPathFromURL(url:string): string {
+function getPathFromURL(url: string): string {
     try {
         const parsedUrl: URL = new URL(url);
         const path: string = parsedUrl.pathname + parsedUrl.search + parsedUrl.hash;

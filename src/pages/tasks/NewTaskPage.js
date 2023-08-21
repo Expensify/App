@@ -153,7 +153,7 @@ function NewTaskPage(props) {
                     <View style={styles.mb5}>
                         <MenuItemWithTopDescription
                             description={props.translate('task.title')}
-                            title={"ji" || ''}
+                            title={props.task.title || ''}
                             onPress={() => Navigation.navigate(ROUTES.NEW_TASK_TITLE)}
                             shouldShowRightIcon
                         />
