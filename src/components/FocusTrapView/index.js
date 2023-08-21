@@ -8,12 +8,14 @@ import {PropTypes} from 'prop-types';
 import {useIsFocused} from '@react-navigation/native';
 
 const propTypes = {
+    /** Children to wrap with FocusTrap */
+    children: PropTypes.node.isRequired,
+
     /** Whether to enable the FocusTrap */
     enabled: PropTypes.bool,
 
     /** Whether to disable auto focus
-     *  It is used when the component inside the FocusTrap have their own auto focus logic
-     */
+     *  It is used when the component inside the FocusTrap have their own auto focus logic */
     shouldEnableAutoFocus: PropTypes.bool,
 };
 
@@ -38,12 +40,15 @@ function FocusTrapView({enabled, shouldEnableAutoFocus, ...props}) {
      * After the upgrade of 'react-native-web' to version 0.19 we can use 'tabIndex={0}' prop instead.
      */
     useEffect(() => {
+        if (!ref.current) {
+            return;
+        }
         ref.current.setAttribute('tabindex', '0');
     }, []);
 
-    return (
+    return enabled ? (
         <FocusTrap
-            active={enabled && isFocused}
+            active={isFocused}
             focusTrapOptions={{
                 initialFocus: () => shouldEnableAutoFocus && ref.current,
                 fallbackFocus: () => ref.current,
@@ -56,6 +61,9 @@ function FocusTrapView({enabled, shouldEnableAutoFocus, ...props}) {
                 {...props}
             />
         </FocusTrap>
+    ) : (
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        props.children
     );
 }
 
