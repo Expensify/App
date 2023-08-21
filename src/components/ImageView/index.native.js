@@ -45,9 +45,9 @@ function ImageView({isAuthTokenRequired, url, onScaleChanged, onPress, style}) {
     const [imageHeight, setImageHeight] = React.useState(0);
     const [containerHeight, setContainerHeight] = React.useState();
 
-    const imageZoomScale = React.useRef(1)
-    const lastClickTime = React.useRef(0)
-    const numberOfTouches = React.useRef(0)
+    const imageZoomScale = React.useRef(1);
+    const lastClickTime = React.useRef(0);
+    const numberOfTouches = React.useRef(0);
     const zoom = React.useRef();
 
     /**
@@ -59,7 +59,7 @@ function ImageView({isAuthTokenRequired, url, onScaleChanged, onPress, style}) {
      */
     const updatePanResponderTouches = (e, gestureState) => {
         if (_.isNumber(gestureState.numberActiveTouches)) {
-            numberOfTouches.current = gestureState.numberActiveTouches
+            numberOfTouches.current = gestureState.numberActiveTouches;
         }
 
         // We don't need to set the panResponder since all we care about is checking the gestureState, so return false
@@ -138,7 +138,7 @@ function ImageView({isAuthTokenRequired, url, onScaleChanged, onPress, style}) {
 
     const onStartShouldSetPanResponder = () => {
         const isDoubleClick = new Date().getTime() - lastClickTime.current <= DOUBLE_CLICK_INTERVAL;
-        lastClickTime.current = new Date().getTime()
+        lastClickTime.current = new Date().getTime();
 
         // Let ImageZoom handle the event if the tap is more than one touchPoint or if we are zoomed in
         if (numberOfTouches.current === 2 || imageZoomScale.current !== 1) {
@@ -166,7 +166,7 @@ function ImageView({isAuthTokenRequired, url, onScaleChanged, onPress, style}) {
 
         // We must be either swiping down or double tapping since we are at zoom scale 1
         return false;
-    }
+    };
 
     // Default windowHeight accounts for the modal header height
     const calculatedWindowHeight = windowHeight - variables.contentHeaderHeight;
@@ -193,7 +193,7 @@ function ImageView({isAuthTokenRequired, url, onScaleChanged, onPress, style}) {
                     onStartShouldSetPanResponder={onStartShouldSetPanResponder}
                     onMove={({scale}) => {
                         onScaleChanged(scale);
-                        imageZoomScale.current = scale
+                        imageZoomScale.current = scale;
                     }}
                 >
                     <Image
