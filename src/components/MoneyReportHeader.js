@@ -109,7 +109,7 @@ function MoneyReportHeader(props) {
                     </View>
                 )}
                 {shouldShowApprovedButton && !props.isSmallScreenWidth && (
-                    <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
+                    <View style={[styles.pv2]}>
                         <Button
                             success
                             text={props.translate('iou.approve')}
@@ -136,15 +136,13 @@ function MoneyReportHeader(props) {
                 </View>
             )}
             {shouldShowApprovedButton && props.isSmallScreenWidth && (
-                <View style={[styles.ph5, styles.pb2, props.isSmallScreenWidth && styles.borderBottom]}>
-                    <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
-                        <Button
-                            success
-                            text={props.translate('iou.approve')}
-                            style={[styles.w100]}
-                            onPress={() => IOU.approveMoneyRequest(props.report)}
-                        />
-                    </View>
+                <View style={[styles.pv2]}>
+                    <Button
+                        success
+                        text={props.translate('iou.approve')}
+                        style={[styles.w100]}
+                        onPress={() => IOU.approveMoneyRequest(props.report)}
+                    />
                 </View>
             )}
         </View>
