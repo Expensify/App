@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useRef} from 'react';
 import {ScrollView, View} from 'react-native';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
@@ -112,8 +112,17 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
         setShouldShowGradient(visibleAreaEnd < scrollContentHeight);
     };
 
+    const previousWaypointsRef = useRef();
+
     // Handle fetching the route when there are at least 2 waypoints
     useEffect(() => {
+        // Check if the waypoints have changed by comparing with the previous value stored in the ref
+        const haveWaypointsChanged = !_.isEqual(previousWaypointsRef.current, waypoints);
+
+        if (!haveWaypointsChanged) {
+            return;
+        }
+
         const nonEmptyWaypoints = _.filter(waypoints, waypoint => 
             waypoint && typeof waypoint.address === 'string' && waypoint.address.trim() !== ''
         ).length;
@@ -124,6 +133,7 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
         }
 
         Transaction.getRoute(transactionID, waypoints);
+        previousWaypointsRef.current = waypoints;
     }, [numberOfWaypoints, waypoints, transactionID, isLoadingRoute, isOffline]);
 
     useEffect(updateGradientVisibility, [scrollContainerHeight, scrollContentHeight]);
@@ -208,7 +218,7 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
                         }}
                         directionCoordinates={lodashGet(transaction, 'routes.route0.geometry.coordinates', [])}
                         directionStyle={{
-                            width: 15,
+                            width: 30,
                             color: '#002140'
                         }}
                         styleURL='mapbox://styles/expensify/cllcoiqds00cs01r80kp34tmq'
