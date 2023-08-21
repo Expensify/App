@@ -7,7 +7,6 @@ import * as Url from './libs/Url';
 
 const REPORT = 'r';
 const IOU_REQUEST = 'request/new';
-const IOU_BILL = 'split/new';
 const IOU_SEND = 'send/new';
 const NEW_TASK = 'new/task';
 const SETTINGS_PERSONAL_DETAILS = 'settings/profile/personal-details';
@@ -62,8 +61,9 @@ export default {
     SETTINGS_2FA: 'settings/security/two-factor-auth',
     SETTINGS_STATUS,
     SETTINGS_STATUS_SET,
-    NEW_GROUP: 'new/group',
+    NEW: 'new',
     NEW_CHAT: 'new/chat',
+    NEW_ROOM: 'new/room',
     NEW_TASK,
     REPORT,
     REPORT_WITH_ID: 'r/:reportID?',
@@ -81,7 +81,6 @@ export default {
     CONCIERGE: 'concierge',
 
     IOU_REQUEST,
-    IOU_BILL,
     IOU_SEND,
 
     // To see the available iouType, please refer to CONST.IOU.MONEY_REQUEST_TYPE
@@ -169,7 +168,6 @@ export default {
     WORKSPACE_INVOICES: 'workspace/:policyID/invoices',
     WORKSPACE_TRAVEL: 'workspace/:policyID/travel',
     WORKSPACE_MEMBERS: 'workspace/:policyID/members',
-    WORKSPACE_NEW_ROOM: 'workspace/new-room',
     getWorkspaceInitialRoute: (policyID) => `workspace/${policyID}`,
     getWorkspaceInviteRoute: (policyID) => `workspace/${policyID}/invite`,
     getWorkspaceInviteMessageRoute: (policyID) => `workspace/${policyID}/invite-message`,
