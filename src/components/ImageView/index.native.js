@@ -45,8 +45,8 @@ function ImageView({isAuthTokenRequired, url, onScaleChanged, onPress, style}) {
     const [isLoading, setIsLoading] = useState(true);
     const [imageDimensions, setImageDimensions] = useState({
         width: 0,
-        height: 0
-    })
+        height: 0,
+    });
     const [containerHeight, setContainerHeight] = useState(null);
 
     const imageZoomScale = useRef(1);
@@ -94,18 +94,18 @@ function ImageView({isAuthTokenRequired, url, onScaleChanged, onPress, style}) {
                 duration: 0,
             });
         }
-    }
+    };
 
     const imageLoadingStart = () => {
         if (isLoading) {
             return;
         }
-        
+
         resetImageZoom();
         setImageDimensions({
             width: 0,
-            height: 0
-        })
+            height: 0,
+        });
         setIsLoading(true);
     };
 
@@ -139,13 +139,13 @@ function ImageView({isAuthTokenRequired, url, onScaleChanged, onPress, style}) {
 
         setImageDimensions({
             height: imageZoomHeight,
-            width: imageZoomWidth
-        })
+            width: imageZoomWidth,
+        });
         setIsLoading(false);
     };
 
     const configurePanResponder = () => {
-        const currentTimestamp = new Date().getTime() 
+        const currentTimestamp = new Date().getTime();
         const isDoubleClick = currentTimestamp - lastClickTime.current <= DOUBLE_CLICK_INTERVAL;
         lastClickTime.current = currentTimestamp;
 
