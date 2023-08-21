@@ -158,12 +158,14 @@ function BaseSelectionListRadio(props) {
     };
 
     const renderItem = ({item, index, section}) => {
-        const isFocused = focusedIndex === index + lodashGet(section, 'indexOffset', 0);
+        const isDisabled = section.isDisabled;
+        const isFocused = !isDisabled && focusedIndex === index + lodashGet(section, 'indexOffset', 0);
 
         return (
             <RadioListItem
                 item={item}
                 isFocused={isFocused}
+                isDisabled={isDisabled}
                 onSelectRow={props.onSelectRow}
             />
         );
