@@ -115,6 +115,10 @@ export default {
         flexGrow: 4,
     },
 
+    flexShrink2: {
+        flexShrink: 2,
+    },
+
     flexShrink1: {
         flexShrink: 1,
     },

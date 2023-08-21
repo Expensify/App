@@ -218,7 +218,6 @@ function ReportScreen({
         if (report.reportID && report.reportID === getReportID(route)) {
             return;
         }
-
         Report.openReport(reportIDFromPath);
     }, [report.reportID, route]);
 
@@ -304,6 +303,7 @@ function ReportScreen({
                     shouldShowCloseButton={false}
                     shouldShowBackButton={isSmallScreenWidth}
                     onBackButtonPress={Navigation.goBack}
+                    shouldShowLink={false}
                 >
                     <OfflineWithFeedback
                         pendingAction={addWorkspaceRoomOrChatPendingAction}

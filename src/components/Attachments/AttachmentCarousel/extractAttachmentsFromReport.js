@@ -3,18 +3,16 @@ import _ from 'underscore';
 import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 import CONST from '../../../CONST';
 import tryResolveUrlFromApiRoot from '../../../libs/tryResolveUrlFromApiRoot';
-import Navigation from '../../../libs/Navigation/Navigation';
 
 /**
  * Constructs the initial component state from report actions
  * @param {Object} report
  * @param {Array} reportActions
- * @param {String} source
- * @returns {{attachments: Array, initialPage: Number, initialItem: Object, initialActiveSource: String}}
+ * @returns {Array}
  */
-function extractAttachmentsFromReport(report, reportActions, source) {
+function extractAttachmentsFromReport(report, reportActions) {
     const actions = [ReportActionsUtils.getParentReportAction(report), ...ReportActionsUtils.getSortedReportActions(_.values(reportActions))];
-    let attachments = [];
+    const attachments = [];
 
     const htmlParser = new HtmlParser({
         onopentag: (name, attribs) => {
@@ -42,27 +40,7 @@ function extractAttachmentsFromReport(report, reportActions, source) {
     });
     htmlParser.end();
 
-    attachments = attachments.reverse();
-
-    const initialPage = _.findIndex(attachments, (a) => a.source === source);
-    if (initialPage === -1) {
-        Navigation.dismissModal();
-        return {
-            attachments: [],
-            initialPage: 0,
-            initialItem: undefined,
-            initialActiveSource: null,
-        };
-    }
-
-    const initialItem = attachments[initialPage];
-
-    return {
-        attachments,
-        initialPage,
-        initialItem,
-        initialActiveSource: initialItem.source,
-    };
+    return attachments.reverse();
 }
 
 export default extractAttachmentsFromReport;
