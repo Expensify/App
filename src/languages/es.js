@@ -352,10 +352,6 @@ export default {
         },
     },
     sidebarScreen: {
-        chat: 'Chat',
-        room: 'Sala',
-        newGroup: 'Nuevo grupo',
-        newRoom: 'Nueva sala de chat',
         buttonSearch: 'Buscar',
         buttonMySettings: 'Mi configuración',
         fabNewChat: 'Enviar mensaje',

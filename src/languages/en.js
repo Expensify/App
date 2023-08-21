@@ -353,11 +353,6 @@ export default {
         },
     },
     sidebarScreen: {
-        chat: 'Chat',
-        room: 'Room',
-        newChat: 'New chat',
-        newGroup: 'New group',
-        newRoom: 'New room',
         buttonSearch: 'Search',
         buttonMySettings: 'My settings',
         fabNewChat: 'Send message',
