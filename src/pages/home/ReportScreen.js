@@ -159,21 +159,11 @@ class ReportScreen extends React.Component {
             EmojiPickerAction.hideEmojiPicker(true);
         }
 
-        const onyxReportID = this.props.report.reportID;
-        const preexistingReportID = lodashGet(this.props.report, 'preexistingReportID', false);
-        // When a new DM is opened simultaneously from 2 accounts, there'll be 2 different optimistic reports & OpenReport calls
-        // The latter will contain preexistingReportID of the initial report and thus is invalid.
-        if (preexistingReportID) {
-            Navigation.goBack();
-            Navigation.navigate(ROUTES.getReportRoute(preexistingReportID));
-            Report.deleteReport(onyxReportID);
-            return;
-        }
-
         // If you already have a report open and are deeplinking to a new report on native,
         // the ReportScreen never actually unmounts and the reportID in the route also doesn't change.
         // Therefore, we need to compare if the existing reportID is the same as the one in the route
         // before deciding that we shouldn't call OpenReport.
+        const onyxReportID = this.props.report.reportID;
         const routeReportID = getReportID(this.props.route);
         if (onyxReportID === prevProps.report.reportID && (!onyxReportID || onyxReportID === routeReportID)) {
             return;
