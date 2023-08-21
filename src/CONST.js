@@ -577,6 +577,7 @@ const CONST = {
             MUTE: 'mute',
             DAILY: 'daily',
             ALWAYS: 'always',
+            HIDDEN: 'hidden',
         },
         // Options for which room members can post
         WRITE_CAPABILITIES: {
