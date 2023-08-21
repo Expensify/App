@@ -122,6 +122,7 @@ function ReportParticipantsPage(props) {
                                 onSelectRow={(option) => {
                                     Navigation.navigate(ROUTES.getProfileRoute(option.accountID));
                                 }}
+                                shouldDebounceRowSelect
                                 hideSectionHeaders
                                 showTitleTooltip
                                 showScrollIndicator

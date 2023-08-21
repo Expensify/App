@@ -81,6 +81,7 @@ function BaseReactionList(props) {
                 props.onClose();
                 Navigation.navigate(ROUTES.getProfileRoute(item.accountID));
             }}
+            shouldDebounceRowSelect
             option={{
                 text: Str.removeSMSDomain(item.displayName),
                 alternateText: Str.removeSMSDomain(item.login || ''),

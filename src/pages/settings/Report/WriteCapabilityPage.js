@@ -61,6 +61,7 @@ function WriteCapabilityPage(props) {
                 <OptionsList
                     sections={[{data: writeCapabilityOptions}]}
                     onSelectRow={(option) => Report.updateWriteCapabilityAndNavigate(props.report, option.value)}
+                    shouldDebounceRowSelect
                     hideSectionHeaders
                     optionHoveredStyle={{
                         ...styles.hoveredComponentBG,
