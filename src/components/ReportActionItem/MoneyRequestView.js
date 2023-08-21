@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Image} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
@@ -22,7 +22,10 @@ import iouReportPropTypes from '../../pages/iouReportPropTypes';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import EmptyStateBackgroundImage from '../../../assets/images/empty-state_background-fade.png';
 import useLocalize from '../../hooks/useLocalize';
+import * as ReceiptUtils from '../../libs/ReceiptUtils';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
+import Image from '../Image';
+import ReportActionItemImage from './ReportActionItemImage';
 import OfflineWithFeedback from '../OfflineWithFeedback';
 
 const propTypes = {
@@ -95,6 +98,12 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, polic
         return null;
     }
 
+    const hasReceipt = TransactionUtils.hasReceipt(transaction);
+    let receiptURIs;
+    if (hasReceipt) {
+        receiptURIs = ReceiptUtils.getThumbnailAndImageURIs(transaction.receipt.source, transaction.filename);
+    }
+
     return (
         <View>
             <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth), StyleUtils.getMinimumHeight(CONST.EMPTY_STATE_BACKGROUND.MONEY_REPORT.MIN_HEIGHT)]}>
@@ -104,6 +113,15 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, polic
                     style={[StyleUtils.getReportWelcomeBackgroundImageStyle(true)]}
                 />
             </View>
+            {hasReceipt && (
+                <View style={styles.moneyRequestViewImage}>
+                    <ReportActionItemImage
+                        thumbnail={receiptURIs.thumbnail}
+                        image={receiptURIs.image}
+                        enablePreviewModal
+                    />
+                </View>
+            )}
             <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.amount') || lodashGet(transaction, 'pendingAction')}>
                 <MenuItemWithTopDescription
                     title={formattedTransactionAmount ? formattedTransactionAmount.toString() : ''}

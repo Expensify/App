@@ -31,6 +31,7 @@ Onyx.connect({
  * @param {String} [originalTransactionID]
  * @param {String} [merchant]
  * @param {Object} [receipt]
+ * @param {String} [filename]
  * @param {String} [existingTransactionID] When creating a distance request, an empty transaction has already been created with a transactionID. In that case, the transaction here needs to have it's transactionID match what was already generated.
  * @returns {Object}
  */
@@ -44,6 +45,7 @@ function buildOptimisticTransaction(
     originalTransactionID = '',
     merchant = CONST.REPORT.TYPE.IOU,
     receipt = {},
+    filename = '',
     existingTransactionID = null,
 ) {
     // transactionIDs are random, positive, 64-bit numeric strings.
@@ -68,7 +70,16 @@ function buildOptimisticTransaction(
         created: created || DateUtils.getDBTime(),
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         receipt,
+        filename,
     };
+}
+
+/**
+ * @param {Object|null} transaction
+ * @returns {Boolean}
+ */
+function hasReceipt(transaction) {
+    return !_.isEmpty(lodashGet(transaction, 'receipt'));
 }
 
 /**
@@ -215,4 +226,21 @@ function getAllReportTransactions(reportID) {
     return _.filter(allTransactions, (transaction) => transaction.reportID === reportID);
 }
 
-export {buildOptimisticTransaction, getUpdatedTransaction, getTransaction, getDescription, getAmount, getCurrency, getMerchant, getCreated, getLinkedTransaction, getAllReportTransactions};
+function isReceiptBeingScanned(transaction) {
+    return transaction.receipt.state === CONST.IOU.RECEIPT_STATE.SCANREADY || transaction.receipt.state === CONST.IOU.RECEIPT_STATE.SCANNING;
+}
+
+export {
+    buildOptimisticTransaction,
+    getUpdatedTransaction,
+    getTransaction,
+    getDescription,
+    getAmount,
+    getCurrency,
+    getMerchant,
+    getCreated,
+    getLinkedTransaction,
+    getAllReportTransactions,
+    hasReceipt,
+    isReceiptBeingScanned,
+};
