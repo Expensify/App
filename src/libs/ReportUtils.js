@@ -2000,7 +2000,6 @@ function buildOptimisticIOUReportAction(
         }
     }
 
-    console.log('here, ', receipt, _.isEmpty(receipt), currentUserAccountID);
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
         actorAccountID: currentUserAccountID,
