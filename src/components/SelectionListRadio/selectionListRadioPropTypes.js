@@ -36,6 +36,9 @@ const propTypes = {
     /** Callback to fire when a row is tapped */
     onSelectRow: PropTypes.func,
 
+    /** Boolean to indicate if onSelectRow should be debounced */
+    shouldDebounceRowSelect: PropTypes.bool,
+
     /** Label for the text input */
     textInputLabel: PropTypes.string,
 
@@ -72,6 +75,7 @@ const propTypes = {
 
 const defaultProps = {
     onSelectRow: () => {},
+    shouldDebounceRowSelect: false,
     textInputLabel: '',
     textInputPlaceholder: '',
     textInputValue: '',

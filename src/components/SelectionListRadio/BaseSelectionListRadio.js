@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState, useCallback} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -102,6 +102,11 @@ function BaseSelectionListRadio(props) {
         return defaultIndex;
     });
 
+    const onSelectRow = useCallback(props.shouldDebounceRowSelect ? _.debounce(props.onSelectRow, 1000, {leading: true}) : props.onSelectRow, [
+        props.shouldDebounceRowSelect,
+        props.onSelectRow,
+    ]);
+
     /**
      * Scrolls to the desired item index in the section list
      *
@@ -166,7 +171,7 @@ function BaseSelectionListRadio(props) {
                 item={item}
                 isFocused={isFocused}
                 isDisabled={isDisabled}
-                onSelectRow={props.onSelectRow}
+                onSelectRow={onSelectRow}
             />
         );
     };
@@ -189,6 +194,14 @@ function BaseSelectionListRadio(props) {
         };
     }, [props.shouldDelayFocus, shouldShowTextInput]);
 
+    useEffect(() => {
+        return () => {
+            if (props.shouldDebounceRowSelect && onSelectRow.cancel) {
+                onSelectRow.cancel();
+            }
+        };
+    }, [onSelectRow, props.shouldDebounceRowSelect]);
+
     const selectFocusedOption = () => {
         const focusedOption = flattenedSections.allOptions[focusedIndex];
 
@@ -196,7 +209,7 @@ function BaseSelectionListRadio(props) {
             return;
         }
 
-        props.onSelectRow(focusedOption);
+        onSelectRow(focusedOption);
     };
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
