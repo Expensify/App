@@ -2461,7 +2461,7 @@ function isUnread(report) {
     }
     const lastVisibleMessage = ReportActionsUtils.getLastVisibleMessage(report.reportID);
     const isEmptyChat = !lastVisibleMessage.lastMessageText && !lastVisibleMessage.lastMessageTranslationKey;
-    if(isEmptyChat) {
+    if (isEmptyChat) {
         return false;
     }
 
