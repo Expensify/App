@@ -7,25 +7,43 @@
  *
  * RN: https://reactnative.dev/docs/0.62/layout-props#display
  * BS: https://getbootstrap.com/docs/5.0/utilities/display/
+ * 
  */
-export default {
+
+type DisplayStyle = {
+    dFlex: {
+        display: 'flex';
+    };
+    dNone: {
+        display: 'none';
+    };
+    dInline: {
+        display: 'inline';
+    };
+    dInlineFlex: {
+        display: 'inline-flex';
+    };
+    dBlock: {
+        display: 'block';
+    };
+}
+
+const displayStyles: DisplayStyle = {
     dFlex: {
         display: 'flex',
     },
-
     dNone: {
         display: 'none',
     },
-
     dInline: {
         display: 'inline',
     },
-
     dInlineFlex: {
         display: 'inline-flex',
     },
-
     dBlock: {
         display: 'block',
     },
 };
+
+export default displayStyles;
