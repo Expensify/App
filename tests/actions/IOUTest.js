@@ -35,12 +35,13 @@ describe('actions/IOU', () => {
         it('creates new chat if needed', () => {
             const amount = 10000;
             const comment = 'Giv money plz';
+            const merchant = 'KFC';
             let iouReportID;
             let createdAction;
             let iouAction;
             let transactionID;
             fetch.pause();
-            IOU.requestMoney({}, amount, CONST.CURRENCY.USD, RORY_EMAIL, RORY_ACCOUNT_ID, {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID}, comment);
+            IOU.requestMoney({}, amount, CONST.CURRENCY.USD, '', merchant, RORY_EMAIL, RORY_ACCOUNT_ID, {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID}, comment);
             return waitForPromisesToResolve()
                 .then(
                     () =>
@@ -141,7 +142,7 @@ describe('actions/IOU', () => {
                                     // The transactionID on the iou action should match the one from the transactions collection
                                     expect(iouAction.originalMessage.IOUTransactionID).toBe(transactionID);
 
-                                    expect(transaction.merchant).toBe(CONST.REPORT.TYPE.IOU);
+                                    expect(transaction.merchant).toBe(merchant);
 
                                     resolve();
                                 },
@@ -205,7 +206,7 @@ describe('actions/IOU', () => {
                     }),
                 )
                 .then(() => {
-                    IOU.requestMoney(chatReport, amount, CONST.CURRENCY.USD, RORY_EMAIL, RORY_ACCOUNT_ID, {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID}, comment);
+                    IOU.requestMoney(chatReport, amount, CONST.CURRENCY.USD, '', '', RORY_EMAIL, RORY_ACCOUNT_ID, {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID}, comment);
                     return waitForPromisesToResolve();
                 })
                 .then(
@@ -396,7 +397,7 @@ describe('actions/IOU', () => {
                 )
                 .then(() => Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${existingTransaction.transactionID}`, existingTransaction))
                 .then(() => {
-                    IOU.requestMoney(chatReport, amount, CONST.CURRENCY.USD, RORY_EMAIL, RORY_ACCOUNT_ID, {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID}, comment);
+                    IOU.requestMoney(chatReport, amount, CONST.CURRENCY.USD, '', '', RORY_EMAIL, RORY_ACCOUNT_ID, {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID}, comment);
                     return waitForPromisesToResolve();
                 })
                 .then(
@@ -528,7 +529,7 @@ describe('actions/IOU', () => {
             let iouAction;
             let transactionID;
             fetch.pause();
-            IOU.requestMoney({}, amount, CONST.CURRENCY.USD, RORY_EMAIL, RORY_ACCOUNT_ID, {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID}, comment);
+            IOU.requestMoney({}, amount, CONST.CURRENCY.USD, '', '', RORY_EMAIL, RORY_ACCOUNT_ID, {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID}, comment);
             return (
                 waitForPromisesToResolve()
                     .then(
@@ -1183,7 +1184,7 @@ describe('actions/IOU', () => {
             let createIOUAction;
             let payIOUAction;
             let transaction;
-            IOU.requestMoney({}, amount, CONST.CURRENCY.USD, RORY_EMAIL, RORY_ACCOUNT_ID, {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID}, comment);
+            IOU.requestMoney({}, amount, CONST.CURRENCY.USD, '', '', RORY_EMAIL, RORY_ACCOUNT_ID, {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID}, comment);
             return waitForPromisesToResolve()
                 .then(
                     () =>
