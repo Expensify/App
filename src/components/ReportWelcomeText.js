@@ -66,7 +66,6 @@ function ReportWelcomeText(props) {
     const isChatRoom = ReportUtils.isChatRoom(props.report);
     const isDefault = !(isChatRoom || isPolicyExpenseChat);
     const isAdminsOnlyPostingRoom = ReportUtils.isAdminsOnlyPostingRoom(props.report);
-    const isAnnounceRoom = ReportUtils.isAnnounceRoom(props.report);
     const participantAccountIDs = lodashGet(props.report, 'participantAccountIDs', []);
     const isMultipleParticipant = participantAccountIDs.length > 1;
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(
@@ -81,9 +80,7 @@ function ReportWelcomeText(props) {
         <>
             <View>
                 <Text style={[styles.textHero]}>
-                    {isAdminsOnlyPostingRoom || isAnnounceRoom
-                        ? props.translate('reportActionsView.welcomeToRoom', {roomName: ReportUtils.getReportName(props.report)})
-                        : props.translate('reportActionsView.sayHello')}
+                    {isChatRoom ? props.translate('reportActionsView.welcomeToRoom', {roomName: ReportUtils.getReportName(props.report)}) : props.translate('reportActionsView.sayHello')}
                 </Text>
             </View>
             <Text style={[styles.mt3, styles.mw100]}>
