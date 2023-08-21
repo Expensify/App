@@ -32,7 +32,7 @@ function hasAndroidPermission() {
 /**
  * Handling the download
  * @param {String} url
- * @param {String} fileName
+ * @param {String} [fileName]
  * @returns {Promise<Void>}
  */
 function handleDownload(url, fileName) {
@@ -41,7 +41,7 @@ function handleDownload(url, fileName) {
 
         // Android files will download to Download directory
         const path = dirs.DownloadDir;
-        const attachmentName = FileUtils.appendTimeToFileName(fileName) || FileUtils.getAttachmentName(url);
+        const attachmentName = fileName ? FileUtils.appendTimeToFileName(fileName) : FileUtils.getAttachmentName(url);
 
         const isLocalFile = url.startsWith('file://');
 
@@ -96,7 +96,7 @@ function handleDownload(url, fileName) {
 /**
  * Checks permission and downloads the file for Android
  * @param {String} url
- * @param {String} fileName
+ * @param {String} [fileName]
  * @returns {Promise<Void>}
  */
 export default function fileDownload(url, fileName) {

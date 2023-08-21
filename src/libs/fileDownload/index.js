@@ -6,7 +6,7 @@ import tryResolveUrlFromApiRoot from '../tryResolveUrlFromApiRoot';
 /**
  * Downloading attachment in web, desktop
  * @param {String} url
- * @param {String} fileName
+ * @param {String} [fileName]
  * @returns {Promise}
  */
 export default function fileDownload(url, fileName) {
@@ -32,7 +32,7 @@ export default function fileDownload(url, fileName) {
                 link.style.display = 'none';
                 link.setAttribute(
                     'download',
-                    FileUtils.appendTimeToFileName(fileName) || FileUtils.getAttachmentName(url), // generating the file name
+                    fileName ? FileUtils.appendTimeToFileName(fileName) : FileUtils.getAttachmentName(url), // generating the file name
                 );
 
                 // Append to html link element page
