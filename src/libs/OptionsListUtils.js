@@ -401,8 +401,8 @@ function getLastMessageTextForReport(report) {
                     allSortedReportActions[report.reportID],
                     (action) => ReportActionUtils.shouldReportActionBeVisibleAsLastAction(action) && !ReportActionUtils.isCreatedAction(action),
                 ) || {};
-                lastMessageTextFromReport = lodashGet(latestVisibleAction, 'message[0].text', '');
-            }
+            lastMessageTextFromReport = lodashGet(latestVisibleAction, 'message[0].text', '');
+        }
     }
     return lastMessageTextFromReport;
 }

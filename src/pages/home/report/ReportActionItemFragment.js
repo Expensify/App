@@ -142,7 +142,7 @@ function ReportActionItemFragment(props) {
                 return <RenderHTML html={props.source === 'email' ? `<email-comment>${htmlContent}</email-comment>` : `<comment>${htmlContent}</comment>`} />;
             }
             const containsOnlyEmojis = EmojiUtils.containsOnlyEmojis(text);
-            
+
             return (
                 <Text
                     selectable={!DeviceCapabilities.canUseTouchScreen() || !props.isSmallScreenWidth}
