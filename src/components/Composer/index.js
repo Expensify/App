@@ -1,8 +1,9 @@
-import React from 'react';
+import React, {useState, useRef, useEffect, useCallback, useMemo} from 'react';
 import {StyleSheet, View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
+import {flushSync} from 'react-dom';
 import RNTextInput from '../RNTextInput';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import themeColors from '../../styles/themes/default';
@@ -72,9 +73,6 @@ const propTypes = {
     /** Allow the full composer to be opened */
     setIsFullComposerAvailable: PropTypes.func,
 
-    /** Whether the composer is full size */
-    isComposerFullSize: PropTypes.bool,
-
     /** Should we calculate the caret position */
     shouldCalculateCaretPosition: PropTypes.bool,
 
@@ -106,198 +104,158 @@ const defaultProps = {
     },
     isFullComposerAvailable: false,
     setIsFullComposerAvailable: () => {},
-    isComposerFullSize: false,
     shouldCalculateCaretPosition: false,
     checkComposerVisibility: () => false,
 };
 
 /**
- * Enable Markdown parsing.
- * On web we like to have the Text Input field always focused so the user can easily type a new chat
+ * Retrieves the characters from the specified cursor position up to the next space or new line.
+ *
+ * @param {string} str - The input string.
+ * @param {number} cursorPos - The position of the cursor within the input string.
+ * @returns {string} - The substring from the cursor position up to the next space or new line.
+ *                     If no space or new line is found, returns the substring from the cursor position to the end of the input string.
  */
-class Composer extends React.Component {
-    constructor(props) {
-        super(props);
+const getNextChars = (str, cursorPos) => {
+    // Get the substring starting from the cursor position
+    const substr = str.substring(cursorPos);
 
-        const initialValue = props.defaultValue ? `${props.defaultValue}` : `${props.value || ''}`;
+    // Find the index of the next space or new line character
+    const spaceIndex = substr.search(/[ \n]/);
 
-        this.state = {
-            numberOfLines: props.numberOfLines,
-            selection: {
-                start: initialValue.length,
-                end: initialValue.length,
-            },
-            valueBeforeCaret: '',
-        };
-
-        this.paste = this.paste.bind(this);
-        this.handleKeyPress = this.handleKeyPress.bind(this);
-        this.handlePaste = this.handlePaste.bind(this);
-        this.handlePastedHTML = this.handlePastedHTML.bind(this);
-        this.handleWheel = this.handleWheel.bind(this);
-        this.shouldCallUpdateNumberOfLines = this.shouldCallUpdateNumberOfLines.bind(this);
-        this.addCursorPositionToSelectionChange = this.addCursorPositionToSelectionChange.bind(this);
-        this.textRef = React.createRef(null);
-        this.unsubscribeBlur = () => null;
-        this.unsubscribeFocus = () => null;
+    if (spaceIndex === -1) {
+        return substr;
     }
 
-    componentDidMount() {
-        this.updateNumberOfLines();
+    // If there is a space or new line, return the substring up to the space or new line
+    return substr.substring(0, spaceIndex);
+};
 
-        // This callback prop is used by the parent component using the constructor to
-        // get a ref to the inner textInput element e.g. if we do
-        // <constructor ref={el => this.textInput = el} /> this will not
-        // return a ref to the component, but rather the HTML element by default
-        if (this.props.forwardedRef && _.isFunction(this.props.forwardedRef)) {
-            this.props.forwardedRef(this.textInput);
-        }
+// Enable Markdown parsing.
+// On web we like to have the Text Input field always focused so the user can easily type a new chat
+function Composer({
+    value,
+    defaultValue,
+    maxLines,
+    onKeyPress,
+    style,
+    shouldClear,
+    autoFocus,
+    translate,
+    isFullComposerAvailable,
+    shouldCalculateCaretPosition,
+    numberOfLines: numberOfLinesProp,
+    isDisabled,
+    forwardedRef,
+    navigation,
+    onClear,
+    onPasteFile,
+    onSelectionChange,
+    onNumberOfLinesChange,
+    setIsFullComposerAvailable,
+    checkComposerVisibility,
+    selection: selectionProp,
+    ...props
+}) {
+    const textRef = useRef(null);
+    const textInput = useRef(null);
+    const initialValue = defaultValue ? `${defaultValue}` : `${value || ''}`;
+    const [numberOfLines, setNumberOfLines] = useState(numberOfLinesProp);
+    const [selection, setSelection] = useState({
+        start: initialValue.length,
+        end: initialValue.length,
+    });
+    const [caretContent, setCaretContent] = useState('');
+    const [valueBeforeCaret, setValueBeforeCaret] = useState('');
+    const [textInputWidth, setTextInputWidth] = useState('');
 
-        // There is no onPaste or onDrag for TextInput in react-native so we will add event
-        // listeners here and unbind when the component unmounts
-        if (this.textInput) {
-            this.textInput.addEventListener('wheel', this.handleWheel);
-
-            // we need to handle listeners on navigation focus/blur as Composer is not unmounting
-            // when navigating away to different report
-            this.unsubscribeFocus = this.props.navigation.addListener('focus', () => document.addEventListener('paste', this.handlePaste));
-            this.unsubscribeBlur = this.props.navigation.addListener('blur', () => document.removeEventListener('paste', this.handlePaste));
-
-            // We need to add paste listener manually as well as navigation focus event is not triggered on component mount
-            document.addEventListener('paste', this.handlePaste);
-        }
-    }
-
-    componentDidUpdate(prevProps) {
-        if (!prevProps.shouldClear && this.props.shouldClear) {
-            this.textInput.clear();
-            // eslint-disable-next-line react/no-did-update-set-state
-            this.setState({numberOfLines: 1});
-            this.props.onClear();
-        }
-
-        if (
-            prevProps.value !== this.props.value ||
-            prevProps.defaultValue !== this.props.defaultValue ||
-            prevProps.isComposerFullSize !== this.props.isComposerFullSize ||
-            prevProps.windowWidth !== this.props.windowWidth ||
-            prevProps.numberOfLines !== this.props.numberOfLines
-        ) {
-            this.updateNumberOfLines();
-        }
-
-        if (prevProps.selection !== this.props.selection) {
-            // eslint-disable-next-line react/no-did-update-set-state
-            this.setState({selection: this.props.selection});
-        }
-    }
-
-    componentWillUnmount() {
-        if (!this.textInput) {
+    useEffect(() => {
+        if (!shouldClear) {
             return;
         }
+        textInput.current.clear();
+        setNumberOfLines(1);
+        onClear();
+    }, [shouldClear, onClear]);
 
-        document.removeEventListener('paste', this.handlePaste);
-        this.unsubscribeFocus();
-        this.unsubscribeBlur();
-        this.textInput.removeEventListener('wheel', this.handleWheel);
-    }
-
-    // Get characters from the cursor to the next space or new line
-    getNextChars(str, cursorPos) {
-        // Get the substring starting from the cursor position
-        const substr = str.substring(cursorPos);
-
-        // Find the index of the next space or new line character
-        const spaceIndex = substr.search(/[ \n]/);
-
-        if (spaceIndex === -1) {
-            return substr;
-        }
-
-        // If there is a space or new line, return the substring up to the space or new line
-        return substr.substring(0, spaceIndex);
-    }
+    useEffect(() => {
+        setSelection((prevSelection) => {
+            if (!!prevSelection && selectionProp.start === prevSelection.start && selectionProp.end === prevSelection.end) {
+                return;
+            }
+            return selectionProp;
+        });
+    }, [selectionProp]);
 
     /**
      *  Adds the cursor position to the selection change event.
      *
      * @param {Event} event
      */
-    addCursorPositionToSelectionChange(event) {
-        if (this.props.shouldCalculateCaretPosition) {
-            const newValueBeforeCaret = event.target.value.slice(0, event.nativeEvent.selection.start);
-
-            this.setState(
-                {
-                    valueBeforeCaret: newValueBeforeCaret,
-                    caretContent: this.getNextChars(this.props.value, event.nativeEvent.selection.start),
+    const addCursorPositionToSelectionChange = (event) => {
+        if (shouldCalculateCaretPosition) {
+            // we do flushSync to make sure that the valueBeforeCaret is updated before we calculate the caret position to receive a proper position otherwise we will calculate position for the previous state
+            flushSync(() => {
+                setValueBeforeCaret(event.target.value.slice(0, event.nativeEvent.selection.start));
+                setCaretContent(getNextChars(value, event.nativeEvent.selection.start));
+            });
+            const selectionValue = {
+                start: event.nativeEvent.selection.start,
+                end: event.nativeEvent.selection.end,
+                positionX: textRef.current.offsetLeft - CONST.SPACE_CHARACTER_WIDTH,
+                positionY: textRef.current.offsetTop,
+            };
+            onSelectionChange({
+                nativeEvent: {
+                    selection: selectionValue,
                 },
-
-                () => {
-                    const customEvent = {
-                        nativeEvent: {
-                            selection: {
-                                start: event.nativeEvent.selection.start,
-                                end: event.nativeEvent.selection.end,
-                                positionX: this.textRef.current.offsetLeft - CONST.SPACE_CHARACTER_WIDTH,
-                                positionY: this.textRef.current.offsetTop,
-                            },
-                        },
-                    };
-                    this.props.onSelectionChange(customEvent);
-                },
-            );
-            return;
+            });
+            setSelection(selectionValue);
+        } else {
+            onSelectionChange(event);
+            setSelection(event.nativeEvent.selection);
         }
-
-        this.props.onSelectionChange(event);
-    }
-
-    // Prevent onKeyPress from being triggered if the Enter key is pressed while text is being composed
-    handleKeyPress(e) {
-        if (!this.props.onKeyPress || isEnterWhileComposition(e)) {
-            return;
-        }
-        this.props.onKeyPress(e);
-    }
+    };
 
     /**
      * Set pasted text to clipboard
      * @param {String} text
      */
-    paste(text) {
+    const paste = useCallback((text) => {
         try {
-            this.textInput.focus();
             document.execCommand('insertText', false, text);
-            this.updateNumberOfLines();
-
             // Pointer will go out of sight when a large paragraph is pasted on the web. Refocusing the input keeps the cursor in view.
-            this.textInput.blur();
-            this.textInput.focus();
+            textInput.current.blur();
+            textInput.current.focus();
             // eslint-disable-next-line no-empty
         } catch (e) {}
-    }
+    }, []);
 
     /**
      * Manually place the pasted HTML into Composer
      *
      * @param {String} html - pasted HTML
      */
-    handlePastedHTML(html) {
-        const parser = new ExpensiMark();
-        this.paste(parser.htmlToMarkdown(html));
-    }
+    const handlePastedHTML = useCallback(
+        (html) => {
+            const parser = new ExpensiMark();
+            paste(parser.htmlToMarkdown(html));
+        },
+        [paste],
+    );
 
     /**
      * Paste the plaintext content into Composer.
      *
      * @param {ClipboardEvent} event
      */
-    handlePastePlainText(event) {
-        const plainText = event.clipboardData.getData('text/plain');
-        this.paste(plainText);
-    }
+    const handlePastePlainText = useCallback(
+        (event) => {
+            const plainText = event.clipboardData.getData('text/plain');
+            paste(plainText);
+        },
+        [paste],
+    );
 
     /**
      * Check the paste event for an attachment, parse the data and call onPasteFile from props with the selected file,
@@ -305,164 +263,195 @@ class Composer extends React.Component {
      *
      * @param {ClipboardEvent} event
      */
-    handlePaste(event) {
-        const isVisible = this.props.checkComposerVisibility();
-        const isFocused = this.textInput.isFocused();
+    const handlePaste = useCallback(
+        (event) => {
+            const isVisible = checkComposerVisibility();
+            const isFocused = textInput.current.isFocused();
 
-        if (!(isVisible || isFocused)) {
-            return;
-        }
-
-        if (this.textInput !== event.target) {
-            return;
-        }
-
-        event.preventDefault();
-
-        const {files, types} = event.clipboardData;
-        const TEXT_HTML = 'text/html';
-
-        // If paste contains files, then trigger file management
-        if (files.length > 0) {
-            // Prevent the default so we do not post the file name into the text box
-            this.props.onPasteFile(event.clipboardData.files[0]);
-            return;
-        }
-
-        // If paste contains HTML
-        if (types.includes(TEXT_HTML)) {
-            const pastedHTML = event.clipboardData.getData(TEXT_HTML);
-
-            const domparser = new DOMParser();
-            const embeddedImages = domparser.parseFromString(pastedHTML, TEXT_HTML).images;
-
-            // Exclude parsing img tags in the HTML, as fetching the image via fetch triggers a connect-src Content-Security-Policy error.
-            if (embeddedImages.length > 0 && embeddedImages[0].src) {
-                // If HTML has emoji, then treat this as plain text.
-                if (embeddedImages[0].dataset && embeddedImages[0].dataset.stringifyType === 'emoji') {
-                    this.handlePastePlainText(event);
-                    return;
-                }
+            if (!(isVisible || isFocused)) {
+                return;
             }
 
-            this.handlePastedHTML(pastedHTML);
-            return;
-        }
+            if (textInput.current !== event.target) {
+                return;
+            }
 
-        this.handlePastePlainText(event);
-    }
+            event.preventDefault();
+
+            const {files, types} = event.clipboardData;
+            const TEXT_HTML = 'text/html';
+
+            // If paste contains files, then trigger file management
+            if (files.length > 0) {
+                // Prevent the default so we do not post the file name into the text box
+                onPasteFile(event.clipboardData.files[0]);
+                return;
+            }
+
+            // If paste contains HTML
+            if (types.includes(TEXT_HTML)) {
+                const pastedHTML = event.clipboardData.getData(TEXT_HTML);
+
+                const domparser = new DOMParser();
+                const embeddedImages = domparser.parseFromString(pastedHTML, TEXT_HTML).images;
+
+                // Exclude parsing img tags in the HTML, as fetching the image via fetch triggers a connect-src Content-Security-Policy error.
+                if (embeddedImages.length > 0 && embeddedImages[0].src) {
+                    // If HTML has emoji, then treat this as plain text.
+                    if (embeddedImages[0].dataset && embeddedImages[0].dataset.stringifyType === 'emoji') {
+                        handlePastePlainText(event);
+                        return;
+                    }
+                }
+                handlePastedHTML(pastedHTML);
+                return;
+            }
+            handlePastePlainText(event);
+        },
+        [onPasteFile, handlePastedHTML, checkComposerVisibility, handlePastePlainText],
+    );
 
     /**
      * Manually scrolls the text input, then prevents the event from being passed up to the parent.
      * @param {Object} event native Event
      */
-    handleWheel(event) {
+    const handleWheel = useCallback((event) => {
         if (event.target !== document.activeElement) {
             return;
         }
 
-        this.textInput.scrollTop += event.deltaY;
+        textInput.current.scrollTop += event.deltaY;
         event.preventDefault();
         event.stopPropagation();
-    }
-
-    /**
-     * We want to call updateNumberOfLines only when the parent doesn't provide value in props
-     * as updateNumberOfLines is already being called when value changes in componentDidUpdate
-     */
-    shouldCallUpdateNumberOfLines() {
-        if (!_.isEmpty(this.props.value)) {
-            return;
-        }
-
-        this.updateNumberOfLines();
-    }
+    }, []);
 
     /**
      * Check the current scrollHeight of the textarea (minus any padding) and
      * divide by line height to get the total number of rows for the textarea.
      */
-    updateNumberOfLines() {
-        // Hide the composer expand button so we can get an accurate reading of
-        // the height of the text input
-        this.props.setIsFullComposerAvailable(false);
+    const updateNumberOfLines = useCallback(() => {
+        if (textInput.current === null) {
+            return;
+        }
+        // we reset the height to 0 to get the correct scrollHeight
+        textInput.current.style.height = 0;
+        const computedStyle = window.getComputedStyle(textInput.current);
+        const lineHeight = parseInt(computedStyle.lineHeight, 10) || 20;
+        const paddingTopAndBottom = parseInt(computedStyle.paddingBottom, 10) + parseInt(computedStyle.paddingTop, 10);
+        setTextInputWidth(computedStyle.width);
 
-        // We have to reset the rows back to the minimum before updating so that the scrollHeight is not
-        // affected by the previous row setting. If we don't, rows will be added but not removed on backspace/delete.
-        this.setState({numberOfLines: 1}, () => {
-            const computedStyle = window.getComputedStyle(this.textInput);
-            const lineHeight = parseInt(computedStyle.lineHeight, 10) || 20;
-            const paddingTopAndBottom = parseInt(computedStyle.paddingBottom, 10) + parseInt(computedStyle.paddingTop, 10);
-            const computedNumberOfLines = ComposerUtils.getNumberOfLines(this.props.maxLines, lineHeight, paddingTopAndBottom, this.textInput.scrollHeight);
-            const numberOfLines = computedNumberOfLines === 0 ? this.props.numberOfLines : computedNumberOfLines;
-            updateIsFullComposerAvailable(this.props, numberOfLines);
-            this.setState({
-                numberOfLines,
-                width: computedStyle.width,
-            });
-            this.props.onNumberOfLinesChange(numberOfLines);
-        });
-    }
+        const computedNumberOfLines = ComposerUtils.getNumberOfLines(maxLines, lineHeight, paddingTopAndBottom, textInput.current.scrollHeight);
+        const generalNumberOfLines = computedNumberOfLines === 0 ? numberOfLinesProp : computedNumberOfLines;
 
-    render() {
-        const propStyles = StyleSheet.flatten(this.props.style);
-        propStyles.outline = 'none';
-        const propsWithoutStyles = _.omit(this.props, 'style');
+        onNumberOfLinesChange(generalNumberOfLines);
+        updateIsFullComposerAvailable({isFullComposerAvailable, setIsFullComposerAvailable}, generalNumberOfLines);
+        setNumberOfLines(generalNumberOfLines);
+        textInput.current.style.height = 'auto';
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [value, maxLines, numberOfLinesProp, onNumberOfLinesChange, isFullComposerAvailable, setIsFullComposerAvailable]);
 
-        // This code creates a hidden text component that helps track the caret position in the visible input.
-        const renderElementForCaretPosition = (
-            <View
-                style={{
-                    position: 'absolute',
-                    bottom: -2000,
-                    zIndex: -1,
-                    opacity: 0,
-                }}
+    useEffect(() => {
+        updateNumberOfLines();
+    }, [updateNumberOfLines]);
+
+    useEffect(() => {
+        // we need to handle listeners on navigation focus/blur as Composer is not unmounting
+        // when navigating away to different report
+        const unsubscribeFocus = navigation.addListener('focus', () => document.addEventListener('paste', handlePaste));
+        const unsubscribeBlur = navigation.addListener('blur', () => document.removeEventListener('paste', handlePaste));
+
+        if (_.isFunction(forwardedRef)) {
+            forwardedRef(textInput.current);
+        }
+
+        if (textInput.current) {
+            document.addEventListener('paste', handlePaste);
+            textInput.current.addEventListener('wheel', handleWheel);
+        }
+
+        return () => {
+            unsubscribeFocus();
+            unsubscribeBlur();
+            document.removeEventListener('paste', handlePaste);
+            // eslint-disable-next-line es/no-optional-chaining
+            if (!textInput.current) {
+                return;
+            }
+            textInput.current.removeEventListener('wheel', handleWheel);
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    const handleKeyPress = useCallback(
+        (e) => {
+            // Prevent onKeyPress from being triggered if the Enter key is pressed while text is being composed
+            if (!onKeyPress || isEnterWhileComposition(e)) {
+                return;
+            }
+            onKeyPress(e);
+        },
+        [onKeyPress],
+    );
+
+    const renderElementForCaretPosition = (
+        <View
+            style={{
+                position: 'absolute',
+                bottom: -2000,
+                zIndex: -1,
+                opacity: 0,
+            }}
+        >
+            <Text
+                multiline
+                style={[StyleSheet.flatten([style, styles.noSelect]), numberOfLines < maxLines ? styles.overflowHidden : {}, {maxWidth: textInputWidth}]}
             >
+                {`${valueBeforeCaret} `}
                 <Text
-                    multiline
-                    style={[propStyles, this.state.numberOfLines < this.props.maxLines ? styles.overflowHidden : {}, {maxWidth: this.state.width}]}
+                    numberOfLines={1}
+                    ref={textRef}
                 >
-                    {`${this.state.valueBeforeCaret} `}
-                    <Text
-                        numberOfLines={1}
-                        ref={this.textRef}
-                    >
-                        {`${this.state.caretContent}`}
-                    </Text>
+                    {`${caretContent}`}
                 </Text>
-            </View>
-        );
+            </Text>
+        </View>
+    );
 
-        // We're disabling autoCorrect for iOS Safari until Safari fixes this issue. See https://github.com/Expensify/App/issues/8592
-        return (
-            <>
-                <RNTextInput
-                    autoComplete="off"
-                    autoCorrect={!Browser.isMobileSafari()}
-                    placeholderTextColor={themeColors.placeholderText}
-                    ref={(el) => (this.textInput = el)}
-                    selection={this.state.selection}
-                    onChange={this.shouldCallUpdateNumberOfLines}
-                    style={[
-                        propStyles,
+    const inputStyleMemo = useMemo(
+        () => [
+            // We are hiding the scrollbar to prevent it from reducing the text input width,
+            // so we can get the correct scroll height while calculating the number of lines.
+            numberOfLines < maxLines ? styles.overflowHidden : {},
 
-                        // We are hiding the scrollbar to prevent it from reducing the text input width,
-                        // so we can get the correct scroll height while calculating the number of lines.
-                        this.state.numberOfLines < this.props.maxLines ? styles.overflowHidden : {},
-                        StyleUtils.getComposeTextAreaPadding(this.props.numberOfLines),
-                    ]}
-                    /* eslint-disable-next-line react/jsx-props-no-spreading */
-                    {...propsWithoutStyles}
-                    onSelectionChange={this.addCursorPositionToSelectionChange}
-                    numberOfLines={this.state.numberOfLines}
-                    disabled={this.props.isDisabled}
-                    onKeyPress={this.handleKeyPress}
-                />
-                {this.props.shouldCalculateCaretPosition && renderElementForCaretPosition}
-            </>
-        );
-    }
+            StyleSheet.flatten([style, {outline: 'none'}]),
+            StyleUtils.getComposeTextAreaPadding(numberOfLinesProp),
+        ],
+        [style, maxLines, numberOfLinesProp, numberOfLines],
+    );
+
+    return (
+        <>
+            <RNTextInput
+                autoComplete="off"
+                autoCorrect={!Browser.isMobileSafari()}
+                placeholderTextColor={themeColors.placeholderText}
+                ref={(el) => (textInput.current = el)}
+                selection={selection}
+                style={inputStyleMemo}
+                value={value}
+                forwardedRef={forwardedRef}
+                defaultValue={defaultValue}
+                autoFocus={autoFocus}
+                /* eslint-disable-next-line react/jsx-props-no-spreading */
+                {...props}
+                onSelectionChange={addCursorPositionToSelectionChange}
+                numberOfLines={numberOfLines}
+                disabled={isDisabled}
+                onKeyPress={handleKeyPress}
+            />
+            {shouldCalculateCaretPosition && renderElementForCaretPosition}
+        </>
+    );
 }
 
 Composer.propTypes = propTypes;
