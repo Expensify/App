@@ -112,7 +112,7 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
     // 1. Pinned - Always sorted by reportDisplayName
     // 2. Outstanding IOUs - Always sorted by iouReportAmount with the largest amounts at the top of the group
     // 3. Drafts - Always sorted by reportDisplayName
-    // 4. Non-archived reports
+    // 4. Non-archived reports and settled IOUs
     //      - Sorted by lastVisibleActionCreated in default (most recent) view mode
     //      - Sorted by reportDisplayName in GSD (focus) view mode
     // 5. Archived reports

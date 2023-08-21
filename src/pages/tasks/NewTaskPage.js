@@ -139,6 +139,7 @@ function NewTaskPage(props) {
             <FullPageNotFoundView
                 shouldShow={!isAllowedToCreateTask}
                 onBackButtonPress={() => Task.dismissModalAndClearOutTaskInfo()}
+                shouldShowLink={false}
             >
                 <HeaderWithBackButton
                     title={props.translate('newTaskPage.confirmTask')}
