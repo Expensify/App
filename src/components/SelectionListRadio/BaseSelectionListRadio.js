@@ -102,7 +102,7 @@ function BaseSelectionListRadio(props) {
         return defaultIndex;
     });
 
-    const onSelectRow = useCallback(props.shouldDebounceRowSelect ? _.debounce(props.onSelectRow, 1000, {leading: true}) : props.onSelectRow, [
+    const onSelectRow = useCallback(props.shouldDebounceRowSelect ? _.debounce((item) => props.onSelectRow(item), 1000, {leading: true}) : (item) => props.onSelectRow(item), [
         props.shouldDebounceRowSelect,
         props.onSelectRow,
     ]);
@@ -196,9 +196,8 @@ function BaseSelectionListRadio(props) {
 
     useEffect(() => {
         return () => {
-            if (props.shouldDebounceRowSelect && onSelectRow.cancel) {
-                onSelectRow.cancel();
-            }
+            if (!(props.shouldDebounceRowSelect && onSelectRow.cancel)) return;
+            onSelectRow.cancel();
         };
     }, [onSelectRow, props.shouldDebounceRowSelect]);
 

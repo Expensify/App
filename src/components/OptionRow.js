@@ -123,9 +123,8 @@ class OptionRow extends Component {
     }
 
     componentWillUnmount() {
-        if (this.props.shouldDebounceRowSelect && this.onSelectRow.cancel) {
-            this.onSelectRow.cancel();
-        }
+        if (!(this.props.shouldDebounceRowSelect && this.onSelectRow.cancel)) return;
+        this.onSelectRow.cancel();
     }
 
     render() {
