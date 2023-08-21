@@ -55,6 +55,8 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, setDownl
 
         const initialPage = _.findIndex(attachmentsFromReport, compareImage);
 
+        console.log(page, attachmentsFromReport, source);
+
         // Dismiss the modal when deleting an attachment during its display in preview.
         if (initialPage === -1 && _.find(attachments, compareImage)) {
             Navigation.dismissModal();

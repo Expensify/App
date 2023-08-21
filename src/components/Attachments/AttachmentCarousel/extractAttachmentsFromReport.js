@@ -1,11 +1,13 @@
 import {Parser as HtmlParser} from 'htmlparser2';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import Str from 'expensify-common/lib/str';
 import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 import * as TransactionUtils from '../../../libs/TransactionUtils';
 import * as ReceiptUtils from '../../../libs/ReceiptUtils';
 import CONST from '../../../CONST';
 import tryResolveUrlFromApiRoot from '../../../libs/tryResolveUrlFromApiRoot';
+import addEncryptedAuthTokenToURL from '../../../libs/addEncryptedAuthTokenToURL';
 
 /**
  * Constructs the initial component state from report actions
@@ -19,6 +21,17 @@ function extractAttachmentsFromReport(report, reportActions) {
 
     const htmlParser = new HtmlParser({
         onopentag: (name, attribs) => {
+            const isVideo = Boolean(Str.isVideo(attribs['data-expensify-source'] || ''));
+            if (isVideo) {
+                const splittedUrl = attribs['data-expensify-source'].split('/');
+                attachments.unshift({
+                    source: addEncryptedAuthTokenToURL(tryResolveUrlFromApiRoot(attribs['data-expensify-source'])),
+                    isAuthTokenRequired: true,
+                    file: {name: splittedUrl[splittedUrl.length - 1]},
+                });
+                return;
+            }
+
             if (name !== 'img' || !attribs.src) {
                 return;
             }

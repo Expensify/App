@@ -1,4 +1,4 @@
-import React, {memo, useState} from 'react';
+import React, {memo, useState, useEffect} from 'react';
 import {View, ActivityIndicator} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
@@ -14,10 +14,12 @@ import themeColors from '../../../styles/themes/default';
 import variables from '../../../styles/variables';
 import AttachmentViewImage from './AttachmentViewImage';
 import AttachmentViewPdf from './AttachmentViewPdf';
+import AttachmentViewVideo from './AttachmentViewVideo';
 import addEncryptedAuthTokenToURL from '../../../libs/addEncryptedAuthTokenToURL';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import {attachmentViewPropTypes, attachmentViewDefaultProps} from './propTypes';
 import useNetwork from '../../../hooks/useNetwork';
+import {usePlaybackContext} from '../../PlaybackContext';
 
 const propTypes = {
     ...attachmentViewPropTypes,
@@ -65,7 +67,14 @@ function AttachmentView({
     isWorkspaceAvatar,
     fallbackSource,
 }) {
+    const {updateCurrentlyPlayingURL} = usePlaybackContext();
     const [loadComplete, setLoadComplete] = useState(false);
+    const isVideo = Str.isVideo(source);
+
+    useEffect(() => {
+        if (!isFocused) return;
+        updateCurrentlyPlayingURL(isVideo ? source : null);
+    }, [isFocused, isVideo, source, updateCurrentlyPlayingURL]);
 
     const [imageError, setImageError] = useState(false);
 
@@ -131,6 +140,22 @@ function AttachmentView({
                 onError={() => {
                     setImageError(true);
                 }}
+            />
+        );
+    }
+
+    if (isVideo || (file && Str.isVideo(file.name))) {
+        return (
+            <AttachmentViewVideo
+                source={source}
+                file={file}
+                isAuthTokenRequired={isAuthTokenRequired}
+                isUsedInCarousel={isUsedInCarousel}
+                loadComplete={loadComplete}
+                isFocused={isFocused}
+                isImage={isImage}
+                onPress={onPress}
+                onScaleChanged={onScaleChanged}
             />
         );
     }

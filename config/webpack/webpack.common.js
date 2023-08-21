@@ -22,6 +22,7 @@ const includeModules = [
     'react-native-google-places-autocomplete',
     'react-native-qrcode-svg',
     'react-native-view-shot',
+    '@react-native/assets',
 ].join('|');
 
 const envToLogoSuffixMap = {

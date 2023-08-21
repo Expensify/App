@@ -1,6 +1,7 @@
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
+import Str from 'expensify-common/lib/str';
 import {propTypes as anchorForAttachmentsOnlyPropTypes, defaultProps as anchorForAttachmentsOnlyDefaultProps} from './anchorForAttachmentsOnlyPropTypes';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -11,6 +12,8 @@ import addEncryptedAuthTokenToURL from '../../libs/addEncryptedAuthTokenToURL';
 import {ShowContextMenuContext, showContextMenuForReport} from '../ShowContextMenuContext';
 import * as ReportUtils from '../../libs/ReportUtils';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
+import AttachmentModal from '../AttachmentModal';
+import VideoPlayerPreview from '../VideoPlayerPreview';
 
 const propTypes = {
     /** Press in handler for the link */
@@ -39,35 +42,55 @@ function BaseAnchorForAttachmentsOnly(props) {
     const sourceURLWithAuth = addEncryptedAuthTokenToURL(sourceURL);
     const sourceID = (sourceURL.match(CONST.REGEX.ATTACHMENT_ID) || [])[1];
     const fileName = props.displayName;
+    const isVideo = Str.isVideo(sourceURL);
 
     const isDownloading = props.download && props.download.isDownloading;
 
     return (
         <ShowContextMenuContext.Consumer>
-            {({anchor, report, action, checkIfContextMenuActive}) => (
-                <PressableWithoutFeedback
-                    style={props.style}
-                    onPress={() => {
-                        if (isDownloading) {
-                            return;
-                        }
-                        Download.setDownload(sourceID, true);
-                        fileDownload(sourceURLWithAuth, fileName).then(() => Download.setDownload(sourceID, false));
-                    }}
-                    onPressIn={props.onPressIn}
-                    onPressOut={props.onPressOut}
-                    onLongPress={(event) => showContextMenuForReport(event, anchor, report.reportID, action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report))}
-                    accessibilityLabel={fileName}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                >
-                    <AttachmentView
+            {({anchor, report, action, checkIfContextMenuActive}) =>
+                isVideo ? (
+                    <AttachmentModal
+                        allowDownload
+                        report={report}
+                        reportID={report.reportID}
                         source={sourceURLWithAuth}
-                        file={{name: fileName}}
-                        shouldShowDownloadIcon
-                        shouldShowLoadingSpinnerIcon={isDownloading}
-                    />
-                </PressableWithoutFeedback>
-            )}
+                        isAuthTokenRequired={props.isAuthTokenRequired}
+                        originalFileName={props.displayName}
+                    >
+                        {({show}) => (
+                            <VideoPlayerPreview
+                                videoUrl={sourceURLWithAuth}
+                                fileName={fileName}
+                                showModal={show}
+                            />
+                        )}
+                    </AttachmentModal>
+                ) : (
+                    <PressableWithoutFeedback
+                        style={props.style}
+                        onPress={() => {
+                            if (isDownloading) {
+                                return;
+                            }
+                            Download.setDownload(sourceID, true);
+                            fileDownload(sourceURLWithAuth, fileName).then(() => Download.setDownload(sourceID, false));
+                        }}
+                        onPressIn={props.onPressIn}
+                        onPressOut={props.onPressOut}
+                        onLongPress={(event) => showContextMenuForReport(event, anchor, report.reportID, action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report))}
+                        accessibilityLabel={fileName}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                    >
+                        <AttachmentView
+                            source={sourceURLWithAuth}
+                            file={{name: fileName}}
+                            shouldShowDownloadIcon
+                            shouldShowLoadingSpinnerIcon={isDownloading}
+                        />
+                    </PressableWithoutFeedback>
+                )
+            }
         </ShowContextMenuContext.Consumer>
     );
 }

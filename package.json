@@ -164,7 +164,8 @@
     "save": "^2.4.0",
     "semver": "^7.5.2",
     "shim-keyboard-event-key": "^1.0.3",
-    "underscore": "^1.13.1"
+    "underscore": "^1.13.1",
+    "expo-av": "~13.4.1"
   },
   "devDependencies": {
     "@actions/core": "1.10.0",
