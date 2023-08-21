@@ -453,7 +453,6 @@ function ReportComposerWithSuggestions({
         // TODO:  I don't know why this line is needed, it just feels wrong
         updateComment(commentRef.current);
 
-        // TODO: NOTE, this was changed from comment.length to value.length. Does that break functionality?
         if (value.length !== 0) {
             Report.setReportWithDraft(reportID, true);
         }
