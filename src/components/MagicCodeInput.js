@@ -1,5 +1,5 @@
 import React, {useEffect, useImperativeHandle, useRef, useState, forwardRef} from 'react';
-import {StyleSheet, View, Platform} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import styles from '../styles/styles';
