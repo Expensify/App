@@ -1,6 +1,38 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
+/**
+ * Mapbox SDK Configuration Script for iOS and Android
+ * ===================================================
+ *
+ * Purpose:
+ * --------
+ * This script configures the development environment to download Mapbox SDKs
+ * for both iOS and Android builds. We use Mapbox to display maps in the App. As Mapbox SDKs
+ * are closed-sourced, we need to authenticate with Mapbox during the download.
+ *
+ * Background:
+ * -----------
+ * To build the App, a machine requires a Mapbox token with the necessary permissions to download SDKs.
+ * This token needs to be saved in relevant files, enabling tools like CocoaPods for iOS or Gradle
+ * for Android to access the Mapbox SDK during the build process.
+ *
+ * The `.netrc` file for iOS Configuration:
+ * ----------------------------------------
+ * The token for iOS is stored in the `.netrc` file located in the user's home directory.
+ * This file is used in Unix-like systems to store credentials for remote machine access.
+ *
+ * The `gradle.properties` file for Android Configuration:
+ * -------------------------------------------------------
+ * The token for Android is stored in the `gradle.properties` file located in the .gradle directory
+ * in the user's home. This is accessed by the Android build system during the SDK download.
+ *
+ * Usage:
+ * ------
+ * To run this script, pass the secret Mapbox access token as a command-line argument:
+ * `ts-node ./scripts/setup-mapbox-sdk.ts YOUR_MAPBOX_ACCESS_TOKEN`
+ */
+
 const NETRC_PATH = path.join(process.env.HOME || '', '.netrc');
 const USER_GRADLE_DIR = path.join(process.env.HOME || '', '.gradle');
 const GRADLE_PROPERTIES_PATH = path.join(USER_GRADLE_DIR, 'gradle.properties');
