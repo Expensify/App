@@ -237,6 +237,7 @@ export default (type, windowDimensions, popoverAnchorPosition = {}, innerContain
                     translateX: isSmallScreenWidth ? windowWidth : variables.sideBarWidth,
                 },
             };
+            hideBackdrop = true;
             swipeDirection = undefined;
             shouldAddBottomSafeAreaPadding = true;
             shouldAddTopSafeAreaPadding = true;

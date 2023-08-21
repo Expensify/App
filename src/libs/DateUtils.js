@@ -284,6 +284,39 @@ function getDateBasedFromType(type) {
         default:
             return '';
     }
+  }
+
+/**
+ * receive date like 2020-05-16 05:34:14 and format it to show in string like "Until 05:34 PM"
+ *
+ * @param {String} inputDate
+ * @returns {String}
+ */
+function getStatusUntilDate(inputDate) {
+    if (!inputDate) return '';
+    const {translateLocal} = Localize;
+
+    const input = moment(inputDate, 'YYYY-MM-DD HH:mm:ss');
+    const now = moment();
+    const endOfToday = moment().endOf('day').format('YYYY-MM-DD HH:mm:ss');
+
+    // If the date is equal to the end of today
+    if (input.isSame(endOfToday)) {
+        return translateLocal('statusPage.untilTomorrow');
+    }
+
+    // If it's a time on the same date
+    if (input.isSame(now, 'day')) {
+        return translateLocal('statusPage.untilTime', {time: input.format('hh:mm A')});
+    }
+
+    // If it's further in the future than tomorrow but within the same year
+    if (input.isAfter(now) && input.isSame(now, 'year')) {
+        return translateLocal('statusPage.untilTime', {time: input.format('MM-DD hh:mm A')});
+    }
+
+    // If it's in another year
+    return translateLocal('statusPage.untilTime', {time: input.format('YYYY-MM-DD hh:mm A')});
 }
 
 /**
@@ -310,6 +343,7 @@ const DateUtils = {
     extractDate,
     extractTime,
     formatDateTo12Hour,
+    getStatusUntilDate,
 };
 
 export default DateUtils;
