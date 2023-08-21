@@ -15,5 +15,9 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v3
+
       - uses: Expensify/App/.github/actions/composite/setupNode@main
+        with:
+          MAPBOX_SDK_DOWNLOAD_TOKEN: ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
+
       - run: ./.github/scripts/verifyPodfile.sh
