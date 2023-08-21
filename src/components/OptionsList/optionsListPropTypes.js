@@ -52,6 +52,9 @@ const propTypes = {
     /** Callback to fire when a row is selected */
     onSelectRow: PropTypes.func,
 
+    /** Boolean to indicate if onSelectRow should be debounced */
+    shouldDebounceRowSelect: PropTypes.bool,
+
     /** Optional header message */
     headerMessage: PropTypes.string,
 
@@ -92,6 +95,7 @@ const defaultProps = {
     disableFocusOptions: false,
     boldStyle: false,
     onSelectRow: undefined,
+    shouldDebounceRowSelect: false,
     headerMessage: '',
     innerRef: null,
     showTitleTooltip: false,

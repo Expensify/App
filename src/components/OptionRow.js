@@ -36,6 +36,9 @@ const propTypes = {
     /** A function that is called when an option is selected. Selected option is passed as a param */
     onSelectRow: PropTypes.func,
 
+    /** Boolean to indicate if onSelectRow should be debounced */
+    shouldDebounceRowSelect: PropTypes.bool,
+
     /** Whether we should show the selected state */
     showSelectedState: PropTypes.bool,
 
@@ -69,6 +72,7 @@ const defaultProps = {
     boldStyle: false,
     showTitleTooltip: false,
     onSelectRow: undefined,
+    shouldDebounceRowSelect: false,
     isDisabled: false,
     optionIsFocused: false,
     style: null,
@@ -82,6 +86,8 @@ class OptionRow extends Component {
         this.state = {
             isDisabled: this.props.isDisabled,
         };
+
+        this.onSelectRow = this.props.shouldDebounceRowSelect ? _.debounce(this.props.onSelectRow, 1000, {leading: true}) : this.props.onSelectRow;
     }
 
     // It is very important to use shouldComponentUpdate here so SectionList items will not unnecessarily re-render
@@ -103,7 +109,8 @@ class OptionRow extends Component {
             this.props.option.ownerAccountID !== nextProps.option.ownerAccountID ||
             this.props.option.subtitle !== nextProps.option.subtitle ||
             this.props.option.pendingAction !== nextProps.option.pendingAction ||
-            this.props.option.customIcon !== nextProps.option.customIcon
+            this.props.option.customIcon !== nextProps.option.customIcon ||
+            this.props.shouldDebounceRowSelect !== nextProps.shouldDebounceRowSelect
         );
     }
 
@@ -113,6 +120,12 @@ class OptionRow extends Component {
         }
 
         this.setState({isDisabled: this.props.isDisabled});
+    }
+
+    componentWillUnmount() {
+        if (this.props.shouldDebounceRowSelect && this.onSelectRow.cancel) {
+            this.onSelectRow.cancel();
+        }
     }
 
     render() {
@@ -164,7 +177,7 @@ class OptionRow extends Component {
                                 if (e) {
                                     e.preventDefault();
                                 }
-                                let result = this.props.onSelectRow(this.props.option, pressableRef);
+                                let result = this.onSelectRow(this.props.option, pressableRef);
                                 if (!(result instanceof Promise)) {
                                     result = Promise.resolve();
                                 }
