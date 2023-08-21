@@ -576,11 +576,29 @@ function isMessageDeleted(reportAction) {
 }
 
 /**
+ * Returns the number of money requests associated with a report preview
+ *
+ * @param {Object|null} reportPreviewAction
+ * @returns {Number}
+ */
+function getNumberOfMoneyRequests(reportPreviewAction) {
+    return lodashGet(reportPreviewAction, 'childMoneyRequestCount', 0);
+}
+
+/**
  * @param {*} reportAction
  * @returns {Boolean}
  */
 function isSplitBillAction(reportAction) {
     return lodashGet(reportAction, 'originalMessage.type', '') === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
+}
+
+/**
+ * @param {*} reportID
+ * @returns {[Object]}
+ */
+function getAllReportActions(reportID) {
+    return lodashGet(allReportActions, reportID, []);
 }
 
 export {
@@ -616,6 +634,8 @@ export {
     isWhisperAction,
     isPendingRemove,
     getReportAction,
+    getNumberOfMoneyRequests,
     isSplitBillAction,
     getReportActions,
+    getAllReportActions,
 };
