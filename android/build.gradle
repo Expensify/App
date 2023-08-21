@@ -35,7 +35,6 @@ buildscript {
     }
 }
 
-allprojects.forEach { println(it.name) }
 allprojects {
     configurations.all {
         resolutionStrategy {
