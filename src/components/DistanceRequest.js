@@ -97,6 +97,7 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
                 coordinate: [waypoint.lng, waypoint.lat],
                 markerComponent: () => (
                     <MarkerComponent
+                        width={20}
                         height={20}
                         fill={theme.iconReversed}
                     />
