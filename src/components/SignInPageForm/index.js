@@ -1,14 +1,14 @@
 import React, {useEffect, useRef} from 'react';
 import FormElement from '../FormElement';
 
+const preventFormDefault = (event) => {
+    // When enter is pressed form is submitted to action url (POST /).
+    // As we are using controlled component, we need to disable it here.
+    event.preventDefault();
+};
+
 function Form(props) {
     const form = useRef(null);
-
-    const preventFormDefault = (event) => {
-        // When enter is pressed form is submitted to action url (POST /).
-        // As we are using controlled component, we need to disable it here.
-        event.preventDefault();
-    };
 
     useEffect(() => {
         const formCurrent = form.current;
