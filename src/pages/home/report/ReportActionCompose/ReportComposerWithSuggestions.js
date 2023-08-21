@@ -54,15 +54,6 @@ const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 // prevent auto focus on existing chat for mobile device
 const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
-// TODO: This needs to be moved to its own place
-const draftCommentMap = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
-    callback: (val, key) => {
-        draftCommentMap[key] = val;
-    },
-});
-
 const propTypes = {
     /** A method to call when the form is submitted */
     submitForm: PropTypes.func.isRequired,
@@ -133,8 +124,8 @@ function ReportComposerWithSuggestions({
 
     forwardedRef,
 }) {
-    const initialComment = draftCommentMap[reportID] || '';
-    const commentRef = useRef(initialComment);
+    const [value, setValue] = useState(() => Onyx.tryGetCachedValue(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT + reportID) || '');
+    const commentRef = useRef(value);
 
     const {isSmallScreenWidth} = useWindowDimensions();
     const maxComposerLines = isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
@@ -142,14 +133,13 @@ function ReportComposerWithSuggestions({
     const isEmptyChat = useMemo(() => _.size(reportActions) === 1, [reportActions]);
     const shouldAutoFocus = !modal.isVisible && (shouldFocusInputOnScreenFocus || isEmptyChat) && shouldShowComposeInput;
 
-    const [value, setValue] = useState(initialComment);
     const valueRef = useRef(value);
     valueRef.current = value;
 
-    const [selection, setSelection] = useState({
-        start: isMobileSafari && !shouldAutoFocus ? 0 : initialComment.length,
-        end: isMobileSafari && !shouldAutoFocus ? 0 : initialComment.length,
-    });
+    const [selection, setSelection] = useState(() => ({
+        start: isMobileSafari && !shouldAutoFocus ? 0 : value.length,
+        end: isMobileSafari && !shouldAutoFocus ? 0 : value.length,
+    }));
 
     const [composerHeight, setComposerHeight] = useState(0);
 
