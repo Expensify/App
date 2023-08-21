@@ -98,7 +98,7 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, polic
                 />
             </View>
             <MenuItemWithTopDescription
-                title={formattedTransactionAmount}
+                title={formattedTransactionAmount ? formattedTransactionAmount.toString() : ''}
                 shouldShowTitleIcon={isSettled}
                 titleIcon={Expensicons.Checkmark}
                 description={description}

@@ -128,6 +128,11 @@ function BaseWalletPage(props) {
      * @param {String|Number} methodID
      */
     const paymentMethodPressed = (nativeEvent, accountType, account, isDefault, methodID) => {
+        if (shouldShowAddPaymentMenu) {
+            setShouldShowAddPaymentMenu(false);
+            return;
+        }
+
         paymentMethodButtonRef.current = nativeEvent.currentTarget;
 
         // The delete/default menu
@@ -294,8 +299,9 @@ function BaseWalletPage(props) {
                                     addDebitCardRoute={ROUTES.SETTINGS_ADD_DEBIT_CARD}
                                     popoverPlacement="bottom"
                                 >
-                                    {(triggerKYCFlow) => (
+                                    {(triggerKYCFlow, buttonRef) => (
                                         <MenuItem
+                                            ref={buttonRef}
                                             title={translate('common.transferBalance')}
                                             icon={Expensicons.Transfer}
                                             onPress={triggerKYCFlow}

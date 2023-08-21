@@ -48,7 +48,7 @@ const defaultProps = {
     subtitleKey: 'notFound.pageNotFound',
     linkKey: 'notFound.goBackHome',
     onBackButtonPress: Navigation.goBack,
-    shouldShowLink: false,
+    shouldShowLink: true,
     shouldShowBackButton: true,
     onLinkPress: () => Navigation.dismissModal(),
 };
