@@ -311,6 +311,8 @@ export default {
         beginningOfChatHistoryAdminRoomPartOne: ({workspaceName}) => `Collaboration among ${workspaceName} admins starts here! 🎉\nUse `,
         beginningOfChatHistoryAdminRoomPartTwo: ' to chat about topics such as workspace configurations and more.',
         beginningOfChatHistoryAdminOnlyPostingRoom: 'Only admins can send messages in this room.',
+        beginningOfChatHistoryAdminOnlyPostingRoomUserIsAdminPartOne: "You're an admin in this workspace. Use ",
+        beginningOfChatHistoryAdminOnlyPostingRoomUserIsAdminPartTwo: ' to announce important updates in this room.',
         beginningOfChatHistoryAnnounceRoomPartOne: ({workspaceName}) => `Collaboration between all ${workspaceName} members starts here! 🎉\nUse `,
         beginningOfChatHistoryAnnounceRoomPartTwo: ({workspaceName}) => ` to chat about anything ${workspaceName} related.`,
         beginningOfChatHistoryUserRoomPartOne: 'Collaboration starts here! 🎉\nUse this space to chat about anything ',

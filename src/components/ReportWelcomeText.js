@@ -10,6 +10,7 @@ import Text from './Text';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import compose from '../libs/compose';
 import * as ReportUtils from '../libs/ReportUtils';
+import * as PolicyUtils from '../libs/PolicyUtils';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
 import ONYXKEYS from '../ONYXKEYS';
 import Navigation from '../libs/Navigation/Navigation';
@@ -33,6 +34,15 @@ const propTypes = {
     /** The report currently being looked at */
     report: reportPropTypes,
 
+    /** The policy object for the current route */
+    policy: PropTypes.shape({
+        /** The name of the policy */
+        name: PropTypes.string,
+
+        /** The URL for the policy avatar */
+        avatar: PropTypes.string,
+    }),
+
     /* Onyx Props */
 
     /** All of the personal details for everyone */
@@ -46,6 +56,7 @@ const propTypes = {
 
 const defaultProps = {
     report: {},
+    policy: {},
     personalDetails: {},
     betas: [],
 };
@@ -62,8 +73,10 @@ function ReportWelcomeText(props) {
         OptionsListUtils.getPersonalDetailsForAccountIDs(participantAccountIDs, props.personalDetails),
         isMultipleParticipant,
     );
-    const roomWelcomeMessage = ReportUtils.getRoomWelcomeMessage(props.report);
+    const isUserPolicyAdmin = PolicyUtils.isPolicyAdmin(props.policy);
+    const roomWelcomeMessage = ReportUtils.getRoomWelcomeMessage(props.report, isUserPolicyAdmin);
     const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(props.report, participantAccountIDs, props.betas);
+
     return (
         <>
             <View>
@@ -90,7 +103,8 @@ function ReportWelcomeText(props) {
                 {isChatRoom && (
                     <>
                         <Text>{roomWelcomeMessage.phrase1}</Text>
-                        {!isAdminsOnlyPostingRoom && (
+                        {/* for rooms in which only admins can post we dont need room name and phrase two */}
+                        {(!isAdminsOnlyPostingRoom || isUserPolicyAdmin) && (
                             <>
                                 <Text
                                     style={[styles.textStrong]}
