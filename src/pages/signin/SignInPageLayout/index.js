@@ -165,7 +165,6 @@ function SignInPageLayout(props) {
 }
 
 SignInPageLayout.propTypes = propTypes;
-SignInPageLayout.defaultProps = defaultProps;
 SignInPageLayout.displayName = 'SignInPageLayout';
 SignInPageLayout.defaultProps = defaultProps;
 
