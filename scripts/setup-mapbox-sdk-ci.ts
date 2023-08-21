@@ -1,3 +1,14 @@
+/**
+ * Mapbox SDK CI Configuration Script
+ * ===================================
+ *
+ * A script tailored for Continuous Integration (CI) environments to set up the Mapbox SDK.
+ * Takes a Mapbox access token as a command-line argument and configures the SDK appropriately.
+ *
+ * Usage:
+ * `ts-node ./scripts/setup-mapbox-sdk-ci.ts YOUR_MAPBOX_ACCESS_TOKEN`
+ */
+
 import {saveMapboxToken} from './setup-mapbox-sdk';
 
 const token = process.argv[2];
