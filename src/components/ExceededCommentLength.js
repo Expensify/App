@@ -37,7 +37,10 @@ function ExceededCommentLength(props) {
     }
 
     return (
-        <Text style={[styles.textMicro, styles.textDanger, styles.chatItemComposeSecondaryRow, styles.mlAuto, styles.pl2]}>
+        <Text
+            style={[styles.textMicro, styles.textDanger, styles.chatItemComposeSecondaryRow, styles.mlAuto, styles.pl2]}
+            numberOfLines={1}
+        >
             {translate('composer.commentExceededMaxLength', {formattedMaxLength: numberFormat(CONST.MAX_COMMENT_LENGTH)})}
         </Text>
     );
