@@ -450,12 +450,11 @@ function ReportComposerWithSuggestions({
     }, [focus, prevIsFocused, prevIsModalVisible, isFocusedProp, modal.isVisible]);
 
     useEffect(() => {
-        // TODO:  I don't know why this line is needed, it just feels wrong
-        updateComment(commentRef.current);
-
         if (value.length !== 0) {
-            Report.setReportWithDraft(reportID, true);
+            return;
         }
+        Report.setReportWithDraft(reportID, true);
+
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
