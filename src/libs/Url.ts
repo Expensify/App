@@ -1,9 +1,5 @@
 import 'react-native-url-polyfill/auto';
-/**
- * Add / to the end of any URL if not present
- * @param {String} url
- * @returns {String}
- */
+
 function addTrailingForwardSlash(url:string):string {
     if (!url.endsWith('/')) {
         return `${url}/`;
@@ -11,11 +7,7 @@ function addTrailingForwardSlash(url:string):string {
     return url;
 }
 
-/**
- * Get path from URL string
- * @param {String} url
- * @returns {String}
- */
+
 function getPathFromURL(url:string): string {
     try {
         const parsedUrl: URL = new URL(url);
@@ -29,9 +21,6 @@ function getPathFromURL(url:string): string {
 
 /**
  * Determine if two urls have the same origin
- * @param {String} url1
- * @param {String} url2
- * @returns {Boolean}
  */
 function hasSameExpensifyOrigin(url1: string, url2: string): boolean {
     const removeW3 = (host: string): string => host.replace(/^www\./i, '');
