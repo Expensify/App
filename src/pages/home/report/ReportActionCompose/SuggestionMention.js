@@ -10,6 +10,7 @@ import * as Expensicons from '../../../../components/Icon/Expensicons';
 import * as SuggestionsUtils from '../../../../libs/SuggestionUtils';
 import useLocalize from '../../../../hooks/useLocalize';
 import ONYXKEYS from '../../../../ONYXKEYS';
+import personalDetailsPropType from '../../../personalDetailsPropType';
 
 /**
  * Check if this piece of string looks like a mention
@@ -23,10 +24,11 @@ const defaultSuggestionsValues = {
     atSignIndex: -1,
     shouldShowSuggestionMenu: false,
     mentionPrefix: '',
-    isAutoSuggestionPickerLarge: false,
 };
 
 const propTypes = {
+    // Onyx
+    personalDetails: PropTypes.objectOf(personalDetailsPropType),
     // Input
     value: PropTypes.string.isRequired,
     setValue: PropTypes.func.isRequired,
@@ -42,9 +44,27 @@ const propTypes = {
     shouldShowReportRecipientLocalTime: PropTypes.bool.isRequired,
     // Custom added
     forwardedRef: PropTypes.func.isRequired,
+
+    /** Whether to use the small or the big suggestion picker */
+    isAutoSuggestionPickerLarge: PropTypes.bool.isRequired,
 };
 
-function SuggestionMention({isComposerFullSize, personalDetails, value, setValue, setSelection, updateComment, composerHeight, shouldShowReportRecipientLocalTime, forwardedRef}) {
+const defaultProps = {
+    personalDetails: {},
+};
+
+function SuggestionMention({
+    isComposerFullSize,
+    personalDetails,
+    value,
+    setValue,
+    setSelection,
+    updateComment,
+    composerHeight,
+    shouldShowReportRecipientLocalTime,
+    forwardedRef,
+    isAutoSuggestionPickerLarge,
+}) {
     const {translate} = useLocalize();
     // TODO: rewrite suggestion logic to some hook or state machine or util or something to not make it depend on ReportActionComposer
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
@@ -53,7 +73,7 @@ function SuggestionMention({isComposerFullSize, personalDetails, value, setValue
 
     const [highlightedMentionIndex, setHighlightedMentionIndex] = useArrowKeyFocusManager({
         isActive: isMentionSuggestionsMenuVisible,
-        maxIndex: SuggestionsUtils.getMaxArrowIndex(suggestionValues.suggestedMentions.length, suggestionValues.isAutoSuggestionPickerLarge),
+        maxIndex: SuggestionsUtils.getMaxArrowIndex(suggestionValues.suggestedMentions.length, isAutoSuggestionPickerLarge),
         shouldExcludeTextAreaNodes: false,
     });
 
@@ -276,7 +296,7 @@ function SuggestionMention({isComposerFullSize, personalDetails, value, setValue
             prefix={suggestionValues.mentionPrefix}
             onSelect={insertSelectedMention}
             isComposerFullSize={isComposerFullSize}
-            isMentionPickerLarge={suggestionValues.isAutoSuggestionPickerLarge}
+            isMentionPickerLarge={isAutoSuggestionPickerLarge}
             composerHeight={composerHeight}
             shouldIncludeReportRecipientLocalTimeHeight={shouldShowReportRecipientLocalTime}
         />
@@ -284,6 +304,7 @@ function SuggestionMention({isComposerFullSize, personalDetails, value, setValue
 }
 
 SuggestionMention.propTypes = propTypes;
+SuggestionMention.defaultProps = defaultProps;
 
 export default withOnyx({
     personalDetails: {

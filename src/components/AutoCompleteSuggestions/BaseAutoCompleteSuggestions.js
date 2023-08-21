@@ -73,6 +73,10 @@ function BaseAutoCompleteSuggestions(props) {
     const animatedStyles = useAnimatedStyle(() => StyleUtils.getAutoCompleteSuggestionContainerStyle(rowHeight.value, props.shouldIncludeReportRecipientLocalTimeHeight));
 
     useEffect(() => {
+        console.log({
+            length: props.suggestions.length,
+            isSuggestionPickerLarge: props.isSuggestionPickerLarge,
+        });
         rowHeight.value = withTiming(measureHeightOfSuggestionRows(props.suggestions.length, props.isSuggestionPickerLarge), {
             duration: 100,
             easing: Easing.inOut(Easing.ease),

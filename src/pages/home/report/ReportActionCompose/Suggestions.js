@@ -2,14 +2,9 @@ import React, {useRef, useCallback, useImperativeHandle} from 'react';
 import PropTypes from 'prop-types';
 import SuggestionMention from './SuggestionMention';
 import SuggestionEmoji from './SuggestionEmoji';
+import useWindowDimensions from '../../../../hooks/useWindowDimensions';
 
 const propTypes = {
-    // Onyx/Hooks
-    preferredSkinTone: PropTypes.number.isRequired,
-    windowHeight: PropTypes.number.isRequired,
-    isSmallScreenWidth: PropTypes.bool.isRequired,
-    preferredLocale: PropTypes.string.isRequired,
-    translate: PropTypes.func.isRequired,
     // Input
     value: PropTypes.string.isRequired,
     setValue: PropTypes.func.isRequired,
@@ -31,11 +26,6 @@ const propTypes = {
 
 function Suggestions({
     isComposerFullSize,
-    windowHeight,
-    preferredLocale,
-    isSmallScreenWidth,
-    preferredSkinTone,
-    translate,
     value,
     setValue,
     selection,
@@ -91,6 +81,12 @@ function Suggestions({
         [onSelectionChange, resetSuggestions, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse],
     );
 
+    const {windowHeight, isSmallScreenWidth} = useWindowDimensions();
+
+    // the larger composerHeight the less space for EmojiPicker, Pixel 2 has pretty small screen and this value equal 5.3
+    const hasEnoughSpaceForLargeSuggestion = windowHeight / composerHeight >= 6.8;
+    const isAutoSuggestionPickerLarge = !isSmallScreenWidth || (isSmallScreenWidth && hasEnoughSpaceForLargeSuggestion);
+
     return (
         <>
             <SuggestionEmoji
@@ -108,14 +104,9 @@ function Suggestions({
                 ref={suggestionEmojiRef}
                 onInsertedEmoji={onInsertedEmoji}
                 resetKeyboardInput={resetKeyboardInput}
+                isAutoSuggestionPickerLarge={isAutoSuggestionPickerLarge}
             />
             <SuggestionMention
-                // Onyx
-                preferredSkinTone={preferredSkinTone}
-                windowHeight={windowHeight}
-                isSmallScreenWidth={isSmallScreenWidth}
-                preferredLocale={preferredLocale}
-                translate={translate}
                 // Input
                 value={value}
                 setValue={setValue}
@@ -128,6 +119,7 @@ function Suggestions({
                 shouldShowReportRecipientLocalTime={shouldShowReportRecipientLocalTime}
                 // Custom added
                 ref={suggestionMentionRef}
+                isAutoSuggestionPickerLarge={isAutoSuggestionPickerLarge}
             />
         </>
     );

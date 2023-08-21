@@ -8,9 +8,7 @@ import * as SuggestionsUtils from '../../../../libs/SuggestionUtils';
 import * as EmojiUtils from '../../../../libs/EmojiUtils';
 import EmojiSuggestions from '../../../../components/EmojiSuggestions';
 import ONYXKEYS from '../../../../ONYXKEYS';
-import compose from '../../../../libs/compose';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
-import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
+import useLocalize from '../../../../hooks/useLocalize';
 
 /**
  * Check if this piece of string looks like an emoji
@@ -28,11 +26,11 @@ const defaultSuggestionsValues = {
     suggestedEmojis: [],
     colonSignIndex: -1,
     shouldShowSuggestionMenu: false,
-    mentionPrefix: '',
-    isAutoSuggestionPickerLarge: false,
 };
 
 const propTypes = {
+    // Onyx
+    preferredSkinTone: PropTypes.number.isRequired,
     // Input
     value: PropTypes.string.isRequired,
     setValue: PropTypes.func.isRequired,
@@ -44,33 +42,29 @@ const propTypes = {
     // Esoteric props
     isComposerFullSize: PropTypes.bool.isRequired,
     updateComment: PropTypes.func.isRequired,
-    composerHeight: PropTypes.number.isRequired,
     shouldShowReportRecipientLocalTime: PropTypes.bool.isRequired,
     // Custom added
-    forwardedRef: PropTypes.object.isRequired,
+    forwardedRef: PropTypes.func.isRequired,
     resetKeyboardInput: PropTypes.func.isRequired,
     onInsertedEmoji: PropTypes.func.isRequired,
 
-    ...windowDimensionsPropTypes,
-    ...withLocalizePropTypes,
+    /** Whether to use the small or the big suggestion picker */
+    isAutoSuggestionPickerLarge: PropTypes.bool.isRequired,
 };
 
 function SuggestionEmoji({
     isComposerFullSize,
-    windowHeight,
-    preferredLocale,
-    isSmallScreenWidth,
     preferredSkinTone,
     value,
     setValue,
     selection,
     setSelection,
     updateComment,
-    composerHeight,
     shouldShowReportRecipientLocalTime,
     forwardedRef,
     resetKeyboardInput,
     onInsertedEmoji,
+    isAutoSuggestionPickerLarge,
 }) {
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
 
@@ -78,9 +72,11 @@ function SuggestionEmoji({
 
     const [highlightedEmojiIndex, setHighlightedEmojiIndex] = useArrowKeyFocusManager({
         isActive: isEmojiSuggestionsMenuVisible,
-        maxIndex: SuggestionsUtils.getMaxArrowIndex(suggestionValues.suggestedEmojis.length, suggestionValues.isAutoSuggestionPickerLarge),
+        maxIndex: SuggestionsUtils.getMaxArrowIndex(suggestionValues.suggestedEmojis.length, isAutoSuggestionPickerLarge),
         shouldExcludeTextAreaNodes: false,
     });
+
+    const {preferredLocale} = useLocalize();
 
     // Used to decide whether to block the suggestions list from showing to prevent flickering
     const shouldBlockCalc = useRef(false);
@@ -174,15 +170,10 @@ function SuggestionEmoji({
             const colonIndex = leftString.lastIndexOf(':');
             const isCurrentlyShowingEmojiSuggestion = isEmojiCode(value, selectionEnd);
 
-            // the larger composerHeight the less space for EmojiPicker, Pixel 2 has pretty small screen and this value equal 5.3
-            const hasEnoughSpaceForLargeSuggestion = windowHeight / composerHeight >= 6.8;
-            const isAutoSuggestionPickerLarge = !isSmallScreenWidth || (isSmallScreenWidth && hasEnoughSpaceForLargeSuggestion);
-
             const nextState = {
                 suggestedEmojis: [],
                 colonIndex,
                 shouldShowEmojiSuggestionMenu: false,
-                isAutoSuggestionPickerLarge,
             };
             const newSuggestedEmojis = EmojiUtils.suggestEmojis(leftString, preferredLocale);
 
@@ -194,7 +185,7 @@ function SuggestionEmoji({
             setSuggestionValues((prevState) => ({...prevState, ...nextState}));
             setHighlightedEmojiIndex(0);
         },
-        [value, windowHeight, composerHeight, isSmallScreenWidth, preferredLocale, setHighlightedEmojiIndex, resetSuggestions],
+        [value, preferredLocale, setHighlightedEmojiIndex, resetSuggestions],
     );
 
     const onSelectionChange = useCallback(
@@ -244,7 +235,7 @@ function SuggestionEmoji({
             onSelect={insertSelectedEmoji}
             isComposerFullSize={isComposerFullSize}
             preferredSkinToneIndex={preferredSkinTone}
-            isEmojiPickerLarge={suggestionValues.isAutoSuggestionPickerLarge}
+            isEmojiPickerLarge={isAutoSuggestionPickerLarge}
             shouldIncludeReportRecipientLocalTimeHeight={shouldShowReportRecipientLocalTime}
         />
     );
@@ -260,13 +251,9 @@ const SuggestionEmojiWithRef = React.forwardRef((props, ref) => (
     />
 ));
 
-export default compose(
-    withLocalize,
-    withWindowDimensions,
-    withOnyx({
-        preferredSkinTone: {
-            key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
-            selector: EmojiUtils.getPreferredSkinToneIndex,
-        },
-    }),
-)(SuggestionEmojiWithRef);
+export default withOnyx({
+    preferredSkinTone: {
+        key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
+        selector: EmojiUtils.getPreferredSkinToneIndex,
+    },
+})(SuggestionEmojiWithRef);
