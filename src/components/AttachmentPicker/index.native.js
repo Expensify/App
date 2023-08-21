@@ -82,7 +82,6 @@ const getDataForUpload = (fileData) => {
     });
 };
 
-
 /**
  * This component renders a function as a child and
  * returns a "show attachment picker" method that takes
