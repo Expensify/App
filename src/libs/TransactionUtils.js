@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import {format} from 'date-fns';
+import {format, parseISO, isValid} from 'date-fns';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import CONST from '../CONST';
@@ -26,6 +26,7 @@ Onyx.connect({
  * @param {String} currency
  * @param {String} reportID
  * @param {String} [comment]
+ * @param {String} [created]
  * @param {String} [source]
  * @param {String} [originalTransactionID]
  * @param {String} [merchant]
@@ -38,6 +39,7 @@ function buildOptimisticTransaction(
     currency,
     reportID,
     comment = '',
+    created = '',
     source = '',
     originalTransactionID = '',
     merchant = CONST.REPORT.TYPE.IOU,
@@ -62,8 +64,8 @@ function buildOptimisticTransaction(
         currency,
         reportID,
         comment: commentJSON,
-        merchant,
-        created: DateUtils.getDBTime(),
+        merchant: merchant || CONST.REPORT.TYPE.IOU,
+        created: created || DateUtils.getDBTime(),
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         receipt,
     };
@@ -97,7 +99,12 @@ function getUpdatedTransaction(transaction, transactionChanges, isFromExpenseRep
     if (_.has(transactionChanges, 'currency')) {
         updatedTransaction.modifiedCurrency = transactionChanges.currency;
     }
-    updatedTransaction.pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
+    updatedTransaction.pendingFields = {
+        ...(_.has(transactionChanges, 'comment') && {comment: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+        ...(_.has(transactionChanges, 'created') && {created: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+        ...(_.has(transactionChanges, 'amount') && {amount: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+        ...(_.has(transactionChanges, 'currency') && {currency: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+    };
 
     return updatedTransaction;
 }
@@ -168,6 +175,16 @@ function getCurrency(transaction) {
 }
 
 /**
+ * Return the merchant field from the transaction, return the modifiedMerchant if present.
+ *
+ * @param {Object} transaction
+ * @returns {String}
+ */
+function getMerchant(transaction) {
+    return lodashGet(transaction, 'modifiedMerchant', null) || lodashGet(transaction, 'merchant', '');
+}
+
+/**
  * Return the created field from the transaction, return the modifiedCreated if present.
  *
  * @param {Object} transaction
@@ -175,9 +192,11 @@ function getCurrency(transaction) {
  */
 function getCreated(transaction) {
     const created = lodashGet(transaction, 'modifiedCreated', '') || lodashGet(transaction, 'created', '');
-    if (created) {
-        return format(new Date(created), CONST.DATE.FNS_FORMAT_STRING);
+    const createdDate = parseISO(created);
+    if (isValid(createdDate)) {
+        return format(createdDate, CONST.DATE.FNS_FORMAT_STRING);
     }
+
     return '';
 }
 
@@ -196,4 +215,4 @@ function getAllReportTransactions(reportID) {
     return _.filter(allTransactions, (transaction) => transaction.reportID === reportID);
 }
 
-export {buildOptimisticTransaction, getUpdatedTransaction, getTransaction, getDescription, getAmount, getCurrency, getCreated, getLinkedTransaction, getAllReportTransactions};
+export {buildOptimisticTransaction, getUpdatedTransaction, getTransaction, getDescription, getAmount, getCurrency, getMerchant, getCreated, getLinkedTransaction, getAllReportTransactions};
