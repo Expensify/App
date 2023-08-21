@@ -26,6 +26,7 @@ Onyx.connect({
  * @param {String} currency
  * @param {String} reportID
  * @param {String} [comment]
+ * @param {String} [created]
  * @param {String} [source]
  * @param {String} [originalTransactionID]
  * @param {String} [merchant]
@@ -38,6 +39,7 @@ function buildOptimisticTransaction(
     currency,
     reportID,
     comment = '',
+    created = '',
     source = '',
     originalTransactionID = '',
     merchant = CONST.REPORT.TYPE.IOU,
@@ -62,8 +64,8 @@ function buildOptimisticTransaction(
         currency,
         reportID,
         comment: commentJSON,
-        merchant,
-        created: DateUtils.getDBTime(),
+        merchant: merchant || CONST.REPORT.TYPE.IOU,
+        created: created || DateUtils.getDBTime(),
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         receipt,
     };
@@ -173,6 +175,16 @@ function getCurrency(transaction) {
 }
 
 /**
+ * Return the merchant field from the transaction, return the modifiedMerchant if present.
+ *
+ * @param {Object} transaction
+ * @returns {String}
+ */
+function getMerchant(transaction) {
+    return lodashGet(transaction, 'modifiedMerchant', null) || lodashGet(transaction, 'merchant', '');
+}
+
+/**
  * Return the created field from the transaction, return the modifiedCreated if present.
  *
  * @param {Object} transaction
@@ -203,4 +215,4 @@ function getAllReportTransactions(reportID) {
     return _.filter(allTransactions, (transaction) => transaction.reportID === reportID);
 }
 
-export {buildOptimisticTransaction, getUpdatedTransaction, getTransaction, getDescription, getAmount, getCurrency, getCreated, getLinkedTransaction, getAllReportTransactions};
+export {buildOptimisticTransaction, getUpdatedTransaction, getTransaction, getDescription, getAmount, getCurrency, getMerchant, getCreated, getLinkedTransaction, getAllReportTransactions};
