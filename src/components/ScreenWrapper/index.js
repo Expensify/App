@@ -126,7 +126,7 @@ class ScreenWrapper extends React.Component {
                                         enabled={this.props.shouldEnablePickerAvoiding}
                                     >
                                         <FocusTrapView
-                                            style={styles.flex1}
+                                            style={[styles.flex1, styles.noSelect]}
                                             enabled={!this.props.shouldDisableFocusTrap}
                                             shouldDisableAutoFocus={this.props.shouldDisableAutoFocus}
                                         >
