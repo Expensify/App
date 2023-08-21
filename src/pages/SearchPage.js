@@ -38,7 +38,7 @@ const defaultProps = {
     reports: {},
 };
 
-function SearchPage(props) {
+function SearchPage({betas, personalDetails, reports}) {
     // Data for initialization (runs only on the first render)
     const {
         recentReports: initialRecentReports,
@@ -46,7 +46,7 @@ function SearchPage(props) {
         userToInvite: initialUserToInvite,
         // Ignoring the rule because in this case we need the data only initially
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    } = useMemo(() => OptionsListUtils.getSearchOptions(props.reports, props.personalDetails, '', props.betas), []);
+    } = useMemo(() => OptionsListUtils.getSearchOptions(reports, personalDetails, '', betas), []);
 
     const [searchValue, setSearchValue] = useState('');
     const [searchOptions, setSearchOptions] = useState({
@@ -62,14 +62,14 @@ function SearchPage(props) {
             recentReports: localRecentReports,
             personalDetails: localPersonalDetails,
             userToInvite: localUserToInvite,
-        } = OptionsListUtils.getSearchOptions(props.reports, props.personalDetails, searchValue.trim(), props.betas);
+        } = OptionsListUtils.getSearchOptions(reports, personalDetails, searchValue.trim(), betas);
 
         setSearchOptions({
             recentReports: localRecentReports,
             personalDetails: localPersonalDetails,
             userToInvite: localUserToInvite,
         });
-    }, [props.reports, props.personalDetails, searchValue, props.betas]);
+    }, [reports, personalDetails, searchValue, betas]);
 
     const debouncedUpdateOptions = useMemo(() => _.debounce(updateOptions, 75), [updateOptions]);
 
@@ -146,7 +146,7 @@ function SearchPage(props) {
         }
     };
 
-    const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(props.personalDetails);
+    const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails);
     const headerMessage = OptionsListUtils.getHeaderMessage(
         searchOptions.recentReports.length + searchOptions.personalDetails.length !== 0,
         Boolean(searchOptions.userToInvite),
