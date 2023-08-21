@@ -7,7 +7,6 @@ function addTrailingForwardSlash(url:string):string {
     return url;
 }
 
-
 function getPathFromURL(url:string): string {
     try {
         const parsedUrl: URL = new URL(url);
