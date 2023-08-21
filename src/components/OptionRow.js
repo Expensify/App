@@ -265,6 +265,7 @@ class OptionRow extends Component {
                                         <>
                                             {this.props.shouldShowSelectedStateAsButton && !this.props.isSelected ? (
                                                 <Button
+                                                    style={[styles.pl2]}
                                                     text={this.props.selectedStateButtonText}
                                                     onPress={() => this.props.onSelectedStatePressed(this.props.option)}
                                                     small
