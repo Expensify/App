@@ -1,5 +1,4 @@
 import React, {memo} from 'react';
-import {ActivityIndicator, View} from 'react-native';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
 import reportActionFragmentPropTypes from './reportActionFragmentPropTypes';
@@ -46,9 +45,6 @@ const propTypes = {
         source: PropTypes.string,
     }),
 
-    /** Does this fragment belong to a reportAction that has not yet loaded? */
-    loading: PropTypes.bool,
-
     /** The reportAction's source */
     source: PropTypes.oneOf(['Chronos', 'email', 'ios', 'android', 'web', 'email', '']),
 
@@ -78,7 +74,6 @@ const defaultProps = {
         type: '',
         source: '',
     },
-    loading: false,
     isSingleLine: false,
     source: '',
     style: [],
@@ -89,20 +84,6 @@ const defaultProps = {
 function ReportActionItemFragment(props) {
     switch (props.fragment.type) {
         case 'COMMENT': {
-            // If this is an attachment placeholder, return the placeholder component
-            if (props.isAttachment && props.loading) {
-                return Str.isImage(props.attachmentInfo.name) ? (
-                    <RenderHTML html={`<comment><img src="${props.attachmentInfo.source}" data-expensify-preview-modal-disabled="true"/></comment>`} />
-                ) : (
-                    <View style={[styles.chatItemAttachmentPlaceholder]}>
-                        <ActivityIndicator
-                            size="large"
-                            color={themeColors.textSupporting}
-                            style={[styles.flex1]}
-                        />
-                    </View>
-                );
-            }
             const {html, text} = props.fragment;
 
             // Threaded messages display "[Deleted message]" instead of being hidden altogether.

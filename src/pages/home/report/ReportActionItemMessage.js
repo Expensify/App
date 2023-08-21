@@ -48,7 +48,6 @@ function ReportActionItemMessage(props) {
                         pendingAction={props.action.pendingAction}
                         source={lodashGet(props.action, 'originalMessage.source')}
                         accountID={props.action.actorAccountID}
-                        loading={props.action.isLoading}
                         style={props.style}
                     />
                 ))

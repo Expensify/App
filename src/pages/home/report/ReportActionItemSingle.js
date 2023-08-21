@@ -231,7 +231,6 @@ function ReportActionItemSingle(props) {
                                     accountID={actorAccountID}
                                     fragment={fragment}
                                     isAttachment={props.action.isAttachment}
-                                    isLoading={props.action.isLoading}
                                     delegateAccountID={props.action.delegateAccountID}
                                     isSingleLine
                                     actorIcon={icon}
