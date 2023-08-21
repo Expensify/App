@@ -94,6 +94,7 @@ function PressableWithSecondaryInteraction({
     const defaultPressableProps = _.omit(rest, ['onLongPress']);
     const inlineStyle = inline ? styles.dInline : {};
 
+    // On Web, Text does not support LongPress events thus manage inline mode with styling instead of using Text.
     return (
         <PressableWithFeedback
             wrapperStyle={StyleUtils.combineStyles(DeviceCapabilities.canUseTouchScreen() ? [styles.userSelectNone, styles.noSelect] : [], inlineStyle)}
