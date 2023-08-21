@@ -26,7 +26,7 @@ import useWindowDimensions from '../../hooks/useWindowDimensions';
 import transactionPropTypes from '../transactionPropTypes';
 import Image from '../Image';
 import ReportActionItemImage from './ReportActionItemImage';
-import * as TransactionUtils from '../../libs/TransactionUtils'; 
+import * as TransactionUtils from '../../libs/TransactionUtils';
 import OfflineWithFeedback from '../OfflineWithFeedback';
 
 const propTypes = {
