@@ -30,7 +30,7 @@ Onyx.connect({
  * @param {String} [lastName]
  */
 function referTeachersUniteVolunteer(firstName, phoneOrEmail, lastName = '') {
-    const reportID = CONST.TEACHER_UNITE.PUBLIC_ROOM_ID;
+    const reportID = CONST.TEACHERS_UNITE.PUBLIC_ROOM_ID;
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.SET,
@@ -52,7 +52,7 @@ function referTeachersUniteVolunteer(firstName, phoneOrEmail, lastName = '') {
         },
         {optimisticData},
     );
-    Navigation.dismissModal(CONST.TEACHER_UNITE.PUBLIC_ROOM_ID);
+    Navigation.dismissModal(CONST.TEACHERS_UNITE.PUBLIC_ROOM_ID);
 }
 
 /**
@@ -62,8 +62,8 @@ function referTeachersUniteVolunteer(firstName, phoneOrEmail, lastName = '') {
  * @param {String} [lastName]
  */
 function addSchoolPrincipal(firstName, email, lastName = '') {
-    const policyName = 'TeacherUniteSchoolPrincipal';
-    const policyID = CONST.TEACHER_UNITE.SCHOOL_PRINCIPAL_POLICY_ID;
+    const policyName = CONST.TEACHERS_UNITE.POLICY_NAME;
+    const policyID = CONST.TEACHERS_UNITE.POLICY_ID;
     const loggedInEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(sessionEmail);
     const reportCreationData = {};
 
@@ -80,7 +80,7 @@ function addSchoolPrincipal(firstName, email, lastName = '') {
             firstName,
             lastName,
             email,
-            reportCreationData,
+            reportCreationData: JSON.stringify(reportCreationData),
         },
         {
             optimisticData: [
@@ -89,9 +89,10 @@ function addSchoolPrincipal(firstName, email, lastName = '') {
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     value: {
                         id: policyID,
-                        type: CONST.POLICY.TYPE.FREE,
+                        isPolicyExpenseChatEnabled: true,
+                        type: CONST.POLICY.TYPE.CORPORATE,
                         name: policyName,
-                        role: CONST.POLICY.ROLE.ADMIN,
+                        role: CONST.POLICY.ROLE.USER,
                         owner: sessionEmail,
                         outputCurrency: lodashGet(allPersonalDetails, [sessionAccountID, 'localCurrencyCode'], CONST.CURRENCY.USD),
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
@@ -102,7 +103,7 @@ function addSchoolPrincipal(firstName, email, lastName = '') {
                     key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`,
                     value: {
                         [sessionAccountID]: {
-                            role: CONST.POLICY.ROLE.ADMIN,
+                            role: CONST.POLICY.ROLE.USER,
                             errors: {},
                         },
                     },

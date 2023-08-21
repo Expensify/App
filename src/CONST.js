@@ -2530,9 +2530,10 @@ const CONST = {
     TRANSLATION_KEYS: {
         ATTACHMENT: 'common.attachment',
     },
-    TEACHER_UNITE: {
+    TEACHERS_UNITE: {
         PUBLIC_ROOM_ID: '795574440662771',
-        SCHOOL_PRINCIPAL_POLICY_ID: '0A4315E7509A88E0',
+        POLICY_ID: '0A4315E7509A88E0',
+        POLICY_NAME: 'Teachers Unite!',
     },
     CUSTOM_STATUS_TYPES: {
         NEVER: 'never',
