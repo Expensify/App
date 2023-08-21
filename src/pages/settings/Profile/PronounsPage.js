@@ -70,9 +70,12 @@ function PronounsPage(props) {
     /**
      * @param {Object} selectedPronouns
      */
-    const updatePronouns = (selectedPronouns) => {
-        PersonalDetails.updatePronouns(selectedPronouns.keyForList === initiallyFocusedOption.keyForList ? '' : lodashGet(selectedPronouns, 'value', ''));
-    };
+    const updatePronouns = useCallback(
+        (selectedPronouns) => {
+            PersonalDetails.updatePronouns(selectedPronouns.keyForList === initiallyFocusedOption.keyForList ? '' : lodashGet(selectedPronouns, 'value', ''));
+        },
+        [initiallyFocusedOption],
+    );
 
     /**
      * Pronouns list filtered by searchValue needed for the OptionsSelector.
@@ -111,6 +114,7 @@ function PronounsPage(props) {
                 textInputValue={searchValue}
                 sections={[{data: filteredPronounsList, indexOffset: 0}]}
                 onSelectRow={updatePronouns}
+                shouldDebounceRowSelect
                 onChangeText={onChangeText}
                 initiallyFocusedOptionKey={initiallyFocusedOption.keyForList}
             />
