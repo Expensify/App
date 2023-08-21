@@ -33,6 +33,10 @@ const CONST = {
     ANIMATED_TRANSITION: 300,
     ANIMATED_TRANSITION_FROM_VALUE: 100,
     ANIMATION_IN_TIMING: 100,
+    ANIMATION_DIRECTION: {
+        IN: 'in',
+        OUT: 'out',
+    },
     ARROW_HIDE_DELAY: 3000,
 
     API_ATTACHMENT_VALIDATIONS: {
@@ -182,10 +186,6 @@ const CONST = {
             // If the length is longer than 13 digits, we show the first 6 and last 4 digits, hiding the rest with X
             MASKED_US_ACCOUNT_NUMBER: /^[X]{0,9}[0-9]{4}$|^[0-9]{6}[X]{4,7}[0-9]{4}$/,
             SWIFT_BIC: /^[A-Za-z0-9]{8,11}$/,
-
-            TIME_STARTS_01: /^01:\d{2} [AP]M$/,
-            TIME_FORMAT: /^\d{2}:\d{2} [AP]M$/,
-            DATE_TIME_FORMAT: /^\d{2}-\d{2} \d{2}:\d{2} [AP]M$/,
         },
         VERIFICATION_MAX_ATTEMPTS: 7,
         STATE: {
@@ -1171,6 +1171,10 @@ const CONST = {
             VALIDATE_LOGIN: /\/v($|(\/\/*))/,
             UNLINK_LOGIN: /\/u($|(\/\/*))/,
         },
+
+        TIME_STARTS_01: /^01:\d{2} [AP]M$/,
+        TIME_FORMAT: /^\d{2}:\d{2} [AP]M$/,
+        DATE_TIME_FORMAT: /^\d{2}-\d{2} \d{2}:\d{2} [AP]M$/,
     },
 
     PRONOUNS: {
@@ -2532,6 +2536,13 @@ const CONST = {
         AFTER_TODAY: 'afterToday',
         AFTER_WEEK: 'afterWeek',
         CUSTOM: 'custom',
+    },
+    TWO_FACTOR_AUTH_STEPS: {
+        CODES: 'CODES',
+        VERIFY: 'VERIFY',
+        SUCCESS: 'SUCCESS',
+        ENABLED: 'ENABLED',
+        DISABLED: 'DISABLED',
     },
     TAB: {
         RECEIPT_TAB_ID: 'ReceiptTab',

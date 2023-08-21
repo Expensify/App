@@ -4,6 +4,7 @@
 
 $color-appBG: $color-green-appBG;
 $color-highlightBG: $color-green-highlightBG;
+$color-highlightBG-hover: $color-green-highlightBG-hover;
 $color-accent : $color-green400;
 $color-borders: $color-green-borders;
 $color-icons: $color-green-icons;
@@ -27,6 +28,7 @@ $color-gray-label: $color-gray-label;
     display: block;
     top: 0;
     right: 0;
+    z-index: 2;
 }
 
 @media only screen and (max-width: $breakpoint-tablet) {
@@ -69,7 +71,7 @@ $color-gray-label: $color-gray-label;
     right: 0;
     bottom: 0;
     background-color: rgba(0, 0, 0, 0.4);
-    z-index: 2;
+    z-index: 1;
 }
 
 /* All gsc id & class are Google Search relate gcse_0 is the search bar parent & gcse_1 is the search result list parent */
@@ -156,6 +158,13 @@ label.search-label {
     font-family: "ExpensifyNeue", "Helvetica Neue", "Helvetica", Arial, sans-serif !important;
     max-height: 80vh;
     overflow-y: scroll;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+/* Hide the scrollbar */
+.gsc-control-cse::-webkit-scrollbar {
+    display: none;
 }
 
 .gs-title {
@@ -194,4 +203,68 @@ label.search-label {
 
 .gsc-resultsbox-visible .gsc-webResult .gsc-result {
     border-bottom: none;
+}
+
+
+/* Change Font the Google Search result */
+.gsc-control-cse .gsc-table-result {
+    font-family: "ExpensifyNeue", "Helvetica Neue", "Helvetica", Arial, sans-serif !important;
+}
+
+/* Change Font result Paragraph color */
+.gsc-results .gs-webResult:not(.gs-no-results-result):not(.gs-error-result) .gs-snippet, .gs-fileFormatType {
+    color: $color-text;
+}
+
+
+/* Change the color of the Google Search Suggestion font */
+.gs-spelling.gs-result {
+    color: $color-text;
+}
+
+/* Pagination related style */
+.gsc-resultsbox-visible .gsc-results .gsc-cursor-box {
+    text-align: center;
+}
+
+.gsc-resultsbox-visible .gsc-results .gsc-cursor-box .gsc-cursor-page {
+    margin: 4px;
+    width: 28px;
+    height: 28px;
+    border-radius: 25px;
+    display: inline-block;
+    line-height: 2.5;
+    background-color: $color-accent;
+    font-weight: bold;
+    font-size: 11px;
+}
+
+
+/* Change the color & background of Google Search Pagination */
+.gsc-cursor-next-page,
+.gsc-cursor-final-page {
+    color: $color-text;
+    background-color: $color-appBG;
+}
+
+/* Change the color & background of Google Search Current Page */
+.gsc-resultsbox-visible .gsc-results .gsc-cursor-box .gsc-cursor-page.gsc-cursor-current-page {
+    background-color: $color-accent;
+    color: $color-text;
+
+    &:hover {
+        text-decoration: none;
+        background-color: $color-accent;
+    }
+}
+
+/* Change the color & background of Google Search of Other Page */
+.gsc-resultsbox-visible .gsc-results .gsc-cursor-box .gsc-cursor-page {
+    background-color: $color-button-background;
+    color: $color-text;
+
+    &:hover {
+        background-color: $color-button-hovered;
+        text-decoration: none;
+    }
 }
