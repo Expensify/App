@@ -78,6 +78,10 @@ function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, me
                 <Tooltip text={translate(iconTooltip)}>
                     <PressableWithoutFeedback
                         onPress={() => {
+                            if (isPopupMenuVisible) {
+                                hidePopoverMenu();
+                                return;
+                            }
                             showPopoverMenu();
                             if (onIconPress) {
                                 onIconPress();
@@ -102,6 +106,8 @@ function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, me
                 anchorAlignment={anchorAlignment}
                 onItemSelected={hidePopoverMenu}
                 menuItems={menuItems}
+                withoutOverlay
+                anchorRef={buttonRef}
             />
         </>
     );

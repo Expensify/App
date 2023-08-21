@@ -435,13 +435,18 @@ function openProfile(personalDetails) {
     );
 }
 
-function beginDeepLinkRedirect() {
+/**
+ * @param {boolean} shouldAuthenticateWithCurrentAccount Optional, indicates whether default authentication method (shortLivedAuthToken) should be used
+ */
+function beginDeepLinkRedirect(shouldAuthenticateWithCurrentAccount = true) {
     // There's no support for anonymous users on desktop
     if (Session.isAnonymousUser()) {
         return;
     }
 
-    if (!currentUserAccountID) {
+    // If the route that is being handled is a magic link, email and shortLivedAuthToken should not be attached to the url
+    // to prevent signing into the wrong account
+    if (!currentUserAccountID || !shouldAuthenticateWithCurrentAccount) {
         Browser.openRouteInDesktopApp();
         return;
     }
@@ -452,8 +457,11 @@ function beginDeepLinkRedirect() {
     });
 }
 
-function beginDeepLinkRedirectAfterTransition() {
-    waitForSignOnTransitionToFinish().then(beginDeepLinkRedirect);
+/**
+ * @param {boolean} shouldAuthenticateWithCurrentAccount Optional, indicates whether default authentication method (shortLivedAuthToken) should be used
+ */
+function beginDeepLinkRedirectAfterTransition(shouldAuthenticateWithCurrentAccount = true) {
+    waitForSignOnTransitionToFinish().then(() => beginDeepLinkRedirect(shouldAuthenticateWithCurrentAccount));
 }
 
 export {
