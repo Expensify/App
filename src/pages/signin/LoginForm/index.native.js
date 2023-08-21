@@ -29,7 +29,6 @@ function LoginForm(props) {
             scrollPageToTop();
         });
 
-        // Remove the subscription on cleanup
         return unsubscribeToBecameActiveListener;
     }, [scrollPageToTop]);
 
