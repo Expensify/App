@@ -344,7 +344,6 @@ class ReimbursementAccountPage extends React.Component {
                         shouldShow
                         onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
                         subtitleKey={_.isEmpty(this.props.policy) ? undefined : 'workspace.common.notAuthorized'}
-                        shouldShowLink
                     />
                 </ScreenWrapper>
             );
