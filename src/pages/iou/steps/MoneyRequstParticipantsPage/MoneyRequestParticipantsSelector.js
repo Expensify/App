@@ -163,6 +163,7 @@ class MoneyRequestParticipantsSelector extends Component {
                 sections={this.getSections()}
                 value={this.state.searchTerm}
                 onSelectRow={this.addSingleParticipant}
+                shouldDebounceRowSelect
                 onChangeText={this.updateOptionsWithSearchTerm}
                 headerMessage={headerMessage}
                 textInputLabel={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}

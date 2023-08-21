@@ -122,6 +122,7 @@ function IOUCurrencySelection(props) {
                     <OptionsSelector
                         sections={sections}
                         onSelectRow={confirmCurrencySelection}
+                        shouldDebounceRowSelect
                         value={searchValue}
                         onChangeText={setSearchValue}
                         textInputLabel={translate('common.search')}

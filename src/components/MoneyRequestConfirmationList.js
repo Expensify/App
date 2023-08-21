@@ -352,6 +352,7 @@ function MoneyRequestConfirmationList(props) {
             sections={optionSelectorSections}
             value=""
             onSelectRow={canModifyParticipants ? selectParticipant : navigateToReportOrUserDetail}
+            shouldDebounceRowSelect={!canModifyParticipants}
             onConfirmSelection={confirm}
             selectedOptions={selectedOptions}
             canSelectMultipleOptions={canModifyParticipants}

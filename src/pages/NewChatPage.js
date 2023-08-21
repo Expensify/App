@@ -195,6 +195,7 @@ function NewChatPage(props) {
                             selectedOptions={selectedOptions}
                             value={searchTerm}
                             onSelectRow={(option) => (props.isGroupChat ? toggleOption(option) : createChat(option))}
+                            shouldDebounceRowSelect={!props.isGroupChat}
                             onChangeText={setSearchTerm}
                             headerMessage={headerMessage}
                             boldStyle

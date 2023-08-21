@@ -178,6 +178,7 @@ class SearchPage extends Component {
                                 sections={sections}
                                 value={this.state.searchValue}
                                 onSelectRow={this.selectReport}
+                                shouldDebounceRowSelect
                                 onChangeText={this.onChangeText}
                                 headerMessage={headerMessage}
                                 hideSectionHeaders
