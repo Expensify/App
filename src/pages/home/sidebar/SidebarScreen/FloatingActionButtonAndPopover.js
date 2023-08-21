@@ -186,7 +186,7 @@ function FloatingActionButtonAndPopover(props) {
                     {
                         icon: Expensicons.ChatBubble,
                         text: props.translate('sidebarScreen.fabNewChat'),
-                        onSelected: () => interceptAnonymousUser(() => Navigation.navigate(Permissions.canUsePolicyRooms(props.betas) ? ROUTES.NEW_CHAT : ROUTES.NEW)),
+                        onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.NEW)),
                     },
                     ...(Permissions.canUseIOUSend(props.betas)
                         ? [
