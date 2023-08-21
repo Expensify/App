@@ -71,6 +71,13 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
+            const MoneyRequestDatePage = require('../../../pages/iou/MoneyRequestDatePage').default;
+            return MoneyRequestDatePage;
+        },
+        name: 'Money_Request_Date',
+    },
+    {
+        getComponent: () => {
             const MoneyRequestDescriptionPage = require('../../../pages/iou/MoneyRequestDescriptionPage').default;
             return MoneyRequestDescriptionPage;
         },
@@ -82,6 +89,13 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator([
             return MoneyRequestCategoryPage;
         },
         name: 'Money_Request_Category',
+    },
+    {
+        getComponent: () => {
+            const MoneyRequestMerchantPage = require('../../../pages/iou/MoneyRequestMerchantPage').default;
+            return MoneyRequestMerchantPage;
+        },
+        name: 'Money_Request_Merchant',
     },
     {
         getComponent: () => {
