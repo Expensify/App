@@ -1,8 +1,11 @@
 import React, {useCallback} from 'react';
+import PropTypes from 'prop-types';
 import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import {parsePhoneNumber} from 'awesome-phonenumber';
 import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import Form from '../../components/Form';
@@ -18,11 +21,19 @@ import Navigation from '../../libs/Navigation/Navigation';
 import TeachersUnite from '../../libs/actions/TeachersUnite';
 import useLocalize from '../../hooks/useLocalize';
 
-const propTypes = {};
+const propTypes = {
+    /** Login list for the user that is signed in */
+    loginList: PropTypes.shape({
+        /** Phone/Email associated with user */
+        partnerUserID: PropTypes.string,
+    }),
+};
 
-const defaultProps = {};
+const defaultProps = {
+    loginList: {},
+};
 
-function KnowATeacherPage() {
+function KnowATeacherPage(props) {
     const {translate} = useLocalize();
 
     /**
@@ -88,14 +99,16 @@ function KnowATeacherPage() {
             if (_.isEmpty(values.phoneOrEmail)) {
                 ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', translate('teachersUnitePage.error.enterPhoneEmail'));
             }
-
+            if (!_.isEmpty(values.phoneOrEmail) && lodashGet(props.loginList, validateIfnumber || values.phoneOrEmail.toLowerCase())) {
+                ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', 'teachersUnitePage.error.tryDifferentEmail');
+            }
             if (!_.isEmpty(values.phoneOrEmail) && !(validateIfnumber || Str.isValidEmail(values.phoneOrEmail))) {
                 ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', 'contacts.genericFailureMessages.invalidContactMethod');
             }
 
             return errors;
         },
-        [translate],
+        [props.loginList, translate],
     );
 
     return (
@@ -155,4 +168,6 @@ KnowATeacherPage.propTypes = propTypes;
 KnowATeacherPage.defaultProps = defaultProps;
 KnowATeacherPage.displayName = 'KnowATeacherPage';
 
-export default KnowATeacherPage;
+export default withOnyx({
+    loginList: {key: ONYXKEYS.LOGIN_LIST},
+})(KnowATeacherPage);

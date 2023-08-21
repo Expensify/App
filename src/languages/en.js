@@ -1623,6 +1623,7 @@ export default {
             enterPhoneEmail: 'Enter a valid email or phone number',
             enterEmail: 'Enter an email',
             enterValidEmail: 'Enter a valid email',
+            tryDifferentEmail: 'Please try a different email',
         },
     },
     distance: {

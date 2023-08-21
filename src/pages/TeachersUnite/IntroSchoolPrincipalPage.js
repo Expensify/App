@@ -1,7 +1,10 @@
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import Form from '../../components/Form';
@@ -16,11 +19,19 @@ import Navigation from '../../libs/Navigation/Navigation';
 import TeachersUnite from '../../libs/actions/TeachersUnite';
 import useLocalize from '../../hooks/useLocalize';
 
-const propTypes = {};
+const propTypes = {
+    /** Login list for the user that is signed in */
+    loginList: PropTypes.shape({
+        /** Phone/Email associated with user */
+        partnerUserID: PropTypes.string,
+    }),
+};
 
-const defaultProps = {};
+const defaultProps = {
+    loginList: {},
+};
 
-function IntroSchoolPrincipalPage() {
+function IntroSchoolPrincipalPage(props) {
     const {translate} = useLocalize();
     /**
      * @param {Object} values
@@ -48,13 +59,17 @@ function IntroSchoolPrincipalPage() {
             if (_.isEmpty(values.email)) {
                 ErrorUtils.addErrorMessage(errors, 'email', translate('teachersUnitePage.error.enterEmail'));
             }
+
+            if (!_.isEmpty(values.email) && lodashGet(props.loginList, values.email.toLowerCase())) {
+                ErrorUtils.addErrorMessage(errors, 'email', 'teachersUnitePage.error.tryDifferentEmail');
+            }
             if (!_.isEmpty(values.email) && !Str.isValidEmail(values.email)) {
                 ErrorUtils.addErrorMessage(errors, 'email', translate('teachersUnitePage.error.enterValidEmail'));
             }
 
             return errors;
         },
-        [translate],
+        [props.loginList, translate],
     );
 
     return (
@@ -114,4 +129,6 @@ IntroSchoolPrincipalPage.propTypes = propTypes;
 IntroSchoolPrincipalPage.defaultProps = defaultProps;
 IntroSchoolPrincipalPage.displayName = 'IntroSchoolPrincipalPage';
 
-export default IntroSchoolPrincipalPage;
+export default withOnyx({
+    loginList: {key: ONYXKEYS.LOGIN_LIST},
+})(IntroSchoolPrincipalPage);
