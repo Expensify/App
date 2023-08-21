@@ -97,7 +97,7 @@ We find chat to be a powerful way to not only engage your attendees, but direct 
 - #social: Have your employees in this room sharing fun photos, stoking conversations, and responding to any questions or feedback.
 - Speaker rooms: Encourage your employees to jump in to comment on content and nudge attendees to engage with each other during sessions.
 
-*Protip*: Expensify Chat has moderation tools to help flag comments deemed to be spam, inconsiderate, intimidating, bullying, harassment, assault. On any comment, just click the flag icon to moderate conversation. 
+*Protip*: Expensify Chat has [moderation tools](https://help.expensify.com/articles/other/Everything-About-Chat#flagging-content-as-offensive) to help flag comments deemed to be spam, inconsiderate, intimidating, bullying, harassment, assault. On any comment, just click the flag icon to moderate conversation. 
 
 ### Step 7: Follow up with attendees after the event
 

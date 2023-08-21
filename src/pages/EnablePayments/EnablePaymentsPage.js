@@ -62,7 +62,7 @@ class EnablePaymentsPage extends React.Component {
                             <>
                                 <HeaderWithBackButton
                                     title={this.props.translate('additionalDetailsStep.headerTitle')}
-                                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PAYMENTS)}
+                                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)}
                                 />
                                 <FailedKYC />
                             </>

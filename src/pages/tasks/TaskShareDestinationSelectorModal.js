@@ -49,11 +49,7 @@ function TaskShareDestinationSelectorModal(props) {
     const filteredReports = useMemo(() => {
         const reports = {};
         _.keys(props.reports).forEach((reportKey) => {
-            if (
-                !ReportUtils.isAllowedToComment(props.reports[reportKey]) ||
-                ReportUtils.isArchivedRoom(props.reports[reportKey]) ||
-                ReportUtils.isExpensifyOnlyParticipantInReport(props.reports[reportKey])
-            ) {
+            if (ReportUtils.shouldDisableWriteActions(props.reports[reportKey]) || ReportUtils.isExpensifyOnlyParticipantInReport(props.reports[reportKey])) {
                 return;
             }
             reports[reportKey] = props.reports[reportKey];

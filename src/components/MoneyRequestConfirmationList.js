@@ -133,7 +133,7 @@ function MoneyRequestConfirmationList(props) {
      */
     const getParticipantsWithAmount = useCallback(
         (participantsList) => {
-            const iouAmount = IOUUtils.calculateAmount(participantsList.length, props.iouAmount);
+            const iouAmount = IOUUtils.calculateAmount(participantsList.length, props.iouAmount, props.iouCurrencyCode);
             return OptionsListUtils.getIOUConfirmationOptionsFromParticipants(participantsList, CurrencyUtils.convertToDisplayString(iouAmount, props.iouCurrencyCode));
         },
         [props.iouAmount, props.iouCurrencyCode],
@@ -176,7 +176,7 @@ function MoneyRequestConfirmationList(props) {
                 }));
             }
 
-            const myIOUAmount = IOUUtils.calculateAmount(selectedParticipants.length, props.iouAmount, true);
+            const myIOUAmount = IOUUtils.calculateAmount(selectedParticipants.length, props.iouAmount, props.iouCurrencyCode, true);
             const formattedPayeeOption = OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(
                 payeePersonalDetails,
                 CurrencyUtils.convertToDisplayString(myIOUAmount, props.iouCurrencyCode),
