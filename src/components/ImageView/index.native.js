@@ -1,4 +1,4 @@
-import React, {useState, useCallback, useRef, useEffect} from 'react';
+import React, {useState, useRef, useEffect} from 'react';
 import PropTypes from 'prop-types';
 import {View, PanResponder} from 'react-native';
 import ImageZoom from 'react-native-image-pan-zoom';
@@ -81,7 +81,7 @@ function ImageView({isAuthTokenRequired, url, onScaleChanged, onPress, style}) {
      * When the url changes and the image must load again,
      * this resets the zoom to ensure the next image loads with the correct dimensions.
      */
-    const resetImageZoom = useCallback(() => {
+    const resetImageZoom = () => {
         if (imageZoomScale.current !== 1) {
             imageZoomScale.current = 1;
         }
@@ -94,7 +94,7 @@ function ImageView({isAuthTokenRequired, url, onScaleChanged, onPress, style}) {
                 duration: 0,
             });
         }
-    }, []);
+    }
 
     const imageLoadingStart = () => {
         if (isLoading) {
