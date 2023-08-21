@@ -5,8 +5,6 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import * as Report from '../../libs/actions/Report';
 import useLocalize from '../../hooks/useLocalize';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import ScreenWrapper from '../../components/ScreenWrapper';
 import styles from '../../styles/styles';
 import RoomNameInput from '../../components/RoomNameInput';
 import Picker from '../../components/Picker';
@@ -19,7 +17,6 @@ import * as ValidationUtils from '../../libs/ValidationUtils';
 import * as ReportUtils from '../../libs/ReportUtils';
 import * as PolicyUtils from '../../libs/PolicyUtils';
 import Form from '../../components/Form';
-import shouldDelayFocus from '../../libs/shouldDelayFocus';
 import policyMemberPropType from '../policyMemberPropType';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 
@@ -140,60 +137,50 @@ function WorkspaceNewRoomPage(props) {
     );
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            shouldEnablePickerAvoiding={false}
-        >
-            <FullPageNotFoundView shouldShow={!Permissions.canUsePolicyRooms(props.betas) || !workspaceOptions.length}>
-                <HeaderWithBackButton title={translate('newRoomPage.newRoom')} />
-                <Form
-                    formID={ONYXKEYS.FORMS.NEW_ROOM_FORM}
-                    submitButtonText={translate('newRoomPage.createRoom')}
-                    scrollContextEnabled
-                    style={[styles.mh5, styles.flexGrow1]}
-                    validate={validate}
-                    onSubmit={submit}
-                    enabledWhenOffline
-                >
-                    <View style={styles.mb5}>
-                        <RoomNameInput
-                            inputID="roomName"
-                            autoFocus
-                            shouldDelayFocus={shouldDelayFocus}
-                        />
-                    </View>
+        <FullPageNotFoundView shouldShow={!Permissions.canUsePolicyRooms(props.betas) || !workspaceOptions.length}>
+            <Form
+                formID={ONYXKEYS.FORMS.NEW_ROOM_FORM}
+                submitButtonText={translate('newRoomPage.createRoom')}
+                scrollContextEnabled
+                style={[styles.mh5, styles.flexGrow1]}
+                validate={validate}
+                onSubmit={submit}
+                enabledWhenOffline
+            >
+                <View style={styles.mb5}>
+                    <RoomNameInput inputID="roomName" />
+                </View>
+                <View style={styles.mb2}>
+                    <Picker
+                        inputID="policyID"
+                        label={translate('workspace.common.workspace')}
+                        placeholder={{value: '', label: translate('newRoomPage.selectAWorkspace')}}
+                        items={workspaceOptions}
+                        onValueChange={setPolicyID}
+                    />
+                </View>
+                {isPolicyAdmin && (
                     <View style={styles.mb2}>
                         <Picker
-                            inputID="policyID"
-                            label={translate('workspace.common.workspace')}
-                            placeholder={{value: '', label: translate('newRoomPage.selectAWorkspace')}}
-                            items={workspaceOptions}
-                            onValueChange={setPolicyID}
+                            inputID="writeCapability"
+                            label={translate('writeCapabilityPage.label')}
+                            items={writeCapabilityOptions}
+                            defaultValue={CONST.REPORT.WRITE_CAPABILITIES.ALL}
                         />
                     </View>
-                    {isPolicyAdmin && (
-                        <View style={styles.mb2}>
-                            <Picker
-                                inputID="writeCapability"
-                                label={translate('writeCapabilityPage.label')}
-                                items={writeCapabilityOptions}
-                                defaultValue={CONST.REPORT.WRITE_CAPABILITIES.ALL}
-                            />
-                        </View>
-                    )}
-                    <View style={styles.mb2}>
-                        <Picker
-                            inputID="visibility"
-                            label={translate('newRoomPage.visibility')}
-                            items={visibilityOptions}
-                            onValueChange={setVisibility}
-                            defaultValue={CONST.REPORT.VISIBILITY.RESTRICTED}
-                        />
-                    </View>
-                    <Text style={[styles.textLabel, styles.colorMuted]}>{visibilityDescription}</Text>
-                </Form>
-            </FullPageNotFoundView>
-        </ScreenWrapper>
+                )}
+                <View style={styles.mb2}>
+                    <Picker
+                        inputID="visibility"
+                        label={translate('newRoomPage.visibility')}
+                        items={visibilityOptions}
+                        onValueChange={setVisibility}
+                        defaultValue={CONST.REPORT.VISIBILITY.RESTRICTED}
+                    />
+                </View>
+                <Text style={[styles.textLabel, styles.colorMuted]}>{visibilityDescription}</Text>
+            </Form>
+        </FullPageNotFoundView>
     );
 }
 
