@@ -48,7 +48,7 @@ function EditRequestDescriptionPage({defaultDescription, onSubmit}) {
                         label={translate('moneyRequestConfirmationList.whatsItFor')}
                         accessibilityLabel={translate('moneyRequestConfirmationList.whatsItFor')}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        ref={descriptionInputRef}
+                        ref={(e) => (descriptionInputRef.current = e)}
                     />
                 </View>
             </Form>

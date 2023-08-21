@@ -14,15 +14,18 @@ import Button from './Button';
 import styles from '../styles/styles';
 import variables from '../styles/variables';
 import LinearGradient from './LinearGradient';
-import MapboxToken from '../libs/actions/MapboxToken';
+import * as MapboxToken from '../libs/actions/MapboxToken';
 import CONST from '../CONST';
 import BlockingView from './BlockingViews/BlockingView';
 import useNetwork from '../hooks/useNetwork';
 import useLocalize from '../hooks/useLocalize';
+import Navigation from '../libs/Navigation/Navigation';
+import ROUTES from '../ROUTES';
 
 const MAX_WAYPOINTS = 25;
 const MAX_WAYPOINTS_TO_DISPLAY = 4;
 
+const MAP_PADDING = 50;
 const DEFAULT_ZOOM_LEVEL = 10;
 
 const propTypes = {
@@ -111,15 +114,18 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
     const halfMenuItemHeight = Math.floor(variables.baseMenuItemHeight / 2);
     const scrollContainerMaxHeight = variables.baseMenuItemHeight * MAX_WAYPOINTS_TO_DISPLAY + halfMenuItemHeight;
 
-    useEffect(() => MapboxToken.init(), []);
+    useEffect(() => {
+        MapboxToken.init();
+        return MapboxToken.stop;
+    }, []);
 
     useEffect(() => {
-        if (!transaction.transactionID || !_.isEmpty(waypoints)) {
+        if (!transactionID || !_.isEmpty(waypoints)) {
             return;
         }
         // Create the initial start and stop waypoints
-        Transaction.createInitialWaypoints(transaction.transactionID);
-    }, [transaction.transactionID, waypoints]);
+        Transaction.createInitialWaypoints(transactionID);
+    }, [transactionID, waypoints]);
 
     const updateGradientVisibility = (event = {}) => {
         // If a waypoint extends past the bottom of the visible area show the gradient, else hide it.
@@ -132,7 +138,7 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
     return (
         <>
             <View
-                style={{maxHeight: scrollContainerMaxHeight, minHeight: variables.baseMenuItemHeight, flexShrink: 2}}
+                style={styles.distanceRequestContainer(scrollContainerMaxHeight)}
                 onLayout={(event = {}) => setScrollContainerHeight(lodashGet(event, 'nativeEvent.layout.height', 0))}
             >
                 <ScrollView
@@ -159,10 +165,13 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
                         return (
                             <MenuItemWithTopDescription
                                 description={translate(descriptionKey)}
+                                title={lodashGet(waypoints, [`waypoint${index}`, 'address'], '')}
                                 icon={Expensicons.DragHandles}
+                                iconFill={theme.icon}
                                 secondaryIcon={waypointIcon}
                                 secondaryIconFill={theme.icon}
                                 shouldShowRightIcon
+                                onPress={() => Navigation.navigate(ROUTES.getMoneyRequestWaypointRoute('request', index))}
                                 key={key}
                             />
                         );
@@ -179,17 +188,17 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
                 <Button
                     small
                     icon={Expensicons.Plus}
-                    onPress={() => Transaction.addStop(transactionID, lastWaypointIndex + 1)}
+                    onPress={() => Transaction.addStop(transactionID)}
                     text={translate('distance.addStop')}
                     isDisabled={numberOfWaypoints === MAX_WAYPOINTS}
                     innerStyles={[styles.ph10]}
                 />
             </View>
             <View style={styles.mapViewContainer}>
-                {!isOffline && mapboxAccessToken.token ? (
+                {!isOffline && Boolean(mapboxAccessToken.token) ? (
                     <MapView
                         accessToken={mapboxAccessToken.token}
-                        mapPadding={50}
+                        mapPadding={MAP_PADDING}
                         pitchEnabled={false}
                         initialState={{
                             location: CONST.SF_COORDINATES,
@@ -203,7 +212,7 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
                         <BlockingView
                             icon={Expensicons.EmptyStateRoutePending}
                             title={translate('distance.mapPending.title')}
-                            subtitle={translate('distance.mapPending.subtitle')}
+                            subtitle={isOffline ? translate('distance.mapPending.subtitle') : translate('distance.mapPending.onlineSubtitle')}
                         />
                     </View>
                 )}
