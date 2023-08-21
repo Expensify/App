@@ -16,6 +16,9 @@ const propTypes = {
     /** Whether this item is focused (for arrow key controls) */
     isFocused: PropTypes.bool,
 
+    /** Whether this item is disabled */
+    isDisabled: PropTypes.bool,
+
     /** Callback to fire when the item is pressed */
     onSelectRow: PropTypes.func,
 };
@@ -23,6 +26,7 @@ const propTypes = {
 const defaultProps = {
     item: {},
     isFocused: false,
+    isDisabled: false,
     onSelectRow: () => {},
 };
 
@@ -30,11 +34,11 @@ function RadioListItem(props) {
     return (
         <PressableWithFeedback
             onPress={() => props.onSelectRow(props.item)}
+            disabled={props.isDisabled}
             accessibilityLabel={props.item.text}
             accessibilityRole="button"
             hoverDimmingValue={1}
             hoverStyle={styles.hoveredComponentBG}
-            focusStyle={styles.hoveredComponentBG}
         >
             <View style={[styles.flex1, styles.justifyContentBetween, styles.sidebarLinkInner, styles.optionRow, props.isFocused && styles.sidebarLinkActive]}>
                 <View style={[styles.flex1, styles.alignItemsStart]}>

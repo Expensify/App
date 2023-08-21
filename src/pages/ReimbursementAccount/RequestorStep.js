@@ -38,49 +38,26 @@ class RequestorStep extends React.Component {
      * @returns {Object}
      */
     validate(values) {
-        const errors = {};
-
-        if (!ValidationUtils.isRequiredFulfilled(values.firstName)) {
-            errors.firstName = 'bankAccount.error.firstName';
-        }
-
-        if (!ValidationUtils.isRequiredFulfilled(values.lastName)) {
-            errors.lastName = 'bankAccount.error.lastName';
-        }
-
-        if (!ValidationUtils.isRequiredFulfilled(values.dob)) {
-            errors.dob = 'bankAccount.error.dob';
-        }
+        const requiredFields = ['firstName', 'lastName', 'dob', 'ssnLast4', 'requestorAddressStreet', 'requestorAddressCity', 'requestorAddressState', 'requestorAddressZipCode'];
+        const errors = ValidationUtils.getFieldRequiredErrors(values, requiredFields);
 
         if (values.dob) {
-            if (!ValidationUtils.meetsMinimumAgeRequirement(values.dob)) {
-                errors.dob = 'bankAccount.error.age';
-            } else if (!ValidationUtils.meetsMaximumAgeRequirement(values.dob)) {
+            if (!ValidationUtils.isValidPastDate(values.dob) || !ValidationUtils.meetsMaximumAgeRequirement(values.dob)) {
                 errors.dob = 'bankAccount.error.dob';
+            } else if (!ValidationUtils.meetsMinimumAgeRequirement(values.dob)) {
+                errors.dob = 'bankAccount.error.age';
             }
         }
 
-        if (!ValidationUtils.isRequiredFulfilled(values.ssnLast4) || !ValidationUtils.isValidSSNLastFour(values.ssnLast4)) {
+        if (values.ssnLast4 && !ValidationUtils.isValidSSNLastFour(values.ssnLast4)) {
             errors.ssnLast4 = 'bankAccount.error.ssnLast4';
-        }
-
-        if (!ValidationUtils.isRequiredFulfilled(values.requestorAddressStreet)) {
-            errors.requestorAddressStreet = 'bankAccount.error.address';
         }
 
         if (values.requestorAddressStreet && !ValidationUtils.isValidAddress(values.requestorAddressStreet)) {
             errors.requestorAddressStreet = 'bankAccount.error.addressStreet';
         }
 
-        if (!ValidationUtils.isRequiredFulfilled(values.requestorAddressCity)) {
-            errors.requestorAddressCity = 'bankAccount.error.addressCity';
-        }
-
-        if (!ValidationUtils.isRequiredFulfilled(values.requestorAddressState)) {
-            errors.requestorAddressState = 'bankAccount.error.addressState';
-        }
-
-        if (!ValidationUtils.isRequiredFulfilled(values.requestorAddressZipCode) || !ValidationUtils.isValidZipCode(values.requestorAddressZipCode)) {
+        if (values.requestorAddressZipCode && !ValidationUtils.isValidZipCode(values.requestorAddressZipCode)) {
             errors.requestorAddressZipCode = 'bankAccount.error.zipCode';
         }
 
