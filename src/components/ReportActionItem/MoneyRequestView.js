@@ -14,15 +14,16 @@ import MenuItemWithTopDescription from '../MenuItemWithTopDescription';
 import styles from '../../styles/styles';
 import * as ReportUtils from '../../libs/ReportUtils';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
+import * as TransactionUtils from '../../libs/TransactionUtils';
 import * as StyleUtils from '../../styles/StyleUtils';
 import CONST from '../../CONST';
 import * as Expensicons from '../Icon/Expensicons';
 import iouReportPropTypes from '../../pages/iouReportPropTypes';
-import DateUtils from '../../libs/DateUtils';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import EmptyStateBackgroundImage from '../../../assets/images/empty-state_background-fade.png';
 import useLocalize from '../../hooks/useLocalize';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
+import OfflineWithFeedback from '../OfflineWithFeedback';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -65,12 +66,11 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, polic
     const {translate} = useLocalize();
 
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
-    const {amount: transactionAmount, currency: transactionCurrency, comment: transactionDescription} = ReportUtils.getMoneyRequestAction(parentReportAction);
-    const formattedTransactionAmount = transactionAmount && transactionCurrency && CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency);
-    const transactionDate = lodashGet(parentReportAction, ['created']);
-    const formattedTransactionDate = DateUtils.getDateStringFromISOTimestamp(transactionDate);
-
     const moneyRequestReport = parentReport;
+    const transaction = TransactionUtils.getLinkedTransaction(parentReportAction);
+    const {created: transactionDate, amount: transactionAmount, currency: transactionCurrency, comment: transactionDescription} = ReportUtils.getTransactionDetails(transaction);
+    const formattedTransactionAmount = transactionAmount && transactionCurrency && CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency);
+
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
     const isAdmin = Policy.isAdminOfFreePolicy([policy]) && ReportUtils.isExpenseReport(moneyRequestReport);
     const isRequestor = ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(session, 'accountID', null) === parentReportAction.actorAccountID;
@@ -83,6 +83,12 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, polic
         description += ` • ${translate('iou.pending')}`;
     }
 
+    // A temporary solution to hide the transaction detail
+    // This will be removed after we properly add the transaction as a prop
+    if (ReportActionsUtils.isDeletedAction(parentReportAction)) {
+        return null;
+    }
+
     return (
         <View>
             <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth), StyleUtils.getMinimumHeight(CONST.EMPTY_STATE_BACKGROUND.MONEY_REPORT.MIN_HEIGHT)]}>
@@ -92,30 +98,36 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, polic
                     style={[StyleUtils.getReportWelcomeBackgroundImageStyle(true)]}
                 />
             </View>
-            <MenuItemWithTopDescription
-                title={formattedTransactionAmount}
-                shouldShowTitleIcon={isSettled}
-                titleIcon={Expensicons.Checkmark}
-                description={description}
-                titleStyle={styles.newKansasLarge}
-                disabled={isSettled || !canEdit}
-                shouldShowRightIcon={canEdit}
-                onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.AMOUNT))}
-            />
-            <MenuItemWithTopDescription
-                description={translate('common.description')}
-                title={transactionDescription}
-                disabled={isSettled || !canEdit}
-                shouldShowRightIcon={canEdit}
-                onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DESCRIPTION))}
-            />
-            <MenuItemWithTopDescription
-                description={translate('common.date')}
-                title={formattedTransactionDate}
-                disabled={isSettled || !canEdit}
-                shouldShowRightIcon={canEdit}
-                onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DATE))}
-            />
+            <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.amount') || lodashGet(transaction, 'pendingAction')}>
+                <MenuItemWithTopDescription
+                    title={formattedTransactionAmount ? formattedTransactionAmount.toString() : ''}
+                    shouldShowTitleIcon={isSettled}
+                    titleIcon={Expensicons.Checkmark}
+                    description={description}
+                    titleStyle={styles.newKansasLarge}
+                    disabled={isSettled || !canEdit}
+                    shouldShowRightIcon={canEdit}
+                    onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.AMOUNT))}
+                />
+            </OfflineWithFeedback>
+            <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.comment') || lodashGet(transaction, 'pendingAction')}>
+                <MenuItemWithTopDescription
+                    description={translate('common.description')}
+                    title={transactionDescription}
+                    disabled={isSettled || !canEdit}
+                    shouldShowRightIcon={canEdit}
+                    onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DESCRIPTION))}
+                />
+            </OfflineWithFeedback>
+            <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.created') || lodashGet(transaction, 'pendingAction')}>
+                <MenuItemWithTopDescription
+                    description={translate('common.date')}
+                    title={transactionDate}
+                    disabled={isSettled || !canEdit}
+                    shouldShowRightIcon={canEdit}
+                    onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DATE))}
+                />
+            </OfflineWithFeedback>
             {shouldShowHorizontalRule && <View style={styles.reportHorizontalRule} />}
         </View>
     );
