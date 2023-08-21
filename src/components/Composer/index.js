@@ -199,20 +199,22 @@ function Composer({
                 setValueBeforeCaret(event.target.value.slice(0, event.nativeEvent.selection.start));
                 setCaretContent(getNextChars(value, event.nativeEvent.selection.start));
             });
+            const selectionValue = {
+                start: event.nativeEvent.selection.start,
+                end: event.nativeEvent.selection.end,
+                positionX: textRef.current.offsetLeft - CONST.SPACE_CHARACTER_WIDTH,
+                positionY: textRef.current.offsetTop,
+            };
+            onSelectionChange({
+                nativeEvent: {
+                    selection: selectionValue,
+                },
+            });
+            setSelection(selectionValue);
+        } else {
+            onSelectionChange(event);
+            setSelection(event.nativeEvent.selection);
         }
-
-        const selectionValue = {
-            start: event.nativeEvent.selection.start,
-            end: event.nativeEvent.selection.end,
-            positionX: textRef.current.offsetLeft - CONST.SPACE_CHARACTER_WIDTH,
-            positionY: textRef.current.offsetTop,
-        };
-        onSelectionChange({
-            nativeEvent: {
-                selection: selectionValue,
-            },
-        });
-        setSelection(selectionValue);
     };
 
     /**
@@ -370,11 +372,11 @@ function Composer({
         return () => {
             unsubscribeFocus();
             unsubscribeBlur();
+            document.removeEventListener('paste', handlePaste);
             // eslint-disable-next-line es/no-optional-chaining
             if (!textInput.current) {
                 return;
             }
-            document.removeEventListener('paste', handlePaste);
             textInput.current.removeEventListener('wheel', handleWheel);
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps

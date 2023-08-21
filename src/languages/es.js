@@ -29,6 +29,7 @@ export default {
         workspaces: 'Espacios de trabajo',
         profile: 'Perfil',
         payments: 'Pagos',
+        wallet: 'Billetera',
         preferences: 'Preferencias',
         view: 'Ver',
         not: 'No',
@@ -153,6 +154,8 @@ export default {
         edit: 'Editar',
         showMore: 'Mostrar más',
         merchant: 'Comerciante',
+        receipt: 'Recibo',
+        replace: 'Sustituir',
     },
     anonymousReportFooter: {
         logoTagline: 'Únete a la discussion.',
@@ -246,6 +249,7 @@ export default {
         hero: {
             header: 'Divida las facturas, solicite pagos y chatee con sus amigos.',
             body: 'Bienvenido al futuro de Expensify, tu nuevo lugar de referencia para la colaboración financiera con amigos y compañeros de equipo por igual.',
+            demoHeadline: '¡Bienvenido a SaaStr! Entra y empieza a establecer contactos.',
         },
     },
     thirdPartySignIn: {
@@ -396,6 +400,11 @@ export default {
         pay: 'Pagar',
         viewDetails: 'Ver detalles',
         pending: 'Pendiente',
+        deleteReceipt: 'Eliminar recibo',
+        receiptScanning: 'Escaneo de recibo en curso…',
+        receiptStatusTitle: 'Escaneando…',
+        receiptStatusText: 'Solo tú puedes ver este recibo cuando se está escaneando. Vuelve más tarde o introduce los detalles ahora.',
+        requestCount: ({count, scanningReceipts = 0}) => `${count} solicitudes${scanningReceipts > 0 ? `, ${scanningReceipts} escaneando` : ''}`,
         deleteRequest: 'Eliminar pedido',
         deleteConfirmation: '¿Estás seguro de que quieres eliminar este pedido?',
         settledExpensify: 'Pagado',
@@ -421,7 +430,6 @@ export default {
         pendingConversionMessage: 'El total se actualizará cuando estés online',
         threadRequestReportName: ({formattedAmount, comment}) => `Solicitud de ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         threadSentMoneyReportName: ({formattedAmount, comment}) => `${formattedAmount} enviado${comment ? ` para ${comment}` : ''}`,
-        requestCount: ({count}) => `${count} solicitudes`,
         error: {
             invalidSplit: 'La suma de las partes no equivale al monto total',
             other: 'Error inesperado, por favor inténtalo más tarde',
@@ -664,7 +672,7 @@ export default {
             password: 'Por favor, introduce tu contraseña de Expensify',
         },
     },
-    paymentsPage: {
+    walletPage: {
         paymentMethodsTitle: 'Métodos de pago',
         setDefaultConfirmation: 'Marcar como método de pago predeterminado',
         setDefaultSuccess: 'Método de pago configurado',
@@ -691,8 +699,8 @@ export default {
         transferDetailBankAccount: 'Tu dinero debería llegar en 1-3 días laborables.',
         transferDetailDebitCard: 'Tu dinero debería llegar de inmediato.',
         failedTransfer: 'Tu saldo no se ha acreditado completamente. Por favor, transfiere los fondos a una cuenta bancaria.',
-        notHereSubTitle: 'Por favor, transfiere el saldo desde la página de pagos',
-        goToPayment: 'Ir a pagos',
+        notHereSubTitle: 'Por favor, transfiere el saldo desde la página de billetera',
+        goToWallet: 'Ir a billetera',
     },
     chooseTransferAccountPage: {
         chooseAccount: 'Elegir cuenta',

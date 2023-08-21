@@ -1010,7 +1010,11 @@ function deleteReportComment(reportID, reportAction) {
     ];
 
     // Update optimistic data for parent report action if the report is a child report
-    const optimisticParentReportData = ReportUtils.getOptimisticDataForParentReportAction(reportID, optimisticReport.lastVisibleActionCreated, CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    const optimisticParentReportData = ReportUtils.getOptimisticDataForParentReportAction(
+        originalReportID,
+        optimisticReport.lastVisibleActionCreated,
+        CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+    );
     if (!_.isEmpty(optimisticParentReportData)) {
         optimisticData.push(optimisticParentReportData);
     }
