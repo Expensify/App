@@ -1,4 +1,4 @@
-import React, {useRef, useCallback, useState, useEffect, useMemo} from 'react';
+import React, {useRef, useCallback, useState, useEffect} from 'react';
 import {View, FlatList, PixelRatio, Keyboard} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -15,6 +15,10 @@ import withLocalize from '../../withLocalize';
 import compose from '../../../libs/compose';
 import useCarouselArrows from './useCarouselArrows';
 import useWindowDimensions from '../../../hooks/useWindowDimensions';
+import Navigation from '../../../libs/Navigation/Navigation';
+import BlockingView from '../../BlockingViews/BlockingView';
+import * as Illustrations from '../../Icon/Illustrations';
+import variables from '../../../styles/variables';
 
 const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
 const viewabilityConfig = {
@@ -23,24 +27,37 @@ const viewabilityConfig = {
     itemVisiblePercentThreshold: 95,
 };
 
-function AttachmentCarousel({report, reportActions, source, onNavigate}) {
+function AttachmentCarousel({report, reportActions, source, onNavigate, setDownloadButtonVisibility, translate}) {
     const scrollRef = useRef(null);
 
     const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
 
-    const {attachments, initialPage, initialActiveSource, initialItem} = useMemo(() => extractAttachmentsFromReport(report, reportActions, source), [report, reportActions, source]);
+    const [containerWidth, setContainerWidth] = useState(0);
+    const [page, setPage] = useState(0);
+    const [attachments, setAttachments] = useState([]);
+    const [activeSource, setActiveSource] = useState(source);
+    const [shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows] = useCarouselArrows();
 
     useEffect(() => {
-        // Update the parent modal's state with the source and name from the mapped attachments
-        if (!initialItem) return;
-        onNavigate(initialItem);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [initialItem]);
+        const attachmentsFromReport = extractAttachmentsFromReport(report, reportActions);
 
-    const [containerWidth, setContainerWidth] = useState(0);
-    const [page, setPage] = useState(initialPage);
-    const [activeSource, setActiveSource] = useState(initialActiveSource);
-    const [shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows] = useCarouselArrows();
+        const initialPage = _.findIndex(attachmentsFromReport, (a) => a.source === source);
+
+        // Dismiss the modal when deleting an attachment during its display in preview.
+        if (initialPage === -1 && _.find(attachments, (a) => a.source === source)) {
+            Navigation.dismissModal();
+        } else {
+            setPage(initialPage);
+            setAttachments(attachmentsFromReport);
+
+            // Update the download button visibility in the parent modal
+            setDownloadButtonVisibility(initialPage !== -1);
+
+            // Update the parent modal's state with the source and name from the mapped attachments
+            if (!_.isUndefined(attachmentsFromReport[initialPage])) onNavigate(attachmentsFromReport[initialPage]);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [report, reportActions, source]);
 
     /**
      * Updates the page state when the user navigates between attachments
@@ -153,49 +170,60 @@ function AttachmentCarousel({report, reportActions, source, onNavigate}) {
             onMouseEnter={() => !canUseTouchScreen && setShouldShowArrows(true)}
             onMouseLeave={() => !canUseTouchScreen && setShouldShowArrows(false)}
         >
-            <CarouselButtons
-                shouldShowArrows={shouldShowArrows}
-                page={page}
-                attachments={attachments}
-                onBack={() => cycleThroughAttachments(-1)}
-                onForward={() => cycleThroughAttachments(1)}
-                autoHideArrow={autoHideArrows}
-                cancelAutoHideArrow={cancelAutoHideArrows}
-            />
-
-            {containerWidth > 0 && (
-                <FlatList
-                    keyboardShouldPersistTaps="handled"
-                    listKey="AttachmentCarousel"
-                    horizontal
-                    decelerationRate="fast"
-                    showsHorizontalScrollIndicator={false}
-                    bounces={false}
-                    // Scroll only one image at a time no matter how fast the user swipes
-                    disableIntervalMomentum
-                    pagingEnabled
-                    snapToAlignment="start"
-                    snapToInterval={containerWidth}
-                    // Enable scrolling by swiping on mobile (touch) devices only
-                    // disable scroll for desktop/browsers because they add their scrollbars
-                    // Enable scrolling FlatList only when PDF is not in a zoomed state
-                    scrollEnabled={canUseTouchScreen}
-                    ref={scrollRef}
-                    initialScrollIndex={page}
-                    initialNumToRender={3}
-                    windowSize={5}
-                    maxToRenderPerBatch={3}
-                    data={attachments}
-                    CellRendererComponent={renderCell}
-                    renderItem={renderItem}
-                    getItemLayout={getItemLayout}
-                    keyExtractor={(item) => item.source}
-                    viewabilityConfig={viewabilityConfig}
-                    onViewableItemsChanged={updatePage.current}
+            {page === -1 ? (
+                <BlockingView
+                    icon={Illustrations.ToddBehindCloud}
+                    iconWidth={variables.modalTopIconWidth}
+                    iconHeight={variables.modalTopIconHeight}
+                    title={translate('notFound.notHere')}
                 />
-            )}
+            ) : (
+                <>
+                    <CarouselButtons
+                        shouldShowArrows={shouldShowArrows}
+                        page={page}
+                        attachments={attachments}
+                        onBack={() => cycleThroughAttachments(-1)}
+                        onForward={() => cycleThroughAttachments(1)}
+                        autoHideArrow={autoHideArrows}
+                        cancelAutoHideArrow={cancelAutoHideArrows}
+                    />
 
-            <CarouselActions onCycleThroughAttachments={cycleThroughAttachments} />
+                    {containerWidth > 0 && (
+                        <FlatList
+                            keyboardShouldPersistTaps="handled"
+                            listKey="AttachmentCarousel"
+                            horizontal
+                            decelerationRate="fast"
+                            showsHorizontalScrollIndicator={false}
+                            bounces={false}
+                            // Scroll only one image at a time no matter how fast the user swipes
+                            disableIntervalMomentum
+                            pagingEnabled
+                            snapToAlignment="start"
+                            snapToInterval={containerWidth}
+                            // Enable scrolling by swiping on mobile (touch) devices only
+                            // disable scroll for desktop/browsers because they add their scrollbars
+                            // Enable scrolling FlatList only when PDF is not in a zoomed state
+                            scrollEnabled={canUseTouchScreen}
+                            ref={scrollRef}
+                            initialScrollIndex={page}
+                            initialNumToRender={3}
+                            windowSize={5}
+                            maxToRenderPerBatch={3}
+                            data={attachments}
+                            CellRendererComponent={renderCell}
+                            renderItem={renderItem}
+                            getItemLayout={getItemLayout}
+                            keyExtractor={(item) => item.source}
+                            viewabilityConfig={viewabilityConfig}
+                            onViewableItemsChanged={updatePage.current}
+                        />
+                    )}
+
+                    <CarouselActions onCycleThroughAttachments={cycleThroughAttachments} />
+                </>
+            )}
         </View>
     );
 }

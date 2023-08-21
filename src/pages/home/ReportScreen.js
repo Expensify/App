@@ -215,7 +215,6 @@ class ReportScreen extends React.Component {
         if (this.props.report.reportID && this.props.report.reportID === getReportID(this.props.route)) {
             return;
         }
-
         Report.openReport(reportIDFromPath);
     }
 
@@ -298,6 +297,7 @@ class ReportScreen extends React.Component {
                         shouldShowCloseButton={false}
                         shouldShowBackButton={this.props.isSmallScreenWidth}
                         onBackButtonPress={Navigation.goBack}
+                        shouldShowLink={false}
                     >
                         <OfflineWithFeedback
                             pendingAction={addWorkspaceRoomOrChatPendingAction}

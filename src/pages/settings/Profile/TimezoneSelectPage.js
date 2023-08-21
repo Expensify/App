@@ -35,18 +35,18 @@ const getUserTimezone = (currentUserPersonalDetails) => lodashGet(currentUserPer
 
 function TimezoneSelectPage(props) {
     const {translate} = useLocalize();
-    const timezone = useRef(getUserTimezone(props.currentUserPersonalDetails));
+    const timezone = getUserTimezone(props.currentUserPersonalDetails);
     const allTimezones = useRef(
         _.chain(moment.tz.names())
             .filter((tz) => !tz.startsWith('Etc/GMT'))
             .map((text) => ({
                 text,
                 keyForList: getKey(text),
-                isSelected: text === timezone.current.selected,
+                isSelected: text === timezone.selected,
             }))
             .value(),
     );
-    const [timezoneInputText, setTimezoneInputText] = useState(timezone.current.selected);
+    const [timezoneInputText, setTimezoneInputText] = useState(timezone.selected);
     const [timezoneOptions, setTimezoneOptions] = useState(allTimezones.current);
 
     /**
@@ -76,8 +76,8 @@ function TimezoneSelectPage(props) {
                 textInputValue={timezoneInputText}
                 onChangeText={filterShownTimezones}
                 onSelectRow={saveSelectedTimezone}
-                sections={[{data: timezoneOptions, indexOffset: 0, isDisabled: timezone.current.automatic}]}
-                initiallyFocusedOptionKey={_.get(_.filter(timezoneOptions, (tz) => tz.text === timezone.current.selected)[0], 'keyForList')}
+                sections={[{data: timezoneOptions, indexOffset: 0, isDisabled: timezone.automatic}]}
+                initiallyFocusedOptionKey={_.get(_.filter(timezoneOptions, (tz) => tz.text === timezone.selected)[0], 'keyForList')}
             />
         </ScreenWrapper>
     );

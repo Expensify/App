@@ -7,6 +7,7 @@ import HeaderWithBackButton from '../components/HeaderWithBackButton';
 import Navigation from '../libs/Navigation/Navigation';
 import useLocalize from '../hooks/useLocalize';
 import MoneyRequestAmountForm from './iou/steps/MoneyRequestAmountForm';
+import ROUTES from '../ROUTES';
 
 const propTypes = {
     /** Transaction default amount value */
@@ -17,9 +18,12 @@ const propTypes = {
 
     /** Callback to fire when the Save button is pressed  */
     onSubmit: PropTypes.func.isRequired,
+
+    /** reportID for the transaction thread */
+    reportID: PropTypes.string.isRequired,
 };
 
-function EditRequestAmountPage({defaultAmount, defaultCurrency, onSubmit}) {
+function EditRequestAmountPage({defaultAmount, defaultCurrency, onSubmit, reportID}) {
     const {translate} = useLocalize();
     const textInput = useRef(null);
 
@@ -34,6 +38,12 @@ function EditRequestAmountPage({defaultAmount, defaultCurrency, onSubmit}) {
 
             textInput.current.focus();
         });
+    };
+
+    const navigateToCurrencySelectionPage = () => {
+        // Remove query from the route and encode it.
+        const activeRoute = encodeURIComponent(Navigation.getActiveRoute().replace(/\?.*/, ''));
+        Navigation.navigate(ROUTES.getEditRequestCurrencyRoute(reportID, defaultCurrency, activeRoute));
     };
 
     useFocusEffect(
@@ -53,11 +63,10 @@ function EditRequestAmountPage({defaultAmount, defaultCurrency, onSubmit}) {
             />
             <MoneyRequestAmountForm
                 isEditing
-                disableCurrency
                 currency={defaultCurrency}
                 amount={defaultAmount}
                 ref={(e) => (textInput.current = e)}
-                onCurrencyButtonPress={() => null}
+                onCurrencyButtonPress={navigateToCurrencySelectionPage}
                 onSubmitButtonPress={onSubmit}
             />
         </ScreenWrapper>
