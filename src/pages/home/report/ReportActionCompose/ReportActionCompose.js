@@ -242,7 +242,7 @@ function ReportActionCompose({
         if (!willBlurTextInputOnTapOutsideFunc) {
             return;
         }
-        suggestionsRef.current.setShouldBlockEmojiCalc(true);
+        suggestionsRef.current.setShouldBlockSuggestionCalc(true);
     }, []);
 
     const onBlur = useCallback(() => {

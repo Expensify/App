@@ -70,6 +70,11 @@ function Suggestions({
         suggestionMentionRef.current.updateShouldShowSuggestionMenuToFalse();
     }, []);
 
+    const setShouldBlockSuggestionCalc = useCallback((shouldBlock) => {
+        suggestionEmojiRef.current.setShouldBlockSuggestionCalc(shouldBlock);
+        suggestionMentionRef.current.setShouldBlockSuggestionCalc(shouldBlock);
+    }, []);
+
     useImperativeHandle(
         forwardedRef,
         () => ({
@@ -77,8 +82,9 @@ function Suggestions({
             onSelectionChange,
             triggerHotkeyActions,
             updateShouldShowSuggestionMenuToFalse,
+            setShouldBlockSuggestionCalc,
         }),
-        [onSelectionChange, resetSuggestions, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse],
+        [onSelectionChange, resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse],
     );
 
     const {windowHeight, isSmallScreenWidth} = useWindowDimensions();
