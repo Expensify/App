@@ -3670,7 +3670,7 @@ const styles = {
     },
 
     tabText: (isSelected) => ({
-        marginHorizontal: 8,
+        marginLeft: 8,
         fontFamily: isSelected ? fontFamily.EXP_NEUE_BOLD : fontFamily.EXP_NEUE,
         fontWeight: isSelected ? fontWeightBold : 400,
         color: isSelected ? themeColors.textLight : themeColors.textSupporting,
