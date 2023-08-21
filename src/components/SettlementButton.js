@@ -85,7 +85,7 @@ const defaultProps = {
 
 class SettlementButton extends React.Component {
     componentDidMount() {
-        PaymentMethods.openPaymentsPage();
+        PaymentMethods.openWalletPage();
     }
 
     getButtonOptionsFromProps() {
@@ -174,8 +174,9 @@ class SettlementButton extends React.Component {
                 chatReportID={this.props.chatReportID}
                 iouReport={this.props.iouReport}
             >
-                {(triggerKYCFlow) => (
+                {(triggerKYCFlow, buttonRef) => (
                     <ButtonWithDropdownMenu
+                        buttonRef={buttonRef}
                         isDisabled={this.props.isDisabled}
                         isLoading={this.props.isLoading}
                         onPress={(event, iouPaymentType) => {
