@@ -2459,6 +2459,11 @@ function isUnread(report) {
     if (!report) {
         return false;
     }
+    const lastVisibleMessage = ReportActionsUtils.getLastVisibleMessage(report.reportID);
+    const isEmptyChat = !lastVisibleMessage.lastMessageText && !lastVisibleMessage.lastMessageTranslationKey;
+    if(isEmptyChat) {
+        return false;
+    }
 
     // lastVisibleActionCreated and lastReadTime are both datetime strings and can be compared directly
     const lastVisibleActionCreated = report.lastVisibleActionCreated || '';
