@@ -94,9 +94,9 @@ export default [
         successTextTranslateKey: 'common.download',
         successIcon: Expensicons.Download,
         shouldShow: (type, reportAction) => {
-            const message = _.last(lodashGet(reportAction, 'message', [{}]));
-            const isAttachment = _.has(reportAction, 'isAttachment') ? reportAction.isAttachment : ReportUtils.isReportMessageAttachment(message);
-            return isAttachment && message.html !== CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML && reportAction.reportActionID && !ReportActionUtils.isMessageDeleted(reportAction);
+            const isAttachment = ReportUtils.isReportActionAttachment(reportAction);
+            const messageHtml = lodashGet(reportAction, ['message', 0, 'html']);
+            return isAttachment && messageHtml !== CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML && reportAction.reportActionID && !ReportActionUtils.isMessageDeleted(reportAction);
         },
         onPress: (closePopover, {reportAction}) => {
             const message = _.last(lodashGet(reportAction, 'message', [{}]));
@@ -188,10 +188,9 @@ export default [
         // the `text` and `icon`
         onPress: (closePopover, {reportAction, selection}) => {
             const isReportPreviewAction = ReportActionUtils.isReportPreviewAction(reportAction);
-            const message = _.last(lodashGet(reportAction, 'message', [{}]));
-            const messageHtml = lodashGet(message, 'html', '');
+            const isAttachment = ReportUtils.isReportActionAttachment(reportAction);
+            const messageHtml = lodashGet(reportAction, ['message', 0, 'html'], '');
 
-            const isAttachment = _.has(reportAction, 'isAttachment') ? reportAction.isAttachment : ReportUtils.isReportMessageAttachment(message);
             if (!isAttachment) {
                 const content = selection || messageHtml;
                 if (isReportPreviewAction) {
@@ -224,8 +223,7 @@ export default [
         successIcon: Expensicons.Checkmark,
         successTextTranslateKey: 'reportActionContextMenu.copied',
         shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget) => {
-            const message = _.last(lodashGet(reportAction, 'message', [{}]));
-            const isAttachment = _.has(reportAction, 'isAttachment') ? reportAction.isAttachment : ReportUtils.isReportMessageAttachment(message);
+            const isAttachment = ReportUtils.isReportActionAttachment(reportAction);
 
             // Only hide the copylink menu item when context menu is opened over img element.
             const isAttachmentTarget = lodashGet(menuTarget, 'tagName') === 'IMG' && isAttachment;
