@@ -1,6 +1,5 @@
 import Onyx from 'react-native-onyx';
-import NotificationType from './NotificationType';
-import * as PushNotificationListener from './PushNotificationListener';
+import PushNotification from '.';
 import ROUTES from '../../../ROUTES';
 import Log from '../../Log';
 import Navigation from '../../Navigation/Navigation';
@@ -11,14 +10,14 @@ import backgroundRefresh from './backgroundRefresh';
  * Setup reportComment push notification callbacks.
  */
 export default function subscribeToReportCommentPushNotifications() {
-    PushNotificationListener.onReceived(NotificationType.REPORT_COMMENT, ({reportID, reportActionID, onyxData}) => {
+    PushNotification.onReceived(PushNotification.TYPE.REPORT_COMMENT, ({reportID, reportActionID, onyxData}) => {
         Log.info(`[PushNotification] received report comment notification in the ${Visibility.isVisible() ? 'foreground' : 'background'}`, false, {reportID, reportActionID});
         Onyx.update(onyxData);
         backgroundRefresh();
     });
 
     // Open correct report when push notification is clicked
-    PushNotificationListener.onSelected(NotificationType.REPORT_COMMENT, ({reportID, reportActionID}) => {
+    PushNotification.onSelected(PushNotification.TYPE.REPORT_COMMENT, ({reportID, reportActionID}) => {
         if (!reportID) {
             Log.warn('[PushNotification] This push notification has no reportID');
         }
