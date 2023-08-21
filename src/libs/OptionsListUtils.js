@@ -397,12 +397,12 @@ function getLastMessageTextForReport(report) {
         const lastNonWhisper = _.find(allSortedReportActions[report.reportID], (action) => !ReportActionUtils.isWhisperAction(action)) || {};
         if (ReportActionUtils.isPendingRemove(lastNonWhisper)) {
             const latestVisibleAction =
-            _.find(
-                allSortedReportActions[report.reportID],
-                (action) => ReportActionUtils.shouldReportActionBeVisibleAsLastAction(action) && !ReportActionUtils.isCreatedAction(action),
+                _.find(
+                    allSortedReportActions[report.reportID],
+                    (action) => ReportActionUtils.shouldReportActionBeVisibleAsLastAction(action) && !ReportActionUtils.isCreatedAction(action),
                 ) || {};
-                lastMessageTextFromReport = lodashGet(latestVisibleAction, 'message[0].text', '');
-            }
+                    lastMessageTextFromReport = lodashGet(latestVisibleAction, 'message[0].text', '');
+                }
     }
     return lastMessageTextFromReport;
 }
