@@ -15,7 +15,7 @@ Onyx.connect({
         if (!val) {
             return;
         }
-        allTransactions = val;
+        allTransactions = _.pick(val, (transaction) => transaction);
     },
 });
 

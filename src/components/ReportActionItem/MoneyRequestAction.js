@@ -132,7 +132,7 @@ function MoneyRequestAction(props) {
         props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD &&
         props.network.isOffline
     ) {
-        shouldShowPendingConversionMessage = IOUUtils.isIOUReportPendingCurrencyConversion(props.reportActions, props.iouReport);
+        shouldShowPendingConversionMessage = IOUUtils.isIOUReportPendingCurrencyConversion(props.iouReport);
     }
 
     return isDeletedParentAction ? (
