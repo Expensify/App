@@ -5,6 +5,7 @@ import * as TransactionUtils from '../../../libs/TransactionUtils';
 import * as ReceiptUtils from '../../../libs/ReceiptUtils';
 import CONST from '../../../CONST';
 import tryResolveUrlFromApiRoot from '../../../libs/tryResolveUrlFromApiRoot';
+import lodashGet from 'lodash/get';
 
 /**
  * Constructs the initial component state from report actions
@@ -43,7 +44,12 @@ function extractAttachmentsFromReport(report, reportActions) {
         // We're handling receipts differently here because receipt images are not
         // part of the report action message, the images are constructed client-side
         if (ReportActionsUtils.isMoneyRequestAction(action)) {
-            const transaction = TransactionUtils.getTransaction(action.originalMessage.IOUTransactionID);
+            const transactionID = lodashGet(action, ['originalMessage', 'IOUTransactionID']);
+            if (!transactionID) {
+                return;
+            }
+
+            const transaction = TransactionUtils.getTransaction(transactionID);
             if (TransactionUtils.hasReceipt(transaction)) {
                 const {image} = ReceiptUtils.getThumbnailAndImageURIs(transaction.receipt.source, transaction.filename);
                 attachments.unshift({
