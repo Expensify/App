@@ -28,6 +28,8 @@ describe('test workflow testBuild', () => {
         CSC_KEY_PASSWORD: 'dummy_csc_key_password',
         APPLE_ID_PASSWORD: 'dummy_apple_id_password',
         APPLE_ID: 'dummy_apple_id_value',
+        MYAPP_UPLOAD_STORE_PASSWORD: 'dummy_myapp_upload_store_password',
+        MYAPP_UPLOAD_KEY_PASSWORD: 'dummy_myapp_upload_key_password',
     };
 
     beforeAll(async () => {
@@ -232,7 +234,7 @@ describe('test workflow testBuild', () => {
                     web: mocks.TESTBUILD__WEB__STEP_MOCKS,
                     postGithubComment: mocks.TESTBUILD__POSTGITHUBCOMMENT__STEP_MOCKS,
                 };
-                testMockSteps.iOS[5] = utils.createMockStep('Install cocoapods', 'Install cocoapods', 'IOS', ['timeout_minutes', 'max_attempts', 'command'], [], {}, {}, false);
+                testMockSteps.iOS[6] = utils.createMockStep('Install cocoapods', 'Install cocoapods', 'IOS', ['timeout_minutes', 'max_attempts', 'command'], [], {}, {}, false);
                 const result = await act.runEvent(event, {
                     workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
                     mockSteps: testMockSteps,
@@ -243,7 +245,7 @@ describe('test workflow testBuild', () => {
                 assertions.assertValidateActorJobExecuted(result, '1234');
                 assertions.assertGetBranchRefJobExecuted(result);
                 assertions.assertAndroidJobExecuted(result, 'test-ref');
-                assertions.assertIOSJobExecuted(result, 'test-ref', true, 5);
+                assertions.assertIOSJobExecuted(result, 'test-ref', true, 6);
                 assertions.assertDesktopJobExecuted(result, 'test-ref');
                 assertions.assertWebJobExecuted(result, 'test-ref');
                 assertions.assertPostGithubCommentJobExecuted(result, 'test-ref', '1234', true, 'success', 'failure', 'success', 'success');

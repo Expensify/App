@@ -129,6 +129,7 @@ const assertIOSJobExecuted = (workflowResult, didExecute = true, isProduction = 
             {key: 'ruby-version', value: '2.7'},
             {key: 'bundler-cache', value: 'true'},
         ]),
+        utils.createStepAssertion('Setup credentails for Mapbox SDK', true, null, 'IOS', 'Setup credentials for Mapbox SDK'),
         utils.createStepAssertion('Install cocoapods', true, null, 'IOS', 'Installing cocoapods', [
             {key: 'timeout_minutes', value: '10'},
             {key: 'max_attempts', value: '5'},
@@ -204,6 +205,7 @@ const assertWebJobExecuted = (workflowResult, didExecute = true, isProduction = 
             {key: 'AWS_ACCESS_KEY_ID', value: '***'},
             {key: 'AWS_SECRET_ACCESS_KEY', value: '***'},
         ]),
+        utils.createStepAssertion('Setup credentails for Mapbox SDK', true, null, 'WEB', 'Setup credentials for Mapbox SDK'),
     ];
     if (isProduction) {
         steps.push(

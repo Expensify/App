@@ -86,6 +86,7 @@ const assertAndroidJobExecuted = (workflowResult, ref = '', didExecute = true, f
             ],
             [],
         ),
+        utils.createStepAssertion('Setup credentails for Mapbox SDK', true, null, 'ANDROID', 'Setup credentials for Mapbox SDK'),
         utils.createStepAssertion(
             'Run Fastlane beta test',
             true,
@@ -98,6 +99,8 @@ const assertAndroidJobExecuted = (workflowResult, ref = '', didExecute = true, f
                 {key: 'S3_SECRET_ACCESS_KEY', value: '***'},
                 {key: 'S3_BUCKET', value: 'ad-hoc-expensify-cash'},
                 {key: 'S3_REGION', value: 'us-east-1'},
+                {key: 'MYAPP_UPLOAD_STORE_PASSWORD', value: '***'},
+                {key: 'MYAPP_UPLOAD_KEY_PASSWORD', value: '***'},
             ],
         ),
         utils.createStepAssertion(
@@ -150,6 +153,7 @@ const assertIOSJobExecuted = (workflowResult, ref = '', didExecute = true, fails
             ],
             [],
         ),
+        utils.createStepAssertion('Setup credentails for Mapbox SDK', true, null, 'IOS', 'Setup credentials for Mapbox SDK'),
         utils.createStepAssertion(
             'Install cocoapods',
             true,
