@@ -20,21 +20,28 @@ import Form from '../../../components/Form';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import usePrevious from '../../../hooks/usePrevious';
+import NotFoundPage from '../../ErrorPage/NotFoundPage';
+import Permissions from '../../../libs/Permissions';
 
 const propTypes = {
     /* Onyx Props */
     formData: PropTypes.shape({
         setupComplete: PropTypes.bool,
     }),
+    betas: PropTypes.arrayOf(PropTypes.string),
 };
 
 const defaultProps = {
     formData: {
         setupComplete: false,
     },
+    betas: [],
 };
 
 function DebitCardPage(props) {
+    if (!Permissions.canUseWallet(props.betas)) {
+        return <NotFoundPage />;
+    }
     const {translate} = useLocalize();
     const prevFormDataSetupComplete = usePrevious(props.formData.setupComplete);
     const nameOnCardRef = useRef(null);
@@ -187,11 +194,11 @@ function DebitCardPage(props) {
     );
 }
 
-DebitCardPage.propTypes = propTypes;
-DebitCardPage.defaultProps = defaultProps;
-
 export default withOnyx({
     formData: {
         key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
+    },
+    betas: {
+        key: ONYXKEYS.BETAS,
     },
 })(DebitCardPage);
