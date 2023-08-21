@@ -1,3 +1,14 @@
+/**
+ * Mapbox SDK Token Fetcher
+ * ========================
+ *
+ * Used in local development environment. Can be invoked with `npm run configure-mapbox`.
+ *
+ * Invokes an Expensify API endpoint to fetch a temporary Mapbox token necessary
+ * to download Mapbox iOS and Android SDKs. Saves the token fetched in relevant files
+ * on local machine.
+ */
+
 import axios from 'axios';
 import {saveMapboxToken} from './setup-mapbox-sdk';
 
