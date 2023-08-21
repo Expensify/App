@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import {format} from 'date-fns';
+import {format, parseISO} from 'date-fns';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import lodashIntersection from 'lodash/intersection';
@@ -290,6 +290,17 @@ function isUserCreatedPolicyRoom(report) {
 }
 
 /**
+ * Get the policy type from a given report
+ * @param {Object} report
+ * @param {String} report.policyID
+ * @param {Object} policies must have Onyxkey prefix (i.e 'policy_') for keys
+ * @returns {String}
+ */
+function getPolicyType(report, policies) {
+    return lodashGet(policies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'type'], '');
+}
+
+/**
  * Whether the provided report is a Policy Expense chat.
  * @param {Object} report
  * @param {String} report.chatType
@@ -297,6 +308,22 @@ function isUserCreatedPolicyRoom(report) {
  */
 function isPolicyExpenseChat(report) {
     return getChatType(report) === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT;
+}
+
+/** Wether the provided report belongs to a Control policy and is an epxense chat
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isControlPolicyExpenseChat(report) {
+    return isPolicyExpenseChat(report) && getPolicyType(report, allPolicies) === CONST.POLICY.TYPE.CORPORATE;
+}
+
+/** Wether the provided report belongs to a Control policy and is an epxense report
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isControlPolicyExpenseReport(report) {
+    return isExpenseReport(report) && getPolicyType(report, allPolicies) === CONST.POLICY.TYPE.CORPORATE;
 }
 
 /**
@@ -329,17 +356,6 @@ function isPublicRoom(report) {
 function isPublicAnnounceRoom(report) {
     const visibility = lodashGet(report, 'visibility', '');
     return visibility === CONST.REPORT.VISIBILITY.PUBLIC_ANNOUNCE;
-}
-
-/**
- * Get the policy type from a given report
- * @param {Object} report
- * @param {String} report.policyID
- * @param {Object} policies must have Onyxkey prefix (i.e 'policy_') for keys
- * @returns {String}
- */
-function getPolicyType(report, policies) {
-    return lodashGet(policies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'type'], '');
 }
 
 /**
@@ -1190,7 +1206,10 @@ function getPolicyExpenseChatName(report, policy = undefined) {
 function getMoneyRequestReportName(report, policy = undefined) {
     const formattedAmount = CurrencyUtils.convertToDisplayString(getMoneyRequestTotal(report), report.currency);
     const payerName = isExpenseReport(report) ? getPolicyName(report, false, policy) : getDisplayNameForParticipant(report.managerID);
-    const payerPaidAmountMesssage = Localize.translateLocal('iou.payerPaidAmount', {payer: payerName, amount: formattedAmount});
+    const payerPaidAmountMesssage = Localize.translateLocal('iou.payerPaidAmount', {
+        payer: payerName,
+        amount: formattedAmount,
+    });
 
     if (report.isWaitingOnBankAccount) {
         return `${payerPaidAmountMesssage} • ${Localize.translateLocal('iou.pending')}`;
@@ -1289,6 +1308,29 @@ function getReportPreviewMessage(report, reportAction = {}) {
 }
 
 /**
+ * Get the proper message schema for modified expense message.
+ *
+ * @param {String} newValue
+ * @param {String} oldValue
+ * @param {String} valueName
+ * @param {Boolean} valueInQuotes
+ * @returns {String}
+ */
+
+function getProperSchemaForModifiedExpenseMessage(newValue, oldValue, valueName, valueInQuotes) {
+    const newValueToDisplay = valueInQuotes ? `"${newValue}"` : newValue;
+    const oldValueToDisplay = valueInQuotes ? `"${oldValue}"` : oldValue;
+
+    if (!oldValue) {
+        return `set the ${valueName} to ${newValueToDisplay}`;
+    }
+    if (!newValue) {
+        return `removed the ${valueName} (previously ${oldValueToDisplay})`;
+    }
+    return `changed the ${valueName} to ${newValueToDisplay} (previously ${oldValueToDisplay})`;
+}
+
+/**
  * Get the report action message when expense has been modified.
  *
  * @param {Object} reportAction
@@ -1312,25 +1354,25 @@ function getModifiedExpenseMessage(reportAction) {
         const currency = reportActionOriginalMessage.currency;
         const amount = CurrencyUtils.convertToDisplayString(reportActionOriginalMessage.amount, currency);
 
-        return `changed the request to ${amount} (previously ${oldAmount})`;
+        return getProperSchemaForModifiedExpenseMessage(amount, oldAmount, 'amount', false);
     }
 
     const hasModifiedComment = _.has(reportActionOriginalMessage, 'oldComment') && _.has(reportActionOriginalMessage, 'newComment');
     if (hasModifiedComment) {
-        return `changed the request description to "${reportActionOriginalMessage.newComment}" (previously "${reportActionOriginalMessage.oldComment}")`;
+        return getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.newComment, reportActionOriginalMessage.oldComment, 'description', true);
     }
 
     const hasModifiedMerchant = _.has(reportActionOriginalMessage, 'oldMerchant') && _.has(reportActionOriginalMessage, 'merchant');
     if (hasModifiedMerchant) {
-        return `changed the request merchant to "${reportActionOriginalMessage.merchant}" (previously "${reportActionOriginalMessage.oldMerchant}")`;
+        return getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.merchant, reportActionOriginalMessage.oldMerchant, 'merchant', true);
     }
 
     const hasModifiedCreated = _.has(reportActionOriginalMessage, 'oldCreated') && _.has(reportActionOriginalMessage, 'created');
     if (hasModifiedCreated) {
         // Take only the YYYY-MM-DD value as the original date includes timestamp
-        let formattedOldCreated = new Date(reportActionOriginalMessage.oldCreated);
+        let formattedOldCreated = parseISO(reportActionOriginalMessage.oldCreated);
         formattedOldCreated = format(formattedOldCreated, CONST.DATE.FNS_FORMAT_STRING);
-        return `changed the request date to ${reportActionOriginalMessage.created} (previously ${formattedOldCreated})`;
+        return getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.created, formattedOldCreated, 'date', false);
     }
 }
 
@@ -1787,6 +1829,7 @@ function buildOptimisticExpenseReport(chatReportID, policyID, payeeAccountID, to
 }
 
 /**
+ * @param {String} iouReportID - the report ID of the IOU report the action belongs to
  * @param {String} type - IOUReportAction type. Can be oneOf(create, decline, cancel, pay, split)
  * @param {Number} total - IOU total in cents
  * @param {String} comment - IOU comment
@@ -1795,8 +1838,8 @@ function buildOptimisticExpenseReport(chatReportID, policyID, payeeAccountID, to
  * @param {Boolean} isSettlingUp - Whether we are settling up an IOU
  * @returns {Array}
  */
-function getIOUReportActionMessage(type, total, comment, currency, paymentType = '', isSettlingUp = false) {
-    const amount = CurrencyUtils.convertToDisplayString(total, currency);
+function getIOUReportActionMessage(iouReportID, type, total, comment, currency, paymentType = '', isSettlingUp = false) {
+    let amount = CurrencyUtils.convertToDisplayString(total, currency);
     let paymentMethodMessage;
     switch (paymentType) {
         case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
@@ -1822,6 +1865,7 @@ function getIOUReportActionMessage(type, total, comment, currency, paymentType =
             iouMessage = `deleted the ${amount} request${comment && ` for ${comment}`}`;
             break;
         case CONST.IOU.REPORT_ACTION_TYPE.PAY:
+            amount = CurrencyUtils.convertToDisplayString(getMoneyRequestTotal(getReport(iouReportID)), currency);
             iouMessage = isSettlingUp ? `paid ${amount}${paymentMethodMessage}` : `sent ${amount}${comment && ` for ${comment}`}${paymentMethodMessage}`;
             break;
         default:
@@ -1852,6 +1896,7 @@ function getIOUReportActionMessage(type, total, comment, currency, paymentType =
  * @param {Boolean} [isSettlingUp] - Whether we are settling up an IOU.
  * @param {Boolean} [isSendMoneyFlow] - Whether this is send money flow
  * @param {Object} [receipt]
+ * @param {Boolean} [isOwnPolicyExpenseChat] - Whether this is an expense report create from the current user's policy expense chat
  * @returns {Object}
  */
 function buildOptimisticIOUReportAction(
@@ -1866,6 +1911,7 @@ function buildOptimisticIOUReportAction(
     isSettlingUp = false,
     isSendMoneyFlow = false,
     receipt = {},
+    isOwnPolicyExpenseChat = false,
 ) {
     const IOUReportID = iouReportID || generateReportID();
 
@@ -1898,7 +1944,12 @@ function buildOptimisticIOUReportAction(
     // IOUs of type split only exist in group DMs and those don't have an iouReport so we need to delete the IOUReportID key
     if (type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT) {
         delete originalMessage.IOUReportID;
-        originalMessage.participantAccountIDs = [currentUserAccountID, ..._.pluck(participants, 'accountID')];
+        // Split bill made from a policy expense chat only have the payee's accountID as the participant because the payer could be any policy admin
+        if (isOwnPolicyExpenseChat) {
+            originalMessage.participantAccountIDs = [currentUserAccountID];
+        } else {
+            originalMessage.participantAccountIDs = [currentUserAccountID, ..._.pluck(participants, 'accountID')];
+        }
     }
 
     return {
@@ -1908,7 +1959,7 @@ function buildOptimisticIOUReportAction(
         avatar: lodashGet(currentUserPersonalDetails, 'avatar', UserUtils.getDefaultAvatar(currentUserAccountID)),
         isAttachment: false,
         originalMessage,
-        message: getIOUReportActionMessage(type, amount, comment, currency, paymentType, isSettlingUp),
+        message: getIOUReportActionMessage(iouReportID, type, amount, comment, currency, paymentType, isSettlingUp),
         person: [
             {
                 style: 'strong',
@@ -2796,7 +2847,7 @@ function getMoneyRequestOptions(report, reportParticipants, betas) {
     // unless there are no participants at all (e.g. #admins room for a policy with only 1 admin)
     // DM chats will have the Split Bill option only when there are at least 3 people in the chat.
     // There is no Split Bill option for Workspace chats
-    if (isChatRoom(report) || (hasMultipleParticipants && !isPolicyExpenseChat(report))) {
+    if (isChatRoom(report) || (hasMultipleParticipants && !isPolicyExpenseChat(report)) || isControlPolicyExpenseChat(report)) {
         return [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT];
     }
 
@@ -3171,6 +3222,8 @@ export {
     formatReportLastMessageText,
     chatIncludesConcierge,
     isPolicyExpenseChat,
+    isControlPolicyExpenseChat,
+    isControlPolicyExpenseReport,
     getIconsForParticipants,
     getIcons,
     getRoomWelcomeMessage,
@@ -3208,6 +3261,7 @@ export {
     getAllPolicyReports,
     getIOUReportActionMessage,
     getDisplayNameForParticipant,
+    getWorkspaceIcon,
     isOptimisticPersonalDetail,
     shouldDisableDetailPage,
     isChatReport,

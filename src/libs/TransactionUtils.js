@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import {format} from 'date-fns';
+import {format, parseISO, isValid} from 'date-fns';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import CONST from '../CONST';
@@ -30,12 +30,23 @@ Onyx.connect({
  * @param {String} [originalTransactionID]
  * @param {String} [merchant]
  * @param {Object} [receipt]
+ * @param {String} [existingTransactionID] When creating a distance request, an empty transaction has already been created with a transactionID. In that case, the transaction here needs to have it's transactionID match what was already generated.
  * @returns {Object}
  */
-function buildOptimisticTransaction(amount, currency, reportID, comment = '', source = '', originalTransactionID = '', merchant = CONST.REPORT.TYPE.IOU, receipt = {}) {
+function buildOptimisticTransaction(
+    amount,
+    currency,
+    reportID,
+    comment = '',
+    source = '',
+    originalTransactionID = '',
+    merchant = CONST.REPORT.TYPE.IOU,
+    receipt = {},
+    existingTransactionID = null,
+) {
     // transactionIDs are random, positive, 64-bit numeric strings.
     // Because JS can only handle 53-bit numbers, transactionIDs are strings in the front-end (just like reportActionID)
-    const transactionID = NumberUtils.rand64();
+    const transactionID = existingTransactionID || NumberUtils.rand64();
 
     const commentJSON = {comment};
     if (source) {
@@ -86,7 +97,12 @@ function getUpdatedTransaction(transaction, transactionChanges, isFromExpenseRep
     if (_.has(transactionChanges, 'currency')) {
         updatedTransaction.modifiedCurrency = transactionChanges.currency;
     }
-    updatedTransaction.pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
+    updatedTransaction.pendingFields = {
+        ...(_.has(transactionChanges, 'comment') && {comment: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+        ...(_.has(transactionChanges, 'created') && {created: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+        ...(_.has(transactionChanges, 'amount') && {amount: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+        ...(_.has(transactionChanges, 'currency') && {currency: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+    };
 
     return updatedTransaction;
 }
@@ -164,9 +180,11 @@ function getCurrency(transaction) {
  */
 function getCreated(transaction) {
     const created = lodashGet(transaction, 'modifiedCreated', '') || lodashGet(transaction, 'created', '');
-    if (created) {
-        return format(new Date(created), CONST.DATE.FNS_FORMAT_STRING);
+    const createdDate = parseISO(created);
+    if (isValid(createdDate)) {
+        return format(createdDate, CONST.DATE.FNS_FORMAT_STRING);
     }
+
     return '';
 }
 

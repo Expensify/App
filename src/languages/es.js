@@ -29,6 +29,7 @@ export default {
         workspaces: 'Espacios de trabajo',
         profile: 'Perfil',
         payments: 'Pagos',
+        wallet: 'Billetera',
         preferences: 'Preferencias',
         view: 'Ver',
         not: 'No',
@@ -665,7 +666,7 @@ export default {
             password: 'Por favor, introduce tu contraseña de Expensify',
         },
     },
-    paymentsPage: {
+    walletPage: {
         paymentMethodsTitle: 'Métodos de pago',
         setDefaultConfirmation: 'Marcar como método de pago predeterminado',
         setDefaultSuccess: 'Método de pago configurado',
@@ -692,8 +693,8 @@ export default {
         transferDetailBankAccount: 'Tu dinero debería llegar en 1-3 días laborables.',
         transferDetailDebitCard: 'Tu dinero debería llegar de inmediato.',
         failedTransfer: 'Tu saldo no se ha acreditado completamente. Por favor, transfiere los fondos a una cuenta bancaria.',
-        notHereSubTitle: 'Por favor, transfiere el saldo desde la página de pagos',
-        goToPayment: 'Ir a pagos',
+        notHereSubTitle: 'Por favor, transfiere el saldo desde la página de billetera',
+        goToWallet: 'Ir a billetera',
     },
     chooseTransferAccountPage: {
         chooseAccount: 'Elegir cuenta',
@@ -2093,6 +2094,11 @@ export default {
             start: 'Comienzo',
             finish: 'Final',
             stop: 'Parada',
+        },
+        mapPending: {
+            title: 'Mapa pendiente',
+            subtitle: 'El mapa se generará cuando vuelvas a estar en línea',
+            onlineSubtitle: 'Un momento mientras configuramos el mapa',
         },
         errors: {
             selectSuggestedAddress: 'Por favor, selecciona una dirección sugerida',

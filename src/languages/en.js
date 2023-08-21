@@ -30,6 +30,7 @@ export default {
         workspaces: 'Workspaces',
         profile: 'Profile',
         payments: 'Payments',
+        wallet: 'Wallet',
         preferences: 'Preferences',
         view: 'View',
         not: 'Not',
@@ -664,7 +665,7 @@ export default {
             password: 'Please enter your Expensify password',
         },
     },
-    paymentsPage: {
+    walletPage: {
         paymentMethodsTitle: 'Payment methods',
         setDefaultConfirmation: 'Make default payment method',
         setDefaultSuccess: 'Default payment method set!',
@@ -691,8 +692,8 @@ export default {
         transferDetailBankAccount: 'Your money should arrive in the next 1-3 business days.',
         transferDetailDebitCard: 'Your money should arrive immediately.',
         failedTransfer: 'Your balance isn’t fully settled. Please transfer to a bank account.',
-        notHereSubTitle: 'Please transfer your balance from the payments page',
-        goToPayment: 'Go to Payments',
+        notHereSubTitle: 'Please transfer your balance from the wallet page',
+        goToWallet: 'Go to Wallet',
     },
     chooseTransferAccountPage: {
         chooseAccount: 'Choose account',
@@ -1606,6 +1607,11 @@ export default {
             start: 'Start',
             finish: 'Finish',
             stop: 'Stop',
+        },
+        mapPending: {
+            title: 'Map pending',
+            subtitle: 'The map will be generated when you go back online',
+            onlineSubtitle: 'One moment while we set up the map',
         },
         errors: {
             selectSuggestedAddress: 'Please select a suggested address',
