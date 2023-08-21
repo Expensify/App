@@ -139,8 +139,8 @@ function MoneyRequestAction(props) {
         <RenderHTML html={`<comment>${props.translate('parentReportAction.deletedRequest')}</comment>`} />
     ) : (
         <IOUPreview
-            iouReportID={props.requestReportID}
             chatReportID={props.chatReportID}
+            iouReportID={props.requestReportID}
             isBillSplit={isSplitBillAction}
             action={props.action}
             contextMenuAnchor={props.contextMenuAnchor}

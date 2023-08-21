@@ -62,6 +62,18 @@ Onyx.connect({
     },
 });
 
+const currentReportData = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    callback: (data, key) => {
+        if (!key || !data) {
+            return;
+        }
+        const reportID = CollectionUtils.extractCollectionItemID(key);
+        currentReportData[reportID] = data;
+    },
+});
+
 let isNetworkOffline = false;
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
@@ -373,6 +385,10 @@ function addComment(reportID, text) {
     addActions(reportID, text);
 }
 
+function reportActionsExist(reportID) {
+    return allReportActions[reportID] !== undefined;
+}
+
 /**
  * Gets the latest page of report actions and updates the last read message
  * If a chat with the passed reportID is not found, we will create a chat based on the passed participantList
@@ -388,11 +404,13 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
     const optimisticReportData = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-        value: {
-            isLoadingReportActions: true,
-            isLoadingMoreReportActions: false,
-            lastReadTime: DateUtils.getDBTime(),
-        },
+        value: reportActionsExist(reportID)
+            ? {}
+            : {
+                  isLoadingReportActions: true,
+                  isLoadingMoreReportActions: false,
+                  reportName: lodashGet(allReports, [reportID, 'reportName'], CONST.REPORT.DEFAULT_REPORT_NAME),
+              },
     };
     const reportSuccessData = {
         onyxMethod: Onyx.METHOD.MERGE,
@@ -519,6 +537,8 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
             });
         }
     }
+
+    params.clientLastReadTime = lodashGet(currentReportData, [reportID, 'lastReadTime'], '');
 
     if (isFromDeepLink) {
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
@@ -720,10 +740,12 @@ function expandURLPreview(reportID, reportActionID) {
  * @param {String} reportID
  */
 function readNewestAction(reportID) {
+    const lastReadTime = DateUtils.getDBTime();
     API.write(
         'ReadNewestAction',
         {
             reportID,
+            lastReadTime,
         },
         {
             optimisticData: [
@@ -731,7 +753,7 @@ function readNewestAction(reportID) {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                     value: {
-                        lastReadTime: DateUtils.getDBTime(),
+                        lastReadTime,
                     },
                 },
             ],
@@ -988,7 +1010,11 @@ function deleteReportComment(reportID, reportAction) {
     ];
 
     // Update optimistic data for parent report action if the report is a child report
-    const optimisticParentReportData = ReportUtils.getOptimisticDataForParentReportAction(reportID, optimisticReport.lastVisibleActionCreated, CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    const optimisticParentReportData = ReportUtils.getOptimisticDataForParentReportAction(
+        originalReportID,
+        optimisticReport.lastVisibleActionCreated,
+        CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+    );
     if (!_.isEmpty(optimisticParentReportData)) {
         optimisticData.push(optimisticParentReportData);
     }
@@ -1749,6 +1775,10 @@ function openReportFromDeepLink(url, isAuthenticated) {
     });
 }
 
+function getCurrentUserAccountID() {
+    return currentUserAccountID;
+}
+
 /**
  * Leave a report by setting the state to submitted and closed
  *
@@ -1948,6 +1978,7 @@ export {
     hasAccountIDEmojiReacted,
     shouldShowReportActionNotification,
     leaveRoom,
+    getCurrentUserAccountID,
     setLastOpenedPublicRoom,
     flagComment,
     openLastOpenedPublicRoom,
