@@ -4,7 +4,6 @@ import {withOnyx} from 'react-native-onyx';
 import {format} from 'date-fns';
 import _ from 'underscore';
 import {View} from 'react-native';
-import Str from 'expensify-common/lib/str';
 import styles from '../styles/styles';
 import * as ReportUtils from '../libs/ReportUtils';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
@@ -26,12 +25,8 @@ import Button from './Button';
 import * as Expensicons from './Icon/Expensicons';
 import themeColors from '../styles/themes/default';
 import Image from './Image';
-import ReceiptHTML from '../../assets/images/receipt-html.png';
-import ReceiptDoc from '../../assets/images/receipt-doc.png';
-import ReceiptGeneric from '../../assets/images/receipt-generic.png';
-import ReceiptSVG from '../../assets/images/receipt-svg.png';
-import * as FileUtils from '../libs/fileDownload/FileUtils';
 import useLocalize from '../hooks/useLocalize';
+import * as ReceiptUtils from '../libs/ReceiptUtils';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
@@ -319,36 +314,6 @@ function MoneyRequestConfirmationList(props) {
         );
     }, [confirm, props.selectedParticipants, props.bankAccountRoute, props.iouCurrencyCode, props.iouType, props.isReadOnly, props.policyID, selectedParticipants, splitOrRequestOptions]);
 
-    /**
-     * Grab the appropriate image URI based on file type
-     *
-     * @param {String} receiptPath
-     * @param {String} receiptSource
-     * @returns {*}
-     */
-    const getImageURI = (receiptPath, receiptSource) => {
-        const {fileExtension} = FileUtils.splitExtensionFromFileName(receiptSource);
-        const isReceiptImage = Str.isImage(props.receiptSource);
-
-        if (isReceiptImage) {
-            return receiptPath;
-        }
-
-        if (fileExtension === CONST.IOU.FILE_TYPES.HTML) {
-            return ReceiptHTML;
-        }
-
-        if (fileExtension === CONST.IOU.FILE_TYPES.DOC || fileExtension === CONST.IOU.FILE_TYPES.DOCX) {
-            return ReceiptDoc;
-        }
-
-        if (fileExtension === CONST.IOU.FILE_TYPES.SVG) {
-            return ReceiptSVG;
-        }
-
-        return ReceiptGeneric;
-    };
-
     return (
         <OptionsSelector
             sections={optionSelectorSections}
@@ -369,7 +334,7 @@ function MoneyRequestConfirmationList(props) {
             {!_.isEmpty(props.receiptPath) ? (
                 <Image
                     style={styles.moneyRequestImage}
-                    source={{uri: getImageURI(props.receiptPath, props.receiptSource)}}
+                    source={{uri: ReceiptUtils.getThumbnailAndImageURIs(props.receiptPath, props.receiptSource).image}}
                 />
             ) : (
                 <MenuItemWithTopDescription

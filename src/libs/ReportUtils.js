@@ -1250,6 +1250,50 @@ function getTransactionDetails(transaction) {
 }
 
 /**
+ * Gets all transactions on an IOU report with a receipt
+ *
+ * @param {Object|null} iouReport
+ * @returns {[Object]}
+ */
+function getTransactionsWithReceipts(iouReport) {
+    const reportID = lodashGet(iouReport, 'reportID');
+    const reportActions = ReportActionsUtils.getAllReportActions(reportID);
+    return _.reduce(
+        reportActions,
+        (transactions, action) => {
+            if (ReportActionsUtils.isMoneyRequestAction(action)) {
+                const transaction = TransactionUtils.getLinkedTransaction(action);
+                if (TransactionUtils.hasReceipt(transaction)) {
+                    transactions.push(transaction);
+                }
+            }
+            return transactions;
+        },
+        [],
+    );
+}
+
+/**
+ * For report previews, we display a "Receipt scan in progress" indicator
+ * instead of the report total only when we have no report total ready to show. This is the case when
+ * all requests are receipts that are being SmartScanned. As soon as we have a non-receipt request,
+ * or as soon as one receipt request is done scanning, we have at least one
+ * "ready" money request, and we remove this indicator to show the partial report total.
+ *
+ * @param {Object|null} iouReport
+ * @param {Object|null} reportPreviewAction the preview action associated with the IOU report
+ * @returns {Boolean}
+ */
+function areAllRequestsBeingSmartScanned(iouReport, reportPreviewAction) {
+    const transactions = getTransactionsWithReceipts(iouReport);
+    // If we have more requests than requests with receipts, we have some manual requests
+    if (ReportActionsUtils.getNumberOfMoneyRequests(reportPreviewAction) > transactions.length) {
+        return false;
+    }
+    return _.all(transactions, (transaction) => TransactionUtils.isReceiptBeingScanned(transaction));
+}
+
+/**
  * Given a parent IOU report action get report name for the LHN.
  *
  * @param {Object} reportAction
@@ -1261,6 +1305,10 @@ function getTransactionReportName(reportAction) {
     }
 
     const transaction = TransactionUtils.getLinkedTransaction(reportAction);
+    if (TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction)) {
+        return Localize.translateLocal('iou.receiptScanning');
+    }
+
     const {amount, currency, comment} = getTransactionDetails(transaction);
 
     return Localize.translateLocal(ReportActionsUtils.isSentMoneyReportAction(reportAction) ? 'iou.threadSentMoneyReportName' : 'iou.threadRequestReportName', {
@@ -1973,6 +2021,7 @@ function buildOptimisticIOUReportAction(
         created: DateUtils.getDBTime(),
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         receipt,
+        whisperedToAccountIDs: !_.isEmpty(receipt) ? [currentUserAccountID] : [],
     };
 }
 
@@ -1982,10 +2031,12 @@ function buildOptimisticIOUReportAction(
  * @param {Object} chatReport
  * @param {Object} iouReport
  * @param {String} [comment] - User comment for the IOU.
+ * @param {Object} [transaction] - optimistic first transaction of preview
  *
  * @returns {Object}
  */
-function buildOptimisticReportPreview(chatReport, iouReport, comment = '') {
+function buildOptimisticReportPreview(chatReport, iouReport, comment = '', transaction = undefined) {
+    const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const message = getReportPreviewMessage(iouReport);
     return {
         reportActionID: NumberUtils.rand64(),
@@ -2005,9 +2056,12 @@ function buildOptimisticReportPreview(chatReport, iouReport, comment = '') {
         ],
         created: DateUtils.getDBTime(),
         accountID: iouReport.managerID || 0,
-        actorAccountID: iouReport.managerID || 0,
+        // The preview is initially whispered if created with a receipt, so the actor is the current user as well
+        actorAccountID: hasReceipt ? currentUserAccountID : iouReport.managerID || 0,
         childMoneyRequestCount: 1,
         childLastMoneyRequestComment: comment,
+        childLastReceiptTransactionIDs: hasReceipt ? transaction.transactionID : '',
+        whisperedToAccountIDs: hasReceipt ? [currentUserAccountID] : [],
     };
 }
 
@@ -2058,10 +2112,15 @@ function buildOptimisticModifiedExpenseReportAction(transactionThread, oldTransa
  * @param {Object} iouReport
  * @param {Object} reportPreviewAction
  * @param {String} [comment] - User comment for the IOU.
+ * @param {Object} [transaction] - optimistic newest transaction of a report preview
  *
  * @returns {Object}
  */
-function updateReportPreview(iouReport, reportPreviewAction, comment = '') {
+function updateReportPreview(iouReport, reportPreviewAction, comment = '', transaction = undefined) {
+    const hasReceipt = TransactionUtils.hasReceipt(transaction);
+    const lastReceiptTransactionIDs = lodashGet(reportPreviewAction, 'childLastReceiptTransactionIDs', '');
+    const previousTransactionIDs = lastReceiptTransactionIDs.split(',').slice(0, 2);
+
     const message = getReportPreviewMessage(iouReport, reportPreviewAction);
     return {
         ...reportPreviewAction,
@@ -2076,6 +2135,10 @@ function updateReportPreview(iouReport, reportPreviewAction, comment = '') {
         ],
         childLastMoneyRequestComment: comment || reportPreviewAction.childLastMoneyRequestComment,
         childMoneyRequestCount: reportPreviewAction.childMoneyRequestCount + 1,
+        childLastReceiptTransactionIDs: hasReceipt ? [transaction.transactionID, ...previousTransactionIDs].join(',') : lastReceiptTransactionIDs,
+        // As soon as we add a transaction without a receipt to the report, it will have ready money requests,
+        // so we remove the whisper
+        whisperedToAccountIDs: hasReceipt ? reportPreviewAction.whisperedToAccountIDs : [],
     };
 }
 
@@ -3187,6 +3250,27 @@ function getTaskAssigneeChatOnyxData(accountID, assigneeEmail, assigneeAccountID
     };
 }
 
+/**
+ * Get the last 3 transactions with receipts of an IOU report that will be displayed on the report preview
+ *
+ * @param {Object} reportPreviewAction
+ * @returns {Object}
+ */
+function getReportPreviewDisplayTransactions(reportPreviewAction) {
+    const transactionIDs = lodashGet(reportPreviewAction, ['childLastReceiptTransactionIDs'], '').split(',');
+    return _.reduce(
+        transactionIDs,
+        (transactions, transactionID) => {
+            const transaction = TransactionUtils.getTransaction(transactionID);
+            if (TransactionUtils.hasReceipt(transaction)) {
+                transactions.push(transaction);
+            }
+            return transactions;
+        },
+        [],
+    );
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -3315,4 +3399,7 @@ export {
     getTransactionReportName,
     getTransactionDetails,
     getTaskAssigneeChatOnyxData,
+    areAllRequestsBeingSmartScanned,
+    getReportPreviewDisplayTransactions,
+    getTransactionsWithReceipts,
 };
