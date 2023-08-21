@@ -24,6 +24,10 @@ runs:
         path: desktop/node_modules
         key: ${{ runner.os }}-desktop-node-modules-${{ hashFiles('desktop/package-lock.json') }}
 
+    - name: Configure MapBox credentials to install closed-source SDK
+      run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
+      shell: bash
+
     - name: Install root project node packages
       if: steps.cache-node-modules.outputs.cache-hit != 'true'
       uses: nick-fields/retry@v2
