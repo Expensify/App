@@ -18,7 +18,6 @@ import TextLink from '../../components/TextLink';
 import TextInput from '../../components/TextInput';
 import * as Wallet from '../../libs/actions/Wallet';
 import * as ValidationUtils from '../../libs/ValidationUtils';
-import * as ErrorUtils from '../../libs/ErrorUtils';
 import AddressForm from '../ReimbursementAccount/AddressForm';
 import DatePicker from '../../components/DatePicker';
 import Form from '../../components/Form';
@@ -70,29 +69,6 @@ const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
-const INPUT_IDS = {
-    LEGAL_FIRST_NAME: 'legalFirstName',
-    LEGAL_LAST_NAME: 'legalLastName',
-    PHONE_NUMBER: 'phoneNumber',
-    DOB: 'dob',
-    SSN: 'ssn',
-    ADDRESS: {
-        street: 'addressStreet',
-        city: 'addressCity',
-        state: 'addressState',
-        zipCode: 'addressZip',
-    },
-};
-const errorTranslationKeys = {
-    legalFirstName: 'bankAccount.error.firstName',
-    legalLastName: 'bankAccount.error.lastName',
-    phoneNumber: 'bankAccount.error.phoneNumber',
-    dob: 'bankAccount.error.dob',
-    age: 'bankAccount.error.age',
-    ssn: 'bankAccount.error.ssnLast4',
-    ssnFull9: 'additionalDetailsStep.ssnFull9Error',
-};
-
 const fieldNameTranslationKeys = {
     legalFirstName: 'additionalDetailsStep.legalFirstNameLabel',
     legalLastName: 'additionalDetailsStep.legalLastNameLabel',
@@ -113,50 +89,37 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
      * @returns {Object}
      */
     const validate = (values) => {
-        const errors = {};
+        const requiredFields = ['legalFirstName', 'legalLastName', 'addressStreet', 'addressCity', 'addressZipCode', 'phoneNumber', 'dob', 'ssn', 'addressState'];
+        const errors = ValidationUtils.getFieldRequiredErrors(values, requiredFields);
 
-        if (_.isEmpty(values[INPUT_IDS.LEGAL_FIRST_NAME])) {
-            errors[INPUT_IDS.LEGAL_FIRST_NAME] = errorTranslationKeys.legalFirstName;
+        if (values.dob) {
+            if (!ValidationUtils.isValidPastDate(values.dob) || !ValidationUtils.meetsMaximumAgeRequirement(values.dob)) {
+                errors.dob = 'bankAccount.error.dob';
+            } else if (!ValidationUtils.meetsMinimumAgeRequirement(values.dob)) {
+                errors.dob = 'bankAccount.error.age';
+            }
         }
 
-        if (_.isEmpty(values[INPUT_IDS.LEGAL_LAST_NAME])) {
-            errors[INPUT_IDS.LEGAL_LAST_NAME] = errorTranslationKeys.legalLastName;
+        if (values.addressStreet && !ValidationUtils.isValidAddress(values.addressStreet)) {
+            errors.addressStreet = 'bankAccount.error.addressStreet';
         }
 
-        if (!ValidationUtils.isValidPastDate(values[INPUT_IDS.DOB]) || !ValidationUtils.meetsMaximumAgeRequirement(values[INPUT_IDS.DOB])) {
-            ErrorUtils.addErrorMessage(errors, INPUT_IDS.DOB, errorTranslationKeys.dob);
-        } else if (!ValidationUtils.meetsMinimumAgeRequirement(values[INPUT_IDS.DOB])) {
-            ErrorUtils.addErrorMessage(errors, INPUT_IDS.DOB, errorTranslationKeys.age);
+        if (values.addressZipCode && !ValidationUtils.isValidZipCode(values.addressZipCode)) {
+            errors.addressZipCode = 'bankAccount.error.zipCode';
         }
 
-        if (!ValidationUtils.isValidAddress(values[INPUT_IDS.ADDRESS.street]) || _.isEmpty(values[INPUT_IDS.ADDRESS.street])) {
-            errors[INPUT_IDS.ADDRESS.street] = 'bankAccount.error.addressStreet';
-        }
-
-        if (_.isEmpty(values[INPUT_IDS.ADDRESS.city])) {
-            errors[INPUT_IDS.ADDRESS.city] = 'bankAccount.error.addressCity';
-        }
-
-        if (_.isEmpty(values[INPUT_IDS.ADDRESS.state])) {
-            errors[INPUT_IDS.ADDRESS.state] = 'bankAccount.error.addressState';
-        }
-
-        if (!ValidationUtils.isValidZipCode(values[INPUT_IDS.ADDRESS.zipCode])) {
-            errors[INPUT_IDS.ADDRESS.zipCode] = 'bankAccount.error.zipCode';
-        }
-
-        if (!ValidationUtils.isValidUSPhone(values[INPUT_IDS.PHONE_NUMBER], true)) {
-            errors[INPUT_IDS.PHONE_NUMBER] = errorTranslationKeys.phoneNumber;
+        if (values.phoneNumber && !ValidationUtils.isValidUSPhone(values.phoneNumber, true)) {
+            errors.phoneNumber = 'bankAccount.error.phoneNumber';
         }
 
         // walletAdditionalDetails stores errors returned by the server. If the server returns an SSN error
         // then the user needs to provide the full 9 digit SSN.
         if (walletAdditionalDetails.errorCode === CONST.WALLET.ERROR.SSN) {
-            if (!ValidationUtils.isValidSSNFullNine(values[INPUT_IDS.SSN])) {
-                errors[INPUT_IDS.SSN] = errorTranslationKeys.ssnFull9;
+            if (values.ssn && !ValidationUtils.isValidSSNFullNine(values.ssn)) {
+                errors.ssn = 'additionalDetailsStep.ssnFull9Error';
             }
-        } else if (!ValidationUtils.isValidSSNLastFour(values[INPUT_IDS.SSN])) {
-            errors[INPUT_IDS.SSN] = errorTranslationKeys.ssn;
+        } else if (values.ssn && !ValidationUtils.isValidSSNLastFour(values.ssn)) {
+            errors.ssn = 'bankAccount.error.ssnLast4';
         }
 
         return errors;
@@ -167,17 +130,16 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
      */
     const activateWallet = (values) => {
         const personalDetails = {
-            phoneNumber: parsePhoneNumber(values[INPUT_IDS.PHONE_NUMBER], {regionCode: CONST.COUNTRY.US}).number.significant,
-            legalFirstName: values[INPUT_IDS.LEGAL_FIRST_NAME],
-            legalLastName: values[INPUT_IDS.LEGAL_LAST_NAME],
-            addressStreet: values[INPUT_IDS.ADDRESS.street],
-            addressCity: values[INPUT_IDS.ADDRESS.city],
-            addressState: values[INPUT_IDS.ADDRESS.state],
-            addressZip: values[INPUT_IDS.ADDRESS.zipCode],
-            dob: values[INPUT_IDS.DOB],
-            ssn: values[INPUT_IDS.SSN],
+            phoneNumber: parsePhoneNumber(values.phoneNumber, {regionCode: CONST.COUNTRY.US}).number.significant,
+            legalFirstName: values.legalFirstName,
+            legalLastName: values.legalLastName,
+            addressStreet: values.addressStreet,
+            addressCity: values.addressCity,
+            addressState: values.addressState,
+            addressZip: values.addressZipCode,
+            dob: values.dob,
+            ssn: values.ssn,
         };
-
         // Attempt to set the personal details
         Wallet.updatePersonalDetails(personalDetails);
     };
@@ -222,7 +184,7 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
                     style={[styles.mh5, styles.flexGrow1]}
                 >
                     <TextInput
-                        inputID={INPUT_IDS.LEGAL_FIRST_NAME}
+                        inputID="legalFirstName"
                         containerStyles={[styles.mt4]}
                         label={translate(fieldNameTranslationKeys.legalFirstName)}
                         accessibilityLabel={translate(fieldNameTranslationKeys.legalFirstName)}
@@ -231,7 +193,7 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
                         shouldSaveDraft
                     />
                     <TextInput
-                        inputID={INPUT_IDS.LEGAL_LAST_NAME}
+                        inputID="legalLastName"
                         containerStyles={[styles.mt4]}
                         label={translate(fieldNameTranslationKeys.legalLastName)}
                         accessibilityLabel={translate(fieldNameTranslationKeys.legalLastName)}
@@ -240,13 +202,18 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
                         shouldSaveDraft
                     />
                     <AddressForm
-                        inputKeys={INPUT_IDS.ADDRESS}
+                        inputKeys={{
+                            street: 'addressStreet',
+                            city: 'addressCity',
+                            state: 'addressState',
+                            zipCode: 'addressZipCode',
+                        }}
                         translate={translate}
                         streetTranslationKey={fieldNameTranslationKeys.addressStreet}
                         shouldSaveDraft
                     />
                     <TextInput
-                        inputID={INPUT_IDS.PHONE_NUMBER}
+                        inputID="phoneNumber"
                         containerStyles={[styles.mt4]}
                         keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
                         label={translate(fieldNameTranslationKeys.phoneNumber)}
@@ -257,7 +224,7 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
                         shouldSaveDraft
                     />
                     <DatePicker
-                        inputID={INPUT_IDS.DOB}
+                        inputID="dob"
                         containerStyles={[styles.mt4]}
                         label={translate(fieldNameTranslationKeys.dob)}
                         placeholder={translate('common.dob')}
@@ -266,7 +233,7 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
                         shouldSaveDraft
                     />
                     <TextInput
-                        inputID={INPUT_IDS.SSN}
+                        inputID="ssn"
                         containerStyles={[styles.mt4]}
                         label={translate(fieldNameTranslationKeys[shouldAskForFullSSN ? 'ssnFull9' : 'ssn'])}
                         accessibilityLabel={translate(fieldNameTranslationKeys[shouldAskForFullSSN ? 'ssnFull9' : 'ssn'])}

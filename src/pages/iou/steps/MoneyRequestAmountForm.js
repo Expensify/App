@@ -32,9 +32,6 @@ const propTypes = {
 
     /** Fired when submit button pressed, saves the given amount and navigates to the next page */
     onSubmitButtonPress: PropTypes.func.isRequired,
-
-    /** Flag to indicate if the button should be disabled */
-    disableCurrency: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -42,7 +39,6 @@ const defaultProps = {
     currency: CONST.CURRENCY.USD,
     forwardedRef: null,
     isEditing: false,
-    disableCurrency: false,
 };
 
 /**
@@ -64,15 +60,16 @@ const AMOUNT_VIEW_ID = 'amountView';
 const NUM_PAD_CONTAINER_VIEW_ID = 'numPadContainerView';
 const NUM_PAD_VIEW_ID = 'numPadView';
 
-function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCurrencyButtonPress, onSubmitButtonPress, disableCurrency}) {
+function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCurrencyButtonPress, onSubmitButtonPress}) {
     const {translate, toLocaleDigit, numberFormat} = useLocalize();
 
     const textInput = useRef(null);
 
-    const selectedAmountAsString = amount ? CurrencyUtils.convertToWholeUnit(currency, amount).toString() : '';
+    const selectedAmountAsString = amount ? CurrencyUtils.convertToFrontendAmount(amount).toString() : '';
 
     const [currentAmount, setCurrentAmount] = useState(selectedAmountAsString);
     const [isInvaidAmount, setIsInvalidAmount] = useState(checkAmount(selectedAmountAsString));
+    const [firstPress, setFirstPress] = useState(false);
     const [formError, setFormError] = useState('');
     const [shouldUpdateSelection, setShouldUpdateSelection] = useState(true);
 
@@ -105,7 +102,7 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
         if (!currency || !amount) {
             return;
         }
-        const amountAsStringForState = CurrencyUtils.convertToWholeUnit(currency, amount).toString();
+        const amountAsStringForState = CurrencyUtils.convertToFrontendAmount(amount).toString();
         setCurrentAmount(amountAsStringForState);
         setSelection({
             start: amountAsStringForState.length,
@@ -129,8 +126,9 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
             setSelection((prevSelection) => ({...prevSelection}));
             return;
         }
-        setIsInvalidAmount(checkAmount(newAmountWithoutSpaces));
-        setFormError('');
+        const checkInValidAmount = checkAmount(newAmountWithoutSpaces);
+        setIsInvalidAmount(checkInValidAmount);
+        setFormError(checkInValidAmount ? 'iou.error.invalidAmount' : '');
         setCurrentAmount((prevAmount) => {
             setSelection((prevSelection) => getNewSelection(prevSelection, prevAmount.length, newAmountWithoutSpaces.length));
             return MoneyRequestUtils.stripCommaFromAmount(newAmountWithoutSpaces);
@@ -179,6 +177,7 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
      * Submit amount and navigate to a proper page
      */
     const submitAndNavigateToNextPage = useCallback(() => {
+        setFirstPress(true);
         if (isInvaidAmount) {
             setFormError('iou.error.invalidAmount');
             return;
@@ -218,7 +217,6 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
                         }
                         setSelection(e.nativeEvent.selection);
                     }}
-                    disabled={disableCurrency}
                 />
             </View>
             <View
@@ -234,7 +232,7 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
                     />
                 ) : null}
                 <View style={[styles.w100, styles.mt5]}>
-                    {!_.isEmpty(formError) && (
+                    {!_.isEmpty(formError) && firstPress && (
                         <FormHelpMessage
                             isError
                             message={translate(formError)}
