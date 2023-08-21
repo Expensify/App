@@ -211,7 +211,7 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
                             width: 15,
                             color: '#002140'
                         }}
-                        styleURL='mapbox://styles/shawnborton/cllcoiqds00cs01r80kp34tmq'
+                        styleURL='mapbox://styles/expensify/cllcoiqds00cs01r80kp34tmq'
                         style={styles.mapView}
                     />
                 ) : (
