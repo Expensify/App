@@ -102,6 +102,7 @@ function BaseSelectionListRadio(props) {
         return defaultIndex;
     });
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     const onSelectRow = useCallback(props.shouldDebounceRowSelect ? _.debounce((item) => props.onSelectRow(item), 1000, {leading: true}) : (item) => props.onSelectRow(item), [
         props.shouldDebounceRowSelect,
         props.onSelectRow,
@@ -194,6 +195,7 @@ function BaseSelectionListRadio(props) {
         };
     }, [props.shouldDelayFocus, shouldShowTextInput]);
 
+    // eslint-disable-next-line arrow-body-style
     useEffect(() => {
         return () => {
             if (!(props.shouldDebounceRowSelect && onSelectRow.cancel)) return;
