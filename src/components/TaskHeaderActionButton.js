@@ -5,13 +5,9 @@ import {withOnyx} from 'react-native-onyx';
 import reportPropTypes from '../pages/reportPropTypes';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import styles from '../styles/styles';
-import Navigation from '../libs/Navigation/Navigation';
-import ROUTES from '../ROUTES';
 import Button from './Button';
 import * as Task from '../libs/actions/Task';
-import PressableWithFeedback from './Pressable/PressableWithFeedback';
 import * as ReportUtils from '../libs/ReportUtils';
-import CONST from '../CONST';
 import compose from '../libs/compose';
 import ONYXKEYS from '../ONYXKEYS';
 
