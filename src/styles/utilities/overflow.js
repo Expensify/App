@@ -22,9 +22,5 @@ export default {
         overscrollBehaviorX: 'none',
     },
 
-    overscrollBehaviorYAuto: {
-        overscrollBehaviorY: 'auto',
-    },
-
     overflowAuto,
 };
