@@ -6,6 +6,7 @@ import ONYXKEYS from '../ONYXKEYS';
 import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 import CONST from '../CONST';
 import * as DemoActions from '../libs/actions/DemoActions';
+import * as Navigation from '../libs/Navigation/Navigation';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -25,9 +26,11 @@ function DemoSetupPage(props) {
     useFocusEffect(() => {
         // Depending on the route that the user hit to get here, run a specific demo flow
         if (props.route.name === CONST.DEMO_PAGES.SAASTR) {
-            DemoActions.createSaastrDemoWorkspaceAndNavigate();
+            DemoActions.runSaastrDemo();
         } else if (props.route.name === CONST.DEMO_PAGES.SBE) {
-            DemoActions.createSbeDemoWorkspaceAndNavigate();
+            DemoActions.runSbeDemo();
+        } else {
+            Navigation.goBack();
         }
     });
 

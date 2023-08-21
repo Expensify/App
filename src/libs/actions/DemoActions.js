@@ -32,29 +32,33 @@ Onyx.connect({
     },
 });
 
-function createSbeDemoWorkspaceAndNavigate() {
-    // TODO: reuse lots of code
-}
-
-function createSaastrDemoWorkspaceAndNavigate() {
-    // Try to navigate to existing SaaStr expense chat if it exists in Onyx
-    const saastrWorkspaceChatReportID = ReportUtils.getPolicyExpenseChatReportIDByOwner(CONST.EMAIL.SAASTR);
-    if (saastrWorkspaceChatReportID) {
-        // We must call goBack() to remove the /saastr route from history
+/**
+ * @param {String} workspaceOwnerEmail email of the workspace owner
+ * @param {String} workspaceName
+ * @param {String} welcomeNoteText
+ * @param {Number} adminAccountID
+ * @param {String} apiCommand
+ */
+function createDemoWorkspaceAndNavigate(workspaceOwnerEmail, workspaceName, welcomeNoteText, adminAccountID, apiCommand) {
+    // If we don't have a command name to call, just go back so the user is navigated home
+    if (!apiCommand) {
         Navigation.goBack();
-        Navigation.navigate(ROUTES.getReportRoute(saastrWorkspaceChatReportID));
+        return;
+    }
+    
+    // Try to navigate to existing demo workspace expense chat if it exists in Onyx
+    const demoWorkspaceChatReportID = ReportUtils.getPolicyExpenseChatReportIDByOwner(workspaceOwnerEmail);
+    if (demoWorkspaceChatReportID) {
+        // We must call goBack() to remove the demo route from nav history
+        Navigation.goBack();
+        Navigation.navigate(ROUTES.getReportRoute(demoWorkspaceChatReportID));
         return;
     }
 
-    // Create workspace, owned and admin'd by SaaStr
+    // Create workspace, owned and admin'd by passed email
     const policyID = Policy.generatePolicyID();
-
-    // Add domain name as prefix (only if domain is private)
-    const domainNamePrefix = userIsFromPublicDomain ? `${Str.extractEmailDomain(sessionEmail)} ` : '';
-    const workspaceName = `${domainNamePrefix}SaaStr Workspace`;
-
+    
     const {customUnits, customUnitID, customUnitRateID} = Policy.buildOptimisticCustomUnits();
-
     const {
         announceChatReportID,
         announceChatData,
@@ -67,33 +71,24 @@ function createSaastrDemoWorkspaceAndNavigate() {
     } = ReportUtils.buildOptimisticWorkspaceChats(policyID, workspaceName);
 
     // Add optimistic invite message comment
-    const initialMessageText = `
-    Welcome to NewExpensify, who wants $20?
-
-    To scan the receipt and get paid:
-    1. Click the +
-    2. Click Request Money.
-    3. Take a photo of the receipt, we'll automatically enter all the info.
-    4. Come say hi at the Expensify booth (#601) and let us know if you have any feedback!
-    `;
-    const welcomeMessageReportAction = ReportUtils.buildOptimisticAddCommentReportAction(initialMessageText);
-    welcomeMessageReportAction.reportAction.actorAccountID = CONST.ACCOUNT_ID.SAASTR;
-    welcomeMessageReportAction.reportAction.person[0].text = 'SaaStr 2023';
+    const welcomeMessageReportAction = ReportUtils.buildOptimisticAddCommentReportAction(welcomeNoteText);
+    welcomeMessageReportAction.reportAction.actorAccountID = adminAccountID;
+    welcomeMessageReportAction.reportAction.person[0].text = '';
     welcomeMessageReportAction.reportAction.avatar = '';
 
-    // Update policy expense chat report actions with welcome message from saastr
+    // Update policy expense chat report actions with welcome message
     const expenseChatWelcomeReportActionID = welcomeMessageReportAction.reportAction.reportActionID;
     expenseReportActionData[expenseChatWelcomeReportActionID] = welcomeMessageReportAction.reportAction;
 
     // Update report with info about last message sent
     const currentTime = DateUtils.getDBTime();
     expenseChatData.lastVisibleActionCreated = currentTime;
-    expenseChatData.lastMessageText = initialMessageText;
-    expenseChatData.lastActorAccountID = CONST.ACCOUNT_ID.SAASTR;
+    expenseChatData.lastMessageText = welcomeNoteText.replace(CONST.REGEX.AFTER_FIRST_LINE_BREAK, '').substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim();
+    expenseChatData.lastActorAccountID = adminAccountID;
     expenseChatData.lastReadTime = currentTime;
 
     API.write(
-        'CreateSaastrDemoWorkspace',
+        apiCommand,
         {
             policyID,
             announceChatReportID,
@@ -115,7 +110,7 @@ function createSaastrDemoWorkspaceAndNavigate() {
                         type: CONST.POLICY.TYPE.FREE,
                         name: workspaceName,
                         role: CONST.POLICY.ROLE.USER,
-                        owner: CONST.EMAIL.SAASTR,
+                        owner: workspaceOwnerEmail,
                         outputCurrency: CONST.CURRENCY.USD,
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                         customUnits,
@@ -129,7 +124,7 @@ function createSaastrDemoWorkspaceAndNavigate() {
                             role: CONST.POLICY.ROLE.USER,
                             errors: {},
                         },
-                        [CONST.ACCOUNT_ID.SAASTR]: {
+                        [adminAccountID]: {
                             role: CONST.POLICY.ROLE.ADMIN,
                             errors: {},
                         },
@@ -242,12 +237,48 @@ function createSaastrDemoWorkspaceAndNavigate() {
     );
 
     // Navigate to the new workspace chat report
-    // We must call goBack() to remove the /saastr route from history
+    // We must call goBack() to remove the demo route from history
     Navigation.goBack();
     Navigation.navigate(ROUTES.getReportRoute(expenseChatReportID));
 }
 
+function runSbeDemo() {
+    // Add domain name as prefix (only if domain is private)
+    const domainNamePrefix = userIsFromPublicDomain ? `${Str.extractEmailDomain(sessionEmail)} ` : '';
+    const workspaceName = `${domainNamePrefix}SBE Workspace`;
+
+    const welcomeNoteText = `
+    Thanks for testing out New Expensify!
+    
+    Get paid back for your journey to or from Small Business Expo, whether you're driving yourself or catching a ride:
+    
+    1. Click the "+" > Request money > Distance.
+    2. Enter your start and end addresses.
+    3. Get paid back at the IRS mileage rate of $0.655/mile!
+    
+    Note: Must submit by Thursday, September 7th, 2023. One reimbursement per person.`;
+
+    createDemoWorkspaceAndNavigate(CONST.EMAIL.SBE, workspaceName, welcomeNoteText, CONST.ACCOUNT_ID.SBE, '');
+}
+
+function runSaastrDemo() {
+    // Add domain name as prefix (only if domain is private)
+    const domainNamePrefix = userIsFromPublicDomain ? `${Str.extractEmailDomain(sessionEmail)} ` : '';
+    const workspaceName = `${domainNamePrefix}SaaStr Workspace`;
+
+    const welcomeNoteText = `
+    Welcome to NewExpensify, who wants $20?
+
+    To scan the receipt and get paid:
+    1. Click the +
+    2. Click Request Money.
+    3. Take a photo of the receipt, we'll automatically enter all the info.
+    4. Come say hi at the Expensify booth (#601) and let us know if you have any feedback!`;
+
+    createDemoWorkspaceAndNavigate(CONST.EMAIL.SAASTR, workspaceName, welcomeNoteText, CONST.ACCOUNT_ID.SAASTR, 'CreateSaastrDemoWorkspace');
+}
+
 export {
-    createSaastrDemoWorkspaceAndNavigate,
-    createSbeDemoWorkspaceAndNavigate,
+    runSaastrDemo,
+    runSbeDemo,
 };
