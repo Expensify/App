@@ -90,8 +90,6 @@
     "htmlparser2": "^7.2.0",
     "idb-keyval": "^6.2.1",
     "jest-when": "^3.5.2",
-    "localforage": "^1.10.0",
-    "localforage-removeitems": "^1.4.0",
     "lodash": "4.17.21",
     "lottie-react-native": "^5.1.6",
     "mapbox-gl": "^2.15.0",
