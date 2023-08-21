@@ -18,6 +18,9 @@ export async function saveMapboxToken(token: string) {
             console.log(`${NETRC_PATH} was configured with new credentials`);
         }
 
+        // Set the permissions of the .netrc file to ensure it's kept private
+        await fs.chmodSync(NETRC_PATH, 0o600);
+
         // Ensure the .gradle directory exists
         if (!fs.existsSync(USER_GRADLE_DIR)) {
             fs.mkdirSync(USER_GRADLE_DIR);
