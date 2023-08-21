@@ -33,7 +33,6 @@ const getKey = (text) => `${text}-${new Date().getTime()}`;
  */
 const getUserTimezone = (currentUserPersonalDetails) => lodashGet(currentUserPersonalDetails, 'timezone', CONST.DEFAULT_TIME_ZONE);
 
-// All timezones were taken from: https://raw.githubusercontent.com/leon-do/Timezones/main/timezone.json
 function TimezoneSelectPage(props) {
     const {translate} = useLocalize();
     const timezone = useRef(getUserTimezone(props.currentUserPersonalDetails));

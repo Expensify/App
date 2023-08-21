@@ -1,3 +1,4 @@
+// All timezones were taken from: https://raw.githubusercontent.com/leon-do/Timezones/main/timezone.json
 export default [
     'Africa/Abidjan',
     'Africa/Accra',
