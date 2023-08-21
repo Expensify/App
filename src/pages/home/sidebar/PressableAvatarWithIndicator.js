@@ -14,8 +14,10 @@ import CONST from '../../../CONST';
 import personalDetailsPropType from '../../personalDetailsPropType';
 
 const propTypes = {
+    /** Whether the create menu is open or not */
     isCreateMenuOpen: PropTypes.bool,
 
+    /** The personal details of the person who is logged in */
     currentUserPersonalDetails: personalDetailsPropType,
 };
 
@@ -58,4 +60,5 @@ function PressableAvatarWithIndicator({isCreateMenuOpen, currentUserPersonalDeta
 
 PressableAvatarWithIndicator.propTypes = propTypes;
 PressableAvatarWithIndicator.defaultProps = defaultProps;
+PressableAvatarWithIndicator.displayName = 'PressableAvatarWithIndicator';
 export default withCurrentUserPersonalDetails(PressableAvatarWithIndicator);

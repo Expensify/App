@@ -24,8 +24,10 @@ const propTypes = {
     /** The personal details of the person who is logged in */
     currentUserPersonalDetails: personalDetailsPropType,
 
+    /** Whether the create menu is open or not */
     isCreateMenuOpen: PropTypes.bool,
 
+    /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
 };
 
@@ -97,6 +99,7 @@ function SignInOrAvatarWithOptionalStatus({currentUserPersonalDetails, isCreateM
 
 SignInOrAvatarWithOptionalStatus.propTypes = propTypes;
 SignInOrAvatarWithOptionalStatus.defaultProps = defaultProps;
+SignInOrAvatarWithOptionalStatus.displayName = 'SignInOrAvatarWithOptionalStatus';
 export default compose(
     withCurrentUserPersonalDetails,
     withOnyx({
