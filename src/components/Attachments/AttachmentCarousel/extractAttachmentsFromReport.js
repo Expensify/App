@@ -1,11 +1,11 @@
 import {Parser as HtmlParser} from 'htmlparser2';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 import * as TransactionUtils from '../../../libs/TransactionUtils';
 import * as ReceiptUtils from '../../../libs/ReceiptUtils';
 import CONST from '../../../CONST';
 import tryResolveUrlFromApiRoot from '../../../libs/tryResolveUrlFromApiRoot';
-import lodashGet from 'lodash/get';
 
 /**
  * Constructs the initial component state from report actions
