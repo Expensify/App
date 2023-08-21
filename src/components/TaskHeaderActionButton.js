@@ -35,27 +35,18 @@ const defaultProps = {
 
 function TaskHeaderActionButton(props) {
     return (
-        <PressableWithFeedback
-            onPress={() => Navigation.navigate(ROUTES.getTaskReportAssigneeRoute(props.report.reportID))}
-            disabled={!ReportUtils.isOpenTaskReport(props.report)}
-            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-            accessibilityLabel={props.translate('task.assignee')}
-            hoverDimmingValue={1}
-            pressDimmingValue={0.2}
-        >
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd]}>
-                <Button
-                    success
-                    isDisabled={ReportUtils.isCanceledTaskReport(props.report) || !Task.canModifyTask(props.report, props.session.accountID)}
-                    medium
-                    text={props.translate(ReportUtils.isCompletedTaskReport(props.report) ? 'task.markAsIncomplete' : 'task.markAsDone')}
-                    onPress={() =>
-                        ReportUtils.isCompletedTaskReport(props.report) ? Task.reopenTask(props.report, props.report.reportName) : Task.completeTask(props.report, props.report.reportName)
-                    }
-                    style={[styles.flex1]}
-                />
-            </View>
-        </PressableWithFeedback>
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd]}>
+            <Button
+                success
+                isDisabled={ReportUtils.isCanceledTaskReport(props.report) || !Task.canModifyTask(props.report, props.session.accountID)}
+                medium
+                text={props.translate(ReportUtils.isCompletedTaskReport(props.report) ? 'task.markAsIncomplete' : 'task.markAsDone')}
+                onPress={() =>
+                    ReportUtils.isCompletedTaskReport(props.report) ? Task.reopenTask(props.report, props.report.reportName) : Task.completeTask(props.report, props.report.reportName)
+                }
+                style={[styles.flex1]}
+            />
+        </View>
     );
 }
 
