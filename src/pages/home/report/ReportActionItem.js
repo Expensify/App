@@ -160,6 +160,10 @@ function ReportActionItem(props) {
     }, [isDraftEmpty]);
 
     useEffect(() => {
+        if (ReportActionsUtils.isDeletedAction(props.action)) {
+            Report.saveReportActionDraft(props.report.reportID, props.action, '')
+        }
+
         if (!Permissions.canUseLinkPreviews()) {
             return;
         }
