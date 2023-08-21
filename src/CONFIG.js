@@ -80,8 +80,16 @@ export default {
     },
     CAPTURE_METRICS: lodashGet(Config, 'CAPTURE_METRICS', 'false') === 'true',
     ONYX_METRICS: lodashGet(Config, 'ONYX_METRICS', 'false') === 'true',
-    DEV_PORT: process.env.PORT || 8080,
+    DEV_PORT: process.env.PORT || 8082,
     E2E_TESTING: lodashGet(Config, 'E2E_TESTING', 'false') === 'true',
     SEND_CRASH_REPORTS: lodashGet(Config, 'SEND_CRASH_REPORTS', 'false') === 'true',
     IS_USING_WEB_PROXY: getPlatform() === 'web' && useWebProxy,
+    APPLE_SIGN_IN: {
+        SERVICE_ID: 'com.chat.expensify.chat.AppleSignIn',
+        REDIRECT_URI: `${newExpensifyURL}appleauth`,
+    },
+    GOOGLE_SIGN_IN: {
+        WEB_CLIENT_ID: '921154746561-gpsoaqgqfuqrfsjdf8l7vohfkfj7b9up.apps.googleusercontent.com',
+        IOS_CLIENT_ID: '921154746561-s3uqn2oe4m85tufi6mqflbfbuajrm2i3.apps.googleusercontent.com',
+    },
 };

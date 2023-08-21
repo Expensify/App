@@ -157,10 +157,10 @@ export default {
     BANK_ACCOUNT_LIST: 'bankAccountList',
 
     // The user's credit cards
-    CARD_LIST: 'cardList',
-
-    // The user's credit cards (renamed from cardList)
     FUND_LIST: 'fundList',
+
+    // The user's Expensify cards
+    CORPORATE_CARD_LIST: 'corporateCardList',
 
     // Stores information about the user's saved statements
     WALLET_STATEMENT: 'walletStatement',
@@ -225,6 +225,8 @@ export default {
         MONEY_REQUEST_CREATED_FORM: 'moneyRequestCreatedForm',
         NEW_CONTACT_METHOD_FORM: 'newContactMethodForm',
         PAYPAL_FORM: 'payPalForm',
+        WAYPOINT_FORM: 'waypointForm',
+        WAYPOINT_FORM_DRAFT: 'waypointFormDraft',
         SETTINGS_STATUS_SET_FORM: 'settingsStatusSetForm',
         SETTINGS_STATUS_CLEAR_AFTER_FORM: 'settingsStatusClearAfterForm',
         SETTINGS_STATUS_SET_CLEAR_AFTER_FORM: 'settingsStatusSetClearAfterForm',
