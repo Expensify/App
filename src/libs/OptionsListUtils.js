@@ -380,7 +380,7 @@ function getLastMessageTextForReport(report) {
     );
     let lastMessageTextFromReport = '';
 
-    if(ReportUtils.isIOUReport(report)) {
+    if (ReportUtils.isIOUReport(report)) {
         lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(report, lastReportAction);
     } else if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml, translationKey: report.lastMessageTranslationKey})) {
         lastMessageTextFromReport = `[${Localize.translateLocal(report.lastMessageTranslationKey || 'common.attachment')}]`;

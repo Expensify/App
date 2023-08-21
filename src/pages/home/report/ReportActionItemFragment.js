@@ -118,8 +118,8 @@ function ReportActionItemFragment(props) {
                 );
             }
             const {html, text} = props.fragment;
-            const IOUText = props.isIOUReport && ReportUtils.getReportPreviewMessage(ReportUtils.getReport(props.IOUReportID), ReportActionUtils.getReportAction(props.IOUReportActionID))
-            
+            const IOUText = props.isIOUReport && ReportUtils.getReportPreviewMessage(ReportUtils.getReport(props.IOUReportID), ReportActionUtils.getReportAction(props.IOUReportActionID));
+
             // Threaded messages display "[Deleted message]" instead of being hidden altogether.
             // While offline we display the previous message with a strikethrough style. Once online we want to
             // immediately display "[Deleted message]" while the delete action is pending.
