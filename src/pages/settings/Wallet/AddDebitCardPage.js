@@ -194,6 +194,9 @@ function DebitCardPage(props) {
     );
 }
 
+DebitCardPage.propTypes = propTypes;
+DebitCardPage.defaultProps = defaultProps;
+
 export default withOnyx({
     formData: {
         key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
