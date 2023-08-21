@@ -58,7 +58,7 @@ function ReportAttachments(props) {
         // Case 2 (for small screens) - if we are logged in, then use the deep link for attachments,
         // of a chat we haven't opened after login (from any page other than the chat itself), the
         // report actions are not loaded for that report
-        const reportActions = ReportActionUtils.getReportActions(props.report.reportID);
+        const reportActions = ReportActionUtils.getAllReportActions(props.report.reportID);
         if (props.report.isLoadingReportActions || !_.isEmpty(reportActions)) {
             reportActionsLoadedRef.current = true;
             return;

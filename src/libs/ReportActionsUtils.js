@@ -492,15 +492,6 @@ function getReportAction(reportID, reportActionID) {
 }
 
 /**
- *
- * @param {String} reportID
- * @returns {Object}
- */
-function getReportActions(reportID) {
-    return lodashGet(allReportActions, [reportID], {});
-}
-
-/**
  * @returns {string}
  */
 function getMostRecentReportActionLastModified() {
@@ -636,6 +627,5 @@ export {
     getReportAction,
     getNumberOfMoneyRequests,
     isSplitBillAction,
-    getReportActions,
     getAllReportActions,
 };
