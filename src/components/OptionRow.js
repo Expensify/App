@@ -87,7 +87,7 @@ class OptionRow extends Component {
             isDisabled: this.props.isDisabled,
         };
 
-        this.onSelectRow = this.props.shouldDebounceRowSelect && this.props.onSelectRow ? _.debounce(this.props.onSelectRow, 1000, {leading: true}) : this.props.onSelectRow;
+        this.updateOnSelectRow();
     }
 
     // It is very important to use shouldComponentUpdate here so SectionList items will not unnecessarily re-render
@@ -115,16 +115,22 @@ class OptionRow extends Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (this.props.isDisabled === prevProps.isDisabled) {
-            return;
+        if (this.props.isDisabled !== prevProps.isDisabled) {
+            this.setState({isDisabled: this.props.isDisabled});
         }
 
-        this.setState({isDisabled: this.props.isDisabled});
+        if (prevProps.onSelectRow !== this.props.onSelectRow || prevProps.shouldDebounceRowSelect !== this.props.shouldDebounceRowSelect) {
+            this.updateOnSelectRow();
+        }
     }
 
     componentWillUnmount() {
         if (!(this.props.shouldDebounceRowSelect && this.onSelectRow.cancel)) return;
         this.onSelectRow.cancel();
+    }
+
+    updateOnSelectRow() {
+        this.onSelectRow = this.props.shouldDebounceRowSelect && this.props.onSelectRow ? _.debounce(this.props.onSelectRow, 1000, {leading: true}) : this.props.onSelectRow;
     }
 
     render() {
@@ -177,6 +183,7 @@ class OptionRow extends Component {
                                     e.preventDefault();
                                 }
                                 let result = this.onSelectRow(this.props.option, pressableRef);
+                                result = this.onSelectRow(this.props.option, pressableRef);
                                 if (!(result instanceof Promise)) {
                                     result = Promise.resolve();
                                 }
