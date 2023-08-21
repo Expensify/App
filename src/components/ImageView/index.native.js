@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState, useCallback, useRef, memo, useEffect} from 'react';
 import PropTypes from 'prop-types';
 import {View, PanResponder} from 'react-native';
 import ImageZoom from 'react-native-image-pan-zoom';
@@ -40,15 +40,15 @@ const DOUBLE_CLICK_INTERVAL = 175;
 function ImageView({isAuthTokenRequired, url, onScaleChanged, onPress, style}) {
     const {windowWidth, windowHeight} = useWindowDimensions();
 
-    const [isLoading, setIsLoading] = React.useState(true);
-    const [imageWidth, setImageWidth] = React.useState(0);
-    const [imageHeight, setImageHeight] = React.useState(0);
-    const [containerHeight, setContainerHeight] = React.useState();
+    const [isLoading, setIsLoading] = useState(true);
+    const [imageWidth, setImageWidth] = useState(0);
+    const [imageHeight, setImageHeight] = useState(0);
+    const [containerHeight, setContainerHeight] = useState();
 
-    const imageZoomScale = React.useRef(1);
-    const lastClickTime = React.useRef(0);
-    const numberOfTouches = React.useRef(0);
-    const zoom = React.useRef();
+    const imageZoomScale = useRef(1);
+    const lastClickTime = useRef(0);
+    const numberOfTouches = useRef(0);
+    const zoom = useRef();
 
     /**
      * Updates the amount of active touches on the PanResponder on our ImageZoom overlay View
@@ -67,7 +67,7 @@ function ImageView({isAuthTokenRequired, url, onScaleChanged, onPress, style}) {
     };
 
     // PanResponder used to capture how many touches are active on the attachment image
-    const panResponder = React.useRef(
+    const panResponder = useRef(
         PanResponder.create({
             onStartShouldSetPanResponder: updatePanResponderTouches,
         }),
@@ -77,7 +77,7 @@ function ImageView({isAuthTokenRequired, url, onScaleChanged, onPress, style}) {
      * When the url changes and the image must load again,
      * this resets the zoom to ensure the next image loads with the correct dimensions.
      */
-    const resetImageZoom = React.useCallback(() => {
+    const resetImageZoom = useCallback(() => {
         if (imageZoomScale.current !== 1) {
             imageZoomScale.current = 1;
         }
@@ -103,7 +103,7 @@ function ImageView({isAuthTokenRequired, url, onScaleChanged, onPress, style}) {
         setIsLoading(true);
     };
 
-    React.useEffect(() => {
+    useEffect(() => {
         imageLoadingStart();
         // eslint-disable-next-line react-hooks/exhaustive-deps -- adding imageLoadingStart to deps array causes the component to be stuck on loading
     }, [url]);
@@ -234,4 +234,4 @@ ImageView.propTypes = propTypes;
 ImageView.defaultProps = defaultProps;
 ImageView.displayName = 'ImageView';
 
-export default React.memo(ImageView);
+export default memo(ImageView);
