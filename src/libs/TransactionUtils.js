@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import {format, parseISO} from 'date-fns';
+import {format, parseISO, isValid} from 'date-fns';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import CONST from '../CONST';
@@ -176,7 +176,7 @@ function getCurrency(transaction) {
 function getCreated(transaction) {
     const created = lodashGet(transaction, 'modifiedCreated', '') || lodashGet(transaction, 'created', '');
     const createdDate = parseISO(created);
-    if (createdDate) {
+    if (isValid(createdDate)) {
         return format(createdDate, CONST.DATE.FNS_FORMAT_STRING);
     }
 
