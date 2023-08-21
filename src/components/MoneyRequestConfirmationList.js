@@ -386,6 +386,7 @@ function MoneyRequestConfirmationList(props) {
                 description={translate('common.description')}
                 onPress={() => Navigation.navigate(ROUTES.getMoneyRequestDescriptionRoute(props.iouType, props.reportID))}
                 style={[styles.moneyRequestMenuItem, styles.mb2]}
+                titleStyle={styles.flex1}
                 disabled={didConfirm || props.isReadOnly}
             />
             {!showAllFields && (
@@ -409,6 +410,7 @@ function MoneyRequestConfirmationList(props) {
                         title={props.iouDate}
                         description={translate('common.date')}
                         style={[styles.moneyRequestMenuItem, styles.mb2]}
+                        titleStyle={styles.flex1}
                         // Note: This component is disabled until this field is editable in next PR
                         disabled
                     />
@@ -416,6 +418,7 @@ function MoneyRequestConfirmationList(props) {
                         title={props.iouMerchant}
                         description={translate('common.merchant')}
                         style={[styles.moneyRequestMenuItem, styles.mb2]}
+                        titleStyle={styles.flex1}
                         // Note: This component is disabled until this field is editable in next PR
                         disabled
                     />
