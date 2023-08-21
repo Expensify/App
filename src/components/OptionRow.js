@@ -87,7 +87,7 @@ class OptionRow extends Component {
             isDisabled: this.props.isDisabled,
         };
 
-        this.onSelectRow = this.props.shouldDebounceRowSelect ? _.debounce(this.props.onSelectRow, 1000, {leading: true}) : this.props.onSelectRow;
+        this.onSelectRow = this.props.shouldDebounceRowSelect && this.props.onSelectRow ? _.debounce(this.props.onSelectRow, 1000, {leading: true}) : this.props.onSelectRow;
     }
 
     // It is very important to use shouldComponentUpdate here so SectionList items will not unnecessarily re-render
