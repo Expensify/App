@@ -9,7 +9,6 @@ const propTypes = {
     windowHeight: PropTypes.number.isRequired,
     isSmallScreenWidth: PropTypes.bool.isRequired,
     preferredLocale: PropTypes.string.isRequired,
-    personalDetails: PropTypes.object.isRequired,
     translate: PropTypes.func.isRequired,
     // Input
     value: PropTypes.string.isRequired,
@@ -25,19 +24,17 @@ const propTypes = {
     composerHeight: PropTypes.number.isRequired,
     shouldShowReportRecipientLocalTime: PropTypes.bool.isRequired,
     // Custom added
-    forwardedRef: PropTypes.object.isRequired,
+    forwardedRef: PropTypes.func.isRequired,
     onInsertedEmoji: PropTypes.func.isRequired,
     resetKeyboardInput: PropTypes.func.isRequired,
 };
 
-// TODO: split between emoji and mention suggestions
 function Suggestions({
     isComposerFullSize,
     windowHeight,
     preferredLocale,
     isSmallScreenWidth,
     preferredSkinTone,
-    personalDetails,
     translate,
     value,
     setValue,
@@ -118,7 +115,6 @@ function Suggestions({
                 windowHeight={windowHeight}
                 isSmallScreenWidth={isSmallScreenWidth}
                 preferredLocale={preferredLocale}
-                personalDetails={personalDetails}
                 translate={translate}
                 // Input
                 value={value}
@@ -139,12 +135,10 @@ function Suggestions({
 
 Suggestions.propTypes = propTypes;
 
-const SuggestionsWithRef = React.forwardRef((props, ref) => (
+export default React.forwardRef((props, ref) => (
     <Suggestions
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
     />
 ));
-
-export default SuggestionsWithRef;

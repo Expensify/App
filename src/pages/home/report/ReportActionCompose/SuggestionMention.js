@@ -1,6 +1,7 @@
 import React, {useState, useCallback, useRef, useImperativeHandle} from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
+import {withOnyx} from 'react-native-onyx';
 import CONST from '../../../../CONST';
 import useArrowKeyFocusManager from '../../../../hooks/useArrowKeyFocusManager';
 import MentionSuggestions from '../../../../components/MentionSuggestions';
@@ -8,6 +9,7 @@ import * as UserUtils from '../../../../libs/UserUtils';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
 import * as SuggestionsUtils from '../../../../libs/SuggestionUtils';
 import useLocalize from '../../../../hooks/useLocalize';
+import ONYXKEYS from '../../../../ONYXKEYS';
 
 /**
  * Check if this piece of string looks like a mention
@@ -39,15 +41,13 @@ const propTypes = {
     composerHeight: PropTypes.number.isRequired,
     shouldShowReportRecipientLocalTime: PropTypes.bool.isRequired,
     // Custom added
-    forwardedRef: PropTypes.object.isRequired,
+    forwardedRef: PropTypes.func.isRequired,
 };
 
-// TODO: split between emoji and mention suggestions
 function SuggestionMention({isComposerFullSize, personalDetails, value, setValue, setSelection, updateComment, composerHeight, shouldShowReportRecipientLocalTime, forwardedRef}) {
     const {translate} = useLocalize();
     // TODO: rewrite suggestion logic to some hook or state machine or util or something to not make it depend on ReportActionComposer
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
-    // TODO: const valueRef = usePrevious(value); (maybe even pass from parent?)
 
     const isMentionSuggestionsMenuVisible = !_.isEmpty(suggestionValues.suggestedMentions) && suggestionValues.shouldShowSuggestionMenu;
 
@@ -285,12 +285,16 @@ function SuggestionMention({isComposerFullSize, personalDetails, value, setValue
 
 SuggestionMention.propTypes = propTypes;
 
-const SuggestionMentionWithRef = React.forwardRef((props, ref) => (
-    <SuggestionMention
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        forwardedRef={ref}
-    />
-));
-
-export default SuggestionMentionWithRef;
+export default withOnyx({
+    personalDetails: {
+        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    },
+})(
+    React.forwardRef((props, ref) => (
+        <SuggestionMention
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            forwardedRef={ref}
+        />
+    )),
+);
