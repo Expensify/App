@@ -3118,7 +3118,7 @@ function getPolicyExpenseChatReportIDByOwner(policyOwner) {
     if (!expenseChat) {
         return null;
     }
-    return expenseChat;
+    return expenseChat.reportID;
 }
 
 /*
