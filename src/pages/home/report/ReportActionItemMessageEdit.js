@@ -110,7 +110,6 @@ function ReportActionItemMessageEdit(props) {
     const textInputRef = useRef(null);
     const isFocusedRef = useRef(false);
     const insertedEmojis = useRef([]);
-    const didInitSelection = useRef(false);
 
     useEffect(() => {
         if (props.draftMessage === props.action.message[0].html) {
@@ -124,7 +123,7 @@ function ReportActionItemMessageEdit(props) {
         isFocusedRef.current = isFocused;
     }, [isFocused]);
 
-    const initSelection = useCallback(() => {
+    useEffect(() => {
         // For mobile Safari, updating the selection prop on an unfocused input will cause it to automatically gain focus
         // and subsequent programmatic focus shifts (e.g., modal focus trap) to show the blue frame (:focus-visible style),
         // so we need to ensure that it is only updated after focus.
@@ -135,22 +134,6 @@ function ReportActionItemMessageEdit(props) {
             });
             return prevDraft;
         });
-    }, []);
-
-    useEffect(() => {
-        // required for keeping last state of isFocused variable
-        isFocusedRef.current = isFocused;
-        if (didInitSelection.current || !isFocused) {
-            return;
-        }
-        initSelection();
-    }, [isFocused, initSelection]);
-
-    useEffect(() => {
-        if (!ReportActionComposeFocusManager.isFocused()) {
-            didInitSelection.current = true;
-            initSelection();
-        }
 
         return () => {
             // Skip if this is not the focused message so the other edit composer stays focused.
@@ -163,7 +146,7 @@ function ReportActionItemMessageEdit(props) {
             // to prevent the main composer stays hidden until we swtich to another chat.
             ComposerActions.setShouldShowComposeInput(true);
         };
-    }, [props.action.reportActionID, initSelection]);
+    }, [props.action.reportActionID]);
 
     /**
      * Save the draft of the comment. This debounced so that we're not ceaselessly saving your edit. Saving the draft

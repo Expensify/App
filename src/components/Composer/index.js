@@ -429,6 +429,8 @@ function Composer({
         [style, maxLines, numberOfLinesProp, numberOfLines],
     );
 
+    const isFocused = textInput.current && textInput.current.isFocused();
+
     return (
         <>
             <RNTextInput
@@ -436,7 +438,7 @@ function Composer({
                 autoCorrect={!Browser.isMobileSafari()}
                 placeholderTextColor={themeColors.placeholderText}
                 ref={(el) => (textInput.current = el)}
-                selection={selection}
+                selection={isFocused ? selection:null}
                 style={inputStyleMemo}
                 value={value}
                 forwardedRef={forwardedRef}
