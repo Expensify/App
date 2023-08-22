@@ -3135,27 +3135,6 @@ function shouldDisableRename(report, policy) {
 }
 
 /**
- * @param {String} policyID
- * @param {String} policyName
- * @returns {Object}
- */
-function buildOptimisticExpenseChatForSchoolPrincipal(policyID, policyName) {
-    const expenseChatData = buildOptimisticChatReport([currentUserAccountID], '', CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, policyID, currentUserAccountID, true, policyName);
-    const expenseChatReportID = expenseChatData.reportID;
-    const expenseReportCreatedAction = buildOptimisticCreatedReportAction(currentUserEmail);
-    const expenseReportActionData = {
-        [expenseReportCreatedAction.reportActionID]: expenseReportCreatedAction,
-    };
-
-    return {
-        expenseChatReportID,
-        expenseChatData,
-        expenseReportActionData,
-        expenseCreatedReportActionID: expenseReportCreatedAction.reportActionID,
-    };
-}
-
-/**
  * Returns the onyx data needed for the task assignee chat
  * @param {Number} accountID
  * @param {String} assigneeEmail
@@ -3419,7 +3398,6 @@ export {
     shouldDisableSettings,
     shouldDisableRename,
     hasSingleParticipant,
-    buildOptimisticExpenseChatForSchoolPrincipal,
     getTransactionReportName,
     getTransactionDetails,
     getTaskAssigneeChatOnyxData,

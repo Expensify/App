@@ -67,11 +67,16 @@ function addSchoolPrincipal(firstName, email, lastName = '') {
     const loggedInEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(sessionEmail);
     const reportCreationData = {};
 
-    const {expenseChatReportID, expenseChatData, expenseReportActionData, expenseCreatedReportActionID} = ReportUtils.buildOptimisticExpenseChatForSchoolPrincipal(policyID, policyName);
+    const expenseChatData = ReportUtils.buildOptimisticChatReport([sessionAccountID], '', CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, policyID, sessionAccountID, true, policyName);
+    const expenseChatReportID = expenseChatData.reportID;
+    const expenseReportCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(sessionEmail);
+    const expenseReportActionData = {
+        [expenseReportCreatedAction.reportActionID]: expenseReportCreatedAction,
+    };
 
     reportCreationData[loggedInEmail] = {
         reportID: expenseChatReportID,
-        reportActionID: expenseCreatedReportActionID,
+        reportActionID: expenseReportCreatedAction.reportActionID,
     };
 
     API.write(
