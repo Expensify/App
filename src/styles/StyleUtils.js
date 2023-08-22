@@ -637,10 +637,9 @@ function getLoginPagePromoStyle() {
  * Generate the styles for the ReportActionItem wrapper view.
  *
  * @param {Boolean} [isHovered]
- * @param {Boolean} [hasError]
  * @returns {Object}
  */
-function getReportActionItemStyle(isHovered = false, hasError = false) {
+function getReportActionItemStyle(isHovered = false) {
     return {
         display: 'flex',
         justifyContent: 'space-between',
@@ -648,7 +647,7 @@ function getReportActionItemStyle(isHovered = false, hasError = false) {
             ? themeColors.hoverComponentBG
             : // Warning: Setting this to a non-transparent color will cause unread indicator to break on Android
               colors.transparent,
-        opacity: hasError ? 0.5 : 1,
+        opacity: 1,
         ...styles.cursorInitial,
     };
 }
