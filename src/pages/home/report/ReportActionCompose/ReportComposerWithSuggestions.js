@@ -32,6 +32,7 @@ import canFocusInputOnScreenFocus from '../../../../libs/canFocusInputOnScreenFo
 import debouncedSaveReportComment from './debouncedSaveReportComment';
 import UpdateComment from './UpdateComment';
 import Suggestions from './Suggestions';
+import getDraftComment from '../../../../libs/ComposerUtils/getDraftComment';
 
 const {RNTextInputReset} = NativeModules;
 
@@ -89,11 +90,11 @@ const defaultProps = {
 function ReportComposerWithSuggestions({
     // Onyx
     modal,
-    preferredLocale,
     preferredSkinTone,
     parentReportActions,
     numberOfLines,
     // HOCs
+    preferredLocale,
     navigation,
     isKeyboardShown,
     isFocused: isFocusedProp,
@@ -124,7 +125,7 @@ function ReportComposerWithSuggestions({
 
     forwardedRef,
 }) {
-    const [value, setValue] = useState(() => Onyx.tryGetCachedValue(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT + reportID) || '');
+    const [value, setValue] = useState(() => getDraftComment(reportID) || '');
     const commentRef = useRef(value);
 
     const {isSmallScreenWidth} = useWindowDimensions();
