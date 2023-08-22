@@ -13,8 +13,6 @@ runs:
   using: composite
   steps:
     - uses: Expensify/App/.github/actions/composite/setupNode@main
-      with:
-        MAPBOX_SDK_DOWNLOAD_TOKEN: ${{ inputs.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
     - uses: ruby/setup-ruby@eae47962baca661befdfd24e4d6c34ade04858f7
       with:
