@@ -243,8 +243,17 @@ function isReceiptBeingScanned(transaction) {
     return transaction.receipt.state === CONST.IOU.RECEIPT_STATE.SCANREADY || transaction.receipt.state === CONST.IOU.RECEIPT_STATE.SCANNING;
 }
 
+/**
+ * @param {Object} transaction
+ * @param {String} transaction.type
+ * @param {Object} [transaction.customUnit]
+ * @param {String} [transaction.customUnit.name]
+ * @returns {Boolean}
+ */
 function isDistanceRequest(transaction) {
-    return true;
+    const type = lodashGet(transaction, 'comment.type');
+    const customUnitName = lodashGet(transaction, 'comment.customUnit.name');
+    return type === CONST.TRANSACTION.TYPE.CUSTOM_UNIT && customUnitName === CONST.CUSTOM_UNITS.NAME_DISTANCE;
 }
 
 export {
