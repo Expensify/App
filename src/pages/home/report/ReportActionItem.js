@@ -160,10 +160,6 @@ function ReportActionItem(props) {
     }, [isDraftEmpty]);
 
     useEffect(() => {
-        if (ReportActionsUtils.isDeletedAction(props.action)) {
-            Report.saveReportActionDraft(props.report.reportID, props.action, '');
-        }
-
         if (!Permissions.canUseLinkPreviews()) {
             return;
         }
@@ -176,6 +172,13 @@ function ReportActionItem(props) {
         downloadedPreviews.current = urls;
         Report.expandURLPreview(props.report.reportID, props.action.reportActionID);
     }, [props.action, props.report.reportID]);
+
+    useEffect(() => {
+        if (isDraftEmpty || !ReportActionsUtils.isDeletedAction(props.action)) {
+            return;
+        }
+        Report.saveReportActionDraft(props.report.reportID, props.action, '');
+    }, [isDraftEmpty, props.action, props.report.reportID]);
 
     // Hide the message if it is being moderated for a higher offense, or is hidden by a moderator
     // Removed messages should not be shown anyway and should not need this flow
