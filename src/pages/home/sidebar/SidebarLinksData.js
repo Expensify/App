@@ -66,6 +66,8 @@ const defaultProps = {
 function SidebarLinksData({isFocused, allReportActions, betas, chatReports, currentReportID, insets, isLoadingReportData, isSmallScreenWidth, onLinkClick, policies, priorityMode}) {
     const {translate} = useLocalize();
 
+    // SessionUtils.didUserLogInDuringSession() is true means the users have just logged in successfully, the full reports are not available util the `OpenApp` API returns data.
+    // Otherwise, they have logged in before so the full reports are available.
     const [isFirstTimeReportLoading, setIsFirstTimeReportLoading] = useState(SessionUtils.didUserLogInDuringSession());
 
     const reportIDsRef = useRef([]);
@@ -84,6 +86,7 @@ function SidebarLinksData({isFocused, allReportActions, betas, chatReports, curr
         if (!isFirstTimeReportLoading) {
             return;
         }
+        // When isLoadingReportData becomes false, it means the reports are already loaded, so we don't need to update this value anymore
         setIsFirstTimeReportLoading(isLoadingReportData);
     }, [isFirstTimeReportLoading, isLoadingReportData]);
 
