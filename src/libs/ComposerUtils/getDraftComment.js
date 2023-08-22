@@ -5,6 +5,8 @@ const draftCommentMap = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
     callback: (value, key) => {
+        if (!key) return;
+
         const reportID = key.replace(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, '');
         draftCommentMap[reportID] = value;
     },
