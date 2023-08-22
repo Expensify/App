@@ -18,8 +18,12 @@ import ReportScreenContext from '../../pages/home/ReportScreenContext';
 const propTypes = {
     emojiReactions: EmojiReactionsPropTypes,
 
-    /** The ID of the reportAction. It is the string representation of the a 64-bit integer. */
-    reportAction: PropTypes.object,
+    /** The report action belonging to the emoji reaction */
+    reportAction: PropTypes.shape({
+        reportActionID: PropTypes.string.isRequired,
+        // eslint-disable-next-line react/forbid-prop-types
+        errors: PropTypes.object,
+    }),
 
     /**
      * Function to call when the user presses on an emoji.
