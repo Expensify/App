@@ -35,12 +35,6 @@ Onyx.connect({
  * @param {String} apiCommand
  */
 function createDemoWorkspaceAndNavigate(workspaceOwnerEmail, apiCommand) {
-    // If we don't have a command name to call, just go back so the user is navigated home
-    if (!apiCommand) {
-        Navigation.goBack();
-        return;
-    }
-    
     // Try to navigate to existing demo workspace expense chat if it exists in Onyx
     const demoWorkspaceChatReportID = ReportUtils.getPolicyExpenseChatReportIDByOwner(workspaceOwnerEmail);
     if (demoWorkspaceChatReportID) {
@@ -50,18 +44,30 @@ function createDemoWorkspaceAndNavigate(workspaceOwnerEmail, apiCommand) {
         return;
     }
 
-    API.makeRequestWithSideEffects(apiCommand, {})
+    API.makeRequestWithSideEffects(apiCommand)
         .then((response) => {
-            // Navigate to the new workspace chat report
-            // We must call goBack() to remove the demo route from history
+            // Get report updates from Onyx response data
+            const reportUpdate = _.find(response.onyxData, ({key}) => key === ONYXKEYS.COLLECTION.REPORT);
+            if (!reportUpdate) {
+                return;
+            }
+
+            // Get the policy expense chat update
+            const policyExpenseChatReport = _.find(reportUpdate.value, ({chatType}) => chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
+            if (!policyExpenseChatReport) {
+                return;
+            }
+
+            // Navigate to the new policy expense chat report
+            // Note: We must call goBack() to remove the demo route from history
             Navigation.goBack();
-            Navigation.navigate(ROUTES.getReportRoute(response.expenseChatReportID));
+            Navigation.navigate(ROUTES.getReportRoute(policyExpenseChatReport.reportID));
         });
 
 }
 
 function runSbeDemo() {
-    createDemoWorkspaceAndNavigate(CONST.EMAIL.SBE, '');
+    createDemoWorkspaceAndNavigate(CONST.EMAIL.SBE, 'CreateSbeDemoWorkspace');
 }
 
 function runSaastrDemo() {
