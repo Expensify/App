@@ -9,7 +9,7 @@ import useLocalize from '../hooks/useLocalize';
 import * as Link from '../libs/actions/Link';
 import * as Browser from '../libs/Browser';
 import getOperatingSystem from '../libs/getOperatingSystem';
-import setShowDownloadAppBanner from '../libs/actions/DownloadAppBanner';
+import setShowDownloadAppModal from '../libs/actions/DownloadAppModal';
 import ConfirmModal from './ConfirmModal';
 
 const propTypes = {
@@ -28,7 +28,7 @@ function DownloadAppModal({showDownloadAppBanner}) {
     const {translate} = useLocalize();
 
     const handleCloseBanner = () => {
-        setShowDownloadAppBanner(false);
+        setShowDownloadAppModal(false);
         setshouldShowBanner(false);
     };
 

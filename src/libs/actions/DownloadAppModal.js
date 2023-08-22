@@ -4,8 +4,8 @@ import ONYXKEYS from '../../ONYXKEYS';
 /**
  * @param {Boolean} shouldShowBanner
  */
-function setShowDownloadAppBanner(shouldShowBanner) {
+function setShowDownloadAppModal(shouldShowBanner) {
     Onyx.set(ONYXKEYS.SHOW_DOWNLOAD_APP_BANNER, shouldShowBanner);
 }
 
-export default setShowDownloadAppBanner;
+export default setShowDownloadAppModal;
