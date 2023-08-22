@@ -1037,6 +1037,7 @@ const CONST = {
         AMOUNT_MAX_LENGTH: 10,
         RECEIPT_STATE: {
             SCANREADY: 'SCANREADY',
+            OPEN: 'OPEN',
             SCANNING: 'SCANNING',
             SCANCOMPLETE: 'SCANCOMPLETE',
             SCANFAILED: 'SCANFAILED',
