@@ -30,7 +30,7 @@ runs:
         key: ${{ runner.os }}-desktop-node-modules-${{ hashFiles('desktop/package-lock.json') }}
 
     - name: Configure MapBox credentials to install closed-source SDK
-      run: ./scripts/setup-mapbox-sdk.sh ${{ inputs.MAPBOX_SDK_DOWNLOAD_TOKEN }}
+      run: npx ts-node ./scripts/setup-mapbox-sdk-ci.ts ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
       shell: bash
 
     - name: Install root project node packages
