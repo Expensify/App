@@ -236,7 +236,8 @@ class ReportScreen extends React.Component {
 
         const shouldHideReport = !ReportUtils.canAccessReport(this.props.report, this.props.policies, this.props.betas);
 
-        const isLoading = !reportID || !this.props.isSidebarLoaded || _.isEmpty(this.props.personalDetails) || this.firstRenderRef.current;
+        const isLoading =
+            !reportID || !this.props.isSidebarLoaded || _.isEmpty(this.props.personalDetails) || this.firstRenderRef.current || !lodashGet(ReportUtils.getReport(reportID), 'reportID');
         this.firstRenderRef.current = false;
 
         const parentReportAction = ReportActionsUtils.getParentReportAction(this.props.report);
