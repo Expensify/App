@@ -29,6 +29,8 @@ import * as ReportUtils from '../../libs/ReportUtils';
 import * as TransactionUtils from '../../libs/TransactionUtils';
 import refPropTypes from '../refPropTypes';
 import PressableWithFeedback from '../Pressable/PressableWithoutFeedback';
+import * as ReceiptUtils from '../../libs/ReceiptUtils';
+import ReportActionItemImages from './ReportActionItemImages';
 
 const propTypes = {
     /** The active IOUReport, used for Onyx subscription */
@@ -125,7 +127,7 @@ const defaultProps = {
     shouldShowPendingConversionMessage: false,
 };
 
-function IOUPreview(props) {
+function MoneyRequestPreview(props) {
     if (_.isEmpty(props.iouReport) && !props.isBillSplit) {
         return null;
     }
@@ -144,7 +146,9 @@ function IOUPreview(props) {
     const isCurrentUserManager = managerID === sessionAccountID;
 
     const transaction = TransactionUtils.getLinkedTransaction(props.action);
-    const {amount: requestAmount, currency: requestCurrency, comment: requestComment} = ReportUtils.getTransactionDetails(transaction);
+    const {amount: requestAmount, currency: requestCurrency, comment: requestComment, merchant: requestMerchant} = ReportUtils.getTransactionDetails(transaction);
+    const hasReceipt = TransactionUtils.hasReceipt(transaction);
+    const isScanning = hasReceipt && TransactionUtils.isReceiptBeingScanned(transaction);
 
     const getSettledMessage = () => {
         switch (lodashGet(props.action, 'originalMessage.paymentType', '')) {
@@ -164,6 +168,10 @@ function IOUPreview(props) {
     };
 
     const getPreviewHeaderText = () => {
+        if (isScanning) {
+            return props.translate('common.receipt');
+        }
+
         if (props.isBillSplit) {
             return props.translate('iou.split');
         }
@@ -175,6 +183,14 @@ function IOUPreview(props) {
             message += ` • ${props.translate('iou.settledExpensify')}`;
         }
         return message;
+    };
+
+    const getDisplayAmountText = () => {
+        if (isScanning) {
+            return props.translate('iou.receiptScanning');
+        }
+
+        return CurrencyUtils.convertToDisplayString(requestAmount, requestCurrency);
     };
 
     const childContainer = (
@@ -189,64 +205,78 @@ function IOUPreview(props) {
                 errorRowStyles={[styles.mbn1]}
                 needsOffscreenAlphaCompositing
             >
-                <View style={[styles.iouPreviewBox, ...props.containerStyles]}>
-                    <View style={[styles.flexRow]}>
-                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                            <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh16]}>{getPreviewHeaderText()}</Text>
-                            {Boolean(getSettledMessage()) && (
-                                <>
-                                    <Icon
-                                        src={Expensicons.DotIndicator}
-                                        width={4}
-                                        height={4}
-                                        additionalStyles={[styles.mr1, styles.ml1]}
-                                    />
-                                    <Text style={[styles.textLabelSupporting, styles.lh16]}>{getSettledMessage()}</Text>
-                                </>
-                            )}
+                <View style={[styles.moneyRequestPreviewBox, isScanning ? styles.reportPreviewBoxHoverBorder : undefined, ...props.containerStyles]}>
+                    {hasReceipt && (
+                        <ReportActionItemImages
+                            images={[ReceiptUtils.getThumbnailAndImageURIs(transaction.receipt.source, transaction.filename)]}
+                            isHovered={isScanning}
+                        />
+                    )}
+                    <View style={styles.moneyRequestPreviewBoxText}>
+                        <View style={[styles.flexRow]}>
+                            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                                <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh16]}>{getPreviewHeaderText()}</Text>
+                                {Boolean(getSettledMessage()) && (
+                                    <>
+                                        <Icon
+                                            src={Expensicons.DotIndicator}
+                                            width={4}
+                                            height={4}
+                                            additionalStyles={[styles.mr1, styles.ml1]}
+                                        />
+                                        <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh16]}>{getSettledMessage()}</Text>
+                                    </>
+                                )}
+                            </View>
+                            <Icon src={Expensicons.ArrowRight} />
                         </View>
-                    </View>
-                    <View style={[styles.flexRow]}>
-                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                            <Text style={styles.textHeadline}>{CurrencyUtils.convertToDisplayString(requestAmount, requestCurrency)}</Text>
-                            {ReportUtils.isSettled(props.iouReport.reportID) && !props.isBillSplit && (
-                                <View style={styles.defaultCheckmarkWrapper}>
-                                    <Icon
-                                        src={Expensicons.Checkmark}
-                                        fill={themeColors.iconSuccessFill}
+                        <View style={[styles.flexRow]}>
+                            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                                <Text style={styles.textHeadline}>{getDisplayAmountText()}</Text>
+                                {ReportUtils.isSettled(props.iouReport.reportID) && !props.isBillSplit && (
+                                    <View style={styles.defaultCheckmarkWrapper}>
+                                        <Icon
+                                            src={Expensicons.Checkmark}
+                                            fill={themeColors.iconSuccessFill}
+                                        />
+                                    </View>
+                                )}
+                            </View>
+                            {props.isBillSplit && (
+                                <View style={styles.moneyRequestPreviewBoxAvatar}>
+                                    <MultipleAvatars
+                                        icons={participantAvatars}
+                                        shouldStackHorizontally
+                                        size="small"
+                                        isHovered={props.isHovered}
+                                        shouldUseCardBackground
                                     />
                                 </View>
                             )}
                         </View>
-                        {props.isBillSplit && (
-                            <View style={styles.iouPreviewBoxAvatar}>
-                                <MultipleAvatars
-                                    icons={participantAvatars}
-                                    shouldStackHorizontally
-                                    size="small"
-                                    isHovered={props.isHovered}
-                                    shouldUseCardBackground
-                                />
+                        {requestMerchant && (
+                            <View style={[styles.flexRow]}>
+                                <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh16]}>{requestMerchant}</Text>
                             </View>
                         )}
-                    </View>
-                    <View style={[styles.flexRow]}>
-                        <View style={[styles.flex1]}>
-                            {!isCurrentUserManager && props.shouldShowPendingConversionMessage && (
-                                <Text style={[styles.textLabel, styles.colorMuted, styles.mt1]}>{props.translate('iou.pendingConversionMessage')}</Text>
+                        <View style={[styles.flexRow]}>
+                            <View style={[styles.flex1]}>
+                                {!isCurrentUserManager && props.shouldShowPendingConversionMessage && (
+                                    <Text style={[styles.textLabel, styles.colorMuted, styles.mt1]}>{props.translate('iou.pendingConversionMessage')}</Text>
+                                )}
+                                {!_.isEmpty(requestComment) && <Text style={[styles.mt1, styles.colorMuted]}>{requestComment}</Text>}
+                            </View>
+                            {props.isBillSplit && !_.isEmpty(participantAccountIDs) && (
+                                <Text style={[styles.textLabel, styles.colorMuted, styles.ml1]}>
+                                    {props.translate('iou.amountEach', {
+                                        amount: CurrencyUtils.convertToDisplayString(
+                                            IOUUtils.calculateAmount(isPolicyExpenseChat ? 1 : participantAccountIDs.length - 1, requestAmount, requestCurrency),
+                                            requestCurrency,
+                                        ),
+                                    })}
+                                </Text>
                             )}
-                            {!_.isEmpty(requestComment) && <Text style={[styles.mt1, styles.colorMuted]}>{requestComment}</Text>}
                         </View>
-                        {props.isBillSplit && !_.isEmpty(participantAccountIDs) && (
-                            <Text style={[styles.textLabel, styles.colorMuted, styles.ml1]}>
-                                {props.translate('iou.amountEach', {
-                                    amount: CurrencyUtils.convertToDisplayString(
-                                        IOUUtils.calculateAmount(isPolicyExpenseChat ? 1 : participantAccountIDs.length - 1, requestAmount, requestCurrency),
-                                        requestCurrency,
-                                    ),
-                                })}
-                            </Text>
-                        )}
                     </View>
                 </View>
             </OfflineWithFeedback>
@@ -271,9 +301,9 @@ function IOUPreview(props) {
     );
 }
 
-IOUPreview.propTypes = propTypes;
-IOUPreview.defaultProps = defaultProps;
-IOUPreview.displayName = 'IOUPreview';
+MoneyRequestPreview.propTypes = propTypes;
+MoneyRequestPreview.defaultProps = defaultProps;
+MoneyRequestPreview.displayName = 'MoneyRequestPreview';
 
 export default compose(
     withLocalize,
@@ -294,4 +324,4 @@ export default compose(
             key: ONYXKEYS.WALLET_TERMS,
         },
     }),
-)(IOUPreview);
+)(MoneyRequestPreview);
