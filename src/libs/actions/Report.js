@@ -25,9 +25,9 @@ import * as ErrorUtils from '../ErrorUtils';
 import * as UserUtils from '../UserUtils';
 import * as Welcome from './Welcome';
 import * as PersonalDetailsUtils from '../PersonalDetailsUtils';
-import SidebarUtils from '../SidebarUtils';
 import * as OptionsListUtils from '../OptionsListUtils';
 import * as Environment from '../Environment/Environment';
+import * as Session from './Session';
 
 let currentUserAccountID;
 Onyx.connect({
@@ -1763,7 +1763,7 @@ function openReportFromDeepLink(url, isAuthenticated) {
 
     // Navigate to the report after sign-in/sign-up.
     InteractionManager.runAfterInteractions(() => {
-        SidebarUtils.isSidebarLoadedReady().then(() => {
+        Session.waitForUserSingIn().then(() => {
             if (reportID) {
                 Navigation.navigate(ROUTES.getReportRoute(reportID), CONST.NAVIGATION.TYPE.UP);
             }
