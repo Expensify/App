@@ -2564,6 +2564,7 @@ const CONST = {
     },
     STATUS_TEXT_MAX_LENGTH: 100,
     SF_COORDINATES: [-122.4194, 37.7749],
+    MAPBOX_STYLE_URL: 'mapbox://styles/expensify/cllcoiqds00cs01r80kp34tmq',
     NAVIGATION: {
         TYPE: {
             FORCED_UP: 'FORCED_UP',
