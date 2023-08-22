@@ -143,7 +143,7 @@ function ReportPreview(props) {
         if (isScanning) {
             return props.translate('common.receipt');
         }
-        if (ReportUtils.isControlPolicyExpenseReport(props.iouReport) && ReportUtils.isReportApproved(props.iouReport)) {
+        if (ReportUtils.isControlPolicyExpenseChat(props.chatReport) && ReportUtils.isReportApproved(props.iouReport)) {
             return props.translate('iou.managerApproved', {manager: ReportUtils.getDisplayNameForParticipant(managerID, true)});
         }
         const managerName = ReportUtils.isPolicyExpenseChat(props.chatReport) ? ReportUtils.getPolicyName(props.chatReport) : ReportUtils.getDisplayNameForParticipant(managerID, true);
@@ -151,7 +151,9 @@ function ReportPreview(props) {
     };
 
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
-    const shouldShowSettlementButton = !_.isEmpty(props.iouReport) && isCurrentUserManager && !iouSettled && !props.iouReport.isWaitingOnBankAccount && reportTotal !== 0;
+    const shouldShowSettlementButton = ReportUtils.isControlPolicyExpenseChat(props.chatReport)
+        ? ReportUtils.isReportApproved(props.iouReport) && !iouSettled
+        : !_.isEmpty(props.iouReport) && isCurrentUserManager && !iouSettled && !props.iouReport.isWaitingOnBankAccount && reportTotal !== 0;
 
     return (
         <View style={[styles.chatItemMessage, ...props.containerStyles]}>
