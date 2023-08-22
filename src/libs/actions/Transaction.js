@@ -73,9 +73,9 @@ function saveWaypoint(transactionID, index, waypoint) {
         routes: {
             route0: {
                 geometry: {
-                    coordinates: null
-                }
-            }
+                    coordinates: null,
+                },
+            },
         },
     });
 }
@@ -114,9 +114,9 @@ function removeWaypoint(transactionID, currentIndex) {
         routes: {
             route0: {
                 geometry: {
-                    coordinates: null
-                }
-            }
+                    coordinates: null,
+                },
+            },
         },
     };
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, newTransaction);
