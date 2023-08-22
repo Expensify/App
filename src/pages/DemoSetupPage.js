@@ -1,8 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
 import {useFocusEffect} from '@react-navigation/native';
-import ONYXKEYS from '../ONYXKEYS';
 import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 import CONST from '../CONST';
 import * as DemoActions from '../libs/actions/DemoActions';
@@ -40,8 +38,4 @@ function DemoSetupPage(props) {
 DemoSetupPage.propTypes = propTypes;
 DemoSetupPage.displayName = 'DemoSetupPage';
 
-export default withOnyx({
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-})(DemoSetupPage);
+export default DemoSetupPage;

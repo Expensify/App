@@ -1201,6 +1201,5 @@ export {
     removeWorkspace,
     setWorkspaceInviteMembersDraft,
     clearErrors,
-    buildOptimisticCustomUnits,
     openDraftWorkspaceRequest,
 };

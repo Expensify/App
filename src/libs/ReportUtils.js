@@ -3115,7 +3115,11 @@ function getPolicyExpenseChatReportIDByOwner(policyOwner) {
         return null;
     }
 
-    return _.find(allReports, (report) => isPolicyExpenseChat(report) && report.policyID === policyWithOwner.id);
+    const expenseChat = _.find(allReports, (report) => isPolicyExpenseChat(report) && report.policyID === policyWithOwner.id);
+    if (!expenseChat) {
+        return null;
+    }
+    return expenseChat;
 }
 
 /*
