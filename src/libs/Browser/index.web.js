@@ -72,7 +72,8 @@ function isSafari() {
  */
 function openRouteInDesktopApp(shortLivedAuthToken = '', email = '') {
     const params = new URLSearchParams();
-    params.set('exitTo', `${window.location.pathname}${window.location.search}${window.location.hash}`);
+    const openingFromDesktopRedirect = window.location.pathname === '/desktop-signin-redirect';
+    params.set('exitTo', `${openingFromDesktopRedirect ? '/r' : window.location.pathname}${window.location.search}${window.location.hash}`);
     if (email && shortLivedAuthToken) {
         params.set('email', email);
         params.set('shortLivedAuthToken', shortLivedAuthToken);
