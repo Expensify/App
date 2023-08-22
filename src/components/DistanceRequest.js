@@ -56,8 +56,8 @@ const propTypes = {
             }),
         }),
 
-       /** Server side errors keyed by microtime */
-       errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
+        /** Server side errors keyed by microtime */
+        errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
     }),
 
     /** Data about Mapbox token for calling Mapbox API */
@@ -123,7 +123,6 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
             return;
         }
 
-
         // Only fetch the route when all the waypoints are filled (prevents an error fetching with an empty waypoint)
         if (isOffline || isLoadingRoute || !TransactionUtils.validateWaypoints(waypoints)) {
             return;
@@ -136,9 +135,7 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
     useEffect(updateGradientVisibility, [scrollContainerHeight, scrollContentHeight]);
 
     return (
-        <ScreenWrapper
-            shouldEnableMaxHeight
-        >
+        <ScreenWrapper shouldEnableMaxHeight>
             <View
                 style={styles.distanceRequestContainer(scrollContainerMaxHeight)}
                 onLayout={(event = {}) => setScrollContainerHeight(lodashGet(event, 'nativeEvent.layout.height', 0))}
@@ -215,7 +212,7 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
                         }}
                         directionCoordinates={lodashGet(transaction, 'routes.route0.geometry.coordinates', [])}
                         directionStyle={styles.mapDirection}
-                        styleURL='mapbox://styles/expensify/cllcoiqds00cs01r80kp34tmq'
+                        styleURL="mapbox://styles/expensify/cllcoiqds00cs01r80kp34tmq"
                         style={styles.mapView}
                     />
                 ) : (

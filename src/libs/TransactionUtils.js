@@ -232,7 +232,7 @@ function isReceiptBeingScanned(transaction) {
 
 /**
  * Verifies that the provided waypoints are valid
- * @param {Object} waypoints 
+ * @param {Object} waypoints
  * @returns {Boolean}
  */
 function validateWaypoints(waypoints) {
@@ -248,10 +248,7 @@ function validateWaypoints(waypoints) {
         const previousWaypoint = waypointValues[i - 1];
 
         // Check if the waypoint has a valid address
-        if (!currentWaypoint || 
-            !currentWaypoint.address || 
-            typeof currentWaypoint.address !== 'string' || 
-            currentWaypoint.address.trim() === '') {
+        if (!currentWaypoint || !currentWaypoint.address || typeof currentWaypoint.address !== 'string' || currentWaypoint.address.trim() === '') {
             return false;
         }
 
