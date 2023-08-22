@@ -31,6 +31,7 @@ import refPropTypes from '../refPropTypes';
 import PressableWithFeedback from '../Pressable/PressableWithoutFeedback';
 import * as ReceiptUtils from '../../libs/ReceiptUtils';
 import ReportActionItemImages from './ReportActionItemImages';
+import transactionPropTypes from '../transactionPropTypes';
 
 const propTypes = {
     /** The active IOUReport, used for Onyx subscription */
@@ -91,24 +92,7 @@ const propTypes = {
     ),
 
     /** The transaction attached to the action.message.iouTransactionID */
-    transaction: PropTypes.shape({
-        /** The name of the file for the receipt image. This is just the filename and doesn't come with any kind of a path */
-        filename: PropTypes.string,
-
-        /** The name of the transaction merchant */
-        merchant: PropTypes.string,
-
-        /** The type of transaction */
-        type: PropTypes.string,
-
-        /** Custom units attached to the transaction */
-        customUnits: PropTypes.arrayOf(
-            PropTypes.shape({
-                /** The name of the custom unit */
-                name: PropTypes.string,
-            }),
-        ),
-    }),
+    transaction: transactionPropTypes,
 
     /** Session info for the currently logged in user. */
     session: PropTypes.shape({
