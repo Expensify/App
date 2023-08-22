@@ -266,29 +266,24 @@ const getEmojiCodeWithSkinColor = (item, preferredSkinToneIndex) => {
  * @returns {Object[]} An array of emoji codes.
  */
 function extractEmojis(text) {
-    const emojis = [];
-
     if (!text) {
-        return emojis;
+        return [];
     }
 
-    let parseEmojis = text.match(CONST.REGEX.EMOJIS);
+    // Parsed Emojis including skin tones - Eg: ['👩🏻', '👩🏻', '👩🏼', '👩🏻', '👩🏼', '👩']
+    const parsedEmojis = text.match(CONST.REGEX.EMOJIS);
 
-    if (!parseEmojis) {
-        return emojis;
+    if (!parsedEmojis) {
+        return [];
     }
 
-    // Some emojis are repeated with different skin tones
-    parseEmojis = [...new Set(parseEmojis)];
-
+    const emojis = [];
     const alreadyParsedEmojis = new Set();
 
-    for (let i = 0; i < parseEmojis.length; i++) {
-        const character = parseEmojis[i];
+    for (let i = 0; i < parsedEmojis.length; i++) {
+        const character = parsedEmojis[i];
         const emoji = Emojis.emojiCodeTableWithSkinTones[character];
-
         if (emoji && !alreadyParsedEmojis.has(emoji.code)) {
-            // Add to set to avoid duplicates due to different skin tones of the same emoji
             alreadyParsedEmojis.add(emoji.code);
             emojis.push(emoji);
         }
