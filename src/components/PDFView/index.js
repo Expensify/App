@@ -17,6 +17,7 @@ import Text from '../Text';
 import compose from '../../libs/compose';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 import Log from '../../libs/Log';
+import canvasSize from 'canvas-size';
 
 /**
  * Each page has a default border. The app should take this size into account
@@ -52,6 +53,10 @@ class PDFView extends Component {
 
         const workerBlob = new Blob([pdfWorkerSource], {type: 'text/javascript'});
         pdfjs.GlobalWorkerOptions.workerSrc = URL.createObjectURL(workerBlob);
+        this.setMaxCanvaSizeInState = this.setMaxCanvaSizeInState.bind(this);
+        canvasSize.maxArea({
+            onSuccess: this.setMaxCanvaSizeInState 
+         });
     }
 
     componentDidUpdate(prevProps) {
@@ -180,6 +185,10 @@ class PDFView extends Component {
     attemptPDFLoad(password) {
         this.onPasswordCallback(password);
     }
+    
+    setMaxCanvaSizeInState(width, height, benchmark) {
+        this.state.maxCanvasSize = width * height;
+    }
 
     /**
      * On small screens notify parent that the keyboard has opened or closed.
@@ -204,6 +213,11 @@ class PDFView extends Component {
      */
     renderPage({index, style}) {
         const pageWidth = this.calculatePageWidth();
+        const pageHeight = this.calculatePageHeight(index);
+
+        const nbPixels = pageWidth * pageHeight;
+        const ratio = Math.sqrt((this.state.maxCanvasSize / nbPixels));
+        const devicePixelRatio = ratio > 3 ? 3 : ratio;
 
         return (
             <View style={style}>
