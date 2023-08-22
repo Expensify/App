@@ -438,7 +438,7 @@ function Composer({
                 autoCorrect={!Browser.isMobileSafari()}
                 placeholderTextColor={themeColors.placeholderText}
                 ref={(el) => (textInput.current = el)}
-                selection={isFocused ? selection:null}
+                selection={isFocused ? selection : null}
                 style={inputStyleMemo}
                 value={value}
                 forwardedRef={forwardedRef}
