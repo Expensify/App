@@ -429,7 +429,7 @@ function Composer({
         [style, maxLines, numberOfLinesProp, numberOfLines],
     );
 
-    // On mobile safari the input will be focused if we set the selection for it. 
+    // On mobile safari the input will be focused if we set the selection for it.
     // We don't pass selection if it is not focused. So when the input re-mount, it won't be re-focused
     const isBlurredSafari = Browser.isMobileSafari() && (!textInput.current || !textInput.current.isFocused());
 
