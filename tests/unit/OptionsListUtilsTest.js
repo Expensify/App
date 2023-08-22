@@ -628,4 +628,49 @@ describe('OptionsListUtils', () => {
         expect(results.personalDetails.length).toBe(1);
         expect(results.personalDetails[0].text).toBe('Spider-Man');
     });
+
+    it('getOptionTree', () => {
+        const categories = [
+            'Taxi',
+            'Restaurant',
+            'Cafe',
+            'Food: Meat',
+            'Food: Milk',
+            'Food: Fruits',
+            'Food: Vegetables',
+            'Cars: Audi',
+            'Cars: BMW',
+            'Cars: Mercedes-Benz',
+            'Medical',
+            'Travel: Meals: Breakfast',
+            'Travel: Meals: Dinner',
+            'Travel: Meals: Lunch',
+            'Plain',
+            'Health',
+        ];
+        const result = [
+            'Taxi',
+            'Restaurant',
+            'Cafe',
+            'Food',
+            '    Meat',
+            '    Milk',
+            '    Fruits',
+            '    Vegetables',
+            'Cars',
+            '    Audi',
+            '    BMW',
+            '    Mercedes-Benz',
+            'Medical',
+            'Travel',
+            '    Meals',
+            '        Breakfast',
+            '        Dinner',
+            '        Lunch',
+            'Plain',
+            'Health',
+        ];
+
+        expect(OptionsListUtils.getOptionTree(categories)).toStrictEqual(result);
+    });
 });

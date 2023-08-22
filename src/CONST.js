@@ -2576,6 +2576,8 @@ const CONST = {
             NAVIGATE: 'NAVIGATE',
         },
     },
+    INDENTS: '    ',
+    PARENT_CHILD_SEPARATOR: ': ',
 };
 
 export default CONST;

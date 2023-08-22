@@ -879,6 +879,26 @@ function getOptions(
 }
 
 /**
+ * Build the options for the tree hierarchy via indents
+ *
+ * @param {Array<String>} options - an initial strings array
+ * @returns {Array<String>}
+ */
+function getOptionTree(options) {
+    const optionCollection = new Set();
+
+    _.each(options, (option) => {
+        option.split(CONST.PARENT_CHILD_SEPARATOR).forEach((optionName, index) => {
+            const indents = _.times(index, () => CONST.INDENTS).join('');
+
+            optionCollection.add(`${indents}${optionName}`);
+        });
+    });
+
+    return Array.from(optionCollection);
+}
+
+/**
  * Build the options for the Search view
  *
  * @param {Object} reports
@@ -1104,4 +1124,5 @@ export {
     isSearchStringMatch,
     shouldOptionShowTooltip,
     getLastMessageTextForReport,
+    getOptionTree,
 };
