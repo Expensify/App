@@ -386,7 +386,7 @@ function MoneyRequestConfirmationList(props) {
                     />
                     <MenuItemWithTopDescription
                         shouldShowRightIcon={!props.isReadOnly && isTypeRequest}
-                        title={props.iouMerchant}
+                        title={props.iouMerchant || CONST.TRANSACTION.DEFAULT_MERCHANT}
                         description={translate('common.merchant')}
                         style={[styles.moneyRequestMenuItem, styles.mb2]}
                         titleStyle={styles.flex1}

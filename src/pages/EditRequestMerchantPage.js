@@ -44,8 +44,8 @@ function EditRequestMerchantPage({defaultMerchant, onSubmit}) {
                         inputID="merchant"
                         name="merchant"
                         defaultValue={defaultMerchant}
-                        label={translate('moneyRequestConfirmationList.merchant')}
-                        accessibilityLabel={translate('moneyRequestConfirmationList.merchant')}
+                        label={translate('common.merchant')}
+                        accessibilityLabel={translate('common.merchant')}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         ref={(e) => (merchantInputRef.current = e)}
                     />
