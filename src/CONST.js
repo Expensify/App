@@ -889,7 +889,7 @@ const CONST = {
         RECEIPTS: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_RECEIPTS', -1)),
         REWARDS: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_REWARDS', 11023767)), // rewards@expensify.com
         SAASTR: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_SAASTR', 15252830)),
-        SBE: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_SBE', -1)), // TODO: replace with prod account ID
+        SBE: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_SBE', 15305309)),
         STUDENT_AMBASSADOR: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_STUDENT_AMBASSADOR', 10476956)),
         SVFG: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_SVFG', 2012843)),
     },
