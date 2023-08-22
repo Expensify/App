@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useCallback} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {View} from 'react-native';
@@ -18,20 +18,20 @@ import ROUTES from '../../ROUTES';
 import ConfirmModal from '../../components/ConfirmModal';
 import personalDetailsPropType from '../personalDetailsPropType';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
-import {policyPropTypes, policyDefaultProps} from './withPolicy';
-import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
+import withPolicy, {policyDefaultProps, policyPropTypes} from './withPolicy';
 import CONST from '../../CONST';
 import {withNetwork} from '../../components/OnyxProvider';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import networkPropTypes from '../../components/networkPropTypes';
 import * as UserUtils from '../../libs/UserUtils';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../components/withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../components/withCurrentUserPersonalDetails';
 import * as PolicyUtils from '../../libs/PolicyUtils';
 import usePrevious from '../../hooks/usePrevious';
 import Log from '../../libs/Log';
 import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
 import SelectionList from '../../components/SelectionList';
 import Text from '../../components/Text';
+import WorkspaceMembersPlaceholder from '../../components/WorkspaceMembersPlaceholder';
 
 const propTypes = {
     /** All personal details asssociated with user */
@@ -52,6 +52,7 @@ const propTypes = {
         accountID: PropTypes.number,
     }),
 
+    isLoadingReportData: PropTypes.bool,
     ...policyPropTypes,
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
@@ -64,6 +65,7 @@ const defaultProps = {
     session: {
         accountID: 0,
     },
+    isLoadingReportData: true,
     ...policyDefaultProps,
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
@@ -87,7 +89,7 @@ function WorkspaceMembersPage(props) {
      */
     const validateSelection = useCallback(() => {
         const newErrors = {};
-        const ownerAccountID = _.first(PersonalDetailsUtils.getAccountIDsByLogins([props.policy.owner]));
+        const ownerAccountID = _.first(PersonalDetailsUtils.getAccountIDsByLogins(props.policy.owner ? [props.policy.owner] : []));
         _.each(selectedEmployees, (member) => {
             if (member !== ownerAccountID && member !== props.session.accountID) {
                 return;
@@ -339,7 +341,7 @@ function WorkspaceMembersPage(props) {
             style={[styles.defaultModalContainer]}
         >
             <FullPageNotFoundView
-                shouldShow={_.isEmpty(props.policy) || !PolicyUtils.isPolicyAdmin(props.policy)}
+                shouldShow={(_.isEmpty(props.policy) || !PolicyUtils.isPolicyAdmin(props.policy)) && !props.isLoadingReportData}
                 subtitleKey={_.isEmpty(props.policy) ? undefined : 'workspace.common.notAuthorized'}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
             >
@@ -411,7 +413,7 @@ WorkspaceMembersPage.displayName = 'WorkspaceMembersPage';
 export default compose(
     withLocalize,
     withWindowDimensions,
-    withPolicyAndFullscreenLoading,
+    withPolicy,
     withNetwork(),
     withOnyx({
         personalDetails: {
@@ -419,6 +421,9 @@ export default compose(
         },
         session: {
             key: ONYXKEYS.SESSION,
+        },
+        isLoadingReportData: {
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
         },
     }),
     withCurrentUserPersonalDetails,

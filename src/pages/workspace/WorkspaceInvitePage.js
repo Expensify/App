@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useMemo} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -14,8 +14,7 @@ import * as Policy from '../../libs/actions/Policy';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import CONST from '../../CONST';
-import {policyPropTypes, policyDefaultProps} from './withPolicy';
-import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
+import withPolicy, {policyDefaultProps, policyPropTypes} from './withPolicy';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import ROUTES from '../../ROUTES';
 import * as PolicyUtils from '../../libs/PolicyUtils';
@@ -51,12 +50,14 @@ const propTypes = {
         }),
     }).isRequired,
 
+    isLoadingReportData: PropTypes.bool,
     ...policyPropTypes,
 };
 
 const defaultProps = {
     personalDetails: {},
     betas: [],
+    isLoadingReportData: true,
     ...policyDefaultProps,
 };
 
@@ -202,7 +203,7 @@ function WorkspaceInvitePage(props) {
 
                 return (
                     <FullPageNotFoundView
-                        shouldShow={_.isEmpty(props.policy) || !PolicyUtils.isPolicyAdmin(props.policy)}
+                        shouldShow={(_.isEmpty(props.policy) || !PolicyUtils.isPolicyAdmin(props.policy)) && !props.isLoadingReportData}
                         subtitleKey={_.isEmpty(props.policy) ? undefined : 'workspace.common.notAuthorized'}
                         onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
                     >
@@ -250,13 +251,16 @@ WorkspaceInvitePage.defaultProps = defaultProps;
 WorkspaceInvitePage.displayName = 'WorkspaceInvitePage';
 
 export default compose(
-    withPolicyAndFullscreenLoading,
+    withPolicy,
     withOnyx({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
         betas: {
             key: ONYXKEYS.BETAS,
+        },
+        isLoadingReportData: {
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
         },
     }),
 )(WorkspaceInvitePage);
