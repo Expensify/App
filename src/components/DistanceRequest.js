@@ -92,6 +92,7 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
     const hasRouteError = Boolean(lodashGet(transaction, 'errorFields.route'));
     const previousWaypoints = usePrevious(waypoints);
     const haveWaypointsChanged = !_.isEqual(previousWaypoints, waypoints);
+    const shouldFetchRoute = !haveWaypointsChanged || isOffline || isLoadingRoute || !TransactionUtils.validateWaypoints(waypoints);
 
     const waypointMarkers = _.filter(
         _.map(waypoints, (waypoint, key) => {
@@ -148,17 +149,12 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
 
     // Handle fetching the route when there are at least 2 waypoints
     useEffect(() => {
-        if (!haveWaypointsChanged) {
-            return;
-        }
-
-        // Only fetch the route when all the waypoints are filled (prevents an error fetching with an empty waypoint)
-        if (isOffline || isLoadingRoute || !TransactionUtils.validateWaypoints(waypoints)) {
+        if (!shouldFetchRoute) {
             return;
         }
 
         Transaction.getRoute(transactionID, waypoints);
-    }, [haveWaypointsChanged, waypoints, transactionID, isLoadingRoute, isOffline]);
+    }, [shouldFetchRoute]);
 
     useEffect(updateGradientVisibility, [scrollContainerHeight, scrollContentHeight]);
 
