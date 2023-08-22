@@ -353,6 +353,7 @@ function MoneyRequestConfirmationList(props) {
                 description={translate('common.description')}
                 onPress={() => Navigation.navigate(ROUTES.getMoneyRequestDescriptionRoute(props.iouType, props.reportID))}
                 style={[styles.moneyRequestMenuItem, styles.mb2]}
+                titleStyle={styles.flex1}
                 disabled={didConfirm || props.isReadOnly}
             />
             {!showAllFields && (
@@ -377,6 +378,7 @@ function MoneyRequestConfirmationList(props) {
                         title={props.iouCreated || format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}
                         description={translate('common.date')}
                         style={[styles.moneyRequestMenuItem, styles.mb2]}
+                        titleStyle={styles.flex1}
                         onPress={() => Navigation.navigate(ROUTES.getMoneyRequestCreatedRoute(props.iouType, props.reportID))}
                         disabled={didConfirm || props.isReadOnly || !isTypeRequest}
                     />
@@ -385,6 +387,7 @@ function MoneyRequestConfirmationList(props) {
                         title={props.iouMerchant}
                         description={translate('common.merchant')}
                         style={[styles.moneyRequestMenuItem, styles.mb2]}
+                        titleStyle={styles.flex1}
                         onPress={() => Navigation.navigate(ROUTES.getMoneyRequestMerchantRoute(props.iouType, props.reportID))}
                         disabled={didConfirm || props.isReadOnly || !isTypeRequest}
                     />
