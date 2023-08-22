@@ -219,6 +219,7 @@ function ReportActionItemMessageEdit(props) {
         debouncedSaveDraft.cancel();
         Report.saveReportActionDraft(props.reportID, props.action, '');
         ComposerActions.setShouldShowComposeInput(true);
+        ReportActionComposeFocusManager.clear();
         ReportActionComposeFocusManager.focus();
 
         // Scroll to the last comment after editing to make sure the whole comment is clearly visible in the report.
