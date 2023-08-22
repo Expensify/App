@@ -278,13 +278,17 @@ function extractEmojis(text) {
     }
 
     const emojis = [];
-    const alreadyParsedEmojis = new Set();
+
+    // Text can contain similar emojis as well as their skin tone variants. Create a Set to remove duplicate emojis from the search.
+    const foundEmojiCodes = new Set();
 
     for (let i = 0; i < parsedEmojis.length; i++) {
         const character = parsedEmojis[i];
         const emoji = Emojis.emojiCodeTableWithSkinTones[character];
-        if (emoji && !alreadyParsedEmojis.has(emoji.code)) {
-            alreadyParsedEmojis.add(emoji.code);
+
+        // Add the parsed emoji to the final emojis if not already present.
+        if (emoji && !foundEmojiCodes.has(emoji.code)) {
+            foundEmojiCodes.add(emoji.code);
             emojis.push(emoji);
         }
     }
