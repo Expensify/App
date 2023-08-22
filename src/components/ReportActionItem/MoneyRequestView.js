@@ -164,21 +164,12 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, polic
             </OfflineWithFeedback>
             <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.merchant') || lodashGet(transaction, 'pendingAction')}>
                 <MenuItemWithTopDescription
-                    description={translate('common.merchant')}
+                    description={isDistanceRequest ? translate('tabSelector.distance') : translate('common.merchant')}
                     title={transactionMerchant}
                     shouldShowRightIcon={false}
                     disabled
                 />
             </OfflineWithFeedback>
-            {isDistanceRequest && (
-                <MenuItemWithTopDescription
-                    description={translate('tabSelector.distance')}
-                    title={transaction.merchant}
-                    disabled={isSettled || !canEdit}
-                    shouldShowRightIcon={canEdit}
-                    onPress={() => {}}
-                />
-            )}
             {shouldShowHorizontalRule && <View style={styles.reportHorizontalRule} />}
         </View>
     );
