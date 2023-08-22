@@ -51,16 +51,13 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     titleStyles: PropTypes.arrayOf(PropTypes.object),
 
-
     /** Styles for prompt */
     // eslint-disable-next-line react/forbid-prop-types
     promptStyles: PropTypes.arrayOf(PropTypes.object),
 
-
     /** Styles for view */
     // eslint-disable-next-line react/forbid-prop-types
     contentStyles: PropTypes.arrayOf(PropTypes.object),
-
 
     /** Styles for icon */
     // eslint-disable-next-line react/forbid-prop-types
@@ -82,7 +79,6 @@ const defaultProps = {
     titleStyles: [],
     promptStyles: [],
     iconAdditionalStyles: [],
-
 };
 
 function ConfirmContent(props) {
@@ -94,19 +90,23 @@ function ConfirmContent(props) {
     return (
         <View style={[styles.m5, ...props.contentStyles]}>
             <View style={isCentered ? [styles.alignItemsCenter, styles.mb6] : []}>
-                {!_.isEmpty(props.iconSource) || _.isFunction(props.iconSource) && (
-                    <View style={[styles.flexRow, styles.mb3]}>
-                        <Icon
-                            src={props.iconSource}
-                            width={variables.downloadAppModalAppIconSize}
-                            height={variables.downloadAppModalAppIconSize}
-                            additionalStyles={[...props.iconAdditionalStyles]}
-                        />
-                    </View>
-                )}
+                {!_.isEmpty(props.iconSource) ||
+                    (_.isFunction(props.iconSource) && (
+                        <View style={[styles.flexRow, styles.mb3]}>
+                            <Icon
+                                src={props.iconSource}
+                                width={variables.downloadAppModalAppIconSize}
+                                height={variables.downloadAppModalAppIconSize}
+                                additionalStyles={[...props.iconAdditionalStyles]}
+                            />
+                        </View>
+                    ))}
 
-                <View style={[styles.flexRow, isCentered  ? {} : styles.mb4]}>
-                    <Header title={props.title} textStyles={[...props.titleStyles]}/>
+                <View style={[styles.flexRow, isCentered ? {} : styles.mb4]}>
+                    <Header
+                        title={props.title}
+                        textStyles={[...props.titleStyles]}
+                    />
                 </View>
 
                 {_.isString(props.prompt) ? <Text style={[...props.promptStyles, isCentered ? styles.textAlignCenter : {}]}>{props.prompt}</Text> : props.prompt}
@@ -152,10 +152,9 @@ function ConfirmContent(props) {
                             text={props.cancelText || translate('common.no')}
                             shouldUseDefaultHover
                         />
-                    ) }
+                    )}
                 </>
-            )
-        }
+            )}
         </View>
     );
 }

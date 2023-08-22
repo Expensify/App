@@ -51,7 +51,6 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     titleStyles: PropTypes.arrayOf(PropTypes.object),
 
-
     /** Styles for prompt */
     // eslint-disable-next-line react/forbid-prop-types
     promptStyles: PropTypes.arrayOf(PropTypes.object),
@@ -59,7 +58,6 @@ const propTypes = {
     /** Styles for icon */
     // eslint-disable-next-line react/forbid-prop-types
     iconAdditionalStyles: PropTypes.arrayOf(PropTypes.object),
-
 
     shouldCenterContent: PropTypes.bool,
 
