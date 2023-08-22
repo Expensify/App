@@ -13,7 +13,6 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import MenuItem from '../../../components/MenuItem';
 import compose from '../../../libs/compose';
 import ONYXKEYS from '../../../ONYXKEYS';
-import * as Session from '../../../libs/actions/Session';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -36,14 +35,7 @@ function SecuritySettingsPage(props) {
         {
             translationKey: 'twoFactorAuth.headerTitle',
             icon: Expensicons.Shield,
-            action: () => {
-                if (props.account.requiresTwoFactorAuth) {
-                    Navigation.navigate(ROUTES.SETTINGS_2FA_IS_ENABLED);
-                } else {
-                    Session.toggleTwoFactorAuth(true);
-                    Navigation.navigate(ROUTES.SETTINGS_2FA_CODES);
-                }
-            },
+            action: () => Navigation.navigate(ROUTES.SETTINGS_2FA),
         },
         {
             translationKey: 'closeAccountPage.closeAccount',

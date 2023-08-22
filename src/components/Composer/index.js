@@ -199,20 +199,22 @@ function Composer({
                 setValueBeforeCaret(event.target.value.slice(0, event.nativeEvent.selection.start));
                 setCaretContent(getNextChars(value, event.nativeEvent.selection.start));
             });
+            const selectionValue = {
+                start: event.nativeEvent.selection.start,
+                end: event.nativeEvent.selection.end,
+                positionX: textRef.current.offsetLeft - CONST.SPACE_CHARACTER_WIDTH,
+                positionY: textRef.current.offsetTop,
+            };
+            onSelectionChange({
+                nativeEvent: {
+                    selection: selectionValue,
+                },
+            });
+            setSelection(selectionValue);
+        } else {
+            onSelectionChange(event);
+            setSelection(event.nativeEvent.selection);
         }
-
-        const selectionValue = {
-            start: event.nativeEvent.selection.start,
-            end: event.nativeEvent.selection.end,
-            positionX: textRef.current.offsetLeft - CONST.SPACE_CHARACTER_WIDTH,
-            positionY: textRef.current.offsetTop,
-        };
-        onSelectionChange({
-            nativeEvent: {
-                selection: selectionValue,
-            },
-        });
-        setSelection(selectionValue);
     };
 
     /**

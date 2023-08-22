@@ -30,9 +30,10 @@ const propTypes = {
     iou: PropTypes.shape({
         id: PropTypes.string,
         amount: PropTypes.number,
-        receiptPath: PropTypes.string,
-        currency: PropTypes.string,
         comment: PropTypes.string,
+        created: PropTypes.string,
+        currency: PropTypes.string,
+        merchant: PropTypes.string,
         participants: PropTypes.arrayOf(
             PropTypes.shape({
                 accountID: PropTypes.number,
@@ -42,6 +43,7 @@ const propTypes = {
                 selected: PropTypes.bool,
             }),
         ),
+        receiptPath: PropTypes.string,
     }),
 
     /** Personal details of all users */
@@ -58,6 +60,8 @@ const defaultProps = {
         amount: 0,
         currency: CONST.CURRENCY.USD,
         comment: '',
+        merchant: '',
+        created: '',
         participants: [],
     },
     ...withCurrentUserPersonalDetailsDefaultProps,
@@ -130,6 +134,8 @@ function MoneyRequestConfirmPage(props) {
                 props.report,
                 props.iou.amount,
                 props.iou.currency,
+                props.iou.created,
+                props.iou.merchant,
                 props.currentUserPersonalDetails.login,
                 props.currentUserPersonalDetails.accountID,
                 selectedParticipants[0],
@@ -137,7 +143,7 @@ function MoneyRequestConfirmPage(props) {
                 receipt,
             );
         },
-        [props.report, props.iou.amount, props.iou.currency, props.currentUserPersonalDetails.login, props.currentUserPersonalDetails.accountID],
+        [props.report, props.iou.amount, props.iou.currency, props.iou.created, props.iou.merchant, props.currentUserPersonalDetails.login, props.currentUserPersonalDetails.accountID],
     );
 
     const createTransaction = useCallback(
@@ -259,8 +265,7 @@ function MoneyRequestConfirmPage(props) {
                         policyID={props.report.policyID}
                         bankAccountRoute={ReportUtils.getBankAccountRoute(props.report)}
                         iouMerchant={props.iou.merchant}
-                        iouModifiedMerchant={props.iou.modifiedMerchant}
-                        iouDate={props.iou.date}
+                        iouCreated={props.iou.created}
                     />
                 </View>
             )}
