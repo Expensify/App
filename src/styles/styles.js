@@ -3818,7 +3818,7 @@ const styles = {
     },
 
     mapDirection: {
-        width: 8,
+        width: 7,
         color: Colors.green,
     },
 
