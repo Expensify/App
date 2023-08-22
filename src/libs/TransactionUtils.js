@@ -230,6 +230,40 @@ function isReceiptBeingScanned(transaction) {
     return transaction.receipt.state === CONST.IOU.RECEIPT_STATE.SCANREADY || transaction.receipt.state === CONST.IOU.RECEIPT_STATE.SCANNING;
 }
 
+/**
+ * Verifies that the provided waypoints are valid
+ * @param {Object} waypoints 
+ * @returns {Boolean}
+ */
+function validateWaypoints(waypoints) {
+    const waypointValues = _.values(waypoints);
+
+    // Ensure the number of waypoints is between 2 and 25
+    if (waypointValues.length < 2 || waypointValues.length > 25) {
+        return false;
+    }
+
+    for (let i = 0; i < waypointValues.length; i++) {
+        const currentWaypoint = waypointValues[i];
+        const previousWaypoint = waypointValues[i - 1];
+
+        // Check if the waypoint has a valid address
+        if (!currentWaypoint || 
+            !currentWaypoint.address || 
+            typeof currentWaypoint.address !== 'string' || 
+            currentWaypoint.address.trim() === '') {
+            return false;
+        }
+
+        // Check for adjacent waypoints with the same address
+        if (previousWaypoint && currentWaypoint.address === previousWaypoint.address) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 export {
     buildOptimisticTransaction,
     getUpdatedTransaction,
@@ -243,4 +277,5 @@ export {
     getAllReportTransactions,
     hasReceipt,
     isReceiptBeingScanned,
+    validateWaypoints,
 };

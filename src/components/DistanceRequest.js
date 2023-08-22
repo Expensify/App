@@ -7,6 +7,7 @@ import {withOnyx} from 'react-native-onyx';
 import MapView from 'react-native-x-maps';
 import ONYXKEYS from '../ONYXKEYS';
 import * as Transaction from '../libs/actions/Transaction';
+import * as TransactionUtils from '../libs/TransactionUtils';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import * as Expensicons from './Icon/Expensicons';
 import theme from '../styles/themes/default';
@@ -118,17 +119,13 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
     useEffect(() => {
         // Check if the waypoints have changed by comparing with the previous value stored in the ref
         const haveWaypointsChanged = !_.isEqual(previousWaypointsRef.current, waypoints);
-
         if (!haveWaypointsChanged) {
             return;
         }
 
-        const nonEmptyWaypoints = _.filter(waypoints, waypoint => 
-            waypoint && typeof waypoint.address === 'string' && waypoint.address.trim() !== ''
-        ).length;
-    
+
         // Only fetch the route when all the waypoints are filled (prevents an error fetching with an empty waypoint)
-        if (isOffline || isLoadingRoute || numberOfWaypoints !== nonEmptyWaypoints || nonEmptyWaypoints < 2) {
+        if (isOffline || isLoadingRoute || !TransactionUtils.validateWaypoints(waypoints)) {
             return;
         }
 
