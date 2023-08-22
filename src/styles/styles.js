@@ -3636,6 +3636,7 @@ const styles = {
     },
 
     googleButtonContainer: {
+        colorScheme: 'light',
         width: 40,
         height: 40,
         marginLeft: 12,
@@ -3643,6 +3644,7 @@ const styles = {
     },
 
     googlePillButtonContainer: {
+        colorScheme: 'light',
         height: 40,
         width: 219,
     },

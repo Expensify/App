@@ -82,8 +82,6 @@ The current Sign in with Google library for web [does not allow arbitrary custom
 
 This means the button is limited in design: there are no offline or hover states, and there can only be a white background for the button. We were able to get the official Apple button options to match, so we used the Google options as the starting point for the design.
 
-Additionally, note that the Google button has a rectangular white background when shown in a client app served on `localhost`, due to the iframe it uses in that scenario. This is expected, and will not be present when the app is hosted on other domains.
-
 ### Sign in with Apple does not allow `localhost`
 
 Unlike Google, Apple does not allow `localhost` as a domain to host a pop-up or redirect to. In order to test Sign in with Apple on web or desktop, this means we have to:
