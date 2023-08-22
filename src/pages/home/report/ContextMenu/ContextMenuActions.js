@@ -177,6 +177,7 @@ export default [
         shouldShow: (type, reportAction) =>
             type === CONTEXT_MENU_TYPES.REPORT_ACTION &&
             reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU &&
+            reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW &&
             reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED &&
             reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED &&
             reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.TASKREOPENED &&
@@ -234,7 +235,7 @@ export default [
         },
         onPress: (closePopover, {reportAction, reportID}) => {
             Environment.getEnvironmentURL().then((environmentURL) => {
-                const reportActionID = parseInt(lodashGet(reportAction, 'reportActionID'), 10);
+                const reportActionID = lodashGet(reportAction, 'reportActionID');
                 Clipboard.setString(`${environmentURL}/r/${reportID}/${reportActionID}`);
             });
             hideContextMenu(true, ReportActionComposeFocusManager.focus);

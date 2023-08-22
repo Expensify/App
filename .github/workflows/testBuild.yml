@@ -81,6 +81,8 @@ jobs:
           echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER" >> .env.adhoc
 
       - uses: Expensify/App/.github/actions/composite/setupNode@main
+        with:
+          MAPBOX_SDK_DOWNLOAD_TOKEN: ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
       - uses: ruby/setup-ruby@eae47962baca661befdfd24e4d6c34ade04858f7
         with:
@@ -102,9 +104,6 @@ jobs:
         with:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-
-      - name: Setup credentails for Mapbox SDK
-        run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
       - name: Run Fastlane beta test
         id: runFastlaneBetaTest
@@ -142,6 +141,8 @@ jobs:
           echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER" >> .env.adhoc
 
       - uses: Expensify/App/.github/actions/composite/setupNode@main
+        with:
+          MAPBOX_SDK_DOWNLOAD_TOKEN: ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
       - name: Setup Xcode
         run: sudo xcode-select -switch /Applications/Xcode_14.2.app
@@ -150,9 +151,6 @@ jobs:
         with:
           ruby-version: '2.7'
           bundler-cache: true
-
-      - name: Setup credentails for Mapbox SDK
-        run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
       - name: Install cocoapods
         uses: nick-invision/retry@0711ba3d7808574133d713a0d92d2941be03a350
@@ -209,6 +207,8 @@ jobs:
           echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER" >> .env.adhoc
 
       - uses: Expensify/App/.github/actions/composite/setupNode@main
+        with:
+          MAPBOX_SDK_DOWNLOAD_TOKEN: ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
       - name: Decrypt Developer ID Certificate
         run: cd desktop && gpg --quiet --batch --yes --decrypt --passphrase="$DEVELOPER_ID_SECRET_PASSPHRASE" --output developer_id.p12 developer_id.p12.gpg
@@ -250,6 +250,8 @@ jobs:
           echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER" >> .env.adhoc
 
       - uses: Expensify/App/.github/actions/composite/setupNode@main
+        with:
+          MAPBOX_SDK_DOWNLOAD_TOKEN: ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
       - name: Configure AWS Credentials
         uses: Expensify/App/.github/actions/composite/configureAwsCredentials@main
