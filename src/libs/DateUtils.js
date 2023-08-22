@@ -253,7 +253,15 @@ function extractDate(time) {
  * it's kind of 'newer' date
  */
 function extractTime(dateTimeString) {
-    return moment(dateTimeString).format('HH:mm');
+    return moment(dateTimeString).format('hh:mm');
+}
+/**
+ * @param {string} dateTimeString
+ * @returns {string} example: 2023-05-16
+ * it's kind of 'newer' date
+ */
+function extractTime12Hour(dateTimeString) {
+    return moment(dateTimeString).format('hh:mm A');
 }
 
 /**
@@ -284,7 +292,7 @@ function getDateBasedFromType(type) {
         default:
             return '';
     }
-  }
+}
 
 /**
  * receive date like 2020-05-16 05:34:14 and format it to show in string like "Until 05:34 PM"
@@ -320,6 +328,36 @@ function getStatusUntilDate(inputDate) {
 }
 
 /**
+ * Update the hour and minute of a date.
+ *
+ * @param {string} time - Time in "hh:mm A" format (like "10:55 AM").
+ * @param {string} date - Date in "YYYY-MM-DD HH:mm:ss" format.
+ *
+ * @returns {string} - Date with updated time in "YYYY-MM-DD HH:mm:ss" format.
+ */
+function setTimeOrDefaultToTomorrow(time, date) {
+    const dateToUse = date ? moment(date) : moment().endOf('day');
+
+    // Split the time into hour, minute, and period (AM/PM)
+    const [hour, minute, period] = time.match(/(\d+):(\d+) (\w\w)/).slice(1);
+
+    // Adjust the hour based on the period
+    let adjustedHour = parseInt(hour, 10);
+    if (period === 'PM' && adjustedHour !== 12) {
+        adjustedHour += 12;
+    } else if (period === 'AM' && adjustedHour === 12) {
+        adjustedHour = 0; // For 12 AM, set to 00
+    }
+
+    // Set the hour, minute, and second
+    dateToUse.hour(adjustedHour);
+    dateToUse.minute(minute);
+    dateToUse.second(0); // Reset seconds to zero
+
+    return dateToUse.format('YYYY-MM-DD HH:mm:ss');
+}
+
+/**
  * @namespace DateUtils
  */
 const DateUtils = {
@@ -344,6 +382,8 @@ const DateUtils = {
     extractTime,
     formatDateTo12Hour,
     getStatusUntilDate,
+    extractTime12Hour,
+    setTimeOrDefaultToTomorrow,
 };
 
 export default DateUtils;

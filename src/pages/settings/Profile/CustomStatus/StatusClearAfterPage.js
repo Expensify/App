@@ -16,16 +16,21 @@ import useLocalize from '../../../../hooks/useLocalize';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import CONST from '../../../../CONST';
 import * as User from '../../../../libs/actions/User';
-import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
+import withLocalize from '../../../../components/withLocalize';
 import compose from '../../../../libs/compose';
 import DateUtils from '../../../../libs/DateUtils';
-import withCurrentUserPersonalDetails from '../../../../components/withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails, { withCurrentUserPersonalDetailsDefaultProps } from '../../../../components/withCurrentUserPersonalDetails';
+import personalDetailsPropType from '../../../personalDetailsPropType';
 
-const defaultProps = {};
+const defaultProps = {
+  ...withCurrentUserPersonalDetailsDefaultProps,
+};
 
-const propTypes = {};
+const propTypes = {
+  currentUserPersonalDetails: personalDetailsPropType,
+};
 
-function StatusClearAfterPage({currentUserPersonalDetails, customStatus, ...props}) {
+function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
     const localize = useLocalize();
     const clearAfter = lodashGet(currentUserPersonalDetails, 'status.clearAfter', '');
 
@@ -53,28 +58,33 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus, ...prop
             calculatedDraftDate = DateUtils.getDateBasedFromType(selectedRange.value);
         }
 
-        User.updateDraftCustomStatus({clearAfter: calculatedDraftDate});
+        User.updateDraftCustomStatus({clearAfter: calculatedDraftDate, customDateTemporary: calculatedDraftDate});
         Navigation.goBack(ROUTES.SETTINGS_STATUS);
     };
 
-    const updateMode = useCallback((mode) => {
-        if (mode.value === CONST.CUSTOM_STATUS_TYPES.CUSTOM) {
-            User.updateDraftCustomStatus({customDateTemporary: DateUtils.getOneHourFromNow()});
-        }
-        setDraftPeriod(mode.value);
-    }, []);
+    const updateMode = useCallback(
+        (mode) => {
+            if (mode.value === draftPeriod) return;
+            User.updateDraftCustomStatus({
+                customDateTemporary: mode.value === CONST.CUSTOM_STATUS_TYPES.CUSTOM ? DateUtils.getOneHourFromNow() : DateUtils.getDateBasedFromType(mode.value),
+            });
+            setDraftPeriod(mode.value);
+        },
+        [draftPeriod],
+    );
 
     useEffect(() => {
-        if ((clearAfter && !draftClearAfter) || draftClearAfter) {
-            User.updateDraftCustomStatus({customDateTemporary: (clearAfter && !draftClearAfter) || draftClearAfter});
-            return;
-        }
-        // value by default is CONST.CUSTOM_STATUS_TYPES.AFTER_TODAY
-        User.updateDraftCustomStatus({customDate: DateUtils.getEndOfToday()});
+        User.updateDraftCustomStatus({
+            customDateTemporary: clearAfter,
+            clearAfter,
+        });
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const customStatusDate = DateUtils.extractDate(customDateTemporary || draftClearAfter || clearAfter);
-    const customStatusTime = DateUtils.extractTime(customDateTemporary || draftClearAfter || clearAfter);
+    const customStatusTime = DateUtils.extractTime12Hour(customDateTemporary || clearAfter);
+
     return (
         <ScreenWrapper>
             <HeaderWithBackButton

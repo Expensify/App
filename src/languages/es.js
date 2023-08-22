@@ -900,13 +900,13 @@ export default {
         message: 'Mensaje',
         timePeriods: {
             never: 'Nunca',
-            thirtyMinutes: 'Treinta minutos',
-            oneHour: 'Una hora',
-            afterToday: 'Después de hoy',
-            afterWeek: 'Después de una semana',
+            thirtyMinutes: '30 minutos',
+            oneHour: '1 hora',
+            afterToday: 'Hoy',
+            afterWeek: 'Una semana',
             custom: 'Personalizado',
-            untilTomorrow: 'Hasta mañana',
         },
+        untilTomorrow: 'Hasta mañana',
         untilTime: ({time}) => {
             // Check for HH:MM AM/PM format and starts with '01:'
             if (CONST.REGEX.TIME_STARTS_01.test(time)) {
