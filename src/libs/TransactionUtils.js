@@ -114,6 +114,12 @@ function getUpdatedTransaction(transaction, transactionChanges, isFromExpenseRep
         updatedTransaction.modifiedCurrency = transactionChanges.currency;
         shouldStopSmartscan = true;
     }
+
+    if (_.has(transactionChanges, 'merchant')) {
+        updatedTransaction.modifiedMerchant = transactionChanges.merchant;
+        shouldStopSmartscan = true;
+    }
+
     if (shouldStopSmartscan && _.has(transaction, 'receipt') && !_.isEmpty(transaction.receipt) && lodashGet(transaction, 'receipt.state') !== CONST.IOU.RECEIPT_STATE.OPEN) {
         updatedTransaction.receipt.state = CONST.IOU.RECEIPT_STATE.OPEN;
     }
