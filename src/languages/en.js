@@ -312,8 +312,7 @@ export default {
         beginningOfChatHistoryDomainRoomPartTwo: ' to chat with colleagues, share tips, and ask questions.',
         beginningOfChatHistoryAdminRoomPartOne: ({workspaceName}) => `Collaboration among ${workspaceName} admins starts here! 🎉\nUse `,
         beginningOfChatHistoryAdminRoomPartTwo: ' to chat about topics such as workspace configurations and more.',
-        beginningOfChatHistoryAdminOnlyPostingRoomPartOne: 'Use ',
-        beginningOfChatHistoryAdminOnlyPostingRoomPartTwo: ({workspaceName}) => ` to hear about important announcements related to ${workspaceName}`,
+        beginningOfChatHistoryAdminOnlyPostingRoom: 'Only admins can send messages in this room.',
         beginningOfChatHistoryAnnounceRoomPartOne: ({workspaceName}) => `Collaboration between all ${workspaceName} members starts here! 🎉\nUse `,
         beginningOfChatHistoryAnnounceRoomPartTwo: ({workspaceName}) => ` to chat about anything ${workspaceName} related.`,
         beginningOfChatHistoryUserRoomPartOne: 'Collaboration starts here! 🎉\nUse this space to chat about anything ',
@@ -324,6 +323,7 @@ export default {
         beginningOfChatHistoryPolicyExpenseChatPartThree: ' starts here! 🎉 This is the place to chat, request money and settle up.',
         chatWithAccountManager: 'Chat with your account manager here',
         sayHello: 'Say hello!',
+        welcomeToRoom: ({roomName}) => `Welcome to ${roomName}!`,
         usePlusButton: '\n\nYou can also use the + button below to request money or assign a task!',
     },
     reportAction: {

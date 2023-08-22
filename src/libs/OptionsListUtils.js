@@ -149,6 +149,7 @@ function getAvatarsForAccountIDs(accountIDs, personalDetails, defaultValues = {}
     return _.map(accountIDs, (accountID) => {
         const login = lodashGet(reversedDefaultValues, accountID, '');
         const userPersonalDetail = lodashGet(personalDetails, accountID, {login, accountID, avatar: ''});
+
         return {
             id: accountID,
             source: UserUtils.getAvatar(userPersonalDetail.avatar, userPersonalDetail.accountID),
@@ -1016,6 +1017,39 @@ function getShareDestinationOptions(
 }
 
 /**
+ * Format personalDetails or userToInvite to be shown in the list
+ *
+ * @param {Object} member - personalDetails or userToInvite
+ * @param {Boolean} isSelected - whether the item is selected
+ * @returns {Object}
+ */
+function formatMemberForList(member, isSelected) {
+    if (!member) {
+        return undefined;
+    }
+
+    const avatarSource = lodashGet(member, 'participantsList[0].avatar', '') || lodashGet(member, 'avatar', '');
+    const accountID = lodashGet(member, 'accountID', '');
+
+    return {
+        text: lodashGet(member, 'text', '') || lodashGet(member, 'displayName', ''),
+        alternateText: lodashGet(member, 'alternateText', '') || lodashGet(member, 'login', ''),
+        keyForList: lodashGet(member, 'keyForList', '') || String(accountID),
+        isSelected,
+        isDisabled: false,
+        accountID,
+        login: lodashGet(member, 'login', ''),
+        rightElement: null,
+        avatar: {
+            source: UserUtils.getAvatar(avatarSource, accountID),
+            name: lodashGet(member, 'participantsList[0].login', '') || lodashGet(member, 'displayName', ''),
+            type: 'avatar',
+        },
+        pendingAction: lodashGet(member, 'pendingAction'),
+    };
+}
+
+/**
  * Build the options for the Workspace Member Invite view
  *
  * @param {Object} personalDetails
@@ -1104,4 +1138,5 @@ export {
     isSearchStringMatch,
     shouldOptionShowTooltip,
     getLastMessageTextForReport,
+    formatMemberForList,
 };

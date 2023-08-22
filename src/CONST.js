@@ -128,6 +128,14 @@ const CONST = {
         MOMENT_FORMAT_STRING: 'YYYY-MM-DD',
         SQL_DATE_TIME: 'YYYY-MM-DD HH:mm:ss',
         FNS_FORMAT_STRING: 'yyyy-MM-dd',
+        LOCAL_TIME_FORMAT: 'h:mm a',
+        WEEKDAY_TIME_FORMAT: 'eeee',
+        MONTH_DAY_ABBR_FORMAT: 'MMM d',
+        SHORT_DATE_FORMAT: 'MM-dd',
+        MONTH_DAY_YEAR_ABBR_FORMAT: 'MMM d, yyyy',
+        FNS_TIMEZONE_FORMAT_STRING: "yyyy-MM-dd'T'HH:mm:ssXXX",
+        FNS_DB_FORMAT_STRING: 'yyyy-MM-dd HH:mm:ss.SSS',
+        LONG_DATE_FORMAT_WITH_WEEKDAY: 'eeee, MMMM d, yyyy',
         UNIX_EPOCH: '1970-01-01 00:00:00.000',
         MAX_DATE: '9999-12-31',
         MIN_DATE: '0001-01-01',
@@ -1030,6 +1038,7 @@ const CONST = {
         AMOUNT_MAX_LENGTH: 10,
         RECEIPT_STATE: {
             SCANREADY: 'SCANREADY',
+            OPEN: 'OPEN',
             SCANNING: 'SCANNING',
             SCANCOMPLETE: 'SCANCOMPLETE',
             SCANFAILED: 'SCANFAILED',
@@ -2556,7 +2565,15 @@ const CONST = {
         DISTANCE: 'distance',
     },
     STATUS_TEXT_MAX_LENGTH: 100,
+
+    DROPDOWN_BUTTON_SIZE: {
+        LARGE: 'large',
+        MEDIUM: 'medium',
+    },
+
     SF_COORDINATES: [-122.4194, 37.7749],
+
+    MAPBOX_STYLE_URL: 'mapbox://styles/expensify/cllcoiqds00cs01r80kp34tmq',
     NAVIGATION: {
         TYPE: {
             FORCED_UP: 'FORCED_UP',
