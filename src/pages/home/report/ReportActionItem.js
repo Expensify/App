@@ -399,7 +399,7 @@ function ReportActionItem(props) {
                 {!ReportActionsUtils.isMessageDeleted(props.action) && (
                     <View style={draftMessageRightAlign}>
                         <ReportActionItemEmojiReactions
-                            reportActionID={props.action.reportActionID}
+                            reportAction={props.action}
                             emojiReactions={props.emojiReactions}
                             toggleReaction={(emoji) => {
                                 if (Session.isAnonymousUser()) {

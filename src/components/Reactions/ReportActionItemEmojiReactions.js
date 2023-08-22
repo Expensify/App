@@ -19,7 +19,7 @@ const propTypes = {
     emojiReactions: EmojiReactionsPropTypes,
 
     /** The ID of the reportAction. It is the string representation of the a 64-bit integer. */
-    reportActionID: PropTypes.string.isRequired,
+    reportAction: PropTypes.object,
 
     /**
      * Function to call when the user presses on an emoji.
@@ -37,6 +37,7 @@ const defaultProps = {
 };
 
 function ReportActionItemEmojiReactions(props) {
+    const hasErrors = !_.isEmpty(props.reportAction.errors);
     const {reactionListRef} = useContext(ReportScreenContext);
     const popoverReactionListAnchor = useRef(null);
     let totalReactionCount = 0;
@@ -91,7 +92,7 @@ function ReportActionItemEmojiReactions(props) {
         };
 
         const onReactionListOpen = (event) => {
-            reactionListRef.current.showReactionList(event, popoverReactionListAnchor.current, reactionEmojiName, props.reportActionID);
+            reactionListRef.current.showReactionList(event, popoverReactionListAnchor.current, reactionEmojiName, props.reportAction.reportActionID);
         };
 
         return {
@@ -143,10 +144,12 @@ function ReportActionItemEmojiReactions(props) {
                         </Tooltip>
                     );
                 })}
-                <AddReactionBubble
-                    onSelectEmoji={props.toggleReaction}
-                    reportAction={{reportActionID: props.reportActionID}}
-                />
+                {!hasErrors && (
+                    <AddReactionBubble
+                        onSelectEmoji={props.toggleReaction}
+                        reportAction={{reportActionID: props.reportAction.reportActionID}}
+                    />
+                )}
             </View>
         )
     );
