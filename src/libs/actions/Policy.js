@@ -576,7 +576,15 @@ function updateGeneralSettings(policyID, name, currency) {
         },
     ];
 
-    API.write('UpdateWorkspaceGeneralSettings', {policyID, workspaceName: name, currency}, {optimisticData, successData, failureData});
+    API.write(
+        'UpdateWorkspaceGeneralSettings',
+        {policyID, workspaceName: name, currency},
+        {
+            optimisticData,
+            successData,
+            failureData,
+        },
+    );
 }
 
 /**

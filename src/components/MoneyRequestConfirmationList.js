@@ -1,9 +1,9 @@
 import React, {useCallback, useMemo, useReducer, useState} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import {format} from 'date-fns';
 import _ from 'underscore';
 import {View} from 'react-native';
-import Str from 'expensify-common/lib/str';
 import styles from '../styles/styles';
 import * as ReportUtils from '../libs/ReportUtils';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
@@ -25,12 +25,8 @@ import Button from './Button';
 import * as Expensicons from './Icon/Expensicons';
 import themeColors from '../styles/themes/default';
 import Image from './Image';
-import ReceiptHTML from '../../assets/images/receipt-html.png';
-import ReceiptDoc from '../../assets/images/receipt-doc.png';
-import ReceiptGeneric from '../../assets/images/receipt-generic.png';
-import ReceiptSVG from '../../assets/images/receipt-svg.png';
-import * as FileUtils from '../libs/fileDownload/FileUtils';
 import useLocalize from '../hooks/useLocalize';
+import * as ReceiptUtils from '../libs/ReceiptUtils';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
@@ -58,7 +54,7 @@ const propTypes = {
     iouType: PropTypes.string,
 
     /** IOU date */
-    iouDate: PropTypes.string,
+    iouCreated: PropTypes.string,
 
     /** IOU merchant */
     iouMerchant: PropTypes.string,
@@ -125,6 +121,7 @@ function MoneyRequestConfirmationList(props) {
 
     // A flag and a toggler for showing the rest of the form fields
     const [showAllFields, toggleShowAllFields] = useReducer((state) => !state, false);
+    const isTypeRequest = props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST;
 
     /**
      * Returns the participants with amount
@@ -317,36 +314,6 @@ function MoneyRequestConfirmationList(props) {
         );
     }, [confirm, props.selectedParticipants, props.bankAccountRoute, props.iouCurrencyCode, props.iouType, props.isReadOnly, props.policyID, selectedParticipants, splitOrRequestOptions]);
 
-    /**
-     * Grab the appropriate image URI based on file type
-     *
-     * @param {String} receiptPath
-     * @param {String} receiptSource
-     * @returns {*}
-     */
-    const getImageURI = (receiptPath, receiptSource) => {
-        const {fileExtension} = FileUtils.splitExtensionFromFileName(receiptSource);
-        const isReceiptImage = Str.isImage(props.receiptSource);
-
-        if (isReceiptImage) {
-            return receiptPath;
-        }
-
-        if (fileExtension === CONST.IOU.FILE_TYPES.HTML) {
-            return ReceiptHTML;
-        }
-
-        if (fileExtension === CONST.IOU.FILE_TYPES.DOC || fileExtension === CONST.IOU.FILE_TYPES.DOCX) {
-            return ReceiptDoc;
-        }
-
-        if (fileExtension === CONST.IOU.FILE_TYPES.SVG) {
-            return ReceiptSVG;
-        }
-
-        return ReceiptGeneric;
-    };
-
     return (
         <OptionsSelector
             sections={optionSelectorSections}
@@ -367,7 +334,7 @@ function MoneyRequestConfirmationList(props) {
             {!_.isEmpty(props.receiptPath) ? (
                 <Image
                     style={styles.moneyRequestImage}
-                    source={{uri: getImageURI(props.receiptPath, props.receiptSource)}}
+                    source={{uri: ReceiptUtils.getThumbnailAndImageURIs(props.receiptPath, props.receiptSource).image}}
                 />
             ) : (
                 <MenuItemWithTopDescription
@@ -406,18 +373,20 @@ function MoneyRequestConfirmationList(props) {
             {showAllFields && (
                 <>
                     <MenuItemWithTopDescription
-                        title={props.iouDate}
+                        shouldShowRightIcon={!props.isReadOnly && isTypeRequest}
+                        title={props.iouCreated || format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}
                         description={translate('common.date')}
                         style={[styles.moneyRequestMenuItem, styles.mb2]}
-                        // Note: This component is disabled until this field is editable in next PR
-                        disabled
+                        onPress={() => Navigation.navigate(ROUTES.getMoneyRequestCreatedRoute(props.iouType, props.reportID))}
+                        disabled={didConfirm || props.isReadOnly || !isTypeRequest}
                     />
                     <MenuItemWithTopDescription
+                        shouldShowRightIcon={!props.isReadOnly && isTypeRequest}
                         title={props.iouMerchant}
                         description={translate('common.merchant')}
                         style={[styles.moneyRequestMenuItem, styles.mb2]}
-                        // Note: This component is disabled until this field is editable in next PR
-                        disabled
+                        onPress={() => Navigation.navigate(ROUTES.getMoneyRequestMerchantRoute(props.iouType, props.reportID))}
+                        disabled={didConfirm || props.isReadOnly || !isTypeRequest}
                     />
                 </>
             )}
