@@ -949,6 +949,7 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
     const transactionThread = allReports[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`];
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const iouReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${transactionThread.parentReportID}`];
+    const chatReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${iouReport.chatReportID}`];
     const isFromExpenseReport = ReportUtils.isExpenseReport(iouReport);
 
     // STEP 2: Build new modified expense report action.
@@ -958,9 +959,45 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
     // STEP 3: Compute the IOU total and update the report preview message so LHN amount owed is correct
     // Should only update if the transaction matches the currency of the report, else we wait for the update
     // from the server with the currency conversion
-    const updatedIouReport = {...iouReport};
+    let updatedIouReport = null;
+    const updatedChatReport = { ...chatReport};
     if (updatedTransaction.currency === iouReport.currency && updatedTransaction.modifiedAmount) {
-        updatedIouReport.total = updatedIouReport.total - TransactionUtils.getAmount(transaction) + TransactionUtils.getAmount(updatedTransaction);
+        if (ReportUtils.isExpenseReport(iouReport)) {
+            updatedIouReport = {...iouReport};
+
+            // Because of the Expense reports are stored as negative values, we add the total from the amount
+            updatedIouReport.total += TransactionUtils.getAmount(updatedTransaction, true);
+        } else {
+            updatedIouReport = IOUUtils.updateIOUOwnerAndTotal(
+                iouReport,
+                updatedReportAction.actorAccountID,
+                TransactionUtils.getAmount(transaction, false),
+                TransactionUtils.getCurrency(transaction),
+                true,
+            );
+            updatedIouReport = IOUUtils.updateIOUOwnerAndTotal(
+                updatedIouReport,
+                updatedReportAction.actorAccountID,
+                TransactionUtils.getAmount(updatedTransaction, false),
+                TransactionUtils.getCurrency(updatedTransaction),
+                false,
+            );
+        }
+
+        updatedIouReport.cachedTotal = CurrencyUtils.convertToDisplayString(updatedIouReport.total, updatedTransaction.currency);
+
+        // Update the last message of the IOU report
+        const lastMessage = ReportUtils.getIOUReportActionMessage(iouReport.reportID, CONST.IOU.REPORT_ACTION_TYPE.CREATE, updatedIouReport.total, '', updatedTransaction.currency, '', false);
+        updatedIouReport.lastMessageText = lastMessage[0].text;
+        updatedIouReport.lastMessageHtml = lastMessage[0].html;
+    
+        // Update the last message of the IOU chat report
+        const messageText = Localize.translateLocal('iou.payerOwesAmount', {
+            payer: updatedIouReport.managerEmail,
+            amount: CurrencyUtils.convertToDisplayString(updatedIouReport.total, updatedIouReport.currency),
+        });
+        updatedChatReport.lastMessageText = messageText;
+        updatedChatReport.lastMessageHtml = messageText;
     }
 
     // STEP 4: Compose the optimistic data
@@ -981,6 +1018,11 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
             value: updatedIouReport,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.chatReportID}`,
+            value: updatedChatReport,
         },
     ];
 
