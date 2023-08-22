@@ -46,12 +46,14 @@ jobs:
           git fetch origin tag ${{ steps.getMostRecentRelease.outputs.VERSION }} --no-tags --depth=1
           git switch --detach ${{ steps.getMostRecentRelease.outputs.VERSION }}
 
+      - name: Configure MapBox SDK
+        run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
+
       - name: Build APK
         if: ${{ !fromJSON(steps.checkForExistingArtifact.outputs.exists) }}
         uses: Expensify/App/.github/actions/composite/buildAndroidAPK@main
         with:
           ARTIFACT_NAME: baseline-apk-${{ steps.getMostRecentRelease.outputs.VERSION }}
-          MAPBOX_SDK_DOWNLOAD_TOKEN: ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
   buildDelta:
     runs-on: ubuntu-latest-xl
@@ -113,11 +115,13 @@ jobs:
       - name: Checkout "delta ref"
         run: git checkout ${{ steps.getDeltaRef.outputs.DELTA_REF }}
 
+      - name: Configure MapBox SDK
+        run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
+
       - name: Build APK
         uses: Expensify/App/.github/actions/composite/buildAndroidAPK@main
         with:
           ARTIFACT_NAME: delta-apk-${{ steps.getDeltaRef.outputs.DELTA_REF }}
-          MAPBOX_SDK_DOWNLOAD_TOKEN: ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
   runTestsInAWS:
     runs-on: ubuntu-latest
