@@ -245,7 +245,6 @@ function ProfilePage(props) {
                         title={props.translate('notFound.notHere')}
                         shouldShowLink
                         link={props.translate('notFound.goBackHome')}
-
                     />
                 )}
             </View>
