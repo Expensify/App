@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState, useCallback} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -32,6 +32,7 @@ function BaseSelectionList({
     sections,
     canSelectMultiple = false,
     onSelectRow,
+    shouldDebounceRowSelect = false,
     onSelectAll,
     onDismissError,
     textInputLabel = '',
@@ -145,6 +146,12 @@ function BaseSelectionList({
         return defaultIndex;
     });
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const debouncedOnSelectRow = useCallback(shouldDebounceRowSelect ? _.debounce((item) => onSelectRow(item), 1000, {leading: true}) : (item) => onSelectRow(item), [
+        shouldDebounceRowSelect,
+        onSelectRow,
+    ]);
+
     /**
      * Scrolls to the desired item index in the section list
      *
@@ -188,7 +195,7 @@ function BaseSelectionList({
             }
         }
 
-        onSelectRow(item);
+        debouncedOnSelectRow(item);
     };
 
     const selectFocusedOption = () => {
@@ -267,6 +274,14 @@ function BaseSelectionList({
             />
         );
     };
+
+    // eslint-disable-next-line arrow-body-style
+    useEffect(() => {
+        return () => {
+            if (!(shouldDebounceRowSelect && debouncedOnSelectRow.cancel)) return;
+            debouncedOnSelectRow.cancel();
+        };
+    }, [debouncedOnSelectRow, shouldDebounceRowSelect]);
 
     /** Focuses the text input when the component mounts. If `props.shouldDelayFocus` is true, we wait for the animation to finish */
     useEffect(() => {

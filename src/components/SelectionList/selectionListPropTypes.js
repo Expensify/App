@@ -103,6 +103,9 @@ const propTypes = {
     /** Callback to fire when a row is pressed */
     onSelectRow: PropTypes.func.isRequired,
 
+    /** Boolean to indicate if onSelectRow should be debounced */
+    shouldDebounceRowSelect: PropTypes.bool,
+
     /** Callback to fire when "Select All" checkbox is pressed. Only use along with `canSelectMultiple` */
     onSelectAll: PropTypes.func,
 
