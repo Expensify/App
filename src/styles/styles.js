@@ -3835,6 +3835,11 @@ const styles = {
         overflow: 'hidden',
     },
 
+    mapDirection: {
+        width: 7,
+        color: Colors.green,
+    },
+
     mapPendingView: {
         backgroundColor: themeColors.highlightBG,
         ...flex.flex1,
