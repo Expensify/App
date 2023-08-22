@@ -59,12 +59,10 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
      *
      * @returns {*}
      */
-    function getBankAccountFields(fieldNames) {
-        return {
-            ..._.pick(lodashGet(reimbursementAccount, 'achData'), ...fieldNames),
-            ..._.pick(reimbursementAccountDraft, ...fieldNames),
-        };
-    }
+    const getBankAccountFields = (fieldNames) => ({
+        ..._.pick(lodashGet(reimbursementAccount, 'achData'), ...fieldNames),
+        ..._.pick(reimbursementAccountDraft, ...fieldNames),
+    });
 
     const defaultWebsite = useMemo(() => (lodashGet(user, 'isFromPublicDomain', false) ? 'https://' : `https://www.${Str.extractEmailDomain(session.email, '')}`), [user, session]);
 
@@ -72,7 +70,7 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
      * @param {Object} values - form input values passed by the Form component
      * @returns {Object} - Object containing the errors for each inputID, e.g. {inputID1: error1, inputID2: error2}
      */
-    function validate(values) {
+    const validate = (values) => {
         const requiredFields = [
             'companyName',
             'addressStreet',
