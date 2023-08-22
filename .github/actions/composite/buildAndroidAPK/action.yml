@@ -5,9 +5,6 @@ inputs:
   ARTIFACT_NAME:
     description: The name of the workflow artifact where the APK should be uploaded
     required: true
-  MAPBOX_SDK_DOWNLOAD_TOKEN:
-    description: Download token for the closed-source MapBox SDK.
-    required: true
 
 runs:
   using: composite
