@@ -583,7 +583,7 @@ function ReportActionCompose({
 
     const calculateMentionSuggestion = useCallback(
         (selectionEnd) => {
-            if (shouldBlockMentionCalc.current || selection.end < 1) {
+            if (shouldBlockMentionCalc.current || selectionEnd < 1) {
                 shouldBlockMentionCalc.current = false;
                 resetSuggestions();
                 return;
