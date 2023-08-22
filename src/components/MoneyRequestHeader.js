@@ -59,6 +59,8 @@ function MoneyRequestHeader(props) {
     const moneyRequestReport = props.parentReport;
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
     const parentReportAction = ReportActionsUtils.getParentReportAction(props.report);
+
+    // Only the requestor can take delete the request, admins can only edit it.
     const isRequestor = parentReportAction.actorAccountID === lodashGet(props.session, 'accountID', null);
     const report = props.report;
     report.ownerAccountID = lodashGet(props, ['parentReport', 'ownerAccountID'], null);
