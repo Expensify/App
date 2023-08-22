@@ -1,10 +1,8 @@
-import React, {useEffect, useRef} from 'react';
-import {View} from 'react-native';
+import React, {useEffect} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import TextInput from '../../components/TextInput';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import Form from '../../components/Form';
@@ -14,7 +12,7 @@ import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import * as IOU from '../../libs/actions/IOU';
 import optionPropTypes from '../../components/optionPropTypes';
-import CONST from '../../CONST';
+import NewDatePicker from '../../components/NewDatePicker';
 import useLocalize from '../../hooks/useLocalize';
 
 const propTypes = {
@@ -24,6 +22,7 @@ const propTypes = {
         id: PropTypes.string,
         amount: PropTypes.number,
         comment: PropTypes.string,
+        created: PropTypes.string,
         participants: PropTypes.arrayOf(optionPropTypes),
         receiptPath: PropTypes.string,
     }),
@@ -46,14 +45,14 @@ const defaultProps = {
         id: '',
         amount: 0,
         comment: '',
+        created: '',
         participants: [],
         receiptPath: '',
     },
 };
 
-function MoneyRequestDescriptionPage({iou, route}) {
+function MoneyRequestDatePage({iou, route}) {
     const {translate} = useLocalize();
-    const inputRef = useRef(null);
     const iouType = lodashGet(route, 'params.iouType', '');
     const reportID = lodashGet(route, 'params.reportID', '');
 
@@ -77,10 +76,10 @@ function MoneyRequestDescriptionPage({iou, route}) {
      * Sets the money request comment by saving it to Onyx.
      *
      * @param {Object} value
-     * @param {String} value.moneyRequestComment
+     * @param {String} value.moneyRequestCreated
      */
-    function updateComment(value) {
-        IOU.setMoneyRequestDescription(value.moneyRequestComment);
+    function updateDate(value) {
+        IOU.setMoneyRequestCreated(value.moneyRequestCreated);
         navigateBack();
     }
 
@@ -88,40 +87,34 @@ function MoneyRequestDescriptionPage({iou, route}) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
-            onEntryTransitionEnd={() => inputRef.current && inputRef.current.focus()}
         >
             <HeaderWithBackButton
-                title={translate('common.description')}
+                title={translate('common.date')}
                 onBackButtonPress={() => navigateBack()}
             />
             <Form
                 style={[styles.flexGrow1, styles.ph5]}
-                formID={ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM}
-                onSubmit={(value) => updateComment(value)}
+                formID={ONYXKEYS.FORMS.MONEY_REQUEST_DATE_FORM}
+                onSubmit={(value) => updateDate(value)}
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
             >
-                <View style={styles.mb4}>
-                    <TextInput
-                        inputID="moneyRequestComment"
-                        name="moneyRequestComment"
-                        defaultValue={iou.comment}
-                        label={translate('moneyRequestConfirmationList.whatsItFor')}
-                        accessibilityLabel={translate('moneyRequestConfirmationList.whatsItFor')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        ref={(el) => (inputRef.current = el)}
-                    />
-                </View>
+                <NewDatePicker
+                    inputID="moneyRequestCreated"
+                    label={translate('common.date')}
+                    defaultValue={iou.created}
+                    maxDate={new Date()}
+                />
             </Form>
         </ScreenWrapper>
     );
 }
 
-MoneyRequestDescriptionPage.propTypes = propTypes;
-MoneyRequestDescriptionPage.defaultProps = defaultProps;
+MoneyRequestDatePage.propTypes = propTypes;
+MoneyRequestDatePage.defaultProps = defaultProps;
 
 export default withOnyx({
     iou: {
         key: ONYXKEYS.IOU,
     },
-})(MoneyRequestDescriptionPage);
+})(MoneyRequestDatePage);

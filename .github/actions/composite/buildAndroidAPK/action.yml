@@ -5,15 +5,16 @@ inputs:
   ARTIFACT_NAME:
     description: The name of the workflow artifact where the APK should be uploaded
     required: true
+  MAPBOX_SDK_DOWNLOAD_TOKEN:
+    description: Download token for the closed-source MapBox SDK.
+    required: true
 
 runs:
   using: composite
   steps:
     - uses: Expensify/App/.github/actions/composite/setupNode@main
-
-    - name: Setup credentails for Mapbox SDK
-      run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
-      shell: bash
+      with:
+        MAPBOX_SDK_DOWNLOAD_TOKEN: ${{ inputs.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
     - uses: ruby/setup-ruby@eae47962baca661befdfd24e4d6c34ade04858f7
       with:
