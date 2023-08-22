@@ -73,7 +73,9 @@ function isSafari() {
  */
 function openRouteInDesktopApp(shortLivedAuthToken = '', email = '') {
     const params = new URLSearchParams();
-    const openingFromDesktopRedirect = window.location.pathname === ROUTES.DESKTOP_SIGN_IN_REDIRECT;
+    // If the user is opening the desktop app through a third party signin flow, we need to manually add the exitTo param
+    // so that the desktop app redirects to the correct home route after signin is complete.
+    const openingFromDesktopRedirect = window.location.pathname === `/${ROUTES.DESKTOP_SIGN_IN_REDIRECT}`;
     params.set('exitTo', `${openingFromDesktopRedirect ? '/r' : window.location.pathname}${window.location.search}${window.location.hash}`);
     if (email && shortLivedAuthToken) {
         params.set('email', email);
