@@ -140,6 +140,7 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, polic
                     title={transactionDescription}
                     disabled={isSettled || !canEdit}
                     shouldShowRightIcon={canEdit}
+                    titleStyle={styles.flex1}
                     onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DESCRIPTION))}
                 />
             </OfflineWithFeedback>
@@ -149,6 +150,7 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, polic
                     title={transactionDate}
                     disabled={isSettled || !canEdit}
                     shouldShowRightIcon={canEdit}
+                    titleStyle={styles.flex1}
                     onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DATE))}
                 />
             </OfflineWithFeedback>
