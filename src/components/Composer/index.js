@@ -429,7 +429,7 @@ function Composer({
         [style, maxLines, numberOfLinesProp, numberOfLines],
     );
 
-    const isFocused = textInput.current && textInput.current.isFocused();
+    const isBlurredSafari = Browser.isMobileSafari() && (!textInput.current || !textInput.current.isFocused());
 
     return (
         <>
@@ -438,7 +438,7 @@ function Composer({
                 autoCorrect={!Browser.isMobileSafari()}
                 placeholderTextColor={themeColors.placeholderText}
                 ref={(el) => (textInput.current = el)}
-                selection={isFocused ? selection : null}
+                selection={isBlurredSafari ? null : selection}
                 style={inputStyleMemo}
                 value={value}
                 forwardedRef={forwardedRef}
