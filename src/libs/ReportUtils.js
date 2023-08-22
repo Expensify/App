@@ -761,10 +761,11 @@ function canDeleteReportAction(reportAction, reportID) {
 /**
  * Get welcome message based on room type
  * @param {Object} report
+ * @param {Boolean} isUserPolicyAdmin
  * @returns {Object}
  */
 
-function getRoomWelcomeMessage(report) {
+function getRoomWelcomeMessage(report, isUserPolicyAdmin) {
     const welcomeMessage = {};
     const workspaceName = getPolicyName(report);
 
@@ -777,9 +778,8 @@ function getRoomWelcomeMessage(report) {
     } else if (isAdminRoom(report)) {
         welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminRoomPartOne', {workspaceName});
         welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminRoomPartTwo');
-    } else if (isAdminsOnlyPostingRoom(report)) {
-        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminOnlyPostingRoomPartOne');
-        welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminOnlyPostingRoomPartTwo', {workspaceName});
+    } else if (isAdminsOnlyPostingRoom(report) && !isUserPolicyAdmin) {
+        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminOnlyPostingRoom');
     } else if (isAnnounceRoom(report)) {
         welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAnnounceRoomPartOne', {workspaceName});
         welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAnnounceRoomPartTwo', {workspaceName});
@@ -802,7 +802,7 @@ function chatIncludesConcierge(report) {
 }
 
 /**
- * Returns true if there is any automated expensify account in accountIDs
+ * Returns true if there is any automated expensify account `in accountIDs
  * @param {Array} accountIDs
  * @returns {Boolean}
  */
@@ -3284,6 +3284,7 @@ export {
     sortReportsByLastRead,
     isDefaultRoom,
     isAdminRoom,
+    isAdminsOnlyPostingRoom,
     isAnnounceRoom,
     isUserCreatedPolicyRoom,
     isChatRoom,
