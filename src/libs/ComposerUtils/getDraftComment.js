@@ -12,6 +12,8 @@ Onyx.connect({
 
 /**
  * Returns a draft comment from the onyx collection.
+ * Note: You should use the HOCs/hooks to get onyx data, instead of using this directly.
+ * A valid use case to use this is if the value is only needed once for an initial value.
  * @param {String} reportID
  * @returns {String|undefined}
  */

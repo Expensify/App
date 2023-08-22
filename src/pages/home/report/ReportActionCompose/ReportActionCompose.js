@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import Onyx, {withOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import styles from '../../../../styles/styles';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import * as Report from '../../../../libs/actions/Report';
@@ -36,6 +36,7 @@ import withWindowDimensions from '../../../../components/withWindowDimensions';
 import withNavigation, {withNavigationPropTypes} from '../../../../components/withNavigation';
 import reportActionPropTypes from '../reportActionPropTypes';
 import useLocalize from '../../../../hooks/useLocalize';
+import getModalState from '../../../../libs/getModalState';
 
 const propTypes = {
     /** A method to call when the form is submitted */
@@ -122,8 +123,7 @@ function ReportActionCompose({
      * Updates the Highlight state of the composer
      */
     const [isFocused, setIsFocused] = useState(() => {
-        // TODO: its for discussion whether we want to use this pattern: https://expensify.slack.com/archives/C01GTK53T8Q/p1692620941376059
-        const initialModalState = Onyx.tryGetCachedValue(ONYXKEYS.MODAL) || {};
+        const initialModalState = getModalState();
         return shouldFocusInputOnScreenFocus && shouldShowComposeInput && !initialModalState.isVisible && !initialModalState.willAlertModalBecomeVisible;
     });
     const [isFullComposerAvailable, setIsFullComposerAvailable] = useState(isComposerFullSize);

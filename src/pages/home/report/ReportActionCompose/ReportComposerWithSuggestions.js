@@ -1,6 +1,6 @@
 import React, {useEffect, useCallback, useState, useRef, useMemo, useImperativeHandle} from 'react';
 import {View, InteractionManager, NativeModules, findNodeHandle, LayoutAnimation} from 'react-native';
-import Onyx, {withOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
