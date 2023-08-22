@@ -30,6 +30,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
     const localize = useLocalize();
     const currentUserEmojiCode = lodashGet(currentUserPersonalDetails, 'status.emojiCode', '');
     const currentUserStatusText = lodashGet(currentUserPersonalDetails, 'status.text', '');
+    const currentUserClearAfter = lodashGet(currentUserPersonalDetails, 'status.clearAfter', '');
     const draftEmojiCode = lodashGet(draftStatus, 'emojiCode');
     const draftText = lodashGet(draftStatus, 'text');
     const draftClearAfter = lodashGet(draftStatus, 'clearAfter');
@@ -44,11 +45,11 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
 
     const updateStatus = useCallback(() => {
         const endOfDay = moment().endOf('day').format('YYYY-MM-DD HH:mm:ss');
-        User.updateCustomStatus({text: defaultText, emojiCode: defaultEmoji, clearAfter: endOfDay});
+        User.updateCustomStatus({text: defaultText, emojiCode: defaultEmoji, clearAfter: draftClearAfter || endOfDay || currentUserClearAfter});
 
         User.clearDraftCustomStatus();
         Navigation.goBack(ROUTES.SETTINGS_PROFILE);
-    }, [defaultText, defaultEmoji]);
+    }, [defaultText, defaultEmoji, currentUserClearAfter, draftClearAfter]);
 
     const clearStatus = () => {
         User.clearCustomStatus();
