@@ -11,6 +11,7 @@ import * as SuggestionsUtils from '../../../../libs/SuggestionUtils';
 import useLocalize from '../../../../hooks/useLocalize';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import personalDetailsPropType from '../../../personalDetailsPropType';
+import * as SuggestionProps from './suggestionProps';
 
 /**
  * Check if this piece of string looks like a mention
@@ -27,26 +28,13 @@ const defaultSuggestionsValues = {
 };
 
 const propTypes = {
-    // Onyx
+    /** Personal details of all users */
     personalDetails: PropTypes.objectOf(personalDetailsPropType),
-    // Input
-    value: PropTypes.string.isRequired,
-    setValue: PropTypes.func.isRequired,
-    selection: PropTypes.shape({
-        start: PropTypes.number.isRequired,
-        end: PropTypes.number.isRequired,
-    }).isRequired,
-    setSelection: PropTypes.func.isRequired,
-    // Esoteric props
-    isComposerFullSize: PropTypes.bool.isRequired,
-    updateComment: PropTypes.func.isRequired,
-    composerHeight: PropTypes.number.isRequired,
-    shouldShowReportRecipientLocalTime: PropTypes.bool.isRequired,
-    // Custom added
+
+    /** A ref to this component */
     forwardedRef: PropTypes.func.isRequired,
 
-    /** Whether to use the small or the big suggestion picker */
-    isAutoSuggestionPickerLarge: PropTypes.bool.isRequired,
+    ...SuggestionProps.implementationBaseProps,
 };
 
 const defaultProps = {
@@ -54,11 +42,11 @@ const defaultProps = {
 };
 
 function SuggestionMention({
-    isComposerFullSize,
-    personalDetails,
     value,
     setValue,
     setSelection,
+    isComposerFullSize,
+    personalDetails,
     updateComment,
     composerHeight,
     shouldShowReportRecipientLocalTime,

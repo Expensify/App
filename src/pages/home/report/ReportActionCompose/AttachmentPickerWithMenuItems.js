@@ -46,7 +46,7 @@ const propTypes = {
     displayFileInModal: PropTypes.func.isRequired,
 
     /** Whether or not the full size composer is available */
-    isFullSizeComposerAvailable: PropTypes.bool.isRequired,
+    isFullComposerAvailable: PropTypes.bool.isRequired,
 
     /** Whether or not the composer is full size */
     isComposerFullSize: PropTypes.bool.isRequired,
@@ -71,8 +71,6 @@ const propTypes = {
 
     /** Called when opening the attachment picker */
     onTriggerAttachmentPicker: PropTypes.func.isRequired,
-
-    isFullComposerAvailable: PropTypes.bool.isRequired,
 };
 
 const defaultProps = {

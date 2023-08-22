@@ -9,6 +9,7 @@ import * as EmojiUtils from '../../../../libs/EmojiUtils';
 import EmojiSuggestions from '../../../../components/EmojiSuggestions';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import useLocalize from '../../../../hooks/useLocalize';
+import * as SuggestionProps from './suggestionProps';
 
 /**
  * Check if this piece of string looks like an emoji
@@ -29,42 +30,44 @@ const defaultSuggestionsValues = {
 };
 
 const propTypes = {
-    // Onyx
-    preferredSkinTone: PropTypes.number.isRequired,
-    // Input
-    value: PropTypes.string.isRequired,
-    setValue: PropTypes.func.isRequired,
+    /** Preferred skin tone */
+    preferredSkinTone: PropTypes.number,
+
+    /** A ref to this component */
+    forwardedRef: PropTypes.func.isRequired,
+
+    /** Function to clear the input */
+    resetKeyboardInput: PropTypes.func.isRequired,
+
+    /** Callback when a emoji was inserted */
+    onInsertedEmoji: PropTypes.func.isRequired,
+
+    /** The current selection */
     selection: PropTypes.shape({
         start: PropTypes.number.isRequired,
         end: PropTypes.number.isRequired,
     }).isRequired,
-    setSelection: PropTypes.func.isRequired,
-    // Esoteric props
-    isComposerFullSize: PropTypes.bool.isRequired,
-    updateComment: PropTypes.func.isRequired,
-    shouldShowReportRecipientLocalTime: PropTypes.bool.isRequired,
-    // Custom added
-    forwardedRef: PropTypes.func.isRequired,
-    resetKeyboardInput: PropTypes.func.isRequired,
-    onInsertedEmoji: PropTypes.func.isRequired,
 
-    /** Whether to use the small or the big suggestion picker */
-    isAutoSuggestionPickerLarge: PropTypes.bool.isRequired,
+    ...SuggestionProps.baseProps,
+};
+
+const defaultProps = {
+    preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
 };
 
 function SuggestionEmoji({
-    isComposerFullSize,
     preferredSkinTone,
     value,
     setValue,
     selection,
     setSelection,
     updateComment,
+    isComposerFullSize,
     shouldShowReportRecipientLocalTime,
+    isAutoSuggestionPickerLarge,
     forwardedRef,
     resetKeyboardInput,
     onInsertedEmoji,
-    isAutoSuggestionPickerLarge,
 }) {
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
 
@@ -242,6 +245,7 @@ function SuggestionEmoji({
 }
 
 SuggestionEmoji.propTypes = propTypes;
+SuggestionEmoji.defaultProps = defaultProps;
 
 const SuggestionEmojiWithRef = React.forwardRef((props, ref) => (
     <SuggestionEmoji

@@ -3,27 +3,27 @@ import PropTypes from 'prop-types';
 import SuggestionMention from './SuggestionMention';
 import SuggestionEmoji from './SuggestionEmoji';
 import useWindowDimensions from '../../../../hooks/useWindowDimensions';
+import * as SuggestionProps from './suggestionProps';
 
 const propTypes = {
-    // Input
-    value: PropTypes.string.isRequired,
-    setValue: PropTypes.func.isRequired,
-    selection: PropTypes.shape({
-        start: PropTypes.number.isRequired,
-        end: PropTypes.number.isRequired,
-    }).isRequired,
-    setSelection: PropTypes.func.isRequired,
-    // Esoteric props
-    isComposerFullSize: PropTypes.bool.isRequired,
-    updateComment: PropTypes.func.isRequired,
-    composerHeight: PropTypes.number.isRequired,
-    shouldShowReportRecipientLocalTime: PropTypes.bool.isRequired,
-    // Custom added
+    /** A ref to this component */
     forwardedRef: PropTypes.func.isRequired,
+
+    /** Callback when a emoji was inserted */
     onInsertedEmoji: PropTypes.func.isRequired,
+
+    /** Function to clear the input */
     resetKeyboardInput: PropTypes.func.isRequired,
+
+    ...SuggestionProps.baseProps,
 };
 
+/**
+ * This component contains the individual suggestion components.
+ * If you want to add a new suggestion type, add it here.
+ *
+ * @returns {React.Component}
+ */
 function Suggestions({
     isComposerFullSize,
     value,
@@ -93,39 +93,31 @@ function Suggestions({
     const hasEnoughSpaceForLargeSuggestion = windowHeight / composerHeight >= 6.8;
     const isAutoSuggestionPickerLarge = !isSmallScreenWidth || (isSmallScreenWidth && hasEnoughSpaceForLargeSuggestion);
 
+    const baseProps = {
+        value,
+        setValue,
+        setSelection,
+        isComposerFullSize,
+        updateComment,
+        composerHeight,
+        shouldShowReportRecipientLocalTime,
+        isAutoSuggestionPickerLarge,
+    };
+
     return (
         <>
             <SuggestionEmoji
-                // Input
-                value={value}
-                setValue={setValue}
-                selection={selection}
-                setSelection={setSelection}
-                // Esoteric props
-                isComposerFullSize={isComposerFullSize}
-                updateComment={updateComment}
-                composerHeight={composerHeight}
-                shouldShowReportRecipientLocalTime={shouldShowReportRecipientLocalTime}
-                // Custom added
                 ref={suggestionEmojiRef}
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...baseProps}
+                selection={selection}
                 onInsertedEmoji={onInsertedEmoji}
                 resetKeyboardInput={resetKeyboardInput}
-                isAutoSuggestionPickerLarge={isAutoSuggestionPickerLarge}
             />
             <SuggestionMention
-                // Input
-                value={value}
-                setValue={setValue}
-                selection={selection}
-                setSelection={setSelection}
-                // Esoteric props
-                isComposerFullSize={isComposerFullSize}
-                updateComment={updateComment}
-                composerHeight={composerHeight}
-                shouldShowReportRecipientLocalTime={shouldShowReportRecipientLocalTime}
-                // Custom added
                 ref={suggestionMentionRef}
-                isAutoSuggestionPickerLarge={isAutoSuggestionPickerLarge}
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...baseProps}
             />
         </>
     );
