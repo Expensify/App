@@ -661,6 +661,9 @@ const CONST = {
         DARK: 'dark',
         SYSTEM: 'system',
     },
+    TRANSACTION: {
+        DEFAULT_MERCHANT: 'Request',
+    },
     JSON_CODE: {
         SUCCESS: 200,
         BAD_REQUEST: 400,

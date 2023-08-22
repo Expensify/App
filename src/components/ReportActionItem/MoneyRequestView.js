@@ -166,7 +166,10 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, polic
                 <MenuItemWithTopDescription
                     description={translate('common.merchant')}
                     title={transactionMerchant}
+                    disabled={isSettled || !canEdit}
                     shouldShowRightIcon={canEdit}
+                    titleStyle={styles.flex1}
+                    onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.MERCHANT))}
                 />
             </OfflineWithFeedback>
             {shouldShowHorizontalRule && <View style={styles.reportHorizontalRule} />}
