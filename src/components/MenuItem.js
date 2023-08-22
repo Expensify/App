@@ -133,7 +133,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                     disabled={props.disabled}
                     ref={ref}
                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.MENUITEM}
-                    accessibilityLabel={props.title}
+                    accessibilityLabel={props.title ? props.title.toString() : ''}
                 >
                     {({pressed}) => (
                         <>
@@ -163,6 +163,8 @@ const MenuItem = React.forwardRef((props, ref) => {
                                         <View style={[styles.popoverMenuIcon, ...props.iconStyles, StyleUtils.getAvatarWidthStyle(props.avatarSize)]}>
                                             {props.iconType === CONST.ICON_TYPE_ICON && (
                                                 <Icon
+                                                    hovered={isHovered}
+                                                    pressed={pressed}
                                                     src={props.icon}
                                                     width={props.iconWidth}
                                                     height={props.iconHeight}

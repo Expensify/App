@@ -3,6 +3,8 @@ import PropTypes from 'prop-types';
 import AmountTextInput from './AmountTextInput';
 import CurrencySymbolButton from './CurrencySymbolButton';
 import * as CurrencyUtils from '../libs/CurrencyUtils';
+import useLocalize from '../hooks/useLocalize';
+import * as MoneyRequestUtils from '../libs/MoneyRequestUtils';
 
 const propTypes = {
     /** A ref to forward to amount text input */
@@ -31,9 +33,6 @@ const propTypes = {
 
     /** Function to call when selection in text input is changed */
     onSelectionChange: PropTypes.func,
-
-    /** Flag to indicate if the button should be disabled */
-    disabled: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -42,10 +41,10 @@ const defaultProps = {
     onCurrencyButtonPress: () => {},
     selection: undefined,
     onSelectionChange: () => {},
-    disabled: false,
 };
 
 function TextInputWithCurrencySymbol(props) {
+    const {fromLocaleDigit} = useLocalize();
     const currencySymbol = CurrencyUtils.getLocalizedCurrencySymbol(props.selectedCurrencyCode);
     const isCurrencySymbolLTR = CurrencyUtils.isCurrencySymbolLTR(props.selectedCurrencyCode);
 
@@ -59,14 +58,23 @@ function TextInputWithCurrencySymbol(props) {
         <CurrencySymbolButton
             currencySymbol={currencySymbol}
             onCurrencyButtonPress={props.onCurrencyButtonPress}
-            disabled={props.disabled}
         />
     );
+
+    /**
+     * Set a new amount value properly formatted
+     *
+     * @param {String} text - Changed text from user input
+     */
+    const setFormattedAmount = (text) => {
+        const newAmount = MoneyRequestUtils.addLeadingZero(MoneyRequestUtils.replaceAllDigits(text, fromLocaleDigit));
+        props.onChangeAmount(newAmount);
+    };
 
     const amountTextInput = (
         <AmountTextInput
             formattedAmount={props.formattedAmount}
-            onChangeAmount={props.onChangeAmount}
+            onChangeAmount={setFormattedAmount}
             placeholder={props.placeholder}
             ref={props.forwardedRef}
             selection={props.selection}

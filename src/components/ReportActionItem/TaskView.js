@@ -79,7 +79,13 @@ function TaskView(props) {
                                     <Text style={styles.taskTitleDescription}>{props.translate('task.title')}</Text>
                                     <View style={[styles.flexRow, styles.alignItemsTop, styles.flex1]}>
                                         <Checkbox
-                                            onPress={() => (isCompleted ? Task.reopenTask(props.report, taskTitle) : Task.completeTask(props.report, taskTitle))}
+                                            onPress={Session.checkIfActionIsAllowed(() => {
+                                                if (isCompleted) {
+                                                    Task.reopenTask(props.report, taskTitle);
+                                                } else {
+                                                    Task.completeTask(props.report, taskTitle);
+                                                }
+                                            })}
                                             isChecked={isCompleted}
                                             style={styles.taskMenuItemCheckbox}
                                             containerSize={24}
