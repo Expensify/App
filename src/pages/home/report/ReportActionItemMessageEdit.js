@@ -112,13 +112,6 @@ function ReportActionItemMessageEdit(props) {
     const insertedEmojis = useRef([]);
 
     useEffect(() => {
-        if (props.draftMessage === props.action.message[0].html) {
-            return;
-        }
-        setDraft(Str.htmlDecode(props.draftMessage));
-    }, [props.draftMessage, props.action.message]);
-
-    useEffect(() => {
         // required for keeping last state of isFocused variable
         isFocusedRef.current = isFocused;
     }, [isFocused]);
@@ -156,9 +149,9 @@ function ReportActionItemMessageEdit(props) {
     const debouncedSaveDraft = useMemo(
         () =>
             _.debounce((newDraft) => {
-                Report.saveReportActionDraft(props.reportID, props.action, newDraft);
+                Report.saveReportActionDraft(props.reportID, props.action.reportActionID, newDraft);
             }, 1000),
-        [props.reportID, props.action],
+        [props.reportID, props.action.reportActionID],
     );
 
     /**
@@ -217,7 +210,7 @@ function ReportActionItemMessageEdit(props) {
      */
     const deleteDraft = useCallback(() => {
         debouncedSaveDraft.cancel();
-        Report.saveReportActionDraft(props.reportID, props.action, '');
+        Report.saveReportActionDraft(props.reportID, props.action.reportActionID, '');
         ComposerActions.setShouldShowComposeInput(true);
         ReportActionComposeFocusManager.focus();
 
@@ -228,7 +221,7 @@ function ReportActionItemMessageEdit(props) {
                 keyboardDidHideListener.remove();
             });
         }
-    }, [props.action, debouncedSaveDraft, props.index, props.reportID, reportScrollManager]);
+    }, [props.action.reportActionID, debouncedSaveDraft, props.index, props.reportID, reportScrollManager]);
 
     /**
      * Save the draft of the comment to be the new comment message. This will take the comment out of "edit mode" with
