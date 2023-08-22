@@ -114,7 +114,7 @@ function SignInPage({credentials, account, isInModal, demoInfo}) {
 
     let welcomeHeader = '';
     let welcomeText = '';
-    let customHeadline = DemoActions.getHeadlineKeyByDemoInfo(demoInfo);
+    const customHeadline = DemoActions.getHeadlineKeyByDemoInfo(demoInfo);
     const headerText = customHeadline || translate('login.hero.header');
     if (shouldShowLoginForm) {
         welcomeHeader = isSmallScreenWidth ? headerText : translate('welcomeText.getStarted');

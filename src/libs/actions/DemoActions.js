@@ -9,27 +9,6 @@ import ROUTES from '../../ROUTES';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Localize from '../Localize';
 
-let sessionAccountID = 0;
-let sessionEmail = 0;
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (val) => {
-        sessionAccountID = lodashGet(val, 'accountID', 0);
-        sessionEmail = lodashGet(val, 'email', '');
-    },
-});
-
-let userIsFromPublicDomain;
-Onyx.connect({
-    key: ONYXKEYS.USER,
-    callback: (val) => {
-        if (!val) {
-            return;
-        }
-        userIsFromPublicDomain = val.isFromPublicDomain;
-    },
-});
-
 /**
  * @param {String} workspaceOwnerEmail email of the workspace owner
  * @param {String} apiCommand
@@ -44,26 +23,26 @@ function createDemoWorkspaceAndNavigate(workspaceOwnerEmail, apiCommand) {
         return;
     }
 
-    API.makeRequestWithSideEffects(apiCommand)
-        .then((response) => {
-            // Get report updates from Onyx response data
-            const reportUpdate = _.find(response.onyxData, ({key}) => key === ONYXKEYS.COLLECTION.REPORT);
-            if (!reportUpdate) {
-                return;
-            }
+    // We use makeRequestWithSideEffects here because we need to get the workspace chat report ID to navigate to it after it's created
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    API.makeRequestWithSideEffects(apiCommand).then((response) => {
+        // Get report updates from Onyx response data
+        const reportUpdate = _.find(response.onyxData, ({key}) => key === ONYXKEYS.COLLECTION.REPORT);
+        if (!reportUpdate) {
+            return;
+        }
 
-            // Get the policy expense chat update
-            const policyExpenseChatReport = _.find(reportUpdate.value, ({chatType}) => chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
-            if (!policyExpenseChatReport) {
-                return;
-            }
+        // Get the policy expense chat update
+        const policyExpenseChatReport = _.find(reportUpdate.value, ({chatType}) => chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
+        if (!policyExpenseChatReport) {
+            return;
+        }
 
-            // Navigate to the new policy expense chat report
-            // Note: We must call goBack() to remove the demo route from history
-            Navigation.goBack();
-            Navigation.navigate(ROUTES.getReportRoute(policyExpenseChatReport.reportID));
-        });
-
+        // Navigate to the new policy expense chat report
+        // Note: We must call goBack() to remove the demo route from history
+        Navigation.goBack();
+        Navigation.navigate(ROUTES.getReportRoute(policyExpenseChatReport.reportID));
+    });
 }
 
 function runSbeDemo() {
@@ -103,15 +82,11 @@ function runDemoByURL(url = '') {
 function getHeadlineKeyByDemoInfo(demoInfo = {}) {
     if (lodashGet(demoInfo, 'saastr.isBeginningDemo')) {
         return Localize.translateLocal('demos.saastr.signInWelcome');
-    } else if (lodashGet(demoInfo, 'sbe.isBeginningDemo')) {
+    }
+    if (lodashGet(demoInfo, 'sbe.isBeginningDemo')) {
         return Localize.translateLocal('demos.sbe.signInWelcome');
     }
     return '';
 }
 
-export {
-    runSaastrDemo,
-    runSbeDemo,
-    runDemoByURL,
-    getHeadlineKeyByDemoInfo,
-};
+export {runSaastrDemo, runSbeDemo, runDemoByURL, getHeadlineKeyByDemoInfo};
