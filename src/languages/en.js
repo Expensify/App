@@ -155,6 +155,8 @@ export default {
         edit: 'Edit',
         showMore: 'Show more',
         merchant: 'Merchant',
+        receipt: 'Receipt',
+        replace: 'Replace',
     },
     anonymousReportFooter: {
         logoTagline: 'Join in on the discussion.',
@@ -310,8 +312,7 @@ export default {
         beginningOfChatHistoryDomainRoomPartTwo: ' to chat with colleagues, share tips, and ask questions.',
         beginningOfChatHistoryAdminRoomPartOne: ({workspaceName}) => `Collaboration among ${workspaceName} admins starts here! 🎉\nUse `,
         beginningOfChatHistoryAdminRoomPartTwo: ' to chat about topics such as workspace configurations and more.',
-        beginningOfChatHistoryAdminOnlyPostingRoomPartOne: 'Use ',
-        beginningOfChatHistoryAdminOnlyPostingRoomPartTwo: ({workspaceName}) => ` to hear about important announcements related to ${workspaceName}`,
+        beginningOfChatHistoryAdminOnlyPostingRoom: 'Only admins can send messages in this room.',
         beginningOfChatHistoryAnnounceRoomPartOne: ({workspaceName}) => `Collaboration between all ${workspaceName} members starts here! 🎉\nUse `,
         beginningOfChatHistoryAnnounceRoomPartTwo: ({workspaceName}) => ` to chat about anything ${workspaceName} related.`,
         beginningOfChatHistoryUserRoomPartOne: 'Collaboration starts here! 🎉\nUse this space to chat about anything ',
@@ -322,6 +323,7 @@ export default {
         beginningOfChatHistoryPolicyExpenseChatPartThree: ' starts here! 🎉 This is the place to chat, request money and settle up.',
         chatWithAccountManager: 'Chat with your account manager here',
         sayHello: 'Say hello!',
+        welcomeToRoom: ({roomName}) => `Welcome to ${roomName}!`,
         usePlusButton: '\n\nYou can also use the + button below to request money or assign a task!',
     },
     reportAction: {
@@ -399,6 +401,11 @@ export default {
         pay: 'Pay',
         viewDetails: 'View details',
         pending: 'Pending',
+        deleteReceipt: 'Delete receipt',
+        receiptScanning: 'Receipt scan in progress…',
+        receiptStatusTitle: 'Scanning…',
+        receiptStatusText: "Only you can see this receipt when it's scanning. Check back later or enter the details now.",
+        requestCount: ({count, scanningReceipts = 0}) => `${count} requests${scanningReceipts > 0 ? `, ${scanningReceipts} scanning` : ''}`,
         deleteRequest: 'Delete request',
         deleteConfirmation: 'Are you sure that you want to delete this request?',
         settledExpensify: 'Paid',
@@ -424,7 +431,6 @@ export default {
         pendingConversionMessage: "Total will update when you're back online",
         threadRequestReportName: ({formattedAmount, comment}) => `${formattedAmount} request${comment ? ` for ${comment}` : ''}`,
         threadSentMoneyReportName: ({formattedAmount, comment}) => `${formattedAmount} sent${comment ? ` for ${comment}` : ''}`,
-        requestCount: ({count}) => `${count} requests`,
         error: {
             invalidSplit: 'Split amounts do not equal total amount',
             other: 'Unexpected error, please try again later',
@@ -1607,6 +1613,11 @@ export default {
             start: 'Start',
             finish: 'Finish',
             stop: 'Stop',
+        },
+        mapPending: {
+            title: 'Map pending',
+            subtitle: 'The map will be generated when you go back online',
+            onlineSubtitle: 'One moment while we set up the map',
         },
         errors: {
             selectSuggestedAddress: 'Please select a suggested address',
