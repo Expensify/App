@@ -1025,7 +1025,7 @@ const styles = {
         paddingRight: 12,
         paddingTop: 10,
         paddingBottom: 10,
-        textAlignVertical: 'center',
+        verticalAlign: 'middle',
     },
 
     textInputPrefixWrapper: {
@@ -1044,7 +1044,7 @@ const styles = {
         color: themeColors.text,
         fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeNormal,
-        textAlignVertical: 'center',
+        verticalAlign: 'middle',
     },
 
     pickerContainer: {
@@ -1697,13 +1697,13 @@ const styles = {
             ...overflowXHidden,
 
             // On Android, multiline TextInput with height: 'auto' will show extra padding unless they are configured with
-            // paddingVertical: 0, alignSelf: 'center', and textAlignVertical: 'center'
+            // paddingVertical: 0, alignSelf: 'center', and verticalAlign: 'middle'
 
             paddingHorizontal: variables.avatarChatSpacing,
             paddingTop: 0,
             paddingBottom: 0,
             alignSelf: 'center',
-            textAlignVertical: 'center',
+            verticalAlign: 'middle',
         },
         0,
     ),
@@ -1712,7 +1712,7 @@ const styles = {
         alignSelf: 'stretch',
         flex: 1,
         maxHeight: '100%',
-        textAlignVertical: 'top',
+        verticalAlign: 'top',
     },
 
     editInputComposeSpacing: {
@@ -2969,7 +2969,7 @@ const styles = {
         },
         text: {
             color: themeColors.textSupporting,
-            textAlignVertical: 'center',
+            verticalAlign: 'middle',
             fontSize: variables.fontSizeLabel,
         },
         errorDot: {
@@ -3365,11 +3365,11 @@ const styles = {
     miniQuickEmojiReactionText: {
         fontSize: 15,
         lineHeight: 20,
-        textAlignVertical: 'center',
+        verticalAlign: 'middle',
     },
 
     emojiReactionBubbleText: {
-        textAlignVertical: 'center',
+        verticalAlign: 'middle',
     },
 
     reactionCounterText: {
