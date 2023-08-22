@@ -1,6 +1,7 @@
 import React, {useCallback, useMemo, useReducer, useState} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import {format} from 'date-fns';
 import _ from 'underscore';
 import {View} from 'react-native';
 import styles from '../styles/styles';
@@ -53,7 +54,7 @@ const propTypes = {
     iouType: PropTypes.string,
 
     /** IOU date */
-    iouDate: PropTypes.string,
+    iouCreated: PropTypes.string,
 
     /** IOU merchant */
     iouMerchant: PropTypes.string,
@@ -120,6 +121,7 @@ function MoneyRequestConfirmationList(props) {
 
     // A flag and a toggler for showing the rest of the form fields
     const [showAllFields, toggleShowAllFields] = useReducer((state) => !state, false);
+    const isTypeRequest = props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST;
 
     /**
      * Returns the participants with amount
@@ -298,6 +300,7 @@ function MoneyRequestConfirmationList(props) {
                 currency={props.iouCurrencyCode}
                 policyID={props.policyID}
                 shouldShowPaymentOptions
+                buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
                 anchorAlignment={{
                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
@@ -308,6 +311,7 @@ function MoneyRequestConfirmationList(props) {
                 isDisabled={shouldDisableButton}
                 onPress={(_event, value) => confirm(value)}
                 options={splitOrRequestOptions}
+                buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
             />
         );
     }, [confirm, props.selectedParticipants, props.bankAccountRoute, props.iouCurrencyCode, props.iouType, props.isReadOnly, props.policyID, selectedParticipants, splitOrRequestOptions]);
@@ -351,6 +355,7 @@ function MoneyRequestConfirmationList(props) {
                 description={translate('common.description')}
                 onPress={() => Navigation.navigate(ROUTES.getMoneyRequestDescriptionRoute(props.iouType, props.reportID))}
                 style={[styles.moneyRequestMenuItem, styles.mb2]}
+                titleStyle={styles.flex1}
                 disabled={didConfirm || props.isReadOnly}
             />
             {!showAllFields && (
@@ -371,18 +376,22 @@ function MoneyRequestConfirmationList(props) {
             {showAllFields && (
                 <>
                     <MenuItemWithTopDescription
-                        title={props.iouDate}
+                        shouldShowRightIcon={!props.isReadOnly && isTypeRequest}
+                        title={props.iouCreated || format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}
                         description={translate('common.date')}
                         style={[styles.moneyRequestMenuItem, styles.mb2]}
-                        // Note: This component is disabled until this field is editable in next PR
-                        disabled
+                        titleStyle={styles.flex1}
+                        onPress={() => Navigation.navigate(ROUTES.getMoneyRequestCreatedRoute(props.iouType, props.reportID))}
+                        disabled={didConfirm || props.isReadOnly || !isTypeRequest}
                     />
                     <MenuItemWithTopDescription
+                        shouldShowRightIcon={!props.isReadOnly && isTypeRequest}
                         title={props.iouMerchant}
                         description={translate('common.merchant')}
                         style={[styles.moneyRequestMenuItem, styles.mb2]}
-                        // Note: This component is disabled until this field is editable in next PR
-                        disabled
+                        titleStyle={styles.flex1}
+                        onPress={() => Navigation.navigate(ROUTES.getMoneyRequestMerchantRoute(props.iouType, props.reportID))}
+                        disabled={didConfirm || props.isReadOnly || !isTypeRequest}
                     />
                 </>
             )}

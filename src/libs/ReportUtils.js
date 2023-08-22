@@ -488,11 +488,20 @@ function findLastAccessedReport(reports, ignoreDomainRooms, policies, isFirstTim
     // since the Concierge report would be incorrectly selected over the deep-linked report in the logic below.
     let sortedReports = sortReportsByLastRead(reports);
 
+    let adminReport;
+    if (openOnAdminRoom) {
+        adminReport = _.find(sortedReports, (report) => {
+            const chatType = getChatType(report);
+            return chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS;
+        });
+    }
+
     if (isFirstTimeNewExpensifyUser) {
         if (sortedReports.length === 1) {
             return sortedReports[0];
         }
-        return _.find(sortedReports, (report) => !isConciergeChatReport(report));
+
+        return adminReport || _.find(sortedReports, (report) => !isConciergeChatReport(report));
     }
 
     if (ignoreDomainRooms) {
@@ -503,14 +512,6 @@ function findLastAccessedReport(reports, ignoreDomainRooms, policies, isFirstTim
             sortedReports,
             (report) => !isDomainRoom(report) || getPolicyType(report, policies) === CONST.POLICY.TYPE.FREE || hasExpensifyGuidesEmails(lodashGet(report, ['participantAccountIDs'], [])),
         );
-    }
-
-    let adminReport;
-    if (openOnAdminRoom) {
-        adminReport = _.find(sortedReports, (report) => {
-            const chatType = getChatType(report);
-            return chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS;
-        });
     }
 
     return adminReport || _.last(sortedReports);
@@ -760,10 +761,11 @@ function canDeleteReportAction(reportAction, reportID) {
 /**
  * Get welcome message based on room type
  * @param {Object} report
+ * @param {Boolean} isUserPolicyAdmin
  * @returns {Object}
  */
 
-function getRoomWelcomeMessage(report) {
+function getRoomWelcomeMessage(report, isUserPolicyAdmin) {
     const welcomeMessage = {};
     const workspaceName = getPolicyName(report);
 
@@ -776,9 +778,8 @@ function getRoomWelcomeMessage(report) {
     } else if (isAdminRoom(report)) {
         welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminRoomPartOne', {workspaceName});
         welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminRoomPartTwo');
-    } else if (isAdminsOnlyPostingRoom(report)) {
-        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminOnlyPostingRoomPartOne');
-        welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminOnlyPostingRoomPartTwo', {workspaceName});
+    } else if (isAdminsOnlyPostingRoom(report) && !isUserPolicyAdmin) {
+        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminOnlyPostingRoom');
     } else if (isAnnounceRoom(report)) {
         welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAnnounceRoomPartOne', {workspaceName});
         welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAnnounceRoomPartTwo', {workspaceName});
@@ -801,7 +802,7 @@ function chatIncludesConcierge(report) {
 }
 
 /**
- * Returns true if there is any automated expensify account in accountIDs
+ * Returns true if there is any automated expensify account `in accountIDs
  * @param {Array} accountIDs
  * @returns {Boolean}
  */
@@ -1245,18 +1246,18 @@ function getTransactionDetails(transaction) {
         amount: TransactionUtils.getAmount(transaction, isExpenseReport(report)),
         currency: TransactionUtils.getCurrency(transaction),
         comment: TransactionUtils.getDescription(transaction),
+        merchant: TransactionUtils.getMerchant(transaction),
     };
 }
 
 /**
  * Gets all transactions on an IOU report with a receipt
  *
- * @param {Object|null} iouReport
+ * @param {Object|null} iouReportID
  * @returns {[Object]}
  */
-function getTransactionsWithReceipts(iouReport) {
-    const reportID = lodashGet(iouReport, 'reportID');
-    const reportActions = ReportActionsUtils.getAllReportActions(reportID);
+function getTransactionsWithReceipts(iouReportID) {
+    const reportActions = ReportActionsUtils.getAllReportActions(iouReportID);
     return _.reduce(
         reportActions,
         (transactions, action) => {
@@ -1279,17 +1280,17 @@ function getTransactionsWithReceipts(iouReport) {
  * or as soon as one receipt request is done scanning, we have at least one
  * "ready" money request, and we remove this indicator to show the partial report total.
  *
- * @param {Object|null} iouReport
+ * @param {Object|null} iouReportID
  * @param {Object|null} reportPreviewAction the preview action associated with the IOU report
  * @returns {Boolean}
  */
-function areAllRequestsBeingSmartScanned(iouReport, reportPreviewAction) {
-    const transactions = getTransactionsWithReceipts(iouReport);
+function areAllRequestsBeingSmartScanned(iouReportID, reportPreviewAction) {
+    const transactionsWithReceipts = getTransactionsWithReceipts(iouReportID);
     // If we have more requests than requests with receipts, we have some manual requests
-    if (ReportActionsUtils.getNumberOfMoneyRequests(reportPreviewAction) > transactions.length) {
+    if (ReportActionsUtils.getNumberOfMoneyRequests(reportPreviewAction) > transactionsWithReceipts.length) {
         return false;
     }
-    return _.all(transactions, (transaction) => TransactionUtils.isReceiptBeingScanned(transaction));
+    return _.all(transactionsWithReceipts, (transaction) => TransactionUtils.isReceiptBeingScanned(transaction));
 }
 
 /**
@@ -3282,6 +3283,7 @@ export {
     sortReportsByLastRead,
     isDefaultRoom,
     isAdminRoom,
+    isAdminsOnlyPostingRoom,
     isAnnounceRoom,
     isUserCreatedPolicyRoom,
     isChatRoom,

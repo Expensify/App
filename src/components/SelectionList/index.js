@@ -1,9 +1,9 @@
 import React, {forwardRef, useEffect, useState} from 'react';
 import {Keyboard} from 'react-native';
-import BaseSelectionListRadio from './BaseSelectionListRadio';
+import BaseSelectionList from './BaseSelectionList';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 
-const SelectionListRadio = forwardRef((props, ref) => {
+const SelectionList = forwardRef((props, ref) => {
     const [isScreenTouched, setIsScreenTouched] = useState(false);
 
     const touchStart = () => setIsScreenTouched(true);
@@ -26,7 +26,7 @@ const SelectionListRadio = forwardRef((props, ref) => {
     }, []);
 
     return (
-        <BaseSelectionListRadio
+        <BaseSelectionList
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             ref={ref}
@@ -41,6 +41,6 @@ const SelectionListRadio = forwardRef((props, ref) => {
     );
 });
 
-SelectionListRadio.displayName = 'SelectionListRadio';
+SelectionList.displayName = 'SelectionList';
 
-export default SelectionListRadio;
+export default SelectionList;
