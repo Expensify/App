@@ -4,6 +4,7 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import {useIsFocused, useNavigation} from '@react-navigation/native';
 import styles from '../../../../styles/styles';
 import themeColors from '../../../../styles/themes/default';
 import Composer from '../../../../components/Composer';
@@ -22,17 +23,15 @@ import usePrevious from '../../../../hooks/usePrevious';
 import * as EmojiUtils from '../../../../libs/EmojiUtils';
 import * as User from '../../../../libs/actions/User';
 import * as ReportUtils from '../../../../libs/ReportUtils';
-import withNavigation from '../../../../components/withNavigation';
-import withNavigationFocus from '../../../../components/withNavigationFocus';
-import compose from '../../../../libs/compose';
-import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
-import withKeyboardState, {keyboardStatePropTypes} from '../../../../components/withKeyboardState';
 import reportActionPropTypes from '../reportActionPropTypes';
 import canFocusInputOnScreenFocus from '../../../../libs/canFocusInputOnScreenFocus';
 import debouncedSaveReportComment from './debouncedSaveReportComment';
 import UpdateComment from './UpdateComment';
 import Suggestions from './Suggestions';
 import getDraftComment from '../../../../libs/ComposerUtils/getDraftComment';
+import useLocalize from '../../../../hooks/useLocalize';
+import compose from '../../../../libs/compose';
+import withKeyboardState from '../../../../components/withKeyboardState';
 
 const {RNTextInputReset} = NativeModules;
 
@@ -76,8 +75,7 @@ const propTypes = {
 
     isFullComposerAvailable: PropTypes.bool.isRequired,
 
-    ...withLocalizePropTypes,
-    ...keyboardStatePropTypes,
+    isKeyboardShown: PropTypes.bool.isRequired,
 };
 
 const defaultProps = {
@@ -94,10 +92,7 @@ function ReportComposerWithSuggestions({
     parentReportActions,
     numberOfLines,
     // HOCs
-    preferredLocale,
-    navigation,
     isKeyboardShown,
-    isFocused: isFocusedProp,
     // Props: Report
     reportID,
     report,
@@ -125,6 +120,10 @@ function ReportComposerWithSuggestions({
 
     forwardedRef,
 }) {
+    const {preferredLocale} = useLocalize();
+    const isFocused = useIsFocused();
+    const navigation = useNavigation();
+
     const [value, setValue] = useState(() => getDraftComment(reportID) || '');
     const commentRef = useRef(value);
 
@@ -375,13 +374,13 @@ function ReportComposerWithSuggestions({
         // This callback is used in the contextMenuActions to manage giving focus back to the compose input.
         // TODO: we should clean up this convoluted code and instead move focus management to something like ReportFooter.js or another higher up component
         ReportActionComposeFocusManager.onComposerFocus(() => {
-            if (!willBlurTextInputOnTapOutside || !isFocusedProp) {
+            if (!willBlurTextInputOnTapOutside || !isFocused) {
                 return;
             }
 
             focus(false);
         });
-    }, [focus, isFocusedProp]);
+    }, [focus, isFocused]);
 
     /**
      * Check if the composer is visible. Returns true if the composer is not covered up by emoji picker or menu. False otherwise.
@@ -445,17 +444,17 @@ function ReportComposerWithSuggestions({
     }, [focusComposerOnKeyPress, navigation, setUpComposeFocusManager]);
 
     const prevIsModalVisible = usePrevious(modal.isVisible);
-    const prevIsFocused = usePrevious(isFocusedProp);
+    const prevIsFocused = usePrevious(isFocused);
     useEffect(() => {
         // We want to focus or refocus the input when a modal has been closed or the underlying screen is refocused.
         // We avoid doing this on native platforms since the software keyboard popping
         // open creates a jarring and broken UX.
-        if (!(willBlurTextInputOnTapOutside && !modal.isVisible && isFocusedProp && (prevIsModalVisible || !prevIsFocused))) {
+        if (!(willBlurTextInputOnTapOutside && !modal.isVisible && isFocused && (prevIsModalVisible || !prevIsFocused))) {
             return;
         }
 
         focus();
-    }, [focus, prevIsFocused, prevIsModalVisible, isFocusedProp, modal.isVisible]);
+    }, [focus, prevIsFocused, prevIsModalVisible, isFocused, modal.isVisible]);
 
     useEffect(() => {
         if (value.length !== 0) {
@@ -548,9 +547,6 @@ ReportComposerWithSuggestions.propTypes = propTypes;
 ReportComposerWithSuggestions.defaultProps = defaultProps;
 
 export default compose(
-    withLocalize,
-    withNavigation,
-    withNavigationFocus,
     withKeyboardState,
     withOnyx({
         numberOfLines: {

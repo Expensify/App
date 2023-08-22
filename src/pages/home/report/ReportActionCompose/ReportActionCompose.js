@@ -4,6 +4,8 @@ import {View} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
+import {useNavigation} from '@react-navigation/native';
+import {useAnimatedRef} from 'react-native-reanimated';
 import styles from '../../../../styles/styles';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import * as Report from '../../../../libs/actions/Report';
@@ -27,16 +29,14 @@ import ReportDropUI from '../ReportDropUI';
 import reportPropTypes from '../../../reportPropTypes';
 import OfflineWithFeedback from '../../../../components/OfflineWithFeedback';
 import * as Welcome from '../../../../libs/actions/Welcome';
-import withAnimatedRef from '../../../../components/withAnimatedRef';
 import SendButton from './SendButton';
 import AttachmentPickerWithMenuItems from './AttachmentPickerWithMenuItems';
 import ReportComposerWithSuggestions from './ReportComposerWithSuggestions';
 import debouncedSaveReportComment from './debouncedSaveReportComment';
-import withWindowDimensions from '../../../../components/withWindowDimensions';
-import withNavigation, {withNavigationPropTypes} from '../../../../components/withNavigation';
 import reportActionPropTypes from '../reportActionPropTypes';
 import useLocalize from '../../../../hooks/useLocalize';
 import getModalState from '../../../../libs/getModalState';
+import useWindowDimensions from '../../../../hooks/useWindowDimensions';
 
 const propTypes = {
     /** A method to call when the form is submitted */
@@ -53,9 +53,6 @@ const propTypes = {
 
     /** The report currently being looked at */
     report: reportPropTypes,
-
-    /** Is the window width narrow, like on a mobile device */
-    isSmallScreenWidth: PropTypes.bool.isRequired,
 
     /** Is composer full size */
     isComposerFullSize: PropTypes.bool,
@@ -75,10 +72,6 @@ const propTypes = {
     /** The type of action that's pending  */
     pendingAction: PropTypes.oneOf(['add', 'update', 'delete']),
 
-    /** animated ref from react-native-reanimated */
-    animatedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]).isRequired,
-
-    ...withNavigationPropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
 };
 
@@ -99,13 +92,10 @@ const defaultProps = {
 const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
 function ReportActionCompose({
-    animatedRef,
     blockedFromConcierge,
     currentUserPersonalDetails,
     disabled,
     isComposerFullSize,
-    isMediumScreenWidth,
-    isSmallScreenWidth,
     network,
     onSubmit,
     pendingAction,
@@ -115,9 +105,11 @@ function ReportActionCompose({
     reportActions,
     shouldShowComposeInput,
     isCommentEmpty: isCommentEmptyProp,
-    navigation,
 }) {
     const {translate} = useLocalize();
+    const navigation = useNavigation();
+    const {isMediumScreenWidth, isSmallScreenWidth} = useWindowDimensions();
+    const animatedRef = useAnimatedRef();
 
     /**
      * Updates the Highlight state of the composer
@@ -397,10 +389,7 @@ ReportActionCompose.defaultProps = defaultProps;
 
 export default compose(
     withNetwork(),
-    withNavigation,
-    withWindowDimensions,
     withCurrentUserPersonalDetails,
-    withAnimatedRef,
     withOnyx({
         isCommentEmpty: {
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,

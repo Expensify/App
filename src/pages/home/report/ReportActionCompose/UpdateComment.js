@@ -3,15 +3,11 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import usePrevious from '../../../../hooks/usePrevious';
 import ONYXKEYS from '../../../../ONYXKEYS';
-import compose from '../../../../libs/compose';
-import withLocalize from '../../../../components/withLocalize';
+import useLocalize from '../../../../hooks/useLocalize';
 
 const propTypes = {
     /** The comment of the report */
     comment: PropTypes.string,
-
-    /** The preferred locale of the user */
-    preferredLocale: PropTypes.string.isRequired,
 
     /** The report associated with the comment */
     report: PropTypes.shape({
@@ -36,10 +32,17 @@ const defaultProps = {
     comment: '',
 };
 
-function UpdateComment({comment, commentRef, preferredLocale, report, value, updateComment}) {
+/**
+ * This component doesn't render anything. It runs a side effect to update the comment of a report under certain conditions.
+ * It is connected to the actual draft comment in onyx. The comment in onyx might updates multiple times, and we want to avoid
+ * re-rendering a UI component for that. That's why the side effect was moved down to a separate component.
+ * @returns {null}
+ */
+function UpdateComment({comment, commentRef, report, value, updateComment}) {
     const prevCommentProp = usePrevious(comment);
-    const prevPreferredLocale = usePrevious(preferredLocale);
     const prevReportId = usePrevious(report.reportID);
+    const {preferredLocale} = useLocalize();
+    const prevPreferredLocale = usePrevious(preferredLocale);
 
     useEffect(() => {
         // Value state does not have the same value as comment props when the comment gets changed from another tab.
@@ -52,7 +55,6 @@ function UpdateComment({comment, commentRef, preferredLocale, report, value, upd
             return;
         }
 
-        console.log('UpdateComment.js: Updating from', comment, 'to comment', commentRef.current);
         updateComment(comment);
     }, [prevCommentProp, prevPreferredLocale, prevReportId, comment, preferredLocale, report.reportID, updateComment, value, commentRef]);
 
@@ -63,11 +65,8 @@ UpdateComment.propTypes = propTypes;
 UpdateComment.defaultProps = defaultProps;
 UpdateComment.displayName = 'UpdateComment';
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        comment: {
-            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,
-        },
-    }),
-)(UpdateComment);
+export default withOnyx({
+    comment: {
+        key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,
+    },
+})(UpdateComment);
