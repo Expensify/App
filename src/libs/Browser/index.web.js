@@ -1,5 +1,6 @@
 import CONST from '../../CONST';
 import CONFIG from '../../CONFIG';
+import ROUTES from '../../ROUTES';
 
 /**
  * Fetch browser name from UA string
@@ -72,7 +73,7 @@ function isSafari() {
  */
 function openRouteInDesktopApp(shortLivedAuthToken = '', email = '') {
     const params = new URLSearchParams();
-    const openingFromDesktopRedirect = window.location.pathname === '/desktop-signin-redirect';
+    const openingFromDesktopRedirect = window.location.pathname === ROUTES.DESKTOP_SIGN_IN_REDIRECT;
     params.set('exitTo', `${openingFromDesktopRedirect ? '/r' : window.location.pathname}${window.location.search}${window.location.hash}`);
     if (email && shortLivedAuthToken) {
         params.set('email', email);
