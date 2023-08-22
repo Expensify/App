@@ -81,6 +81,8 @@ jobs:
           echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER" >> .env.adhoc
 
       - uses: Expensify/App/.github/actions/composite/setupNode@main
+        with:
+          MAPBOX_SDK_DOWNLOAD_TOKEN: ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
       - uses: ruby/setup-ruby@eae47962baca661befdfd24e4d6c34ade04858f7
         with:
@@ -111,6 +113,8 @@ jobs:
           S3_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           S3_BUCKET: ad-hoc-expensify-cash
           S3_REGION: us-east-1
+          MYAPP_UPLOAD_STORE_PASSWORD: ${{ secrets.MYAPP_UPLOAD_STORE_PASSWORD }}
+          MYAPP_UPLOAD_KEY_PASSWORD: ${{ secrets.MYAPP_UPLOAD_KEY_PASSWORD }}
 
       - uses: actions/upload-artifact@v3
         with:
@@ -137,6 +141,8 @@ jobs:
           echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER" >> .env.adhoc
 
       - uses: Expensify/App/.github/actions/composite/setupNode@main
+        with:
+          MAPBOX_SDK_DOWNLOAD_TOKEN: ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
       - name: Setup Xcode
         run: sudo xcode-select -switch /Applications/Xcode_14.2.app
@@ -201,6 +207,8 @@ jobs:
           echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER" >> .env.adhoc
 
       - uses: Expensify/App/.github/actions/composite/setupNode@main
+        with:
+          MAPBOX_SDK_DOWNLOAD_TOKEN: ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
       - name: Decrypt Developer ID Certificate
         run: cd desktop && gpg --quiet --batch --yes --decrypt --passphrase="$DEVELOPER_ID_SECRET_PASSPHRASE" --output developer_id.p12 developer_id.p12.gpg
@@ -242,6 +250,8 @@ jobs:
           echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER" >> .env.adhoc
 
       - uses: Expensify/App/.github/actions/composite/setupNode@main
+        with:
+          MAPBOX_SDK_DOWNLOAD_TOKEN: ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
       - name: Configure AWS Credentials
         uses: Expensify/App/.github/actions/composite/configureAwsCredentials@main

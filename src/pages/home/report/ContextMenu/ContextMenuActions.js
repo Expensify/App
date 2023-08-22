@@ -233,7 +233,7 @@ export default [
         },
         onPress: (closePopover, {reportAction, reportID}) => {
             Environment.getEnvironmentURL().then((environmentURL) => {
-                const reportActionID = parseInt(lodashGet(reportAction, 'reportActionID'), 10);
+                const reportActionID = lodashGet(reportAction, 'reportActionID');
                 Clipboard.setString(`${environmentURL}/r/${reportID}/${reportActionID}`);
             });
             hideContextMenu(true, ReportActionComposeFocusManager.focus);
@@ -279,7 +279,7 @@ export default [
         shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport) =>
             type === CONTEXT_MENU_TYPES.REPORT_ACTION && ReportUtils.canEditReportAction(reportAction) && !isArchivedRoom && !isChronosReport,
         onPress: (closePopover, {reportID, reportAction, draftMessage}) => {
-            const editAction = () => Report.saveReportActionDraft(reportID, reportAction.reportActionID, _.isEmpty(draftMessage) ? getActionText(reportAction) : '');
+            const editAction = () => Report.saveReportActionDraft(reportID, reportAction, _.isEmpty(draftMessage) ? getActionText(reportAction) : '');
 
             if (closePopover) {
                 // Hide popover, then call editAction

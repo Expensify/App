@@ -2,7 +2,6 @@ import React, {useState, useEffect} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import Navigation from '../../../libs/Navigation/Navigation';
@@ -20,6 +19,7 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import Form from '../../../components/Form';
 import CONST from '../../../CONST';
 import ConfirmModal from '../../../components/ConfirmModal';
+import * as ValidationUtils from '../../../libs/ValidationUtils';
 
 const propTypes = {
     /** Session of currently logged in user */
@@ -63,10 +63,11 @@ function CloseAccountPage(props) {
     };
 
     const validate = (values) => {
+        const requiredFields = ['phoneOrEmail'];
         const userEmailOrPhone = props.formatPhoneNumber(props.session.email);
-        const errors = {};
+        const errors = ValidationUtils.getFieldRequiredErrors(values, requiredFields);
 
-        if (_.isEmpty(values.phoneOrEmail) || userEmailOrPhone.toLowerCase() !== values.phoneOrEmail.toLowerCase()) {
+        if (values.phoneOrEmail && userEmailOrPhone.toLowerCase() !== values.phoneOrEmail.toLowerCase()) {
             errors.phoneOrEmail = 'closeAccountPage.enterYourDefaultContactMethod';
         }
         return errors;
