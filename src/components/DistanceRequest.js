@@ -21,6 +21,9 @@ import useNetwork from '../hooks/useNetwork';
 import useLocalize from '../hooks/useLocalize';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
+import * as IOU from '../libs/actions/IOU';
+import participantPropTypes from '../components/participantPropTypes';
+import reportPropTypes from '../pages/reportPropTypes';
 
 const MAX_WAYPOINTS = 25;
 const MAX_WAYPOINTS_TO_DISPLAY = 4;
@@ -29,8 +32,22 @@ const MAP_PADDING = 50;
 const DEFAULT_ZOOM_LEVEL = 10;
 
 const propTypes = {
-    /** The transactionID of this request */
-    transactionID: PropTypes.string,
+    /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
+    iou: PropTypes.shape({
+        id: PropTypes.string,
+        amount: PropTypes.number,
+        currency: PropTypes.string,
+        participants: PropTypes.arrayOf(participantPropTypes),
+    }),
+
+    /** Type of money request (i.e. IOU) */
+    iouType: PropTypes.string,
+
+    /** ID of the report to with which the distance request is associated */
+    reportID: PropTypes.string,
+
+    /** The report to with which the distance request is associated */
+    report: reportPropTypes,
 
     /** The optimistic transaction for this request */
     transaction: PropTypes.shape({
@@ -64,17 +81,26 @@ const propTypes = {
 };
 
 const defaultProps = {
-    transactionID: '',
+    iou: {
+        id: '',
+        amount: 0,
+        currency: CONST.CURRENCY.USD,
+        participants: [],
+    },
+    iouType: '',
+    reportID: '',
+    report: {},
     transaction: {},
     mapboxAccessToken: {},
 };
 
-function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
+function DistanceRequest({iou, iouType, reportID, report, transaction, mapboxAccessToken}) {
     const [shouldShowGradient, setShouldShowGradient] = useState(false);
     const [scrollContainerHeight, setScrollContainerHeight] = useState(0);
     const [scrollContentHeight, setScrollContentHeight] = useState(0);
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
+    const {transactionID} = iou;
 
     const waypoints = lodashGet(transaction, 'comment.waypoints', {});
     const numberOfWaypoints = _.size(waypoints);
@@ -219,6 +245,16 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
                     </View>
                 )}
             </View>
+            <Button
+                small
+                icon={Expensicons.Plus}
+                onPress={() => {
+                    IOU.navigateToNextPage(iou, iouType, reportID, report);
+                }}
+                text={translate('distance.addStop')}
+                isDisabled={numberOfWaypoints === MAX_WAYPOINTS}
+                innerStyles={[styles.ph10]}
+            />
         </>
     );
 }
