@@ -214,10 +214,7 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
                             zoom: DEFAULT_ZOOM_LEVEL,
                         }}
                         directionCoordinates={lodashGet(transaction, 'routes.route0.geometry.coordinates', [])}
-                        directionStyle={{
-                            width: 30,
-                            color: '#002140'
-                        }}
+                        directionStyle={styles.mapDirection}
                         styleURL='mapbox://styles/expensify/cllcoiqds00cs01r80kp34tmq'
                         style={styles.mapView}
                     />

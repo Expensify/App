@@ -3818,8 +3818,8 @@ const styles = {
     },
 
     mapDirection: {
-        width: 15,
-        color: Colors.blue800,
+        width: 8,
+        color: Colors.green,
     },
 
     mapPendingView: {
