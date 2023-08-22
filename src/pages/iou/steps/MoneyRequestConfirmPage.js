@@ -22,6 +22,10 @@ import reportPropTypes from '../../reportPropTypes';
 import personalDetailsPropType from '../../personalDetailsPropType';
 import * as FileUtils from '../../../libs/fileDownload/FileUtils';
 import * as Policy from '../../../libs/actions/Policy';
+import MapView from 'react-native-x-maps';
+import * as MapboxToken from '../../../libs/actions/MapboxToken';
+
+const DEFAULT_ZOOM_LEVEL = 10;
 
 const propTypes = {
     report: reportPropTypes,
@@ -49,12 +53,22 @@ const propTypes = {
     /** Personal details of all users */
     personalDetails: personalDetailsPropType,
 
+    /** Data about Mapbox token for calling Mapbox API */
+    mapboxAccessToken: PropTypes.shape({
+        /** Temporary token for Mapbox API */
+        token: PropTypes.string,
+
+        /** Time when the token will expire in ISO 8601 */
+        expiration: PropTypes.string,
+    }),
+
     ...withCurrentUserPersonalDetailsPropTypes,
 };
 
 const defaultProps = {
     report: {},
     personalDetails: {},
+    mapboxAccessToken: {},
     iou: {
         id: '',
         amount: 0,
@@ -78,6 +92,11 @@ function MoneyRequestConfirmPage(props) {
                 : OptionsListUtils.getParticipantsOptions(props.iou.participants, props.personalDetails),
         [props.iou.participants, props.personalDetails],
     );
+
+    useEffect(() => {
+        MapboxToken.init();
+        return MapboxToken.stop;
+    }, []);
 
     useEffect(() => {
         const policyExpenseChat = _.find(participants, (participant) => participant.isPolicyExpenseChat);
@@ -104,7 +123,8 @@ function MoneyRequestConfirmPage(props) {
             IOU.resetMoneyRequestInfo(moneyRequestId);
         }
 
-        if (_.isEmpty(props.iou.participants) || (props.iou.amount === 0 && !props.iou.receiptPath) || shouldReset) {
+        if (_.isEmpty(props.iou.participants) || shouldReset) {
+            // if (_.isEmpty(props.iou.participants) || (props.iou.amount === 0 && !props.iou.receiptPath) || shouldReset) {
             Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current), true);
         }
 
@@ -235,6 +255,25 @@ function MoneyRequestConfirmPage(props) {
                         title={props.translate('iou.cash')}
                         onBackButtonPress={navigateBack}
                     />
+                    <View style={{width: '100%', height: 300}}>
+                        {props.mapboxAccessToken.token ? (
+                            <MapView
+                                accessToken={props.mapboxAccessToken.token}
+                                initialState={{
+                                    location: CONST.SF_COORDINATES,
+                                    zoom: DEFAULT_ZOOM_LEVEL,
+                                }}
+                                style={{
+                                    flex: 1,
+                                    borderRadius: 20,
+                                    overflow: 'hidden',
+                                }}
+                                styleURL={CONST.MAPBOX_STYLE_URL}
+                            />
+                        ) : (
+                            <View style={{width: 100, height: 100, backgroundColor: 'red'}} />
+                        )}
+                    </View>
                     <MoneyRequestConfirmationList
                         hasMultipleParticipants={iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT}
                         selectedParticipants={participants}
@@ -289,6 +328,9 @@ export default compose(
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+        },
+        mapboxAccessToken: {
+            key: ONYXKEYS.MAPBOX_ACCESS_TOKEN,
         },
     }),
 )(MoneyRequestConfirmPage);
