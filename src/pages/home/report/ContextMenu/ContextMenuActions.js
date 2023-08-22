@@ -188,27 +188,23 @@ export default [
         // the `text` and `icon`
         onPress: (closePopover, {reportAction, selection}) => {
             const isReportPreviewAction = ReportActionUtils.isReportPreviewAction(reportAction);
-            const isAttachment = ReportActionUtils.isReportActionAttachment(reportAction);
             const messageHtml = lodashGet(reportAction, ['message', 0, 'html'], '');
 
-            if (!isAttachment) {
-                const content = selection || messageHtml;
-                if (isReportPreviewAction) {
-                    const iouReport = ReportUtils.getReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(reportAction));
-                    const displayMessage = ReportUtils.getReportPreviewMessage(iouReport, reportAction);
-                    Clipboard.setString(displayMessage);
-                } else if (content) {
-                    const parser = new ExpensiMark();
-                    if (!Clipboard.canSetHtml()) {
-                        Clipboard.setString(parser.htmlToMarkdown(content));
-                    } else {
-                        const plainText = parser.htmlToText(content);
-                        Clipboard.setHtml(content, plainText);
-                    }
+            const content = selection || messageHtml;
+            if (isReportPreviewAction) {
+                const iouReport = ReportUtils.getReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(reportAction));
+                const displayMessage = ReportUtils.getReportPreviewMessage(iouReport, reportAction);
+                Clipboard.setString(displayMessage);
+            } else if (content) {
+                const parser = new ExpensiMark();
+                if (!Clipboard.canSetHtml()) {
+                    Clipboard.setString(parser.htmlToMarkdown(content));
+                } else {
+                    const plainText = parser.htmlToText(content);
+                    Clipboard.setHtml(content, plainText);
                 }
-            } else {
-                Clipboard.setString(messageHtml);
             }
+
             if (closePopover) {
                 hideContextMenu(true, ReportActionComposeFocusManager.focus);
             }
