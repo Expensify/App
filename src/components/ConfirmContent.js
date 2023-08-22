@@ -9,7 +9,6 @@ import useLocalize from '../hooks/useLocalize';
 import useNetwork from '../hooks/useNetwork';
 import Text from './Text';
 import variables from '../styles/variables';
-import AppIcon from '../../assets/images/expensify-app-icon.svg';
 import Icon from './Icon';
 
 const propTypes = {
