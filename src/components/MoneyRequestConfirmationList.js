@@ -1,6 +1,7 @@
 import React, {useCallback, useMemo, useReducer, useState} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import {format} from 'date-fns';
 import _ from 'underscore';
 import {View} from 'react-native';
 import styles from '../styles/styles';
@@ -53,7 +54,7 @@ const propTypes = {
     iouType: PropTypes.string,
 
     /** IOU date */
-    iouDate: PropTypes.string,
+    iouCreated: PropTypes.string,
 
     /** IOU merchant */
     iouMerchant: PropTypes.string,
@@ -120,6 +121,7 @@ function MoneyRequestConfirmationList(props) {
 
     // A flag and a toggler for showing the rest of the form fields
     const [showAllFields, toggleShowAllFields] = useReducer((state) => !state, false);
+    const isTypeRequest = props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST;
 
     /**
      * Returns the participants with amount
@@ -371,18 +373,20 @@ function MoneyRequestConfirmationList(props) {
             {showAllFields && (
                 <>
                     <MenuItemWithTopDescription
-                        title={props.iouDate}
+                        shouldShowRightIcon={!props.isReadOnly && isTypeRequest}
+                        title={props.iouCreated || format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}
                         description={translate('common.date')}
                         style={[styles.moneyRequestMenuItem, styles.mb2]}
-                        // Note: This component is disabled until this field is editable in next PR
-                        disabled
+                        onPress={() => Navigation.navigate(ROUTES.getMoneyRequestCreatedRoute(props.iouType, props.reportID))}
+                        disabled={didConfirm || props.isReadOnly || !isTypeRequest}
                     />
                     <MenuItemWithTopDescription
+                        shouldShowRightIcon={!props.isReadOnly && isTypeRequest}
                         title={props.iouMerchant}
                         description={translate('common.merchant')}
                         style={[styles.moneyRequestMenuItem, styles.mb2]}
-                        // Note: This component is disabled until this field is editable in next PR
-                        disabled
+                        onPress={() => Navigation.navigate(ROUTES.getMoneyRequestMerchantRoute(props.iouType, props.reportID))}
+                        disabled={didConfirm || props.isReadOnly || !isTypeRequest}
                     />
                 </>
             )}

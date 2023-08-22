@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import {format} from 'date-fns';
+import {format, parseISO, isValid} from 'date-fns';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import CONST from '../CONST';
@@ -15,7 +15,7 @@ Onyx.connect({
         if (!val) {
             return;
         }
-        allTransactions = val;
+        allTransactions = _.pick(val, (transaction) => transaction);
     },
 });
 
@@ -26,6 +26,7 @@ Onyx.connect({
  * @param {String} currency
  * @param {String} reportID
  * @param {String} [comment]
+ * @param {String} [created]
  * @param {String} [source]
  * @param {String} [originalTransactionID]
  * @param {String} [merchant]
@@ -39,6 +40,7 @@ function buildOptimisticTransaction(
     currency,
     reportID,
     comment = '',
+    created = '',
     source = '',
     originalTransactionID = '',
     merchant = CONST.REPORT.TYPE.IOU,
@@ -64,8 +66,8 @@ function buildOptimisticTransaction(
         currency,
         reportID,
         comment: commentJSON,
-        merchant,
-        created: DateUtils.getDBTime(),
+        merchant: merchant || CONST.REPORT.TYPE.IOU,
+        created: created || DateUtils.getDBTime(),
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         receipt,
         filename,
@@ -91,6 +93,7 @@ function hasReceipt(transaction) {
 function getUpdatedTransaction(transaction, transactionChanges, isFromExpenseReport) {
     // Only changing the first level fields so no need for deep clone now
     const updatedTransaction = _.clone(transaction);
+    let shouldStopSmartscan = false;
 
     // The comment property does not have its modifiedComment counterpart
     if (_.has(transactionChanges, 'comment')) {
@@ -101,14 +104,31 @@ function getUpdatedTransaction(transaction, transactionChanges, isFromExpenseRep
     }
     if (_.has(transactionChanges, 'created')) {
         updatedTransaction.modifiedCreated = transactionChanges.created;
+        shouldStopSmartscan = true;
     }
     if (_.has(transactionChanges, 'amount')) {
         updatedTransaction.modifiedAmount = isFromExpenseReport ? -transactionChanges.amount : transactionChanges.amount;
+        shouldStopSmartscan = true;
     }
     if (_.has(transactionChanges, 'currency')) {
         updatedTransaction.modifiedCurrency = transactionChanges.currency;
+        shouldStopSmartscan = true;
     }
-    updatedTransaction.pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
+
+    if (_.has(transactionChanges, 'merchant')) {
+        updatedTransaction.modifiedMerchant = transactionChanges.merchant;
+        shouldStopSmartscan = true;
+    }
+
+    if (shouldStopSmartscan && _.has(transaction, 'receipt') && !_.isEmpty(transaction.receipt) && lodashGet(transaction, 'receipt.state') !== CONST.IOU.RECEIPT_STATE.OPEN) {
+        updatedTransaction.receipt.state = CONST.IOU.RECEIPT_STATE.OPEN;
+    }
+    updatedTransaction.pendingFields = {
+        ...(_.has(transactionChanges, 'comment') && {comment: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+        ...(_.has(transactionChanges, 'created') && {created: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+        ...(_.has(transactionChanges, 'amount') && {amount: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+        ...(_.has(transactionChanges, 'currency') && {currency: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+    };
 
     return updatedTransaction;
 }
@@ -179,6 +199,16 @@ function getCurrency(transaction) {
 }
 
 /**
+ * Return the merchant field from the transaction, return the modifiedMerchant if present.
+ *
+ * @param {Object} transaction
+ * @returns {String}
+ */
+function getMerchant(transaction) {
+    return lodashGet(transaction, 'modifiedMerchant', null) || lodashGet(transaction, 'merchant', '');
+}
+
+/**
  * Return the created field from the transaction, return the modifiedCreated if present.
  *
  * @param {Object} transaction
@@ -186,9 +216,11 @@ function getCurrency(transaction) {
  */
 function getCreated(transaction) {
     const created = lodashGet(transaction, 'modifiedCreated', '') || lodashGet(transaction, 'created', '');
-    if (created) {
-        return format(new Date(created), CONST.DATE.FNS_FORMAT_STRING);
+    const createdDate = parseISO(created);
+    if (isValid(createdDate)) {
+        return format(createdDate, CONST.DATE.FNS_FORMAT_STRING);
     }
+
     return '';
 }
 
@@ -222,6 +254,7 @@ export {
     getDescription,
     getAmount,
     getCurrency,
+    getMerchant,
     getCreated,
     getLinkedTransaction,
     getAllReportTransactions,

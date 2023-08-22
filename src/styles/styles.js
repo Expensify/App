@@ -2119,11 +2119,10 @@ const styles = {
         outline: 'none',
     },
 
-    pdfPasswordForm: {
-        wideScreenWidth: {
-            width: 350,
-        },
-    },
+    getPDFPasswordFormStyle: (isSmallScreenWidth) => ({
+        width: isSmallScreenWidth ? '100%' : 350,
+        ...(isSmallScreenWidth && flex.flex1),
+    }),
 
     modalCenterContentContainer: {
         flex: 1,
@@ -3671,7 +3670,7 @@ const styles = {
     },
 
     tabText: (isSelected) => ({
-        marginHorizontal: 8,
+        marginLeft: 8,
         fontFamily: isSelected ? fontFamily.EXP_NEUE_BOLD : fontFamily.EXP_NEUE,
         fontWeight: isSelected ? fontWeightBold : 400,
         color: isSelected ? themeColors.textLight : themeColors.textSupporting,
@@ -3782,6 +3781,7 @@ const styles = {
         flexDirection: 'row',
         alignItems: 'center',
     },
+
     rotate90: {
         transform: [{rotate: '90deg'}],
     },
@@ -3795,6 +3795,32 @@ const styles = {
         borderRadius: variables.componentBorderRadiusLarge,
         height: 200,
         maxWidth: 400,
+    },
+
+    distanceRequestContainer: (maxHeight) => ({
+        ...flex.flexShrink2,
+        minHeight: variables.baseMenuItemHeight,
+        maxHeight,
+    }),
+
+    mapViewContainer: {
+        ...flex.flex1,
+        ...spacing.p4,
+        ...spacing.flex1,
+        minHeight: 300,
+        maxHeight: 500,
+    },
+
+    mapView: {
+        flex: 1,
+        borderRadius: 20,
+        overflow: 'hidden',
+    },
+
+    mapPendingView: {
+        backgroundColor: themeColors.highlightBG,
+        ...flex.flex1,
+        borderRadius: variables.componentBorderRadiusLarge,
     },
 
     userReportStatusEmoji: {

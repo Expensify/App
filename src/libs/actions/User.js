@@ -548,8 +548,13 @@ function subscribeToUserEvents() {
     PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.MULTIPLE_EVENTS, currentUserAccountID, (pushJSON) => {
         let updates;
 
-        // This is the old format where each update was just an array, with the new changes it's an object with
-        // lastUpdateID, previousUpdateID and updates
+        // The data for this push event comes in two different formats:
+        // 1. Original format - this is what was sent before the RELIABLE_UPDATES project and will go away once RELIABLE_UPDATES is fully complete
+        //     - The data is an array of objects, where each object is an onyx update
+        //       Example: [{onyxMethod: 'whatever', key: 'foo', value: 'bar'}]
+        // 1. Reliable updates format - this is what was sent with the RELIABLE_UPDATES project and will be the format from now on
+        //     - The data is an object, containing updateIDs from the server and an array of onyx updates (this array is the same format as the original format above)
+        //       Example: {lastUpdateID: 1, previousUpdateID: 0, updates: [{onyxMethod: 'whatever', key: 'foo', value: 'bar'}]}
         if (_.isArray(pushJSON)) {
             updates = pushJSON;
         } else {
@@ -568,6 +573,7 @@ function subscribeToUserEvents() {
             if (!currentUserAccountID) {
                 return;
             }
+
             Onyx.update(pushJSON);
             triggerNotifications(pushJSON);
         });
