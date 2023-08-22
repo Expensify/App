@@ -372,15 +372,15 @@ function ReportActionCompose({
         focusWithDelay(textInputRef.current)(shouldDelay);
     }, []);
 
-    const isNextModalWillOpen = useRef(false);
-    const isKeyboardVisibleWhenShowingModal = useRef(false);
+    const isNextModalWillOpenRef = useRef(false);
+    const isKeyboardVisibleWhenShowingModalRef = useRef(false);
 
     const restoreKeyboardState = useCallback(() => {
-        if (!isKeyboardVisibleWhenShowingModal.current) {
+        if (!isKeyboardVisibleWhenShowingModalRef.current) {
             return;
         }
         focus(true);
-        isKeyboardVisibleWhenShowingModal.current = false;
+        isKeyboardVisibleWhenShowingModalRef.current = false;
     }, [focus]);
 
     /**
@@ -995,12 +995,12 @@ function ReportActionCompose({
     const prevIsFocused = usePrevious(isFocusedProp);
     useEffect(() => {
         if (modal.isVisible && !prevIsModalVisible) {
-            isNextModalWillOpen.current = false;
+            isNextModalWillOpenRef.current = false;
         }
         // We want to focus or refocus the input when a modal has been closed or the underlying screen is refocused.
         // We avoid doing this on native platforms since the software keyboard popping
         // open creates a jarring and broken UX.
-        if (!(willBlurTextInputOnTapOutside && !isNextModalWillOpen.current && !modal.isVisible && isFocusedProp && (prevIsModalVisible || !prevIsFocused))) {
+        if (!(willBlurTextInputOnTapOutside && !isNextModalWillOpenRef.current && !modal.isVisible && isFocusedProp && (prevIsModalVisible || !prevIsFocused))) {
             return;
         }
 
@@ -1078,7 +1078,7 @@ function ReportActionCompose({
                                                 shouldBlockEmojiCalc.current = true;
                                                 shouldBlockMentionCalc.current = true;
                                             }
-                                            isNextModalWillOpen.current = true;
+                                            isNextModalWillOpenRef.current = true;
                                             openPicker({
                                                 onPicked: displayFileInModal,
                                                 onCanceled: restoreKeyboardState,
@@ -1151,7 +1151,7 @@ function ReportActionCompose({
                                                             onPress={(e) => {
                                                                 e.preventDefault();
                                                                 if (!willBlurTextInputOnTapOutside) {
-                                                                    isKeyboardVisibleWhenShowingModal.current = textInputRef.current.isFocused();
+                                                                    isKeyboardVisibleWhenShowingModalRef.current = textInputRef.current.isFocused();
                                                                 }
                                                                 textInputRef.current.blur();
 
@@ -1213,7 +1213,7 @@ function ReportActionCompose({
                                             setIsFocused(false);
                                             resetSuggestions();
                                             if (e.relatedTarget && e.relatedTarget === actionButtonRef.current) {
-                                                isKeyboardVisibleWhenShowingModal.current = true;
+                                                isKeyboardVisibleWhenShowingModalRef.current = true;
                                             }
                                         }}
                                         onClick={() => {
