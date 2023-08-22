@@ -26,7 +26,7 @@ const propTypes = {
     /* Onyx Props */
 
     /** The personal details of the person who is logged in */
-    personalDetails: personalDetailsPropType,
+    personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
     /** The active report */
     report: reportPropTypes.isRequired,
@@ -97,7 +97,10 @@ function ReportParticipantsPage(props) {
                 <FullPageNotFoundView shouldShow={_.isEmpty(props.report) || ReportUtils.isArchivedRoom(props.report)}>
                     <HeaderWithBackButton
                         title={props.translate(
-                            ReportUtils.isChatRoom(props.report) || ReportUtils.isPolicyExpenseChat(props.report) || ReportUtils.isChatThread(props.report)
+                            ReportUtils.isChatRoom(props.report) ||
+                                ReportUtils.isPolicyExpenseChat(props.report) ||
+                                ReportUtils.isChatThread(props.report) ||
+                                ReportUtils.isTaskReport(props.report)
                                 ? 'common.members'
                                 : 'common.details',
                         )}

@@ -524,6 +524,9 @@ class EmojiPickerMenu extends Component {
 
     render() {
         const isFiltered = this.emojis.length !== this.state.filteredEmojis.length;
+        const listStyle = StyleUtils.getEmojiPickerListHeight(isFiltered, this.props.windowHeight);
+        const height = !listStyle.maxHeight || listStyle.height < listStyle.maxHeight ? listStyle.height : listStyle.maxHeight;
+        const overflowLimit = Math.floor(height / CONST.EMOJI_PICKER_ITEM_HEIGHT) * 8;
         return (
             <View
                 style={[styles.emojiPickerContainer, StyleUtils.getEmojiPickerStyle(this.props.isSmallScreenWidth)]}
@@ -557,7 +560,13 @@ class EmojiPickerMenu extends Component {
                     renderItem={this.renderItem}
                     keyExtractor={this.keyExtractor}
                     numColumns={CONST.EMOJI_NUM_PER_ROW}
-                    style={StyleUtils.getEmojiPickerListHeight(isFiltered, this.props.windowHeight)}
+                    style={[
+                        listStyle,
+                        // This prevents elastic scrolling when scroll reaches the start or end
+                        {overscrollBehaviorY: 'contain'},
+                        // Set overflow to hidden to prevent elastic scrolling when there are not enough contents to scroll in FlatList
+                        {overflowY: this.state.filteredEmojis.length > overflowLimit ? 'auto' : 'hidden'},
+                    ]}
                     extraData={[this.state.filteredEmojis, this.state.highlightedIndex, this.props.preferredSkinTone]}
                     stickyHeaderIndices={this.state.headerIndices}
                     onScroll={(e) => (this.currentScrollOffset = e.nativeEvent.contentOffset.y)}
