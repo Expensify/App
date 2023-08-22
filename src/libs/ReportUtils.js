@@ -1258,7 +1258,7 @@ function getTransactionDetails(transaction) {
  */
 function getTransactionsWithReceipts(iouReportID) {
     const allTransactions = TransactionUtils.getAllReportTransactions(iouReportID);
-    return _.filter(allTransactions, transaction => TransactionUtils.hasReceipt(transaction));
+    return _.filter(allTransactions, (transaction) => TransactionUtils.hasReceipt(transaction));
 }
 
 /**
