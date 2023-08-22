@@ -278,7 +278,8 @@ function extractEmojis(text) {
         return emojis;
     }
 
-    parseEmojis = [...new Set(parseEmojis)]; // Some emojis are repeated with different skin tones
+    // Some emojis are repeated with different skin tones
+    parseEmojis = [...new Set(parseEmojis)];
 
     const alreadyParsedEmojis = new Set();
 
@@ -287,7 +288,8 @@ function extractEmojis(text) {
         const emoji = Emojis.emojiCodeTableWithSkinTones[character];
 
         if (emoji && !alreadyParsedEmojis.has(emoji.code)) {
-            alreadyParsedEmojis.add(emoji.code); // Add to set to avoid duplicates
+            // Add to set to avoid duplicates due to different skin tones of the same emoji
+            alreadyParsedEmojis.add(emoji.code);
             emojis.push(emoji);
         }
     }
