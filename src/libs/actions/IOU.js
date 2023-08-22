@@ -376,9 +376,11 @@ function getMoneyRequestInformation(report, participant, comment, amount, curren
 
     // STEP 3: Build optimistic receipt and transaction
     const receiptObject = {};
+    let filename;
     if (receipt && receipt.source) {
         receiptObject.source = receipt.source;
         receiptObject.state = CONST.IOU.RECEIPT_STATE.SCANREADY;
+        filename = receipt.name;
     }
     let optimisticTransaction = TransactionUtils.buildOptimisticTransaction(
         ReportUtils.isExpenseReport(iouReport) ? -amount : amount,
@@ -390,6 +392,7 @@ function getMoneyRequestInformation(report, participant, comment, amount, curren
         '',
         merchant,
         receiptObject,
+        filename,
         existingTransactionID,
     );
 
@@ -428,9 +431,9 @@ function getMoneyRequestInformation(report, participant, comment, amount, curren
 
     let reportPreviewAction = isNewIOUReport ? null : ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID);
     if (reportPreviewAction) {
-        reportPreviewAction = ReportUtils.updateReportPreview(iouReport, reportPreviewAction, comment);
+        reportPreviewAction = ReportUtils.updateReportPreview(iouReport, reportPreviewAction, comment, optimisticTransaction);
     } else {
-        reportPreviewAction = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport, comment);
+        reportPreviewAction = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport, comment, optimisticTransaction);
     }
 
     // Add optimistic personal details for participant
@@ -1061,7 +1064,7 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
 
     // STEP 2: Decide if we need to:
     // 1. Delete the transactionThread - delete if there are no visible comments in the thread
-    // 2. Update the iouPreview to show [Deleted request] - update if the transactionThread exists AND it isn't being deleted
+    // 2. Update the moneyRequestPreview to show [Deleted request] - update if the transactionThread exists AND it isn't being deleted
     const shouldDeleteTransactionThread = transactionThreadID ? ReportActionsUtils.getLastVisibleMessage(transactionThreadID).lastMessageText.length === 0 : false;
     const shouldShowDeletedRequestMessage = transactionThreadID && !shouldDeleteTransactionThread;
 
