@@ -631,7 +631,7 @@ function ReportActionCompose({
             }));
             setHighlightedMentionIndex(0);
         },
-        [getMentionOptions, setHighlightedMentionIndex, value, selection, resetSuggestions],
+        [getMentionOptions, setHighlightedMentionIndex, value, resetSuggestions],
     );
 
     const onSelectionChange = useCallback(
