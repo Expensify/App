@@ -71,6 +71,7 @@ function BigNumberPad(props) {
                         return (
                             <Button
                                 key={column}
+                                medium
                                 shouldEnableHapticFeedback
                                 style={[styles.flex1, marginLeft]}
                                 text={column === '<' ? column : props.toLocaleDigit(column)}
