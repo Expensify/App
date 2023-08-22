@@ -1563,7 +1563,7 @@ const styles = {
 
     chatContentScrollView: {
         flexGrow: 1,
-        justifyContent: 'flex-start',
+        justifyContent: 'flex-end',
         paddingBottom: 16,
     },
 
