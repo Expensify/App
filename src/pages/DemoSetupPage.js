@@ -6,7 +6,7 @@ import ONYXKEYS from '../ONYXKEYS';
 import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 import CONST from '../CONST';
 import * as DemoActions from '../libs/actions/DemoActions';
-import * as Navigation from '../libs/Navigation/Navigation';
+import Navigation from '../libs/Navigation/Navigation';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
