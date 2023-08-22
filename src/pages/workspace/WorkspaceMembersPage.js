@@ -31,7 +31,6 @@ import Log from '../../libs/Log';
 import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
 import SelectionList from '../../components/SelectionList';
 import Text from '../../components/Text';
-import WorkspaceMembersPlaceholder from '../../components/WorkspaceMembersPlaceholder';
 
 const propTypes = {
     /** All personal details asssociated with user */
@@ -393,6 +392,7 @@ function WorkspaceMembersPage(props) {
                             onSelectRow={(item) => toggleUser(item.keyForList)}
                             onSelectAll={() => toggleAllUsers(data)}
                             onDismissError={dismissError}
+                            showLoadingPlaceholder={!OptionsListUtils.isPersonalDetailsReady(props.personalDetails) || _.isEmpty(props.policyMembers)}
                             initiallyFocusedOptionKey={lodashGet(
                                 _.find(data, (item) => !item.isDisabled),
                                 'keyForList',

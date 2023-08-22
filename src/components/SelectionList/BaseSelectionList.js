@@ -21,6 +21,7 @@ import FixedFooter from '../FixedFooter';
 import Button from '../Button';
 import useLocalize from '../../hooks/useLocalize';
 import Log from '../../libs/Log';
+import OptionsListSkeletonView from '../OptionsListSkeletonView';
 
 const propTypes = {
     ...keyboardStatePropTypes,
@@ -47,6 +48,7 @@ function BaseSelectionList({
     confirmButtonText = '',
     onConfirm,
     showScrollIndicator = false,
+    showLoadingPlaceholder = false,
     isKeyboardShown = false,
 }) {
     const {translate} = useLocalize();
@@ -326,50 +328,56 @@ function BaseSelectionList({
                                 <Text style={[styles.textLabel, styles.colorMuted]}>{headerMessage}</Text>
                             </View>
                         )}
-                        {!headerMessage && canSelectMultiple && shouldShowSelectAll && (
-                            <PressableWithFeedback
-                                style={[styles.peopleRow, styles.userSelectNone, styles.ph5, styles.pb3]}
-                                onPress={onSelectAll}
-                                accessibilityLabel={translate('workspace.people.selectAll')}
-                                accessibilityRole="button"
-                                accessibilityState={{checked: flattenedSections.allSelected}}
-                            >
-                                <Checkbox
-                                    accessibilityLabel={translate('workspace.people.selectAll')}
-                                    isChecked={flattenedSections.allSelected}
-                                    onPress={onSelectAll}
+                        {flattenedSections.allOptions.length === 0 && showLoadingPlaceholder ? (
+                            <OptionsListSkeletonView shouldAnimate />
+                        ) : (
+                            <>
+                                {!headerMessage && canSelectMultiple && shouldShowSelectAll && (
+                                    <PressableWithFeedback
+                                        style={[styles.peopleRow, styles.userSelectNone, styles.ph5, styles.pb3]}
+                                        onPress={onSelectAll}
+                                        accessibilityLabel={translate('workspace.people.selectAll')}
+                                        accessibilityRole="button"
+                                        accessibilityState={{checked: flattenedSections.allSelected}}
+                                    >
+                                        <Checkbox
+                                            accessibilityLabel={translate('workspace.people.selectAll')}
+                                            isChecked={flattenedSections.allSelected}
+                                            onPress={onSelectAll}
+                                        />
+                                        <View style={[styles.flex1]}>
+                                            <Text style={[styles.textStrong, styles.ph5]}>{translate('workspace.people.selectAll')}</Text>
+                                        </View>
+                                    </PressableWithFeedback>
+                                )}
+                                <SectionList
+                                    ref={listRef}
+                                    sections={sections}
+                                    renderSectionHeader={renderSectionHeader}
+                                    renderItem={renderItem}
+                                    getItemLayout={getItemLayout}
+                                    onScroll={onScroll}
+                                    onScrollBeginDrag={onScrollBeginDrag}
+                                    keyExtractor={(item) => item.keyForList}
+                                    extraData={focusedIndex}
+                                    indicatorStyle="white"
+                                    keyboardShouldPersistTaps="always"
+                                    showsVerticalScrollIndicator={showScrollIndicator}
+                                    initialNumToRender={12}
+                                    maxToRenderPerBatch={5}
+                                    windowSize={5}
+                                    viewabilityConfig={{viewAreaCoveragePercentThreshold: 95}}
+                                    testID="selection-list"
+                                    onLayout={() => {
+                                        if (!firstLayoutRef.current) {
+                                            return;
+                                        }
+                                        scrollToIndex(focusedIndex, false);
+                                        firstLayoutRef.current = false;
+                                    }}
                                 />
-                                <View style={[styles.flex1]}>
-                                    <Text style={[styles.textStrong, styles.ph5]}>{translate('workspace.people.selectAll')}</Text>
-                                </View>
-                            </PressableWithFeedback>
+                            </>
                         )}
-                        <SectionList
-                            ref={listRef}
-                            sections={sections}
-                            renderSectionHeader={renderSectionHeader}
-                            renderItem={renderItem}
-                            getItemLayout={getItemLayout}
-                            onScroll={onScroll}
-                            onScrollBeginDrag={onScrollBeginDrag}
-                            keyExtractor={(item) => item.keyForList}
-                            extraData={focusedIndex}
-                            indicatorStyle="white"
-                            keyboardShouldPersistTaps="always"
-                            showsVerticalScrollIndicator={showScrollIndicator}
-                            initialNumToRender={12}
-                            maxToRenderPerBatch={5}
-                            windowSize={5}
-                            viewabilityConfig={{viewAreaCoveragePercentThreshold: 95}}
-                            testID="selection-list"
-                            onLayout={() => {
-                                if (!firstLayoutRef.current) {
-                                    return;
-                                }
-                                scrollToIndex(focusedIndex, false);
-                                firstLayoutRef.current = false;
-                            }}
-                        />
                         {shouldShowConfirmButton && (
                             <FixedFooter>
                                 <Button

@@ -150,6 +150,9 @@ const propTypes = {
 
     /** Whether to show the vertical scroll indicator */
     showScrollIndicator: PropTypes.bool,
+
+    /** Whether to show the loading placeholder */
+    showLoadingPlaceholder: PropTypes.bool,
 };
 
 export {propTypes, radioListItemPropTypes, checkboxListItemPropTypes};
