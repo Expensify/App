@@ -2418,7 +2418,7 @@ function isIOUOwnedByCurrentUser(report, allReportsDict = null) {
  * @param {Object} report (chatReport or iouReport)
  * @returns {boolean}
  */
-function isPlainDirectMessage(report) {
+function isOneOnOneChat(report) {
     return (
         !isThread(report) &&
         !isChatRoom(report) &&
@@ -3304,7 +3304,7 @@ export {
     shouldDisableSettings,
     shouldDisableRename,
     hasSingleParticipant,
-    isPlainDirectMessage,
+    isOneOnOneChat,
     getTransactionReportName,
     getTransactionDetails,
     getTaskAssigneeChatOnyxData,
