@@ -167,7 +167,6 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, polic
                     description={isDistanceRequest ? translate('tabSelector.distance') : translate('common.merchant')}
                     title={transactionMerchant}
                     shouldShowRightIcon={false}
-                    disabled
                 />
             </OfflineWithFeedback>
             {shouldShowHorizontalRule && <View style={styles.reportHorizontalRule} />}
