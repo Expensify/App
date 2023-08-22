@@ -25,6 +25,7 @@ import ROUTES from '../ROUTES';
 import ScreenWrapper from './ScreenWrapper';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import * as ErrorUtils from '../libs/ErrorUtils';
+import usePrevious from '../hooks/usePrevious';
 
 const MAX_WAYPOINTS = 25;
 const MAX_WAYPOINTS_TO_DISPLAY = 4;
@@ -89,6 +90,8 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
     const lastWaypointIndex = numberOfWaypoints - 1;
     const isLoadingRoute = lodashGet(transaction, 'comment.isLoading', false);
     const hasRouteError = Boolean(lodashGet(transaction, 'errorFields.route'));
+    const previousWaypoints = usePrevious(waypoints);
+    const haveWaypointsChanged = !_.isEqual(previousWaypoints, waypoints);
 
     const waypointMarkers = _.filter(
         _.map(waypoints, (waypoint, key) => {
@@ -143,12 +146,8 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
         setShouldShowGradient(visibleAreaEnd < scrollContentHeight);
     };
 
-    const previousWaypointsRef = useRef();
-
     // Handle fetching the route when there are at least 2 waypoints
     useEffect(() => {
-        // Check if the waypoints have changed by comparing with the previous value stored in the ref
-        const haveWaypointsChanged = !_.isEqual(previousWaypointsRef.current, waypoints);
         if (!haveWaypointsChanged) {
             return;
         }
@@ -159,8 +158,7 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
         }
 
         Transaction.getRoute(transactionID, waypoints);
-        previousWaypointsRef.current = waypoints;
-    }, [numberOfWaypoints, waypoints, transactionID, isLoadingRoute, isOffline]);
+    }, [haveWaypointsChanged, waypoints, transactionID, isLoadingRoute, isOffline]);
 
     useEffect(updateGradientVisibility, [scrollContainerHeight, scrollContentHeight]);
 
