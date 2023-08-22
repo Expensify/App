@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import {format} from 'date-fns';
+import {format, parseISO, isValid} from 'date-fns';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import CONST from '../CONST';
@@ -15,7 +15,7 @@ Onyx.connect({
         if (!val) {
             return;
         }
-        allTransactions = val;
+        allTransactions = _.pick(val, (transaction) => transaction);
     },
 });
 
@@ -26,16 +26,31 @@ Onyx.connect({
  * @param {String} currency
  * @param {String} reportID
  * @param {String} [comment]
+ * @param {String} [created]
  * @param {String} [source]
  * @param {String} [originalTransactionID]
  * @param {String} [merchant]
  * @param {Object} [receipt]
+ * @param {String} [filename]
+ * @param {String} [existingTransactionID] When creating a distance request, an empty transaction has already been created with a transactionID. In that case, the transaction here needs to have it's transactionID match what was already generated.
  * @returns {Object}
  */
-function buildOptimisticTransaction(amount, currency, reportID, comment = '', source = '', originalTransactionID = '', merchant = CONST.REPORT.TYPE.IOU, receipt = {}) {
+function buildOptimisticTransaction(
+    amount,
+    currency,
+    reportID,
+    comment = '',
+    created = '',
+    source = '',
+    originalTransactionID = '',
+    merchant = CONST.REPORT.TYPE.IOU,
+    receipt = {},
+    filename = '',
+    existingTransactionID = null,
+) {
     // transactionIDs are random, positive, 64-bit numeric strings.
     // Because JS can only handle 53-bit numbers, transactionIDs are strings in the front-end (just like reportActionID)
-    const transactionID = NumberUtils.rand64();
+    const transactionID = existingTransactionID || NumberUtils.rand64();
 
     const commentJSON = {comment};
     if (source) {
@@ -51,11 +66,20 @@ function buildOptimisticTransaction(amount, currency, reportID, comment = '', so
         currency,
         reportID,
         comment: commentJSON,
-        merchant,
-        created: DateUtils.getDBTime(),
+        merchant: merchant || CONST.REPORT.TYPE.IOU,
+        created: created || DateUtils.getDBTime(),
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         receipt,
+        filename,
     };
+}
+
+/**
+ * @param {Object|null} transaction
+ * @returns {Boolean}
+ */
+function hasReceipt(transaction) {
+    return !_.isEmpty(lodashGet(transaction, 'receipt'));
 }
 
 /**
@@ -93,7 +117,12 @@ function getUpdatedTransaction(transaction, transactionChanges, isFromExpenseRep
     if (shouldStopSmartscan && _.has(transaction, 'receipt') && !_.isEmpty(transaction.receipt) && lodashGet(transaction, 'receipt.state') !== CONST.IOU.RECEIPT_STATE.OPEN) {
         updatedTransaction.receipt.state = CONST.IOU.RECEIPT_STATE.OPEN;
     }
-    updatedTransaction.pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
+    updatedTransaction.pendingFields = {
+        ...(_.has(transactionChanges, 'comment') && {comment: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+        ...(_.has(transactionChanges, 'created') && {created: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+        ...(_.has(transactionChanges, 'amount') && {amount: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+        ...(_.has(transactionChanges, 'currency') && {currency: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+    };
 
     return updatedTransaction;
 }
@@ -127,13 +156,26 @@ function getDescription(transaction) {
  * @returns {Number}
  */
 function getAmount(transaction, isFromExpenseReport) {
-    // In case of expense reports, the amounts are stored using an opposite sign
-    const multiplier = isFromExpenseReport ? -1 : 1;
-    const amount = lodashGet(transaction, 'modifiedAmount', 0);
-    if (amount) {
-        return multiplier * amount;
+    // IOU requests cannot have negative values but they can be stored as negative values, let's return absolute value
+    if (!isFromExpenseReport) {
+        const amount = lodashGet(transaction, 'modifiedAmount', 0);
+        if (amount) {
+            return Math.abs(amount);
+        }
+        return Math.abs(lodashGet(transaction, 'amount', 0));
     }
-    return multiplier * lodashGet(transaction, 'amount', 0);
+
+    // Expense report case:
+    // The amounts are stored using an opposite sign and negative values can be set,
+    // we need to return an opposite sign than is saved in the transaction object
+    let amount = lodashGet(transaction, 'modifiedAmount', 0);
+    if (amount) {
+        return -amount;
+    }
+
+    // To avoid -0 being shown, lets only change the sign if the value is other than 0.
+    amount = lodashGet(transaction, 'amount', 0);
+    return amount ? -amount : 0;
 }
 
 /**
@@ -147,7 +189,17 @@ function getCurrency(transaction) {
     if (currency) {
         return currency;
     }
-    return lodashGet(transaction, 'currency', '');
+    return lodashGet(transaction, 'currency', CONST.CURRENCY.USD);
+}
+
+/**
+ * Return the merchant field from the transaction, return the modifiedMerchant if present.
+ *
+ * @param {Object} transaction
+ * @returns {String}
+ */
+function getMerchant(transaction) {
+    return lodashGet(transaction, 'modifiedMerchant', null) || lodashGet(transaction, 'merchant', '');
 }
 
 /**
@@ -157,11 +209,45 @@ function getCurrency(transaction) {
  * @returns {String}
  */
 function getCreated(transaction) {
-    const created = lodashGet(transaction, 'modifiedCreated', '');
-    if (created) {
-        return format(new Date(created), CONST.DATE.FNS_FORMAT_STRING);
+    const created = lodashGet(transaction, 'modifiedCreated', '') || lodashGet(transaction, 'created', '');
+    const createdDate = parseISO(created);
+    if (isValid(createdDate)) {
+        return format(createdDate, CONST.DATE.FNS_FORMAT_STRING);
     }
-    return format(new Date(lodashGet(transaction, 'created', '')), CONST.DATE.FNS_FORMAT_STRING);
+
+    return '';
 }
 
-export {buildOptimisticTransaction, getUpdatedTransaction, getTransaction, getDescription, getAmount, getCurrency, getCreated};
+/**
+ * Get the details linked to the IOU reportAction
+ *
+ * @param {Object} reportAction
+ * @returns {Object}
+ */
+function getLinkedTransaction(reportAction = {}) {
+    const transactionID = lodashGet(reportAction, ['originalMessage', 'IOUTransactionID'], '');
+    return allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] || {};
+}
+
+function getAllReportTransactions(reportID) {
+    return _.filter(allTransactions, (transaction) => transaction.reportID === reportID);
+}
+
+function isReceiptBeingScanned(transaction) {
+    return transaction.receipt.state === CONST.IOU.RECEIPT_STATE.SCANREADY || transaction.receipt.state === CONST.IOU.RECEIPT_STATE.SCANNING;
+}
+
+export {
+    buildOptimisticTransaction,
+    getUpdatedTransaction,
+    getTransaction,
+    getDescription,
+    getAmount,
+    getCurrency,
+    getMerchant,
+    getCreated,
+    getLinkedTransaction,
+    getAllReportTransactions,
+    hasReceipt,
+    isReceiptBeingScanned,
+};

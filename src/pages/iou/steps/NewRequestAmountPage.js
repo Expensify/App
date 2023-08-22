@@ -37,6 +37,8 @@ const propTypes = {
         id: PropTypes.string,
         amount: PropTypes.number,
         currency: PropTypes.string,
+        merchant: PropTypes.string,
+        created: PropTypes.string,
         participants: PropTypes.arrayOf(
             PropTypes.shape({
                 accountID: PropTypes.number,
@@ -60,6 +62,8 @@ const defaultProps = {
     iou: {
         id: '',
         amount: 0,
+        created: '',
+        merchant: '',
         currency: CONST.CURRENCY.USD,
         participants: [],
     },
@@ -145,7 +149,7 @@ function NewRequestAmountPage({route, iou, report}) {
     };
 
     const navigateToNextPage = (currentAmount) => {
-        const amountInSmallestCurrencyUnits = CurrencyUtils.convertToSmallestUnit(currency, Number.parseFloat(currentAmount));
+        const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(currentAmount));
         IOU.setMoneyRequestAmount(amountInSmallestCurrencyUnits);
         IOU.setMoneyRequestCurrency(currency);
 
