@@ -54,7 +54,6 @@ import containerComposeStyles from '../../../styles/containerComposeStyles';
 import * as Task from '../../../libs/actions/Task';
 import * as Browser from '../../../libs/Browser';
 import * as IOU from '../../../libs/actions/IOU';
-import * as EmojiPickerAction from '../../../libs/actions/EmojiPickerAction';
 import useArrowKeyFocusManager from '../../../hooks/useArrowKeyFocusManager';
 import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
 import usePrevious from '../../../hooks/usePrevious';
@@ -977,8 +976,8 @@ function ReportActionCompose({
             unsubscribeNavigationBlur();
             unsubscribeNavigationFocus();
 
-            if (EmojiPickerAction.isActive(report.reportID)) {
-                EmojiPickerAction.hideEmojiPicker();
+            if (EmojiPickerActions.isActive(report.reportID)) {
+                EmojiPickerActions.hideEmojiPicker();
             }
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
