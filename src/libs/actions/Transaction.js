@@ -68,6 +68,15 @@ function saveWaypoint(transactionID, index, waypoint) {
         errorFields: {
             route: null,
         },
+
+        // Clear the existing route so that we don't show an old route
+        routes: {
+            route0: {
+                geometry: {
+                    coordinates: null
+                }
+            }
+        },
     });
 }
 
@@ -100,6 +109,14 @@ function removeWaypoint(transactionID, currentIndex) {
         comment: {
             ...transaction.comment,
             waypoints: reIndexedWaypoints,
+        },
+        // Clear the existing route so that we don't show an old route
+        routes: {
+            route0: {
+                geometry: {
+                    coordinates: null
+                }
+            }
         },
     };
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, newTransaction);
