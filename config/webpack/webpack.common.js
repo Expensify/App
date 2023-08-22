@@ -184,7 +184,6 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
         alias: {
             'react-native-config': 'react-web-config',
             'react-native$': 'react-native-web',
-            'react-native-web': 'react-native-web',
             'react-content-loader/native': 'react-content-loader',
             'lottie-react-native': 'react-native-web-lottie',
         },
