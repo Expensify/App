@@ -121,7 +121,7 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, polic
                     style={[StyleUtils.getReportWelcomeBackgroundImageStyle(true)]}
                 />
             </View>
-                
+
             {hasReceipt && (
                 <View style={styles.moneyRequestViewImage}>
                     <ReportActionItemImage
