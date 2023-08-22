@@ -19,6 +19,7 @@ import * as StyleUtils from '../../styles/StyleUtils';
 import useLocalize from '../../hooks/useLocalize';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
 import Log from '../../libs/Log';
+import * as DemoActions from '../../libs/actions/DemoActions';
 
 const propTypes = {
     /** The details about the account that the user is signing in with */
@@ -113,10 +114,7 @@ function SignInPage({credentials, account, isInModal, demoInfo}) {
 
     let welcomeHeader = '';
     let welcomeText = '';
-    let customHeadline = '';
-    if (demoInfo.saastr && demoInfo.saastr.isBeginningDemo) {
-        customHeadline = translate('demos.saastr.signInWelcome');
-    }
+    let customHeadline = DemoActions.getHeadlineKeyByDemoInfo(demoInfo);
     const headerText = customHeadline || translate('login.hero.header');
     if (shouldShowLoginForm) {
         welcomeHeader = isSmallScreenWidth ? headerText : translate('welcomeText.getStarted');

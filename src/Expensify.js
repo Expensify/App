@@ -30,7 +30,7 @@ import KeyboardShortcutsModal from './components/KeyboardShortcutsModal';
 import AppleAuthWrapper from './components/SignInButtons/AppleAuthWrapper';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
 import * as EmojiPickerAction from './libs/actions/EmojiPickerAction';
-import * as App from './libs/actions/App';
+import * as DemoActions from './libs/actions/DemoActions';
 import DeeplinkWrapper from './components/DeeplinkWrapper';
 
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
@@ -165,13 +165,13 @@ function Expensify(props) {
 
         // If the app is opened from a deep link, get the reportID (if exists) from the deep link and navigate to the chat report
         Linking.getInitialURL().then((url) => {
-            App.runDemoByURL(url);
+            DemoActions.runDemoByURL(url);
             Report.openReportFromDeepLink(url, isAuthenticated);
         });
 
         // Open chat report from a deep link (only mobile native)
         Linking.addEventListener('url', (state) => {
-            App.runDemoByURL(state.url);
+            DemoActions.runDemoByURL(state.url);
             Report.openReportFromDeepLink(state.url, isAuthenticated);
         });
 
