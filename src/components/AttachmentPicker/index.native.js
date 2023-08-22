@@ -95,7 +95,7 @@ function AttachmentPicker({type, children}) {
 
     const completeAttachmentSelection = useRef();
     const onModalHide = useRef();
-    const onCancel = useRef();
+    const onCanceled = useRef();
 
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -217,9 +217,11 @@ function AttachmentPicker({type, children}) {
      * Opens the attachment modal
      *
      * @param {function} onPickedHandler A callback that will be called with the selected attachment
+     * @param {function} onCanceledHandler A callback that will be called without a selected attachment
      */
-    const open = (onPickedHandler) => {
+    const open = (onPickedHandler, onCanceledHandler = () => {}) => {
         completeAttachmentSelection.current = onPickedHandler;
+        onCanceled.current = onCanceledHandler;
         setIsVisible(true);
     };
 
@@ -240,7 +242,7 @@ function AttachmentPicker({type, children}) {
     const pickAttachment = useCallback(
         (attachments = []) => {
             if (attachments.length === 0) {
-                onCancel.current();
+                onCanceled.current();
                 return Promise.resolve();
             }
 
@@ -310,10 +312,7 @@ function AttachmentPicker({type, children}) {
      */
     const renderChildren = () =>
         children({
-            openPicker: ({onPicked, onCanceled = () => {}}) => {
-                open(onPicked);
-                onCancel.current = onCanceled;
-            },
+            openPicker: ({onPicked, onCanceled: newOnCanceled}) => open(onPicked, newOnCanceled),
         });
 
     return (
@@ -321,7 +320,7 @@ function AttachmentPicker({type, children}) {
             <Popover
                 onClose={() => {
                     close();
-                    onCancel.current();
+                    onCanceled.current();
                 }}
                 isVisible={isVisible}
                 anchorPosition={styles.createMenuPosition}
