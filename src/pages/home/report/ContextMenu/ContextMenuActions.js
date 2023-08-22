@@ -180,7 +180,7 @@ export default [
             reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED &&
             reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.TASKREOPENED &&
             !ReportActionUtils.isCreatedTaskReportAction(reportAction) &&
-            !ReportUtils.isReportMessageAttachment(_.last(lodashGet(reportAction, ['message'], [{}]))) &&
+            !ReportActionUtils.isReportActionAttachment(reportAction) &&
             !ReportActionUtils.isMessageDeleted(reportAction),
 
         // If return value is true, we switch the `text` and `icon` on
