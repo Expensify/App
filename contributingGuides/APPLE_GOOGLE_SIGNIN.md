@@ -146,10 +146,17 @@ On an Android build, alter the `AppleSignIn` component to log the token generate
 
 If you need to check that you received the correct data, check it on [jwt.io](https://jwt.io), which will decode it if it is a valid JWT token. It will also show when the token expires.
 
-Add this token to a `.env` file at the root of the project:
+Hardcode this token into `Session.beginAppleSignIn`, and but also verify a valid token was passed into the function, for example:
 
 ```
-ASI_TOKEN_OVERRIDE="..."
+function beginAppleSignIn(idToken) {
++   // Show that a token was passed in, without logging the token, for privacy
++   window.alert(`ORIGINAL ID TOKEN LENGTH: ${idToken.length}`);
++   const hardcodedToken = '...';
+    const {optimisticData, successData, failureData} = signInAttemptState();
++   API.write('SignInWithApple', {idToken: hardcodedToken}, {optimisticData, successData, failureData});
+-   API.write('SignInWithApple', {idToken}, {optimisticData, successData, failureData});
+}
 ```
 
 #### Configure the SSH tunneling
