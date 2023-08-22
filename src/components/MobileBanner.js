@@ -18,6 +18,7 @@ import * as Link from '../libs/actions/Link';
 import * as Browser from '../libs/Browser';
 import getOperatingSystem from '../libs/getOperatingSystem';
 import setShowDownloadAppBanner from '../libs/actions/DownloadAppBanner';
+import ConfirmModal from './ConfirmModal';
 
 const propTypes = {
     showDownloadAppBanner: PropTypes.bool,
@@ -28,7 +29,9 @@ const defaultProps = {
 };
 
 function MobileBanner({showDownloadAppBanner}) {
-    const [shouldShowBanner, setshouldShowBanner] = useState(Browser.isMobile() && showDownloadAppBanner);
+    const [shouldShowBanner, setshouldShowBanner] = useState(Browser.isMobile() || true);
+    const [isModalOpen, setIsModalOpen] = useState(true);
+
     const {translate} = useLocalize();
 
     const handleCloseBanner = () => {
@@ -49,49 +52,61 @@ function MobileBanner({showDownloadAppBanner}) {
     };
 
     return (
-        shouldShowBanner && (
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.pv4, styles.ph5, styles.gap4, styles.activeComponentBG, styles.mw100]}>
-                <View style={[styles.flex1, styles.flexRow, styles.flexGrow1, styles.alignItemsCenter]}>
-                    <View style={[styles.alignItemsCenter, styles.gap3, styles.flexRow, styles.flex1]}>
-                        <Icon
-                            src={AppIcon}
-                            width={variables.mobileBannerAppIconSize}
-                            height={variables.mobileBannerAppIconSize}
-                            additionalStyles={[styles.appIconBorderRadius]}
-                        />
-                        <View style={[styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStart, styles.flex1]}>
-                            <Text
-                                style={[styles.alignSelfStretch, styles.textLabel, styles.textStrong]}
-                                suppressHighlighting
-                            >
-                                {translate('mobileBanner.downloadTheApp')}
-                            </Text>
-                            <Text
-                                style={[styles.alignSelfStretch, styles.textLabel, styles.lh16]}
-                                suppressHighlighting
-                            >
-                                {translate('mobileBanner.keepTheConversationGoing')}
-                            </Text>
-                        </View>
-                    </View>
-                </View>
-                <Button
-                    small
-                    success
-                    text={translate('common.download')}
-                    onPress={handleOpenAppStore}
-                />
-                <Tooltip text={translate('common.close')}>
-                    <PressableWithFeedback
-                        onPress={handleCloseBanner}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                        accessibilityLabel={translate('common.close')}
-                    >
-                        <Icon src={Expensicons.Close} />
-                    </PressableWithFeedback>
-                </Tooltip>
-            </View>
-        )
+        <ConfirmModal
+            title={translate('mobileBanner.downloadTheApp')}
+            isVisible={shouldShowBanner}
+            onConfirm={handleOpenAppStore}
+            onCancel={handleCloseBanner}
+            prompt={translate('mobileBanner.keepTheConversationGoing')}
+            confirmText={translate('common.download')}
+            cancelText={translate('mobileBanner.noThanks')}
+            // shouldCenterContent
+            iconSource={AppIcon}
+            promptStyles={[styles.textNormal, styles.lh20]}
+            titleStyles={[styles.textHeadline]}
+            iconStyles={[styles.appIconBorderRadius]}
+        />
+        // <View style={[styles.flexRow, styles.alignItemsCenter, styles.pv4, styles.ph5, styles.gap4, styles.activeComponentBG, styles.mw100]}>
+        //     <View style={[styles.flex1, styles.flexRow, styles.flexGrow1, styles.alignItemsCenter]}>
+        //         <View style={[styles.alignItemsCenter, styles.gap3, styles.flexRow, styles.flex1]}>
+        //             <Icon
+        //                 src={AppIcon}
+        //                 width={variables.mobileBannerAppIconSize}
+        //                 height={variables.mobileBannerAppIconSize}
+        //                 additionalStyles={[styles.appIconBorderRadius]}
+        //             />
+        //             <View style={[styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStart, styles.flex1]}>
+        //                 <Text
+        //                     style={[styles.alignSelfStretch, styles.textLabel, styles.textStrong]}
+        //                     suppressHighlighting
+        //                 >
+        //                     {translate('mobileBanner.downloadTheApp')}
+        //                 </Text>
+        //                 <Text
+        //                     style={[styles.alignSelfStretch, styles.textLabel, styles.lh16]}
+        //                     suppressHighlighting
+        //                 >
+        //                     {translate('mobileBanner.keepTheConversationGoing')}
+        //                 </Text>
+        //             </View>
+        //         </View>
+        //     </View>
+        //     <Button
+        //         small
+        //         success
+        //         text={translate('common.download')}
+        //         onPress={handleOpenAppStore}
+        //     />
+        //     <Tooltip text={translate('common.close')}>
+        //         <PressableWithFeedback
+        //             onPress={handleCloseBanner}
+        //             accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+        //             accessibilityLabel={translate('common.close')}
+        //         >
+        //             <Icon src={Expensicons.Close} />
+        //         </PressableWithFeedback>
+        //     </Tooltip>
+        // </View>
     );
 }
 

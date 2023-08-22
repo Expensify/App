@@ -45,6 +45,19 @@ const propTypes = {
     /** Should we announce the Modal visibility changes? */
     shouldSetModalVisibility: PropTypes.bool,
 
+    iconSource: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
+
+    /** Styles for title */
+    // eslint-disable-next-line react/forbid-prop-types
+    titleStyles: PropTypes.arrayOf(PropTypes.object),
+
+
+    /** Styles for prompt */
+    // eslint-disable-next-line react/forbid-prop-types
+    promptStyles: PropTypes.arrayOf(PropTypes.object),
+
+    shouldCenterContent: PropTypes.bool,
+
     ...windowDimensionsPropTypes,
 };
 
@@ -59,7 +72,11 @@ const defaultProps = {
     shouldShowCancelButton: true,
     shouldSetModalVisibility: true,
     title: '',
+    iconSource: null,
+    shouldCenterContent: false,
     onModalHide: () => {},
+    titleStyles: [],
+    promptStyles: [],
 };
 
 function ConfirmModal(props) {
@@ -85,6 +102,11 @@ function ConfirmModal(props) {
                 danger={props.danger}
                 shouldDisableConfirmButtonWhenOffline={props.shouldDisableConfirmButtonWhenOffline}
                 shouldShowCancelButton={props.shouldShowCancelButton}
+                shouldCenterContent={props.shouldCenterContent}
+                iconSource={props.iconSource}
+                iconStyles={props.iconStyles}
+                titleStyles={props.titleStyles}
+                promptStyles={props.promptStyles}
             />
         </Modal>
     );

@@ -248,6 +248,7 @@ export default {
     mobileBanner: {
         downloadTheApp: 'Descarga la aplicación',
         keepTheConversationGoing: 'Mantén la conversación en New Expensify.',
+        noThanks: '',
     },
     login: {
         hero: {

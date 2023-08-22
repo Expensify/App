@@ -248,7 +248,8 @@ export default {
     },
     mobileBanner: {
         downloadTheApp: 'Download the app',
-        keepTheConversationGoing: 'Keep the conversation going in New Expensify.',
+        keepTheConversationGoing: 'Keep the conversation going in New Expensify, download the app for an enhanced experience.',
+        noThanks: 'No thanks',
     },
     login: {
         hero: {

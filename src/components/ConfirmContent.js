@@ -8,6 +8,9 @@ import Button from './Button';
 import useLocalize from '../hooks/useLocalize';
 import useNetwork from '../hooks/useNetwork';
 import Text from './Text';
+import variables from '../styles/variables';
+import AppIcon from '../../assets/images/expensify-app-icon.svg';
+import Icon from './Icon';
 
 const propTypes = {
     /** Title of the modal */
@@ -40,9 +43,28 @@ const propTypes = {
     /** Whether we should show the cancel button */
     shouldShowCancelButton: PropTypes.bool,
 
+    iconSource: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
+
+    shouldCenterContent: PropTypes.bool,
+
+    /** Styles for title */
+    // eslint-disable-next-line react/forbid-prop-types
+    titleStyles: PropTypes.arrayOf(PropTypes.object),
+
+
+    /** Styles for prompt */
+    // eslint-disable-next-line react/forbid-prop-types
+    promptStyles: PropTypes.arrayOf(PropTypes.object),
+
+
     /** Styles for view */
     // eslint-disable-next-line react/forbid-prop-types
     contentStyles: PropTypes.arrayOf(PropTypes.object),
+
+
+    /** Styles for icon */
+    // eslint-disable-next-line react/forbid-prop-types
+    iconStyles: PropTypes.arrayOf(PropTypes.object),
 };
 
 const defaultProps = {
@@ -55,6 +77,12 @@ const defaultProps = {
     shouldDisableConfirmButtonWhenOffline: false,
     shouldShowCancelButton: true,
     contentStyles: [],
+    iconSource: null,
+    shouldCenterContent: false,
+    titleStyles: [],
+    promptStyles: [],
+    iconStyles: [],
+
 };
 
 function ConfirmContent(props) {
@@ -63,29 +91,69 @@ function ConfirmContent(props) {
 
     return (
         <View style={[styles.m5, ...props.contentStyles]}>
-            <View style={[styles.flexRow, styles.mb4]}>
-                <Header title={props.title} />
+            <View style={props.shouldCenterContent ? [styles.alignItemsCenter, styles.mb6] : []}>
+                {!_.isEmpty(props.iconSource) || _.isFunction(props.iconSource) && (
+                    <View style={[styles.flexRow, styles.mb3]}>
+                        <Icon
+                            src={props.iconSource}
+                            width={variables.mobileBannerAppIconSize}
+                            height={variables.mobileBannerAppIconSize}
+                            additionalStyles={[[...props.iconStyles]]}
+                        />
+                    </View>
+                )}
+
+                <View style={[styles.flexRow, props.shouldCenterContent  ? {} : styles.mb4]}>
+                    <Header title={props.title} textStyles={[...props.titleStyles]}/>
+                </View>
+
+                {_.isString(props.prompt) ? <Text style={[...props.promptStyles, props.shouldCenterContent ? styles.textAlignCenter : {}]}>{props.prompt}</Text> : props.prompt}
             </View>
 
-            {_.isString(props.prompt) ? <Text>{props.prompt}</Text> : props.prompt}
-
-            <Button
-                success={props.success}
-                danger={props.danger}
-                style={[styles.mt4]}
-                onPress={props.onConfirm}
-                pressOnEnter
-                text={props.confirmText || translate('common.yes')}
-                isDisabled={isOffline && props.shouldDisableConfirmButtonWhenOffline}
-            />
-            {props.shouldShowCancelButton && (
-                <Button
-                    style={[styles.mt3, styles.noSelect]}
-                    onPress={props.onCancel}
-                    text={props.cancelText || translate('common.no')}
-                    shouldUseDefaultHover
-                />
-            )}
+            {props.shouldCenterContent ? (
+                <View style={[styles.flexRow, styles.gap4]}>
+                    {props.shouldShowCancelButton && (
+                        <Button
+                            style={[styles.noSelect, styles.flex1]}
+                            onPress={props.onCancel}
+                            text={props.cancelText || translate('common.no')}
+                            shouldUseDefaultHover
+                            medium
+                        />
+                    )}
+                    <Button
+                        success={props.success}
+                        danger={props.danger}
+                        style={[styles.flex1]}
+                        onPress={props.onConfirm}
+                        pressOnEnter
+                        text={props.confirmText || translate('common.yes')}
+                        isDisabled={isOffline && props.shouldDisableConfirmButtonWhenOffline}
+                        medium
+                    />
+                </View>
+            ) : (
+                <>
+                    <Button
+                        success={props.success}
+                        danger={props.danger}
+                        style={[styles.mt4]}
+                        onPress={props.onConfirm}
+                        pressOnEnter
+                        text={props.confirmText || translate('common.yes')}
+                        isDisabled={isOffline && props.shouldDisableConfirmButtonWhenOffline}
+                    />
+                    {props.shouldShowCancelButton && (
+                        <Button
+                            style={[styles.mt3, styles.noSelect]}
+                            onPress={props.onCancel}
+                            text={props.cancelText || translate('common.no')}
+                            shouldUseDefaultHover
+                        />
+                    ) }
+                </>
+            )
+        }
         </View>
     );
 }
