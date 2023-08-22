@@ -1302,6 +1302,22 @@ function getCheckboxContainerStyle(size, borderRadius) {
     };
 }
 
+/**
+ * Returns style object for the dropbutton height
+ * @param {String} buttonSize
+ * @returns {Object}
+ */
+function getDropDownButtonHeight(buttonSize) {
+    if (buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE) {
+        return {
+            height: variables.componentSizeLarge,
+        };
+    }
+    return {
+        height: variables.componentSizeNormal,
+    };
+}
+
 export {
     getAvatarSize,
     getAvatarWidthStyle,
@@ -1375,4 +1391,5 @@ export {
     getMenuItemTextContainerStyle,
     getDisabledLinkStyles,
     getCheckboxContainerStyle,
+    getDropDownButtonHeight,
 };

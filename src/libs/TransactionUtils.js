@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import {format} from 'date-fns';
+import {format, parseISO, isValid} from 'date-fns';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import CONST from '../CONST';
@@ -15,7 +15,7 @@ Onyx.connect({
         if (!val) {
             return;
         }
-        allTransactions = val;
+        allTransactions = _.pick(val, (transaction) => transaction);
     },
 });
 
@@ -26,10 +26,12 @@ Onyx.connect({
  * @param {String} currency
  * @param {String} reportID
  * @param {String} [comment]
+ * @param {String} [created]
  * @param {String} [source]
  * @param {String} [originalTransactionID]
  * @param {String} [merchant]
  * @param {Object} [receipt]
+ * @param {String} [filename]
  * @param {String} [existingTransactionID] When creating a distance request, an empty transaction has already been created with a transactionID. In that case, the transaction here needs to have it's transactionID match what was already generated.
  * @returns {Object}
  */
@@ -38,10 +40,12 @@ function buildOptimisticTransaction(
     currency,
     reportID,
     comment = '',
+    created = '',
     source = '',
     originalTransactionID = '',
     merchant = CONST.REPORT.TYPE.IOU,
     receipt = {},
+    filename = '',
     existingTransactionID = null,
 ) {
     // transactionIDs are random, positive, 64-bit numeric strings.
@@ -62,11 +66,20 @@ function buildOptimisticTransaction(
         currency,
         reportID,
         comment: commentJSON,
-        merchant,
-        created: DateUtils.getDBTime(),
+        merchant: merchant || CONST.REPORT.TYPE.IOU,
+        created: created || DateUtils.getDBTime(),
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         receipt,
+        filename,
     };
+}
+
+/**
+ * @param {Object|null} transaction
+ * @returns {Boolean}
+ */
+function hasReceipt(transaction) {
+    return !_.isEmpty(lodashGet(transaction, 'receipt'));
 }
 
 /**
@@ -80,6 +93,7 @@ function buildOptimisticTransaction(
 function getUpdatedTransaction(transaction, transactionChanges, isFromExpenseReport) {
     // Only changing the first level fields so no need for deep clone now
     const updatedTransaction = _.clone(transaction);
+    let shouldStopSmartscan = false;
 
     // The comment property does not have its modifiedComment counterpart
     if (_.has(transactionChanges, 'comment')) {
@@ -90,12 +104,24 @@ function getUpdatedTransaction(transaction, transactionChanges, isFromExpenseRep
     }
     if (_.has(transactionChanges, 'created')) {
         updatedTransaction.modifiedCreated = transactionChanges.created;
+        shouldStopSmartscan = true;
     }
     if (_.has(transactionChanges, 'amount')) {
         updatedTransaction.modifiedAmount = isFromExpenseReport ? -transactionChanges.amount : transactionChanges.amount;
+        shouldStopSmartscan = true;
     }
     if (_.has(transactionChanges, 'currency')) {
         updatedTransaction.modifiedCurrency = transactionChanges.currency;
+        shouldStopSmartscan = true;
+    }
+
+    if (_.has(transactionChanges, 'merchant')) {
+        updatedTransaction.modifiedMerchant = transactionChanges.merchant;
+        shouldStopSmartscan = true;
+    }
+
+    if (shouldStopSmartscan && _.has(transaction, 'receipt') && !_.isEmpty(transaction.receipt) && lodashGet(transaction, 'receipt.state') !== CONST.IOU.RECEIPT_STATE.OPEN) {
+        updatedTransaction.receipt.state = CONST.IOU.RECEIPT_STATE.OPEN;
     }
     updatedTransaction.pendingFields = {
         ...(_.has(transactionChanges, 'comment') && {comment: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
@@ -173,6 +199,16 @@ function getCurrency(transaction) {
 }
 
 /**
+ * Return the merchant field from the transaction, return the modifiedMerchant if present.
+ *
+ * @param {Object} transaction
+ * @returns {String}
+ */
+function getMerchant(transaction) {
+    return lodashGet(transaction, 'modifiedMerchant', null) || lodashGet(transaction, 'merchant', '');
+}
+
+/**
  * Return the created field from the transaction, return the modifiedCreated if present.
  *
  * @param {Object} transaction
@@ -180,9 +216,11 @@ function getCurrency(transaction) {
  */
 function getCreated(transaction) {
     const created = lodashGet(transaction, 'modifiedCreated', '') || lodashGet(transaction, 'created', '');
-    if (created) {
-        return format(new Date(created), CONST.DATE.FNS_FORMAT_STRING);
+    const createdDate = parseISO(created);
+    if (isValid(createdDate)) {
+        return format(createdDate, CONST.DATE.FNS_FORMAT_STRING);
     }
+
     return '';
 }
 
@@ -201,4 +239,35 @@ function getAllReportTransactions(reportID) {
     return _.filter(allTransactions, (transaction) => transaction.reportID === reportID);
 }
 
-export {buildOptimisticTransaction, getUpdatedTransaction, getTransaction, getDescription, getAmount, getCurrency, getCreated, getLinkedTransaction, getAllReportTransactions};
+function isReceiptBeingScanned(transaction) {
+    return transaction.receipt.state === CONST.IOU.RECEIPT_STATE.SCANREADY || transaction.receipt.state === CONST.IOU.RECEIPT_STATE.SCANNING;
+}
+
+/**
+ * @param {Object} transaction
+ * @param {String} transaction.type
+ * @param {Object} [transaction.customUnit]
+ * @param {String} [transaction.customUnit.name]
+ * @returns {Boolean}
+ */
+function isDistanceRequest(transaction) {
+    const type = lodashGet(transaction, 'comment.type');
+    const customUnitName = lodashGet(transaction, 'comment.customUnit.name');
+    return type === CONST.TRANSACTION.TYPE.CUSTOM_UNIT && customUnitName === CONST.CUSTOM_UNITS.NAME_DISTANCE;
+}
+
+export {
+    buildOptimisticTransaction,
+    getUpdatedTransaction,
+    getTransaction,
+    getDescription,
+    getAmount,
+    getCurrency,
+    getMerchant,
+    getCreated,
+    getLinkedTransaction,
+    getAllReportTransactions,
+    hasReceipt,
+    isReceiptBeingScanned,
+    isDistanceRequest,
+};

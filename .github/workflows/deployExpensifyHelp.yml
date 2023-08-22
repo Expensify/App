@@ -28,22 +28,26 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+
       - name: Setup NodeJS
         uses: Expensify/App/.github/actions/composite/setupNode@main
+
       - name: Setup Pages
         uses: actions/configure-pages@f156874f8191504dae5b037505266ed5dda6c382
+
       - name: Create docs routes file
         run: ./.github/scripts/createDocsRoutes.sh
+
       - name: Build with Jekyll
         uses: actions/jekyll-build-pages@0143c158f4fa0c5dcd99499a5d00859d79f70b0e
         with:
           source: ./docs/
           destination: ./docs/_site
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@64bcae551a7b18bcb9a09042ddf1960979799187
         with:
           path: ./docs/_site
-
 
   # Deployment job
   deploy:

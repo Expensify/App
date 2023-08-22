@@ -181,7 +181,7 @@ function ReportActionItemMessageEdit(props) {
      */
     const updateDraft = useCallback(
         (newDraftInput) => {
-            const {text: newDraft = '', emojis = []} = EmojiUtils.replaceEmojis(newDraftInput, props.preferredSkinTone, props.preferredLocale);
+            const {text: newDraft, emojis} = EmojiUtils.replaceAndExtractEmojis(newDraftInput, props.preferredSkinTone, props.preferredLocale);
 
             if (!_.isEmpty(emojis)) {
                 insertedEmojis.current = [...insertedEmojis.current, ...emojis];
@@ -219,6 +219,7 @@ function ReportActionItemMessageEdit(props) {
         debouncedSaveDraft.cancel();
         Report.saveReportActionDraft(props.reportID, props.action, '');
         ComposerActions.setShouldShowComposeInput(true);
+        ReportActionComposeFocusManager.clear();
         ReportActionComposeFocusManager.focus();
 
         // Scroll to the last comment after editing to make sure the whole comment is clearly visible in the report.

@@ -1,15 +1,15 @@
 import lodashGet from 'lodash/get';
 import React, {useState, useRef} from 'react';
 import _ from 'underscore';
-import moment from 'moment-timezone';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import CONST from '../../../CONST';
+import TIMEZONES from '../../../TIMEZONES';
 import * as PersonalDetails from '../../../libs/actions/PersonalDetails';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
-import SelectionListRadio from '../../../components/SelectionListRadio';
+import SelectionList from '../../../components/SelectionList';
 import useLocalize from '../../../hooks/useLocalize';
 
 const propTypes = {
@@ -37,7 +37,7 @@ function TimezoneSelectPage(props) {
     const {translate} = useLocalize();
     const timezone = getUserTimezone(props.currentUserPersonalDetails);
     const allTimezones = useRef(
-        _.chain(moment.tz.names())
+        _.chain(TIMEZONES)
             .filter((tz) => !tz.startsWith('Etc/GMT'))
             .map((text) => ({
                 text,
@@ -71,7 +71,7 @@ function TimezoneSelectPage(props) {
                 title={translate('timezonePage.timezone')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_TIMEZONE)}
             />
-            <SelectionListRadio
+            <SelectionList
                 textInputLabel={translate('timezonePage.timezone')}
                 textInputValue={timezoneInputText}
                 onChangeText={filterShownTimezones}
