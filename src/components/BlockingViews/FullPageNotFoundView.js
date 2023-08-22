@@ -69,7 +69,7 @@ function FullPageNotFoundView(props) {
                         iconHeight={variables.modalTopIconHeight}
                         title={props.translate(props.titleKey)}
                         subtitle={props.translate(props.subtitleKey)}
-                        link={props.translate(props.linkKey)}
+                        linkKey={props.translate(props.linkKey)}
                         shouldShowLink={props.shouldShowLink}
                         onLinkPress={props.onLinkPress}
                     />
