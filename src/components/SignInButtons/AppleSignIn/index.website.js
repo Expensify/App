@@ -51,7 +51,7 @@ const config = {
  */
 
 const successListener = (event) => {
-    const token = !Environment.isDevelopment() ? event.detail.id_token : lodashGet(Config, 'ASI_TOKEN_OVERRIDE', event.detail.id_token);
+    const token = !Environment.isDevelopment() ? event.detail.authorization.id_token : lodashGet(Config, 'ASI_TOKEN_OVERRIDE', event.detail.id_token);
     Session.beginAppleSignIn(token);
 };
 
