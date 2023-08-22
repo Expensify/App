@@ -33,29 +33,33 @@ function ImageRenderer(props) {
     //           Concierge responder attachments are uploaded to S3 without any access
     //           control and thus require no authToken to verify access.
     //
-    const isAttachment = Boolean(htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]);
+    const isAttachmentOrReceipt = Boolean(htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]);
 
     // Files created/uploaded/hosted by App should resolve from API ROOT. Other URLs aren't modified
     const previewSource = tryResolveUrlFromApiRoot(htmlAttribs.src);
-    const source = tryResolveUrlFromApiRoot(isAttachment ? htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE] : htmlAttribs.src);
+    const source = tryResolveUrlFromApiRoot(isAttachmentOrReceipt ? htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE] : htmlAttribs.src);
 
     const imageWidth = htmlAttribs['data-expensify-width'] ? parseInt(htmlAttribs['data-expensify-width'], 10) : undefined;
     const imageHeight = htmlAttribs['data-expensify-height'] ? parseInt(htmlAttribs['data-expensify-height'], 10) : undefined;
     const imagePreviewModalDisabled = htmlAttribs['data-expensify-preview-modal-disabled'] === 'true';
 
+    const shouldFitContainer = htmlAttribs['data-expensify-fit-container'] === 'true';
+    const sizingStyle = shouldFitContainer ? [styles.w100, styles.h100] : [];
+
     return imagePreviewModalDisabled ? (
         <ThumbnailImage
             previewSourceURL={previewSource}
-            style={styles.webViewStyles.tagStyles.img}
-            isAuthTokenRequired={isAttachment}
+            style={shouldFitContainer ? [styles.w100, styles.h100] : styles.webViewStyles.tagStyles.img}
+            isAuthTokenRequired={isAttachmentOrReceipt}
             imageWidth={imageWidth}
             imageHeight={imageHeight}
+            shouldDynamicallyResize={!shouldFitContainer}
         />
     ) : (
         <ShowContextMenuContext.Consumer>
             {({anchor, report, action, checkIfContextMenuActive}) => (
                 <PressableWithoutFocus
-                    style={[styles.noOutline]}
+                    style={[styles.noOutline, ...sizingStyle]}
                     onPress={() => {
                         const route = ROUTES.getReportAttachmentRoute(report.reportID, source);
                         Navigation.navigate(route);
@@ -66,10 +70,11 @@ function ImageRenderer(props) {
                 >
                     <ThumbnailImage
                         previewSourceURL={previewSource}
-                        style={styles.webViewStyles.tagStyles.img}
-                        isAuthTokenRequired={isAttachment}
+                        style={shouldFitContainer ? [styles.w100, styles.h100] : styles.webViewStyles.tagStyles.img}
+                        isAuthTokenRequired={isAttachmentOrReceipt}
                         imageWidth={imageWidth}
                         imageHeight={imageHeight}
+                        shouldDynamicallyResize={!shouldFitContainer}
                     />
                 </PressableWithoutFocus>
             )}

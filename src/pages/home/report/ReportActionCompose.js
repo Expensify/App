@@ -659,7 +659,7 @@ function ReportActionCompose({
             }
 
             focus(false);
-        });
+        }, true);
     }, [focus, isFocusedProp]);
 
     /**
@@ -970,7 +970,7 @@ function ReportActionCompose({
         }
 
         return () => {
-            ReportActionComposeFocusManager.clear();
+            ReportActionComposeFocusManager.clear(true);
 
             KeyDownListener.removeKeyDownPressListner(focusComposerOnKeyPress);
             unsubscribeNavigationBlur();
@@ -1197,6 +1197,7 @@ function ReportActionCompose({
                                         shouldClear={textInputShouldClear}
                                         onClear={() => setTextInputShouldClear(false)}
                                         isDisabled={isBlockedFromConcierge || disabled}
+                                        isReportActionCompose
                                         selection={selection}
                                         onSelectionChange={onSelectionChange}
                                         isFullComposerAvailable={isFullSizeComposerAvailable}
