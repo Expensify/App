@@ -27,9 +27,6 @@ const propTypes = {
     /** The message fragment needing to be displayed */
     fragment: reportActionFragmentPropTypes.isRequired,
 
-    /** Is this fragment an attachment? */
-    isAttachment: PropTypes.bool,
-
     /** If this fragment is attachment than has info? */
     attachmentInfo: PropTypes.shape({
         /** The file name of attachment */
@@ -67,7 +64,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    isAttachment: false,
     attachmentInfo: {
         name: '',
         size: 0,

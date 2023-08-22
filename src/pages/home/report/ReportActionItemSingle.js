@@ -230,7 +230,6 @@ function ReportActionItemSingle(props) {
                                     key={`person-${props.action.reportActionID}-${index}`}
                                     accountID={actorAccountID}
                                     fragment={fragment}
-                                    isAttachment={props.action.isAttachment}
                                     delegateAccountID={props.action.delegateAccountID}
                                     isSingleLine
                                     actorIcon={icon}

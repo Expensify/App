@@ -42,7 +42,6 @@ function ReportActionItemMessage(props) {
                     <ReportActionItemFragment
                         key={`actionFragment-${props.action.reportActionID}-${index}`}
                         fragment={fragment}
-                        isAttachment={props.action.isAttachment}
                         hasCommentThread={ReportActionsUtils.hasCommentThread(props.action)}
                         attachmentInfo={props.action.attachmentInfo}
                         pendingAction={props.action.pendingAction}
