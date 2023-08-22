@@ -18,6 +18,7 @@ import Text from '../Text';
 import isEnterWhileComposition from '../../libs/KeyboardShortcut/isEnterWhileComposition';
 import CONST from '../../CONST';
 import withNavigation from '../withNavigation';
+import ReportActionComposeFocusManager from '../../libs/ReportActionComposeFocusManager';
 
 const propTypes = {
     /** Maximum number of lines in the text input */
@@ -79,6 +80,9 @@ const propTypes = {
     /** Function to check whether composer is covered up or not */
     checkComposerVisibility: PropTypes.func,
 
+    /** Whether this is the report action compose */
+    isReportActionCompose: PropTypes.bool,
+
     ...withLocalizePropTypes,
 
     ...windowDimensionsPropTypes,
@@ -106,6 +110,7 @@ const defaultProps = {
     setIsFullComposerAvailable: () => {},
     shouldCalculateCaretPosition: false,
     checkComposerVisibility: () => false,
+    isReportActionCompose: false,
 };
 
 /**
@@ -155,6 +160,7 @@ function Composer({
     setIsFullComposerAvailable,
     checkComposerVisibility,
     selection: selectionProp,
+    isReportActionCompose,
     ...props
 }) {
     const textRef = useRef(null);
@@ -199,20 +205,22 @@ function Composer({
                 setValueBeforeCaret(event.target.value.slice(0, event.nativeEvent.selection.start));
                 setCaretContent(getNextChars(value, event.nativeEvent.selection.start));
             });
+            const selectionValue = {
+                start: event.nativeEvent.selection.start,
+                end: event.nativeEvent.selection.end,
+                positionX: textRef.current.offsetLeft - CONST.SPACE_CHARACTER_WIDTH,
+                positionY: textRef.current.offsetTop,
+            };
+            onSelectionChange({
+                nativeEvent: {
+                    selection: selectionValue,
+                },
+            });
+            setSelection(selectionValue);
+        } else {
+            onSelectionChange(event);
+            setSelection(event.nativeEvent.selection);
         }
-
-        const selectionValue = {
-            start: event.nativeEvent.selection.start,
-            end: event.nativeEvent.selection.end,
-            positionX: textRef.current.offsetLeft - CONST.SPACE_CHARACTER_WIDTH,
-            positionY: textRef.current.offsetTop,
-        };
-        onSelectionChange({
-            nativeEvent: {
-                selection: selectionValue,
-            },
-        });
-        setSelection(selectionValue);
     };
 
     /**
@@ -368,6 +376,9 @@ function Composer({
         }
 
         return () => {
+            if (!isReportActionCompose) {
+                ReportActionComposeFocusManager.clear();
+            }
             unsubscribeFocus();
             unsubscribeBlur();
             document.removeEventListener('paste', handlePaste);
@@ -446,6 +457,18 @@ function Composer({
                 numberOfLines={numberOfLines}
                 disabled={isDisabled}
                 onKeyPress={handleKeyPress}
+                onFocus={(e) => {
+                    ReportActionComposeFocusManager.onComposerFocus(() => {
+                        if (!textInput.current) {
+                            return;
+                        }
+
+                        textInput.current.focus();
+                    });
+                    if (props.onFocus) {
+                        props.onFocus(e);
+                    }
+                }}
             />
             {shouldCalculateCaretPosition && renderElementForCaretPosition}
         </>

@@ -24,12 +24,16 @@ const propTypes = {
 
     /** Height of the thumbnail image */
     imageHeight: PropTypes.number,
+
+    /** Should the image be resized on load or just fit container */
+    shouldDynamicallyResize: PropTypes.bool,
 };
 
 const defaultProps = {
     style: {},
     imageWidth: 200,
     imageHeight: 200,
+    shouldDynamicallyResize: true,
 };
 
 /**
@@ -85,9 +89,12 @@ function ThumbnailImage(props) {
         },
         [windowHeight],
     );
+
+    const sizeStyles = props.shouldDynamicallyResize ? [StyleUtils.getWidthAndHeightStyle(imageWidth, imageHeight)] : [styles.w100, styles.h100];
+
     return (
         <View style={[props.style, styles.overflowHidden]}>
-            <View style={[StyleUtils.getWidthAndHeightStyle(imageWidth, imageHeight), styles.alignItemsCenter, styles.justifyContentCenter]}>
+            <View style={[...sizeStyles, styles.alignItemsCenter, styles.justifyContentCenter]}>
                 <ImageWithSizeCalculation
                     url={props.previewSourceURL}
                     onMeasure={updateImageSize}

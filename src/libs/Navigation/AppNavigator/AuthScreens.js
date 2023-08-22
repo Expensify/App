@@ -48,6 +48,11 @@ Onyx.connect({
         }
 
         currentAccountID = val.accountID;
+        if (Navigation.isActiveRoute(ROUTES.SIGN_IN_MODAL)) {
+            // This means sign in in RHP was successful, so we can dismiss the modal and subscribe to user events
+            Navigation.dismissModal();
+            User.subscribeToUserEvents();
+        }
     },
 });
 

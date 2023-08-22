@@ -108,6 +108,10 @@ function RightModalNavigator(props) {
                         name="EditRequest"
                         component={ModalStackNavigators.EditRequestStackNavigator}
                     />
+                    <Stack.Screen
+                        name="SignIn"
+                        component={ModalStackNavigators.SignInModalStackNavigator}
+                    />
                 </Stack.Navigator>
             </View>
         </NoDropZone>
