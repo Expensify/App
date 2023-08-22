@@ -94,7 +94,10 @@ function KnowATeacherPage(props) {
             const validateIfnumber = validateNumber(phoneLogin);
 
             if (_.isEmpty(values.firstName)) {
-                ErrorUtils.addErrorMessage(errors, 'firstName', translate('teachersUnitePage.error.enterName'));
+                ErrorUtils.addErrorMessage(errors, 'firstName', translate('bankAccount.error.firstName'));
+            }
+            if (_.isEmpty(values.lastName)) {
+                ErrorUtils.addErrorMessage(errors, 'lastName', translate('bankAccount.error.lastName'));
             }
             if (_.isEmpty(values.phoneOrEmail)) {
                 ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', translate('teachersUnitePage.error.enterPhoneEmail'));

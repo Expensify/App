@@ -27,9 +27,9 @@ Onyx.connect({
 /**
  * @param {String} firstName
  * @param {String} phoneOrEmail
- * @param {String} [lastName]
+ * @param {String} lastName
  */
-function referTeachersUniteVolunteer(firstName, phoneOrEmail, lastName = '') {
+function referTeachersUniteVolunteer(firstName, phoneOrEmail, lastName) {
     const reportID = CONST.TEACHERS_UNITE.PUBLIC_ROOM_ID;
     const optimisticData = [
         {
@@ -59,9 +59,9 @@ function referTeachersUniteVolunteer(firstName, phoneOrEmail, lastName = '') {
  * Optimistically creates a policyExpenseChat for the school principal and passes data to AddSchoolPrincipal
  * @param {String} firstName
  * @param {String} email
- * @param {String} [lastName]
+ * @param {String} lastName
  */
-function addSchoolPrincipal(firstName, email, lastName = '') {
+function addSchoolPrincipal(firstName, email, lastName) {
     const policyName = CONST.TEACHERS_UNITE.POLICY_NAME;
     const policyID = CONST.TEACHERS_UNITE.POLICY_ID;
     const loggedInEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(sessionEmail);

@@ -40,7 +40,7 @@ function IntroSchoolPrincipalPage(props) {
      * @param {String} values.lastName
      */
     const onSubmit = (values) => {
-        TeachersUnite.addSchoolPrincipal(values.firstName.trim(), values.email.trim(), values.lastName);
+        TeachersUnite.addSchoolPrincipal(values.firstName.trim(), values.email.trim(), values.lastName.trim());
     };
 
     /**
@@ -54,12 +54,14 @@ function IntroSchoolPrincipalPage(props) {
             const errors = {};
 
             if (_.isEmpty(values.firstName)) {
-                ErrorUtils.addErrorMessage(errors, 'firstName', translate('teachersUnitePage.error.enterName'));
+                ErrorUtils.addErrorMessage(errors, 'firstName', translate('bankAccount.error.firstName'));
+            }
+            if (_.isEmpty(values.lastName)) {
+                ErrorUtils.addErrorMessage(errors, 'lastName', translate('bankAccount.error.lastName'));
             }
             if (_.isEmpty(values.email)) {
                 ErrorUtils.addErrorMessage(errors, 'email', translate('teachersUnitePage.error.enterEmail'));
             }
-
             if (!_.isEmpty(values.email) && lodashGet(props.loginList, values.email.toLowerCase())) {
                 ErrorUtils.addErrorMessage(errors, 'email', 'teachersUnitePage.error.tryDifferentEmail');
             }
