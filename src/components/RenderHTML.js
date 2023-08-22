@@ -13,7 +13,6 @@ const propTypes = {
 // context to RenderHTMLSource components. See https://git.io/JRcZb
 // The provider is available at src/components/HTMLEngineProvider/
 function RenderHTML(props) {
-    console.log(props.html);
     const {windowWidth} = useWindowDimensions();
     return (
         <RenderHTMLSource
