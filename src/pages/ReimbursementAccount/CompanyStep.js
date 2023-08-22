@@ -149,7 +149,7 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                 onBackButtonPress={onBackButtonPress}
             />
             <Form
-                formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
+                formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
                 validate={validate}
                 onSubmit={submit}
                 scrollContextEnabled
