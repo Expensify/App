@@ -34,6 +34,9 @@ const propTypes = {
     /** The type of IOU report, i.e. bill, request, send */
     iouType: PropTypes.string.isRequired,
 
+    /** The current tab we have navigated to in the request modal. String that corresponds to the request type. */
+    selectedTab: PropTypes.oneOf([CONST.TAB.DISTANCE, CONST.TAB.MANUAL, CONST.TAB.SCAN]).isRequired,
+
     ...withLocalizePropTypes,
 };
 
@@ -84,6 +87,9 @@ class MoneyRequestParticipantsSelector extends Component {
             // If we are using this component in the "Request money" flow then we pass the includeOwnedWorkspaceChats argument so that the current user
             // sees the option to request money from their admin on their own Workspace Chat.
             this.props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
+
+            // We don't want to include any P2P options like personal details or reports that are not workspace chats for certain features.
+            this.props.selectedTab !== CONST.TAB.DISTANCE,
         );
     }
 
@@ -182,6 +188,9 @@ export default compose(
         },
         betas: {
             key: ONYXKEYS.BETAS,
+        },
+        selectedTab: {
+            key: `${ONYXKEYS.SELECTED_TAB}_${CONST.TAB.RECEIPT_TAB_ID}`,
         },
     }),
 )(MoneyRequestParticipantsSelector);

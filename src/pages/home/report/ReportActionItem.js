@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import React, {useState, useRef, useEffect, memo, useCallback} from 'react';
+import React, {useState, useRef, useEffect, memo, useCallback, useContext} from 'react';
 import {InteractionManager, View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -64,6 +64,8 @@ import * as PersonalDetailsUtils from '../../../libs/PersonalDetailsUtils';
 import ReportActionItemBasicMessage from './ReportActionItemBasicMessage';
 import * as store from '../../../libs/actions/ReimbursementAccount/store';
 import * as BankAccounts from '../../../libs/actions/BankAccounts';
+import ReportScreenContext from '../ReportScreenContext';
+import Permissions from '../../../libs/Permissions';
 
 const propTypes = {
     ...windowDimensionsPropTypes,
@@ -125,15 +127,17 @@ function ReportActionItem(props) {
     const [isContextMenuActive, setIsContextMenuActive] = useState(ReportActionContextMenu.isActiveReportAction(props.action.reportActionID));
     const [isHidden, setIsHidden] = useState(false);
     const [moderationDecision, setModerationDecision] = useState(CONST.MODERATION.MODERATOR_DECISION_APPROVED);
+    const {reactionListRef} = useContext(ReportScreenContext);
     const textInputRef = useRef();
     const popoverAnchorRef = useRef();
     const downloadedPreviews = useRef([]);
+    const originalReportID = ReportUtils.getOriginalReportID(props.report.reportID, props.action);
+    const originalReport = props.report.reportID === originalReportID ? props.report : ReportUtils.getReport(originalReportID);
 
     useEffect(
         () => () => {
-            // ReportActionContextMenu and EmojiPicker are global component,
-            // we use showContextMenu and showEmojiPicker to show them,
-            // so we should also hide them when the current component is destroyed
+            // ReportActionContextMenu, EmojiPicker and PopoverReactionList are global components,
+            // we should also hide them when the current component is destroyed
             if (ReportActionContextMenu.isActiveReportAction(props.action.reportActionID)) {
                 ReportActionContextMenu.hideContextMenu();
                 ReportActionContextMenu.hideDeleteModal();
@@ -141,8 +145,11 @@ function ReportActionItem(props) {
             if (EmojiPickerAction.isActiveReportAction(props.action.reportActionID)) {
                 EmojiPickerAction.hideEmojiPicker(true);
             }
+            if (reactionListRef.current && reactionListRef.current.isActiveReportAction(props.action.reportActionID)) {
+                reactionListRef.current.hideReactionList();
+            }
         },
-        [props.action.reportActionID],
+        [props.action.reportActionID, reactionListRef],
     );
 
     const isDraftEmpty = !props.draftMessage;
@@ -155,6 +162,10 @@ function ReportActionItem(props) {
     }, [isDraftEmpty]);
 
     useEffect(() => {
+        if (!Permissions.canUseLinkPreviews()) {
+            return;
+        }
+
         const urls = ReportActionsUtils.extractLinksFromMessageHtml(props.action);
         if (_.isEqual(downloadedPreviews.current, urls) || props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             return;
@@ -204,7 +215,6 @@ function ReportActionItem(props) {
             }
 
             setIsContextMenuActive(true);
-
             const selection = SelectionScraper.getCurrentSelection();
             ReportActionContextMenu.showContextMenu(
                 ContextMenuActions.CONTEXT_MENU_TYPES.REPORT_ACTION,
@@ -216,11 +226,11 @@ function ReportActionItem(props) {
                 props.draftMessage,
                 () => {},
                 toggleContextMenuFromActiveReportAction,
-                ReportUtils.isArchivedRoom(props.report),
-                ReportUtils.chatIncludesChronos(props.report),
+                ReportUtils.isArchivedRoom(originalReport),
+                ReportUtils.chatIncludesChronos(originalReport),
             );
         },
-        [props.draftMessage, props.action, props.report, toggleContextMenuFromActiveReportAction],
+        [props.draftMessage, props.action, props.report.reportID, toggleContextMenuFromActiveReportAction, originalReport],
     );
 
     const toggleReaction = useCallback(
@@ -242,7 +252,7 @@ function ReportActionItem(props) {
         // IOUDetails only exists when we are sending money
         const isSendingMoney = originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && _.has(originalMessage, 'IOUDetails');
 
-        // Show the IOUPreview for when request was created, bill was split or money was sent
+        // Show the MoneyRequestPreview for when request was created, bill was split or money was sent
         if (
             props.action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
             originalMessage &&
@@ -312,10 +322,10 @@ function ReportActionItem(props) {
                     ) : null}
                 </ReportActionItemBasicMessage>
             );
+        } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE) {
+            children = <ReportActionItemBasicMessage message={ReportUtils.getModifiedExpenseMessage(props.action)} />;
         } else {
-            const message = _.last(lodashGet(props.action, 'message', [{}]));
             const hasBeenFlagged = !_.contains([CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING], moderationDecision);
-            const isAttachment = _.has(props.action, 'isAttachment') ? props.action.isAttachment : ReportUtils.isReportMessageAttachment(message);
             children = (
                 <ShowContextMenuContext.Provider
                     value={{
@@ -329,9 +339,9 @@ function ReportActionItem(props) {
                         <View style={props.displayAsGroup && hasBeenFlagged ? styles.blockquote : {}}>
                             <ReportActionItemMessage
                                 action={props.action}
+                                displayAsGroup={props.displayAsGroup}
                                 isHidden={isHidden}
                                 style={[
-                                    !props.displayAsGroup && isAttachment ? styles.mt2 : undefined,
                                     _.contains([..._.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG), CONST.REPORT.ACTIONS.TYPE.IOU], props.action.actionName)
                                         ? styles.colorMuted
                                         : undefined,
@@ -346,6 +356,7 @@ function ReportActionItem(props) {
                                     <Text
                                         style={styles.buttonSmallText}
                                         selectable={false}
+                                        dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                                     >
                                         {isHidden ? props.translate('moderation.revealMessage') : props.translate('moderation.hideMessage')}
                                     </Text>
@@ -380,7 +391,7 @@ function ReportActionItem(props) {
         return (
             <>
                 {children}
-                {!isHidden && !_.isEmpty(props.action.linkMetadata) && (
+                {Permissions.canUseLinkPreviews() && !isHidden && !_.isEmpty(props.action.linkMetadata) && (
                     <View style={props.draftMessage ? styles.chatItemReactionsDraftRight : {}}>
                         <LinkPreviewer linkMetadata={_.filter(props.action.linkMetadata, (item) => !_.isEmpty(item))} />
                     </View>
@@ -455,15 +466,24 @@ function ReportActionItem(props) {
     };
 
     if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
-        const parentReport = ReportActionsUtils.getParentReportAction(props.report);
-        if (ReportActionsUtils.isTransactionThread(parentReport)) {
+        const parentReportAction = ReportActionsUtils.getParentReportAction(props.report);
+        if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
             return (
-                <OfflineWithFeedback pendingAction={props.action.pendingAction}>
-                    <MoneyRequestView
-                        report={props.report}
-                        shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
-                    />
-                </OfflineWithFeedback>
+                <ShowContextMenuContext.Provider
+                    value={{
+                        anchor: popoverAnchorRef,
+                        report: props.report,
+                        action: props.action,
+                        checkIfContextMenuActive: toggleContextMenuFromActiveReportAction,
+                    }}
+                >
+                    <OfflineWithFeedback pendingAction={props.action.pendingAction}>
+                        <MoneyRequestView
+                            report={props.report}
+                            shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
+                        />
+                    </OfflineWithFeedback>
+                </ShowContextMenuContext.Provider>
             );
         }
         if (ReportUtils.isTaskReport(props.report)) {
@@ -530,11 +550,11 @@ function ReportActionItem(props) {
                         <MiniReportActionContextMenu
                             reportID={props.report.reportID}
                             reportAction={props.action}
-                            isArchivedRoom={ReportUtils.isArchivedRoom(props.report)}
+                            isArchivedRoom={ReportUtils.isArchivedRoom(originalReport)}
                             displayAsGroup={props.displayAsGroup}
                             isVisible={hovered && !props.draftMessage && !hasErrors}
                             draftMessage={props.draftMessage}
-                            isChronosReport={ReportUtils.chatIncludesChronos(props.report)}
+                            isChronosReport={ReportUtils.chatIncludesChronos(originalReport)}
                         />
                         <View
                             style={StyleUtils.getReportActionItemStyle(
@@ -597,7 +617,8 @@ export default compose(
     withReportActionsDrafts({
         propName: 'draftMessage',
         transformValue: (drafts, props) => {
-            const draftKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${props.report.reportID}_${props.action.reportActionID}`;
+            const originalReportID = ReportUtils.getOriginalReportID(props.report.reportID, props.action);
+            const draftKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}_${props.action.reportActionID}`;
             return lodashGet(drafts, draftKey, '');
         },
     }),
