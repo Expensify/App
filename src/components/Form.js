@@ -89,7 +89,6 @@ const defaultProps = {
     isSubmitButtonVisible: true,
     formState: {
         isLoading: false,
-        errors: null,
     },
     draftValues: {},
     enabledWhenOffline: false,
