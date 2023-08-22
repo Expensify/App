@@ -139,6 +139,7 @@ function ReportActionItemEmojiReactions(props) {
                                     reactionUsers={reaction.reactionUsers}
                                     hasUserReacted={reaction.hasUserReacted}
                                     onReactionListOpen={reaction.onReactionListOpen}
+                                    isReactionBlocked={hasErrors}
                                 />
                             </View>
                         </Tooltip>

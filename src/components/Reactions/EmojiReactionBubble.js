@@ -38,6 +38,9 @@ const propTypes = {
      */
     hasUserReacted: PropTypes.bool,
 
+    /** Whether the user can react with the current emoji */
+    isReactionBlocked: PropTypes.bool,
+
     ...windowDimensionsPropTypes,
 };
 
@@ -45,6 +48,7 @@ const defaultProps = {
     count: 0,
     onReactionListOpen: () => {},
     isContextMenu: false,
+    isReactionBlocked: false,
 
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
@@ -52,8 +56,16 @@ const defaultProps = {
 function EmojiReactionBubble(props) {
     return (
         <PressableWithSecondaryInteraction
-            style={({hovered, pressed}) => [styles.emojiReactionBubble, StyleUtils.getEmojiReactionBubbleStyle(hovered || pressed, props.hasUserReacted, props.isContextMenu)]}
-            onPress={props.onPress}
+            style={({hovered, pressed}) => [
+                styles.emojiReactionBubble,
+                StyleUtils.getEmojiReactionBubbleStyle(hovered || pressed, props.hasUserReacted, props.isContextMenu),
+                props.isReactionBlocked && styles.cursorDisabled,
+            ]}
+            onPress={() => {
+                if (props.isReactionBlocked) return;
+
+                props.onPress();
+            }}
             onLongPress={props.onReactionListOpen}
             onSecondaryInteraction={props.onReactionListOpen}
             ref={props.forwardedRef}
