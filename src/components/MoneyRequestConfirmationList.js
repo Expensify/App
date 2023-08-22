@@ -300,6 +300,7 @@ function MoneyRequestConfirmationList(props) {
                 currency={props.iouCurrencyCode}
                 policyID={props.policyID}
                 shouldShowPaymentOptions
+                buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
                 anchorAlignment={{
                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
@@ -310,6 +311,7 @@ function MoneyRequestConfirmationList(props) {
                 isDisabled={shouldDisableButton}
                 onPress={(_event, value) => confirm(value)}
                 options={splitOrRequestOptions}
+                buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
             />
         );
     }, [confirm, props.selectedParticipants, props.bankAccountRoute, props.iouCurrencyCode, props.iouType, props.isReadOnly, props.policyID, selectedParticipants, splitOrRequestOptions]);
