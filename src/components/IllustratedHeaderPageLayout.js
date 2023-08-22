@@ -11,7 +11,7 @@ import themeColors from '../styles/themes/default';
 import * as StyleUtils from '../styles/StyleUtils';
 import useWindowDimensions from '../hooks/useWindowDimensions';
 import FixedFooter from './FixedFooter';
-import useNetwork from "../hooks/useNetwork"
+import useNetwork from '../hooks/useNetwork';
 
 const propTypes = {
     ...headerWithBackButtonPropTypes,
