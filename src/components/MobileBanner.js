@@ -60,7 +60,7 @@ function MobileBanner({showDownloadAppBanner}) {
             prompt={translate('mobileBanner.keepTheConversationGoing')}
             confirmText={translate('common.download')}
             cancelText={translate('mobileBanner.noThanks')}
-            // shouldCenterContent
+            shouldCenterContent
             iconSource={AppIcon}
             promptStyles={[styles.textNormal, styles.lh20]}
             titleStyles={[styles.textHeadline]}
