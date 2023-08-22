@@ -61,7 +61,7 @@ function MoneyRequestHeader(props) {
     const parentReportAction = ReportActionsUtils.getParentReportAction(props.report);
 
     // Only the requestor can take delete the request, admins can only edit it.
-    const isRequestor = parentReportAction.actorAccountID === lodashGet(props.session, 'accountID', null);
+    const isActionOwner = parentReportAction.actorAccountID === lodashGet(props.session, 'accountID', null);
     const report = props.report;
     report.ownerAccountID = lodashGet(props, ['parentReport', 'ownerAccountID'], null);
     report.ownerEmail = lodashGet(props, ['parentReport', 'ownerEmail'], '');
@@ -80,7 +80,7 @@ function MoneyRequestHeader(props) {
                 <HeaderWithBackButton
                     shouldShowAvatarWithDisplay
                     shouldShowPinButton={false}
-                    shouldShowThreeDotsButton={isRequestor && !isSettled}
+                    shouldShowThreeDotsButton={isActionOwner && !isSettled}
                     threeDotsMenuItems={[
                         {
                             icon: Expensicons.Trashcan,
