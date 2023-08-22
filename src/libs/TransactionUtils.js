@@ -225,19 +225,6 @@ function getCreated(transaction) {
 }
 
 /**
- * @param {Object} transaction
- * @param {String} transaction.type
- * @param {Object} [transaction.customUnit]
- * @param {String} [transaction.customUnit.name]
- * @returns {Boolean}
- */
-function isDistanceRequest(transaction) {
-    const type = lodashGet(transaction, 'comment.type');
-    const customUnitName = lodashGet(transaction, 'comment.customUnit.name');
-    return type === CONST.TRANSACTION.TYPE.CUSTOM_UNIT && customUnitName === CONST.CUSTOM_UNITS.NAME_DISTANCE;
-}
-
-/**
  * Get the transactions related to a report preview with receipts
  * Get the details linked to the IOU reportAction
  *
@@ -259,9 +246,10 @@ function isReceiptBeingScanned(transaction) {
 
 /**
  * @param {Object} transaction
- * @param {String} transaction.type
- * @param {Object} [transaction.customUnit]
- * @param {String} [transaction.customUnit.name]
+ * @param {Object} transaction.comment
+ * @param {String} transaction.comment.type
+ * @param {Object} [transaction.comment.customUnit]
+ * @param {String} [transaction.comment.customUnit.name]
  * @returns {Boolean}
  */
 function isDistanceRequest(transaction) {
@@ -284,5 +272,4 @@ export {
     hasReceipt,
     isDistanceRequest,
     isReceiptBeingScanned,
-    isDistanceRequest,
 };
