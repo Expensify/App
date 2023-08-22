@@ -1,6 +1,11 @@
 import _ from 'underscore';
 import React, {useMemo} from 'react';
-import {TRenderEngineProvider, RenderHTMLConfigProvider, defaultHTMLElementModels} from 'react-native-render-html';
+import {
+    TRenderEngineProvider,
+    RenderHTMLConfigProvider,
+    defaultHTMLElementModels,
+    HTMLContentModel
+} from 'react-native-render-html';
 import PropTypes from 'prop-types';
 import htmlRenderers from './HTMLRenderers';
 import * as HTMLEngineUtils from './htmlEngineUtils';
@@ -39,6 +44,13 @@ const customHTMLElementModels = {
     'email-comment': defaultHTMLElementModels.div.extend({
         tagName: 'email-comment',
         mixedUAStyles: {whiteSpace: 'normal'},
+    }),
+    'thread-title': defaultHTMLElementModels.span.extend({
+        tagName: 'thread-title',
+        contentModel: HTMLContentModel.textual,
+        reactNativeProps: {
+            text: {numberOfLines: 1},
+        },
     }),
     strong: defaultHTMLElementModels.span.extend({
         tagName: 'strong',
