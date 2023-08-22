@@ -72,7 +72,7 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
      * @param {Object} values - form input values passed by the Form component
      * @returns {Object} - Object containing the errors for each inputID, e.g. {inputID1: error1, inputID2: error2}
      */
-    validate(values) {
+    function validate(values) {
         const requiredFields = [
             'companyName',
             'addressStreet',
