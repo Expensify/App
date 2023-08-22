@@ -48,7 +48,10 @@ function PopoverContextProvider(props) {
     }, [closePopover]);
 
     React.useEffect(() => {
-        const listener = () => {
+        const listener = (e) => {
+            if (!activePopoverRef.current || !activePopoverRef.current.ref || !activePopoverRef.current.ref.current || activePopoverRef.current.ref.current.contains(e.target)) {
+                return;
+            }
             closePopover();
         };
         document.addEventListener('contextmenu', listener);
