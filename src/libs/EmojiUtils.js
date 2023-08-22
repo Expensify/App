@@ -270,7 +270,7 @@ function extractEmojis(text) {
         return [];
     }
 
-    // Parsed Emojis including skin tones - Eg: ['👩🏻', '👩🏻', '👩🏼', '👩🏻', '👩🏼', '👩']
+    // Parse Emojis including skin tones - Eg: ['👩🏻', '👩🏻', '👩🏼', '👩🏻', '👩🏼', '👩']
     const parsedEmojis = text.match(CONST.REGEX.EMOJIS);
 
     if (!parsedEmojis) {
