@@ -30,7 +30,10 @@ function promptToOpenInDesktopApp() {
     if (Str.startsWith(window.location.pathname, Str.normalizeUrl(ROUTES.TRANSITION_BETWEEN_APPS))) {
         App.beginDeepLinkRedirectAfterTransition();
     } else {
-        App.beginDeepLinkRedirect();
+        // Match any magic link (/v/<account id>/<6 digit code>)
+        const isMagicLink = CONST.REGEX.ROUTES.VALIDATE_LOGIN.test(window.location.pathname);
+
+        App.beginDeepLinkRedirect(!isMagicLink);
     }
 }
 function DeeplinkWrapper({children, isAuthenticated}) {
