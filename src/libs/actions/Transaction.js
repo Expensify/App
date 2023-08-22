@@ -48,6 +48,7 @@ function addStop(transactionID) {
                 [`waypoint${newLastIndex}`]: {},
             },
         },
+
         // Clear the existing route so that we don't show an old route
         routes: {
             route0: {
