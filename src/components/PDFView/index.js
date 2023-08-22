@@ -54,8 +54,12 @@ class PDFView extends Component {
         const workerBlob = new Blob([pdfWorkerSource], {type: 'text/javascript'});
         pdfjs.GlobalWorkerOptions.workerSrc = URL.createObjectURL(workerBlob);
         this.setMaxCanvaSizeInState = this.setMaxCanvaSizeInState.bind(this);
+        this.setMaxCanvaHeightInState = this.setMaxCanvaHeightInState.bind(this);
         canvasSize.maxArea({
             onSuccess: this.setMaxCanvaSizeInState 
+         });
+         canvasSize.maxHeight({
+            onSuccess: this.setMaxCanvaHeightInState 
          });
     }
 
@@ -189,6 +193,9 @@ class PDFView extends Component {
     setMaxCanvaSizeInState(width, height, benchmark) {
         this.state.maxCanvasSize = width * height;
     }
+    setMaxCanvaHeightInState(width, height, benchmark) {
+        this.state.maxCanvasHeight =  height;
+    }
 
     /**
      * On small screens notify parent that the keyboard has opened or closed.
@@ -216,7 +223,9 @@ class PDFView extends Component {
         const pageHeight = this.calculatePageHeight(index);
 
         const nbPixels = pageWidth * pageHeight;
-        const ratio = Math.sqrt((this.state.maxCanvasSize / nbPixels));
+        const ratioHeight = this.state.maxCanvasHeight / pageHeight;
+        const ratioArea = Math.sqrt((this.state.maxCanvasSize / nbPixels));
+        const ratio = Math.min(ratioHeight, ratioArea);
         const devicePixelRatio = ratio > 3 ? 3 : ratio;
 
         return (
