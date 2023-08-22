@@ -372,7 +372,7 @@ function ReportActionCompose({
         focusWithDelay(textInputRef.current)(shouldDelay);
     }, []);
 
-    const willOpenNextModal = useRef(false);
+    const isNextModalWillOpen = useRef(false);
     const isKeyboardVisibleWhenShowingModal = useRef(false);
 
     const restoreKeyboardState = useCallback(() => {
@@ -995,12 +995,12 @@ function ReportActionCompose({
     const prevIsFocused = usePrevious(isFocusedProp);
     useEffect(() => {
         if (modal.isVisible && !prevIsModalVisible) {
-            willOpenNextModal.current = false;
+            isNextModalWillOpen.current = false;
         }
         // We want to focus or refocus the input when a modal has been closed or the underlying screen is refocused.
         // We avoid doing this on native platforms since the software keyboard popping
         // open creates a jarring and broken UX.
-        if (!(willBlurTextInputOnTapOutside && !willOpenNextModal.current && !modal.isVisible && isFocusedProp && (prevIsModalVisible || !prevIsFocused))) {
+        if (!(willBlurTextInputOnTapOutside && !isNextModalWillOpen.current && !modal.isVisible && isFocusedProp && (prevIsModalVisible || !prevIsFocused))) {
             return;
         }
 
@@ -1078,7 +1078,7 @@ function ReportActionCompose({
                                                 shouldBlockEmojiCalc.current = true;
                                                 shouldBlockMentionCalc.current = true;
                                             }
-                                            willOpenNextModal.current = true;
+                                            isNextModalWillOpen.current = true;
                                             openPicker({
                                                 onPicked: displayFileInModal,
                                                 onCanceled: restoreKeyboardState,
