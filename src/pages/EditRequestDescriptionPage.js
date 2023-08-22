@@ -10,6 +10,7 @@ import styles from '../styles/styles';
 import Navigation from '../libs/Navigation/Navigation';
 import CONST from '../CONST';
 import useLocalize from '../hooks/useLocalize';
+import * as Browser from '../libs/Browser';
 
 const propTypes = {
     /** Transaction default description value */
