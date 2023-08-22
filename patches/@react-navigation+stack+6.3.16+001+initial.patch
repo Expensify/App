@@ -27,15 +27,15 @@ index 0000000..d8284fc
 +  isInitialized = true;
 +  let timer;
 +
-+  // Gestures that would trigger navigation forward are broken on iOS safari.
-+  // They don't have touchend event fired so we can look at expectingTouchEnd flag to detect if we should run animation.
++  // Gestures that would trigger navigation forward are broken on iOS safari. 
++  // They don't have touchend event fired so we can look at expectingTouchEnd flag to detect if we should run animation. 
 +  const handleTouchStart = () => {
 +    expectingTouchend = true;
 +  };
 +  const handleTouchEnd = e => {
 +    var _e$changedTouches$;
 +    const pageX = (_e$changedTouches$ = e.changedTouches[0]) === null || _e$changedTouches$ === void 0 ? void 0 : _e$changedTouches$.pageX;
-+    // PageX for gesture that would trigger navigation back is negative.
++    // PageX for gesture that would trigger navigation back is negative. 
 +    if (pageX < 0) {
 +      if (timer) {
 +        clearTimeout(timer);
@@ -60,7 +60,7 @@ index 0000000..668d198
 +export const resetExpectingTouchendWithDelay = () => {};
 +export const maybeInitializeEdgeDragGestureMonitor = () => {};
 diff --git a/node_modules/@react-navigation/stack/lib/module/views/Stack/Card.js b/node_modules/@react-navigation/stack/lib/module/views/Stack/Card.js
-index 548ba79..155d87f 100644
+index 548ba79..4bedb81 100644
 --- a/node_modules/@react-navigation/stack/lib/module/views/Stack/Card.js
 +++ b/node_modules/@react-navigation/stack/lib/module/views/Stack/Card.js
 @@ -4,6 +4,7 @@ import * as React from 'react';
@@ -76,7 +76,7 @@ index 548ba79..155d87f 100644
      animation(gesture, {
        ...spec.config,
 +      // Detecting if the user used swipe gesture on iOS safari to trigger navigation in the browser history.
-+      duration: getIsEdgeDragGesture() ? 0 : spec.config.duration,
++      duration: getIsEdgeDragGesture() ? 0 : undefined,
        velocity,
        toValue,
        useNativeDriver,
@@ -89,31 +89,8 @@ index 548ba79..155d87f 100644
        if (finished) {
          if (closing) {
            onClose();
-diff --git a/node_modules/@react-navigation/stack/lib/module/views/Stack/CardContainer.js b/node_modules/@react-navigation/stack/lib/module/views/Stack/CardContainer.js
-index b595af8..b4df3ec 100644
---- a/node_modules/@react-navigation/stack/lib/module/views/Stack/CardContainer.js
-+++ b/node_modules/@react-navigation/stack/lib/module/views/Stack/CardContainer.js
-@@ -1,7 +1,7 @@
- import { getHeaderTitle, HeaderBackContext, HeaderHeightContext, HeaderShownContext } from '@react-navigation/elements';
- import { useTheme } from '@react-navigation/native';
- import * as React from 'react';
--import { StyleSheet, View } from 'react-native';
-+import { StyleSheet, View, Platform } from 'react-native';
- import ModalPresentationContext from '../../utils/ModalPresentationContext';
- import useKeyboardManager from '../../utils/useKeyboardManager';
- import Card from './Card';
-@@ -215,7 +215,8 @@ function CardContainer(_ref) {
-       display:
-       // Hide unfocused screens when animation isn't enabled
-       // This is also necessary for a11y on web
--      animationEnabled === false && isNextScreenTransparent === false && detachCurrentScreen !== false && !focused ? 'none' : 'flex'
-+      animationEnabled === false && isNextScreenTransparent === false && detachCurrentScreen !== false && !focused ? 'none' : 'flex',
-+      zIndex: Platform.OS === 'web' ? 'auto' : undefined,
-     }, StyleSheet.absoluteFill]
-   }, /*#__PURE__*/React.createElement(View, {
-     style: styles.container
 diff --git a/node_modules/@react-navigation/stack/lib/module/views/Stack/CardStack.js b/node_modules/@react-navigation/stack/lib/module/views/Stack/CardStack.js
-index 95e6871..b7bb75e 100644
+index 95e6871..7558eb3 100644
 --- a/node_modules/@react-navigation/stack/lib/module/views/Stack/CardStack.js
 +++ b/node_modules/@react-navigation/stack/lib/module/views/Stack/CardStack.js
 @@ -4,6 +4,7 @@ import * as React from 'react';
@@ -133,31 +110,3 @@ index 95e6871..b7bb75e 100644
      this.state = {
        routes: [],
        scenes: [],
-@@ -353,6 +356,9 @@ export default class CardStack extends React.Component {
-           extrapolate: 'clamp'
-         }) : STATE_TRANSITIONING_OR_BELOW_TOP;
-       }
-+      
-+      const isHomeScreenAndNotOnTop = route.name === 'Home' && isScreenActive !== STATE_ON_TOP;
-+
-       const {
-         headerShown = true,
-         headerTransparent,
-@@ -386,7 +392,7 @@ export default class CardStack extends React.Component {
-         key: route.key,
-         style: StyleSheet.absoluteFill,
-         enabled: detachInactiveScreens,
--        active: isScreenActive,
-+        active: isHomeScreenAndNotOnTop ? STATE_TRANSITIONING_OR_BELOW_TOP : isScreenActive,
-         freezeOnBlur: freezeOnBlur,
-         pointerEvents: "box-none"
-       }, /*#__PURE__*/React.createElement(CardContainer, {
-@@ -420,7 +426,7 @@ export default class CardStack extends React.Component {
-         onTransitionStart: onTransitionStart,
-         onTransitionEnd: onTransitionEnd,
-         isNextScreenTransparent: isNextScreenTransparent,
--        detachCurrentScreen: detachCurrentScreen
-+        detachCurrentScreen: isHomeScreenAndNotOnTop ? false : detachCurrentScreen,
-       }));
-     })), isFloatHeaderAbsolute ? floatingHeader : null);
-   }
