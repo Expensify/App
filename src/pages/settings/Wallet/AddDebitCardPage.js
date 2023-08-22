@@ -28,6 +28,8 @@ const propTypes = {
     formData: PropTypes.shape({
         setupComplete: PropTypes.bool,
     }),
+
+    /** List of betas available to current user */
     betas: PropTypes.arrayOf(PropTypes.string),
 };
 
@@ -39,9 +41,6 @@ const defaultProps = {
 };
 
 function DebitCardPage(props) {
-    if (!Permissions.canUseWallet(props.betas)) {
-        return <NotFoundPage />;
-    }
     const {translate} = useLocalize();
     const prevFormDataSetupComplete = usePrevious(props.formData.setupComplete);
     const nameOnCardRef = useRef(null);
@@ -100,6 +99,10 @@ function DebitCardPage(props) {
 
         return errors;
     };
+
+    if (!Permissions.canUseWallet(props.betas)) {
+        return <NotFoundPage />;
+    }
 
     return (
         <ScreenWrapper
