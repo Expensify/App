@@ -111,7 +111,7 @@ function ImageView({isAuthTokenRequired, url, onScaleChanged, onPress, style}) {
 
     useEffect(() => {
         imageLoadingStart();
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- adding imageLoadingStart to deps array causes the component to be stuck on loading, wrapping imageLoadingStart with useCallback doesn't help. This issue occurs on both platforms
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- this effect only needs to run when the url changes
     }, [url]);
 
     /**
