@@ -426,6 +426,8 @@ function getMoneyRequestInformation(report, participant, comment, amount, curren
         optimisticTransaction.transactionID,
         '',
         iouReport.reportID,
+        false,
+        false,
         receiptObject,
     );
 
