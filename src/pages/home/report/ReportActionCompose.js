@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import PropTypes from 'prop-types';
-import {View, LayoutAnimation, NativeModules, findNodeHandle} from 'react-native';
+import {View, NativeModules, findNodeHandle} from 'react-native';
 import {runOnJS} from 'react-native-reanimated';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import _ from 'underscore';
