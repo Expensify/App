@@ -154,7 +154,7 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
         }
 
         Transaction.getRoute(transactionID, waypoints);
-    }, [shouldFetchRoute]);
+    }, [shouldFetchRoute, transactionID, waypoints]);
 
     useEffect(updateGradientVisibility, [scrollContainerHeight, scrollContentHeight]);
 
