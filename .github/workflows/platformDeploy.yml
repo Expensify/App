@@ -36,9 +36,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Configure MapBox SDK
+        run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
+
       - uses: Expensify/App/.github/actions/composite/setupNode@main
-        with:
-          MAPBOX_SDK_DOWNLOAD_TOKEN: ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
       - uses: ruby/setup-ruby@eae47962baca661befdfd24e4d6c34ade04858f7
         with:
@@ -110,8 +111,6 @@ jobs:
       - uses: actions/checkout@v3
 
       - uses: Expensify/App/.github/actions/composite/setupNode@main
-        with:
-          MAPBOX_SDK_DOWNLOAD_TOKEN: ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
       - name: Decrypt Developer ID Certificate
         run: cd desktop && gpg --quiet --batch --yes --decrypt --passphrase="$DEVELOPER_ID_SECRET_PASSPHRASE" --output developer_id.p12 developer_id.p12.gpg
@@ -148,9 +147,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Configure MapBox SDK
+        run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
+
       - uses: Expensify/App/.github/actions/composite/setupNode@main
-        with:
-          MAPBOX_SDK_DOWNLOAD_TOKEN: ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
       - uses: ruby/setup-ruby@eae47962baca661befdfd24e4d6c34ade04858f7
         with:
@@ -237,8 +237,6 @@ jobs:
       - uses: actions/checkout@v3
 
       - uses: Expensify/App/.github/actions/composite/setupNode@main
-        with:
-          MAPBOX_SDK_DOWNLOAD_TOKEN: ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
       - name: Setup Cloudflare CLI
         run: pip3 install cloudflare
@@ -366,8 +364,6 @@ jobs:
       - uses: actions/checkout@v3
 
       - uses: Expensify/App/.github/actions/composite/setupNode@main
-        with:
-          MAPBOX_SDK_DOWNLOAD_TOKEN: ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
       - name: Set version
         run: echo "VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
