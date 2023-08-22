@@ -636,7 +636,6 @@ function ReportActionCompose({
 
     const onSelectionChange = useCallback(
         (e) => {
-            LayoutAnimation.configureNext(LayoutAnimation.create(50, LayoutAnimation.Types.easeInEaseOut, LayoutAnimation.Properties.opacity));
             setSelection(e.nativeEvent.selection);
 
             /**
