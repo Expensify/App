@@ -80,6 +80,36 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
     const numberOfWaypoints = _.size(waypoints);
     const lastWaypointIndex = numberOfWaypoints - 1;
 
+    const waypointMarkers = _.filter(
+        _.map(waypoints, (waypoint, key) => {
+            if (!waypoint || waypoint.lng === undefined || waypoint.lat === undefined) {
+                return;
+            }
+
+            const index = Number(key.replace('waypoint', ''));
+            let MarkerComponent;
+            if (index === 0) {
+                MarkerComponent = Expensicons.DotIndicatorUnfilled;
+            } else if (index === lastWaypointIndex) {
+                MarkerComponent = Expensicons.Location;
+            } else {
+                MarkerComponent = Expensicons.DotIndicator;
+            }
+
+            return {
+                coordinate: [waypoint.lng, waypoint.lat],
+                markerComponent: () => (
+                    <MarkerComponent
+                        width={20}
+                        height={20}
+                        fill={theme.icon}
+                    />
+                ),
+            };
+        }),
+        (waypoint) => waypoint,
+    );
+
     // Show up to the max number of waypoints plus 1/2 of one to hint at scrolling
     const halfMenuItemHeight = Math.floor(variables.baseMenuItemHeight / 2);
     const scrollContainerMaxHeight = variables.baseMenuItemHeight * MAX_WAYPOINTS_TO_DISPLAY + halfMenuItemHeight;
@@ -175,6 +205,8 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
                             zoom: DEFAULT_ZOOM_LEVEL,
                         }}
                         style={styles.mapView}
+                        waypoints={waypointMarkers}
+                        styleURL={CONST.MAPBOX_STYLE_URL}
                     />
                 ) : (
                     <View style={[styles.mapPendingView]}>
@@ -182,6 +214,7 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
                             icon={Expensicons.EmptyStateRoutePending}
                             title={translate('distance.mapPending.title')}
                             subtitle={isOffline ? translate('distance.mapPending.subtitle') : translate('distance.mapPending.onlineSubtitle')}
+                            shouldShowLink={false}
                         />
                     </View>
                 )}

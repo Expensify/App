@@ -33,7 +33,7 @@ export default {
     // Credentials to authenticate the user
     CREDENTIALS: 'credentials',
 
-    // Contains loading data for the IOU feature (MoneyRequestModal, IOUDetail, & IOUPreview Components)
+    // Contains loading data for the IOU feature (MoneyRequestModal, IOUDetail, & MoneyRequestPreview Components)
     IOU: 'iou',
 
     // Keeps track if there is modal currently visible or not
@@ -221,8 +221,9 @@ export default {
         NEW_TASK_FORM: 'newTaskForm',
         EDIT_TASK_FORM: 'editTaskForm',
         MONEY_REQUEST_DESCRIPTION_FORM: 'moneyRequestDescriptionForm',
+        MONEY_REQUEST_MERCHANT_FORM: 'moneyRequestMerchantForm',
         MONEY_REQUEST_AMOUNT_FORM: 'moneyRequestAmountForm',
-        MONEY_REQUEST_CREATED_FORM: 'moneyRequestCreatedForm',
+        MONEY_REQUEST_DATE_FORM: 'moneyRequestCreatedForm',
         NEW_CONTACT_METHOD_FORM: 'newContactMethodForm',
         PAYPAL_FORM: 'payPalForm',
         WAYPOINT_FORM: 'waypointForm',
