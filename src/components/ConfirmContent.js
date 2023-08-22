@@ -64,7 +64,7 @@ const propTypes = {
 
     /** Styles for icon */
     // eslint-disable-next-line react/forbid-prop-types
-    iconStyles: PropTypes.arrayOf(PropTypes.object),
+    iconAdditionalStyles: PropTypes.arrayOf(PropTypes.object),
 };
 
 const defaultProps = {
@@ -81,7 +81,7 @@ const defaultProps = {
     shouldCenterContent: false,
     titleStyles: [],
     promptStyles: [],
-    iconStyles: [],
+    iconAdditionalStyles: [],
 
 };
 
@@ -89,28 +89,30 @@ function ConfirmContent(props) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 
+    const isCentered = props.shouldCenterContent;
+
     return (
         <View style={[styles.m5, ...props.contentStyles]}>
-            <View style={props.shouldCenterContent ? [styles.alignItemsCenter, styles.mb6] : []}>
+            <View style={isCentered ? [styles.alignItemsCenter, styles.mb6] : []}>
                 {!_.isEmpty(props.iconSource) || _.isFunction(props.iconSource) && (
                     <View style={[styles.flexRow, styles.mb3]}>
                         <Icon
                             src={props.iconSource}
-                            width={variables.mobileBannerAppIconSize}
-                            height={variables.mobileBannerAppIconSize}
-                            additionalStyles={[[...props.iconStyles]]}
+                            width={variables.downloadAppModalAppIconSize}
+                            height={variables.downloadAppModalAppIconSize}
+                            additionalStyles={[...props.iconAdditionalStyles]}
                         />
                     </View>
                 )}
 
-                <View style={[styles.flexRow, props.shouldCenterContent  ? {} : styles.mb4]}>
+                <View style={[styles.flexRow, isCentered  ? {} : styles.mb4]}>
                     <Header title={props.title} textStyles={[...props.titleStyles]}/>
                 </View>
 
-                {_.isString(props.prompt) ? <Text style={[...props.promptStyles, props.shouldCenterContent ? styles.textAlignCenter : {}]}>{props.prompt}</Text> : props.prompt}
+                {_.isString(props.prompt) ? <Text style={[...props.promptStyles, isCentered ? styles.textAlignCenter : {}]}>{props.prompt}</Text> : props.prompt}
             </View>
 
-            {props.shouldCenterContent ? (
+            {isCentered ? (
                 <View style={[styles.flexRow, styles.gap4]}>
                     {props.shouldShowCancelButton && (
                         <Button

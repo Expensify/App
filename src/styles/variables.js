@@ -28,7 +28,7 @@ export default {
     componentBorderRadiusLarge: 16,
     componentBorderRadiusCard: 12,
     componentBorderRadiusRounded: 24,
-    mobileBannerAppIconSize: 48,
+    downloadAppModalAppIconSize: 48,
     buttonBorderRadius: 100,
     avatarSizeLargeBordered: 88,
     avatarSizeLarge: 80,

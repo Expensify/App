@@ -56,6 +56,11 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     promptStyles: PropTypes.arrayOf(PropTypes.object),
 
+    /** Styles for icon */
+    // eslint-disable-next-line react/forbid-prop-types
+    iconAdditionalStyles: PropTypes.arrayOf(PropTypes.object),
+
+
     shouldCenterContent: PropTypes.bool,
 
     ...windowDimensionsPropTypes,
@@ -76,6 +81,7 @@ const defaultProps = {
     shouldCenterContent: false,
     onModalHide: () => {},
     titleStyles: [],
+    iconAdditionalStyles: [],
     promptStyles: [],
 };
 
@@ -104,7 +110,7 @@ function ConfirmModal(props) {
                 shouldShowCancelButton={props.shouldShowCancelButton}
                 shouldCenterContent={props.shouldCenterContent}
                 iconSource={props.iconSource}
-                iconStyles={props.iconStyles}
+                iconAdditionalStyles={props.iconAdditionalStyles}
                 titleStyles={props.titleStyles}
                 promptStyles={props.promptStyles}
             />
