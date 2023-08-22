@@ -80,7 +80,7 @@ Due to Expensify's expectation that a user will be using the same account on web
 
 The current Sign in with Google library for web [does not allow arbitrary customization of the sign-in button](https://developers.google.com/identity/gsi/web/guides/offerings#sign_in_with_google_button). (The recently deprecated version of the Sign in with Google for web did offer this capability.)
 
-This means the button is limited in design: there are no offline or hover states, and there can only be a white background for the button. We were able to get the official Apple button options to match, so we used the Google options as the starting point for the design.
+This means the button is limited in design: there are no offline or hover states, and there can only be a white background for the button. We were able to get the official Apple button options to match, so we used the Google options as the starting point for the design. 
 
 ### Sign in with Apple does not allow `localhost`
 
