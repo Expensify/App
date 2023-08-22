@@ -339,6 +339,13 @@ function ReportComposerWithSuggestions({
         suggestionsRef.current.updateShouldShowSuggestionMenuToFalse(false);
     }, [suggestionsRef]);
 
+    const shouldBlockSuggestionCalc = useCallback(() => {
+        if (!suggestionsRef.current) {
+            return false;
+        }
+        return suggestionsRef.current.shouldBlockSuggestionCalc();
+    }, [suggestionsRef]);
+
     /**
      * Focus the composer text input
      * @param {Boolean} [shouldDelay=false] Impose delay before focusing the composer
@@ -486,7 +493,7 @@ function ReportComposerWithSuggestions({
                     maxLines={maxComposerLines}
                     onFocus={onFocus}
                     onBlur={onBlur}
-                    onClick={updateShouldShowSuggestionMenuToFalse}
+                    onClick={shouldBlockSuggestionCalc}
                     onPasteFile={displayFileInModal}
                     shouldClear={textInputShouldClear}
                     onClear={() => setTextInputShouldClear(false)}
