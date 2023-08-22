@@ -98,6 +98,8 @@ function MoneyRequestConfirmPage(props) {
         return MapboxToken.stop;
     }, []);
 
+    console.log('iou', props.ios.transactionID);
+
     useEffect(() => {
         const policyExpenseChat = _.find(participants, (participant) => participant.isPolicyExpenseChat);
         if (policyExpenseChat) {
@@ -255,7 +257,7 @@ function MoneyRequestConfirmPage(props) {
                         title={props.translate('iou.cash')}
                         onBackButtonPress={navigateBack}
                     />
-                    <View style={{width: '100%', height: 300}}>
+                    <View style={([styles.mapViewContainer], {height: 200})}>
                         {props.mapboxAccessToken.token ? (
                             <MapView
                                 accessToken={props.mapboxAccessToken.token}
