@@ -2898,8 +2898,9 @@ function getMoneyRequestOptions(report, reportParticipants, betas) {
     const hasExcludedIOUAccountIDs = lodashIntersection(reportParticipants, CONST.EXPENSIFY_ACCOUNT_IDS).length > 0;
     const hasSingleParticipantInReport = participants.length === 1;
     const hasMultipleParticipants = participants.length > 1;
+    const hasParticipantWithoutLogin = _.some(participants, (accountID) => !lodashGet(allPersonalDetails, [accountID, 'login'], ''));
 
-    if (hasExcludedIOUAccountIDs || (participants.length === 0 && !report.isOwnPolicyExpenseChat)) {
+    if (hasExcludedIOUAccountIDs || hasParticipantWithoutLogin || (participants.length === 0 && !report.isOwnPolicyExpenseChat)) {
         return [];
     }
 
