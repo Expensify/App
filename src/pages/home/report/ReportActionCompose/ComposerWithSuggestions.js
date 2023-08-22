@@ -85,7 +85,15 @@ const defaultProps = {
     modal: {},
 };
 
-function ReportComposerWithSuggestions({
+/**
+ * This component holds the value and selection state.
+ * If a component really needs access to these state values it should be put here.
+ * However, double check if the component really needs access, as it will re-render
+ * on every key press.
+ * @param {Object} props
+ * @returns {React.Component}
+ */
+function ComposerWithSuggestions({
     // Onyx
     modal,
     preferredSkinTone,
@@ -543,8 +551,8 @@ function ReportComposerWithSuggestions({
     );
 }
 
-ReportComposerWithSuggestions.propTypes = propTypes;
-ReportComposerWithSuggestions.defaultProps = defaultProps;
+ComposerWithSuggestions.propTypes = propTypes;
+ComposerWithSuggestions.defaultProps = defaultProps;
 
 export default compose(
     withKeyboardState,
@@ -566,7 +574,7 @@ export default compose(
     }),
 )(
     React.forwardRef((props, ref) => (
-        <ReportComposerWithSuggestions
+        <ComposerWithSuggestions
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             forwardedRef={ref}

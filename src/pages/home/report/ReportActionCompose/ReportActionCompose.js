@@ -31,7 +31,7 @@ import OfflineWithFeedback from '../../../../components/OfflineWithFeedback';
 import * as Welcome from '../../../../libs/actions/Welcome';
 import SendButton from './SendButton';
 import AttachmentPickerWithMenuItems from './AttachmentPickerWithMenuItems';
-import ReportComposerWithSuggestions from './ReportComposerWithSuggestions';
+import ComposerWithSuggestions from './ComposerWithSuggestions';
 import debouncedSaveReportComment from './debouncedSaveReportComment';
 import reportActionPropTypes from '../reportActionPropTypes';
 import useLocalize from '../../../../hooks/useLocalize';
@@ -315,7 +315,7 @@ function ReportActionCompose({
                                     isMenuVisible={isMenuVisible}
                                     onTriggerAttachmentPicker={onTriggerAttachmentPicker}
                                 />
-                                <ReportComposerWithSuggestions
+                                <ComposerWithSuggestions
                                     ref={composerRef}
                                     animatedRef={animatedRef}
                                     suggestionsRef={suggestionsRef}
