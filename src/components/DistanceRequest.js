@@ -92,7 +92,7 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
     const hasRouteError = Boolean(lodashGet(transaction, 'errorFields.route'));
     const previousWaypoints = usePrevious(waypoints);
     const haveWaypointsChanged = !_.isEqual(previousWaypoints, waypoints);
-    const shouldFetchRoute = haveWaypointsChanged || !isOffline || !isLoadingRoute || TransactionUtils.validateWaypoints(waypoints);
+    const shouldFetchRoute = haveWaypointsChanged && !isOffline && !isLoadingRoute && TransactionUtils.validateWaypoints(waypoints);
 
     const waypointMarkers = _.filter(
         _.map(waypoints, (waypoint, key) => {
