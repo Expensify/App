@@ -661,7 +661,8 @@ function setAssigneeValue(assigneeEmail, assigneeAccountID, shareDestination, is
             // So here, we create it optimistically to share it with the assignee, but we have to hide it until the task is created
             chatReport.isHidden = true;
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
-
+        }
+        if (!allPersonalDetails[assigneeAccountID]) {
             // If this is an optimistic report, we likely don't have their personal details yet so we set it here optimistically as well
             const optimisticPersonalDetailsListAction = {
                 accountID: assigneeAccountID,
