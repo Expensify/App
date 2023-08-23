@@ -22,14 +22,14 @@ import * as ErrorUtils from '../../ErrorUtils';
 import * as ReportUtils from '../../ReportUtils';
 import {hideContextMenu} from '../../../pages/home/report/ContextMenu/ReportActionContextMenu';
 
-let authTokenType = '';
+let sessionAuthTokenType = '';
 let sessionAuthToken = null;
 let authPromiseResolver = null;
 
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (session) => {
-        authTokenType = lodashGet(session, 'authTokenType');
+        sessionAuthTokenType = lodashGet(session, 'authTokenType');
         sessionAuthToken = lodashGet(session, 'authToken');
 
         if (sessionAuthToken && authPromiseResolver) {
@@ -71,7 +71,7 @@ function signOut() {
  * @return {boolean}
  */
 function isAnonymousUser() {
-    return authTokenType === 'anonymousAccount';
+    return sessionAuthTokenType === 'anonymousAccount';
 }
 
 function signOutAndRedirectToSignIn() {
