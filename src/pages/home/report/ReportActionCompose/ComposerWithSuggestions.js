@@ -26,7 +26,7 @@ import * as ReportUtils from '../../../../libs/ReportUtils';
 import reportActionPropTypes from '../reportActionPropTypes';
 import canFocusInputOnScreenFocus from '../../../../libs/canFocusInputOnScreenFocus';
 import debouncedSaveReportComment from './debouncedSaveReportComment';
-import UpdateComment from './UpdateComment';
+import SilentCommentUpdater from './SilentCommentUpdater';
 import Suggestions from './Suggestions';
 import getDraftComment from '../../../../libs/ComposerUtils/getDraftComment';
 import useLocalize from '../../../../hooks/useLocalize';
@@ -624,13 +624,13 @@ function ComposerWithSuggestions({
                 resetKeyboardInput={resetKeyboardInput}
             />
 
-            {/* <UpdateComment
+            <SilentCommentUpdater
                 reportID={reportID}
                 report={report}
                 value={value}
                 updateComment={updateComment}
                 commentRef={commentRef}
-            /> */}
+            />
         </>
     );
 }

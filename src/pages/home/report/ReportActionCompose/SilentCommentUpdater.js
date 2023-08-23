@@ -38,7 +38,7 @@ const defaultProps = {
  * re-rendering a UI component for that. That's why the side effect was moved down to a separate component.
  * @returns {null}
  */
-function UpdateComment({comment, commentRef, report, value, updateComment}) {
+function SilentCommentUpdater({comment, commentRef, report, value, updateComment}) {
     const prevCommentProp = usePrevious(comment);
     const prevReportId = usePrevious(report.reportID);
     const {preferredLocale} = useLocalize();
@@ -61,12 +61,12 @@ function UpdateComment({comment, commentRef, report, value, updateComment}) {
     return null;
 }
 
-UpdateComment.propTypes = propTypes;
-UpdateComment.defaultProps = defaultProps;
-UpdateComment.displayName = 'UpdateComment';
+SilentCommentUpdater.propTypes = propTypes;
+SilentCommentUpdater.defaultProps = defaultProps;
+SilentCommentUpdater.displayName = 'SilentCommentUpdater';
 
 export default withOnyx({
     comment: {
         key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,
     },
-})(UpdateComment);
+})(SilentCommentUpdater);
