@@ -1,5 +1,5 @@
 import React, {useEffect, useState, useCallback, useRef} from 'react';
-import {Dimensions, View} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
@@ -12,6 +12,7 @@ import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
 import TextInputWithCurrencySymbol from '../../../components/TextInputWithCurrencySymbol';
 import useLocalize from '../../../hooks/useLocalize';
 import CONST from '../../../CONST';
+import useWindowDimensions from '../../../hooks/useWindowDimensions';
 
 const propTypes = {
     /** IOU amount saved in Onyx */
@@ -59,7 +60,7 @@ const NUM_PAD_VIEW_ID = 'numPadView';
 
 function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCurrencyButtonPress, onSubmitButtonPress}) {
     const {translate, toLocaleDigit, numberFormat} = useLocalize();
-    const screenHeight = Dimensions.get('window').height;
+    const {isExtraSmallScreenWidth} = useWindowDimensions();
 
     const textInput = useRef(null);
 
@@ -220,7 +221,7 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
                 ) : null}
                 <Button
                     success
-                    medium={screenHeight < 550}
+                    medium={isExtraSmallScreenWidth}
                     style={[styles.w100, styles.mt5]}
                     onPress={submitAndNavigateToNextPage}
                     pressOnEnter
