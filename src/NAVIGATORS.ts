@@ -6,4 +6,4 @@ export default {
     CENTRAL_PANE_NAVIGATOR: 'CentralPaneNavigator',
     RIGHT_MODAL_NAVIGATOR: 'RightModalNavigator',
     FULL_SCREEN_NAVIGATOR: 'FullScreenNavigator',
-};
+} as const;
