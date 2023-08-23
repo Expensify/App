@@ -960,12 +960,11 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
     // Should only update if the transaction matches the currency of the report, else we wait for the update
     // from the server with the currency conversion
     let updatedIouReport = null;
-    const updatedChatReport = { ...chatReport};
+    const updatedChatReport = {...chatReport};
     if (updatedTransaction.currency === iouReport.currency && updatedTransaction.modifiedAmount) {
         if (ReportUtils.isExpenseReport(iouReport)) {
             updatedIouReport = {...iouReport};
-
-            // Because of the Expense reports are stored as negative values, we add the total from the amount
+            updatedIouReport.total -= TransactionUtils.getAmount(transaction, true);
             updatedIouReport.total += TransactionUtils.getAmount(updatedTransaction, true);
         } else {
             updatedIouReport = IOUUtils.updateIOUOwnerAndTotal(
@@ -987,10 +986,18 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
         updatedIouReport.cachedTotal = CurrencyUtils.convertToDisplayString(updatedIouReport.total, updatedTransaction.currency);
 
         // Update the last message of the IOU report
-        const lastMessage = ReportUtils.getIOUReportActionMessage(iouReport.reportID, CONST.IOU.REPORT_ACTION_TYPE.CREATE, updatedIouReport.total, '', updatedTransaction.currency, '', false);
+        const lastMessage = ReportUtils.getIOUReportActionMessage(
+            iouReport.reportID,
+            CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+            updatedIouReport.total,
+            '',
+            updatedTransaction.currency,
+            '',
+            false,
+        );
         updatedIouReport.lastMessageText = lastMessage[0].text;
         updatedIouReport.lastMessageHtml = lastMessage[0].html;
-    
+
         // Update the last message of the IOU chat report
         const messageText = Localize.translateLocal('iou.payerOwesAmount', {
             payer: updatedIouReport.managerEmail,

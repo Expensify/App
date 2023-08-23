@@ -76,6 +76,7 @@ function OptionRowLHNData({
     comment,
     policies,
     parentReportActions,
+    transactions,
     ...propsToForward
 }) {
     const reportID = propsToForward.reportID;
@@ -86,6 +87,8 @@ function OptionRowLHNData({
     const policy = lodashGet(policies, [`${ONYXKEYS.COLLECTION.POLICY}${fullReport.policyID}`], '');
 
     const parentReportAction = parentReportActions[fullReport.parentReportActionID];
+    const transactionID = lodashGet(parentReportAction, ['originalMessage', 'IOUTransactionID'], '');
+    const transaction = lodashGet(transactions, [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`], '');
 
     const optionItemRef = useRef();
     const optionItem = useMemo(() => {
@@ -97,8 +100,9 @@ function OptionRowLHNData({
         optionItemRef.current = item;
         return item;
         // Listen parentReportAction to update title of thread report when parentReportAction changed
+        // Listen to transaction to update title of transaction report when transaction changed
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [fullReport, reportActions, personalDetails, preferredLocale, policy, parentReportAction]);
+    }, [fullReport, reportActions, personalDetails, preferredLocale, policy, parentReportAction, transaction]);
 
     useEffect(() => {
         if (!optionItem || optionItem.hasDraftComment || !comment || comment.length <= 0 || isFocused) {
@@ -178,6 +182,9 @@ export default React.memo(
             },
             policies: {
                 key: ONYXKEYS.COLLECTION.POLICY,
+            },
+            transactions: {
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
             },
         }),
         withOnyx({
