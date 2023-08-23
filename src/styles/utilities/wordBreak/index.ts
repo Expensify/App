@@ -1,3 +1,5 @@
+import WordBreakStyles from './types';
+
 export default {
     breakWord: {
         wordBreak: 'break-word',
@@ -5,4 +7,4 @@ export default {
     breakAll: {
         wordBreak: 'break-all',
     },
-};
+} satisfies WordBreakStyles;
