@@ -1766,9 +1766,11 @@ function openReportFromDeepLink(url, isAuthenticated) {
         Session.waitForUserSignIn().then(() => {
             if (reportID) {
                 Navigation.navigate(ROUTES.getReportRoute(reportID), CONST.NAVIGATION.TYPE.UP);
+                return;
             }
             if (route === ROUTES.CONCIERGE) {
                 navigateToConciergeChat();
+                return;
             }
             Navigation.navigate(route, CONST.NAVIGATION.TYPE.PUSH);
         });
