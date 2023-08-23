@@ -637,12 +637,6 @@ function ReportActionCompose({
     const onSelectionChange = (e) => {
         LayoutAnimation.configureNext(LayoutAnimation.create(50, LayoutAnimation.Types.easeInEaseOut, LayoutAnimation.Properties.opacity));
         setSelection(e.nativeEvent.selection);
-
-        /**
-         * we pass here e.nativeEvent.selection.end directly to calculateEmojiSuggestion
-         * because in other case calculateEmojiSuggestion will have an old calculation value
-         * of suggestion instead of current one
-         */
     };
 
     const setUpComposeFocusManager = useCallback(() => {
