@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useCallback} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {View} from 'react-native';
@@ -14,30 +14,23 @@ import compose from '../../libs/compose';
 import * as Policy from '../../libs/actions/Policy';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import Button from '../../components/Button';
-import Checkbox from '../../components/Checkbox';
-import Text from '../../components/Text';
 import ROUTES from '../../ROUTES';
 import ConfirmModal from '../../components/ConfirmModal';
 import personalDetailsPropType from '../personalDetailsPropType';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
-import OptionRow from '../../components/OptionRow';
-import {policyPropTypes, policyDefaultProps} from './withPolicy';
-import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
+import withPolicy, {policyDefaultProps, policyPropTypes} from './withPolicy';
 import CONST from '../../CONST';
-import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import {withNetwork} from '../../components/OnyxProvider';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import networkPropTypes from '../../components/networkPropTypes';
 import * as UserUtils from '../../libs/UserUtils';
-import FormHelpMessage from '../../components/FormHelpMessage';
-import TextInput from '../../components/TextInput';
-import KeyboardDismissingFlatList from '../../components/KeyboardDismissingFlatList';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../components/withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../components/withCurrentUserPersonalDetails';
 import * as PolicyUtils from '../../libs/PolicyUtils';
-import PressableWithFeedback from '../../components/Pressable/PressableWithFeedback';
 import usePrevious from '../../hooks/usePrevious';
 import Log from '../../libs/Log';
 import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
+import SelectionList from '../../components/SelectionList';
+import Text from '../../components/Text';
 
 const propTypes = {
     /** All personal details asssociated with user */
@@ -58,6 +51,7 @@ const propTypes = {
         accountID: PropTypes.number,
     }),
 
+    isLoadingReportData: PropTypes.bool,
     ...policyPropTypes,
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
@@ -70,6 +64,7 @@ const defaultProps = {
     session: {
         accountID: 0,
     },
+    isLoadingReportData: true,
     ...policyDefaultProps,
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
@@ -93,7 +88,7 @@ function WorkspaceMembersPage(props) {
      */
     const validateSelection = useCallback(() => {
         const newErrors = {};
-        const ownerAccountID = _.first(PersonalDetailsUtils.getAccountIDsByLogins([props.policy.owner]));
+        const ownerAccountID = _.first(PersonalDetailsUtils.getAccountIDsByLogins(props.policy.owner ? [props.policy.owner] : []));
         _.each(selectedEmployees, (member) => {
             if (member !== ownerAccountID && member !== props.session.accountID) {
                 return;
@@ -130,41 +125,6 @@ function WorkspaceMembersPage(props) {
         }
         getWorkspaceMembers();
     }, [props.network.isOffline, prevIsOffline, getWorkspaceMembers]);
-
-    /**
-     * This function will iterate through the details of each policy member to check if the
-     * search string matches with any detail and return that filter.
-     * @param {Array} policyMembersPersonalDetails - This is the list of policy members
-     * @param {*} search - This is the string that the user has entered
-     * @returns {Array} - The list of policy members that have anything similar to the searchValue
-     */
-    const getMemberOptions = (policyMembersPersonalDetails, search) => {
-        // If no search value, we return all members.
-        if (_.isEmpty(search)) {
-            return policyMembersPersonalDetails;
-        }
-
-        // We will filter through each policy member details to determine if they should be shown
-        return _.filter(policyMembersPersonalDetails, (member) => {
-            let memberDetails = '';
-            if (member.login) {
-                memberDetails += ` ${member.login.toLowerCase()}`;
-            }
-            if (member.firstName) {
-                memberDetails += ` ${member.firstName.toLowerCase()}`;
-            }
-            if (member.lastName) {
-                memberDetails += ` ${member.lastName.toLowerCase()}`;
-            }
-            if (member.displayName) {
-                memberDetails += ` ${member.displayName.toLowerCase()}`;
-            }
-            if (member.phoneNumber) {
-                memberDetails += ` ${member.phoneNumber.toLowerCase()}`;
-            }
-            return OptionsListUtils.isSearchStringMatch(search, memberDetails);
-        });
-    };
 
     /**
      * Open the modal to invite a user
@@ -205,8 +165,16 @@ function WorkspaceMembersPage(props) {
      * @param {Object} memberList
      */
     const toggleAllUsers = (memberList) => {
-        const accountIDList = _.map(_.keys(memberList), (memberAccountID) => Number(memberAccountID));
-        setSelectedEmployees((prevSelected) => (!_.every(accountIDList, (memberAccountID) => _.contains(prevSelected, memberAccountID)) ? accountIDList : []));
+        const enabledAccounts = _.filter(memberList, (member) => !member.isDisabled);
+        const everyoneSelected = _.every(enabledAccounts, (member) => _.contains(selectedEmployees, Number(member.keyForList)));
+
+        if (everyoneSelected) {
+            setSelectedEmployees([]);
+        } else {
+            const everyAccountId = _.map(enabledAccounts, (member) => Number(member.keyForList));
+            setSelectedEmployees(everyAccountId);
+        }
+
         validateSelection();
     };
 
@@ -251,9 +219,9 @@ function WorkspaceMembersPage(props) {
 
             // Add or remove the user if the checkbox is enabled
             if (_.contains(selectedEmployees, Number(accountID))) {
-                removeUser(accountID);
+                removeUser(Number(accountID));
             } else {
-                addUser(accountID);
+                addUser(Number(accountID));
             }
         },
         [selectedEmployees, addUser, removeUser],
@@ -282,223 +250,158 @@ function WorkspaceMembersPage(props) {
      * @returns {Boolean}
      */
     const isDeletedPolicyMember = (policyMember) => !props.network.isOffline && policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && _.isEmpty(policyMember.errors);
-
-    /**
-     * Render a workspace member component
-     *
-     * @param {Object} args
-     * @param {Object} args.item
-     * @param {Number} args.index
-     *
-     * @returns {React.Component}
-     */
-    const renderItem = useCallback(
-        ({item}) => {
-            const disabled = props.session.email === item.login || item.role === CONST.POLICY.ROLE.ADMIN || item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-            const hasError = !_.isEmpty(item.errors) || errors[item.accountID];
-            const isChecked = _.contains(selectedEmployees, Number(item.accountID));
-            return (
-                <OfflineWithFeedback
-                    onClose={() => dismissError(item)}
-                    pendingAction={item.pendingAction}
-                    errors={item.errors}
-                >
-                    <PressableWithFeedback
-                        style={[styles.peopleRow, (_.isEmpty(item.errors) || errors[item.accountID]) && styles.peopleRowBorderBottom, hasError && styles.borderColorDanger]}
-                        disabled={disabled}
-                        onPress={() => toggleUser(item.accountID, item.pendingAction)}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
-                        accessibilityState={{
-                            checked: isChecked,
-                        }}
-                        accessibilityLabel={props.formatPhoneNumber(item.displayName)}
-                        hoverDimmingValue={1}
-                        pressDimmingValue={0.7}
-                    >
-                        <Checkbox
-                            disabled={disabled}
-                            isChecked={isChecked}
-                            onPress={() => toggleUser(item.accountID, item.pendingAction)}
-                            accessibilityLabel={item.displayName}
-                        />
-                        <View style={styles.flex1}>
-                            <OptionRow
-                                boldStyle
-                                isDisabled={disabled}
-                                option={{
-                                    text: props.formatPhoneNumber(item.displayName),
-                                    alternateText: props.formatPhoneNumber(item.login),
-                                    participantsList: [item],
-                                    icons: [
-                                        {
-                                            id: item.accountID,
-                                            source: UserUtils.getAvatar(item.avatar, item.accountID),
-                                            name: item.login,
-                                            type: CONST.ICON_TYPE_AVATAR,
-                                        },
-                                    ],
-                                    keyForList: String(item.accountID),
-                                }}
-                                onSelectRow={() => toggleUser(item.accountID, item.pendingAction)}
-                            />
-                        </View>
-                        {(props.session.accountID === item.accountID || item.role === CONST.POLICY.ROLE.ADMIN) && (
-                            <View style={[styles.badge, styles.peopleBadge]}>
-                                <Text style={[styles.peopleBadgeText]}>{props.translate('common.admin')}</Text>
-                            </View>
-                        )}
-                    </PressableWithFeedback>
-                    {!_.isEmpty(errors[item.accountID]) && (
-                        <FormHelpMessage
-                            isError
-                            message={errors[item.accountID]}
-                        />
-                    )}
-                </OfflineWithFeedback>
-            );
-        },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [selectedEmployees, errors, props.session.accountID, dismissError, toggleUser],
-    );
-
     const policyOwner = lodashGet(props.policy, 'owner');
     const currentUserLogin = lodashGet(props.currentUserPersonalDetails, 'login');
-    const removableMembers = {};
-    let data = [];
-    _.each(props.policyMembers, (policyMember, accountID) => {
-        if (isDeletedPolicyMember(policyMember)) {
-            return;
-        }
-        const details = props.personalDetails[accountID];
-        if (!details) {
-            Log.hmmm(`[WorkspaceMembersPage] no personal details found for policy member with accountID: ${accountID}`);
-            return;
-        }
-        data.push({
-            ...policyMember,
-            ...details,
-        });
-    });
-    data = _.sortBy(data, (value) => value.displayName.toLowerCase());
-    data = getMemberOptions(data, searchValue.trim().toLowerCase());
-
-    // If this policy is owned by Expensify then show all support (expensify.com or team.expensify.com) emails
-    // We don't want to show guides as policy members unless the user is a guide. Some customers get confused when they
-    // see random people added to their policy, but guides having access to the policies help set them up.
-    if (policyOwner && currentUserLogin && !PolicyUtils.isExpensifyTeam(policyOwner) && !PolicyUtils.isExpensifyTeam(currentUserLogin)) {
-        data = _.reject(data, (member) => PolicyUtils.isExpensifyTeam(member.login || member.displayName));
-    }
-
-    _.each(data, (member) => {
-        if (member.accountID === props.session.accountID || member.login === props.policy.owner || member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-            return;
-        }
-        removableMembers[member.accountID] = member;
-    });
     const policyID = lodashGet(props.route, 'params.policyID');
     const policyName = lodashGet(props.policy, 'name');
+
+    const getMemberOptions = () => {
+        let result = [];
+
+        _.each(props.policyMembers, (policyMember, accountID) => {
+            if (isDeletedPolicyMember(policyMember)) {
+                return;
+            }
+
+            const details = props.personalDetails[accountID];
+
+            if (!details) {
+                Log.hmmm(`[WorkspaceMembersPage] no personal details found for policy member with accountID: ${accountID}`);
+                return;
+            }
+
+            // If search value is provided, filter out members that don't match the search value
+            if (searchValue.trim()) {
+                let memberDetails = '';
+                if (details.login) {
+                    memberDetails += ` ${details.login.toLowerCase()}`;
+                }
+                if (details.firstName) {
+                    memberDetails += ` ${details.firstName.toLowerCase()}`;
+                }
+                if (details.lastName) {
+                    memberDetails += ` ${details.lastName.toLowerCase()}`;
+                }
+                if (details.displayName) {
+                    memberDetails += ` ${details.displayName.toLowerCase()}`;
+                }
+                if (details.phoneNumber) {
+                    memberDetails += ` ${details.phoneNumber.toLowerCase()}`;
+                }
+
+                if (!OptionsListUtils.isSearchStringMatch(searchValue.trim(), memberDetails)) {
+                    return;
+                }
+            }
+
+            // If this policy is owned by Expensify then show all support (expensify.com or team.expensify.com) emails
+            // We don't want to show guides as policy members unless the user is a guide. Some customers get confused when they
+            // see random people added to their policy, but guides having access to the policies help set them up.
+            if (PolicyUtils.isExpensifyTeam(details.login || details.displayName)) {
+                if (policyOwner && currentUserLogin && !PolicyUtils.isExpensifyTeam(policyOwner) && !PolicyUtils.isExpensifyTeam(currentUserLogin)) {
+                    return;
+                }
+            }
+
+            const isAdmin = props.session.email === details.login || policyMember.role === CONST.POLICY.ROLE.ADMIN;
+
+            result.push({
+                keyForList: accountID,
+                isSelected: _.contains(selectedEmployees, Number(accountID)),
+                isDisabled: accountID === props.session.accountID || details.login === props.policy.owner || policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                text: props.formatPhoneNumber(details.displayName),
+                alternateText: props.formatPhoneNumber(details.login),
+                rightElement: isAdmin ? (
+                    <View style={[styles.badge, styles.peopleBadge]}>
+                        <Text style={styles.peopleBadgeText}>{props.translate('common.admin')}</Text>
+                    </View>
+                ) : null,
+                avatar: {
+                    source: UserUtils.getAvatar(details.avatar, accountID),
+                    name: details.login,
+                    type: CONST.ICON_TYPE_AVATAR,
+                },
+                errors: policyMember.errors,
+                pendingAction: policyMember.pendingAction,
+            });
+        });
+
+        result = _.sortBy(result, (value) => value.text.toLowerCase());
+
+        return result;
+    };
+
+    const data = getMemberOptions();
+    const headerMessage = searchValue.trim() && !data.length ? props.translate('workspace.common.memberNotFound') : '';
 
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             style={[styles.defaultModalContainer]}
         >
-            {({safeAreaPaddingBottomStyle}) => (
-                <FullPageNotFoundView
-                    shouldShow={_.isEmpty(props.policy) || !PolicyUtils.isPolicyAdmin(props.policy)}
-                    subtitleKey={_.isEmpty(props.policy) ? undefined : 'workspace.common.notAuthorized'}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
-                >
-                    <HeaderWithBackButton
-                        title={props.translate('workspace.common.members')}
-                        subtitle={policyName}
-                        onBackButtonPress={() => {
-                            setSearchValue('');
-                            Navigation.goBack(ROUTES.getWorkspaceInitialRoute(policyID));
-                        }}
-                        shouldShowGetAssistanceButton
-                        guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
-                    />
-                    <ConfirmModal
-                        danger
-                        title={props.translate('workspace.people.removeMembersTitle')}
-                        isVisible={removeMembersConfirmModalVisible}
-                        onConfirm={removeUsers}
-                        onCancel={() => setRemoveMembersConfirmModalVisible(false)}
-                        prompt={props.translate('workspace.people.removeMembersPrompt')}
-                        confirmText={props.translate('common.remove')}
-                        cancelText={props.translate('common.cancel')}
-                    />
-                    <View style={[styles.w100, styles.flex1]}>
-                        <View style={[styles.w100, styles.flexRow, styles.pt3, styles.ph5]}>
-                            <Button
-                                medium
-                                success
-                                text={props.translate('common.invite')}
-                                onPress={inviteUser}
-                            />
-                            <Button
-                                medium
-                                danger
-                                style={[styles.ml2]}
-                                isDisabled={selectedEmployees.length === 0}
-                                text={props.translate('common.remove')}
-                                onPress={askForConfirmationToRemove}
-                            />
-                        </View>
-                        <View style={[styles.w100, styles.pv3, styles.ph5]}>
-                            <TextInput
-                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                                value={searchValue}
-                                onChangeText={setSearchValue}
-                                label={props.translate('optionsSelector.findMember')}
-                                accessibilityLabel={props.translate('optionsSelector.findMember')}
-                                spellCheck={false}
-                            />
-                        </View>
-                        {data.length > 0 ? (
-                            <View style={[styles.w100, styles.mt4, styles.flex1]}>
-                                <View style={[styles.peopleRow, styles.ph5, styles.pb3]}>
-                                    <PressableWithFeedback
-                                        disabled={_.isEmpty(removableMembers)}
-                                        onPress={() => toggleAllUsers(removableMembers)}
-                                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
-                                        accessibilityState={{
-                                            checked: !_.isEmpty(removableMembers) && _.every(_.keys(removableMembers), (accountID) => _.contains(selectedEmployees, Number(accountID))),
-                                        }}
-                                        accessibilityLabel={props.translate('workspace.people.selectAll')}
-                                        hoverDimmingValue={1}
-                                        pressDimmingValue={0.7}
-                                    >
-                                        <Checkbox
-                                            disabled={_.isEmpty(removableMembers)}
-                                            isChecked={!_.isEmpty(removableMembers) && _.every(_.keys(removableMembers), (accountID) => _.contains(selectedEmployees, Number(accountID)))}
-                                            onPress={() => toggleAllUsers(removableMembers)}
-                                            accessibilityLabel={props.translate('workspace.people.selectAll')}
-                                        />
-                                    </PressableWithFeedback>
-                                    <View style={[styles.flex1]}>
-                                        <Text style={[styles.textStrong, styles.ph5]}>{props.translate('workspace.people.selectAll')}</Text>
-                                    </View>
-                                </View>
-                                <KeyboardDismissingFlatList
-                                    renderItem={renderItem}
-                                    data={data}
-                                    keyExtractor={(item) => item.login}
-                                    showsVerticalScrollIndicator
-                                    style={[styles.ph5, styles.pb5]}
-                                    contentContainerStyle={safeAreaPaddingBottomStyle}
-                                    keyboardShouldPersistTaps="handled"
-                                />
-                            </View>
-                        ) : (
-                            <View style={[styles.ph5]}>
-                                <Text style={[styles.textLabel, styles.colorMuted]}>{props.translate('workspace.common.memberNotFound')}</Text>
-                            </View>
-                        )}
+            <FullPageNotFoundView
+                shouldShow={(_.isEmpty(props.policy) || !PolicyUtils.isPolicyAdmin(props.policy)) && !props.isLoadingReportData}
+                subtitleKey={_.isEmpty(props.policy) ? undefined : 'workspace.common.notAuthorized'}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
+            >
+                <HeaderWithBackButton
+                    title={props.translate('workspace.common.members')}
+                    subtitle={policyName}
+                    onBackButtonPress={() => {
+                        setSearchValue('');
+                        Navigation.goBack(ROUTES.getWorkspaceInitialRoute(policyID));
+                    }}
+                    shouldShowGetAssistanceButton
+                    guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
+                />
+                <ConfirmModal
+                    danger
+                    title={props.translate('workspace.people.removeMembersTitle')}
+                    isVisible={removeMembersConfirmModalVisible}
+                    onConfirm={removeUsers}
+                    onCancel={() => setRemoveMembersConfirmModalVisible(false)}
+                    prompt={props.translate('workspace.people.removeMembersPrompt')}
+                    confirmText={props.translate('common.remove')}
+                    cancelText={props.translate('common.cancel')}
+                />
+                <View style={[styles.w100, styles.flex1]}>
+                    <View style={[styles.w100, styles.flexRow, styles.pt3, styles.ph5]}>
+                        <Button
+                            medium
+                            success
+                            text={props.translate('common.invite')}
+                            onPress={inviteUser}
+                        />
+                        <Button
+                            medium
+                            danger
+                            style={[styles.ml2]}
+                            isDisabled={selectedEmployees.length === 0}
+                            text={props.translate('common.remove')}
+                            onPress={askForConfirmationToRemove}
+                        />
                     </View>
-                </FullPageNotFoundView>
-            )}
+                    <View style={[styles.w100, styles.mt4, styles.flex1]}>
+                        <SelectionList
+                            canSelectMultiple
+                            sections={[{data, indexOffset: 0, isDisabled: false}]}
+                            textInputLabel={props.translate('optionsSelector.findMember')}
+                            textInputValue={searchValue}
+                            onChangeText={setSearchValue}
+                            headerMessage={headerMessage}
+                            onSelectRow={(item) => toggleUser(item.keyForList)}
+                            onSelectAll={() => toggleAllUsers(data)}
+                            onDismissError={dismissError}
+                            showLoadingPlaceholder={!OptionsListUtils.isPersonalDetailsReady(props.personalDetails) || _.isEmpty(props.policyMembers)}
+                            initiallyFocusedOptionKey={lodashGet(
+                                _.find(data, (item) => !item.isDisabled),
+                                'keyForList',
+                                undefined,
+                            )}
+                        />
+                    </View>
+                </View>
+            </FullPageNotFoundView>
         </ScreenWrapper>
     );
 }
@@ -510,7 +413,7 @@ WorkspaceMembersPage.displayName = 'WorkspaceMembersPage';
 export default compose(
     withLocalize,
     withWindowDimensions,
-    withPolicyAndFullscreenLoading,
+    withPolicy,
     withNetwork(),
     withOnyx({
         personalDetails: {
@@ -518,6 +421,9 @@ export default compose(
         },
         session: {
             key: ONYXKEYS.SESSION,
+        },
+        isLoadingReportData: {
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
         },
     }),
     withCurrentUserPersonalDetails,
