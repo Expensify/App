@@ -94,6 +94,10 @@ function RightModalNavigator() {
                 component={ModalStackNavigators.EditRequestStackNavigator}
             />
             <Stack.Screen
+                name="PrivateNotes"
+                component={ModalStackNavigators.PrivateNotesModalStackNavigator}
+            />
+            <Stack.Screen
                 name="SignIn"
                 component={ModalStackNavigators.SignInModalStackNavigator}
             />
