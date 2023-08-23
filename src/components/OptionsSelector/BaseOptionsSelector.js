@@ -64,41 +64,22 @@ class BaseOptionsSelector extends Component {
     }
 
     componentDidMount() {
-        const enterConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
-        this.unsubscribeEnter = KeyboardShortcut.subscribe(
-            enterConfig.shortcutKey,
-            this.selectFocusedOption,
-            enterConfig.descriptionKey,
-            enterConfig.modifiers,
-            true,
-            () => !this.state.allOptions[this.state.focusedIndex],
-        );
-
-        const CTRLEnterConfig = CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER;
-        this.unsubscribeCTRLEnter = KeyboardShortcut.subscribe(
-            CTRLEnterConfig.shortcutKey,
-            () => {
-                if (this.props.canSelectMultipleOptions) {
-                    this.props.onConfirmSelection();
-                    return;
-                }
-
-                const focusedOption = this.state.allOptions[this.state.focusedIndex];
-                if (!focusedOption) {
-                    return;
-                }
-
-                this.selectRow(focusedOption);
-            },
-            CTRLEnterConfig.descriptionKey,
-            CTRLEnterConfig.modifiers,
-            true,
-        );
+        if(!this.props.disableArrowKeysActions) {
+            this.subscribeToKeyboardShortcut();
+        }
 
         this.scrollToIndex(this.props.selectedOptions.length ? 0 : this.state.focusedIndex, false);
     }
 
     componentDidUpdate(prevProps) {
+        if (prevProps.disableArrowKeysActions !== this.props.disableArrowKeysActions) {
+            if(this.props.disableArrowKeysActions) {
+                this.unSubscribeToKeyboardShortcut();
+            }else {
+                this.subscribeToKeyboardShortcut();
+            }
+        }
+
         if (this.textInput && this.props.autoFocus && !prevProps.isFocused && this.props.isFocused) {
             InteractionManager.runAfterInteractions(() => {
                 // If we automatically focus on a text input when mounting a component,
@@ -148,13 +129,7 @@ class BaseOptionsSelector extends Component {
             clearTimeout(this.focusTimeout);
         }
 
-        if (this.unsubscribeEnter) {
-            this.unsubscribeEnter();
-        }
-
-        if (this.unsubscribeCTRLEnter) {
-            this.unsubscribeCTRLEnter();
-        }
+        this.unSubscribeToKeyboardShortcut();
     }
 
     /**
@@ -177,6 +152,49 @@ class BaseOptionsSelector extends Component {
         }
 
         return defaultIndex;
+    }
+
+    subscribeToKeyboardShortcut() {
+        const enterConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
+        this.unsubscribeEnter = KeyboardShortcut.subscribe(
+            enterConfig.shortcutKey,
+            this.selectFocusedOption,
+            enterConfig.descriptionKey,
+            enterConfig.modifiers,
+            true,
+            () => !this.state.allOptions[this.state.focusedIndex],
+        );
+
+        const CTRLEnterConfig = CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER;
+        this.unsubscribeCTRLEnter = KeyboardShortcut.subscribe(
+            CTRLEnterConfig.shortcutKey,
+            () => {
+                if (this.props.canSelectMultipleOptions) {
+                    this.props.onConfirmSelection();
+                    return;
+                }
+
+                const focusedOption = this.state.allOptions[this.state.focusedIndex];
+                if (!focusedOption) {
+                    return;
+                }
+
+                this.selectRow(focusedOption);
+            },
+            CTRLEnterConfig.descriptionKey,
+            CTRLEnterConfig.modifiers,
+            true,
+        );
+    }
+
+    unSubscribeToKeyboardShortcut() {
+        if (this.unsubscribeEnter) {
+            this.unsubscribeEnter();
+        }
+
+        if (this.unsubscribeCTRLEnter) {
+            this.unsubscribeCTRLEnter();
+        }
     }
 
     selectFocusedOption() {
