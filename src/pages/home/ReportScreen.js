@@ -13,7 +13,6 @@ import * as Report from '../../libs/actions/Report';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as ReportUtils from '../../libs/ReportUtils';
 import ReportActionsView from './report/ReportActionsView';
-import CONST from '../../CONST';
 import ReportActionsSkeletonView from '../../components/ReportActionsSkeletonView';
 import reportActionPropTypes from './report/reportActionPropTypes';
 import {withNetwork} from '../../components/OnyxProvider';
@@ -130,7 +129,6 @@ class ReportScreen extends React.Component {
         this.state = {
             skeletonViewContainerHeight: reportActionsListViewHeight,
             isBannerVisible: true,
-            isReportRemoved: false,
         };
         this.firstRenderRef = React.createRef();
         this.firstRenderRef.current = reportActionsListViewHeight === 0;
@@ -157,37 +155,17 @@ class ReportScreen extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        // If composer should be hidden, hide emoji picker as well
-        if (ReportUtils.shouldHideComposer(this.props.report, this.props.errors)) {
+        if (ReportUtils.shouldDisableWriteActions(this.props.report)) {
             EmojiPickerAction.hideEmojiPicker(true);
-        }
-        const onyxReportID = this.props.report.reportID;
-        const prevOnyxReportID = prevProps.report.reportID;
-        const routeReportID = getReportID(this.props.route);
-
-        // navigate to concierge when the room removed from another device (e.g. user leaving a room)
-        // the report will not really null when removed, it will have defaultProps properties and values
-        if (
-            prevOnyxReportID &&
-            prevOnyxReportID === routeReportID &&
-            !onyxReportID &&
-            // non-optimistic case
-            (_.isEqual(this.props.report, defaultProps.report) ||
-                // optimistic case
-                (prevProps.report.statusNum === CONST.REPORT.STATUS.OPEN && this.props.report.statusNum === CONST.REPORT.STATUS.CLOSED))
-        ) {
-            Navigation.goBack();
-            Report.navigateToConciergeChat();
-            // isReportRemoved will prevent <FullPageNotFoundView> showing when navigating
-            this.setState({isReportRemoved: true});
-            return;
         }
 
         // If you already have a report open and are deeplinking to a new report on native,
         // the ReportScreen never actually unmounts and the reportID in the route also doesn't change.
         // Therefore, we need to compare if the existing reportID is the same as the one in the route
         // before deciding that we shouldn't call OpenReport.
-        if (onyxReportID === prevOnyxReportID && (!onyxReportID || onyxReportID === routeReportID)) {
+        const onyxReportID = this.props.report.reportID;
+        const routeReportID = getReportID(this.props.route);
+        if (onyxReportID === prevProps.report.reportID && (!onyxReportID || onyxReportID === routeReportID)) {
             return;
         }
 
@@ -237,7 +215,6 @@ class ReportScreen extends React.Component {
         if (this.props.report.reportID && this.props.report.reportID === getReportID(this.props.route)) {
             return;
         }
-
         Report.openReport(reportIDFromPath);
     }
 
@@ -315,11 +292,12 @@ class ReportScreen extends React.Component {
                     shouldEnableKeyboardAvoidingView={isTopMostReportId}
                 >
                     <FullPageNotFoundView
-                        shouldShow={(!this.props.report.reportID && !this.props.report.isLoadingReportActions && !isLoading && !this.state.isReportRemoved) || shouldHideReport}
+                        shouldShow={(!this.props.report.reportID && !this.props.report.isLoadingReportActions && !isLoading) || shouldHideReport}
                         subtitleKey="notFound.noAccess"
                         shouldShowCloseButton={false}
                         shouldShowBackButton={this.props.isSmallScreenWidth}
                         onBackButtonPress={Navigation.goBack}
+                        shouldShowLink={false}
                     >
                         <OfflineWithFeedback
                             pendingAction={addWorkspaceRoomOrChatPendingAction}
@@ -386,7 +364,6 @@ class ReportScreen extends React.Component {
                                 {this.isReportReadyForDisplay() && (
                                     <>
                                         <ReportFooter
-                                            errors={addWorkspaceRoomOrChatErrors}
                                             pendingAction={addWorkspaceRoomOrChatPendingAction}
                                             isOffline={this.props.network.isOffline}
                                             reportActions={this.props.reportActions}

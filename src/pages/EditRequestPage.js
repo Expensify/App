@@ -1,20 +1,24 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
+import compose from '../libs/compose';
 import CONST from '../CONST';
 import Navigation from '../libs/Navigation/Navigation';
-import compose from '../libs/compose';
-import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import ONYXKEYS from '../ONYXKEYS';
 import * as ReportActionsUtils from '../libs/ReportActionsUtils';
-import EditRequestDescriptionPage from './EditRequestDescriptionPage';
-import reportPropTypes from './reportPropTypes';
 import * as ReportUtils from '../libs/ReportUtils';
+import * as TransactionUtils from '../libs/TransactionUtils';
+import * as Policy from '../libs/actions/Policy';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes} from '../components/withCurrentUserPersonalDetails';
+import EditRequestDescriptionPage from './EditRequestDescriptionPage';
+import EditRequestCreatedPage from './EditRequestCreatedPage';
+import EditRequestAmountPage from './EditRequestAmountPage';
+import reportPropTypes from './reportPropTypes';
+import * as IOU from '../libs/actions/IOU';
+import * as CurrencyUtils from '../libs/CurrencyUtils';
 
 const propTypes = {
-    ...withLocalizePropTypes,
-
     /** Route from navigation */
     route: PropTypes.shape({
         /** Params from the route */
@@ -29,33 +33,119 @@ const propTypes = {
 
     /** The report object for the thread report */
     report: reportPropTypes,
+
+    /** The parent report object for the thread report */
+    parentReport: reportPropTypes,
+
+    /** The policy object for the current route */
+    policy: PropTypes.shape({
+        /** The name of the policy */
+        name: PropTypes.string,
+
+        /** The URL for the policy avatar */
+        avatar: PropTypes.string,
+    }),
+
+    /** Session info for the currently logged in user. */
+    session: PropTypes.shape({
+        /** Currently logged in user email */
+        email: PropTypes.string,
+    }),
+
+    ...withCurrentUserPersonalDetailsPropTypes,
 };
 
 const defaultProps = {
     report: {},
+    parentReport: {},
+    policy: null,
+    session: {
+        email: null,
+    },
 };
 
-function EditRequestPage(props) {
-    const parentReportAction = ReportActionsUtils.getParentReportAction(props.report);
-    const moneyRequestReportAction = ReportUtils.getMoneyRequestAction(parentReportAction);
-    const transactionDescription = moneyRequestReportAction.comment;
-    const field = lodashGet(props, ['route', 'params', 'field'], '');
+function EditRequestPage({report, route, parentReport, policy, session}) {
+    const parentReportAction = ReportActionsUtils.getParentReportAction(report);
+    const transaction = TransactionUtils.getLinkedTransaction(parentReportAction);
+    const {amount: transactionAmount, currency: transactionCurrency, comment: transactionDescription} = ReportUtils.getTransactionDetails(transaction);
 
-    function updateTransactionWithChanges(changes) {
-        // Update the transaction...
-        // eslint-disable-next-line no-console
-        console.log({changes});
+    const defaultCurrency = lodashGet(route, 'params.currency', '') || transactionCurrency;
 
-        // Note: The "modal" we are dismissing is the MoneyRequestAmountPage
+    // Take only the YYYY-MM-DD value
+    const transactionCreated = TransactionUtils.getCreated(transaction);
+    const fieldToEdit = lodashGet(route, ['params', 'field'], '');
+
+    const isDeleted = ReportActionsUtils.isDeletedAction(parentReportAction);
+    const isSettled = ReportUtils.isSettled(parentReport.reportID);
+
+    const isAdmin = Policy.isAdminOfFreePolicy([policy]) && ReportUtils.isExpenseReport(parentReport);
+    const isRequestor = ReportUtils.isMoneyRequestReport(parentReport) && lodashGet(session, 'accountID', null) === parentReportAction.actorAccountID;
+    const canEdit = !isSettled && !isDeleted && (isAdmin || isRequestor);
+
+    // Dismiss the modal when the request is paid or deleted
+    useEffect(() => {
+        if (canEdit) {
+            return;
+        }
+        Navigation.dismissModal();
+    }, [canEdit]);
+
+    // Update the transaction object and close the modal
+    function editMoneyRequest(transactionChanges) {
+        IOU.editMoneyRequest(transaction.transactionID, report.reportID, transactionChanges);
         Navigation.dismissModal();
     }
 
-    if (field === CONST.EDIT_REQUEST_FIELD.DESCRIPTION) {
+    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DESCRIPTION) {
         return (
             <EditRequestDescriptionPage
                 defaultDescription={transactionDescription}
-                onSubmit={(changes) => {
-                    updateTransactionWithChanges(changes);
+                onSubmit={(transactionChanges) => {
+                    // In case the comment hasn't been changed, do not make the API request.
+                    if (transactionChanges.comment.trim() === transactionDescription) {
+                        Navigation.dismissModal();
+                        return;
+                    }
+                    editMoneyRequest({comment: transactionChanges.comment.trim()});
+                }}
+            />
+        );
+    }
+
+    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DATE) {
+        return (
+            <EditRequestCreatedPage
+                defaultCreated={transactionCreated}
+                onSubmit={(transactionChanges) => {
+                    // In case the date hasn't been changed, do not make the API request.
+                    if (transactionChanges.created === transactionCreated) {
+                        Navigation.dismissModal();
+                        return;
+                    }
+                    editMoneyRequest(transactionChanges);
+                }}
+            />
+        );
+    }
+
+    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.AMOUNT) {
+        return (
+            <EditRequestAmountPage
+                defaultAmount={transactionAmount}
+                defaultCurrency={defaultCurrency}
+                reportID={report.reportID}
+                onSubmit={(transactionChanges) => {
+                    const amount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(transactionChanges));
+                    // In case the amount hasn't been changed, do not make the API request.
+                    if (amount === transactionAmount && transactionCurrency === defaultCurrency) {
+                        Navigation.dismissModal();
+                        return;
+                    }
+                    // Temporarily disabling currency editing and it will be enabled as a quick follow up
+                    editMoneyRequest({
+                        amount,
+                        currency: defaultCurrency,
+                    });
                 }}
             />
         );
@@ -68,10 +158,18 @@ EditRequestPage.displayName = 'EditRequestPage';
 EditRequestPage.propTypes = propTypes;
 EditRequestPage.defaultProps = defaultProps;
 export default compose(
-    withLocalize,
+    withCurrentUserPersonalDetails,
     withOnyx({
         report: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`,
+        },
+    }),
+    withOnyx({
+        parentReport: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report ? report.parentReportID : '0'}`,
+        },
+        policy: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
         },
     }),
 )(EditRequestPage);

@@ -1,4 +1,5 @@
 import {View} from 'react-native';
+import PropTypes from 'prop-types';
 import React from 'react';
 import Text from '../../components/Text';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
@@ -9,10 +10,16 @@ import styles from '../../styles/styles';
 import variables from '../../styles/variables';
 
 const propTypes = {
+    /** Override the green headline copy */
+    customHeadline: PropTypes.string,
+
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
 };
 
+const defaultProps = {
+    customHeadline: '',
+};
 function SignInHeroCopy(props) {
     return (
         <View style={[styles.flex1, styles.alignSelfCenter, styles.gap7]}>
@@ -23,7 +30,7 @@ function SignInHeroCopy(props) {
                     props.isLargeScreenWidth && StyleUtils.getFontSizeStyle(variables.fontSizeSignInHeroLarge),
                 ]}
             >
-                {props.translate('login.hero.header')}
+                {props.customHeadline || props.translate('login.hero.header')}
             </Text>
             <Text style={[styles.loginHeroBody]}>{props.translate('login.hero.body')}</Text>
         </View>
@@ -32,5 +39,6 @@ function SignInHeroCopy(props) {
 
 SignInHeroCopy.displayName = 'SignInHeroCopy';
 SignInHeroCopy.propTypes = propTypes;
+SignInHeroCopy.defaultProps = defaultProps;
 
 export default compose(withWindowDimensions, withLocalize)(SignInHeroCopy);

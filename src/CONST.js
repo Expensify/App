@@ -2,6 +2,7 @@ import lodashGet from 'lodash/get';
 import Config from 'react-native-config';
 import * as KeyCommand from 'react-native-key-command';
 import * as Url from './libs/Url';
+import SCREENS from './SCREENS';
 
 const CLOUDFRONT_DOMAIN = 'cloudfront.net';
 const CLOUDFRONT_URL = `https://d2k5nsl2zxldvw.${CLOUDFRONT_DOMAIN}`;
@@ -32,67 +33,13 @@ const CONST = {
     ANIMATED_TRANSITION: 300,
     ANIMATED_TRANSITION_FROM_VALUE: 100,
     ANIMATION_IN_TIMING: 100,
+    ANIMATION_DIRECTION: {
+        IN: 'in',
+        OUT: 'out',
+    },
     ARROW_HIDE_DELAY: 3000,
 
     API_ATTACHMENT_VALIDATIONS: {
-        // Same as the PHP layer allows
-        /* eslint-disable-next-line max-len */
-        UNALLOWED_EXTENSIONS: [
-            'ade',
-            'adp',
-            'apk',
-            'appx',
-            'appxbundle',
-            'bat',
-            'cab',
-            'chm',
-            'cmd',
-            'com',
-            'cpl',
-            'diagcab',
-            'diagcfg',
-            'diagpack',
-            'dll',
-            'dmg',
-            'ex',
-            'ex_',
-            'exe',
-            'hta',
-            'img',
-            'ins',
-            'iso',
-            'isp',
-            'jar',
-            'jnlp',
-            'js',
-            'jse',
-            'lib',
-            'lnk',
-            'mde',
-            'msc',
-            'msi',
-            'msix',
-            'msixbundle',
-            'msp',
-            'mst',
-            'nsh',
-            'pif',
-            'ps1',
-            'scr',
-            'sct',
-            'shb',
-            'sys',
-            'vb',
-            'vbe',
-            'vbs',
-            'vhd',
-            'vxd',
-            'wsc',
-            'wsf',
-            'wsh',
-            'xll',
-        ],
-
         // 24 megabytes in bytes, this is limit set on servers, do not update without wider internal discussion
         MAX_SIZE: 25165824,
 
@@ -128,6 +75,8 @@ const CONST = {
     },
 
     PULL_REQUEST_NUMBER,
+
+    MERCHANT_NAME_MAX_LENGTH: 255,
 
     CALENDAR_PICKER: {
         // Numbers were arbitrarily picked.
@@ -181,6 +130,14 @@ const CONST = {
         MOMENT_FORMAT_STRING: 'YYYY-MM-DD',
         SQL_DATE_TIME: 'YYYY-MM-DD HH:mm:ss',
         FNS_FORMAT_STRING: 'yyyy-MM-dd',
+        LOCAL_TIME_FORMAT: 'h:mm a',
+        WEEKDAY_TIME_FORMAT: 'eeee',
+        MONTH_DAY_ABBR_FORMAT: 'MMM d',
+        SHORT_DATE_FORMAT: 'MM-dd',
+        MONTH_DAY_YEAR_ABBR_FORMAT: 'MMM d, yyyy',
+        FNS_TIMEZONE_FORMAT_STRING: "yyyy-MM-dd'T'HH:mm:ssXXX",
+        FNS_DB_FORMAT_STRING: 'yyyy-MM-dd HH:mm:ss.SSS',
+        LONG_DATE_FORMAT_WITH_WEEKDAY: 'eeee, MMMM d, yyyy',
         UNIX_EPOCH: '1970-01-01 00:00:00.000',
         MAX_DATE: '9999-12-31',
         MIN_DATE: '0001-01-01',
@@ -274,11 +231,11 @@ const CONST = {
         INTERNATIONALIZATION: 'internationalization',
         IOU_SEND: 'sendMoney',
         POLICY_ROOMS: 'policyRooms',
-        POLICY_EXPENSE_CHAT: 'policyExpenseChat',
         PASSWORDLESS: 'passwordless',
         TASKS: 'tasks',
         THREADS: 'threads',
         SCAN_RECEIPTS: 'scanReceipts',
+        CUSTOM_STATUS: 'customStatus',
         DISTANCE_REQUESTS: 'distanceRequests',
     },
     BUTTON_STATES: {
@@ -482,6 +439,15 @@ const CONST = {
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'http://localhost:',
 
+    SIGN_IN_FORM_WIDTH: 300,
+
+    DEEPLINK_PROMPT_DENYLIST: [SCREENS.HOME, SCREENS.SIGN_IN_WITH_APPLE_DESKTOP, SCREENS.SIGN_IN_WITH_GOOGLE_DESKTOP],
+
+    SIGN_IN_METHOD: {
+        APPLE: 'Apple',
+        GOOGLE: 'Google',
+    },
+
     OPTION_TYPE: {
         REPORT: 'report',
         PERSONAL_DETAIL: 'personalDetail',
@@ -505,6 +471,7 @@ const CONST = {
                 TASKEDITED: 'TASKEDITED',
                 TASKCANCELLED: 'TASKCANCELLED',
                 IOU: 'IOU',
+                MODIFIEDEXPENSE: 'MODIFIEDEXPENSE',
                 REIMBURSEMENTQUEUED: 'REIMBURSEMENTQUEUED',
                 RENAMED: 'RENAMED',
                 CHRONOSOOOLIST: 'CHRONOSOOOLIST',
@@ -694,6 +661,11 @@ const CONST = {
         LIGHT: 'light',
         DARK: 'dark',
         SYSTEM: 'system',
+    },
+    TRANSACTION: {
+        TYPE: {
+            CUSTOM_UNIT: 'customUnit',
+        },
     },
     JSON_CODE: {
         SUCCESS: 200,
@@ -901,6 +873,8 @@ const CONST = {
         QA: 'qa@expensify.com',
         QA_TRAVIS: 'qa+travisreceipts@expensify.com',
         RECEIPTS: 'receipts@expensify.com',
+        SAASTR: 'saastr@expensify.com',
+        SBE: 'sbe@expensify.com',
         STUDENT_AMBASSADOR: 'studentambassadors@expensify.com',
         SVFG: 'svfg@expensify.com',
     },
@@ -920,6 +894,8 @@ const CONST = {
         QA_TRAVIS: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_QA_TRAVIS', 8595733)),
         RECEIPTS: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_RECEIPTS', -1)),
         REWARDS: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_REWARDS', 11023767)), // rewards@expensify.com
+        SAASTR: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_SAASTR', 15252830)),
+        SBE: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_SBE', 15305309)),
         STUDENT_AMBASSADOR: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_STUDENT_AMBASSADOR', 10476956)),
         SVFG: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_SVFG', 2012843)),
     },
@@ -1071,6 +1047,10 @@ const CONST = {
         AMOUNT_MAX_LENGTH: 10,
         RECEIPT_STATE: {
             SCANREADY: 'SCANREADY',
+            OPEN: 'OPEN',
+            SCANNING: 'SCANNING',
+            SCANCOMPLETE: 'SCANCOMPLETE',
+            SCANFAILED: 'SCANFAILED',
         },
         FILE_TYPES: {
             HTML: 'html',
@@ -1180,7 +1160,8 @@ const CONST = {
         ROOM_NAME: /^#[a-z0-9à-ÿ-]{1,80}$/,
 
         // eslint-disable-next-line max-len, no-misleading-character-class
-        EMOJIS: /[\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
+        EMOJIS: /[\p{Extended_Pictographic}](\u200D[\p{Extended_Pictographic}]|[\u{1F3FB}-\u{1F3FF}]|[\u{E0020}-\u{E007F}]|\uFE0F|\u20E3)*|[\u{1F1E6}-\u{1F1FF}]{2}|[#*0-9]\uFE0F?\u20E3/gu,
+
         TAX_ID: /^\d{9}$/,
         NON_NUMERIC: /\D/g,
 
@@ -1212,7 +1193,12 @@ const CONST = {
 
         ROUTES: {
             VALIDATE_LOGIN: /\/v($|(\/\/*))/,
+            UNLINK_LOGIN: /\/u($|(\/\/*))/,
         },
+
+        TIME_STARTS_01: /^01:\d{2} [AP]M$/,
+        TIME_FORMAT: /^\d{2}:\d{2} [AP]M$/,
+        DATE_TIME_FORMAT: /^\d{2}-\d{2} \d{2}:\d{2} [AP]M$/,
     },
 
     PRONOUNS: {
@@ -1246,6 +1232,8 @@ const CONST = {
             this.EMAIL.QA,
             this.EMAIL.QA_TRAVIS,
             this.EMAIL.RECEIPTS,
+            this.EMAIL.SAASTR,
+            this.EMAIL.SBE,
             this.EMAIL.STUDENT_AMBASSADOR,
             this.EMAIL.SVFG,
         ];
@@ -1266,6 +1254,8 @@ const CONST = {
             this.ACCOUNT_ID.QA_TRAVIS,
             this.ACCOUNT_ID.RECEIPTS,
             this.ACCOUNT_ID.REWARDS,
+            this.ACCOUNT_ID.SAASTR,
+            this.ACCOUNT_ID.SBE,
             this.ACCOUNT_ID.STUDENT_AMBASSADOR,
             this.ACCOUNT_ID.SVFG,
         ];
@@ -1313,8 +1303,10 @@ const CONST = {
     },
     EDIT_REQUEST_FIELD: {
         AMOUNT: 'amount',
+        CURRENCY: 'currency',
         DATE: 'date',
         DESCRIPTION: 'description',
+        MERCHANT: 'merchant',
     },
     FOOTER: {
         EXPENSE_MANAGEMENT_URL: `${USE_EXPENSIFY_URL}/expense-management`,
@@ -1362,16 +1354,6 @@ const CONST = {
         REACT_PDF_PASSWORD_RESPONSES: {
             NEED_PASSWORD: 1,
             INCORRECT_PASSWORD: 2,
-        },
-    },
-    TESTING: {
-        SCREEN_SIZE: {
-            SMALL: {
-                width: 300,
-                height: 700,
-                scale: 1,
-                fontScale: 1,
-            },
         },
     },
     API_REQUEST_TYPE: {
@@ -2575,11 +2557,51 @@ const CONST = {
     TRANSLATION_KEYS: {
         ATTACHMENT: 'common.attachment',
     },
+    CUSTOM_STATUS_TYPES: {
+        NEVER: 'never',
+        THIRTY_MINUTES: 'thirtyMinutes',
+        ONE_HOUR: 'oneHour',
+        AFTER_TODAY: 'afterToday',
+        AFTER_WEEK: 'afterWeek',
+        CUSTOM: 'custom',
+    },
+    TWO_FACTOR_AUTH_STEPS: {
+        CODES: 'CODES',
+        VERIFY: 'VERIFY',
+        SUCCESS: 'SUCCESS',
+        ENABLED: 'ENABLED',
+        DISABLED: 'DISABLED',
+    },
     TAB: {
         RECEIPT_TAB_ID: 'ReceiptTab',
         MANUAL: 'manual',
         SCAN: 'scan',
         DISTANCE: 'distance',
+    },
+    STATUS_TEXT_MAX_LENGTH: 100,
+
+    DROPDOWN_BUTTON_SIZE: {
+        LARGE: 'large',
+        MEDIUM: 'medium',
+    },
+
+    SF_COORDINATES: [-122.4194, 37.7749],
+
+    MAPBOX_STYLE_URL: 'mapbox://styles/expensify/cllcoiqds00cs01r80kp34tmq',
+    NAVIGATION: {
+        TYPE: {
+            FORCED_UP: 'FORCED_UP',
+            UP: 'UP',
+        },
+        ACTION_TYPE: {
+            REPLACE: 'REPLACE',
+            PUSH: 'PUSH',
+            NAVIGATE: 'NAVIGATE',
+        },
+    },
+    DEMO_PAGES: {
+        SAASTR: 'SaaStrDemoSetup',
+        SBE: 'SbeDemoSetup',
     },
 };
 

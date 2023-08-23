@@ -143,6 +143,7 @@ export default {
     addPaymentPopoverTopSpacing: 8,
     addPaymentPopoverRightSpacing: 13,
     anonymousReportFooterBreakpoint: 650,
+    dropDownButtonDividerHeight: 28,
 
     // The height of the empty list is 14px (2px for borders and 12px for vertical padding)
     // This is calculated based on the values specified in the 'getGoogleListViewStyle' function of the 'StyleUtils' utility
@@ -150,4 +151,6 @@ export default {
     hoverDimValue: 1,
     pressDimValue: 0.8,
     qrShareHorizontalPadding: 32,
+
+    baseMenuItemHeight: 64,
 };
