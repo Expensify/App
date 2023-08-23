@@ -243,6 +243,7 @@ function ReportActionItem(props) {
     /**
      * Get the content of ReportActionItem
      * @param {Boolean} hovered whether the ReportActionItem is hovered
+     * @param {Boolean} hasErrors whether the report action has any errors
      * @returns {Object} child component(s)
      */
     const renderItemContent = (hovered = false, hasErrors = false) => {
@@ -437,6 +438,7 @@ function ReportActionItem(props) {
      * Get ReportActionItem with a proper wrapper
      * @param {Boolean} hovered whether the ReportActionItem is hovered
      * @param {Boolean} isWhisper whether the ReportActionItem is a whisper
+     * @param {Boolean} hasErrors whether the report action has any errors
      * @returns {Object} report action item
      */
     const renderReportActionItem = (hovered, isWhisper, hasErrors) => {
