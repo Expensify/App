@@ -79,7 +79,7 @@ function resetMoneyRequestInfo(id = '') {
         currency: lodashGet(currentUserPersonalDetails, 'localCurrencyCode', CONST.CURRENCY.USD),
         comment: '',
         participants: [],
-        merchant: '',
+        merchant: CONST.TRANSACTION.DEFAULT_MERCHANT,
         created,
         receiptPath: '',
         receiptSource: '',

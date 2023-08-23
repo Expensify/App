@@ -30,7 +30,7 @@ function EditRequestMerchantPage({defaultMerchant, onSubmit}) {
         >
             <HeaderWithBackButton
                 title={translate('common.merchant')}
-                onBackButtonPress={() => Navigation.goBack()}
+                onBackButtonPress={Navigation.goBack}
             />
             <Form
                 style={[styles.flexGrow1, styles.ph5]}
