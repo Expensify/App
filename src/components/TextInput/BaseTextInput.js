@@ -176,9 +176,9 @@ function BaseTextInput(props) {
     // Activate or deactivate the label when either focus changes, or for controlled
     // components when the value prop changes:
     useEffect(() => {
-        if (hasValue || isFocused) {
+        if (hasValue || isFocused || isInputAutoFilled(input.current)) {
             activateLabel();
-        } else if (!hasValue && !isFocused) {
+        } else {
             deactivateLabel();
         }
     }, [activateLabel, deactivateLabel, hasValue, isFocused]);
