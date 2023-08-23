@@ -96,11 +96,7 @@ function CarouselItem({item, isFocused, onPress}) {
 
             {item.hasBeenFlagged && (
                 <SafeAreaConsumer>
-                    {({safeAreaPaddingBottomStyle}) => (
-                        <View style={[styles.appBG, safeAreaPaddingBottomStyle]}>
-                            {renderButton([styles.m4, styles.alignSelfCenter])}
-                        </View>
-                    )}
+                    {({safeAreaPaddingBottomStyle}) => <View style={[styles.appBG, safeAreaPaddingBottomStyle]}>{renderButton([styles.m4, styles.alignSelfCenter])}</View>}
                 </SafeAreaConsumer>
             )}
         </View>
