@@ -69,7 +69,7 @@ function CarouselItem({item, isFocused, onPress}) {
         );
         return onPress ? (
             <PressableWithoutFeedback
-                style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph4]}
+                style={[styles.attachmentRevealButtonContainer]}
                 onPress={onPress}
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                 accessibilityLabel={item.file.name || translate('attachmentView.unknownFilename')}
@@ -77,9 +77,7 @@ function CarouselItem({item, isFocused, onPress}) {
                 {children}
             </PressableWithoutFeedback>
         ) : (
-            <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph4]}>
-                {children}
-            </View>
+            <View style={[styles.attachmentRevealButtonContainer]}>{children}</View>
         );
     }
 
