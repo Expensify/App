@@ -25,7 +25,6 @@ export default {
         return `bank-account/${stepToOpen}?policyID=${policyID}${backToParam}`;
     },
     HOME: '',
-    SAASTR_HOME: 'saastr',
     SETTINGS: 'settings',
     SETTINGS_PROFILE: 'settings/profile',
     SETTINGS_SHARE_CODE: 'settings/shareCode',
@@ -92,6 +91,7 @@ export default {
     MONEY_REQUEST_DATE: ':iouType/new/date/:reportID?',
     MONEY_REQUEST_CURRENCY: ':iouType/new/currency/:reportID?',
     MONEY_REQUEST_DESCRIPTION: ':iouType/new/description/:reportID?',
+    MONEY_REQUEST_CATEGORY: ':iouType/new/category/:reportID?',
     MONEY_REQUEST_MERCHANT: ':iouType/new/merchant/:reportID?',
     MONEY_REQUEST_MANUAL_TAB: ':iouType/new/:reportID?/manual',
     MONEY_REQUEST_SCAN_TAB: ':iouType/new/:reportID?/scan',
@@ -107,6 +107,7 @@ export default {
     getMoneyRequestCreatedRoute: (iouType, reportID = '') => `${iouType}/new/date/${reportID}`,
     getMoneyRequestCurrencyRoute: (iouType, reportID = '', currency, backTo) => `${iouType}/new/currency/${reportID}?currency=${currency}&backTo=${backTo}`,
     getMoneyRequestDescriptionRoute: (iouType, reportID = '') => `${iouType}/new/description/${reportID}`,
+    getMoneyRequestCategoryRoute: (iouType, reportID = '') => `${iouType}/new/category/${reportID}`,
     getMoneyRequestMerchantRoute: (iouType, reportID = '') => `${iouType}/new/merchant/${reportID}`,
     getMoneyRequestDistanceTabRoute: (iouType, reportID = '') => `${iouType}/new/${reportID}/distance`,
     getMoneyRequestWaypointRoute: (iouType, waypointIndex) => `${iouType}/new/waypoint/${waypointIndex}`,
@@ -185,6 +186,10 @@ export default {
     getWorkspaceInvoicesRoute: (policyID) => `workspace/${policyID}/invoices`,
     getWorkspaceTravelRoute: (policyID) => `workspace/${policyID}/travel`,
     getWorkspaceMembersRoute: (policyID) => `workspace/${policyID}/members`,
+
+    // These are some on-off routes that will be removed once they're no longer needed (see GH issues for details)
+    SAASTR: 'saastr',
+    SBE: 'sbe',
 
     /**
      * @param {String} route
