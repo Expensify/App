@@ -49,6 +49,9 @@ const propTypes = {
     /** The report to with which the distance request is associated */
     report: reportPropTypes,
 
+    /** The transactionID of this request */
+    transactionID: PropTypes.string,
+
     /** The optimistic transaction for this request */
     transaction: PropTypes.shape({
         /** The transactionID of this request */
@@ -90,17 +93,17 @@ const defaultProps = {
     iouType: '',
     reportID: '',
     report: {},
+    transactionID: '',
     transaction: {},
     mapboxAccessToken: {},
 };
 
-function DistanceRequest({iou, iouType, reportID, report, transaction, mapboxAccessToken}) {
+function DistanceRequest({iou, iouType, reportID, report, transaction, mapboxAccessToken, transactionID}) {
     const [shouldShowGradient, setShouldShowGradient] = useState(false);
     const [scrollContainerHeight, setScrollContainerHeight] = useState(0);
     const [scrollContentHeight, setScrollContentHeight] = useState(0);
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
-    const {transactionID} = iou;
 
     const waypoints = lodashGet(transaction, 'comment.waypoints', {});
     const numberOfWaypoints = _.size(waypoints);
