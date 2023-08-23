@@ -50,6 +50,8 @@ function BaseSelectionList({
     showScrollIndicator = false,
     showLoadingPlaceholder = false,
     isKeyboardShown = false,
+    wrapperStyle = {},
+    disableInitialFocusOptionStyle = false,
 }) {
     const {translate} = useLocalize();
     const firstLayoutRef = useRef(true);
@@ -264,6 +266,7 @@ function BaseSelectionList({
                 isFocused={isFocused}
                 isDisabled={isDisabled}
                 onSelectRow={() => selectRow(item, index)}
+                disableIsFocusStyle={disableInitialFocusOptionStyle}
             />
         );
     };
@@ -304,7 +307,7 @@ function BaseSelectionList({
         >
             <SafeAreaConsumer>
                 {({safeAreaPaddingBottomStyle}) => (
-                    <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle]}>
+                    <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, wrapperStyle]}>
                         {shouldShowTextInput && (
                             <View style={[styles.ph5, styles.pb3]}>
                                 <TextInput

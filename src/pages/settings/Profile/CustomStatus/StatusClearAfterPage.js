@@ -12,7 +12,7 @@ import Navigation from '../../../../libs/Navigation/Navigation';
 import styles from '../../../../styles/styles';
 import Text from '../../../../components/Text';
 import MenuItemWithTopDescription from '../../../../components/MenuItemWithTopDescription';
-import SelectionListRadio from '../../../../components/SelectionListRadio';
+import SelectionList from '../../../../components/SelectionList';
 import useLocalize from '../../../../hooks/useLocalize';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import CONST from '../../../../CONST';
@@ -106,7 +106,7 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
                 submitButtonStyle={styles.mh3}
             >
                 <View style={styles.flexGrow1}>
-                    <SelectionListRadio
+                    <SelectionList
                         sections={[{data: localesToThemes, indexOffset: 0}]}
                         onSelectRow={updateMode}
                         disableInitialFocusOptionStyle

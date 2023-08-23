@@ -8,7 +8,8 @@ import * as Expensicons from '../Icon/Expensicons';
 import themeColors from '../../styles/themes/default';
 import {radioListItemPropTypes} from './selectionListPropTypes';
 
-function RadioListItem({item, isFocused = false, isDisabled = false, onSelectRow}) {
+function RadioListItem({item, isFocused: isFocusedProp = false, isDisabled = false, onSelectRow, disableInitialFocusOptionStyle = false}) {
+    const isFocused = disableInitialFocusOptionStyle && isFocusedProp;
     return (
         <PressableWithFeedback
             onPress={() => onSelectRow(item)}
