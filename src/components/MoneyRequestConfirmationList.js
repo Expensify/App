@@ -97,6 +97,7 @@ const propTypes = {
     /** File source of the receipt */
     receiptSource: PropTypes.string,
 
+    /* Onyx Props */
     /** Collection of categories attached to a policy */
     policyCategories: PropTypes.objectOf(categoryPropTypes),
 };
