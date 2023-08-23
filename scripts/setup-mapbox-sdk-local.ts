@@ -9,23 +9,46 @@
  * on local machine.
  */
 
-import axios from 'axios';
+import {get} from 'https';
 import {saveMapboxToken} from './setup-mapbox-sdk';
 
 const TOKEN_ENDPOINT = 'https://www.expensify.com/api.php?command=GetMapboxSDKToken';
 
-(async function main() {
-    try {
-        const response = await axios.get(TOKEN_ENDPOINT);
-        const token = response.data?.token;
+function fetchData(url: string): Promise<any> {
+    return new Promise((resolve, reject) => {
+        get(url, (res) => {
+            const contentType = res.headers['content-type'] || '';
+            let data = '';
+
+            res.on('data', (chunk) => {
+                data += chunk;
+            });
+
+            res.on('end', () => {
+                if (!contentType.includes('application/json')) {
+                    return reject(new Error('Unexpected content type: ' + contentType));
+                }
+
+                resolve(JSON.parse(data));
+            });
+        }).on('error', (error) => {
+            reject(error);
+        });
+    });
+}
+
+fetchData(TOKEN_ENDPOINT)
+    .then((token) => {
+        console.log(token);
         if (typeof token !== 'string') {
             throw new Error('Token could not be fetched or token is of a wrong type');
         }
-        await saveMapboxToken(token);
-    } catch (error) {
+
+        saveMapboxToken(token);
+    })
+    .catch((error) => {
         if (error instanceof Error) {
             console.error('Error:', error.message);
-            process.exit(1);
         }
-    }
-})();
+        process.exit(1);
+    });
