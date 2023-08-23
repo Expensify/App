@@ -20,6 +20,7 @@ import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotF
 import styles from '../../../styles/styles';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import ScreenWrapper from '../../../components/ScreenWrapper';
+import FullScreenLoadingIndicator from '../../../components/FullscreenLoadingIndicator';
 
 const propTypes = {
     route: PropTypes.shape({
@@ -171,6 +172,10 @@ function NewRequestAmountPage({route, iou, report}) {
             onSubmitButtonPress={navigateToNextPage}
         />
     );
+
+    if (!lodashGet(iou, 'didInitCurrency', false)) {
+        return <FullScreenLoadingIndicator />;
+    }
 
     // ScreenWrapper is only needed in edit mode because we have a dedicated route for the edit amount page (MoneyRequestEditAmountPage).
     // The rest of the cases this component is rendered through <MoneyRequestSelectorPage /> which has it's own ScreenWrapper
