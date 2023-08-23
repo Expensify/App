@@ -154,6 +154,7 @@ export default {
         edit: 'Editar',
         showMore: 'Mostrar más',
         merchant: 'Comerciante',
+        category: 'Categoría',
         receipt: 'Recibo',
         replace: 'Sustituir',
     },

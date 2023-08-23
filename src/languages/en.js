@@ -155,6 +155,7 @@ export default {
         edit: 'Edit',
         showMore: 'Show more',
         merchant: 'Merchant',
+        category: 'Category',
         receipt: 'Receipt',
         replace: 'Replace',
     },
