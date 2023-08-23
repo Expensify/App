@@ -1,4 +1,4 @@
-import React, {forwardRef, useEffect, useMemo} from 'react';
+import React, {forwardRef, useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import ReactNativeModal from 'react-native-modal';
@@ -57,25 +57,25 @@ function BaseModal({
      * Hides modal
      * @param {Boolean} [callHideCallback=true] Should we call the onModalHide callback
      */
-    const hideModal = (callHideCallback = true) => {
-        if (shouldSetModalVisibility) {
-            Modal.setModalVisibility(false);
-        }
-        if (callHideCallback) {
-            onModalHide();
-        }
-        Modal.onModalDidClose();
-    };
+    const hideModal = useCallback(
+        (callHideCallback = true) => {
+            if (shouldSetModalVisibility) {
+                Modal.setModalVisibility(false);
+            }
+            if (callHideCallback) {
+                onModalHide();
+            }
+            Modal.onModalDidClose();
+            // eslint-disable-next-line react-hooks/exhaustive-deps -- adding onModalHide to the dependency array causes too many unnecessary rerenders
+        },
+        [shouldSetModalVisibility],
+    );
 
     useEffect(() => {
-        if (!isVisible) {
-            return;
-        }
-
-        Modal.willAlertModalBecomeVisible(true);
+        Modal.willAlertModalBecomeVisible(isVisible);
 
         // To handle closing any modal already visible when this modal is mounted, i.e. PopoverReportActionContextMenu
-        Modal.setCloseModal(onClose);
+        Modal.setCloseModal(isVisible ? onClose : null);
 
         return () => {
             // Only trigger onClose and setModalVisibility if the modal is unmounting while visible.
@@ -87,13 +87,7 @@ function BaseModal({
             // To prevent closing any modal already unmounted when this modal still remains as visible state
             Modal.setCloseModal(null);
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- this effect only needs to run once on mount. It's an equivalent of componentDidMount and componentWillUnmount from the original class component
-    }, []);
-
-    useEffect(() => {
-        Modal.willAlertModalBecomeVisible(isVisible);
-        Modal.setCloseModal(isVisible ? onClose : null);
-    }, [isVisible, onClose]);
+    }, [hideModal, isVisible, onClose]);
 
     const handleShowModal = () => {
         if (shouldSetModalVisibility) {
