@@ -79,12 +79,14 @@ function ReportSettingsPage(props) {
                     onBackButtonPress={() => Navigation.goBack(ROUTES.getReportDetailsRoute(report.reportID))}
                 />
                 <ScrollView style={[styles.flex1]}>
-                    <MenuItemWithTopDescription
-                        shouldShowRightIcon
-                        title={notificationPreference}
-                        description={translate('notificationPreferencesPage.label')}
-                        onPress={() => Navigation.navigate(ROUTES.getReportSettingsNotificationPreferencesRoute(report.reportID))}
-                    />
+                    {report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN &&
+                        <MenuItemWithTopDescription
+                            shouldShowRightIcon
+                            title={notificationPreference}
+                            description={translate('notificationPreferencesPage.label')}
+                            onPress={() => Navigation.navigate(ROUTES.getReportSettingsNotificationPreferencesRoute(report.reportID))}
+                        />
+                    }
                     {shouldShowRoomName && (
                         <OfflineWithFeedback
                             pendingAction={lodashGet(report, 'pendingFields.reportName', null)}
