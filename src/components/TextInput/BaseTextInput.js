@@ -183,9 +183,9 @@ function BaseTextInput(props) {
         }
     }, [activateLabel, deactivateLabel, hasValue, isFocused]);
 
-    // When the value prop gets cleared externally, we need to deactivate the label:
+    // When the value prop gets cleared externally, we need to keep the ref in sync:
     useEffect(() => {
-        if (props.value === undefined || props.value > 0) {
+        if (!_.isEmpty(props.value)) {
             return;
         }
         hasValueRef.current = false;
