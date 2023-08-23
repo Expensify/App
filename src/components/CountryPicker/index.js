@@ -1,7 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import lodashGet from 'lodash/get';
 import styles from '../../styles/styles';
 import MenuItemWithTopDescription from '../MenuItemWithTopDescription';
 import useLocalize from '../../hooks/useLocalize';
@@ -31,16 +30,15 @@ const defaultProps = {
 
 function CountryPicker({value, errorText, onInputChange, forwardedRef}) {
     const {translate} = useLocalize();
-    const allCountries = translate('allCountries');
     const [isPickerVisible, setIsPickerVisible] = useState(false);
-    const [searchValue, setSearchValue] = useState(lodashGet(allCountries, value, ''));
+    const [searchValue, setSearchValue] = useState(value ? translate(`allCountries.${value}`) : '');
 
     useEffect(() => {
-        setSearchValue(lodashGet(allCountries, value, ''));
-    }, [value, allCountries]);
+        setSearchValue(value ? translate(`allCountries.${value}`) : '');
+    }, [value, translate]);
 
     const showPickerModal = () => {
-        setSearchValue(lodashGet(allCountries, value, ''));
+        setSearchValue(value ? translate(`allCountries.${value}`) : '');
         setIsPickerVisible(true);
     };
 
@@ -53,7 +51,7 @@ function CountryPicker({value, errorText, onInputChange, forwardedRef}) {
         hidePickerModal();
     };
 
-    const title = allCountries[value] || '';
+    const title = value ? translate(`allCountries.${value}`) : '';
     const descStyle = title.length === 0 ? styles.textNormal : null;
 
     return (

@@ -1,6 +1,5 @@
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
-import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
 import MenuItemWithTopDescription from '../MenuItemWithTopDescription';
@@ -35,16 +34,15 @@ const defaultProps = {
 
 function StatePicker({value, errorText, onInputChange, forwardedRef, label}) {
     const {translate} = useLocalize();
-    const allStates = translate('allStates');
     const [isPickerVisible, setIsPickerVisible] = useState(false);
-    const [searchValue, setSearchValue] = useState(lodashGet(allStates, `${value}.stateName`, ''));
+    const [searchValue, setSearchValue] = useState(value ? translate(`allStates.${value}.stateName`) : '');
 
     useEffect(() => {
-        setSearchValue(lodashGet(allStates, `${value}.stateName`, ''));
-    }, [value, allStates]);
+        setSearchValue(value ? translate(`allStates.${value}.stateName`) : '');
+    }, [translate, value]);
 
     const showPickerModal = () => {
-        setSearchValue(lodashGet(allStates, `${value}.stateName`, ''));
+        setSearchValue(value ? translate(`allStates.${value}.stateName`) : '');
         setIsPickerVisible(true);
     };
 
@@ -57,7 +55,7 @@ function StatePicker({value, errorText, onInputChange, forwardedRef, label}) {
         hidePickerModal();
     };
 
-    const title = allStates[value] ? allStates[value].stateName : '';
+    const title = value ? translate(`allStates.${value}.stateName`) : '';
     const descStyle = title.length === 0 ? styles.textNormal : null;
 
     return (
