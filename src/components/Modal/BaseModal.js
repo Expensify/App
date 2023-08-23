@@ -66,8 +66,8 @@ function BaseModal({
                 onModalHide();
             }
             Modal.onModalDidClose();
-            // eslint-disable-next-line react-hooks/exhaustive-deps -- adding onModalHide to the dependency array causes too many unnecessary rerenders
         },
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- adding onModalHide to the dependency array causes too many unnecessary rerenders
         [shouldSetModalVisibility],
     );
 
