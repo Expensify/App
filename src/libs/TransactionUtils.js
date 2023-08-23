@@ -225,6 +225,7 @@ function getCreated(transaction) {
 }
 
 /**
+ * Get the transactions related to a report preview with receipts
  * Get the details linked to the IOU reportAction
  *
  * @param {Object} reportAction
@@ -276,9 +277,10 @@ function validateWaypoints(waypoints) {
 
 /*
  * @param {Object} transaction
- * @param {String} transaction.type
- * @param {Object} [transaction.customUnit]
- * @param {String} [transaction.customUnit.name]
+ * @param {Object} transaction.comment
+ * @param {String} transaction.comment.type
+ * @param {Object} [transaction.comment.customUnit]
+ * @param {String} [transaction.comment.customUnit.name]
  * @returns {Boolean}
  */
 function isDistanceRequest(transaction) {

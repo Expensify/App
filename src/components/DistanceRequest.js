@@ -22,6 +22,7 @@ import useNetwork from '../hooks/useNetwork';
 import useLocalize from '../hooks/useLocalize';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
+import transactionPropTypes from './transactionPropTypes';
 import ScreenWrapper from './ScreenWrapper';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import * as ErrorUtils from '../libs/ErrorUtils';
@@ -38,28 +39,7 @@ const propTypes = {
     transactionID: PropTypes.string,
 
     /** The optimistic transaction for this request */
-    transaction: PropTypes.shape({
-        /** The transactionID of this request */
-        transactionID: PropTypes.string,
-
-        /** The comment object on the transaction */
-        comment: PropTypes.shape({
-            /** The waypoints defining the distance request */
-            waypoints: PropTypes.shape({
-                /** The latitude of the waypoint */
-                lat: PropTypes.number,
-
-                /** The longitude of the waypoint */
-                lng: PropTypes.number,
-
-                /** The address of the waypoint */
-                address: PropTypes.string,
-            }),
-        }),
-
-        /** Server side errors keyed by microtime */
-        errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
-    }),
+    transaction: transactionPropTypes,
 
     /** Data about Mapbox token for calling Mapbox API */
     mapboxAccessToken: PropTypes.shape({
