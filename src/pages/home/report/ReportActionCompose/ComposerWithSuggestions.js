@@ -330,9 +330,11 @@ function ComposerWithSuggestions({
      */
     const updateNumberOfLines = useCallback(
         (newNumberOfLines) => {
-            Report.saveReportCommentNumberOfLines(reportID, newNumberOfLines);
+            if (newNumberOfLines !== numberOfLines) {
+                Report.saveReportCommentNumberOfLines(reportID, newNumberOfLines);
+            }
         },
-        [reportID],
+        [reportID, numberOfLines],
     );
 
     /**
@@ -622,13 +624,13 @@ function ComposerWithSuggestions({
                 resetKeyboardInput={resetKeyboardInput}
             />
 
-            <UpdateComment
+            {/* <UpdateComment
                 reportID={reportID}
                 report={report}
                 value={value}
                 updateComment={updateComment}
                 commentRef={commentRef}
-            />
+            /> */}
         </>
     );
 }
