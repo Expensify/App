@@ -17,12 +17,16 @@ const propTypes = {
     /** Used to locate this view from native classes. */
     nativeID: PropTypes.string,
 
+    /** Whether long press is disabled */
+    isDisabledLongPress: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     longPressHandlerStateChanged: () => {},
     nativeID: 'numPadView',
+    isDisabledLongPress: false,
 };
 
 const padNumbers = [
@@ -83,6 +87,7 @@ function BigNumberPad(props) {
                                     props.longPressHandlerStateChanged(false);
                                 }}
                                 onMouseDown={(e) => e.preventDefault()}
+                                isDisabledLongPress={props.isDisabledLongPress}
                             />
                         );
                     })}
