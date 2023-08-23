@@ -111,8 +111,7 @@ export default {
     getMoneyRequestParticipantsRoute: (iouType: string, reportID = '') => `${iouType}/new/participants/${reportID}`,
     getMoneyRequestConfirmationRoute: (iouType: string, reportID = '') => `${iouType}/new/confirmation/${reportID}`,
     getMoneyRequestCreatedRoute: (iouType: string, reportID = '') => `${iouType}/new/date/${reportID}`,
-    getMoneyRequestCurrencyRoute: (iouType: string, reportID: string, currency: string, backTo: string) =>
-        `${iouType}/new/currency/${reportID}?currency=${currency}&backTo=${backTo}`,
+    getMoneyRequestCurrencyRoute: (iouType: string, reportID: string, currency: string, backTo: string) => `${iouType}/new/currency/${reportID}?currency=${currency}&backTo=${backTo}`,
     getMoneyRequestDescriptionRoute: (iouType: string, reportID = '') => `${iouType}/new/description/${reportID}`,
     getMoneyRequestMerchantRoute: (iouType: string, reportID = '') => `${iouType}/new/merchant/${reportID}`,
     getMoneyRequestDistanceTabRoute: (iouType: string, reportID = '') => `${iouType}/new/${reportID}/distance`,
