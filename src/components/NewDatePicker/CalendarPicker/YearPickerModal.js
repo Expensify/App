@@ -3,9 +3,9 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import HeaderWithBackButton from '../../HeaderWithBackButton';
 import CONST from '../../../CONST';
-import SelectionListRadio from '../../SelectionListRadio';
+import SelectionList from '../../SelectionList';
 import Modal from '../../Modal';
-import {radioListItemPropTypes} from '../../SelectionListRadio/selectionListRadioPropTypes';
+import {radioListItemPropTypes} from '../../SelectionList/selectionListPropTypes';
 import useLocalize from '../../../hooks/useLocalize';
 import ScreenWrapper from '../../ScreenWrapper';
 import styles from '../../../styles/styles';
@@ -15,7 +15,7 @@ const propTypes = {
     isVisible: PropTypes.bool.isRequired,
 
     /** The list of years to render */
-    years: PropTypes.arrayOf(PropTypes.shape(radioListItemPropTypes)).isRequired,
+    years: PropTypes.arrayOf(PropTypes.shape(radioListItemPropTypes.item)).isRequired,
 
     /** Currently selected year */
     currentYear: PropTypes.number,
@@ -69,7 +69,7 @@ function YearPickerModal(props) {
                     title={translate('yearPickerPage.year')}
                     onBackButtonPress={props.onClose}
                 />
-                <SelectionListRadio
+                <SelectionList
                     shouldDelayFocus
                     textInputLabel={translate('yearPickerPage.selectYear')}
                     textInputValue={searchText}

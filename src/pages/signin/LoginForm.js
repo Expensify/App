@@ -230,9 +230,8 @@ function LoginForm(props) {
                             containerStyles={[styles.mh0]}
                         />
                         {
-                            // This feature has a few behavioral and visual differences in development mode. To prevent confusion
-                            // for developers about possible regressions, we won't render
-                            // buttons in development mode.
+                            // This feature has a few behavioral differences in development mode. To prevent confusion
+                            // for developers about possible regressions, we won't render buttons in development mode.
                             // For more information about these differences and how to test in development mode,
                             // see`Expensify/App/contributingGuides/APPLE_GOOGLE_SIGNIN.md`
                             CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.DEV && (

@@ -43,23 +43,19 @@ function ImageRenderer(props) {
     const imageHeight = htmlAttribs['data-expensify-height'] ? parseInt(htmlAttribs['data-expensify-height'], 10) : undefined;
     const imagePreviewModalDisabled = htmlAttribs['data-expensify-preview-modal-disabled'] === 'true';
 
-    const shouldFitContainer = htmlAttribs['data-expensify-fit-container'] === 'true';
-    const sizingStyle = shouldFitContainer ? [styles.w100, styles.h100] : [];
-
     return imagePreviewModalDisabled ? (
         <ThumbnailImage
             previewSourceURL={previewSource}
-            style={shouldFitContainer ? [styles.w100, styles.h100] : styles.webViewStyles.tagStyles.img}
+            style={styles.webViewStyles.tagStyles.img}
             isAuthTokenRequired={isAttachmentOrReceipt}
             imageWidth={imageWidth}
             imageHeight={imageHeight}
-            shouldDynamicallyResize={!shouldFitContainer}
         />
     ) : (
         <ShowContextMenuContext.Consumer>
             {({anchor, report, action, checkIfContextMenuActive}) => (
                 <PressableWithoutFocus
-                    style={[styles.noOutline, ...sizingStyle]}
+                    style={[styles.noOutline]}
                     onPress={() => {
                         const route = ROUTES.getReportAttachmentRoute(report.reportID, source);
                         Navigation.navigate(route);
@@ -70,11 +66,10 @@ function ImageRenderer(props) {
                 >
                     <ThumbnailImage
                         previewSourceURL={previewSource}
-                        style={shouldFitContainer ? [styles.w100, styles.h100] : styles.webViewStyles.tagStyles.img}
+                        style={styles.webViewStyles.tagStyles.img}
                         isAuthTokenRequired={isAttachmentOrReceipt}
                         imageWidth={imageWidth}
                         imageHeight={imageHeight}
-                        shouldDynamicallyResize={!shouldFitContainer}
                     />
                 </PressableWithoutFocus>
             )}
