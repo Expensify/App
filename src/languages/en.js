@@ -30,10 +30,14 @@ export default {
         workspaces: 'Workspaces',
         profile: 'Profile',
         payments: 'Payments',
+        wallet: 'Wallet',
         preferences: 'Preferences',
         view: 'View',
         not: 'Not',
         signIn: 'Sign in',
+        signInWithGoogle: 'Sign in with Google',
+        signInWithApple: 'Sign in with Apple',
+        signInWith: 'Sign in with',
         continue: 'Continue',
         firstName: 'First name',
         lastName: 'Last name',
@@ -151,6 +155,8 @@ export default {
         edit: 'Edit',
         showMore: 'Show more',
         merchant: 'Merchant',
+        receipt: 'Receipt',
+        replace: 'Replace',
     },
     anonymousReportFooter: {
         logoTagline: 'Join in on the discussion.',
@@ -191,6 +197,11 @@ export default {
         redirectedToDesktopApp: "We've redirected you to the desktop app.",
         youCanAlso: 'You can also',
         openLinkInBrowser: 'open this link in your browser',
+        loggedInAs: ({email}) => `You're logged in as ${email}. Click "Open link" in the prompt to log into the desktop app with this account.`,
+        doNotSeePrompt: "Can't see the prompt?",
+        tryAgain: 'Try again',
+        or: ', or',
+        continueInWeb: 'continue to the web app',
     },
     validateCodeModal: {
         successfulSignInTitle: 'Abracadabra,\nyou are signed in!',
@@ -239,7 +250,17 @@ export default {
         hero: {
             header: 'Split bills, request payments, and chat with friends.',
             body: 'Welcome to the future of Expensify, your new go-to place for financial collaboration with friends and teammates alike.',
+            demoHeadline: 'Welcome to SaaStr! Hop in to start networking now.',
         },
+    },
+    thirdPartySignIn: {
+        alreadySignedIn: ({email}) => `You are already signed in as ${email}.`,
+        goBackMessage: ({provider}) => `Don't want to sign in with ${provider}?`,
+        continueWithMyCurrentSession: 'Continue with my current session',
+        redirectToDesktopMessage: "We'll redirect you to the desktop app once you finish signing in.",
+        signInAgreementMessage: 'By logging in, you agree to the',
+        termsOfService: 'Terms of Service',
+        privacy: 'Privacy',
     },
     reportActionCompose: {
         addAction: 'Actions',
@@ -291,8 +312,7 @@ export default {
         beginningOfChatHistoryDomainRoomPartTwo: ' to chat with colleagues, share tips, and ask questions.',
         beginningOfChatHistoryAdminRoomPartOne: ({workspaceName}) => `Collaboration among ${workspaceName} admins starts here! 🎉\nUse `,
         beginningOfChatHistoryAdminRoomPartTwo: ' to chat about topics such as workspace configurations and more.',
-        beginningOfChatHistoryAdminOnlyPostingRoomPartOne: 'Use ',
-        beginningOfChatHistoryAdminOnlyPostingRoomPartTwo: ({workspaceName}) => ` to hear about important announcements related to ${workspaceName}`,
+        beginningOfChatHistoryAdminOnlyPostingRoom: 'Only admins can send messages in this room.',
         beginningOfChatHistoryAnnounceRoomPartOne: ({workspaceName}) => `Collaboration between all ${workspaceName} members starts here! 🎉\nUse `,
         beginningOfChatHistoryAnnounceRoomPartTwo: ({workspaceName}) => ` to chat about anything ${workspaceName} related.`,
         beginningOfChatHistoryUserRoomPartOne: 'Collaboration starts here! 🎉\nUse this space to chat about anything ',
@@ -303,6 +323,7 @@ export default {
         beginningOfChatHistoryPolicyExpenseChatPartThree: ' starts here! 🎉 This is the place to chat, request money and settle up.',
         chatWithAccountManager: 'Chat with your account manager here',
         sayHello: 'Say hello!',
+        welcomeToRoom: ({roomName}) => `Welcome to ${roomName}!`,
         usePlusButton: '\n\nYou can also use the + button below to request money or assign a task!',
     },
     reportAction: {
@@ -349,6 +370,7 @@ export default {
     tabSelector: {
         manual: 'Manual',
         scan: 'Scan',
+        distance: 'Distance',
     },
     receipt: {
         upload: 'Upload receipt',
@@ -379,6 +401,13 @@ export default {
         pay: 'Pay',
         viewDetails: 'View details',
         pending: 'Pending',
+        deleteReceipt: 'Delete receipt',
+        receiptScanning: 'Receipt scan in progress…',
+        receiptStatusTitle: 'Scanning…',
+        receiptStatusText: "Only you can see this receipt when it's scanning. Check back later or enter the details now.",
+        requestCount: ({count, scanningReceipts = 0}) => `${count} requests${scanningReceipts > 0 ? `, ${scanningReceipts} scanning` : ''}`,
+        deleteRequest: 'Delete request',
+        deleteConfirmation: 'Are you sure that you want to delete this request?',
         settledExpensify: 'Paid',
         settledElsewhere: 'Paid elsewhere',
         settledPaypalMe: 'Paid using Paypal.me',
@@ -407,6 +436,7 @@ export default {
             other: 'Unexpected error, please try again later',
             genericCreateFailureMessage: 'Unexpected error requesting money, please try again later',
             genericDeleteFailureMessage: 'Unexpected error deleting the money request, please try again later',
+            genericEditFailureMessage: 'Unexpected error editing the money request, please try again later',
         },
     },
     notificationPreferencesPage: {
@@ -641,7 +671,7 @@ export default {
             password: 'Please enter your Expensify password',
         },
     },
-    paymentsPage: {
+    walletPage: {
         paymentMethodsTitle: 'Payment methods',
         setDefaultConfirmation: 'Make default payment method',
         setDefaultSuccess: 'Default payment method set!',
@@ -668,8 +698,8 @@ export default {
         transferDetailBankAccount: 'Your money should arrive in the next 1-3 business days.',
         transferDetailDebitCard: 'Your money should arrive immediately.',
         failedTransfer: 'Your balance isn’t fully settled. Please transfer to a bank account.',
-        notHereSubTitle: 'Please transfer your balance from the payments page',
-        goToPayment: 'Go to Payments',
+        notHereSubTitle: 'Please transfer your balance from the wallet page',
+        goToWallet: 'Go to Wallet',
     },
     chooseTransferAccountPage: {
         chooseAccount: 'Choose account',
@@ -861,6 +891,17 @@ export default {
         passwordNotSet: 'We were unable to set your new password. We have sent you a new password link to try again.',
         setPasswordLinkInvalid: 'This set password link is invalid or has expired. A new one is waiting for you in your email inbox!',
         validateAccount: 'Verify account',
+    },
+    statusPage: {
+        status: 'Status',
+        setStatusTitle: 'Set your status',
+        statusExplanation: "Add an emoji to give your colleagues and friends an easy way to know what's going on. You can optionally add a message too!",
+        today: 'Today',
+        clearStatus: 'Clear status',
+        save: 'Save',
+        message: 'Message',
+        untilTomorrow: 'Until tomorrow',
+        untilTime: ({time}) => `Until ${time}`,
     },
     stepCounter: ({step, total, text}) => {
         let result = `Step ${step}`;
@@ -1563,6 +1604,24 @@ export default {
         levelOneResult: 'Sends anonymous warning and message is reported for review.',
         levelTwoResult: 'Message hidden from channel, plus anonymous warning and message is reported for review.',
         levelThreeResult: 'Message removed from channel plus anonymous warning and message is reported for review.',
+    },
+    distance: {
+        addStop: 'Add stop',
+        address: 'Address',
+        waypointEditor: 'Waypoint Editor',
+        waypointDescription: {
+            start: 'Start',
+            finish: 'Finish',
+            stop: 'Stop',
+        },
+        mapPending: {
+            title: 'Map pending',
+            subtitle: 'The map will be generated when you go back online',
+            onlineSubtitle: 'One moment while we set up the map',
+        },
+        errors: {
+            selectSuggestedAddress: 'Please select a suggested address',
+        },
     },
     countrySelectorModal: {
         placeholderText: 'Search to see options',

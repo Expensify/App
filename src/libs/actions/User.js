@@ -18,6 +18,7 @@ import * as ReportActionsUtils from '../ReportActionsUtils';
 import * as ErrorUtils from '../ErrorUtils';
 import * as Session from './Session';
 import * as PersonalDetails from './PersonalDetails';
+import * as OnyxUpdates from './OnyxUpdates';
 
 let currentUserAccountID = '';
 let currentEmail = '';
@@ -516,7 +517,7 @@ function deletePaypalMeAddress() {
     ];
 
     API.write('DeletePaypalMeAddress', {}, {optimisticData, successData});
-    Growl.show(Localize.translateLocal('paymentsPage.deletePayPalSuccess'), CONST.GROWL.SUCCESS, 3000);
+    Growl.show(Localize.translateLocal('walletPage.deletePayPalSuccess'), CONST.GROWL.SUCCESS, 3000);
 }
 
 function triggerNotifications(onyxUpdates) {
@@ -547,14 +548,18 @@ function subscribeToUserEvents() {
     PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.MULTIPLE_EVENTS, currentUserAccountID, (pushJSON) => {
         let updates;
 
-        // This is the old format where each update was just an array, with the new changes it's an object with
-        // lastUpdateID, previousUpdateID and updates
+        // The data for this push event comes in two different formats:
+        // 1. Original format - this is what was sent before the RELIABLE_UPDATES project and will go away once RELIABLE_UPDATES is fully complete
+        //     - The data is an array of objects, where each object is an onyx update
+        //       Example: [{onyxMethod: 'whatever', key: 'foo', value: 'bar'}]
+        // 1. Reliable updates format - this is what was sent with the RELIABLE_UPDATES project and will be the format from now on
+        //     - The data is an object, containing updateIDs from the server and an array of onyx updates (this array is the same format as the original format above)
+        //       Example: {lastUpdateID: 1, previousUpdateID: 0, updates: [{onyxMethod: 'whatever', key: 'foo', value: 'bar'}]}
         if (_.isArray(pushJSON)) {
             updates = pushJSON;
         } else {
-            // const lastUpdateID = pushJSON.lastUpdateID;
-            // const previousUpdateID = pushJSON.previousUpdateID;
             updates = pushJSON.updates;
+            OnyxUpdates.saveUpdateIDs(Number(pushJSON.lastUpdateID || 0), Number(pushJSON.previousUpdateID || 0));
         }
         _.each(updates, (multipleEvent) => {
             PusherUtils.triggerMultiEventHandler(multipleEvent.eventType, multipleEvent.data);
@@ -568,6 +573,7 @@ function subscribeToUserEvents() {
             if (!currentUserAccountID) {
                 return;
             }
+
             Onyx.update(pushJSON);
             triggerNotifications(pushJSON);
         });
@@ -816,6 +822,69 @@ function updateTheme(theme) {
     Navigation.navigate(ROUTES.SETTINGS_PREFERENCES);
 }
 
+/**
+ * Sets a custom status
+ *
+ * @param {Object} status
+ * @param {String} status.text
+ * @param {String} status.emojiCode
+ * @param {String} status.clearAfter - ISO 8601 format string, which represents the time when the status should be cleared
+ */
+function updateCustomStatus(status) {
+    API.write('UpdateStatus', status, {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                value: {
+                    [currentUserAccountID]: {
+                        status,
+                    },
+                },
+            },
+        ],
+    });
+}
+
+/**
+ * Clears the custom status
+ */
+function clearCustomStatus() {
+    API.write('ClearStatus', undefined, {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                value: {
+                    [currentUserAccountID]: {
+                        status: null, // Clearing the field
+                    },
+                },
+            },
+        ],
+    });
+}
+
+/**
+ * Sets a custom status
+ *
+ * @param {Object} status
+ * @param {String} status.text
+ * @param {String} status.emojiCode
+ * @param {String} status.clearAfter - ISO 8601 format string, which represents the time when the status should be cleared
+ */
+function updateDraftCustomStatus(status) {
+    Onyx.merge(ONYXKEYS.CUSTOM_STATUS_DRAFT, status);
+}
+
+/**
+ * Clear the custom draft status
+ *
+ */
+function clearDraftCustomStatus() {
+    Onyx.merge(ONYXKEYS.CUSTOM_STATUS_DRAFT, {text: '', emojiCode: '', clearAfter: ''});
+}
+
 export {
     closeAccount,
     resendValidateCode,
@@ -841,4 +910,8 @@ export {
     setContactMethodAsDefault,
     updateTheme,
     resetContactMethodValidateCodeSentState,
+    updateCustomStatus,
+    clearCustomStatus,
+    updateDraftCustomStatus,
+    clearDraftCustomStatus,
 };

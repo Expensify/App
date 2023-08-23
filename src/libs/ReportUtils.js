@@ -1,4 +1,5 @@
 import _ from 'underscore';
+import {format, parseISO} from 'date-fns';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import lodashIntersection from 'lodash/intersection';
@@ -11,8 +12,8 @@ import * as Expensicons from '../components/Icon/Expensicons';
 import Navigation from './Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import * as NumberUtils from './NumberUtils';
-import * as NumberFormatUtils from './NumberFormatUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
+import * as TransactionUtils from './TransactionUtils';
 import Permissions from './Permissions';
 import DateUtils from './DateUtils';
 import linkingConfig from './Navigation/linkingConfig';
@@ -36,17 +37,6 @@ Onyx.connect({
         currentUserEmail = val.email;
         currentUserAccountID = val.accountID;
         isAnonymousUser = val.authTokenType === 'anonymousAccount';
-    },
-});
-
-let preferredLocale = CONST.LOCALES.DEFAULT;
-Onyx.connect({
-    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    callback: (val) => {
-        if (!val) {
-            return;
-        }
-        preferredLocale = val;
     },
 });
 
@@ -240,40 +230,6 @@ function isCurrentUserSubmitter(reportID) {
 }
 
 /**
- * Can only delete if the author is this user and the action is an ADDCOMMENT action or an IOU action in an unsettled report, or if the user is a
- * policy admin
- *
- * @param {Object} reportAction
- * @param {String} reportID
- * @returns {Boolean}
- */
-function canDeleteReportAction(reportAction, reportID) {
-    // For now, users cannot delete split actions
-    if (ReportActionsUtils.isMoneyRequestAction(reportAction) && lodashGet(reportAction, 'originalMessage.type') === CONST.IOU.REPORT_ACTION_TYPE.SPLIT) {
-        return false;
-    }
-    const isActionOwner = reportAction.actorAccountID === currentUserAccountID;
-    if (isActionOwner && ReportActionsUtils.isMoneyRequestAction(reportAction) && !isSettled(reportAction.originalMessage.IOUReportID)) {
-        return true;
-    }
-    if (
-        reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT ||
-        reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
-        ReportActionsUtils.isCreatedTaskReportAction(reportAction) ||
-        (ReportActionsUtils.isMoneyRequestAction(reportAction) && isSettled(reportAction.originalMessage.IOUReportID)) ||
-        reportAction.actorAccountID === CONST.ACCOUNT_ID.CONCIERGE
-    ) {
-        return false;
-    }
-    if (isActionOwner) {
-        return true;
-    }
-    const report = lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {});
-    const policy = lodashGet(allPolicies, `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`) || {};
-    return policy.role === CONST.POLICY.ROLE.ADMIN;
-}
-
-/**
  * Whether the provided report is an Admin room
  * @param {Object} report
  * @param {String} report.chatType
@@ -334,6 +290,17 @@ function isUserCreatedPolicyRoom(report) {
 }
 
 /**
+ * Get the policy type from a given report
+ * @param {Object} report
+ * @param {String} report.policyID
+ * @param {Object} policies must have Onyxkey prefix (i.e 'policy_') for keys
+ * @returns {String}
+ */
+function getPolicyType(report, policies) {
+    return lodashGet(policies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'type'], '');
+}
+
+/**
  * Whether the provided report is a Policy Expense chat.
  * @param {Object} report
  * @param {String} report.chatType
@@ -341,6 +308,22 @@ function isUserCreatedPolicyRoom(report) {
  */
 function isPolicyExpenseChat(report) {
     return getChatType(report) === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT;
+}
+
+/** Wether the provided report belongs to a Control policy and is an epxense chat
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isControlPolicyExpenseChat(report) {
+    return isPolicyExpenseChat(report) && getPolicyType(report, allPolicies) === CONST.POLICY.TYPE.CORPORATE;
+}
+
+/** Wether the provided report belongs to a Control policy and is an epxense report
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isControlPolicyExpenseReport(report) {
+    return isExpenseReport(report) && getPolicyType(report, allPolicies) === CONST.POLICY.TYPE.CORPORATE;
 }
 
 /**
@@ -373,17 +356,6 @@ function isPublicRoom(report) {
 function isPublicAnnounceRoom(report) {
     const visibility = lodashGet(report, 'visibility', '');
     return visibility === CONST.REPORT.VISIBILITY.PUBLIC_ANNOUNCE;
-}
-
-/**
- * Get the policy type from a given report
- * @param {Object} report
- * @param {String} report.policyID
- * @param {Object} policies must have Onyxkey prefix (i.e 'policy_') for keys
- * @returns {String}
- */
-function getPolicyType(report, policies) {
-    return lodashGet(policies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'type'], '');
 }
 
 /**
@@ -459,7 +431,7 @@ function isConciergeChatReport(report) {
 function shouldDisableDetailPage(report) {
     const participantAccountIDs = lodashGet(report, 'participantAccountIDs', []);
 
-    if (isChatRoom(report) || isPolicyExpenseChat(report) || isChatThread(report)) {
+    if (isChatRoom(report) || isPolicyExpenseChat(report) || isChatThread(report) || isTaskReport(report)) {
         return false;
     }
     if (participantAccountIDs.length === 1) {
@@ -516,11 +488,20 @@ function findLastAccessedReport(reports, ignoreDomainRooms, policies, isFirstTim
     // since the Concierge report would be incorrectly selected over the deep-linked report in the logic below.
     let sortedReports = sortReportsByLastRead(reports);
 
+    let adminReport;
+    if (openOnAdminRoom) {
+        adminReport = _.find(sortedReports, (report) => {
+            const chatType = getChatType(report);
+            return chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS;
+        });
+    }
+
     if (isFirstTimeNewExpensifyUser) {
         if (sortedReports.length === 1) {
             return sortedReports[0];
         }
-        return _.find(sortedReports, (report) => !isConciergeChatReport(report));
+
+        return adminReport || _.find(sortedReports, (report) => !isConciergeChatReport(report));
     }
 
     if (ignoreDomainRooms) {
@@ -531,14 +512,6 @@ function findLastAccessedReport(reports, ignoreDomainRooms, policies, isFirstTim
             sortedReports,
             (report) => !isDomainRoom(report) || getPolicyType(report, policies) === CONST.POLICY.TYPE.FREE || hasExpensifyGuidesEmails(lodashGet(report, ['participantAccountIDs'], [])),
         );
-    }
-
-    let adminReport;
-    if (openOnAdminRoom) {
-        adminReport = _.find(sortedReports, (report) => {
-            const chatType = getChatType(report);
-            return chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS;
-        });
     }
 
     return adminReport || _.last(sortedReports);
@@ -752,13 +725,48 @@ function isMoneyRequestReport(reportOrID) {
 }
 
 /**
+ * Can only delete if the author is this user and the action is an ADDCOMMENT action or an IOU action in an unsettled report, or if the user is a
+ * policy admin
+ *
+ * @param {Object} reportAction
+ * @param {String} reportID
+ * @returns {Boolean}
+ */
+function canDeleteReportAction(reportAction, reportID) {
+    // For now, users cannot delete split actions
+    if (ReportActionsUtils.isMoneyRequestAction(reportAction) && lodashGet(reportAction, 'originalMessage.type') === CONST.IOU.REPORT_ACTION_TYPE.SPLIT) {
+        return false;
+    }
+    const isActionOwner = reportAction.actorAccountID === currentUserAccountID;
+    if (isActionOwner && ReportActionsUtils.isMoneyRequestAction(reportAction) && !isSettled(reportAction.originalMessage.IOUReportID)) {
+        return true;
+    }
+    if (
+        reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT ||
+        reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
+        ReportActionsUtils.isCreatedTaskReportAction(reportAction) ||
+        (ReportActionsUtils.isMoneyRequestAction(reportAction) && isSettled(reportAction.originalMessage.IOUReportID)) ||
+        reportAction.actorAccountID === CONST.ACCOUNT_ID.CONCIERGE
+    ) {
+        return false;
+    }
+    if (isActionOwner) {
+        return true;
+    }
+    const report = lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {});
+    const policy = lodashGet(allPolicies, `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`) || {};
+    return policy.role === CONST.POLICY.ROLE.ADMIN && !isDM(report);
+}
+
+/**
  * Get welcome message based on room type
  * @param {Object} report
+ * @param {Boolean} isUserPolicyAdmin
  * @returns {Object}
  */
 
-function getRoomWelcomeMessage(report) {
-    const welcomeMessage = {};
+function getRoomWelcomeMessage(report, isUserPolicyAdmin) {
+    const welcomeMessage = {showReportName: true};
     const workspaceName = getPolicyName(report);
 
     if (isArchivedRoom(report)) {
@@ -770,9 +778,9 @@ function getRoomWelcomeMessage(report) {
     } else if (isAdminRoom(report)) {
         welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminRoomPartOne', {workspaceName});
         welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminRoomPartTwo');
-    } else if (isAdminsOnlyPostingRoom(report)) {
-        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminOnlyPostingRoomPartOne');
-        welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminOnlyPostingRoomPartTwo', {workspaceName});
+    } else if (isAdminsOnlyPostingRoom(report) && !isUserPolicyAdmin) {
+        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminOnlyPostingRoom');
+        welcomeMessage.showReportName = false;
     } else if (isAnnounceRoom(report)) {
         welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAnnounceRoomPartOne', {workspaceName});
         welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAnnounceRoomPartTwo', {workspaceName});
@@ -795,7 +803,7 @@ function chatIncludesConcierge(report) {
 }
 
 /**
- * Returns true if there is any automated expensify account in accountIDs
+ * Returns true if there is any automated expensify account `in accountIDs
  * @param {Array} accountIDs
  * @returns {Boolean}
  */
@@ -1105,58 +1113,23 @@ function getDisplayNamesWithTooltips(personalDetailsList, isMultipleParticipantR
 }
 
 /**
- * We get the amount, currency and comment money request value from the action.originalMessage.
- * But for the send money action, the above value is put in the IOUDetails object.
- *
- * @param {Object} reportAction
- * @param {Number} reportAction.amount
- * @param {String} reportAction.currency
- * @param {String} reportAction.comment
- * @param {Object} [reportAction.IOUDetails]
- * @returns {Object}
- */
-function getMoneyRequestAction(reportAction = {}) {
-    const originalMessage = lodashGet(reportAction, 'originalMessage', {});
-    let amount = originalMessage.amount || 0;
-    let currency = originalMessage.currency || CONST.CURRENCY.USD;
-    let comment = originalMessage.comment || '';
-
-    if (_.has(originalMessage, 'IOUDetails')) {
-        amount = lodashGet(originalMessage, 'IOUDetails.amount', 0);
-        currency = lodashGet(originalMessage, 'IOUDetails.currency', CONST.CURRENCY.USD);
-        comment = lodashGet(originalMessage, 'IOUDetails.comment', '');
-    }
-
-    return {amount, currency, comment};
-}
-
-/**
  * Determines if a report has an IOU that is waiting for an action from the current user (either Pay or Add a credit bank account)
  *
  * @param {Object} report (chatReport or iouReport)
- * @param {Object} allReportsDict
  * @returns {boolean}
  */
-function isWaitingForIOUActionFromCurrentUser(report, allReportsDict = null) {
-    const allAvailableReports = allReportsDict || allReports;
-    if (!report || !allAvailableReports) {
+function isWaitingForIOUActionFromCurrentUser(report) {
+    if (!report) {
         return false;
     }
 
     // Money request waiting for current user to add their credit bank account
-    if (report.ownerAccountID === currentUserAccountID && report.isWaitingOnBankAccount) {
+    if (report.hasOutstandingIOU && report.ownerAccountID === currentUserAccountID && report.isWaitingOnBankAccount) {
         return true;
     }
 
-    let reportToLook = report;
-    if (report.iouReportID) {
-        const iouReport = allAvailableReports[`${ONYXKEYS.COLLECTION.REPORT}${report.iouReportID}`];
-        if (iouReport) {
-            reportToLook = iouReport;
-        }
-    }
-    // Money request waiting for current user to Pay (from chat or from iou report)
-    if (reportToLook.ownerAccountID && (reportToLook.ownerAccountID !== currentUserAccountID || currentUserAccountID === reportToLook.managerID) && reportToLook.hasOutstandingIOU) {
+    // Money request waiting for current user to Pay (from expense or iou report)
+    if (report.hasOutstandingIOU && report.ownerAccountID && (report.ownerAccountID !== currentUserAccountID || currentUserAccountID === report.managerID)) {
         return true;
     }
 
@@ -1235,7 +1208,10 @@ function getPolicyExpenseChatName(report, policy = undefined) {
 function getMoneyRequestReportName(report, policy = undefined) {
     const formattedAmount = CurrencyUtils.convertToDisplayString(getMoneyRequestTotal(report), report.currency);
     const payerName = isExpenseReport(report) ? getPolicyName(report, false, policy) : getDisplayNameForParticipant(report.managerID);
-    const payerPaidAmountMesssage = Localize.translateLocal('iou.payerPaidAmount', {payer: payerName, amount: formattedAmount});
+    const payerPaidAmountMesssage = Localize.translateLocal('iou.payerPaidAmount', {
+        payer: payerName,
+        amount: formattedAmount,
+    });
 
     if (report.isWaitingOnBankAccount) {
         return `${payerPaidAmountMesssage} • ${Localize.translateLocal('iou.pending')}`;
@@ -1249,6 +1225,76 @@ function getMoneyRequestReportName(report, policy = undefined) {
 }
 
 /**
+ * Get the report given a reportID
+ *
+ * @param {String} reportID
+ * @returns {Object}
+ */
+function getReport(reportID) {
+    return lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {});
+}
+
+/**
+ * Gets transaction created, amount, currency and comment
+ *
+ * @param {Object} transaction
+ * @returns {Object}
+ */
+function getTransactionDetails(transaction) {
+    const report = getReport(transaction.reportID);
+    return {
+        created: TransactionUtils.getCreated(transaction),
+        amount: TransactionUtils.getAmount(transaction, isExpenseReport(report)),
+        currency: TransactionUtils.getCurrency(transaction),
+        comment: TransactionUtils.getDescription(transaction),
+        merchant: TransactionUtils.getMerchant(transaction),
+    };
+}
+
+/**
+ * Gets all transactions on an IOU report with a receipt
+ *
+ * @param {Object|null} iouReportID
+ * @returns {[Object]}
+ */
+function getTransactionsWithReceipts(iouReportID) {
+    const reportActions = ReportActionsUtils.getAllReportActions(iouReportID);
+    return _.reduce(
+        reportActions,
+        (transactions, action) => {
+            if (ReportActionsUtils.isMoneyRequestAction(action)) {
+                const transaction = TransactionUtils.getLinkedTransaction(action);
+                if (TransactionUtils.hasReceipt(transaction)) {
+                    transactions.push(transaction);
+                }
+            }
+            return transactions;
+        },
+        [],
+    );
+}
+
+/**
+ * For report previews, we display a "Receipt scan in progress" indicator
+ * instead of the report total only when we have no report total ready to show. This is the case when
+ * all requests are receipts that are being SmartScanned. As soon as we have a non-receipt request,
+ * or as soon as one receipt request is done scanning, we have at least one
+ * "ready" money request, and we remove this indicator to show the partial report total.
+ *
+ * @param {Object|null} iouReportID
+ * @param {Object|null} reportPreviewAction the preview action associated with the IOU report
+ * @returns {Boolean}
+ */
+function areAllRequestsBeingSmartScanned(iouReportID, reportPreviewAction) {
+    const transactionsWithReceipts = getTransactionsWithReceipts(iouReportID);
+    // If we have more requests than requests with receipts, we have some manual requests
+    if (ReportActionsUtils.getNumberOfMoneyRequests(reportPreviewAction) > transactionsWithReceipts.length) {
+        return false;
+    }
+    return _.all(transactionsWithReceipts, (transaction) => TransactionUtils.isReceiptBeingScanned(transaction));
+}
+
+/**
  * Given a parent IOU report action get report name for the LHN.
  *
  * @param {Object} reportAction
@@ -1259,9 +1305,16 @@ function getTransactionReportName(reportAction) {
         return Localize.translateLocal('parentReportAction.deletedRequest');
     }
 
+    const transaction = TransactionUtils.getLinkedTransaction(reportAction);
+    if (TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction)) {
+        return Localize.translateLocal('iou.receiptScanning');
+    }
+
+    const {amount, currency, comment} = getTransactionDetails(transaction);
+
     return Localize.translateLocal(ReportActionsUtils.isSentMoneyReportAction(reportAction) ? 'iou.threadSentMoneyReportName' : 'iou.threadRequestReportName', {
-        formattedAmount: ReportActionsUtils.getFormattedAmount(reportAction),
-        comment: lodashGet(reportAction, 'originalMessage.comment'),
+        formattedAmount: CurrencyUtils.convertToDisplayString(amount, currency),
+        comment,
     });
 }
 
@@ -1302,6 +1355,125 @@ function getReportPreviewMessage(report, reportAction = {}) {
     }
 
     return Localize.translateLocal('iou.payerOwesAmount', {payer: payerName, amount: formattedAmount});
+}
+
+/**
+ * Get the proper message schema for modified expense message.
+ *
+ * @param {String} newValue
+ * @param {String} oldValue
+ * @param {String} valueName
+ * @param {Boolean} valueInQuotes
+ * @returns {String}
+ */
+
+function getProperSchemaForModifiedExpenseMessage(newValue, oldValue, valueName, valueInQuotes) {
+    const newValueToDisplay = valueInQuotes ? `"${newValue}"` : newValue;
+    const oldValueToDisplay = valueInQuotes ? `"${oldValue}"` : oldValue;
+
+    if (!oldValue) {
+        return `set the ${valueName} to ${newValueToDisplay}`;
+    }
+    if (!newValue) {
+        return `removed the ${valueName} (previously ${oldValueToDisplay})`;
+    }
+    return `changed the ${valueName} to ${newValueToDisplay} (previously ${oldValueToDisplay})`;
+}
+
+/**
+ * Get the report action message when expense has been modified.
+ *
+ * @param {Object} reportAction
+ * @returns {String}
+ */
+function getModifiedExpenseMessage(reportAction) {
+    const reportActionOriginalMessage = lodashGet(reportAction, 'originalMessage', {});
+    if (_.isEmpty(reportActionOriginalMessage)) {
+        return `changed the request`;
+    }
+
+    const hasModifiedAmount =
+        _.has(reportActionOriginalMessage, 'oldAmount') &&
+        _.has(reportActionOriginalMessage, 'oldCurrency') &&
+        _.has(reportActionOriginalMessage, 'amount') &&
+        _.has(reportActionOriginalMessage, 'currency');
+    if (hasModifiedAmount) {
+        const oldCurrency = reportActionOriginalMessage.oldCurrency;
+        const oldAmount = CurrencyUtils.convertToDisplayString(reportActionOriginalMessage.oldAmount, oldCurrency);
+
+        const currency = reportActionOriginalMessage.currency;
+        const amount = CurrencyUtils.convertToDisplayString(reportActionOriginalMessage.amount, currency);
+
+        return getProperSchemaForModifiedExpenseMessage(amount, oldAmount, 'amount', false);
+    }
+
+    const hasModifiedComment = _.has(reportActionOriginalMessage, 'oldComment') && _.has(reportActionOriginalMessage, 'newComment');
+    if (hasModifiedComment) {
+        return getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.newComment, reportActionOriginalMessage.oldComment, 'description', true);
+    }
+
+    const hasModifiedMerchant = _.has(reportActionOriginalMessage, 'oldMerchant') && _.has(reportActionOriginalMessage, 'merchant');
+    if (hasModifiedMerchant) {
+        return getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.merchant, reportActionOriginalMessage.oldMerchant, 'merchant', true);
+    }
+
+    const hasModifiedCreated = _.has(reportActionOriginalMessage, 'oldCreated') && _.has(reportActionOriginalMessage, 'created');
+    if (hasModifiedCreated) {
+        // Take only the YYYY-MM-DD value as the original date includes timestamp
+        let formattedOldCreated = parseISO(reportActionOriginalMessage.oldCreated);
+        formattedOldCreated = format(formattedOldCreated, CONST.DATE.FNS_FORMAT_STRING);
+        return getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.created, formattedOldCreated, 'date', false);
+    }
+}
+
+/**
+ * Given the updates user made to the request, compose the originalMessage
+ * object of the modified expense action.
+ *
+ * At the moment, we only allow changing one transaction field at a time.
+ *
+ * @param {Object} oldTransaction
+ * @param {Object} transactionChanges
+ * @param {Boolen} isFromExpenseReport
+ * @returns {Object}
+ */
+function getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges, isFromExpenseReport) {
+    const originalMessage = {};
+
+    // Remark: Comment field is the only one which has new/old prefixes for the keys (newComment/ oldComment),
+    // all others have old/- pattern such as oldCreated/created
+    if (_.has(transactionChanges, 'comment')) {
+        originalMessage.oldComment = TransactionUtils.getDescription(oldTransaction);
+        originalMessage.newComment = transactionChanges.comment;
+    }
+    if (_.has(transactionChanges, 'created')) {
+        originalMessage.oldCreated = TransactionUtils.getCreated(oldTransaction);
+        originalMessage.created = transactionChanges.created;
+    }
+
+    // The amount is always a combination of the currency and the number value so when one changes we need to store both
+    // to match how we handle the modified expense action in oldDot
+    if (_.has(transactionChanges, 'amount') || _.has(transactionChanges, 'currency')) {
+        originalMessage.oldAmount = TransactionUtils.getAmount(oldTransaction, isFromExpenseReport);
+        originalMessage.amount = lodashGet(transactionChanges, 'amount', originalMessage.oldAmount);
+        originalMessage.oldCurrency = TransactionUtils.getCurrency(oldTransaction);
+        originalMessage.currency = lodashGet(transactionChanges, 'currency', originalMessage.oldCurrency);
+    }
+
+    return originalMessage;
+}
+
+/**
+ * Returns the parentReport if the given report is a thread.
+ *
+ * @param {Object} report
+ * @returns {Object}
+ */
+function getParentReport(report) {
+    if (!report || !report.parentReportID) {
+        return {};
+    }
+    return lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`, {});
 }
 
 /**
@@ -1374,12 +1546,12 @@ function getRootReportAndWorkspaceName(report) {
 
     if (isIOURequest(report)) {
         return {
-            rootReportName: lodashGet(report, 'displayName', ''),
+            rootReportName: getReportName(report),
         };
     }
     if (isExpenseRequest(report)) {
         return {
-            rootReportName: lodashGet(report, 'displayName', ''),
+            rootReportName: getReportName(report),
             workspaceName: isIOUReport(report) ? CONST.POLICY.OWNER_EMAIL_FAKE : getPolicyName(report, true),
         };
     }
@@ -1434,16 +1606,6 @@ function getParentNavigationSubtitle(report) {
 }
 
 /**
- * Get the report for a reportID
- *
- * @param {String} reportID
- * @returns {Object}
- */
-function getReport(reportID) {
-    return lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {});
-}
-
-/**
  * Navigate to the details page of a given report
  *
  * @param {Object} report
@@ -1451,7 +1613,7 @@ function getReport(reportID) {
 function navigateToDetailsPage(report) {
     const participantAccountIDs = lodashGet(report, 'participantAccountIDs', []);
 
-    if (isChatRoom(report) || isPolicyExpenseChat(report) || isChatThread(report)) {
+    if (isChatRoom(report) || isPolicyExpenseChat(report) || isChatThread(report) || isTaskReport(report)) {
         Navigation.navigate(ROUTES.getReportDetailsRoute(report.reportID));
         return;
     }
@@ -1592,24 +1754,26 @@ function updateOptimisticParentReportAction(parentReportAction, lastVisibleActio
  * @param {String} reportID The reportID of the report that is updated
  * @param {String} lastVisibleActionCreated Last visible action created of the child report
  * @param {String} type The type of action in the child report
+ * @param {String} parentReportID Custom reportID to be updated
+ * @param {String} parentReportActionID Custom reportActionID to be updated
  * @returns {Object}
  */
-const getOptimisticDataForParentReportAction = (reportID, lastVisibleActionCreated, type) => {
+function getOptimisticDataForParentReportAction(reportID, lastVisibleActionCreated, type, parentReportID = '', parentReportActionID = '') {
     const report = getReport(reportID);
-    if (report && report.parentReportActionID) {
-        const parentReportAction = ReportActionsUtils.getParentReportAction(report);
-        if (parentReportAction && parentReportAction.reportActionID) {
-            return {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
-                value: {
-                    [parentReportAction.reportActionID]: updateOptimisticParentReportAction(parentReportAction, lastVisibleActionCreated, type),
-                },
-            };
-        }
+    const parentReportAction = ReportActionsUtils.getParentReportAction(report);
+    if (_.isEmpty(parentReportAction)) {
+        return {};
     }
-    return {};
-};
+
+    const optimisticParentReportAction = updateOptimisticParentReportAction(parentReportAction, lastVisibleActionCreated, type);
+    return {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID || report.parentReportID}`,
+        value: {
+            [parentReportActionID || report.parentReportActionID]: optimisticParentReportAction,
+        },
+    };
+}
 
 /**
  * Builds an optimistic reportAction for the parent report when a task is created
@@ -1715,6 +1879,7 @@ function buildOptimisticExpenseReport(chatReportID, policyID, payeeAccountID, to
 }
 
 /**
+ * @param {String} iouReportID - the report ID of the IOU report the action belongs to
  * @param {String} type - IOUReportAction type. Can be oneOf(create, decline, cancel, pay, split)
  * @param {Number} total - IOU total in cents
  * @param {String} comment - IOU comment
@@ -1723,9 +1888,8 @@ function buildOptimisticExpenseReport(chatReportID, policyID, payeeAccountID, to
  * @param {Boolean} isSettlingUp - Whether we are settling up an IOU
  * @returns {Array}
  */
-function getIOUReportActionMessage(type, total, comment, currency, paymentType = '', isSettlingUp = false) {
-    const currencyUnit = CurrencyUtils.getCurrencyUnit(currency);
-    const amount = NumberFormatUtils.format(preferredLocale, Math.abs(total) / currencyUnit, {style: 'currency', currency});
+function getIOUReportActionMessage(iouReportID, type, total, comment, currency, paymentType = '', isSettlingUp = false) {
+    let amount = CurrencyUtils.convertToDisplayString(total, currency);
     let paymentMethodMessage;
     switch (paymentType) {
         case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
@@ -1751,6 +1915,7 @@ function getIOUReportActionMessage(type, total, comment, currency, paymentType =
             iouMessage = `deleted the ${amount} request${comment && ` for ${comment}`}`;
             break;
         case CONST.IOU.REPORT_ACTION_TYPE.PAY:
+            amount = CurrencyUtils.convertToDisplayString(getMoneyRequestTotal(getReport(iouReportID)), currency);
             iouMessage = isSettlingUp ? `paid ${amount}${paymentMethodMessage}` : `sent ${amount}${comment && ` for ${comment}`}${paymentMethodMessage}`;
             break;
         default:
@@ -1775,12 +1940,13 @@ function getIOUReportActionMessage(type, total, comment, currency, paymentType =
  * @param {String} currency
  * @param {String} comment - User comment for the IOU.
  * @param {Array}  participants - An array with participants details.
- * @param {String} transactionID
+ * @param {String} [transactionID] - Not required if the IOUReportAction type is 'pay'
  * @param {String} [paymentType] - Only required if the IOUReportAction type is 'pay'. Can be oneOf(elsewhere, payPal, Expensify).
  * @param {String} [iouReportID] - Only required if the IOUReportActions type is oneOf(decline, cancel, pay). Generates a randomID as default.
  * @param {Boolean} [isSettlingUp] - Whether we are settling up an IOU.
  * @param {Boolean} [isSendMoneyFlow] - Whether this is send money flow
  * @param {Object} [receipt]
+ * @param {Boolean} [isOwnPolicyExpenseChat] - Whether this is an expense report create from the current user's policy expense chat
  * @returns {Object}
  */
 function buildOptimisticIOUReportAction(
@@ -1789,12 +1955,13 @@ function buildOptimisticIOUReportAction(
     currency,
     comment,
     participants,
-    transactionID,
+    transactionID = '',
     paymentType = '',
     iouReportID = '',
     isSettlingUp = false,
     isSendMoneyFlow = false,
     receipt = {},
+    isOwnPolicyExpenseChat = false,
 ) {
     const IOUReportID = iouReportID || generateReportID();
 
@@ -1807,19 +1974,32 @@ function buildOptimisticIOUReportAction(
         type,
     };
 
-    // We store amount, comment, currency in IOUDetails when type = pay
-    if (type === CONST.IOU.REPORT_ACTION_TYPE.PAY && isSendMoneyFlow) {
-        _.each(['amount', 'comment', 'currency'], (key) => {
-            delete originalMessage[key];
-        });
-        originalMessage.IOUDetails = {amount, comment, currency};
-        originalMessage.paymentType = paymentType;
+    if (type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
+        // In send money flow, we store amount, comment, currency in IOUDetails when type = pay
+        if (isSendMoneyFlow) {
+            _.each(['amount', 'comment', 'currency'], (key) => {
+                delete originalMessage[key];
+            });
+            originalMessage.IOUDetails = {amount, comment, currency};
+            originalMessage.paymentType = paymentType;
+        } else {
+            // In case of pay money request action, we dont store the comment
+            // and there is no single transctionID to link the action to.
+            delete originalMessage.IOUTransactionID;
+            delete originalMessage.comment;
+            originalMessage.paymentType = paymentType;
+        }
     }
 
     // IOUs of type split only exist in group DMs and those don't have an iouReport so we need to delete the IOUReportID key
     if (type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT) {
         delete originalMessage.IOUReportID;
-        originalMessage.participantAccountIDs = [currentUserAccountID, ..._.pluck(participants, 'accountID')];
+        // Split bill made from a policy expense chat only have the payee's accountID as the participant because the payer could be any policy admin
+        if (isOwnPolicyExpenseChat) {
+            originalMessage.participantAccountIDs = [currentUserAccountID];
+        } else {
+            originalMessage.participantAccountIDs = [currentUserAccountID, ..._.pluck(participants, 'accountID')];
+        }
     }
 
     return {
@@ -1829,7 +2009,7 @@ function buildOptimisticIOUReportAction(
         avatar: lodashGet(currentUserPersonalDetails, 'avatar', UserUtils.getDefaultAvatar(currentUserAccountID)),
         isAttachment: false,
         originalMessage,
-        message: getIOUReportActionMessage(type, amount, comment, currency, paymentType, isSettlingUp),
+        message: getIOUReportActionMessage(iouReportID, type, amount, comment, currency, paymentType, isSettlingUp),
         person: [
             {
                 style: 'strong',
@@ -1842,6 +2022,7 @@ function buildOptimisticIOUReportAction(
         created: DateUtils.getDBTime(),
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         receipt,
+        whisperedToAccountIDs: !_.isEmpty(receipt) ? [currentUserAccountID] : [],
     };
 }
 
@@ -1850,10 +2031,13 @@ function buildOptimisticIOUReportAction(
  *
  * @param {Object} chatReport
  * @param {Object} iouReport
+ * @param {String} [comment] - User comment for the IOU.
+ * @param {Object} [transaction] - optimistic first transaction of preview
  *
  * @returns {Object}
  */
-function buildOptimisticReportPreview(chatReport, iouReport) {
+function buildOptimisticReportPreview(chatReport, iouReport, comment = '', transaction = undefined) {
+    const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const message = getReportPreviewMessage(iouReport);
     return {
         reportActionID: NumberUtils.rand64(),
@@ -1873,7 +2057,53 @@ function buildOptimisticReportPreview(chatReport, iouReport) {
         ],
         created: DateUtils.getDBTime(),
         accountID: iouReport.managerID || 0,
-        actorAccountID: iouReport.managerID || 0,
+        // The preview is initially whispered if created with a receipt, so the actor is the current user as well
+        actorAccountID: hasReceipt ? currentUserAccountID : iouReport.managerID || 0,
+        childMoneyRequestCount: 1,
+        childLastMoneyRequestComment: comment,
+        childLastReceiptTransactionIDs: hasReceipt ? transaction.transactionID : '',
+        whisperedToAccountIDs: hasReceipt ? [currentUserAccountID] : [],
+    };
+}
+
+/**
+ * Builds an optimistic modified expense action with a randomly generated reportActionID.
+ *
+ * @param {Object} transactionThread
+ * @param {Object} oldTransaction
+ * @param {Object} transactionChanges
+ * @param {Object} isFromExpenseReport
+ * @returns {Object}
+ */
+function buildOptimisticModifiedExpenseReportAction(transactionThread, oldTransaction, transactionChanges, isFromExpenseReport) {
+    const originalMessage = getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges, isFromExpenseReport);
+    return {
+        actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE,
+        actorAccountID: currentUserAccountID,
+        automatic: false,
+        avatar: lodashGet(currentUserPersonalDetails, 'avatar', UserUtils.getDefaultAvatar(currentUserAccountID)),
+        created: DateUtils.getDBTime(),
+        isAttachment: false,
+        message: [
+            {
+                // Currently we are composing the message from the originalMessage and message is only used in OldDot and not in the App
+                text: 'You',
+                style: 'strong',
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+            },
+        ],
+        originalMessage,
+        person: [
+            {
+                style: 'strong',
+                text: lodashGet(currentUserPersonalDetails, 'displayName', currentUserAccountID),
+                type: 'TEXT',
+            },
+        ],
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        reportActionID: NumberUtils.rand64(),
+        reportID: transactionThread.reportID,
+        shouldShow: true,
     };
 }
 
@@ -1882,10 +2112,16 @@ function buildOptimisticReportPreview(chatReport, iouReport) {
  *
  * @param {Object} iouReport
  * @param {Object} reportPreviewAction
+ * @param {String} [comment] - User comment for the IOU.
+ * @param {Object} [transaction] - optimistic newest transaction of a report preview
  *
  * @returns {Object}
  */
-function updateReportPreview(iouReport, reportPreviewAction) {
+function updateReportPreview(iouReport, reportPreviewAction, comment = '', transaction = undefined) {
+    const hasReceipt = TransactionUtils.hasReceipt(transaction);
+    const lastReceiptTransactionIDs = lodashGet(reportPreviewAction, 'childLastReceiptTransactionIDs', '');
+    const previousTransactionIDs = lastReceiptTransactionIDs.split(',').slice(0, 2);
+
     const message = getReportPreviewMessage(iouReport, reportPreviewAction);
     return {
         ...reportPreviewAction,
@@ -1898,6 +2134,12 @@ function updateReportPreview(iouReport, reportPreviewAction) {
                 type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
             },
         ],
+        childLastMoneyRequestComment: comment || reportPreviewAction.childLastMoneyRequestComment,
+        childMoneyRequestCount: reportPreviewAction.childMoneyRequestCount + 1,
+        childLastReceiptTransactionIDs: hasReceipt ? [transaction.transactionID, ...previousTransactionIDs].join(',') : lastReceiptTransactionIDs,
+        // As soon as we add a transaction without a receipt to the report, it will have ready money requests,
+        // so we remove the whisper
+        whisperedToAccountIDs: hasReceipt ? reportPreviewAction.whisperedToAccountIDs : [],
     };
 }
 
@@ -2200,6 +2442,7 @@ function buildOptimisticTaskReport(ownerAccountID, assigneeAccountID = 0, parent
         reportName: title,
         description,
         ownerAccountID,
+        participantAccountIDs: assigneeAccountID && assigneeAccountID !== ownerAccountID ? [assigneeAccountID] : [],
         managerID: assigneeAccountID,
         type: CONST.REPORT.TYPE.TASK,
         parentReportID,
@@ -2329,13 +2572,13 @@ function canAccessReport(report, policies, betas, allReportActions) {
  * @param {Object} report
  * @param {String} currentReportId
  * @param {Boolean} isInGSDMode
- * @param {Object} iouReports
  * @param {String[]} betas
  * @param {Object} policies
  * @param {Object} allReportActions
+ * @param {Boolean} excludeEmptyChats
  * @returns {boolean}
  */
-function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouReports, betas, policies, allReportActions) {
+function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas, policies, allReportActions, excludeEmptyChats = false) {
     const isInDefaultMode = !isInGSDMode;
 
     // Exclude reports that have no data because there wouldn't be anything to show in the option item.
@@ -2344,6 +2587,7 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouRep
     if (
         !report ||
         !report.reportID ||
+        report.isHidden ||
         (_.isEmpty(report.participantAccountIDs) && !isChatThread(report) && !isPublicRoom(report) && !isArchivedRoom(report) && !isMoneyRequestReport(report) && !isTaskReport(report))
     ) {
         return false;
@@ -2361,12 +2605,15 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouRep
     }
 
     // Include reports that are relevant to the user in any view mode. Criteria include having a draft, having an outstanding IOU, or being assigned to an open task.
-    if (report.hasDraft || isWaitingForIOUActionFromCurrentUser(report, iouReports) || isWaitingForTaskCompleteFromAssignee(report)) {
+    if (report.hasDraft || isWaitingForIOUActionFromCurrentUser(report) || isWaitingForTaskCompleteFromAssignee(report)) {
         return true;
     }
 
+    const lastVisibleMessage = ReportActionsUtils.getLastVisibleMessage(report.reportID);
+    const isEmptyChat = !lastVisibleMessage.lastMessageText && !lastVisibleMessage.lastMessageTranslationKey;
+
     // Hide only chat threads that haven't been commented on (other threads are actionable)
-    if (isChatThread(report) && !report.lastMessageText) {
+    if (isChatThread(report) && isEmptyChat) {
         return false;
     }
 
@@ -2391,8 +2638,8 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouRep
         return true;
     }
 
-    // Exclude policy expense chats if the user isn't in the policy expense chat beta
-    if (isPolicyExpenseChat(report) && !Permissions.canUsePolicyExpenseChat(betas)) {
+    // Hide chats between two users that haven't been commented on from the LNH
+    if (excludeEmptyChats && isEmptyChat && isChatReport(report) && !isChatRoom(report) && !isPolicyExpenseChat(report)) {
         return false;
     }
 
@@ -2660,7 +2907,7 @@ function getMoneyRequestOptions(report, reportParticipants, betas) {
     // unless there are no participants at all (e.g. #admins room for a policy with only 1 admin)
     // DM chats will have the Split Bill option only when there are at least 3 people in the chat.
     // There is no Split Bill option for Workspace chats
-    if (isChatRoom(report) || (hasMultipleParticipants && !isPolicyExpenseChat(report))) {
+    if (isChatRoom(report) || (hasMultipleParticipants && !isPolicyExpenseChat(report)) || isControlPolicyExpenseChat(report)) {
         return [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT];
     }
 
@@ -2776,25 +3023,47 @@ function isReportDataReady() {
 }
 
 /**
- * Returns the parentReport if the given report is a thread.
+ * Find the parent report action in assignee report for a task report
+ * Returns an empty object if assignee report is the same as the share destination report
  *
- * @param {Object} report
+ * @param {Object} taskReport
  * @returns {Object}
  */
-function getParentReport(report) {
-    if (!report || !report.parentReportID) {
+function getTaskParentReportActionIDInAssigneeReport(taskReport) {
+    const assigneeChatReportID = lodashGet(getChatByParticipants(isTaskAssignee(taskReport) ? [taskReport.ownerAccountID] : [taskReport.managerID]), 'reportID');
+    if (!assigneeChatReportID || assigneeChatReportID === taskReport.parentReportID) {
         return {};
     }
-    return lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`, {});
+
+    const clonedParentReportActionID = lodashGet(ReportActionsUtils.getParentReportActionInReport(taskReport.reportID, assigneeChatReportID), 'reportActionID');
+    if (!clonedParentReportActionID) {
+        return {};
+    }
+
+    return {
+        reportID: assigneeChatReportID,
+        reportActionID: clonedParentReportActionID,
+    };
 }
 
 /**
- * Return true if the composer should be hidden
+ * Return the errors we have when creating a chat or a workspace room
  * @param {Object} report
- * @param {Object} reportErrors
+ * @returns {Object} errors
+ */
+function getAddWorkspaceRoomOrChatReportErrors(report) {
+    // We are either adding a workspace room, or we're creating a chat, it isn't possible for both of these to have errors for the same report at the same time, so
+    // simply looking up the first truthy value will get the relevant property if it's set.
+    return lodashGet(report, 'errorFields.addWorkspaceRoom') || lodashGet(report, 'errorFields.createChat');
+}
+
+/**
+ * Returns true if write actions like assign task, money request, send message should be disabled on a report
+ * @param {Object} report
  * @returns {Boolean}
  */
-function shouldHideComposer(report, reportErrors) {
+function shouldDisableWriteActions(report) {
+    const reportErrors = getAddWorkspaceRoomOrChatReportErrors(report);
     return isArchivedRoom(report) || !_.isEmpty(reportErrors) || !isAllowedToComment(report) || isAnonymousUser;
 }
 
@@ -2810,7 +3079,7 @@ function getOriginalReportID(reportID, reportAction) {
 }
 
 /**
- * Return the pendingAction and the errors when we have creating a chat or a workspace room offline
+ * Return the pendingAction and the errors we have when creating a chat or a workspace room offline
  * @param {Object} report
  * @returns {Object} pending action , errors
  */
@@ -2818,7 +3087,7 @@ function getReportOfflinePendingActionAndErrors(report) {
     // We are either adding a workspace room, or we're creating a chat, it isn't possible for both of these to be pending, or to have errors for the same report at the same time, so
     // simply looking up the first truthy value for each case will get the relevant property if it's set.
     const addWorkspaceRoomOrChatPendingAction = lodashGet(report, 'pendingFields.addWorkspaceRoom') || lodashGet(report, 'pendingFields.createChat');
-    const addWorkspaceRoomOrChatErrors = lodashGet(report, 'errorFields.addWorkspaceRoom') || lodashGet(report, 'errorFields.createChat');
+    const addWorkspaceRoomOrChatErrors = getAddWorkspaceRoomOrChatReportErrors(report);
     return {addWorkspaceRoomOrChatPendingAction, addWorkspaceRoomOrChatErrors};
 }
 
@@ -2860,6 +3129,144 @@ function shouldDisableRename(report, policy) {
     return !_.keys(loginList).includes(policy.owner) && policy.role !== CONST.POLICY.ROLE.ADMIN;
 }
 
+/**
+ * Returns the onyx data needed for the task assignee chat
+ * @param {Number} accountID
+ * @param {String} assigneeEmail
+ * @param {Number} assigneeAccountID
+ * @param {String} taskReportID
+ * @param {String} assigneeChatReportID
+ * @param {String} parentReportID
+ * @param {String} title
+ * @param {Object} assigneeChatReport
+ * @returns {Object}
+ */
+function getTaskAssigneeChatOnyxData(accountID, assigneeEmail, assigneeAccountID, taskReportID, assigneeChatReportID, parentReportID, title, assigneeChatReport) {
+    // Set if we need to add a comment to the assignee chat notifying them that they have been assigned a task
+    let optimisticAssigneeAddComment;
+    // Set if this is a new chat that needs to be created for the assignee
+    let optimisticChatCreatedReportAction;
+    const currentTime = DateUtils.getDBTime();
+    const optimisticData = [];
+    const successData = [];
+    const failureData = [];
+
+    // You're able to assign a task to someone you haven't chatted with before - so we need to optimistically create the chat and the chat reportActions
+    // Only add the assignee chat report to onyx if we haven't already set it optimistically
+    if (assigneeChatReport.isOptimisticReport && lodashGet(assigneeChatReport, 'pendingFields.createChat') !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+        optimisticChatCreatedReportAction = buildOptimisticCreatedReportAction(assigneeChatReportID);
+        optimisticData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${assigneeChatReportID}`,
+                value: {
+                    pendingFields: {
+                        createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    },
+                    isHidden: false,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
+                value: {[optimisticChatCreatedReportAction.reportActionID]: optimisticChatCreatedReportAction},
+            },
+        );
+
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${assigneeChatReportID}`,
+            value: {
+                pendingFields: {
+                    createChat: null,
+                },
+                isOptimisticReport: false,
+            },
+        });
+
+        failureData.push(
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${assigneeChatReportID}`,
+                value: null,
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
+                value: {[optimisticChatCreatedReportAction.reportActionID]: {pendingAction: null}},
+            },
+            // If we failed, we want to remove the optimistic personal details as it was likely due to an invalid login
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                value: {
+                    [assigneeAccountID]: null,
+                },
+            },
+        );
+    }
+
+    // If you're choosing to share the task in the same DM as the assignee then we don't need to create another reportAction indicating that you've been assigned
+    if (assigneeChatReportID !== parentReportID) {
+        optimisticAssigneeAddComment = buildOptimisticTaskCommentReportAction(taskReportID, title, assigneeEmail, assigneeAccountID, `Assigned a task to you: ${title}`, parentReportID);
+
+        const lastAssigneeCommentText = formatReportLastMessageText(optimisticAssigneeAddComment.reportAction.message[0].text);
+        const optimisticAssigneeReport = {
+            lastVisibleActionCreated: currentTime,
+            lastMessageText: lastAssigneeCommentText,
+            lastActorAccountID: accountID,
+            lastReadTime: currentTime,
+        };
+
+        optimisticData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
+                value: {[optimisticAssigneeAddComment.reportAction.reportActionID]: optimisticAssigneeAddComment.reportAction},
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${assigneeChatReportID}`,
+                value: optimisticAssigneeReport,
+            },
+        );
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
+            value: {[optimisticAssigneeAddComment.reportAction.reportActionID]: {pendingAction: null}},
+        });
+    }
+
+    return {
+        optimisticData,
+        successData,
+        failureData,
+        optimisticAssigneeAddComment,
+        optimisticChatCreatedReportAction,
+    };
+}
+
+/**
+ * Get the last 3 transactions with receipts of an IOU report that will be displayed on the report preview
+ *
+ * @param {Object} reportPreviewAction
+ * @returns {Object}
+ */
+function getReportPreviewDisplayTransactions(reportPreviewAction) {
+    const transactionIDs = lodashGet(reportPreviewAction, ['childLastReceiptTransactionIDs'], '').split(',');
+    return _.reduce(
+        transactionIDs,
+        (transactions, transactionID) => {
+            const transaction = TransactionUtils.getTransaction(transactionID);
+            if (TransactionUtils.hasReceipt(transaction)) {
+                transactions.push(transaction);
+            }
+            return transactions;
+        },
+        [],
+    );
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -2872,6 +3279,7 @@ export {
     sortReportsByLastRead,
     isDefaultRoom,
     isAdminRoom,
+    isAdminsOnlyPostingRoom,
     isAnnounceRoom,
     isUserCreatedPolicyRoom,
     isChatRoom,
@@ -2896,6 +3304,8 @@ export {
     formatReportLastMessageText,
     chatIncludesConcierge,
     isPolicyExpenseChat,
+    isControlPolicyExpenseChat,
+    isControlPolicyExpenseReport,
     getIconsForParticipants,
     getIcons,
     getRoomWelcomeMessage,
@@ -2919,6 +3329,7 @@ export {
     buildOptimisticExpenseReport,
     buildOptimisticIOUReportAction,
     buildOptimisticReportPreview,
+    buildOptimisticModifiedExpenseReportAction,
     updateReportPreview,
     buildOptimisticTaskReportAction,
     buildOptimisticAddCommentReportAction,
@@ -2932,6 +3343,7 @@ export {
     getAllPolicyReports,
     getIOUReportActionMessage,
     getDisplayNameForParticipant,
+    getWorkspaceIcon,
     isOptimisticPersonalDetail,
     shouldDisableDetailPage,
     isChatReport,
@@ -2966,17 +3378,25 @@ export {
     isReportDataReady,
     isSettled,
     isAllowedToComment,
-    getMoneyRequestAction,
     getBankAccountRoute,
     getParentReport,
+    getTaskParentReportActionIDInAssigneeReport,
     getReportPreviewMessage,
-    shouldHideComposer,
+    getModifiedExpenseMessage,
+    shouldDisableWriteActions,
     getOriginalReportID,
     canAccessReport,
+    getAddWorkspaceRoomOrChatReportErrors,
     getReportOfflinePendingActionAndErrors,
     isDM,
     getPolicy,
     shouldDisableSettings,
     shouldDisableRename,
     hasSingleParticipant,
+    getTransactionReportName,
+    getTransactionDetails,
+    getTaskAssigneeChatOnyxData,
+    areAllRequestsBeingSmartScanned,
+    getReportPreviewDisplayTransactions,
+    getTransactionsWithReceipts,
 };

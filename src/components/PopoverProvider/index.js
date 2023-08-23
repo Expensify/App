@@ -48,7 +48,10 @@ function PopoverContextProvider(props) {
     }, [closePopover]);
 
     React.useEffect(() => {
-        const listener = () => {
+        const listener = (e) => {
+            if (!activePopoverRef.current || !activePopoverRef.current.ref || !activePopoverRef.current.ref.current || activePopoverRef.current.ref.current.contains(e.target)) {
+                return;
+            }
             closePopover();
         };
         document.addEventListener('contextmenu', listener);
@@ -64,9 +67,9 @@ function PopoverContextProvider(props) {
             }
             closePopover();
         };
-        document.addEventListener('keydown', listener);
+        document.addEventListener('keydown', listener, true);
         return () => {
-            document.removeEventListener('keydown', listener);
+            document.removeEventListener('keydown', listener, true);
         };
     }, [closePopover]);
 

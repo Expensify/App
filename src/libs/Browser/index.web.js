@@ -1,5 +1,6 @@
 import CONST from '../../CONST';
 import CONFIG from '../../CONFIG';
+import ROUTES from '../../ROUTES';
 
 /**
  * Fetch browser name from UA string
@@ -61,6 +62,10 @@ function isMobileChrome() {
     return /Android/i.test(userAgent) && /chrome|chromium|crios/i.test(userAgent);
 }
 
+function isSafari() {
+    return getBrowser() === 'safari' || isMobileSafari();
+}
+
 /**
  * The session information needs to be passed to the Desktop app, and the only way to do that is by using query params. There is no other way to transfer the data.
  * @param {String} shortLivedAuthToken
@@ -68,7 +73,10 @@ function isMobileChrome() {
  */
 function openRouteInDesktopApp(shortLivedAuthToken = '', email = '') {
     const params = new URLSearchParams();
-    params.set('exitTo', `${window.location.pathname}${window.location.search}${window.location.hash}`);
+    // If the user is opening the desktop app through a third party signin flow, we need to manually add the exitTo param
+    // so that the desktop app redirects to the correct home route after signin is complete.
+    const openingFromDesktopRedirect = window.location.pathname === `/${ROUTES.DESKTOP_SIGN_IN_REDIRECT}`;
+    params.set('exitTo', `${openingFromDesktopRedirect ? '/r' : window.location.pathname}${window.location.search}${window.location.hash}`);
     if (email && shortLivedAuthToken) {
         params.set('email', email);
         params.set('shortLivedAuthToken', shortLivedAuthToken);
@@ -100,4 +108,4 @@ function openRouteInDesktopApp(shortLivedAuthToken = '', email = '') {
     }
 }
 
-export {getBrowser, isMobile, isMobileSafari, isMobileChrome, openRouteInDesktopApp};
+export {getBrowser, isMobile, isMobileSafari, isSafari, isMobileChrome, openRouteInDesktopApp};

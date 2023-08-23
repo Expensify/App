@@ -96,6 +96,24 @@ function isRequiredFulfilled(value) {
 }
 
 /**
+ * Used to add requiredField error to the fields passed.
+ *
+ * @param {Object} values
+ * @param {Array} requiredFields
+ * @returns {Object}
+ */
+function getFieldRequiredErrors(values, requiredFields) {
+    const errors = {};
+    _.each(requiredFields, (fieldKey) => {
+        if (isRequiredFulfilled(values[fieldKey])) {
+            return;
+        }
+        errors[fieldKey] = 'common.error.fieldRequired';
+    });
+    return errors;
+}
+
+/**
  * Validates that this is a valid expiration date. Supports the following formats:
  * 1. MM/YY
  * 2. MM/YYYY
@@ -314,7 +332,7 @@ function isValidTwoFactorCode(code) {
  * @returns {Boolean}
  */
 function isNumericWithSpecialChars(input) {
-    return /^\+?\d*$/.test(LoginUtils.getPhoneNumberWithoutSpecialChars(input));
+    return /^\+?[\d\\+]*$/.test(LoginUtils.getPhoneNumberWithoutSpecialChars(input));
 }
 
 /**
@@ -451,6 +469,7 @@ export {
     isValidIndustryCode,
     isValidZipCode,
     isRequiredFulfilled,
+    getFieldRequiredErrors,
     isValidUSPhone,
     isValidWebsite,
     validateIdentity,

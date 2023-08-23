@@ -1,8 +1,10 @@
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import PropTypes from 'prop-types';
 import AmountTextInput from './AmountTextInput';
 import CurrencySymbolButton from './CurrencySymbolButton';
 import * as CurrencyUtils from '../libs/CurrencyUtils';
+import useLocalize from '../hooks/useLocalize';
+import * as MoneyRequestUtils from '../libs/MoneyRequestUtils';
 
 const propTypes = {
     /** A ref to forward to amount text input */
@@ -42,8 +44,15 @@ const defaultProps = {
 };
 
 function TextInputWithCurrencySymbol(props) {
+    const {fromLocaleDigit} = useLocalize();
     const currencySymbol = CurrencyUtils.getLocalizedCurrencySymbol(props.selectedCurrencyCode);
     const isCurrencySymbolLTR = CurrencyUtils.isCurrencySymbolLTR(props.selectedCurrencyCode);
+
+    const [skipNextSelectionChange, setSkipNextSelectionChange] = useState(false);
+
+    useEffect(() => {
+        setSkipNextSelectionChange(true);
+    }, [props.formattedAmount]);
 
     const currencySymbolButton = (
         <CurrencySymbolButton
@@ -52,14 +61,30 @@ function TextInputWithCurrencySymbol(props) {
         />
     );
 
+    /**
+     * Set a new amount value properly formatted
+     *
+     * @param {String} text - Changed text from user input
+     */
+    const setFormattedAmount = (text) => {
+        const newAmount = MoneyRequestUtils.addLeadingZero(MoneyRequestUtils.replaceAllDigits(text, fromLocaleDigit));
+        props.onChangeAmount(newAmount);
+    };
+
     const amountTextInput = (
         <AmountTextInput
             formattedAmount={props.formattedAmount}
-            onChangeAmount={props.onChangeAmount}
+            onChangeAmount={setFormattedAmount}
             placeholder={props.placeholder}
             ref={props.forwardedRef}
             selection={props.selection}
-            onSelectionChange={props.onSelectionChange}
+            onSelectionChange={(e) => {
+                if (skipNextSelectionChange) {
+                    setSkipNextSelectionChange(false);
+                    return;
+                }
+                props.onSelectionChange(e);
+            }}
         />
     );
 

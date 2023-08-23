@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import React from 'react';
-import {View, ScrollView} from 'react-native';
+import {ScrollView, View} from 'react-native';
+import DeviceInfo from 'react-native-device-info';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
@@ -27,6 +28,17 @@ const propTypes = {
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
 };
+
+function getFlavor() {
+    const bundleId = DeviceInfo.getBundleId();
+    if (bundleId.includes('dev')) {
+        return ' Develop';
+    }
+    if (bundleId.includes('adhoc')) {
+        return ' Ad-Hoc';
+    }
+    return '';
+}
 
 function AboutPage(props) {
     let popoverAnchor;
@@ -88,7 +100,7 @@ function AboutPage(props) {
                                         selectable
                                         style={[styles.textLabel, styles.alignSelfCenter, styles.mt6, styles.mb2, styles.colorMuted]}
                                     >
-                                        v{Environment.isInternalTestBuild() ? `${pkg.version} PR:${CONST.PULL_REQUEST_NUMBER}` : pkg.version}
+                                        v{Environment.isInternalTestBuild() ? `${pkg.version} PR:${CONST.PULL_REQUEST_NUMBER}${getFlavor()}` : `${pkg.version}${getFlavor()}`}
                                     </Text>
                                     <Text style={[styles.baseFontStyle, styles.mv5]}>{props.translate('initialSettingsPage.aboutPage.description')}</Text>
                                 </View>

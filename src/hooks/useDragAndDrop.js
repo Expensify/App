@@ -53,7 +53,7 @@ export default function useDragAndDrop({dropZone, onDrop = () => {}, shouldAllow
      */
     const dropZoneDragHandler = useCallback(
         (event) => {
-            if (!isFocused || isDisabled) {
+            if (!isFocused || isDisabled || !shouldAcceptDrop(event)) {
                 return;
             }
 
@@ -89,7 +89,7 @@ export default function useDragAndDrop({dropZone, onDrop = () => {}, shouldAllow
                     break;
             }
         },
-        [isFocused, isDisabled, setDropEffect, isDraggingOver, onDrop],
+        [isFocused, isDisabled, shouldAcceptDrop, setDropEffect, isDraggingOver, onDrop],
     );
 
     useEffect(() => {

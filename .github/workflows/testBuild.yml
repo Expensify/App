@@ -11,7 +11,7 @@ on:
     branches: ['*ci-test/**']
 
 env:
-  DEVELOPER_DIR: /Applications/Xcode_14.1.app/Contents/Developer
+  DEVELOPER_DIR: /Applications/Xcode_14.2.app/Contents/Developer
 
 jobs:
   validateActor:
@@ -103,6 +103,9 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
+      - name: Configure MapBox SDK
+        run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
+
       - name: Run Fastlane beta test
         id: runFastlaneBetaTest
         run: bundle exec fastlane android build_internal
@@ -111,6 +114,8 @@ jobs:
           S3_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           S3_BUCKET: ad-hoc-expensify-cash
           S3_REGION: us-east-1
+          MYAPP_UPLOAD_STORE_PASSWORD: ${{ secrets.MYAPP_UPLOAD_STORE_PASSWORD }}
+          MYAPP_UPLOAD_KEY_PASSWORD: ${{ secrets.MYAPP_UPLOAD_KEY_PASSWORD }}
 
       - uses: actions/upload-artifact@v3
         with:
@@ -130,6 +135,9 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha || needs.getBranchRef.outputs.REF }}
 
+      - name: Configure MapBox SDK
+        run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
+
       - name: Create .env.adhoc file based on staging and add PULL_REQUEST_NUMBER env to it
         run: |
           cp .env.staging .env.adhoc
@@ -137,6 +145,9 @@ jobs:
           echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER" >> .env.adhoc
 
       - uses: Expensify/App/.github/actions/composite/setupNode@main
+
+      - name: Setup Xcode
+        run: sudo xcode-select -switch /Applications/Xcode_14.2.app
 
       - uses: ruby/setup-ruby@eae47962baca661befdfd24e4d6c34ade04858f7
         with:
@@ -151,7 +162,7 @@ jobs:
           command: cd ios && bundle exec pod install
 
       - name: Decrypt profile
-        run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output chat_expensify_adhoc.mobileprovision chat_expensify_adhoc.mobileprovision.gpg
+        run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output expensify_chat_adhoc.mobileprovision expensify_chat_adhoc.mobileprovision.gpg
         env:
           LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 

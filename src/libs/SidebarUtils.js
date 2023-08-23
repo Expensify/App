@@ -16,7 +16,6 @@ import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 
 const visibleReportActionItems = {};
 const lastReportActions = {};
-const reportActions = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     callback: (actions, key) => {
@@ -35,8 +34,6 @@ Onyx.connect({
             (reportAction, actionKey) => ReportActionsUtils.shouldReportActionBeVisible(reportAction, actionKey) && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED,
         );
         visibleReportActionItems[reportID] = _.last(reportActionsForDisplay);
-
-        reportActions[key] = actions;
     },
 });
 
@@ -89,9 +86,7 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
     const isInDefaultMode = !isInGSDMode;
 
     // Filter out all the reports that shouldn't be displayed
-    const reportsToDisplay = _.filter(allReportsDict, (report) =>
-        ReportUtils.shouldReportBeInOptionList(report, currentReportId, isInGSDMode, allReportsDict, betas, policies, allReportActions),
-    );
+    const reportsToDisplay = _.filter(allReportsDict, (report) => ReportUtils.shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas, policies, allReportActions, true));
 
     if (_.isEmpty(reportsToDisplay)) {
         // Display Concierge chat report when there is no report to be displayed
@@ -117,7 +112,7 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
     // 1. Pinned - Always sorted by reportDisplayName
     // 2. Outstanding IOUs - Always sorted by iouReportAmount with the largest amounts at the top of the group
     // 3. Drafts - Always sorted by reportDisplayName
-    // 4. Non-archived reports
+    // 4. Non-archived reports and settled IOUs
     //      - Sorted by lastVisibleActionCreated in default (most recent) view mode
     //      - Sorted by reportDisplayName in GSD (focus) view mode
     // 5. Archived reports
@@ -134,7 +129,7 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
             return;
         }
 
-        if (ReportUtils.isWaitingForIOUActionFromCurrentUser(report, allReportsDict)) {
+        if (ReportUtils.isWaitingForIOUActionFromCurrentUser(report)) {
             outstandingIOUReports.push(report);
             return;
         }
@@ -145,11 +140,6 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
         }
 
         if (ReportUtils.isArchivedRoom(report)) {
-            archivedReports.push(report);
-            return;
-        }
-
-        if (ReportUtils.isTaskReport(report) && ReportUtils.isCompletedTaskReport(report)) {
             archivedReports.push(report);
             return;
         }
@@ -180,12 +170,13 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
  * Gets all the data necessary for rendering an OptionRowLHN component
  *
  * @param {Object} report
+ * @param {Object} reportActions
  * @param {Object} personalDetails
  * @param {String} preferredLocale
  * @param {Object} [policy]
  * @returns {Object}
  */
-function getOptionData(report, personalDetails, preferredLocale, policy) {
+function getOptionData(report, reportActions, personalDetails, preferredLocale, policy) {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
     // a null check here and return early.
@@ -262,10 +253,7 @@ function getOptionData(report, personalDetails, preferredLocale, policy) {
     result.parentReportID = report.parentReportID || null;
     result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
     result.notificationPreference = report.notificationPreference || null;
-
-    const {addWorkspaceRoomOrChatErrors} = ReportUtils.getReportOfflinePendingActionAndErrors(report);
-    // If the composer is hidden then the user is not allowed to comment, same can be used to hide the draft icon.
-    result.isAllowedToComment = !ReportUtils.shouldHideComposer(report, addWorkspaceRoomOrChatErrors);
+    result.isAllowedToComment = !ReportUtils.shouldDisableWriteActions(report);
 
     const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
     const subtitle = ReportUtils.getChatRoomSubtitle(report);

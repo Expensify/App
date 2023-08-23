@@ -1,44 +1,33 @@
-import React, {PureComponent} from 'react';
+import React, {useState, memo} from 'react';
 import {propTypes, defaultProps} from './updateAppModalPropTypes';
 import ConfirmModal from '../ConfirmModal';
 import withLocalize from '../withLocalize';
 
-class BaseUpdateAppModal extends PureComponent {
-    constructor(props) {
-        super(props);
-
-        this.state = {
-            isModalOpen: true,
-        };
-
-        this.submitAndClose = this.submitAndClose.bind(this);
-    }
+function BaseUpdateAppModal({translate, onSubmit}) {
+    const [isModalOpen, setIsModalOpen] = useState(true);
 
     /**
      * Execute the onSubmit callback and close the modal.
      */
-    submitAndClose() {
-        this.props.onSubmit(this.state.file);
-        this.setState({isModalOpen: false});
+    function submitAndClose() {
+        onSubmit();
+        setIsModalOpen(false);
     }
 
-    render() {
-        return (
-            <>
-                <ConfirmModal
-                    title={this.props.translate('baseUpdateAppModal.updateApp')}
-                    isVisible={this.state.isModalOpen}
-                    onConfirm={this.submitAndClose}
-                    onCancel={() => this.setState({isModalOpen: false})}
-                    prompt={this.props.translate('baseUpdateAppModal.updatePrompt')}
-                    confirmText={this.props.translate('baseUpdateAppModal.updateApp')}
-                    cancelText={this.props.translate('common.cancel')}
-                />
-            </>
-        );
-    }
+    return (
+        <ConfirmModal
+            title={translate('baseUpdateAppModal.updateApp')}
+            isVisible={isModalOpen}
+            onConfirm={() => submitAndClose()}
+            onCancel={() => setIsModalOpen(false)}
+            prompt={translate('baseUpdateAppModal.updatePrompt')}
+            confirmText={translate('baseUpdateAppModal.updateApp')}
+            cancelText={translate('common.cancel')}
+        />
+    );
 }
 
 BaseUpdateAppModal.propTypes = propTypes;
 BaseUpdateAppModal.defaultProps = defaultProps;
-export default withLocalize(BaseUpdateAppModal);
+
+export default memo(withLocalize(BaseUpdateAppModal));

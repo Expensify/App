@@ -87,6 +87,16 @@ function BaseValidateCodeForm(props) {
     }));
 
     useEffect(() => {
+        Session.clearAccountMessages();
+        if (!validateLoginError) {
+            return;
+        }
+        User.clearContactMethodErrors(props.contactMethod, 'validateLogin');
+        // contactMethod is not added as a dependency since it does not change between renders
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    useEffect(() => {
         if (!props.hasMagicCodeBeenSent) {
             return;
         }
@@ -113,11 +123,11 @@ function BaseValidateCodeForm(props) {
             setValidateCode(text);
             setFormError({});
 
-            if (props.account.errors) {
-                Session.clearAccountMessages();
+            if (validateLoginError) {
+                User.clearContactMethodErrors(props.contactMethod, 'validateLogin');
             }
         },
-        [props.account.errors],
+        [validateLoginError, props.contactMethod],
     );
 
     /**

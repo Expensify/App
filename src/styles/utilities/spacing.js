@@ -133,6 +133,10 @@ export default {
         marginLeft: 16,
     },
 
+    mln4: {
+        marginLeft: -16,
+    },
+
     ml5: {
         marginLeft: 20,
     },
@@ -393,6 +397,10 @@ export default {
 
     pl2: {
         paddingLeft: 8,
+    },
+
+    pl3: {
+        paddingLeft: 12,
     },
 
     pl5: {

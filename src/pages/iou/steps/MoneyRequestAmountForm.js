@@ -58,11 +58,11 @@ const NUM_PAD_CONTAINER_VIEW_ID = 'numPadContainerView';
 const NUM_PAD_VIEW_ID = 'numPadView';
 
 function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCurrencyButtonPress, onSubmitButtonPress}) {
-    const {translate, toLocaleDigit, fromLocaleDigit, numberFormat} = useLocalize();
+    const {translate, toLocaleDigit, numberFormat} = useLocalize();
 
     const textInput = useRef(null);
 
-    const selectedAmountAsString = amount ? CurrencyUtils.convertToWholeUnit(currency, amount).toString() : '';
+    const selectedAmountAsString = amount ? CurrencyUtils.convertToFrontendAmount(amount).toString() : '';
 
     const [currentAmount, setCurrentAmount] = useState(selectedAmountAsString);
     const [shouldUpdateSelection, setShouldUpdateSelection] = useState(true);
@@ -92,32 +92,22 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
         }
     };
 
-    /**
-     * Convert amount to whole unit and update selection
-     *
-     * @param {String} currencyCode
-     * @param {Number} amountInCurrencyUnits
-     */
-    const saveAmountToState = (currencyCode, amountInCurrencyUnits) => {
-        if (!currencyCode || !amountInCurrencyUnits) {
+    useEffect(() => {
+        if (!currency || !amount) {
             return;
         }
-        const amountAsStringForState = CurrencyUtils.convertToWholeUnit(currencyCode, amountInCurrencyUnits).toString();
+        const amountAsStringForState = CurrencyUtils.convertToFrontendAmount(amount).toString();
         setCurrentAmount(amountAsStringForState);
         setSelection({
             start: amountAsStringForState.length,
             end: amountAsStringForState.length,
         });
-    };
-
-    useEffect(() => {
-        saveAmountToState(currency, amount);
         // we want to update the state only when the amount is changed
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [amount]);
 
     /**
-     * Sets the state according to amount that is passed
+     * Sets the selection and the amount accordingly to the value passed to the input
      * @param {String} newAmount - Changed amount from user input
      */
     const setNewAmount = (newAmount) => {
@@ -127,7 +117,6 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
         // Use a shallow copy of selection to trigger setSelection
         // More info: https://github.com/Expensify/App/issues/16385
         if (!MoneyRequestUtils.validateAmount(newAmountWithoutSpaces)) {
-            setCurrentAmount((prevAmount) => prevAmount);
             setSelection((prevSelection) => ({...prevSelection}));
             return;
         }
@@ -176,19 +165,7 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
     }, []);
 
     /**
-     * Update amount on amount change
-     * Validate new amount with decimal number regex up to 6 digits and 2 decimal digit
-     *
-     * @param {String} text - Changed text from user input
-     */
-    const updateAmount = (text) => {
-        const newAmount = MoneyRequestUtils.addLeadingZero(MoneyRequestUtils.replaceAllDigits(text, fromLocaleDigit));
-        setNewAmount(newAmount);
-    };
-
-    /**
      * Submit amount and navigate to a proper page
-     *
      */
     const submitAndNavigateToNextPage = useCallback(() => {
         onSubmitButtonPress(currentAmount);
@@ -206,7 +183,7 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
             >
                 <TextInputWithCurrencySymbol
                     formattedAmount={formattedAmount}
-                    onChangeAmount={updateAmount}
+                    onChangeAmount={setNewAmount}
                     onCurrencyButtonPress={onCurrencyButtonPress}
                     placeholder={numberFormat(0)}
                     ref={(ref) => {

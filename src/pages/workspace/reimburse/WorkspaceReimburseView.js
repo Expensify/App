@@ -67,8 +67,8 @@ const defaultProps = {
 function WorkspaceReimburseView(props) {
     const [currentRatePerUnit, setCurrentRatePerUnit] = useState('');
     const viewAllReceiptsUrl = `expenses?policyIDList=${props.policy.id}&billableReimbursable=reimbursable&submitterEmail=%2B%2B`;
-    const distanceCustomUnit = _.find(lodashGet(props.policy, 'customUnits', {}), (unit) => unit.name === 'Distance');
-    const distanceCustomRate = _.find(lodashGet(distanceCustomUnit, 'rates', {}), (rate) => rate.name === 'Default Rate');
+    const distanceCustomUnit = _.find(lodashGet(props.policy, 'customUnits', {}), (unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
+    const distanceCustomRate = _.find(lodashGet(distanceCustomUnit, 'rates', {}), (rate) => rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE);
     const {translate, toLocaleDigit} = props;
 
     const getNumericValue = useCallback(
@@ -98,8 +98,8 @@ function WorkspaceReimburseView(props) {
     const getUnitLabel = useCallback((value) => translate(`common.${value}`), [translate]);
 
     const getCurrentRatePerUnitLabel = useCallback(() => {
-        const customUnitRate = _.find(lodashGet(distanceCustomUnit, 'rates', '{}'), (rate) => rate && rate.name === 'Default Rate');
-        const currentUnit = getUnitLabel(lodashGet(distanceCustomUnit, 'attributes.unit', 'mi'));
+        const customUnitRate = _.find(lodashGet(distanceCustomUnit, 'rates', '{}'), (rate) => rate && rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE);
+        const currentUnit = getUnitLabel(lodashGet(distanceCustomUnit, 'attributes.unit', CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES));
         const currentRate = getRateLabel(customUnitRate);
         const perWord = translate('common.per');
         return `${currentRate} ${perWord} ${currentUnit}`;
