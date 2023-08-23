@@ -902,7 +902,7 @@ function getIconsForParticipants(participants, personalDetails) {
         })
         .value();
 
-    // Now that things are sorted, gather only the avatars (third element in the array) and return those
+    // Now that things are sorted, gather only the avatars (second element in the array) and return those
     const avatars = [];
     for (let i = 0; i < sortedParticipantDetails.length; i++) {
         const userIcon = {
