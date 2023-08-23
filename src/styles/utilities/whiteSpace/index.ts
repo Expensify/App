@@ -1,3 +1,5 @@
+import WhiteSpaceStyles from './types';
+
 export default {
     noWrap: {
         whiteSpace: 'nowrap',
@@ -8,4 +10,4 @@ export default {
     pre: {
         whiteSpace: 'pre',
     },
-};
+} satisfies WhiteSpaceStyles;
