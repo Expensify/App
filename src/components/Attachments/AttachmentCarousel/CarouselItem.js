@@ -60,16 +60,25 @@ function CarouselItem({item, isFocused, onPress}) {
     );
 
     if (isHidden) {
-        return (
+        const children = (
+            <>
+                <Text style={[styles.textLabelSupporting, styles.textAlignCenter, styles.lh20]}>{translate('moderation.flaggedContent')}</Text>
+                {renderButton([styles.mt2])}
+            </>
+        );
+        return onPress ? (
             <PressableWithoutFeedback
                 style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph4]}
                 onPress={onPress}
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                 accessibilityLabel={item.file.name || translate('attachmentView.unknownFilename')}
             >
-                <Text style={[styles.textLabelSupporting, styles.textAlignCenter, styles.lh20]}>{translate('moderation.flaggedContent')}</Text>
-                {renderButton([styles.mt2])}
+                {children}
             </PressableWithoutFeedback>
+        ) : (
+            <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph4]}>
+                {children}
+            </View>
         );
     }
 
