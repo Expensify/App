@@ -27,6 +27,7 @@ import themeColors from '../styles/themes/default';
 import Image from './Image';
 import useLocalize from '../hooks/useLocalize';
 import * as ReceiptUtils from '../libs/ReceiptUtils';
+import categoryPropTypes from './categoryPropTypes';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
@@ -97,12 +98,7 @@ const propTypes = {
     receiptSource: PropTypes.string,
 
     /** Collection of categories attached to a policy */
-    policyCategories: PropTypes.objectOf(
-        PropTypes.shape({
-            enabled: PropTypes.bool.isRequired,
-            name: PropTypes.string.isRequired,
-        }),
-    ),
+    policyCategories: PropTypes.objectOf(categoryPropTypes),
 };
 
 const defaultProps = {
@@ -123,7 +119,7 @@ const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
     receiptPath: '',
     receiptSource: '',
-    policyCategories: null,
+    policyCategories: {},
 };
 
 function MoneyRequestConfirmationList(props) {
@@ -406,7 +402,7 @@ function MoneyRequestConfirmationList(props) {
                         onPress={() => Navigation.navigate(ROUTES.getMoneyRequestMerchantRoute(props.iouType, props.reportID))}
                         disabled={didConfirm || props.isReadOnly || !isTypeRequest}
                     />
-                    {props.policyCategories !== null && (
+                    {!_.isEmpty(props.policyCategories) && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly}
                             title={props.iouCategory}
