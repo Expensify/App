@@ -76,6 +76,8 @@ const CONST = {
 
     PULL_REQUEST_NUMBER,
 
+    MERCHANT_NAME_MAX_LENGTH: 255,
+
     CALENDAR_PICKER: {
         // Numbers were arbitrarily picked.
         MIN_YEAR: CURRENT_YEAR - 100,
@@ -128,7 +130,7 @@ const CONST = {
         MOMENT_FORMAT_STRING: 'YYYY-MM-DD',
         SQL_DATE_TIME: 'YYYY-MM-DD HH:mm:ss',
         FNS_FORMAT_STRING: 'yyyy-MM-dd',
-        LOCAL_TIME_FORMAT: 'hh:mm a',
+        LOCAL_TIME_FORMAT: 'h:mm a',
         WEEKDAY_TIME_FORMAT: 'eeee',
         MONTH_DAY_ABBR_FORMAT: 'MMM d',
         SHORT_DATE_FORMAT: 'MM-dd',
@@ -661,6 +663,11 @@ const CONST = {
         DARK: 'dark',
         SYSTEM: 'system',
     },
+    TRANSACTION: {
+        TYPE: {
+            CUSTOM_UNIT: 'customUnit',
+        },
+    },
     JSON_CODE: {
         SUCCESS: 200,
         BAD_REQUEST: 400,
@@ -1037,6 +1044,7 @@ const CONST = {
         AMOUNT_MAX_LENGTH: 10,
         RECEIPT_STATE: {
             SCANREADY: 'SCANREADY',
+            OPEN: 'OPEN',
             SCANNING: 'SCANNING',
             SCANCOMPLETE: 'SCANCOMPLETE',
             SCANFAILED: 'SCANFAILED',
@@ -1149,7 +1157,8 @@ const CONST = {
         ROOM_NAME: /^#[a-z0-9à-ÿ-]{1,80}$/,
 
         // eslint-disable-next-line max-len, no-misleading-character-class
-        EMOJIS: /[\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
+        EMOJIS: /[\p{Extended_Pictographic}](\u200D[\p{Extended_Pictographic}]|[\u{1F3FB}-\u{1F3FF}]|[\u{E0020}-\u{E007F}]|\uFE0F|\u20E3)*|[\u{1F1E6}-\u{1F1FF}]{2}|[#*0-9]\uFE0F?\u20E3/gu,
+
         TAX_ID: /^\d{9}$/,
         NON_NUMERIC: /\D/g,
 
@@ -2563,7 +2572,14 @@ const CONST = {
         DISTANCE: 'distance',
     },
     STATUS_TEXT_MAX_LENGTH: 100,
+
+    DROPDOWN_BUTTON_SIZE: {
+        LARGE: 'large',
+        MEDIUM: 'medium',
+    },
+
     SF_COORDINATES: [-122.4194, 37.7749],
+
     MAPBOX_STYLE_URL: 'mapbox://styles/expensify/cllcoiqds00cs01r80kp34tmq',
     NAVIGATION: {
         TYPE: {
