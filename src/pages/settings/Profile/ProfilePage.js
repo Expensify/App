@@ -59,7 +59,7 @@ function ProfilePage(props) {
         }
 
         if (!pronounsKey) {
-            return props.translate('profilePage.selectYourPronouns')
+            return props.translate('profilePage.selectYourPronouns');
         }
         return props.translate(`pronouns.${pronounsKey}`);
     };

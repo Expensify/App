@@ -23,7 +23,7 @@ describe('Translations', () => {
                             none: 'No description',
                         },
                         content: func,
-                        messages: ["Hello", "Hi", "Sup!"]
+                        messages: ['Hello', 'Hi', 'Sup!'],
                     },
                 },
             };
@@ -38,7 +38,7 @@ describe('Translations', () => {
                 'complex.report.title.task': 'Task',
                 'complex.report.description.none': 'No description',
                 'complex.report.content': func,
-                'complex.report.messages': ["Hello", "Hi", "Sup!"],
+                'complex.report.messages': ['Hello', 'Hi', 'Sup!'],
             });
         });
     });

@@ -25,7 +25,6 @@ function LanguagePage(props) {
         isSelected: props.preferredLocale === language,
     }));
 
-    
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <HeaderWithBackButton

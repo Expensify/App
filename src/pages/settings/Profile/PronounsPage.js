@@ -36,7 +36,8 @@ function PronounsPage(props) {
     const loadPronouns = useCallback(() => {
         const currentPronouns = lodashGet(props.currentUserPersonalDetails, 'pronouns', '');
 
-        const pronouns = _.chain(CONST.PRONOUNS_LIST).map((value) => {
+        const pronouns = _.chain(CONST.PRONOUNS_LIST)
+            .map((value) => {
                 const fullPronounKey = `${CONST.PRONOUNS.PREFIX}${value}`;
                 const isCurrentPronouns = fullPronounKey === currentPronouns;
 
