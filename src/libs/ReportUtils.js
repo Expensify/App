@@ -766,7 +766,7 @@ function canDeleteReportAction(reportAction, reportID) {
  */
 
 function getRoomWelcomeMessage(report, isUserPolicyAdmin) {
-    const welcomeMessage = {};
+    const welcomeMessage = {showReportName: true};
     const workspaceName = getPolicyName(report);
 
     if (isArchivedRoom(report)) {
@@ -780,6 +780,7 @@ function getRoomWelcomeMessage(report, isUserPolicyAdmin) {
         welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminRoomPartTwo');
     } else if (isAdminsOnlyPostingRoom(report) && !isUserPolicyAdmin) {
         welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminOnlyPostingRoom');
+        welcomeMessage.showReportName = false;
     } else if (isAnnounceRoom(report)) {
         welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAnnounceRoomPartOne', {workspaceName});
         welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAnnounceRoomPartTwo', {workspaceName});
@@ -1253,12 +1254,11 @@ function getTransactionDetails(transaction) {
 /**
  * Gets all transactions on an IOU report with a receipt
  *
- * @param {Object|null} iouReport
+ * @param {Object|null} iouReportID
  * @returns {[Object]}
  */
-function getTransactionsWithReceipts(iouReport) {
-    const reportID = lodashGet(iouReport, 'reportID');
-    const reportActions = ReportActionsUtils.getAllReportActions(reportID);
+function getTransactionsWithReceipts(iouReportID) {
+    const reportActions = ReportActionsUtils.getAllReportActions(iouReportID);
     return _.reduce(
         reportActions,
         (transactions, action) => {
@@ -1281,17 +1281,17 @@ function getTransactionsWithReceipts(iouReport) {
  * or as soon as one receipt request is done scanning, we have at least one
  * "ready" money request, and we remove this indicator to show the partial report total.
  *
- * @param {Object|null} iouReport
+ * @param {Object|null} iouReportID
  * @param {Object|null} reportPreviewAction the preview action associated with the IOU report
  * @returns {Boolean}
  */
-function areAllRequestsBeingSmartScanned(iouReport, reportPreviewAction) {
-    const transactions = getTransactionsWithReceipts(iouReport);
+function areAllRequestsBeingSmartScanned(iouReportID, reportPreviewAction) {
+    const transactionsWithReceipts = getTransactionsWithReceipts(iouReportID);
     // If we have more requests than requests with receipts, we have some manual requests
-    if (ReportActionsUtils.getNumberOfMoneyRequests(reportPreviewAction) > transactions.length) {
+    if (ReportActionsUtils.getNumberOfMoneyRequests(reportPreviewAction) > transactionsWithReceipts.length) {
         return false;
     }
-    return _.all(transactions, (transaction) => TransactionUtils.isReceiptBeingScanned(transaction));
+    return _.all(transactionsWithReceipts, (transaction) => TransactionUtils.isReceiptBeingScanned(transaction));
 }
 
 /**

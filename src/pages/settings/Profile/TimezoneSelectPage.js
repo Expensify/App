@@ -9,7 +9,7 @@ import TIMEZONES from '../../../TIMEZONES';
 import * as PersonalDetails from '../../../libs/actions/PersonalDetails';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
-import SelectionListRadio from '../../../components/SelectionListRadio';
+import SelectionList from '../../../components/SelectionList';
 import useLocalize from '../../../hooks/useLocalize';
 
 const propTypes = {
@@ -71,7 +71,7 @@ function TimezoneSelectPage(props) {
                 title={translate('timezonePage.timezone')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_TIMEZONE)}
             />
-            <SelectionListRadio
+            <SelectionList
                 textInputLabel={translate('timezonePage.timezone')}
                 textInputValue={timezoneInputText}
                 onChangeText={filterShownTimezones}
