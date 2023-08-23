@@ -54,19 +54,19 @@ describe('DateUtils', () => {
 
     it('should return the date in calendar time when calling datetimeToCalendarTime', () => {
         const today = setMinutes(setHours(new Date(), 14), 32);
-        expect(DateUtils.datetimeToCalendarTime(LOCALE, today)).toBe('Today at 02:32 PM');
+        expect(DateUtils.datetimeToCalendarTime(LOCALE, today)).toBe('Today at 2:32 PM');
 
         const tomorrow = addDays(setMinutes(setHours(new Date(), 14), 32), 1);
-        expect(DateUtils.datetimeToCalendarTime(LOCALE, tomorrow)).toBe('Tomorrow at 02:32 PM');
+        expect(DateUtils.datetimeToCalendarTime(LOCALE, tomorrow)).toBe('Tomorrow at 2:32 PM');
 
         const yesterday = setMinutes(setHours(subDays(new Date(), 1), 7), 43);
-        expect(DateUtils.datetimeToCalendarTime(LOCALE, yesterday)).toBe('Yesterday at 07:43 AM');
+        expect(DateUtils.datetimeToCalendarTime(LOCALE, yesterday)).toBe('Yesterday at 7:43 AM');
 
         const date = setMinutes(setHours(new Date('2022-11-05'), 10), 17);
         expect(DateUtils.datetimeToCalendarTime(LOCALE, date)).toBe('Nov 5, 2022 at 10:17 AM');
 
         const todayLowercaseDate = setMinutes(setHours(new Date(), 14), 32);
-        expect(DateUtils.datetimeToCalendarTime(LOCALE, todayLowercaseDate, false, undefined, true)).toBe('today at 02:32 PM');
+        expect(DateUtils.datetimeToCalendarTime(LOCALE, todayLowercaseDate, false, undefined, true)).toBe('today at 2:32 PM');
     });
 
     it('should update timezone if automatic and selected timezone do not match', () => {

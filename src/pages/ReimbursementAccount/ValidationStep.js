@@ -51,29 +51,29 @@ const defaultProps = {
     },
 };
 
+/**
+ * Filter input for validation amount
+ * Anything that isn't a number is returned as an empty string
+ * Any dollar amount (e.g. 1.12) will be returned as 112
+ *
+ * @param {String} amount field input
+ * @returns {String}
+ */
+const filterInput = (amount) => {
+    let value = amount ? amount.toString().trim() : '';
+    if (value === '' || _.isNaN(Number(value)) || !Math.abs(Str.fromUSDToNumber(value))) {
+        return '';
+    }
+
+    // If the user enters the values in dollars, convert it to the respective cents amount
+    if (_.contains(value, '.')) {
+        value = Str.fromUSDToNumber(value);
+    }
+
+    return value;
+};
+
 function ValidationStep({reimbursementAccount, translate, onBackButtonPress, account}) {
-    /**
-     * Filter input for validation amount
-     * Anything that isn't a number is returned as an empty string
-     * Any dollar amount (e.g. 1.12) will be returned as 112
-     *
-     * @param {String} amount field input
-     * @returns {String}
-     */
-    const filterInput = (amount) => {
-        let value = amount ? amount.toString().trim() : '';
-        if (value === '' || !Math.abs(Str.fromUSDToNumber(value)) || _.isNaN(Number(value))) {
-            return '';
-        }
-
-        // If the user enters the values in dollars, convert it to the respective cents amount
-        if (_.contains(value, '.')) {
-            value = Str.fromUSDToNumber(value);
-        }
-
-        return value;
-    };
-
     /**
      * @param {Object} values - form input values passed by the Form component
      * @returns {Object}
@@ -82,7 +82,7 @@ function ValidationStep({reimbursementAccount, translate, onBackButtonPress, acc
         const errors = {};
 
         _.each(values, (value, key) => {
-            const filteredValue = filterInput(value);
+            const filteredValue = typeof value === 'string' ? filterInput(value) : value;
             if (ValidationUtils.isRequiredFulfilled(filteredValue)) {
                 return;
             }
