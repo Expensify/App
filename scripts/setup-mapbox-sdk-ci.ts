@@ -9,7 +9,7 @@
  * `ts-node ./scripts/setup-mapbox-sdk-ci.ts YOUR_MAPBOX_ACCESS_TOKEN`
  */
 
-import {saveMapboxToken} from './setup-mapbox-sdk';
+import MapboxSetup from './setup-mapbox-sdk';
 
 const token = process.argv[2];
 
@@ -20,4 +20,4 @@ if (!token) {
     process.exit(1); // Exit with a failure status
 }
 
-saveMapboxToken(token);
+MapboxSetup.saveMapboxToken(token);

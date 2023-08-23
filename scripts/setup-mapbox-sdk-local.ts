@@ -10,14 +10,14 @@
  */
 
 import {get} from 'https';
-import {saveMapboxToken} from './setup-mapbox-sdk';
+import MapboxSetup from './setup-mapbox-sdk';
 
 const TOKEN_ENDPOINT = 'https://www.expensify.com/api.php?command=GetMapboxSDKToken';
 
-function fetchData(url: string): Promise<any> {
+function fetchData(url: string): Promise<unknown> {
     return new Promise((resolve, reject) => {
         get(url, (res) => {
-            const contentType = res.headers['content-type'] || '';
+            const contentType = res.headers['content-type'] ?? '';
             let data = '';
 
             res.on('data', (chunk) => {
@@ -26,7 +26,7 @@ function fetchData(url: string): Promise<any> {
 
             res.on('end', () => {
                 if (!contentType.includes('application/json')) {
-                    return reject(new Error('Unexpected content type: ' + contentType));
+                    return reject(new Error(`Unexpected content type: ${contentType}`));
                 }
 
                 resolve(JSON.parse(data));
@@ -39,12 +39,11 @@ function fetchData(url: string): Promise<any> {
 
 fetchData(TOKEN_ENDPOINT)
     .then((token) => {
-        console.log(token);
         if (typeof token !== 'string') {
             throw new Error('Token could not be fetched or token is of a wrong type');
         }
 
-        saveMapboxToken(token);
+        MapboxSetup.saveMapboxToken(token);
     })
     .catch((error) => {
         if (error instanceof Error) {

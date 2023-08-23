@@ -33,5 +33,5 @@
         "incremental": true
     },
     "exclude": ["**/node_modules/*", "**/dist/*", ".github/actions/**/index.js"],
-    "include": ["src", "desktop", "web", "docs", "assets", "config", "tests", "jest", "__mocks__", ".github/**/*", ".storybook/**/*"]
+    "include": ["src", "desktop", "web", "docs", "assets", "config", "tests", "jest", "__mocks__", "scripts", ".github/**/*", ".storybook/**/*"]
 }

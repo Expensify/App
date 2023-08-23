@@ -1,3 +1,7 @@
+/* eslint-disable no-console */
+// This is a node script file. To output the status of the program and the result, we need to
+// use console.log statements
+
 /**
  * Mapbox SDK Configuration Script for iOS and Android
  * ===================================================
@@ -33,11 +37,11 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
-const NETRC_PATH = path.join(process.env.HOME || '', '.netrc');
-const USER_GRADLE_DIR = path.join(process.env.HOME || '', '.gradle');
+const NETRC_PATH = path.join(process.env.HOME ?? '', '.netrc');
+const USER_GRADLE_DIR = path.join(process.env.HOME ?? '', '.gradle');
 const GRADLE_PROPERTIES_PATH = path.join(USER_GRADLE_DIR, 'gradle.properties');
 
-export function saveMapboxToken(token: string) {
+function saveMapboxToken(token: string) {
     try {
         // iOS Configuration for .netrc
         console.log(`Configuring ${NETRC_PATH} for Mapbox iOS SDK download`);
@@ -75,3 +79,7 @@ export function saveMapboxToken(token: string) {
         }
     }
 }
+
+export default {
+    saveMapboxToken,
+};
