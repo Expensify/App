@@ -42,9 +42,14 @@ const propTypes = {
     /** Whether we should show the cancel button */
     shouldShowCancelButton: PropTypes.bool,
 
+    /** Icon to display above the title */
     iconSource: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
 
+    /** Whether to center the icon / text content */
     shouldCenterContent: PropTypes.bool,
+
+    /** Whether to stack the buttons */
+    shouldStackButtons: PropTypes.bool,
 
     /** Styles for title */
     // eslint-disable-next-line react/forbid-prop-types
@@ -75,6 +80,7 @@ const defaultProps = {
     contentStyles: [],
     iconSource: null,
     shouldCenterContent: false,
+    shouldStackButtons: true,
     titleStyles: [],
     promptStyles: [],
     iconAdditionalStyles: [],
@@ -111,7 +117,27 @@ function ConfirmContent(props) {
                 {_.isString(props.prompt) ? <Text style={[...props.promptStyles, isCentered ? styles.textAlignCenter : {}]}>{props.prompt}</Text> : props.prompt}
             </View>
 
-            {isCentered ? (
+            {props.shouldStackButtons ? (
+                <>
+                    <Button
+                        success={props.success}
+                        danger={props.danger}
+                        style={[styles.mt4]}
+                        onPress={props.onConfirm}
+                        pressOnEnter
+                        text={props.confirmText || translate('common.yes')}
+                        isDisabled={isOffline && props.shouldDisableConfirmButtonWhenOffline}
+                    />
+                    {props.shouldShowCancelButton && (
+                        <Button
+                            style={[styles.mt3, styles.noSelect]}
+                            onPress={props.onCancel}
+                            text={props.cancelText || translate('common.no')}
+                            shouldUseDefaultHover
+                        />
+                    )}
+                </>
+            ) : (
                 <View style={[styles.flexRow, styles.gap4]}>
                     {props.shouldShowCancelButton && (
                         <Button
@@ -133,26 +159,6 @@ function ConfirmContent(props) {
                         medium
                     />
                 </View>
-            ) : (
-                <>
-                    <Button
-                        success={props.success}
-                        danger={props.danger}
-                        style={[styles.mt4]}
-                        onPress={props.onConfirm}
-                        pressOnEnter
-                        text={props.confirmText || translate('common.yes')}
-                        isDisabled={isOffline && props.shouldDisableConfirmButtonWhenOffline}
-                    />
-                    {props.shouldShowCancelButton && (
-                        <Button
-                            style={[styles.mt3, styles.noSelect]}
-                            onPress={props.onCancel}
-                            text={props.cancelText || translate('common.no')}
-                            shouldUseDefaultHover
-                        />
-                    )}
-                </>
             )}
         </View>
     );

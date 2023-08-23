@@ -45,6 +45,7 @@ const propTypes = {
     /** Should we announce the Modal visibility changes? */
     shouldSetModalVisibility: PropTypes.bool,
 
+    /** Icon to display above the title */
     iconSource: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
 
     /** Styles for title */
@@ -59,7 +60,11 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     iconAdditionalStyles: PropTypes.arrayOf(PropTypes.object),
 
+    /** Whether to center the icon / text content */
     shouldCenterContent: PropTypes.bool,
+
+    /** Whether to stack the buttons */
+    shouldStackButtons: PropTypes.bool,
 
     ...windowDimensionsPropTypes,
 };
@@ -76,11 +81,12 @@ const defaultProps = {
     shouldSetModalVisibility: true,
     title: '',
     iconSource: null,
-    shouldCenterContent: false,
     onModalHide: () => {},
     titleStyles: [],
     iconAdditionalStyles: [],
     promptStyles: [],
+    shouldCenterContent: false,
+    shouldStackButtons: true,
 };
 
 function ConfirmModal(props) {
@@ -111,6 +117,7 @@ function ConfirmModal(props) {
                 iconAdditionalStyles={props.iconAdditionalStyles}
                 titleStyles={props.titleStyles}
                 promptStyles={props.promptStyles}
+                shouldStackButtons={props.shouldStackButtons}
             />
         </Modal>
     );

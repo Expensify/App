@@ -58,6 +58,7 @@ function DownloadAppModal({showDownloadAppBanner}) {
             promptStyles={[styles.textNormal, styles.lh20]}
             titleStyles={[styles.textHeadline]}
             iconAdditionalStyles={[styles.appIconBorderRadius]}
+            shouldStackButtons={false}
         />
     );
 }
