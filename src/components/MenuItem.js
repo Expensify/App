@@ -124,6 +124,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                     onSecondaryInteraction={props.onSecondaryInteraction}
                     style={({pressed}) => [
                         props.style,
+                        props.containerStyle,
                         !props.interactive && styles.cursorDefault,
                         StyleUtils.getButtonBackgroundColorStyle(getButtonState(props.focused || isHovered, pressed, props.success, props.disabled, props.interactive), true),
                         (isHovered || pressed) && props.hoverAndPressStyle,

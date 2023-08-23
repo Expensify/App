@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import _ from 'lodash';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import Form from '../../../../components/Form';
 import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
@@ -28,6 +29,11 @@ const defaultProps = {
 
 const propTypes = {
     currentUserPersonalDetails: personalDetailsPropType,
+    customStatus: PropTypes.shape({
+        clearAfter: PropTypes.string,
+        customDateTemporary: PropTypes.string,
+
+    }),
 };
 
 function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
@@ -94,14 +100,12 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
             <Text style={[styles.textNormal, styles.mh5, styles.mv4]}>When should we clear your status?</Text>
             <Form
                 formID={ONYXKEYS.FORMS.SETTINGS_STATUS_SET_CLEAR_AFTER_FORM}
-                onCloseButtonPress={() => {}}
-                onBackButtonPress={() => {}}
                 submitButtonText="Save"
                 onSubmit={onSubmit}
-                style={[{flexGrow: 1}]}
+                style={styles.flexGrow1}
                 scrollContextEnabled={false}
             >
-                <View style={{flexGrow: 1}}>
+                <View style={styles.flexGrow1}>
                     <SelectionListRadio
                         sections={[{data: localesToThemes, indexOffset: 0}]}
                         onSelectRow={updateMode}
@@ -117,12 +121,14 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
                                 title={customStatusDate}
                                 description="Clear after"
                                 shouldShowRightIcon
+                                containerStyle={styles.pr2}
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS_CLEAR_AFTER_CUSTOM)}
                             />
                             <MenuItemWithTopDescription
                                 title={customStatusTime}
                                 description="Clear after"
                                 shouldShowRightIcon
+                                containerStyle={styles.pr2}
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS_CLEAR_AFTER_TIME)}
                             />
                         </>

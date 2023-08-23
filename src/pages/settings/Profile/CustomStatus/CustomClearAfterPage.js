@@ -3,19 +3,18 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import ONYXKEYS from '../../../../ONYXKEYS';
-import ROUTES from '../../../../ROUTES';
-import Form from '../../../../components/Form';
+import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 import NewDatePicker from '../../../../components/NewDatePicker';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
-import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
+import Form from '../../../../components/Form';
+import usePrivatePersonalDetails from '../../../../hooks/usePrivatePersonalDetails';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import * as User from '../../../../libs/actions/User';
 import compose from '../../../../libs/compose';
 import styles from '../../../../styles/styles';
-import usePrivatePersonalDetails from '../../../../hooks/usePrivatePersonalDetails';
-import DateUtils from '../../../../libs/DateUtils';
+import ONYXKEYS from '../../../../ONYXKEYS';
+import ROUTES from '../../../../ROUTES';
 
 const propTypes = {
     /* Onyx Props */
@@ -34,11 +33,11 @@ const defaultProps = {
     },
 };
 
-function CustomClearAfterPage({translate, customStatus, clearDateForm, personalDetails}) {
+function CustomClearAfterPage({translate, customStatus, personalDetails}) {
     usePrivatePersonalDetails();
     const cleanAfter = lodashGet(personalDetails, 'status.cleanAfter', '');
-    const defaultValue = cleanAfter || DateUtils.extractDate(customStatus?.customDateTemporary);
-
+    const customDateTemporary = lodashGet(customStatus, 'customDateTemporary', '');
+    const defaultValue = cleanAfter || customDateTemporary;
 
     const onSubmit = (v) => {
         User.updateDraftCustomStatus({customDateTemporary: v.dob});
@@ -54,8 +53,6 @@ function CustomClearAfterPage({translate, customStatus, clearDateForm, personalD
             <Form
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.SETTINGS_STATUS_CLEAR_DATE_FORM}
-            
-                // onSubmit={PersonalDetails.updateDateOfBirth}
                 onSubmit={onSubmit}
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
