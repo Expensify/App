@@ -62,7 +62,9 @@ function EmojiReactionBubble(props) {
                 props.isReactionBlocked && styles.cursorDisabled,
             ]}
             onPress={() => {
-                if (props.isReactionBlocked) return;
+                if (props.isReactionBlocked) {
+                    return;
+                }
 
                 props.onPress();
             }}
