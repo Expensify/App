@@ -25,7 +25,6 @@ export default {
         return `bank-account/${stepToOpen}?policyID=${policyID}${backToParam}`;
     },
     HOME: '',
-    SAASTR_HOME: 'saastr',
     SETTINGS: 'settings',
     SETTINGS_PROFILE: 'settings/profile',
     SETTINGS_SHARE_CODE: 'settings/shareCode',
@@ -185,6 +184,10 @@ export default {
     getWorkspaceInvoicesRoute: (policyID) => `workspace/${policyID}/invoices`,
     getWorkspaceTravelRoute: (policyID) => `workspace/${policyID}/travel`,
     getWorkspaceMembersRoute: (policyID) => `workspace/${policyID}/members`,
+
+    // These are some on-off routes that will be removed once they're no longer needed (see GH issues for details)
+    SAASTR: 'saastr',
+    SBE: 'sbe',
 
     /**
      * @param {String} route

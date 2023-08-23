@@ -380,7 +380,7 @@ function ReportActionCompose({
      */
     const updateComment = useCallback(
         (commentValue, shouldDebounceSaveComment) => {
-            const {text: newComment = '', emojis = []} = EmojiUtils.replaceEmojis(commentValue, preferredSkinTone, preferredLocale);
+            const {text: newComment, emojis} = EmojiUtils.replaceAndExtractEmojis(commentValue, preferredSkinTone, preferredLocale);
 
             if (!_.isEmpty(emojis)) {
                 insertedEmojisRef.current = [...insertedEmojisRef.current, ...emojis];
@@ -648,7 +648,7 @@ function ReportActionCompose({
             }
 
             focus(false);
-        });
+        }, true);
     }, [focus, isFocusedProp]);
 
     /**
@@ -886,7 +886,7 @@ function ReportActionCompose({
                 const lastReportAction = _.find([...reportActions, parentReportAction], (action) => ReportUtils.canEditReportAction(action));
 
                 if (lastReportAction !== -1 && lastReportAction) {
-                    Report.saveReportActionDraft(reportID, lastReportAction, _.last(lastReportAction.message).html);
+                    Report.saveReportActionDraft(reportID, lastReportAction.reportActionID, _.last(lastReportAction.message).html);
                 }
             }
         },
@@ -959,7 +959,7 @@ function ReportActionCompose({
         }
 
         return () => {
-            ReportActionComposeFocusManager.clear();
+            ReportActionComposeFocusManager.clear(true);
 
             KeyDownListener.removeKeyDownPressListner(focusComposerOnKeyPress);
             unsubscribeNavigationBlur();
@@ -1191,6 +1191,7 @@ function ReportActionCompose({
                                         shouldClear={textInputShouldClear}
                                         onClear={() => setTextInputShouldClear(false)}
                                         isDisabled={isBlockedFromConcierge || disabled}
+                                        isReportActionCompose
                                         selection={selection}
                                         onSelectionChange={onSelectionChange}
                                         isFullComposerAvailable={isFullSizeComposerAvailable}

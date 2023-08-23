@@ -254,7 +254,7 @@ function MoneyRequestPreview(props) {
                                 </View>
                             )}
                         </View>
-                        {requestMerchant && (
+                        {!props.isBillSplit && !_.isEmpty(requestMerchant) && (
                             <View style={[styles.flexRow]}>
                                 <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh16]}>{requestMerchant}</Text>
                             </View>

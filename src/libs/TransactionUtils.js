@@ -93,6 +93,7 @@ function hasReceipt(transaction) {
 function getUpdatedTransaction(transaction, transactionChanges, isFromExpenseReport) {
     // Only changing the first level fields so no need for deep clone now
     const updatedTransaction = _.clone(transaction);
+    let shouldStopSmartscan = false;
 
     // The comment property does not have its modifiedComment counterpart
     if (_.has(transactionChanges, 'comment')) {
@@ -103,12 +104,24 @@ function getUpdatedTransaction(transaction, transactionChanges, isFromExpenseRep
     }
     if (_.has(transactionChanges, 'created')) {
         updatedTransaction.modifiedCreated = transactionChanges.created;
+        shouldStopSmartscan = true;
     }
     if (_.has(transactionChanges, 'amount')) {
         updatedTransaction.modifiedAmount = isFromExpenseReport ? -transactionChanges.amount : transactionChanges.amount;
+        shouldStopSmartscan = true;
     }
     if (_.has(transactionChanges, 'currency')) {
         updatedTransaction.modifiedCurrency = transactionChanges.currency;
+        shouldStopSmartscan = true;
+    }
+
+    if (_.has(transactionChanges, 'merchant')) {
+        updatedTransaction.modifiedMerchant = transactionChanges.merchant;
+        shouldStopSmartscan = true;
+    }
+
+    if (shouldStopSmartscan && _.has(transaction, 'receipt') && !_.isEmpty(transaction.receipt) && lodashGet(transaction, 'receipt.state') !== CONST.IOU.RECEIPT_STATE.OPEN) {
+        updatedTransaction.receipt.state = CONST.IOU.RECEIPT_STATE.OPEN;
     }
     updatedTransaction.pendingFields = {
         ...(_.has(transactionChanges, 'comment') && {comment: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
@@ -230,6 +243,50 @@ function isReceiptBeingScanned(transaction) {
     return transaction.receipt.state === CONST.IOU.RECEIPT_STATE.SCANREADY || transaction.receipt.state === CONST.IOU.RECEIPT_STATE.SCANNING;
 }
 
+/**
+ * Verifies that the provided waypoints are valid
+ * @param {Object} waypoints
+ * @returns {Boolean}
+ */
+function validateWaypoints(waypoints) {
+    const waypointValues = _.values(waypoints);
+
+    // Ensure the number of waypoints is between 2 and 25
+    if (waypointValues.length < 2 || waypointValues.length > 25) {
+        return false;
+    }
+
+    for (let i = 0; i < waypointValues.length; i++) {
+        const currentWaypoint = waypointValues[i];
+        const previousWaypoint = waypointValues[i - 1];
+
+        // Check if the waypoint has a valid address
+        if (!currentWaypoint || !currentWaypoint.address || typeof currentWaypoint.address !== 'string' || currentWaypoint.address.trim() === '') {
+            return false;
+        }
+
+        // Check for adjacent waypoints with the same address
+        if (previousWaypoint && currentWaypoint.address === previousWaypoint.address) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+/*
+ * @param {Object} transaction
+ * @param {String} transaction.type
+ * @param {Object} [transaction.customUnit]
+ * @param {String} [transaction.customUnit.name]
+ * @returns {Boolean}
+ */
+function isDistanceRequest(transaction) {
+    const type = lodashGet(transaction, 'comment.type');
+    const customUnitName = lodashGet(transaction, 'comment.customUnit.name');
+    return type === CONST.TRANSACTION.TYPE.CUSTOM_UNIT && customUnitName === CONST.CUSTOM_UNITS.NAME_DISTANCE;
+}
+
 export {
     buildOptimisticTransaction,
     getUpdatedTransaction,
@@ -243,4 +300,6 @@ export {
     getAllReportTransactions,
     hasReceipt,
     isReceiptBeingScanned,
+    validateWaypoints,
+    isDistanceRequest,
 };
