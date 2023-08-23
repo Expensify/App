@@ -882,21 +882,36 @@ function getOptions(
 /**
  * Build the options for the tree hierarchy via indents
  *
- * @param {Array<String>} options - an initial strings array
- * @returns {Array<String>}
+ * @param {Object[]} options - an initial strings array
+ * @param {Boolean} options[].enabled - a flag to enable/disable option in a list
+ * @param {String} options[].name - a name of an option
+ * @returns {Array<Object>}
  */
 function getOptionTree(options) {
-    const optionCollection = new Set();
+    const optionCollection = new Map();
 
     _.each(options, (option) => {
-        option.split(CONST.PARENT_CHILD_SEPARATOR).forEach((optionName, index) => {
+        option.name.split(CONST.PARENT_CHILD_SEPARATOR).forEach((optionName, index, array) => {
             const indents = _.times(index, () => CONST.INDENTS).join('');
+            const isChild = array.length - 1 === index;
 
-            optionCollection.add(`${indents}${optionName}`);
+            if (optionCollection.has(optionName)) {
+                return;
+            }
+
+            optionCollection.set(optionName, {
+                text: `${indents}${optionName}`,
+                keyForList: optionName,
+                searchText: optionName,
+                tooltipText: optionName,
+                isDisabled: isChild ? !option.enabled : true,
+            });
         });
     });
 
-    return Array.from(optionCollection);
+    return Array.from(optionCollection, ([, value]) => {
+        return value;
+    });
 }
 
 /**
