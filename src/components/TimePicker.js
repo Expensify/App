@@ -10,7 +10,6 @@ import Button from './Button';
 import AmountTextInput from './AmountTextInput';
 import * as DeviceCapabilities from '../libs/DeviceCapabilities';
 import useLocalize from '../hooks/useLocalize';
-// import CONST from '../../../CONST';
 import CONST from '../CONST';
 import DateUtils from '../libs/DateUtils';
 import Text from './Text';
@@ -268,6 +267,7 @@ function TimePicker({forwardedRef, onSubmitButtonPress, defaultValue}) {
         if (isMinuteFocused && selectionMinute.start === 0) {
             focusHourInputIfNeeded(_, true);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectionHour, selectionMinute]);
     const arrowRightCallback = useCallback(() => {
         const isHourFocused = hourInputRef.current.isFocused();
@@ -275,111 +275,109 @@ function TimePicker({forwardedRef, onSubmitButtonPress, defaultValue}) {
         if (isHourFocused && selectionHour.start === 2) {
             focusMinuteInputOnFirstCharacter();
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectionHour, selectionMinute]);
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT, arrowLeftCallback, arrowConfig);
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT, arrowRightCallback, arrowConfig);
-    // useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS., arrowRightCallback, arrowConfig);
 
     const handleFocusOnBackspace = useCallback(
         (e) => {
             if (selectionMinute.start !== 0 || e.key === 'Backspace') return;
             focusHourInputIfNeeded(e);
         },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [selectionMinute.start],
     );
 
+    const { styleForAM, styleForPM } = useMemo(() => {
+      const computedStyleForAM = amPmValue !== 'AM' ? { backgroundColor: themeColors.componentBG } : {};
+      const computedStyleForPM = amPmValue !== 'PM' ? { backgroundColor: themeColors.componentBG } : {};
+  
+      return {
+          styleForAM: [styles.timePickerWidth100, computedStyleForAM],
+          styleForPM: [styles.timePickerWidth100, computedStyleForPM]
+      };
+  }, [amPmValue]);
+  
+
     return (
         <>
-            <View
-                nativeID={AMOUNT_VIEW_ID}
-                style={[styles.flex1, styles.flexRow, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}
-            >
-                <AmountTextInput
-                    formattedAmount={hours}
-                    onChangeAmount={handleHourChange}
-                    placeholder={numberFormat(0)}
-                    ref={(ref) => {
-                        if (typeof forwardedRef === 'function') {
-                            forwardedRef({refHour: ref, minuteRef: minuteInputRef.current});
-                        } else if (forwardedRef && _.has(forwardedRef, 'current')) {
-                            // eslint-disable-next-line no-param-reassign
-                            forwardedRef.current = {hourRef: ref, minuteRef: minuteInputRef.current};
-                        }
-                        hourInputRef.current = ref;
-                    }}
-                    maxLength={2}
-                    onSelectionChange={(e) => {
-                        setSelectionHour(e.nativeEvent.selection);
-                    }}
-                    selection={selectionHour}
-                    style={{
-                        fontSize: 69,
-                        minWidth: 56,
-                    }}
-                    containerStyles={[{height: 100}]}
-                />
-                <Text style={{fontSize: 69}}>:</Text>
-                <AmountTextInput
-                    onKeyPress={handleFocusOnBackspace}
-                    autofocus
-                    formattedAmount={minute}
-                    onChangeAmount={handleMinutesChange}
-                    placeholder={numberFormat(0)}
-                    ref={(ref) => {
-                        if (typeof forwardedRef === 'function') {
-                            forwardedRef({refHour: hourInputRef.current, minuteRef: ref});
-                        } else if (forwardedRef && _.has(forwardedRef, 'current')) {
-                            // eslint-disable-next-line no-param-reassign
-                            minuteInputRef.current = {hourRef: hourInputRef.current, minuteInputRef: ref};
-                        }
-                        minuteInputRef.current = ref;
-                    }}
-                    maxLength={2}
-                    onSelectionChange={(e) => {
-                        setSelectionMinute(e.nativeEvent.selection);
-                    }}
-                    selection={selectionMinute}
-                    style={{
-                        fontSize: 69,
-                        minWidth: 56,
-                    }}
-                    containerStyles={[{height: 100}]}
-                />
-            </View>
-            <View style={{flexDirection: 'row', height: 40, alignItems: 'center', justifyContent: 'center'}}>
-                <Button
-                    shouldEnableHapticFeedback
-                    innerStyles={[
-                        {
-                            width: 100,
-                        },
-                        amPmValue !== 'AM' ? {backgroundColor: themeColors.componentBG} : {},
-                    ]}
-                    text="AM"
-                    onLongPress={() => {}}
-                    onPress={() => {
-                        setAmPmValue('AM');
-                    }}
-                    onPressOut={() => {}}
-                    onMouseDown={(e) => e.preventDefault()}
-                />
-                <Button
-                    shouldEnableHapticFeedback
-                    innerStyles={[
-                        {
-                            width: 100,
-                        },
-                        amPmValue !== 'PM' ? {backgroundColor: themeColors.componentBG} : {},
-                    ]}
-                    text="PM"
-                    onLongPress={() => {}}
-                    onPress={() => {
-                        setAmPmValue('PM');
-                    }}
-                    onPressOut={() => {}}
-                    onMouseDown={(e) => e.preventDefault()}
-                />
+            <View style={[styles.flex1, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                <View
+                    nativeID={AMOUNT_VIEW_ID}
+                    style={[styles.flexRow, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}
+                >
+                    <AmountTextInput
+                        formattedAmount={hours}
+                        onChangeAmount={handleHourChange}
+                        placeholder={numberFormat(0)}
+                        ref={(ref) => {
+                            if (typeof forwardedRef === 'function') {
+                                forwardedRef({refHour: ref, minuteRef: minuteInputRef.current});
+                            } else if (forwardedRef && _.has(forwardedRef, 'current')) {
+                                // eslint-disable-next-line no-param-reassign
+                                forwardedRef.current = {hourRef: ref, minuteRef: minuteInputRef.current};
+                            }
+                            hourInputRef.current = ref;
+                        }}
+                        maxLength={2}
+                        onSelectionChange={(e) => {
+                            setSelectionHour(e.nativeEvent.selection);
+                        }}
+                        selection={selectionHour}
+                        style={styles.timePickerInput}
+                        containerStyles={[styles.timePickerHeight100]}
+                    />
+                    <Text style={styles.timePickerSemiDot}>:</Text>
+                    <AmountTextInput
+                        onKeyPress={handleFocusOnBackspace}
+                        autofocus
+                        formattedAmount={minute}
+                        onChangeAmount={handleMinutesChange}
+                        placeholder={numberFormat(0)}
+                        ref={(ref) => {
+                            if (typeof forwardedRef === 'function') {
+                                forwardedRef({refHour: hourInputRef.current, minuteRef: ref});
+                            } else if (forwardedRef && _.has(forwardedRef, 'current')) {
+                                // eslint-disable-next-line no-param-reassign
+                                minuteInputRef.current = {hourRef: hourInputRef.current, minuteInputRef: ref};
+                            }
+                            minuteInputRef.current = ref;
+                        }}
+                        maxLength={2}
+                        onSelectionChange={(e) => {
+                            setSelectionMinute(e.nativeEvent.selection);
+                        }}
+                        selection={selectionMinute}
+                        style={styles.timePickerInput}
+                        containerStyles={[styles.timePickerWidth100]}
+                    />
+                </View>
+                <View style={styles.timePickerSwitcherContainer}>
+                    <Button
+                        shouldEnableHapticFeedback
+                        innerStyles={styleForAM}
+                        text="AM"
+                        onLongPress={() => {}}
+                        onPress={() => {
+                            setAmPmValue('AM');
+                        }}
+                        onPressOut={() => {}}
+                        onMouseDown={(e) => e.preventDefault()}
+                    />
+                    <Button
+                        shouldEnableHapticFeedback
+                        innerStyles={styleForPM}
+                        text="PM"
+                        onLongPress={() => {}}
+                        onPress={() => {
+                            setAmPmValue('PM');
+                        }}
+                        onPressOut={() => {}}
+                        onMouseDown={(e) => e.preventDefault()}
+                    />
+                </View>
             </View>
             <View
                 style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper]}

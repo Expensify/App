@@ -19,15 +19,15 @@ import * as User from '../../../../libs/actions/User';
 import withLocalize from '../../../../components/withLocalize';
 import compose from '../../../../libs/compose';
 import DateUtils from '../../../../libs/DateUtils';
-import withCurrentUserPersonalDetails, { withCurrentUserPersonalDetailsDefaultProps } from '../../../../components/withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps} from '../../../../components/withCurrentUserPersonalDetails';
 import personalDetailsPropType from '../../../personalDetailsPropType';
 
 const defaultProps = {
-  ...withCurrentUserPersonalDetailsDefaultProps,
+    ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
 const propTypes = {
-  currentUserPersonalDetails: personalDetailsPropType,
+    currentUserPersonalDetails: personalDetailsPropType,
 };
 
 function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
@@ -79,7 +79,7 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
             clearAfter,
         });
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const customStatusDate = DateUtils.extractDate(customDateTemporary || draftClearAfter || clearAfter);

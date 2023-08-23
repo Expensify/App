@@ -358,22 +358,21 @@ function setTimeOrDefaultToTomorrow(time, date) {
 }
 
 function parseTimeTo12HourFormat(datetime) {
-  if(!datetime) {
-    return {
-      hour: '',
-      minute: '',
-      period: ''
+    if (!datetime) {
+        return {
+            hour: '',
+            minute: '',
+            period: '',
+        };
     }
-  }
-  const parsedTime = moment(datetime, 'YYYY-MM-DD HH:mm:ss');
-  
-  return {
-      hour: parsedTime.format('hh'), // Hour in 12-hour format
-      minute: parsedTime.format('mm'), // Minute
-      period: parsedTime.format('A') // AM or PM
-  };
-}
+    const parsedTime = moment(datetime, 'YYYY-MM-DD HH:mm:ss');
 
+    return {
+        hour: parsedTime.format('hh'), // Hour in 12-hour format
+        minute: parsedTime.format('mm'), // Minute
+        period: parsedTime.format('A'), // AM or PM
+    };
+}
 
 /**
  * @namespace DateUtils

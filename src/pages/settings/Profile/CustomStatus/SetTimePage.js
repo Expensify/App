@@ -2,6 +2,8 @@ import PropTypes from 'prop-types';
 import React, {useCallback} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import RNTimePicker from '@react-native-community/datetimepicker';
+import {View} from 'react-native';
 import withCurrentUserPersonalDetails from '../../../../components/withCurrentUserPersonalDetails';
 import FullscreenLoadingIndicator from '../../../../components/FullscreenLoadingIndicator';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
@@ -38,19 +40,21 @@ function SetTimePage({translate, privatePersonalDetails, customStatus, currentUs
     const customDateTemporary = lodashGet(customStatus, 'customDateTemporary', '');
     const draftClearAfter = lodashGet(customStatus, 'clearAfter', '');
 
-    const onSubmitButtonPress = useCallback((time, amPmValue) => {
-        const timeToUse = DateUtils.setTimeOrDefaultToTomorrow(`${time} ${amPmValue}`, customDateTemporary);
+    const onSubmitButtonPress = useCallback(
+        (time, amPmValue) => {
+            const timeToUse = DateUtils.setTimeOrDefaultToTomorrow(`${time} ${amPmValue}`, customDateTemporary);
 
-        User.updateDraftCustomStatus({customDateTemporary: timeToUse});
-        Navigation.goBack(ROUTES.SETTINGS_STATUS_CLEAR_AFTER);
-    }, [customDateTemporary]);
-
+            User.updateDraftCustomStatus({customDateTemporary: timeToUse});
+            Navigation.goBack(ROUTES.SETTINGS_STATUS_CLEAR_AFTER);
+        },
+        [customDateTemporary],
+    );
 
     if (lodashGet(privatePersonalDetails, 'isLoading', true)) {
         return <FullscreenLoadingIndicator />;
     }
 
-    const customStatusTime = DateUtils.extractTime(customDateTemporary || draftClearAfter || clearAfter);
+    // const customStatusTime = DateUtils.extractTime(customDateTemporary || draftClearAfter || clearAfter);
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -60,7 +64,7 @@ function SetTimePage({translate, privatePersonalDetails, customStatus, currentUs
             />
             <TimePicker
                 inputID="timePicker"
-                defaultValue={customStatusTime}
+                defaultValue={customDateTemporary || draftClearAfter || clearAfter}
                 onSubmitButtonPress={onSubmitButtonPress}
             />
         </ScreenWrapper>

@@ -3772,6 +3772,26 @@ const styles = {
         fontSize: variables.fontSizeNormal,
         marginRight: 4,
     },
+
+    timePickerInput: {
+        fontSize: 69,
+        minWidth: 56,
+    },
+    timePickerWidth100: {
+        width: 100,
+    },
+    timePickerHeight100: {
+        height: 100,
+    },
+    timePickerSemiDot: {
+        fontSize: 69,
+    },
+    timePickerSwitcherContainer: {
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        justifyContent: 'center',
+        marginTop: 40,
+    },
 };
 
 export default styles;

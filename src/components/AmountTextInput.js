@@ -31,7 +31,7 @@ const propTypes = {
 
     /** Style for the input */
     style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
-    
+
     /** Style for the container */
     containerStyles: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 };
