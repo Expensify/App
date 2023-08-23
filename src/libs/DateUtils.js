@@ -287,8 +287,6 @@ function getDateBasedFromType(type) {
             return getEndOfToday();
         case CONST.CUSTOM_STATUS_TYPES.AFTER_WEEK:
             return getEndOfWeekFromNow();
-        case CONST.CUSTOM_STATUS_TYPES.NEVER:
-            return getOneHundredYearsFromNow();
         default:
             return '';
     }
@@ -375,6 +373,27 @@ function parseTimeTo12HourFormat(datetime) {
 }
 
 /**
+ * @param {String} dateStr
+ * @returns {String}
+ * @example
+ */
+function getTimePeriod(dateStr) {
+    return moment(dateStr).format('A');
+}
+
+/**
+ * @param {String} dateParam1
+ * @param {String} dateParam2
+ * @returns {Boolean}
+ */
+function areDatesIdentical(dateParam1, dateParam2) {
+    const date1 = moment(dateParam1);
+    const date2 = moment(dateParam2);
+
+    return date1.isSame(date2);
+}
+
+/**
  * @namespace DateUtils
  */
 const DateUtils = {
@@ -402,6 +421,8 @@ const DateUtils = {
     extractTime12Hour,
     setTimeOrDefaultToTomorrow,
     parseTimeTo12HourFormat,
+    areDatesIdentical,
+    getTimePeriod,
 };
 
 export default DateUtils;
