@@ -1080,6 +1080,27 @@ const CONST = {
 
     LANGUAGES: ['en', 'es'],
 
+    PRONOUNS_LIST: [
+        'coCos',
+        'eEyEmEir',
+        'heHimHis',
+        'heHimHisTheyThemTheirs',
+        'sheHerHers',
+        'sheHerHersTheyThemTheirs',
+        'merMers',
+        'neNirNirs',
+        'neeNerNers',
+        'perPers',
+        'theyThemTheirs',
+        'thonThons',
+        'veVerVis',
+        'viVir',
+        'xeXemXyr',
+        'zeZieZirHir',
+        'zeHirHirs',
+        'callMeByMyName'
+    ],
+
     POLICY: {
         TYPE: {
             FREE: 'free',

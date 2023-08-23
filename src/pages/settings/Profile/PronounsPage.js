@@ -36,22 +36,21 @@ function PronounsPage(props) {
     const loadPronouns = useCallback(() => {
         const currentPronouns = lodashGet(props.currentUserPersonalDetails, 'pronouns', '');
 
-        const pronouns = _.chain(props.translate('pronouns'))
-            .map((value, key) => {
-                const fullPronounKey = `${CONST.PRONOUNS.PREFIX}${key}`;
+        const pronouns = _.chain(CONST.PRONOUNS_LIST).map((value) => {
+                const fullPronounKey = `${CONST.PRONOUNS.PREFIX}${value}`;
                 const isCurrentPronouns = fullPronounKey === currentPronouns;
 
                 if (isCurrentPronouns) {
                     setInitiallyFocusedOption({
-                        text: value,
-                        keyForList: key,
+                        text: props.translate(`pronouns.${value}`),
+                        keyForList: value,
                     });
                 }
 
                 return {
-                    text: value,
+                    text: props.translate(`pronouns.${value}`),
                     value: fullPronounKey,
-                    keyForList: key,
+                    keyForList: value,
                     isSelected: isCurrentPronouns,
                 };
             })
