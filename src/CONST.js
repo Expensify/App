@@ -76,6 +76,8 @@ const CONST = {
 
     PULL_REQUEST_NUMBER,
 
+    MERCHANT_NAME_MAX_LENGTH: 255,
+
     CALENDAR_PICKER: {
         // Numbers were arbitrarily picked.
         MIN_YEAR: CURRENT_YEAR - 100,
