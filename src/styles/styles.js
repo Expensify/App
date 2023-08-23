@@ -3636,8 +3636,8 @@ const styles = {
 
     googleButtonContainer: {
         colorScheme: 'light',
-        width: 42,
-        height: 42,
+        width: 40,
+        height: 40,
         marginLeft: 12,
         alignItems: 'center',
         overflowY: 'hidden',
