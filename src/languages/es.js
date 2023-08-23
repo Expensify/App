@@ -923,6 +923,9 @@ export default {
             // Default case
             return `Hasta ${time}`;
         },
+        date: 'Fecha',
+        time: 'Hora',
+        clearAfter: 'Borrar después',
         stepCounter: ({step, total, text}) => {
             let result = `Paso ${step}`;
 

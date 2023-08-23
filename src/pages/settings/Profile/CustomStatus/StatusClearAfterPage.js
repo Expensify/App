@@ -51,7 +51,7 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
                 keyForList: key,
                 isSelected: draftPeriod === value,
             })),
-        [draftPeriod],
+        [draftPeriod, localize],
     );
 
     const onSubmit = () => {
@@ -103,6 +103,7 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
                 onSubmit={onSubmit}
                 style={styles.flexGrow1}
                 scrollContextEnabled={false}
+                submitButtonStyle={styles.mh3}
             >
                 <View style={styles.flexGrow1}>
                     <SelectionListRadio
@@ -118,14 +119,14 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
                         <>
                             <MenuItemWithTopDescription
                                 title={customStatusDate}
-                                description="Clear after"
+                                description={localize.translate('statusPage.date')}
                                 shouldShowRightIcon
                                 containerStyle={styles.pr2}
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS_CLEAR_AFTER_CUSTOM)}
                             />
                             <MenuItemWithTopDescription
                                 title={customStatusTime}
-                                description="Clear after"
+                                description={localize.translate('statusPage.time')}
                                 shouldShowRightIcon
                                 containerStyle={styles.pr2}
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS_CLEAR_AFTER_TIME)}

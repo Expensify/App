@@ -904,6 +904,9 @@ export default {
         },
         untilTomorrow: 'Until tomorrow',
         untilTime: ({time}) => `Until ${time}`,
+        date: 'Date',
+        time: 'Time',
+        clearAfter: 'Clear after',
     },
     stepCounter: ({step, total, text}) => {
         let result = `Step ${step}`;
