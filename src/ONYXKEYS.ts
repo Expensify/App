@@ -218,6 +218,9 @@ const ONYXKEYS = {
     // The access token to be used with the Mapbox library
     MAPBOX_ACCESS_TOKEN: 'mapboxAccessToken',
 
+    // Information on any active demos being run
+    DEMO_INFO: 'demoInfo',
+
     /** Collection Keys */
     COLLECTION: {
         DOWNLOAD: 'download_',
