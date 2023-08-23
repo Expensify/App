@@ -9,9 +9,9 @@ import styles from '../styles/styles';
 import ONYXKEYS from '../ONYXKEYS';
 
 const propTypes = {
-    /** Report ID to get the comment from */
+    /** Report ID to get the comment from (used in withOnyx) */
     // eslint-disable-next-line react/no-unused-prop-types
-    reportID: PropTypes.number.isRequired,
+    reportID: PropTypes.string.isRequired,
 
     /** Text Comment */
     comment: PropTypes.string,

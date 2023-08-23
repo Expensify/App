@@ -32,7 +32,6 @@ import getDraftComment from '../../../../libs/ComposerUtils/getDraftComment';
 import useLocalize from '../../../../hooks/useLocalize';
 import compose from '../../../../libs/compose';
 import withKeyboardState from '../../../../components/withKeyboardState';
-import reportPropTypes from '../../../reportPropTypes';
 
 const {RNTextInputReset} = NativeModules;
 
@@ -78,10 +77,12 @@ const propTypes = {
     reportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)),
 
     /** The ID of the report */
-    reportID: PropTypes.number.isRequired,
+    reportID: PropTypes.string.isRequired,
 
     /** The report currently being looked at */
-    report: PropTypes.shape(reportPropTypes).isRequired,
+    report: PropTypes.shape({
+        parentReportID: PropTypes.string,
+    }).isRequired,
 
     /** Callback when the input is focused */
     onFocus: PropTypes.func.isRequired,
@@ -141,10 +142,7 @@ const propTypes = {
             triggerHotkeyActions: PropTypes.func.isRequired,
 
             /** Check if suggestion calculation should be blocked */
-            shouldBlockSuggestionCalc: PropTypes.func.isRequired,
-
-            /** Update the comment */
-            updateComment: PropTypes.func.isRequired,
+            setShouldBlockSuggestionCalc: PropTypes.func.isRequired,
 
             /** Callback when the selection changes */
             onSelectionChange: PropTypes.func.isRequired,
@@ -155,7 +153,7 @@ const propTypes = {
     animatedRef: PropTypes.func.isRequired,
 
     /** Ref for the composer */
-    forwardedRef: PropTypes.func.isRequired,
+    forwardedRef: PropTypes.shape({current: PropTypes.shape({})}),
 };
 
 const defaultProps = {
@@ -429,11 +427,11 @@ function ComposerWithSuggestions({
         suggestionsRef.current.updateShouldShowSuggestionMenuToFalse(false);
     }, [suggestionsRef]);
 
-    const shouldBlockSuggestionCalc = useCallback(() => {
+    const setShouldBlockSuggestionCalc = useCallback(() => {
         if (!suggestionsRef.current) {
             return false;
         }
-        return suggestionsRef.current.shouldBlockSuggestionCalc();
+        return suggestionsRef.current.setShouldBlockSuggestionCalc(true);
     }, [suggestionsRef]);
 
     /**
@@ -583,7 +581,7 @@ function ComposerWithSuggestions({
                     maxLines={maxComposerLines}
                     onFocus={onFocus}
                     onBlur={onBlur}
-                    onClick={shouldBlockSuggestionCalc}
+                    onClick={setShouldBlockSuggestionCalc}
                     onPasteFile={displayFileInModal}
                     shouldClear={textInputShouldClear}
                     onClear={() => setTextInputShouldClear(false)}

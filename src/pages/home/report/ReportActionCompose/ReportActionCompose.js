@@ -335,6 +335,7 @@ function ReportActionCompose({
                                     setIsCommentEmpty={setIsCommentEmpty}
                                     submitForm={submitForm}
                                     shouldShowReportRecipientLocalTime={shouldShowReportRecipientLocalTime}
+                                    shouldShowComposeInput={shouldShowComposeInput}
                                     onFocus={onFocus}
                                     onBlur={onBlur}
                                 />

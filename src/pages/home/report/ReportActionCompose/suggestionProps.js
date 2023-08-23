@@ -18,9 +18,6 @@ const baseProps = {
 
     /** Flag whether we need to consider the participents */
     shouldShowReportRecipientLocalTime: PropTypes.bool.isRequired,
-
-    /** Whether to use the small or the big suggestion picker */
-    isAutoSuggestionPickerLarge: PropTypes.bool.isRequired,
 };
 
 const implementationBaseProps = {

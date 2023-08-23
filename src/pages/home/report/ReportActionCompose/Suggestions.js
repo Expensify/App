@@ -7,7 +7,7 @@ import * as SuggestionProps from './suggestionProps';
 
 const propTypes = {
     /** A ref to this component */
-    forwardedRef: PropTypes.func.isRequired,
+    forwardedRef: PropTypes.shape({current: PropTypes.shape({})}),
 
     /** Callback when a emoji was inserted */
     onInsertedEmoji: PropTypes.func.isRequired,

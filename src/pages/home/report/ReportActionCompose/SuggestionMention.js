@@ -32,7 +32,7 @@ const propTypes = {
     personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
     /** A ref to this component */
-    forwardedRef: PropTypes.func.isRequired,
+    forwardedRef: PropTypes.shape({current: PropTypes.shape({})}),
 
     ...SuggestionProps.implementationBaseProps,
 };

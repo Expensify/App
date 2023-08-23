@@ -34,7 +34,7 @@ const propTypes = {
     preferredSkinTone: PropTypes.number,
 
     /** A ref to this component */
-    forwardedRef: PropTypes.func.isRequired,
+    forwardedRef: PropTypes.shape({current: PropTypes.shape({})}),
 
     /** Function to clear the input */
     resetKeyboardInput: PropTypes.func.isRequired,

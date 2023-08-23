@@ -28,19 +28,14 @@ const propTypes = {
     /** The report currently being looked at */
     report: PropTypes.shape({
         /** ID of the report */
-        reportID: PropTypes.number,
+        reportID: PropTypes.string,
 
         /** Whether or not the report is in the process of being created */
         loading: PropTypes.bool,
     }).isRequired,
 
     /** The personal details of everyone in the report */
-    reportParticipants: PropTypes.objectOf(
-        PropTypes.shape({
-            /** Display name of the participant */
-            displayName: PropTypes.string,
-        }),
-    ),
+    reportParticipantIDs: PropTypes.arrayOf(PropTypes.number),
 
     /** Callback to open the file in the modal */
     displayFileInModal: PropTypes.func.isRequired,
@@ -67,7 +62,7 @@ const propTypes = {
     isMenuVisible: PropTypes.bool.isRequired,
 
     /** Report ID */
-    reportID: PropTypes.number.isRequired,
+    reportID: PropTypes.string.isRequired,
 
     /** Called when opening the attachment picker */
     onTriggerAttachmentPicker: PropTypes.func.isRequired,
@@ -75,13 +70,19 @@ const propTypes = {
 
 const defaultProps = {
     betas: [],
-    reportParticipants: {},
+    reportParticipantIDs: [],
 };
 
+/**
+ * This includes the popover of options you see when pressing the + button in the composer.
+ * It also contains the attachment picker, as the menu items need to be able to open it.
+ *
+ * @returns {React.Component}
+ */
 function AttachmentPickerWithMenuItems({
     betas,
     report,
-    reportParticipants,
+    reportParticipantIDs,
     displayFileInModal,
     isFullComposerAvailable,
     isComposerFullSize,
@@ -117,11 +118,11 @@ function AttachmentPickerWithMenuItems({
             },
         };
 
-        return _.map(ReportUtils.getMoneyRequestOptions(report, reportParticipants, betas), (option) => ({
+        return _.map(ReportUtils.getMoneyRequestOptions(report, reportParticipantIDs, betas), (option) => ({
             ...options[option],
             onSelected: () => IOU.startMoneyRequest(option, report.reportID),
         }));
-    }, [betas, report, reportParticipants, translate]);
+    }, [betas, report, reportParticipantIDs, translate]);
 
     /**
      * Determines if we can show the task option

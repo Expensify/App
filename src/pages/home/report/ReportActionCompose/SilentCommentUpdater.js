@@ -12,7 +12,7 @@ const propTypes = {
     /** The report associated with the comment */
     report: PropTypes.shape({
         /** The ID of the report */
-        reportID: PropTypes.number,
+        reportID: PropTypes.string,
     }).isRequired,
 
     /** The value of the comment */
