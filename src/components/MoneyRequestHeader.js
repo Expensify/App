@@ -19,6 +19,8 @@ import * as IOU from '../libs/actions/IOU';
 import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 import ConfirmModal from './ConfirmModal';
 import useLocalize from '../hooks/useLocalize';
+import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
+import * as TransactionUtils from '../libs/TransactionUtils';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -70,6 +72,9 @@ function MoneyRequestHeader(props) {
         setIsDeleteModalVisible(false);
     }, [parentReportAction, setIsDeleteModalVisible]);
 
+    const transaction = TransactionUtils.getLinkedTransaction(parentReportAction);
+    const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
+
     return (
         <>
             <View style={[styles.pl0]}>
@@ -90,8 +95,8 @@ function MoneyRequestHeader(props) {
                     personalDetails={props.personalDetails}
                     shouldShowBackButton={props.isSmallScreenWidth}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.HOME, false, true)}
-                    shouldShowBorderBottom
                 />
+                {isScanning && <MoneyRequestHeaderStatusBar />}
             </View>
             <ConfirmModal
                 title={translate('iou.deleteRequest')}
