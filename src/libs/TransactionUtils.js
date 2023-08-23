@@ -79,7 +79,7 @@ function buildOptimisticTransaction(
  * @returns {Boolean}
  */
 function hasReceipt(transaction) {
-    return !_.isEmpty(lodashGet(transaction, 'receipt'));
+    return Boolean(lodashGet(transaction, 'receipt.receiptID'));
 }
 
 /**
