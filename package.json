@@ -208,7 +208,6 @@
     "@vercel/ncc": "^0.27.0",
     "@welldone-software/why-did-you-render": "7.0.1",
     "ajv-cli": "^5.0.0",
-    "axios": "^1.4.0",
     "babel-eslint": "^10.1.0",
     "babel-jest": "29.4.1",
     "babel-loader": "^9.1.3",
