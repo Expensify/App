@@ -31,6 +31,7 @@ import AppleAuthWrapper from './components/SignInButtons/AppleAuthWrapper';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
 import * as EmojiPickerAction from './libs/actions/EmojiPickerAction';
 import * as DemoActions from './libs/actions/DemoActions';
+import DownloadAppModal from './components/DownloadAppModal';
 import DeeplinkWrapper from './components/DeeplinkWrapper';
 
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
@@ -198,6 +199,7 @@ function Expensify(props) {
                     <KeyboardShortcutsModal />
                     <GrowlNotification ref={Growl.growlRef} />
                     <PopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />
+                    <DownloadAppModal />
                     <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
                     {/* We include the modal for showing a new update at the top level so the option is always present. */}
                     {props.updateAvailable ? <UpdateAppModal /> : null}
