@@ -17,7 +17,6 @@ export default {
             GoogleSignInDesktop: ROUTES.GOOGLE_SIGN_IN,
             DesktopSignInRedirect: ROUTES.DESKTOP_SIGN_IN_REDIRECT,
             [SCREENS.REPORT_ATTACHMENTS]: ROUTES.REPORT_ATTACHMENTS,
-            SaaStrHome: ROUTES.SAASTR_HOME,
 
             // Sidebar
             [SCREENS.HOME]: {
@@ -27,6 +26,8 @@ export default {
             [NAVIGATORS.CENTRAL_PANE_NAVIGATOR]: {
                 screens: {
                     [SCREENS.REPORT]: ROUTES.REPORT_WITH_ID,
+                    [CONST.DEMO_PAGES.SAASTR]: ROUTES.SAASTR,
+                    [CONST.DEMO_PAGES.SBE]: ROUTES.SBE,
                 },
             },
             [NAVIGATORS.FULL_SCREEN_NAVIGATOR]: {

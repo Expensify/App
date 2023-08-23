@@ -231,7 +231,6 @@ const CONST = {
         INTERNATIONALIZATION: 'internationalization',
         IOU_SEND: 'sendMoney',
         POLICY_ROOMS: 'policyRooms',
-        POLICY_EXPENSE_CHAT: 'policyExpenseChat',
         PASSWORDLESS: 'passwordless',
         TASKS: 'tasks',
         THREADS: 'threads',
@@ -874,6 +873,8 @@ const CONST = {
         QA: 'qa@expensify.com',
         QA_TRAVIS: 'qa+travisreceipts@expensify.com',
         RECEIPTS: 'receipts@expensify.com',
+        SAASTR: 'saastr@expensify.com',
+        SBE: 'sbe@expensify.com',
         STUDENT_AMBASSADOR: 'studentambassadors@expensify.com',
         SVFG: 'svfg@expensify.com',
     },
@@ -893,6 +894,8 @@ const CONST = {
         QA_TRAVIS: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_QA_TRAVIS', 8595733)),
         RECEIPTS: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_RECEIPTS', -1)),
         REWARDS: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_REWARDS', 11023767)), // rewards@expensify.com
+        SAASTR: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_SAASTR', 15252830)),
+        SBE: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_SBE', 15305309)),
         STUDENT_AMBASSADOR: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_STUDENT_AMBASSADOR', 10476956)),
         SVFG: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_SVFG', 2012843)),
     },
@@ -1140,8 +1143,8 @@ const CONST = {
     REGEX: {
         SPECIAL_CHARS_WITHOUT_NEWLINE: /((?!\n)[()-\s\t])/g,
         DIGITS_AND_PLUS: /^\+?[0-9]*$/,
-        ALPHABETIC_AND_LATIN_CHARS: /^[a-zA-ZÀ-ÿ ]*$/,
-        NON_ALPHABETIC_AND_NON_LATIN_CHARS: /[^a-zA-ZÀ-ÿ]/g,
+        ALPHABETIC_AND_LATIN_CHARS: /^[\p{Script=Latin} ]*$/u,
+        NON_ALPHABETIC_AND_NON_LATIN_CHARS: /[^\p{Script=Latin}]/gu,
         POSITIVE_INTEGER: /^\d+$/,
         PO_BOX: /\b[P|p]?(OST|ost)?\.?\s*[O|o|0]?(ffice|FFICE)?\.?\s*[B|b][O|o|0]?[X|x]?\.?\s+[#]?(\d+)\b/,
         ANY_VALUE: /^.+$/,
@@ -1229,6 +1232,8 @@ const CONST = {
             this.EMAIL.QA,
             this.EMAIL.QA_TRAVIS,
             this.EMAIL.RECEIPTS,
+            this.EMAIL.SAASTR,
+            this.EMAIL.SBE,
             this.EMAIL.STUDENT_AMBASSADOR,
             this.EMAIL.SVFG,
         ];
@@ -1249,6 +1254,8 @@ const CONST = {
             this.ACCOUNT_ID.QA_TRAVIS,
             this.ACCOUNT_ID.RECEIPTS,
             this.ACCOUNT_ID.REWARDS,
+            this.ACCOUNT_ID.SAASTR,
+            this.ACCOUNT_ID.SBE,
             this.ACCOUNT_ID.STUDENT_AMBASSADOR,
             this.ACCOUNT_ID.SVFG,
         ];
@@ -2591,6 +2598,10 @@ const CONST = {
             PUSH: 'PUSH',
             NAVIGATE: 'NAVIGATE',
         },
+    },
+    DEMO_PAGES: {
+        SAASTR: 'SaaStrDemoSetup',
+        SBE: 'SbeDemoSetup',
     },
 };
 

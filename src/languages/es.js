@@ -249,7 +249,6 @@ export default {
         hero: {
             header: 'Divida las facturas, solicite pagos y chatee con sus amigos.',
             body: 'Bienvenido al futuro de Expensify, tu nuevo lugar de referencia para la colaboración financiera con amigos y compañeros de equipo por igual.',
-            demoHeadline: '¡Bienvenido a SaaStr! Entra y empieza a establecer contactos.',
         },
     },
     thirdPartySignIn: {
@@ -2115,5 +2114,13 @@ export default {
     },
     stateSelectorModal: {
         placeholderText: 'Buscar para ver opciones',
+    },
+    demos: {
+        saastr: {
+            signInWelcome: '¡Bienvenido a SaaStr! Entra y empieza a establecer contactos.',
+        },
+        sbe: {
+            signInWelcome: '¡Bienvenido a Small Business Expo! Recupera el dinero de tu viaje.',
+        },
     },
 };
