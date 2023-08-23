@@ -27,20 +27,17 @@ const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
 
 function NotificationPreferencePage(props) {
     const shouldDisableNotificationPreferences = ReportUtils.shouldDisableSettings(props.report) || ReportUtils.isArchivedRoom(props.report);
-    const notificationPreferenceOptions = _.chain(props.translate('notificationPreferencesPage.notificationPreferences'))
-        .reject((preference) => preference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN)
-        .map((preference, key) => ({
-            value: key,
-            text: preference,
-            keyForList: key,
+    const notificationPreferenceOptions = _.map(props.translate('notificationPreferencesPage.notificationPreferences'), (preference, key) => ({
+        value: key,
+        text: preference,
+        keyForList: key,
 
-            // Include the green checkmark icon to indicate the currently selected value
-            customIcon: key === props.report.notificationPreference ? greenCheckmark : null,
+        // Include the green checkmark icon to indicate the currently selected value
+        customIcon: key === props.report.notificationPreference ? greenCheckmark : null,
 
-            // This property will make the currently selected value have bold text
-            boldStyle: key === props.report.notificationPreference,
-        }))
-        .value();
+        // This property will make the currently selected value have bold text
+        boldStyle: key === props.report.notificationPreference,
+    }));
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>

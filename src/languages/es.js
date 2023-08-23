@@ -450,7 +450,6 @@ export default {
             always: 'Inmediatamente',
             daily: 'Cada día',
             mute: 'Nunca',
-            hidden: 'Oculto',
         },
     },
     loginField: {
