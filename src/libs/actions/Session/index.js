@@ -764,6 +764,7 @@ function validateTwoFactorAuth(twoFactorAuthCode) {
  *
  * If the user is already signed in (`authToken` is truthy), the promise resolves immediately.
  * Otherwise, the promise will resolve when the `authToken` in `ONYXKEYS.SESSION` becomes truthy via the Onyx callback.
+ * The promise will not reject on failed login attempt.
  *
  * @returns {Promise<boolean>} A promise that resolves to `true` once the user is signed in.
  * @example
@@ -771,7 +772,7 @@ function validateTwoFactorAuth(twoFactorAuthCode) {
  *   console.log('User is signed in!');
  * });
  */
-function waitForUserSingIn() {
+function waitForUserSignIn() {
     return new Promise((resolve) => {
         if (sessionAuthToken) {
             resolve(true);
@@ -808,5 +809,5 @@ export {
     isAnonymousUser,
     toggleTwoFactorAuth,
     validateTwoFactorAuth,
-    waitForUserSingIn,
+    waitForUserSignIn,
 };

@@ -1763,7 +1763,7 @@ function openReportFromDeepLink(url, isAuthenticated) {
 
     // Navigate to the report after sign-in/sign-up.
     InteractionManager.runAfterInteractions(() => {
-        Session.waitForUserSingIn().then(() => {
+        Session.waitForUserSignIn().then(() => {
             if (reportID) {
                 Navigation.navigate(ROUTES.getReportRoute(reportID), CONST.NAVIGATION.TYPE.UP);
             }
