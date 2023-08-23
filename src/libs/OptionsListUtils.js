@@ -374,15 +374,21 @@ function getAllReportErrors(report, reportActions) {
  * @returns {String}
  */
 function getLastMessageTextForReport(report) {
-
     const lastReportAction = _.find(
         allSortedReportActions[report.reportID],
         (reportAction, key) => ReportActionUtils.shouldReportActionBeVisible(reportAction, key) && reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
     );
     let lastMessageTextFromReport = '';
 
-    if (ReportUtils.isIOUReport(report) && ReportActionUtils.isMoneyRequestAction(lastReportAction)) {
+    if (ReportUtils.isIOUReport(report)) {
         lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(report, lastReportAction);
+        if (lastReportAction && !ReportActionUtils.isMoneyRequestAction(lastReportAction)) {
+            if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml, translationKey: report.lastMessageTranslationKey})) {
+                lastMessageTextFromReport = `[${Localize.translateLocal(report.lastMessageTranslationKey || 'common.attachment')}]`;
+            } else {
+                lastMessageTextFromReport = report ? report.lastMessageText || '' : '';
+            }
+        }
     } else if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml, translationKey: report.lastMessageTranslationKey})) {
         lastMessageTextFromReport = `[${Localize.translateLocal(report.lastMessageTranslationKey || 'common.attachment')}]`;
     } else if (ReportActionUtils.isReportPreviewAction(lastReportAction)) {
