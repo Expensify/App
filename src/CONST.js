@@ -128,7 +128,7 @@ const CONST = {
         MOMENT_FORMAT_STRING: 'YYYY-MM-DD',
         SQL_DATE_TIME: 'YYYY-MM-DD HH:mm:ss',
         FNS_FORMAT_STRING: 'yyyy-MM-dd',
-        LOCAL_TIME_FORMAT: 'hh:mm a',
+        LOCAL_TIME_FORMAT: 'h:mm a',
         WEEKDAY_TIME_FORMAT: 'eeee',
         MONTH_DAY_ABBR_FORMAT: 'MMM d',
         SHORT_DATE_FORMAT: 'MM-dd',
@@ -1037,6 +1037,7 @@ const CONST = {
         AMOUNT_MAX_LENGTH: 10,
         RECEIPT_STATE: {
             SCANREADY: 'SCANREADY',
+            OPEN: 'OPEN',
             SCANNING: 'SCANNING',
             SCANCOMPLETE: 'SCANCOMPLETE',
             SCANFAILED: 'SCANFAILED',
@@ -2563,7 +2564,14 @@ const CONST = {
         DISTANCE: 'distance',
     },
     STATUS_TEXT_MAX_LENGTH: 100,
+
+    DROPDOWN_BUTTON_SIZE: {
+        LARGE: 'large',
+        MEDIUM: 'medium',
+    },
+
     SF_COORDINATES: [-122.4194, 37.7749],
+
     MAPBOX_STYLE_URL: 'mapbox://styles/expensify/cllcoiqds00cs01r80kp34tmq',
     NAVIGATION: {
         TYPE: {
