@@ -61,6 +61,7 @@ function DistanceRequestPage({iou, report, route}) {
             iouType={iouType}
             reportID={reportID}
             report={report}
+            transactionID={iou.transactionID}
         />
     );
 }
