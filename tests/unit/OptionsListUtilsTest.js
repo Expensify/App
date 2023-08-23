@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import * as OptionsListUtils from '../../src/libs/OptionsListUtils';
+import * as ReportUtils from '../../src/libs/ReportUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import CONST from '../../src/CONST';
@@ -103,6 +104,10 @@ describe('OptionsListUtils', () => {
             oldPolicyName: "SHIELD's workspace",
             chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
             isOwnPolicyExpenseChat: true,
+
+            // This indicates that the report is archived
+            stateNum: 2,
+            statusNum: 2,
         },
     };
 
@@ -567,39 +572,57 @@ describe('OptionsListUtils', () => {
     });
 
     it('getShareDestinationsOptions()', () => {
+        // Filter current REPORTS as we do in the component, before getting share destination options
+        const filteredReports = {};
+        _.keys(REPORTS).forEach((reportKey) => {
+            if (ReportUtils.shouldDisableWriteActions(REPORTS[reportKey]) || ReportUtils.isExpensifyOnlyParticipantInReport(REPORTS[reportKey])) {
+                return;
+            }
+            filteredReports[reportKey] = REPORTS[reportKey];
+        });
+
         // When we pass an empty search value
-        let results = OptionsListUtils.getShareDestinationOptions(REPORTS, PERSONAL_DETAILS, [], '');
+        let results = OptionsListUtils.getShareDestinationOptions(filteredReports, PERSONAL_DETAILS, [], '');
 
         // Then we should expect all the recent reports to show but exclude the archived rooms
         expect(results.recentReports.length).toBe(_.size(REPORTS) - 1);
 
         // When we pass a search value that doesn't match the group chat name
-        results = OptionsListUtils.getShareDestinationOptions(REPORTS, PERSONAL_DETAILS, [], 'mutants');
+        results = OptionsListUtils.getShareDestinationOptions(filteredReports, PERSONAL_DETAILS, [], 'mutants');
 
         // Then we should expect no recent reports to show
         expect(results.recentReports.length).toBe(0);
 
         // When we pass a search value that matches the group chat name
-        results = OptionsListUtils.getShareDestinationOptions(REPORTS, PERSONAL_DETAILS, [], 'Iron Man, Fantastic');
+        results = OptionsListUtils.getShareDestinationOptions(filteredReports, PERSONAL_DETAILS, [], 'Iron Man, Fantastic');
 
         // Then we should expect the group chat to show along with the contacts matching the search
         expect(results.recentReports.length).toBe(1);
 
+        // Filter current REPORTS_WITH_WORKSPACE_ROOMS as we do in the component, before getting share destination options
+        const filteredReportsWithWorkspaceRooms = {};
+        _.keys(REPORTS_WITH_WORKSPACE_ROOMS).forEach((reportKey) => {
+            if (ReportUtils.shouldDisableWriteActions(REPORTS_WITH_WORKSPACE_ROOMS[reportKey]) || ReportUtils.isExpensifyOnlyParticipantInReport(REPORTS_WITH_WORKSPACE_ROOMS[reportKey])) {
+                return;
+            }
+            filteredReportsWithWorkspaceRooms[reportKey] = REPORTS_WITH_WORKSPACE_ROOMS[reportKey];
+        });
+
         // When we also have a policy to return rooms in the results
-        results = OptionsListUtils.getShareDestinationOptions(REPORTS_WITH_WORKSPACE_ROOMS, PERSONAL_DETAILS, [], '');
+        results = OptionsListUtils.getShareDestinationOptions(filteredReportsWithWorkspaceRooms, PERSONAL_DETAILS, [], '');
 
         // Then we should expect the DMS, the group chats and the workspace room to show
         // We should expect all the recent reports to show, excluding the archived rooms
         expect(results.recentReports.length).toBe(_.size(REPORTS_WITH_WORKSPACE_ROOMS) - 1);
 
         // When we search for a workspace room
-        results = OptionsListUtils.getShareDestinationOptions(REPORTS_WITH_WORKSPACE_ROOMS, PERSONAL_DETAILS, [], 'Avengers Room');
+        results = OptionsListUtils.getShareDestinationOptions(filteredReportsWithWorkspaceRooms, PERSONAL_DETAILS, [], 'Avengers Room');
 
         // Then we should expect only the workspace room to show
         expect(results.recentReports.length).toBe(1);
 
         // When we search for a workspace room that doesn't exist
-        results = OptionsListUtils.getShareDestinationOptions(REPORTS_WITH_WORKSPACE_ROOMS, PERSONAL_DETAILS, [], 'Mutants Lair');
+        results = OptionsListUtils.getShareDestinationOptions(filteredReportsWithWorkspaceRooms, PERSONAL_DETAILS, [], 'Mutants Lair');
 
         // Then we should expect no results to show
         expect(results.recentReports.length).toBe(0);
@@ -627,5 +650,29 @@ describe('OptionsListUtils', () => {
         // Then one personal should be in personalDetails list
         expect(results.personalDetails.length).toBe(1);
         expect(results.personalDetails[0].text).toBe('Spider-Man');
+    });
+
+    it('formatMemberForList()', () => {
+        const formattedMembers = _.map(PERSONAL_DETAILS, (personalDetail, key) => OptionsListUtils.formatMemberForList(personalDetail, key === '1'));
+
+        // We're only formatting items inside the array, so the order should be the same as the original PERSONAL_DETAILS array
+        expect(formattedMembers[0].text).toBe('Mister Fantastic');
+        expect(formattedMembers[1].text).toBe('Iron Man');
+        expect(formattedMembers[2].text).toBe('Spider-Man');
+
+        // We should expect only the first item to be selected
+        expect(formattedMembers[0].isSelected).toBe(true);
+
+        // And all the others to be unselected
+        expect(_.every(formattedMembers.slice(1), (personalDetail) => !personalDetail.isSelected)).toBe(true);
+
+        // `isDisabled` is always false
+        expect(_.every(formattedMembers, (personalDetail) => !personalDetail.isDisabled)).toBe(true);
+
+        // `rightElement` is always null
+        expect(_.every(formattedMembers, (personalDetail) => personalDetail.rightElement === null)).toBe(true);
+
+        // The PERSONAL_DETAILS list doesn't specify `participantsList[n].avatar`, so the default one should be used
+        expect(_.every(formattedMembers, (personalDetail) => Boolean(personalDetail.avatar.source))).toBe(true);
     });
 });

@@ -28,6 +28,7 @@ import * as Localize from '../../src/libs/Localize';
 jest.setTimeout(30000);
 
 jest.mock('../../src/libs/Notification/LocalNotification');
+jest.mock('../../src/components/Icon/Expensicons');
 
 beforeAll(() => {
     // In this test, we are generically mocking the responses of all API requests by mocking fetch() and having it
@@ -437,7 +438,7 @@ describe('Unread Indicators', () => {
                 return waitFor(() => expect(isNewMessagesBadgeVisible()).toBe(false));
             }));
 
-    it('Removes the new line indicator when a new message is created by the current user', () =>
+    it('Keep showing the new line indicator when a new message is created by the current user', () =>
         signInAndGetAppWithUnreadChat()
             .then(() => {
                 // Verify we are on the LHN and that the chat shows as unread in the LHN
@@ -458,7 +459,7 @@ describe('Unread Indicators', () => {
             .then(() => {
                 const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
-                expect(unreadIndicator).toHaveLength(0);
+                expect(unreadIndicator).toHaveLength(1);
             }));
 
     xit('Keeps the new line indicator when the user moves the App to the background', () =>
