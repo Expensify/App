@@ -139,10 +139,7 @@ function Form(props) {
                 const workspaceRegex = inputValue.search(CONST.VALIDATE_FOR_HTML_TAG_REGEX);
                 const matches = inputValue.match(CONST.VALIDATE_FOR_HTML_TAG_REGEX);
 
-                // add any html tags that are considered valid workspace names to ignoreRegxList
-                const ignoreRegxList = [/<>/, /< >/, /<->/, /<-->/, /<br>/, /<br\/>/];
-
-                let isMatch = ignoreRegxList.some(r => r.test(inputValue));
+                let isMatch = CONST.WHITELISTED_TAGS.some(r => r.test(inputValue));
                 const leadingSpaceRegex = inputValue.search(CONST.VALIDATE_FOR_LEADINGSPACES_HTML_TAG_REGEX);
 
                 // Return early if there is no value OR the value is not a string OR there are no HTML characters
@@ -157,7 +154,7 @@ function Form(props) {
                     // need to check if any invalid input is matched along valid ignoreRegxList
                     for(let x of matches)
                     {
-                        isMatch = ignoreRegxList.some(r => r.test(x));
+                        isMatch = CONST.WHITELISTED_TAGS.some(r => r.test(x));
                         if(isMatch == false)
                         {
                             break;
