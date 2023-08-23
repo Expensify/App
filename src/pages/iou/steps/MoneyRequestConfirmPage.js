@@ -22,10 +22,7 @@ import reportPropTypes from '../../reportPropTypes';
 import personalDetailsPropType from '../../personalDetailsPropType';
 import * as FileUtils from '../../../libs/fileDownload/FileUtils';
 import * as Policy from '../../../libs/actions/Policy';
-import MapView from 'react-native-x-maps';
-import * as MapboxToken from '../../../libs/actions/MapboxToken';
-
-const DEFAULT_ZOOM_LEVEL = 10;
+import ConfirmedRoute from '../../../components/ConfirmedRoute';
 
 const propTypes = {
     report: reportPropTypes,
@@ -92,13 +89,6 @@ function MoneyRequestConfirmPage(props) {
                 : OptionsListUtils.getParticipantsOptions(props.iou.participants, props.personalDetails),
         [props.iou.participants, props.personalDetails],
     );
-
-    useEffect(() => {
-        MapboxToken.init();
-        return MapboxToken.stop;
-    }, []);
-
-    console.log('iou', props.ios.transactionID);
 
     useEffect(() => {
         const policyExpenseChat = _.find(participants, (participant) => participant.isPolicyExpenseChat);
@@ -257,24 +247,8 @@ function MoneyRequestConfirmPage(props) {
                         title={props.translate('iou.cash')}
                         onBackButtonPress={navigateBack}
                     />
-                    <View style={([styles.mapViewContainer], {height: 200})}>
-                        {props.mapboxAccessToken.token ? (
-                            <MapView
-                                accessToken={props.mapboxAccessToken.token}
-                                initialState={{
-                                    location: CONST.SF_COORDINATES,
-                                    zoom: DEFAULT_ZOOM_LEVEL,
-                                }}
-                                style={{
-                                    flex: 1,
-                                    borderRadius: 20,
-                                    overflow: 'hidden',
-                                }}
-                                styleURL={CONST.MAPBOX_STYLE_URL}
-                            />
-                        ) : (
-                            <View style={{width: 100, height: 100, backgroundColor: 'red'}} />
-                        )}
+                    <View style={{flex: 1, padding: 16}}>
+                        <ConfirmedRoute transactionID={props.iou.transactionID} />
                     </View>
                     <MoneyRequestConfirmationList
                         hasMultipleParticipants={iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT}
@@ -330,9 +304,6 @@ export default compose(
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        },
-        mapboxAccessToken: {
-            key: ONYXKEYS.MAPBOX_ACCESS_TOKEN,
         },
     }),
 )(MoneyRequestConfirmPage);
