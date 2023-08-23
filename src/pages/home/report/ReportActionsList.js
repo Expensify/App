@@ -112,8 +112,7 @@ function ReportActionsList({
     const currentUnreadMarker = useRef(null);
     const scrollingVerticalOffset = useRef(0);
     const readActionSkipped = useRef(false);
-    const reportActionSize = useRef(sortedReportActions.length);
-
+    const lastMessage = sortedReportActions.length > 0 ? sortedReportActions[0] : null;
     // Considering that renderItem is enclosed within a useCallback, marking it as "read" twice will retain the value as "true," preventing the useCallback from re-executing.
     // However, if we create and listen to an object, it will lead to a new useCallback execution.
     const [messageManuallyMarked, setMessageManuallyMarked] = useState({read: false});
@@ -143,8 +142,9 @@ function ReportActionsList({
         if (!userActiveSince.current || report.reportID !== prevReportID) {
             return;
         }
+        const isUnreadMessage = ReportUtils.isUnread(report);
 
-        if (ReportUtils.isUnread(report)) {
+        if (isUnreadMessage) {
             if (scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD) {
                 Report.readNewestAction(report.reportID);
             } else {
@@ -152,14 +152,18 @@ function ReportActionsList({
             }
         }
 
-        if (currentUnreadMarker.current || reportActionSize.current === sortedReportActions.length) {
+        // Deleted message is marked as 'deleted', if the last message is deleted, we have to remove the unread marker
+        if (!(isUnreadMessage && lastMessage && lastMessage.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !isOffline)) {
             return;
         }
 
-        reportActionSize.current = sortedReportActions.length;
+        if (currentUnreadMarker.current) {
+            return;
+        }
+
         currentUnreadMarker.current = null;
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [sortedReportActions.length, report.reportID]);
+    }, [lastMessage, report.reportID, isOffline]);
 
     useEffect(() => {
         const didManuallyMarkReportAsUnread = report.lastReadTime < DateUtils.getDBTime() && ReportUtils.isUnread(report);
