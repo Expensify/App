@@ -63,10 +63,13 @@ const defaultProps = {
  * @returns {Number}
  */
 const getLastAccessedReportID = (reports, ignoreDefaultRooms, policies, isFirstTimeNewExpensifyUser, openOnAdminRoom) => {
+    // If deeplink url is of an attachment, we should show the report that the attachment comes from.
     const currentRoute = Navigation.getActiveRoute();
     const matches = CONST.REGEX.ATTACHMENT_ROUTE.exec(currentRoute);
     const reportID = lodashGet(matches, 1, null);
-    if (reportID) return reportID;
+    if (reportID) {
+        return reportID;
+    }
 
     const lastReport = ReportUtils.findLastAccessedReport(reports, ignoreDefaultRooms, policies, isFirstTimeNewExpensifyUser, openOnAdminRoom);
 
