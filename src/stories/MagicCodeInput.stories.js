@@ -13,11 +13,11 @@ const story = {
 
 function Template(args) {
     const [value, setValue] = useState('');
-    // eslint-disable-next-line react/jsx-props-no-spreading
     return (
         <MagicCodeInput
             value={value}
             onChangeText={setValue}
+            // eslint-disable-next-line react/jsx-props-no-spreading
             {...args}
         />
     );
