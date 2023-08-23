@@ -14,6 +14,7 @@ import compose from '../../libs/compose';
 import * as Task from '../../libs/actions/Task';
 import CONST from '../../CONST';
 import focusAndUpdateMultilineInputRange from '../../libs/focusAndUpdateMultilineInputRange';
+import * as Browser from '../../libs/Browser';
 
 const propTypes = {
     /** Current user session */
@@ -72,7 +73,7 @@ function TaskDescriptionPage(props) {
                         defaultValue={(props.report && props.report.description) || ''}
                         ref={(el) => (inputRef.current = el)}
                         autoGrowHeight
-                        submitOnEnter
+                        submitOnEnter={!Browser.isMobile()}
                         containerStyles={[styles.autoGrowHeightMultilineInput]}
                         textAlignVertical="top"
                     />
