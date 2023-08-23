@@ -304,5 +304,4 @@ export {
     isReceiptBeingScanned,
     validateWaypoints,
     isDistanceRequest,
-    isReceiptBeingScanned,
 };
