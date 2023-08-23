@@ -11,6 +11,7 @@ import {propTypes as modalPropTypes, defaultProps as modalDefaultProps} from './
 import getModalStyles from '../../styles/getModalStyles';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
 import variables from '../../styles/variables';
+import CONST from '../../CONST';
 
 const propTypes = {
     ...modalPropTypes,
@@ -102,7 +103,7 @@ function BaseModal({
     };
 
     const handleBackdropPress = (e) => {
-        if (e && e.key === 'Enter') {
+        if (e && e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
             return;
         }
         onClose();
@@ -185,7 +186,7 @@ function BaseModal({
             avoidKeyboard={avoidKeyboard}
         >
             <View
-                style={[styles.defaultModalContainer, modalContainerStyle, modalPaddingStyles, !isVisible ? styles.pointerEventsNone : {}]}
+                style={[styles.defaultModalContainer, modalContainerStyle, modalPaddingStyles, !isVisible && styles.pointerEventsNone]}
                 ref={forwardedRef}
                 nativeID="no-drag-area"
             >
