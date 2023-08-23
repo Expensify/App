@@ -27,6 +27,13 @@ function SaveResponseInOnyx(response, request) {
 
         // Supports both the old format and the new format
         const onyxUpdates = _.isArray(responseData) ? responseData : responseData.onyxData;
+
+        // Sometimes we call requests that are successfull but they don't have any response. Let's return early since
+        // we don't need to store anything here.
+        if(!onyxUpdates){
+            return;
+        }
+
         // If there is an OnyxUpdate for using memory only keys, enable them
         _.find(onyxUpdates, ({key, value}) => {
             if (key !== ONYXKEYS.IS_USING_MEMORY_ONLY_KEYS || !value) {
