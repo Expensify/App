@@ -768,7 +768,6 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
 
         // If this is a split between two people only and the function
         // wasn't provided with an existing group chat report id
-        //
         // or, if the split is being made from the workspace chat, then the oneOnOneChatReport is the same as the splitChatReport
         // in this case existingSplitChatReport will belong to the policy expense chat and we won't be
         // entering code that creates optimistic personal details
@@ -783,7 +782,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
         }
 
         // STEP 2: Get existing IOU/Expense report and update its total OR build a new optimistic one
-        // For Control policy expense chats, if the report is already apprvoed, create a new expense report
+        // For Control policy expense chats, if the report is already approved, create a new expense report
         let oneOnOneIOUReport = lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.iouReportID}`, undefined);
         const shouldCreateNewOneOnOneIOUReport =
             _.isUndefined(oneOnOneIOUReport) || (isOwnPolicyExpenseChat && ReportUtils.isControlPolicyExpenseReport(oneOnOneIOUReport) && ReportUtils.isReportApproved(oneOnOneIOUReport));

@@ -216,7 +216,7 @@ function isCompletedTaskReport(report) {
 }
 
 /**
- * Checks if the current user is the maanger of the supplied report
+ * Checks if the current user is the manager of the supplied report
  *
  * @param {Object} report
  * @returns {Boolean}
