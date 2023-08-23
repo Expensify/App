@@ -74,6 +74,8 @@ const MSG_VISIBLE_THRESHOLD = 250;
 // the useRef value gets reset when the reportID changes, so we use a global variable to keep track
 let prevReportID = null;
 
+const currentUnreadMarker = {current: null};
+
 /**
  * Create a unique key for each action in the FlatList.
  * We use the reportActionID that is a string representation of a random 64-bit int, which should be
@@ -109,7 +111,6 @@ function ReportActionsList({
     const {isOffline} = useNetwork();
     const opacity = useSharedValue(0);
     const userActiveSince = useRef(null);
-    const currentUnreadMarker = useRef(null);
     const scrollingVerticalOffset = useRef(0);
     const readActionSkipped = useRef(false);
     const lastMessage = sortedReportActions.length > 0 ? sortedReportActions[0] : null;
@@ -135,6 +136,10 @@ function ReportActionsList({
         } else {
             userActiveSince.current = DateUtils.getDBTime();
         }
+
+        if (prevReportID !== report.reportID) {
+            currentUnreadMarker.current = null;
+        }
         prevReportID = report.reportID;
     }, [report.reportID]);
 
@@ -143,7 +148,6 @@ function ReportActionsList({
             return;
         }
         const isUnreadMessage = ReportUtils.isUnread(report);
-
         if (isUnreadMessage) {
             if (scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD) {
                 Report.readNewestAction(report.reportID);
@@ -157,28 +161,27 @@ function ReportActionsList({
             return;
         }
 
-        if (currentUnreadMarker.current) {
-            return;
-        }
-
         currentUnreadMarker.current = null;
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [lastMessage, report.reportID, isOffline]);
 
     useEffect(() => {
+        if (!userActiveSince.current || report.reportID !== prevReportID) {
+            return;
+        }
         const didManuallyMarkReportAsUnread = report.lastReadTime < DateUtils.getDBTime() && ReportUtils.isUnread(report);
+
         if (!didManuallyMarkReportAsUnread) {
             setMessageManuallyMarked({read: false});
             return;
         }
-
         // Clearing the current unread marker so that it can be recalculated
         currentUnreadMarker.current = null;
         setMessageManuallyMarked({read: true});
 
         // We only care when a new lastReadTime is set in the report
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [report.lastReadTime]);
+    }, [report.lastReadTime, report.reportID]);
 
     /**
      * Show/hide the new floating message counter when user is scrolling back/forth in the history of messages.
