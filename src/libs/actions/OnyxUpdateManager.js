@@ -104,6 +104,7 @@ export default () => {
             if (!val) {
                 return;
             }
+            debugger;
 
             const {lastUpdateIDFromServer, previousUpdateIDFromServer, updateParams} = val;
 
@@ -111,7 +112,12 @@ export default () => {
             // had an OpenApp or ReconnectApp call yet. This can result in never getting reliable updates because
             // lastUpdateIDAppliedToClient will always be null. For this case, reconnectApp() will be triggered for them
             // to kick start the reliable updates.
-            if (!lastUpdateIDAppliedToClient && previousUpdateIDFromServer > 0) {
+            if (
+                !lastUpdateIDAppliedToClient 
+                && previousUpdateIDFromServer > 0 
+                && updateParams.type == CONST.ONYX_UPDATE_TYPES.HTTPS
+                && updateParams.request.command !== "OpenApp"
+                ) {
                 console.debug('[OnyxUpdateManager] Client has not gotten reliable updates before so reconnecting the app to start the process');
                 App.reconnectApp();
             }
