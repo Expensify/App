@@ -8,6 +8,7 @@ import PressableWithoutFeedback from '../../Pressable/PressableWithoutFeedback';
 import Text from '../../Text';
 import Button from '../../Button';
 import AttachmentView from '../AttachmentView';
+import SafeAreaConsumer from '../../SafeAreaConsumer';
 
 const propTypes = {
     /** Attachment required information such as the source and file name */
@@ -95,7 +96,11 @@ function CarouselItem({item, isFocused, onPress}) {
                 />
             </View>
 
-            {item.hasBeenFlagged && renderButton([styles.mv4, styles.mh4, styles.alignSelfCenter])}
+            {item.hasBeenFlagged && (
+                <SafeAreaConsumer>
+                    {({safeAreaPaddingBottomStyle}) => renderButton([styles.m4, styles.alignSelfCenter, safeAreaPaddingBottomStyle])}
+                </SafeAreaConsumer>
+            )}
         </View>
     );
 }
