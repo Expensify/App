@@ -1,5 +1,5 @@
 import React, {useEffect, useState, useCallback, useRef} from 'react';
-import {View} from 'react-native';
+import {Dimensions, View} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
@@ -59,6 +59,7 @@ const NUM_PAD_VIEW_ID = 'numPadView';
 
 function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCurrencyButtonPress, onSubmitButtonPress}) {
     const {translate, toLocaleDigit, numberFormat} = useLocalize();
+    const screenHeight = Dimensions.get('window').height;
 
     const textInput = useRef(null);
 
@@ -219,7 +220,7 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
                 ) : null}
                 <Button
                     success
-                    medium
+                    medium={screenHeight < 550}
                     style={[styles.w100, styles.mt5]}
                     onPress={submitAndNavigateToNextPage}
                     pressOnEnter
