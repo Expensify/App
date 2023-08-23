@@ -3636,10 +3636,11 @@ const styles = {
 
     googleButtonContainer: {
         colorScheme: 'light',
-        width: 40,
-        height: 40,
+        width: 42,
+        height: 42,
         marginLeft: 12,
         alignItems: 'center',
+        overflowY: 'hidden',
     },
 
     googlePillButtonContainer: {
