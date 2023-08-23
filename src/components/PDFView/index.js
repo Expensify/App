@@ -226,7 +226,7 @@ class PDFView extends Component {
         const ratioHeight = this.state.maxCanvasHeight / pageHeight;
         const ratioArea = Math.sqrt((this.state.maxCanvasSize / nbPixels));
         const ratio = Math.min(ratioHeight, ratioArea);
-        const devicePixelRatio = ratio > 3 ? 3 : ratio;
+        const devicePixelRatio = ratio > window.devicePixelRatio ? undefined : ratio;
 
         return (
             <View style={style}>
