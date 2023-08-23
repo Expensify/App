@@ -32,7 +32,6 @@ const propTypes = {
     customStatus: PropTypes.shape({
         clearAfter: PropTypes.string,
         customDateTemporary: PropTypes.string,
-
     }),
 };
 
@@ -60,7 +59,7 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
         if (draftPeriod === CONST.CUSTOM_STATUS_TYPES.CUSTOM) {
             calculatedDraftDate = customDateTemporary || draftClearAfter;
         } else {
-            const selectedRange = localesToThemes.find((item) => item.isSelected);
+            const selectedRange = _.find(localesToThemes, (item) => item.isSelected);
             calculatedDraftDate = DateUtils.getDateBasedFromType(selectedRange.value);
         }
 

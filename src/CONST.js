@@ -2565,9 +2565,9 @@ const CONST = {
         },
     },
     TIME_PERIOD: {
-      AM: 'AM',
-      PM: 'PM',
-    }
+        AM: 'AM',
+        PM: 'PM',
+    },
 };
 
 export default CONST;

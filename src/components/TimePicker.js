@@ -89,7 +89,7 @@ function TimePicker({forwardedRef, onSubmitButtonPress, defaultValue}) {
     const [selectionHour, setSelectionHour] = useState({start: 0, end: 0});
     const [selectionMinute, setSelectionMinute] = useState({start: 0, end: 0});
 
-    const [amPmValue, setAmPmValue] = useState('AM');
+    const [amPmValue, setAmPmValue] = useState(DateUtils.getTimePeriod(defaultValue));
 
     const hourInputRef = useRef(null);
     const minuteInputRef = useRef(null);
@@ -253,7 +253,9 @@ function TimePicker({forwardedRef, onSubmitButtonPress, defaultValue}) {
         [minute, hours, selectionHour, selectionMinute],
     );
 
-    useEffect(() => minuteInputRef.current.focus, []);
+    useEffect(() => {
+        minuteInputRef.current.focus();
+    }, []);
 
     const arrowConfig = useMemo(
         () => ({
@@ -290,16 +292,15 @@ function TimePicker({forwardedRef, onSubmitButtonPress, defaultValue}) {
         [selectionMinute.start],
     );
 
-    const { styleForAM, styleForPM } = useMemo(() => {
-      const computedStyleForAM = amPmValue !== CONST.TIME_PERIOD.AM ? { backgroundColor: themeColors.componentBG } : {};
-      const computedStyleForPM = amPmValue !== CONST.TIME_PERIOD.PM ? { backgroundColor: themeColors.componentBG } : {};
-  
-      return {
-          styleForAM: [styles.timePickerWidth100, computedStyleForAM],
-          styleForPM: [styles.timePickerWidth100, computedStyleForPM]
-      };
-  }, [amPmValue]);
-  
+    const {styleForAM, styleForPM} = useMemo(() => {
+        const computedStyleForAM = amPmValue !== CONST.TIME_PERIOD.AM ? {backgroundColor: themeColors.componentBG} : {};
+        const computedStyleForPM = amPmValue !== CONST.TIME_PERIOD.PM ? {backgroundColor: themeColors.componentBG} : {};
+
+        return {
+            styleForAM: [styles.timePickerWidth100, computedStyleForAM],
+            styleForPM: [styles.timePickerWidth100, computedStyleForPM],
+        };
+    }, [amPmValue]);
 
     return (
         <>

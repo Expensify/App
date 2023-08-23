@@ -1,7 +1,8 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import SectionList from '../SectionList';
 import Text from '../Text';
 import styles from '../../styles/styles';
@@ -18,6 +19,18 @@ import withKeyboardState, {keyboardStatePropTypes} from '../withKeyboardState';
 const propTypes = {
     ...keyboardStatePropTypes,
     ...selectionListRadioPropTypes,
+
+    /** Whether to disable the scroll for the scroll */
+    scrollEnabled: PropTypes.bool,
+
+    /** Whether to show the separator between items */
+    useSeparator: PropTypes.bool,
+};
+
+const defaultProps = {
+    ...selectionListRadioDefaultProps,
+
+    useSeparator: false,
 };
 
 function BaseSelectionListRadio(props) {
@@ -205,6 +218,11 @@ function BaseSelectionListRadio(props) {
         shouldBubble: () => !flattenedSections.allOptions[focusedIndex],
     });
 
+    const separatorComponent = useMemo(() => {
+        const separatorStyle = [styles.selectionListRadioSeparator, props.separatorStyle];
+        return () => (props.useSeparator ? <View style={separatorStyle} /> : null);
+    }, [props.separatorStyle, props.useSeparator]);
+
     return (
         <ArrowKeyFocusManager
             disabledIndexes={flattenedSections.disabledOptionsIndexes}
@@ -265,6 +283,8 @@ function BaseSelectionListRadio(props) {
                                 scrollToIndex(focusedIndex, false);
                                 firstLayoutRef.current = false;
                             }}
+                            scrollEnabled={props.scrollEnabled}
+                            ItemSeparatorComponent={separatorComponent}
                         />
                     </View>
                 )}
@@ -275,6 +295,6 @@ function BaseSelectionListRadio(props) {
 
 BaseSelectionListRadio.displayName = 'BaseSelectionListRadio';
 BaseSelectionListRadio.propTypes = propTypes;
-BaseSelectionListRadio.defaultProps = selectionListRadioDefaultProps;
+BaseSelectionListRadio.defaultProps = defaultProps;
 
 export default withKeyboardState(BaseSelectionListRadio);
