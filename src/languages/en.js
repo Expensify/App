@@ -1625,7 +1625,6 @@ export default {
         contactMethods: 'Contact methods.',
         schoolMailAsDefault: 'Before you move forward, please make sure to set your school email as your default contact method. You can do so in Settings > Profile > ',
         error: {
-            enterName: 'Enter a name',
             enterPhoneEmail: 'Enter a valid email or phone number',
             enterEmail: 'Enter an email',
             enterValidEmail: 'Enter a valid email',
