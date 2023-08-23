@@ -65,7 +65,6 @@ function ReportWelcomeText(props) {
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
     const isChatRoom = ReportUtils.isChatRoom(props.report);
     const isDefault = !(isChatRoom || isPolicyExpenseChat);
-    const isAdminsOnlyPostingRoom = ReportUtils.isAdminsOnlyPostingRoom(props.report);
     const participantAccountIDs = lodashGet(props.report, 'participantAccountIDs', []);
     const isMultipleParticipant = participantAccountIDs.length > 1;
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(
@@ -100,19 +99,16 @@ function ReportWelcomeText(props) {
                 {isChatRoom && (
                     <>
                         <Text>{roomWelcomeMessage.phrase1}</Text>
-                        {/* for rooms in which only admins can post we dont need room name and phrase two */}
-                        {(!isAdminsOnlyPostingRoom || isUserPolicyAdmin) && (
-                            <>
-                                <Text
-                                    style={[styles.textStrong]}
-                                    onPress={() => Navigation.navigate(ROUTES.getReportDetailsRoute(props.report.reportID))}
-                                    suppressHighlighting
-                                >
-                                    {ReportUtils.getReportName(props.report)}
-                                </Text>
-                                <Text>{roomWelcomeMessage.phrase2}</Text>
-                            </>
+                        {roomWelcomeMessage.showReportName && (
+                            <Text
+                                style={[styles.textStrong]}
+                                onPress={() => Navigation.navigate(ROUTES.getReportDetailsRoute(props.report.reportID))}
+                                suppressHighlighting
+                            >
+                                {ReportUtils.getReportName(props.report)}
+                            </Text>
                         )}
+                        {roomWelcomeMessage.phrase2 !== undefined && <Text>{roomWelcomeMessage.phrase2}</Text>}
                     </>
                 )}
                 {isDefault && (
