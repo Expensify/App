@@ -20,7 +20,7 @@ function AttachmentViewPdf({file, encryptedSourceUrl, isFocused, isUsedInCarouse
             if (isUsedInCarousel) {
                 const shouldPagerScroll = scale === 1;
 
-                attachmentCarouselPagerContext.onPinchGestureChange(scale !== 1);
+                attachmentCarouselPagerContext.onPinchGestureChange(!shouldPagerScroll);
 
                 if (attachmentCarouselPagerContext.shouldPagerScroll.value === shouldPagerScroll) return;
 
