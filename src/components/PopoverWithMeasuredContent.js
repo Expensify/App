@@ -37,6 +37,9 @@ const propTypes = {
         height: PropTypes.number,
         width: PropTypes.number,
     }),
+
+    /** Whether we should use the target location from anchor element directly */
+    shouldUseTargetLocation: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -108,7 +111,7 @@ function PopoverWithMeasuredContent(props) {
         }
 
         let verticalConstraint;
-        const anchorLocationVertical = (props.anchorRef.current && getClickedTargetLocation(props.anchorRef.current).y) || props.anchorPosition.vertical;
+        const anchorLocationVertical = (props.anchorRef.current && props.shouldUseTargetLocation && getClickedTargetLocation(props.anchorRef.current).y) || props.anchorPosition.vertical;
 
         switch (props.anchorAlignment.vertical) {
             case CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM:
@@ -128,7 +131,7 @@ function PopoverWithMeasuredContent(props) {
             ...horizontalConstraint,
             ...verticalConstraint,
         };
-    }, [props.anchorPosition, props.anchorAlignment, props.anchorRef, popoverWidth, popoverHeight]);
+    }, [props.anchorPosition, props.anchorAlignment, props.shouldUseTargetLocation, props.anchorRef, popoverWidth, popoverHeight]);
 
     const horizontalShift = computeHorizontalShift(adjustedAnchorPosition.left, popoverWidth, windowWidth);
     const verticalShift = computeVerticalShift(adjustedAnchorPosition.top, popoverHeight, windowHeight);
