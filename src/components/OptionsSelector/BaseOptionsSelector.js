@@ -64,7 +64,7 @@ class BaseOptionsSelector extends Component {
     }
 
     componentDidMount() {
-        if(!this.props.disableArrowKeysActions) {
+        if (!this.props.disableArrowKeysActions) {
             this.subscribeToKeyboardShortcut();
         }
 
@@ -73,9 +73,9 @@ class BaseOptionsSelector extends Component {
 
     componentDidUpdate(prevProps) {
         if (prevProps.disableArrowKeysActions !== this.props.disableArrowKeysActions) {
-            if(this.props.disableArrowKeysActions) {
+            if (this.props.disableArrowKeysActions) {
                 this.unSubscribeToKeyboardShortcut();
-            }else {
+            } else {
                 this.subscribeToKeyboardShortcut();
             }
         }

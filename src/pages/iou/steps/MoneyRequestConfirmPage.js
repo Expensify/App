@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import {useIsFocused} from '@react-navigation/native'
+import {useIsFocused} from '@react-navigation/native';
 import MoneyRequestConfirmationList from '../../../components/MoneyRequestConfirmationList';
 import CONST from '../../../CONST';
 import ScreenWrapper from '../../../components/ScreenWrapper';
