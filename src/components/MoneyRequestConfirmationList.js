@@ -313,6 +313,7 @@ function MoneyRequestConfirmationList(props) {
                 currency={props.iouCurrencyCode}
                 policyID={props.policyID}
                 shouldShowPaymentOptions
+                buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
                 anchorAlignment={{
                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
@@ -323,6 +324,7 @@ function MoneyRequestConfirmationList(props) {
                 isDisabled={shouldDisableButton}
                 onPress={(_event, value) => confirm(value)}
                 options={splitOrRequestOptions}
+                buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
             />
         );
     }, [confirm, props.selectedParticipants, props.bankAccountRoute, props.iouCurrencyCode, props.iouType, props.isReadOnly, props.policyID, selectedParticipants, splitOrRequestOptions]);
@@ -366,6 +368,7 @@ function MoneyRequestConfirmationList(props) {
                 description={translate('common.description')}
                 onPress={() => Navigation.navigate(ROUTES.getMoneyRequestDescriptionRoute(props.iouType, props.reportID))}
                 style={[styles.moneyRequestMenuItem, styles.mb2]}
+                titleStyle={styles.flex1}
                 disabled={didConfirm || props.isReadOnly}
             />
             {!showAllFields && (
@@ -390,6 +393,7 @@ function MoneyRequestConfirmationList(props) {
                         title={props.iouCreated || format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}
                         description={translate('common.date')}
                         style={[styles.moneyRequestMenuItem, styles.mb2]}
+                        titleStyle={styles.flex1}
                         onPress={() => Navigation.navigate(ROUTES.getMoneyRequestCreatedRoute(props.iouType, props.reportID))}
                         disabled={didConfirm || props.isReadOnly || !isTypeRequest}
                     />
@@ -398,6 +402,7 @@ function MoneyRequestConfirmationList(props) {
                         title={props.iouMerchant}
                         description={translate('common.merchant')}
                         style={[styles.moneyRequestMenuItem, styles.mb2]}
+                        titleStyle={styles.flex1}
                         onPress={() => Navigation.navigate(ROUTES.getMoneyRequestMerchantRoute(props.iouType, props.reportID))}
                         disabled={didConfirm || props.isReadOnly || !isTypeRequest}
                     />
