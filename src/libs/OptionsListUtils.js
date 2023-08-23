@@ -382,13 +382,18 @@ function getLastMessageTextForReport(report) {
     let lastMessageTextFromReport = '';
 
     if (ReportUtils.isIOUReport(report)) {
-        lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(report, lastReportAction);
-        if (lastReportAction && !ReportActionUtils.isMoneyRequestAction(lastReportAction)) {
-            if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml, translationKey: report.lastMessageTranslationKey})) {
-                lastMessageTextFromReport = `[${Localize.translateLocal(report.lastMessageTranslationKey || 'common.attachment')}]`;
-            } else {
-                lastMessageTextFromReport = report ? report.lastMessageText || '' : '';
+        if(lastReportAction) {
+            lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(report, lastReportAction);
+            if (!ReportActionUtils.isMoneyRequestAction(lastReportAction)) {
+                if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml, translationKey: report.lastMessageTranslationKey})) {
+                    lastMessageTextFromReport = `[${Localize.translateLocal(report.lastMessageTranslationKey || 'common.attachment')}]`;
+                } else {
+                    lastMessageTextFromReport = report ? report.lastMessageText || '' : '';
+                }
             }
+        } else {
+            // if lastReportAction is undefined, then use lastReportActions[report.reportID]
+            lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(report, lastReportActions[report.reportID]);
         }
     } else if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml, translationKey: report.lastMessageTranslationKey})) {
         lastMessageTextFromReport = `[${Localize.translateLocal(report.lastMessageTranslationKey || 'common.attachment')}]`;
