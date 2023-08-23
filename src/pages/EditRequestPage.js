@@ -72,7 +72,6 @@ function EditRequestPage({report, route, parentReport}) {
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DESCRIPTION) {
         return (
             <EditRequestDescriptionPage
-                reportID={report.reportID}
                 defaultDescription={transactionDescription}
                 onSubmit={(transactionChanges) => {
                     // In case the comment hasn't been changed, do not make the API request.
