@@ -402,7 +402,7 @@ function ReportActionItem(props) {
                         <ReportActionItemEmojiReactions
                             reportActionID={props.action.reportActionID}
                             emojiReactions={props.emojiReactions}
-                            isReactionBlocked={hasErrors}
+                            shouldBlockReactions={hasErrors}
                             toggleReaction={(emoji) => {
                                 if (Session.isAnonymousUser()) {
                                     hideContextMenu(false);

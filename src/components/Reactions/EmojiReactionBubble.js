@@ -38,8 +38,8 @@ const propTypes = {
      */
     hasUserReacted: PropTypes.bool,
 
-    /** Whether the user can react with the current emoji */
-    isReactionBlocked: PropTypes.bool,
+    /** We disable reacting with emojis on report actions that have errors */
+    shouldBlockReactions: PropTypes.bool,
 
     ...windowDimensionsPropTypes,
 };
@@ -48,7 +48,7 @@ const defaultProps = {
     count: 0,
     onReactionListOpen: () => {},
     isContextMenu: false,
-    isReactionBlocked: false,
+    shouldBlockReactions: false,
 
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
@@ -59,10 +59,10 @@ function EmojiReactionBubble(props) {
             style={({hovered, pressed}) => [
                 styles.emojiReactionBubble,
                 StyleUtils.getEmojiReactionBubbleStyle(hovered || pressed, props.hasUserReacted, props.isContextMenu),
-                props.isReactionBlocked && styles.cursorDisabled,
+                props.shouldBlockReactions && styles.cursorDisabled,
             ]}
             onPress={() => {
-                if (props.isReactionBlocked) {
+                if (props.shouldBlockReactions) {
                     return;
                 }
 
