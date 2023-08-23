@@ -3,10 +3,9 @@
  * In an effort to maintain that consistency, we'll make sure that any distance we're shifting the components
  * are a multiple of 4.
  *
- * @param {Number} n
- * @returns {Number}
+ * Round number to the nearest multiple of 4
  */
-function roundToNearestMultipleOfFour(n) {
+function roundToNearestMultipleOfFour(n: number): number {
     if (n > 0) {
         return Math.ceil(n / 4.0) * 4;
     }
