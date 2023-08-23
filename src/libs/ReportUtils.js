@@ -3201,7 +3201,6 @@ function getPolicyExpenseChatReportIDByOwner(policyOwner) {
     return expenseChat.reportID;
 }
 
->>>>>>> main
 /*
  * @param {Object|null} report
  * @returns {Boolean}
