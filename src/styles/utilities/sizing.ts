@@ -59,4 +59,4 @@ export default {
     wAuto: {
         width: 'auto',
     },
-};
+} as const;
