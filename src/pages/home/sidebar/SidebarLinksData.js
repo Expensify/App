@@ -66,7 +66,8 @@ const defaultProps = {
 function SidebarLinksData({isFocused, allReportActions, betas, chatReports, currentReportID, insets, isLoadingReportData, isSmallScreenWidth, onLinkClick, policies, priorityMode}) {
     const {translate} = useLocalize();
 
-    // SessionUtils.didUserLogInDuringSession() is true means the users have just logged in successfully, the full reports are not available util the `OpenApp` API returns data.
+    // SessionUtils.didUserLogInDuringSession() determine if this is the user's first time loading reports in the current session.
+    // Full reports will be unavailable until the `OpenApp` API returns data for newly logged-in users.
     // Otherwise, they have logged in before so the full reports are available.
     const [isFirstTimeReportLoading, setIsFirstTimeReportLoading] = useState(SessionUtils.didUserLogInDuringSession());
 
