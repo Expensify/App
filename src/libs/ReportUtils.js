@@ -21,7 +21,6 @@ import isReportMessageAttachment from './isReportMessageAttachment';
 import * as defaultWorkspaceAvatars from '../components/Icon/WorkspaceDefaultAvatars';
 import * as CurrencyUtils from './CurrencyUtils';
 import * as UserUtils from './UserUtils';
-import str from "expensify-common/lib/str";
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -1523,7 +1522,7 @@ function getThreadReportNameHtml(parentReportActionMessage) {
  */
 function getThreadReportName(parentReportActionMessage, shouldRenderHTML) {
     const threadReportNameHtml = getThreadReportNameHtml(parentReportActionMessage);
-    return shouldRenderHTML ? `<thread-title>${threadReportNameHtml}</thread-title>` : str.stripHTML(threadReportNameHtml).trim();
+    return shouldRenderHTML ? `<thread-title>${threadReportNameHtml}</thread-title>` : Str.stripHTML(threadReportNameHtml).trim();
 }
 
 /**
