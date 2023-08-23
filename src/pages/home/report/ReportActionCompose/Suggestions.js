@@ -18,6 +18,10 @@ const propTypes = {
     ...SuggestionProps.baseProps,
 };
 
+const defaultProps = {
+    forwardedRef: null,
+};
+
 /**
  * This component contains the individual suggestion components.
  * If you want to add a new suggestion type, add it here.
@@ -124,6 +128,8 @@ function Suggestions({
 }
 
 Suggestions.propTypes = propTypes;
+Suggestions.defaultProps = defaultProps;
+Suggestions.displayName = 'Suggestions';
 
 export default React.forwardRef((props, ref) => (
     <Suggestions

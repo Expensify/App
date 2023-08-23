@@ -53,6 +53,7 @@ const propTypes = {
 
 const defaultProps = {
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
+    forwardedRef: null,
 };
 
 function SuggestionEmoji({
@@ -246,6 +247,7 @@ function SuggestionEmoji({
 
 SuggestionEmoji.propTypes = propTypes;
 SuggestionEmoji.defaultProps = defaultProps;
+SuggestionEmoji.displayName = 'SuggestionEmoji';
 
 const SuggestionEmojiWithRef = React.forwardRef((props, ref) => (
     <SuggestionEmoji

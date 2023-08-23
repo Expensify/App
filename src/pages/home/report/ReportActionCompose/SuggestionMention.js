@@ -39,6 +39,7 @@ const propTypes = {
 
 const defaultProps = {
     personalDetails: {},
+    forwardedRef: null,
 };
 
 function SuggestionMention({
@@ -293,6 +294,7 @@ function SuggestionMention({
 
 SuggestionMention.propTypes = propTypes;
 SuggestionMention.defaultProps = defaultProps;
+SuggestionMention.displayName = 'SuggestionMention';
 
 export default withOnyx({
     personalDetails: {

@@ -162,6 +162,7 @@ const defaultProps = {
     numberOfLines: undefined,
     parentReportActions: {},
     reportActions: [],
+    forwardedRef: null,
 };
 
 /**
@@ -328,9 +329,10 @@ function ComposerWithSuggestions({
      */
     const updateNumberOfLines = useCallback(
         (newNumberOfLines) => {
-            if (newNumberOfLines !== numberOfLines) {
-                Report.saveReportCommentNumberOfLines(reportID, newNumberOfLines);
+            if (newNumberOfLines === numberOfLines) {
+                return;
             }
+            Report.saveReportCommentNumberOfLines(reportID, newNumberOfLines);
         },
         [reportID, numberOfLines],
     );
@@ -635,6 +637,7 @@ function ComposerWithSuggestions({
 
 ComposerWithSuggestions.propTypes = propTypes;
 ComposerWithSuggestions.defaultProps = defaultProps;
+ComposerWithSuggestions.displayName = 'ComposerWithSuggestions';
 
 export default compose(
     withKeyboardState,

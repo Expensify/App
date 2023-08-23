@@ -255,6 +255,7 @@ function AttachmentPickerWithMenuItems({
 
 AttachmentPickerWithMenuItems.propTypes = propTypes;
 AttachmentPickerWithMenuItems.defaultProps = defaultProps;
+AttachmentPickerWithMenuItems.displayName = 'AttachmentPickerWithMenuItems';
 
 export default withOnyx({
     betas: {
