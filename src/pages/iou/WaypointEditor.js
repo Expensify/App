@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import AddressSearch from '../../components/AddressSearch';
 import ScreenWrapper from '../../components/ScreenWrapper';
+import * as Expensicons from '../../components/Icon/Expensicons';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -19,6 +20,8 @@ import ROUTES from '../../ROUTES';
 import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
 import transactionPropTypes from '../../components/transactionPropTypes';
+import MenuItem from '../../components/MenuItem';
+import {getCurrentPosition} from 'react-native-x-geolocation';
 
 const propTypes = {
     /** The transactionID of the IOU */
@@ -87,6 +90,8 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
         if (network.isOffline && waypointValue) {
             const waypoint = {
                 address: waypointValue,
+                lat: null,
+                lng: null,
             };
 
             Transaction.saveWaypoint(transactionID, waypointIndex, waypoint);
@@ -103,9 +108,13 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
             address: values.address,
         };
 
+        saveWaypoint(waypoint);
+    };
+
+    const saveWaypoint = (waypoint) => {
         Transaction.saveWaypoint(transactionID, waypointIndex, waypoint);
         Navigation.goBack(ROUTES.getMoneyRequestDistanceTabRoute(iouType));
-    };
+    }
 
     return (
         <ScreenWrapper
@@ -151,6 +160,20 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
                             lng: null,
                             state: null,
                         }}
+                    />
+                    <MenuItem
+                        title={'Use current location'}
+                        icon={Expensicons.Location}
+                        onPress={() => getCurrentPosition((position)=> {
+                            saveWaypoint({
+                                lat: lodashGet(position, 'coords.latitude', 0),
+                                lng:lodashGet(position, 'coords.longitude', 0),
+                                address: 'Your location'
+                            });
+                        }, (err) => {
+                            console.log('error', err);
+                        })}
+                        shouldShowRightIcon={false}
                     />
                 </View>
             </Form>
