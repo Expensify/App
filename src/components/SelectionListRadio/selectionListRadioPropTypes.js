@@ -83,6 +83,7 @@ const defaultProps = {
     onScroll: () => {},
     onScrollBeginDrag: () => {},
     headerMessage: '',
+    scrollEnabled: true,
 };
 
 export {propTypes, radioListItemPropTypes, defaultProps};

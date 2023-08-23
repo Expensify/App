@@ -2564,6 +2564,10 @@ const CONST = {
             NAVIGATE: 'NAVIGATE',
         },
     },
+    TIME_PERIOD: {
+      AM: 'AM',
+      PM: 'PM',
+    }
 };
 
 export default CONST;

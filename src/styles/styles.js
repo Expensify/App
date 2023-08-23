@@ -1,5 +1,6 @@
 import {defaultStyles as defaultPickerStyles} from 'react-native-picker-select/src/styles';
 import lodashClamp from 'lodash/clamp';
+import { StyleSheet } from 'react-native';
 import fontFamily from './fontFamily';
 import addOutlineWidth from './addOutlineWidth';
 import themeColors from './themes/default';
@@ -3792,6 +3793,12 @@ const styles = {
         justifyContent: 'center',
         marginTop: 40,
     },
+    selectionListRadioSeparator: {
+      height: StyleSheet.hairlineWidth,
+      backgroundColor: themeColors.border,
+      marginHorizontal: 20,
+
+    }
 };
 
 export default styles;

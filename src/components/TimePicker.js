@@ -291,8 +291,8 @@ function TimePicker({forwardedRef, onSubmitButtonPress, defaultValue}) {
     );
 
     const { styleForAM, styleForPM } = useMemo(() => {
-      const computedStyleForAM = amPmValue !== 'AM' ? { backgroundColor: themeColors.componentBG } : {};
-      const computedStyleForPM = amPmValue !== 'PM' ? { backgroundColor: themeColors.componentBG } : {};
+      const computedStyleForAM = amPmValue !== CONST.TIME_PERIOD.AM ? { backgroundColor: themeColors.componentBG } : {};
+      const computedStyleForPM = amPmValue !== CONST.TIME_PERIOD.PM ? { backgroundColor: themeColors.componentBG } : {};
   
       return {
           styleForAM: [styles.timePickerWidth100, computedStyleForAM],
@@ -351,7 +351,7 @@ function TimePicker({forwardedRef, onSubmitButtonPress, defaultValue}) {
                         }}
                         selection={selectionMinute}
                         style={styles.timePickerInput}
-                        containerStyles={[styles.timePickerWidth100]}
+                        containerStyles={[styles.timePickerHeight100]}
                     />
                 </View>
                 <View style={styles.timePickerSwitcherContainer}>

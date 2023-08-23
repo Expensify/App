@@ -107,6 +107,8 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
                         onSelectRow={updateMode}
                         disableInitialFocusOptionStyle
                         wrapperStyle={{flex: null}}
+                        scrollEnabled={false}
+                        useSeparator
                     />
 
                     {draftPeriod === CONST.CUSTOM_STATUS_TYPES.CUSTOM && (
