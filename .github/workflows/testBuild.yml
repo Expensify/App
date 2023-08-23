@@ -135,6 +135,9 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha || needs.getBranchRef.outputs.REF }}
 
+      - name: Configure MapBox SDK
+        run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
+
       - name: Create .env.adhoc file based on staging and add PULL_REQUEST_NUMBER env to it
         run: |
           cp .env.staging .env.adhoc
@@ -173,9 +176,6 @@ jobs:
         with:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-
-      - name: Configure MapBox SDK
-        run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
       - name: Run Fastlane
         run: bundle exec fastlane ios build_internal
