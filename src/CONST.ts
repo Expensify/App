@@ -1,29 +1,30 @@
-import lodashGet from 'lodash/get';
+/* eslint-disable @typescript-eslint/naming-convention */
 import Config from 'react-native-config';
-import * as KeyCommand from 'react-native-key-command';
+// @ts-expect-error Migrate react-native-key-command to Typescript
+import KeyCommand from 'react-native-key-command';
 import * as Url from './libs/Url';
 import SCREENS from './SCREENS';
 
 const CLOUDFRONT_DOMAIN = 'cloudfront.net';
 const CLOUDFRONT_URL = `https://d2k5nsl2zxldvw.${CLOUDFRONT_DOMAIN}`;
-const ACTIVE_EXPENSIFY_URL = Url.addTrailingForwardSlash(lodashGet(Config, 'NEW_EXPENSIFY_URL', 'https://new.expensify.com'));
+const ACTIVE_EXPENSIFY_URL = Url.addTrailingForwardSlash(Config.NEW_EXPENSIFY_URL ?? 'https://new.expensify.com');
 const USE_EXPENSIFY_URL = 'https://use.expensify.com';
 const PLATFORM_OS_MACOS = 'Mac OS';
 const PLATFORM_IOS = 'iOS';
 const ANDROID_PACKAGE_NAME = 'com.expensify.chat';
 const CURRENT_YEAR = new Date().getFullYear();
-const PULL_REQUEST_NUMBER = lodashGet(Config, 'PULL_REQUEST_NUMBER', '');
+const PULL_REQUEST_NUMBER = Config?.PULL_REQUEST_NUMBER ?? '';
 
-const keyModifierControl = lodashGet(KeyCommand, 'constants.keyModifierControl', 'keyModifierControl');
-const keyModifierCommand = lodashGet(KeyCommand, 'constants.keyModifierCommand', 'keyModifierCommand');
-const keyModifierShiftControl = lodashGet(KeyCommand, 'constants.keyModifierShiftControl', 'keyModifierShiftControl');
-const keyModifierShiftCommand = lodashGet(KeyCommand, 'constants.keyModifierShiftCommand', 'keyModifierShiftCommand');
-const keyInputEscape = lodashGet(KeyCommand, 'constants.keyInputEscape', 'keyInputEscape');
-const keyInputEnter = lodashGet(KeyCommand, 'constants.keyInputEnter', 'keyInputEnter');
-const keyInputUpArrow = lodashGet(KeyCommand, 'constants.keyInputUpArrow', 'keyInputUpArrow');
-const keyInputDownArrow = lodashGet(KeyCommand, 'constants.keyInputDownArrow', 'keyInputDownArrow');
-const keyInputLeftArrow = lodashGet(KeyCommand, 'constants.keyInputLeftArrow', 'keyInputLeftArrow');
-const keyInputRightArrow = lodashGet(KeyCommand, 'constants.keyInputRightArrow', 'keyInputRightArrow');
+const keyModifierControl = (KeyCommand?.constants?.keyModifierControl as string) ?? 'keyModifierControl';
+const keyModifierCommand = (KeyCommand?.constants?.keyModifierCommand as string) ?? 'keyModifierCommand';
+const keyModifierShiftControl = (KeyCommand?.constants?.keyModifierShiftControl as string) ?? 'keyModifierShiftControl';
+const keyModifierShiftCommand = (KeyCommand?.constants?.keyModifierShiftCommand as string) ?? 'keyModifierShiftCommand';
+const keyInputEscape = (KeyCommand?.constants?.keyInputEscape as string) ?? 'keyInputEscape';
+const keyInputEnter = (KeyCommand?.constants?.keyInputEnter as string) ?? 'keyInputEnter';
+const keyInputUpArrow = (KeyCommand?.constants?.keyInputUpArrow as string) ?? 'keyInputUpArrow';
+const keyInputDownArrow = (KeyCommand?.constants?.keyInputDownArrow as string) ?? 'keyInputDownArrow';
+const keyInputLeftArrow = (KeyCommand?.constants?.keyInputLeftArrow as string) ?? 'keyInputLeftArrow';
+const keyInputRightArrow = (KeyCommand?.constants?.keyInputRightArrow as string) ?? 'keyInputRightArrow';
 
 // describes if a shortcut key can cause navigation
 const KEYBOARD_SHORTCUT_NAVIGATION_TYPE = 'NAVIGATION_SHORTCUT';
@@ -878,22 +879,22 @@ const CONST = {
     },
 
     ACCOUNT_ID: {
-        ACCOUNTING: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_ACCOUNTING', 9645353)),
-        ADMIN: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_ADMIN', -1)),
-        BILLS: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_BILLS', 1371)),
-        CHRONOS: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_CHRONOS', 10027416)),
-        CONCIERGE: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_CONCIERGE', 8392101)),
-        CONTRIBUTORS: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_CONTRIBUTORS', 9675014)),
-        FIRST_RESPONDER: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_FIRST_RESPONDER', 9375152)),
-        HELP: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_HELP', -1)),
-        INTEGRATION_TESTING_CREDS: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_INTEGRATION_TESTING_CREDS', -1)),
-        PAYROLL: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_PAYROLL', 9679724)),
-        QA: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_QA', 3126513)),
-        QA_TRAVIS: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_QA_TRAVIS', 8595733)),
-        RECEIPTS: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_RECEIPTS', -1)),
-        REWARDS: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_REWARDS', 11023767)), // rewards@expensify.com
-        STUDENT_AMBASSADOR: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_STUDENT_AMBASSADOR', 10476956)),
-        SVFG: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_SVFG', 2012843)),
+        ACCOUNTING: Number(Config.EXPENSIFY_ACCOUNT_ID_ACCOUNTING ?? 9645353),
+        ADMIN: Number(Config.EXPENSIFY_ACCOUNT_ID_ADMIN ?? -1),
+        BILLS: Number(Config.EXPENSIFY_ACCOUNT_ID_BILLS ?? 1371),
+        CHRONOS: Number(Config.EXPENSIFY_ACCOUNT_ID_CHRONOS ?? 10027416),
+        CONCIERGE: Number(Config.EXPENSIFY_ACCOUNT_ID_CONCIERGE ?? 8392101),
+        CONTRIBUTORS: Number(Config.EXPENSIFY_ACCOUNT_ID_CONTRIBUTORS ?? 9675014),
+        FIRST_RESPONDER: Number(Config.EXPENSIFY_ACCOUNT_ID_FIRST_RESPONDER ?? 9375152),
+        HELP: Number(Config.EXPENSIFY_ACCOUNT_ID_HELP ?? -1),
+        INTEGRATION_TESTING_CREDS: Number(Config.EXPENSIFY_ACCOUNT_ID_INTEGRATION_TESTING_CREDS ?? -1),
+        PAYROLL: Number(Config.EXPENSIFY_ACCOUNT_ID_PAYROLL ?? 9679724),
+        QA: Number(Config.EXPENSIFY_ACCOUNT_ID_QA ?? 3126513),
+        QA_TRAVIS: Number(Config.EXPENSIFY_ACCOUNT_ID_QA_TRAVIS ?? 8595733),
+        RECEIPTS: Number(Config.EXPENSIFY_ACCOUNT_ID_RECEIPTS ?? -1),
+        REWARDS: Number(Config.EXPENSIFY_ACCOUNT_ID_REWARDS ?? 11023767), // rewards@expensify.com
+        STUDENT_AMBASSADOR: Number(Config.EXPENSIFY_ACCOUNT_ID_STUDENT_AMBASSADOR ?? 10476956),
+        SVFG: Number(Config.EXPENSIFY_ACCOUNT_ID_SVFG ?? 2012843),
     },
 
     ENVIRONMENT: {
@@ -2591,6 +2592,6 @@ const CONST = {
             NAVIGATE: 'NAVIGATE',
         },
     },
-};
+} as const;
 
 export default CONST;
