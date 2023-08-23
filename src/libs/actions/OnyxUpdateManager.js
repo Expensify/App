@@ -109,7 +109,7 @@ export default () => {
             // a full ReconnectApp and then trigger a GetOnyxUpdates. Let's use this as a control variable until we enable
             // the beta to all users.
             let updateEnablesBeta = false;
-            
+
             const {lastUpdateIDFromServer, previousUpdateIDFromServer, updateParams} = val;
 
             // This can happen when a user has just started getting reliable updates from the server but they haven't
@@ -117,17 +117,11 @@ export default () => {
             // lastUpdateIDAppliedToClient will always be null. For this case, reconnectApp() will be triggered for them
             // to kick start the reliable updates. We also filter OpenApp and ReconnectApp so we don't create a loop.
             if (
-                !lastUpdateIDAppliedToClient 
-                && previousUpdateIDFromServer > 0 
-                && (
-                    updateParams.type == CONST.ONYX_UPDATE_TYPES.PUSHER 
-                    || (
-                        updateParams.type == CONST.ONYX_UPDATE_TYPES.HTTPS
-                        && (
-                            updateParams.data.request.command !== "OpenApp"
-                            || updateParams.data.request.command !== "ReconnectApp"
-                        ))
-                )) {
+                !lastUpdateIDAppliedToClient &&
+                previousUpdateIDFromServer > 0 &&
+                (updateParams.type == CONST.ONYX_UPDATE_TYPES.PUSHER ||
+                    (updateParams.type == CONST.ONYX_UPDATE_TYPES.HTTPS && (updateParams.data.request.command !== 'OpenApp' || updateParams.data.request.command !== 'ReconnectApp')))
+            ) {
                 console.debug('[OnyxUpdateManager] Client has not gotten reliable updates before so reconnecting the app to start the process');
                 App.reconnectApp();
                 updateEnablesBeta = true;
@@ -135,7 +129,7 @@ export default () => {
 
             // If the previous update from the server does not match the last update the client got, then the client is missing some updates.
             // getMissingOnyxUpdates will fetch updates starting from the last update this client got and going to the last update the server sent.
-            if (!updateEnablesBeta && previousUpdateIDFromServer && (lastUpdateIDAppliedToClient < previousUpdateIDFromServer)) {
+            if (!updateEnablesBeta && previousUpdateIDFromServer && lastUpdateIDAppliedToClient < previousUpdateIDFromServer) {
                 console.debug(`[OnyxUpdateManager] Client is behind the server by ${previousUpdateIDFromServer - lastUpdateIDAppliedToClient} so fetching incremental updates`);
                 Log.info('Gap detected in update IDs from server so fetching incremental updates', true, {
                     lastUpdateIDFromServer,

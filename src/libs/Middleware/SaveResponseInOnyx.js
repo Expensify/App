@@ -30,7 +30,7 @@ function SaveResponseInOnyx(response, request) {
 
         // Sometimes we call requests that are successfull but they don't have any response. Let's return early since
         // we don't need to store anything here.
-        if(!onyxUpdates){
+        if (!onyxUpdates) {
             return;
         }
 
