@@ -3645,7 +3645,7 @@ const styles = {
         height: 40,
         marginLeft: 12,
         alignItems: 'center',
-        overflowY: 'hidden',
+        overflow: 'hidden',
     },
 
     googlePillButtonContainer: {
