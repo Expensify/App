@@ -231,6 +231,11 @@ const styles = {
         color: themeColors.textSupporting,
     },
 
+    appIconBorderRadius: {
+        overflow: 'hidden',
+        borderRadius: 12,
+    },
+
     unitCol: {
         margin: 0,
         padding: 0,
@@ -565,10 +570,9 @@ const styles = {
     },
 
     buttonDivider: {
-        width: 1,
-        alignSelf: 'stretch',
-        backgroundColor: themeColors.appBG,
-        marginVertical: 1,
+        height: variables.dropDownButtonDividerHeight,
+        borderWidth: 0.7,
+        borderColor: themeColors.text,
     },
 
     noBorderRadius: {
@@ -2654,19 +2658,18 @@ const styles = {
         maxWidth: variables.sideBarWidth,
     },
 
-    iouPreviewBox: {
+    moneyRequestPreviewBox: {
         backgroundColor: themeColors.cardBG,
         borderRadius: variables.componentBorderRadiusLarge,
-        padding: 16,
         maxWidth: variables.sideBarWidth,
         width: '100%',
     },
 
-    iouPreviewBoxHover: {
-        backgroundColor: themeColors.border,
+    moneyRequestPreviewBoxText: {
+        padding: 16,
     },
 
-    iouPreviewBoxLoading: {
+    moneyRequestPreviewBoxLoading: {
         // When a new IOU request arrives it is very briefly in a loading state, so set the minimum height of the container to 94 to match the rendered height after loading.
         // Otherwise, the IOU request pay button will not be fully visible and the user will have to scroll up to reveal the entire IOU request container.
         // See https://github.com/Expensify/App/issues/10283.
@@ -2674,7 +2677,7 @@ const styles = {
         width: '100%',
     },
 
-    iouPreviewBoxAvatar: {
+    moneyRequestPreviewBoxAvatar: {
         marginRight: -10,
         marginBottom: 0,
     },
@@ -2914,7 +2917,7 @@ const styles = {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        ...spacing.pt2,
+        ...spacing.ph5,
     },
 
     peopleRowBorderBottom: {
@@ -3638,13 +3641,16 @@ const styles = {
     },
 
     googleButtonContainer: {
+        colorScheme: 'light',
         width: 40,
         height: 40,
         marginLeft: 12,
         alignItems: 'center',
+        overflowY: 'hidden',
     },
 
     googlePillButtonContainer: {
+        colorScheme: 'light',
         height: 40,
         width: 219,
     },
@@ -3672,7 +3678,7 @@ const styles = {
     },
 
     tabText: (isSelected) => ({
-        marginHorizontal: 8,
+        marginLeft: 8,
         fontFamily: isSelected ? fontFamily.EXP_NEUE_BOLD : fontFamily.EXP_NEUE,
         fontWeight: isSelected ? fontWeightBold : 400,
         color: isSelected ? themeColors.textLight : themeColors.textSupporting,
@@ -3707,6 +3713,24 @@ const styles = {
         borderColor: themeColors.border,
         paddingVertical: 12,
     },
+
+    dropDownButtonCartIconContainerPadding: {
+        paddingRight: 0,
+        paddingLeft: 0,
+    },
+
+    dropDownButtonArrowContain: {
+        marginLeft: 12,
+        marginRight: 14,
+    },
+
+    dropDownButtonCartIconView: {
+        borderTopRightRadius: variables.buttonBorderRadius,
+        borderBottomRightRadius: variables.buttonBorderRadius,
+        ...flex.flexRow,
+        ...flex.alignItemsCenter,
+    },
+
     emojiPickerButtonDropdown: {
         justifyContent: 'center',
         backgroundColor: themeColors.activeComponentBG,
@@ -3730,6 +3754,61 @@ const styles = {
         margin: 20,
     },
 
+    reportPreviewBox: {
+        backgroundColor: themeColors.cardBG,
+        borderRadius: variables.componentBorderRadiusLarge,
+        maxWidth: variables.sideBarWidth,
+        width: '100%',
+    },
+
+    reportPreviewBoxHoverBorder: {
+        borderColor: themeColors.border,
+        backgroundColor: themeColors.border,
+    },
+
+    reportPreviewBoxBody: {
+        padding: 16,
+    },
+
+    reportActionItemImages: {
+        flexDirection: 'row',
+        borderWidth: 2,
+        borderColor: themeColors.cardBG,
+        borderTopLeftRadius: variables.componentBorderRadiusLarge,
+        borderTopRightRadius: variables.componentBorderRadiusLarge,
+        overflow: 'hidden',
+        height: 200,
+    },
+
+    reportActionItemImage: {
+        borderWidth: 1,
+        borderColor: themeColors.cardBG,
+        flex: 1,
+        width: '100%',
+        height: '100%',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+
+    reportActionItemImagesMore: {
+        position: 'absolute',
+        borderRadius: 18,
+        backgroundColor: themeColors.cardBG,
+        width: 36,
+        height: 36,
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+
+    moneyRequestHeaderStatusBarBadge: {
+        padding: 8,
+        borderRadius: variables.componentBorderRadiusMedium,
+        marginRight: 16,
+        backgroundColor: themeColors.border,
+    },
+
     staticHeaderImage: {
         minHeight: 240,
     },
@@ -3741,6 +3820,17 @@ const styles = {
 
     rotate90: {
         transform: [{rotate: '90deg'}],
+    },
+
+    moneyRequestViewImage: {
+        ...spacing.mh5,
+        ...spacing.mv3,
+        overflow: 'hidden',
+        borderWidth: 2,
+        borderColor: themeColors.cardBG,
+        borderRadius: variables.componentBorderRadiusLarge,
+        height: 200,
+        maxWidth: 400,
     },
 
     distanceRequestContainer: (maxHeight) => ({
@@ -3761,6 +3851,11 @@ const styles = {
         flex: 1,
         borderRadius: 20,
         overflow: 'hidden',
+    },
+
+    mapDirection: {
+        width: 7,
+        color: Colors.green,
     },
 
     mapPendingView: {
