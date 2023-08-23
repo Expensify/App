@@ -5,7 +5,7 @@ import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
 import * as Session from '../../../libs/actions/Session';
 import CONFIG from '../../../CONFIG';
 import styles from '../../../styles/styles';
-import CONST from "../../../CONST";
+import CONST from '../../../CONST';
 
 const propTypes = {
     /** Whether we're rendering in the Desktop Flow, if so show a different button. */

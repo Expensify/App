@@ -3,7 +3,7 @@ import lodashFindIndex from 'lodash/findIndex';
 import PropTypes from 'prop-types';
 import {useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
 import {Freeze} from 'react-freeze';
-import { InteractionManager } from 'react-native';
+import {InteractionManager} from 'react-native';
 
 const propTypes = {
     /** Prop to disable freeze */
