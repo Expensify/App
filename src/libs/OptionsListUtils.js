@@ -888,30 +888,28 @@ function getOptions(
  * @returns {Array<Object>}
  */
 function getOptionTree(options) {
-    const optionCollection = new Map();
+    const optionCollection = {};
 
     _.each(options, (option) => {
         option.name.split(CONST.PARENT_CHILD_SEPARATOR).forEach((optionName, index, array) => {
             const indents = _.times(index, () => CONST.INDENTS).join('');
             const isChild = array.length - 1 === index;
 
-            if (optionCollection.has(optionName)) {
+            if (_.has(optionCollection, optionName)) {
                 return;
             }
 
-            optionCollection.set(optionName, {
+            optionCollection[optionName] = {
                 text: `${indents}${optionName}`,
                 keyForList: optionName,
                 searchText: optionName,
                 tooltipText: optionName,
                 isDisabled: isChild ? !option.enabled : true,
-            });
+            };
         });
     });
 
-    return Array.from(optionCollection, ([, value]) => {
-        return value;
-    });
+    return _.values(optionCollection);
 }
 
 /**
