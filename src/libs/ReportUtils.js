@@ -884,21 +884,22 @@ function getIconsForParticipants(participants, personalDetails) {
     for (let i = 0; i < participantsList.length; i++) {
         const accountID = participantsList[i];
         const avatarSource = UserUtils.getAvatar(lodashGet(personalDetails, [accountID, 'avatar'], ''), accountID);
-        participantDetails.push([
-            accountID,
-            lodashGet(personalDetails, [accountID, 'displayName']) || lodashGet(personalDetails, [accountID, 'login'], ''),
-            lodashGet(personalDetails, [accountID, 'firstName'], ''),
-            avatarSource,
-        ]);
+        participantDetails.push([accountID, lodashGet(personalDetails, [accountID, 'displayName']) || lodashGet(personalDetails, [accountID, 'login'], ''), avatarSource]);
     }
 
-    // Sort all logins by first name (position 2 element in array)
-    // if multiple participants have the same first name, sub-sort them by login/displayName (position 1 element in array)
-    // if that still clashes, sub-sort by accountID (position 0 element in array)
     const sortedParticipantDetails = _.chain(participantDetails)
-        .sortBy((detail) => detail[0])
-        .sortBy((detail) => detail[1])
-        .sortBy((detail) => detail[2])
+        .sort((first, second) => {
+            // First sort by displayName/login
+            const displayNameLoginOrder = first[1].localeCompare(second[1]);
+            if (displayNameLoginOrder !== 0) {
+                return displayNameLoginOrder;
+            }
+
+            // Then fallback on accountID as the final sorting criteria.
+            // This will ensure that the order of avatars with same login/displayName
+            // stay consistent across all users and devices
+            return first[0] > second[0];
+        })
         .value();
 
     // Now that things are sorted, gather only the avatars (third element in the array) and return those
@@ -906,7 +907,7 @@ function getIconsForParticipants(participants, personalDetails) {
     for (let i = 0; i < sortedParticipantDetails.length; i++) {
         const userIcon = {
             id: sortedParticipantDetails[i][0],
-            source: sortedParticipantDetails[i][3],
+            source: sortedParticipantDetails[i][2],
             type: CONST.ICON_TYPE_AVATAR,
             name: sortedParticipantDetails[i][1],
         };
