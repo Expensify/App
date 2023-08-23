@@ -10,7 +10,7 @@ const emojiPickerRef = React.createRef();
  * @param {Element} emojiPopoverAnchor - Element on which EmojiPicker is anchored
  * @param {Object} [anchorOrigin] - Anchor origin for Popover
  * @param {Function} [onWillShow=() => {}] - Run a callback when Popover will show
- * @param {Object} id - Unique id for EmojiPicker
+ * @param {String} id - Unique id for EmojiPicker
  */
 function showEmojiPicker(onModalHide = () => {}, onEmojiSelected = () => {}, emojiPopoverAnchor, anchorOrigin = undefined, onWillShow = () => {}, id) {
     if (!emojiPickerRef.current) {
@@ -35,7 +35,7 @@ function hideEmojiPicker(isNavigating) {
 /**
  * Whether Emoji Picker is active for the given id.
  *
- * @param {Number|String} id
+ * @param {String} id
  * @return {Boolean}
  */
 function isActive(id) {

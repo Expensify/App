@@ -42,7 +42,7 @@ const EmojiPicker = forwardRef((props, ref) => {
      * @param {Element} emojiPopoverAnchorValue - Element to which Popover is anchored
      * @param {Object} [anchorOrigin=DEFAULT_ANCHOR_ORIGIN] - Anchor origin for Popover
      * @param {Function} [onWillShow=() => {}] - Run a callback when Popover will show
-     * @param {Object} id - Unique id for EmojiPicker
+     * @param {String} id - Unique id for EmojiPicker
      */
     const showEmojiPicker = (onModalHideValue, onEmojiSelectedValue, emojiPopoverAnchorValue, anchorOrigin, onWillShow = () => {}, id) => {
         onModalHide.current = onModalHideValue;
@@ -109,7 +109,7 @@ const EmojiPicker = forwardRef((props, ref) => {
     /**
      * Whether emoji picker is active for the given id.
      *
-     * @param {Number|String} id
+     * @param {String} id
      * @return {Boolean}
      */
     const isActive = (id) => Boolean(id) && id === activeID;

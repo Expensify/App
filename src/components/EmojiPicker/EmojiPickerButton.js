@@ -18,7 +18,7 @@ const propTypes = {
     nativeID: PropTypes.string,
 
     /** Unique id for emoji picker */
-    emojiPickerID: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    emojiPickerID: PropTypes.string,
 
     ...withLocalizePropTypes,
 };
