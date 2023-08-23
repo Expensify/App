@@ -7,6 +7,7 @@ import {withOnyx} from 'react-native-onyx';
 import MapView from 'react-native-x-maps';
 import ONYXKEYS from '../ONYXKEYS';
 import * as Transaction from '../libs/actions/Transaction';
+import * as TransactionUtils from '../libs/TransactionUtils';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import * as Expensicons from './Icon/Expensicons';
 import theme from '../styles/themes/default';
@@ -21,6 +22,10 @@ import useNetwork from '../hooks/useNetwork';
 import useLocalize from '../hooks/useLocalize';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
+import ScreenWrapper from './ScreenWrapper';
+import DotIndicatorMessage from './DotIndicatorMessage';
+import * as ErrorUtils from '../libs/ErrorUtils';
+import usePrevious from '../hooks/usePrevious';
 
 const MAX_WAYPOINTS = 25;
 const MAX_WAYPOINTS_TO_DISPLAY = 4;
@@ -51,6 +56,9 @@ const propTypes = {
                 address: PropTypes.string,
             }),
         }),
+
+        /** Server side errors keyed by microtime */
+        errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
     }),
 
     /** Data about Mapbox token for calling Mapbox API */
@@ -78,7 +86,43 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
 
     const waypoints = lodashGet(transaction, 'comment.waypoints', {});
     const numberOfWaypoints = _.size(waypoints);
+
     const lastWaypointIndex = numberOfWaypoints - 1;
+    const isLoadingRoute = lodashGet(transaction, 'comment.isLoading', false);
+    const hasRouteError = Boolean(lodashGet(transaction, 'errorFields.route'));
+    const previousWaypoints = usePrevious(waypoints);
+    const haveWaypointsChanged = !_.isEqual(previousWaypoints, waypoints);
+    const shouldFetchRoute = haveWaypointsChanged && !isOffline && !isLoadingRoute && TransactionUtils.validateWaypoints(waypoints);
+
+    const waypointMarkers = _.filter(
+        _.map(waypoints, (waypoint, key) => {
+            if (!waypoint || waypoint.lng === undefined || waypoint.lat === undefined) {
+                return;
+            }
+
+            const index = Number(key.replace('waypoint', ''));
+            let MarkerComponent;
+            if (index === 0) {
+                MarkerComponent = Expensicons.DotIndicatorUnfilled;
+            } else if (index === lastWaypointIndex) {
+                MarkerComponent = Expensicons.Location;
+            } else {
+                MarkerComponent = Expensicons.DotIndicator;
+            }
+
+            return {
+                coordinate: [waypoint.lng, waypoint.lat],
+                markerComponent: () => (
+                    <MarkerComponent
+                        width={20}
+                        height={20}
+                        fill={theme.icon}
+                    />
+                ),
+            };
+        }),
+        (waypoint) => waypoint,
+    );
 
     // Show up to the max number of waypoints plus 1/2 of one to hint at scrolling
     const halfMenuItemHeight = Math.floor(variables.baseMenuItemHeight / 2);
@@ -103,10 +147,19 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
         setShouldShowGradient(visibleAreaEnd < scrollContentHeight);
     };
 
+    // Handle fetching the route when there are at least 2 waypoints
+    useEffect(() => {
+        if (!shouldFetchRoute) {
+            return;
+        }
+
+        Transaction.getRoute(transactionID, waypoints);
+    }, [shouldFetchRoute, transactionID, waypoints]);
+
     useEffect(updateGradientVisibility, [scrollContainerHeight, scrollContentHeight]);
 
     return (
-        <>
+        <ScreenWrapper shouldEnableMaxHeight>
             <View
                 style={styles.distanceRequestContainer(scrollContainerMaxHeight)}
                 onLayout={(event = {}) => setScrollContainerHeight(lodashGet(event, 'nativeEvent.layout.height', 0))}
@@ -153,6 +206,13 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
                         colors={[theme.transparent, theme.modalBackground]}
                     />
                 )}
+                {hasRouteError && (
+                    <DotIndicatorMessage
+                        style={[styles.mh5, styles.mv3]}
+                        messages={ErrorUtils.getLatestErrorField(transaction, 'route')}
+                        type="error"
+                    />
+                )}
             </View>
             <View style={[styles.flexRow, styles.justifyContentCenter, styles.pt1]}>
                 <Button
@@ -174,7 +234,11 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
                             location: CONST.SF_COORDINATES,
                             zoom: DEFAULT_ZOOM_LEVEL,
                         }}
+                        directionCoordinates={lodashGet(transaction, 'routes.route0.geometry.coordinates', [])}
+                        directionStyle={styles.mapDirection}
                         style={styles.mapView}
+                        waypoints={waypointMarkers}
+                        styleURL={CONST.MAPBOX_STYLE_URL}
                     />
                 ) : (
                     <View style={[styles.mapPendingView]}>
@@ -182,11 +246,12 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
                             icon={Expensicons.EmptyStateRoutePending}
                             title={translate('distance.mapPending.title')}
                             subtitle={isOffline ? translate('distance.mapPending.subtitle') : translate('distance.mapPending.onlineSubtitle')}
+                            shouldShowLink={false}
                         />
                     </View>
                 )}
             </View>
-        </>
+        </ScreenWrapper>
     );
 }
 
@@ -196,7 +261,6 @@ DistanceRequest.defaultProps = defaultProps;
 export default withOnyx({
     transaction: {
         key: (props) => `${ONYXKEYS.COLLECTION.TRANSACTION}${props.transactionID}`,
-        selector: (transaction) => (transaction ? {transactionID: transaction.transactionID, comment: {waypoints: lodashGet(transaction, 'comment.waypoints')}} : null),
     },
     mapboxAccessToken: {
         key: ONYXKEYS.MAPBOX_ACCESS_TOKEN,
