@@ -14,7 +14,7 @@ describe('DateUtils', () => {
             keys: ONYXKEYS,
             initialKeyStates: {
                 [ONYXKEYS.SESSION]: {accountID: 999},
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {999: {timezone: {selected: 'Etc/UTC'}}},
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {999: {timezone: {selected: 'UTC'}}},
             },
         });
         return waitForPromisesToResolve();
@@ -73,7 +73,7 @@ describe('DateUtils', () => {
         Intl.DateTimeFormat = jest.fn(() => ({
             resolvedOptions: () => ({timeZone: 'America/Chicago'}),
         }));
-        Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {999: {timezone: {selected: 'Etc/UTC', automatic: true}}}).then(() => {
+        Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {999: {timezone: {selected: 'UTC', automatic: true}}}).then(() => {
             const result = DateUtils.getCurrentTimezone();
             expect(result).toEqual({
                 selected: 'America/Chicago',
@@ -84,12 +84,12 @@ describe('DateUtils', () => {
 
     it('should not update timezone if automatic and selected timezone match', () => {
         Intl.DateTimeFormat = jest.fn(() => ({
-            resolvedOptions: () => ({timeZone: 'Etc/UTC'}),
+            resolvedOptions: () => ({timeZone: 'UTC'}),
         }));
-        Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {999: {timezone: {selected: 'Etc/UTC', automatic: true}}}).then(() => {
+        Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {999: {timezone: {selected: 'UTC', automatic: true}}}).then(() => {
             const result = DateUtils.getCurrentTimezone();
             expect(result).toEqual({
-                selected: 'Etc/UTC',
+                selected: 'UTC',
                 automatic: true,
             });
         });
