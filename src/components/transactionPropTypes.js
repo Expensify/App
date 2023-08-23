@@ -71,4 +71,7 @@ export default PropTypes.shape({
         source: PropTypes.string,
         state: PropTypes.string,
     }),
+
+    /** Server side errors keyed by microtime */
+    errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
 });
