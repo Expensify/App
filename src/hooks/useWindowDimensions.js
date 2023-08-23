@@ -8,14 +8,14 @@ import variables from '../styles/variables';
  */
 export default function () {
     const {width: windowWidth, height: windowHeight} = useWindowDimensions();
-    const isExtraSmallScreenWidth = windowWidth <= variables.extraSmallMobileResponsiveWidthBreakpoint;
+    const isExtraSmallScreenHeight = windowHeight <= variables.extraSmallMobileResponsiveHeightBreakpoint;
     const isSmallScreenWidth = windowWidth <= variables.mobileResponsiveWidthBreakpoint;
     const isMediumScreenWidth = windowWidth > variables.mobileResponsiveWidthBreakpoint && windowWidth <= variables.tabletResponsiveWidthBreakpoint;
     const isLargeScreenWidth = windowWidth > variables.tabletResponsiveWidthBreakpoint;
     return {
         windowWidth,
         windowHeight,
-        isExtraSmallScreenWidth,
+        isExtraSmallScreenHeight,
         isSmallScreenWidth,
         isMediumScreenWidth,
         isLargeScreenWidth,

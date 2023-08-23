@@ -60,7 +60,7 @@ const NUM_PAD_VIEW_ID = 'numPadView';
 
 function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCurrencyButtonPress, onSubmitButtonPress}) {
     const {translate, toLocaleDigit, numberFormat} = useLocalize();
-    const {isExtraSmallScreenWidth} = useWindowDimensions();
+    const {isExtraSmallScreenHeight} = useWindowDimensions();
 
     const textInput = useRef(null);
 
@@ -221,7 +221,7 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
                 ) : null}
                 <Button
                     success
-                    medium={isExtraSmallScreenWidth}
+                    medium={isExtraSmallScreenHeight}
                     style={[styles.w100, styles.mt5]}
                     onPress={submitAndNavigateToNextPage}
                     pressOnEnter

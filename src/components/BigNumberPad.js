@@ -35,7 +35,7 @@ const padNumbers = [
 
 function BigNumberPad(props) {
     const [timer, setTimer] = useState(null);
-    const {isExtraSmallScreenWidth} = useWindowDimensions();
+    const {isExtraSmallScreenHeight} = useWindowDimensions();
 
     /**
      * Handle long press key on number pad.
@@ -73,7 +73,7 @@ function BigNumberPad(props) {
                         return (
                             <Button
                                 key={column}
-                                medium={isExtraSmallScreenWidth}
+                                medium={isExtraSmallScreenHeight}
                                 shouldEnableHapticFeedback
                                 style={[styles.flex1, marginLeft]}
                                 text={column === '<' ? column : props.toLocaleDigit(column)}
