@@ -13,6 +13,7 @@ class Hoverable extends Component {
         super(props);
 
         this.handleVisibilityChange = this.handleVisibilityChange.bind(this);
+        this.checkHover = _.debounce(this.checkHover.bind(this), 100);
 
         this.state = {
             isHovered: false,
@@ -23,6 +24,7 @@ class Hoverable extends Component {
 
     componentDidMount() {
         document.addEventListener('visibilitychange', this.handleVisibilityChange);
+        document.addEventListener('mouseover', this.checkHover);
     }
 
     componentDidUpdate(prevProps) {
@@ -37,6 +39,7 @@ class Hoverable extends Component {
 
     componentWillUnmount() {
         document.removeEventListener('visibilitychange', this.handleVisibilityChange);
+        document.removeEventListener('mouseover', this.checkHover);
     }
 
     /**
@@ -61,6 +64,18 @@ class Hoverable extends Component {
 
         this.setIsHovered(false);
     }
+
+    checkHover = (e) => {
+        if (!this.wrapperView || !this.state.isHovered) {
+            return;
+        }
+
+        if (this.wrapperView.contains(e.target)) {
+            return;
+        }
+
+        this.setIsHovered(false);
+    };
 
     render() {
         let child = this.props.children;
