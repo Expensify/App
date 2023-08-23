@@ -350,7 +350,7 @@ type OnyxValues = {
     [ONYXKEYS.SELECTED_TAB]: string;
     [ONYXKEYS.RECEIPT_MODAL]: OnyxTypes.ReceiptModal;
     [ONYXKEYS.MAPBOX_ACCESS_TOKEN]: OnyxTypes.MapboxAccessToken;
-    [ONYXKEYS.ONYX_UPDATES_FROM_SERVER]: number;
+    [ONYXKEYS.ONYX_UPDATES_FROM_SERVER]: any;
     [ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT]: number;
 
     // Collections
