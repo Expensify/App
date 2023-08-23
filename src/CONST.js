@@ -1078,6 +1078,8 @@ const CONST = {
         DEFAULT: 'en',
     },
 
+    LANGUAGES: ['en', 'es'],
+
     POLICY: {
         TYPE: {
             FREE: 'free',
