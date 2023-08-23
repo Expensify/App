@@ -25,12 +25,24 @@ const propTypes = {
 
     /** Function to call when selection in text input is changed */
     onSelectionChange: PropTypes.func,
+
+    /** Function to call when key is pressed in text input */
+    onKeyPress: PropTypes.func,
+
+    /** Style for the input */
+    style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
+    
+    /** Style for the container */
+    containerStyles: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 };
 
 const defaultProps = {
     forwardedRef: undefined,
     selection: undefined,
     onSelectionChange: () => {},
+    onKeyPress: () => {},
+    style: {},
+    containerStyles: {},
 };
 
 function AmountTextInput(props) {
@@ -39,7 +51,7 @@ function AmountTextInput(props) {
             disableKeyboard
             autoGrow
             hideFocusedState
-            inputStyle={[styles.iouAmountTextInput, styles.p0, styles.noLeftBorderRadius, styles.noRightBorderRadius]}
+            inputStyle={[styles.iouAmountTextInput, styles.p0, styles.noLeftBorderRadius, styles.noRightBorderRadius, props.style]}
             textInputContainerStyles={[styles.borderNone, styles.noLeftBorderRadius, styles.noRightBorderRadius]}
             onChangeText={props.onChangeAmount}
             ref={props.forwardedRef}
@@ -50,6 +62,8 @@ function AmountTextInput(props) {
             selection={props.selection}
             onSelectionChange={props.onSelectionChange}
             accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+            onKeyPress={props.onKeyPress}
+            containerStyles={props.containerStyles}
         />
     );
 }
