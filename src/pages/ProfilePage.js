@@ -243,6 +243,8 @@ function ProfilePage(props) {
                         iconWidth={variables.modalTopIconWidth}
                         iconHeight={variables.modalTopIconHeight}
                         title={props.translate('notFound.notHere')}
+                        shouldShowLink
+                        link={props.translate('notFound.goBackHome')}
                     />
                 )}
             </View>

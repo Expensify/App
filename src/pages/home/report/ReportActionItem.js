@@ -252,7 +252,7 @@ function ReportActionItem(props) {
         // IOUDetails only exists when we are sending money
         const isSendingMoney = originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && _.has(originalMessage, 'IOUDetails');
 
-        // Show the IOUPreview for when request was created, bill was split or money was sent
+        // Show the MoneyRequestPreview for when request was created, bill was split or money was sent
         if (
             props.action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
             originalMessage &&
@@ -469,10 +469,21 @@ function ReportActionItem(props) {
         const parentReportAction = ReportActionsUtils.getParentReportAction(props.report);
         if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
             return (
-                <MoneyRequestView
-                    report={props.report}
-                    shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
-                />
+                <ShowContextMenuContext.Provider
+                    value={{
+                        anchor: popoverAnchorRef,
+                        report: props.report,
+                        action: props.action,
+                        checkIfContextMenuActive: toggleContextMenuFromActiveReportAction,
+                    }}
+                >
+                    <OfflineWithFeedback pendingAction={props.action.pendingAction}>
+                        <MoneyRequestView
+                            report={props.report}
+                            shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
+                        />
+                    </OfflineWithFeedback>
+                </ShowContextMenuContext.Provider>
             );
         }
         if (ReportUtils.isTaskReport(props.report)) {
@@ -606,8 +617,7 @@ export default compose(
     withReportActionsDrafts({
         propName: 'draftMessage',
         transformValue: (drafts, props) => {
-            const originalReportID = ReportUtils.getOriginalReportID(props.report.reportID, props.action);
-            const draftKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}_${props.action.reportActionID}`;
+            const draftKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${props.report.reportID}_${props.action.reportActionID}`;
             return lodashGet(drafts, draftKey, '');
         },
     }),

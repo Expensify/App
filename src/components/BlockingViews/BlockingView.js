@@ -9,6 +9,7 @@ import themeColors from '../../styles/themes/default';
 import TextLink from '../TextLink';
 import Navigation from '../../libs/Navigation/Navigation';
 import AutoEmailLink from '../AutoEmailLink';
+import useLocalize from '../../hooks/useLocalize';
 
 const propTypes = {
     /** Expensicon for the page */
@@ -24,7 +25,7 @@ const propTypes = {
     subtitle: PropTypes.string,
 
     /** Link message below the subtitle */
-    link: PropTypes.string,
+    linkKey: PropTypes.string,
 
     /** Whether we should show a link to navigate elsewhere */
     shouldShowLink: PropTypes.bool,
@@ -42,14 +43,15 @@ const propTypes = {
 const defaultProps = {
     iconColor: themeColors.offline,
     subtitle: '',
-    shouldShowLink: true,
-    link: 'notFound.goBackHome',
+    shouldShowLink: false,
+    linkKey: 'notFound.goBackHome',
     iconWidth: variables.iconSizeSuperLarge,
     iconHeight: variables.iconSizeSuperLarge,
     onLinkPress: () => Navigation.dismissModal(),
 };
 
 function BlockingView(props) {
+    const {translate} = useLocalize();
     return (
         <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph10]}>
             <Icon
@@ -68,7 +70,7 @@ function BlockingView(props) {
                     onPress={props.onLinkPress}
                     style={[styles.link, styles.mt2]}
                 >
-                    {props.link}
+                    {translate(props.linkKey)}
                 </TextLink>
             ) : null}
         </View>
