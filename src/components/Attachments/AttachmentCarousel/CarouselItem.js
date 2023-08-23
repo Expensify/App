@@ -1,4 +1,5 @@
 import React, {useState} from 'react';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import CONST from '../../../CONST';
 import styles from '../../../styles/styles';
@@ -23,8 +24,8 @@ const propTypes = {
             name: PropTypes.string,
         }),
 
-        /** Whether the attachment is hidden by moderation */
-        isHidden: PropTypes.bool,
+        /** Whether the attachment has been flagged */
+        hasBeenFlagged: PropTypes.bool,
     }).isRequired,
 
     /** Whether the attachment is currently being viewed in the carousel */
@@ -40,43 +41,53 @@ const defaultProps = {
 
 function CarouselItem({item, isFocused, onPress}) {
     const {translate} = useLocalize();
-    const [isHidden, setIsHidden] = useState(item.isHidden);
+    const [isHidden, setIsHidden] = useState(item.hasBeenFlagged);
+
+    const renderButton = (style) => (
+        <Button
+            small
+            style={style}
+            onPress={() => setIsHidden(!isHidden)}
+        >
+            <Text
+                style={styles.buttonSmallText}
+                selectable={false}
+                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+            >
+                {isHidden ? translate('moderation.revealMessage') : translate('moderation.hideMessage')}
+            </Text>
+        </Button>
+    );
 
     if (isHidden) {
         return (
             <PressableWithoutFeedback
-                style={[styles.w100, styles.h100, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph4]}
+                style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph4]}
                 onPress={onPress}
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                 accessibilityLabel={item.file.name || translate('attachmentView.unknownFilename')}
             >
                 <Text style={[styles.textLabelSupporting, styles.textAlignCenter, styles.lh20]}>{translate('moderation.flaggedContent')}</Text>
-                <Button
-                    small
-                    style={[styles.mt2]}
-                    onPress={() => setIsHidden(false)}
-                >
-                    <Text
-                        style={styles.buttonSmallText}
-                        selectable={false}
-                        dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
-                    >
-                        {translate('moderation.revealMessage')}
-                    </Text>
-                </Button>
+                {renderButton([styles.mt2])}
             </PressableWithoutFeedback>
         );
     }
 
     return (
-        <AttachmentView
-            source={item.source}
-            file={item.file}
-            isAuthTokenRequired={item.isAuthTokenRequired}
-            isFocused={isFocused}
-            onPress={onPress}
-            isUsedInCarousel
-        />
+        <View style={[styles.flex1]}>
+            <View style={[styles.flex1]}>
+                <AttachmentView
+                    source={item.source}
+                    file={item.file}
+                    isAuthTokenRequired={item.isAuthTokenRequired}
+                    isFocused={isFocused}
+                    onPress={onPress}
+                    isUsedInCarousel
+                />
+            </View>
+
+            {item.hasBeenFlagged && renderButton([styles.mv4, styles.mh4, styles.alignSelfCenter])}
+        </View>
     );
 }
 

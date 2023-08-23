@@ -31,8 +31,8 @@ function extractAttachmentsFromReport(report, reportActions) {
                 source: tryResolveUrlFromApiRoot(expensifySource || attribs.src),
                 isAuthTokenRequired: Boolean(expensifySource),
                 file: {name: attribs[CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE]},
-                isHidden: attribs['data-hidden'] === 'true',
                 isReceipt: false,
+                hasBeenFlagged: attribs['data-flagged'] === 'true',
             });
         },
     });
@@ -64,8 +64,8 @@ function extractAttachmentsFromReport(report, reportActions) {
         }
 
         const decision = _.get(action, ['message', 0, 'moderationDecision', 'decision'], '');
-        const isHidden = decision === CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE || decision === CONST.MODERATION.MODERATOR_DECISION_HIDDEN;
-        const html = _.get(action, ['message', 0, 'html'], '').replace('/>', `data-hidden="${isHidden}" />`);
+        const hasBeenFlagged = decision === CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE || decision === CONST.MODERATION.MODERATOR_DECISION_HIDDEN;
+        const html = _.get(action, ['message', 0, 'html'], '').replace('/>', `data-flagged="${hasBeenFlagged}" />`);
         htmlParser.write(html);
     });
     htmlParser.end();
