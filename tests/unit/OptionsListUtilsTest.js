@@ -652,6 +652,95 @@ describe('OptionsListUtils', () => {
         expect(results.personalDetails[0].text).toBe('Spider-Man');
     });
 
+    it('getNewChatOptions() for categories', () => {
+        const smallCategoriesList = {
+            Taxi: {
+                enabled: false,
+                name: 'Taxi',
+            },
+            Restaurant: {
+                enabled: true,
+                name: 'Restaurant',
+            },
+            Food: {
+                enabled: true,
+                name: 'Food',
+            },
+            'Food: Meat': {
+                enabled: true,
+                name: 'Food: Meat',
+            },
+        };
+        const smallResultList = [
+            {
+                title: '',
+                data: [
+                    {
+                        text: 'Taxi',
+                        keyForList: 'Taxi',
+                        searchText: 'Taxi',
+                        tooltipText: 'Taxi',
+                        isDisabled: true,
+                    },
+                    {
+                        text: 'Restaurant',
+                        keyForList: 'Restaurant',
+                        searchText: 'Restaurant',
+                        tooltipText: 'Restaurant',
+                        isDisabled: false,
+                    },
+                    {
+                        text: 'Food',
+                        keyForList: 'Food',
+                        searchText: 'Food',
+                        tooltipText: 'Food',
+                        isDisabled: false,
+                    },
+                    {
+                        text: '    Meat',
+                        keyForList: 'Meat',
+                        searchText: 'Meat',
+                        tooltipText: 'Meat',
+                        isDisabled: false,
+                    },
+                ],
+            },
+        ];
+        // const smallSearchResultList = [];
+        // const smallWrongSearchResultList = [];
+        // const largeCategoriesList = {};
+        // const largeResultList = [];
+        // const largeSearchResultList = [];
+        // const largeWrongSearchResultList = [];
+        // const search = 'Food';
+        const emptySearch = '';
+        // const wrongSearch = 'bla bla';
+
+        const smallResult = OptionsListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, [], emptySearch, [], [], false, false, true, smallCategoriesList, []);
+
+        expect(smallResult.categoryOptions).toStrictEqual(smallResultList);
+
+        // const largeResult = OptionsListUtils.getNewChatOptions(largeCategoriesList);
+
+        // expect(largeResult.categoryOptions).toStrictEqual(largeResultList);
+
+        // const smallSearchResult = OptionsListUtils.getNewChatOptions(smallCategoriesList);
+
+        // expect(smallSearchResult.categoryOptions).toStrictEqual(smallSearchResultList);
+
+        // const smallWrongSearchResult = OptionsListUtils.getNewChatOptions(smallCategoriesList);
+
+        // expect(smallWrongSearchResult.categoryOptions).toStrictEqual(smallWrongSearchResultList);
+
+        // const largeSearchResult = OptionsListUtils.getNewChatOptions(largeCategoriesList);
+
+        // expect(largeSearchResult.categoryOptions).toStrictEqual(largeSearchResultList);
+
+        // const largeWrongSearchResult = OptionsListUtils.getNewChatOptions(largeSearchResultList);
+
+        // expect(largeWrongSearchResult.categoryOptions).toStrictEqual(largeWrongSearchResultList);
+    });
+
     it('getOptionTree()', () => {
         const categories = {
             Taxi: {

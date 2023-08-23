@@ -2593,6 +2593,7 @@ const CONST = {
     },
     INDENTS: '    ',
     PARENT_CHILD_SEPARATOR: ': ',
+    CATEGORY_LIST_THRESHOLD: 8,
 };
 
 export default CONST;

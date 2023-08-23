@@ -618,6 +618,9 @@ function getOptions(
         includeMoneyRequests = false,
         excludeUnknownUsers = false,
         includeP2P = true,
+        includeCategories = false,
+        categories = {},
+        recentlyUsedCategories = {},
     },
 ) {
     if (!isPersonalDetailsReady(personalDetails)) {
@@ -626,6 +629,7 @@ function getOptions(
             personalDetails: [],
             userToInvite: null,
             currentUserOption: null,
+            categoryOptions: [],
         };
     }
 
@@ -871,11 +875,52 @@ function getOptions(
         );
     }
 
+    const categoryOptions = [];
+
+    if (includeCategories) {
+        const categoriesAmount = _.size(categories);
+
+        if (categoriesAmount < CONST.CATEGORY_LIST_THRESHOLD) {
+            categoryOptions.push({
+                title: '', // All
+                data: getOptionTree(categories),
+            });
+        } else if (!_.isEmpty(searchInputValue)) {
+            categoryOptions.push({
+                title: '', // All
+                data: getOptionTree(_.filter(categories, (category) => category.name.toLowerCase().includes(searchInputValue.toLowerCase()))),
+            });
+        } else {
+            recentlyUsedCategories = _.without(recentlyUsedCategories, selectedOptions);
+            categories = _.without(categories, selectedOptions);
+
+            if (!_.isEmpty(selectedOptions)) {
+                categoryOptions.push({
+                    title: '', // Selected
+                    data: getOptionTree(selectedOptions),
+                });
+            }
+
+            if (!_.isEmpty(recentlyUsedCategories)) {
+                categoryOptions.push({
+                    title: 'Recent',
+                    data: getOptionTree(recentlyUsedCategories.slice(0, maxRecentReportsToShow)),
+                });
+            }
+
+            categoryOptions.push({
+                title: 'All',
+                data: getOptionTree(categories),
+            });
+        }
+    }
+
     return {
         personalDetails: personalDetailsOptions,
         recentReports: recentReportOptions,
         userToInvite,
         currentUserOption,
+        categoryOptions,
     };
 }
 
@@ -990,9 +1035,24 @@ function getIOUConfirmationOptionsFromParticipants(participants, amountText) {
  * @param {Array} [excludeLogins]
  * @param {Boolean} [includeOwnedWorkspaceChats]
  * @param {boolean} [includeP2P]
+ * @param {boolean} [includeCategories]
+ * @param {Array<Object>} [categories]
+ * @param {Array<Object>} [recentlyUsedCategories]
  * @returns {Object}
  */
-function getNewChatOptions(reports, personalDetails, betas = [], searchValue = '', selectedOptions = [], excludeLogins = [], includeOwnedWorkspaceChats = false, includeP2P = true) {
+function getNewChatOptions(
+    reports,
+    personalDetails,
+    betas = [],
+    searchValue = '',
+    selectedOptions = [],
+    excludeLogins = [],
+    includeOwnedWorkspaceChats = false,
+    includeP2P = true,
+    includeCategories = false,
+    categories = [],
+    recentlyUsedCategories = [],
+) {
     return getOptions(reports, personalDetails, {
         betas,
         searchInputValue: searchValue.trim(),
@@ -1003,6 +1063,9 @@ function getNewChatOptions(reports, personalDetails, betas = [], searchValue = '
         excludeLogins,
         includeOwnedWorkspaceChats,
         includeP2P,
+        includeCategories,
+        categories,
+        recentlyUsedCategories,
     });
 }
 
