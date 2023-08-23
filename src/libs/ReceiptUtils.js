@@ -38,6 +38,11 @@ function validateReceipt(file) {
  * @returns {Object}
  */
 function getThumbnailAndImageURIs(path, filename = '') {
+    // For things that don't actually have files we will show the generic receipt icon.
+    if (!filename) {
+        return {thumbnail: null, image: ReceiptGeneric};
+    }
+
     // For local files, we won't have a thumbnail yet
     if (path.startsWith('blob:') || path.startsWith('file:')) {
         return {thumbnail: null, image: path};
