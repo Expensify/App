@@ -3,16 +3,13 @@ import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import BlockingView from './BlockingView';
 import * as Illustrations from '../Icon/Illustrations';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import HeaderWithBackButton from '../HeaderWithBackButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import variables from '../../styles/variables';
 import styles from '../../styles/styles';
+import useLocalize from '../../hooks/useLocalize';
 
 const propTypes = {
-    /** Props to fetch translation features */
-    ...withLocalizePropTypes,
-
     /** Child elements */
     children: PropTypes.node,
 
@@ -54,35 +51,36 @@ const defaultProps = {
 };
 
 // eslint-disable-next-line rulesdir/no-negated-variables
-function FullPageNotFoundView(props) {
-    if (props.shouldShow) {
+function FullPageNotFoundView({children, shouldShow, titleKey, subtitleKey, linkKey, onBackButtonPress, shouldShowLink, shouldShowBackButton, onLinkPress}) {
+    const {translate} = useLocalize();
+    if (shouldShow) {
         return (
             <>
                 <HeaderWithBackButton
-                    onBackButtonPress={props.onBackButtonPress}
-                    shouldShowBackButton={props.shouldShowBackButton}
+                    onBackButtonPress={onBackButtonPress}
+                    shouldShowBackButton={shouldShowBackButton}
                 />
                 <View style={[styles.flex1, styles.blockingViewContainer]}>
                     <BlockingView
                         icon={Illustrations.ToddBehindCloud}
                         iconWidth={variables.modalTopIconWidth}
                         iconHeight={variables.modalTopIconHeight}
-                        title={props.translate(props.titleKey)}
-                        subtitle={props.translate(props.subtitleKey)}
-                        link={props.translate(props.linkKey)}
-                        shouldShowLink={props.shouldShowLink}
-                        onLinkPress={props.onLinkPress}
+                        title={translate(titleKey)}
+                        subtitle={translate(subtitleKey)}
+                        linkKey={linkKey}
+                        shouldShowLink={shouldShowLink}
+                        onLinkPress={onLinkPress}
                     />
                 </View>
             </>
         );
     }
 
-    return props.children;
+    return children;
 }
 
 FullPageNotFoundView.propTypes = propTypes;
 FullPageNotFoundView.defaultProps = defaultProps;
 FullPageNotFoundView.displayName = 'FullPageNotFoundView';
 
-export default withLocalize(FullPageNotFoundView);
+export default FullPageNotFoundView;

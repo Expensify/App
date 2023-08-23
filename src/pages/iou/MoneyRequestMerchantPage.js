@@ -109,6 +109,7 @@ function MoneyRequestMerchantPage({iou, route}) {
                         inputID="moneyRequestMerchant"
                         name="moneyRequestMerchant"
                         defaultValue={iou.merchant}
+                        maxLength={CONST.MERCHANT_NAME_MAX_LENGTH}
                         label={translate('common.merchant')}
                         accessibilityLabel={translate('common.merchant')}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
