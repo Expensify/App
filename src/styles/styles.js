@@ -229,6 +229,11 @@ const styles = {
         color: themeColors.textSupporting,
     },
 
+    appIconBorderRadius: {
+        overflow: 'hidden',
+        borderRadius: 12,
+    },
+
     unitCol: {
         margin: 0,
         padding: 0,
@@ -3639,6 +3644,7 @@ const styles = {
         height: 40,
         marginLeft: 12,
         alignItems: 'center',
+        overflowY: 'hidden',
     },
 
     googlePillButtonContainer: {
