@@ -663,6 +663,7 @@ const CONST = {
         SYSTEM: 'system',
     },
     TRANSACTION: {
+        DEFAULT_MERCHANT: 'Request',
         TYPE: {
             CUSTOM_UNIT: 'customUnit',
         },

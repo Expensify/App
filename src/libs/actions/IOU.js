@@ -1006,6 +1006,7 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
                     amount: null,
                     created: null,
                     currency: null,
+                    merchant: null,
                 },
             },
         },
