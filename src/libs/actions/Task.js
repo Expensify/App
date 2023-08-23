@@ -651,6 +651,15 @@ function setAssigneeValue(assigneeEmail, assigneeAccountID, shareDestination, is
 
     if (!isCurrentUser) {
         chatReport = ReportUtils.getChatByParticipantsByLoginList([assigneeEmail]) || ReportUtils.getChatByParticipants([assigneeAccountID]);
+        if (!lodashGet(allPersonalDetails, [assigneeAccountID], undefined) && chatReport) {
+            const optimisticPersonalDetailsListAction = {
+                accountID: assigneeAccountID,
+                avatar: UserUtils.getDefaultAvatarURL(assigneeAccountID),
+                displayName: assigneeEmail,
+                login: assigneeEmail,
+            };
+            Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[assigneeAccountID]: optimisticPersonalDetailsListAction});
+        }
         if (!chatReport) {
             chatReport = ReportUtils.buildOptimisticChatReport([assigneeAccountID]);
             chatReport.isOptimisticReport = true;
