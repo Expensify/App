@@ -67,16 +67,23 @@ function SidebarLinksData({isFocused, allReportActions, betas, chatReports, curr
     const {translate} = useLocalize();
 
     const reportIDsRef = useRef([]);
+    const isLoading = SessionUtils.didUserLogInDuringSession() && isLoadingReportData;
     const optionListItems = useMemo(() => {
+        if (_.isEmpty(chatReports) || _.isEmpty(betas) || _.isEmpty(policies) || _.isEmpty(priorityMode) || _.isEmpty(allReportActions)) {
+            return [];
+        }
         const reportIDs = SidebarUtils.getOrderedReportIDs(currentReportID, chatReports, betas, policies, priorityMode, allReportActions);
         if (deepEqual(reportIDsRef.current, reportIDs)) {
             return reportIDsRef.current;
         }
-        reportIDsRef.current = reportIDs;
-        return reportIDs;
-    }, [allReportActions, betas, chatReports, currentReportID, policies, priorityMode]);
-
-    const isLoading = SessionUtils.didUserLogInDuringSession() && isLoadingReportData;
+        if (isLoading && reportIDsRef.current.length === 0 && !currentReportID) {
+            reportIDsRef.current = reportIDs;
+        }
+        if (!isLoading) {
+            reportIDsRef.current = reportIDs;
+        }
+        return reportIDsRef.current;
+    }, [allReportActions, betas, chatReports, currentReportID, policies, priorityMode, isLoading]);
 
     return (
         <View
