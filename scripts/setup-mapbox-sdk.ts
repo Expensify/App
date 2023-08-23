@@ -37,7 +37,7 @@ const NETRC_PATH = path.join(process.env.HOME || '', '.netrc');
 const USER_GRADLE_DIR = path.join(process.env.HOME || '', '.gradle');
 const GRADLE_PROPERTIES_PATH = path.join(USER_GRADLE_DIR, 'gradle.properties');
 
-export async function saveMapboxToken(token: string) {
+export function saveMapboxToken(token: string) {
     try {
         // iOS Configuration for .netrc
         console.log(`Configuring ${NETRC_PATH} for Mapbox iOS SDK download`);
@@ -51,7 +51,7 @@ export async function saveMapboxToken(token: string) {
         }
 
         // Set the permissions of the .netrc file to ensure it's kept private
-        await fs.chmodSync(NETRC_PATH, 0o600);
+        fs.chmodSync(NETRC_PATH, 0o600);
 
         // Ensure the .gradle directory exists
         if (!fs.existsSync(USER_GRADLE_DIR)) {
