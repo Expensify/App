@@ -120,6 +120,9 @@ const propTypes = {
     /** A ref to forward the button */
     // eslint-disable-next-line react/forbid-prop-types
     forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.object})]),
+
+    /** Whether the long press is disabled */
+    isDisabledLongPress: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -155,6 +158,7 @@ const defaultProps = {
     nativeID: '',
     accessibilityLabel: '',
     forwardedRef: undefined,
+    isDisabledLongPress: false,
 };
 
 class Button extends Component {
@@ -269,6 +273,7 @@ class Button extends Component {
                     return this.props.onPress(e);
                 }}
                 onLongPress={(e) => {
+                    if (this.props.isDisabledLongPress) return;
                     if (this.props.shouldEnableHapticFeedback) {
                         HapticFeedback.longPress();
                     }
