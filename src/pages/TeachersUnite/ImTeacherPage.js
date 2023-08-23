@@ -30,7 +30,7 @@ function ImTeacherPage() {
                 icon={Illustrations.EmailAddress}
                 title={translate('teachersUnitePage.updateYourEmail')}
                 subtitle={translate('teachersUnitePage.schoolMailAsDefault')}
-                link={` ${translate('teachersUnitePage.contactMethods')}`}
+                linkKey="teachersUnitePage.contactMethods"
                 onLinkPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS)}
                 iconWidth={variables.signInLogoWidthLargeScreen}
                 iconHeight={variables.lhnLogoWidth}

@@ -65,7 +65,6 @@ function BlockingView(props) {
                 />
                 {props.shouldShowLink ? (
                     <TextLink
-                        // suppressHighlighting
                         onPress={props.onLinkPress}
                         style={[styles.link, styles.mt2]}
                     >
