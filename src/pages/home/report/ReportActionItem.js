@@ -243,9 +243,10 @@ function ReportActionItem(props) {
     /**
      * Get the content of ReportActionItem
      * @param {Boolean} hovered whether the ReportActionItem is hovered
+     * @param {Boolean} hasErrors whether the report action has any errors
      * @returns {Object} child component(s)
      */
-    const renderItemContent = (hovered = false) => {
+    const renderItemContent = (hovered = false, hasErrors = false) => {
         let children;
         const originalMessage = lodashGet(props.action, 'originalMessage', {});
 
@@ -401,6 +402,7 @@ function ReportActionItem(props) {
                         <ReportActionItemEmojiReactions
                             reportActionID={props.action.reportActionID}
                             emojiReactions={props.emojiReactions}
+                            shouldBlockReactions={hasErrors}
                             toggleReaction={(emoji) => {
                                 if (Session.isAnonymousUser()) {
                                     hideContextMenu(false);
@@ -436,10 +438,11 @@ function ReportActionItem(props) {
      * Get ReportActionItem with a proper wrapper
      * @param {Boolean} hovered whether the ReportActionItem is hovered
      * @param {Boolean} isWhisper whether the ReportActionItem is a whisper
+     * @param {Boolean} hasErrors whether the report action has any errors
      * @returns {Object} report action item
      */
-    const renderReportActionItem = (hovered, isWhisper) => {
-        const content = renderItemContent(hovered || isContextMenuActive);
+    const renderReportActionItem = (hovered, isWhisper, hasErrors) => {
+        const content = renderItemContent(hovered || isContextMenuActive, hasErrors);
 
         if (props.draftMessage) {
             return <ReportActionItemDraft>{content}</ReportActionItemDraft>;
@@ -592,7 +595,7 @@ function ReportActionItem(props) {
                                         />
                                     </View>
                                 )}
-                                {renderReportActionItem(hovered, isWhisper)}
+                                {renderReportActionItem(hovered, isWhisper, hasErrors)}
                             </OfflineWithFeedback>
                         </View>
                     </View>
