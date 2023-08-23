@@ -18,12 +18,8 @@ import ReportScreenContext from '../../pages/home/ReportScreenContext';
 const propTypes = {
     emojiReactions: EmojiReactionsPropTypes,
 
-    /** The report action belonging to the emoji reaction */
-    reportAction: PropTypes.shape({
-        reportActionID: PropTypes.string.isRequired,
-        // eslint-disable-next-line react/forbid-prop-types
-        errors: PropTypes.object,
-    }),
+    /** The ID of the reportAction. It is the string representation of the a 64-bit integer. */
+    reportActionID: PropTypes.string.isRequired,
 
     /**
      * Function to call when the user presses on an emoji.
@@ -32,16 +28,19 @@ const propTypes = {
      */
     toggleReaction: PropTypes.func.isRequired,
 
+    /** A bool indicating if the current report action has any errors */
+    hasReportActionErrors: PropTypes.bool,
+
     ...withCurrentUserPersonalDetailsPropTypes,
 };
 
 const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
     emojiReactions: {},
+    hasReportActionErrors: false,
 };
 
 function ReportActionItemEmojiReactions(props) {
-    const hasErrors = !_.isEmpty(props.reportAction.errors);
     const {reactionListRef} = useContext(ReportScreenContext);
     const popoverReactionListAnchor = useRef(null);
     let totalReactionCount = 0;
@@ -96,7 +95,7 @@ function ReportActionItemEmojiReactions(props) {
         };
 
         const onReactionListOpen = (event) => {
-            reactionListRef.current.showReactionList(event, popoverReactionListAnchor.current, reactionEmojiName, props.reportAction.reportActionID);
+            reactionListRef.current.showReactionList(event, popoverReactionListAnchor.current, reactionEmojiName, props.reportActionID);
         };
 
         return {
@@ -143,16 +142,16 @@ function ReportActionItemEmojiReactions(props) {
                                     reactionUsers={reaction.reactionUsers}
                                     hasUserReacted={reaction.hasUserReacted}
                                     onReactionListOpen={reaction.onReactionListOpen}
-                                    isReactionBlocked={hasErrors}
+                                    isReactionBlocked={props.hasReportActionErrors}
                                 />
                             </View>
                         </Tooltip>
                     );
                 })}
-                {!hasErrors && (
+                {!props.hasReportActionErrors && (
                     <AddReactionBubble
                         onSelectEmoji={props.toggleReaction}
-                        reportAction={{reportActionID: props.reportAction.reportActionID}}
+                        reportAction={{reportActionID: props.reportActionID}}
                     />
                 )}
             </View>

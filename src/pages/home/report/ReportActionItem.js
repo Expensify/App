@@ -245,7 +245,7 @@ function ReportActionItem(props) {
      * @param {Boolean} hovered whether the ReportActionItem is hovered
      * @returns {Object} child component(s)
      */
-    const renderItemContent = (hovered = false) => {
+    const renderItemContent = (hovered = false, hasErrors = false) => {
         let children;
         const originalMessage = lodashGet(props.action, 'originalMessage', {});
 
@@ -399,8 +399,9 @@ function ReportActionItem(props) {
                 {!ReportActionsUtils.isMessageDeleted(props.action) && (
                     <View style={draftMessageRightAlign}>
                         <ReportActionItemEmojiReactions
-                            reportAction={props.action}
+                            reportActionID={props.action.reportActionID}
                             emojiReactions={props.emojiReactions}
+                            hasReportActionErrors={hasErrors}
                             toggleReaction={(emoji) => {
                                 if (Session.isAnonymousUser()) {
                                     hideContextMenu(false);
@@ -438,8 +439,8 @@ function ReportActionItem(props) {
      * @param {Boolean} isWhisper whether the ReportActionItem is a whisper
      * @returns {Object} report action item
      */
-    const renderReportActionItem = (hovered, isWhisper) => {
-        const content = renderItemContent(hovered || isContextMenuActive);
+    const renderReportActionItem = (hovered, isWhisper, hasErrors) => {
+        const content = renderItemContent(hovered || isContextMenuActive, hasErrors);
 
         if (props.draftMessage) {
             return <ReportActionItemDraft>{content}</ReportActionItemDraft>;
@@ -592,7 +593,7 @@ function ReportActionItem(props) {
                                         />
                                     </View>
                                 )}
-                                {renderReportActionItem(hovered, isWhisper)}
+                                {renderReportActionItem(hovered, isWhisper, hasErrors)}
                             </OfflineWithFeedback>
                         </View>
                     </View>
