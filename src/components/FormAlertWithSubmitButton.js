@@ -46,6 +46,9 @@ const propTypes = {
 
     /** Custom content to display in the footer after submit button */
     footerContent: PropTypes.oneOfType([PropTypes.func, PropTypes.node]),
+
+    /** Style for the button */
+    buttonStyle: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 };
 
 const defaultProps = {
@@ -59,6 +62,7 @@ const defaultProps = {
     disablePressOnEnter: false,
     isSubmitActionDangerous: false,
     footerContent: null,
+    buttonStyle: {},
 };
 
 function FormAlertWithSubmitButton(props) {
@@ -79,7 +83,7 @@ function FormAlertWithSubmitButton(props) {
                             success
                             isDisabled
                             text={props.buttonText}
-                            style={buttonMarginStyle}
+                            style={[buttonMarginStyle, props.buttonStyle]}
                             danger={props.isSubmitActionDangerous}
                         />
                     ) : (
@@ -87,7 +91,7 @@ function FormAlertWithSubmitButton(props) {
                             success
                             pressOnEnter={!props.disablePressOnEnter}
                             text={props.buttonText}
-                            style={buttonMarginStyle}
+                            style={[buttonMarginStyle, props.buttonStyle]}
                             onPress={props.onSubmit}
                             isDisabled={props.isDisabled}
                             isLoading={props.isLoading}

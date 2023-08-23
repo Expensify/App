@@ -82,6 +82,9 @@ const propTypes = {
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
+    /** Style for the button */
+    submitButtonStyle: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
+
     ...withLocalizePropTypes,
 };
 
@@ -99,6 +102,7 @@ const defaultProps = {
     footerContent: null,
     style: [],
     validate: () => ({}),
+    submitButtonStyle: {}
 };
 
 function Form(props) {
@@ -397,6 +401,7 @@ function Form(props) {
                         containerStyles={[styles.mh0, styles.mt5, styles.flex1]}
                         enabledWhenOffline={props.enabledWhenOffline}
                         isSubmitActionDangerous={props.isSubmitActionDangerous}
+                        buttonStyle={props.submitButtonStyle}
                         disablePressOnEnter
                     />
                 )}
@@ -419,6 +424,7 @@ function Form(props) {
             props.isSubmitActionDangerous,
             props.isSubmitButtonVisible,
             props.submitButtonText,
+            props.submitButtonStyle,
         ],
     );
 

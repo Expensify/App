@@ -93,6 +93,7 @@ function TimePicker({forwardedRef, onSubmitButtonPress, defaultValue}) {
 
     const hourInputRef = useRef(null);
     const minuteInputRef = useRef(null);
+    const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
 
     /**
      * Submit amount and navigate to a proper page
@@ -302,6 +303,17 @@ function TimePicker({forwardedRef, onSubmitButtonPress, defaultValue}) {
         };
     }, [amPmValue]);
 
+    const numberPad = useCallback(() => {
+        if (!canUseTouchScreen) return null;
+        return (
+            <BigNumberPad
+                nativeID={NUM_PAD_VIEW_ID}
+                numberPressed={updateAmountNumberPad}
+                isDisabledLongPress
+            />
+        );
+    }, [canUseTouchScreen, updateAmountNumberPad]);
+
     return (
         <>
             <View style={[styles.flex1, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}>
@@ -362,7 +374,7 @@ function TimePicker({forwardedRef, onSubmitButtonPress, defaultValue}) {
                         text="AM"
                         onLongPress={() => {}}
                         onPress={() => {
-                            setAmPmValue('AM');
+                            setAmPmValue(CONST.TIME_PERIOD.AM);
                         }}
                         onPressOut={() => {}}
                         onMouseDown={(e) => e.preventDefault()}
@@ -373,7 +385,7 @@ function TimePicker({forwardedRef, onSubmitButtonPress, defaultValue}) {
                         text="PM"
                         onLongPress={() => {}}
                         onPress={() => {
-                            setAmPmValue('PM');
+                            setAmPmValue(CONST.TIME_PERIOD.PM);
                         }}
                         onPressOut={() => {}}
                         onMouseDown={(e) => e.preventDefault()}
@@ -384,13 +396,7 @@ function TimePicker({forwardedRef, onSubmitButtonPress, defaultValue}) {
                 style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper]}
                 nativeID={NUM_PAD_CONTAINER_VIEW_ID}
             >
-                {DeviceCapabilities.canUseTouchScreen() ? (
-                    <BigNumberPad
-                        nativeID={NUM_PAD_VIEW_ID}
-                        numberPressed={updateAmountNumberPad}
-                        isDisabledLongPress
-                    />
-                ) : null}
+                {numberPad()}
                 <Button
                     success
                     style={[styles.w100, styles.mt5]}
