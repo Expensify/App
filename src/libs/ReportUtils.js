@@ -766,7 +766,7 @@ function canDeleteReportAction(reportAction, reportID) {
  */
 
 function getRoomWelcomeMessage(report, isUserPolicyAdmin) {
-    const welcomeMessage = {};
+    const welcomeMessage = {showReportName: true};
     const workspaceName = getPolicyName(report);
 
     if (isArchivedRoom(report)) {
@@ -780,6 +780,7 @@ function getRoomWelcomeMessage(report, isUserPolicyAdmin) {
         welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminRoomPartTwo');
     } else if (isAdminsOnlyPostingRoom(report) && !isUserPolicyAdmin) {
         welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminOnlyPostingRoom');
+        welcomeMessage.showReportName = false;
     } else if (isAnnounceRoom(report)) {
         welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAnnounceRoomPartOne', {workspaceName});
         welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAnnounceRoomPartTwo', {workspaceName});
