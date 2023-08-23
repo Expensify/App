@@ -28,8 +28,8 @@ const propTypes = {
      */
     toggleReaction: PropTypes.func.isRequired,
 
-    /** A bool indicating if the current report action has any errors */
-    hasReportActionErrors: PropTypes.bool,
+    /** A bool indicating if the user can add or remove reactions from current action */
+    isReactionBlocked: PropTypes.bool,
 
     ...withCurrentUserPersonalDetailsPropTypes,
 };
@@ -37,7 +37,7 @@ const propTypes = {
 const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
     emojiReactions: {},
-    hasReportActionErrors: false,
+    isReactionBlocked: false,
 };
 
 function ReportActionItemEmojiReactions(props) {
@@ -142,13 +142,13 @@ function ReportActionItemEmojiReactions(props) {
                                     reactionUsers={reaction.reactionUsers}
                                     hasUserReacted={reaction.hasUserReacted}
                                     onReactionListOpen={reaction.onReactionListOpen}
-                                    isReactionBlocked={props.hasReportActionErrors}
+                                    isReactionBlocked={props.isReactionBlocked}
                                 />
                             </View>
                         </Tooltip>
                     );
                 })}
-                {!props.hasReportActionErrors && (
+                {!props.isReactionBlocked && (
                     <AddReactionBubble
                         onSelectEmoji={props.toggleReaction}
                         reportAction={{reportActionID: props.reportActionID}}
