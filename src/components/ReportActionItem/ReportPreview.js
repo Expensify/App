@@ -105,10 +105,10 @@ function ReportPreview(props) {
     const numberOfRequests = ReportActionUtils.getNumberOfMoneyRequests(props.action);
     const moneyRequestComment = lodashGet(props.action, 'childLastMoneyRequestComment', '');
 
-    const transactionsWithReceipts = ReportUtils.getTransactionsWithReceipts(props.iouReport);
+    const transactionsWithReceipts = ReportUtils.getTransactionsWithReceipts(props.iouReportID);
     const numberOfScanningReceipts = _.filter(transactionsWithReceipts, (transaction) => TransactionUtils.isReceiptBeingScanned(transaction)).length;
     const hasReceipts = transactionsWithReceipts.length > 0;
-    const isScanning = hasReceipts && ReportUtils.areAllRequestsBeingSmartScanned(props.iouReport, props.action);
+    const isScanning = hasReceipts && ReportUtils.areAllRequestsBeingSmartScanned(props.iouReportID, props.action);
     const lastThreeTransactionsWithReceipts = ReportUtils.getReportPreviewDisplayTransactions(props.action);
 
     const hasOnlyOneReceiptRequest = numberOfRequests === 1 && hasReceipts;

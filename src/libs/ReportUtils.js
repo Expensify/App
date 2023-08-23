@@ -91,6 +91,44 @@ function getPolicy(policyID) {
 }
 
 /**
+ * Get the policy type from a given report
+ * @param {Object} report
+ * @param {String} report.policyID
+ * @param {Object} policies must have Onyxkey prefix (i.e 'policy_') for keys
+ * @returns {String}
+ */
+function getPolicyType(report, policies) {
+    return lodashGet(policies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'type'], '');
+}
+
+/**
+ * Get the policy name from a given report
+ * @param {Object} report
+ * @param {String} report.policyID
+ * @param {String} report.oldPolicyName
+ * @param {String} report.policyName
+ * @param {Boolean} [returnEmptyIfNotFound]
+ * @param {Object} [policy]
+ * @returns {String}
+ */
+function getPolicyName(report, returnEmptyIfNotFound = false, policy = undefined) {
+    const noPolicyFound = returnEmptyIfNotFound ? '' : Localize.translateLocal('workspace.common.unavailable');
+    if (_.isEmpty(report)) {
+        return noPolicyFound;
+    }
+
+    if ((!allPolicies || _.size(allPolicies) === 0) && !report.policyName) {
+        return Localize.translateLocal('workspace.common.unavailable');
+    }
+    const finalPolicy = policy || _.get(allPolicies, `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`);
+
+    // Public rooms send back the policy name with the reportSummary,
+    // since they can also be accessed by people who aren't in the workspace
+
+    return lodashGet(finalPolicy, 'name') || report.policyName || report.oldPolicyName || noPolicyFound;
+}
+
+/**
  * Returns the concatenated title for the PrimaryLogins of a report
  *
  * @param {Array} accountIDs
@@ -317,17 +355,6 @@ function isDomainRoom(report) {
  */
 function isUserCreatedPolicyRoom(report) {
     return getChatType(report) === CONST.REPORT.CHAT_TYPE.POLICY_ROOM;
-}
-
-/**
- * Get the policy type from a given report
- * @param {Object} report
- * @param {String} report.policyID
- * @param {Object} policies must have Onyxkey prefix (i.e 'policy_') for keys
- * @returns {String}
- */
-function getPolicyType(report, policies) {
-    return lodashGet(policies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'type'], '');
 }
 
 /**
@@ -559,33 +586,6 @@ function isArchivedRoom(report) {
 }
 
 /**
- * Get the policy name from a given report
- * @param {Object} report
- * @param {String} report.policyID
- * @param {String} report.oldPolicyName
- * @param {String} report.policyName
- * @param {Boolean} [returnEmptyIfNotFound]
- * @param {Object} [policy]
- * @returns {String}
- */
-function getPolicyName(report, returnEmptyIfNotFound = false, policy = undefined) {
-    const noPolicyFound = returnEmptyIfNotFound ? '' : Localize.translateLocal('workspace.common.unavailable');
-    if (_.isEmpty(report)) {
-        return noPolicyFound;
-    }
-
-    if ((!allPolicies || _.size(allPolicies) === 0) && !report.policyName) {
-        return Localize.translateLocal('workspace.common.unavailable');
-    }
-    const finalPolicy = policy || _.get(allPolicies, `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`);
-
-    // Public rooms send back the policy name with the reportSummary,
-    // since they can also be accessed by people who aren't in the workspace
-
-    return lodashGet(finalPolicy, 'name') || report.policyName || report.oldPolicyName || noPolicyFound;
-}
-
-/**
  * Checks if the current user is allowed to comment on the given report.
  * @param {Object} report
  * @param {String} [report.writeCapability]
@@ -796,7 +796,7 @@ function canDeleteReportAction(reportAction, reportID) {
  */
 
 function getRoomWelcomeMessage(report, isUserPolicyAdmin) {
-    const welcomeMessage = {};
+    const welcomeMessage = {showReportName: true};
     const workspaceName = getPolicyName(report);
 
     if (isArchivedRoom(report)) {
@@ -810,6 +810,7 @@ function getRoomWelcomeMessage(report, isUserPolicyAdmin) {
         welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminRoomPartTwo');
     } else if (isAdminsOnlyPostingRoom(report) && !isUserPolicyAdmin) {
         welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminOnlyPostingRoom');
+        welcomeMessage.showReportName = false;
     } else if (isAnnounceRoom(report)) {
         welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAnnounceRoomPartOne', {workspaceName});
         welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAnnounceRoomPartTwo', {workspaceName});
@@ -1299,12 +1300,11 @@ function getTransactionDetails(transaction) {
 /**
  * Gets all transactions on an IOU report with a receipt
  *
- * @param {Object|null} iouReport
+ * @param {Object|null} iouReportID
  * @returns {[Object]}
  */
-function getTransactionsWithReceipts(iouReport) {
-    const reportID = lodashGet(iouReport, 'reportID');
-    const reportActions = ReportActionsUtils.getAllReportActions(reportID);
+function getTransactionsWithReceipts(iouReportID) {
+    const reportActions = ReportActionsUtils.getAllReportActions(iouReportID);
     return _.reduce(
         reportActions,
         (transactions, action) => {
@@ -1327,17 +1327,17 @@ function getTransactionsWithReceipts(iouReport) {
  * or as soon as one receipt request is done scanning, we have at least one
  * "ready" money request, and we remove this indicator to show the partial report total.
  *
- * @param {Object|null} iouReport
+ * @param {Object|null} iouReportID
  * @param {Object|null} reportPreviewAction the preview action associated with the IOU report
  * @returns {Boolean}
  */
-function areAllRequestsBeingSmartScanned(iouReport, reportPreviewAction) {
-    const transactions = getTransactionsWithReceipts(iouReport);
+function areAllRequestsBeingSmartScanned(iouReportID, reportPreviewAction) {
+    const transactionsWithReceipts = getTransactionsWithReceipts(iouReportID);
     // If we have more requests than requests with receipts, we have some manual requests
-    if (ReportActionsUtils.getNumberOfMoneyRequests(reportPreviewAction) > transactions.length) {
+    if (ReportActionsUtils.getNumberOfMoneyRequests(reportPreviewAction) > transactionsWithReceipts.length) {
         return false;
     }
-    return _.all(transactions, (transaction) => TransactionUtils.isReceiptBeingScanned(transaction));
+    return _.all(transactionsWithReceipts, (transaction) => TransactionUtils.isReceiptBeingScanned(transaction));
 }
 
 /**
@@ -2731,11 +2731,6 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas,
         return true;
     }
 
-    // Exclude policy expense chats if the user isn't in the policy expense chat beta
-    if (isPolicyExpenseChat(report) && !Permissions.canUsePolicyExpenseChat(betas)) {
-        return false;
-    }
-
     // Hide chats between two users that haven't been commented on from the LNH
     if (excludeEmptyChats && isEmptyChat && isChatReport(report) && !isChatRoom(report) && !isPolicyExpenseChat(report)) {
         return false;
@@ -3189,6 +3184,24 @@ function getReportOfflinePendingActionAndErrors(report) {
     return {addWorkspaceRoomOrChatPendingAction, addWorkspaceRoomOrChatErrors};
 }
 
+/**
+ * @param {String} policyOwner
+ * @returns {String|null}
+ */
+function getPolicyExpenseChatReportIDByOwner(policyOwner) {
+    const policyWithOwner = _.find(allPolicies, (policy) => policy.owner === policyOwner);
+    if (!policyWithOwner) {
+        return null;
+    }
+
+    const expenseChat = _.find(allReports, (report) => isPolicyExpenseChat(report) && report.policyID === policyWithOwner.id);
+    if (!expenseChat) {
+        return null;
+    }
+    return expenseChat.reportID;
+}
+
+>>>>>>> main
 /*
  * @param {Object|null} report
  * @returns {Boolean}
@@ -3481,6 +3494,7 @@ export {
     getReportOfflinePendingActionAndErrors,
     isDM,
     getPolicy,
+    getPolicyExpenseChatReportIDByOwner,
     shouldDisableSettings,
     shouldDisableRename,
     hasSingleParticipant,

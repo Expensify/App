@@ -112,6 +112,8 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, polic
         receiptURIs = ReceiptUtils.getThumbnailAndImageURIs(transaction.receipt.source, transaction.filename);
     }
 
+    const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
+
     return (
         <View>
             <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth), StyleUtils.getMinimumHeight(CONST.EMPTY_STATE_BACKGROUND.MONEY_REPORT.MIN_HEIGHT)]}>
@@ -148,6 +150,7 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, polic
                     title={transactionDescription}
                     disabled={isSettled || !canEdit}
                     shouldShowRightIcon={canEdit}
+                    titleStyle={styles.flex1}
                     onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DESCRIPTION))}
                 />
             </OfflineWithFeedback>
@@ -157,15 +160,15 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, polic
                     title={transactionDate}
                     disabled={isSettled || !canEdit}
                     shouldShowRightIcon={canEdit}
+                    titleStyle={styles.flex1}
                     onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DATE))}
                 />
             </OfflineWithFeedback>
             <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.merchant') || lodashGet(transaction, 'pendingAction')}>
                 <MenuItemWithTopDescription
-                    description={translate('common.merchant')}
+                    description={isDistanceRequest ? translate('tabSelector.distance') : translate('common.merchant')}
                     title={transactionMerchant}
                     shouldShowRightIcon={false}
-                    disabled
                 />
             </OfflineWithFeedback>
             {shouldShowHorizontalRule && <View style={styles.reportHorizontalRule} />}
