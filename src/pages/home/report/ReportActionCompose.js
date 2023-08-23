@@ -372,6 +372,17 @@ function ReportActionCompose({
         focusWithDelay(textInputRef.current)(shouldDelay);
     }, []);
 
+    const isNextModalWillOpenRef = useRef(false);
+    const isKeyboardVisibleWhenShowingModalRef = useRef(false);
+
+    const restoreKeyboardState = useCallback(() => {
+        if (!isKeyboardVisibleWhenShowingModalRef.current) {
+            return;
+        }
+        focus(true);
+        isKeyboardVisibleWhenShowingModalRef.current = false;
+    }, [focus]);
+
     /**
      * Update the value of the comment in Onyx
      *
@@ -380,7 +391,7 @@ function ReportActionCompose({
      */
     const updateComment = useCallback(
         (commentValue, shouldDebounceSaveComment) => {
-            const {text: newComment = '', emojis = []} = EmojiUtils.replaceEmojis(commentValue, preferredSkinTone, preferredLocale);
+            const {text: newComment, emojis} = EmojiUtils.replaceAndExtractEmojis(commentValue, preferredSkinTone, preferredLocale);
 
             if (!_.isEmpty(emojis)) {
                 insertedEmojisRef.current = [...insertedEmojisRef.current, ...emojis];
@@ -659,7 +670,7 @@ function ReportActionCompose({
             }
 
             focus(false);
-        });
+        }, true);
     }, [focus, isFocusedProp]);
 
     /**
@@ -897,7 +908,7 @@ function ReportActionCompose({
                 const lastReportAction = _.find([...reportActions, parentReportAction], (action) => ReportUtils.canEditReportAction(action));
 
                 if (lastReportAction !== -1 && lastReportAction) {
-                    Report.saveReportActionDraft(reportID, lastReportAction, _.last(lastReportAction.message).html);
+                    Report.saveReportActionDraft(reportID, lastReportAction.reportActionID, _.last(lastReportAction.message).html);
                 }
             }
         },
@@ -943,7 +954,8 @@ function ReportActionCompose({
         shouldBlockEmojiCalc.current = false;
         shouldBlockMentionCalc.current = false;
         setIsAttachmentPreviewActive(false);
-    }, []);
+        restoreKeyboardState();
+    }, [restoreKeyboardState]);
 
     useEffect(() => {
         const unsubscribeNavigationBlur = navigation.addListener('blur', () => KeyDownListener.removeKeyDownPressListner(focusComposerOnKeyPress));
@@ -970,7 +982,7 @@ function ReportActionCompose({
         }
 
         return () => {
-            ReportActionComposeFocusManager.clear();
+            ReportActionComposeFocusManager.clear(true);
 
             KeyDownListener.removeKeyDownPressListner(focusComposerOnKeyPress);
             unsubscribeNavigationBlur();
@@ -982,10 +994,13 @@ function ReportActionCompose({
     const prevIsModalVisible = usePrevious(modal.isVisible);
     const prevIsFocused = usePrevious(isFocusedProp);
     useEffect(() => {
+        if (modal.isVisible && !prevIsModalVisible) {
+            isNextModalWillOpenRef.current = false;
+        }
         // We want to focus or refocus the input when a modal has been closed or the underlying screen is refocused.
         // We avoid doing this on native platforms since the software keyboard popping
         // open creates a jarring and broken UX.
-        if (!(willBlurTextInputOnTapOutside && !modal.isVisible && isFocusedProp && (prevIsModalVisible || !prevIsFocused))) {
+        if (!(willBlurTextInputOnTapOutside && !isNextModalWillOpenRef.current && !modal.isVisible && isFocusedProp && (prevIsModalVisible || !prevIsFocused))) {
             return;
         }
 
@@ -1063,8 +1078,10 @@ function ReportActionCompose({
                                                 shouldBlockEmojiCalc.current = true;
                                                 shouldBlockMentionCalc.current = true;
                                             }
+                                            isNextModalWillOpenRef.current = true;
                                             openPicker({
                                                 onPicked: displayFileInModal,
+                                                onCanceled: restoreKeyboardState,
                                             });
                                         };
                                         const menuItems = [
@@ -1133,6 +1150,10 @@ function ReportActionCompose({
                                                             ref={actionButtonRef}
                                                             onPress={(e) => {
                                                                 e.preventDefault();
+                                                                if (!willBlurTextInputOnTapOutside) {
+                                                                    isKeyboardVisibleWhenShowingModalRef.current = textInputRef.current.isFocused();
+                                                                }
+                                                                textInputRef.current.blur();
 
                                                                 // Drop focus to avoid blue focus ring.
                                                                 actionButtonRef.current.blur();
@@ -1150,7 +1171,10 @@ function ReportActionCompose({
                                                 <PopoverMenu
                                                     animationInTiming={CONST.ANIMATION_IN_TIMING}
                                                     isVisible={isMenuVisible}
-                                                    onClose={() => setMenuVisibility(false)}
+                                                    onClose={() => {
+                                                        setMenuVisibility(false);
+                                                        restoreKeyboardState();
+                                                    }}
                                                     onItemSelected={(item, index) => {
                                                         setMenuVisibility(false);
 
@@ -1185,9 +1209,12 @@ function ReportActionCompose({
                                         style={[styles.textInputCompose, isComposerFullSize ? styles.textInputFullCompose : styles.flex4]}
                                         maxLines={maxComposerLines}
                                         onFocus={() => setIsFocused(true)}
-                                        onBlur={() => {
+                                        onBlur={(e) => {
                                             setIsFocused(false);
                                             resetSuggestions();
+                                            if (e.relatedTarget && e.relatedTarget === actionButtonRef.current) {
+                                                isKeyboardVisibleWhenShowingModalRef.current = true;
+                                            }
                                         }}
                                         onClick={() => {
                                             shouldBlockEmojiCalc.current = false;
@@ -1197,6 +1224,7 @@ function ReportActionCompose({
                                         shouldClear={textInputShouldClear}
                                         onClear={() => setTextInputShouldClear(false)}
                                         isDisabled={isBlockedFromConcierge || disabled}
+                                        isReportActionCompose
                                         selection={selection}
                                         onSelectionChange={onSelectionChange}
                                         isFullComposerAvailable={isFullSizeComposerAvailable}
