@@ -2911,7 +2911,7 @@ const styles = {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        ...spacing.pt2,
+        ...spacing.ph5,
     },
 
     peopleRowBorderBottom: {
@@ -3635,6 +3635,7 @@ const styles = {
     },
 
     googleButtonContainer: {
+        colorScheme: 'light',
         width: 40,
         height: 40,
         marginLeft: 12,
@@ -3642,6 +3643,7 @@ const styles = {
     },
 
     googlePillButtonContainer: {
+        colorScheme: 'light',
         height: 40,
         width: 219,
     },
@@ -3831,6 +3833,11 @@ const styles = {
         flex: 1,
         borderRadius: 20,
         overflow: 'hidden',
+    },
+
+    mapDirection: {
+        width: 7,
+        color: Colors.green,
     },
 
     mapPendingView: {

@@ -1188,12 +1188,11 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
  * Saves the draft for a comment report action. This will put the comment into "edit mode"
  *
  * @param {String} reportID
- * @param {Object} reportAction
+ * @param {Number} reportActionID
  * @param {String} draftMessage
  */
-function saveReportActionDraft(reportID, reportAction, draftMessage) {
-    const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
-    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}_${reportAction.reportActionID}`, draftMessage);
+function saveReportActionDraft(reportID, reportActionID, draftMessage) {
+    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}_${reportActionID}`, draftMessage);
 }
 
 /**

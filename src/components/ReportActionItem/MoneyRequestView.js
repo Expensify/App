@@ -112,6 +112,8 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, polic
         receiptURIs = ReceiptUtils.getThumbnailAndImageURIs(transaction.receipt.source, transaction.filename);
     }
 
+    const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
+
     return (
         <View>
             <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth), StyleUtils.getMinimumHeight(CONST.EMPTY_STATE_BACKGROUND.MONEY_REPORT.MIN_HEIGHT)]}>
@@ -164,7 +166,7 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, polic
             </OfflineWithFeedback>
             <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.merchant') || lodashGet(transaction, 'pendingAction')}>
                 <MenuItemWithTopDescription
-                    description={translate('common.merchant')}
+                    description={isDistanceRequest ? translate('tabSelector.distance') : translate('common.merchant')}
                     title={transactionMerchant}
                     disabled={isSettled || !canEdit}
                     shouldShowRightIcon={canEdit}
