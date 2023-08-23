@@ -3,7 +3,7 @@ import {withOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
-import withLocalize from './withLocalize';
+import useLocalize from '../hooks/useLocalize';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import iouReportPropTypes from '../pages/iouReportPropTypes';
 import * as ReportUtils from '../libs/ReportUtils';
@@ -55,26 +55,22 @@ const defaultProps = {
 };
 
 function MoneyReportHeader(props) {
+    const {translate} = useLocalize();
     const moneyRequestReport = props.report;
-    const policy = props.policies[`${ONYXKEYS.COLLECTION.POLICY}${props.report.policyID}`];
-    const reportTotal = ReportUtils.getMoneyRequestTotal(props.report);
-    const shouldShowSettlementButton = useMemo(() => {
-        if (ReportUtils.getPolicyType(moneyRequestReport, props.policies) === CONST.POLICY.TYPE.CORPORATE) {
-            return Policy.isAdminOfControlPolicy([policy]) && ReportUtils.isReportApproved(moneyRequestReport);
-        }
-
-        return (
-            (Policy.isAdminOfFreePolicy([policy]) ||
-                (ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(props.session, 'accountID', null) === moneyRequestReport.managerID)) &&
-            !ReportUtils.isSettled(moneyRequestReport.reportID)
-        );
-    }, [moneyRequestReport, policy, props.policies, props.session]);
-    const shouldShowApprovedButton = useMemo(() => {
-        if (ReportUtils.getPolicyType(moneyRequestReport) === CONST.POLICY.TYPE.FREE) {
+    const policy = props.policies[`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport.policyID}`];
+    const isPolicyAdmin = policy.role === CONST.POLICY.ROLE.ADMIN;
+    const isManager = ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(props.session, 'accountID', null) === moneyRequestReport.managerID;
+    const isReportApproved = ReportUtils.isReportApproved(moneyRequestReport);
+    const isPayer = CONST.POLICY.TYPE.CORPORATE ? isPolicyAdmin && isReportApproved : isPolicyAdmin || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && isManager);
+    const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
+    const shouldShowSettlementButton = useMemo(() => isPayer && !isSettled, [isPayer, isSettled]);
+    const shouldShowApproveButton = useMemo(() => {
+        if (policy.type === CONST.POLICY.TYPE.FREE) {
             return false;
         }
-        return ReportUtils.isReportManager(moneyRequestReport) && !ReportUtils.isReportApproved(moneyRequestReport) && !ReportUtils.isSettled(moneyRequestReport.reportID);
-    }, [moneyRequestReport]);
+        return isManager && isReportApproved && !isSettled;
+    }, [policy, isManager, isReportApproved, isSettled]);
+    const reportTotal = ReportUtils.getMoneyRequestTotal(props.report);
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
     const shouldShowPaypal = Boolean(lodashGet(props.personalDetails, [moneyRequestReport.managerID, 'payPalMeAddress']));
     const formattedAmount = CurrencyUtils.convertToDisplayString(reportTotal, props.report.currency);
@@ -108,11 +104,11 @@ function MoneyReportHeader(props) {
                         />
                     </View>
                 )}
-                {shouldShowApprovedButton && !props.isSmallScreenWidth && (
+                {shouldShowApproveButton && !props.isSmallScreenWidth && (
                     <View style={[styles.pv2]}>
                         <Button
                             success
-                            text={props.translate('iou.approve')}
+                            text={translate('iou.approve')}
                             style={[styles.mnw120]}
                             onPress={() => IOU.approveMoneyRequest(props.report)}
                         />
@@ -135,11 +131,11 @@ function MoneyReportHeader(props) {
                     />
                 </View>
             )}
-            {shouldShowApprovedButton && props.isSmallScreenWidth && (
+            {shouldShowApproveButton && props.isSmallScreenWidth && (
                 <View style={[styles.pv2]}>
                     <Button
                         success
-                        text={props.translate('iou.approve')}
+                        text={translate('iou.approve')}
                         style={[styles.w100]}
                         onPress={() => IOU.approveMoneyRequest(props.report)}
                     />
@@ -154,7 +150,6 @@ MoneyReportHeader.propTypes = propTypes;
 MoneyReportHeader.defaultProps = defaultProps;
 
 export default compose(
-    withLocalize,
     withWindowDimensions,
     withOnyx({
         chatReport: {

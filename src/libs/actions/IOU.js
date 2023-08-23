@@ -1674,14 +1674,14 @@ function sendMoneyViaPaypal(report, amount, currency, comment, managerID, recipi
 }
 
 function approveMoneyRequest(expenseReport) {
-    const optimisticIOUReportAction = ReportUtils.buildOptimisticApprovedReportAction(expenseReport.total, expenseReport.currency, expenseReport.reportID);
+    const optimisticApprovedReportAction = ReportUtils.buildOptimisticApprovedReportAction(expenseReport.total, expenseReport.currency, expenseReport.reportID);
 
     const optimisticReportActionsData = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
         value: {
-            [optimisticIOUReportAction.reportActionID]: {
-                ...optimisticIOUReportAction,
+            [optimisticApprovedReportAction.reportActionID]: {
+                ...optimisticApprovedReportAction,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             },
         },
@@ -1691,8 +1691,8 @@ function approveMoneyRequest(expenseReport) {
         key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
         value: {
             ...expenseReport,
-            lastMessageText: optimisticIOUReportAction.message[0].text,
-            lastMessageHtml: optimisticIOUReportAction.message[0].html,
+            lastMessageText: optimisticApprovedReportAction.message[0].text,
+            lastMessageHtml: optimisticApprovedReportAction.message[0].html,
             stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
             statusNum: CONST.REPORT.STATUS.APPROVED,
         },
@@ -1704,7 +1704,7 @@ function approveMoneyRequest(expenseReport) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
             value: {
-                [optimisticIOUReportAction.reportActionID]: {
+                [optimisticApprovedReportAction.reportActionID]: {
                     pendingAction: null,
                 },
             },
@@ -1723,7 +1723,7 @@ function approveMoneyRequest(expenseReport) {
         },
     ];
 
-    API.write('ApproveMoneyRequest', {reportID: expenseReport.reportID, approvedReportActionID: optimisticIOUReportAction.reportActionID}, {optimisticData, successData, failureData});
+    API.write('ApproveMoneyRequest', {reportID: expenseReport.reportID, approvedReportActionID: optimisticApprovedReportAction.reportActionID}, {optimisticData, successData, failureData});
 }
 
 /**
