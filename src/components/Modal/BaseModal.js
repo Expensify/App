@@ -1,4 +1,4 @@
-import React, {forwardRef, useEffect} from 'react';
+import React, {forwardRef, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import ReactNativeModal from 'react-native-modal';
@@ -120,16 +120,20 @@ function BaseModal({
         shouldAddTopSafeAreaPadding,
         shouldAddBottomSafeAreaPadding,
         hideBackdrop,
-    } = getModalStyles(
-        type,
-        {
-            windowWidth,
-            windowHeight,
-            isSmallScreenWidth,
-        },
-        popoverAnchorPosition,
-        innerContainerStyle,
-        outerStyle,
+    } = useMemo(
+        () =>
+            getModalStyles(
+                type,
+                {
+                    windowWidth,
+                    windowHeight,
+                    isSmallScreenWidth,
+                },
+                popoverAnchorPosition,
+                innerContainerStyle,
+                outerStyle,
+            ),
+        [innerContainerStyle, isSmallScreenWidth, outerStyle, popoverAnchorPosition, type, windowHeight, windowWidth],
     );
 
     const {
