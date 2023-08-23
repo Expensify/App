@@ -137,9 +137,13 @@ function MagicCodeInput(props) {
             return;
         }
 
+        if (props.value.length !== props.maxLength) {
+            return;
+        }
+
         // Focus the last input if an error occurred to allow for corrections
         inputRefs.current[props.maxLength - 1].focus();
-    }, [props.hasError, props.maxLength]);
+    }, [props.hasError, props.maxLength, props.value]);
 
     useEffect(() => {
         validateAndSubmit(props.value);
