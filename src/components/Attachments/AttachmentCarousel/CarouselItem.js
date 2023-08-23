@@ -36,7 +36,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    onPress: () => {},
+    onPress: undefined,
 };
 
 function CarouselItem({item, isFocused, onPress}) {
