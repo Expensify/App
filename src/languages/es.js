@@ -156,6 +156,7 @@ export default {
         merchant: 'Comerciante',
         receipt: 'Recibo',
         replace: 'Sustituir',
+        distance: 'Distancia',
     },
     anonymousReportFooter: {
         logoTagline: 'Únete a la discussion.',
@@ -368,7 +369,6 @@ export default {
     tabSelector: {
         manual: 'Manual',
         scan: 'Escanear',
-        distance: 'Distancia',
     },
     receipt: {
         upload: 'Subir recibo',

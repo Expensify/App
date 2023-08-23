@@ -43,7 +43,7 @@ const getTitle = (route, translate) => {
         case CONST.TAB.SCAN:
             return translate('tabSelector.scan');
         case CONST.TAB.DISTANCE:
-            return translate('tabSelector.distance');
+            return translate('common.distance');
         default:
             return translate('tabSelector.manual');
     }

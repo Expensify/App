@@ -157,6 +157,7 @@ export default {
         merchant: 'Merchant',
         receipt: 'Receipt',
         replace: 'Replace',
+        distance: 'Distance',
     },
     anonymousReportFooter: {
         logoTagline: 'Join in on the discussion.',
@@ -369,7 +370,6 @@ export default {
     tabSelector: {
         manual: 'Manual',
         scan: 'Scan',
-        distance: 'Distance',
     },
     receipt: {
         upload: 'Upload receipt',
