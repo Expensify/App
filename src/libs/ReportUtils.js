@@ -2518,7 +2518,8 @@ function isOneOnOneChat(report) {
         !isPolicyExpenseChat(report) &&
         !isTaskReport(report) && //
         isDM(report) &&
-        !isIOUReport(report)
+        !isIOUReport(report) &&
+        report.participantsList.length === 1
     );
 }
 
