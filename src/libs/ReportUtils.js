@@ -2463,16 +2463,21 @@ function isUnread(report) {
     if (!report) {
         return false;
     }
-    const lastVisibleMessage = ReportActionsUtils.getLastVisibleMessage(report.reportID);
-    const isEmptyChat = !lastVisibleMessage.lastMessageText && !lastVisibleMessage.lastMessageTranslationKey;
-    if (isEmptyChat && !isArchivedRoom(report)) {
-        return false;
-    }
 
     // lastVisibleActionCreated and lastReadTime are both datetime strings and can be compared directly
     const lastVisibleActionCreated = report.lastVisibleActionCreated || '';
     const lastReadTime = report.lastReadTime || '';
     return lastReadTime < lastVisibleActionCreated;
+}
+
+/**
+ *
+ * @param {String} reportID
+ * @returns {Boolean}
+ */
+function isEmptyChatReport(reportID) {
+    const lastVisibleMessage = ReportActionsUtils.getLastVisibleMessage(reportID);
+    return !lastVisibleMessage.lastMessageText && !lastVisibleMessage.lastMessageTranslationKey;
 }
 
 /**
@@ -2618,8 +2623,7 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas,
         return true;
     }
 
-    const lastVisibleMessage = ReportActionsUtils.getLastVisibleMessage(report.reportID);
-    const isEmptyChat = !lastVisibleMessage.lastMessageText && !lastVisibleMessage.lastMessageTranslationKey;
+    const isEmptyChat = isEmptyChatReport(report.reportID);
 
     // Hide only chat threads that haven't been commented on (other threads are actionable)
     if (isChatThread(report) && isEmptyChat) {
@@ -3395,6 +3399,7 @@ export {
     canRequestMoney,
     getWhisperDisplayNames,
     getWorkspaceAvatar,
+    isEmptyChatReport,
     isThread,
     isChatThread,
     isThreadParent,
