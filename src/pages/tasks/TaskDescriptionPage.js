@@ -75,7 +75,7 @@ function TaskDescriptionPage(props) {
                         autoGrowHeight
                         submitOnEnter={!Browser.isMobile()}
                         containerStyles={[styles.autoGrowHeightMultilineInput]}
-                        inputStyle={styles.verticalAlignTop}
+                        inputStyle={[styles.verticalAlignTop]}
                     />
                 </View>
             </Form>
