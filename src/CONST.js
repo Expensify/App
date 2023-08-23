@@ -33,6 +33,10 @@ const CONST = {
     ANIMATED_TRANSITION: 300,
     ANIMATED_TRANSITION_FROM_VALUE: 100,
     ANIMATION_IN_TIMING: 100,
+    ANIMATION_DIRECTION: {
+        IN: 'in',
+        OUT: 'out',
+    },
     ARROW_HIDE_DELAY: 3000,
 
     API_ATTACHMENT_VALIDATIONS: {
@@ -71,6 +75,8 @@ const CONST = {
     },
 
     PULL_REQUEST_NUMBER,
+
+    MERCHANT_NAME_MAX_LENGTH: 255,
 
     CALENDAR_PICKER: {
         // Numbers were arbitrarily picked.
@@ -124,6 +130,14 @@ const CONST = {
         MOMENT_FORMAT_STRING: 'YYYY-MM-DD',
         SQL_DATE_TIME: 'YYYY-MM-DD HH:mm:ss',
         FNS_FORMAT_STRING: 'yyyy-MM-dd',
+        LOCAL_TIME_FORMAT: 'h:mm a',
+        WEEKDAY_TIME_FORMAT: 'eeee',
+        MONTH_DAY_ABBR_FORMAT: 'MMM d',
+        SHORT_DATE_FORMAT: 'MM-dd',
+        MONTH_DAY_YEAR_ABBR_FORMAT: 'MMM d, yyyy',
+        FNS_TIMEZONE_FORMAT_STRING: "yyyy-MM-dd'T'HH:mm:ssXXX",
+        FNS_DB_FORMAT_STRING: 'yyyy-MM-dd HH:mm:ss.SSS',
+        LONG_DATE_FORMAT_WITH_WEEKDAY: 'eeee, MMMM d, yyyy',
         UNIX_EPOCH: '1970-01-01 00:00:00.000',
         MAX_DATE: '9999-12-31',
         MIN_DATE: '0001-01-01',
@@ -217,7 +231,6 @@ const CONST = {
         INTERNATIONALIZATION: 'internationalization',
         IOU_SEND: 'sendMoney',
         POLICY_ROOMS: 'policyRooms',
-        POLICY_EXPENSE_CHAT: 'policyExpenseChat',
         PASSWORDLESS: 'passwordless',
         TASKS: 'tasks',
         THREADS: 'threads',
@@ -649,6 +662,11 @@ const CONST = {
         DARK: 'dark',
         SYSTEM: 'system',
     },
+    TRANSACTION: {
+        TYPE: {
+            CUSTOM_UNIT: 'customUnit',
+        },
+    },
     JSON_CODE: {
         SUCCESS: 200,
         BAD_REQUEST: 400,
@@ -855,6 +873,8 @@ const CONST = {
         QA: 'qa@expensify.com',
         QA_TRAVIS: 'qa+travisreceipts@expensify.com',
         RECEIPTS: 'receipts@expensify.com',
+        SAASTR: 'saastr@expensify.com',
+        SBE: 'sbe@expensify.com',
         STUDENT_AMBASSADOR: 'studentambassadors@expensify.com',
         SVFG: 'svfg@expensify.com',
     },
@@ -874,6 +894,8 @@ const CONST = {
         QA_TRAVIS: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_QA_TRAVIS', 8595733)),
         RECEIPTS: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_RECEIPTS', -1)),
         REWARDS: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_REWARDS', 11023767)), // rewards@expensify.com
+        SAASTR: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_SAASTR', 15252830)),
+        SBE: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_SBE', 15305309)),
         STUDENT_AMBASSADOR: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_STUDENT_AMBASSADOR', 10476956)),
         SVFG: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_SVFG', 2012843)),
     },
@@ -1025,6 +1047,10 @@ const CONST = {
         AMOUNT_MAX_LENGTH: 10,
         RECEIPT_STATE: {
             SCANREADY: 'SCANREADY',
+            OPEN: 'OPEN',
+            SCANNING: 'SCANNING',
+            SCANCOMPLETE: 'SCANCOMPLETE',
+            SCANFAILED: 'SCANFAILED',
         },
         FILE_TYPES: {
             HTML: 'html',
@@ -1134,7 +1160,8 @@ const CONST = {
         ROOM_NAME: /^#[a-z0-9à-ÿ-]{1,80}$/,
 
         // eslint-disable-next-line max-len, no-misleading-character-class
-        EMOJIS: /[\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
+        EMOJIS: /[\p{Extended_Pictographic}](\u200D[\p{Extended_Pictographic}]|[\u{1F3FB}-\u{1F3FF}]|[\u{E0020}-\u{E007F}]|\uFE0F|\u20E3)*|[\u{1F1E6}-\u{1F1FF}]{2}|[#*0-9]\uFE0F?\u20E3/gu,
+
         TAX_ID: /^\d{9}$/,
         NON_NUMERIC: /\D/g,
 
@@ -1205,6 +1232,8 @@ const CONST = {
             this.EMAIL.QA,
             this.EMAIL.QA_TRAVIS,
             this.EMAIL.RECEIPTS,
+            this.EMAIL.SAASTR,
+            this.EMAIL.SBE,
             this.EMAIL.STUDENT_AMBASSADOR,
             this.EMAIL.SVFG,
         ];
@@ -1225,6 +1254,8 @@ const CONST = {
             this.ACCOUNT_ID.QA_TRAVIS,
             this.ACCOUNT_ID.RECEIPTS,
             this.ACCOUNT_ID.REWARDS,
+            this.ACCOUNT_ID.SAASTR,
+            this.ACCOUNT_ID.SBE,
             this.ACCOUNT_ID.STUDENT_AMBASSADOR,
             this.ACCOUNT_ID.SVFG,
         ];
@@ -2534,6 +2565,13 @@ const CONST = {
         AFTER_WEEK: 'afterWeek',
         CUSTOM: 'custom',
     },
+    TWO_FACTOR_AUTH_STEPS: {
+        CODES: 'CODES',
+        VERIFY: 'VERIFY',
+        SUCCESS: 'SUCCESS',
+        ENABLED: 'ENABLED',
+        DISABLED: 'DISABLED',
+    },
     TAB: {
         RECEIPT_TAB_ID: 'ReceiptTab',
         MANUAL: 'manual',
@@ -2541,6 +2579,15 @@ const CONST = {
         DISTANCE: 'distance',
     },
     STATUS_TEXT_MAX_LENGTH: 100,
+
+    DROPDOWN_BUTTON_SIZE: {
+        LARGE: 'large',
+        MEDIUM: 'medium',
+    },
+
+    SF_COORDINATES: [-122.4194, 37.7749],
+
+    MAPBOX_STYLE_URL: 'mapbox://styles/expensify/cllcoiqds00cs01r80kp34tmq',
     NAVIGATION: {
         TYPE: {
             FORCED_UP: 'FORCED_UP',
@@ -2551,6 +2598,10 @@ const CONST = {
             PUSH: 'PUSH',
             NAVIGATE: 'NAVIGATE',
         },
+    },
+    DEMO_PAGES: {
+        SAASTR: 'SaaStrDemoSetup',
+        SBE: 'SbeDemoSetup',
     },
 };
 

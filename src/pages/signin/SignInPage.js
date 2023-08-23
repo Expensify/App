@@ -19,6 +19,7 @@ import * as StyleUtils from '../../styles/StyleUtils';
 import useLocalize from '../../hooks/useLocalize';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
 import Log from '../../libs/Log';
+import * as DemoActions from '../../libs/actions/DemoActions';
 
 const propTypes = {
     /** The details about the account that the user is signing in with */
@@ -46,14 +47,22 @@ const propTypes = {
         validateCode: PropTypes.string,
     }),
 
-    /** Override the green headline copy */
-    customHeadline: PropTypes.string,
+    /** Whether or not the sign in page is being rendered in the RHP modal */
+    isInModal: PropTypes.bool,
+
+    /** Information about any currently running demos */
+    demoInfo: PropTypes.shape({
+        saastr: PropTypes.shape({
+            isBeginningDemo: PropTypes.bool,
+        }),
+    }),
 };
 
 const defaultProps = {
     account: {},
     credentials: {},
-    customHeadline: '',
+    isInModal: false,
+    demoInfo: {},
 };
 
 /**
@@ -81,9 +90,10 @@ function getRenderOptions({hasLogin, hasValidateCode, hasAccount, isPrimaryLogin
     };
 }
 
-function SignInPage({credentials, account, customHeadline}) {
+function SignInPage({credentials, account, isInModal, demoInfo}) {
     const {translate, formatPhoneNumber} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
+    const shouldShowSmallScreen = isSmallScreenWidth || isInModal;
     const safeAreaInsets = useSafeAreaInsets();
 
     useEffect(() => Performance.measureTTI(), []);
@@ -104,6 +114,7 @@ function SignInPage({credentials, account, customHeadline}) {
 
     let welcomeHeader = '';
     let welcomeText = '';
+    const customHeadline = DemoActions.getHeadlineKeyByDemoInfo(demoInfo);
     const headerText = customHeadline || translate('login.hero.header');
     if (shouldShowLoginForm) {
         welcomeHeader = isSmallScreenWidth ? headerText : translate('welcomeText.getStarted');
@@ -119,19 +130,19 @@ function SignInPage({credentials, account, customHeadline}) {
             // replacing spaces with "hard spaces" to prevent breaking the number
             const userLoginToDisplay = Str.isSMSLogin(userLogin) ? formatPhoneNumber(userLogin).replace(/ /g, '\u00A0') : userLogin;
             if (account.validated) {
-                welcomeHeader = isSmallScreenWidth ? '' : translate('welcomeText.welcomeBack');
-                welcomeText = isSmallScreenWidth
+                welcomeHeader = shouldShowSmallScreen ? '' : translate('welcomeText.welcomeBack');
+                welcomeText = shouldShowSmallScreen
                     ? `${translate('welcomeText.welcomeBack')} ${translate('welcomeText.welcomeEnterMagicCode', {login: userLoginToDisplay})}`
                     : translate('welcomeText.welcomeEnterMagicCode', {login: userLoginToDisplay});
             } else {
-                welcomeHeader = isSmallScreenWidth ? '' : translate('welcomeText.welcome');
-                welcomeText = isSmallScreenWidth
+                welcomeHeader = shouldShowSmallScreen ? '' : translate('welcomeText.welcome');
+                welcomeText = shouldShowSmallScreen
                     ? `${translate('welcomeText.welcome')} ${translate('welcomeText.newFaceEnterMagicCode', {login: userLoginToDisplay})}`
                     : translate('welcomeText.newFaceEnterMagicCode', {login: userLoginToDisplay});
             }
         }
     } else if (shouldShowUnlinkLoginForm || shouldShowEmailDeliveryFailurePage) {
-        welcomeHeader = isSmallScreenWidth ? headerText : translate('welcomeText.welcomeBack');
+        welcomeHeader = shouldShowSmallScreen ? headerText : translate('welcomeText.welcomeBack');
 
         // Don't show any welcome text if we're showing the user the email delivery failed view
         if (shouldShowEmailDeliveryFailurePage) {
@@ -148,8 +159,9 @@ function SignInPage({credentials, account, customHeadline}) {
             <SignInPageLayout
                 welcomeHeader={welcomeHeader}
                 welcomeText={welcomeText}
-                shouldShowWelcomeHeader={shouldShowWelcomeHeader || !isSmallScreenWidth}
+                shouldShowWelcomeHeader={shouldShowWelcomeHeader || !isSmallScreenWidth || !isInModal}
                 shouldShowWelcomeText={shouldShowWelcomeText}
+                isInModal={isInModal}
                 customHeadline={customHeadline}
             >
                 {/* LoginForm must use the isVisible prop. This keeps it mounted, but visually hidden
@@ -173,4 +185,5 @@ SignInPage.displayName = 'SignInPage';
 export default withOnyx({
     account: {key: ONYXKEYS.ACCOUNT},
     credentials: {key: ONYXKEYS.CREDENTIALS},
+    demoInfo: {key: ONYXKEYS.DEMO_INFO},
 })(SignInPage);
