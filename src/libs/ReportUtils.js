@@ -21,6 +21,7 @@ import isReportMessageAttachment from './isReportMessageAttachment';
 import * as defaultWorkspaceAvatars from '../components/Icon/WorkspaceDefaultAvatars';
 import * as CurrencyUtils from './CurrencyUtils';
 import * as UserUtils from './UserUtils';
+import str from "expensify-common/lib/str";
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -1490,14 +1491,14 @@ function getParentReport(report) {
  * Get the formatted title in HTML for a thread based on parent message.
  * Only the first line of the message should display.
  *
- * @param {Object} parentReportActionMessageHtml
+ * @param {String} parentReportActionMessage
  * @returns {String}
  */
-function getThreadReportNameHtml(parentReportActionMessageHtml) {
+function getThreadReportNameHtml(parentReportActionMessage) {
     const blockTags = ['br', 'h1', 'pre', 'div', 'blockquote', 'p', 'li', 'div'];
     const blockTagRegExp = `(?:<\\/?(?:${blockTags.join('|')})(?:[^>]*)>|\\r\\n|\\n|\\r)`;
     const threadHeaderHtmlRegExp = new RegExp(`^(?:<([^>]+)>)?((?:(?!${blockTagRegExp}).)*)(${blockTagRegExp}.*)`, 'gmi');
-    return parentReportActionMessageHtml.replace(threadHeaderHtmlRegExp, (match, g1, g2) => {
+    return parentReportActionMessage.replace(threadHeaderHtmlRegExp, (match, g1, g2) => {
         if (!g1 || g1 === 'h1') {
             return g2;
         }
@@ -1510,6 +1511,19 @@ function getThreadReportNameHtml(parentReportActionMessageHtml) {
         }
         return `<${g1}>${g2}</${g1}>`;
     });
+}
+
+/**
+ * Get the title for a thread based on parent message.
+ * Only the first line of the message should display.
+ *
+ * @param {String} parentReportActionMessage
+ * @param {Boolean} shouldRenderHTML
+ * @returns {String}
+ */
+function getThreadReportName(parentReportActionMessage, shouldRenderHTML) {
+    const threadReportNameHtml = getThreadReportNameHtml(parentReportActionMessage);
+    return shouldRenderHTML ? `<thread-title>${threadReportNameHtml}</thread-title>` : str.stripHTML(threadReportNameHtml).trim();
 }
 
 /**
@@ -1529,10 +1543,7 @@ function getReportName(report, policy = undefined, shouldRenderHTML = false) {
         }
 
         const isAttachment = _.has(parentReportAction, 'isAttachment') ? parentReportAction.isAttachment : isReportMessageAttachment(_.last(lodashGet(parentReportAction, 'message', [{}])));
-        const messageHtml = lodashGet(parentReportAction, ['message', 0, 'html']);
-        const parentReportActionMessage = shouldRenderHTML
-            ? `<thread-title>${getThreadReportNameHtml(messageHtml)}</thread-title>`
-            : lodashGet(parentReportAction, ['message', 0, 'text'], '').replace(/(\r\n|\n|\r)/gm, ' ');
+        const parentReportActionMessage = getThreadReportName(lodashGet(parentReportAction, ['message', 0, 'html']), shouldRenderHTML);
         if (isAttachment && parentReportActionMessage) {
             return `[${Localize.translateLocal('common.attachment')}]`;
         }
