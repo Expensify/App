@@ -147,7 +147,7 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, setDownl
      * @param {String} item.source
      * @param {Object} item.file
      * @param {String} item.file.name
-     * @param {Boolean} item.isHidden
+     * @param {Boolean} item.hasBeenFlagged
      * @returns {JSX.Element}
      */
     const renderItem = useCallback(

@@ -85,7 +85,7 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, onClose,
 
     /**
      * Defines how a single attachment should be rendered
-     * @param {{ isAuthTokenRequired: Boolean, source: String, file: { name: String }, isHidden: Boolean }} item
+     * @param {{ isAuthTokenRequired: Boolean, source: String, file: { name: String }, hasBeenFlagged: Boolean }} item
      * @returns {JSX.Element}
      */
     const renderItem = useCallback(
