@@ -63,19 +63,17 @@ function TimezoneSelectPage(props) {
     const filterShownTimezones = (searchText) => {
         setTimezoneInputText(searchText);
         setTimezoneOptions(
-            _.filter(allTimezones.current, (tz) =>
-                _.every(
-                    searchText
-                        .toLowerCase()
-                        .replace(/[^a-z0-9]/g, ' ')
-                        .split(' '),
+            _.filter(allTimezones.current, (tz) => {
+                const searchWords = searchText.toLowerCase().match(/[a-z0-9]+/g) || [];
+                return _.every(
+                    searchWords,
                     (word) =>
                         tz.text
                             .toLowerCase()
                             .replace(/[^a-z0-9]/g, ' ')
                             .indexOf(word) > -1,
-                ),
-            ),
+                );
+            }),
         );
     };
 
