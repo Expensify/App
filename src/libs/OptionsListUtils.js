@@ -625,7 +625,6 @@ function getOptionTree(options, isSearch = false) {
             optionCollection[optionName] = {
                 text: `${indents}${optionName}`,
                 keyForList: optionName,
-                // TODO: Clarify
                 searchText: optionName,
                 tooltipText: optionName,
                 isDisabled: isChild ? !option.enabled : true,
