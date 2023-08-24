@@ -53,28 +53,28 @@ function KnowATeacherPage(props) {
 
     /**
      * Check number is valid and attach country code
-     * @param {String} phoneOrEmail
+     * @param {String} partnerUserID
      * @returns {String} - Returns valid phone number with country code
      */
-    const getPhoneLogin = (phoneOrEmail) => {
-        if (_.isEmpty(phoneOrEmail)) {
+    const getPhoneLogin = (partnerUserID) => {
+        if (_.isEmpty(partnerUserID)) {
             return '';
         }
 
-        return LoginUtils.appendCountryCode(LoginUtils.getPhoneNumberWithoutSpecialChars(phoneOrEmail));
+        return LoginUtils.appendCountryCode(LoginUtils.getPhoneNumberWithoutSpecialChars(partnerUserID));
     };
 
     /**
-     * Submit form to pass firstName, phoneOrEmail and lastName
+     * Submit form to pass firstName, partnerUserID and lastName
      * @param {Object} values
      * @param {String} values.firstName
-     * @param {String} values.phoneOrEmail
+     * @param {String} values.partnerUserID
      * @param {String} values.lastName
      */
     const onSubmit = (values) => {
-        const phoneLogin = getPhoneLogin(values.phoneOrEmail);
+        const phoneLogin = getPhoneLogin(values.partnerUserID);
         const validateIfnumber = validateNumber(phoneLogin);
-        const contactMethod = (validateIfnumber || values.phoneOrEmail).trim().toLowerCase();
+        const contactMethod = (validateIfnumber || values.partnerUserID).trim().toLowerCase();
         const firstName = values.firstName.trim();
         const lastName = values.lastName.trim();
 
@@ -84,13 +84,13 @@ function KnowATeacherPage(props) {
     /**
      * @param {Object} values
      * @param {String} values.firstName
-     * @param {String} values.phoneOrEmail
+     * @param {String} values.partnerUserID
      * @returns {Object} - An object containing the errors for each inputID
      */
     const validate = useCallback(
         (values) => {
             const errors = {};
-            const phoneLogin = getPhoneLogin(values.phoneOrEmail);
+            const phoneLogin = getPhoneLogin(values.partnerUserID);
             const validateIfnumber = validateNumber(phoneLogin);
 
             if (_.isEmpty(values.firstName)) {
@@ -99,14 +99,14 @@ function KnowATeacherPage(props) {
             if (_.isEmpty(values.lastName)) {
                 ErrorUtils.addErrorMessage(errors, 'lastName', translate('bankAccount.error.lastName'));
             }
-            if (_.isEmpty(values.phoneOrEmail)) {
-                ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', translate('teachersUnitePage.error.enterPhoneEmail'));
+            if (_.isEmpty(values.partnerUserID)) {
+                ErrorUtils.addErrorMessage(errors, 'partnerUserID', translate('teachersUnitePage.error.enterPhoneEmail'));
             }
-            if (!_.isEmpty(values.phoneOrEmail) && lodashGet(props.loginList, validateIfnumber || values.phoneOrEmail.toLowerCase())) {
-                ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', 'teachersUnitePage.error.tryDifferentEmail');
+            if (!_.isEmpty(values.partnerUserID) && lodashGet(props.loginList, validateIfnumber || values.partnerUserID.toLowerCase())) {
+                ErrorUtils.addErrorMessage(errors, 'partnerUserID', 'teachersUnitePage.error.tryDifferentEmail');
             }
-            if (!_.isEmpty(values.phoneOrEmail) && !(validateIfnumber || Str.isValidEmail(values.phoneOrEmail))) {
-                ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', 'contacts.genericFailureMessages.invalidContactMethod');
+            if (!_.isEmpty(values.partnerUserID) && !(validateIfnumber || Str.isValidEmail(values.partnerUserID))) {
+                ErrorUtils.addErrorMessage(errors, 'partnerUserID', 'contacts.genericFailureMessages.invalidContactMethod');
             }
 
             return errors;
@@ -153,8 +153,8 @@ function KnowATeacherPage(props) {
                 </View>
                 <View>
                     <TextInput
-                        inputID="phoneOrEmail"
-                        name="phoneOrEmail"
+                        inputID="partnerUserID"
+                        name="partnerUserID"
                         label={`${translate('common.email')}/${translate('common.phoneNumber')}`}
                         accessibilityLabel={`${translate('common.email')}/${translate('common.phoneNumber')}`}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}

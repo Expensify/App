@@ -36,17 +36,17 @@ function IntroSchoolPrincipalPage(props) {
     /**
      * @param {Object} values
      * @param {String} values.firstName
-     * @param {String} values.email
+     * @param {String} values.partneruserid
      * @param {String} values.lastName
      */
     const onSubmit = (values) => {
-        TeachersUnite.addSchoolPrincipal(values.firstName.trim(), values.email.trim(), values.lastName.trim());
+        TeachersUnite.addSchoolPrincipal(values.firstName.trim(), values.partneruserid.trim(), values.lastName.trim());
     };
 
     /**
      * @param {Object} values
      * @param {String} values.firstName
-     * @param {String} values.email
+     * @param {String} values.partneruserid
      * @returns {Object} - An object containing the errors for each inputID
      */
     const validate = useCallback(
@@ -59,14 +59,14 @@ function IntroSchoolPrincipalPage(props) {
             if (_.isEmpty(values.lastName)) {
                 ErrorUtils.addErrorMessage(errors, 'lastName', translate('bankAccount.error.lastName'));
             }
-            if (_.isEmpty(values.email)) {
-                ErrorUtils.addErrorMessage(errors, 'email', translate('teachersUnitePage.error.enterEmail'));
+            if (_.isEmpty(values.partneruserid)) {
+                ErrorUtils.addErrorMessage(errors, 'partneruserid', translate('teachersUnitePage.error.enterEmail'));
             }
-            if (!_.isEmpty(values.email) && lodashGet(props.loginList, values.email.toLowerCase())) {
-                ErrorUtils.addErrorMessage(errors, 'email', 'teachersUnitePage.error.tryDifferentEmail');
+            if (!_.isEmpty(values.partneruserid) && lodashGet(props.loginList, values.partneruserid.toLowerCase())) {
+                ErrorUtils.addErrorMessage(errors, 'partneruserid', 'teachersUnitePage.error.tryDifferentEmail');
             }
-            if (!_.isEmpty(values.email) && !Str.isValidEmail(values.email)) {
-                ErrorUtils.addErrorMessage(errors, 'email', translate('teachersUnitePage.error.enterValidEmail'));
+            if (!_.isEmpty(values.partneruserid) && !Str.isValidEmail(values.partneruserid)) {
+                ErrorUtils.addErrorMessage(errors, 'partneruserid', translate('teachersUnitePage.error.enterValidEmail'));
             }
 
             return errors;
@@ -113,8 +113,8 @@ function IntroSchoolPrincipalPage(props) {
                 </View>
                 <View>
                     <TextInput
-                        inputID="email"
-                        name="email"
+                        inputID="partneruserid"
+                        name="partneruserid"
                         label={translate('teachersUnitePage.principalWorkEmail')}
                         accessibilityLabel={translate('teachersUnitePage.principalWorkEmail')}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
