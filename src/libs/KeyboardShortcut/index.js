@@ -37,12 +37,14 @@ const updateDocumentedShortcuts = (displayName, value) => {
     shortcutsUpdateCallback(_.sortBy(_.values(documentedShortcuts), 'displayName'));
 };
 
+// this is for the hook approach
 const useDocumentedShortcuts = () => {
     const [shortcuts, setShortcuts] = useState(documentedShortcuts);
     shortcutsUpdateCallback = setShortcuts;
     return shortcuts;
 }
 
+// this is for listener approach, either one is working well
 const onShortcutsUpdate = (callback) => {
     shortcutsUpdateCallback = callback;
 }
