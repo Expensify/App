@@ -1,6 +1,11 @@
 import WordBreakStyles from './types';
 
-export default {
-    breakWord: {},
+const wordBreak: WordBreakStyles = {
+    breakWord: {
+        // TODO: Remove it, just for demonstration.
+        alignmentBaseline: 'baseline',
+    },
     breakAll: {},
-} satisfies WordBreakStyles;
+};
+
+export default wordBreak;
