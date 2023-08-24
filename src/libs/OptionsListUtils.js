@@ -586,6 +586,56 @@ function isCurrentUser(userDetails) {
 }
 
 /**
+ * Build the options for the tree hierarchy via indents
+ *
+ * @param {Object[]} options - an initial strings array
+ * @param {Boolean} options[].enabled - a flag to enable/disable option in a list
+ * @param {String} options[].name - a name of an option
+ * @param {Boolean} [isSearch] - a flag to determine if search is active
+ * @returns {Array<Object>}
+ */
+function getOptionTree(options, isSearch = false) {
+    const optionCollection = {};
+
+    _.each(options, (option) => {
+        if (isSearch) {
+            if (_.has(optionCollection, option.name)) {
+                return;
+            }
+
+            optionCollection[option.name] = {
+                text: option.name,
+                keyForList: option.name,
+                searchText: option.name,
+                tooltipText: option.name,
+                isDisabled: !option.enabled,
+            };
+
+            return;
+        }
+
+        option.name.split(CONST.PARENT_CHILD_SEPARATOR).forEach((optionName, index, array) => {
+            const indents = _.times(index, () => CONST.INDENTS).join('');
+            const isChild = array.length - 1 === index;
+
+            if (_.has(optionCollection, optionName)) {
+                return;
+            }
+
+            optionCollection[optionName] = {
+                text: `${indents}${optionName}`,
+                keyForList: optionName,
+                searchText: optionName,
+                tooltipText: optionName,
+                isDisabled: isChild ? !option.enabled : true,
+            };
+        });
+    });
+
+    return _.values(optionCollection);
+}
+
+/**
  * Build the options
  *
  * @param {Object} reports
@@ -618,15 +668,71 @@ function getOptions(
         includeMoneyRequests = false,
         excludeUnknownUsers = false,
         includeP2P = true,
+        includeCategories = false,
+        categories = {},
+        recentlyUsedCategories = {},
         canInviteUser = true,
     },
 ) {
+    if (includeCategories) {
+        const categoryOptions = [];
+
+        const categoriesAmount = _.size(categories);
+
+        if (!_.isEmpty(searchInputValue)) {
+            categoryOptions.push({
+                title: '', // Search result
+                data: getOptionTree(
+                    _.filter(categories, (category) => category.name.toLowerCase().includes(searchInputValue.toLowerCase())),
+                    true,
+                ),
+            });
+        } else if (categoriesAmount < CONST.CATEGORY_LIST_THRESHOLD) {
+            categoryOptions.push({
+                title: '', // All
+                data: getOptionTree(categories),
+            });
+        } else {
+            const selectedOptionNames = _.map(selectedOptions, (selectedOption) => selectedOption.name);
+            const filteredRecentlyUsedCategories = _.filter(recentlyUsedCategories, (category) => !_.includes(selectedOptionNames, category.name));
+            const filteredCategories = _.filter(categories, (category) => !_.includes(selectedOptionNames, category.name));
+
+            if (!_.isEmpty(selectedOptions)) {
+                categoryOptions.push({
+                    title: '', // Selected
+                    data: getOptionTree(selectedOptions),
+                });
+            }
+
+            if (!_.isEmpty(filteredRecentlyUsedCategories)) {
+                categoryOptions.push({
+                    title: 'Recent',
+                    data: getOptionTree(filteredRecentlyUsedCategories.slice(0, maxRecentReportsToShow)),
+                });
+            }
+
+            categoryOptions.push({
+                title: 'All',
+                data: getOptionTree(filteredCategories),
+            });
+        }
+
+        return {
+            recentReports: [],
+            personalDetails: [],
+            userToInvite: null,
+            currentUserOption: null,
+            categoryOptions,
+        };
+    }
+
     if (!isPersonalDetailsReady(personalDetails)) {
         return {
             recentReports: [],
             personalDetails: [],
             userToInvite: null,
             currentUserOption: null,
+            categoryOptions: [],
         };
     }
 
@@ -877,6 +983,7 @@ function getOptions(
         recentReports: recentReportOptions,
         userToInvite: canInviteUser ? userToInvite : null,
         currentUserOption,
+        categoryOptions: [],
     };
 }
 
@@ -958,6 +1065,9 @@ function getIOUConfirmationOptionsFromParticipants(participants, amountText) {
  * @param {Array} [excludeLogins]
  * @param {Boolean} [includeOwnedWorkspaceChats]
  * @param {boolean} [includeP2P]
+ * @param {boolean} [includeCategories]
+ * @param {Object} [categories]
+ * @param {Object} [recentlyUsedCategories]
  * @param {boolean} [canInviteUser]
  * @returns {Object}
  */
@@ -970,6 +1080,9 @@ function getNewChatOptions(
     excludeLogins = [],
     includeOwnedWorkspaceChats = false,
     includeP2P = true,
+    includeCategories = false,
+    categories = {},
+    recentlyUsedCategories = {},
     canInviteUser = true,
 ) {
     return getOptions(reports, personalDetails, {
@@ -982,6 +1095,9 @@ function getNewChatOptions(
         excludeLogins,
         includeOwnedWorkspaceChats,
         includeP2P,
+        includeCategories,
+        categories,
+        recentlyUsedCategories,
         canInviteUser,
     });
 }
@@ -1151,5 +1267,6 @@ export {
     isSearchStringMatch,
     shouldOptionShowTooltip,
     getLastMessageTextForReport,
+    getOptionTree,
     formatMemberForList,
 };
