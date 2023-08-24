@@ -171,6 +171,13 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
                                 address: 'Your location'
                             });
                         }, (err) => {
+                            if (err.code === err.PERMISSION_DENIED) {
+                                // It looks like you have denied permission to your location. Please [allow location permission in settings](link to settings) and then try again
+
+                            } else {
+                                // We were unable to find your location, please try again or enter an address manually
+                                
+                            }
                             console.log('error', err);
                         })}
                         shouldShowRightIcon={false}
