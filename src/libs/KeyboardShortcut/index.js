@@ -5,7 +5,6 @@ import * as KeyCommand from 'react-native-key-command';
 import bindHandlerToKeydownEvent from './bindHandlerToKeydownEvent';
 import getOperatingSystem from '../getOperatingSystem';
 import CONST from '../../CONST';
-import {useState} from 'react';
 
 const operatingSystem = getOperatingSystem();
 
@@ -36,13 +35,6 @@ const updateDocumentedShortcuts = (displayName, value) => {
 
     shortcutsUpdateCallback(_.sortBy(_.values(documentedShortcuts), 'displayName'));
 };
-
-// this is for the hook approach
-const useDocumentedShortcuts = () => {
-    const [shortcuts, setShortcuts] = useState(documentedShortcuts);
-    shortcutsUpdateCallback = setShortcuts;
-    return shortcuts;
-}
 
 // this is for listener approach, either one is working well
 const onShortcutsUpdate = (callback) => {
@@ -195,7 +187,6 @@ function subscribe(key, callback, descriptionKey, modifiers = 'shift', captureOn
 const KeyboardShortcut = {
     subscribe,
     getDocumentedShortcuts,
-    useDocumentedShortcuts,
     onShortcutsUpdate
 };
 

@@ -41,8 +41,6 @@ const openShortcutModalConfig = CONST.KEYBOARD_SHORTCUTS.SHORTCUT_MODAL;
 function KeyboardShortcutsModal({isShortcutsModalOpen = false, isSmallScreenWidth, translate}) {
     const subscribedOpenModalShortcuts = useRef([]);
     const modalType = isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE;
-    // use this line trying the hook approach
-    // const shortcuts = KeyboardShortcut.useDocumentedShortcuts();
     const [shortcuts, setShortcuts] = useState(KeyboardShortcut.getDocumentedShortcuts());
 
     /*
@@ -150,7 +148,7 @@ function KeyboardShortcutsModal({isShortcutsModalOpen = false, isSmallScreenWidt
             subscribeOpenModalShortcuts();
         } else {
             removeShortcutUpdateListener();
-            
+
             // Modal is closing, remove keyboard shortcuts
             unsubscribeOpenModalShortcuts();
         }
