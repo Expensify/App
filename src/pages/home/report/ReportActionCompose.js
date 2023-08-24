@@ -977,6 +977,10 @@ function ReportActionCompose({
             KeyDownListener.removeKeyDownPressListner(focusComposerOnKeyPress);
             unsubscribeNavigationBlur();
             unsubscribeNavigationFocus();
+
+            if (EmojiPickerActions.isActive(report.reportID)) {
+                EmojiPickerActions.hideEmojiPicker();
+            }
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -1259,6 +1263,7 @@ function ReportActionCompose({
                             isDisabled={isBlockedFromConcierge || disabled}
                             onModalHide={() => focus(true)}
                             onEmojiSelected={replaceSelectionWithText}
+                            emojiPickerID={report.reportID}
                         />
                     )}
                     <View
