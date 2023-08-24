@@ -108,11 +108,15 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, polic
 
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     let receiptURIs;
+    let hasErrors = false;
     if (hasReceipt) {
         receiptURIs = ReceiptUtils.getThumbnailAndImageURIs(transaction.receipt.source, transaction.filename);
+        hasErrors = _.has(transaction, 'errors');
     }
 
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
+    console.log('eeee');
+    console.log(transaction);
 
     return (
         <View>
@@ -142,6 +146,9 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, polic
                     disabled={isSettled || !canEdit}
                     shouldShowRightIcon={canEdit}
                     onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.AMOUNT))}
+                    brickRoadIndicator={hasErrors && transactionAmount === 0 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                    subtitle={hasErrors && transactionAmount === 0 ? translate('common.error.enterAmount') : ''}
+                    subtitleTextStyle={styles.textLabelError}
                 />
             </OfflineWithFeedback>
             <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.comment') || lodashGet(transaction, 'pendingAction')}>
@@ -162,6 +169,9 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, polic
                     shouldShowRightIcon={canEdit}
                     titleStyle={styles.flex1}
                     onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DATE))}
+                    brickRoadIndicator={hasErrors && transactionDate === '' ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                    subtitle={hasErrors && transactionDate === '' ? translate('common.error.enterDate') : ''}
+                    subtitleTextStyle={styles.textLabelError}
                 />
             </OfflineWithFeedback>
             <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.merchant') || lodashGet(transaction, 'pendingAction')}>
@@ -172,6 +182,9 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, polic
                     shouldShowRightIcon={canEdit}
                     titleStyle={styles.flex1}
                     onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.MERCHANT))}
+                    brickRoadIndicator={hasErrors && transactionMerchant === CONST.TRANSACTION.UNKNOWN_MERCHANT ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                    subtitle={hasErrors && transactionMerchant === CONST.TRANSACTION.UNKNOWN_MERCHANT ? translate('common.error.enterMerchant') : ''}
+                    subtitleTextStyle={styles.textLabelError}
                 />
             </OfflineWithFeedback>
             {shouldShowHorizontalRule && <View style={styles.reportHorizontalRule} />}

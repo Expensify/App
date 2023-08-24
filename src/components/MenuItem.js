@@ -54,6 +54,7 @@ const defaultProps = {
     disabled: false,
     isSelected: false,
     subtitle: undefined,
+    subtitleTextStyle: {},
     iconType: CONST.ICON_TYPE_ICON,
     onPress: () => {},
     onSecondaryInteraction: undefined,
@@ -95,6 +96,14 @@ const MenuItem = React.forwardRef((props, ref) => {
         props.titleStyle,
     );
     const descriptionTextStyle = StyleUtils.combineStyles([
+        styles.textLabelSupporting,
+        props.icon && !_.isArray(props.icon) ? styles.ml3 : undefined,
+        props.title ? descriptionVerticalMargin : StyleUtils.getFontSizeStyle(variables.fontSizeNormal),
+        props.descriptionTextStyle,
+        isDeleted ? styles.offlineFeedback.deleted : undefined,
+    ]);
+
+    const subtitleTextStyle = StyleUtils.combineStyles([
         styles.textLabelSupporting,
         props.icon && !_.isArray(props.icon) ? styles.ml3 : undefined,
         props.title ? descriptionVerticalMargin : StyleUtils.getFontSizeStyle(variables.fontSizeNormal),
@@ -278,7 +287,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                                 {/* Since subtitle can be of type number, we should allow 0 to be shown */}
                                 {(props.subtitle || props.subtitle === 0) && (
                                     <View style={[styles.justifyContentCenter, styles.mr1]}>
-                                        <Text style={[styles.textLabelSupporting, props.style]}>{props.subtitle}</Text>
+                                        <Text style={[props.subtitleTextStyle || styles.textLabelSupporting, props.style]}>{props.subtitle}</Text>
                                     </View>
                                 )}
                                 {!_.isEmpty(props.floatRightAvatars) && (

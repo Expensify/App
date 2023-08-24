@@ -664,6 +664,7 @@ const CONST = {
     },
     TRANSACTION: {
         DEFAULT_MERCHANT: 'Request',
+        UNKNOWN_MERCHANT: 'Unknown Merchant',
         TYPE: {
             CUSTOM_UNIT: 'customUnit',
         },
