@@ -38,6 +38,9 @@ const propTypes = {
      */
     hasUserReacted: PropTypes.bool,
 
+    /** We disable reacting with emojis on report actions that have errors */
+    shouldBlockReactions: PropTypes.bool,
+
     ...windowDimensionsPropTypes,
 };
 
@@ -45,6 +48,7 @@ const defaultProps = {
     count: 0,
     onReactionListOpen: () => {},
     isContextMenu: false,
+    shouldBlockReactions: false,
 
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
@@ -52,8 +56,18 @@ const defaultProps = {
 function EmojiReactionBubble(props) {
     return (
         <PressableWithSecondaryInteraction
-            style={({hovered, pressed}) => [styles.emojiReactionBubble, StyleUtils.getEmojiReactionBubbleStyle(hovered || pressed, props.hasUserReacted, props.isContextMenu)]}
-            onPress={props.onPress}
+            style={({hovered, pressed}) => [
+                styles.emojiReactionBubble,
+                StyleUtils.getEmojiReactionBubbleStyle(hovered || pressed, props.hasUserReacted, props.isContextMenu),
+                props.shouldBlockReactions && styles.cursorDisabled,
+            ]}
+            onPress={() => {
+                if (props.shouldBlockReactions) {
+                    return;
+                }
+
+                props.onPress();
+            }}
             onLongPress={props.onReactionListOpen}
             onSecondaryInteraction={props.onReactionListOpen}
             ref={props.forwardedRef}
