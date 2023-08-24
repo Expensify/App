@@ -38,7 +38,7 @@ function init() {
  * Return translated string for given locale and phrase
  *
  * @param {String} [desiredLanguage] eg 'en', 'es-ES'
- * @param {String|Array} phraseKey
+ * @param {String} phraseKey
  * @param {Object} [phraseParameters] Parameters to supply if the phrase is a template literal.
  * @returns {String}
  */
@@ -54,7 +54,7 @@ function translate(desiredLanguage = CONST.LOCALES.DEFAULT, phraseKey, phrasePar
     }
 
     // Phrase is not found in full locale, search it in fallback language e.g. es
-    const fallbackLanguageDictionary = translations[desiredLanguage] || {};
+    const fallbackLanguageDictionary = translations[languageAbbreviation] || {};
     translatedPhrase = fallbackLanguageDictionary[phraseKey];
     if (translatedPhrase) {
         return Str.result(translatedPhrase, phraseParameters);
