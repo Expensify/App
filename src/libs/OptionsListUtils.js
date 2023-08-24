@@ -618,6 +618,7 @@ function getOptions(
         includeMoneyRequests = false,
         excludeUnknownUsers = false,
         includeP2P = true,
+        canInviteUser = true,
     },
 ) {
     if (!isPersonalDetailsReady(personalDetails)) {
@@ -874,7 +875,7 @@ function getOptions(
     return {
         personalDetails: personalDetailsOptions,
         recentReports: recentReportOptions,
-        userToInvite,
+        userToInvite: canInviteUser ? userToInvite : null,
         currentUserOption,
     };
 }
@@ -957,9 +958,20 @@ function getIOUConfirmationOptionsFromParticipants(participants, amountText) {
  * @param {Array} [excludeLogins]
  * @param {Boolean} [includeOwnedWorkspaceChats]
  * @param {boolean} [includeP2P]
+ * @param {boolean} [canInviteUser]
  * @returns {Object}
  */
-function getNewChatOptions(reports, personalDetails, betas = [], searchValue = '', selectedOptions = [], excludeLogins = [], includeOwnedWorkspaceChats = false, includeP2P = true) {
+function getNewChatOptions(
+    reports,
+    personalDetails,
+    betas = [],
+    searchValue = '',
+    selectedOptions = [],
+    excludeLogins = [],
+    includeOwnedWorkspaceChats = false,
+    includeP2P = true,
+    canInviteUser = true,
+) {
     return getOptions(reports, personalDetails, {
         betas,
         searchInputValue: searchValue.trim(),
@@ -970,6 +982,7 @@ function getNewChatOptions(reports, personalDetails, betas = [], searchValue = '
         excludeLogins,
         includeOwnedWorkspaceChats,
         includeP2P,
+        canInviteUser,
     });
 }
 
