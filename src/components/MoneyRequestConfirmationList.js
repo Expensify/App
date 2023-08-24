@@ -154,7 +154,7 @@ function MoneyRequestConfirmationList(props) {
     const distance = lodashGet(props, 'transaction.routes.route0.distance', 0);
     const isDistanceRequest = !!distance;
     const convertedDistance = isDistanceRequest ? convertDistance(distance, unit) : 0;
-    const distanceRequestAmount = isDistanceRequest ? convertedDistance * rate * 0.01 : 0;
+    const distanceRequestAmount = isDistanceRequest ? convertedDistance * rate : 0;
     const distanceString = isDistanceRequest ? convertDistanceToUnit(convertedDistance, unit, rate) : '';
 
     const formattedAmount = CurrencyUtils.convertToDisplayString(isDistanceRequest ? distanceRequestAmount : props.iouAmount, isDistanceRequest ? CONST.CURRENCY.USD : props.iouCurrencyCode);
@@ -380,7 +380,13 @@ function MoneyRequestConfirmationList(props) {
                     shouldShowRightIcon={!props.isReadOnly}
                     title={formattedAmount}
                     description={translate('iou.amount')}
-                    onPress={() => Navigation.navigate(ROUTES.getMoneyRequestAmountRoute(props.iouType, props.reportID))}
+                    onPress={() => {
+                        const route = isDistanceRequest
+                            ? ROUTES.getMoneyRequestDistanceTabRoute(props.iouType, props.reportID)
+                            : ROUTES.getMoneyRequestAmountRoute(props.iouType, props.reportID);
+
+                        Navigation.navigate(route);
+                    }}
                     style={[styles.moneyRequestMenuItem, styles.mt2]}
                     titleStyle={styles.moneyRequestConfirmationAmount}
                     disabled={didConfirm || props.isReadOnly}
@@ -425,10 +431,10 @@ function MoneyRequestConfirmationList(props) {
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly && isTypeRequest}
                             title={distanceString}
-                            description={'Distance'}
+                            description={translate('tabSelector.distance')}
                             style={[styles.moneyRequestMenuItem, styles.mb2]}
                             titleStyle={styles.flex1}
-                            onPress={() => Navigation.navigate(ROUTES.getMoneyRequestMerchantRoute(props.iouType, props.reportID))}
+                            onPress={() => Navigation.navigate(ROUTES.getMoneyRequestDistanceTabRoute(props.iouType, props.reportID))}
                             disabled={didConfirm || props.isReadOnly || !isTypeRequest}
                         />
                     )}
