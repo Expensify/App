@@ -27,6 +27,7 @@ const propTypes = {
     route: PropTypes.shape({
         params: PropTypes.shape({
             iouType: PropTypes.string,
+            transactionType: PropTypes.string,
             reportID: PropTypes.string,
         }),
     }),
@@ -49,6 +50,7 @@ const defaultProps = {
     route: {
         params: {
             iouType: '',
+            transactionType: '',
             reportID: '',
         },
     },
@@ -98,6 +100,7 @@ function ReceiptSelector(props) {
     const appState = useRef(AppState.currentState);
 
     const iouType = lodashGet(props.route, 'params.iouType', '');
+    const transactionType = lodashGet(props.route, 'params.transactionType', '');
     const reportID = lodashGet(props.route, 'params.reportID', '');
 
     const {translate} = useLocalize();
@@ -207,12 +210,12 @@ function ReceiptSelector(props) {
             })
             .then((photo) => {
                 IOU.setMoneyRequestReceipt(`file://${photo.path}`, photo.path);
-                IOU.navigateToNextPage(props.iou, iouType, reportID, props.report);
+                IOU.navigateToNextPage(props.iou, iouType, transactionType, reportID, props.report);
             })
             .catch(() => {
                 showCameraAlert();
             });
-    }, [flash, iouType, props.iou, props.report, reportID, translate]);
+    }, [flash, iouType, transactionType, props.iou, props.report, reportID, translate]);
 
     Camera.getCameraPermissionStatus().then((permissionStatus) => {
         setPermissions(permissionStatus);
@@ -271,7 +274,7 @@ function ReceiptSelector(props) {
                         showImagePicker(launchImageLibrary)
                             .then((receiptImage) => {
                                 IOU.setMoneyRequestReceipt(receiptImage[0].uri, receiptImage[0].fileName);
-                                IOU.navigateToNextPage(props.iou, iouType, reportID, props.report);
+                                IOU.navigateToNextPage(props.iou, iouType, transactionType, reportID, props.report);
                             })
                             .catch(() => {
                                 Log.info('User did not select an image from gallery');

@@ -25,6 +25,7 @@ const propTypes = {
     route: PropTypes.shape({
         params: PropTypes.shape({
             iouType: PropTypes.string,
+            transactionType: PropTypes.string,
             reportID: PropTypes.string,
         }),
     }),
@@ -55,6 +56,7 @@ const defaultProps = {
     route: {
         params: {
             iouType: '',
+            transactionType: '',
             reportID: '',
         },
     },
@@ -76,6 +78,7 @@ function NewRequestAmountPage({route, iou, report}) {
     const textInput = useRef(null);
 
     const iouType = lodashGet(route, 'params.iouType', '');
+    const transactionType = lodashGet(route, 'params.transactionType', '');
     const reportID = lodashGet(route, 'params.reportID', '');
     const isEditing = lodashGet(route, 'path', '').includes('amount');
     const currentCurrency = lodashGet(route, 'params.currency', '');
@@ -145,7 +148,7 @@ function NewRequestAmountPage({route, iou, report}) {
     const navigateToCurrencySelectionPage = () => {
         // Remove query from the route and encode it.
         const activeRoute = encodeURIComponent(Navigation.getActiveRoute().replace(/\?.*/, ''));
-        Navigation.navigate(ROUTES.getMoneyRequestCurrencyRoute(iouType, reportID, currency, activeRoute));
+        Navigation.navigate(ROUTES.getMoneyRequestCurrencyRoute(iouType, transactionType, reportID, currency, activeRoute));
     };
 
     const navigateToNextPage = (currentAmount) => {
@@ -154,11 +157,11 @@ function NewRequestAmountPage({route, iou, report}) {
         IOU.setMoneyRequestCurrency(currency);
 
         if (isEditing) {
-            Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID));
+            Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType, transactionType, reportID));
             return;
         }
 
-        IOU.navigateToNextPage(iou, iouType, reportID, report);
+        IOU.navigateToNextPage(iou, iouType, transactionType, reportID, report);
     };
 
     const content = (

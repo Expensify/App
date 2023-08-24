@@ -35,6 +35,7 @@ const propTypes = {
     route: PropTypes.shape({
         params: PropTypes.shape({
             iouType: PropTypes.string,
+            transactionType: PropTypes.string,
             reportID: PropTypes.string,
         }),
     }),
@@ -66,6 +67,7 @@ const defaultProps = {
     route: {
         params: {
             iouType: '',
+            transactionType: '',
             reportID: '',
         },
     },
@@ -80,6 +82,7 @@ const defaultProps = {
 function ReceiptSelector(props) {
     const reportID = lodashGet(props.route, 'params.reportID', '');
     const iouType = lodashGet(props.route, 'params.iouType', '');
+    const transactionType = lodashGet(props.route, 'params.transactionType', '');
     const isAttachmentInvalid = lodashGet(props.receiptModal, 'isAttachmentInvalid', false);
     const attachmentInvalidReasonTitle = lodashGet(props.receiptModal, 'attachmentInvalidReasonTitle', '');
     const attachmentInvalidReason = lodashGet(props.receiptModal, 'attachmentInvalidReason', '');
@@ -101,7 +104,7 @@ function ReceiptSelector(props) {
 
         const filePath = URL.createObjectURL(file);
         IOU.setMoneyRequestReceipt(filePath, file.name);
-        IOU.navigateToNextPage(iou, iouType, reportID, report);
+        IOU.navigateToNextPage(iou, iouType, transactionType, reportID, report);
     };
 
     return (
