@@ -185,7 +185,8 @@ function BaseTextInput(props) {
 
     // When the value prop gets cleared externally, we need to keep the ref in sync:
     useEffect(() => {
-        if (!_.isEmpty(props.value)) {
+        // Return early when component uncontrolled, or we still have a value
+        if (props.value === undefined || !_.isEmpty(props.value)) {
             return;
         }
         hasValueRef.current = false;
