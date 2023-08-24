@@ -80,6 +80,7 @@ function resetMoneyRequestInfo(id = '') {
         comment: '',
         participants: [],
         merchant: CONST.TRANSACTION.DEFAULT_MERCHANT,
+        category: '',
         created,
         receiptPath: '',
         receiptSource: '',
@@ -1747,6 +1748,13 @@ function setMoneyRequestMerchant(merchant) {
 }
 
 /**
+ * @param {String} category
+ */
+function setMoneyRequestCategory(category) {
+    Onyx.merge(ONYXKEYS.IOU, {category: category});
+}
+
+/**
  * @param {Object[]} participants
  */
 function setMoneyRequestParticipants(participants) {
@@ -1823,6 +1831,7 @@ export {
     setMoneyRequestCurrency,
     setMoneyRequestDescription,
     setMoneyRequestMerchant,
+    setMoneyRequestCategory,
     setMoneyRequestParticipants,
     setMoneyRequestReceipt,
     createEmptyTransaction,

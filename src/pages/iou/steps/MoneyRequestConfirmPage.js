@@ -34,6 +34,7 @@ const propTypes = {
         created: PropTypes.string,
         currency: PropTypes.string,
         merchant: PropTypes.string,
+        category: PropTypes.string,
         participants: PropTypes.arrayOf(
             PropTypes.shape({
                 accountID: PropTypes.number,
@@ -61,6 +62,7 @@ const defaultProps = {
         currency: CONST.CURRENCY.USD,
         comment: '',
         merchant: '',
+        category: '',
         created: '',
         participants: [],
     },
@@ -241,6 +243,7 @@ function MoneyRequestConfirmPage(props) {
                         iouAmount={props.iou.amount}
                         iouComment={props.iou.comment}
                         iouCurrencyCode={props.iou.currency}
+                        iouCategory={props.iou.category}
                         onConfirm={createTransaction}
                         onSendMoney={sendMoney}
                         onSelectParticipant={(option) => {

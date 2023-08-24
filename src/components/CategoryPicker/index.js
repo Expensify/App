@@ -8,6 +8,7 @@ import styles from '../../styles/styles';
 import ScreenWrapper from '../ScreenWrapper';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
+import * as IOU from '../../libs/actions/IOU';
 
 function CategoryPicker({policyCategories, reportID, iouType}) {
     const sections = useMemo(() => {
@@ -31,6 +32,11 @@ function CategoryPicker({policyCategories, reportID, iouType}) {
         Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID));
     };
 
+    const updateCategory = (category) => {
+        IOU.setMoneyRequestCategory(category.keyForList);
+        navigateBack();
+    };
+
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             {({safeAreaPaddingBottomStyle}) => (
@@ -38,7 +44,7 @@ function CategoryPicker({policyCategories, reportID, iouType}) {
                     optionHoveredStyle={styles.hoveredComponentBG}
                     contentContainerStyles={[safeAreaPaddingBottomStyle]}
                     sections={sections}
-                    onSelectRow={navigateBack}
+                    onSelectRow={updateCategory}
                 />
             )}
         </ScreenWrapper>

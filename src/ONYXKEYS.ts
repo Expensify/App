@@ -266,6 +266,7 @@ const ONYXKEYS = {
         EDIT_TASK_FORM: 'editTaskForm',
         MONEY_REQUEST_DESCRIPTION_FORM: 'moneyRequestDescriptionForm',
         MONEY_REQUEST_MERCHANT_FORM: 'moneyRequestMerchantForm',
+        MONEY_REQUEST_CATEGORY_FORM: 'moneyRequestCategoryForm',
         MONEY_REQUEST_AMOUNT_FORM: 'moneyRequestAmountForm',
         MONEY_REQUEST_DATE_FORM: 'moneyRequestCreatedForm',
         NEW_CONTACT_METHOD_FORM: 'newContactMethodForm',
