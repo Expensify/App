@@ -38,7 +38,7 @@ function SendButton({isDisabled: isDisabledProp, animatedRef, setIsCommentEmpty,
             const viewTag = animatedRef();
             const viewName = 'RCTMultilineTextInputView';
             const updates = {text: ''};
-            // we are setting the isCommentEmpty flag to true so the status of it will be in sync of the native text input state
+            // We are setting the isCommentEmpty flag to true so the status of it will be in sync of the native text input state
             runOnJS(setIsCommentEmpty)(true);
             updatePropsPaperWorklet(viewTag, viewName, updates); // clears native text input on the UI thread
             runOnJS(submitForm)();
