@@ -1,3 +1,4 @@
+import {CSSProperties} from 'react';
 import overflowAuto from './overflowAuto';
 
 /**
@@ -23,4 +24,4 @@ export default {
     },
 
     overflowAuto,
-};
+} satisfies Record<string, CSSProperties>;
