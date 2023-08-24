@@ -95,11 +95,10 @@ function OptionRowLHNData({
 
     const lastTransaction = useMemo(() => {
         const transactionsWithReceipts = ReportUtils.getSortedTransactionsWithReceipts(fullReport.reportID);
-        const lastTransaction = _.first(transactionsWithReceipts);
-        return lastTransaction;
+        return _.first(transactionsWithReceipts);
     }, [fullReport.reportID, receiptTransactions]);
 
-    let memoizedLastTransaction = useDeepCompareMemo(lastTransaction);
+    const memoizedLastTransaction = useDeepCompareMemo(lastTransaction);
 
     const optionItem = useMemo(() => {
         // Note: ideally we'd have this as a dependent selector in onyx!

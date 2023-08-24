@@ -1216,9 +1216,8 @@ function getMoneyRequestReportName(report, policy = undefined) {
     // get lastReportActionTransaction
     const reportActions = ReportActionsUtils.getAllReportActions(report.reportID);
     const sortedReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(reportActions);
-    const filteredReportActions = _.filter(sortedReportActions, (reportAction) => {
-        return reportAction.pendingAction !== 'delete';
-    });
+    const filteredReportActions = _.filter(sortedReportActions, (reportAction) => reportAction.pendingAction !== 'delete');
+
     const lastReportAction = _.first(filteredReportActions);
     const lastReportActionTransaction = TransactionUtils.getLinkedTransaction(lastReportAction);
 
@@ -1303,9 +1302,7 @@ function getTransactionsWithReceipts(iouReportID) {
 function getSortedTransactionsWithReceipts(iouReportID) {
     const reportActions = ReportActionsUtils.getAllReportActions(iouReportID);
     const sortedReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(reportActions);
-    const filteredSortedReportActions = _.filter(sortedReportActions, (reportAction) => {
-        return reportAction.pendingAction !== 'delete';
-    });
+    const filteredSortedReportActions = _.filter(sortedReportActions, (reportAction) => reportAction.pendingAction !== 'delete');
     return _.reduce(
         filteredSortedReportActions,
         (transactions, action) => {

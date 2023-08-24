@@ -140,18 +140,21 @@ function ReportActionItemSingle(props) {
           ]
         : props.action.person;
 
+    const reportID = props.report && props.report.reportID;
+    const iouReportID = props.report && props.report.reportID;
+
     const showActorDetails = useCallback(() => {
         if (isWorkspaceActor) {
-            showWorkspaceDetails(props.report.reportID);
+            showWorkspaceDetails(reportID);
         } else {
             // Show participants page IOU report preview
             if (displayAllActors) {
-                Navigation.navigate(ROUTES.getReportParticipantsRoute(props.iouReport.reportID));
+                Navigation.navigate(ROUTES.getReportParticipantsRoute(iouReportID));
                 return;
             }
             showUserDetails(props.action.delegateAccountID ? props.action.delegateAccountID : actorAccountID);
         }
-    }, [isWorkspaceActor, props.report && props.report.reportID, actorAccountID, props.action.delegateAccountID, props.iouReport && props.iouReport.reportID, displayAllActors]);
+    }, [isWorkspaceActor, reportID, actorAccountID, props.action.delegateAccountID, iouReportID, displayAllActors]);
 
     const shouldDisableDetailPage = useMemo(
         () => !isWorkspaceActor && ReportUtils.isOptimisticPersonalDetail(props.action.delegateAccountID ? props.action.delegateAccountID : actorAccountID),
