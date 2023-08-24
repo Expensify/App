@@ -35,14 +35,30 @@ const propTypes = {
     }),
 };
 
+/**
+ * @param {string} data - one of the values from CONST.CUSTOM_STATUS_TYPES or data in format YYYY-MM-DD HH:mm
+ * @returns {string}
+ */
+function getDateBasedFromType(data) {
+    switch (data) {
+        case DateUtils.getEndOfToday():
+            return CONST.CUSTOM_STATUS_TYPES.AFTER_TODAY;
+        case CONST.CUSTOM_STATUS_TYPES.NEVER:
+        case '':
+            return CONST.CUSTOM_STATUS_TYPES.NEVER;
+        case false:
+            return CONST.CUSTOM_STATUS_TYPES.AFTER_TODAY;
+        default:
+            return CONST.CUSTOM_STATUS_TYPES.CUSTOM;
+    }
+}
+
 function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
     const localize = useLocalize();
     const clearAfter = lodashGet(currentUserPersonalDetails, 'status.clearAfter', '');
     const draftClearAfter = lodashGet(customStatus, 'clearAfter', '');
     const customDateTemporary = lodashGet(customStatus, 'customDateTemporary', '');
-
-    const [draftPeriod, setDraftPeriod] = useState((clearAfter && !draftClearAfter) || draftClearAfter ? CONST.CUSTOM_STATUS_TYPES.CUSTOM : CONST.CUSTOM_STATUS_TYPES.AFTER_TODAY);
-
+    const [draftPeriod, setDraftPeriod] = useState(getDateBasedFromType(clearAfter || draftClearAfter));
     const localesToThemes = useMemo(
         () =>
             _.map(CONST.CUSTOM_STATUS_TYPES, (value, key) => ({

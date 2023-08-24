@@ -2,7 +2,6 @@ import React, {useMemo, useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import moment from 'moment';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes} from '../../../../components/withCurrentUserPersonalDetails';
 import MenuItemWithTopDescription from '../../../../components/MenuItemWithTopDescription';
 import StaticHeaderPageLayout from '../../../../components/StaticHeaderPageLayout';
@@ -17,10 +16,11 @@ import MobileBackgroundImage from '../../../../../assets/images/money-stack.svg'
 import themeColors from '../../../../styles/themes/default';
 import useLocalize from '../../../../hooks/useLocalize';
 import styles from '../../../../styles/styles';
+import DateUtils from '../../../../libs/DateUtils';
 import compose from '../../../../libs/compose';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import ROUTES from '../../../../ROUTES';
-import DateUtils from '../../../../libs/DateUtils';
+import CONST from '../../../../CONST';
 
 const propTypes = {
     ...withCurrentUserPersonalDetailsPropTypes,
@@ -37,22 +37,39 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
 
     const defaultEmoji = draftEmojiCode || currentUserEmojiCode;
     const defaultText = draftEmojiCode ? draftText : currentUserStatusText;
-    const customStatus = draftEmojiCode ? `${draftEmojiCode} ${draftText}` : `${currentUserEmojiCode || ''} ${currentUserStatusText || ''}`;
+    const areAllValuesEmpty = !draftEmojiCode && !draftText && !currentUserEmojiCode && !currentUserStatusText;
+    const statusEmojiWithMessage = draftEmojiCode ? `${draftEmojiCode} ${draftText}` : `${currentUserEmojiCode || ''} ${currentUserStatusText || ''}`;
+    const customStatus = areAllValuesEmpty ? '' : statusEmojiWithMessage;
     const hasDraftStatus =
         !!draftEmojiCode || !!draftText || ((!!draftEmojiCode || !!currentUserEmojiCode) && !!draftClearAfter && !DateUtils.areDatesIdentical(draftClearAfter, currentUserClearAfter));
-    const customClearAfter = DateUtils.formatDateTo12Hour(draftClearAfter || currentUserClearAfter);
+    const customClearAfter = useMemo(() => {
+        const dataToShow = draftClearAfter || currentUserClearAfter;
+        return DateUtils.getDateForTitleBasedFromType(dataToShow);
+    }, [draftClearAfter, currentUserClearAfter]);
 
     const updateStatus = useCallback(() => {
-        const endOfDay = moment().endOf('day').format('YYYY-MM-DD HH:mm:ss');
-        User.updateCustomStatus({text: defaultText, emojiCode: defaultEmoji, clearAfter: draftClearAfter || endOfDay || currentUserClearAfter});
+        let clearAfter = '';
+        if (draftClearAfter !== CONST.CUSTOM_STATUS_TYPES.NEVER) {
+            clearAfter = draftClearAfter || currentUserClearAfter;
+        }
+        User.updateCustomStatus({text: defaultText, emojiCode: defaultEmoji, clearAfter});
 
         User.clearDraftCustomStatus();
         Navigation.goBack(ROUTES.SETTINGS_PROFILE);
     }, [defaultText, defaultEmoji, currentUserClearAfter, draftClearAfter]);
 
+    useEffect(() => {
+        if (currentUserEmojiCode || currentUserClearAfter || draftClearAfter) return
+        User.updateDraftCustomStatus({clearAfter: DateUtils.getEndOfToday()});
+    }, []);
     const clearStatus = () => {
         User.clearCustomStatus();
-        User.clearDraftCustomStatus();
+        User.updateDraftCustomStatus({
+            text: '',
+            emojiCode: '',
+            clearAfter: DateUtils.getEndOfToday(),
+            customDateTemporary: '',
+        });
     };
 
     const footerComponent = useMemo(

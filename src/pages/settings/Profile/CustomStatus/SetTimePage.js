@@ -2,8 +2,6 @@ import PropTypes from 'prop-types';
 import React, {useCallback} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import RNTimePicker from '@react-native-community/datetimepicker';
-import {View} from 'react-native';
 import withCurrentUserPersonalDetails from '../../../../components/withCurrentUserPersonalDetails';
 import FullscreenLoadingIndicator from '../../../../components/FullscreenLoadingIndicator';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
@@ -53,8 +51,6 @@ function SetTimePage({translate, privatePersonalDetails, customStatus, currentUs
     if (lodashGet(privatePersonalDetails, 'isLoading', true)) {
         return <FullscreenLoadingIndicator />;
     }
-
-    // const customStatusTime = DateUtils.extractTime(customDateTemporary || draftClearAfter || clearAfter);
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>

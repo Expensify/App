@@ -317,14 +317,6 @@ function getEndOfWeekFromNow() {
 }
 
 /**
- * @returns {string} example: 2023-05-16
- * it's kind of 'newer' date
- */
-function getOneHundredYearsFromNow() {
-    return moment().endOf(100, 'years').format('YYYY-MM-DD HH:mm:ss');
-}
-
-/**
  * @param {string} time
  * @returns {string} example: 2023-05-16
  * it's kind of 'newer' date
@@ -357,12 +349,13 @@ function extractTime12Hour(dateTimeString) {
  */
 function formatDateTo12Hour(dateTimeString) {
     if (!dateTimeString) return '';
-    return moment(dateTimeString).format('YYYY-MM-DD hh:mm:ss A');
+    return moment(dateTimeString).format('YYYY-MM-DD hh:mm A');
 }
 
-// /**
-//  * @returns {string} example: 2023-05-16
-//  */
+/**
+ * @param {string} type - one of the values from CONST.CUSTOM_STATUS_TYPES
+ * @returns {string} example: 2023-05-16
+ */
 function getDateBasedFromType(type) {
     switch (type) {
         case CONST.CUSTOM_STATUS_TYPES.THIRTY_MINUTES:
@@ -373,8 +366,27 @@ function getDateBasedFromType(type) {
             return getEndOfToday();
         case CONST.CUSTOM_STATUS_TYPES.AFTER_WEEK:
             return getEndOfWeekFromNow();
+        case CONST.CUSTOM_STATUS_TYPES.NEVER:
+            return CONST.CUSTOM_STATUS_TYPES.NEVER;
         default:
             return '';
+    }
+}
+
+/**
+ * @param {string} data - one of the values from CONST.CUSTOM_STATUS_TYPES or data in format YYYY-MM-DD HH:mm
+ * @returns {string} example: 2023-05-16 11:10 PM or 'Today'
+ */
+function getDateForTitleBasedFromType(data) {
+    const {translateLocal} = Localize;
+    switch (data) {
+        case getEndOfToday():
+            return translateLocal('statusPage.timePeriods.afterToday');
+        case CONST.CUSTOM_STATUS_TYPES.NEVER:
+        case '':
+            return translateLocal('statusPage.timePeriods.never');
+        default:
+            return formatDateTo12Hour(data);
     }
 }
 
@@ -501,7 +513,6 @@ const DateUtils = {
     getThirtyMinutesFromNow,
     getEndOfToday,
     getEndOfWeekFromNow,
-    getOneHundredYearsFromNow,
     getDateBasedFromType,
     getOneHourFromNow,
     extractDate,
@@ -513,6 +524,7 @@ const DateUtils = {
     parseTimeTo12HourFormat,
     areDatesIdentical,
     getTimePeriod,
+    getDateForTitleBasedFromType,
 };
 
 export default DateUtils;

@@ -1,7 +1,6 @@
 import React, {useEffect, useState, useCallback, useRef, useMemo} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
