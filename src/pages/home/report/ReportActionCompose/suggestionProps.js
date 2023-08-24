@@ -16,7 +16,7 @@ const baseProps = {
     /** Callback to update the comment draft */
     updateComment: PropTypes.func.isRequired,
 
-    /** Flag whether we need to consider the participents */
+    /** Flag whether we need to consider the participants */
     shouldShowReportRecipientLocalTime: PropTypes.bool.isRequired,
 };
 
