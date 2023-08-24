@@ -91,6 +91,7 @@ export default {
     MONEY_REQUEST_DATE: ':iouType/new/date/:reportID?',
     MONEY_REQUEST_CURRENCY: ':iouType/new/currency/:reportID?',
     MONEY_REQUEST_DESCRIPTION: ':iouType/new/description/:reportID?',
+    MONEY_REQUEST_CATEGORY: ':iouType/new/category/:reportID?',
     MONEY_REQUEST_MERCHANT: ':iouType/new/merchant/:reportID?',
     MONEY_REQUEST_MANUAL_TAB: ':iouType/new/:reportID?/manual',
     MONEY_REQUEST_SCAN_TAB: ':iouType/new/:reportID?/scan',
@@ -106,6 +107,7 @@ export default {
     getMoneyRequestCreatedRoute: (iouType, reportID = '') => `${iouType}/new/date/${reportID}`,
     getMoneyRequestCurrencyRoute: (iouType, reportID = '', currency, backTo) => `${iouType}/new/currency/${reportID}?currency=${currency}&backTo=${backTo}`,
     getMoneyRequestDescriptionRoute: (iouType, reportID = '') => `${iouType}/new/description/${reportID}`,
+    getMoneyRequestCategoryRoute: (iouType, reportID = '') => `${iouType}/new/category/${reportID}`,
     getMoneyRequestMerchantRoute: (iouType, reportID = '') => `${iouType}/new/merchant/${reportID}`,
     getMoneyRequestDistanceTabRoute: (iouType, reportID = '') => `${iouType}/new/${reportID}/distance`,
     getMoneyRequestWaypointRoute: (iouType, waypointIndex) => `${iouType}/new/waypoint/${waypointIndex}`,
@@ -130,7 +132,10 @@ export default {
     DETAILS: 'details',
     getDetailsRoute: (login) => `details?login=${encodeURIComponent(login)}`,
     PROFILE: 'a/:accountID',
-    getProfileRoute: (accountID) => `a/${accountID}`,
+    getProfileRoute: (accountID, backTo = '') => {
+        const backToParam = backTo ? `?backTo=${encodeURIComponent(backTo)}` : '';
+        return `a/${accountID}${backToParam}`;
+    },
     REPORT_PARTICIPANTS: 'r/:reportID/participants',
     getReportParticipantsRoute: (reportID) => `r/${reportID}/participants`,
     REPORT_WITH_ID_DETAILS: 'r/:reportID/details',

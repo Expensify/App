@@ -293,7 +293,7 @@ describe('actions/IOU', () => {
                                     // The comment should be correct
                                     expect(transaction.comment.comment).toBe(comment);
 
-                                    expect(transaction.merchant).toBe(CONST.REPORT.TYPE.IOU);
+                                    expect(transaction.merchant).toBe(CONST.TRANSACTION.DEFAULT_MERCHANT);
 
                                     // It should be pending
                                     expect(transaction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
@@ -477,7 +477,7 @@ describe('actions/IOU', () => {
                                     expect(newTransaction.reportID).toBe(iouReportID);
                                     expect(newTransaction.amount).toBe(amount);
                                     expect(newTransaction.comment.comment).toBe(comment);
-                                    expect(newTransaction.merchant).toBe(CONST.REPORT.TYPE.IOU);
+                                    expect(newTransaction.merchant).toBe(CONST.TRANSACTION.DEFAULT_MERCHANT);
                                     expect(newTransaction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
                                     // The transactionID on the iou action should match the one from the transactions collection
@@ -620,7 +620,7 @@ describe('actions/IOU', () => {
                                         expect(transaction.reportID).toBe(iouReportID);
                                         expect(transaction.amount).toBe(amount);
                                         expect(transaction.comment.comment).toBe(comment);
-                                        expect(transaction.merchant).toBe(CONST.REPORT.TYPE.IOU);
+                                        expect(transaction.merchant).toBe(CONST.TRANSACTION.DEFAULT_MERCHANT);
                                         expect(transaction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
                                         // The transactionID on the iou action should match the one from the transactions collection
@@ -1079,9 +1079,9 @@ describe('actions/IOU', () => {
                                     expect(vitTransaction.comment.comment).toBe(comment);
                                     expect(groupTransaction.comment.comment).toBe(comment);
 
-                                    expect(carlosTransaction.merchant).toBe(CONST.REPORT.TYPE.IOU);
-                                    expect(julesTransaction.merchant).toBe(CONST.REPORT.TYPE.IOU);
-                                    expect(vitTransaction.merchant).toBe(CONST.REPORT.TYPE.IOU);
+                                    expect(carlosTransaction.merchant).toBe(CONST.TRANSACTION.DEFAULT_MERCHANT);
+                                    expect(julesTransaction.merchant).toBe(CONST.TRANSACTION.DEFAULT_MERCHANT);
+                                    expect(vitTransaction.merchant).toBe(CONST.TRANSACTION.DEFAULT_MERCHANT);
                                     expect(groupTransaction.merchant).toBe(
                                         `Split bill with ${RORY_EMAIL}, ${CARLOS_EMAIL}, ${JULES_EMAIL}, and ${VIT_EMAIL} [${DateUtils.getDBTime().slice(0, 10)}]`,
                                     );
