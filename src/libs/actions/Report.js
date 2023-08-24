@@ -1990,6 +1990,47 @@ const addPrivateNotes = (reportID, accountID, note) => {
     );
 };
 
+function getReportPrivateNote(reportID) {
+    if (_.isEmpty(reportID)) {
+        return;
+    }
+    API.read(
+        'GetReportPrivateNote',
+        {
+            reportID,
+        },
+        {
+            optimisticData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                    value: {
+                        isLoadingPrivateNotes: true,
+                    },
+                },
+            ],
+            successData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                    value: {
+                        isLoadingPrivateNotes: false,
+                    },
+                },
+            ],
+            failureData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                    value: {
+                        isLoadingPrivateNotes: false,
+                    },
+                },
+            ],
+        },
+    );
+}
+
 export {
     addComment,
     addAttachment,
@@ -2038,4 +2079,5 @@ export {
     flagComment,
     openLastOpenedPublicRoom,
     addPrivateNotes,
+    getReportPrivateNote,
 };

@@ -1,21 +1,27 @@
-import React, {useMemo} from 'react';
+import React, {useMemo, useEffect} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import Navigation from '../../libs/Navigation/Navigation';
-import ROUTES from '../../ROUTES';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
 import compose from '../../libs/compose';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
-import * as Expensicons from '../../components/Icon/Expensicons';
 import MenuItem from '../../components/MenuItem';
 import * as ReportUtils from '../../libs/ReportUtils';
-import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import useLocalize from '../../hooks/useLocalize';
 import useNetwork from '../../hooks/useNetwork';
-import usePermissions from '../../hooks/usePermissions';
+import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
+import * as Report from '../../libs/actions/Report';
+import personalDetailsPropType from '../personalDetailsPropType';
+import * as UserUtils from '../../libs/UserUtils';
+import reportPropTypes from '../reportPropTypes';
+import ScreenWrapper from '../../components/ScreenWrapper';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -28,34 +34,34 @@ const propTypes = {
             accountID: PropTypes.string,
         }),
     }).isRequired,
+
+    /** Session info for the currently logged in user. */
+    session: PropTypes.shape({
+        /** Currently logged in user email */
+        accountID: PropTypes.number,
+    }),
+
+     /** All of the personal details for everyone */
+     personalDetailsList: PropTypes.objectOf(personalDetailsPropType),
+     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     report: {},
+    session: {
+        accountID: null,
+    },
+    personalDetailsList: {},
 };
 
-/**
- * Dismisses the errors on one item
- *
- * @param {string} policyID
- * @param {string} pendingAction
- */
-function dismissWorkspaceError(policyID, pendingAction) {
-    if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-        Policy.clearDeleteWorkspaceError(policyID);
-        return;
-    }
-
-    if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
-        Policy.removeWorkspace(policyID);
-        return;
-    }
-    throw new Error('Not implemented');
-}
-
-function PrivateNotesListPage({report}) {
+function PrivateNotesListPage({session, report, personalDetailsList}) {
     const {translate} = useLocalize();
 
+    useEffect(() => {
+        Report.getReportPrivateNote(report.reportID);
+    }, [report.reportID]);
+
+    useNetwork({onReconnect: () => Report.getReportPrivateNote(report.reportID)});
     /**
      * Gets the menu item for each workspace
      *
@@ -65,7 +71,6 @@ function PrivateNotesListPage({report}) {
      */
     function getMenuItem(item, index) {
         const keyTitle = item.translationKey ? translate(item.translationKey) : item.title;
-        const isPaymentItem = item.translationKey === 'common.wallet';
 
         return (
             <OfflineWithFeedback
@@ -80,13 +85,9 @@ function PrivateNotesListPage({report}) {
                     icon={item.icon}
                     iconType={CONST.ICON_TYPE_WORKSPACE}
                     onPress={item.action}
-                    iconStyles={item.iconStyles}
-                    iconFill={item.iconFill}
                     shouldShowRightIcon
-                    badgeText={getWalletBalance(isPaymentItem)}
                     fallbackIcon={item.fallbackIcon}
                     brickRoadIndicator={item.brickRoadIndicator}
-                    disabled={item.disabled}
                 />
             </OfflineWithFeedback>
         );
@@ -96,36 +97,34 @@ function PrivateNotesListPage({report}) {
      * Add free policies (workspaces) to the list of menu items and returns the list of menu items
      * @returns {Array} the menu item list
      */
-    const workspaces = useMemo(() => {
-        const reimbursementAccountBrickRoadIndicator = !_.isEmpty(reimbursementAccount.errors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
-        return _.chain(policies)
-            .filter((policy) => PolicyUtils.shouldShowPolicy(policy, isOffline))
-            .map((policy) => ({
-                title: policy.name,
-                icon: policy.avatar ? policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
-                iconType: policy.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
-                action: () => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policy.id)),
-                iconFill: themeColors.textLight,
-                fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
-                brickRoadIndicator: reimbursementAccountBrickRoadIndicator || PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, allPolicyMembers),
-                pendingAction: policy.pendingAction,
-                errors: policy.errors,
-                dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
-                disabled: policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+    const privateNotes = useMemo(() => {
+        const privateNoteBrickRoadIndicator = (accountID) => !_.isEmpty(lodashGet(report, `privateNotes.${accountID}.errors`, '')) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
+        return _.chain(lodashGet(report, 'privateNotes'))
+            .map(([accountID]) => ({
+                title: lodashGet(personalDetailsList, `${accountID}.login`, ''),
+                icon: UserUtils.getAvatar(lodashGet(personalDetailsList, `${accountID}.avatar`, UserUtils.getDefaultAvatar(accountID))),
+                iconType: CONST.ICON_TYPE_AVATAR,
+                action: () => ReportUtils.navigateToPrivateNotesPage(report, accountID),
+                brickRoadIndicator: privateNoteBrickRoadIndicator(accountID),
             }))
-            .sortBy((policy) => policy.title.toLowerCase())
             .value();
-    }, [reimbursementAccount.errors, policies, isOffline, allPolicyMembers]);
+    }, [report.privateNotes]);
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-            <HeaderWithBackButton
-                title={this.props.translate('privateNotes.title')}
+            <FullPageNotFoundView
+                shouldShow={(_.isEmpty(report.reportID) || !report.isLoadingPrivateNotes && _.isEmpty(lodashGet(report, 'privateNotes', [])))}
+                onBackButtonPress={() => Navigation.goBack()}
+            >
+                <HeaderWithBackButton
+                title={translate('privateNotes.title')}
                 shouldShowBackButton
                 onCloseButtonPress={() => Navigation.dismissModal()}
                 onBackButtonPress={() => Navigation.goBack()}
-            />
-            {_.map(workspaces, (item, index) => getMenuItem(item, index))}
+                />
+                {report.isLoading && <FullScreenLoadingIndicator/>}
+                {!report.isLoading && _.map(privateNotes, (item, index) => getMenuItem(item, index))}
+            </FullPageNotFoundView>
         </ScreenWrapper>
     );
 }
@@ -138,5 +137,12 @@ export default compose(
         report: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID.toString()}`,
         },
+        session: {
+            key: ONYXKEYS.SESSION,
+        },
+        personalDetailsList: {
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+        },
     }),
+    withLocalize,
 )(PrivateNotesListPage);
