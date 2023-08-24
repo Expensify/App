@@ -30,28 +30,24 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     fullReport: PropTypes.object,
 
-    /** The policies which the user has access to and which the report could be tied to */
-    policies: PropTypes.objectOf(
-        PropTypes.shape({
-            /** The ID of the policy */
-            id: PropTypes.string,
-            /** Name of the policy */
-            name: PropTypes.string,
-            /** Avatar of the policy */
-            avatar: PropTypes.string,
-        }),
-    ),
+    /** The policy which the user has access to and which the report could be tied to */
+    policy: PropTypes.shape({
+        /** The ID of the policy */
+        id: PropTypes.string,
+        /** Name of the policy */
+        name: PropTypes.string,
+        /** Avatar of the policy */
+        avatar: PropTypes.string,
+    }),
 
     /** The actions from the parent report */
     parentReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 
-    /** The transactions from the parent report action */
-    transactions: PropTypes.objectOf(
-        PropTypes.shape({
-            /** The ID of the transaction */
-            transactionID: PropTypes.string,
-        }),
-    ),
+    /** The transaction from the parent report action */
+    transaction: PropTypes.shape({
+        /** The ID of the transaction */
+        transactionID: PropTypes.string,
+    }),
 
     ...withCurrentReportIDPropTypes,
     ...basePropTypes,
@@ -61,9 +57,9 @@ const defaultProps = {
     shouldDisableFocusOptions: false,
     personalDetails: {},
     fullReport: {},
-    policies: {},
+    policy: {},
     parentReportActions: {},
-    transactions: {},
+    transaction: {},
     preferredLocale: CONST.LOCALES.DEFAULT,
     ...withCurrentReportIDDefaultProps,
     ...baseDefaultProps,
@@ -83,9 +79,9 @@ function OptionRowLHNData({
     personalDetails,
     preferredLocale,
     comment,
-    policies,
+    policy,
     parentReportActions,
-    transactions,
+    transaction,
     ...propsToForward
 }) {
     const reportID = propsToForward.reportID;
@@ -93,11 +89,7 @@ function OptionRowLHNData({
     // instead of a changing number (so we prevent unnecessary re-renders).
     const isFocused = !shouldDisableFocusOptions && currentReportID === reportID;
 
-    const policy = lodashGet(policies, [`${ONYXKEYS.COLLECTION.POLICY}${fullReport.policyID}`], '');
-
     const parentReportAction = parentReportActions[fullReport.parentReportActionID];
-    const transactionID = lodashGet(parentReportAction, ['originalMessage', 'IOUTransactionID'], '');
-    const transaction = lodashGet(transactions, [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`], '');
 
     const optionItemRef = useRef();
     const optionItem = useMemo(() => {
@@ -189,17 +181,20 @@ export default React.memo(
             preferredLocale: {
                 key: ONYXKEYS.NVP_PREFERRED_LOCALE,
             },
-            policies: {
-                key: ONYXKEYS.COLLECTION.POLICY,
-            },
-            transactions: {
-                key: ONYXKEYS.COLLECTION.TRANSACTION,
-            },
         }),
         withOnyx({
             parentReportActions: {
                 key: ({fullReport}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fullReport.parentReportID}`,
                 canEvict: false,
+            },
+            policy: {
+                key: ({fullReport}) => `${ONYXKEYS.COLLECTION.POLICY}${fullReport.policyID}`,
+            },
+        }),
+        withOnyx({
+            transaction: {
+                key: ({fullReport, parentReportActions}) =>
+                    `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(parentReportActions, [fullReport.parentReportActionID, 'originalMessage', 'IOUTransactionID'], '')}`,
             },
         }),
     )(OptionRowLHNData),
