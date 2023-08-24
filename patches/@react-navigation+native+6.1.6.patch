@@ -133,7 +133,7 @@ index 0000000..16da117
 +//# sourceMappingURL=findFocusedRouteKey.js.map
 \ No newline at end of file
 diff --git a/node_modules/@react-navigation/native/lib/module/useLinking.js b/node_modules/@react-navigation/native/lib/module/useLinking.js
-index 5bf2a88..abfa7d7 100644
+index 5bf2a88..a4318ef 100644
 --- a/node_modules/@react-navigation/native/lib/module/useLinking.js
 +++ b/node_modules/@react-navigation/native/lib/module/useLinking.js
 @@ -2,6 +2,7 @@ import { findFocusedRoute, getActionFromState as getActionFromStateDefault, getP
@@ -229,7 +229,7 @@ index 5bf2a88..abfa7d7 100644
          if (historyDelta > 0) {
            // If history length is increased, we should pushState
            // Note that path might not actually change here, for example, drawer open should pushState
-@@ -262,34 +286,56 @@ export default function useLinking(ref, _ref) {
+@@ -262,34 +286,55 @@ export default function useLinking(ref, _ref) {
            // If history length is decreased, i.e. entries were removed, we want to go back
  
            const nextIndex = history.backIndex({
@@ -251,13 +251,6 @@ index 5bf2a88..abfa7d7 100644
                // This won't be correct if multiple routes were pushed in one go before
                // Usually this shouldn't happen and this is a fallback for that
 -              await history.go(historyDelta);
--            }
- 
--            // Store the updated state as well as fix the path if incorrect
--            history.replace({
--              path,
--              state
--            });
 +              await history.go(historyDeltaByKeys);
 +              if (historyDeltaByKeys + 1 === historyDelta) {
 +                history.push({
@@ -270,7 +263,13 @@ index 5bf2a88..abfa7d7 100644
 +                  state
 +                });
 +              }
-+            }
+             }
+-
+-            // Store the updated state as well as fix the path if incorrect
+-            history.replace({
+-              path,
+-              state
+-            });
            } catch (e) {
              // The navigation was interrupted
            }
