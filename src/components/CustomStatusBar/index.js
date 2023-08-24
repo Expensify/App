@@ -7,7 +7,10 @@ function CustomStatusBar() {
     useEffect(() => {
         Navigation.isNavigationReady().then(() => {
             const currentRoute = navigationRef.getCurrentRoute();
-            const currentScreenBackgroundColor = themeColors.PAGE_BACKGROUND_COLORS[currentRoute.name] || themeColors.appBG;
+            let currentScreenBackgroundColor = themeColors.appBG;
+            if (currentRoute && 'name' in currentRoute && currentRoute.name in themeColors.PAGE_BACKGROUND_COLORS) {
+                currentScreenBackgroundColor = themeColors.PAGE_BACKGROUND_COLORS[currentRoute.name];
+            }
             StatusBar.setBarStyle('light-content', true);
             StatusBar.setBackgroundColor(currentScreenBackgroundColor);
         });
