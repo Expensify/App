@@ -27,6 +27,7 @@ const propTypes = {
     route: PropTypes.shape({
         params: PropTypes.shape({
             iouType: PropTypes.string,
+            transactionType: PropTypes.string,
             reportID: PropTypes.string,
         }),
     }),
@@ -47,6 +48,7 @@ const defaultProps = {
     route: {
         params: {
             iouType: '',
+            transactionType: '',
             reportID: '',
         },
     },
@@ -61,6 +63,7 @@ const defaultProps = {
 
 function MoneyRequestSelectorPage(props) {
     const iouType = lodashGet(props.route, 'params.iouType', '');
+    const transactionType = lodashGet(props.route, 'params.transactionType', '');
     const reportID = lodashGet(props.route, 'params.reportID', '');
     const {translate} = useLocalize();
     const {canUseScanReceipts, canUseDistanceRequests} = usePermissions();
@@ -103,13 +106,13 @@ function MoneyRequestSelectorPage(props) {
                                     <TopTab.Screen
                                         name={CONST.TAB.MANUAL}
                                         component={NewRequestAmountPage}
-                                        initialParams={{reportID, iouType}}
+                                        initialParams={{reportID, iouType, transactionType}}
                                     />
                                     {canUseScanReceipts && (
                                         <TopTab.Screen
                                             name={CONST.TAB.SCAN}
                                             component={ReceiptSelector}
-                                            initialParams={{reportID, iouType}}
+                                            initialParams={{reportID, iouType, transactionType}}
                                         />
                                     )}
                                     {canUseDistanceRequests && (
