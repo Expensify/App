@@ -1,10 +1,12 @@
 import VisibilityStyles from './types';
 
-export default {
+const visibility: VisibilityStyles = {
     visible: {
         visibility: 'visible',
     },
     hidden: {
         visibility: 'hidden',
     },
-} satisfies VisibilityStyles;
+};
+
+export default visibility;
