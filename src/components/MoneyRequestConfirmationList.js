@@ -153,14 +153,14 @@ function MoneyRequestConfirmationList(props) {
     const [showAllFields, toggleShowAllFields] = useReducer((state) => !state, false);
     const isTypeRequest = props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST;
 
+    const isDistanceRequest = false;
     const {unit, rate} = props.mileageRate;
     const distance = lodashGet(props, 'transaction.routes.route0.distance', 0);
-    const isDistanceRequest = TransactionUtils.isDistanceRequest(props.transaction);
-    const convertedDistance = isDistanceRequest ? DistanceRequestUtils.getDistanceString(distance, unit) : 0;
-    const distanceRequestAmount = isDistanceRequest ? convertedDistance * rate : 0;
-    const distanceString = isDistanceRequest ? DistanceRequestUtils.convertDistanceToUnit(convertedDistance, unit, rate) : '';
 
-    const formattedAmount = CurrencyUtils.convertToDisplayString(isDistanceRequest ? distanceRequestAmount : props.iouAmount, isDistanceRequest ? CONST.CURRENCY.USD : props.iouCurrencyCode);
+    const formattedAmount = CurrencyUtils.convertToDisplayString(
+        isDistanceRequest ? DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate) : props.iouAmount,
+        isDistanceRequest ? CONST.CURRENCY.USD : props.iouCurrencyCode,
+    );
 
     /**
      * Returns the participants with amount
@@ -433,7 +433,7 @@ function MoneyRequestConfirmationList(props) {
                     {isDistanceRequest && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly && isTypeRequest}
-                            title={distanceString}
+                            title={DistanceRequestUtils.getDistanceString(distance, unit, rate)}
                             description={translate('tabSelector.distance')}
                             style={[styles.moneyRequestMenuItem, styles.mb2]}
                             titleStyle={styles.flex1}

@@ -21,8 +21,8 @@ const getDefaultMileageRate = (policy) => {
     };
 };
 
-function getDistanceString(meters, unit) {
-    if (typeof meters !== 'number' || (unit !== 'mi' && unit !== 'km')) {
+function convertDistanceUnit(distanceInMeters, unit) {
+    if (typeof distanceInMeters !== 'number' || (unit !== 'mi' && unit !== 'km')) {
         throw new Error('Invalid input');
     }
 
@@ -31,20 +31,27 @@ function getDistanceString(meters, unit) {
 
     switch (unit) {
         case 'km':
-            return meters * METERS_TO_KM;
+            return distanceInMeters * METERS_TO_KM;
         case 'mi':
-            return meters * METERS_TO_MILES;
+            return distanceInMeters * METERS_TO_MILES;
         default:
             throw new Error('Unsupported unit. Supported units are "mi" or "km".');
     }
 }
 
-const convertDistanceToUnit = (distance, unit, rate) => {
+const getDistanceString = (distance, unit, rate) => {
+    const convertedDistance = convertDistanceUnit(distance, unit, rate);
+
     const distanceUnit = unit === 'mi' ? 'miles' : 'kilometers';
     const singularDistanceUnit = unit === 'mi' ? 'mile' : 'kilometer';
-    const roundedDistance = distance.toFixed(2);
+    const roundedDistance = convertedDistance.toFixed(2);
 
     return `${roundedDistance} ${roundedDistance === 1 ? singularDistanceUnit : distanceUnit} @ $${rate * 0.01} / ${singularDistanceUnit}`;
 };
 
-export default {getDefaultMileageRate, getDistanceString, convertDistanceToUnit};
+const getDistanceRequestAmount = (distance, unit, rate) => {
+    const convertedDistance = convertDistanceUnit(distance, unit, rate);
+    return convertedDistance * rate;
+};
+
+export default {getDefaultMileageRate, getDistanceString, getDistanceRequestAmount};
