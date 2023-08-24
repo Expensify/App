@@ -671,6 +671,7 @@ function getOptions(
         includeCategories = false,
         categories = {},
         recentlyUsedCategories = {},
+        canInviteUser = true,
     },
 ) {
     if (includeCategories) {
@@ -980,7 +981,7 @@ function getOptions(
     return {
         personalDetails: personalDetailsOptions,
         recentReports: recentReportOptions,
-        userToInvite,
+        userToInvite: canInviteUser ? userToInvite : null,
         currentUserOption,
         categoryOptions: [],
     };
@@ -1067,6 +1068,7 @@ function getIOUConfirmationOptionsFromParticipants(participants, amountText) {
  * @param {boolean} [includeCategories]
  * @param {Object} [categories]
  * @param {Object} [recentlyUsedCategories]
+ * @param {boolean} [canInviteUser]
  * @returns {Object}
  */
 function getNewChatOptions(
@@ -1081,6 +1083,7 @@ function getNewChatOptions(
     includeCategories = false,
     categories = {},
     recentlyUsedCategories = {},
+    canInviteUser = true,
 ) {
     return getOptions(reports, personalDetails, {
         betas,
@@ -1095,6 +1098,7 @@ function getNewChatOptions(
         includeCategories,
         categories,
         recentlyUsedCategories,
+        canInviteUser,
     });
 }
 

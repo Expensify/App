@@ -663,6 +663,7 @@ const CONST = {
         SYSTEM: 'system',
     },
     TRANSACTION: {
+        DEFAULT_MERCHANT: 'Request',
         TYPE: {
             CUSTOM_UNIT: 'customUnit',
         },
@@ -873,6 +874,8 @@ const CONST = {
         QA: 'qa@expensify.com',
         QA_TRAVIS: 'qa+travisreceipts@expensify.com',
         RECEIPTS: 'receipts@expensify.com',
+        SAASTR: 'saastr@expensify.com',
+        SBE: 'sbe@expensify.com',
         STUDENT_AMBASSADOR: 'studentambassadors@expensify.com',
         SVFG: 'svfg@expensify.com',
     },
@@ -1139,8 +1142,8 @@ const CONST = {
     REGEX: {
         SPECIAL_CHARS_WITHOUT_NEWLINE: /((?!\n)[()-\s\t])/g,
         DIGITS_AND_PLUS: /^\+?[0-9]*$/,
-        ALPHABETIC_AND_LATIN_CHARS: /^[a-zA-ZÀ-ÿ ]*$/,
-        NON_ALPHABETIC_AND_NON_LATIN_CHARS: /[^a-zA-ZÀ-ÿ]/g,
+        ALPHABETIC_AND_LATIN_CHARS: /^[\p{Script=Latin} ]*$/u,
+        NON_ALPHABETIC_AND_NON_LATIN_CHARS: /[^\p{Script=Latin}]/gu,
         POSITIVE_INTEGER: /^\d+$/,
         PO_BOX: /\b[P|p]?(OST|ost)?\.?\s*[O|o|0]?(ffice|FFICE)?\.?\s*[B|b][O|o|0]?[X|x]?\.?\s+[#]?(\d+)\b/,
         ANY_VALUE: /^.+$/,
@@ -2594,6 +2597,10 @@ const CONST = {
     INDENTS: '    ',
     PARENT_CHILD_SEPARATOR: ': ',
     CATEGORY_LIST_THRESHOLD: 8,
+    DEMO_PAGES: {
+        SAASTR: 'SaaStrDemoSetup',
+        SBE: 'SbeDemoSetup',
+    },
 };
 
 export default CONST;
