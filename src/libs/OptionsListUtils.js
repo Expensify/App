@@ -961,7 +961,17 @@ function getIOUConfirmationOptionsFromParticipants(participants, amountText) {
  * @param {boolean} [canInviteUser]
  * @returns {Object}
  */
-function getNewChatOptions(reports, personalDetails, betas = [], searchValue = '', selectedOptions = [], excludeLogins = [], includeOwnedWorkspaceChats = false, includeP2P = true, canInviteUser = true) {
+function getNewChatOptions(
+    reports,
+    personalDetails,
+    betas = [],
+    searchValue = '',
+    selectedOptions = [],
+    excludeLogins = [],
+    includeOwnedWorkspaceChats = false,
+    includeP2P = true,
+    canInviteUser = true,
+) {
     return getOptions(reports, personalDetails, {
         betas,
         searchInputValue: searchValue.trim(),
