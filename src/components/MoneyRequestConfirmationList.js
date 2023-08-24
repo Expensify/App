@@ -369,7 +369,7 @@ function MoneyRequestConfirmationList(props) {
                 shouldShowRightIcon={!props.isReadOnly}
                 title={props.iouComment}
                 description={translate('common.description')}
-                onPress={() => Navigation.navigate(ROUTES.getMoneyRequestDescriptionRoute(props.iouType, props.reportID))}
+                onPress={() => Navigation.navigate(ROUTES.getMoneyRequestDescriptionRoute(props.iouType, props.transactionType, props.reportID))}
                 style={[styles.moneyRequestMenuItem, styles.mb2]}
                 titleStyle={styles.flex1}
                 disabled={didConfirm || props.isReadOnly}
