@@ -28,6 +28,8 @@ import Image from './Image';
 import useLocalize from '../hooks/useLocalize';
 import * as ReceiptUtils from '../libs/ReceiptUtils';
 import categoryPropTypes from './categoryPropTypes';
+import ConfirmedRoute from './ConfirmedRoute';
+import lodashGet from 'lodash/get';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
@@ -100,6 +102,18 @@ const propTypes = {
     /* Onyx Props */
     /** Collection of categories attached to a policy */
     policyCategories: PropTypes.objectOf(categoryPropTypes),
+
+    /** ID of the transaction that represents the money request */
+    transactionID: PropTypes.string,
+
+    /** Transaction that represents the money request */
+    transaction: PropTypes.object,
+
+    /** Unit and rate used for if the money request is a distance request */
+    mileageRate: PropTypes.objectOf({
+        unit: PropTypes.oneOf(['mi', 'ki']),
+        rate: PropTypes.number,
+    }),
 };
 
 const defaultProps = {
@@ -121,6 +135,9 @@ const defaultProps = {
     receiptPath: '',
     receiptSource: '',
     policyCategories: {},
+    transactionID: '',
+    transaction: {},
+    mileageRate: {},
 };
 
 function MoneyRequestConfirmationList(props) {
@@ -132,6 +149,15 @@ function MoneyRequestConfirmationList(props) {
     // A flag and a toggler for showing the rest of the form fields
     const [showAllFields, toggleShowAllFields] = useReducer((state) => !state, false);
     const isTypeRequest = props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST;
+    const isDistanceRequest = true;
+
+    const {unit, rate} = props.mileageRate;
+    const distance = lodashGet(props, 'transaction.routes.route0.distance', 0);
+    const convertedDistance = convertDistance(distance, unit);
+    const distanceRequestAmount = convertedDistance * rate * 0.01;
+    const distanceString = convertDistanceToUnit(convertedDistance, unit, rate);
+
+    const formattedAmount = CurrencyUtils.convertToDisplayString(isDistanceRequest ? distanceRequestAmount : props.iouAmount, isDistanceRequest ? CONST.CURRENCY.USD : props.iouCurrencyCode);
 
     /**
      * Returns the participants with amount
@@ -154,7 +180,7 @@ function MoneyRequestConfirmationList(props) {
             text = translate('iou.request');
         } else {
             const translationKey = props.hasMultipleParticipants ? 'iou.splitAmount' : 'iou.requestAmount';
-            text = translate(translationKey, {amount: CurrencyUtils.convertToDisplayString(props.iouAmount, props.iouCurrencyCode)});
+            text = translate(translationKey, {amount: formattedAmount});
         }
         return [
             {
@@ -288,8 +314,6 @@ function MoneyRequestConfirmationList(props) {
         [selectedParticipants, onSendMoney, onConfirm, props.iouType],
     );
 
-    const formattedAmount = CurrencyUtils.convertToDisplayString(props.iouAmount, props.iouCurrencyCode);
-
     const footerContent = useMemo(() => {
         if (props.isReadOnly) {
             return;
@@ -343,6 +367,9 @@ function MoneyRequestConfirmationList(props) {
             optionHoveredStyle={canModifyParticipants ? styles.hoveredComponentBG : {}}
             footerContent={footerContent}
         >
+            <View style={{margin: 20, height: 200}}>
+                <ConfirmedRoute transactionID={props.transactionID} />
+            </View>
             {!_.isEmpty(props.receiptPath) ? (
                 <Image
                     style={styles.moneyRequestImage}
@@ -394,15 +421,28 @@ function MoneyRequestConfirmationList(props) {
                         onPress={() => Navigation.navigate(ROUTES.getMoneyRequestCreatedRoute(props.iouType, props.reportID))}
                         disabled={didConfirm || props.isReadOnly || !isTypeRequest}
                     />
-                    <MenuItemWithTopDescription
-                        shouldShowRightIcon={!props.isReadOnly && isTypeRequest}
-                        title={props.iouMerchant}
-                        description={translate('common.merchant')}
-                        style={[styles.moneyRequestMenuItem, styles.mb2]}
-                        titleStyle={styles.flex1}
-                        onPress={() => Navigation.navigate(ROUTES.getMoneyRequestMerchantRoute(props.iouType, props.reportID))}
-                        disabled={didConfirm || props.isReadOnly || !isTypeRequest}
-                    />
+                    {isDistanceRequest && (
+                        <MenuItemWithTopDescription
+                            shouldShowRightIcon={!props.isReadOnly && isTypeRequest}
+                            title={distanceString}
+                            description={'Distance'}
+                            style={[styles.moneyRequestMenuItem, styles.mb2]}
+                            titleStyle={styles.flex1}
+                            onPress={() => Navigation.navigate(ROUTES.getMoneyRequestMerchantRoute(props.iouType, props.reportID))}
+                            disabled={didConfirm || props.isReadOnly || !isTypeRequest}
+                        />
+                    )}
+                    {!isDistanceRequest && (
+                        <MenuItemWithTopDescription
+                            shouldShowRightIcon={!props.isReadOnly && isTypeRequest}
+                            title={props.iouMerchant}
+                            description={translate('common.merchant')}
+                            style={[styles.moneyRequestMenuItem, styles.mb2]}
+                            titleStyle={styles.flex1}
+                            onPress={() => Navigation.navigate(ROUTES.getMoneyRequestMerchantRoute(props.iouType, props.reportID))}
+                            disabled={didConfirm || props.isReadOnly || !isTypeRequest}
+                        />
+                    )}
                     {!_.isEmpty(props.policyCategories) && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly}
@@ -431,5 +471,59 @@ export default compose(
         policyCategories: {
             key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
         },
+        mileageRate: {
+            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            selector: (policy) => getDefaultMileageRate(policy),
+        },
+        transaction: {
+            key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+        },
     }),
 )(MoneyRequestConfirmationList);
+
+const getDefaultMileageRate = (policy) => {
+    if (!policy || !policy.customUnits) {
+        return null;
+    }
+
+    const distanceUnit = Object.values(policy.customUnits).find((unit) => unit.name === 'Distance');
+    if (!distanceUnit) {
+        return null;
+    }
+
+    const distanceRate = Object.values(distanceUnit.rates).find((rate) => rate.name === 'Default Rate');
+    if (!distanceRate) {
+        return null;
+    }
+
+    return {
+        rate: distanceRate.rate,
+        unit: distanceUnit.attributes.unit,
+    };
+};
+
+function convertDistance(meters, unit) {
+    if (typeof meters !== 'number' || (unit !== 'mi' && unit !== 'km')) {
+        throw new Error('Invalid input');
+    }
+
+    const METERS_TO_KM = 0.001; // 1 kilometer is 1000 meters
+    const METERS_TO_MILES = 0.000621371; // There are approximately 0.000621371 miles in a meter
+
+    switch (unit) {
+        case 'km':
+            return meters * METERS_TO_KM;
+        case 'mi':
+            return meters * METERS_TO_MILES;
+        default:
+            throw new Error('Unsupported unit. Supported units are "mi" or "km".');
+    }
+}
+
+const convertDistanceToUnit = (distance, unit, rate) => {
+    const distanceUnit = unit === 'mi' ? 'miles' : 'kilometers';
+    const singularDistanceUnit = unit === 'mi' ? 'mile' : 'kilometer';
+    const roundedDistance = distance.toFixed(2);
+
+    return `${roundedDistance} ${roundedDistance === 1 ? singularDistanceUnit : distanceUnit} @ $${rate * 0.01} / ${singularDistanceUnit}`;
+};
