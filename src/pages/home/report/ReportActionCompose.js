@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import PropTypes from 'prop-types';
-import {View, LayoutAnimation, NativeModules, findNodeHandle} from 'react-native';
+import {View, NativeModules, findNodeHandle} from 'react-native';
 import {runOnJS} from 'react-native-reanimated';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import _ from 'underscore';
@@ -594,7 +594,7 @@ function ReportActionCompose({
 
     const calculateMentionSuggestion = useCallback(
         (selectionEnd) => {
-            if (shouldBlockMentionCalc.current || selection.end < 1) {
+            if (shouldBlockMentionCalc.current || selectionEnd < 1) {
                 shouldBlockMentionCalc.current = false;
                 resetSuggestions();
                 return;
@@ -642,24 +642,12 @@ function ReportActionCompose({
             }));
             setHighlightedMentionIndex(0);
         },
-        [getMentionOptions, setHighlightedMentionIndex, value, selection, resetSuggestions],
+        [getMentionOptions, setHighlightedMentionIndex, value, resetSuggestions],
     );
 
-    const onSelectionChange = useCallback(
-        (e) => {
-            LayoutAnimation.configureNext(LayoutAnimation.create(50, LayoutAnimation.Types.easeInEaseOut, LayoutAnimation.Properties.opacity));
-            setSelection(e.nativeEvent.selection);
-
-            /**
-             * we pass here e.nativeEvent.selection.end directly to calculateEmojiSuggestion
-             * because in other case calculateEmojiSuggestion will have an old calculation value
-             * of suggestion instead of current one
-             */
-            calculateEmojiSuggestion(e.nativeEvent.selection.end);
-            calculateMentionSuggestion(e.nativeEvent.selection.end);
-        },
-        [calculateEmojiSuggestion, calculateMentionSuggestion],
-    );
+    const onSelectionChange = useCallback((e) => {
+        setSelection(e.nativeEvent.selection);
+    }, []);
 
     const setUpComposeFocusManager = useCallback(() => {
         // This callback is used in the contextMenuActions to manage giving focus back to the compose input.
@@ -990,6 +978,11 @@ function ReportActionCompose({
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    useEffect(() => {
+        calculateEmojiSuggestion(selection.end);
+        calculateMentionSuggestion(selection.end);
+    }, [calculateEmojiSuggestion, calculateMentionSuggestion, selection.end]);
 
     const prevIsModalVisible = usePrevious(modal.isVisible);
     const prevIsFocused = usePrevious(isFocusedProp);
