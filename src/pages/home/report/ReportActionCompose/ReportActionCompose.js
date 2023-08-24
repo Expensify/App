@@ -144,8 +144,11 @@ function ReportActionCompose({
     const suggestionsRef = useRef(null);
     const composerRef = useRef(null);
 
-    const reportParticipants = useMemo(() => _.without(lodashGet(report, 'participantAccountIDs', []), currentUserPersonalDetails.accountID), [currentUserPersonalDetails.accountID, report]);
-    const participantsWithoutExpensifyAccountIDs = useMemo(() => _.difference(reportParticipants, CONST.EXPENSIFY_ACCOUNT_IDS), [reportParticipants]);
+    const reportParticipantIDs = useMemo(
+        () => _.without(lodashGet(report, 'participantAccountIDs', []), currentUserPersonalDetails.accountID),
+        [currentUserPersonalDetails.accountID, report],
+    );
+    const participantsWithoutExpensifyAccountIDs = useMemo(() => _.difference(reportParticipantIDs, CONST.EXPENSIFY_ACCOUNT_IDS), [reportParticipantIDs]);
 
     const shouldShowReportRecipientLocalTime = useMemo(
         () => ReportUtils.canShowReportRecipientLocalTime(personalDetails, report, currentUserPersonalDetails.accountID) && !isComposerFullSize,
@@ -329,7 +332,7 @@ function ReportActionCompose({
                                     displayFileInModal={displayFileInModal}
                                     reportID={reportID}
                                     report={report}
-                                    reportParticipants={reportParticipants}
+                                    reportParticipantIDs={reportParticipantIDs}
                                     isFullComposerAvailable={isFullComposerAvailable}
                                     isComposerFullSize={isComposerFullSize}
                                     updateShouldShowSuggestionMenuToFalse={updateShouldShowSuggestionMenuToFalse}
