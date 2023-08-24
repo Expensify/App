@@ -4,6 +4,7 @@ import {withOnyx} from 'react-native-onyx';
 import {format} from 'date-fns';
 import _ from 'underscore';
 import {View} from 'react-native';
+import lodashGet from 'lodash/get';
 import styles from '../styles/styles';
 import * as ReportUtils from '../libs/ReportUtils';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
@@ -29,7 +30,9 @@ import useLocalize from '../hooks/useLocalize';
 import * as ReceiptUtils from '../libs/ReceiptUtils';
 import categoryPropTypes from './categoryPropTypes';
 import ConfirmedRoute from './ConfirmedRoute';
-import lodashGet from 'lodash/get';
+import transactionPropTypes from './transactionPropTypes';
+import DistanceRequestUtils from '../libs/DistanceRequestUtils';
+import * as TransactionUtils from '../libs/TransactionUtils';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
@@ -107,10 +110,10 @@ const propTypes = {
     transactionID: PropTypes.string,
 
     /** Transaction that represents the money request */
-    transaction: PropTypes.object,
+    transaction: transactionPropTypes,
 
     /** Unit and rate used for if the money request is a distance request */
-    mileageRate: PropTypes.objectOf({
+    mileageRate: PropTypes.shape({
         unit: PropTypes.oneOf(['mi', 'ki']),
         rate: PropTypes.number,
     }),
@@ -152,10 +155,10 @@ function MoneyRequestConfirmationList(props) {
 
     const {unit, rate} = props.mileageRate;
     const distance = lodashGet(props, 'transaction.routes.route0.distance', 0);
-    const isDistanceRequest = !!distance;
-    const convertedDistance = isDistanceRequest ? convertDistance(distance, unit) : 0;
+    const isDistanceRequest = TransactionUtils.isDistanceRequest(props.transaction);
+    const convertedDistance = isDistanceRequest ? DistanceRequestUtils.getDistanceString(distance, unit) : 0;
     const distanceRequestAmount = isDistanceRequest ? convertedDistance * rate : 0;
-    const distanceString = isDistanceRequest ? convertDistanceToUnit(convertedDistance, unit, rate) : '';
+    const distanceString = isDistanceRequest ? DistanceRequestUtils.convertDistanceToUnit(convertedDistance, unit, rate) : '';
 
     const formattedAmount = CurrencyUtils.convertToDisplayString(isDistanceRequest ? distanceRequestAmount : props.iouAmount, isDistanceRequest ? CONST.CURRENCY.USD : props.iouCurrencyCode);
 
@@ -479,57 +482,10 @@ export default compose(
         },
         mileageRate: {
             key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            selector: (policy) => getDefaultMileageRate(policy),
+            selector: (policy) => DistanceRequestUtils.getDefaultMileageRate(policy),
         },
         transaction: {
             key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
         },
     }),
 )(MoneyRequestConfirmationList);
-
-const getDefaultMileageRate = (policy) => {
-    if (!policy || !policy.customUnits) {
-        return null;
-    }
-
-    const distanceUnit = Object.values(policy.customUnits).find((unit) => unit.name === 'Distance');
-    if (!distanceUnit) {
-        return null;
-    }
-
-    const distanceRate = Object.values(distanceUnit.rates).find((rate) => rate.name === 'Default Rate');
-    if (!distanceRate) {
-        return null;
-    }
-
-    return {
-        rate: distanceRate.rate,
-        unit: distanceUnit.attributes.unit,
-    };
-};
-
-function convertDistance(meters, unit) {
-    if (typeof meters !== 'number' || (unit !== 'mi' && unit !== 'km')) {
-        throw new Error('Invalid input');
-    }
-
-    const METERS_TO_KM = 0.001; // 1 kilometer is 1000 meters
-    const METERS_TO_MILES = 0.000621371; // There are approximately 0.000621371 miles in a meter
-
-    switch (unit) {
-        case 'km':
-            return meters * METERS_TO_KM;
-        case 'mi':
-            return meters * METERS_TO_MILES;
-        default:
-            throw new Error('Unsupported unit. Supported units are "mi" or "km".');
-    }
-}
-
-const convertDistanceToUnit = (distance, unit, rate) => {
-    const distanceUnit = unit === 'mi' ? 'miles' : 'kilometers';
-    const singularDistanceUnit = unit === 'mi' ? 'mile' : 'kilometer';
-    const roundedDistance = distance.toFixed(2);
-
-    return `${roundedDistance} ${roundedDistance === 1 ? singularDistanceUnit : distanceUnit} @ $${rate * 0.01} / ${singularDistanceUnit}`;
-};
