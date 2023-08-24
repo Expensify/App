@@ -1,5 +1,8 @@
 import {CSSProperties} from 'react';
 
-type TextUnderlineStyles = Record<'textUnderlinePositionUnder' | 'textDecorationSkipInkNone', Partial<Pick<CSSProperties, 'textUnderlinePosition' | 'textDecorationSkipInk'>>>;
+type TextUnderlineStyles = {
+    textUnderlinePositionUnder: Pick<CSSProperties, 'textUnderlinePosition'>;
+    textDecorationSkipInkNone: Pick<CSSProperties, 'textDecorationSkipInk'>;
+};
 
 export default TextUnderlineStyles;
