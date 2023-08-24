@@ -487,6 +487,22 @@ export default {
         gap: 4,
     },
 
+    gap2: {
+        gap: 8,
+    },
+
+    gap3: {
+        gap: 12,
+    },
+
+    gap4: {
+        gap: 16,
+    },
+
+    gap5: {
+        gap: 20,
+    },
+
     gap7: {
         gap: 28,
     },
