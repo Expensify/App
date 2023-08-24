@@ -1,8 +1,6 @@
 import WordBreakStyles from './types';
 
 export default {
-    breakWord: {
-        alignContent: 'baseline',
-    },
+    breakWord: {},
     breakAll: {},
 } satisfies WordBreakStyles;
