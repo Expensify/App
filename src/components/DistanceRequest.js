@@ -261,14 +261,12 @@ function DistanceRequest({iou, iouType, reportID, report, transaction, mapboxAcc
                 )}
             </View>
             <Button
-                small
-                icon={Expensicons.Plus}
-                onPress={() => {
-                    IOU.navigateToNextPage(iou, iouType, reportID, report);
-                }}
-                text={translate('distance.addStop')}
-                isDisabled={numberOfWaypoints === MAX_WAYPOINTS}
-                innerStyles={[styles.ph10]}
+                success
+                style={[styles.w100, styles.mb4, styles.ph4, styles.flexShrink0]}
+                onPress={() => IOU.navigateToNextPage(iou, iouType, reportID, report)}
+                pressOnEnter
+                isDisabled={waypointMarkers.length < 2}
+                text={translate('common.next')}
             />
         </ScreenWrapper>
     );
