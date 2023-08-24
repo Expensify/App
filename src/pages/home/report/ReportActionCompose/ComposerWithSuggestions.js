@@ -276,7 +276,7 @@ function ComposerWithSuggestions({
         if (!RNTextInputReset) {
             return;
         }
-        RNTextInputReset.resetKeyboardInput(findNodeHandle(textInputRef));
+        RNTextInputReset.resetKeyboardInput(findNodeHandle(textInputRef.current));
     }, [textInputRef]);
 
     /**
