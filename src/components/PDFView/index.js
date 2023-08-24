@@ -53,8 +53,6 @@ class PDFView extends Component {
 
         const workerBlob = new Blob([pdfWorkerSource], {type: 'text/javascript'});
         pdfjs.GlobalWorkerOptions.workerSrc = URL.createObjectURL(workerBlob);
-        this.setMaxCanvaSizeInState = this.setMaxCanvaSizeInState.bind(this);
-        this.setMaxCanvaHeightInState = this.setMaxCanvaHeightInState.bind(this);
         canvasSize.maxArea({
             onSuccess: (width, height)  => this.maxCanvasArea = width * height
          });
