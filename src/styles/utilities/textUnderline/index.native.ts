@@ -1,5 +1,6 @@
 import TextUnderlineStyles from './types';
 
+// following styles are not supported
 const textUnderline: TextUnderlineStyles = {
     textUnderlinePositionUnder: {},
     textDecorationSkipInkNone: {},
