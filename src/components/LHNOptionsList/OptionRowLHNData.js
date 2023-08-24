@@ -45,6 +45,14 @@ const propTypes = {
     /** The actions from the parent report */
     parentReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 
+    /** The transactions from the parent report action */
+    transactions: PropTypes.objectOf(
+        PropTypes.shape({
+            /** The ID of the transaction */
+            transactionID: PropTypes.string,
+        }),
+    ),
+
     ...withCurrentReportIDPropTypes,
     ...basePropTypes,
 };
@@ -55,6 +63,7 @@ const defaultProps = {
     fullReport: {},
     policies: {},
     parentReportActions: {},
+    transactions: {},
     preferredLocale: CONST.LOCALES.DEFAULT,
     ...withCurrentReportIDDefaultProps,
     ...baseDefaultProps,

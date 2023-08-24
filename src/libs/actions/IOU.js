@@ -959,49 +959,36 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
     // STEP 3: Compute the IOU total and update the report preview message so LHN amount owed is correct
     // Should only update if the transaction matches the currency of the report, else we wait for the update
     // from the server with the currency conversion
-    let updatedIouReport = null;
+    let updatedMoneyRequestReport = null;
     const updatedChatReport = {...chatReport};
     if (updatedTransaction.currency === iouReport.currency && updatedTransaction.modifiedAmount) {
+        const diff = TransactionUtils.getAmount(transaction, true) - TransactionUtils.getAmount(updatedTransaction, true);
         if (ReportUtils.isExpenseReport(iouReport)) {
-            updatedIouReport = {...iouReport};
-            updatedIouReport.total -= TransactionUtils.getAmount(transaction, true);
-            updatedIouReport.total += TransactionUtils.getAmount(updatedTransaction, true);
+            updatedMoneyRequestReport = {...iouReport};
+            updatedMoneyRequestReport.total += diff;
         } else {
-            updatedIouReport = IOUUtils.updateIOUOwnerAndTotal(
-                iouReport,
-                updatedReportAction.actorAccountID,
-                TransactionUtils.getAmount(transaction, false),
-                TransactionUtils.getCurrency(transaction),
-                true,
-            );
-            updatedIouReport = IOUUtils.updateIOUOwnerAndTotal(
-                updatedIouReport,
-                updatedReportAction.actorAccountID,
-                TransactionUtils.getAmount(updatedTransaction, false),
-                TransactionUtils.getCurrency(updatedTransaction),
-                false,
-            );
+            updatedMoneyRequestReport = IOUUtils.updateIOUOwnerAndTotal(iouReport, updatedReportAction.actorAccountID, diff, TransactionUtils.getCurrency(transaction), false);
         }
 
-        updatedIouReport.cachedTotal = CurrencyUtils.convertToDisplayString(updatedIouReport.total, updatedTransaction.currency);
+        updatedMoneyRequestReport.cachedTotal = CurrencyUtils.convertToDisplayString(updatedMoneyRequestReport.total, updatedTransaction.currency);
 
-        // Update the last message of the IOU report
+        // Update the last message of the chat report
         const lastMessage = ReportUtils.getIOUReportActionMessage(
             iouReport.reportID,
             CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-            updatedIouReport.total,
+            updatedMoneyRequestReport.total,
             '',
             updatedTransaction.currency,
             '',
             false,
         );
-        updatedIouReport.lastMessageText = lastMessage[0].text;
-        updatedIouReport.lastMessageHtml = lastMessage[0].html;
+        updatedMoneyRequestReport.lastMessageText = lastMessage[0].text;
+        updatedMoneyRequestReport.lastMessageHtml = lastMessage[0].html;
 
         // Update the last message of the IOU chat report
         const messageText = Localize.translateLocal('iou.payerOwesAmount', {
-            payer: updatedIouReport.managerEmail,
-            amount: CurrencyUtils.convertToDisplayString(updatedIouReport.total, updatedIouReport.currency),
+            payer: updatedMoneyRequestReport.managerEmail,
+            amount: CurrencyUtils.convertToDisplayString(updatedMoneyRequestReport.total, updatedMoneyRequestReport.currency),
         });
         updatedChatReport.lastMessageText = messageText;
         updatedChatReport.lastMessageHtml = messageText;
@@ -1024,7 +1011,7 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
-            value: updatedIouReport,
+            value: updatedMoneyRequestReport,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
