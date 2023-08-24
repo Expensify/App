@@ -3264,10 +3264,10 @@ function getTaskAssigneeChatOnyxData(accountID, assigneeEmail, assigneeAccountID
 }
 
 /**
- * Get the last 3 transactions with receipts of an IOU report that will be displayed on the report preview
+ * Redirect the user to either privateNotesLisPage if the report has multiple notes otherwise, it redirects the user to their own private note on the report
  *
- * @param {Object} reportPreviewAction
- * @returns {Object}
+ * @param {Object} report
+ * @param {Object} accountID
  */
 function navigateToPrivateNotesPage(report, accountID) {
     if (_.isEmpty(report)) {
@@ -3277,15 +3277,12 @@ function navigateToPrivateNotesPage(report, accountID) {
     const privateNotes = lodashGet(report, 'privateNotes', {});
 
     // Redirect the user to privateNotesList page in case there are multiple notes and accountID is not set 
-    if (_.isEmpty(accountID) && Object.keys(privateNotes) > 1) {
-        Navigation.navigate(ROUTES.getPrivateNotesListRoute(reportID));
+    if (_.isEmpty(accountID) && _.keys(privateNotes) > 1) {
+        Navigation.navigate(ROUTES.getPrivateNotesListRoute(report.reportID));
     }
     
     // Default the accountID to current user's accountID in case it is empty
-    if (_.isEmpty(accountID)) {
-        accountID = currentUserAccountID;
-    }
-    Navigation.navigate(ROUTES.getPrivateNotesRoute(reportID, accountID));
+    Navigation.navigate(ROUTES.getPrivateNotesRoute(report.reportID, _.isEmpty(accountID) ? currentUserAccountID : accountID));
 }
 
 /**
