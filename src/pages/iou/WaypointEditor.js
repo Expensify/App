@@ -176,9 +176,8 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
 
                             } else {
                                 // We were unable to find your location, please try again or enter an address manually
-                                
+                                setLocationError(transactionID, err.message)
                             }
-                            console.log('error', err);
                         })}
                         shouldShowRightIcon={false}
                     />

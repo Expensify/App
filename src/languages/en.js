@@ -1626,6 +1626,7 @@ export default {
         },
         errors: {
             selectSuggestedAddress: 'Please select a suggested address',
+            unableToFindLocation: 'We were unable to find your location, please try again or enter an address manually',
         },
     },
     countrySelectorModal: {
