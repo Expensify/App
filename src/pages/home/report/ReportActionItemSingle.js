@@ -151,7 +151,7 @@ function ReportActionItemSingle(props) {
             }
             showUserDetails(props.action.delegateAccountID ? props.action.delegateAccountID : actorAccountID);
         }
-    }, [isWorkspaceActor, props.report.reportID, actorAccountID, props.action.delegateAccountID, props.iouReport, displayAllActors]);
+    }, [isWorkspaceActor, props.report && props.report.reportID, actorAccountID, props.action.delegateAccountID, props.iouReport && props.iouReport.reportID, displayAllActors]);
 
     const shouldDisableDetailPage = useMemo(
         () => !isWorkspaceActor && ReportUtils.isOptimisticPersonalDetail(props.action.delegateAccountID ? props.action.delegateAccountID : actorAccountID),

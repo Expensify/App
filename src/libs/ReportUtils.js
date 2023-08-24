@@ -1213,6 +1213,26 @@ function getMoneyRequestReportName(report, policy = undefined) {
         amount: formattedAmount,
     });
 
+    // get lastReportActionTransaction
+    const reportActions = ReportActionsUtils.getAllReportActions(report.reportID);
+    const sortedReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(reportActions);
+    const filteredReportActions = _.filter(sortedReportActions, (reportAction) => {
+        return reportAction.pendingAction !== 'delete';
+    });
+    const lastReportAction = _.first(filteredReportActions);
+    const lastReportActionTransaction = TransactionUtils.getLinkedTransaction(lastReportAction);
+
+    // get lastTransaction
+    // eslint-disable-next-line no-use-before-define
+    const transactionsWithReceipts = getSortedTransactionsWithReceipts(report.reportID);
+    const lastTransaction = _.first(transactionsWithReceipts);
+
+    const transactionIsLastReportAction = _.isEqual(lastReportActionTransaction, lastTransaction);
+
+    if (lastTransaction && transactionIsLastReportAction && TransactionUtils.isReceiptBeingScanned(lastTransaction)) {
+        return Localize.translateLocal('iou.receiptScanning');
+    }
+
     if (report.isWaitingOnBankAccount) {
         return `${payerPaidAmountMesssage} • ${Localize.translateLocal('iou.pending')}`;
     }
@@ -1261,6 +1281,33 @@ function getTransactionsWithReceipts(iouReportID) {
     const reportActions = ReportActionsUtils.getAllReportActions(iouReportID);
     return _.reduce(
         reportActions,
+        (transactions, action) => {
+            if (ReportActionsUtils.isMoneyRequestAction(action)) {
+                const transaction = TransactionUtils.getLinkedTransaction(action);
+                if (TransactionUtils.hasReceipt(transaction)) {
+                    transactions.push(transaction);
+                }
+            }
+            return transactions;
+        },
+        [],
+    );
+}
+
+/**
+ * Gets all sorted transactions on an IOU report with a receipt and whose pending action is not delete
+ *
+ * @param {Object|null} iouReportID
+ * @returns {[Object]}
+ */
+function getSortedTransactionsWithReceipts(iouReportID) {
+    const reportActions = ReportActionsUtils.getAllReportActions(iouReportID);
+    const sortedReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(reportActions);
+    const filteredSortedReportActions = _.filter(sortedReportActions, (reportAction) => {
+        return reportAction.pendingAction !== 'delete';
+    });
+    return _.reduce(
+        filteredSortedReportActions,
         (transactions, action) => {
             if (ReportActionsUtils.isMoneyRequestAction(action)) {
                 const transaction = TransactionUtils.getLinkedTransaction(action);
@@ -3445,4 +3492,5 @@ export {
     areAllRequestsBeingSmartScanned,
     getReportPreviewDisplayTransactions,
     getTransactionsWithReceipts,
+    getSortedTransactionsWithReceipts,
 };
