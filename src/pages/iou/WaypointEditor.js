@@ -18,6 +18,7 @@ import * as ValidationUtils from '../../libs/ValidationUtils';
 import ROUTES from '../../ROUTES';
 import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
+import transactionPropTypes from '../../components/transactionPropTypes';
 
 const propTypes = {
     /** The transactionID of the IOU */
@@ -35,25 +36,7 @@ const propTypes = {
     }),
 
     /** The optimistic transaction for this request */
-    transaction: PropTypes.shape({
-        /** The transactionID of this request */
-        transactionID: PropTypes.string,
-
-        /** The comment object on the transaction */
-        comment: PropTypes.shape({
-            /** The waypoints defining the distance request */
-            waypoints: PropTypes.shape({
-                /** The latitude of the waypoint */
-                lat: PropTypes.number,
-
-                /** The longitude of the waypoint */
-                lng: PropTypes.number,
-
-                /** The address of the waypoint */
-                address: PropTypes.string,
-            }),
-        }),
-    }),
+    transaction: transactionPropTypes,
 
     /** Information about the network */
     network: networkPropTypes.isRequired,

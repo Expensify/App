@@ -154,6 +154,7 @@ export default {
         edit: 'Editar',
         showMore: 'Mostrar más',
         merchant: 'Comerciante',
+        category: 'Categoría',
         receipt: 'Recibo',
         replace: 'Sustituir',
     },
@@ -244,6 +245,11 @@ export default {
         enterPassword: 'Por favor, introduce tu contraseña',
         newFaceEnterMagicCode: ({login}) => `¡Siempre es genial ver una cara nueva por aquí! Por favor ingresa el código mágico enviado a ${login}. Debería llegar en un par de minutos.`,
         welcomeEnterMagicCode: ({login}) => `Por favor, introduce el código mágico enviado a ${login}. Debería llegar en un par de minutos.`,
+    },
+    DownloadAppModal: {
+        downloadTheApp: 'Descarga la aplicación',
+        keepTheConversationGoing: 'Mantén la conversación en New Expensify, descarga la aplicación para una experiencia mejorada.',
+        noThanks: 'No, gracias',
     },
     login: {
         hero: {
