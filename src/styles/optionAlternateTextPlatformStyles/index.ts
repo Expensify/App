@@ -1,5 +1,5 @@
-import {TextStyle} from 'react-native';
+import OptionAlternateTextPlatformStyles from './types';
 
-const optionAlternateTextPlatformStyles: TextStyle = {};
+const optionAlternateTextPlatformStyles: OptionAlternateTextPlatformStyles = {};
 
 export default optionAlternateTextPlatformStyles;
