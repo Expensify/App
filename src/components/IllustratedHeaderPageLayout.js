@@ -68,7 +68,7 @@ function IllustratedHeaderPageLayout({backgroundColor, children, illustration, f
                             </View>
                             <View style={[styles.pt5]}>{children}</View>
                         </ScrollView>
-                        {!_.isNull(footer) && <FixedFooter style={[styles.mtAuto, styles.pt2]}>{footer}</FixedFooter>}
+                        {!_.isNull(footer) && <FixedFooter>{footer}</FixedFooter>}
                     </View>
                 </>
             )}
