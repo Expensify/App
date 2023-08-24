@@ -651,7 +651,8 @@ function setAssigneeValue(assigneeEmail, assigneeAccountID, shareDestination, is
 
     if (!isCurrentUser) {
         chatReport = ReportUtils.getChatByParticipantsByLoginList([assigneeEmail]) || ReportUtils.getChatByParticipants([assigneeAccountID]);
-        if (!lodashGet(allPersonalDetails, [assigneeAccountID], undefined) && chatReport) {
+        const personalDetail = lodashGet(allPersonalDetails, [assigneeAccountID], undefined);
+        if (!personalDetail && chatReport) {
             const optimisticPersonalDetailsListAction = {
                 accountID: assigneeAccountID,
                 avatar: UserUtils.getDefaultAvatarURL(assigneeAccountID),
