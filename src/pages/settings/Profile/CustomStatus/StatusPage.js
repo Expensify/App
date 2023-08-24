@@ -90,7 +90,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
             />
             <MenuItemWithTopDescription
                 title={customClearAfter}
-                description="Clear after"
+                description={localize.translate('statusPage.clearAfter')}
                 shouldShowRightIcon
                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS_CLEAR_AFTER)}
             />

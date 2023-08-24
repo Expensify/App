@@ -38,9 +38,9 @@ const propTypes = {
 function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
     const localize = useLocalize();
     const clearAfter = lodashGet(currentUserPersonalDetails, 'status.clearAfter', '');
-
     const draftClearAfter = lodashGet(customStatus, 'clearAfter', '');
     const customDateTemporary = lodashGet(customStatus, 'customDateTemporary', '');
+
     const [draftPeriod, setDraftPeriod] = useState((clearAfter && !draftClearAfter) || draftClearAfter ? CONST.CUSTOM_STATUS_TYPES.CUSTOM : CONST.CUSTOM_STATUS_TYPES.AFTER_TODAY);
 
     const localesToThemes = useMemo(
@@ -80,15 +80,15 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
 
     useEffect(() => {
         User.updateDraftCustomStatus({
-            customDateTemporary: clearAfter,
-            clearAfter,
+            customDateTemporary: draftClearAfter || clearAfter,
+            clearAfter: draftClearAfter || clearAfter,
         });
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const customStatusDate = DateUtils.extractDate(customDateTemporary || draftClearAfter || clearAfter);
-    const customStatusTime = DateUtils.extractTime12Hour(customDateTemporary || clearAfter);
+    const customStatusTime = DateUtils.extractTime12Hour(customDateTemporary || draftClearAfter || clearAfter);
 
     return (
         <ScreenWrapper>
