@@ -9,23 +9,29 @@ import ScreenWrapper from '../ScreenWrapper';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import * as IOU from '../../libs/actions/IOU';
+import * as OptionsListUtils from '../../libs/OptionsListUtils';
 
 function CategoryPicker({policyCategories, reportID, iouType}) {
     const sections = useMemo(() => {
-        const categoryList = _.chain(policyCategories)
-            .values()
-            .map((category) => ({
-                text: category.name,
-                keyForList: category.name,
-                tooltipText: category.name,
-            }))
-            .value();
-
-        return [
-            {
-                data: categoryList,
-            },
-        ];
+        return OptionsListUtils.getNewChatOptions(
+            {},
+            {},
+            [],
+            // Search
+            '',
+            // Selected options
+            [],
+            [],
+            false,
+            false,
+            // Include categories
+            true,
+            // Categories
+            policyCategories,
+            // Recently used categories
+            {},
+            false,
+        ).categoryOptions;
     }, [policyCategories]);
 
     const navigateBack = () => {
