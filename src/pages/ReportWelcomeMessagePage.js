@@ -20,6 +20,8 @@ import Form from '../components/Form';
 import * as PolicyUtils from '../libs/PolicyUtils';
 import {policyPropTypes, policyDefaultProps} from './workspace/withPolicy';
 import focusAndUpdateMultilineInputRange from '../libs/focusAndUpdateMultilineInputRange';
+import ROUTES from '../ROUTES';
+import Navigation from '../libs/Navigation/Navigation';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -65,7 +67,7 @@ function ReportWelcomeMessagePage(props) {
         >
             {({didScreenTransitionEnd}) => (
                 <FullPageNotFoundView shouldShow={!PolicyUtils.isPolicyAdmin(props.policy)}>
-                    <HeaderWithBackButton title={props.translate('welcomeMessagePage.welcomeMessage')} />
+                    <HeaderWithBackButton title={props.translate('welcomeMessagePage.welcomeMessage')} onBackButtonPress={() => Navigation.goBack(ROUTES.getReportSettingsRoute(props.report.reportID))}/>
                     <Form
                         style={[styles.flexGrow1, styles.ph5]}
                         formID={ONYXKEYS.FORMS.WELCOME_MESSAGE_FORM}

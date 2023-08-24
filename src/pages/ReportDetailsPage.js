@@ -142,7 +142,7 @@ function ReportDetailsPage(props) {
     return (
         <ScreenWrapper>
             <FullPageNotFoundView shouldShow={_.isEmpty(props.report)}>
-                <HeaderWithBackButton title={props.translate('common.details')} />
+                <HeaderWithBackButton title={props.translate('common.details')} onBackButtonPress={() => Navigation.goBack(ROUTES.getReportRoute(props.report.reportID))} />
                 <ScrollView style={[styles.flex1]}>
                     <View style={styles.reportDetailsTitleContainer}>
                         <View style={styles.mb3}>

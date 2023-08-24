@@ -8,6 +8,7 @@ import HeaderWithBackButton from '../HeaderWithBackButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import variables from '../../styles/variables';
 import styles from '../../styles/styles';
+import ROUTES from '../../ROUTES';
 
 const propTypes = {
     /** Props to fetch translation features */
@@ -47,7 +48,7 @@ const defaultProps = {
     titleKey: 'notFound.notHere',
     subtitleKey: 'notFound.pageNotFound',
     linkKey: 'notFound.goBackHome',
-    onBackButtonPress: Navigation.goBack,
+    onBackButtonPress: () => Navigation.goBack(ROUTES.HOME),
     shouldShowLink: true,
     shouldShowBackButton: true,
     onLinkPress: () => Navigation.dismissModal(),
