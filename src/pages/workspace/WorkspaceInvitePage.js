@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -67,6 +67,8 @@ function WorkspaceInvitePage(props) {
     const [selectedOptions, setSelectedOptions] = useState([]);
     const [personalDetails, setPersonalDetails] = useState([]);
     const [userToInvite, setUserToInvite] = useState(null);
+    const selectionListRef = useRef();
+
     const openWorkspaceInvitePage = () => {
         const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(props.policyMembers, props.personalDetails);
         Policy.openWorkspaceInvitePage(props.route.params.policyID, _.keys(policyMemberEmailsToAccountIDs));
@@ -197,7 +199,10 @@ function WorkspaceInvitePage(props) {
     }, [excludedUsers, translate, searchTerm, policyName, userToInvite, personalDetails]);
 
     return (
-        <ScreenWrapper shouldEnableMaxHeight>
+        <ScreenWrapper
+            shouldEnableMaxHeight
+            onEntryTransitionEnd={() => selectionListRef.current && selectionListRef.current.focusTextInput()}
+        >
             {({didScreenTransitionEnd}) => {
                 const sections = didScreenTransitionEnd ? getSections() : [];
 
@@ -218,6 +223,8 @@ function WorkspaceInvitePage(props) {
                             }}
                         />
                         <SelectionList
+                            ref={selectionListRef}
+                            autoFocus={false}
                             canSelectMultiple
                             sections={sections}
                             textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}

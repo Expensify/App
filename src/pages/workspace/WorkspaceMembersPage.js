@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {View} from 'react-native';
@@ -75,6 +75,7 @@ function WorkspaceMembersPage(props) {
     const [errors, setErrors] = useState({});
     const [searchValue, setSearchValue] = useState('');
     const prevIsOffline = usePrevious(props.network.isOffline);
+    const selectionListRef = useRef();
 
     /**
      * Get members for the current workspace
@@ -338,6 +339,7 @@ function WorkspaceMembersPage(props) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             style={[styles.defaultModalContainer]}
+            onEntryTransitionEnd={() => selectionListRef.current && selectionListRef.current.focusTextInput()}
         >
             <FullPageNotFoundView
                 shouldShow={(_.isEmpty(props.policy) || !PolicyUtils.isPolicyAdmin(props.policy)) && !props.isLoadingReportData}
@@ -383,6 +385,8 @@ function WorkspaceMembersPage(props) {
                     </View>
                     <View style={[styles.w100, styles.mt4, styles.flex1]}>
                         <SelectionList
+                            ref={selectionListRef}
+                            autoFocus={false}
                             canSelectMultiple
                             sections={[{data, indexOffset: 0, isDisabled: false}]}
                             textInputLabel={props.translate('optionsSelector.findMember')}

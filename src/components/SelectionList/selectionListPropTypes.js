@@ -153,6 +153,12 @@ const propTypes = {
 
     /** Whether to show the loading placeholder */
     showLoadingPlaceholder: PropTypes.bool,
+
+    /** Whether to auto focus the text input */
+    autoFocus: PropTypes.bool,
+
+    /** Forwarded inner ref */
+    innerRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
 };
 
 export {propTypes, radioListItemPropTypes, checkboxListItemPropTypes};

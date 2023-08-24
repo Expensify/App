@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -50,6 +50,8 @@ function BaseSelectionList({
     showScrollIndicator = false,
     showLoadingPlaceholder = false,
     isKeyboardShown = false,
+    autoFocus = true,
+    innerRef = () => {},
 }) {
     const {translate} = useLocalize();
     const firstLayoutRef = useRef(true);
@@ -270,7 +272,7 @@ function BaseSelectionList({
 
     /** Focuses the text input when the component mounts. If `props.shouldDelayFocus` is true, we wait for the animation to finish */
     useEffect(() => {
-        if (shouldShowTextInput) {
+        if (autoFocus && shouldShowTextInput) {
             if (shouldDelayFocus) {
                 focusTimeoutRef.current = setTimeout(() => textInputRef.current.focus(), CONST.ANIMATED_TRANSITION);
             } else {
@@ -284,13 +286,23 @@ function BaseSelectionList({
             }
             clearTimeout(focusTimeoutRef.current);
         };
-    }, [shouldDelayFocus, shouldShowTextInput]);
+    }, [autoFocus, shouldDelayFocus, shouldShowTextInput]);
 
     /** Selects row when pressing enter */
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
         captureOnInputs: true,
         shouldBubble: () => !flattenedSections.allOptions[focusedIndex],
     });
+
+    useImperativeHandle(innerRef, () => ({
+        focusTextInput() {
+            if (!textInputRef.current) {
+                return;
+            }
+
+            textInputRef.current.focus();
+        }
+    }));
 
     return (
         <ArrowKeyFocusManager
@@ -400,4 +412,12 @@ function BaseSelectionList({
 BaseSelectionList.displayName = 'BaseSelectionList';
 BaseSelectionList.propTypes = propTypes;
 
-export default withKeyboardState(BaseSelectionList);
+export default withKeyboardState(
+    React.forwardRef((props, ref) => (
+        <BaseSelectionList
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            innerRef={ref}
+        />
+    ))
+);
