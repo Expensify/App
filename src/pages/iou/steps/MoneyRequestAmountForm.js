@@ -13,6 +13,7 @@ import TextInputWithCurrencySymbol from '../../../components/TextInputWithCurren
 import useLocalize from '../../../hooks/useLocalize';
 import CONST from '../../../CONST';
 import getOperatingSystem from '../../../libs/getOperatingSystem';
+import * as Browser from '../../../libs/Browser';
 
 const propTypes = {
     /** IOU amount saved in Onyx */
@@ -180,6 +181,12 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
      */
     const textInputKeyPress = ({nativeEvent}) => {
         const key = nativeEvent.key.toLowerCase();
+        if (Browser.isMobileSafari() && key === 'control') {
+            // Optimistically anticipate forward-delete on iOS Safari (in cases where the Mac Accessiblity keyboard is being
+            // used for input). If the Control-D shortcut doesn't get sent, the ref will still be reset on the next key press.
+            forwardDeletePressedRef.current = true;
+            return;
+        }
         // Control-D on Mac is a keyboard shortcut for forward-delete. See https://support.apple.com/en-us/HT201236 for Mac keyboard shortcuts.
         // Also check for the keyboard shortcut on iOS in cases where a hardware keyboard may be connected to the device.
         forwardDeletePressedRef.current = key === 'delete' || (_.contains([CONST.OS.MAC_OS, CONST.OS.IOS], getOperatingSystem()) && nativeEvent.ctrlKey && key === 'd');
