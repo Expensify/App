@@ -518,6 +518,13 @@ function ComposerWithSuggestions({
         [checkComposerVisibility, focus, replaceSelectionWithText],
     );
 
+    const blur = useCallback(() => {
+        if (!textInputRef.current) {
+            return;
+        }
+        textInputRef.current.blur();
+    }, []);
+
     useEffect(() => {
         const unsubscribeNavigationBlur = navigation.addListener('blur', () => KeyDownListener.removeKeyDownPressListner(focusComposerOnKeyPress));
         const unsubscribeNavigationFocus = navigation.addListener('focus', () => {
@@ -566,11 +573,12 @@ function ComposerWithSuggestions({
     useImperativeHandle(
         forwardedRef,
         () => ({
+            blur,
             focus,
             replaceSelectionWithText,
             prepareCommentAndResetComposer,
         }),
-        [focus, prepareCommentAndResetComposer, replaceSelectionWithText],
+        [blur, focus, prepareCommentAndResetComposer, replaceSelectionWithText],
     );
 
     return (
