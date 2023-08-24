@@ -1,4 +1,4 @@
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import PropTypes from 'prop-types';
 import {View, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -41,7 +41,9 @@ const openShortcutModalConfig = CONST.KEYBOARD_SHORTCUTS.SHORTCUT_MODAL;
 function KeyboardShortcutsModal({isShortcutsModalOpen = false, isSmallScreenWidth, translate}) {
     const subscribedOpenModalShortcuts = useRef([]);
     const modalType = isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE;
-    const shortcuts = KeyboardShortcut.useDocumentedShortcuts();
+    // use this line trying the hook approach
+    // const shortcuts = KeyboardShortcut.useDocumentedShortcuts();
+    const [shortcuts, setShortcuts] = useState(KeyboardShortcut.getDocumentedShortcuts());
 
     /*
      * Subscribe shortcuts that only are used when the modal is open
@@ -110,6 +112,9 @@ function KeyboardShortcutsModal({isShortcutsModalOpen = false, isSmallScreenWidt
     );
 
     useEffect(() => {
+        // remove this line if trying hook approach
+        KeyboardShortcut.onShortcutsUpdate(setShortcuts);
+
         const unsubscribeShortcutModal = KeyboardShortcut.subscribe(
             openShortcutModalConfig.shortcutKey,
             () => {

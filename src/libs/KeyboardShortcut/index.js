@@ -22,26 +22,29 @@ function getDocumentedShortcuts() {
     return _.sortBy(_.values(documentedShortcuts), 'displayName');
 }
 
-let updateState = () => {};
+let shortcutsUpdateCallback = () => {};
 
 const updateDocumentedShortcuts = (displayName, value) => {
-    let newData;
     if (!value) {
-        newData = _.omit(documentedShortcuts, displayName)
+        documentedShortcuts = _.omit(documentedShortcuts, displayName)
     } else {
-        newData = {
+        documentedShortcuts = {
             ...documentedShortcuts,
-            [displayName]: value,
+            [displayName]: value
         }
     }
-    documentedShortcuts = newData;
-    updateState(documentedShortcuts);
+
+    shortcutsUpdateCallback(_.sortBy(_.values(documentedShortcuts), 'displayName'));
 };
 
 const useDocumentedShortcuts = () => {
-    const [ds, setDocumentedShortcuts] = useState(documentedShortcuts);
-    updateState = setDocumentedShortcuts;
-    return ds;
+    const [shortcuts, setShortcuts] = useState(documentedShortcuts);
+    shortcutsUpdateCallback = setShortcuts;
+    return shortcuts;
+}
+
+const onShortcutsUpdate = (callback) => {
+    shortcutsUpdateCallback = callback;
 }
 
 /**
@@ -157,19 +160,12 @@ function subscribe(key, callback, descriptionKey, modifiers = 'shift', captureOn
     });
 
     if (descriptionKey) {
-        console.log('add documented shortcuts', documentedShortcuts);
         updateDocumentedShortcuts(displayName, {
             shortcutKey: key,
             descriptionKey,
             displayName,
             modifiers,
         })
-        documentedShortcuts[displayName] = {
-            shortcutKey: key,
-            descriptionKey,
-            displayName,
-            modifiers,
-        };
     }
 
     return () => unsubscribe(displayName, callbackID);
@@ -194,6 +190,7 @@ const KeyboardShortcut = {
     subscribe,
     getDocumentedShortcuts,
     useDocumentedShortcuts,
+    onShortcutsUpdate
 };
 
 export default KeyboardShortcut;
