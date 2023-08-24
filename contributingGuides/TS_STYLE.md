@@ -23,7 +23,7 @@
   - [1.16 Reusable Types](#reusable-types)
   - [1.17 `.tsx`](#tsx)
   - [1.18 No inline prop types](#no-inline-prop-types)
-  - [1.19 Satisfies operator](#satisfies)
+  - [1.19 Satisfies operator](#satisfies-operator)
 - [Exception to Rules](#exception-to-rules)
 - [Communication Items](#communication-items)
 - [Migration Guidelines](#migration-guidelines)
@@ -359,7 +359,7 @@ type Foo = {
 
 <a name="file-organization"></a><a name="1.15"></a>
 
-- [1.15](#file-organization) **File organization**: In modules with platform-specific implementations, create `types.ts` to define shared types. Import and use shared types in each platform specific files.
+- [1.15](#file-organization) **File organization**: In modules with platform-specific implementations, create `types.ts` to define shared types. Import and use shared types in each platform specific files. Do not use [`satisfies` operator](#satisfies-operator) for platform-specific implementations, always define shared types that complies with all variants. 
 
   > Why? To encourage consistent API across platform-specific implementations. If you're migrating module that doesn't have a default implement (i.e. `index.ts`, e.g. `getPlatform`), refer to [Migration Guidelines](#migration-guidelines) for further information.
 
@@ -459,7 +459,9 @@ type Foo = {
   }
   ```
 
-- [1.19](#satisfies) **Satisfies Operator**: Use the `satisfies` operator when you need to validate that the structure of an expression matches a specific type, without affecting the resulting type of the expression.
+  <a name="satisfies-operator"></a><a name="1.19"></a>
+
+- [1.19](#satisfies-operator) **Satisfies Operator**: Use the `satisfies` operator when you need to validate that the structure of an expression matches a specific type, without affecting the resulting type of the expression.
 
   > Why? TypeScript developers often want to ensure that an expression aligns with a certain type, but they also want to retain the most specific type possible for inference purposes. The `satisfies` operator assists in doing both.
 
