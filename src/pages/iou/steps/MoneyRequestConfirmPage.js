@@ -22,7 +22,6 @@ import reportPropTypes from '../../reportPropTypes';
 import personalDetailsPropType from '../../personalDetailsPropType';
 import * as FileUtils from '../../../libs/fileDownload/FileUtils';
 import * as Policy from '../../../libs/actions/Policy';
-import ConfirmedRoute from '../../../components/ConfirmedRoute';
 
 const propTypes = {
     report: reportPropTypes,
@@ -50,22 +49,12 @@ const propTypes = {
     /** Personal details of all users */
     personalDetails: personalDetailsPropType,
 
-    /** Data about Mapbox token for calling Mapbox API */
-    mapboxAccessToken: PropTypes.shape({
-        /** Temporary token for Mapbox API */
-        token: PropTypes.string,
-
-        /** Time when the token will expire in ISO 8601 */
-        expiration: PropTypes.string,
-    }),
-
     ...withCurrentUserPersonalDetailsPropTypes,
 };
 
 const defaultProps = {
     report: {},
     personalDetails: {},
-    mapboxAccessToken: {},
     iou: {
         id: '',
         amount: 0,
@@ -239,18 +228,19 @@ function MoneyRequestConfirmPage(props) {
         [props.iou.amount, props.iou.comment, participants, props.iou.currency, props.currentUserPersonalDetails.accountID, props.report],
     );
 
+    // Check if a request is a distance request
+    const isDistanceRequest = true;
+
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                     <HeaderWithBackButton
-                        title={props.translate('iou.cash')}
+                        title={isDistanceRequest ? 'Distance' : props.translate('iou.cash')}
                         onBackButtonPress={navigateBack}
                     />
-                    <View style={{flex: 1, padding: 16}}>
-                        <ConfirmedRoute transactionID={props.iou.transactionID} />
-                    </View>
                     <MoneyRequestConfirmationList
+                        transactionID={props.iou.transactionID}
                         hasMultipleParticipants={iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT}
                         selectedParticipants={participants}
                         iouAmount={props.iou.amount}
