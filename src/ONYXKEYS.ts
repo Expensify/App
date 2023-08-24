@@ -87,6 +87,9 @@ const ONYXKEYS = {
     SESSION: 'session',
     BETAS: 'betas',
 
+    /** Denotes if the Download App Banner has been dismissed */
+    SHOW_DOWNLOAD_APP_BANNER: 'showDownloadAppBanner',
+
     /** NVP keys
      * Contains the user's payPalMe data */
     PAYPAL: 'paypal',
@@ -218,6 +221,9 @@ const ONYXKEYS = {
     // The access token to be used with the Mapbox library
     MAPBOX_ACCESS_TOKEN: 'mapboxAccessToken',
 
+    // Information on any active demos being run
+    DEMO_INFO: 'demoInfo',
+
     /** Collection Keys */
     COLLECTION: {
         DOWNLOAD: 'download_',
@@ -283,6 +289,7 @@ type OnyxValues = {
     [ONYXKEYS.ACTIVE_CLIENTS]: string[];
     [ONYXKEYS.DEVICE_ID]: string;
     [ONYXKEYS.IS_SIDEBAR_LOADED]: boolean;
+    [ONYXKEYS.SHOW_DOWNLOAD_APP_BANNER]: boolean;
     [ONYXKEYS.PERSISTED_REQUESTS]: OnyxTypes.Request[];
     [ONYXKEYS.QUEUED_ONYX_UPDATES]: OnyxTypes.QueuedOnyxUpdates;
     [ONYXKEYS.CURRENT_DATE]: string;
