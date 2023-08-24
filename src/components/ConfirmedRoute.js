@@ -10,6 +10,7 @@ import {useEffect} from 'react';
 import _ from 'underscore';
 import * as Expensicons from './Icon/Expensicons';
 import theme from '../styles/themes/default';
+import styles from '../styles/styles';
 
 const MAP_PADDING = 50;
 
@@ -20,12 +21,13 @@ const propTypes = {
 };
 
 const defaultProps = {
-    transactionID: PropTypes.string,
-    transaction: PropTypes.object,
+    transactionID: '',
+    transaction: {},
     mapboxAccessToken: PropTypes.object,
 };
 
 function ConfirmedRoute({transaction, mapboxAccessToken}) {
+    const {route0: route} = transaction.routes;
     const waypoints = lodashGet(transaction, 'comment.waypoints', {});
     const numberOfWaypoints = _.size(waypoints);
     const lastWaypointIndex = numberOfWaypoints - 1;
@@ -73,8 +75,10 @@ function ConfirmedRoute({transaction, mapboxAccessToken}) {
                 overflow: 'hidden',
             }}
             styleURL={CONST.MAPBOX_STYLE_URL}
+            directionStyle={styles.mapDirection}
             waypoints={waypointMarkers}
             mapPadding={MAP_PADDING}
+            directionCoordinates={route.geometry.coordinates}
         />
     );
 }
