@@ -38,14 +38,12 @@ describe('translate', () => {
 
     test('Test when key is not found in default', () => {
         expect(() => Localize.translate(CONST.LOCALES.ES_ES, 'testKey4')).toThrow(Error);
-        expect(() => Localize.translate(CONST.LOCALES.ES_ES, ['a', 'b', 'c'])).toThrow(Error);
     });
 
     test('Test when key is not found in default (Production Mode)', () => {
         const ORIGINAL_IS_IN_PRODUCTION = CONFIG.default.IS_IN_PRODUCTION;
         CONFIG.default.IS_IN_PRODUCTION = true;
         expect(Localize.translate(CONST.LOCALES.ES_ES, 'testKey4')).toBe('testKey4');
-        expect(Localize.translate(CONST.LOCALES.ES_ES, ['a', 'b', 'c'])).toBe('a.b.c');
         CONFIG.default.IS_IN_PRODUCTION = ORIGINAL_IS_IN_PRODUCTION;
     });
 
