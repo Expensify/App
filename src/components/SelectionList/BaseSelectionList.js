@@ -301,7 +301,7 @@ function BaseSelectionList({
             }
 
             textInputRef.current.focus();
-        }
+        },
     }));
 
     return (
@@ -419,5 +419,5 @@ export default withKeyboardState(
             {...props}
             innerRef={ref}
         />
-    ))
+    )),
 );
