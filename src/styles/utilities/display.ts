@@ -1,5 +1,5 @@
-import { CSSProperties } from "react";
-import { ViewStyle } from "react-native";
+import {CSSProperties} from 'react';
+import {ViewStyle} from 'react-native';
 
 /**
  * Display utilities with Bootstrap inspired naming.
