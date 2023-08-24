@@ -56,10 +56,13 @@ class PDFView extends Component {
         this.setMaxCanvaSizeInState = this.setMaxCanvaSizeInState.bind(this);
         this.setMaxCanvaHeightInState = this.setMaxCanvaHeightInState.bind(this);
         canvasSize.maxArea({
-            onSuccess: this.setMaxCanvaSizeInState 
+            onSuccess: (width, height)  => this.maxCanvasArea = width * height
          });
          canvasSize.maxHeight({
-            onSuccess: this.setMaxCanvaHeightInState 
+            onSuccess: (width, height)  => this.maxCanvasHeight =  height
+         });
+         canvasSize.maxWidth({
+            onSuccess: (width)  => this.maxCanvasWidth =  width
          });
     }
 
@@ -189,13 +192,6 @@ class PDFView extends Component {
     attemptPDFLoad(password) {
         this.onPasswordCallback(password);
     }
-    
-    setMaxCanvaSizeInState(width, height, benchmark) {
-        this.state.maxCanvasSize = width * height;
-    }
-    setMaxCanvaHeightInState(width, height, benchmark) {
-        this.state.maxCanvasHeight =  height;
-    }
 
     /**
      * On small screens notify parent that the keyboard has opened or closed.
@@ -223,9 +219,10 @@ class PDFView extends Component {
         const pageHeight = this.calculatePageHeight(index);
 
         const nbPixels = pageWidth * pageHeight;
-        const ratioHeight = this.state.maxCanvasHeight / pageHeight;
-        const ratioArea = Math.sqrt((this.state.maxCanvasSize / nbPixels));
-        const ratio = Math.min(ratioHeight, ratioArea);
+        const ratioHeight = this.maxCanvasHeight / pageHeight;
+        const ratioWidth = this.maxCanvasWidth / pageWidth;
+        const ratioArea = Math.sqrt((this.maxCanvasArea / nbPixels));
+        const ratio = Math.min(ratioHeight, ratioArea, ratioWidth);
         const devicePixelRatio = ratio > window.devicePixelRatio ? undefined : ratio;
 
         return (
