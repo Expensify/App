@@ -157,14 +157,6 @@ class BaseOptionsSelector extends Component {
         }
     }
 
-    focus() {
-        if (!this.textInput) {
-            return;
-        }
-
-        this.textInput.focus();
-    }
-
     /**
      * @param {Array<Object>} allOptions
      * @returns {Number}
@@ -210,6 +202,14 @@ class BaseOptionsSelector extends Component {
                 });
             }, 500);
         }
+    }
+
+    focus() {
+        if (!this.textInput) {
+            return;
+        }
+
+        this.textInput.focus();
     }
 
     /**
