@@ -17,7 +17,6 @@ import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import SettlementButton from './SettlementButton';
 import Button from './Button';
-import * as Policy from '../libs/actions/Policy';
 import * as IOU from '../libs/actions/IOU';
 import * as CurrencyUtils from '../libs/CurrencyUtils';
 import reportPropTypes from '../pages/reportPropTypes';
@@ -54,48 +53,47 @@ const defaultProps = {
     },
 };
 
-function MoneyReportHeader(props) {
+function MoneyReportHeader({session, personalDetails, policies, chatReport, report: moneyRequestReport, isSmallScreenWidth}) {
     const {translate} = useLocalize();
-    const moneyRequestReport = props.report;
-    const policy = props.policies[`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport.policyID}`];
-    const isPolicyAdmin = policy.role === CONST.POLICY.ROLE.ADMIN;
-    const isManager = ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(props.session, 'accountID', null) === moneyRequestReport.managerID;
-    const isReportApproved = ReportUtils.isReportApproved(moneyRequestReport);
-    const isPayer = CONST.POLICY.TYPE.CORPORATE ? isPolicyAdmin && isReportApproved : isPolicyAdmin || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && isManager);
+    const policy = policies[`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport.policyID}`];
+    const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
+    const isPolicyAdmin = policy.role === CONST.POLICY.ROLE.ADMIN;
+    const isManager = ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(session, 'accountID', null) === moneyRequestReport.managerID;
+    const isPayer = CONST.POLICY.TYPE.CORPORATE ? isPolicyAdmin && isApproved : isPolicyAdmin || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && isManager);
     const shouldShowSettlementButton = useMemo(() => isPayer && !isSettled, [isPayer, isSettled]);
     const shouldShowApproveButton = useMemo(() => {
         if (policy.type === CONST.POLICY.TYPE.FREE) {
             return false;
         }
-        return isManager && isReportApproved && !isSettled;
-    }, [policy, isManager, isReportApproved, isSettled]);
-    const reportTotal = ReportUtils.getMoneyRequestTotal(props.report);
-    const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
-    const shouldShowPaypal = Boolean(lodashGet(props.personalDetails, [moneyRequestReport.managerID, 'payPalMeAddress']));
-    const formattedAmount = CurrencyUtils.convertToDisplayString(reportTotal, props.report.currency);
+        return isManager && !isApproved && !isSettled;
+    }, [policy, isManager, isApproved, isSettled]);
+    const reportTotal = ReportUtils.getMoneyRequestTotal(moneyRequestReport);
+    const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
+    const shouldShowPaypal = Boolean(lodashGet(personalDetails, [moneyRequestReport.managerID, 'payPalMeAddress']));
+    const formattedAmount = CurrencyUtils.convertToDisplayString(reportTotal, moneyRequestReport.currency);
 
     return (
         <View style={[styles.pt0]}>
             <HeaderWithBackButton
                 shouldShowAvatarWithDisplay
                 shouldShowPinButton={false}
-                report={props.report}
+                report={moneyRequestReport}
                 policies={props.policies}
-                personalDetails={props.personalDetails}
-                shouldShowBackButton={props.isSmallScreenWidth}
+                personalDetails={personalDetails}
+                shouldShowBackButton={isSmallScreenWidth}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.HOME, false, true)}
-                shouldShowBorderBottom={!shouldShowSettlementButton || !props.isSmallScreenWidth}
+                shouldShowBorderBottom={!shouldShowSettlementButton || !isSmallScreenWidth}
             >
-                {shouldShowSettlementButton && !props.isSmallScreenWidth && (
+                {shouldShowSettlementButton && !isSmallScreenWidth && (
                     <View style={[styles.pv2]}>
                         <SettlementButton
-                            currency={props.report.currency}
-                            policyID={props.report.policyID}
+                            currency={moneyRequestReport.currency}
+                            policyID={moneyRequestReport.policyID}
                             shouldShowPaypal={shouldShowPaypal}
-                            chatReportID={props.chatReport.reportID}
-                            iouReport={props.report}
-                            onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.report)}
+                            chatReportID={chatReport.reportID}
+                            iouReport={moneyRequestReport}
+                            onPress={(paymentType) => IOU.payMoneyRequest(paymentType, chatReport, moneyRequestReport)}
                             enablePaymentsRoute={ROUTES.BANK_ACCOUNT_NEW}
                             addBankAccountRoute={bankAccountRoute}
                             shouldShowPaymentOptions
@@ -104,26 +102,26 @@ function MoneyReportHeader(props) {
                         />
                     </View>
                 )}
-                {shouldShowApproveButton && !props.isSmallScreenWidth && (
+                {shouldShowApproveButton && !isSmallScreenWidth && (
                     <View style={[styles.pv2]}>
                         <Button
                             success
                             text={translate('iou.approve')}
                             style={[styles.mnw120]}
-                            onPress={() => IOU.approveMoneyRequest(props.report)}
+                            onPress={() => IOU.approveMoneyRequest(moneyRequestReport)}
                         />
                     </View>
                 )}
             </HeaderWithBackButton>
-            {shouldShowSettlementButton && props.isSmallScreenWidth && (
-                <View style={[styles.ph5, styles.pb2, props.isSmallScreenWidth && styles.borderBottom]}>
+            {shouldShowSettlementButton && isSmallScreenWidth && (
+                <View style={[styles.ph5, styles.pb2, isSmallScreenWidth && styles.borderBottom]}>
                     <SettlementButton
-                        currency={props.report.currency}
-                        policyID={props.report.policyID}
+                        currency={moneyRequestReport.currency}
+                        policyID={moneyRequestReport.policyID}
                         shouldShowPaypal={shouldShowPaypal}
-                        chatReportID={props.report.chatReportID}
-                        iouReport={props.report}
-                        onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.report)}
+                        chatReportID={moneyRequestReport.chatReportID}
+                        iouReport={moneyRequestReport}
+                        onPress={(paymentType) => IOU.payMoneyRequest(paymentType, chatReport, moneyRequestReportt)}
                         enablePaymentsRoute={ROUTES.BANK_ACCOUNT_NEW}
                         addBankAccountRoute={bankAccountRoute}
                         shouldShowPaymentOptions
@@ -131,13 +129,13 @@ function MoneyReportHeader(props) {
                     />
                 </View>
             )}
-            {shouldShowApproveButton && props.isSmallScreenWidth && (
+            {shouldShowApproveButton && isSmallScreenWidth && (
                 <View style={[styles.pv2]}>
                     <Button
                         success
                         text={translate('iou.approve')}
                         style={[styles.w100]}
-                        onPress={() => IOU.approveMoneyRequest(props.report)}
+                        onPress={() => IOU.approveMoneyRequest(moneyRequestReport)}
                     />
                 </View>
             )}
