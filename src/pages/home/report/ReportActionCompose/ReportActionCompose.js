@@ -112,6 +112,7 @@ function ReportActionCompose({
     const navigation = useNavigation();
     const {isMediumScreenWidth, isSmallScreenWidth} = useWindowDimensions();
     const animatedRef = useAnimatedRef();
+    const actionButtonRef = useRef(null);
 
     /**
      * Updates the Highlight state of the composer
@@ -178,13 +179,13 @@ function ReportActionCompose({
         if (!isKeyboardVisibleWhenShowingModalRef.current) {
             return;
         }
-        focus(true);
+        composerRef.current.focus(true);
         isKeyboardVisibleWhenShowingModalRef.current = false;
-    }, [focus]);
+    }, []);
 
     const onAddActionPressed = useCallback(() => {
         if (!willBlurTextInputOnTapOutside) {
-            isKeyboardVisibleWhenShowingModalRef.current = textInputRef.current.isFocused();
+            isKeyboardVisibleWhenShowingModalRef.current = composerRef.current.isFocused();
         }
         composerRef.current.blur();
     }, []);
@@ -257,9 +258,12 @@ function ReportActionCompose({
         isNextModalWillOpenRef.current = true;
     }, []);
 
-    const onBlur = useCallback(() => {
+    const onBlur = useCallback((e) => {
         setIsFocused(false);
         suggestionsRef.current.resetSuggestions();
+        if (e.relatedTarget && e.relatedTarget === actionButtonRef.current) {
+            isKeyboardVisibleWhenShowingModalRef.current = true;
+        }
     }, []);
 
     const onFocus = useCallback(() => {
@@ -337,6 +341,7 @@ function ReportActionCompose({
                                     onCanceledAttachmentPicker={restoreKeyboardState}
                                     onMenuClosed={restoreKeyboardState}
                                     onAddActionPressed={onAddActionPressed}
+                                    actionButtonRef={actionButtonRef}
                                 />
                                 <ComposerWithSuggestions
                                     ref={composerRef}

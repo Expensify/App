@@ -577,6 +577,7 @@ function ComposerWithSuggestions({
             focus,
             replaceSelectionWithText,
             prepareCommentAndResetComposer,
+            isFocused: () => textInputRef.current.isFocused(),
         }),
         [blur, focus, prepareCommentAndResetComposer, replaceSelectionWithText],
     );

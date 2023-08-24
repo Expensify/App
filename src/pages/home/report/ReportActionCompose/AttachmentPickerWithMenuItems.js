@@ -73,7 +73,14 @@ const propTypes = {
     /** Called when the menu with the items is closed after it was open */
     onMenuClosed: PropTypes.func.isRequired,
 
+    /** Called when the add action button is pressed */
     onAddActionPressed: PropTypes.func.isRequired,
+
+    /** A ref for the add action button */
+    actionButtonRef: PropTypes.shape({
+        // eslint-disable-next-line react/forbid-prop-types
+        current: PropTypes.object,
+    }).isRequired,
 };
 
 const defaultProps = {
@@ -104,10 +111,10 @@ function AttachmentPickerWithMenuItems({
     onCanceledAttachmentPicker,
     onMenuClosed,
     onAddActionPressed,
+    actionButtonRef,
 }) {
     const {translate} = useLocalize();
     const {windowHeight} = useWindowDimensions();
-    const actionButtonRef = useRef(null);
 
     /**
      * Returns the list of IOU Options
