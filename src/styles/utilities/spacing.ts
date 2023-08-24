@@ -1,10 +1,12 @@
+import {ViewStyle} from 'react-native';
+
 /**
  * Spacing utility styles with Bootstrap inspired naming.
  * All styles should be incremented by units of 4.
  *
  * https://getbootstrap.com/docs/5.0/utilities/spacing
  */
-export default {
+const spacing = {
     m0: {
         margin: 0,
     },
@@ -490,4 +492,6 @@ export default {
     gap7: {
         gap: 28,
     },
-};
+} satisfies Record<string, ViewStyle>;
+
+export default spacing;
