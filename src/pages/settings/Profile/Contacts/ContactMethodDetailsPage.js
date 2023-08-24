@@ -218,7 +218,7 @@ class ContactMethodDetailsPage extends Component {
             return (
                 <FullPageNotFoundView
                     shouldShow
-                    linkKey={'contacts.contactMethods'}
+                    linkKey="contacts.contactMethods"
                     onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS)}
                     onLinkPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS)}
                 />
