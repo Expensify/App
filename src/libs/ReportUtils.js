@@ -2510,16 +2510,19 @@ function isIOUOwnedByCurrentUser(report, allReportsDict = null) {
  * @returns {boolean}
  */
 function isOneOnOneChat(report) {
+    const isChatRoomValue = lodashGet(report, 'isChatRoom', false);
+    const participantsListValue = lodashGet(report, 'participantsList', []);
     return (
         !isThread(report) &&
         !isChatRoom(report) &&
+        !isChatRoomValue &&
         !isExpenseRequest(report) &&
         !isMoneyRequestReport(report) &&
         !isPolicyExpenseChat(report) &&
-        !isTaskReport(report) && //
+        !isTaskReport(report) &&
         isDM(report) &&
         !isIOUReport(report) &&
-        report.participantsList.length === 1
+        participantsListValue.length === 1
     );
 }
 
