@@ -96,6 +96,7 @@ function OptionRowLHNData({
     const lastTransaction = useMemo(() => {
         const transactionsWithReceipts = ReportUtils.getSortedTransactionsWithReceipts(fullReport.reportID);
         return _.first(transactionsWithReceipts);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [fullReport.reportID, receiptTransactions]);
 
     const memoizedLastTransaction = useDeepCompareMemo(lastTransaction);
