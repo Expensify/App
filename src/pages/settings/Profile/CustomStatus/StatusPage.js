@@ -61,6 +61,8 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
     useEffect(() => {
         if (currentUserEmojiCode || currentUserClearAfter || draftClearAfter) return;
         User.updateDraftCustomStatus({clearAfter: DateUtils.getEndOfToday()});
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const clearStatus = () => {
