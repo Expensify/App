@@ -28,4 +28,4 @@ export default {
     dBlock: {
         display: 'block',
     },
-};
+} as const
