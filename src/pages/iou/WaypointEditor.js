@@ -1,10 +1,12 @@
-import React, {useRef} from 'react';
+import React, {useMemo, useRef} from 'react';
+import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import AddressSearch from '../../components/AddressSearch';
 import ScreenWrapper from '../../components/ScreenWrapper';
+import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -55,7 +57,22 @@ const defaultProps = {
 
 function WaypointEditor({transactionID, route: {params: {iouType = '', waypointIndex = ''} = {}} = {}, network, translate, transaction}) {
     const textInput = useRef(null);
-    const currentWaypoint = lodashGet(transaction, `comment.waypoints.waypoint${waypointIndex}`, {});
+    const parsedWaypointIndex = parseInt(waypointIndex, 10);
+    const allWaypoints = lodashGet(transaction, 'comment.waypoints', {});
+    const waypointCount = _.keys(allWaypoints).length;
+    const currentWaypoint = lodashGet(allWaypoints, `waypoint${waypointIndex}`, {});
+
+    const wayPointDescriptionKey = useMemo(() => {
+        switch(parsedWaypointIndex) {
+            case 0:
+                return 'distance.waypointDescription.start';
+            case waypointCount - 1:
+                return 'distance.waypointDescription.finish';
+            default:
+                return 'distance.waypointDescription.stop';
+        }
+    }, [parsedWaypointIndex, waypointCount]);
+
     const waypointAddress = lodashGet(currentWaypoint, 'address', '');
 
     const validate = (values) => {
@@ -113,47 +130,49 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
             onEntryTransitionEnd={() => textInput.current && textInput.current.focus()}
             shouldEnableMaxHeight
         >
-            <HeaderWithBackButton
-                title={translate('distance.waypointEditor')}
-                shouldShowBackButton
-                onBackButtonPress={() => {
-                    Navigation.goBack(ROUTES.getMoneyRequestDistanceTabRoute(iouType));
-                }}
-            />
-            <Form
-                style={[styles.flexGrow1, styles.mh5]}
-                formID={ONYXKEYS.FORMS.WAYPOINT_FORM}
-                enabledWhenOffline
-                validate={validate}
-                onSubmit={onSubmit}
-                shouldValidateOnChange={false}
-                shouldValidateOnBlur={false}
-                submitButtonText={translate('common.save')}
-            >
-                <View>
-                    <AddressSearch
-                        inputID={`waypoint${waypointIndex}`}
-                        ref={(e) => (textInput.current = e)}
-                        hint={!network.isOffline ? translate('distance.errors.selectSuggestedAddress') : ''}
-                        containerStyles={[styles.mt4]}
-                        label={translate('distance.address')}
-                        defaultValue={waypointAddress}
-                        onPress={selectWaypoint}
-                        maxInputLength={CONST.FORM_CHARACTER_LIMIT}
-                        renamedInputKeys={{
-                            address: `waypoint${waypointIndex}`,
-                            city: null,
-                            country: null,
-                            street: null,
-                            street2: null,
-                            zipCode: null,
-                            lat: null,
-                            lng: null,
-                            state: null,
-                        }}
-                    />
-                </View>
-            </Form>
+            <FullPageNotFoundView shouldShow={Number.isNaN(parsedWaypointIndex) || parsedWaypointIndex < 0 || parsedWaypointIndex > (waypointCount - 1)}>
+                <HeaderWithBackButton
+                    title={translate(wayPointDescriptionKey)}
+                    shouldShowBackButton
+                    onBackButtonPress={() => {
+                        Navigation.goBack(ROUTES.getMoneyRequestDistanceTabRoute(iouType));
+                    }}
+                />
+                <Form
+                    style={[styles.flexGrow1, styles.mh5]}
+                    formID={ONYXKEYS.FORMS.WAYPOINT_FORM}
+                    enabledWhenOffline
+                    validate={validate}
+                    onSubmit={onSubmit}
+                    shouldValidateOnChange={false}
+                    shouldValidateOnBlur={false}
+                    submitButtonText={translate('common.save')}
+                >
+                    <View>
+                        <AddressSearch
+                            inputID={`waypoint${waypointIndex}`}
+                            ref={(e) => (textInput.current = e)}
+                            hint={!network.isOffline ? translate('distance.errors.selectSuggestedAddress') : ''}
+                            containerStyles={[styles.mt4]}
+                            label={translate('distance.address')}
+                            defaultValue={waypointAddress}
+                            onPress={selectWaypoint}
+                            maxInputLength={CONST.FORM_CHARACTER_LIMIT}
+                            renamedInputKeys={{
+                                address: `waypoint${waypointIndex}`,
+                                city: null,
+                                country: null,
+                                street: null,
+                                street2: null,
+                                zipCode: null,
+                                lat: null,
+                                lng: null,
+                                state: null,
+                            }}
+                        />
+                    </View>
+                </Form>
+            </FullPageNotFoundView>
         </ScreenWrapper>
     );
 }
