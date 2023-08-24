@@ -32,7 +32,6 @@ import categoryPropTypes from './categoryPropTypes';
 import ConfirmedRoute from './ConfirmedRoute';
 import transactionPropTypes from './transactionPropTypes';
 import DistanceRequestUtils from '../libs/DistanceRequestUtils';
-import * as TransactionUtils from '../libs/TransactionUtils';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
