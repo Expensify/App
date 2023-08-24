@@ -463,7 +463,6 @@ function ComposerWithSuggestions({
 
     const setUpComposeFocusManager = useCallback(() => {
         // This callback is used in the contextMenuActions to manage giving focus back to the compose input.
-        // TODO: we should clean up this convoluted code and instead move focus management to something like ReportFooter.js or another higher up component
         ReportActionComposeFocusManager.onComposerFocus(() => {
             if (!willBlurTextInputOnTapOutside || !isFocused) {
                 return;

@@ -55,7 +55,6 @@ function SuggestionMention({
     isAutoSuggestionPickerLarge,
 }) {
     const {translate} = useLocalize();
-    // TODO: rewrite suggestion logic to some hook or state machine or util or something to not make it depend on ReportActionComposer
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
 
     const isMentionSuggestionsMenuVisible = !_.isEmpty(suggestionValues.suggestedMentions) && suggestionValues.shouldShowSuggestionMenu;
