@@ -1,7 +1,9 @@
 import WhiteSpaceStyles from './types';
 
-export default {
+const whiteSpace: WhiteSpaceStyles = {
     noWrap: {},
     preWrap: {},
     pre: {},
-} satisfies WhiteSpaceStyles;
+};
+
+export default whiteSpace;
