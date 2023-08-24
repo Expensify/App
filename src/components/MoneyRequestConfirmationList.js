@@ -149,13 +149,13 @@ function MoneyRequestConfirmationList(props) {
     // A flag and a toggler for showing the rest of the form fields
     const [showAllFields, toggleShowAllFields] = useReducer((state) => !state, false);
     const isTypeRequest = props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST;
-    const isDistanceRequest = true;
 
     const {unit, rate} = props.mileageRate;
     const distance = lodashGet(props, 'transaction.routes.route0.distance', 0);
-    const convertedDistance = convertDistance(distance, unit);
-    const distanceRequestAmount = convertedDistance * rate * 0.01;
-    const distanceString = convertDistanceToUnit(convertedDistance, unit, rate);
+    const isDistanceRequest = !!distance;
+    const convertedDistance = isDistanceRequest ? convertDistance(distance, unit) : 0;
+    const distanceRequestAmount = isDistanceRequest ? convertedDistance * rate * 0.01 : 0;
+    const distanceString = isDistanceRequest ? convertDistanceToUnit(convertedDistance, unit, rate) : '';
 
     const formattedAmount = CurrencyUtils.convertToDisplayString(isDistanceRequest ? distanceRequestAmount : props.iouAmount, isDistanceRequest ? CONST.CURRENCY.USD : props.iouCurrencyCode);
 
