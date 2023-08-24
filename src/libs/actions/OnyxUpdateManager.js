@@ -52,15 +52,15 @@ function applyHTTPSOnyxUpdates({request, responseData}) {
 
 /**
  * @param {Object} data
- * @param {Object} data.multipleEvents
+ * @param {Object} data.updates
  * @returns {Promise}
  */
-function applyPusherOnyxUpdates({multipleEvents}) {
+function applyPusherOnyxUpdates({updates}) {
     console.debug('[OnyxUpdateManager] Applying pusher update');
     const pusherEventPromises = _.reduce(
-        multipleEvents,
-        (result, multipleEvent) => {
-            result.push(PusherUtils.triggerMultiEventHandler(multipleEvent.eventType, multipleEvent.data));
+        updates,
+        (result, update) => {
+            result.push(PusherUtils.triggerMultiEventHandler(update.eventType, update.data));
             return result;
         },
         [],
@@ -76,7 +76,7 @@ function applyPusherOnyxUpdates({multipleEvents}) {
  * @param {Object} updateParams.data
  * @param {Object} [updateParams.data.request] Exists if updateParams.type === 'https'
  * @param {Object} [updateParams.data.response] Exists if updateParams.type === 'https'
- * @param {Object} [updateParams.data.multipleEvents] Exists if updateParams.type === 'pusher'
+ * @param {Object} [updateParams.data.updates] Exists if updateParams.type === 'pusher'
  * @returns {Promise}
  */
 function applyOnyxUpdates({type, data}) {

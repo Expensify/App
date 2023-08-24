@@ -13,7 +13,7 @@ type OnyxUpdatesFromServerData = {
 type OnyxUpdatesFromServer = {
     lastUpdateID: number;
     previousUpdateID: number;
-    type: 'HTTPS' | 'PUSHER'
+    type: 'https' | 'pusher'
     data: OnyxUpdatesFromServerData
 };
 
