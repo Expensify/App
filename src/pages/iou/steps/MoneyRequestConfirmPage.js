@@ -70,6 +70,7 @@ const defaultProps = {
 function MoneyRequestConfirmPage(props) {
     const prevMoneyRequestId = useRef(props.iou.id);
     const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
+    const transactionType = useRef(lodashGet(props.route, 'params.transactionType', ''));
     const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
     const participants = useMemo(
         () =>
@@ -118,7 +119,7 @@ function MoneyRequestConfirmPage(props) {
         if (reportID.current) {
             fallback = ROUTES.getMoneyRequestRoute(iouType.current, reportID.current);
         } else {
-            fallback = ROUTES.getMoneyRequestParticipantsRoute(iouType.current);
+            fallback = ROUTES.getMoneyRequestParticipantsRoute(iouType.current, transactionType.current);
         }
         Navigation.goBack(fallback);
     };

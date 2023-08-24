@@ -9,7 +9,7 @@ import ScreenWrapper from '../ScreenWrapper';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 
-function CategoryPicker({policyCategories, reportID, iouType}) {
+function CategoryPicker({policyCategories, reportID, iouType, transactionType}) {
     const sections = useMemo(() => {
         const categoryList = _.chain(policyCategories)
             .values()
@@ -28,7 +28,7 @@ function CategoryPicker({policyCategories, reportID, iouType}) {
     }, [policyCategories]);
 
     const navigateBack = () => {
-        Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID));
+        Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType, transactionType, reportID));
     };
 
     return (

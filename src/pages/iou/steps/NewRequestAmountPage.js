@@ -142,7 +142,7 @@ function NewRequestAmountPage({route, iou, report}) {
     }, [iou.participants, iou.amount, iou.id, isEditing, iouType, reportID]);
 
     const navigateBack = () => {
-        Navigation.goBack(isEditing ? ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID) : null);
+        Navigation.goBack(isEditing ? ROUTES.getMoneyRequestConfirmationRoute(iouType, transactionType, reportID) : null);
     };
 
     const navigateToCurrencySelectionPage = () => {

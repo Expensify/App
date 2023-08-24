@@ -58,6 +58,7 @@ function MoneyRequestMerchantPage({iou, route}) {
     const {translate} = useLocalize();
     const inputRef = useRef(null);
     const iouType = lodashGet(route, 'params.iouType', '');
+    const transactionType = lodashGet(route, 'params.transactionType', '');
     const reportID = lodashGet(route, 'params.reportID', '');
 
     useEffect(() => {
@@ -73,7 +74,7 @@ function MoneyRequestMerchantPage({iou, route}) {
     }, [iou.id, iou.participants, iou.amount, iou.receiptPath, iouType, reportID]);
 
     function navigateBack() {
-        Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID));
+        Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType, transactionType, reportID));
     }
 
     /**

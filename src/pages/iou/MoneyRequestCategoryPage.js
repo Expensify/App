@@ -37,9 +37,10 @@ function MoneyRequestCategoryPage({route, report}) {
 
     const reportID = lodashGet(route, 'params.reportID', '');
     const iouType = lodashGet(route, 'params.iouType', '');
+    const transactionType = lodashGet(route, 'params.transactionType', '');
 
     const navigateBack = () => {
-        Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID));
+        Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType, transactionType, reportID));
     };
 
     return (
@@ -56,6 +57,7 @@ function MoneyRequestCategoryPage({route, report}) {
                 policyID={report.policyID}
                 reportID={reportID}
                 iouType={iouType}
+                transactionType={transactionType}
             />
         </ScreenWrapper>
     );

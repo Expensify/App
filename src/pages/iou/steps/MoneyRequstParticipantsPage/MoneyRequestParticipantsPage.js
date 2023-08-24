@@ -47,10 +47,11 @@ const defaultProps = {
 function MoneyRequestParticipantsPage(props) {
     const prevMoneyRequestId = useRef(props.iou.id);
     const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
+    const transactionType = useRef(lodashGet(props.route, 'params.transactionType', ''));
     const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
 
     const navigateToNextStep = () => {
-        Navigation.navigate(ROUTES.getMoneyRequestConfirmationRoute(iouType.current, reportID.current));
+        Navigation.navigate(ROUTES.getMoneyRequestConfirmationRoute(iouType.current, transactionType.current, reportID.current));
     };
 
     const navigateBack = (forceFallback = false) => {
