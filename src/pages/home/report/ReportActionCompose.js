@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import PropTypes from 'prop-types';
-import {View, LayoutAnimation, NativeModules, findNodeHandle} from 'react-native';
+import {View, NativeModules, findNodeHandle} from 'react-native';
 import {runOnJS} from 'react-native-reanimated';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import _ from 'underscore';
@@ -646,7 +646,6 @@ function ReportActionCompose({
     );
 
     const onSelectionChange = useCallback((e) => {
-        LayoutAnimation.configureNext(LayoutAnimation.create(50, LayoutAnimation.Types.easeInEaseOut, LayoutAnimation.Properties.opacity));
         setSelection(e.nativeEvent.selection);
     }, []);
 

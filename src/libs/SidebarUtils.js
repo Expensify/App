@@ -31,7 +31,10 @@ Onyx.connect({
         // does not match a closed or created state.
         const reportActionsForDisplay = _.filter(
             actionsArray,
-            (reportAction, actionKey) => ReportActionsUtils.shouldReportActionBeVisible(reportAction, actionKey) && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED,
+            (reportAction, actionKey) =>
+                ReportActionsUtils.shouldReportActionBeVisible(reportAction, actionKey) &&
+                reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED &&
+                reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         );
         visibleReportActionItems[reportID] = _.last(reportActionsForDisplay);
     },
