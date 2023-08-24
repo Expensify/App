@@ -154,6 +154,9 @@ const propTypes = {
 
     /** Ref for the composer */
     forwardedRef: PropTypes.shape({current: PropTypes.shape({})}),
+
+    /** Ref for the isNextModalWillOpen */
+    isNextModalWillOpenRef: PropTypes.shape({current: PropTypes.bool.isRequired}).isRequired,
 };
 
 const defaultProps = {
@@ -207,6 +210,7 @@ function ComposerWithSuggestions({
     suggestionsRef,
     animatedRef,
     forwardedRef,
+    isNextModalWillOpenRef,
 }) {
     const {preferredLocale} = useLocalize();
     const isFocused = useIsFocused();
@@ -536,15 +540,19 @@ function ComposerWithSuggestions({
     const prevIsModalVisible = usePrevious(modal.isVisible);
     const prevIsFocused = usePrevious(isFocused);
     useEffect(() => {
+        if (modal.isVisible && !prevIsModalVisible) {
+            // eslint-disable-next-line no-param-reassign
+            isNextModalWillOpenRef.current = false;
+        }
         // We want to focus or refocus the input when a modal has been closed or the underlying screen is refocused.
         // We avoid doing this on native platforms since the software keyboard popping
         // open creates a jarring and broken UX.
-        if (!(willBlurTextInputOnTapOutside && !modal.isVisible && isFocused && (prevIsModalVisible || !prevIsFocused))) {
+        if (!(willBlurTextInputOnTapOutside && !isNextModalWillOpenRef.current && !modal.isVisible && isFocused && (prevIsModalVisible || !prevIsFocused))) {
             return;
         }
 
         focus();
-    }, [focus, prevIsFocused, prevIsModalVisible, isFocused, modal.isVisible]);
+    }, [focus, prevIsFocused, prevIsModalVisible, isFocused, modal.isVisible, isNextModalWillOpenRef]);
 
     useEffect(() => {
         if (value.length !== 0) {

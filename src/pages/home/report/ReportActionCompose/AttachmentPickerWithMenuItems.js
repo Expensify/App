@@ -66,6 +66,14 @@ const propTypes = {
 
     /** Called when opening the attachment picker */
     onTriggerAttachmentPicker: PropTypes.func.isRequired,
+
+    /** Called when cancelling the attachment picker */
+    onCanceledAttachmentPicker: PropTypes.func.isRequired,
+
+    /** Called when the menu with the items is closed after it was open */
+    onMenuClosed: PropTypes.func.isRequired,
+
+    onAddActionPressed: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
@@ -93,6 +101,9 @@ function AttachmentPickerWithMenuItems({
     setMenuVisibility,
     isMenuVisible,
     onTriggerAttachmentPicker,
+    onCanceledAttachmentPicker,
+    onMenuClosed,
+    onAddActionPressed,
 }) {
     const {translate} = useLocalize();
     const {windowHeight} = useWindowDimensions();
@@ -143,6 +154,11 @@ function AttachmentPickerWithMenuItems({
         ];
     }, [betas, report, reportID, translate]);
 
+    const onPopoverMenuClose = () => {
+        setMenuVisibility(false);
+        onMenuClosed();
+    };
+
     return (
         <AttachmentPicker>
             {({openPicker}) => {
@@ -150,6 +166,7 @@ function AttachmentPickerWithMenuItems({
                     onTriggerAttachmentPicker();
                     openPicker({
                         onPicked: displayFileInModal,
+                        onCanceled: onCanceledAttachmentPicker,
                     });
                 };
                 const menuItems = [
@@ -212,6 +229,7 @@ function AttachmentPickerWithMenuItems({
                                     ref={actionButtonRef}
                                     onPress={(e) => {
                                         e.preventDefault();
+                                        onAddActionPressed();
 
                                         // Drop focus to avoid blue focus ring.
                                         actionButtonRef.current.blur();
@@ -229,7 +247,7 @@ function AttachmentPickerWithMenuItems({
                         <PopoverMenu
                             animationInTiming={CONST.ANIMATION_IN_TIMING}
                             isVisible={isMenuVisible}
-                            onClose={() => setMenuVisibility(false)}
+                            onClose={onPopoverMenuClose}
                             onItemSelected={(item, index) => {
                                 setMenuVisibility(false);
 

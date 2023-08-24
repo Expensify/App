@@ -91,6 +91,8 @@ const defaultProps = {
 // prevent auto focus on existing chat for mobile device
 const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
+const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
+
 function ReportActionCompose({
     blockedFromConcierge,
     currentUserPersonalDetails,
@@ -171,6 +173,22 @@ function ReportActionCompose({
         return translate('reportActionCompose.writeSomething');
     }, [report, blockedFromConcierge, translate, conciergePlaceholderRandomIndex]);
 
+    const isKeyboardVisibleWhenShowingModalRef = useRef(false);
+    const restoreKeyboardState = useCallback(() => {
+        if (!isKeyboardVisibleWhenShowingModalRef.current) {
+            return;
+        }
+        focus(true);
+        isKeyboardVisibleWhenShowingModalRef.current = false;
+    }, [focus]);
+
+    const onAddActionPressed = useCallback(() => {
+        if (!willBlurTextInputOnTapOutside) {
+            isKeyboardVisibleWhenShowingModalRef.current = textInputRef.current.isFocused();
+        }
+        composerRef.current.blur();
+    }, []);
+
     const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
         if (!suggestionsRef.current) {
             return;
@@ -200,7 +218,8 @@ function ReportActionCompose({
     const onAttachmentPreviewClose = useCallback(() => {
         updateShouldShowSuggestionMenuToFalse();
         setIsAttachmentPreviewActive(false);
-    }, [updateShouldShowSuggestionMenuToFalse]);
+        restoreKeyboardState();
+    }, [updateShouldShowSuggestionMenuToFalse, restoreKeyboardState]);
 
     /**
      * Add a new comment to this chat
@@ -228,13 +247,14 @@ function ReportActionCompose({
         [onSubmit],
     );
 
+    const isNextModalWillOpenRef = useRef(false);
     const onTriggerAttachmentPicker = useCallback(() => {
         // Set a flag to block suggestion calculation until we're finished using the file picker,
         // which will stop any flickering as the file picker opens on non-native devices.
-        if (!willBlurTextInputOnTapOutsideFunc) {
-            return;
+        if (willBlurTextInputOnTapOutside) {
+            suggestionsRef.current.setShouldBlockSuggestionCalc(true);
         }
-        suggestionsRef.current.setShouldBlockSuggestionCalc(true);
+        isNextModalWillOpenRef.current = true;
     }, []);
 
     const onBlur = useCallback(() => {
@@ -314,11 +334,15 @@ function ReportActionCompose({
                                     setMenuVisibility={setMenuVisibility}
                                     isMenuVisible={isMenuVisible}
                                     onTriggerAttachmentPicker={onTriggerAttachmentPicker}
+                                    onCanceledAttachmentPicker={restoreKeyboardState}
+                                    onMenuClosed={restoreKeyboardState}
+                                    onAddActionPressed={onAddActionPressed}
                                 />
                                 <ComposerWithSuggestions
                                     ref={composerRef}
                                     animatedRef={animatedRef}
                                     suggestionsRef={suggestionsRef}
+                                    isNextModalWillOpenRef={isNextModalWillOpenRef}
                                     reportID={reportID}
                                     report={report}
                                     reportActions={reportActions}
