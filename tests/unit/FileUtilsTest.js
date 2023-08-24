@@ -27,13 +27,13 @@ describe('FileUtils', () => {
         it('should append current time to the end of the file name', () => {
             const actualFileName = FileUtils.appendTimeToFileName('image.jpg');
             const expectedFileName = `image-${DateUtils.getDBTime()}.jpg`;
-            expect(actualFileName).toEqual(expectedFileName.replace(CONST.REGEX.ILLEGAL_ANDROID_FILENAME_CHARACTERS, ' '));
+            expect(actualFileName).toEqual(expectedFileName.replace(CONST.REGEX.ILLEGAL_FILENAME_CHARACTERS, ' '));
         });
 
         it('should append current time to the end of the file name without extension', () => {
             const actualFileName = FileUtils.appendTimeToFileName('image');
             const expectedFileName = `image-${DateUtils.getDBTime()}`;
-            expect(actualFileName).toEqual(expectedFileName.replace(CONST.REGEX.ILLEGAL_ANDROID_FILENAME_CHARACTERS, ' '));
+            expect(actualFileName).toEqual(expectedFileName.replace(CONST.REGEX.ILLEGAL_FILENAME_CHARACTERS, ' '));
         });
     });
 });
