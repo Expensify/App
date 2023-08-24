@@ -256,6 +256,7 @@ function MoneyRequestConfirmPage(props) {
                         receiptPath={props.iou.receiptPath}
                         receiptSource={props.iou.receiptSource}
                         iouType={iouType.current}
+                        transactionType={transactionType.current}
                         reportID={reportID.current}
                         // The participants can only be modified when the action is initiated from directly within a group chat and not the floating-action-button.
                         // This is because when there is a group of people, say they are on a trip, and you have some shared expenses with some of the people,

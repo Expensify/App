@@ -1035,6 +1035,11 @@ const CONST = {
             SPLIT: 'split',
             REQUEST: 'request',
         },
+        TRANSACTION_TYPE: {
+            MANUAL: 'manual',
+            SCAN: 'scan',
+            DISTANCE: 'distance',
+        },
         REPORT_ACTION_TYPE: {
             PAY: 'pay',
             CREATE: 'create',

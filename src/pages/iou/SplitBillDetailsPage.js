@@ -91,6 +91,7 @@ function SplitBillDetailsPage(props) {
                             iouComment={splitComment}
                             iouCurrencyCode={splitCurrency}
                             iouType={CONST.IOU.MONEY_REQUEST_TYPE.SPLIT}
+                            transactionType={CONST.IOU.TRANSACTION_TYPE.MANUAL}
                             isReadOnly
                             shouldShowFooter={false}
                         />

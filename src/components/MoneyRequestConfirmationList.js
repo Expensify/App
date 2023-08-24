@@ -54,6 +54,9 @@ const propTypes = {
     /** IOU type */
     iouType: PropTypes.string,
 
+    /** Transaction type */
+    transactionType: PropTypes.string,
+
     /** IOU date */
     iouCreated: PropTypes.string,
 
@@ -107,6 +110,7 @@ const defaultProps = {
     onSendMoney: () => {},
     onSelectParticipant: () => {},
     iouType: CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
+    transactionType: CONST.IOU.TRANSACTION_TYPE.MANUAL,
     iouCategory: '',
     payeePersonalDetails: null,
     canModifyParticipants: false,
