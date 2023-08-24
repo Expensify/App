@@ -107,7 +107,10 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
     const customStatusTime = DateUtils.extractTime12Hour(customDateTemporary || draftClearAfter || clearAfter);
 
     return (
-        <ScreenWrapper>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            shouldEnableMaxHeight
+        >
             <HeaderWithBackButton
                 title="Status"
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_STATUS)}
@@ -119,7 +122,7 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
                 onSubmit={onSubmit}
                 style={styles.flexGrow1}
                 scrollContextEnabled={false}
-                submitButtonStyle={styles.mh3}
+                submitButtonStyle={styles.mh5}
             >
                 <View style={styles.flexGrow1}>
                     <SelectionList

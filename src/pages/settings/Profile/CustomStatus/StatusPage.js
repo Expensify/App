@@ -59,9 +59,10 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
     }, [defaultText, defaultEmoji, currentUserClearAfter, draftClearAfter]);
 
     useEffect(() => {
-        if (currentUserEmojiCode || currentUserClearAfter || draftClearAfter) return
+        if (currentUserEmojiCode || currentUserClearAfter || draftClearAfter) return;
         User.updateDraftCustomStatus({clearAfter: DateUtils.getEndOfToday()});
     }, []);
+
     const clearStatus = () => {
         User.clearCustomStatus();
         User.updateDraftCustomStatus({
@@ -79,6 +80,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
                     success
                     text={localize.translate('statusPage.save')}
                     onPress={updateStatus}
+                    innerStyles={[styles.mb6]}
                 />
             ) : null,
         [hasDraftStatus, localize, updateStatus],

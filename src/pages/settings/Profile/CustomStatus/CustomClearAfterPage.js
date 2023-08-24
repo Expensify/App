@@ -47,7 +47,7 @@ function CustomClearAfterPage({translate, customStatus, personalDetails}) {
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <HeaderWithBackButton
-                title={translate('common.dob')}
+                title={translate('statusPage.date')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_STATUS_CLEAR_AFTER)}
             />
             <Form
@@ -60,7 +60,7 @@ function CustomClearAfterPage({translate, customStatus, personalDetails}) {
             >
                 <NewDatePicker
                     inputID="dob"
-                    label={translate('common.date')}
+                    label={translate('statusPage.date')}
                     defaultValue={defaultValue}
                     minDate={moment().toDate()}
                 />

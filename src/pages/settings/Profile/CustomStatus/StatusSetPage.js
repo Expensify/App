@@ -47,7 +47,10 @@ function StatusSetPage({draftStatus, currentUserPersonalDetails}) {
     };
 
     return (
-        <ScreenWrapper>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            shouldEnableMaxHeight
+        >
             <HeaderWithBackButton
                 title={translate('statusPage.status')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_STATUS)}

@@ -53,9 +53,9 @@ function SetTimePage({translate, privatePersonalDetails, customStatus, currentUs
     }
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper>
             <HeaderWithBackButton
-                title={translate('common.dob')}
+                title={translate('statusPage.time')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_STATUS_CLEAR_AFTER)}
             />
             <TimePicker
