@@ -79,7 +79,7 @@ function MoneyReportHeader({session, personalDetails, policies, chatReport, repo
                 shouldShowAvatarWithDisplay
                 shouldShowPinButton={false}
                 report={moneyRequestReport}
-                policies={props.policies}
+                policies={policies}
                 personalDetails={personalDetails}
                 shouldShowBackButton={isSmallScreenWidth}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.HOME, false, true)}
