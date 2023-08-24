@@ -772,7 +772,7 @@ function canDeleteReportAction(reportAction, reportID) {
  */
 
 function getRoomWelcomeMessage(report, isUserPolicyAdmin) {
-    const welcomeMessage = {};
+    const welcomeMessage = {showReportName: true};
     const workspaceName = Localize.translateIfNeeded(getPolicyName(report));
 
     if (isArchivedRoom(report)) {
@@ -786,6 +786,7 @@ function getRoomWelcomeMessage(report, isUserPolicyAdmin) {
         welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminRoomPartTwo');
     } else if (isAdminsOnlyPostingRoom(report) && !isUserPolicyAdmin) {
         welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminOnlyPostingRoom');
+        welcomeMessage.showReportName = false;
     } else if (isAnnounceRoom(report)) {
         welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAnnounceRoomPartOne', {workspaceName});
         welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAnnounceRoomPartTwo', {workspaceName});
@@ -1259,12 +1260,11 @@ function getTransactionDetails(transaction) {
 /**
  * Gets all transactions on an IOU report with a receipt
  *
- * @param {Object|null} iouReport
+ * @param {Object|null} iouReportID
  * @returns {[Object]}
  */
-function getTransactionsWithReceipts(iouReport) {
-    const reportID = lodashGet(iouReport, 'reportID');
-    const reportActions = ReportActionsUtils.getAllReportActions(reportID);
+function getTransactionsWithReceipts(iouReportID) {
+    const reportActions = ReportActionsUtils.getAllReportActions(iouReportID);
     return _.reduce(
         reportActions,
         (transactions, action) => {
@@ -1287,17 +1287,17 @@ function getTransactionsWithReceipts(iouReport) {
  * or as soon as one receipt request is done scanning, we have at least one
  * "ready" money request, and we remove this indicator to show the partial report total.
  *
- * @param {Object|null} iouReport
+ * @param {Object|null} iouReportID
  * @param {Object|null} reportPreviewAction the preview action associated with the IOU report
  * @returns {Boolean}
  */
-function areAllRequestsBeingSmartScanned(iouReport, reportPreviewAction) {
-    const transactions = getTransactionsWithReceipts(iouReport);
+function areAllRequestsBeingSmartScanned(iouReportID, reportPreviewAction) {
+    const transactionsWithReceipts = getTransactionsWithReceipts(iouReportID);
     // If we have more requests than requests with receipts, we have some manual requests
-    if (ReportActionsUtils.getNumberOfMoneyRequests(reportPreviewAction) > transactions.length) {
+    if (ReportActionsUtils.getNumberOfMoneyRequests(reportPreviewAction) > transactionsWithReceipts.length) {
         return false;
     }
-    return _.all(transactions, (transaction) => TransactionUtils.isReceiptBeingScanned(transaction));
+    return _.all(transactionsWithReceipts, (transaction) => TransactionUtils.isReceiptBeingScanned(transaction));
 }
 
 /**
@@ -1421,17 +1421,17 @@ function getModifiedExpenseMessage(reportAction) {
         return getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.newComment, reportActionOriginalMessage.oldComment, 'description', true);
     }
 
-    const hasModifiedMerchant = _.has(reportActionOriginalMessage, 'oldMerchant') && _.has(reportActionOriginalMessage, 'merchant');
-    if (hasModifiedMerchant) {
-        return getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.merchant, reportActionOriginalMessage.oldMerchant, 'merchant', true);
-    }
-
     const hasModifiedCreated = _.has(reportActionOriginalMessage, 'oldCreated') && _.has(reportActionOriginalMessage, 'created');
     if (hasModifiedCreated) {
         // Take only the YYYY-MM-DD value as the original date includes timestamp
         let formattedOldCreated = parseISO(reportActionOriginalMessage.oldCreated);
         formattedOldCreated = format(formattedOldCreated, CONST.DATE.FNS_FORMAT_STRING);
         return getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.created, formattedOldCreated, 'date', false);
+    }
+
+    const hasModifiedMerchant = _.has(reportActionOriginalMessage, 'oldMerchant') && _.has(reportActionOriginalMessage, 'merchant');
+    if (hasModifiedMerchant) {
+        return getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.merchant, reportActionOriginalMessage.oldMerchant, 'merchant', true);
     }
 }
 
@@ -1458,6 +1458,10 @@ function getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges, i
     if (_.has(transactionChanges, 'created')) {
         originalMessage.oldCreated = TransactionUtils.getCreated(oldTransaction);
         originalMessage.created = transactionChanges.created;
+    }
+    if (_.has(transactionChanges, 'merchant')) {
+        originalMessage.oldMerchant = TransactionUtils.getMerchant(oldTransaction);
+        originalMessage.merchant = transactionChanges.merchant;
     }
 
     // The amount is always a combination of the currency and the number value so when one changes we need to store both
@@ -2649,11 +2653,6 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas,
         return true;
     }
 
-    // Exclude policy expense chats if the user isn't in the policy expense chat beta
-    if (isPolicyExpenseChat(report) && !Permissions.canUsePolicyExpenseChat(betas)) {
-        return false;
-    }
-
     // Hide chats between two users that haven't been commented on from the LNH
     if (excludeEmptyChats && isEmptyChat && isChatReport(report) && !isChatRoom(report) && !isPolicyExpenseChat(report)) {
         return false;
@@ -3116,6 +3115,23 @@ function getPolicy(policyID) {
     return policy;
 }
 
+/**
+ * @param {String} policyOwner
+ * @returns {String|null}
+ */
+function getPolicyExpenseChatReportIDByOwner(policyOwner) {
+    const policyWithOwner = _.find(allPolicies, (policy) => policy.owner === policyOwner);
+    if (!policyWithOwner) {
+        return null;
+    }
+
+    const expenseChat = _.find(allReports, (report) => isPolicyExpenseChat(report) && report.policyID === policyWithOwner.id);
+    if (!expenseChat) {
+        return null;
+    }
+    return expenseChat.reportID;
+}
+
 /*
  * @param {Object|null} report
  * @returns {Boolean}
@@ -3406,6 +3422,7 @@ export {
     getReportOfflinePendingActionAndErrors,
     isDM,
     getPolicy,
+    getPolicyExpenseChatReportIDByOwner,
     shouldDisableSettings,
     shouldDisableRename,
     hasSingleParticipant,

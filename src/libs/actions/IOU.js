@@ -79,7 +79,7 @@ function resetMoneyRequestInfo(id = '') {
         currency: lodashGet(currentUserPersonalDetails, 'localCurrencyCode', CONST.CURRENCY.USD),
         comment: '',
         participants: [],
-        merchant: '',
+        merchant: CONST.TRANSACTION.DEFAULT_MERCHANT,
         created,
         receiptPath: '',
         receiptSource: '',
@@ -426,6 +426,8 @@ function getMoneyRequestInformation(report, participant, comment, amount, curren
         optimisticTransaction.transactionID,
         '',
         iouReport.reportID,
+        false,
+        false,
         receiptObject,
     );
 
@@ -1004,6 +1006,7 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
                     amount: null,
                     created: null,
                     currency: null,
+                    merchant: null,
                 },
             },
         },
@@ -1030,7 +1033,7 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
     ];
 
     // STEP 6: Call the API endpoint
-    const {created, amount, currency, comment} = ReportUtils.getTransactionDetails(updatedTransaction);
+    const {created, amount, currency, comment, merchant} = ReportUtils.getTransactionDetails(updatedTransaction);
     API.write(
         'EditMoneyRequest',
         {
@@ -1040,6 +1043,7 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
             amount,
             currency,
             comment,
+            merchant,
         },
         {optimisticData, successData, failureData},
     );

@@ -31,8 +31,6 @@ jobs:
 
       - name: Setup NodeJS
         uses: Expensify/App/.github/actions/composite/setupNode@main
-        with:
-          MAPBOX_SDK_DOWNLOAD_TOKEN: ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
       - name: Setup Pages
         uses: actions/configure-pages@f156874f8191504dae5b037505266ed5dda6c382

@@ -17,7 +17,6 @@ export default {
             GoogleSignInDesktop: ROUTES.GOOGLE_SIGN_IN,
             DesktopSignInRedirect: ROUTES.DESKTOP_SIGN_IN_REDIRECT,
             [SCREENS.REPORT_ATTACHMENTS]: ROUTES.REPORT_ATTACHMENTS,
-            SaaStrHome: ROUTES.SAASTR_HOME,
 
             // Sidebar
             [SCREENS.HOME]: {
@@ -27,6 +26,8 @@ export default {
             [NAVIGATORS.CENTRAL_PANE_NAVIGATOR]: {
                 screens: {
                     [SCREENS.REPORT]: ROUTES.REPORT_WITH_ID,
+                    [CONST.DEMO_PAGES.SAASTR]: ROUTES.SAASTR,
+                    [CONST.DEMO_PAGES.SBE]: ROUTES.SBE,
                 },
             },
             [NAVIGATORS.FULL_SCREEN_NAVIGATOR]: {
@@ -310,6 +311,7 @@ export default {
                             Money_Request_Date: ROUTES.MONEY_REQUEST_DATE,
                             Money_Request_Currency: ROUTES.MONEY_REQUEST_CURRENCY,
                             Money_Request_Description: ROUTES.MONEY_REQUEST_DESCRIPTION,
+                            Money_Request_Category: ROUTES.MONEY_REQUEST_CATEGORY,
                             Money_Request_Merchant: ROUTES.MONEY_REQUEST_MERCHANT,
                             Money_Request_Waypoint: ROUTES.MONEY_REQUEST_WAYPOINT,
                             IOU_Send_Enable_Payments: ROUTES.IOU_SEND_ENABLE_PAYMENTS,

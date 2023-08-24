@@ -7,15 +7,12 @@ on:
 jobs:
   typecheck:
     uses: Expensify/App/.github/workflows/typecheck.yml@main
-    secrets: inherit
 
   lint:
     uses: Expensify/App/.github/workflows/lint.yml@main
-    secrets: inherit
 
   test:
     uses: Expensify/App/.github/workflows/test.yml@main
-    secrets: inherit
 
   confirmPassingBuild:
     runs-on: ubuntu-latest
