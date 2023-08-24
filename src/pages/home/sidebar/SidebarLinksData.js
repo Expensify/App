@@ -66,20 +66,20 @@ const defaultProps = {
 function SidebarLinksData({isFocused, allReportActions, betas, chatReports, currentReportID, insets, isLoadingReportData, isSmallScreenWidth, onLinkClick, policies, priorityMode}) {
     const {translate} = useLocalize();
 
-    const reportIDsRef = useRef([]);
+    const reportIDsRef = useRef(null);
     const isLoading = SessionUtils.didUserLogInDuringSession() && isLoadingReportData;
     const optionListItems = useMemo(() => {
         const reportIDs = SidebarUtils.getOrderedReportIDs(currentReportID, chatReports, betas, policies, priorityMode, allReportActions);
         if (deepEqual(reportIDsRef.current, reportIDs)) {
             return reportIDsRef.current;
         }
-        if (isLoading && reportIDsRef.current.length === 0 && !currentReportID) {
+        if (isLoading && !reportIDsRef.current && !currentReportID) {
             reportIDsRef.current = reportIDs;
         }
         if (!isLoading) {
             reportIDsRef.current = reportIDs;
         }
-        return reportIDsRef.current;
+        return reportIDsRef.current || [];
     }, [allReportActions, betas, chatReports, currentReportID, policies, priorityMode, isLoading]);
 
     return (
