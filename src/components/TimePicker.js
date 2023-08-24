@@ -87,7 +87,7 @@ function TimePicker({forwardedRef, onSubmitButtonPress, defaultValue}) {
     const [hours, setHours] = useState(DateUtils.parseTimeTo12HourFormat(defaultValue).hour);
     const [minute, setMinute] = useState(DateUtils.parseTimeTo12HourFormat(defaultValue).minute);
     const [selectionHour, setSelectionHour] = useState({start: 0, end: 0});
-    const [selectionMinute, setSelectionMinute] = useState({start: 0, end: 0});
+    const [selectionMinute, setSelectionMinute] = useState({start: 2, end: 2}); // we focus it by default so need  to have selection on the end
 
     const [amPmValue, setAmPmValue] = useState(DateUtils.getTimePeriod(defaultValue));
 
@@ -106,12 +106,6 @@ function TimePicker({forwardedRef, onSubmitButtonPress, defaultValue}) {
     const focusMinuteInputOnFirstCharacter = useCallback(() => {
         minuteInputRef.current.focus();
         setSelectionMinute({start: 0, end: 0});
-    }, []);
-    const focusHourInputIfNeeded = useCallback(({nativeEvent}, forceFocus = false) => {
-        const keyValue = lodashGet(nativeEvent, 'key', '');
-        if (!forceFocus && keyValue !== 'Backspace') return;
-
-        hourInputRef.current.focus();
     }, []);
 
     const handleHourChange = (text) => {
@@ -235,7 +229,7 @@ function TimePicker({forwardedRef, onSubmitButtonPress, defaultValue}) {
                     setSelectionHour(decreaseBothSelectionByOne(selectionHour));
                 } else if (isMinuteFocused) {
                     if (selectionMinute.start === 0) {
-                        focusHourInputIfNeeded(_, true);
+                        hourInputRef.current.focus();
                     }
                     const newMinute = replaceWithZeroAtPosition(minute, selectionMinute.start);
                     setMinute(newMinute);
@@ -268,7 +262,7 @@ function TimePicker({forwardedRef, onSubmitButtonPress, defaultValue}) {
     const arrowLeftCallback = useCallback(() => {
         const isMinuteFocused = minuteInputRef.current.isFocused();
         if (isMinuteFocused && selectionMinute.start === 0) {
-            focusHourInputIfNeeded(_, true);
+            hourInputRef.current.focus();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectionHour, selectionMinute]);
@@ -286,8 +280,8 @@ function TimePicker({forwardedRef, onSubmitButtonPress, defaultValue}) {
 
     const handleFocusOnBackspace = useCallback(
         (e) => {
-            if (selectionMinute.start !== 0 || e.key === 'Backspace') return;
-            focusHourInputIfNeeded(e);
+            if (selectionMinute.start !== 0 || e.key !== 'Backspace') return;
+            hourInputRef.current.focus();
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [selectionMinute.start],

@@ -52,6 +52,7 @@ function BaseSelectionList({
     isKeyboardShown = false,
     wrapperStyle = {},
     disableInitialFocusOptionStyle = false,
+    scrollEnabled = true,
 }) {
     const {translate} = useLocalize();
     const firstLayoutRef = useRef(true);
@@ -378,6 +379,7 @@ function BaseSelectionList({
                                         scrollToIndex(focusedIndex, false);
                                         firstLayoutRef.current = false;
                                     }}
+                                    scrollEnabled={scrollEnabled}
                                 />
                             </>
                         )}

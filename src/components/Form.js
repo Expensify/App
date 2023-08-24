@@ -102,7 +102,7 @@ const defaultProps = {
     footerContent: null,
     style: [],
     validate: () => ({}),
-    submitButtonStyle: {}
+    submitButtonStyle: {},
 };
 
 function Form(props) {
