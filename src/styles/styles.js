@@ -230,6 +230,11 @@ const styles = {
         color: themeColors.textSupporting,
     },
 
+    appIconBorderRadius: {
+        overflow: 'hidden',
+        borderRadius: 12,
+    },
+
     unitCol: {
         margin: 0,
         padding: 0,
@@ -2911,7 +2916,7 @@ const styles = {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        ...spacing.pt2,
+        ...spacing.ph5,
     },
 
     peopleRowBorderBottom: {
@@ -3640,6 +3645,7 @@ const styles = {
         height: 40,
         marginLeft: 12,
         alignItems: 'center',
+        overflow: 'hidden',
     },
 
     googlePillButtonContainer: {
@@ -3833,6 +3839,11 @@ const styles = {
         flex: 1,
         borderRadius: 20,
         overflow: 'hidden',
+    },
+
+    mapDirection: {
+        width: 7,
+        color: Colors.green,
     },
 
     mapPendingView: {
