@@ -176,14 +176,6 @@ export default [
         successIcon: Expensicons.Checkmark,
         shouldShow: (type, reportAction) =>
             type === CONTEXT_MENU_TYPES.REPORT_ACTION &&
-<<<<<<< HEAD
-            reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU &&
-            reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED &&
-            reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED &&
-            reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.TASKREOPENED &&
-            !ReportActionsUtils.isCreatedTaskReportAction(reportAction) &&
-=======
->>>>>>> main
             !ReportUtils.isReportMessageAttachment(_.last(lodashGet(reportAction, ['message'], [{}]))) &&
             !ReportActionsUtils.isMessageDeleted(reportAction),
 
@@ -191,12 +183,8 @@ export default [
         // `ContextMenuItem` with `successText` and `successIcon` which will fallback to
         // the `text` and `icon`
         onPress: (closePopover, {reportAction, selection}) => {
-<<<<<<< HEAD
-            const isReportPreviewAction = ReportActionsUtils.isReportPreviewAction(reportAction);
-=======
             const isTaskAction = ReportActionUtils.isTaskAction(reportAction);
             const isReportPreviewAction = ReportActionUtils.isReportPreviewAction(reportAction);
->>>>>>> main
             const message = _.last(lodashGet(reportAction, 'message', [{}]));
             const originalMessage = _.get(reportAction, 'originalMessage', {});
             const messageHtml = isTaskAction ? lodashGet(originalMessage, 'html', '') : lodashGet(message, 'html', '');

@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import reportPropTypes from '../../pages/reportPropTypes';
+import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../ONYXKEYS';
 import ROUTES from '../../ROUTES';
 import Navigation from '../../libs/Navigation/Navigation';

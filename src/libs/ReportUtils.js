@@ -1288,7 +1288,7 @@ function canEditReportAction(reportAction) {
         !ReportActionsUtils.isDeletedAction(reportAction) &&
         !ReportActionsUtils.isCreatedTaskReportAction(reportAction) &&
         reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
-    )
+    );
 }
 
 /**
@@ -3160,17 +3160,6 @@ function getReportOfflinePendingActionAndErrors(report) {
     return {addWorkspaceRoomOrChatPendingAction, addWorkspaceRoomOrChatErrors};
 }
 
-<<<<<<< HEAD
-=======
-/**
- * @param {String} policyID
- * @returns {Object}
- */
-function getPolicy(policyID) {
-    const policy = lodashGet(allPolicies, `${ONYXKEYS.COLLECTION.POLICY}${policyID}`) || {};
-    return policy;
-}
-
 /**
  * @param {String} policyOwner
  * @returns {String|null}
@@ -3188,7 +3177,6 @@ function getPolicyExpenseChatReportIDByOwner(policyOwner) {
     return expenseChat.reportID;
 }
 
->>>>>>> main
 /*
  * @param {Object|null} report
  * @returns {Boolean}
@@ -3486,12 +3474,9 @@ export {
     getTransactionReportName,
     getTransactionDetails,
     getTaskAssigneeChatOnyxData,
-<<<<<<< HEAD
     canEditMoneyRequest,
     buildTransactionThread,
-=======
     areAllRequestsBeingSmartScanned,
     getReportPreviewDisplayTransactions,
     getTransactionsWithReceipts,
->>>>>>> main
 };
