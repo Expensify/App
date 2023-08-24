@@ -101,7 +101,10 @@ function ReportParticipantsPage(props) {
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             {({safeAreaPaddingBottomStyle}) => (
-                <FullPageNotFoundView shouldShow={_.isEmpty(props.report) || ReportUtils.isArchivedRoom(props.report)} onBackButtonPress={() => Navigation.goBack(ROUTES.getReportRoute(props.report.reportID))}>
+                <FullPageNotFoundView
+                    shouldShow={_.isEmpty(props.report) || ReportUtils.isArchivedRoom(props.report)}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.getReportRoute(props.report.reportID))}
+                >
                     <HeaderWithBackButton
                         title={props.translate(
                             ReportUtils.isChatRoom(props.report) ||
