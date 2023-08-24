@@ -19,6 +19,7 @@ import * as StyleUtils from '../../styles/StyleUtils';
 import useLocalize from '../../hooks/useLocalize';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
 import Log from '../../libs/Log';
+import * as DemoActions from '../../libs/actions/DemoActions';
 
 const propTypes = {
     /** The details about the account that the user is signing in with */
@@ -49,15 +50,19 @@ const propTypes = {
     /** Whether or not the sign in page is being rendered in the RHP modal */
     isInModal: PropTypes.bool,
 
-    /** Override the green headline copy */
-    customHeadline: PropTypes.string,
+    /** Information about any currently running demos */
+    demoInfo: PropTypes.shape({
+        saastr: PropTypes.shape({
+            isBeginningDemo: PropTypes.bool,
+        }),
+    }),
 };
 
 const defaultProps = {
     account: {},
     credentials: {},
     isInModal: false,
-    customHeadline: '',
+    demoInfo: {},
 };
 
 /**
@@ -85,7 +90,7 @@ function getRenderOptions({hasLogin, hasValidateCode, hasAccount, isPrimaryLogin
     };
 }
 
-function SignInPage({credentials, account, isInModal, customHeadline}) {
+function SignInPage({credentials, account, isInModal, demoInfo}) {
     const {translate, formatPhoneNumber} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
     const shouldShowSmallScreen = isSmallScreenWidth || isInModal;
@@ -109,6 +114,7 @@ function SignInPage({credentials, account, isInModal, customHeadline}) {
 
     let welcomeHeader = '';
     let welcomeText = '';
+    const customHeadline = DemoActions.getHeadlineKeyByDemoInfo(demoInfo);
     const headerText = customHeadline || translate('login.hero.header');
     if (shouldShowLoginForm) {
         welcomeHeader = isSmallScreenWidth ? headerText : translate('welcomeText.getStarted');
@@ -179,4 +185,5 @@ SignInPage.displayName = 'SignInPage';
 export default withOnyx({
     account: {key: ONYXKEYS.ACCOUNT},
     credentials: {key: ONYXKEYS.CREDENTIALS},
+    demoInfo: {key: ONYXKEYS.DEMO_INFO},
 })(SignInPage);
