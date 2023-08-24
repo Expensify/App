@@ -73,6 +73,9 @@ function SidebarLinksData({isFocused, allReportActions, betas, chatReports, curr
         if (deepEqual(reportIDsRef.current, reportIDs)) {
             return reportIDsRef.current;
         }
+
+        // We need to update existing reports only once while loading because they are updated several times during loading and causes this reguression: https://github.com/Expensify/App/issues/24596#issuecomment-1681679531
+        // Also we should not update options list when currentReportID is not null: https://github.com/Expensify/App/issues/23735
         if (isLoading && !reportIDsRef.current && !currentReportID) {
             reportIDsRef.current = reportIDs;
         }
