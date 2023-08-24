@@ -279,7 +279,12 @@ function Composer({
             }
 
             if (textInput.current !== event.target) {
-                return;
+                const isTargetInput = event.target.nodeName === 'INPUT' || event.target.nodeName === 'TEXTAREA' || event.target.contentEditable === 'true';
+                if (isTargetInput) {
+                    return;
+                }
+
+                textInput.current.focus();
             }
 
             event.preventDefault();
