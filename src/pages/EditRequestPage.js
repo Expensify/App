@@ -9,6 +9,8 @@ import ONYXKEYS from '../ONYXKEYS';
 import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 import * as ReportUtils from '../libs/ReportUtils';
 import * as TransactionUtils from '../libs/TransactionUtils';
+import * as Policy from '../libs/actions/Policy';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes} from '../components/withCurrentUserPersonalDetails';
 import EditRequestDescriptionPage from './EditRequestDescriptionPage';
 import EditRequestCreatedPage from './EditRequestCreatedPage';
 import EditRequestAmountPage from './EditRequestAmountPage';
@@ -34,14 +36,35 @@ const propTypes = {
 
     /** The parent report object for the thread report */
     parentReport: reportPropTypes,
+
+    /** The policy object for the current route */
+    policy: PropTypes.shape({
+        /** The name of the policy */
+        name: PropTypes.string,
+
+        /** The URL for the policy avatar */
+        avatar: PropTypes.string,
+    }),
+
+    /** Session info for the currently logged in user. */
+    session: PropTypes.shape({
+        /** Currently logged in user email */
+        email: PropTypes.string,
+    }),
+
+    ...withCurrentUserPersonalDetailsPropTypes,
 };
 
 const defaultProps = {
     report: {},
     parentReport: {},
+    policy: null,
+    session: {
+        email: null,
+    },
 };
 
-function EditRequestPage({report, route, parentReport}) {
+function EditRequestPage({report, route, parentReport, policy, session}) {
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
     const transaction = TransactionUtils.getLinkedTransaction(parentReportAction);
     const {amount: transactionAmount, currency: transactionCurrency, comment: transactionDescription} = ReportUtils.getTransactionDetails(transaction);
@@ -53,15 +76,19 @@ function EditRequestPage({report, route, parentReport}) {
     const fieldToEdit = lodashGet(route, ['params', 'field'], '');
 
     const isDeleted = ReportActionsUtils.isDeletedAction(parentReportAction);
-    const isSetted = ReportUtils.isSettled(parentReport.reportID);
+    const isSettled = ReportUtils.isSettled(parentReport.reportID);
+
+    const isAdmin = Policy.isAdminOfFreePolicy([policy]) && ReportUtils.isExpenseReport(parentReport);
+    const isRequestor = ReportUtils.isMoneyRequestReport(parentReport) && lodashGet(session, 'accountID', null) === parentReportAction.actorAccountID;
+    const canEdit = !isSettled && !isDeleted && (isAdmin || isRequestor);
 
     // Dismiss the modal when the request is paid or deleted
     useEffect(() => {
-        if (!isDeleted && !isSetted) {
+        if (canEdit) {
             return;
         }
         Navigation.dismissModal();
-    }, [isDeleted, isSetted]);
+    }, [canEdit]);
 
     // Update the transaction object and close the modal
     function editMoneyRequest(transactionChanges) {
@@ -131,6 +158,7 @@ EditRequestPage.displayName = 'EditRequestPage';
 EditRequestPage.propTypes = propTypes;
 EditRequestPage.defaultProps = defaultProps;
 export default compose(
+    withCurrentUserPersonalDetails,
     withOnyx({
         report: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`,
@@ -139,6 +167,9 @@ export default compose(
     withOnyx({
         parentReport: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report ? report.parentReportID : '0'}`,
+        },
+        policy: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
         },
     }),
 )(EditRequestPage);
