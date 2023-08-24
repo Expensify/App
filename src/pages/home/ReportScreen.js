@@ -260,7 +260,7 @@ class ReportScreen extends React.Component {
             headerView = (
                 <MoneyRequestHeader
                     report={this.props.report}
-                    policies={this.props.policies}
+                    policy={policy}
                     personalDetails={this.props.personalDetails}
                     isSingleTransactionView={isSingleTransactionView}
                     parentReportAction={parentReportAction}
@@ -272,7 +272,7 @@ class ReportScreen extends React.Component {
             headerView = (
                 <MoneyReportHeader
                     report={this.props.report}
-                    policies={this.props.policies}
+                    policy={policy}
                     personalDetails={this.props.personalDetails}
                     isSingleTransactionView={isSingleTransactionView}
                     parentReportAction={parentReportAction}

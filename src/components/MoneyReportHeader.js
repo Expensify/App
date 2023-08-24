@@ -25,10 +25,16 @@ const propTypes = {
     /** The report currently being looked at */
     report: iouReportPropTypes.isRequired,
 
-    /** The policies which the user has access to and which the report could be tied to */
-    policies: PropTypes.shape({
+    /** The policy tied to the money request report */
+    policy: PropTypes.shape({
         /** Name of the policy */
         name: PropTypes.string,
+
+        /** Type of the policy */
+        type: PropTypes.string,
+
+        /** The role of the current user in the policy */
+        role: PropTypes.string,
     }).isRequired,
 
     /** The chat report this report is linked to */
@@ -53,9 +59,8 @@ const defaultProps = {
     },
 };
 
-function MoneyReportHeader({session, personalDetails, policies, chatReport, report: moneyRequestReport, isSmallScreenWidth}) {
+function MoneyReportHeader({session, personalDetails, policy, chatReport, report: moneyRequestReport, isSmallScreenWidth}) {
     const {translate} = useLocalize();
-    const policy = policies[`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport.policyID}`];
     const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
     const isPolicyAdmin = policy.role === CONST.POLICY.ROLE.ADMIN;
@@ -79,7 +84,7 @@ function MoneyReportHeader({session, personalDetails, policies, chatReport, repo
                 shouldShowAvatarWithDisplay
                 shouldShowPinButton={false}
                 report={moneyRequestReport}
-                policies={policies}
+                policy={policy}
                 personalDetails={personalDetails}
                 shouldShowBackButton={isSmallScreenWidth}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.HOME, false, true)}
