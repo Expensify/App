@@ -31,7 +31,6 @@ export default {
         return `bank-account/${stepToOpen}?policyID=${policyID}${backToParam}`;
     },
     HOME: '',
-    SAASTR_HOME: 'saastr',
     SETTINGS: 'settings',
     SETTINGS_PROFILE: 'settings/profile',
     SETTINGS_SHARE_CODE: 'settings/shareCode',
@@ -98,6 +97,7 @@ export default {
     MONEY_REQUEST_DATE: ':iouType/new/date/:reportID?',
     MONEY_REQUEST_CURRENCY: ':iouType/new/currency/:reportID?',
     MONEY_REQUEST_DESCRIPTION: ':iouType/new/description/:reportID?',
+    MONEY_REQUEST_CATEGORY: ':iouType/new/category/:reportID?',
     MONEY_REQUEST_MERCHANT: ':iouType/new/merchant/:reportID?',
     MONEY_REQUEST_MANUAL_TAB: ':iouType/new/:reportID?/manual',
     MONEY_REQUEST_SCAN_TAB: ':iouType/new/:reportID?/scan',
@@ -113,9 +113,7 @@ export default {
     getMoneyRequestCreatedRoute: (iouType: string, reportID = '') => `${iouType}/new/date/${reportID}`,
     getMoneyRequestCurrencyRoute: (iouType: string, reportID: string, currency: string, backTo: string) => `${iouType}/new/currency/${reportID}?currency=${currency}&backTo=${backTo}`,
     getMoneyRequestDescriptionRoute: (iouType: string, reportID = '') => `${iouType}/new/description/${reportID}`,
-    getMoneyRequestMerchantRoute: (iouType: string, reportID = '') => `${iouType}/new/merchant/${reportID}`,
-    getMoneyRequestDistanceTabRoute: (iouType: string, reportID = '') => `${iouType}/new/${reportID}/distance`,
-    getMoneyRequestWaypointRoute: (iouType: string, waypointIndex: number) => `${iouType}/new/waypoint/${waypointIndex}`,
+    getMoneyRequestCategoryRoute: (iouType: string, reportID = '') => `${iouType}/new/category/${reportID}`,
     SPLIT_BILL_DETAILS: `r/:reportID/split/:reportActionID`,
     getSplitBillDetailsRoute: (reportID: string, reportActionID: string) => `r/${reportID}/split/${reportActionID}`,
     getNewTaskRoute: (reportID: string) => `${NEW_TASK}/${reportID}`,
@@ -137,7 +135,10 @@ export default {
     DETAILS: 'details',
     getDetailsRoute: (login: string) => `details?login=${encodeURIComponent(login)}`,
     PROFILE: 'a/:accountID',
-    getProfileRoute: (accountID: string | number) => `a/${accountID}`,
+    getProfileRoute: (accountID: string | number, backTo = '') => {
+        const backToParam = backTo ? `?backTo=${encodeURIComponent(backTo)}` : '';
+        return `a/${accountID}${backToParam}`;
+    },
     REPORT_PARTICIPANTS: 'r/:reportID/participants',
     getReportParticipantsRoute: (reportID: string) => `r/${reportID}/participants`,
     REPORT_WITH_ID_DETAILS: 'r/:reportID/details',
@@ -191,6 +192,11 @@ export default {
     getWorkspaceInvoicesRoute: (policyID: string) => `workspace/${policyID}/invoices`,
     getWorkspaceTravelRoute: (policyID: string) => `workspace/${policyID}/travel`,
     getWorkspaceMembersRoute: (policyID: string) => `workspace/${policyID}/members`,
+
+    // These are some on-off routes that will be removed once they're no longer needed (see GH issues for details)
+    SAASTR: 'saastr',
+    SBE: 'sbe',
+
     parseReportRouteParams: (route: string): ParseReportRouteParams => {
         let parsingRoute = route;
         if (parsingRoute.at(0) === '/') {
