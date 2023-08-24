@@ -63,7 +63,7 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
     const currentWaypoint = lodashGet(allWaypoints, `waypoint${waypointIndex}`, {});
 
     const wayPointDescriptionKey = useMemo(() => {
-        switch(parsedWaypointIndex) {
+        switch (parsedWaypointIndex) {
             case 0:
                 return 'distance.waypointDescription.start';
             case waypointCount - 1:
@@ -130,7 +130,7 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
             onEntryTransitionEnd={() => textInput.current && textInput.current.focus()}
             shouldEnableMaxHeight
         >
-            <FullPageNotFoundView shouldShow={Number.isNaN(parsedWaypointIndex) || parsedWaypointIndex < 0 || parsedWaypointIndex > (waypointCount - 1)}>
+            <FullPageNotFoundView shouldShow={Number.isNaN(parsedWaypointIndex) || parsedWaypointIndex < 0 || parsedWaypointIndex > waypointCount - 1}>
                 <HeaderWithBackButton
                     title={translate(wayPointDescriptionKey)}
                     shouldShowBackButton
