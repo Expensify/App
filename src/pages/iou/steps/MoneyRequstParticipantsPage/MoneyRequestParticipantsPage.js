@@ -74,7 +74,10 @@ function MoneyRequestParticipantsPage(props) {
             IOU.resetMoneyRequestInfo(moneyRequestId);
         }
 
-        if ((props.iou.amount === 0 && !props.iou.receiptPath) || shouldReset) {
+        //TODO: Temporarily set isDistanceRequest
+        const isDistanceRequest = true;
+
+        if ((!isDistanceRequest && props.iou.amount === 0 && !props.iou.receiptPath) || shouldReset) {
             navigateBack(true);
         }
 
