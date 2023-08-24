@@ -972,7 +972,7 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
 
         updatedMoneyRequestReport.cachedTotal = CurrencyUtils.convertToDisplayString(updatedMoneyRequestReport.total, updatedTransaction.currency);
 
-        // Update the last message of the chat report
+        // Update the last message of the IOU report
         const lastMessage = ReportUtils.getIOUReportActionMessage(
             iouReport.reportID,
             CONST.IOU.REPORT_ACTION_TYPE.CREATE,
@@ -985,7 +985,7 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
         updatedMoneyRequestReport.lastMessageText = lastMessage[0].text;
         updatedMoneyRequestReport.lastMessageHtml = lastMessage[0].html;
 
-        // Update the last message of the IOU chat report
+        // Update the last message of the chat report
         const messageText = Localize.translateLocal('iou.payerOwesAmount', {
             payer: updatedMoneyRequestReport.managerEmail,
             amount: CurrencyUtils.convertToDisplayString(updatedMoneyRequestReport.total, updatedMoneyRequestReport.currency),
