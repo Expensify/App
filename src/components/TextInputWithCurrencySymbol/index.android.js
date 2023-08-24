@@ -1,47 +1,10 @@
 import React, {useState, useEffect} from 'react';
-import PropTypes from 'prop-types';
-import AmountTextInput from './AmountTextInput';
-import CurrencySymbolButton from './CurrencySymbolButton';
-import * as CurrencyUtils from '../libs/CurrencyUtils';
-import useLocalize from '../hooks/useLocalize';
-import * as MoneyRequestUtils from '../libs/MoneyRequestUtils';
-
-const propTypes = {
-    /** A ref to forward to amount text input */
-    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
-
-    /** Formatted amount in local currency  */
-    formattedAmount: PropTypes.string.isRequired,
-
-    /** Function to call when amount in text input is changed */
-    onChangeAmount: PropTypes.func,
-
-    /** Function to call when currency button is pressed */
-    onCurrencyButtonPress: PropTypes.func,
-
-    /** Placeholder value for amount text input */
-    placeholder: PropTypes.string.isRequired,
-
-    /** Currency code of user's selected currency */
-    selectedCurrencyCode: PropTypes.string.isRequired,
-
-    /** Selection Object */
-    selection: PropTypes.shape({
-        start: PropTypes.number,
-        end: PropTypes.number,
-    }),
-
-    /** Function to call when selection in text input is changed */
-    onSelectionChange: PropTypes.func,
-};
-
-const defaultProps = {
-    forwardedRef: undefined,
-    onChangeAmount: () => {},
-    onCurrencyButtonPress: () => {},
-    selection: undefined,
-    onSelectionChange: () => {},
-};
+import AmountTextInput from '../AmountTextInput';
+import CurrencySymbolButton from '../CurrencySymbolButton';
+import * as CurrencyUtils from '../../libs/CurrencyUtils';
+import useLocalize from '../../hooks/useLocalize';
+import * as MoneyRequestUtils from '../../libs/MoneyRequestUtils';
+import * as textInputWithCurrencySymbolPropTypes from './textInputWithCurrencySymbolPropTypes';
 
 function TextInputWithCurrencySymbol(props) {
     const {fromLocaleDigit} = useLocalize();
@@ -85,6 +48,7 @@ function TextInputWithCurrencySymbol(props) {
                 }
                 props.onSelectionChange(e);
             }}
+            onKeyPress={props.onKeyPress}
         />
     );
 
@@ -105,8 +69,8 @@ function TextInputWithCurrencySymbol(props) {
     );
 }
 
-TextInputWithCurrencySymbol.propTypes = propTypes;
-TextInputWithCurrencySymbol.defaultProps = defaultProps;
+TextInputWithCurrencySymbol.propTypes = textInputWithCurrencySymbolPropTypes.propTypes;
+TextInputWithCurrencySymbol.defaultProps = textInputWithCurrencySymbolPropTypes.defaultProps;
 TextInputWithCurrencySymbol.displayName = 'TextInputWithCurrencySymbol';
 
 export default React.forwardRef((props, ref) => (

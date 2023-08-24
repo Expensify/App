@@ -12,6 +12,7 @@ import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
 import TextInputWithCurrencySymbol from '../../../components/TextInputWithCurrencySymbol';
 import useLocalize from '../../../hooks/useLocalize';
 import CONST from '../../../CONST';
+import getOperatingSystem from '../../../libs/getOperatingSystem';
 
 const propTypes = {
     /** IOU amount saved in Onyx */
@@ -72,6 +73,8 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
         end: selectedAmountAsString.length,
     });
 
+    const forwardDeletePressedRef = useRef(false);
+
     /**
      * Event occurs when a user presses a mouse button over an DOM element.
      *
@@ -121,7 +124,8 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
             return;
         }
         setCurrentAmount((prevAmount) => {
-            setSelection((prevSelection) => getNewSelection(prevSelection, prevAmount.length, newAmountWithoutSpaces.length));
+            const isForwardDelete = prevAmount.length > newAmountWithoutSpaces.length && forwardDeletePressedRef.current;
+            setSelection((prevSelection) => getNewSelection(prevSelection, isForwardDelete ? newAmountWithoutSpaces.length : prevAmount.length, newAmountWithoutSpaces.length));
             return MoneyRequestUtils.stripCommaFromAmount(newAmountWithoutSpaces);
         });
     };
@@ -171,6 +175,15 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
         onSubmitButtonPress(currentAmount);
     }, [onSubmitButtonPress, currentAmount]);
 
+    /**
+     * Input handler to check for a forward-delete key (or keyboard shortcut) press.
+     */
+    const textInputKeyPress = ({nativeEvent}) => {
+        const key = nativeEvent.key.toLowerCase();
+        // Control-D on Mac is a keyboard shortcut for forward-delete. See https://support.apple.com/en-us/HT201236 for Mac keyboard shortcuts.
+        forwardDeletePressedRef.current = key === 'delete' || (getOperatingSystem() === CONST.OS.MAC_OS && nativeEvent.ctrlKey && key === 'd');
+    };
+
     const formattedAmount = MoneyRequestUtils.replaceAllDigits(currentAmount, toLocaleDigit);
     const buttonText = isEditing ? translate('common.save') : translate('common.next');
 
@@ -203,6 +216,7 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
                         }
                         setSelection(e.nativeEvent.selection);
                     }}
+                    onKeyPress={textInputKeyPress}
                 />
             </View>
             <View

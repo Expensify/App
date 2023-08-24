@@ -25,12 +25,16 @@ const propTypes = {
 
     /** Function to call when selection in text input is changed */
     onSelectionChange: PropTypes.func,
+
+    /** Function to call to handle key presses in the text input */
+    onKeyPress: PropTypes.func,
 };
 
 const defaultProps = {
     forwardedRef: undefined,
     selection: undefined,
     onSelectionChange: () => {},
+    onKeyPress: () => {},
 };
 
 function AmountTextInput(props) {
@@ -50,6 +54,7 @@ function AmountTextInput(props) {
             selection={props.selection}
             onSelectionChange={props.onSelectionChange}
             accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+            onKeyPress={props.onKeyPress}
         />
     );
 }
