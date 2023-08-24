@@ -112,9 +112,6 @@ function KeyboardShortcutsModal({isShortcutsModalOpen = false, isSmallScreenWidt
     );
 
     useEffect(() => {
-        // remove this line if trying hook approach
-        KeyboardShortcut.onShortcutsUpdate(setShortcuts);
-
         const unsubscribeShortcutModal = KeyboardShortcut.subscribe(
             openShortcutModalConfig.shortcutKey,
             () => {
@@ -146,9 +143,14 @@ function KeyboardShortcutsModal({isShortcutsModalOpen = false, isSmallScreenWidt
     }, []);
 
     useEffect(() => {
+        // remove this line if trying hook approach
+        const removeShortcutUpdateListener = KeyboardShortcut.onShortcutsUpdate(setShortcuts);
+
         if (isShortcutsModalOpen) {
             subscribeOpenModalShortcuts();
         } else {
+            removeShortcutUpdateListener();
+            
             // Modal is closing, remove keyboard shortcuts
             unsubscribeOpenModalShortcuts();
         }

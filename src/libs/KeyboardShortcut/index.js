@@ -47,6 +47,10 @@ const useDocumentedShortcuts = () => {
 // this is for listener approach, either one is working well
 const onShortcutsUpdate = (callback) => {
     shortcutsUpdateCallback = callback;
+
+    return () => {
+        shortcutsUpdateCallback = () => {};
+    }
 }
 
 /**
