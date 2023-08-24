@@ -28,6 +28,7 @@ export default {
     componentBorderRadiusLarge: 16,
     componentBorderRadiusCard: 12,
     componentBorderRadiusRounded: 24,
+    downloadAppModalAppIconSize: 48,
     buttonBorderRadius: 100,
     avatarSizeLargeBordered: 88,
     avatarSizeLarge: 80,
@@ -143,6 +144,7 @@ export default {
     addPaymentPopoverTopSpacing: 8,
     addPaymentPopoverRightSpacing: 13,
     anonymousReportFooterBreakpoint: 650,
+    dropDownButtonDividerHeight: 28,
 
     // The height of the empty list is 14px (2px for borders and 12px for vertical padding)
     // This is calculated based on the values specified in the 'getGoogleListViewStyle' function of the 'StyleUtils' utility

@@ -10,7 +10,7 @@ import compose from '../../libs/compose';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
 import networkPropTypes from '../networkPropTypes';
 import iouReportPropTypes from '../../pages/iouReportPropTypes';
-import IOUPreview from './IOUPreview';
+import MoneyRequestPreview from './MoneyRequestPreview';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import styles from '../../styles/styles';
@@ -90,7 +90,7 @@ function MoneyRequestAction({
     const {translate} = useLocalize();
     const isSplitBillAction = lodashGet(action, 'originalMessage.type', '') === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
 
-    const onIOUPreviewPressed = () => {
+    const onMoneyRequestPreviewPressed = () => {
         if (isSplitBillAction) {
             const reportActionID = lodashGet(action, 'reportActionID', '0');
             Navigation.navigate(ROUTES.getSplitBillDetailsRoute(chatReportID, reportActionID));
@@ -120,13 +120,13 @@ function MoneyRequestAction({
         action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD &&
         network.isOffline
     ) {
-        shouldShowPendingConversionMessage = IOUUtils.isIOUReportPendingCurrencyConversion(reportActions, iouReport);
+        shouldShowPendingConversionMessage = IOUUtils.isIOUReportPendingCurrencyConversion(iouReport);
     }
 
     return isDeletedParentAction ? (
         <RenderHTML html={`<comment>${translate('parentReportAction.deletedRequest')}</comment>`} />
     ) : (
-        <IOUPreview
+        <MoneyRequestPreview
             iouReportID={requestReportID}
             chatReportID={chatReportID}
             isBillSplit={isSplitBillAction}
@@ -134,8 +134,8 @@ function MoneyRequestAction({
             contextMenuAnchor={contextMenuAnchor}
             checkIfContextMenuActive={checkIfContextMenuActive}
             shouldShowPendingConversionMessage={shouldShowPendingConversionMessage}
-            onPreviewPressed={onIOUPreviewPressed}
-            containerStyles={[styles.cursorPointer, isHovered ? styles.iouPreviewBoxHover : undefined, ...style]}
+            onPreviewPressed={onMoneyRequestPreviewPressed}
+            containerStyles={[styles.cursorPointer, isHovered ? styles.reportPreviewBoxHoverBorder : undefined, ...style]}
             isHovered={isHovered}
         />
     );

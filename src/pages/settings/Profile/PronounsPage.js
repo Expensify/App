@@ -12,7 +12,7 @@ import compose from '../../../libs/compose';
 import CONST from '../../../CONST';
 import ROUTES from '../../../ROUTES';
 import Navigation from '../../../libs/Navigation/Navigation';
-import SelectionListRadio from '../../../components/SelectionListRadio';
+import SelectionList from '../../../components/SelectionList';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -104,7 +104,7 @@ function PronounsPage(props) {
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PROFILE)}
             />
             <Text style={[styles.ph5, styles.mb3]}>{props.translate('pronounsPage.isShownOnProfile')}</Text>
-            <SelectionListRadio
+            <SelectionList
                 headerMessage={headerMessage}
                 textInputLabel={props.translate('pronounsPage.pronouns')}
                 textInputPlaceholder={props.translate('pronounsPage.placeholderText')}
