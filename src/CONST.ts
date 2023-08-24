@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import Config from 'react-native-config';
-// @ts-expect-error Migrate react-native-key-command to Typescript
 import * as KeyCommand from 'react-native-key-command';
 import * as Url from './libs/Url';
 import SCREENS from './SCREENS';
@@ -15,16 +14,16 @@ const ANDROID_PACKAGE_NAME = 'com.expensify.chat';
 const CURRENT_YEAR = new Date().getFullYear();
 const PULL_REQUEST_NUMBER = Config?.PULL_REQUEST_NUMBER ?? '';
 
-const keyModifierControl = (KeyCommand?.constants?.keyModifierControl as string) ?? 'keyModifierControl';
-const keyModifierCommand = (KeyCommand?.constants?.keyModifierCommand as string) ?? 'keyModifierCommand';
-const keyModifierShiftControl = (KeyCommand?.constants?.keyModifierShiftControl as string) ?? 'keyModifierShiftControl';
-const keyModifierShiftCommand = (KeyCommand?.constants?.keyModifierShiftCommand as string) ?? 'keyModifierShiftCommand';
-const keyInputEscape = (KeyCommand?.constants?.keyInputEscape as string) ?? 'keyInputEscape';
-const keyInputEnter = (KeyCommand?.constants?.keyInputEnter as string) ?? 'keyInputEnter';
-const keyInputUpArrow = (KeyCommand?.constants?.keyInputUpArrow as string) ?? 'keyInputUpArrow';
-const keyInputDownArrow = (KeyCommand?.constants?.keyInputDownArrow as string) ?? 'keyInputDownArrow';
-const keyInputLeftArrow = (KeyCommand?.constants?.keyInputLeftArrow as string) ?? 'keyInputLeftArrow';
-const keyInputRightArrow = (KeyCommand?.constants?.keyInputRightArrow as string) ?? 'keyInputRightArrow';
+const keyModifierControl = KeyCommand?.constants?.keyModifierControl ?? 'keyModifierControl';
+const keyModifierCommand = KeyCommand?.constants?.keyModifierCommand ?? 'keyModifierCommand';
+const keyModifierShiftControl = KeyCommand?.constants?.keyModifierShiftControl ?? 'keyModifierShiftControl';
+const keyModifierShiftCommand = KeyCommand?.constants?.keyModifierShiftCommand ?? 'keyModifierShiftCommand';
+const keyInputEscape = KeyCommand?.constants?.keyInputEscape ?? 'keyInputEscape';
+const keyInputEnter = KeyCommand?.constants?.keyInputEnter ?? 'keyInputEnter';
+const keyInputUpArrow = KeyCommand?.constants?.keyInputUpArrow ?? 'keyInputUpArrow';
+const keyInputDownArrow = KeyCommand?.constants?.keyInputDownArrow ?? 'keyInputDownArrow';
+const keyInputLeftArrow = KeyCommand?.constants?.keyInputLeftArrow ?? 'keyInputLeftArrow';
+const keyInputRightArrow = KeyCommand?.constants?.keyInputRightArrow ?? 'keyInputRightArrow';
 
 // describes if a shortcut key can cause navigation
 const KEYBOARD_SHORTCUT_NAVIGATION_TYPE = 'NAVIGATION_SHORTCUT';
