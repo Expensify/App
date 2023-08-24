@@ -44,19 +44,14 @@ const propTypes = {
         amount: PropTypes.number,
         currency: PropTypes.string,
         participants: PropTypes.arrayOf(participantPropTypes),
+        transactionID: PropTypes.string,
     }),
 
     /** Type of money request (i.e. IOU) */
     iouType: PropTypes.string,
 
-    /** ID of the report to with which the distance request is associated */
-    reportID: PropTypes.string,
-
     /** The report to with which the distance request is associated */
     report: reportPropTypes,
-
-    /** The transactionID of this request */
-    transactionID: PropTypes.string,
 
     /** The optimistic transaction for this request */
     transaction: transactionPropTypes,
@@ -79,14 +74,12 @@ const defaultProps = {
         participants: [],
     },
     iouType: '',
-    reportID: '',
     report: {},
-    transactionID: '',
     transaction: {},
     mapboxAccessToken: {},
 };
 
-function DistanceRequest({iou, iouType, reportID, report, transaction, mapboxAccessToken, transactionID}) {
+function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken}) {
     const [shouldShowGradient, setShouldShowGradient] = useState(false);
     const [scrollContainerHeight, setScrollContainerHeight] = useState(0);
     const [scrollContentHeight, setScrollContentHeight] = useState(0);
@@ -143,12 +136,12 @@ function DistanceRequest({iou, iouType, reportID, report, transaction, mapboxAcc
     }, []);
 
     useEffect(() => {
-        if (!transactionID || !_.isEmpty(waypoints)) {
+        if (!iou.transactionID || !_.isEmpty(waypoints)) {
             return;
         }
         // Create the initial start and stop waypoints
-        Transaction.createInitialWaypoints(transactionID);
-    }, [transactionID, waypoints]);
+        Transaction.createInitialWaypoints(iou.transactionID);
+    }, [iou.transactionID, waypoints]);
 
     const updateGradientVisibility = (event = {}) => {
         // If a waypoint extends past the bottom of the visible area show the gradient, else hide it.
@@ -162,8 +155,8 @@ function DistanceRequest({iou, iouType, reportID, report, transaction, mapboxAcc
             return;
         }
 
-        Transaction.getRoute(transactionID, waypoints);
-    }, [shouldFetchRoute, transactionID, waypoints]);
+        Transaction.getRoute(iou.transactionID, waypoints);
+    }, [shouldFetchRoute, iou.transactionID, waypoints]);
 
     useEffect(updateGradientVisibility, [scrollContainerHeight, scrollContentHeight]);
 
@@ -227,7 +220,7 @@ function DistanceRequest({iou, iouType, reportID, report, transaction, mapboxAcc
                 <Button
                     small
                     icon={Expensicons.Plus}
-                    onPress={() => Transaction.addStop(transactionID)}
+                    onPress={() => Transaction.addStop(iou.transactionID)}
                     text={translate('distance.addStop')}
                     isDisabled={numberOfWaypoints === MAX_WAYPOINTS}
                     innerStyles={[styles.ph10]}
@@ -263,7 +256,7 @@ function DistanceRequest({iou, iouType, reportID, report, transaction, mapboxAcc
             <Button
                 success
                 style={[styles.w100, styles.mb4, styles.ph4, styles.flexShrink0]}
-                onPress={() => IOU.navigateToNextPage(iou, iouType, reportID, report)}
+                onPress={() => IOU.navigateToNextPage(iou, iouType, report.reportID, report)}
                 pressOnEnter
                 isDisabled={waypointMarkers.length < 2}
                 text={translate('common.next')}
@@ -277,7 +270,7 @@ DistanceRequest.propTypes = propTypes;
 DistanceRequest.defaultProps = defaultProps;
 export default withOnyx({
     transaction: {
-        key: (props) => `${ONYXKEYS.COLLECTION.TRANSACTION}${props.transactionID}`,
+        key: (props) => `${ONYXKEYS.COLLECTION.TRANSACTION}${props.iou.transactionID}`,
     },
     mapboxAccessToken: {
         key: ONYXKEYS.MAPBOX_ACCESS_TOKEN,

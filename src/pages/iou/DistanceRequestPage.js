@@ -1,16 +1,32 @@
 import React, {useEffect} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import * as IOU from '../../libs/actions/IOU';
 import ONYXKEYS from '../../ONYXKEYS';
 import DistanceRequest from '../../components/DistanceRequest';
 import reportPropTypes from '../reportPropTypes';
 import CONST from '../../CONST';
-import lodashGet from 'lodash/get';
 
 const propTypes = {
-    /** The transactionID of this request */
-    iou: PropTypes.object,
+    /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
+    iou: PropTypes.shape({
+        id: PropTypes.string,
+        amount: PropTypes.number,
+        currency: PropTypes.string,
+        merchant: PropTypes.string,
+        created: PropTypes.string,
+        participants: PropTypes.arrayOf(
+            PropTypes.shape({
+                accountID: PropTypes.number,
+                login: PropTypes.string,
+                isPolicyExpenseChat: PropTypes.bool,
+                isOwnPolicyExpenseChat: PropTypes.bool,
+                selected: PropTypes.bool,
+            }),
+        ),
+        transactionID: PropTypes.string,
+    }),
 
     /** The report on which the request is initiated on */
     report: reportPropTypes,
@@ -46,7 +62,6 @@ const defaultProps = {
 // You can't use Onyx props in the withOnyx mapping, so we need to set up and access the transactionID here, and then pass it down so that DistanceRequest can subscribe to the transaction.
 function DistanceRequestPage({iou, report, route}) {
     const iouType = lodashGet(route, 'params.iouType', '');
-    const reportID = lodashGet(route, 'params.reportID', '');
 
     useEffect(() => {
         if (iou.transactionID) {
@@ -59,7 +74,6 @@ function DistanceRequestPage({iou, report, route}) {
         <DistanceRequest
             iou={iou}
             iouType={iouType}
-            reportID={reportID}
             report={report}
             transactionID={iou.transactionID}
         />
