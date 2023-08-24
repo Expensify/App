@@ -567,7 +567,7 @@ function subscribeToUserEvents() {
             {
                 type: CONST.ONYX_UPDATE_TYPES.PUSHER,
                 data: {
-                    multipleEvents: pushJSON.updates,
+                    updates: pushJSON.updates,
                 },
             },
             Number(pushJSON.lastUpdateID || 0),

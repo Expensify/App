@@ -7,7 +7,7 @@ import ONYXKEYS from '../../ONYXKEYS';
  * @param {Object} updateParams.data
  * @param {Object} [updateParams.data.request] Exists if updateParams.type === 'https'
  * @param {Object} [updateParams.data.responseData] Exists if updateParams.type === 'https'
- * @param {Object} [updateParams.data.multipleEvents] Exists if updateParams.type === 'pusher'
+ * @param {Object} [updateParams.data.updates] Exists if updateParams.type === 'pusher'
  * @param {Number} [lastUpdateID]
  * @param {Number} [previousUpdateID]
  */
