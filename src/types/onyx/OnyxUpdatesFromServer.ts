@@ -3,18 +3,18 @@ import Request from "./Request";
 import Response from "./Response";
 
 
-type OnyxUpdateFromServerData = {
+type OnyxUpdatesFromServerData = {
     request?: Request;
     response?: Response;
     updates?: OnyxUpdate[];
 }
 
 
-type OnyxUpdateFromServer = {
+type OnyxUpdatesFromServer = {
     lastUpdateID: number;
     previousUpdateID: number;
     type: 'HTTPS' | 'PUSHER'
-    data: OnyxUpdateFromServerData
+    data: OnyxUpdatesFromServerData
 };
 
-export default OnyxUpdateFromServer;
+export default OnyxUpdatesFromServer;
