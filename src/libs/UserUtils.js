@@ -89,7 +89,7 @@ function getDefaultAvatar(accountID = -1) {
 
     // There are 24 possible default avatars, so we choose which one this user has based
     // on a simple hash of their login. Note that Avatar count starts at 1.
-    const accountIDHashBucket = hashText(accountID.toString(), CONST.DEFAULT_AVATAR_COUNT) + 1;
+    const accountIDHashBucket = (accountID % 24) + 1;
 
     return defaultAvatars[`Avatar${accountIDHashBucket}`];
 }
