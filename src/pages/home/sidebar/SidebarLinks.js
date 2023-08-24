@@ -1,5 +1,4 @@
 /* eslint-disable rulesdir/onyx-props-must-have-default */
-import lodashGet from 'lodash/get';
 import React from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
