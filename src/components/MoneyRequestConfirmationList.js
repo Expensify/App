@@ -4,6 +4,7 @@ import {withOnyx} from 'react-native-onyx';
 import {format} from 'date-fns';
 import _ from 'underscore';
 import {View} from 'react-native';
+import lodashGet from 'lodash/get';
 import styles from '../styles/styles';
 import * as ReportUtils from '../libs/ReportUtils';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
@@ -28,6 +29,9 @@ import Image from './Image';
 import useLocalize from '../hooks/useLocalize';
 import * as ReceiptUtils from '../libs/ReceiptUtils';
 import categoryPropTypes from './categoryPropTypes';
+import ConfirmedRoute from './ConfirmedRoute';
+import transactionPropTypes from './transactionPropTypes';
+import DistanceRequestUtils from '../libs/DistanceRequestUtils';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
@@ -100,6 +104,21 @@ const propTypes = {
     /* Onyx Props */
     /** Collection of categories attached to a policy */
     policyCategories: PropTypes.objectOf(categoryPropTypes),
+
+    /** ID of the transaction that represents the money request */
+    transactionID: PropTypes.string,
+
+    /** Transaction that represents the money request */
+    transaction: transactionPropTypes,
+
+    /** Unit and rate used for if the money request is a distance request */
+    mileageRate: PropTypes.shape({
+        unit: PropTypes.oneOf(['mi', 'ki']),
+        rate: PropTypes.number,
+    }),
+
+    /** Whether the money request is a distance request */
+    isDistanceRequest: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -121,17 +140,29 @@ const defaultProps = {
     receiptPath: '',
     receiptSource: '',
     policyCategories: {},
+    transactionID: '',
+    transaction: {},
+    mileageRate: {unit: 'mi', rate: 0},
+    isDistanceRequest: false,
 };
 
 function MoneyRequestConfirmationList(props) {
     // Destructure functions from props to pass it as a dependecy to useCallback/useMemo hooks.
     // Prop functions pass props itself as a "this" value to the function which means they change every time props change.
-    const {onSendMoney, onConfirm, onSelectParticipant} = props;
+    const {onSendMoney, onConfirm, onSelectParticipant, transaction} = props;
     const {translate} = useLocalize();
 
     // A flag and a toggler for showing the rest of the form fields
     const [showAllFields, toggleShowAllFields] = useReducer((state) => !state, false);
     const isTypeRequest = props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST;
+
+    const {unit, rate} = props.mileageRate;
+    const distance = lodashGet(transaction, 'routes.route0.distance', 0);
+
+    const formattedAmount = CurrencyUtils.convertToDisplayString(
+        props.isDistanceRequest ? DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate) : props.iouAmount,
+        props.isDistanceRequest ? CONST.CURRENCY.USD : props.iouCurrencyCode,
+    );
 
     /**
      * Returns the participants with amount
@@ -154,7 +185,7 @@ function MoneyRequestConfirmationList(props) {
             text = translate('iou.request');
         } else {
             const translationKey = props.hasMultipleParticipants ? 'iou.splitAmount' : 'iou.requestAmount';
-            text = translate(translationKey, {amount: CurrencyUtils.convertToDisplayString(props.iouAmount, props.iouCurrencyCode)});
+            text = translate(translationKey, {amount: formattedAmount});
         }
         return [
             {
@@ -162,7 +193,7 @@ function MoneyRequestConfirmationList(props) {
                 value: props.hasMultipleParticipants ? CONST.IOU.MONEY_REQUEST_TYPE.SPLIT : CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
             },
         ];
-    }, [props.hasMultipleParticipants, props.iouAmount, props.receiptPath, props.iouCurrencyCode, translate]);
+    }, [props.hasMultipleParticipants, props.receiptPath, translate, formattedAmount]);
 
     const selectedParticipants = useMemo(() => _.filter(props.selectedParticipants, (participant) => participant.selected), [props.selectedParticipants]);
     const payeePersonalDetails = useMemo(() => props.payeePersonalDetails || props.currentUserPersonalDetails, [props.payeePersonalDetails, props.currentUserPersonalDetails]);
@@ -290,8 +321,6 @@ function MoneyRequestConfirmationList(props) {
         [selectedParticipants, onSendMoney, onConfirm, props.iouType],
     );
 
-    const formattedAmount = CurrencyUtils.convertToDisplayString(props.iouAmount, props.iouCurrencyCode);
-
     const footerContent = useMemo(() => {
         if (props.isReadOnly) {
             return;
@@ -345,6 +374,11 @@ function MoneyRequestConfirmationList(props) {
             optionHoveredStyle={canModifyParticipants ? styles.hoveredComponentBG : {}}
             footerContent={footerContent}
         >
+            {props.isDistanceRequest && (
+                <View style={styles.confirmationListMapItem}>
+                    <ConfirmedRoute transactionID={props.transactionID} />
+                </View>
+            )}
             {!_.isEmpty(props.receiptPath) ? (
                 <Image
                     style={styles.moneyRequestImage}
@@ -355,7 +389,13 @@ function MoneyRequestConfirmationList(props) {
                     shouldShowRightIcon={!props.isReadOnly}
                     title={formattedAmount}
                     description={translate('iou.amount')}
-                    onPress={() => Navigation.navigate(ROUTES.getMoneyRequestAmountRoute(props.iouType, props.reportID))}
+                    onPress={() => {
+                        const route = props.isDistanceRequest
+                            ? ROUTES.getMoneyRequestDistanceTabRoute(props.iouType, props.reportID)
+                            : ROUTES.getMoneyRequestAmountRoute(props.iouType, props.reportID);
+
+                        Navigation.navigate(route);
+                    }}
                     style={[styles.moneyRequestMenuItem, styles.mt2]}
                     titleStyle={styles.moneyRequestConfirmationAmount}
                     disabled={didConfirm || props.isReadOnly}
@@ -396,15 +436,27 @@ function MoneyRequestConfirmationList(props) {
                         onPress={() => Navigation.navigate(ROUTES.getMoneyRequestCreatedRoute(props.iouType, props.reportID))}
                         disabled={didConfirm || props.isReadOnly || !isTypeRequest}
                     />
-                    <MenuItemWithTopDescription
-                        shouldShowRightIcon={!props.isReadOnly && isTypeRequest}
-                        title={props.iouMerchant}
-                        description={translate('common.merchant')}
-                        style={[styles.moneyRequestMenuItem, styles.mb2]}
-                        titleStyle={styles.flex1}
-                        onPress={() => Navigation.navigate(ROUTES.getMoneyRequestMerchantRoute(props.iouType, props.reportID))}
-                        disabled={didConfirm || props.isReadOnly || !isTypeRequest}
-                    />
+                    {props.isDistanceRequest ? (
+                        <MenuItemWithTopDescription
+                            shouldShowRightIcon={!props.isReadOnly && isTypeRequest}
+                            title={DistanceRequestUtils.getDistanceString(distance, unit, rate)}
+                            description={translate('tabSelector.distance')}
+                            style={[styles.moneyRequestMenuItem, styles.mb2]}
+                            titleStyle={styles.flex1}
+                            onPress={() => Navigation.navigate(ROUTES.getMoneyRequestDistanceTabRoute(props.iouType, props.reportID))}
+                            disabled={didConfirm || props.isReadOnly || !isTypeRequest}
+                        />
+                    ) : (
+                        <MenuItemWithTopDescription
+                            shouldShowRightIcon={!props.isReadOnly && isTypeRequest}
+                            title={props.iouMerchant}
+                            description={translate('common.merchant')}
+                            style={[styles.moneyRequestMenuItem, styles.mb2]}
+                            titleStyle={styles.flex1}
+                            onPress={() => Navigation.navigate(ROUTES.getMoneyRequestMerchantRoute(props.iouType, props.reportID))}
+                            disabled={didConfirm || props.isReadOnly || !isTypeRequest}
+                        />
+                    )}
                     {!_.isEmpty(props.policyCategories) && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly}
@@ -432,6 +484,13 @@ export default compose(
         },
         policyCategories: {
             key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+        },
+        mileageRate: {
+            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            selector: (policy) => DistanceRequestUtils.getDefaultMileageRate(policy),
+        },
+        transaction: {
+            key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
         },
     }),
 )(MoneyRequestConfirmationList);

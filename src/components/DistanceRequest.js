@@ -22,6 +22,9 @@ import useNetwork from '../hooks/useNetwork';
 import useLocalize from '../hooks/useLocalize';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
+import * as IOU from '../libs/actions/IOU';
+import participantPropTypes from './participantPropTypes';
+import reportPropTypes from '../pages/reportPropTypes';
 import transactionPropTypes from './transactionPropTypes';
 import ScreenWrapper from './ScreenWrapper';
 import DotIndicatorMessage from './DotIndicatorMessage';
@@ -35,8 +38,20 @@ const MAP_PADDING = 50;
 const DEFAULT_ZOOM_LEVEL = 10;
 
 const propTypes = {
-    /** The transactionID of this request */
-    transactionID: PropTypes.string,
+    /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
+    iou: PropTypes.shape({
+        id: PropTypes.string,
+        amount: PropTypes.number,
+        currency: PropTypes.string,
+        participants: PropTypes.arrayOf(participantPropTypes),
+        transactionID: PropTypes.string,
+    }),
+
+    /** Type of money request (i.e. IOU) */
+    iouType: PropTypes.string,
+
+    /** The report to with which the distance request is associated */
+    report: reportPropTypes,
 
     /** The optimistic transaction for this request */
     transaction: transactionPropTypes,
@@ -52,12 +67,19 @@ const propTypes = {
 };
 
 const defaultProps = {
-    transactionID: '',
+    iou: {
+        id: '',
+        amount: 0,
+        currency: CONST.CURRENCY.USD,
+        participants: [],
+    },
+    iouType: '',
+    report: {},
     transaction: {},
     mapboxAccessToken: {},
 };
 
-function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
+function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken}) {
     const [shouldShowGradient, setShouldShowGradient] = useState(false);
     const [scrollContainerHeight, setScrollContainerHeight] = useState(0);
     const [scrollContentHeight, setScrollContentHeight] = useState(0);
@@ -114,12 +136,12 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
     }, []);
 
     useEffect(() => {
-        if (!transactionID || !_.isEmpty(waypoints)) {
+        if (!iou.transactionID || !_.isEmpty(waypoints)) {
             return;
         }
         // Create the initial start and stop waypoints
-        Transaction.createInitialWaypoints(transactionID);
-    }, [transactionID, waypoints]);
+        Transaction.createInitialWaypoints(iou.transactionID);
+    }, [iou.transactionID, waypoints]);
 
     const updateGradientVisibility = (event = {}) => {
         // If a waypoint extends past the bottom of the visible area show the gradient, else hide it.
@@ -133,8 +155,8 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
             return;
         }
 
-        Transaction.getRoute(transactionID, waypoints);
-    }, [shouldFetchRoute, transactionID, waypoints]);
+        Transaction.getRoute(iou.transactionID, waypoints);
+    }, [shouldFetchRoute, iou.transactionID, waypoints]);
 
     useEffect(updateGradientVisibility, [scrollContainerHeight, scrollContentHeight]);
 
@@ -198,7 +220,7 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
                 <Button
                     small
                     icon={Expensicons.Plus}
-                    onPress={() => Transaction.addStop(transactionID)}
+                    onPress={() => Transaction.addStop(iou.transactionID)}
                     text={translate('distance.addStop')}
                     isDisabled={numberOfWaypoints === MAX_WAYPOINTS}
                     innerStyles={[styles.ph10]}
@@ -231,6 +253,14 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
                     </View>
                 )}
             </View>
+            <Button
+                success
+                style={[styles.w100, styles.mb4, styles.ph4, styles.flexShrink0]}
+                onPress={() => IOU.navigateToNextPage(iou, iouType, report.reportID, report)}
+                pressOnEnter
+                isDisabled={waypointMarkers.length < 2}
+                text={translate('common.next')}
+            />
         </ScreenWrapper>
     );
 }
@@ -240,7 +270,7 @@ DistanceRequest.propTypes = propTypes;
 DistanceRequest.defaultProps = defaultProps;
 export default withOnyx({
     transaction: {
-        key: (props) => `${ONYXKEYS.COLLECTION.TRANSACTION}${props.transactionID}`,
+        key: (props) => `${ONYXKEYS.COLLECTION.TRANSACTION}${props.iou.transactionID}`,
     },
     mapboxAccessToken: {
         key: ONYXKEYS.MAPBOX_ACCESS_TOKEN,
