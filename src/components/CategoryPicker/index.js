@@ -55,7 +55,7 @@ function CategoryPicker({policyCategories, reportID, iouType, iou}) {
     };
 
     const updateCategory = (category) => {
-        IOU.setMoneyRequestCategory(category.searchText);
+        IOU.setMoneyRequestCategory(category.searchText === iou.category ? '' : category.searchText);
         navigateBack();
     };
 
