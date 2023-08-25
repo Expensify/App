@@ -37,6 +37,8 @@ runs:
 
     - name: Patch root project node packages
       shell: bash
+      id: patch
+      continue-on-error: true
       if: | 
         steps.patchCheck.outputs.CHANGES_IN_PATCH_FILES == 'true' && 
         steps.cache-node-modules.outputs.cache-hit == 'true'
@@ -44,13 +46,17 @@ runs:
 
     - name: Patch node packages for desktop submodule
       shell: bash
+      id: patchDesktop
+      continue-on-error: true
       if: | 
         steps.patchCheck.outputs.CHANGES_IN_PATCH_FILES == 'true' && 
         steps.cache-desktop-node-modules.outputs.cache-hit == 'true'
       run: cd desktop && npx patch-package
 
     - name: Install root project node packages
-      if: steps.cache-node-modules.outputs.cache-hit != 'true'
+      if: |
+        steps.cache-node-modules.outputs.cache-hit != 'true' ||
+        steps.patch.outputs.outcome == 'failure'
       uses: nick-fields/retry@v2
       with:
         timeout_minutes: 30
@@ -58,7 +64,9 @@ runs:
         command: npm ci
 
     - name: Install node packages for desktop submodule
-      if: steps.cache-desktop-node-modules.outputs.cache-hit != 'true'
+      if: |
+        steps.cache-desktop-node-modules.outputs.cache-hit != 'true' ||
+        steps.patchDesktop.outputs.outcome == 'failure'
       uses: nick-fields/retry@v2
       with:
         timeout_minutes: 30
