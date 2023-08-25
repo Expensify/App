@@ -149,7 +149,7 @@ const defaultProps = {
 function MoneyRequestConfirmationList(props) {
     // Destructure functions from props to pass it as a dependecy to useCallback/useMemo hooks.
     // Prop functions pass props itself as a "this" value to the function which means they change every time props change.
-    const {onSendMoney, onConfirm, onSelectParticipant} = props;
+    const {onSendMoney, onConfirm, onSelectParticipant, transaction} = props;
     const {translate} = useLocalize();
 
     // A flag and a toggler for showing the rest of the form fields
@@ -157,7 +157,7 @@ function MoneyRequestConfirmationList(props) {
     const isTypeRequest = props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST;
 
     const {unit, rate} = props.mileageRate;
-    const distance = lodashGet(props, 'transaction.routes.route0.distance', 0);
+    const distance = lodashGet(transaction, 'routes.route0.distance', 0);
 
     const formattedAmount = CurrencyUtils.convertToDisplayString(
         props.isDistanceRequest ? DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate) : props.iouAmount,
