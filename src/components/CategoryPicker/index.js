@@ -1,5 +1,4 @@
 import React, {useMemo} from 'react';
-import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 import {propTypes, defaultProps} from './categoryPickerPropTypes';
@@ -12,27 +11,29 @@ import * as IOU from '../../libs/actions/IOU';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 
 function CategoryPicker({policyCategories, reportID, iouType}) {
-    const sections = useMemo(() => {
-        return OptionsListUtils.getNewChatOptions(
-            {},
-            {},
-            [],
-            // Search
-            '',
-            // Selected options
-            [],
-            [],
-            false,
-            false,
-            // Include categories
-            true,
-            // Categories
-            policyCategories,
-            // Recently used categories
-            {},
-            false,
-        ).categoryOptions;
-    }, [policyCategories]);
+    const sections = useMemo(
+        () =>
+            OptionsListUtils.getNewChatOptions(
+                {},
+                {},
+                [],
+                // Search
+                '',
+                // Selected options
+                [],
+                [],
+                false,
+                false,
+                // Include categories
+                true,
+                // Categories
+                policyCategories,
+                // Recently used categories
+                {},
+                false,
+            ).categoryOptions,
+        [policyCategories],
+    );
 
     const navigateBack = () => {
         Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID));

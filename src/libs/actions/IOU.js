@@ -1751,7 +1751,7 @@ function setMoneyRequestMerchant(merchant) {
  * @param {String} category
  */
 function setMoneyRequestCategory(category) {
-    Onyx.merge(ONYXKEYS.IOU, {category: category});
+    Onyx.merge(ONYXKEYS.IOU, {category});
 }
 
 /**
