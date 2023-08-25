@@ -175,12 +175,6 @@ export default [
         successIcon: Expensicons.Checkmark,
         shouldShow: (type, reportAction) =>
             type === CONTEXT_MENU_TYPES.REPORT_ACTION &&
-            reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU &&
-            reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW &&
-            reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED &&
-            reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED &&
-            reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.TASKREOPENED &&
-            !ReportActionUtils.isCreatedTaskReportAction(reportAction) &&
             !ReportUtils.isReportMessageAttachment(_.last(lodashGet(reportAction, ['message'], [{}]))) &&
             !ReportActionUtils.isMessageDeleted(reportAction),
 
@@ -188,9 +182,11 @@ export default [
         // `ContextMenuItem` with `successText` and `successIcon` which will fallback to
         // the `text` and `icon`
         onPress: (closePopover, {reportAction, selection}) => {
+            const isTaskAction = ReportActionUtils.isTaskAction(reportAction);
             const isReportPreviewAction = ReportActionUtils.isReportPreviewAction(reportAction);
             const message = _.last(lodashGet(reportAction, 'message', [{}]));
-            const messageHtml = lodashGet(message, 'html', '');
+            const originalMessage = _.get(reportAction, 'originalMessage', {});
+            const messageHtml = isTaskAction ? lodashGet(originalMessage, 'html', '') : lodashGet(message, 'html', '');
 
             const isAttachment = _.has(reportAction, 'isAttachment') ? reportAction.isAttachment : ReportUtils.isReportMessageAttachment(message);
             if (!isAttachment) {
@@ -199,6 +195,9 @@ export default [
                     const iouReport = ReportUtils.getReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(reportAction));
                     const displayMessage = ReportUtils.getReportPreviewMessage(iouReport, reportAction);
                     Clipboard.setString(displayMessage);
+                } else if (ReportActionUtils.isModifiedExpenseAction(reportAction)) {
+                    const modifyExpenseMessage = ReportUtils.getModifiedExpenseMessage(reportAction);
+                    Clipboard.setString(modifyExpenseMessage);
                 } else if (content) {
                     const parser = new ExpensiMark();
                     if (!Clipboard.canSetHtml()) {
@@ -280,7 +279,7 @@ export default [
         shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport) =>
             type === CONTEXT_MENU_TYPES.REPORT_ACTION && ReportUtils.canEditReportAction(reportAction) && !isArchivedRoom && !isChronosReport,
         onPress: (closePopover, {reportID, reportAction, draftMessage}) => {
-            const editAction = () => Report.saveReportActionDraft(reportID, reportAction, _.isEmpty(draftMessage) ? getActionText(reportAction) : '');
+            const editAction = () => Report.saveReportActionDraft(reportID, reportAction.reportActionID, _.isEmpty(draftMessage) ? getActionText(reportAction) : '');
 
             if (closePopover) {
                 // Hide popover, then call editAction
