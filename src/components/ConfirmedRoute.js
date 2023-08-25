@@ -86,11 +86,7 @@ function ConfirmedRoute({mapboxToken, transaction}) {
                     pitchEnabled={false}
                     directionCoordinates={route.geometry.coordinates}
                     directionStyle={styles.mapDirection}
-                    style={{
-                        flex: 1,
-                        borderRadius: 20,
-                        overflow: 'hidden',
-                    }}
+                    style={styles.mapView}
                     waypoints={waypointMarkers}
                     styleURL={CONST.MAPBOX_STYLE_URL}
                 />
