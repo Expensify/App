@@ -123,6 +123,11 @@ function getUpdatedTransaction(transaction, transactionChanges, isFromExpenseRep
     if (shouldStopSmartscan && _.has(transaction, 'receipt') && !_.isEmpty(transaction.receipt) && lodashGet(transaction, 'receipt.state') !== CONST.IOU.RECEIPT_STATE.OPEN) {
         updatedTransaction.receipt.state = CONST.IOU.RECEIPT_STATE.OPEN;
     }
+
+    if (_.has(transaction, 'receipt') && _.has(transaction, 'errors') && areRequiredFieldsPopulated) {
+        updatedTransaction.errors = {};
+    }
+
     updatedTransaction.pendingFields = {
         ...(_.has(transactionChanges, 'comment') && {comment: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
         ...(_.has(transactionChanges, 'created') && {created: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
@@ -132,6 +137,12 @@ function getUpdatedTransaction(transaction, transactionChanges, isFromExpenseRep
     };
 
     return updatedTransaction;
+}
+
+function areRequiredFieldsPopulated(transaction) {
+    return transaction.merchant !== CONST.TRANSACTION.DEFAULT_MERCHANT && transaction.modifiedMerchant !== CONST.TRANSACTION.DEFAULT_MERCHANT
+        && transaction.amount !== 0 && transaction.modifiedAmount !== 0
+        && transaction.created !== '' && transaction.modifiedCreated !== '';
 }
 
 /**
