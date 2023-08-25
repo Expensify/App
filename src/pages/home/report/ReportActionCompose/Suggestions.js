@@ -40,6 +40,7 @@ function Suggestions({
     forwardedRef,
     onInsertedEmoji,
     resetKeyboardInput,
+    measureParentContainer,
 }) {
     const suggestionEmojiRef = useRef(null);
     const suggestionMentionRef = useRef(null);
@@ -106,6 +107,7 @@ function Suggestions({
         composerHeight,
         shouldShowReportRecipientLocalTime,
         isAutoSuggestionPickerLarge,
+        measureParentContainer,
     };
 
     return (

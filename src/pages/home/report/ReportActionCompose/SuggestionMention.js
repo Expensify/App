@@ -53,6 +53,7 @@ function SuggestionMention({
     shouldShowReportRecipientLocalTime,
     forwardedRef,
     isAutoSuggestionPickerLarge,
+    measureParentContainer,
 }) {
     const {translate} = useLocalize();
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
@@ -287,6 +288,7 @@ function SuggestionMention({
             isMentionPickerLarge={isAutoSuggestionPickerLarge}
             composerHeight={composerHeight}
             shouldIncludeReportRecipientLocalTimeHeight={shouldShowReportRecipientLocalTime}
+            measureParentContainer={measureParentContainer}
         />
     );
 }

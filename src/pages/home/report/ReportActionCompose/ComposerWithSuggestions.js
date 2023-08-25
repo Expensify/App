@@ -1,5 +1,5 @@
 import React, {useEffect, useCallback, useState, useRef, useMemo, useImperativeHandle} from 'react';
-import {View, InteractionManager, NativeModules, findNodeHandle, LayoutAnimation} from 'react-native';
+import {View, InteractionManager, NativeModules, findNodeHandle} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -132,6 +132,9 @@ const propTypes = {
     /** Whether the compose input is shown or not */
     shouldShowComposeInput: PropTypes.bool.isRequired,
 
+    /** Meaures the parent container's position and dimensions. */
+    measureParentContainer: PropTypes.func,
+
     /** Ref for the suggestions component */
     suggestionsRef: PropTypes.shape({
         current: PropTypes.shape({
@@ -166,6 +169,7 @@ const defaultProps = {
     parentReportActions: {},
     reportActions: [],
     forwardedRef: null,
+    measureParentContainer: () => {},
 };
 
 /**
@@ -206,6 +210,7 @@ function ComposerWithSuggestions({
     submitForm,
     shouldShowReportRecipientLocalTime,
     shouldShowComposeInput,
+    measureParentContainer,
     // Refs
     suggestionsRef,
     animatedRef,
@@ -415,8 +420,6 @@ function ComposerWithSuggestions({
 
     const onSelectionChange = useCallback(
         (e) => {
-            LayoutAnimation.configureNext(LayoutAnimation.create(50, LayoutAnimation.Types.easeInEaseOut, LayoutAnimation.Properties.opacity));
-
             if (suggestionsRef.current.onSelectionChange(e)) {
                 return;
             }
@@ -632,6 +635,7 @@ function ComposerWithSuggestions({
                 composerHeight={composerHeight}
                 shouldShowReportRecipientLocalTime={shouldShowReportRecipientLocalTime}
                 onInsertedEmoji={onInsertedEmoji}
+                measureParentContainer={measureParentContainer}
                 // Input
                 value={value}
                 setValue={setValue}

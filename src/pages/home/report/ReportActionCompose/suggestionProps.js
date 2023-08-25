@@ -18,6 +18,9 @@ const baseProps = {
 
     /** Flag whether we need to consider the participants */
     shouldShowReportRecipientLocalTime: PropTypes.bool.isRequired,
+
+    /** Meaures the parent container's position and dimensions. */
+    measureParentContainer: PropTypes.func.isRequired,
 };
 
 const implementationBaseProps = {

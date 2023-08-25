@@ -37,6 +37,7 @@ import reportActionPropTypes from '../reportActionPropTypes';
 import useLocalize from '../../../../hooks/useLocalize';
 import getModalState from '../../../../libs/getModalState';
 import useWindowDimensions from '../../../../hooks/useWindowDimensions';
+import * as EmojiPickerActions from '../../../../libs/actions/EmojiPickerAction';
 
 const propTypes = {
     /** A method to call when the form is submitted */
@@ -186,6 +187,14 @@ function ReportActionCompose({
         isKeyboardVisibleWhenShowingModalRef.current = false;
     }, []);
 
+    const containerRef = useRef(null);
+    const measureContainer = useCallback((callback) => {
+        if (!containerRef.current) {
+            return;
+        }
+        containerRef.current.measureInWindow(callback);
+    }, []);
+
     const onAddActionPressed = useCallback(() => {
         if (!willBlurTextInputOnTapOutside) {
             isKeyboardVisibleWhenShowingModalRef.current = composerRef.current.isFocused();
@@ -284,15 +293,19 @@ function ReportActionCompose({
 
     useEffect(() => {
         // Shows Popover Menu on Workspace Chat at first sign-in
-        if (disabled) {
-            return;
+        if (!disabled) {
+            Welcome.show({
+                routes: lodashGet(navigation.getState(), 'routes', []),
+                showPopoverMenu,
+            });
         }
 
-        Welcome.show({
-            routes: lodashGet(navigation.getState(), 'routes', []),
-            showPopoverMenu,
-        });
-
+        return () => {
+            if (!EmojiPickerActions.isActive(report.reportID)) {
+                return;
+            }
+            EmojiPickerActions.hideEmojiPicker();
+        };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -304,7 +317,10 @@ function ReportActionCompose({
     const isSendDisabled = isCommentEmpty || isBlockedFromConcierge || disabled || hasExceededMaxCommentLength;
 
     return (
-        <View style={[shouldShowReportRecipientLocalTime && !lodashGet(network, 'isOffline') && styles.chatItemComposeWithFirstRow, isComposerFullSize && styles.chatItemFullComposeRow]}>
+        <View
+            ref={containerRef}
+            style={[shouldShowReportRecipientLocalTime && !lodashGet(network, 'isOffline') && styles.chatItemComposeWithFirstRow, isComposerFullSize && styles.chatItemFullComposeRow]}
+        >
             <OfflineWithFeedback
                 pendingAction={pendingAction}
                 style={isComposerFullSize ? styles.chatItemFullComposeRow : {}}
@@ -388,6 +404,7 @@ function ReportActionCompose({
                             isDisabled={isBlockedFromConcierge || disabled}
                             onModalHide={() => composerRef.current.focus(true)}
                             onEmojiSelected={(...args) => composerRef.current.replaceSelectionWithText(...args)}
+                            emojiPickerID={report.reportID}
                         />
                     )}
                     <SendButton

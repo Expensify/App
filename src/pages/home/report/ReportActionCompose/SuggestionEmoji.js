@@ -69,6 +69,7 @@ function SuggestionEmoji({
     forwardedRef,
     resetKeyboardInput,
     onInsertedEmoji,
+    measureParentContainer,
 }) {
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
 
@@ -241,6 +242,7 @@ function SuggestionEmoji({
             preferredSkinToneIndex={preferredSkinTone}
             isEmojiPickerLarge={isAutoSuggestionPickerLarge}
             shouldIncludeReportRecipientLocalTimeHeight={shouldShowReportRecipientLocalTime}
+            measureParentContainer={measureParentContainer}
         />
     );
 }
