@@ -446,7 +446,7 @@ function ComposerWithSuggestions({
     }, [focus, prevIsFocused, prevIsModalVisible, isFocused, modal.isVisible, isNextModalWillOpenRef]);
 
     useEffect(() => {
-        if (value.length !== 0) {
+        if (value.length === 0) {
             return;
         }
         Report.setReportWithDraft(reportID, true);
