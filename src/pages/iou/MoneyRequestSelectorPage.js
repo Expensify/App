@@ -19,8 +19,8 @@ import DistanceRequestPage from './DistanceRequestPage';
 import DragAndDropProvider from '../../components/DragAndDrop/Provider';
 import usePermissions from '../../hooks/usePermissions';
 import OnyxTabNavigator, {TopTab} from '../../libs/Navigation/OnyxTabNavigator';
-import participantPropTypes from '../../components/participantPropTypes';
 import NewRequestAmountPage from './steps/NewRequestAmountPage';
+import {iouPropTypes, iouDefaultProps} from './propTypes';
 
 const propTypes = {
     /** React Navigation route */
@@ -35,32 +35,11 @@ const propTypes = {
         }),
     }).isRequired,
 
-    /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
-    iou: PropTypes.shape({
-        /** ID (iouType + reportID) of the request */
-        id: PropTypes.string,
-
-        /** Amount of the request */
-        amount: PropTypes.number,
-
-        /** Currency of the request */
-        currency: PropTypes.string,
-
-        /** List of the participants */
-        participants: PropTypes.arrayOf(participantPropTypes),
-    }),
-
     /** Which tab has been selected */
     selectedTab: PropTypes.string,
 };
 
 const defaultProps = {
-    iou: {
-        id: '',
-        amount: 0,
-        currency: CONST.CURRENCY.USD,
-        participants: [],
-    },
     selectedTab: CONST.TAB.MANUAL,
 };
 
