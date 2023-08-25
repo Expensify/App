@@ -92,6 +92,8 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, trans
 
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
 
+    const isInteractive = canEdit && !isSettled;
+
     return (
         <View>
             <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth), StyleUtils.getMinimumHeight(CONST.EMPTY_STATE_BACKGROUND.MONEY_REPORT.MIN_HEIGHT)]}>
@@ -117,7 +119,7 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, trans
                     titleIcon={Expensicons.Checkmark}
                     description={description}
                     titleStyle={styles.newKansasLarge}
-                    disabled={isSettled || !canEdit}
+                    interactive={isInteractive}
                     shouldShowRightIcon={canEdit}
                     onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.AMOUNT))}
                 />
@@ -126,7 +128,7 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, trans
                 <MenuItemWithTopDescription
                     description={translate('common.description')}
                     title={transactionDescription}
-                    disabled={isSettled || !canEdit}
+                    interactive={isInteractive}
                     shouldShowRightIcon={canEdit}
                     titleStyle={styles.flex1}
                     onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DESCRIPTION))}
@@ -136,7 +138,7 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, trans
                 <MenuItemWithTopDescription
                     description={translate('common.date')}
                     title={transactionDate}
-                    disabled={isSettled || !canEdit}
+                    interactive={isInteractive}
                     shouldShowRightIcon={canEdit}
                     titleStyle={styles.flex1}
                     onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DATE))}
@@ -146,7 +148,7 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, trans
                 <MenuItemWithTopDescription
                     description={isDistanceRequest ? translate('tabSelector.distance') : translate('common.merchant')}
                     title={transactionMerchant}
-                    disabled={isSettled || !canEdit}
+                    interactive={isInteractive}
                     shouldShowRightIcon={canEdit}
                     titleStyle={styles.flex1}
                     onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.MERCHANT))}
