@@ -1,32 +1,33 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import PropTypes from 'prop-types';
 import MapView from 'react-native-x-maps';
 import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
-import lodashGet from 'lodash/get';
 import * as MapboxToken from '../libs/actions/MapboxToken';
-import {useEffect} from 'react';
-import _ from 'underscore';
 import * as Expensicons from './Icon/Expensicons';
 import theme from '../styles/themes/default';
 import styles from '../styles/styles';
+import transactionPropTypes from './transactionPropTypes';
 
 const MAP_PADDING = 50;
 
 const propTypes = {
-    transactionID: PropTypes.string,
-    transaction: PropTypes.object,
-    mapboxAccessToken: PropTypes.object,
+    /** Transaction that stores the distance request data */
+    transaction: transactionPropTypes,
+
+    /** Token needed to render the map */
+    mapboxToken: PropTypes.string,
 };
 
 const defaultProps = {
-    transactionID: '',
     transaction: {},
-    mapboxAccessToken: PropTypes.object,
+    mapboxToken: '',
 };
 
-function ConfirmedRoute({transaction, mapboxAccessToken}) {
+function ConfirmedRoute({mapboxToken, transaction}) {
     const {route0: route} = transaction.routes;
     const waypoints = lodashGet(transaction, 'comment.waypoints', {});
     const numberOfWaypoints = _.size(waypoints);
@@ -68,7 +69,7 @@ function ConfirmedRoute({transaction, mapboxAccessToken}) {
 
     return (
         <MapView
-            accessToken={mapboxAccessToken.token}
+            accessToken={mapboxToken}
             style={{
                 flex: 1,
                 borderRadius: 20,
@@ -87,11 +88,12 @@ export default withOnyx({
     transaction: {
         key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
     },
-    mapboxAccessToken: {
+    mapboxToken: {
         key: ONYXKEYS.MAPBOX_ACCESS_TOKEN,
+        selector: (mapboxAccessToken) => mapboxAccessToken.token,
     },
 })(ConfirmedRoute);
 
 ConfirmedRoute.displayName = 'MoneyRequestConfirmPage';
-ConfirmedRoute.prototype = propTypes;
+ConfirmedRoute.propTypes = propTypes;
 ConfirmedRoute.defaultProps = defaultProps;
