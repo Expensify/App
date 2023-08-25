@@ -287,7 +287,7 @@ function AddressSearch(props) {
                     fetchDetails
                     suppressDefaultStyles
                     enablePoweredByContainer={false}
-                    predefinedPlaces={props.predefinedPlaces.length ? props.predefinedPlaces : null}
+                    predefinedPlaces={props.predefinedPlaces}
                     ListEmptyComponent={
                         props.network.isOffline ? null : (
                             <Text style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}>{props.translate('common.noResultsFound')}</Text>

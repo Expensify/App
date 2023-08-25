@@ -53,7 +53,7 @@ const defaultProps = {
     transaction: {},
 };
 
-function WaypointEditor({transactionID, route: {params: {iouType = '', waypointIndex = ''} = {}} = {}, network, translate, transaction}) {
+function WaypointEditor({transactionID, route: {params: {iouType = '', waypointIndex = ''} = {}} = {}, network, translate, transaction, recentWaypoints}) {
     const textInput = useRef(null);
     const currentWaypoint = lodashGet(transaction, `comment.waypoints.waypoint${waypointIndex}`, {});
     const waypointAddress = lodashGet(currentWaypoint, 'address', '');
@@ -151,7 +151,7 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
                             lng: null,
                             state: null,
                         }}
-                        predefinedPlaces={props.recentWaypoints}
+                        predefinedPlaces={recentWaypoints}
                     />
                 </View>
             </Form>
