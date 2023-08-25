@@ -70,12 +70,6 @@ const defaultProps = {
 const VERTICAL_OFFSET_THRESHOLD = 200;
 const MSG_VISIBLE_THRESHOLD = 250;
 
-// Seems that there is an architecture issue that prevents us from using the reportID with useRef
-// the useRef value gets reset when the reportID changes, so we use a global variable to keep track
-let prevReportID = null;
-
-const currentUnreadMarker = {current: null};
-
 /**
  * Create a unique key for each action in the FlatList.
  * We use the reportActionID that is a string representation of a random 64-bit int, which should be
@@ -113,6 +107,8 @@ function ReportActionsList({
     const userActiveSince = useRef(null);
     const scrollingVerticalOffset = useRef(0);
     const readActionSkipped = useRef(false);
+    const prevReportID = useRef(null);
+    const currentUnreadMarker = useRef(null);
     const lastMessage = sortedReportActions.length > 0 ? sortedReportActions[0] : null;
     // Considering that renderItem is enclosed within a useCallback, marking it as "read" twice will retain the value as "true," preventing the useCallback from re-executing.
     // However, if we create and listen to an object, it will lead to a new useCallback execution.
@@ -131,20 +127,20 @@ function ReportActionsList({
         // If the reportID changes, we reset the userActiveSince to null, we need to do it because
         // the parent component is sending the previous reportID even when the user isn't active
         // on the report
-        if (userActiveSince.current && prevReportID && prevReportID !== report.reportID) {
+        if (userActiveSince.current && prevReportID.current && prevReportID.current !== report.reportID) {
             userActiveSince.current = null;
         } else {
             userActiveSince.current = DateUtils.getDBTime();
         }
 
-        if (prevReportID !== report.reportID) {
-            currentUnreadMarker.current = null;
-        }
-        prevReportID = report.reportID;
+        // if (prevReportID.current !== report.reportID) {
+        //     currentUnreadMarker.current = null;
+        // }
+        prevReportID.current = report.reportID;
     }, [report.reportID]);
 
     useEffect(() => {
-        if (!userActiveSince.current || report.reportID !== prevReportID) {
+        if (!userActiveSince.current || report.reportID !== prevReportID.current) {
             return;
         }
         const isUnreadMessage = ReportUtils.isUnread(report);
@@ -166,15 +162,15 @@ function ReportActionsList({
     }, [lastMessage, report.reportID, isOffline]);
 
     useEffect(() => {
-        if (!userActiveSince.current || report.reportID !== prevReportID) {
+        if (!userActiveSince.current || report.reportID !== prevReportID.current) {
             return;
         }
         const didManuallyMarkReportAsUnread = report.lastReadTime < DateUtils.getDBTime() && ReportUtils.isUnread(report);
-
         if (!didManuallyMarkReportAsUnread) {
             setMessageManuallyMarked({read: false});
             return;
         }
+
         // Clearing the current unread marker so that it can be recalculated
         currentUnreadMarker.current = null;
         setMessageManuallyMarked({read: true});
@@ -235,15 +231,18 @@ function ReportActionsList({
             if (!currentUnreadMarker.current) {
                 const nextMessage = sortedReportActions[index + 1];
                 const isCurrentMessageUnread = isMessageUnread(reportAction, report.lastReadTime);
-                shouldDisplayNewMarker = isCurrentMessageUnread && !isMessageUnread(nextMessage, report.lastReadTime);
+                let canDisplayNewMarker = isCurrentMessageUnread && !isMessageUnread(nextMessage, report.lastReadTime);
 
                 if (!messageManuallyMarked.read) {
-                    shouldDisplayNewMarker = shouldDisplayNewMarker && reportAction.actorAccountID !== Report.getCurrentUserAccountID();
+                    canDisplayNewMarker = shouldDisplayNewMarker && reportAction.actorAccountID !== Report.getCurrentUserAccountID();
                 }
-                const canDisplayMarker = scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD ? reportAction.created < userActiveSince.current : true;
-
-                if (!currentUnreadMarker.current && shouldDisplayNewMarker && canDisplayMarker) {
+                let isMessageInScope = scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD ? reportAction.created < userActiveSince.current : true;
+                if (messageManuallyMarked.read) {
+                    isMessageInScope = true;
+                }
+                if (!currentUnreadMarker.current && canDisplayNewMarker && isMessageInScope) {
                     currentUnreadMarker.current = reportAction.reportActionID;
+                    shouldDisplayNewMarker = true;
                 }
             } else {
                 shouldDisplayNewMarker = reportAction.reportActionID === currentUnreadMarker.current;
