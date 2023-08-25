@@ -116,6 +116,9 @@ const propTypes = {
         unit: PropTypes.oneOf(['mi', 'ki']),
         rate: PropTypes.number,
     }),
+
+    /** Whether the money request is a distance request */
+    isDistanceRequest: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -140,6 +143,7 @@ const defaultProps = {
     transactionID: '',
     transaction: {},
     mileageRate: {unit: 'mi', rate: 0.655},
+    isDistanceRequest: false,
 };
 
 function MoneyRequestConfirmationList(props) {
@@ -152,13 +156,12 @@ function MoneyRequestConfirmationList(props) {
     const [showAllFields, toggleShowAllFields] = useReducer((state) => !state, false);
     const isTypeRequest = props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST;
 
-    const isDistanceRequest = true;
     const {unit, rate} = props.mileageRate;
     const distance = lodashGet(props, 'transaction.routes.route0.distance', 0);
 
     const formattedAmount = CurrencyUtils.convertToDisplayString(
-        isDistanceRequest ? DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate) : props.iouAmount,
-        isDistanceRequest ? CONST.CURRENCY.USD : props.iouCurrencyCode,
+        props.isDistanceRequest ? DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate) : props.iouAmount,
+        props.isDistanceRequest ? CONST.CURRENCY.USD : props.iouCurrencyCode,
     );
 
     /**
@@ -369,9 +372,11 @@ function MoneyRequestConfirmationList(props) {
             optionHoveredStyle={canModifyParticipants ? styles.hoveredComponentBG : {}}
             footerContent={footerContent}
         >
-            <View style={{margin: 20, height: 200}}>
-                <ConfirmedRoute transactionID={props.transactionID} />
-            </View>
+            {props.isDistanceRequest && (
+                <View style={{margin: 20, height: 200}}>
+                    <ConfirmedRoute transactionID={props.transactionID} />
+                </View>
+            )}
             {!_.isEmpty(props.receiptPath) ? (
                 <Image
                     style={styles.moneyRequestImage}
@@ -383,7 +388,7 @@ function MoneyRequestConfirmationList(props) {
                     title={formattedAmount}
                     description={translate('iou.amount')}
                     onPress={() => {
-                        const route = isDistanceRequest
+                        const route = props.isDistanceRequest
                             ? ROUTES.getMoneyRequestDistanceTabRoute(props.iouType, props.reportID)
                             : ROUTES.getMoneyRequestAmountRoute(props.iouType, props.reportID);
 
@@ -429,7 +434,7 @@ function MoneyRequestConfirmationList(props) {
                         onPress={() => Navigation.navigate(ROUTES.getMoneyRequestCreatedRoute(props.iouType, props.reportID))}
                         disabled={didConfirm || props.isReadOnly || !isTypeRequest}
                     />
-                    {isDistanceRequest && (
+                    {props.isDistanceRequest ? (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly && isTypeRequest}
                             title={DistanceRequestUtils.getDistanceString(distance, unit, rate)}
@@ -439,8 +444,7 @@ function MoneyRequestConfirmationList(props) {
                             onPress={() => Navigation.navigate(ROUTES.getMoneyRequestDistanceTabRoute(props.iouType, props.reportID))}
                             disabled={didConfirm || props.isReadOnly || !isTypeRequest}
                         />
-                    )}
-                    {!isDistanceRequest && (
+                    ) : (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly && isTypeRequest}
                             title={props.iouMerchant}
