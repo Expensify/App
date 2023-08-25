@@ -227,6 +227,7 @@ function WorkspaceInvitePage(props) {
                             onSelectRow={toggleOption}
                             showScrollIndicator
                             shouldDelayFocus
+                            showLoadingPlaceholder={!didScreenTransitionEnd || !OptionsListUtils.isPersonalDetailsReady(props.personalDetails)}
                         />
                         <View style={[styles.flexShrink0]}>
                             <FormAlertWithSubmitButton
