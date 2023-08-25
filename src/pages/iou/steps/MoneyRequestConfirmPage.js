@@ -4,7 +4,6 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import {useIsFocused} from '@react-navigation/native';
 import MoneyRequestConfirmationList from '../../../components/MoneyRequestConfirmationList';
 import CONST from '../../../CONST';
 import ScreenWrapper from '../../../components/ScreenWrapper';
@@ -79,8 +78,6 @@ function MoneyRequestConfirmPage(props) {
                 : OptionsListUtils.getParticipantsOptions(props.iou.participants, props.personalDetails),
         [props.iou.participants, props.personalDetails],
     );
-
-    const isFocused = useIsFocused();
 
     useEffect(() => {
         const policyExpenseChat = _.find(participants, (participant) => participant.isPolicyExpenseChat);
@@ -269,7 +266,6 @@ function MoneyRequestConfirmPage(props) {
                         bankAccountRoute={ReportUtils.getBankAccountRoute(props.report)}
                         iouMerchant={props.iou.merchant}
                         iouCreated={props.iou.created}
-                        disableArrowKeysActions={!isFocused}
                     />
                 </View>
             )}

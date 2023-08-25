@@ -64,19 +64,17 @@ class BaseOptionsSelector extends Component {
     }
 
     componentDidMount() {
-        if (!this.props.disableArrowKeysActions) {
-            this.subscribeToKeyboardShortcut();
-        }
+        this.subscribeToKeyboardShortcut();
 
         this.scrollToIndex(this.props.selectedOptions.length ? 0 : this.state.focusedIndex, false);
     }
 
     componentDidUpdate(prevProps) {
-        if (prevProps.disableArrowKeysActions !== this.props.disableArrowKeysActions) {
-            if (this.props.disableArrowKeysActions) {
-                this.unSubscribeToKeyboardShortcut();
-            } else {
+        if (prevProps.isFocused !== this.props.isFocused) {
+            if (this.props.isFocused) {
                 this.subscribeToKeyboardShortcut();
+            } else {
+                this.unSubscribeToKeyboardShortcut();
             }
         }
 

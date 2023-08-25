@@ -324,7 +324,7 @@ function MoneyRequestConfirmationList(props) {
             onConfirmSelection={confirm}
             selectedOptions={selectedOptions}
             canSelectMultipleOptions={canModifyParticipants}
-            disableArrowKeysActions={props.disableArrowKeysActions || !canModifyParticipants}
+            disableArrowKeysActions={!canModifyParticipants}
             boldStyle
             showTitleTooltip
             shouldTextInputAppearBelowOptions
