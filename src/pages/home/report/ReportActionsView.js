@@ -19,7 +19,7 @@ import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 import reportPropTypes from '../../reportPropTypes';
 import PopoverReactionList from './ReactionList/PopoverReactionList';
 import getIsReportFullyVisible from '../../../libs/getIsReportFullyVisible';
-import ReportScreenContext from '../ReportScreenContext';
+import { ReactionListContext } from '../ReportScreenContext';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -54,10 +54,9 @@ const defaultProps = {
 };
 
 function ReportActionsView(props) {
-    const context = useContext(ReportScreenContext);
 
     useCopySelectionHelper();
-
+    const reactionListRef = useContext(ReactionListContext)
     const didLayout = useRef(false);
     const didSubscribeToReportTypingEvents = useRef(false);
     const hasCachedActions = useRef(_.size(props.reportActions) > 0);
@@ -189,7 +188,7 @@ function ReportActionsView(props) {
                 loadMoreChats={loadMoreChats}
                 policy={props.policy}
             />
-            <PopoverReactionList ref={context.reactionListRef} />
+            <PopoverReactionList ref={reactionListRef} />
         </>
     );
 }
