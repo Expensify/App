@@ -23,6 +23,7 @@
   - [1.16 Reusable Types](#reusable-types)
   - [1.17 `.tsx`](#tsx)
   - [1.18 No inline prop types](#no-inline-prop-types)
+  - [1.19 Satisfies operator](#satisfies-operator)
 - [Exception to Rules](#exception-to-rules)
 - [Communication Items](#communication-items)
 - [Migration Guidelines](#migration-guidelines)
@@ -101,7 +102,7 @@ type Foo = {
 
 <a name="d-ts-extension"></a><a name="1.2"></a>
 
-- [1.2](#d-ts-extension) **`d.ts` Extension**: Do not use `d.ts` file extension even when a file contains only type declarations. Only exception is the `global.d.ts` file in which third party packages can be modified using module augmentation. Refer to the [Communication Items](#communication-items) section to learn more about module augmentation.
+- [1.2](#d-ts-extension) **`d.ts` Extension**: Do not use `d.ts` file extension even when a file contains only type declarations. Only exceptions are `src/types/global.d.ts` and `src/types/modules/*.d.ts` files in which third party packages can be modified using module augmentation. Refer to the [Communication Items](#communication-items) section to learn more about module augmentation.
 
   > Why? Type errors in `d.ts` files are not checked by TypeScript [^1].
 
@@ -358,7 +359,7 @@ type Foo = {
 
 <a name="file-organization"></a><a name="1.15"></a>
 
-- [1.15](#file-organization) **File organization**: In modules with platform-specific implementations, create `types.ts` to define shared types. Import and use shared types in each platform specific files.
+- [1.15](#file-organization) **File organization**: In modules with platform-specific implementations, create `types.ts` to define shared types. Import and use shared types in each platform specific files. Do not use [`satisfies` operator](#satisfies-operator) for platform-specific implementations, always define shared types that complies with all variants. 
 
   > Why? To encourage consistent API across platform-specific implementations. If you're migrating module that doesn't have a default implement (i.e. `index.ts`, e.g. `getPlatform`), refer to [Migration Guidelines](#migration-guidelines) for further information.
 
@@ -458,6 +459,34 @@ type Foo = {
   }
   ```
 
+  <a name="satisfies-operator"></a><a name="1.19"></a>
+
+- [1.19](#satisfies-operator) **Satisfies Operator**: Use the `satisfies` operator when you need to validate that the structure of an expression matches a specific type, without affecting the resulting type of the expression.
+
+  > Why? TypeScript developers often want to ensure that an expression aligns with a certain type, but they also want to retain the most specific type possible for inference purposes. The `satisfies` operator assists in doing both.
+
+  ```ts
+  // BAD
+  const sizingStyles = {
+    w50: {
+        width: '50%',
+    },
+    mw100: {
+        maxWidth: '100%',
+    },
+  } as const;
+
+  // GOOD
+  const sizingStyles = {
+    w50: {
+        width: '50%',
+    },
+    mw100: {
+        maxWidth: '100%',
+    },
+  } satisfies Record<string, ViewStyle>;
+  ```
+
 ## Exception to Rules
 
 Most of the rules are enforced in ESLint or checked by TypeScript. If you think your particular situation warrants an exception, post the context in the `#expensify-open-source` Slack channel with your message prefixed with `TS EXCEPTION:`. The internal engineer assigned to the PR should be the one that approves each exception, however all discussion regarding granting exceptions should happen in the public channel instead of the GitHub PR page so that the TS migration team can access them easily.
@@ -472,9 +501,11 @@ This rule will apply until the migration is done. After the migration, discussio
 
 - I think types definitions in a third party library is incomplete or incorrect
 
-When the library indeed contains incorrect or missing type definitions and it cannot be updated, use module augmentation to correct them. All module augmentation code should be contained in `/src/global.d.ts`.
+When the library indeed contains incorrect or missing type definitions and it cannot be updated, use module augmentation to correct them. All module augmentation code should be contained in `/src/types/modules/*.d.ts`, each library as a separate file.
 
 ```ts
+// external-library-name.d.ts
+
 declare module "external-library-name" {
   interface LibraryComponentProps {
     // Add or modify typings

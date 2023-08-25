@@ -137,6 +137,7 @@ const personalDetailsSelector = (personalDetails) =>
                 login: personalData.login,
                 displayName: personalData.displayName,
                 firstName: personalData.firstName,
+                status: personalData.status,
                 avatar: UserUtils.getAvatar(personalData.avatar, personalData.accountID),
             };
             return finalPersonalDetails;

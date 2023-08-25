@@ -1,42 +1,45 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
 import {parsePhoneNumber} from 'awesome-phonenumber';
-import styles from '../../styles/styles';
-import Text from '../../components/Text';
-import * as Session from '../../libs/actions/Session';
-import ONYXKEYS from '../../ONYXKEYS';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
-import compose from '../../libs/compose';
-import canFocusInputOnScreenFocus from '../../libs/canFocusInputOnScreenFocus';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import TextInput from '../../components/TextInput';
-import * as ValidationUtils from '../../libs/ValidationUtils';
-import * as LoginUtils from '../../libs/LoginUtils';
-import withToggleVisibilityView, {toggleVisibilityViewPropTypes} from '../../components/withToggleVisibilityView';
-import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
-import {withNetwork} from '../../components/OnyxProvider';
-import networkPropTypes from '../../components/networkPropTypes';
-import * as ErrorUtils from '../../libs/ErrorUtils';
-import DotIndicatorMessage from '../../components/DotIndicatorMessage';
-import * as CloseAccount from '../../libs/actions/CloseAccount';
-import CONST from '../../CONST';
-import CONFIG from '../../CONFIG';
-import AppleSignIn from '../../components/SignInButtons/AppleSignIn';
-import GoogleSignIn from '../../components/SignInButtons/GoogleSignIn';
-import isInputAutoFilled from '../../libs/isInputAutoFilled';
-import * as PolicyUtils from '../../libs/PolicyUtils';
-import Log from '../../libs/Log';
-import withNavigationFocus, {withNavigationFocusPropTypes} from '../../components/withNavigationFocus';
-import usePrevious from '../../hooks/usePrevious';
-import * as MemoryOnlyKeys from '../../libs/actions/MemoryOnlyKeys/MemoryOnlyKeys';
+import styles from '../../../styles/styles';
+import Text from '../../../components/Text';
+import * as Session from '../../../libs/actions/Session';
+import ONYXKEYS from '../../../ONYXKEYS';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import compose from '../../../libs/compose';
+import canFocusInputOnScreenFocus from '../../../libs/canFocusInputOnScreenFocus';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import TextInput from '../../../components/TextInput';
+import * as ValidationUtils from '../../../libs/ValidationUtils';
+import * as LoginUtils from '../../../libs/LoginUtils';
+import withToggleVisibilityView, {toggleVisibilityViewPropTypes} from '../../../components/withToggleVisibilityView';
+import FormAlertWithSubmitButton from '../../../components/FormAlertWithSubmitButton';
+import {withNetwork} from '../../../components/OnyxProvider';
+import networkPropTypes from '../../../components/networkPropTypes';
+import * as ErrorUtils from '../../../libs/ErrorUtils';
+import DotIndicatorMessage from '../../../components/DotIndicatorMessage';
+import * as CloseAccount from '../../../libs/actions/CloseAccount';
+import CONST from '../../../CONST';
+import CONFIG from '../../../CONFIG';
+import AppleSignIn from '../../../components/SignInButtons/AppleSignIn';
+import GoogleSignIn from '../../../components/SignInButtons/GoogleSignIn';
+import isInputAutoFilled from '../../../libs/isInputAutoFilled';
+import * as PolicyUtils from '../../../libs/PolicyUtils';
+import Log from '../../../libs/Log';
+import withNavigationFocus, {withNavigationFocusPropTypes} from '../../../components/withNavigationFocus';
+import usePrevious from '../../../hooks/usePrevious';
+import * as MemoryOnlyKeys from '../../../libs/actions/MemoryOnlyKeys/MemoryOnlyKeys';
 
 const propTypes = {
     /** Should we dismiss the keyboard when transitioning away from the page? */
     blurOnSubmit: PropTypes.bool,
+
+    /** A reference so we can expose if the form input is focused */
+    innerRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
 
     /* Onyx Props */
 
@@ -73,6 +76,7 @@ const defaultProps = {
     account: {},
     closeAccount: {},
     blurOnSubmit: false,
+    innerRef: () => {},
 };
 
 function LoginForm(props) {
@@ -177,6 +181,12 @@ function LoginForm(props) {
         input.current.focus();
     }, [props.blurOnSubmit, props.isVisible, prevIsVisible]);
 
+    useImperativeHandle(props.innerRef, () => ({
+        isInputFocused() {
+            return input.current && input.current.isFocused();
+        },
+    }));
+
     const formErrorText = useMemo(() => (formError ? translate(formError) : ''), [formError, translate]);
     const serverErrorText = useMemo(() => ErrorUtils.getLatestErrorMessage(props.account), [props.account]);
     const hasError = !_.isEmpty(serverErrorText);
@@ -272,4 +282,12 @@ export default compose(
     withLocalize,
     withToggleVisibilityView,
     withNetwork(),
-)(LoginForm);
+)(
+    forwardRef((props, ref) => (
+        <LoginForm
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            innerRef={ref}
+        />
+    )),
+);

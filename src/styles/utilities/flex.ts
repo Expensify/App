@@ -1,3 +1,5 @@
+import {ViewStyle} from 'react-native';
+
 /**
  * Flex layout utility styles with Bootstrap inspired naming.
  *
@@ -134,4 +136,4 @@ export default {
     flexBasis0: {
         flexBasis: 0,
     },
-};
+} satisfies Record<string, ViewStyle>;
