@@ -1,3 +1,4 @@
+import OptionRowStyles from './types';
 import styles from '../styles';
 
 /**
@@ -7,7 +8,7 @@ import styles from '../styles';
  *  https://github.com/Expensify/App/issues/14148
  */
 
-const compactContentContainerStyles = styles.alignItemsCenter;
+const compactContentContainerStyles: OptionRowStyles = styles.alignItemsCenter;
 
 export {
     // eslint-disable-next-line import/prefer-default-export
