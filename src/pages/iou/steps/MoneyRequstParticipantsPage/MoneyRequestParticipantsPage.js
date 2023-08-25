@@ -107,7 +107,11 @@ function MoneyRequestParticipantsPage(props) {
                     ) : (
                         <MoneyRequestParticipantsSelector
                             onStepComplete={navigateToNextStep}
-                            onAddParticipants={IOU.setMoneyRequestParticipants}
+                            onAddParticipants={(participants) => {
+                                const [participant] = participants;
+                                reportID.current = participant ? participant.reportID : '';
+                                IOU.setMoneyRequestParticipants(participants);
+                            }}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                             iouType={iouType.current}
                             isDistanceRequest={isDistanceRequest}
