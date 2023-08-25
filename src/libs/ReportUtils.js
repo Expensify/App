@@ -1412,17 +1412,17 @@ function getModifiedExpenseMessage(reportAction) {
         return getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.newComment, reportActionOriginalMessage.oldComment, 'description', true);
     }
 
-    const hasModifiedMerchant = _.has(reportActionOriginalMessage, 'oldMerchant') && _.has(reportActionOriginalMessage, 'merchant');
-    if (hasModifiedMerchant) {
-        return getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.merchant, reportActionOriginalMessage.oldMerchant, 'merchant', true);
-    }
-
     const hasModifiedCreated = _.has(reportActionOriginalMessage, 'oldCreated') && _.has(reportActionOriginalMessage, 'created');
     if (hasModifiedCreated) {
         // Take only the YYYY-MM-DD value as the original date includes timestamp
         let formattedOldCreated = parseISO(reportActionOriginalMessage.oldCreated);
         formattedOldCreated = format(formattedOldCreated, CONST.DATE.FNS_FORMAT_STRING);
         return getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.created, formattedOldCreated, 'date', false);
+    }
+
+    const hasModifiedMerchant = _.has(reportActionOriginalMessage, 'oldMerchant') && _.has(reportActionOriginalMessage, 'merchant');
+    if (hasModifiedMerchant) {
+        return getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.merchant, reportActionOriginalMessage.oldMerchant, 'merchant', true);
     }
 }
 
@@ -1449,6 +1449,10 @@ function getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges, i
     if (_.has(transactionChanges, 'created')) {
         originalMessage.oldCreated = TransactionUtils.getCreated(oldTransaction);
         originalMessage.created = transactionChanges.created;
+    }
+    if (_.has(transactionChanges, 'merchant')) {
+        originalMessage.oldMerchant = TransactionUtils.getMerchant(oldTransaction);
+        originalMessage.merchant = transactionChanges.merchant;
     }
 
     // The amount is always a combination of the currency and the number value so when one changes we need to store both
@@ -2504,6 +2508,29 @@ function isIOUOwnedByCurrentUser(report, allReportsDict = null) {
 }
 
 /**
+ * Should return true only for personal 1:1 report
+ *
+ * @param {Object} report (chatReport or iouReport)
+ * @returns {boolean}
+ */
+function isOneOnOneChat(report) {
+    const isChatRoomValue = lodashGet(report, 'isChatRoom', false);
+    const participantsListValue = lodashGet(report, 'participantsList', []);
+    return (
+        !isThread(report) &&
+        !isChatRoom(report) &&
+        !isChatRoomValue &&
+        !isExpenseRequest(report) &&
+        !isMoneyRequestReport(report) &&
+        !isPolicyExpenseChat(report) &&
+        !isTaskReport(report) &&
+        isDM(report) &&
+        !isIOUReport(report) &&
+        participantsListValue.length === 1
+    );
+}
+
+/**
  * Assuming the passed in report is a default room, lets us know whether we can see it or not, based on permissions and
  * the various subsets of users we've allowed to use default rooms.
  *
@@ -3100,6 +3127,23 @@ function getPolicy(policyID) {
     return policy;
 }
 
+/**
+ * @param {String} policyOwner
+ * @returns {String|null}
+ */
+function getPolicyExpenseChatReportIDByOwner(policyOwner) {
+    const policyWithOwner = _.find(allPolicies, (policy) => policy.owner === policyOwner);
+    if (!policyWithOwner) {
+        return null;
+    }
+
+    const expenseChat = _.find(allReports, (report) => isPolicyExpenseChat(report) && report.policyID === policyWithOwner.id);
+    if (!expenseChat) {
+        return null;
+    }
+    return expenseChat.reportID;
+}
+
 /*
  * @param {Object|null} report
  * @returns {Boolean}
@@ -3390,9 +3434,11 @@ export {
     getReportOfflinePendingActionAndErrors,
     isDM,
     getPolicy,
+    getPolicyExpenseChatReportIDByOwner,
     shouldDisableSettings,
     shouldDisableRename,
     hasSingleParticipant,
+    isOneOnOneChat,
     getTransactionReportName,
     getTransactionDetails,
     getTaskAssigneeChatOnyxData,

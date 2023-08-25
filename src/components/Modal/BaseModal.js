@@ -12,6 +12,7 @@ import getModalStyles from '../../styles/getModalStyles';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
 import variables from '../../styles/variables';
 import CONST from '../../CONST';
+import ComposerFocusManager from '../../libs/ComposerFocusManager';
 
 const propTypes = {
     ...modalPropTypes,
@@ -66,6 +67,9 @@ function BaseModal({
                 onModalHide();
             }
             Modal.onModalDidClose();
+            if (!fullscreen) {
+                ComposerFocusManager.setReadyToFocus();
+            }
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps -- adding onModalHide to the dependency array causes too many unnecessary rerenders
         [shouldSetModalVisibility],
@@ -102,6 +106,10 @@ function BaseModal({
         }
         onClose();
     };
+
+    const handleDismissModal = () => {
+        ComposerFocusManager.setReadyToFocus()
+    }
 
     const {
         modalStyle,
@@ -162,6 +170,7 @@ function BaseModal({
             onModalShow={handleShowModal}
             propagateSwipe={propagateSwipe}
             onModalHide={hideModal}
+            onDismiss={handleDismissModal}
             onSwipeComplete={onClose}
             swipeDirection={swipeDirection}
             isVisible={isVisible}
