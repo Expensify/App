@@ -169,6 +169,7 @@ class MoneyRequestParticipantsSelector extends Component {
                 boldStyle
                 safeAreaPaddingBottomStyle={this.props.safeAreaPaddingBottomStyle}
                 shouldShowOptions={isOptionsDataReady}
+                shouldDelayFocus
             />
         );
     }
