@@ -26,9 +26,9 @@ const defaultProps = {
  * @param {Object=} props
  * @return {null}
  */
-function BaseErrorBoundary(props) {
+function BaseErrorBoundary({logError, errorMessage}) {
     const caughtError = (error, errorInfo) => {
-        props.logError(props.errorMessage, error, JSON.stringify(errorInfo));
+        logError(errorMessage, error, JSON.stringify(errorInfo));
         // We hide the splash screen since the error might happened during app init
         BootSplash.hide();
     };

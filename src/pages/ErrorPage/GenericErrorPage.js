@@ -21,8 +21,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-function GenericErrorPage(props) {
-    // resetBoundary request the nearest error boundary retry the render that original failed
+function GenericErrorPage({translate}) {
     const {resetBoundary} = useErrorBoundary();
 
     return (
@@ -40,12 +39,12 @@ function GenericErrorPage(props) {
                                 />
                             </View>
                             <View style={styles.mb5}>
-                                <Text style={[styles.textHeadline]}>{props.translate('genericErrorPage.title')}</Text>
+                                <Text style={[styles.textHeadline]}>{translate('genericErrorPage.title')}</Text>
                             </View>
                             <View style={styles.mb5}>
                                 <ErrorBodyText />
                                 <Text>
-                                    {`${props.translate('genericErrorPage.body.helpTextConcierge')} `}
+                                    {`${translate('genericErrorPage.body.helpTextConcierge')} `}
                                     <TextLink
                                         href={`mailto:${CONST.EMAIL.CONCIERGE}`}
                                         style={[styles.link]}
@@ -60,7 +59,7 @@ function GenericErrorPage(props) {
                                         success
                                         medium
                                         onPress={resetBoundary}
-                                        text={props.translate('genericErrorPage.refresh')}
+                                        text={translate('genericErrorPage.refresh')}
                                         style={styles.mr3}
                                     />
                                     <Button
@@ -69,7 +68,7 @@ function GenericErrorPage(props) {
                                             Session.signOutAndRedirectToSignIn();
                                             resetBoundary();
                                         }}
-                                        text={props.translate('initialSettingsPage.signOut')}
+                                        text={translate('initialSettingsPage.signOut')}
                                     />
                                 </View>
                             </View>
