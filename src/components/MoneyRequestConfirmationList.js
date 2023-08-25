@@ -142,7 +142,7 @@ const defaultProps = {
     policyCategories: {},
     transactionID: '',
     transaction: {},
-    mileageRate: {unit: 'mi', rate: 0.655},
+    mileageRate: {unit: 'mi', rate: 0},
     isDistanceRequest: false,
 };
 
