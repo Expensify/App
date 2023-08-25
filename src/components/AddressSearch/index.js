@@ -61,8 +61,8 @@ const propTypes = {
     /** Should address search be limited to results in the USA */
     isLimitedToUSA: PropTypes.bool,
 
-    /** A list of recent search results that can be shown when the user isn't searching for something */
-    recentSearchSuggestions: PropTypes.arrayOf(
+    /** A list of predefined places that can be shown when the user isn't searching for something */
+    predefinedPlaces: PropTypes.arrayOf(
         PropTypes.shape({
             /** A description of the location (usually the address) */
             description: PropTypes.string,
@@ -72,10 +72,10 @@ const propTypes = {
                 /** Data about the location */
                 location: PropTypes.shape({
                     /** Lattitude of the location */
-                    lat: PropTypes.string,
+                    lat: PropTypes.number,
 
                     /** Longitude of the location */
-                    lng: PropTypes.string,
+                    lng: PropTypes.number,
                 }),
             }),
         }),
@@ -122,7 +122,7 @@ const defaultProps = {
         lng: 'addressLng',
     },
     maxInputLength: undefined,
-    recentSearchSuggestions: [],
+    predefinedPlaces: [],
 };
 
 // Do not convert to class component! It's been tried before and presents more challenges than it's worth.
@@ -143,6 +143,19 @@ function AddressSearch(props) {
     const saveLocationDetails = (autocompleteData, details) => {
         const addressComponents = details.address_components;
         if (!addressComponents) {
+            // When there are details, but no address_components, this indicates that some predefined options have been passed
+            // to this component which don't match the usual properties coming from auto-complete. In that case, only a limited
+            // amount of data massaging needs to happen for what the parent expects to get from this function.
+            if (_.size(details)) {
+                props.onPress({
+                    address: lodashGet(details, 'description', ''),
+                    lat: lodashGet(details, 'geometry.location.lat', 0),
+                    lng: lodashGet(details, 'geometry.location.lng', 0),
+                });
+
+                // After we select an option, we set displayListViewBorder to false to prevent UI flickering
+                setDisplayListViewBorder(false);
+            }
             return;
         }
 
@@ -244,6 +257,9 @@ function AddressSearch(props) {
         }
 
         props.onPress(values);
+
+        // After we select an option, we set displayListViewBorder to false to prevent UI flickering
+        setDisplayListViewBorder(false);
     };
 
     return (
@@ -271,18 +287,13 @@ function AddressSearch(props) {
                     fetchDetails
                     suppressDefaultStyles
                     enablePoweredByContainer={false}
-                    predefinedPlaces={props.recentSearchSuggestions.length ? props.recentSearchSuggestions : null}
+                    predefinedPlaces={props.predefinedPlaces.length ? props.predefinedPlaces : null}
                     ListEmptyComponent={
                         props.network.isOffline ? null : (
                             <Text style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}>{props.translate('common.noResultsFound')}</Text>
                         )
                     }
-                    onPress={(data, details) => {
-                        saveLocationDetails(data, details);
-
-                        // After we select an option, we set displayListViewBorder to false to prevent UI flickering
-                        setDisplayListViewBorder(false);
-                    }}
+                    onPress={saveLocationDetails}
                     query={query}
                     requestUrl={{
                         useOnPlatform: 'all',
