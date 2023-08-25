@@ -1664,7 +1664,7 @@ const CONST = {
         ZW: 'Zimbabwe',
     },
 
-    ALL_STATES: {
+    ALL_US_STATES: {
         AK: 'Alaska',
         AL: 'Alabama',
         AR: 'Arkansas',
