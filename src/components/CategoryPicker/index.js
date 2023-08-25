@@ -1,17 +1,21 @@
-import React, {useMemo} from 'react';
+import React, {useMemo, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../ONYXKEYS';
 import {propTypes, defaultProps} from './categoryPickerPropTypes';
-import OptionsList from '../OptionsList';
 import styles from '../../styles/styles';
-import ScreenWrapper from '../ScreenWrapper';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import * as IOU from '../../libs/actions/IOU';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
+import OptionsSelector from '../OptionsSelector';
+import useLocalize from '../../hooks/useLocalize';
 
 function CategoryPicker({policyCategories, reportID, iouType, iou}) {
+    const {translate} = useLocalize();
+    const [searchValue, setSearchValue] = useState('');
+
     const selectedOptions = useMemo(() => {
         const selectedCategories = [];
 
@@ -24,27 +28,27 @@ function CategoryPicker({policyCategories, reportID, iouType, iou}) {
         return selectedCategories;
     }, [policyCategories, iou.category]);
 
-    const sections = useMemo(() => {
-        return OptionsListUtils.getNewChatOptions(
-            {},
-            {},
-            [],
-            // Search
-            '',
-            // Selected options
-            selectedOptions,
-            [],
-            false,
-            false,
-            // Include categories
-            true,
-            // Categories
-            policyCategories,
-            // Recently used categories
-            {},
-            false,
-        ).categoryOptions;
-    }, [policyCategories, selectedOptions]);
+    const sections = OptionsListUtils.getNewChatOptions(
+        {},
+        {},
+        [],
+        // Search
+        searchValue,
+        // Selected options
+        selectedOptions,
+        [],
+        false,
+        false,
+        // Include categories
+        true,
+        // Categories
+        policyCategories,
+        // Recently used categories
+        {},
+        false,
+    ).categoryOptions;
+
+    const headerMessage = OptionsListUtils.getHeaderMessage(lodashGet(sections, '[0].data.length', 0) > 0, false, searchValue);
 
     const navigateBack = () => {
         Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID));
@@ -56,19 +60,18 @@ function CategoryPicker({policyCategories, reportID, iouType, iou}) {
     };
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-            {({safeAreaPaddingBottomStyle}) => (
-                <OptionsList
-                    optionHoveredStyle={styles.hoveredComponentBG}
-                    contentContainerStyles={[safeAreaPaddingBottomStyle]}
-                    sections={sections}
-                    selectedOptions={selectedOptions}
-                    boldStyle
-                    highlightSelectedOptions
-                    onSelectRow={updateCategory}
-                />
-            )}
-        </ScreenWrapper>
+        <OptionsSelector
+            optionHoveredStyle={styles.hoveredComponentBG}
+            sections={sections}
+            selectedOptions={selectedOptions}
+            value={searchValue}
+            boldStyle
+            headerMessage={headerMessage}
+            textInputLabel={translate('common.search')}
+            highlightSelectedOptions
+            onChangeText={setSearchValue}
+            onSelectRow={updateCategory}
+        />
     );
 }
 

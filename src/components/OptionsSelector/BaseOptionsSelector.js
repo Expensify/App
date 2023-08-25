@@ -346,6 +346,7 @@ class BaseOptionsSelector extends Component {
                 showTitleTooltip={this.props.showTitleTooltip}
                 isDisabled={this.props.isDisabled}
                 shouldHaveOptionSeparator={this.props.shouldHaveOptionSeparator}
+                highlightSelectedOptions={this.props.highlightSelectedOptions}
                 onLayout={() => {
                     if (this.props.selectedOptions.length === 0) {
                         this.scrollToIndex(this.state.focusedIndex, false);

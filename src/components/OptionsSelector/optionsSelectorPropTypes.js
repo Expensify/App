@@ -53,6 +53,9 @@ const propTypes = {
     /** Whether we can select multiple options */
     canSelectMultipleOptions: PropTypes.bool,
 
+    /** Whether we highlight selected options */
+    highlightSelectedOptions: PropTypes.bool,
+
     /** Whether any section headers should be visible */
     hideSectionHeaders: PropTypes.bool,
 
@@ -116,6 +119,7 @@ const defaultProps = {
     selectedOptions: [],
     headerMessage: '',
     canSelectMultipleOptions: false,
+    highlightSelectedOptions: false,
     hideSectionHeaders: false,
     boldStyle: false,
     showTitleTooltip: false,
