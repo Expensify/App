@@ -11,6 +11,7 @@ import themeColors from '../styles/themes/default';
 import * as StyleUtils from '../styles/StyleUtils';
 import useWindowDimensions from '../hooks/useWindowDimensions';
 import FixedFooter from './FixedFooter';
+import useNetwork from '../hooks/useNetwork';
 
 const propTypes = {
     ...headerWithBackButtonPropTypes,
@@ -35,6 +36,7 @@ const defaultProps = {
 
 function IllustratedHeaderPageLayout({backgroundColor, children, illustration, footer, ...propsToPassToHeader}) {
     const {windowHeight} = useWindowDimensions();
+    const {isOffline} = useNetwork();
     return (
         <ScreenWrapper
             style={[StyleUtils.getBackgroundColorStyle(backgroundColor)]}
@@ -50,7 +52,7 @@ function IllustratedHeaderPageLayout({backgroundColor, children, illustration, f
                         titleColor={backgroundColor === themeColors.appBG ? undefined : themeColors.textColorfulBackground}
                         iconFill={backgroundColor === themeColors.appBG ? undefined : themeColors.iconColorfulBackground}
                     />
-                    <View style={[styles.flex1, StyleUtils.getBackgroundColorStyle(themeColors.appBG)]}>
+                    <View style={[styles.flex1, StyleUtils.getBackgroundColorStyle(themeColors.appBG), !isOffline ? safeAreaPaddingBottomStyle : {}]}>
                         <ScrollView
                             contentContainerStyle={safeAreaPaddingBottomStyle}
                             showsVerticalScrollIndicator={false}
