@@ -78,14 +78,6 @@ function saveWaypoint(transactionID, index, waypoint) {
             route: null,
         },
 
-        // Clear the existing route so that we don't show an old route
-        routes: {
-            route0: {
-                geometry: {
-                    coordinates: null,
-                },
-            },
-        },
     });
 }
 
