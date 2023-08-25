@@ -23,10 +23,9 @@ const defaultProps = {
  * This component captures an error in the child component tree and logs it to the server
  * It can be used to wrap the entire app as well as to wrap specific parts for more granularity
  * @see {@link https://reactjs.org/docs/error-boundaries.html#where-to-place-error-boundaries}
- * @param {Object=} props
  * @return {null}
  */
-function BaseErrorBoundary({logError, errorMessage}) {
+function BaseErrorBoundary({logError, errorMessage, children}) {
     const caughtError = (error, errorInfo) => {
         logError(errorMessage, error, JSON.stringify(errorInfo));
         // We hide the splash screen since the error might happened during app init
@@ -38,7 +37,7 @@ function BaseErrorBoundary({logError, errorMessage}) {
             fallback={<GenericErrorPage />}
             onError={caughtError}
         >
-            {props.children}
+            {children}
         </ErrorBoundary>
     );
 }
