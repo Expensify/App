@@ -395,11 +395,6 @@ function WorkspaceMembersPage(props) {
                             showLoadingPlaceholder={!OptionsListUtils.isPersonalDetailsReady(props.personalDetails) || _.isEmpty(props.policyMembers)}
                             shouldDelayFocus
                             showScrollIndicator
-                            initiallyFocusedOptionKey={lodashGet(
-                                _.find(data, (item) => !item.isDisabled),
-                                'keyForList',
-                                undefined,
-                            )}
                         />
                     </View>
                 </View>
