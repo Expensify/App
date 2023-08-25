@@ -18,6 +18,9 @@ import compose from '../../libs/compose';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 import Log from '../../libs/Log';
 import canvasSize from 'canvas-size';
+import ONYXKEYS from '../../ONYXKEYS';
+import Onyx, {withOnyx} from 'react-native-onyx';
+
 
 /**
  * Each page has a default border. The app should take this size into account
@@ -53,15 +56,36 @@ class PDFView extends Component {
 
         const workerBlob = new Blob([pdfWorkerSource], {type: 'text/javascript'});
         pdfjs.GlobalWorkerOptions.workerSrc = URL.createObjectURL(workerBlob);
-        canvasSize.maxArea({
-            onSuccess: (width, height)  => this.maxCanvasArea = width * height
-         });
-         canvasSize.maxHeight({
-            onSuccess: (width, height)  => this.maxCanvasHeight =  height
-         });
-         canvasSize.maxWidth({
-            onSuccess: (width)  => this.maxCanvasWidth =  width
-         });
+        this.retrieveCanvasLimits();
+        
+    }
+    
+    retrieveCanvasLimits(){
+        if(!this.props.maxCanvasArea){
+            canvasSize.maxArea({
+                onSuccess: (width, height)  => {
+                    const maxCanvasArea = width * height;
+                    Onyx.merge(ONYXKEYS.MAX_CANVAS_AREA, maxCanvasArea);
+                }
+             });
+        }
+
+        if(!this.props.maxCanvasHeight){
+            canvasSize.maxHeight({
+                onSuccess: (width, height)  => {
+                    const maxCanvasHeight =  height;
+                    Onyx.merge(ONYXKEYS.MAX_CANVAS_HEIGHT, maxCanvasHeight);
+                }
+            });
+        }
+        if(!this.props.maxCanvasWidth){
+            canvasSize.maxWidth({
+                onSuccess: (width)  => {
+                    const maxCanvasWidth = width;
+                    Onyx.merge(ONYXKEYS.MAX_CANVAS_Width, maxCanvasWidth);
+                }
+            });
+        }
     }
 
     componentDidUpdate(prevProps) {
@@ -217,9 +241,9 @@ class PDFView extends Component {
         const pageHeight = this.calculatePageHeight(index);
 
         const nbPixels = pageWidth * pageHeight;
-        const ratioHeight = this.maxCanvasHeight / pageHeight;
-        const ratioWidth = this.maxCanvasWidth / pageWidth;
-        const ratioArea = Math.sqrt((this.maxCanvasArea / nbPixels));
+        const ratioHeight = this.props.maxCanvasHeight / pageHeight;
+        const ratioWidth = this.props.maxCanvasWidth / pageWidth;
+        const ratioArea = Math.sqrt((this.props.maxCanvasArea / nbPixels));
         const ratio = Math.min(ratioHeight, ratioArea, ratioWidth);
         const devicePixelRatio = ratio > window.devicePixelRatio ? undefined : ratio;
 
@@ -318,4 +342,18 @@ class PDFView extends Component {
 PDFView.propTypes = pdfViewPropTypes.propTypes;
 PDFView.defaultProps = pdfViewPropTypes.defaultProps;
 
-export default compose(withLocalize, withWindowDimensions)(PDFView);
+export default compose(
+    withLocalize, 
+    withWindowDimensions,
+    withOnyx({
+        maxCanvasArea: {
+            key: ONYXKEYS.MAX_CANVAS_AREA,
+        },
+        maxCanvasHeight: {
+            key: ONYXKEYS.MAX_CANVAS_HEIGHT,
+        },
+        maxCanvasWidth: {
+            key: ONYXKEYS.MAX_CANVAS_WIDTH,
+        },
+    }),
+)(PDFView);
