@@ -55,8 +55,8 @@ runs:
 
     - name: Install root project node packages
       if: |
-        steps.cache-node-modules.outputs.cache-hit != 'true' ||
-        steps.patch.outcome == 'failure'
+        ${{ failure() && steps.patch.outcome == 'failure' }} ||
+        steps.cache-node-modules.outputs.cache-hit != 'true'
       uses: nick-fields/retry@v2
       with:
         timeout_minutes: 30
@@ -65,8 +65,8 @@ runs:
 
     - name: Install node packages for desktop submodule
       if: |
+        ${{ failure() && steps.patchDesktop.outcome == 'failure' }} ||
         steps.cache-desktop-node-modules.outputs.cache-hit != 'true' ||
-        steps.patchDesktop.outcome == 'failure'
       uses: nick-fields/retry@v2
       with:
         timeout_minutes: 30
