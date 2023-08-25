@@ -41,7 +41,9 @@ runs:
       if: | 
         steps.patchCheck.outputs.CHANGES_IN_PATCH_FILES == 'true' && 
         steps.cache-node-modules.outputs.cache-hit == 'true'
-      run: npx patch-package
+      run: |
+        set -e
+        npx patch-package
 
     - name: Install root project node packages if patching failed
       if: failure()
