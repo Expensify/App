@@ -234,7 +234,7 @@ function ReportActionsList({
                 let canDisplayNewMarker = isCurrentMessageUnread && !isMessageUnread(nextMessage, report.lastReadTime);
 
                 if (!messageManuallyMarked.read) {
-                    canDisplayNewMarker = shouldDisplayNewMarker && reportAction.actorAccountID !== Report.getCurrentUserAccountID();
+                    canDisplayNewMarker = canDisplayNewMarker && reportAction.actorAccountID !== Report.getCurrentUserAccountID();
                 }
                 let isMessageInScope = scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD ? reportAction.created < userActiveSince.current : true;
                 if (messageManuallyMarked.read) {
