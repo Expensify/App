@@ -160,7 +160,7 @@ export default {
         replace: 'Replace',
     },
     anonymousReportFooter: {
-        logoTagline: 'Join in on the discussion.',
+        logoTagline: 'Join the discussion.',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera access',
