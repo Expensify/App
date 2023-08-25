@@ -108,8 +108,8 @@ function BaseModal({
     };
 
     const handleDismissModal = () => {
-        ComposerFocusManager.setReadyToFocus()
-    }
+        ComposerFocusManager.setReadyToFocus();
+    };
 
     const {
         modalStyle,
