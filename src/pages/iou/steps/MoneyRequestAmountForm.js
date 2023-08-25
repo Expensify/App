@@ -125,9 +125,10 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
             return;
         }
         setCurrentAmount((prevAmount) => {
-            const isForwardDelete = prevAmount.length > newAmountWithoutSpaces.length && forwardDeletePressedRef.current;
-            setSelection((prevSelection) => getNewSelection(prevSelection, isForwardDelete ? newAmountWithoutSpaces.length : prevAmount.length, newAmountWithoutSpaces.length));
-            return MoneyRequestUtils.stripCommaFromAmount(newAmountWithoutSpaces);
+            const strippedAmount = MoneyRequestUtils.stripCommaFromAmount(newAmountWithoutSpaces);
+            const isForwardDelete = prevAmount.length > strippedAmount.length && forwardDeletePressedRef.current;
+            setSelection((prevSelection) => getNewSelection(prevSelection, isForwardDelete ? strippedAmount.length : prevAmount.length, strippedAmount.length));
+            return strippedAmount;
         });
     };
 
