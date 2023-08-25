@@ -6,6 +6,7 @@ import styles from '../styles/styles';
 import stylePropTypes from '../styles/stylePropTypes';
 import CONST from '../CONST';
 import * as Link from '../libs/actions/Link';
+import refPropTypes from './refPropTypes';
 
 const propTypes = {
     /** Link to open in new tab */
@@ -24,8 +25,7 @@ const propTypes = {
     onMouseDown: PropTypes.func,
 
     /** A ref to forward to text */
-    // eslint-disable-next-line react/forbid-prop-types
-    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.object})]),
+    forwardedRef: refPropTypes,
 };
 
 const defaultProps = {

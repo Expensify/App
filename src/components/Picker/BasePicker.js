@@ -10,11 +10,11 @@ import Text from '../Text';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 import {ScrollContext} from '../ScrollViewWithContext';
+import refPropTypes from '../refPropTypes';
 
 const propTypes = {
     /** A forwarded ref */
-    // eslint-disable-next-line react/forbid-prop-types
-    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.object})]),
+    forwardedRef: refPropTypes,
 
     /** BasePicker label */
     label: PropTypes.string,

@@ -9,6 +9,7 @@ import * as Expensicons from './Icon/Expensicons';
 import * as StyleUtils from '../styles/StyleUtils';
 import CONST from '../CONST';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
+import refPropTypes from './refPropTypes';
 
 const propTypes = {
     /** Whether checkbox is checked */
@@ -45,8 +46,7 @@ const propTypes = {
     caretSize: PropTypes.number,
 
     /** A ref to forward to the Pressable */
-    // eslint-disable-next-line react/forbid-prop-types
-    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.object})]),
+    forwardedRef: refPropTypes,
 
     /** An accessibility label for the checkbox */
     accessibilityLabel: PropTypes.string.isRequired,

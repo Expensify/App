@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 import getComponentDisplayName from '../libs/getComponentDisplayName';
+import refPropTypes from './refPropTypes';
 
 const toggleVisibilityViewPropTypes = {
     /** Whether the content is visible. */
@@ -25,8 +26,7 @@ export default function (WrappedComponent) {
 
     WithToggleVisibilityView.displayName = `WithToggleVisibilityView(${getComponentDisplayName(WrappedComponent)})`;
     WithToggleVisibilityView.propTypes = {
-        // eslint-disable-next-line react/forbid-prop-types
-        forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.object})]),
+        forwardedRef: refPropTypes,
 
         /** Whether the content is visible. */
         isVisible: PropTypes.bool,
