@@ -1,7 +1,7 @@
 import getBaseNavigationModalCardStyles from './getBaseNavigationModalCardStyles';
 import GetNavigationModalCardStyles from './types';
 
-const getBaseNavigationModalCardStylesWeb: GetNavigationModalCardStyles = ({isSmallScreenWidth}) => ({
+const getNavigationModalCardStyles: GetNavigationModalCardStyles = ({isSmallScreenWidth}) => ({
     ...getBaseNavigationModalCardStyles({isSmallScreenWidth}),
 
     // position: fixed is set instead of position absolute to workaround Safari known issues of updating heights in DOM.
@@ -12,4 +12,4 @@ const getBaseNavigationModalCardStylesWeb: GetNavigationModalCardStyles = ({isSm
     position: 'fixed',
 });
 
-export default getBaseNavigationModalCardStylesWeb;
+export default getNavigationModalCardStyles;
