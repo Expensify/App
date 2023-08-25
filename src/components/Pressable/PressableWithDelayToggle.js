@@ -101,6 +101,7 @@ function PressableWithDelayToggle(props) {
             ref={props.innerRef}
             onPress={updatePressState}
             accessibilityLabel={tooltipText}
+            suppressHighlighting={props.inline ? true : undefined}
         >
             <>
                 {props.inline && labelText}
