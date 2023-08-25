@@ -1,5 +1,6 @@
 import React, {useEffect} from 'react';
 import PropTypes from 'prop-types';
+import {View} from 'react-native';
 import MapView from 'react-native-x-maps';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
@@ -11,6 +12,9 @@ import * as Expensicons from './Icon/Expensicons';
 import theme from '../styles/themes/default';
 import styles from '../styles/styles';
 import transactionPropTypes from './transactionPropTypes';
+import BlockingView from './BlockingViews/BlockingView';
+import useNetwork from '../hooks/useNetwork';
+import useLocalize from '../hooks/useLocalize';
 
 const MAP_PADDING = 50;
 
@@ -62,6 +66,8 @@ const getWaypointMarkers = (waypoints) => {
 };
 
 function ConfirmedRoute({mapboxToken, transaction}) {
+    const {isOffline} = useNetwork();
+    const {translate} = useLocalize();
     const {route0: route} = transaction.routes;
     const waypoints = lodashGet(transaction, 'comment.waypoints', {});
     const waypointMarkers = getWaypointMarkers(waypoints);
@@ -72,19 +78,33 @@ function ConfirmedRoute({mapboxToken, transaction}) {
     }, []);
 
     return (
-        <MapView
-            accessToken={mapboxToken}
-            style={{
-                flex: 1,
-                borderRadius: 20,
-                overflow: 'hidden',
-            }}
-            styleURL={CONST.MAPBOX_STYLE_URL}
-            directionStyle={styles.mapDirection}
-            waypoints={waypointMarkers}
-            mapPadding={MAP_PADDING}
-            directionCoordinates={route.geometry.coordinates}
-        />
+        <>
+            {!isOffline && mapboxToken ? (
+                <MapView
+                    accessToken={mapboxToken}
+                    mapPadding={MAP_PADDING}
+                    pitchEnabled={false}
+                    directionCoordinates={route.geometry.coordinates}
+                    directionStyle={styles.mapDirection}
+                    style={{
+                        flex: 1,
+                        borderRadius: 20,
+                        overflow: 'hidden',
+                    }}
+                    waypoints={waypointMarkers}
+                    styleURL={CONST.MAPBOX_STYLE_URL}
+                />
+            ) : (
+                <View style={[styles.mapPendingView]}>
+                    <BlockingView
+                        icon={Expensicons.EmptyStateRoutePending}
+                        title={translate('distance.mapPending.title')}
+                        subtitle={isOffline ? translate('distance.mapPending.subtitle') : translate('distance.mapPending.onlineSubtitle')}
+                        shouldShowLink={false}
+                    />
+                </View>
+            )}
+        </>
     );
 }
 
@@ -94,7 +114,7 @@ export default withOnyx({
     },
     mapboxToken: {
         key: ONYXKEYS.MAPBOX_ACCESS_TOKEN,
-        selector: (mapboxAccessToken) => mapboxAccessToken.token,
+        selector: (mapboxAccessToken) => (mapboxAccessToken ? mapboxAccessToken.token : ''),
     },
 })(ConfirmedRoute);
 
