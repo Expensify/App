@@ -113,7 +113,7 @@ function MoneyRequestConfirmPage(props) {
         return () => {
             prevMoneyRequestId.current = props.iou.id;
         };
-    }, [props.iou.participants, props.iou.amount, props.iou.id, props.iou.receiptPath]);
+    }, [props.iou.participants, props.iou.amount, props.iou.id, props.iou.receiptPath, isDistanceRequest]);
 
     const navigateBack = () => {
         let fallback;
