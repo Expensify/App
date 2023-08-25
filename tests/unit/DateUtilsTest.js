@@ -14,7 +14,7 @@ describe('DateUtils', () => {
             keys: ONYXKEYS,
             initialKeyStates: {
                 [ONYXKEYS.SESSION]: {accountID: 999},
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {999: {timezone: {selected: 'Etc/UTC'}}},
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {999: {timezone: {selected: 'UTC'}}},
             },
         });
         return waitForPromisesToResolve();
@@ -54,26 +54,26 @@ describe('DateUtils', () => {
 
     it('should return the date in calendar time when calling datetimeToCalendarTime', () => {
         const today = setMinutes(setHours(new Date(), 14), 32);
-        expect(DateUtils.datetimeToCalendarTime(LOCALE, today)).toBe('Today at 02:32 PM');
+        expect(DateUtils.datetimeToCalendarTime(LOCALE, today)).toBe('Today at 2:32 PM');
 
         const tomorrow = addDays(setMinutes(setHours(new Date(), 14), 32), 1);
-        expect(DateUtils.datetimeToCalendarTime(LOCALE, tomorrow)).toBe('Tomorrow at 02:32 PM');
+        expect(DateUtils.datetimeToCalendarTime(LOCALE, tomorrow)).toBe('Tomorrow at 2:32 PM');
 
         const yesterday = setMinutes(setHours(subDays(new Date(), 1), 7), 43);
-        expect(DateUtils.datetimeToCalendarTime(LOCALE, yesterday)).toBe('Yesterday at 07:43 AM');
+        expect(DateUtils.datetimeToCalendarTime(LOCALE, yesterday)).toBe('Yesterday at 7:43 AM');
 
         const date = setMinutes(setHours(new Date('2022-11-05'), 10), 17);
         expect(DateUtils.datetimeToCalendarTime(LOCALE, date)).toBe('Nov 5, 2022 at 10:17 AM');
 
         const todayLowercaseDate = setMinutes(setHours(new Date(), 14), 32);
-        expect(DateUtils.datetimeToCalendarTime(LOCALE, todayLowercaseDate, false, undefined, true)).toBe('today at 02:32 PM');
+        expect(DateUtils.datetimeToCalendarTime(LOCALE, todayLowercaseDate, false, undefined, true)).toBe('today at 2:32 PM');
     });
 
     it('should update timezone if automatic and selected timezone do not match', () => {
         Intl.DateTimeFormat = jest.fn(() => ({
             resolvedOptions: () => ({timeZone: 'America/Chicago'}),
         }));
-        Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {999: {timezone: {selected: 'Etc/UTC', automatic: true}}}).then(() => {
+        Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {999: {timezone: {selected: 'UTC', automatic: true}}}).then(() => {
             const result = DateUtils.getCurrentTimezone();
             expect(result).toEqual({
                 selected: 'America/Chicago',
@@ -84,12 +84,12 @@ describe('DateUtils', () => {
 
     it('should not update timezone if automatic and selected timezone match', () => {
         Intl.DateTimeFormat = jest.fn(() => ({
-            resolvedOptions: () => ({timeZone: 'Etc/UTC'}),
+            resolvedOptions: () => ({timeZone: 'UTC'}),
         }));
-        Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {999: {timezone: {selected: 'Etc/UTC', automatic: true}}}).then(() => {
+        Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {999: {timezone: {selected: 'UTC', automatic: true}}}).then(() => {
             const result = DateUtils.getCurrentTimezone();
             expect(result).toEqual({
-                selected: 'Etc/UTC',
+                selected: 'UTC',
                 automatic: true,
             });
         });
