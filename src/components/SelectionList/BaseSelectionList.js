@@ -133,10 +133,8 @@ function BaseSelectionList({
         };
     }, [canSelectMultiple, sections]);
 
-    const [focusedIndex, setFocusedIndex] = useState(() => {
-        // If `initiallyFocusedOptionKey` is not passed, we fall back to `-1`, to avoid showing the highlight on the first member
-        return _.findIndex(flattenedSections.allOptions, (option) => option.keyForList === initiallyFocusedOptionKey);
-    });
+    // If `initiallyFocusedOptionKey` is not passed, we fall back to `-1`, to avoid showing the highlight on the first member
+    const [focusedIndex, setFocusedIndex] = useState(() => _.findIndex(flattenedSections.allOptions, (option) => option.keyForList === initiallyFocusedOptionKey));
 
     /**
      * Scrolls to the desired item index in the section list
