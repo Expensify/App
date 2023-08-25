@@ -12,6 +12,7 @@ import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
 import TextInputWithCurrencySymbol from '../../../components/TextInputWithCurrencySymbol';
 import useLocalize from '../../../hooks/useLocalize';
 import CONST from '../../../CONST';
+import refPropTypes from '../../../components/refPropTypes';
 
 const propTypes = {
     /** IOU amount saved in Onyx */
@@ -24,7 +25,7 @@ const propTypes = {
     isEditing: PropTypes.bool,
 
     /** Refs forwarded to the TextInputWithCurrencySymbol */
-    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
+    forwardedRef: refPropTypes,
 
     /** Fired when back button pressed, navigates to currency selection page */
     onCurrencyButtonPress: PropTypes.func.isRequired,
