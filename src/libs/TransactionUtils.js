@@ -43,7 +43,7 @@ function buildOptimisticTransaction(
     created = '',
     source = '',
     originalTransactionID = '',
-    merchant = CONST.REPORT.TYPE.IOU,
+    merchant = CONST.TRANSACTION.DEFAULT_MERCHANT,
     receipt = {},
     filename = '',
     existingTransactionID = null,
@@ -66,7 +66,7 @@ function buildOptimisticTransaction(
         currency,
         reportID,
         comment: commentJSON,
-        merchant: merchant || CONST.REPORT.TYPE.IOU,
+        merchant: merchant || CONST.TRANSACTION.DEFAULT_MERCHANT,
         created: created || DateUtils.getDBTime(),
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         receipt,
@@ -79,7 +79,7 @@ function buildOptimisticTransaction(
  * @returns {Boolean}
  */
 function hasReceipt(transaction) {
-    return !_.isEmpty(lodashGet(transaction, 'receipt'));
+    return lodashGet(transaction, 'receipt.state', '') !== '';
 }
 
 /**
@@ -128,6 +128,7 @@ function getUpdatedTransaction(transaction, transactionChanges, isFromExpenseRep
         ...(_.has(transactionChanges, 'created') && {created: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
         ...(_.has(transactionChanges, 'amount') && {amount: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
         ...(_.has(transactionChanges, 'currency') && {currency: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+        ...(_.has(transactionChanges, 'merchant') && {merchant: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
     };
 
     return updatedTransaction;

@@ -250,27 +250,6 @@ function sortReportsByLastRead(reports) {
 }
 
 /**
- * Can only edit if:
- *
- * - It was written by the current user
- * - It's an ADDCOMMENT that is not an attachment
- * - It's not pending deletion
- *
- * @param {Object} reportAction
- * @returns {Boolean}
- */
-function canEditReportAction(reportAction) {
-    return (
-        reportAction.actorAccountID === currentUserAccountID &&
-        reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT &&
-        !isReportMessageAttachment(lodashGet(reportAction, ['message', 0], {})) &&
-        !ReportActionsUtils.isDeletedAction(reportAction) &&
-        !ReportActionsUtils.isCreatedTaskReportAction(reportAction) &&
-        reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
-    );
-}
-
-/**
  * Whether the Money Request report is settled
  *
  * @param {String} reportID
@@ -1298,6 +1277,58 @@ function getTransactionDetails(transaction) {
 }
 
 /**
+ * Can only edit if:
+ *
+ * - in case of IOU report
+ *    - the current user is the requestor
+ * - in case of expense report
+ *    - the current user is the requestor
+ *    - or the user is an admin on the policy the expense report is tied to
+ *
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
+function canEditMoneyRequest(reportAction) {
+    // If the report action i snot IOU type, return true early
+    if (reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) {
+        return true;
+    }
+    const moneyRequestReportID = lodashGet(reportAction, 'originalMessage.IOUReportID', 0);
+    if (!moneyRequestReportID) {
+        return false;
+    }
+    const moneyRequestReport = getReport(moneyRequestReportID);
+    const isReportSettled = isSettled(moneyRequestReport.reportID);
+    const isAdmin = isExpenseReport(moneyRequestReport) && lodashGet(getPolicy(moneyRequestReport.policyID), 'role', '') === CONST.POLICY.ROLE.ADMIN;
+    const isRequestor = currentUserAccountID === reportAction.actorAccountID;
+    return !isReportSettled && (isAdmin || isRequestor);
+}
+
+/**
+ * Can only edit if:
+ *
+ * - It was written by the current user
+ * - It's an ADDCOMMENT that is not an attachment
+ * - It's money request where conditions for editability are defined in canEditMoneyRequest method
+ * - It's not pending deletion
+ *
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
+function canEditReportAction(reportAction) {
+    const isCommentOrIOU = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT || reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU;
+    return (
+        reportAction.actorAccountID === currentUserAccountID &&
+        isCommentOrIOU &&
+        canEditMoneyRequest(reportAction) && // Returns true for non-IOU actions
+        !isReportMessageAttachment(lodashGet(reportAction, ['message', 0], {})) &&
+        !ReportActionsUtils.isDeletedAction(reportAction) &&
+        !ReportActionsUtils.isCreatedTaskReportAction(reportAction) &&
+        reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
+    );
+}
+
+/**
  * Gets all transactions on an IOU report with a receipt
  *
  * @param {Object|null} iouReportID
@@ -1462,17 +1493,17 @@ function getModifiedExpenseMessage(reportAction) {
         return getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.newComment, reportActionOriginalMessage.oldComment, 'description', true);
     }
 
-    const hasModifiedMerchant = _.has(reportActionOriginalMessage, 'oldMerchant') && _.has(reportActionOriginalMessage, 'merchant');
-    if (hasModifiedMerchant) {
-        return getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.merchant, reportActionOriginalMessage.oldMerchant, 'merchant', true);
-    }
-
     const hasModifiedCreated = _.has(reportActionOriginalMessage, 'oldCreated') && _.has(reportActionOriginalMessage, 'created');
     if (hasModifiedCreated) {
         // Take only the YYYY-MM-DD value as the original date includes timestamp
         let formattedOldCreated = parseISO(reportActionOriginalMessage.oldCreated);
         formattedOldCreated = format(formattedOldCreated, CONST.DATE.FNS_FORMAT_STRING);
         return getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.created, formattedOldCreated, 'date', false);
+    }
+
+    const hasModifiedMerchant = _.has(reportActionOriginalMessage, 'oldMerchant') && _.has(reportActionOriginalMessage, 'merchant');
+    if (hasModifiedMerchant) {
+        return getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.merchant, reportActionOriginalMessage.oldMerchant, 'merchant', true);
     }
 }
 
@@ -1499,6 +1530,10 @@ function getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges, i
     if (_.has(transactionChanges, 'created')) {
         originalMessage.oldCreated = TransactionUtils.getCreated(oldTransaction);
         originalMessage.created = transactionChanges.created;
+    }
+    if (_.has(transactionChanges, 'merchant')) {
+        originalMessage.oldMerchant = TransactionUtils.getMerchant(oldTransaction);
+        originalMessage.merchant = transactionChanges.merchant;
     }
 
     // The amount is always a combination of the currency and the number value so when one changes we need to store both
@@ -2545,6 +2580,31 @@ function buildOptimisticTaskReport(ownerAccountID, assigneeAccountID = 0, parent
 }
 
 /**
+ * A helper method to create transaction thread
+ *
+ * @param {Object} reportAction - the parent IOU report action from which to create the thread
+ *
+ * @returns {Object}
+ */
+function buildTransactionThread(reportAction) {
+    const participantAccountIDs = _.uniq([currentUserAccountID, Number(reportAction.actorAccountID)]);
+    return buildOptimisticChatReport(
+        participantAccountIDs,
+        getTransactionReportName(reportAction),
+        '',
+        lodashGet(getReport(reportAction.reportID), 'policyID', CONST.POLICY.OWNER_EMAIL_FAKE),
+        CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
+        false,
+        '',
+        undefined,
+        undefined,
+        CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+        reportAction.reportActionID,
+        reportAction.reportID,
+    );
+}
+
+/**
  * @param {Object} report
  * @returns {Boolean}
  */
@@ -2594,6 +2654,29 @@ function isIOUOwnedByCurrentUser(report, allReportsDict = null) {
     }
 
     return reportToLook.ownerAccountID === currentUserAccountID;
+}
+
+/**
+ * Should return true only for personal 1:1 report
+ *
+ * @param {Object} report (chatReport or iouReport)
+ * @returns {boolean}
+ */
+function isOneOnOneChat(report) {
+    const isChatRoomValue = lodashGet(report, 'isChatRoom', false);
+    const participantsListValue = lodashGet(report, 'participantsList', []);
+    return (
+        !isThread(report) &&
+        !isChatRoom(report) &&
+        !isChatRoomValue &&
+        !isExpenseRequest(report) &&
+        !isMoneyRequestReport(report) &&
+        !isPolicyExpenseChat(report) &&
+        !isTaskReport(report) &&
+        isDM(report) &&
+        !isIOUReport(report) &&
+        participantsListValue.length === 1
+    );
 }
 
 /**
@@ -3497,9 +3580,12 @@ export {
     shouldDisableSettings,
     shouldDisableRename,
     hasSingleParticipant,
+    isOneOnOneChat,
     getTransactionReportName,
     getTransactionDetails,
     getTaskAssigneeChatOnyxData,
+    canEditMoneyRequest,
+    buildTransactionThread,
     areAllRequestsBeingSmartScanned,
     getReportPreviewDisplayTransactions,
     getTransactionsWithReceipts,
