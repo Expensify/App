@@ -39,14 +39,23 @@ function convertDistanceUnit(distanceInMeters, unit) {
     }
 }
 
-const getDistanceString = (distance, unit, rate) => {
-    const convertedDistance = convertDistanceUnit(distance, unit);
+/**
+ *
+ * @param {number} distanceInMeters Distance traveled
+ * @param {('mi' | 'ki')} unit Unit that should be used to display the distance
+ * @param {number} rate Expensable amount allowed per unit
+ * @returns {string} A string that describes the distance travled and the rate used for expense calculation
+ */
+const getDistanceString = (distanceInMeters, unit, rate) => {
+    const convertedDistance = convertDistanceUnit(distanceInMeters, unit);
 
     const distanceUnit = unit === 'mi' ? 'miles' : 'kilometers';
     const singularDistanceUnit = unit === 'mi' ? 'mile' : 'kilometer';
     const roundedDistance = convertedDistance.toFixed(2);
+    const unitString = roundedDistance === 1 ? singularDistanceUnit : distanceUnit;
+    const ratePerUnit = rate * 0.01;
 
-    return `${roundedDistance} ${roundedDistance === 1 ? singularDistanceUnit : distanceUnit} @ $${rate * 0.01} / ${singularDistanceUnit}`;
+    return `${roundedDistance} ${unitString} @ $${ratePerUnit} / ${singularDistanceUnit}`;
 };
 
 const getDistanceRequestAmount = (distance, unit, rate) => {
