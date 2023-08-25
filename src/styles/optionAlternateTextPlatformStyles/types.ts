@@ -1,5 +1,5 @@
 import {TextStyle} from 'react-native';
 
-type OptionAlternateTextPlatformStyles = Partial<TextStyle>;
+type OptionAlternateTextPlatformStyles = Partial<Pick<TextStyle, 'paddingTop'>>;
 
 export default OptionAlternateTextPlatformStyles;
