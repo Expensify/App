@@ -168,8 +168,9 @@ class BaseOptionsList extends Component {
                 hoverStyle={this.props.optionHoveredStyle}
                 optionIsFocused={!this.props.disableFocusOptions && !isDisabled && this.props.focusedIndex === index + section.indexOffset}
                 onSelectRow={this.props.onSelectRow}
-                isSelected={Boolean(_.find(this.props.selectedOptions, (option) => option.accountID === item.accountID))}
+                isSelected={Boolean(_.find(this.props.selectedOptions, (option) => option.accountID === item.accountID || option.name === item.searchText))}
                 showSelectedState={this.props.canSelectMultipleOptions}
+                highlightSelected={this.props.highlightSelectedOptions}
                 boldStyle={this.props.boldStyle}
                 isDisabled={isDisabled}
                 shouldHaveOptionSeparator={index > 0 && this.props.shouldHaveOptionSeparator}

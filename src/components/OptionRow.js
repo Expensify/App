@@ -39,6 +39,9 @@ const propTypes = {
     /** Whether we should show the selected state */
     showSelectedState: PropTypes.bool,
 
+    /** Whether we highlight selected option */
+    highlightSelected: PropTypes.bool,
+
     /** Whether this item is selected */
     isSelected: PropTypes.bool,
 
@@ -65,6 +68,7 @@ const propTypes = {
 const defaultProps = {
     hoverStyle: styles.sidebarLinkHover,
     showSelectedState: false,
+    highlightSelected: false,
     isSelected: false,
     boldStyle: false,
     showTitleTooltip: false,
@@ -92,6 +96,7 @@ class OptionRow extends Component {
             this.props.isSelected !== nextProps.isSelected ||
             this.props.shouldHaveOptionSeparator !== nextProps.shouldHaveOptionSeparator ||
             this.props.showSelectedState !== nextProps.showSelectedState ||
+            this.props.highlightSelected !== nextProps.highlightSelected ||
             this.props.showTitleTooltip !== nextProps.showTitleTooltip ||
             !_.isEqual(this.props.option.icons, nextProps.option.icons) ||
             this.props.optionIsFocused !== nextProps.optionIsFocused ||
@@ -188,6 +193,10 @@ class OptionRow extends Component {
                                 this.props.optionIsFocused ? styles.sidebarLinkActive : null,
                                 this.props.shouldHaveOptionSeparator && styles.borderTop,
                                 !this.props.onSelectRow && !this.props.isDisabled ? styles.cursorDefault : null,
+                                this.props.isSelected &&
+                                    this.props.highlightSelected && {
+                                        backgroundColor: themeColors.activeComponentBG,
+                                    },
                             ]}
                             accessibilityLabel={this.props.option.text}
                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
@@ -255,6 +264,12 @@ class OptionRow extends Component {
                                         </View>
                                     )}
                                     {this.props.showSelectedState && <SelectCircle isChecked={this.props.isSelected} />}
+                                    {this.props.isSelected && this.props.highlightSelected && (
+                                        <Icon
+                                            src={Expensicons.Checkmark}
+                                            fill={themeColors.iconSuccessFill}
+                                        />
+                                    )}
                                 </View>
                             </View>
                             {Boolean(this.props.option.customIcon) && (

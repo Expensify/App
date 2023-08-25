@@ -12,15 +12,19 @@ import * as IOU from '../../libs/actions/IOU';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 
 function CategoryPicker({policyCategories, reportID, iouType, iou}) {
-    const sections = useMemo(() => {
+    const selectedOptions = useMemo(() => {
         const selectedCategories = [];
 
         const selectedCategory = _.find(policyCategories, ({name}) => name === iou.category);
 
         if (selectedCategory) {
-            selectedCategories.push(selectedCategory);
+            selectedCategories.push({...selectedCategory, accountID: null});
         }
 
+        return selectedCategories;
+    }, [policyCategories, iou.category]);
+
+    const sections = useMemo(() => {
         return OptionsListUtils.getNewChatOptions(
             {},
             {},
@@ -28,7 +32,7 @@ function CategoryPicker({policyCategories, reportID, iouType, iou}) {
             // Search
             '',
             // Selected options
-            selectedCategories,
+            selectedOptions,
             [],
             false,
             false,
@@ -40,7 +44,7 @@ function CategoryPicker({policyCategories, reportID, iouType, iou}) {
             {},
             false,
         ).categoryOptions;
-    }, [policyCategories, iou.category]);
+    }, [policyCategories, selectedOptions]);
 
     const navigateBack = () => {
         Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID));
@@ -58,7 +62,9 @@ function CategoryPicker({policyCategories, reportID, iouType, iou}) {
                     optionHoveredStyle={styles.hoveredComponentBG}
                     contentContainerStyles={[safeAreaPaddingBottomStyle]}
                     sections={sections}
+                    selectedOptions={selectedOptions}
                     boldStyle
+                    highlightSelectedOptions
                     onSelectRow={updateCategory}
                 />
             )}

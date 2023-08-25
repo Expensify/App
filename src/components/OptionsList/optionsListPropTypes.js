@@ -40,6 +40,9 @@ const propTypes = {
     /** Whether we can select multiple options or not */
     canSelectMultipleOptions: PropTypes.bool,
 
+    /** Whether we highlight selected options */
+    highlightSelectedOptions: PropTypes.bool,
+
     /** Whether to show headers above each section or not */
     hideSectionHeaders: PropTypes.bool,
 
@@ -88,6 +91,7 @@ const defaultProps = {
     focusedIndex: 0,
     selectedOptions: [],
     canSelectMultipleOptions: false,
+    highlightSelectedOptions: false,
     hideSectionHeaders: false,
     disableFocusOptions: false,
     boldStyle: false,
