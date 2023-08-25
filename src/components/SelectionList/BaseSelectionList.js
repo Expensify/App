@@ -339,11 +339,13 @@ function BaseSelectionList({
                                         accessibilityLabel={translate('workspace.people.selectAll')}
                                         accessibilityRole="button"
                                         accessibilityState={{checked: flattenedSections.allSelected}}
+                                        disabled={flattenedSections.allOptions.length === flattenedSections.disabledOptionsIndexes.length}
                                     >
                                         <Checkbox
                                             accessibilityLabel={translate('workspace.people.selectAll')}
                                             isChecked={flattenedSections.allSelected}
                                             onPress={onSelectAll}
+                                            disabled={flattenedSections.allOptions.length === flattenedSections.disabledOptionsIndexes.length}
                                         />
                                         <View style={[styles.flex1]}>
                                             <Text style={[styles.textStrong, styles.ph5]}>{translate('workspace.people.selectAll')}</Text>
