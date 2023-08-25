@@ -2508,6 +2508,29 @@ function isIOUOwnedByCurrentUser(report, allReportsDict = null) {
 }
 
 /**
+ * Should return true only for personal 1:1 report
+ *
+ * @param {Object} report (chatReport or iouReport)
+ * @returns {boolean}
+ */
+function isOneOnOneChat(report) {
+    const isChatRoomValue = lodashGet(report, 'isChatRoom', false);
+    const participantsListValue = lodashGet(report, 'participantsList', []);
+    return (
+        !isThread(report) &&
+        !isChatRoom(report) &&
+        !isChatRoomValue &&
+        !isExpenseRequest(report) &&
+        !isMoneyRequestReport(report) &&
+        !isPolicyExpenseChat(report) &&
+        !isTaskReport(report) &&
+        isDM(report) &&
+        !isIOUReport(report) &&
+        participantsListValue.length === 1
+    );
+}
+
+/**
  * Assuming the passed in report is a default room, lets us know whether we can see it or not, based on permissions and
  * the various subsets of users we've allowed to use default rooms.
  *
@@ -3415,6 +3438,7 @@ export {
     shouldDisableSettings,
     shouldDisableRename,
     hasSingleParticipant,
+    isOneOnOneChat,
     getTransactionReportName,
     getTransactionDetails,
     getTaskAssigneeChatOnyxData,
