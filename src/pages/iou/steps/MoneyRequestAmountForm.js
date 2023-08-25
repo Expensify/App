@@ -181,7 +181,7 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
      */
     const textInputKeyPress = ({nativeEvent}) => {
         const key = nativeEvent.key.toLowerCase();
-        if (Browser.isMobileSafari() && key === 'control') {
+        if (Browser.isMobileSafari() && key === CONST.PLATFORM_SPECIFIC_KEYS.CTRL.DEFAULT) {
             // Optimistically anticipate forward-delete on iOS Safari (in cases where the Mac Accessiblity keyboard is being
             // used for input). If the Control-D shortcut doesn't get sent, the ref will still be reset on the next key press.
             forwardDeletePressedRef.current = true;
