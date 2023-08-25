@@ -30,7 +30,6 @@ import withViewportOffsetTop, {viewportOffsetTopPropTypes} from '../../component
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 import personalDetailsPropType from '../personalDetailsPropType';
 import getIsReportFullyVisible from '../../libs/getIsReportFullyVisible';
-import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
 import MoneyRequestHeader from '../../components/MoneyRequestHeader';
 import MoneyReportHeader from '../../components/MoneyReportHeader';
 import * as ComposerActions from '../../libs/actions/Composer';
