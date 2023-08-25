@@ -149,6 +149,7 @@ class OptionRow extends Component {
                 pendingAction={this.props.option.pendingAction}
                 errors={this.props.option.allReportErrors}
                 shouldShowErrorMessages={false}
+                needsOffscreenAlphaCompositing
             >
                 <Hoverable>
                     {(hovered) => (
@@ -218,7 +219,11 @@ class OptionRow extends Component {
                                             numberOfLines={1}
                                             textStyles={displayNameStyle}
                                             shouldUseFullTitle={
-                                                this.props.option.isChatRoom || this.props.option.isPolicyExpenseChat || this.props.option.isMoneyRequestReport || this.props.option.isThread
+                                                this.props.option.isChatRoom ||
+                                                this.props.option.isPolicyExpenseChat ||
+                                                this.props.option.isMoneyRequestReport ||
+                                                this.props.option.isThread ||
+                                                this.props.option.isTaskReport
                                             }
                                         />
                                         {this.props.option.alternateText ? (

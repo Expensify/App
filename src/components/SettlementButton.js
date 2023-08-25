@@ -57,6 +57,16 @@ const propTypes = {
     /** Total money amount in form <currency><amount> */
     formattedAmount: PropTypes.string,
 
+    /** The size of button size */
+    buttonSize: PropTypes.oneOf(_.values(CONST.DROPDOWN_BUTTON_SIZE)),
+
+    /** The anchor alignment of the popover menu */
+
+    anchorAlignment: PropTypes.shape({
+        horizontal: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL)),
+        vertical: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL)),
+    }),
+
     ...withLocalizePropTypes,
 };
 
@@ -71,11 +81,16 @@ const defaultProps = {
     iouReport: {},
     policyID: '',
     formattedAmount: '',
+    buttonSize: CONST.DROPDOWN_BUTTON_SIZE.MEDIUM,
+    anchorAlignment: {
+        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP, // we assume that popover menu opens below the button, anchor is at TOP
+    },
 };
 
 class SettlementButton extends React.Component {
     componentDidMount() {
-        PaymentMethods.openPaymentsPage();
+        PaymentMethods.openWalletPage();
     }
 
     getButtonOptionsFromProps() {
@@ -108,8 +123,8 @@ class SettlementButton extends React.Component {
 
         // To achieve the one tap pay experience we need to choose the correct payment type as default,
         // if user already paid for some request or expense, let's use the last payment method or use default.
+        let paymentMethod = this.props.nvp_lastPaymentMethod[this.props.policyID] || '';
         if (!this.props.shouldShowPaymentOptions) {
-            let paymentMethod = this.props.nvp_lastPaymentMethod[this.props.policyID];
             if (!paymentMethod) {
                 // In case the user hasn't paid a request yet, let's default to VBBA payment type in case of expense reports
                 if (isExpenseReport) {
@@ -145,6 +160,11 @@ class SettlementButton extends React.Component {
             buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.PAYPAL_ME]);
         }
         buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE]);
+
+        // Put the preferred payment method to the front of the array so its shown as default
+        if (paymentMethod) {
+            return _.sortBy(buttonOptions, (method) => (method.value === paymentMethod ? 0 : 1));
+        }
         return buttonOptions;
     }
 
@@ -159,8 +179,9 @@ class SettlementButton extends React.Component {
                 chatReportID={this.props.chatReportID}
                 iouReport={this.props.iouReport}
             >
-                {(triggerKYCFlow) => (
+                {(triggerKYCFlow, buttonRef) => (
                     <ButtonWithDropdownMenu
+                        buttonRef={buttonRef}
                         isDisabled={this.props.isDisabled}
                         isLoading={this.props.isLoading}
                         onPress={(event, iouPaymentType) => {
@@ -173,6 +194,8 @@ class SettlementButton extends React.Component {
                         }}
                         options={this.getButtonOptionsFromProps()}
                         style={this.props.style}
+                        buttonSize={this.props.buttonSize}
+                        anchorAlignment={this.props.anchorAlignment}
                     />
                 )}
             </KYCWall>

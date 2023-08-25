@@ -27,7 +27,6 @@ function HeaderWithBackButton({
     onDownloadButtonPress = () => {},
     onThreeDotsButtonPress = () => {},
     report = null,
-    parentReport = null,
     policies = {},
     personalDetails = {},
     shouldShowAvatarWithDisplay = false,
@@ -37,21 +36,17 @@ function HeaderWithBackButton({
     shouldShowDownloadButton = false,
     shouldShowGetAssistanceButton = false,
     shouldShowPinButton = false,
-    shouldShowStepCounter = false,
     shouldShowThreeDotsButton = false,
     stepCounter = null,
     subtitle = '',
     title = '',
     titleColor = undefined,
-    threeDotsAnchorAlignment = {
-        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-    },
     threeDotsAnchorPosition = {
         vertical: 0,
         horizontal: 0,
     },
     threeDotsMenuItems = [],
+    children = null,
 }) {
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
     const {translate} = useLocalize();
@@ -81,7 +76,7 @@ function HeaderWithBackButton({
                 )}
                 {shouldShowAvatarWithDisplay && (
                     <AvatarWithDisplayName
-                        report={parentReport || report}
+                        report={report}
                         policies={policies}
                         personalDetails={personalDetails}
                     />
@@ -89,11 +84,12 @@ function HeaderWithBackButton({
                 {!shouldShowAvatarWithDisplay && (
                     <Header
                         title={title}
-                        subtitle={stepCounter && shouldShowStepCounter ? translate('stepCounter', stepCounter) : subtitle}
+                        subtitle={stepCounter ? translate('stepCounter', stepCounter) : subtitle}
                         textStyles={titleColor ? [StyleUtils.getTextColorStyle(titleColor)] : []}
                     />
                 )}
                 <View style={[styles.reportOptions, styles.flexRow, styles.pr5, styles.alignItemsCenter]}>
+                    {children}
                     {shouldShowDownloadButton && (
                         <Tooltip text={translate('common.download')}>
                             <PressableWithoutFeedback
@@ -141,7 +137,6 @@ function HeaderWithBackButton({
                             menuItems={threeDotsMenuItems}
                             onIconPress={onThreeDotsButtonPress}
                             anchorPosition={threeDotsAnchorPosition}
-                            anchorAlignment={threeDotsAnchorAlignment}
                         />
                     )}
                     {shouldShowCloseButton && (

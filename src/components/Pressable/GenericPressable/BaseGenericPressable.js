@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState, useMemo, forwardRef} from 'react';
+import React, {useCallback, useEffect, useMemo, forwardRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Pressable} from 'react-native';
 import _ from 'underscore';
@@ -43,6 +43,7 @@ const GenericPressable = forwardRef((props, ref) => {
         keyboardShortcut,
         shouldUseAutoHitSlop,
         enableInScreenReaderStates,
+        isExecuting,
         onPressIn,
         onPressOut,
         ...rest
@@ -64,7 +65,7 @@ const GenericPressable = forwardRef((props, ref) => {
         return props.disabled || shouldBeDisabledByScreenReader;
     }, [isScreenReaderActive, enableInScreenReaderStates, props.disabled]);
 
-    const [shouldUseDisabledCursor, setShouldUseDisabledCursor] = useState(isDisabled);
+    const shouldUseDisabledCursor = useMemo(() => isDisabled && !isExecuting, [isDisabled, isExecuting]);
 
     const onLongPressHandler = useCallback(
         (event) => {
@@ -117,14 +118,6 @@ const GenericPressable = forwardRef((props, ref) => {
         },
         [onPressHandler],
     );
-
-    useEffect(() => {
-        if (isDisabled) {
-            const timer = setTimeout(() => setShouldUseDisabledCursor(true), 1000);
-            return () => clearTimeout(timer);
-        }
-        setShouldUseDisabledCursor(false);
-    }, [isDisabled]);
 
     useEffect(() => {
         if (!keyboardShortcut) {

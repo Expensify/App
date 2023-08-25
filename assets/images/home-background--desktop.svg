@@ -7,7 +7,6 @@
 	.st1{fill:#002E22;}
 	.st2{opacity:6.000000e-02;}
 	.st3{fill:#FFFFFF;filter:url(#Adobe_OpacityMaskFilter);}
-	.st4{mask:url(#mask0_99_952_00000103247732053831977250000009833851118444907406_);}
 	.st5{fill:#5BE3AA;}
 	.st6{fill:url(#SVGID_00000106863037488919440930000003219570534563295640_);}
 </style>
@@ -27,10 +26,7 @@
 				</filter>
 			</defs>
 			
-				<mask maskUnits="userSpaceOnUse" x="1" y="0" width="2186.5" height="814.3" id="mask0_99_952_00000103247732053831977250000009833851118444907406_">
-				<path class="st3" d="M2188,0H0v812h2188V0z"/>
-			</mask>
-			<g class="st4">
+			<g>
 				<path class="st5" d="M1921.6,587.5H152.4v226.8h1769.2V587.5z"/>
 				<path class="st1" d="M153.7,814.3V588.8h1766.5v225.5h2.7V587.5c0-0.7-0.6-1.3-1.3-1.3H152.4c-0.7,0-1.3,0.6-1.3,1.3v226.8
 					H153.7z"/>

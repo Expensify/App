@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import PropTypes from 'prop-types';
 import {ActivityIndicator, View} from 'react-native';
 import lodashGet from 'lodash/get';
@@ -32,102 +32,91 @@ const propTypes = {
     translate: PropTypes.func.isRequired,
 };
 
-class WorkspaceReimburseSection extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            shouldShowLoadingSpinner: false,
-        };
-
-        this.debounceSetShouldShowLoadingSpinner = _.debounce(this.setShouldShowLoadingSpinner.bind(this), CONST.TIMING.SHOW_LOADING_SPINNER_DEBOUNCE_TIME);
-    }
-
-    componentDidUpdate() {
-        this.debounceSetShouldShowLoadingSpinner();
-    }
-
-    setShouldShowLoadingSpinner() {
-        const shouldShowLoadingSpinner = this.props.reimbursementAccount.isLoading || false;
-        if (shouldShowLoadingSpinner !== this.state.shouldShowLoadingSpinner) {
-            this.setState({shouldShowLoadingSpinner});
+function WorkspaceReimburseSection(props) {
+    const [shouldShowLoadingSpinner, setShouldShowLoadingSpinner] = useState(false);
+    const achState = lodashGet(props.reimbursementAccount, 'achData.state', '');
+    const hasVBA = achState === BankAccount.STATE.OPEN;
+    const reimburseReceiptsUrl = `reports?policyID=${props.policy.id}&from=all&type=expense&showStates=Archived&isAdvancedFilterMode=true`;
+    const debounceSetShouldShowLoadingSpinner = _.debounce(() => {
+        const isLoading = props.reimbursementAccount.isLoading || false;
+        if (isLoading !== shouldShowLoadingSpinner) {
+            setShouldShowLoadingSpinner(isLoading);
         }
-    }
+    }, CONST.TIMING.SHOW_LOADING_SPINNER_DEBOUNCE_TIME);
+    useEffect(() => {
+        debounceSetShouldShowLoadingSpinner();
+    }, [debounceSetShouldShowLoadingSpinner]);
 
-    render() {
-        const achState = lodashGet(this.props.reimbursementAccount, 'achData.state', '');
-        const hasVBA = achState === BankAccount.STATE.OPEN;
-        const reimburseReceiptsUrl = `reports?policyID=${this.props.policy.id}&from=all&type=expense&showStates=Archived&isAdvancedFilterMode=true`;
-
-        if (this.props.network.isOffline) {
-            return (
-                <Section
-                    title={this.props.translate('workspace.reimburse.reimburseReceipts')}
-                    icon={Illustrations.MoneyWings}
-                >
-                    <View style={[styles.mv3]}>
-                        <Text>{`${this.props.translate('common.youAppearToBeOffline')} ${this.props.translate('common.thisFeatureRequiresInternet')}`}</Text>
-                    </View>
-                </Section>
-            );
-        }
-
-        // If the reimbursementAccount is loading but not enough time has passed to show a spinner, then render nothing.
-        if (this.props.reimbursementAccount.isLoading && !this.state.shouldShowLoadingSpinner) {
-            return null;
-        }
-
-        if (this.state.shouldShowLoadingSpinner) {
-            return (
-                <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                    <ActivityIndicator
-                        color={themeColors.spinner}
-                        size="large"
-                    />
-                </View>
-            );
-        }
-
+    if (props.network.isOffline) {
         return (
-            <>
-                {hasVBA ? (
-                    <Section
-                        title={this.props.translate('workspace.reimburse.fastReimbursementsHappyMembers')}
-                        icon={Illustrations.TreasureChest}
-                        menuItems={[
-                            {
-                                title: this.props.translate('workspace.reimburse.reimburseReceipts'),
-                                onPress: () => Link.openOldDotLink(reimburseReceiptsUrl),
-                                icon: Expensicons.Bank,
-                                shouldShowRightIcon: true,
-                                iconRight: Expensicons.NewWindow,
-                                wrapperStyle: [styles.cardMenuItem],
-                                link: () => Link.buildOldDotURL(reimburseReceiptsUrl),
-                            },
-                        ]}
-                    >
-                        <View style={[styles.mv3]}>
-                            <Text>{this.props.translate('workspace.reimburse.fastReimbursementsVBACopy')}</Text>
-                        </View>
-                    </Section>
-                ) : (
-                    <Section
-                        title={this.props.translate('workspace.reimburse.unlockNextDayReimbursements')}
-                        icon={Illustrations.OpenSafe}
-                    >
-                        <View style={[styles.mv3]}>
-                            <Text>{this.props.translate('workspace.reimburse.unlockNoVBACopy')}</Text>
-                        </View>
-                        <ConnectBankAccountButton
-                            policyID={this.props.policy.id}
-                            style={[styles.mt4]}
-                        />
-                    </Section>
-                )}
-            </>
+            <Section
+                title={props.translate('workspace.reimburse.reimburseReceipts')}
+                icon={Illustrations.MoneyWings}
+            >
+                <View style={[styles.mv3]}>
+                    <Text>{`${props.translate('common.youAppearToBeOffline')} ${props.translate('common.thisFeatureRequiresInternet')}`}</Text>
+                </View>
+            </Section>
         );
     }
+
+    // If the reimbursementAccount is loading but not enough time has passed to show a spinner, then render nothing.
+    if (props.reimbursementAccount.isLoading && !shouldShowLoadingSpinner) {
+        return null;
+    }
+
+    if (shouldShowLoadingSpinner) {
+        return (
+            <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                <ActivityIndicator
+                    color={themeColors.spinner}
+                    size="large"
+                />
+            </View>
+        );
+    }
+
+    return (
+        <>
+            {hasVBA ? (
+                <Section
+                    title={props.translate('workspace.reimburse.fastReimbursementsHappyMembers')}
+                    icon={Illustrations.TreasureChest}
+                    menuItems={[
+                        {
+                            title: props.translate('workspace.reimburse.reimburseReceipts'),
+                            onPress: () => Link.openOldDotLink(reimburseReceiptsUrl),
+                            icon: Expensicons.Bank,
+                            shouldShowRightIcon: true,
+                            iconRight: Expensicons.NewWindow,
+                            wrapperStyle: [styles.cardMenuItem],
+                            link: () => Link.buildOldDotURL(reimburseReceiptsUrl),
+                        },
+                    ]}
+                >
+                    <View style={[styles.mv3]}>
+                        <Text>{props.translate('workspace.reimburse.fastReimbursementsVBACopy')}</Text>
+                    </View>
+                </Section>
+            ) : (
+                <Section
+                    title={props.translate('workspace.reimburse.unlockNextDayReimbursements')}
+                    icon={Illustrations.OpenSafe}
+                >
+                    <View style={[styles.mv3]}>
+                        <Text>{props.translate('workspace.reimburse.unlockNoVBACopy')}</Text>
+                    </View>
+                    <ConnectBankAccountButton
+                        policyID={props.policy.id}
+                        style={[styles.mt4]}
+                    />
+                </Section>
+            )}
+        </>
+    );
 }
 
 WorkspaceReimburseSection.propTypes = propTypes;
+WorkspaceReimburseSection.displayName = 'WorkspaceReimburseSection';
 
 export default WorkspaceReimburseSection;

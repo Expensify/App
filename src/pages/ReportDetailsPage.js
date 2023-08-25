@@ -60,7 +60,8 @@ const defaultProps = {
 function ReportDetailsPage(props) {
     const policy = useMemo(() => props.policies[`${ONYXKEYS.COLLECTION.POLICY}${props.report.policyID}`], [props.policies, props.report.policyID]);
     const isPolicyAdmin = useMemo(() => PolicyUtils.isPolicyAdmin(policy), [policy]);
-    const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(props.report), [props.report]);
+    const shouldDisableSettings = useMemo(() => ReportUtils.shouldDisableSettings(props.report), [props.report]);
+    const shouldUseFullTitle = !shouldDisableSettings || ReportUtils.isTaskReport(props.report);
     const isChatRoom = useMemo(() => ReportUtils.isChatRoom(props.report), [props.report]);
     const isThread = useMemo(() => ReportUtils.isChatThread(props.report), [props.report]);
     const isUserCreatedPolicyRoom = useMemo(() => ReportUtils.isUserCreatedPolicyRoom(props.report), [props.report]);
@@ -99,7 +100,7 @@ function ReportDetailsPage(props) {
             });
         }
 
-        if (isPolicyExpenseChat || isChatRoom || isThread) {
+        if (!shouldDisableSettings) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS,
                 translationKey: 'common.settings',
@@ -122,7 +123,7 @@ function ReportDetailsPage(props) {
         }
 
         return items;
-    }, [props.report.reportID, participants, isArchivedRoom, isPolicyExpenseChat, isChatRoom, isThread, isUserCreatedPolicyRoom, canLeaveRoom]);
+    }, [props.report.reportID, participants, isArchivedRoom, shouldDisableSettings, isThread, isUserCreatedPolicyRoom, canLeaveRoom]);
 
     const displayNamesWithTooltips = useMemo(() => {
         const hasMultipleParticipants = participants.length > 1;
@@ -153,13 +154,14 @@ function ReportDetailsPage(props) {
                                     fullTitle={ReportUtils.getReportName(props.report)}
                                     displayNamesWithTooltips={displayNamesWithTooltips}
                                     tooltipEnabled
-                                    numberOfLines={1}
-                                    textStyles={[styles.textHeadline, styles.textAlignCenter, styles.pre]}
-                                    shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || isThread}
+                                    numberOfLines={isChatRoom ? 0 : 1}
+                                    textStyles={[styles.textHeadline, styles.textAlignCenter, isChatRoom ? undefined : styles.pre]}
+                                    shouldUseFullTitle={shouldUseFullTitle}
                                 />
                             </View>
                             {isPolicyAdmin ? (
                                 <PressableWithoutFeedback
+                                    disabled={policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
                                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                     accessibilityLabel={chatRoomSubtitle}
                                     onPress={() => {

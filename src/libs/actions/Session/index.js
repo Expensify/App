@@ -7,10 +7,8 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import redirectToSignIn from '../SignInRedirect';
 import CONFIG from '../../../CONFIG';
 import Log from '../../Log';
-import PushNotification from '../../Notification/PushNotification';
 import Timing from '../Timing';
 import CONST from '../../../CONST';
-import * as Localize from '../../Localize';
 import Timers from '../../Timers';
 import * as Pusher from '../../Pusher/pusher';
 import * as Authentication from '../../Authentication';
@@ -19,7 +17,6 @@ import * as API from '../../API';
 import * as NetworkStore from '../../Network/NetworkStore';
 import Navigation from '../../Navigation/Navigation';
 import * as Device from '../Device';
-import subscribeToReportCommentPushNotifications from '../../Notification/PushNotification/subscribeToReportCommentPushNotifications';
 import ROUTES from '../../../ROUTES';
 import * as ErrorUtils from '../../ErrorUtils';
 import * as ReportUtils from '../../ReportUtils';
@@ -36,28 +33,6 @@ let credentials = {};
 Onyx.connect({
     key: ONYXKEYS.CREDENTIALS,
     callback: (val) => (credentials = val || {}),
-});
-
-/**
- * Manage push notification subscriptions on sign-in/sign-out.
- *
- * On Android, AuthScreens unmounts when the app is closed with the back button so we manage the
- * push subscription when the session changes here.
- */
-Onyx.connect({
-    key: ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID,
-    callback: (notificationID) => {
-        if (notificationID) {
-            PushNotification.register(notificationID);
-
-            // Prevent issue where report linking fails after users switch accounts without closing the app
-            PushNotification.init();
-            subscribeToReportCommentPushNotifications();
-        } else {
-            PushNotification.deregister();
-            PushNotification.clearNotifications();
-        }
-    },
 });
 
 /**
@@ -90,11 +65,13 @@ function isAnonymousUser() {
 }
 
 function signOutAndRedirectToSignIn() {
-    hideContextMenu(false);
-    signOut();
-    redirectToSignIn();
     Log.info('Redirecting to Sign In because signOut() was called');
-    if (isAnonymousUser()) {
+    hideContextMenu(false);
+    if (!isAnonymousUser()) {
+        signOut();
+        redirectToSignIn();
+    } else {
+        Navigation.navigate(ROUTES.SIGN_IN_MODAL);
         Linking.getInitialURL().then((url) => {
             const reportID = ReportUtils.getReportIDFromLink(url);
             if (reportID) {
@@ -172,7 +149,7 @@ function resendValidateCode(login = credentials.login) {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 errors: null,
-                loadingForm: CONST.FORMS.VALIDATE_CODE_FORM,
+                loadingForm: CONST.FORMS.RESEND_VALIDATE_CODE_FORM,
             },
         },
     ];
@@ -198,55 +175,87 @@ function resendValidateCode(login = credentials.login) {
 }
 
 /**
- * Checks the API to see if an account exists for the given login
+
+/**
+ * Constructs the state object for the BeginSignIn && BeginAppleSignIn API calls.
+ *  @returns {Object}
+ */
+function signInAttemptState() {
+    return {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.ACCOUNT,
+                value: {
+                    ...CONST.DEFAULT_ACCOUNT_DATA,
+                    isLoading: true,
+                    message: null,
+                    loadingForm: CONST.FORMS.LOGIN_FORM,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.ACCOUNT,
+                value: {
+                    isLoading: false,
+                    loadingForm: null,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.CREDENTIALS,
+                value: {
+                    validateCode: null,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.ACCOUNT,
+                value: {
+                    isLoading: false,
+                    loadingForm: null,
+                    // eslint-disable-next-line rulesdir/prefer-localization
+                    errors: ErrorUtils.getMicroSecondOnyxError('loginForm.cannotGetAccountDetails'),
+                },
+            },
+        ],
+    };
+}
+
+/**
+ * Checks the API to see if an account exists for the given login.
  *
  * @param {String} login
  */
 function beginSignIn(login) {
-    const optimisticData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                ...CONST.DEFAULT_ACCOUNT_DATA,
-                isLoading: true,
-                message: null,
-                loadingForm: CONST.FORMS.LOGIN_FORM,
-            },
-        },
-    ];
-
-    const successData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: false,
-                loadingForm: null,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.CREDENTIALS,
-            value: {
-                validateCode: null,
-            },
-        },
-    ];
-
-    const failureData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: false,
-                loadingForm: null,
-                errors: ErrorUtils.getMicroSecondOnyxError('loginForm.cannotGetAccountDetails'),
-            },
-        },
-    ];
-
+    const {optimisticData, successData, failureData} = signInAttemptState();
     API.read('BeginSignIn', {email: login}, {optimisticData, successData, failureData});
+}
+
+/**
+ * Given an idToken from Sign in with Apple, checks the API to see if an account
+ * exists for that email address and signs the user in if so.
+ *
+ * @param {String} idToken
+ */
+function beginAppleSignIn(idToken) {
+    const {optimisticData, successData, failureData} = signInAttemptState();
+    API.write('SignInWithApple', {idToken}, {optimisticData, successData, failureData});
+}
+
+/**
+ * Shows Google sign-in process, and if an auth token is successfully obtained,
+ * passes the token on to the Expensify API to sign in with
+ *
+ * @param {String} token
+ */
+function beginGoogleSignIn(token) {
+    const {optimisticData, successData, failureData} = signInAttemptState();
+    API.write('SignInWithGoogle', {token}, {optimisticData, successData, failureData});
 }
 
 /**
@@ -266,11 +275,6 @@ function signInWithShortLivedAuthToken(email, authToken) {
                 isLoading: true,
             },
         },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.IS_TOKEN_VALID,
-            value: true,
-        },
     ];
 
     const successData = [
@@ -291,24 +295,13 @@ function signInWithShortLivedAuthToken(email, authToken) {
                 isLoading: false,
             },
         },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.IS_TOKEN_VALID,
-            value: false,
-        },
     ];
 
     // If the user is signing in with a different account from the current app, should not pass the auto-generated login as it may be tied to the old account.
     // scene 1: the user is transitioning to newDot from a different account on oldDot.
     // scene 2: the user is transitioning to desktop app from a different account on web app.
     const oldPartnerUserID = credentials.login === email ? credentials.autoGeneratedLogin : '';
-    // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    API.makeRequestWithSideEffects('SignInWithShortLivedAuthToken', {authToken, oldPartnerUserID}, {optimisticData, successData, failureData}, null).then((response) => {
-        if (response) {
-            return;
-        }
-        Navigation.navigate();
-    });
+    API.read('SignInWithShortLivedAuthToken', {authToken, oldPartnerUserID, skipReauthentication: true}, {optimisticData, successData, failureData});
 }
 
 /**
@@ -316,12 +309,11 @@ function signInWithShortLivedAuthToken(email, authToken) {
  * then it will create a temporary login for them which is used when re-authenticating
  * after an authToken expires.
  *
- * @param {String} password This will be removed after passwordless beta ends
- * @param {String} [validateCode] Code for passwordless login
+ * @param {String} validateCode 6 digit code required for login
  * @param {String} [twoFactorAuthCode]
  * @param {String} [preferredLocale] Indicates which language to use when the user lands in the app
  */
-function signIn(password, validateCode, twoFactorAuthCode, preferredLocale = CONST.LOCALES.DEFAULT) {
+function signIn(validateCode, twoFactorAuthCode, preferredLocale = CONST.LOCALES.DEFAULT) {
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -372,8 +364,6 @@ function signIn(password, validateCode, twoFactorAuthCode, preferredLocale = CON
     // Conditionally pass a password or validateCode to command since we temporarily allow both flows
     if (validateCode || twoFactorAuthCode) {
         params.validateCode = validateCode || credentials.validateCode;
-    } else {
-        params.password = password;
     }
     Device.getDeviceInfoWithID().then((deviceInfo) => {
         API.write('SigninUser', {...params, deviceInfo}, {optimisticData, successData, failureData});
@@ -479,76 +469,6 @@ function initAutoAuthState(cachedAutoAuthState) {
     });
 }
 
-/**
- * User forgot the password so let's send them the link to reset their password
- */
-function resetPassword() {
-    API.write(
-        'RequestPasswordReset',
-        {
-            email: credentials.login,
-        },
-        {
-            optimisticData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.ACCOUNT,
-                    value: {
-                        errors: null,
-                        forgotPassword: true,
-                        message: null,
-                    },
-                },
-            ],
-        },
-    );
-}
-
-function resendResetPassword() {
-    API.write(
-        'ResendRequestPasswordReset',
-        {
-            email: credentials.login,
-        },
-        {
-            optimisticData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.ACCOUNT,
-                    value: {
-                        isLoading: true,
-                        forgotPassword: true,
-                        message: null,
-                        errors: null,
-                        loadingForm: CONST.FORMS.RESEND_VALIDATION_FORM,
-                    },
-                },
-            ],
-            successData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.ACCOUNT,
-                    value: {
-                        isLoading: false,
-                        message: 'resendValidationForm.linkHasBeenResent',
-                        loadingForm: null,
-                    },
-                },
-            ],
-            failureData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.ACCOUNT,
-                    value: {
-                        isLoading: false,
-                        loadingForm: null,
-                    },
-                },
-            ],
-        },
-    );
-}
-
 function invalidateCredentials() {
     Onyx.merge(ONYXKEYS.CREDENTIALS, {autoGeneratedLogin: '', autoGeneratedPassword: ''});
 }
@@ -604,70 +524,6 @@ function clearAccountMessages() {
         message: null,
         isLoading: false,
     });
-}
-
-/**
- * Updates a password and authenticates them
- * @param {Number} accountID
- * @param {String} validateCode
- * @param {String} password
- */
-function updatePasswordAndSignin(accountID, validateCode, password) {
-    const optimisticData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: true,
-                errors: null,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.SESSION,
-            value: {
-                errors: null,
-            },
-        },
-    ];
-
-    const successData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: false,
-                errors: null,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.SESSION,
-            value: {
-                errors: null,
-            },
-        },
-    ];
-
-    const failureData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: false,
-            },
-        },
-    ];
-
-    API.write(
-        'UpdatePasswordAndSignin',
-        {
-            accountID,
-            validateCode,
-            password,
-        },
-        {optimisticData, successData, failureData},
-    );
 }
 
 // It's necessary to throttle requests to reauthenticate since calling this multiple times will cause Pusher to
@@ -785,7 +641,7 @@ function unlinkLogin(accountID, validateCode) {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 isLoading: false,
-                message: Localize.translateLocal('unlinkLoginForm.succesfullyUnlinkedLogin'),
+                message: 'unlinkLoginForm.succesfullyUnlinkedLogin',
             },
         },
         {
@@ -895,9 +751,10 @@ function validateTwoFactorAuth(twoFactorAuthCode) {
 
 export {
     beginSignIn,
+    beginAppleSignIn,
+    beginGoogleSignIn,
     setSupportAuthToken,
     checkIfActionIsAllowed,
-    updatePasswordAndSignin,
     signIn,
     signInWithValidateCode,
     signInWithValidateCodeAndNavigate,
@@ -908,8 +765,6 @@ export {
     signOutAndRedirectToSignIn,
     resendValidationLink,
     resendValidateCode,
-    resetPassword,
-    resendResetPassword,
     requestUnlinkValidationLink,
     unlinkLogin,
     clearSignInData,

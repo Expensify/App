@@ -55,6 +55,7 @@ const PressableWithFeedback = forwardRef((props, ref) => {
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...propsWithoutWrapperStyles}
                 disabled={isDisabled}
+                isExecuting={isExecuting}
                 onHoverIn={() => {
                     setIsHovered(true);
                     if (props.onHoverIn) props.onHoverIn();

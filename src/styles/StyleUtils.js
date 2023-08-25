@@ -878,20 +878,17 @@ function getKeyboardShortcutsModalWidth(isSmallScreenWidth) {
  * @returns {Object}
  */
 function getHorizontalStackedAvatarBorderStyle({isHovered, isPressed, isInReportAction = false, shouldUseCardBackground = false}) {
-    let backgroundColor = shouldUseCardBackground ? themeColors.cardBG : themeColors.appBG;
+    let borderColor = shouldUseCardBackground ? themeColors.cardBG : themeColors.appBG;
 
     if (isHovered) {
-        backgroundColor = isInReportAction ? themeColors.highlightBG : themeColors.border;
+        borderColor = isInReportAction ? themeColors.highlightBG : themeColors.border;
     }
 
     if (isPressed) {
-        backgroundColor = isInReportAction ? themeColors.highlightBG : themeColors.buttonPressedBG;
+        borderColor = isInReportAction ? themeColors.highlightBG : themeColors.buttonPressedBG;
     }
 
-    return {
-        backgroundColor,
-        borderColor: backgroundColor,
-    };
+    return {borderColor};
 }
 
 /**
@@ -902,11 +899,9 @@ function getHorizontalStackedAvatarBorderStyle({isHovered, isPressed, isInReport
  * @param {Number} borderRadius
  * @returns {Object}
  */
-function getHorizontalStackedAvatarStyle(index, overlapSize, borderWidth, borderRadius) {
+function getHorizontalStackedAvatarStyle(index, overlapSize) {
     return {
-        left: -(overlapSize * index),
-        borderRadius,
-        borderWidth,
+        marginLeft: index > 0 ? -overlapSize : 0,
         zIndex: index + 2,
     };
 }
@@ -921,7 +916,7 @@ function getHorizontalStackedOverlayAvatarStyle(oneAvatarSize, oneAvatarBorderWi
     return {
         borderWidth: oneAvatarBorderWidth,
         borderRadius: oneAvatarSize.width,
-        left: -(oneAvatarSize.width * 2 + oneAvatarBorderWidth * 2),
+        marginLeft: -(oneAvatarSize.width + oneAvatarBorderWidth * 2),
         zIndex: 6,
         borderStyle: 'solid',
     };
@@ -1056,6 +1051,17 @@ function getAutoCompleteSuggestionItemStyle(highlightedEmojiIndex, rowHeight, ho
 }
 
 /**
+ * Gets the correct position for the base auto complete suggestion container
+ *
+ * @param {Object} parentContainerLayout
+ * @returns {Object}
+ */
+
+function getBaseAutoCompleteSuggestionContainerStyle({left, bottom, width}) {
+    return {position: 'fixed', bottom, left, width};
+}
+
+/**
  * Gets the correct position for auto complete suggestion container
  *
  * @param {Number} itemsHeight
@@ -1066,7 +1072,7 @@ function getAutoCompleteSuggestionContainerStyle(itemsHeight, shouldIncludeRepor
     'worklet';
 
     const optionalPadding = shouldIncludeReportRecipientLocalTimeHeight ? CONST.RECIPIENT_LOCAL_TIME_HEIGHT : 0;
-    const padding = CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_PADDING - optionalPadding;
+    const padding = CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_PADDING + optionalPadding;
     const borderWidth = 2;
     const height = itemsHeight + 2 * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_INNER_PADDING + borderWidth;
 
@@ -1116,13 +1122,13 @@ function getEmojiReactionBubbleTextStyle(isContextMenu = false) {
     if (isContextMenu) {
         return {
             fontSize: 17,
-            lineHeight: 28,
+            lineHeight: 24,
         };
     }
 
     return {
         fontSize: 15,
-        lineHeight: 24,
+        lineHeight: 22,
     };
 }
 
@@ -1223,6 +1229,22 @@ function getMentionTextColor(isOurMention) {
 }
 
 /**
+ * Returns padding vertical based on number of lines
+ * @param {Number} numberOfLines
+ * @returns {Object}
+ */
+function getComposeTextAreaPadding(numberOfLines) {
+    let paddingValue = 5;
+    if (numberOfLines === 1) paddingValue = 9;
+    // In case numberOfLines = 3, there will be a Expand Icon appearing at the top left, so it has to be recalculated so that the textArea can be full height
+    if (numberOfLines === 3) paddingValue = 8;
+    return {
+        paddingTop: paddingValue,
+        paddingBottom: paddingValue,
+    };
+}
+
+/**
  * Returns style object for the mobile on WEB
  * @param {Number} windowHeight
  * @param {Number} viewportOffsetTop
@@ -1291,6 +1313,22 @@ function getCheckboxContainerStyle(size, borderRadius) {
     };
 }
 
+/**
+ * Returns style object for the dropbutton height
+ * @param {String} buttonSize
+ * @returns {Object}
+ */
+function getDropDownButtonHeight(buttonSize) {
+    if (buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE) {
+        return {
+            height: variables.componentSizeLarge,
+        };
+    }
+    return {
+        height: variables.componentSizeNormal,
+    };
+}
+
 export {
     getAvatarSize,
     getAvatarWidthStyle,
@@ -1340,6 +1378,7 @@ export {
     getReportWelcomeBackgroundImageStyle,
     getReportWelcomeTopMarginStyle,
     getReportWelcomeContainerStyle,
+    getBaseAutoCompleteSuggestionContainerStyle,
     getAutoCompleteSuggestionItemStyle,
     getAutoCompleteSuggestionContainerStyle,
     getColoredBackgroundStyle,
@@ -1357,10 +1396,12 @@ export {
     getEmojiPickerListHeight,
     getMentionStyle,
     getMentionTextColor,
+    getComposeTextAreaPadding,
     getHeightOfMagicCodeInput,
     getOuterModalStyle,
     getWrappingStyle,
     getMenuItemTextContainerStyle,
     getDisabledLinkStyles,
     getCheckboxContainerStyle,
+    getDropDownButtonHeight,
 };

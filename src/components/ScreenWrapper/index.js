@@ -19,6 +19,7 @@ import withWindowDimensions from '../withWindowDimensions';
 import withEnvironment from '../withEnvironment';
 import toggleTestToolsModal from '../../libs/actions/TestTool';
 import CustomDevMenu from '../CustomDevMenu';
+import * as Browser from '../../libs/Browser';
 
 class ScreenWrapper extends React.Component {
     constructor(props) {
@@ -32,10 +33,8 @@ class ScreenWrapper extends React.Component {
         this.keyboardDissmissPanResponder = PanResponder.create({
             onMoveShouldSetPanResponderCapture: (e, gestureState) => {
                 const isHorizontalSwipe = Math.abs(gestureState.dx) > Math.abs(gestureState.dy);
-                if (isHorizontalSwipe && this.props.shouldDismissKeyboardBeforeClose) {
-                    return true;
-                }
-                return false;
+                const shouldDismissKeyboard = this.props.shouldDismissKeyboardBeforeClose && this.props.isKeyboardShown && Browser.isMobile();
+                return isHorizontalSwipe && shouldDismissKeyboard;
             },
             onPanResponderGrant: Keyboard.dismiss,
         });
@@ -109,11 +108,11 @@ class ScreenWrapper extends React.Component {
                         <View
                             style={styles.flex1}
                             // eslint-disable-next-line react/jsx-props-no-spreading
-                            {...(this.props.environment === CONST.ENVIRONMENT.DEV ? {...this.panResponder.panHandlers} : undefined)}
+                            {...(this.props.environment === CONST.ENVIRONMENT.DEV ? this.panResponder.panHandlers : {})}
                         >
                             <View
-                                style={[...this.props.style, styles.flex1, paddingStyle]}
-                                /* eslint-disable-next-line react/jsx-props-no-spreading */
+                                style={[styles.flex1, paddingStyle, ...this.props.style]}
+                                // eslint-disable-next-line react/jsx-props-no-spreading
                                 {...this.keyboardDissmissPanResponder.panHandlers}
                             >
                                 <KeyboardAvoidingView
@@ -138,7 +137,7 @@ class ScreenWrapper extends React.Component {
                                                   })
                                                 : this.props.children
                                         }
-                                        {this.props.isSmallScreenWidth && this.props.shouldShowOfflineIndicator && <OfflineIndicator />}
+                                        {this.props.isSmallScreenWidth && this.props.shouldShowOfflineIndicator && <OfflineIndicator style={this.props.offlineIndicatorStyle} />}
                                     </PickerAvoidingView>
                                 </KeyboardAvoidingView>
                             </View>

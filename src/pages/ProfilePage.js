@@ -34,8 +34,8 @@ import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator
 import BlockingView from '../components/BlockingViews/BlockingView';
 import * as Illustrations from '../components/Icon/Illustrations';
 import variables from '../styles/variables';
-import ROUTES from '../ROUTES';
 import * as ValidationUtils from '../libs/ValidationUtils';
+import Permissions from '../libs/Permissions';
 
 const matchType = PropTypes.shape({
     params: PropTypes.shape({
@@ -133,11 +133,18 @@ function ProfilePage(props) {
     // If the API returns an error for some reason there won't be any details and isLoading will get set to false, so we want to show a blocking screen
     const shouldShowBlockingView = !hasMinimumDetails && !isLoading;
 
+    const statusEmojiCode = lodashGet(details, 'status.emojiCode', '');
+    const statusText = lodashGet(details, 'status.text', '');
+    const hasStatus = !!statusEmojiCode && Permissions.canUseCustomStatus(props.betas);
+    const statusContent = `${statusEmojiCode}  ${statusText}`;
+
+    const navigateBackTo = lodashGet(props.route, 'params.backTo', '');
+
     return (
         <ScreenWrapper>
             <HeaderWithBackButton
                 title={props.translate('common.profile')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.HOME)}
+                onBackButtonPress={() => Navigation.goBack(navigateBackTo)}
             />
             <View
                 pointerEvents="box-none"
@@ -178,6 +185,18 @@ function ProfilePage(props) {
                                     {displayName}
                                 </Text>
                             )}
+                            {hasStatus && (
+                                <View style={[styles.mb6, styles.detailsPageSectionContainer, styles.mw100]}>
+                                    <Text
+                                        style={[styles.textLabelSupporting, styles.mb1]}
+                                        numberOfLines={1}
+                                    >
+                                        {props.translate('statusPage.status')}
+                                    </Text>
+                                    <Text>{statusContent}</Text>
+                                </View>
+                            )}
+
                             {login ? (
                                 <View style={[styles.mb6, styles.detailsPageSectionContainer, styles.w100]}>
                                     <Text
@@ -209,6 +228,7 @@ function ProfilePage(props) {
                         {!isCurrentUser && !Session.isAnonymousUser() && (
                             <MenuItem
                                 title={`${props.translate('common.message')}${displayName}`}
+                                titleStyle={styles.flex1}
                                 icon={Expensicons.ChatBubble}
                                 onPress={() => Report.navigateToAndOpenReportWithAccountIDs([accountID])}
                                 wrapperStyle={styles.breakAll}
@@ -224,6 +244,8 @@ function ProfilePage(props) {
                         iconWidth={variables.modalTopIconWidth}
                         iconHeight={variables.modalTopIconHeight}
                         title={props.translate('notFound.notHere')}
+                        shouldShowLink
+                        link={props.translate('notFound.goBackHome')}
                     />
                 )}
             </View>
@@ -246,6 +268,9 @@ export default compose(
         },
         isLoadingReportData: {
             key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+        },
+        betas: {
+            key: ONYXKEYS.BETAS,
         },
     }),
 )(ProfilePage);

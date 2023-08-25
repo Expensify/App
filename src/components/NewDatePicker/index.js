@@ -49,11 +49,13 @@ class NewDatePicker extends React.Component {
         };
 
         this.setDate = this.setDate.bind(this);
+    }
 
-        // We're using uncontrolled input otherwise it won't be possible to
-        // raise change events with a date value - each change will produce a date
-        // and make us reset the text input
-        this.defaultValue = props.defaultValue ? moment(props.defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING) : '';
+    componentDidUpdate(prevProps) {
+        if (prevProps.value === this.props.value) {
+            return;
+        }
+        this.setDate(this.props.value);
     }
 
     /**
@@ -78,7 +80,6 @@ class NewDatePicker extends React.Component {
                         accessibilityLabel={this.props.label}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         value={this.props.value || ''}
-                        defaultValue={this.defaultValue}
                         placeholder={this.props.placeholder || this.props.translate('common.dateFormat')}
                         errorText={this.props.errorText}
                         containerStyles={this.props.containerStyles}

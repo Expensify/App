@@ -22,10 +22,11 @@ import * as ReportUtils from '../../libs/ReportUtils';
 import RenderHTML from '../RenderHTML';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 import personalDetailsPropType from '../../pages/personalDetailsPropType';
+import * as Session from '../../libs/actions/Session';
 
 const propTypes = {
     /** All personal details asssociated with user */
-    personalDetailsList: personalDetailsPropType,
+    personalDetailsList: PropTypes.objectOf(personalDetailsPropType),
 
     /** The ID of the associated taskReport */
     taskReportID: PropTypes.string.isRequired,
@@ -66,8 +67,10 @@ function TaskPreview(props) {
         ? props.taskReport.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.taskReport.statusNum === CONST.REPORT.STATUS.APPROVED
         : props.action.childStateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.action.childStatusNum === CONST.REPORT.STATUS.APPROVED;
     const taskTitle = props.taskReport.reportName || props.action.childReportName;
-    const taskAssigneeAccountID = Task.getTaskAssigneeAccountID(props.taskReport);
-    const taskAssignee = lodashGet(props.personalDetailsList, [taskAssigneeAccountID, 'login'], lodashGet(props.personalDetailsList, [taskAssigneeAccountID, 'displayName'], ''));
+    const taskAssigneeAccountID = Task.getTaskAssigneeAccountID(props.taskReport) || props.action.childManagerAccountID;
+    const assigneeLogin = lodashGet(props.personalDetailsList, [taskAssigneeAccountID, 'login'], '');
+    const assigneeDisplayName = lodashGet(props.personalDetailsList, [taskAssigneeAccountID, 'displayName'], '');
+    const taskAssignee = assigneeLogin || assigneeDisplayName;
     const htmlForTaskPreview = taskAssignee ? `<comment><mention-user>@${taskAssignee}</mention-user> ${taskTitle}</comment>` : `<comment>${taskTitle}</comment>`;
 
     return (
@@ -84,13 +87,13 @@ function TaskPreview(props) {
                         containerStyle={[styles.taskCheckbox]}
                         isChecked={isTaskCompleted}
                         disabled={ReportUtils.isCanceledTaskReport(props.taskReport)}
-                        onPress={() => {
+                        onPress={Session.checkIfActionIsAllowed(() => {
                             if (isTaskCompleted) {
-                                Task.reopenTask(props.taskReportID, taskTitle);
+                                Task.reopenTask(props.taskReport, taskTitle);
                             } else {
-                                Task.completeTask(props.taskReportID, taskTitle);
+                                Task.completeTask(props.taskReport, taskTitle);
                             }
-                        }}
+                        })}
                         accessibilityLabel={props.translate('task.task')}
                     />
                     <RenderHTML html={htmlForTaskPreview} />

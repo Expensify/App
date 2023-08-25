@@ -45,9 +45,15 @@ const propTypes = {
 
     /** Stores user's preferred skin tone */
     preferredSkinToneIndex: PropTypes.number.isRequired,
+
+    /** Meaures the parent container's position and dimensions. */
+    measureParentContainer: PropTypes.func,
 };
 
-const defaultProps = {highlightedEmojiIndex: 0};
+const defaultProps = {
+    highlightedEmojiIndex: 0,
+    measureParentContainer: () => {},
+};
 
 /**
  * Create unique keys for each emoji item
@@ -69,7 +75,10 @@ function EmojiSuggestions(props) {
         return (
             <View style={styles.autoCompleteSuggestionContainer}>
                 <Text style={styles.emojiSuggestionsEmoji}>{EmojiUtils.getEmojiCodeWithSkinColor(item, props.preferredSkinToneIndex)}</Text>
-                <Text style={styles.emojiSuggestionsText}>
+                <Text
+                    numberOfLines={2}
+                    style={styles.emojiSuggestionsText}
+                >
                     :
                     {_.map(styledTextArray, ({text, isColored}, i) => (
                         <Text
@@ -95,6 +104,7 @@ function EmojiSuggestions(props) {
             isSuggestionPickerLarge={props.isEmojiPickerLarge}
             shouldIncludeReportRecipientLocalTimeHeight={props.shouldIncludeReportRecipientLocalTimeHeight}
             accessibilityLabelExtractor={keyExtractor}
+            measureParentContainer={props.measureParentContainer}
         />
     );
 }

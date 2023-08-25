@@ -7,7 +7,7 @@ import ScreenWrapper from '../../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
-import SelectionListRadio from '../../../components/SelectionListRadio';
+import SelectionList from '../../../components/SelectionList';
 import styles from '../../../styles/styles';
 import ONYXKEYS from '../../../ONYXKEYS';
 import CONST from '../../../CONST';
@@ -45,7 +45,7 @@ function ThemePage(props) {
 
             <Text style={[styles.mh5, styles.mv4]}>{props.translate('themePage.chooseThemeBelowOrSync')}</Text>
 
-            <SelectionListRadio
+            <SelectionList
                 sections={[{data: localesToThemes}]}
                 onSelectRow={(theme) => User.updateTheme(theme.value)}
                 initiallyFocusedOptionKey={_.find(localesToThemes, (theme) => theme.isSelected).keyForList}

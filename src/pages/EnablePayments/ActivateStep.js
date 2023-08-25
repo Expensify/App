@@ -1,7 +1,6 @@
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import FireworksAnimation from '../../../assets/animations/Fireworks.json';
-import ReviewingBankInfoAnimation from '../../../assets/animations/ReviewingBankInfo.json';
+import * as LottieAnimations from '../../components/LottieAnimations';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import userWalletPropTypes from './userWalletPropTypes';
@@ -31,7 +30,7 @@ const defaultProps = {
 
 function ActivateStep(props) {
     const isGoldWallet = props.userWallet.tierName === CONST.WALLET.TIER_NAME.GOLD;
-    const animation = isGoldWallet ? FireworksAnimation : ReviewingBankInfoAnimation;
+    const animation = isGoldWallet ? LottieAnimations.Fireworks : LottieAnimations.ReviewingBankInfo;
     const continueButtonText = props.walletTerms.chatReportID ? props.translate('activateStep.continueToPayment') : props.translate('activateStep.continueToTransfer');
 
     return (

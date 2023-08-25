@@ -1,13 +1,11 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import _ from 'underscore';
 import {View, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
 import reportPropTypes from './reportPropTypes';
 import reportActionPropTypes from './home/report/reportActionPropTypes';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
-import ONYXKEYS from '../ONYXKEYS';
 import ScreenWrapper from '../components/ScreenWrapper';
 import HeaderWithBackButton from '../components/HeaderWithBackButton';
 import styles from '../styles/styles';
@@ -21,7 +19,7 @@ import * as ReportUtils from '../libs/ReportUtils';
 import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 import * as Session from '../libs/actions/Session';
 import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
-import FullscreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
+import withReportAndReportActionOrNotFound from './home/report/withReportAndReportActionOrNotFound';
 
 const propTypes = {
     /** Array of report actions for this report */
@@ -41,16 +39,12 @@ const propTypes = {
         }),
     }).isRequired,
 
-    /** Indicates whether the report data is loading */
-    isLoadingReportData: PropTypes.bool,
-
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     reportActions: {},
     report: {},
-    isLoadingReportData: true,
 };
 
 /**
@@ -66,12 +60,6 @@ function getReportID(route) {
 }
 
 function FlagCommentPage(props) {
-    let reportAction = props.reportActions[`${props.route.params.reportActionID.toString()}`];
-
-    // Handle threads if needed
-    if (reportAction === undefined || reportAction.reportActionID === undefined) {
-        reportAction = ReportActionsUtils.getParentReportAction(props.report);
-    }
     const severities = [
         {
             severity: CONST.MODERATION.FLAG_SEVERITY_SPAM,
@@ -123,14 +111,30 @@ function FlagCommentPage(props) {
         },
     ];
 
-    const flagComment = (severity) => {
-        let reportID = getReportID(props.route);
+    const getActionToFlag = useCallback(() => {
+        let reportAction = props.reportActions[`${props.route.params.reportActionID.toString()}`];
 
         // Handle threads if needed
         if (reportAction === undefined || reportAction.reportActionID === undefined) {
+            reportAction = ReportActionsUtils.getParentReportAction(props.report);
+        }
+
+        return reportAction;
+    }, [props.report, props.reportActions, props.route.params.reportActionID]);
+
+    const flagComment = (severity) => {
+        let reportID = getReportID(props.route);
+        const reportAction = getActionToFlag();
+
+        // Handle threads if needed
+        if (ReportUtils.isChatThread(props.report) && reportAction.reportActionID === ReportActionsUtils.getParentReportAction(props.report).reportActionID) {
             reportID = ReportUtils.getParentReport(props.report).reportID;
         }
-        Report.flagComment(reportID, reportAction, severity);
+
+        if (ReportUtils.canFlagReportAction(reportAction, reportID)) {
+            Report.flagComment(reportID, reportAction, severity);
+        }
+
         Navigation.dismissModal();
     };
 
@@ -147,15 +151,10 @@ function FlagCommentPage(props) {
         />
     ));
 
-    const shouldShowLoading = props.isLoadingReportData || props.report.isLoadingReportActions;
-    if (shouldShowLoading) {
-        return <FullscreenLoadingIndicator />;
-    }
-
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             {({safeAreaPaddingBottomStyle}) => (
-                <FullPageNotFoundView shouldShow={!shouldShowLoading && !ReportUtils.shouldShowFlagComment(reportAction, props.report)}>
+                <FullPageNotFoundView shouldShow={!ReportUtils.shouldShowFlagComment(getActionToFlag(), props.report)}>
                     <HeaderWithBackButton title={props.translate('reportActionContextMenu.flagAsOffensive')} />
                     <ScrollView
                         contentContainerStyle={safeAreaPaddingBottomStyle}
@@ -179,18 +178,4 @@ FlagCommentPage.propTypes = propTypes;
 FlagCommentPage.defaultProps = defaultProps;
 FlagCommentPage.displayName = 'FlagCommentPage';
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        reportActions: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`,
-            canEvict: false,
-        },
-        report: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`,
-        },
-        isLoadingReportData: {
-            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-        },
-    }),
-)(FlagCommentPage);
+export default compose(withLocalize, withReportAndReportActionOrNotFound)(FlagCommentPage);

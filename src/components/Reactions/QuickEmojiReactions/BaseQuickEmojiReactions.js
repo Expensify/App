@@ -10,9 +10,12 @@ import styles from '../../../styles/styles';
 import ONYXKEYS from '../../../ONYXKEYS';
 import Tooltip from '../../Tooltip';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
+import EmojiReactionsPropTypes from '../EmojiReactionsPropTypes';
 import * as Session from '../../../libs/actions/Session';
 
 const baseQuickEmojiReactionsPropTypes = {
+    emojiReactions: EmojiReactionsPropTypes,
+
     /**
      * Callback to fire when an emoji is selected.
      */
@@ -39,6 +42,7 @@ const baseQuickEmojiReactionsPropTypes = {
 };
 
 const baseQuickEmojiReactionsDefaultProps = {
+    emojiReactions: {},
     onWillShowPicker: () => {},
     onPressOpenPicker: () => {},
     reportAction: {},
@@ -67,7 +71,7 @@ function BaseQuickEmojiReactions(props) {
                         <EmojiReactionBubble
                             emojiCodes={[EmojiUtils.getPreferredEmojiCode(emoji, props.preferredSkinTone)]}
                             isContextMenu
-                            onPress={Session.checkIfActionIsAllowed(() => props.onEmojiSelected(emoji))}
+                            onPress={Session.checkIfActionIsAllowed(() => props.onEmojiSelected(emoji, props.emojiReactions))}
                         />
                     </View>
                 </Tooltip>
@@ -90,9 +94,12 @@ export default withOnyx({
     preferredSkinTone: {
         key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
     },
+    emojiReactions: {
+        key: ({reportActionID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`,
+    },
     preferredLocale: {
         key: ONYXKEYS.NVP_PREFERRED_LOCALE,
     },
 })(BaseQuickEmojiReactions);
 
-export {baseQuickEmojiReactionsPropTypes};
+export {baseQuickEmojiReactionsPropTypes, baseQuickEmojiReactionsDefaultProps};

@@ -2,6 +2,7 @@ import lodashGet from 'lodash/get';
 import Config from 'react-native-config';
 import * as KeyCommand from 'react-native-key-command';
 import * as Url from './libs/Url';
+import SCREENS from './SCREENS';
 
 const CLOUDFRONT_DOMAIN = 'cloudfront.net';
 const CLOUDFRONT_URL = `https://d2k5nsl2zxldvw.${CLOUDFRONT_DOMAIN}`;
@@ -32,67 +33,13 @@ const CONST = {
     ANIMATED_TRANSITION: 300,
     ANIMATED_TRANSITION_FROM_VALUE: 100,
     ANIMATION_IN_TIMING: 100,
+    ANIMATION_DIRECTION: {
+        IN: 'in',
+        OUT: 'out',
+    },
     ARROW_HIDE_DELAY: 3000,
 
     API_ATTACHMENT_VALIDATIONS: {
-        // Same as the PHP layer allows
-        /* eslint-disable-next-line max-len */
-        UNALLOWED_EXTENSIONS: [
-            'ade',
-            'adp',
-            'apk',
-            'appx',
-            'appxbundle',
-            'bat',
-            'cab',
-            'chm',
-            'cmd',
-            'com',
-            'cpl',
-            'diagcab',
-            'diagcfg',
-            'diagpack',
-            'dll',
-            'dmg',
-            'ex',
-            'ex_',
-            'exe',
-            'hta',
-            'img',
-            'ins',
-            'iso',
-            'isp',
-            'jar',
-            'jnlp',
-            'js',
-            'jse',
-            'lib',
-            'lnk',
-            'mde',
-            'msc',
-            'msi',
-            'msix',
-            'msixbundle',
-            'msp',
-            'mst',
-            'nsh',
-            'pif',
-            'ps1',
-            'scr',
-            'sct',
-            'shb',
-            'sys',
-            'vb',
-            'vbe',
-            'vbs',
-            'vhd',
-            'vxd',
-            'wsc',
-            'wsf',
-            'wsh',
-            'xll',
-        ],
-
         // 24 megabytes in bytes, this is limit set on servers, do not update without wider internal discussion
         MAX_SIZE: 25165824,
 
@@ -129,6 +76,8 @@ const CONST = {
 
     PULL_REQUEST_NUMBER,
 
+    MERCHANT_NAME_MAX_LENGTH: 255,
+
     CALENDAR_PICKER: {
         // Numbers were arbitrarily picked.
         MIN_YEAR: CURRENT_YEAR - 100,
@@ -139,6 +88,11 @@ const CONST = {
         MIN_AGE: 5,
         MIN_AGE_FOR_PAYMENT: 18,
         MAX_AGE: 150,
+    },
+
+    DESKTOP_SHORTCUT_ACCELERATOR: {
+        PASTE_AND_MATCH_STYLE: 'Option+Shift+CmdOrCtrl+V',
+        PASTE_AS_PLAIN_TEXT: 'CmdOrCtrl+Shift+V',
     },
 
     // This is used to enable a rotation/transform style to any component.
@@ -174,6 +128,16 @@ const CONST = {
     },
     DATE: {
         MOMENT_FORMAT_STRING: 'YYYY-MM-DD',
+        SQL_DATE_TIME: 'YYYY-MM-DD HH:mm:ss',
+        FNS_FORMAT_STRING: 'yyyy-MM-dd',
+        LOCAL_TIME_FORMAT: 'h:mm a',
+        WEEKDAY_TIME_FORMAT: 'eeee',
+        MONTH_DAY_ABBR_FORMAT: 'MMM d',
+        SHORT_DATE_FORMAT: 'MM-dd',
+        MONTH_DAY_YEAR_ABBR_FORMAT: 'MMM d, yyyy',
+        FNS_TIMEZONE_FORMAT_STRING: "yyyy-MM-dd'T'HH:mm:ssXXX",
+        FNS_DB_FORMAT_STRING: 'yyyy-MM-dd HH:mm:ss.SSS',
+        LONG_DATE_FORMAT_WITH_WEEKDAY: 'eeee, MMMM d, yyyy',
         UNIX_EPOCH: '1970-01-01 00:00:00.000',
         MAX_DATE: '9999-12-31',
         MIN_DATE: '0001-01-01',
@@ -267,11 +231,12 @@ const CONST = {
         INTERNATIONALIZATION: 'internationalization',
         IOU_SEND: 'sendMoney',
         POLICY_ROOMS: 'policyRooms',
-        POLICY_EXPENSE_CHAT: 'policyExpenseChat',
         PASSWORDLESS: 'passwordless',
         TASKS: 'tasks',
         THREADS: 'threads',
         SCAN_RECEIPTS: 'scanReceipts',
+        CUSTOM_STATUS: 'customStatus',
+        DISTANCE_REQUESTS: 'distanceRequests',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -474,14 +439,27 @@ const CONST = {
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'http://localhost:',
 
+    SIGN_IN_FORM_WIDTH: 300,
+
+    DEEPLINK_PROMPT_DENYLIST: [SCREENS.HOME, SCREENS.SIGN_IN_WITH_APPLE_DESKTOP, SCREENS.SIGN_IN_WITH_GOOGLE_DESKTOP],
+
+    SIGN_IN_METHOD: {
+        APPLE: 'Apple',
+        GOOGLE: 'Google',
+    },
+
     OPTION_TYPE: {
         REPORT: 'report',
         PERSONAL_DETAIL: 'personalDetail',
     },
+    RECEIPT: {
+        ICON_SIZE: 164,
+        PERMISSION_AUTHORIZED: 'authorized',
+        HAND_ICON_HEIGHT: 152,
+        HAND_ICON_WIDTH: 200,
+        SHUTTER_SIZE: 90,
+    },
     REPORT: {
-        DROP_HOST_NAME: 'ReportDropZone',
-        DROP_NATIVE_ID: 'report-dropzone',
-        ACTIVE_DROP_NATIVE_ID: 'report-dropzone',
         MAXIMUM_PARTICIPANTS: 8,
         SPLIT_REPORTID: '-2',
         ACTIONS: {
@@ -491,8 +469,10 @@ const CONST = {
                 CLOSED: 'CLOSED',
                 CREATED: 'CREATED',
                 TASKEDITED: 'TASKEDITED',
-                TASKCANCELED: 'TASKCANCELED',
+                TASKCANCELLED: 'TASKCANCELLED',
                 IOU: 'IOU',
+                MODIFIEDEXPENSE: 'MODIFIEDEXPENSE',
+                REIMBURSEMENTQUEUED: 'REIMBURSEMENTQUEUED',
                 RENAMED: 'RENAMED',
                 CHRONOSOOOLIST: 'CHRONOSOOOLIST',
                 TASKCOMPLETED: 'TASKCOMPLETED',
@@ -593,6 +573,7 @@ const CONST = {
             OPEN: 0,
             PROCESSING: 1,
             SUBMITTED: 2,
+            BILLING: 3,
         },
         STATUS: {
             OPEN: 0,
@@ -605,6 +586,7 @@ const CONST = {
             MUTE: 'mute',
             DAILY: 'daily',
             ALWAYS: 'always',
+            HIDDEN: 'hidden',
         },
         // Options for which room members can post
         WRITE_CAPABILITIES: {
@@ -653,6 +635,7 @@ const CONST = {
             CENTER: 'center',
             RIGHT: 'right',
         },
+        POPOVER_MENU_PADDING: 8,
     },
     TIMING: {
         CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION: 'calc_most_recent_last_modified_action',
@@ -679,6 +662,12 @@ const CONST = {
         LIGHT: 'light',
         DARK: 'dark',
         SYSTEM: 'system',
+    },
+    TRANSACTION: {
+        DEFAULT_MERCHANT: 'Request',
+        TYPE: {
+            CUSTOM_UNIT: 'customUnit',
+        },
     },
     JSON_CODE: {
         SUCCESS: 200,
@@ -744,6 +733,7 @@ const CONST = {
         VALIDATE_TFA_CODE_FORM: 'ValidateTfaCodeForm',
         RESEND_VALIDATION_FORM: 'ResendValidationForm',
         UNLINK_LOGIN_FORM: 'UnlinkLoginForm',
+        RESEND_VALIDATE_CODE_FORM: 'ResendValidateCodeForm',
     },
     APP_STATE: {
         ACTIVE: 'active',
@@ -885,6 +875,8 @@ const CONST = {
         QA: 'qa@expensify.com',
         QA_TRAVIS: 'qa+travisreceipts@expensify.com',
         RECEIPTS: 'receipts@expensify.com',
+        SAASTR: 'saastr@expensify.com',
+        SBE: 'sbe@expensify.com',
         STUDENT_AMBASSADOR: 'studentambassadors@expensify.com',
         SVFG: 'svfg@expensify.com',
     },
@@ -1053,6 +1045,19 @@ const CONST = {
             DELETE: 'delete',
         },
         AMOUNT_MAX_LENGTH: 10,
+        RECEIPT_STATE: {
+            SCANREADY: 'SCANREADY',
+            OPEN: 'OPEN',
+            SCANNING: 'SCANNING',
+            SCANCOMPLETE: 'SCANCOMPLETE',
+            SCANFAILED: 'SCANFAILED',
+        },
+        FILE_TYPES: {
+            HTML: 'html',
+            DOC: 'doc',
+            DOCX: 'docx',
+            SVG: 'svg',
+        },
     },
 
     GROWL: {
@@ -1092,6 +1097,10 @@ const CONST = {
 
     CUSTOM_UNITS: {
         NAME_DISTANCE: 'Distance',
+        DISTANCE_UNIT_MILES: 'mi',
+        DISTANCE_UNIT_KILOMETERS: 'km',
+        MILEAGE_IRS_RATE: 0.655,
+        DEFAULT_RATE: 'Default Rate',
     },
 
     TERMS: {
@@ -1104,6 +1113,10 @@ const CONST = {
     ICON_TYPE_ICON: 'icon',
     ICON_TYPE_AVATAR: 'avatar',
     ICON_TYPE_WORKSPACE: 'workspace',
+
+    ACTIVITY_INDICATOR_SIZE: {
+        LARGE: 'large',
+    },
 
     AVATAR_SIZE: {
         LARGE: 'large',
@@ -1130,7 +1143,8 @@ const CONST = {
     REGEX: {
         SPECIAL_CHARS_WITHOUT_NEWLINE: /((?!\n)[()-\s\t])/g,
         DIGITS_AND_PLUS: /^\+?[0-9]*$/,
-        ALPHABETIC_CHARS_WITH_NUMBER: /^[a-zA-ZÀ-ÿ0-9 ]*$/,
+        ALPHABETIC_AND_LATIN_CHARS: /^[\p{Script=Latin} ]*$/u,
+        NON_ALPHABETIC_AND_NON_LATIN_CHARS: /[^\p{Script=Latin}]/gu,
         POSITIVE_INTEGER: /^\d+$/,
         PO_BOX: /\b[P|p]?(OST|ost)?\.?\s*[O|o|0]?(ffice|FFICE)?\.?\s*[B|b][O|o|0]?[X|x]?\.?\s+[#]?(\d+)\b/,
         ANY_VALUE: /^.+$/,
@@ -1146,7 +1160,8 @@ const CONST = {
         ROOM_NAME: /^#[a-z0-9à-ÿ-]{1,80}$/,
 
         // eslint-disable-next-line max-len, no-misleading-character-class
-        EMOJIS: /[\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
+        EMOJIS: /[\p{Extended_Pictographic}](\u200D[\p{Extended_Pictographic}]|[\u{1F3FB}-\u{1F3FF}]|[\u{E0020}-\u{E007F}]|\uFE0F|\u20E3)*|[\u{1F1E6}-\u{1F1FF}]{2}|[#*0-9]\uFE0F?\u20E3/gu,
+
         TAX_ID: /^\d{9}$/,
         NON_NUMERIC: /\D/g,
 
@@ -1178,7 +1193,14 @@ const CONST = {
 
         ROUTES: {
             VALIDATE_LOGIN: /\/v($|(\/\/*))/,
+            UNLINK_LOGIN: /\/u($|(\/\/*))/,
         },
+
+        TIME_STARTS_01: /^01:\d{2} [AP]M$/,
+        TIME_FORMAT: /^\d{2}:\d{2} [AP]M$/,
+        DATE_TIME_FORMAT: /^\d{2}-\d{2} \d{2}:\d{2} [AP]M$/,
+        ATTACHMENT_ROUTE: /\/r\/(\d*)\/attachment/,
+        ILLEGAL_FILENAME_CHARACTERS: /\/|<|>|\*|"|:|\?|\\|\|/g,
     },
 
     PRONOUNS: {
@@ -1247,6 +1269,7 @@ const CONST = {
 
     FORM_CHARACTER_LIMIT: 50,
     LEGAL_NAMES_CHARACTER_LIMIT: 150,
+    LOGIN_CHARACTER_LIMIT: 254,
     WORKSPACE_NAME_CHARACTER_LIMIT: 80,
     AVATAR_CROP_MODAL: {
         // The next two constants control what is min and max value of the image crop scale.
@@ -1278,8 +1301,10 @@ const CONST = {
     },
     EDIT_REQUEST_FIELD: {
         AMOUNT: 'amount',
+        CURRENCY: 'currency',
         DATE: 'date',
         DESCRIPTION: 'description',
+        MERCHANT: 'merchant',
     },
     FOOTER: {
         EXPENSE_MANAGEMENT_URL: `${USE_EXPENSIFY_URL}/expense-management`,
@@ -1327,16 +1352,6 @@ const CONST = {
         REACT_PDF_PASSWORD_RESPONSES: {
             NEED_PASSWORD: 1,
             INCORRECT_PASSWORD: 2,
-        },
-    },
-    TESTING: {
-        SCREEN_SIZE: {
-            SMALL: {
-                width: 300,
-                height: 700,
-                scale: 1,
-                fontScale: 1,
-            },
         },
     },
     API_REQUEST_TYPE: {
@@ -2461,6 +2476,13 @@ const CONST = {
         NUMBER_OF_TAPS: 4,
     },
 
+    MENU_HELP_URLS: {
+        LEARN_MORE: 'https://www.expensify.com',
+        DOCUMENTATION: 'https://github.com/Expensify/App/blob/main/README.md',
+        COMMUNITY_DISCUSSIONS: 'https://expensify.slack.com/archives/C01GTK53T8Q',
+        SEARCH_ISSUES: 'https://github.com/Expensify/App/issues',
+    },
+
     PAYPAL_SUPPORTED_CURRENCIES: [
         'AUD',
         'BRL',
@@ -2530,11 +2552,54 @@ const CONST = {
         ADJUSTABLE: 'adjustable',
         IMAGE: 'image',
     },
-    SETTINGS_LOUNGE_ACCESS: {
-        HEADER_IMAGE_ASPECT_RATIO: 0.64,
-    },
     TRANSLATION_KEYS: {
         ATTACHMENT: 'common.attachment',
+    },
+    CUSTOM_STATUS_TYPES: {
+        NEVER: 'never',
+        THIRTY_MINUTES: 'thirtyMinutes',
+        ONE_HOUR: 'oneHour',
+        AFTER_TODAY: 'afterToday',
+        AFTER_WEEK: 'afterWeek',
+        CUSTOM: 'custom',
+    },
+    TWO_FACTOR_AUTH_STEPS: {
+        CODES: 'CODES',
+        VERIFY: 'VERIFY',
+        SUCCESS: 'SUCCESS',
+        ENABLED: 'ENABLED',
+        DISABLED: 'DISABLED',
+    },
+    TAB: {
+        RECEIPT_TAB_ID: 'ReceiptTab',
+        MANUAL: 'manual',
+        SCAN: 'scan',
+        DISTANCE: 'distance',
+    },
+    STATUS_TEXT_MAX_LENGTH: 100,
+
+    DROPDOWN_BUTTON_SIZE: {
+        LARGE: 'large',
+        MEDIUM: 'medium',
+    },
+
+    SF_COORDINATES: [-122.4194, 37.7749],
+
+    MAPBOX_STYLE_URL: 'mapbox://styles/expensify/cllcoiqds00cs01r80kp34tmq',
+    NAVIGATION: {
+        TYPE: {
+            FORCED_UP: 'FORCED_UP',
+            UP: 'UP',
+        },
+        ACTION_TYPE: {
+            REPLACE: 'REPLACE',
+            PUSH: 'PUSH',
+            NAVIGATE: 'NAVIGATE',
+        },
+    },
+    DEMO_PAGES: {
+        SAASTR: 'SaaStrDemoSetup',
+        SBE: 'SbeDemoSetup',
     },
 };
 
