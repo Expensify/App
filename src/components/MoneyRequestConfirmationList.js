@@ -139,7 +139,7 @@ const defaultProps = {
     policyCategories: {},
     transactionID: '',
     transaction: {},
-    mileageRate: {},
+    mileageRate: {unit: 'mi', rate: 0.655},
 };
 
 function MoneyRequestConfirmationList(props) {
@@ -152,7 +152,7 @@ function MoneyRequestConfirmationList(props) {
     const [showAllFields, toggleShowAllFields] = useReducer((state) => !state, false);
     const isTypeRequest = props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST;
 
-    const isDistanceRequest = false;
+    const isDistanceRequest = true;
     const {unit, rate} = props.mileageRate;
     const distance = lodashGet(props, 'transaction.routes.route0.distance', 0);
 
