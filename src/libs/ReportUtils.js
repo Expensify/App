@@ -2179,7 +2179,8 @@ function updateReportPreview(iouReport, reportPreviewAction, comment = '', trans
             },
         ],
         childLastMoneyRequestComment: comment || reportPreviewAction.childLastMoneyRequestComment,
-        childMoneyRequestCount: reportPreviewAction.childMoneyRequestCount + 1,
+        // If new transaction is passed, we are adding a new request so we need to increment the childMoneyRequestCount
+        childMoneyRequestCount: transaction ? reportPreviewAction.childMoneyRequestCount + 1 : reportPreviewAction.childMoneyRequestCount,
         childLastReceiptTransactionIDs: hasReceipt ? [transaction.transactionID, ...previousTransactionIDs].join(',') : lastReceiptTransactionIDs,
         // As soon as we add a transaction without a receipt to the report, it will have ready money requests,
         // so we remove the whisper
