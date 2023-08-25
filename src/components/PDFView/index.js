@@ -227,7 +227,7 @@ class PDFView extends Component {
         const pageWidth = this.calculatePageWidth();
         const pageHeight = this.calculatePageHeight(index);
 
-        //Each platform has a different default devicePixelRatio and different canvas limits, we need to verify that
+        // Each platform has a different default devicePixelRatio and different canvas limits, we need to verify that
         // with the default devicePixelRatio it will be able to diplay the pdf correctly, if not we must change the devicePixelRatio.
         const nbPixels = pageWidth * pageHeight;
         const ratioHeight = this.props.maxCanvasHeight / pageHeight;
