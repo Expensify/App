@@ -132,6 +132,7 @@ function PDFPasswordForm({isFocused, isPasswordInvalid, shouldShowLoadingIndicat
                 secureTextEntry
             />
             <Button
+                onMouseDown={(e) => e.preventDefault()}
                 text={translate('common.confirm')}
                 onPress={submitPassword}
                 style={styles.mt4}
