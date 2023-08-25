@@ -133,7 +133,7 @@ index 0000000..16da117
 +//# sourceMappingURL=findFocusedRouteKey.js.map
 \ No newline at end of file
 diff --git a/node_modules/@react-navigation/native/lib/module/useLinking.js b/node_modules/@react-navigation/native/lib/module/useLinking.js
-index 5bf2a88..a4318ef 100644
+index 5bf2a88..a6d0670 100644
 --- a/node_modules/@react-navigation/native/lib/module/useLinking.js
 +++ b/node_modules/@react-navigation/native/lib/module/useLinking.js
 @@ -2,6 +2,7 @@ import { findFocusedRoute, getActionFromState as getActionFromStateDefault, getP
@@ -144,37 +144,7 @@ index 5bf2a88..a4318ef 100644
  import ServerContext from './ServerContext';
  /**
   * Find the matching navigation state that changed between 2 navigation states
-@@ -34,32 +35,52 @@ const findMatchingState = (a, b) => {
- /**
-  * Run async function in series as it's called.
-  */
--const series = cb => {
--  // Whether we're currently handling a callback
--  let handling = false;
--  let queue = [];
--  const callback = async () => {
--    try {
--      if (handling) {
--        // If we're currently handling a previous event, wait before handling this one
--        // Add the callback to the beginning of the queue
--        queue.unshift(callback);
--        return;
--      }
--      handling = true;
--      await cb();
--    } finally {
--      handling = false;
--      if (queue.length) {
--        // If we have queued items, handle the last one
--        const last = queue.pop();
--        last === null || last === void 0 ? void 0 : last();
--      }
--    }
-+const series = (cb) => {
-+  let queue = Promise.resolve();
-+  const callback = () => {
-+    queue = queue.then(cb);
-   };
+@@ -60,6 +61,44 @@ const series = cb => {
    return callback;
  };
  let linkingHandlers = [];
@@ -219,7 +189,7 @@ index 5bf2a88..a4318ef 100644
  export default function useLinking(ref, _ref) {
    let {
      independent,
-@@ -251,6 +272,9 @@ export default function useLinking(ref, _ref) {
+@@ -251,6 +290,9 @@ export default function useLinking(ref, _ref) {
        // Otherwise it's likely a change triggered by `popstate`
        path !== pendingPath) {
          const historyDelta = (focusedState.history ? focusedState.history.length : focusedState.routes.length) - (previousFocusedState.history ? previousFocusedState.history.length : previousFocusedState.routes.length);
@@ -229,7 +199,7 @@ index 5bf2a88..a4318ef 100644
          if (historyDelta > 0) {
            // If history length is increased, we should pushState
            // Note that path might not actually change here, for example, drawer open should pushState
-@@ -262,34 +286,55 @@ export default function useLinking(ref, _ref) {
+@@ -262,34 +304,55 @@ export default function useLinking(ref, _ref) {
            // If history length is decreased, i.e. entries were removed, we want to go back
  
            const nextIndex = history.backIndex({
