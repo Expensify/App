@@ -27,6 +27,7 @@ import ScreenWrapper from './ScreenWrapper';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import * as ErrorUtils from '../libs/ErrorUtils';
 import usePrevious from '../hooks/usePrevious';
+import { useIsFocused } from '@react-navigation/native';
 
 const MAX_WAYPOINTS = 25;
 const MAX_WAYPOINTS_TO_DISPLAY = 4;
@@ -63,7 +64,7 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
     const [scrollContentHeight, setScrollContentHeight] = useState(0);
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
-
+    const isFocused = useIsFocused()
     const waypoints = useMemo(() => lodashGet(transaction, 'comment.waypoints', {}), [transaction]);
     const numberOfWaypoints = _.size(waypoints);
 
@@ -211,6 +212,7 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
             <View style={styles.mapViewContainer}>
                 {!isOffline && Boolean(mapboxAccessToken.token) ? (
                     <MapView
+                        isFocused={isFocused}
                         accessToken={mapboxAccessToken.token}
                         mapPadding={MAP_PADDING}
                         pitchEnabled={false}
