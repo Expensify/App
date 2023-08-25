@@ -59,7 +59,7 @@ function buildOptimisticTransaction(
     if (originalTransactionID) {
         commentJSON.originalTransactionID = originalTransactionID;
     }
-    const defaultMerchant = _.isEmpty(receipt) ? CONST.TRANSACTION.DEFAULT_MERCHANT : '';
+    const defaultMerchant = !_.isEmpty(receipt) ? CONST.TRANSACTION.DEFAULT_MERCHANT : '';
 
     return {
         transactionID,
