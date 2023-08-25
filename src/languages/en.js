@@ -155,6 +155,7 @@ export default {
         edit: 'Edit',
         showMore: 'Show more',
         merchant: 'Merchant',
+        category: 'Category',
         receipt: 'Receipt',
         replace: 'Replace',
     },
@@ -246,11 +247,15 @@ export default {
         newFaceEnterMagicCode: ({login}) => `It's always great to see a new face around here! Please enter the magic code sent to ${login}. It should arrive within a minute or two.`,
         welcomeEnterMagicCode: ({login}) => `Please enter the magic code sent to ${login}. It should arrive within a minute or two.`,
     },
+    DownloadAppModal: {
+        downloadTheApp: 'Download the app',
+        keepTheConversationGoing: 'Keep the conversation going in New Expensify, download the app for an enhanced experience.',
+        noThanks: 'No thanks',
+    },
     login: {
         hero: {
             header: 'Split bills, request payments, and chat with friends.',
             body: 'Welcome to the future of Expensify, your new go-to place for financial collaboration with friends and teammates alike.',
-            demoHeadline: 'Welcome to SaaStr! Hop in to start networking now.',
         },
     },
     thirdPartySignIn: {
@@ -1628,5 +1633,13 @@ export default {
     },
     stateSelectorModal: {
         placeholderText: 'Search to see options',
+    },
+    demos: {
+        saastr: {
+            signInWelcome: 'Welcome to SaaStr! Hop in to start networking now.',
+        },
+        sbe: {
+            signInWelcome: 'Welcome to Small Business Expo! Get paid back for your ride.',
+        },
     },
 };
