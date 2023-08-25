@@ -1,6 +1,6 @@
 import {ViewStyle} from 'react-native';
-import styles from '../styles';
+import {CSSProperties} from 'react';
 
-type ContainerComposeStyles = Array<Pick<typeof styles, 'textInputComposeSpacing'> | Pick<ViewStyle, 'paddingVertical'>>;
+type ContainerComposeStyles = Array<ViewStyle | CSSProperties>;
 
 export default ContainerComposeStyles;
