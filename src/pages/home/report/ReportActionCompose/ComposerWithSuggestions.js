@@ -545,8 +545,8 @@ export default compose(
     withOnyx({
         numberOfLines: {
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT_NUMBER_OF_LINES}${reportID}`,
-            // We might don't have number of lines in onyx yet, for which the composer would be rendered as null
-            // for the first render, which we want to avoid:
+            // We might not have number of lines in onyx yet, for which the composer would be rendered as null
+            // during the first render, which we want to avoid:
             initWithStoredValues: false,
         },
         modal: {
