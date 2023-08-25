@@ -1,7 +1,8 @@
+import {CSSProperties} from 'react';
 import {TextStyle, ViewStyle} from 'react-native';
 
-type CodeWordWrapperStyle = Partial<Pick<ViewStyle, 'height' | 'justifyContent'>>;
-type CodeWordStyle = Partial<Pick<TextStyle, 'height' | 'top'>>;
-type CodeTextStyle = Partial<Pick<TextStyle, 'lineHeight'>>;
+type CodeWordWrapperStyles = ViewStyle | CSSProperties;
+type CodeWordStyles = TextStyle | CSSProperties;
+type CodeTextStyles = TextStyle | CSSProperties;
 
-export type {CodeWordWrapperStyle, CodeWordStyle, CodeTextStyle};
+export type {CodeWordWrapperStyles, CodeWordStyles, CodeTextStyles};
