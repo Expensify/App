@@ -107,6 +107,25 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
         Navigation.goBack(ROUTES.getMoneyRequestDistanceTabRoute(iouType));
     };
 
+    const recentWaypoints = [
+        {address: '0', lat: 0, lng: 0},
+        {address: '1', lat: 0, lng: 0},
+        {address: '2', lat: 0, lng: 0},
+        {address: '3', lat: 0, lng: 0},
+        {address: '4', lat: 0, lng: 0},
+    ];
+    const recentSearchSuggestions = _.map(recentWaypoints, (waypoint) => {
+        return {
+            description: waypoint.address,
+            geometry: {
+                location: {
+                    lat: waypoint.lat,
+                    lng: waypoint.lng,
+                },
+            },
+        };
+    });
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -151,6 +170,7 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
                             lng: null,
                             state: null,
                         }}
+                        recentSearchSuggestions={recentSearchSuggestions}
                     />
                 </View>
             </Form>
@@ -168,6 +188,13 @@ export default compose(
         transaction: {
             key: (props) => `${ONYXKEYS.COLLECTION.TRANSACTION}${props.transactionID}`,
             selector: (transaction) => (transaction ? {transactionID: transaction.transactionID, comment: {waypoints: lodashGet(transaction, 'comment.waypoints')}} : null),
+        },
+
+        recentWaypoints: {
+            key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
+
+            // Only grab the most recent 5 waypoints because that's all that is shown in the UI
+            selector: (waypoints) => (waypoints && waypoints.length ? waypoints.slice(0, 5) : []),
         },
     }),
 )(WaypointEditor);

@@ -61,6 +61,26 @@ const propTypes = {
     /** Should address search be limited to results in the USA */
     isLimitedToUSA: PropTypes.bool,
 
+    /** A list of recent search results that can be shown when the user isn't searching for something */
+    recentSearchSuggestions: PropTypes.arrayOf(
+        PropTypes.shape({
+            /** A description of the location (usually the address) */
+            description: PropTypes.string,
+
+            /** Data required by the google auto complete plugin to know where to put the markers on the map */
+            geometry: PropTypes.shape({
+                /** Data about the location */
+                location: PropTypes.shape({
+                    /** Lattitude of the location */
+                    lat: PropTypes.string,
+
+                    /** Longitude of the location */
+                    lng: PropTypes.string,
+                }),
+            }),
+        }),
+    ),
+
     /** A map of inputID key names */
     renamedInputKeys: PropTypes.shape({
         street: PropTypes.string,
@@ -102,6 +122,7 @@ const defaultProps = {
         lng: 'addressLng',
     },
     maxInputLength: undefined,
+    recentSearchSuggestions: [],
 };
 
 // Do not convert to class component! It's been tried before and presents more challenges than it's worth.
@@ -250,6 +271,7 @@ function AddressSearch(props) {
                     fetchDetails
                     suppressDefaultStyles
                     enablePoweredByContainer={false}
+                    predefinedPlaces={props.recentSearchSuggestions.length ? props.recentSearchSuggestions : null}
                     ListEmptyComponent={
                         props.network.isOffline ? null : (
                             <Text style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}>{props.translate('common.noResultsFound')}</Text>
