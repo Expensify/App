@@ -119,7 +119,13 @@ class OptionRow extends Component {
         let pressableRef = null;
         const textStyle = this.props.optionIsFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
         const textUnreadStyle = this.props.boldStyle || this.props.option.boldStyle ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
-        const displayNameStyle = StyleUtils.combineStyles(styles.optionDisplayName, textUnreadStyle, this.props.style, styles.pre);
+        const displayNameStyle = StyleUtils.combineStyles(
+            styles.optionDisplayName,
+            textUnreadStyle,
+            this.props.style,
+            styles.pre,
+            this.state.isDisabled && {color: themeColors.textSupporting},
+        );
         const alternateTextStyle = StyleUtils.combineStyles(
             textStyle,
             styles.optionAlternateText,

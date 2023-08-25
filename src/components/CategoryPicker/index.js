@@ -51,6 +51,7 @@ function CategoryPicker({policyCategories, reportID, iouType}) {
                     optionHoveredStyle={styles.hoveredComponentBG}
                     contentContainerStyles={[safeAreaPaddingBottomStyle]}
                     sections={sections}
+                    boldStyle
                     onSelectRow={updateCategory}
                 />
             )}
