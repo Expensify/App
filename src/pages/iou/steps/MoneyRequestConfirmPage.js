@@ -149,7 +149,6 @@ function MoneyRequestConfirmPage(props) {
                     trimmedComment,
                     props.iou.currency,
                     reportID.current,
-                    props.personalDetails,
                 );
                 return;
             }
@@ -185,7 +184,6 @@ function MoneyRequestConfirmPage(props) {
             props.iou.receiptPath,
             props.iou.receiptSource,
             requestMoney,
-            props.personalDetails,
         ],
     );
 
