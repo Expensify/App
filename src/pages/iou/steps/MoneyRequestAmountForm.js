@@ -12,6 +12,7 @@ import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
 import TextInputWithCurrencySymbol from '../../../components/TextInputWithCurrencySymbol';
 import useLocalize from '../../../hooks/useLocalize';
 import CONST from '../../../CONST';
+import refPropTypes from '../../../components/refPropTypes';
 import useWindowDimensions from '../../../hooks/useWindowDimensions';
 
 const propTypes = {
@@ -25,7 +26,7 @@ const propTypes = {
     isEditing: PropTypes.bool,
 
     /** Refs forwarded to the TextInputWithCurrencySymbol */
-    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
+    forwardedRef: refPropTypes,
 
     /** Fired when back button pressed, navigates to currency selection page */
     onCurrencyButtonPress: PropTypes.func.isRequired,
@@ -60,7 +61,6 @@ const NUM_PAD_VIEW_ID = 'numPadView';
 
 function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCurrencyButtonPress, onSubmitButtonPress}) {
     const {translate, toLocaleDigit, numberFormat} = useLocalize();
-    const {isExtraSmallScreenHeight} = useWindowDimensions();
 
     const textInput = useRef(null);
 
@@ -123,8 +123,9 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
             return;
         }
         setCurrentAmount((prevAmount) => {
-            setSelection((prevSelection) => getNewSelection(prevSelection, prevAmount.length, newAmountWithoutSpaces.length));
-            return MoneyRequestUtils.stripCommaFromAmount(newAmountWithoutSpaces);
+            const strippedAmount = MoneyRequestUtils.stripCommaFromAmount(newAmountWithoutSpaces);
+            setSelection((prevSelection) => getNewSelection(prevSelection, prevAmount.length, strippedAmount.length));
+            return strippedAmount;
         });
     };
 
@@ -221,7 +222,6 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
                 ) : null}
                 <Button
                     success
-                    medium={isExtraSmallScreenHeight}
                     style={[styles.w100, styles.mt5]}
                     onPress={submitAndNavigateToNextPage}
                     pressOnEnter

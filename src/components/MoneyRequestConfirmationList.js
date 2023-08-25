@@ -257,7 +257,9 @@ function MoneyRequestConfirmationList(props) {
      */
     const navigateToReportOrUserDetail = (option) => {
         if (option.accountID) {
-            Navigation.navigate(ROUTES.getProfileRoute(option.accountID));
+            const activeRoute = Navigation.getActiveRoute().replace(/\?.*/, '');
+
+            Navigation.navigate(ROUTES.getProfileRoute(option.accountID, activeRoute));
         } else if (option.reportID) {
             Navigation.navigate(ROUTES.getReportDetailsRoute(option.reportID));
         }
@@ -369,7 +371,7 @@ function MoneyRequestConfirmationList(props) {
                 disabled={didConfirm || props.isReadOnly}
             />
             {!showAllFields && (
-                <View style={[styles.flexRow, styles.justifyContentBetween, styles.mh3, styles.alignItemsCenter]}>
+                <View style={[styles.flexRow, styles.justifyContentBetween, styles.mh3, styles.alignItemsCenter, styles.mb2]}>
                     <View style={[styles.shortTermsHorizontalRule, styles.flex1, styles.mr0]} />
                     <Button
                         small
