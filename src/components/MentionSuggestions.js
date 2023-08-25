@@ -10,6 +10,7 @@ import Avatar from './Avatar';
 import AutoCompleteSuggestions from './AutoCompleteSuggestions';
 import getStyledTextArray from '../libs/GetStyledTextArray';
 import avatarPropTypes from './avatarPropTypes';
+import refPropType from './refPropTypes';
 
 const propTypes = {
     /** The index of the highlighted mention */
@@ -42,10 +43,18 @@ const propTypes = {
 
     /** Show that we should include ReportRecipientLocalTime view height */
     shouldIncludeReportRecipientLocalTimeHeight: PropTypes.bool.isRequired,
+
+    /** Ref of the container enclosing the menu.
+     * This is needed to render the menu in correct position inside a portal
+     */
+    containerRef: refPropType,
 };
 
 const defaultProps = {
     highlightedMentionIndex: 0,
+    containerRef: {
+        current: null,
+    },
 };
 
 /**
@@ -122,6 +131,7 @@ function MentionSuggestions(props) {
             isSuggestionPickerLarge={props.isMentionPickerLarge}
             shouldIncludeReportRecipientLocalTimeHeight={props.shouldIncludeReportRecipientLocalTimeHeight}
             accessibilityLabelExtractor={keyExtractor}
+            parentContainerRef={props.containerRef}
         />
     );
 }
