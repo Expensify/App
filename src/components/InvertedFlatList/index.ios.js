@@ -1,6 +1,7 @@
 import React, {forwardRef} from 'react';
 import BaseInvertedFlatList from './BaseInvertedFlatList';
 import CellRendererComponent from './CellRendererComponent';
+import styles from "../../styles/styles";
 
 export default forwardRef((props, ref) => (
     <BaseInvertedFlatList
@@ -8,6 +9,7 @@ export default forwardRef((props, ref) => (
         {...props}
         ref={ref}
         inverted
+        contentContainerStyle={styles.justifyContentEnd}
         CellRendererComponent={CellRendererComponent}
     />
 ));
