@@ -76,8 +76,8 @@ function OptionRowLHN(props) {
         return null;
     }
 
-    const isMuted = optionItem.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE;
-    if (isMuted && !props.isFocused && !optionItem.isPinned) {
+    const isHidden = optionItem.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+    if (isHidden && !props.isFocused && !optionItem.isPinned) {
         return null;
     }
 
