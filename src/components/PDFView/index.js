@@ -5,6 +5,8 @@ import 'core-js/features/array/at';
 import {Document, Page, pdfjs} from 'react-pdf/dist/esm/entry.webpack';
 import pdfWorkerSource from 'pdfjs-dist/legacy/build/pdf.worker';
 import {VariableSizeList as List} from 'react-window';
+import * as CanvasSize from '../../libs/actions/CanvasSize';
+import Onyx, {withOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
 import styles from '../../styles/styles';
 import variables from '../../styles/variables';
@@ -17,9 +19,8 @@ import Text from '../Text';
 import compose from '../../libs/compose';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 import Log from '../../libs/Log';
-import canvasSize from 'canvas-size';
 import ONYXKEYS from '../../ONYXKEYS';
-import Onyx, {withOnyx} from 'react-native-onyx';
+
 
 
 /**
@@ -59,34 +60,7 @@ class PDFView extends Component {
         this.retrieveCanvasLimits();
         
     }
-    
-    retrieveCanvasLimits(){
-        if(!this.props.maxCanvasArea){
-            canvasSize.maxArea({
-                onSuccess: (width, height)  => {
-                    const maxCanvasArea = width * height;
-                    Onyx.merge(ONYXKEYS.MAX_CANVAS_AREA, maxCanvasArea);
-                }
-             });
-        }
 
-        if(!this.props.maxCanvasHeight){
-            canvasSize.maxHeight({
-                onSuccess: (width, height)  => {
-                    const maxCanvasHeight =  height;
-                    Onyx.merge(ONYXKEYS.MAX_CANVAS_HEIGHT, maxCanvasHeight);
-                }
-            });
-        }
-        if(!this.props.maxCanvasWidth){
-            canvasSize.maxWidth({
-                onSuccess: (width)  => {
-                    const maxCanvasWidth = width;
-                    Onyx.merge(ONYXKEYS.MAX_CANVAS_Width, maxCanvasWidth);
-                }
-            });
-        }
-    }
 
     componentDidUpdate(prevProps) {
         // Use window height changes to toggle the keyboard. To maintain keyboard state
@@ -146,6 +120,20 @@ class PDFView extends Component {
         // but need to have keyboard focus set to them.
         // eslint-disable-next-line no-param-reassign
         ref.tabIndex = -1;
+    }
+
+    retrieveCanvasLimits(){
+        if(!this.props.maxCanvasArea){
+            CanvasSize.retrieveMaxCanvasArea();
+        }
+
+        if(!this.props.maxCanvasHeight){
+            CanvasSize.retrieveMaxCanvasHeight();
+        }
+        
+        if(!this.props.maxCanvasWidth){
+            CanvasSize.retrieveMaxCanvasWidth();
+        }
     }
 
     /**
