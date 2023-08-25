@@ -591,14 +591,14 @@ function isCurrentUser(userDetails) {
  * @param {Object[]} options - an initial strings array
  * @param {Boolean} options[].enabled - a flag to enable/disable option in a list
  * @param {String} options[].name - a name of an option
- * @param {Boolean} [isSearch] - a flag to determine if search is active
+ * @param {Boolean} [isOneLine] - a flag to determine if text should be one line
  * @returns {Array<Object>}
  */
-function getOptionTree(options, isSearch = false) {
+function getOptionTree(options, isOneLine = false) {
     const optionCollection = {};
 
     _.each(options, (option) => {
-        if (isSearch) {
+        if (isOneLine) {
             if (_.has(optionCollection, option.name)) {
                 return;
             }
@@ -625,7 +625,7 @@ function getOptionTree(options, isSearch = false) {
             optionCollection[optionName] = {
                 text: `${indents}${optionName}`,
                 keyForList: optionName,
-                searchText: optionName,
+                searchText: array.slice(0, index + 1).join(CONST.PARENT_CHILD_SEPARATOR),
                 tooltipText: optionName,
                 isDisabled: isChild ? !option.enabled : true,
             };
@@ -682,6 +682,7 @@ function getOptions(
         if (!_.isEmpty(searchInputValue)) {
             categoryOptions.push({
                 title: '', // Search result
+                shouldShow: false,
                 data: getOptionTree(
                     _.filter(categories, (category) => category.name.toLowerCase().includes(searchInputValue.toLowerCase())),
                     true,
@@ -690,6 +691,7 @@ function getOptions(
         } else if (categoriesAmount < CONST.CATEGORY_LIST_THRESHOLD) {
             categoryOptions.push({
                 title: '', // All
+                shouldShow: false,
                 data: getOptionTree(categories),
             });
         } else {
@@ -700,19 +702,22 @@ function getOptions(
             if (!_.isEmpty(selectedOptions)) {
                 categoryOptions.push({
                     title: '', // Selected
-                    data: getOptionTree(selectedOptions),
+                    shouldShow: false,
+                    data: getOptionTree(selectedOptions, true),
                 });
             }
 
             if (!_.isEmpty(filteredRecentlyUsedCategories)) {
                 categoryOptions.push({
                     title: 'Recent',
+                    shouldShow: true,
                     data: getOptionTree(filteredRecentlyUsedCategories.slice(0, maxRecentReportsToShow)),
                 });
             }
 
             categoryOptions.push({
                 title: 'All',
+                shouldShow: true,
                 data: getOptionTree(filteredCategories),
             });
         }
