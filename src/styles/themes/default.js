@@ -78,6 +78,7 @@ const darkTheme = {
     mentionBG: colors.blue600,
     ourMentionText: colors.green100,
     ourMentionBG: colors.green600,
+    starDefaultBG: 'rgb(254, 228, 94)',
 };
 
 darkTheme.PAGE_BACKGROUND_COLORS = {

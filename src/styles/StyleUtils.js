@@ -1051,6 +1051,17 @@ function getAutoCompleteSuggestionItemStyle(highlightedEmojiIndex, rowHeight, ho
 }
 
 /**
+ * Gets the correct position for the base auto complete suggestion container
+ *
+ * @param {Object} parentContainerLayout
+ * @returns {Object}
+ */
+
+function getBaseAutoCompleteSuggestionContainerStyle({left, bottom, width}) {
+    return {position: 'fixed', bottom, left, width};
+}
+
+/**
  * Gets the correct position for auto complete suggestion container
  *
  * @param {Number} itemsHeight
@@ -1302,6 +1313,22 @@ function getCheckboxContainerStyle(size, borderRadius) {
     };
 }
 
+/**
+ * Returns style object for the dropbutton height
+ * @param {String} buttonSize
+ * @returns {Object}
+ */
+function getDropDownButtonHeight(buttonSize) {
+    if (buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE) {
+        return {
+            height: variables.componentSizeLarge,
+        };
+    }
+    return {
+        height: variables.componentSizeNormal,
+    };
+}
+
 export {
     getAvatarSize,
     getAvatarWidthStyle,
@@ -1351,6 +1378,7 @@ export {
     getReportWelcomeBackgroundImageStyle,
     getReportWelcomeTopMarginStyle,
     getReportWelcomeContainerStyle,
+    getBaseAutoCompleteSuggestionContainerStyle,
     getAutoCompleteSuggestionItemStyle,
     getAutoCompleteSuggestionContainerStyle,
     getColoredBackgroundStyle,
@@ -1375,4 +1403,5 @@ export {
     getMenuItemTextContainerStyle,
     getDisabledLinkStyles,
     getCheckboxContainerStyle,
+    getDropDownButtonHeight,
 };
