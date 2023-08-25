@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import * as Report from '../../../../libs/actions/Report';
+import * as Report from '../actions/Report';
 
 /**
  * Save draft report comment. Debounced to happen at most once per second.

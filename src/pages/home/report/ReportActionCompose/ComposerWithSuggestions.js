@@ -23,7 +23,7 @@ import * as EmojiUtils from '../../../../libs/EmojiUtils';
 import * as User from '../../../../libs/actions/User';
 import * as ReportUtils from '../../../../libs/ReportUtils';
 import canFocusInputOnScreenFocus from '../../../../libs/canFocusInputOnScreenFocus';
-import debouncedSaveReportComment from './debouncedSaveReportComment';
+import debouncedSaveReportComment from '../../../../libs/ComposerUtils/debouncedSaveReportComment';
 import SilentCommentUpdater from './SilentCommentUpdater';
 import Suggestions from './Suggestions';
 import getDraftComment from '../../../../libs/ComposerUtils/getDraftComment';

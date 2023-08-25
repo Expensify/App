@@ -32,7 +32,7 @@ import * as Welcome from '../../../../libs/actions/Welcome';
 import SendButton from './SendButton';
 import AttachmentPickerWithMenuItems from './AttachmentPickerWithMenuItems';
 import ComposerWithSuggestions from './ComposerWithSuggestions';
-import debouncedSaveReportComment from './debouncedSaveReportComment';
+import debouncedSaveReportComment from '../../../../libs/ComposerUtils/debouncedSaveReportComment';
 import reportActionPropTypes from '../reportActionPropTypes';
 import useLocalize from '../../../../hooks/useLocalize';
 import getModalState from '../../../../libs/getModalState';
