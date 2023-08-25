@@ -42,11 +42,15 @@ runs:
         steps.patchCheck.outputs.CHANGES_IN_PATCH_FILES == 'true' && 
         steps.cache-node-modules.outputs.cache-hit == 'true'
       run: |
-        set -e
-        npx patch-package
+        {
+          npx patch-package &&
+          echo 'PATCH_EXECUTED=true' >> "$GITHUB_OUTPUT"
+        } || {
+          echo 'PATCH_EXECUTED=false' >> "$GITHUB_OUTPUT"
+        }
 
     - name: Install root project node packages if patching failed
-      if: failure()
+      if: steps.patch.outputs.PATCH_EXECUTED == 'false'
       uses: nick-fields/retry@v2
       with:
         timeout_minutes: 30
@@ -59,10 +63,16 @@ runs:
       if: | 
         steps.patchCheck.outputs.CHANGES_IN_PATCH_FILES == 'true' && 
         steps.cache-desktop-node-modules.outputs.cache-hit == 'true'
-      run: cd desktop && npx patch-package
+      run: |
+        {
+          cd desktop && npx patch-package &&
+          echo 'PATCH_EXECUTED=true' >> "$GITHUB_OUTPUT"
+        } || {
+          echo 'PATCH_EXECUTED=false' >> "$GITHUB_OUTPUT"
+        }
 
     - name: Install node packages for desktop submodule if patching failed
-      if: ${{ failure() && steps.patchDesktop.outcome == 'failure' }}
+      if: steps.patchDesktop.outputs.PATCH_EXECUTED == 'false'
       uses: nick-fields/retry@v2
       with:
         timeout_minutes: 30
