@@ -13,7 +13,6 @@ import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimen
 import compose from '../libs/compose';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
-import * as Policy from '../libs/actions/Policy';
 import ONYXKEYS from '../ONYXKEYS';
 import * as IOU from '../libs/actions/IOU';
 import * as ReportActionsUtils from '../libs/ReportActionsUtils';
@@ -59,13 +58,13 @@ function MoneyRequestHeader(props) {
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const moneyRequestReport = props.parentReport;
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
-    const policy = props.policies[`${ONYXKEYS.COLLECTION.POLICY}${props.report.policyID}`];
-    const isPayer =
-        Policy.isAdminOfFreePolicy([policy]) || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(props.session, 'accountID', null) === moneyRequestReport.managerID);
+    const parentReportAction = ReportActionsUtils.getParentReportAction(props.report);
+
+    // Only the requestor can take delete the request, admins can only edit it.
+    const isActionOwner = parentReportAction.actorAccountID === lodashGet(props.session, 'accountID', null);
     const report = props.report;
     report.ownerAccountID = lodashGet(props, ['parentReport', 'ownerAccountID'], null);
     report.ownerEmail = lodashGet(props, ['parentReport', 'ownerEmail'], '');
-    const parentReportAction = ReportActionsUtils.getParentReportAction(props.report);
 
     const deleteTransaction = useCallback(() => {
         IOU.deleteMoneyRequest(parentReportAction.originalMessage.IOUTransactionID, parentReportAction, true);
@@ -81,7 +80,7 @@ function MoneyRequestHeader(props) {
                 <HeaderWithBackButton
                     shouldShowAvatarWithDisplay
                     shouldShowPinButton={false}
-                    shouldShowThreeDotsButton={!isPayer && !isSettled}
+                    shouldShowThreeDotsButton={isActionOwner && !isSettled}
                     threeDotsMenuItems={[
                         {
                             icon: Expensicons.Trashcan,
