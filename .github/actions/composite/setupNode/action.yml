@@ -44,10 +44,8 @@ runs:
         steps.cache-node-modules.outputs.cache-hit == 'true'
       run: npx patch-package
 
-    - name: Install root project node packages
-      if: |
-        (failure() && steps.patch.outcome == 'failure') ||
-        steps.cache-node-modules.outputs.cache-hit != 'true'
+    - name: Install root project node packages if patching failed
+      if: ${{ failure() && steps.patch.outcome == 'failure' }}
       uses: nick-fields/retry@v2
       with:
         timeout_minutes: 30
@@ -63,10 +61,24 @@ runs:
         steps.cache-desktop-node-modules.outputs.cache-hit == 'true'
       run: cd desktop && npx patch-package
 
+    - name: Install node packages for desktop submodule if patching failed
+      if: ${{ failure() && steps.patchDesktop.outcome == 'failure' }}
+      uses: nick-fields/retry@v2
+      with:
+        timeout_minutes: 30
+        max_attempts: 3
+        command: cd desktop && npm ci
+
+    - name: Install root project node packages
+      if: steps.cache-node-modules.outputs.cache-hit != 'true'
+      uses: nick-fields/retry@v2
+      with:
+        timeout_minutes: 30
+        max_attempts: 3
+        command: npm ci
+
     - name: Install node packages for desktop submodule
-      if: |
-        (failure() && steps.patchDesktop.outcome == 'failure') ||
-        steps.cache-desktop-node-modules.outputs.cache-hit != 'true'
+      if: steps.cache-desktop-node-modules.outputs.cache-hit != 'true'
       uses: nick-fields/retry@v2
       with:
         timeout_minutes: 30
