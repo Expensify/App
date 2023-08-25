@@ -393,6 +393,7 @@ function WorkspaceMembersPage(props) {
                             onSelectAll={() => toggleAllUsers(data)}
                             onDismissError={dismissError}
                             showLoadingPlaceholder={!OptionsListUtils.isPersonalDetailsReady(props.personalDetails) || _.isEmpty(props.policyMembers)}
+                            shouldFocusFirstOption={false}
                         />
                     </View>
                 </View>

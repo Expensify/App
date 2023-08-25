@@ -127,7 +127,7 @@ const propTypes = {
     /** Keyboard type for the text input */
     keyboardType: PropTypes.string,
 
-    /** Item `keyForList` to focus initially */
+    /** Item `keyForList` to focus initially, overrides shouldFocusFirstOption */
     initiallyFocusedOptionKey: PropTypes.string,
 
     /** Whether to delay focus on the text input when mounting. Used for a smoother animation on Android */
@@ -153,6 +153,9 @@ const propTypes = {
 
     /** Whether to show the loading placeholder */
     showLoadingPlaceholder: PropTypes.bool,
+
+    /** Whether the first option in the list should be focused when the component mounts */
+    shouldFocusFirstOption: PropTypes.bool,
 };
 
 export {propTypes, radioListItemPropTypes, checkboxListItemPropTypes};

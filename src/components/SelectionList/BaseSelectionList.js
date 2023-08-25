@@ -50,6 +50,7 @@ function BaseSelectionList({
     showScrollIndicator = false,
     showLoadingPlaceholder = false,
     isKeyboardShown = false,
+    shouldFocusFirstOption = true,
 }) {
     const {translate} = useLocalize();
     const firstLayoutRef = useRef(true);
@@ -134,11 +135,15 @@ function BaseSelectionList({
     }, [canSelectMultiple, sections]);
 
     const [focusedIndex, setFocusedIndex] = useState(() => {
+        const defaultIndex = 0;
+
         const indexOfInitiallyFocusedOption = _.findIndex(flattenedSections.allOptions, (option) => option.keyForList === initiallyFocusedOptionKey);
 
         if (indexOfInitiallyFocusedOption >= 0) {
             return indexOfInitiallyFocusedOption;
         }
+
+        return shouldFocusFirstOption ? defaultIndex : undefined;
     });
 
     /**
