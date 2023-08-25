@@ -1099,7 +1099,11 @@ const CONST = {
     CUSTOM_UNITS: {
         NAME_DISTANCE: 'Distance',
         DISTANCE_UNIT_MILES: 'mi',
+        DISTANCE_UNIT_MILES_FULL_SINGULAR: 'mile',
+        DISTANCE_UNIT_MILES_FULL_PLURAL: 'miles',
         DISTANCE_UNIT_KILOMETERS: 'km',
+        DISTANCE_UNIT_KILOMETERS_FULL_SINGULAR: 'kilometer',
+        DISTANCE_UNIT_KILOMETERS_FULL_PLURAL: 'kilometers',
         MILEAGE_IRS_RATE: 0.655,
         DEFAULT_RATE: 'Default Rate',
     },

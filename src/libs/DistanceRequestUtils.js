@@ -1,4 +1,5 @@
 import _ from 'underscore';
+import CONST from '../CONST';
 
 const getDefaultMileageRate = (policy) => {
     if (!policy || !policy.customUnits) {
@@ -22,7 +23,7 @@ const getDefaultMileageRate = (policy) => {
 };
 
 function convertDistanceUnit(distanceInMeters, unit) {
-    if (typeof distanceInMeters !== 'number' || (unit !== 'mi' && unit !== 'km')) {
+    if (typeof distanceInMeters !== 'number' || (unit !== CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES && unit !== CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS)) {
         throw new Error('Invalid input');
     }
 
@@ -49,8 +50,9 @@ function convertDistanceUnit(distanceInMeters, unit) {
 const getDistanceString = (distanceInMeters, unit, rate) => {
     const convertedDistance = convertDistanceUnit(distanceInMeters, unit);
 
-    const distanceUnit = unit === 'mi' ? 'miles' : 'kilometers';
-    const singularDistanceUnit = unit === 'mi' ? 'mile' : 'kilometer';
+    const distanceUnit = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES_FULL_PLURAL : CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS_FULL_PLURAL;
+    const singularDistanceUnit =
+        unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES_FULL_SINGULAR : CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS_FULL_SINGULAR;
     const roundedDistance = convertedDistance.toFixed(2);
     const unitString = roundedDistance === 1 ? singularDistanceUnit : distanceUnit;
     const ratePerUnit = rate * 0.01;
