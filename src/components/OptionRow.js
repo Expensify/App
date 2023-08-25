@@ -124,7 +124,7 @@ class OptionRow extends Component {
             textUnreadStyle,
             this.props.style,
             styles.pre,
-            this.state.isDisabled && {color: themeColors.textSupporting},
+            this.state.isDisabled ? {color: themeColors.textSupporting} : {},
         );
         const alternateTextStyle = StyleUtils.combineStyles(
             textStyle,
