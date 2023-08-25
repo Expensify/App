@@ -404,7 +404,9 @@ function ReportActionCompose({
                         <EmojiPickerButton
                             isDisabled={isBlockedFromConcierge || disabled}
                             onModalHide={() => {
-                                if (composerRef === null || composerRef.current === null)
+                                if (composerRef === null || composerRef.current === null) {
+                                    return;
+                                }
                                 composerRef.current.focus(true)
                             }}
                             onEmojiSelected={(...args) => composerRef.current.replaceSelectionWithText(...args)}
