@@ -187,27 +187,6 @@ function sortReportsByLastRead(reports) {
 }
 
 /**
- * Can only edit if:
- *
- * - It was written by the current user
- * - It's an ADDCOMMENT that is not an attachment
- * - It's not pending deletion
- *
- * @param {Object} reportAction
- * @returns {Boolean}
- */
-function canEditReportAction(reportAction) {
-    return (
-        reportAction.actorAccountID === currentUserAccountID &&
-        reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT &&
-        !isReportMessageAttachment(lodashGet(reportAction, ['message', 0], {})) &&
-        !ReportActionsUtils.isDeletedAction(reportAction) &&
-        !ReportActionsUtils.isCreatedTaskReportAction(reportAction) &&
-        reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
-    );
-}
-
-/**
  * Whether the Money Request report is settled
  *
  * @param {String} reportID
@@ -529,6 +508,15 @@ function isArchivedRoom(report) {
 }
 
 /**
+ * @param {String} policyID
+ * @returns {Object}
+ */
+function getPolicy(policyID) {
+    const policy = lodashGet(allPolicies, `${ONYXKEYS.COLLECTION.POLICY}${policyID}`) || {};
+    return policy;
+}
+
+/**
  * Get the policy name from a given report
  * @param {Object} report
  * @param {String} report.policyID
@@ -766,7 +754,7 @@ function canDeleteReportAction(reportAction, reportID) {
  */
 
 function getRoomWelcomeMessage(report, isUserPolicyAdmin) {
-    const welcomeMessage = {};
+    const welcomeMessage = {showReportName: true};
     const workspaceName = getPolicyName(report);
 
     if (isArchivedRoom(report)) {
@@ -780,6 +768,7 @@ function getRoomWelcomeMessage(report, isUserPolicyAdmin) {
         welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminRoomPartTwo');
     } else if (isAdminsOnlyPostingRoom(report) && !isUserPolicyAdmin) {
         welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminOnlyPostingRoom');
+        welcomeMessage.showReportName = false;
     } else if (isAnnounceRoom(report)) {
         welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAnnounceRoomPartOne', {workspaceName});
         welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAnnounceRoomPartTwo', {workspaceName});
@@ -1251,6 +1240,58 @@ function getTransactionDetails(transaction) {
 }
 
 /**
+ * Can only edit if:
+ *
+ * - in case of IOU report
+ *    - the current user is the requestor
+ * - in case of expense report
+ *    - the current user is the requestor
+ *    - or the user is an admin on the policy the expense report is tied to
+ *
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
+function canEditMoneyRequest(reportAction) {
+    // If the report action i snot IOU type, return true early
+    if (reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) {
+        return true;
+    }
+    const moneyRequestReportID = lodashGet(reportAction, 'originalMessage.IOUReportID', 0);
+    if (!moneyRequestReportID) {
+        return false;
+    }
+    const moneyRequestReport = getReport(moneyRequestReportID);
+    const isReportSettled = isSettled(moneyRequestReport.reportID);
+    const isAdmin = isExpenseReport(moneyRequestReport) && lodashGet(getPolicy(moneyRequestReport.policyID), 'role', '') === CONST.POLICY.ROLE.ADMIN;
+    const isRequestor = currentUserAccountID === reportAction.actorAccountID;
+    return !isReportSettled && (isAdmin || isRequestor);
+}
+
+/**
+ * Can only edit if:
+ *
+ * - It was written by the current user
+ * - It's an ADDCOMMENT that is not an attachment
+ * - It's money request where conditions for editability are defined in canEditMoneyRequest method
+ * - It's not pending deletion
+ *
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
+function canEditReportAction(reportAction) {
+    const isCommentOrIOU = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT || reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU;
+    return (
+        reportAction.actorAccountID === currentUserAccountID &&
+        isCommentOrIOU &&
+        canEditMoneyRequest(reportAction) && // Returns true for non-IOU actions
+        !isReportMessageAttachment(lodashGet(reportAction, ['message', 0], {})) &&
+        !ReportActionsUtils.isDeletedAction(reportAction) &&
+        !ReportActionsUtils.isCreatedTaskReportAction(reportAction) &&
+        reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
+    );
+}
+
+/**
  * Gets all transactions on an IOU report with a receipt
  *
  * @param {Object|null} iouReportID
@@ -1411,17 +1452,17 @@ function getModifiedExpenseMessage(reportAction) {
         return getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.newComment, reportActionOriginalMessage.oldComment, 'description', true);
     }
 
-    const hasModifiedMerchant = _.has(reportActionOriginalMessage, 'oldMerchant') && _.has(reportActionOriginalMessage, 'merchant');
-    if (hasModifiedMerchant) {
-        return getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.merchant, reportActionOriginalMessage.oldMerchant, 'merchant', true);
-    }
-
     const hasModifiedCreated = _.has(reportActionOriginalMessage, 'oldCreated') && _.has(reportActionOriginalMessage, 'created');
     if (hasModifiedCreated) {
         // Take only the YYYY-MM-DD value as the original date includes timestamp
         let formattedOldCreated = parseISO(reportActionOriginalMessage.oldCreated);
         formattedOldCreated = format(formattedOldCreated, CONST.DATE.FNS_FORMAT_STRING);
         return getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.created, formattedOldCreated, 'date', false);
+    }
+
+    const hasModifiedMerchant = _.has(reportActionOriginalMessage, 'oldMerchant') && _.has(reportActionOriginalMessage, 'merchant');
+    if (hasModifiedMerchant) {
+        return getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.merchant, reportActionOriginalMessage.oldMerchant, 'merchant', true);
     }
 }
 
@@ -1448,6 +1489,10 @@ function getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges, i
     if (_.has(transactionChanges, 'created')) {
         originalMessage.oldCreated = TransactionUtils.getCreated(oldTransaction);
         originalMessage.created = transactionChanges.created;
+    }
+    if (_.has(transactionChanges, 'merchant')) {
+        originalMessage.oldMerchant = TransactionUtils.getMerchant(oldTransaction);
+        originalMessage.merchant = transactionChanges.merchant;
     }
 
     // The amount is always a combination of the currency and the number value so when one changes we need to store both
@@ -2451,6 +2496,31 @@ function buildOptimisticTaskReport(ownerAccountID, assigneeAccountID = 0, parent
 }
 
 /**
+ * A helper method to create transaction thread
+ *
+ * @param {Object} reportAction - the parent IOU report action from which to create the thread
+ *
+ * @returns {Object}
+ */
+function buildTransactionThread(reportAction) {
+    const participantAccountIDs = _.uniq([currentUserAccountID, Number(reportAction.actorAccountID)]);
+    return buildOptimisticChatReport(
+        participantAccountIDs,
+        getTransactionReportName(reportAction),
+        '',
+        lodashGet(getReport(reportAction.reportID), 'policyID', CONST.POLICY.OWNER_EMAIL_FAKE),
+        CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
+        false,
+        '',
+        undefined,
+        undefined,
+        CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+        reportAction.reportActionID,
+        reportAction.reportID,
+    );
+}
+
+/**
  * @param {Object} report
  * @returns {Boolean}
  */
@@ -2500,6 +2570,29 @@ function isIOUOwnedByCurrentUser(report, allReportsDict = null) {
     }
 
     return reportToLook.ownerAccountID === currentUserAccountID;
+}
+
+/**
+ * Should return true only for personal 1:1 report
+ *
+ * @param {Object} report (chatReport or iouReport)
+ * @returns {boolean}
+ */
+function isOneOnOneChat(report) {
+    const isChatRoomValue = lodashGet(report, 'isChatRoom', false);
+    const participantsListValue = lodashGet(report, 'participantsList', []);
+    return (
+        !isThread(report) &&
+        !isChatRoom(report) &&
+        !isChatRoomValue &&
+        !isExpenseRequest(report) &&
+        !isMoneyRequestReport(report) &&
+        !isPolicyExpenseChat(report) &&
+        !isTaskReport(report) &&
+        isDM(report) &&
+        !isIOUReport(report) &&
+        participantsListValue.length === 1
+    );
 }
 
 /**
@@ -2635,11 +2728,6 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas,
     // Archived reports should always be shown when in default (most recent) mode. This is because you should still be able to access and search for the chats to find them.
     if (isInDefaultMode && isArchivedRoom(report)) {
         return true;
-    }
-
-    // Exclude policy expense chats if the user isn't in the policy expense chat beta
-    if (isPolicyExpenseChat(report) && !Permissions.canUsePolicyExpenseChat(betas)) {
-        return false;
     }
 
     // Hide chats between two users that haven't been commented on from the LNH
@@ -3096,12 +3184,20 @@ function getReportOfflinePendingActionAndErrors(report) {
 }
 
 /**
- * @param {String} policyID
- * @returns {Object}
+ * @param {String} policyOwner
+ * @returns {String|null}
  */
-function getPolicy(policyID) {
-    const policy = lodashGet(allPolicies, `${ONYXKEYS.COLLECTION.POLICY}${policyID}`) || {};
-    return policy;
+function getPolicyExpenseChatReportIDByOwner(policyOwner) {
+    const policyWithOwner = _.find(allPolicies, (policy) => policy.owner === policyOwner);
+    if (!policyWithOwner) {
+        return null;
+    }
+
+    const expenseChat = _.find(allReports, (report) => isPolicyExpenseChat(report) && report.policyID === policyWithOwner.id);
+    if (!expenseChat) {
+        return null;
+    }
+    return expenseChat.reportID;
 }
 
 /*
@@ -3394,12 +3490,16 @@ export {
     getReportOfflinePendingActionAndErrors,
     isDM,
     getPolicy,
+    getPolicyExpenseChatReportIDByOwner,
     shouldDisableSettings,
     shouldDisableRename,
     hasSingleParticipant,
+    isOneOnOneChat,
     getTransactionReportName,
     getTransactionDetails,
     getTaskAssigneeChatOnyxData,
+    canEditMoneyRequest,
+    buildTransactionThread,
     areAllRequestsBeingSmartScanned,
     getReportPreviewDisplayTransactions,
     getTransactionsWithReceipts,
