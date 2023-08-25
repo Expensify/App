@@ -40,7 +40,7 @@ function convertDistanceUnit(distanceInMeters, unit) {
 }
 
 const getDistanceString = (distance, unit, rate) => {
-    const convertedDistance = convertDistanceUnit(distance, unit, rate);
+    const convertedDistance = convertDistanceUnit(distance, unit);
 
     const distanceUnit = unit === 'mi' ? 'miles' : 'kilometers';
     const singularDistanceUnit = unit === 'mi' ? 'mile' : 'kilometer';
@@ -50,7 +50,7 @@ const getDistanceString = (distance, unit, rate) => {
 };
 
 const getDistanceRequestAmount = (distance, unit, rate) => {
-    const convertedDistance = convertDistanceUnit(distance, unit, rate);
+    const convertedDistance = convertDistanceUnit(distance, unit);
     return convertedDistance * rate;
 };
 
