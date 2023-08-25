@@ -38,7 +38,6 @@ runs:
     - name: Patch root project node packages
       shell: bash
       id: patch
-      continue-on-error: true
       if: | 
         steps.patchCheck.outputs.CHANGES_IN_PATCH_FILES == 'true' && 
         steps.cache-node-modules.outputs.cache-hit == 'true'
@@ -55,7 +54,6 @@ runs:
     - name: Patch node packages for desktop submodule
       shell: bash
       id: patchDesktop
-      continue-on-error: true
       if: | 
         steps.patchCheck.outputs.CHANGES_IN_PATCH_FILES == 'true' && 
         steps.cache-desktop-node-modules.outputs.cache-hit == 'true'
