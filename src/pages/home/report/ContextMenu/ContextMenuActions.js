@@ -22,6 +22,7 @@ import MiniQuickEmojiReactions from '../../../../components/Reactions/MiniQuickE
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../ROUTES';
 
+
 /**
  * Gets the HTML version of the message in an action.
  * @param {Object} reportAction
@@ -183,8 +184,8 @@ export default [
         // `ContextMenuItem` with `successText` and `successIcon` which will fallback to
         // the `text` and `icon`
         onPress: (closePopover, {reportAction, selection}) => {
-            const isTaskAction = ReportActionUtils.isTaskAction(reportAction);
-            const isReportPreviewAction = ReportActionUtils.isReportPreviewAction(reportAction);
+            const isTaskAction = ReportActionsUtils.isTaskAction(reportAction);
+            const isReportPreviewAction = ReportActionsUtils.isReportPreviewAction(reportAction);
             const message = _.last(lodashGet(reportAction, 'message', [{}]));
             const originalMessage = _.get(reportAction, 'originalMessage', {});
             const messageHtml = isTaskAction ? lodashGet(originalMessage, 'html', '') : lodashGet(message, 'html', '');
@@ -196,7 +197,7 @@ export default [
                     const iouReport = ReportUtils.getReport(ReportActionsUtils.getIOUReportIDFromReportActionPreview(reportAction));
                     const displayMessage = ReportUtils.getReportPreviewMessage(iouReport, reportAction);
                     Clipboard.setString(displayMessage);
-                } else if (ReportActionUtils.isModifiedExpenseAction(reportAction)) {
+                } else if (ReportActionsUtils.isModifiedExpenseAction(reportAction)) {
                     const modifyExpenseMessage = ReportUtils.getModifiedExpenseMessage(reportAction);
                     Clipboard.setString(modifyExpenseMessage);
                 } else if (content) {

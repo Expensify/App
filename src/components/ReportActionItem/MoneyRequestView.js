@@ -1,9 +1,9 @@
 import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import reportPropTypes from '../../pages/reportPropTypes';
-import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../ONYXKEYS';
 import ROUTES from '../../ROUTES';
 import Navigation from '../../libs/Navigation/Navigation';
@@ -35,21 +35,6 @@ const propTypes = {
     /** The expense report or iou report (only will have a value if this is a transaction thread) */
     parentReport: iouReportPropTypes,
 
-    /** The policy object for the current route */
-    policy: PropTypes.shape({
-        /** The name of the policy */
-        name: PropTypes.string,
-
-        /** The URL for the policy avatar */
-        avatar: PropTypes.string,
-    }),
-
-    /** Session info for the currently logged in user. */
-    session: PropTypes.shape({
-        /** Currently logged in user email */
-        email: PropTypes.string,
-    }),
-
     /** The transaction associated with the transactionThread */
     transaction: transactionPropTypes,
 
@@ -61,10 +46,6 @@ const propTypes = {
 
 const defaultProps = {
     parentReport: {},
-    policy: null,
-    session: {
-        email: null,
-    },
     transaction: {
         amount: 0,
         currency: CONST.CURRENCY.USD,
@@ -72,7 +53,7 @@ const defaultProps = {
     },
 };
 
-function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, policy, session, transaction}) {
+function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, transaction}) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
 
