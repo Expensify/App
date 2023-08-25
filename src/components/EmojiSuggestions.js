@@ -8,7 +8,6 @@ import * as EmojiUtils from '../libs/EmojiUtils';
 import Text from './Text';
 import getStyledTextArray from '../libs/GetStyledTextArray';
 import AutoCompleteSuggestions from './AutoCompleteSuggestions';
-import refPropType from './refPropTypes';
 
 const propTypes = {
     /** The index of the highlighted emoji */

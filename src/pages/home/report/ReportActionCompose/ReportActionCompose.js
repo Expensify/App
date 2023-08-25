@@ -386,6 +386,7 @@ function ReportActionCompose({
                                     shouldShowComposeInput={shouldShowComposeInput}
                                     onFocus={onFocus}
                                     onBlur={onBlur}
+                                    measureParentContainer={measureContainer}
                                 />
                                 <ReportDropUI
                                     onDrop={(e) => {
