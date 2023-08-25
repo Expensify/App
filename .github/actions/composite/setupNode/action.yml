@@ -36,7 +36,7 @@ runs:
         fi
 
     - name: Patch root project node packages
-      shell: bash
+      shell: bash {0}
       id: patch
       if: | 
         steps.patchCheck.outputs.CHANGES_IN_PATCH_FILES == 'true' && 
