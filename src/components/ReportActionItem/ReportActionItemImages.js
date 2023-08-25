@@ -56,7 +56,7 @@ function ReportActionItemImages({images, size, total, isHovered}) {
                 const isLastImage = index === numberOfShownImages - 1;
                 return (
                     <View
-                        key={image}
+                        key={`${index}-${image}`}
                         style={[styles.reportActionItemImage, hoverStyle]}
                     >
                         <ReportActionItemImage
