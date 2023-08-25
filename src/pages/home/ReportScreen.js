@@ -163,10 +163,6 @@ class ReportScreen extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (ReportUtils.shouldDisableWriteActions(this.props.report)) {
-            EmojiPickerAction.hideEmojiPicker(true);
-        }
-
         const onyxReportID = this.props.report.reportID;
         const prevOnyxReportID = prevProps.report.reportID;
         const routeReportID = getReportID(this.props.route);
