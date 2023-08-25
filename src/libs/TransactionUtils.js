@@ -59,6 +59,8 @@ function buildOptimisticTransaction(
     if (originalTransactionID) {
         commentJSON.originalTransactionID = originalTransactionID;
     }
+
+    // If there's a receipt, do not pass a default merchant so that the transaction is "partial" and can be smartscanned
     const defaultMerchant = _.isEmpty(receipt) ? CONST.TRANSACTION.DEFAULT_MERCHANT : '';
 
     return {
