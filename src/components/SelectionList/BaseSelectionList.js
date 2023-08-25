@@ -133,17 +133,8 @@ function BaseSelectionList({
         };
     }, [canSelectMultiple, sections]);
 
-    const [focusedIndex, setFocusedIndex] = useState(() => {
-        const defaultIndex = 0;
-
-        const indexOfInitiallyFocusedOption = _.findIndex(flattenedSections.allOptions, (option) => option.keyForList === initiallyFocusedOptionKey);
-
-        if (indexOfInitiallyFocusedOption >= 0) {
-            return indexOfInitiallyFocusedOption;
-        }
-
-        return defaultIndex;
-    });
+    // If `initiallyFocusedOptionKey` is not passed, we fall back to `-1`, to avoid showing the highlight on the first member
+    const [focusedIndex, setFocusedIndex] = useState(() => _.findIndex(flattenedSections.allOptions, (option) => option.keyForList === initiallyFocusedOptionKey));
 
     /**
      * Scrolls to the desired item index in the section list
@@ -339,11 +330,13 @@ function BaseSelectionList({
                                         accessibilityLabel={translate('workspace.people.selectAll')}
                                         accessibilityRole="button"
                                         accessibilityState={{checked: flattenedSections.allSelected}}
+                                        disabled={flattenedSections.allOptions.length === flattenedSections.disabledOptionsIndexes.length}
                                     >
                                         <Checkbox
                                             accessibilityLabel={translate('workspace.people.selectAll')}
                                             isChecked={flattenedSections.allSelected}
                                             onPress={onSelectAll}
+                                            disabled={flattenedSections.allOptions.length === flattenedSections.disabledOptionsIndexes.length}
                                         />
                                         <View style={[styles.flex1]}>
                                             <Text style={[styles.textStrong, styles.ph5]}>{translate('workspace.people.selectAll')}</Text>

@@ -1,4 +1,4 @@
-import React, {useRef, useEffect} from 'react';
+import React, {forwardRef, useRef, useEffect, useImperativeHandle} from 'react';
 import {View, ScrollView} from 'react-native';
 import {withSafeAreaInsets} from 'react-native-safe-area-context';
 import PropTypes from 'prop-types';
@@ -35,6 +35,9 @@ const propTypes = {
     /** Whether to show welcome header on a particular page */
     shouldShowWelcomeHeader: PropTypes.bool.isRequired,
 
+    /** A reference so we can expose scrollPageToTop */
+    innerRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
+
     /** Whether or not the sign in page is being rendered in the RHP modal */
     isInModal: PropTypes.bool.isRequired,
 
@@ -46,6 +49,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    innerRef: () => {},
     customHeadline: '',
 };
 
@@ -70,6 +74,10 @@ function SignInPageLayout(props) {
         }
         scrollViewRef.current.scrollTo({y: 0, animated});
     };
+
+    useImperativeHandle(props.innerRef, () => ({
+        scrollPageToTop,
+    }));
 
     useEffect(() => {
         if (prevPreferredLocale !== props.preferredLocale) {
@@ -160,4 +168,16 @@ SignInPageLayout.propTypes = propTypes;
 SignInPageLayout.displayName = 'SignInPageLayout';
 SignInPageLayout.defaultProps = defaultProps;
 
-export default compose(withWindowDimensions, withSafeAreaInsets, withLocalize)(SignInPageLayout);
+export default compose(
+    withWindowDimensions,
+    withSafeAreaInsets,
+    withLocalize,
+)(
+    forwardRef((props, ref) => (
+        <SignInPageLayout
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            innerRef={ref}
+        />
+    )),
+);
