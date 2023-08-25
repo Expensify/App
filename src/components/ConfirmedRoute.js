@@ -27,12 +27,10 @@ const defaultProps = {
     mapboxToken: '',
 };
 
-function ConfirmedRoute({mapboxToken, transaction}) {
-    const {route0: route} = transaction.routes;
-    const waypoints = lodashGet(transaction, 'comment.waypoints', {});
+const getWaypointMarkers = (waypoints) => {
     const numberOfWaypoints = _.size(waypoints);
     const lastWaypointIndex = numberOfWaypoints - 1;
-    const waypointMarkers = _.filter(
+    return _.filter(
         _.map(waypoints, (waypoint, key) => {
             if (!waypoint || waypoint.lng === undefined || waypoint.lat === undefined) {
                 return;
@@ -61,6 +59,12 @@ function ConfirmedRoute({mapboxToken, transaction}) {
         }),
         (waypoint) => waypoint,
     );
+};
+
+function ConfirmedRoute({mapboxToken, transaction}) {
+    const {route0: route} = transaction.routes;
+    const waypoints = lodashGet(transaction, 'comment.waypoints', {});
+    const waypointMarkers = getWaypointMarkers(waypoints);
 
     useEffect(() => {
         MapboxToken.init();
