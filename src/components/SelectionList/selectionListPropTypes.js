@@ -153,6 +153,9 @@ const propTypes = {
 
     /** Whether to show the loading placeholder */
     showLoadingPlaceholder: PropTypes.bool,
+
+    /** Whether to show the default confirm button */
+    showConfirmButton: PropTypes.bool,
 };
 
 export {propTypes, radioListItemPropTypes, checkboxListItemPropTypes};
