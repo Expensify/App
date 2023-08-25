@@ -31,9 +31,9 @@ function retrieveMaxCanvasHeight() {
  */
 function retrieveMaxCanvasWidth() {
     canvasSize.maxWidth({
-            onSuccess: (width)  => {
+        onSuccess: (width)  => {
             const maxCanvasWidth = width;
-            Onyx.merge(ONYXKEYS.MAX_CANVAS_Width, maxCanvasWidth);
+            Onyx.merge(ONYXKEYS.MAX_CANVAS_WIDTH, maxCanvasWidth);
         }
     });
 }
