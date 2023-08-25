@@ -60,7 +60,6 @@ function buildOptimisticTransaction(
         commentJSON.originalTransactionID = originalTransactionID;
     }
 
-
     return {
         transactionID,
         amount,
