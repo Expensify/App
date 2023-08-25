@@ -59,6 +59,7 @@ function buildOptimisticTransaction(
     if (originalTransactionID) {
         commentJSON.originalTransactionID = originalTransactionID;
     }
+    const defaultMerchant = _.isEmpty(receipt) ? CONST.TRANSACTION.DEFAULT_MERCHANT : '';
 
     return {
         transactionID,
@@ -66,7 +67,7 @@ function buildOptimisticTransaction(
         currency,
         reportID,
         comment: commentJSON,
-        merchant: merchant || _.isEmpty(receipt) ? CONST.TRANSACTION.DEFAULT_MERCHANT : '',
+        merchant: merchant || defaultMerchant,
         created: created || DateUtils.getDBTime(),
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         receipt,
