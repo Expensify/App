@@ -403,7 +403,10 @@ function ReportActionCompose({
                     {DeviceCapabilities.canUseTouchScreen() && isMediumScreenWidth ? null : (
                         <EmojiPickerButton
                             isDisabled={isBlockedFromConcierge || disabled}
-                            onModalHide={() => composerRef.current.focus(true)}
+                            onModalHide={() => {
+                                if (composerRef === null || composerRef.current === null)
+                                composerRef.current.focus(true)
+                            }}
                             onEmojiSelected={(...args) => composerRef.current.replaceSelectionWithText(...args)}
                             emojiPickerID={report.reportID}
                         />
