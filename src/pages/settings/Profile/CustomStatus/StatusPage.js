@@ -47,6 +47,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
         return DateUtils.getDateForTitleBasedFromType(dataToShow);
     }, [draftClearAfter, currentUserClearAfter]);
 
+    const navigateBackToSettingsPage = useCallback(() => Navigation.goBack(ROUTES.SETTINGS_PROFILE, false, true), []);
     const updateStatus = useCallback(() => {
         let clearAfter = '';
         if (draftClearAfter !== CONST.CUSTOM_STATUS_TYPES.NEVER) {
@@ -93,7 +94,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
     return (
         <StaticHeaderPageLayout
             title={localize.translate('statusPage.status')}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PROFILE)}
+            onBackButtonPress={navigateBackToSettingsPage}
             backgroundColor={themeColors.midtone}
             image={MobileBackgroundImage}
             footer={footerComponent}

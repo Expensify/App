@@ -3646,7 +3646,7 @@ const styles = {
         height: 40,
         marginLeft: 12,
         alignItems: 'center',
-        overflowY: 'hidden',
+        overflow: 'hidden',
     },
 
     googlePillButtonContainer: {
@@ -3822,6 +3822,27 @@ const styles = {
         transform: [{rotate: '90deg'}],
     },
 
+    emojiStatusLHN: {
+        fontSize: 22,
+    },
+    sidebarStatusAvatarContainer: {
+        height: 44,
+        width: 84,
+        backgroundColor: themeColors.componentBG,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        borderRadius: 42,
+        paddingHorizontal: 2,
+        marginVertical: -2,
+        marginRight: -2,
+    },
+    sidebarStatusAvatar: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+
     moneyRequestViewImage: {
         ...spacing.mh5,
         ...spacing.mv3,
@@ -3863,7 +3884,6 @@ const styles = {
         ...flex.flex1,
         borderRadius: variables.componentBorderRadiusLarge,
     },
-
     userReportStatusEmoji: {
         fontSize: variables.fontSizeNormal,
         marginRight: 4,

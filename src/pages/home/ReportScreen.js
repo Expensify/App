@@ -30,7 +30,6 @@ import withViewportOffsetTop, {viewportOffsetTopPropTypes} from '../../component
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 import personalDetailsPropType from '../personalDetailsPropType';
 import getIsReportFullyVisible from '../../libs/getIsReportFullyVisible';
-import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
 import MoneyRequestHeader from '../../components/MoneyRequestHeader';
 import MoneyReportHeader from '../../components/MoneyReportHeader';
 import * as ComposerActions from '../../libs/actions/Composer';
@@ -155,10 +154,6 @@ class ReportScreen extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (ReportUtils.shouldDisableWriteActions(this.props.report)) {
-            EmojiPickerAction.hideEmojiPicker(true);
-        }
-
         // If you already have a report open and are deeplinking to a new report on native,
         // the ReportScreen never actually unmounts and the reportID in the route also doesn't change.
         // Therefore, we need to compare if the existing reportID is the same as the one in the route

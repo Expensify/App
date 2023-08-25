@@ -586,6 +586,7 @@ const CONST = {
             MUTE: 'mute',
             DAILY: 'daily',
             ALWAYS: 'always',
+            HIDDEN: 'hidden',
         },
         // Options for which room members can post
         WRITE_CAPABILITIES: {
@@ -895,8 +896,6 @@ const CONST = {
         QA_TRAVIS: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_QA_TRAVIS', 8595733)),
         RECEIPTS: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_RECEIPTS', -1)),
         REWARDS: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_REWARDS', 11023767)), // rewards@expensify.com
-        SAASTR: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_SAASTR', 15252830)),
-        SBE: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_SBE', 15305309)),
         STUDENT_AMBASSADOR: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_STUDENT_AMBASSADOR', 10476956)),
         SVFG: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_SVFG', 2012843)),
     },
@@ -1200,6 +1199,7 @@ const CONST = {
         TIME_STARTS_01: /^01:\d{2} [AP]M$/,
         TIME_FORMAT: /^\d{2}:\d{2} [AP]M$/,
         DATE_TIME_FORMAT: /^\d{2}-\d{2} \d{2}:\d{2} [AP]M$/,
+        ILLEGAL_FILENAME_CHARACTERS: /\/|<|>|\*|"|:|\?|\\|\|/g,
     },
 
     PRONOUNS: {
@@ -1233,8 +1233,6 @@ const CONST = {
             this.EMAIL.QA,
             this.EMAIL.QA_TRAVIS,
             this.EMAIL.RECEIPTS,
-            this.EMAIL.SAASTR,
-            this.EMAIL.SBE,
             this.EMAIL.STUDENT_AMBASSADOR,
             this.EMAIL.SVFG,
         ];
@@ -1255,8 +1253,6 @@ const CONST = {
             this.ACCOUNT_ID.QA_TRAVIS,
             this.ACCOUNT_ID.RECEIPTS,
             this.ACCOUNT_ID.REWARDS,
-            this.ACCOUNT_ID.SAASTR,
-            this.ACCOUNT_ID.SBE,
             this.ACCOUNT_ID.STUDENT_AMBASSADOR,
             this.ACCOUNT_ID.SVFG,
         ];
