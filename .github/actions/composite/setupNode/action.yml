@@ -44,7 +44,7 @@ runs:
       run: npx patch-package
 
     - name: Install root project node packages if patching failed
-      if: ${{ failure() && steps.patch.outcome == 'failure' }}
+      if: failure()
       uses: nick-fields/retry@v2
       with:
         timeout_minutes: 30
