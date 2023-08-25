@@ -43,7 +43,6 @@ function BaseSelectionList({
     keyboardType = CONST.KEYBOARD_TYPE.DEFAULT,
     onChangeText,
     initiallyFocusedOptionKey = '',
-    shouldDelayFocus = false,
     onScroll,
     onScrollBeginDrag,
     headerMessage = '',

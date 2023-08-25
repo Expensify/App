@@ -109,7 +109,6 @@ function PronounsPage(props) {
                     onSelectRow={updatePronouns}
                     onChangeText={onChangeText}
                     initiallyFocusedOptionKey={initiallyFocusedOption.keyForList}
-                    shouldDelayFocus
                 />
             )}
         </ScreenWrapper>

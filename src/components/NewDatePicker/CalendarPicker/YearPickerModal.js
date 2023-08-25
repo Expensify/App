@@ -70,7 +70,6 @@ function YearPickerModal(props) {
                     onBackButtonPress={props.onClose}
                 />
                 <SelectionList
-                    shouldDelayFocus
                     textInputLabel={translate('yearPickerPage.selectYear')}
                     textInputValue={searchText}
                     textInputMaxLength={4}
