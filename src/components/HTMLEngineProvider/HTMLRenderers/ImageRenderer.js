@@ -33,11 +33,11 @@ function ImageRenderer(props) {
     //           Concierge responder attachments are uploaded to S3 without any access
     //           control and thus require no authToken to verify access.
     //
-    const isAttachment = Boolean(htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]);
+    const isAttachmentOrReceipt = Boolean(htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]);
 
     // Files created/uploaded/hosted by App should resolve from API ROOT. Other URLs aren't modified
     const previewSource = tryResolveUrlFromApiRoot(htmlAttribs.src);
-    const source = tryResolveUrlFromApiRoot(isAttachment ? htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE] : htmlAttribs.src);
+    const source = tryResolveUrlFromApiRoot(isAttachmentOrReceipt ? htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE] : htmlAttribs.src);
 
     const imageWidth = htmlAttribs['data-expensify-width'] ? parseInt(htmlAttribs['data-expensify-width'], 10) : undefined;
     const imageHeight = htmlAttribs['data-expensify-height'] ? parseInt(htmlAttribs['data-expensify-height'], 10) : undefined;
@@ -47,7 +47,7 @@ function ImageRenderer(props) {
         <ThumbnailImage
             previewSourceURL={previewSource}
             style={styles.webViewStyles.tagStyles.img}
-            isAuthTokenRequired={isAttachment}
+            isAuthTokenRequired={isAttachmentOrReceipt}
             imageWidth={imageWidth}
             imageHeight={imageHeight}
         />
@@ -67,7 +67,7 @@ function ImageRenderer(props) {
                     <ThumbnailImage
                         previewSourceURL={previewSource}
                         style={styles.webViewStyles.tagStyles.img}
-                        isAuthTokenRequired={isAttachment}
+                        isAuthTokenRequired={isAttachmentOrReceipt}
                         imageWidth={imageWidth}
                         imageHeight={imageHeight}
                     />

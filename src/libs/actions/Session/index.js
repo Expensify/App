@@ -7,7 +7,6 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import redirectToSignIn from '../SignInRedirect';
 import CONFIG from '../../../CONFIG';
 import Log from '../../Log';
-import PushNotification from '../../Notification/PushNotification';
 import Timing from '../Timing';
 import CONST from '../../../CONST';
 import Timers from '../../Timers';
@@ -18,7 +17,6 @@ import * as API from '../../API';
 import * as NetworkStore from '../../Network/NetworkStore';
 import Navigation from '../../Navigation/Navigation';
 import * as Device from '../Device';
-import subscribeToReportCommentPushNotifications from '../../Notification/PushNotification/subscribeToReportCommentPushNotifications';
 import ROUTES from '../../../ROUTES';
 import * as ErrorUtils from '../../ErrorUtils';
 import * as ReportUtils from '../../ReportUtils';
@@ -35,28 +33,6 @@ let credentials = {};
 Onyx.connect({
     key: ONYXKEYS.CREDENTIALS,
     callback: (val) => (credentials = val || {}),
-});
-
-/**
- * Manage push notification subscriptions on sign-in/sign-out.
- *
- * On Android, AuthScreens unmounts when the app is closed with the back button so we manage the
- * push subscription when the session changes here.
- */
-Onyx.connect({
-    key: ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID,
-    callback: (notificationID) => {
-        if (notificationID) {
-            PushNotification.register(notificationID);
-
-            // Prevent issue where report linking fails after users switch accounts without closing the app
-            PushNotification.init();
-            subscribeToReportCommentPushNotifications();
-        } else {
-            PushNotification.deregister();
-            PushNotification.clearNotifications();
-        }
-    },
 });
 
 /**
@@ -89,11 +65,13 @@ function isAnonymousUser() {
 }
 
 function signOutAndRedirectToSignIn() {
-    hideContextMenu(false);
-    signOut();
-    redirectToSignIn();
     Log.info('Redirecting to Sign In because signOut() was called');
-    if (isAnonymousUser()) {
+    hideContextMenu(false);
+    if (!isAnonymousUser()) {
+        signOut();
+        redirectToSignIn();
+    } else {
+        Navigation.navigate(ROUTES.SIGN_IN_MODAL);
         Linking.getInitialURL().then((url) => {
             const reportID = ReportUtils.getReportIDFromLink(url);
             if (reportID) {

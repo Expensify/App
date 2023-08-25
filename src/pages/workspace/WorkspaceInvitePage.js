@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useMemo} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -12,17 +12,15 @@ import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Policy from '../../libs/actions/Policy';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
-import OptionsSelector from '../../components/OptionsSelector';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import CONST from '../../CONST';
-import {policyPropTypes, policyDefaultProps} from './withPolicy';
-import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
+import withPolicy, {policyDefaultProps, policyPropTypes} from './withPolicy';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import ROUTES from '../../ROUTES';
-import * as Browser from '../../libs/Browser';
 import * as PolicyUtils from '../../libs/PolicyUtils';
 import useNetwork from '../../hooks/useNetwork';
 import useLocalize from '../../hooks/useLocalize';
+import SelectionList from '../../components/SelectionList';
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The login of the person (either email or phone number) */
@@ -52,12 +50,14 @@ const propTypes = {
         }),
     }).isRequired,
 
+    isLoadingReportData: PropTypes.bool,
     ...policyPropTypes,
 };
 
 const defaultProps = {
     personalDetails: {},
     betas: [],
+    isLoadingReportData: true,
     ...policyDefaultProps,
 };
 
@@ -87,10 +87,10 @@ function WorkspaceInvitePage(props) {
 
         // Update selectedOptions with the latest personalDetails and policyMembers information
         const detailsMap = {};
-        _.forEach(inviteOptions.personalDetails, (detail) => (detailsMap[detail.login] = detail));
+        _.forEach(inviteOptions.personalDetails, (detail) => (detailsMap[detail.login] = OptionsListUtils.formatMemberForList(detail, false)));
         const newSelectedOptions = [];
         _.forEach(selectedOptions, (option) => {
-            newSelectedOptions.push(_.has(detailsMap, option.login) ? detailsMap[option.login] : option);
+            newSelectedOptions.push(_.has(detailsMap, option.login) ? {...detailsMap[option.login], isSelected: true} : option);
         });
 
         setUserToInvite(inviteOptions.userToInvite);
@@ -114,20 +114,21 @@ function WorkspaceInvitePage(props) {
         // Filtering out selected users from the search results
         const selectedLogins = _.map(selectedOptions, ({login}) => login);
         const personalDetailsWithoutSelected = _.filter(personalDetails, ({login}) => !_.contains(selectedLogins, login));
+        const personalDetailsFormatted = _.map(personalDetailsWithoutSelected, (personalDetail) => OptionsListUtils.formatMemberForList(personalDetail, false));
         const hasUnselectedUserToInvite = userToInvite && !_.contains(selectedLogins, userToInvite.login);
 
         sections.push({
             title: translate('common.contacts'),
-            data: personalDetailsWithoutSelected,
-            shouldShow: !_.isEmpty(personalDetailsWithoutSelected),
+            data: personalDetailsFormatted,
+            shouldShow: !_.isEmpty(personalDetailsFormatted),
             indexOffset,
         });
-        indexOffset += personalDetailsWithoutSelected.length;
+        indexOffset += personalDetailsFormatted.length;
 
         if (hasUnselectedUserToInvite) {
             sections.push({
                 title: undefined,
-                data: [userToInvite],
+                data: [OptionsListUtils.formatMemberForList(userToInvite, false)],
                 shouldShow: true,
                 indexOffset,
             });
@@ -145,7 +146,7 @@ function WorkspaceInvitePage(props) {
         if (isOptionInList) {
             newSelectedOptions = _.reject(selectedOptions, (selectedOption) => selectedOption.login === option.login);
         } else {
-            newSelectedOptions = [...selectedOptions, option];
+            newSelectedOptions = [...selectedOptions, {...option, isSelected: true}];
         }
 
         setSelectedOptions(newSelectedOptions);
@@ -169,7 +170,7 @@ function WorkspaceInvitePage(props) {
         const invitedEmailsToAccountIDs = {};
         _.each(selectedOptions, (option) => {
             const login = option.login || '';
-            const accountID = lodashGet(option, 'participantsList[0].accountID');
+            const accountID = lodashGet(option, 'accountID', '');
             if (!login.toLowerCase().trim() || !accountID) {
                 return;
             }
@@ -199,9 +200,10 @@ function WorkspaceInvitePage(props) {
         <ScreenWrapper shouldEnableMaxHeight>
             {({didScreenTransitionEnd}) => {
                 const sections = didScreenTransitionEnd ? getSections() : [];
+
                 return (
                     <FullPageNotFoundView
-                        shouldShow={_.isEmpty(props.policy) || !PolicyUtils.isPolicyAdmin(props.policy)}
+                        shouldShow={(_.isEmpty(props.policy) || !PolicyUtils.isPolicyAdmin(props.policy)) && !props.isLoadingReportData}
                         subtitleKey={_.isEmpty(props.policy) ? undefined : 'workspace.common.notAuthorized'}
                         onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
                     >
@@ -215,27 +217,16 @@ function WorkspaceInvitePage(props) {
                                 Navigation.goBack(ROUTES.getWorkspaceMembersRoute(props.route.params.policyID));
                             }}
                         />
-                        <View style={[styles.flexGrow1, styles.flexShrink0, styles.flexBasisAuto]}>
-                            <OptionsSelector
-                                contentContainerStyles={[styles.flexGrow1, styles.flexShrink0, styles.flexBasisAuto]}
-                                listContainerStyles={[styles.flexGrow1, styles.flexShrink1, styles.flexBasis0]}
-                                canSelectMultipleOptions
-                                sections={sections}
-                                selectedOptions={selectedOptions}
-                                value={searchTerm}
-                                shouldShowOptions={didScreenTransitionEnd && OptionsListUtils.isPersonalDetailsReady(props.personalDetails)}
-                                onSelectRow={toggleOption}
-                                onChangeText={setSearchTerm}
-                                onConfirmSelection={inviteUser}
-                                headerMessage={headerMessage}
-                                showScrollIndicator
-                                hideSectionHeaders
-                                boldStyle
-                                shouldDelayFocus
-                                shouldFocusOnSelectRow={!Browser.isMobile()}
-                                textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
-                            />
-                        </View>
+                        <SelectionList
+                            canSelectMultiple
+                            sections={sections}
+                            textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
+                            textInputValue={searchTerm}
+                            onChangeText={setSearchTerm}
+                            headerMessage={headerMessage}
+                            onSelectRow={toggleOption}
+                            showScrollIndicator
+                        />
                         <View style={[styles.flexShrink0]}>
                             <FormAlertWithSubmitButton
                                 isDisabled={!selectedOptions.length}
@@ -260,13 +251,16 @@ WorkspaceInvitePage.defaultProps = defaultProps;
 WorkspaceInvitePage.displayName = 'WorkspaceInvitePage';
 
 export default compose(
-    withPolicyAndFullscreenLoading,
+    withPolicy,
     withOnyx({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
         betas: {
             key: ONYXKEYS.BETAS,
+        },
+        isLoadingReportData: {
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
         },
     }),
 )(WorkspaceInvitePage);
