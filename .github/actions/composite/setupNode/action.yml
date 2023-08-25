@@ -42,9 +42,8 @@ runs:
         steps.patchCheck.outputs.CHANGES_IN_PATCH_FILES == 'true' && 
         steps.cache-node-modules.outputs.cache-hit == 'true'
       run: |
-        set -e
         {
-          npx patch-package &&
+          set +e && npx patch-package &&
           echo 'PATCH_EXECUTED=true' >> "$GITHUB_OUTPUT"
         } || {
           echo 'PATCH_EXECUTED=false' >> "$GITHUB_OUTPUT"
