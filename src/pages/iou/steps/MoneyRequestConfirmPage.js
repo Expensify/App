@@ -234,7 +234,7 @@ function MoneyRequestConfirmPage(props) {
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                     <HeaderWithBackButton
-                        title={isDistanceRequest ? 'Distance' : props.translate('iou.cash')}
+                        title={isDistanceRequest ? props.translate('tabSelector.distance') : props.translate('iou.cash')}
                         onBackButtonPress={navigateBack}
                     />
                     <MoneyRequestConfirmationList
