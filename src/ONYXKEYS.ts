@@ -224,7 +224,6 @@ const ONYXKEYS = {
     // Information on any active demos being run
     DEMO_INFO: 'demoInfo',
 
-
     MAX_CANVAS_AREA: 'maxCanvasArea',
 
     MAX_CANVAS_HEIGHT: 'maxCanvasHeight',

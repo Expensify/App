@@ -2,16 +2,15 @@ import Onyx from 'react-native-onyx';
 import canvasSize from 'canvas-size';
 import ONYXKEYS from '../../ONYXKEYS';
 
-
 /**
  * Calculate the max area of canvas on this specific platform and save it in onyx
  */
 function retrieveMaxCanvasArea() {
     canvasSize.maxArea({
-        onSuccess: (width, height)  => {
+        onSuccess: (width, height) => {
             const maxCanvasArea = width * height;
             Onyx.merge(ONYXKEYS.MAX_CANVAS_AREA, maxCanvasArea);
-        }
+        },
     });
 }
 
@@ -19,12 +18,12 @@ function retrieveMaxCanvasArea() {
  * Calculate the max height of canvas on this specific platform and save it in onyx
  */
 function retrieveMaxCanvasHeight() {
-        canvasSize.maxHeight({
-            onSuccess: (width, height)  => {
-                const maxCanvasHeight =  height;
-                Onyx.merge(ONYXKEYS.MAX_CANVAS_HEIGHT, maxCanvasHeight);
-            }
-        });
+    canvasSize.maxHeight({
+        onSuccess: (width, height) => {
+            const maxCanvasHeight = height;
+            Onyx.merge(ONYXKEYS.MAX_CANVAS_HEIGHT, maxCanvasHeight);
+        },
+    });
 }
 
 /**
@@ -32,10 +31,10 @@ function retrieveMaxCanvasHeight() {
  */
 function retrieveMaxCanvasWidth() {
     canvasSize.maxWidth({
-        onSuccess: (width)  => {
+        onSuccess: (width) => {
             const maxCanvasWidth = width;
             Onyx.merge(ONYXKEYS.MAX_CANVAS_WIDTH, maxCanvasWidth);
-        }
+        },
     });
 }
 

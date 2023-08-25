@@ -21,8 +21,6 @@ import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 import Log from '../../libs/Log';
 import ONYXKEYS from '../../ONYXKEYS';
 
-
-
 /**
  * Each page has a default border. The app should take this size into account
  * when calculates the page width and height.
@@ -58,9 +56,7 @@ class PDFView extends Component {
         const workerBlob = new Blob([pdfWorkerSource], {type: 'text/javascript'});
         pdfjs.GlobalWorkerOptions.workerSrc = URL.createObjectURL(workerBlob);
         this.retrieveCanvasLimits();
-        
     }
-
 
     componentDidUpdate(prevProps) {
         // Use window height changes to toggle the keyboard. To maintain keyboard state
@@ -122,16 +118,19 @@ class PDFView extends Component {
         ref.tabIndex = -1;
     }
 
-    retrieveCanvasLimits(){
-        if(!this.props.maxCanvasArea){
+    /**
+     * Verify that the canvas limits have been calculated already, if not calculate them and put them in Onyx
+     */
+    retrieveCanvasLimits() {
+        if (!this.props.maxCanvasArea) {
             CanvasSize.retrieveMaxCanvasArea();
         }
 
-        if(!this.props.maxCanvasHeight){
+        if (!this.props.maxCanvasHeight) {
             CanvasSize.retrieveMaxCanvasHeight();
         }
-        
-        if(!this.props.maxCanvasWidth){
+
+        if (!this.props.maxCanvasWidth) {
             CanvasSize.retrieveMaxCanvasWidth();
         }
     }
@@ -228,10 +227,12 @@ class PDFView extends Component {
         const pageWidth = this.calculatePageWidth();
         const pageHeight = this.calculatePageHeight(index);
 
+        //Each platform has a different default devicePixelRatio and different canvas limits, we need to verify that
+        // with the default devicePixelRatio it will be able to diplay the pdf correctly, if not we must change the devicePixelRatio.
         const nbPixels = pageWidth * pageHeight;
         const ratioHeight = this.props.maxCanvasHeight / pageHeight;
         const ratioWidth = this.props.maxCanvasWidth / pageWidth;
-        const ratioArea = Math.sqrt((this.props.maxCanvasArea / nbPixels));
+        const ratioArea = Math.sqrt(this.props.maxCanvasArea / nbPixels);
         const ratio = Math.min(ratioHeight, ratioArea, ratioWidth);
         const devicePixelRatio = ratio > window.devicePixelRatio ? undefined : ratio;
 
@@ -331,7 +332,7 @@ PDFView.propTypes = pdfViewPropTypes.propTypes;
 PDFView.defaultProps = pdfViewPropTypes.defaultProps;
 
 export default compose(
-    withLocalize, 
+    withLocalize,
     withWindowDimensions,
     withOnyx({
         maxCanvasArea: {
