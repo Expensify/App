@@ -373,7 +373,7 @@ function MoneyRequestConfirmationList(props) {
             footerContent={footerContent}
         >
             {props.isDistanceRequest && (
-                <View style={{margin: 20, height: 200}}>
+                <View style={styles.confirmationListMapItem}>
                     <ConfirmedRoute transactionID={props.transactionID} />
                 </View>
             )}
