@@ -62,8 +62,6 @@ function BaseSelectionList({
     const shouldShowSelectAll = Boolean(onSelectAll);
     const activeElement = useActiveElement();
 
-    console.log('activeElement', activeElement);
-
     /**
      * Iterates through the sections and items inside each section, and builds 3 arrays along the way:
      * - `allOptions`: Contains all the items in the list, flattened, regardless of section
@@ -192,8 +190,6 @@ function BaseSelectionList({
     };
 
     const selectFocusedOption = () => {
-        console.log('ENTER');
-
         const focusedOption = flattenedSections.allOptions[focusedIndex];
 
         if (!focusedOption || focusedOption.isDisabled) {
