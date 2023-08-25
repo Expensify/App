@@ -226,6 +226,8 @@ function WorkspaceInvitePage(props) {
                             headerMessage={headerMessage}
                             onSelectRow={toggleOption}
                             showScrollIndicator
+                            shouldDelayFocus
+                            showScrollIndicator
                         />
                         <View style={[styles.flexShrink0]}>
                             <FormAlertWithSubmitButton
