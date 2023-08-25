@@ -16,14 +16,25 @@ const propTypes = {
     /** ONYX PROP to hide banner for a user that has dismissed it */
     // eslint-disable-next-line react/forbid-prop-types
     showDownloadAppBanner: PropTypes.bool,
+
+    /** Session of currently logged in user */
+    session: PropTypes.shape({
+        /** Currently logged in user authToken */
+        authToken: PropTypes.string,
+    }),
 };
 
 const defaultProps = {
     showDownloadAppBanner: true,
+    session: {
+        authToken: null,
+    },
 };
 
-function DownloadAppModal({showDownloadAppBanner}) {
-    const [shouldShowBanner, setshouldShowBanner] = useState(Browser.isMobile() && showDownloadAppBanner);
+function DownloadAppModal({session, showDownloadAppBanner}) {
+    const userLoggedIn = !_.isEmpty(session.authToken);
+    console.log({userLoggedIn})
+    const [shouldShowBanner, setshouldShowBanner] = useState(Browser.isMobile() && userLoggedIn && showDownloadAppBanner);
 
     const {translate} = useLocalize();
 
@@ -70,5 +81,8 @@ DownloadAppModal.defaultProps = defaultProps;
 export default withOnyx({
     showDownloadAppBanner: {
         key: ONYXKEYS.SHOW_DOWNLOAD_APP_BANNER,
+    },
+    session: {
+        key: ONYXKEYS.SESSION,
     },
 })(DownloadAppModal);

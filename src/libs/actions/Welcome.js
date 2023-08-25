@@ -15,6 +15,7 @@ let isReadyPromise = new Promise((resolve) => {
 });
 
 let isFirstTimeNewExpensifyUser;
+let shouldShowDownloadAppBanner;
 let isLoadingReportData = true;
 let currentUserAccountID;
 
@@ -32,6 +33,14 @@ function checkOnReady() {
 
     resolveIsReadyPromise();
 }
+
+Onyx.connect({
+    key: ONYXKEYS.SHOW_DOWNLOAD_APP_BANNER,
+    initWithStoredValues: false,
+    callback: (val) => {
+        shouldShowDownloadAppBanner = val;
+    },
+});
 
 Onyx.connect({
     key: ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER,
@@ -106,7 +115,7 @@ Onyx.connect({
  */
 function show({routes, showCreateMenu = () => {}, showPopoverMenu = () => {}}) {
     isReadyPromise.then(() => {
-        if (!isFirstTimeNewExpensifyUser) {
+        if (!isFirstTimeNewExpensifyUser || shouldShowDownloadAppBanner) {
             return;
         }
 
