@@ -104,17 +104,19 @@ function PronounsPage(props) {
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PROFILE)}
             />
             <Text style={[styles.ph5, styles.mb3]}>{props.translate('pronounsPage.isShownOnProfile')}</Text>
-            <SelectionList
-                headerMessage={headerMessage}
-                textInputLabel={props.translate('pronounsPage.pronouns')}
-                textInputPlaceholder={props.translate('pronounsPage.placeholderText')}
-                textInputValue={searchValue}
-                sections={[{data: filteredPronounsList, indexOffset: 0}]}
-                onSelectRow={updatePronouns}
-                onChangeText={onChangeText}
-                initiallyFocusedOptionKey={initiallyFocusedOption.keyForList}
-                shouldDelayFocus
-            />
+            {filteredPronounsList.length > 0 && (
+                <SelectionList
+                    headerMessage={headerMessage}
+                    textInputLabel={props.translate('pronounsPage.pronouns')}
+                    textInputPlaceholder={props.translate('pronounsPage.placeholderText')}
+                    textInputValue={searchValue}
+                    sections={[{data: filteredPronounsList, indexOffset: 0}]}
+                    onSelectRow={updatePronouns}
+                    onChangeText={onChangeText}
+                    initiallyFocusedOptionKey={initiallyFocusedOption.keyForList}
+                    shouldDelayFocus
+                />
+            )}
         </ScreenWrapper>
     );
 }
