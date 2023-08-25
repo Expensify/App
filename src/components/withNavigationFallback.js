@@ -1,5 +1,4 @@
 import React, {Component} from 'react';
-import PropTypes from 'prop-types';
 import {NavigationContext} from '@react-navigation/core';
 import getComponentDisplayName from '../libs/getComponentDisplayName';
 import refPropTypes from './refPropTypes';
