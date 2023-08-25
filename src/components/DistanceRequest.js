@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {ScrollView, View} from 'react-native';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
@@ -64,7 +64,7 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
 
-    const waypoints = lodashGet(transaction, 'comment.waypoints', {});
+    const waypoints = useMemo(() => lodashGet(transaction, 'comment.waypoints', {}), [transaction]);
     const numberOfWaypoints = _.size(waypoints);
 
     const lastWaypointIndex = numberOfWaypoints - 1;
@@ -74,34 +74,38 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
     const haveWaypointsChanged = !_.isEqual(previousWaypoints, waypoints);
     const shouldFetchRoute = haveWaypointsChanged && !isOffline && !isLoadingRoute && TransactionUtils.validateWaypoints(waypoints);
 
-    const waypointMarkers = _.filter(
-        _.map(waypoints, (waypoint, key) => {
-            if (!waypoint || waypoint.lng === undefined || waypoint.lat === undefined) {
-                return;
-            }
+    const waypointMarkers = useMemo(
+        () =>
+            _.filter(
+                _.map(waypoints, (waypoint, key) => {
+                    if (!waypoint || waypoint.lng === undefined || waypoint.lat === undefined) {
+                        return;
+                    }
 
-            const index = Number(key.replace('waypoint', ''));
-            let MarkerComponent;
-            if (index === 0) {
-                MarkerComponent = Expensicons.DotIndicatorUnfilled;
-            } else if (index === lastWaypointIndex) {
-                MarkerComponent = Expensicons.Location;
-            } else {
-                MarkerComponent = Expensicons.DotIndicator;
-            }
+                    const index = Number(key.replace('waypoint', ''));
+                    let MarkerComponent;
+                    if (index === 0) {
+                        MarkerComponent = Expensicons.DotIndicatorUnfilled;
+                    } else if (index === lastWaypointIndex) {
+                        MarkerComponent = Expensicons.Location;
+                    } else {
+                        MarkerComponent = Expensicons.DotIndicator;
+                    }
 
-            return {
-                coordinate: [waypoint.lng, waypoint.lat],
-                markerComponent: () => (
-                    <MarkerComponent
-                        width={20}
-                        height={20}
-                        fill={theme.icon}
-                    />
-                ),
-            };
-        }),
-        (waypoint) => waypoint,
+                    return {
+                        coordinate: [waypoint.lng, waypoint.lat],
+                        markerComponent: () => (
+                            <MarkerComponent
+                                width={20}
+                                height={20}
+                                fill={theme.icon}
+                            />
+                        ),
+                    };
+                }),
+                (waypoint) => waypoint,
+            ),
+        [waypoints, lastWaypointIndex],
     );
 
     // Show up to the max number of waypoints plus 1/2 of one to hint at scrolling
