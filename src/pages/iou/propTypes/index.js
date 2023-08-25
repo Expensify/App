@@ -16,7 +16,11 @@ const iouPropTypes = PropTypes.shape({
     comment: PropTypes.string,
 
     merchant: PropTypes.string,
+
+    /** Date that the request was created */
     created: PropTypes.string,
+
+    /** The path to an image of the receipt attached to the request */
     receiptPath: PropTypes.string,
 
     /** List of the participants */
