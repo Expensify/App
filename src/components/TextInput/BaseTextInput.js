@@ -264,6 +264,8 @@ function BaseTextInput(props) {
 
                             // When autoGrow is on and minWidth is not supplied, add a minWidth to allow the input to be focusable.
                             props.autoGrow && !textInputContainerStyles.minWidth && styles.mnw2,
+                            // Remove border bottom when field is not editable.
+                            !isEditable && styles.borderNone,
                         ]}
                     >
                         {hasLabel ? (
@@ -331,6 +333,8 @@ function BaseTextInput(props) {
 
                                     // Stop scrollbar flashing when breaking lines with autoGrowHeight enabled.
                                     props.autoGrowHeight && StyleUtils.getAutoGrowHeightInputStyle(textInputHeight, maxHeight),
+                                    // Disable cursor when the field is not editable.
+                                    !isEditable && styles.cursorDisabled,
                                 ]}
                                 multiline={isMultiline}
                                 maxLength={props.maxLength}
