@@ -9,7 +9,7 @@ import * as Expensicons from './Icon/Expensicons';
 import LocationErrorMessage from './LocationErrorMessage';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import colors from '../styles/colors';
-import PressableWithFeedback from '../Pressable/PressableWithFeedback';
+import PressableWithFeedback from './Pressable/PressableWithFeedback';
 
 const propTypes = {
     /** Callback that runs when location data is fetched */
