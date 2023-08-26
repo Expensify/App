@@ -22,6 +22,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    // when its 0, we assume no error
     locationErrorCode: 0,
 };
 
