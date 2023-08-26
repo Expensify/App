@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React, {useRef, useState} from 'react';
 import lodashGet from 'lodash/get';
 import {View} from 'react-native';
@@ -61,6 +62,9 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
     const [isDeleteStopModalOpen, setIsDeleteStopModalOpen] = useState(false);
     const currentWaypoint = lodashGet(transaction, `comment.waypoints.waypoint${waypointIndex}`, {});
     const waypointAddress = lodashGet(currentWaypoint, 'address', '');
+    const totalWaypoints = _.size(lodashGet(transaction, 'comment.waypoints', {}));
+    // Hide the menu when there is only start and finish waypoint
+    const shouldShowThreeDotsButton = totalWaypoints !== 2;
 
     const validate = (values) => {
         const errors = {};
@@ -129,22 +133,22 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
                 onBackButtonPress={() => {
                     Navigation.goBack(ROUTES.getMoneyRequestDistanceTabRoute(iouType));
                 }}
-                shouldShowThreeDotsButton
+                shouldShowThreeDotsButton={shouldShowThreeDotsButton}
                 threeDotsAnchorPosition={styles.threeDotsPopoverOffset(windowWidth)}
                 threeDotsMenuItems={[
                     {
                         icon: Expensicons.Trashcan,
-                        text: translate('distance.deleteStop'),
+                        text: translate('distance.deleteWaypoint'),
                         onSelected: () => setIsDeleteStopModalOpen(true),
                     },
                 ]}
             />
             <ConfirmModal
-                title={translate('distance.deleteStop')}
+                title={translate('distance.deleteWaypoint')}
                 isVisible={isDeleteStopModalOpen}
                 onConfirm={confirmDeleteStopAndHideModal}
                 onCancel={() => setIsDeleteStopModalOpen(false)}
-                prompt={translate('distance.deleteStopConfirmation')}
+                prompt={translate('distance.deleteWaypointConfirmation')}
                 confirmText={translate('common.delete')}
                 cancelText={translate('common.cancel')}
                 danger
