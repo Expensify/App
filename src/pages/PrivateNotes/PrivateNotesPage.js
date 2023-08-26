@@ -18,8 +18,16 @@ import ROUTES from '../../ROUTES';
 import Form from '../../components/Form';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import reportPropTypes from '../reportPropTypes';
+import personalDetailsPropType from '../personalDetailsPropType';
+import Str from 'expensify-common/lib/str';
+import RenderHTML from '../../components/RenderHTML';
+import { PressableWithoutFeedback } from '../../components/Pressable';
+import * as Report from '../../libs/actions/Report';
 
 const propTypes = {
+     /** All of the personal details for everyone */
+     personalDetailsList: PropTypes.objectOf(personalDetailsPropType),
+
     /** The report currently being looked at */
     report: reportPropTypes,
     route: PropTypes.shape({
@@ -31,12 +39,21 @@ const propTypes = {
         }),
     }).isRequired,
 
+    /** Session of currently logged in user */
+    session: PropTypes.shape({
+        /** Currently logged in user authToken */
+        authToken: PropTypes.string,
+    }),
+
     /** Returns translated string for given locale and phrase */
     translate: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
     report: {},
+    session: {
+        accountID: null,
+    }
 };
 
 class PrivateNotesPage extends React.Component {
@@ -45,6 +62,7 @@ class PrivateNotesPage extends React.Component {
 
         this.state = {
             privateNote: lodashGet(this.props.report, `privateNotes.${this.props.route.params.accountID}.note`, ''),
+            editMode: false,
         };
     }
 
@@ -56,6 +74,7 @@ class PrivateNotesPage extends React.Component {
     }
 
     savePrivateNote() {
+        Report.updatePrivateNotes(this.props.reportID, this.props.route.params.accountID, this.state.privateNote);
         Keyboard.dismiss();
         
     }
@@ -72,38 +91,38 @@ class PrivateNotesPage extends React.Component {
     }
 
     render() {
-
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <FullPageNotFoundView
-                    shouldShow={_.isEmpty(this.props.report) || _.isEmpty(this.props.report.privateNotes) || !_.has(this.props.report, `privateNotes.${this.props.route.params.accountID}.note`)}
+                    shouldShow={false}
                     subtitleKey='privateNotes.notesUnavailable'
                     onBackButtonPress={() => Navigation.goBack(ROUTES.PRIVATE_NOTES_LIST)}
                 >
                     <HeaderWithBackButton
                         title={this.props.translate('privateNotes.title')}
-                        subtitle='Users note'
+                        subtitle= {Number(lodashGet(this.props.session, 'accountID', null)) === Number(this.props.route.params.accountID) ? 'Your note' : `${lodashGet(this.props.personalDetailsList, `${accountID}.login`, '')} note`}
                         shouldShowBackButton
                         onCloseButtonPress={() => Navigation.dismissModal()}
                         onBackButtonPress={() => Navigation.goBack()}
                     />
                     <Form
                         style={[styles.flexGrow1, styles.ph5]}
-                        formID={ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM}
+                        formID={ONYXKEYS.FORMS.PRIVATE_NOTES_FORM}
                         onSubmit={this.savePrivateNote}
                         submitButtonText={this.props.translate('common.save')}
                         enabledWhenOffline
                     >
                         <View style={[styles.mb5]}>
-                            <Text>{this.props.translate('workspace.inviteMessage.inviteMessagePrompt')}</Text>
+                            <Text>{this.props.translate(Str.extractEmailDomain(lodashGet(this.props.personalDetailsList, [this.props.route.params.accountID, 'login'], '')) === CONST.EMAIL.GUIDES_DOMAIN ? 'privateNotes.sharedNoteMessage' : 'privateNotes.personalNoteMessage')}</Text>
                         </View>
-                        <View style={[styles.mb3]}>
+                        {
+                            this.state.editMode ? <View style={[styles.mb3]}>
                             <TextInput
                                 ref={(el) => (this.welcomeMessageInputRef = el)}
                                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                                inputID="welcomeMessage"
-                                label={this.props.translate('workspace.inviteMessage.personalMessagePrompt')}
-                                accessibilityLabel={this.props.translate('workspace.inviteMessage.personalMessagePrompt')}
+                                inputID="privateNotes"
+                                label={this.props.translate('privateNotes.composerLabel')}
+                                accessibilityLabel={this.props.translate('privateNotes.title')}
                                 autoCompleteType="off"
                                 autoCorrect={false}
                                 autoGrowHeight
@@ -113,7 +132,10 @@ class PrivateNotesPage extends React.Component {
                                 value={this.state.privateNote}
                                 onChangeText={(text) => this.setState({privateNote: text})}
                             />
-                        </View>
+                        </View> : <PressableWithoutFeedback>
+                        <RenderHTML html={this.state.privateNote} />
+                        </PressableWithoutFeedback>
+                        }
                     </Form>
                 </FullPageNotFoundView>
             </ScreenWrapper>
@@ -129,6 +151,12 @@ export default compose(
     withOnyx({
         report: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID.toString()}`,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
+        },
+        personalDetailsList: {
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
     }),
 )(PrivateNotesPage);

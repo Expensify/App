@@ -1934,7 +1934,7 @@ function flagComment(reportID, reportAction, severity) {
     API.write('FlagComment', parameters, {optimisticData, successData, failureData});
 }
 
-const addPrivateNotes = (reportID, accountID, note) => {
+const updatePrivateNotes = (reportID, accountID, note) => {
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -2078,6 +2078,6 @@ export {
     setLastOpenedPublicRoom,
     flagComment,
     openLastOpenedPublicRoom,
-    addPrivateNotes,
+    updatePrivateNotes,
     getReportPrivateNote,
 };
