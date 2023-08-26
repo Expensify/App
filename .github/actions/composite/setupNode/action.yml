@@ -29,28 +29,47 @@ runs:
       shell: bash
       run: |
         set -e
-        if [[ `git diff main --name-only | grep \.patch` != null ]]; then 
+        git fetch origin main --no-tags --depth=1
+        if git diff --name-only origin/main HEAD | grep -q '\.patch'; then
           echo 'CHANGES_IN_PATCH_FILES=true' >> "$GITHUB_OUTPUT"
-        else 
+        else
           echo 'CHANGES_IN_PATCH_FILES=false' >> "$GITHUB_OUTPUT"
         fi
 
     - name: Patch root project node packages
-      shell: bash
+      shell: bash {0}
+      id: patch
       if: | 
         steps.patchCheck.outputs.CHANGES_IN_PATCH_FILES == 'true' && 
         steps.cache-node-modules.outputs.cache-hit == 'true'
-      run: npx patch-package
+      run: |
+        set +e
+        {
+          npx patch-package &&
+          echo 'PATCH_EXECUTED=true' >> "$GITHUB_OUTPUT"
+        } || {
+          echo 'PATCH_EXECUTED=false' >> "$GITHUB_OUTPUT"
+        }
 
     - name: Patch node packages for desktop submodule
-      shell: bash
+      shell: bash {0}
+      id: patchDesktop
       if: | 
         steps.patchCheck.outputs.CHANGES_IN_PATCH_FILES == 'true' && 
         steps.cache-desktop-node-modules.outputs.cache-hit == 'true'
-      run: cd desktop && npx patch-package
+      run: |
+        set +e
+        {
+          cd desktop && npx patch-package &&
+          echo 'PATCH_EXECUTED=true' >> "$GITHUB_OUTPUT"
+        } || {
+          echo 'PATCH_EXECUTED=false' >> "$GITHUB_OUTPUT"
+        }
 
     - name: Install root project node packages
-      if: steps.cache-node-modules.outputs.cache-hit != 'true'
+      if: |
+        steps.cache-node-modules.outputs.cache-hit != 'true' ||
+        steps.patch.outputs.PATCH_EXECUTED == 'false'
       uses: nick-fields/retry@v2
       with:
         timeout_minutes: 30
@@ -58,7 +77,9 @@ runs:
         command: npm ci
 
     - name: Install node packages for desktop submodule
-      if: steps.cache-desktop-node-modules.outputs.cache-hit != 'true'
+      if: |
+        steps.cache-desktop-node-modules.outputs.cache-hit != 'true' ||
+        steps.patchDesktop.outputs.PATCH_EXECUTED == 'false'
       uses: nick-fields/retry@v2
       with:
         timeout_minutes: 30
