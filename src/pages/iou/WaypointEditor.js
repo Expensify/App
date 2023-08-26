@@ -154,6 +154,7 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
                     <AddressSearch
                         inputID={`waypoint${waypointIndex}`}
                         ref={(e) => (textInput.current = e)}
+                        hint={!network.isOffline ? translate('distance.errors.selectSuggestedAddress') : ''}
                         containerStyles={[styles.mt4]}
                         label={translate('distance.address')}
                         defaultValue={waypointAddress}
