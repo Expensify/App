@@ -1,6 +1,7 @@
 import getBaseNavigationModalCardStyles from './getBaseNavigationModalCardStyles';
+import GetNavigationModalCardStyles from './types';
 
-export default ({isSmallScreenWidth}) => ({
+const getNavigationModalCardStyles: GetNavigationModalCardStyles = ({isSmallScreenWidth}) => ({
     ...getBaseNavigationModalCardStyles({isSmallScreenWidth}),
 
     // position: fixed is set instead of position absolute to workaround Safari known issues of updating heights in DOM.
@@ -10,3 +11,5 @@ export default ({isSmallScreenWidth}) => ({
     // https://github.com/Expensify/App/issues/20709
     position: 'fixed',
 });
+
+export default getNavigationModalCardStyles;

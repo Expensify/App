@@ -586,6 +586,7 @@ const CONST = {
             MUTE: 'mute',
             DAILY: 'daily',
             ALWAYS: 'always',
+            HIDDEN: 'hidden',
         },
         // Options for which room members can post
         WRITE_CAPABILITIES: {
@@ -817,8 +818,10 @@ const CONST = {
     },
 
     FILE_TYPE_REGEX: {
-        IMAGE: /\.(jpg|jpeg|png|webp|avif|gif|tiff|wbmp|ico|jng|bmp|heic|svg|svg2)$/,
-        VIDEO: /\.(3gp|h261|h263|h264|m4s|jpgv|jpm|jpgm|mp4|mp4v|mpg4|mpeg|mpg|ogv|ogg|mov|qt|webm|flv|mkv|wmv|wav|avi|movie|f4v|avchd|mp2|mpe|mpv|m4v|swf)$/,
+        // Image MimeTypes allowed by iOS photos app.
+        IMAGE: /\.(jpg|jpeg|png|webp|gif|tiff|bmp|heic|heif)$/,
+        // Video MimeTypes allowed by iOS photos app.
+        VIDEO: /\.(mov|mp4)$/,
     },
     IOS_CAMERAROLL_ACCESS_ERROR: 'Access to photo library was denied',
     ADD_PAYMENT_MENU_POSITION_Y: 226,
@@ -1198,6 +1201,8 @@ const CONST = {
         TIME_STARTS_01: /^01:\d{2} [AP]M$/,
         TIME_FORMAT: /^\d{2}:\d{2} [AP]M$/,
         DATE_TIME_FORMAT: /^\d{2}-\d{2} \d{2}:\d{2} [AP]M$/,
+        ATTACHMENT_ROUTE: /\/r\/(\d*)\/attachment/,
+        ILLEGAL_FILENAME_CHARACTERS: /\/|<|>|\*|"|:|\?|\\|\|/g,
     },
 
     PRONOUNS: {

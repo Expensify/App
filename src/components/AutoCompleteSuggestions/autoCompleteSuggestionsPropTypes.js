@@ -1,5 +1,4 @@
 import PropTypes from 'prop-types';
-import refPropType from '../refPropTypes';
 
 const propTypes = {
     /** Array of suggestions */
@@ -29,16 +28,12 @@ const propTypes = {
     /** create accessibility label for each item */
     accessibilityLabelExtractor: PropTypes.func.isRequired,
 
-    /** Ref of the container enclosing the menu.
-     * This is needed to render the menu in correct position inside a portal
-     */
-    parentContainerRef: refPropType,
+    /** Meaures the parent container's position and dimensions. */
+    measureParentContainer: PropTypes.func,
 };
 
 const defaultProps = {
-    parentContainerRef: {
-        current: null,
-    },
+    measureParentContainer: () => {},
 };
 
 export {propTypes, defaultProps};

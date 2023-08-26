@@ -1,6 +1,7 @@
 import bold from './bold';
+import FontFamilyStyles from './types';
 
-const fontFamily = {
+const fontFamily: FontFamilyStyles = {
     EXP_NEUE_ITALIC: 'ExpensifyNeue-Italic',
     EXP_NEUE_BOLD: bold,
     EXP_NEUE: 'ExpensifyNeue-Regular',

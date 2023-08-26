@@ -1,6 +1,7 @@
 import variables from '../variables';
+import GetNavigationModalCardStyles from './types';
 
-export default ({isSmallScreenWidth}) => ({
+const getBaseNavigationModalCardStyles: GetNavigationModalCardStyles = ({isSmallScreenWidth}) => ({
     position: 'absolute',
     top: 0,
     right: 0,
@@ -8,3 +9,5 @@ export default ({isSmallScreenWidth}) => ({
     backgroundColor: 'transparent',
     height: '100%',
 });
+
+export default getBaseNavigationModalCardStyles;
