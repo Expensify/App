@@ -25,6 +25,9 @@ const propTypes = {
     /** Function for handle on press */
     onPress: PropTypes.func,
 
+    /** Bubbles up RNImage's onError callback so we can handle it in AttachmentView */
+    onError: PropTypes.func.isRequired,
+
     /** Additional styles to add to the component */
     style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 };
@@ -221,7 +224,7 @@ function ImageView({isAuthTokenRequired, url, onScaleChanged, onPress, onError, 
                         resizeMode={Image.resizeMode.contain}
                         onLoadStart={imageLoadingStart}
                         onLoad={configureImageZoom}
-                        onError={onError}  
+                        onError={onError}
                     />
                     {/**
                        Create an invisible view on top of the image so we can capture and set the amount of touches before

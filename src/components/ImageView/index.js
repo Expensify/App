@@ -22,6 +22,9 @@ const propTypes = {
 
     /** image file name */
     fileName: PropTypes.string.isRequired,
+
+    /** Bubbles up RNImage's onError callback so we can handle it in AttachmentView */
+    onError: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
