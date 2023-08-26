@@ -309,7 +309,7 @@ type OnyxValues = {
     [ONYXKEYS.SCREEN_SHARE_REQUEST]: OnyxTypes.ScreenShareRequest;
     [ONYXKEYS.COUNTRY_CODE]: number;
     [ONYXKEYS.COUNTRY]: string;
-    [ONYXKEYS.LOCATION_ERROR_CODE]: string;
+    [ONYXKEYS.LOCATION_ERROR_CODE]: number;
     [ONYXKEYS.USER]: OnyxTypes.User;
     [ONYXKEYS.LOGIN_LIST]: OnyxTypes.Login;
     [ONYXKEYS.SESSION]: OnyxTypes.Session;
