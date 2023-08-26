@@ -32,10 +32,9 @@ runs:
         git remote get-url origin
         git fetch origin main --no-tags --depth=1
         git branch -a
-        git diff --name-only origin/main HEAD | grep \.patch
-        if [[ `git diff --name-only origin/main HEAD | grep \.patch` != null ]]; then 
+        if git diff --name-only origin/main HEAD | grep -q '\.patch'; then
           echo 'CHANGES_IN_PATCH_FILES=true' >> "$GITHUB_OUTPUT"
-        else 
+        else
           echo 'CHANGES_IN_PATCH_FILES=false' >> "$GITHUB_OUTPUT"
         fi
 
