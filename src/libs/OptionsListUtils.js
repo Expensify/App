@@ -149,6 +149,7 @@ function getAvatarsForAccountIDs(accountIDs, personalDetails, defaultValues = {}
     return _.map(accountIDs, (accountID) => {
         const login = lodashGet(reversedDefaultValues, accountID, '');
         const userPersonalDetail = lodashGet(personalDetails, accountID, {login, accountID, avatar: ''});
+
         return {
             id: accountID,
             source: UserUtils.getAvatar(userPersonalDetail.avatar, userPersonalDetail.accountID),
@@ -616,6 +617,8 @@ function getOptions(
         includeTasks = false,
         includeMoneyRequests = false,
         excludeUnknownUsers = false,
+        includeP2P = true,
+        canInviteUser = true,
     },
 ) {
     if (!isPersonalDetailsReady(personalDetails)) {
@@ -627,12 +630,6 @@ function getOptions(
         };
     }
 
-    // We're only picking personal details that have logins set
-    // This is a temporary fix for all the logic that's been breaking because of the new privacy changes
-    // See https://github.com/Expensify/Expensify/issues/293465 for more context
-    // eslint-disable-next-line no-param-reassign
-    personalDetails = _.pick(personalDetails, (detail) => Boolean(detail.login));
-
     let recentReportOptions = [];
     let personalDetailsOptions = [];
     const reportMapForAccountIDs = {};
@@ -640,7 +637,7 @@ function getOptions(
     const searchValue = parsedPhoneNumber.possible ? parsedPhoneNumber.number.e164 : searchInputValue.toLowerCase();
 
     // Filter out all the reports that shouldn't be displayed
-    const filteredReports = _.filter(reports, (report) => ReportUtils.shouldReportBeInOptionList(report, Navigation.getTopmostReportId(), false, null, betas, policies));
+    const filteredReports = _.filter(reports, (report) => ReportUtils.shouldReportBeInOptionList(report, Navigation.getTopmostReportId(), false, betas, policies));
 
     // Sorting the reports works like this:
     // - Order everything by the last message timestamp (descending)
@@ -668,6 +665,11 @@ function getOptions(
         const accountIDs = report.participantAccountIDs || [];
 
         if (isPolicyExpenseChat && report.isOwnPolicyExpenseChat && !includeOwnedWorkspaceChats) {
+            return;
+        }
+
+        // When passing includeP2P false we are trying to hide features from users that are not ready for P2P and limited to workspace chats only.
+        if (!includeP2P && !isPolicyExpenseChat) {
             return;
         }
 
@@ -708,7 +710,12 @@ function getOptions(
         );
     });
 
-    let allPersonalDetailsOptions = _.map(personalDetails, (personalDetail) =>
+    // We're only picking personal details that have logins set
+    // This is a temporary fix for all the logic that's been breaking because of the new privacy changes
+    // See https://github.com/Expensify/Expensify/issues/293465 for more context
+    // Moreover, we should not override the personalDetails object, otherwise the createOption util won't work properly, it returns incorrect tooltipText
+    const havingLoginPersonalDetails = !includeP2P ? {} : _.pick(personalDetails, (detail) => Boolean(detail.login));
+    let allPersonalDetailsOptions = _.map(havingLoginPersonalDetails, (personalDetail) =>
         createOption([personalDetail.accountID], personalDetails, reportMapForAccountIDs[personalDetail.accountID], reportActions, {
             showChatPreviewLine,
             forcePolicyNamePreview,
@@ -752,8 +759,17 @@ function getOptions(
             // Finally check to see if this option is a match for the provided search string if we have one
             const {searchText, participantsList, isChatRoom} = reportOption;
             const participantNames = getParticipantNames(participantsList);
-            if (searchValue && !isSearchStringMatch(searchValue, searchText, participantNames, isChatRoom)) {
-                continue;
+
+            if (searchValue) {
+                // Determine if the search is happening within a chat room and starts with the report ID
+                const isReportIdSearch = isChatRoom && Str.startsWith(reportOption.reportID, searchValue);
+
+                // Check if the search string matches the search text or participant names considering the type of the room
+                const isSearchMatch = isSearchStringMatch(searchValue, searchText, participantNames, isChatRoom);
+
+                if (!isReportIdSearch && !isSearchMatch) {
+                    continue;
+                }
             }
 
             recentReportOptions.push(reportOption);
@@ -858,7 +874,7 @@ function getOptions(
     return {
         personalDetails: personalDetailsOptions,
         recentReports: recentReportOptions,
-        userToInvite,
+        userToInvite: canInviteUser ? userToInvite : null,
         currentUserOption,
     };
 }
@@ -898,9 +914,10 @@ function getSearchOptions(reports, personalDetails, searchValue = '', betas) {
  * @returns {Object}
  */
 function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail, amountText) {
+    const formattedLogin = LocalePhoneNumber.formatPhoneNumber(personalDetail.login);
     return {
-        text: personalDetail.displayName ? personalDetail.displayName : personalDetail.login,
-        alternateText: personalDetail.login || personalDetail.displayName,
+        text: personalDetail.displayName || formattedLogin,
+        alternateText: formattedLogin || personalDetail.displayName,
         icons: [
             {
                 source: UserUtils.getAvatar(personalDetail.avatar, personalDetail.accountID),
@@ -939,9 +956,21 @@ function getIOUConfirmationOptionsFromParticipants(participants, amountText) {
  * @param {Array} [selectedOptions]
  * @param {Array} [excludeLogins]
  * @param {Boolean} [includeOwnedWorkspaceChats]
+ * @param {boolean} [includeP2P]
+ * @param {boolean} [canInviteUser]
  * @returns {Object}
  */
-function getNewChatOptions(reports, personalDetails, betas = [], searchValue = '', selectedOptions = [], excludeLogins = [], includeOwnedWorkspaceChats = false) {
+function getNewChatOptions(
+    reports,
+    personalDetails,
+    betas = [],
+    searchValue = '',
+    selectedOptions = [],
+    excludeLogins = [],
+    includeOwnedWorkspaceChats = false,
+    includeP2P = true,
+    canInviteUser = true,
+) {
     return getOptions(reports, personalDetails, {
         betas,
         searchInputValue: searchValue.trim(),
@@ -951,6 +980,8 @@ function getNewChatOptions(reports, personalDetails, betas = [], searchValue = '
         maxRecentReportsToShow: 5,
         excludeLogins,
         includeOwnedWorkspaceChats,
+        includeP2P,
+        canInviteUser,
     });
 }
 
@@ -998,6 +1029,39 @@ function getShareDestinationOptions(
 }
 
 /**
+ * Format personalDetails or userToInvite to be shown in the list
+ *
+ * @param {Object} member - personalDetails or userToInvite
+ * @param {Boolean} isSelected - whether the item is selected
+ * @returns {Object}
+ */
+function formatMemberForList(member, isSelected) {
+    if (!member) {
+        return undefined;
+    }
+
+    const avatarSource = lodashGet(member, 'participantsList[0].avatar', '') || lodashGet(member, 'avatar', '');
+    const accountID = lodashGet(member, 'accountID', '');
+
+    return {
+        text: lodashGet(member, 'text', '') || lodashGet(member, 'displayName', ''),
+        alternateText: lodashGet(member, 'alternateText', '') || lodashGet(member, 'login', ''),
+        keyForList: lodashGet(member, 'keyForList', '') || String(accountID),
+        isSelected,
+        isDisabled: false,
+        accountID,
+        login: lodashGet(member, 'login', ''),
+        rightElement: null,
+        avatar: {
+            source: UserUtils.getAvatar(avatarSource, accountID),
+            name: lodashGet(member, 'participantsList[0].login', '') || lodashGet(member, 'displayName', ''),
+            type: 'avatar',
+        },
+        pendingAction: lodashGet(member, 'pendingAction'),
+    };
+}
+
+/**
  * Build the options for the Workspace Member Invite view
  *
  * @param {Object} personalDetails
@@ -1035,7 +1099,7 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
 
     const isValidEmail = Str.isValidEmail(searchValue);
 
-    if (searchValue && CONST.REGEX.DIGITS_AND_PLUS.test(searchValue) && !isValidPhone) {
+    if (searchValue && CONST.REGEX.DIGITS_AND_PLUS.test(searchValue) && !isValidPhone && !hasSelectableOptions) {
         return Localize.translate(preferredLocale, 'messages.errorMessageInvalidPhone');
     }
 
@@ -1086,4 +1150,5 @@ export {
     isSearchStringMatch,
     shouldOptionShowTooltip,
     getLastMessageTextForReport,
+    formatMemberForList,
 };

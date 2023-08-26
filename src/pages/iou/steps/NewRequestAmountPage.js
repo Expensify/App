@@ -12,6 +12,7 @@ import * as ReportUtils from '../../../libs/ReportUtils';
 import * as CurrencyUtils from '../../../libs/CurrencyUtils';
 import CONST from '../../../CONST';
 import reportPropTypes from '../../reportPropTypes';
+import participantPropTypes from '../../../components/participantPropTypes';
 import * as IOU from '../../../libs/actions/IOU';
 import useLocalize from '../../../hooks/useLocalize';
 import MoneyRequestAmountForm from './MoneyRequestAmountForm';
@@ -22,44 +23,49 @@ import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 
 const propTypes = {
+    /** React Navigation route */
     route: PropTypes.shape({
+        /** Params from the route */
         params: PropTypes.shape({
+            /** The type of IOU report, i.e. bill, request, send */
             iouType: PropTypes.string,
+
+            /** The report ID of the IOU */
             reportID: PropTypes.string,
+
+            /** Selected currency from IOUCurrencySelection */
+            currency: PropTypes.string,
         }),
-    }),
+    }).isRequired,
 
     /** The report on which the request is initiated on */
     report: reportPropTypes,
 
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     iou: PropTypes.shape({
+        /** ID (iouType + reportID) of the request */
         id: PropTypes.string,
+
+        /** Amount of the request */
         amount: PropTypes.number,
+
+        /** Currency of the request */
         currency: PropTypes.string,
-        participants: PropTypes.arrayOf(
-            PropTypes.shape({
-                accountID: PropTypes.number,
-                login: PropTypes.string,
-                isPolicyExpenseChat: PropTypes.bool,
-                isOwnPolicyExpenseChat: PropTypes.bool,
-                selected: PropTypes.bool,
-            }),
-        ),
+        merchant: PropTypes.string,
+        created: PropTypes.string,
+
+        /** List of the participants */
+        participants: PropTypes.arrayOf(participantPropTypes),
     }),
 };
 
 const defaultProps = {
-    route: {
-        params: {
-            iouType: '',
-            reportID: '',
-        },
-    },
     report: {},
     iou: {
         id: '',
         amount: 0,
+        created: '',
+        merchant: '',
         currency: CONST.CURRENCY.USD,
         participants: [],
     },
@@ -99,15 +105,17 @@ function NewRequestAmountPage({route, iou, report}) {
 
     // Check and dismiss modal
     useEffect(() => {
-        if (!ReportUtils.shouldHideComposer(report)) {
+        if (!ReportUtils.shouldDisableWriteActions(report)) {
             return;
         }
         Navigation.dismissModal(reportID);
     }, [report, reportID]);
 
-    // Because we use Onyx to store iou info, when we try to make two different money requests from different tabs, it can result in many bugs.
+    // Because we use Onyx to store IOU info, when we try to make two different money requests from different tabs,
+    // it can result in an IOU sent with improper values. In such cases we want to reset the flow and redirect the user to the first step of the IOU.
     useEffect(() => {
         if (isEditing) {
+            // ID in Onyx could change by initiating a new request in a separate browser tab or completing a request
             if (prevMoneyRequestID.current !== iou.id) {
                 // The ID is cleared on completing a request. In that case, we will do nothing.
                 if (!iou.id) {
@@ -143,7 +151,7 @@ function NewRequestAmountPage({route, iou, report}) {
     };
 
     const navigateToNextPage = (currentAmount) => {
-        const amountInSmallestCurrencyUnits = CurrencyUtils.convertToSmallestUnit(currency, Number.parseFloat(currentAmount));
+        const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(currentAmount));
         IOU.setMoneyRequestAmount(amountInSmallestCurrencyUnits);
         IOU.setMoneyRequestCurrency(currency);
 
@@ -175,6 +183,7 @@ function NewRequestAmountPage({route, iou, report}) {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
+            shouldEnableKeyboardAvoidingView={false}
             onEntryTransitionEnd={focusTextInput}
         >
             {({safeAreaPaddingBottomStyle}) => (

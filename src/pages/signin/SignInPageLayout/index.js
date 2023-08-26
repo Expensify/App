@@ -1,4 +1,4 @@
-import React, {useRef, useEffect} from 'react';
+import React, {forwardRef, useRef, useEffect, useImperativeHandle} from 'react';
 import {View, ScrollView} from 'react-native';
 import {withSafeAreaInsets} from 'react-native-safe-area-context';
 import PropTypes from 'prop-types';
@@ -35,8 +35,22 @@ const propTypes = {
     /** Whether to show welcome header on a particular page */
     shouldShowWelcomeHeader: PropTypes.bool.isRequired,
 
+    /** A reference so we can expose scrollPageToTop */
+    innerRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
+
+    /** Whether or not the sign in page is being rendered in the RHP modal */
+    isInModal: PropTypes.bool.isRequired,
+
+    /** Override the green headline copy */
+    customHeadline: PropTypes.string,
+
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    innerRef: () => {},
+    customHeadline: '',
 };
 
 function SignInPageLayout(props) {
@@ -44,11 +58,12 @@ function SignInPageLayout(props) {
     const prevPreferredLocale = usePrevious(props.preferredLocale);
     let containerStyles = [styles.flex1, styles.signInPageInner];
     let contentContainerStyles = [styles.flex1, styles.flexRow];
+    const shouldShowSmallScreen = props.isSmallScreenWidth || props.isInModal;
 
     // To scroll on both mobile and web, we need to set the container height manually
     const containerHeight = props.windowHeight - props.insets.top - props.insets.bottom;
 
-    if (props.isSmallScreenWidth) {
+    if (shouldShowSmallScreen) {
         containerStyles = [styles.flex1];
         contentContainerStyles = [styles.flex1, styles.flexColumn];
     }
@@ -60,6 +75,10 @@ function SignInPageLayout(props) {
         scrollViewRef.current.scrollTo({y: 0, animated});
     };
 
+    useImperativeHandle(props.innerRef, () => ({
+        scrollPageToTop,
+    }));
+
     useEffect(() => {
         if (prevPreferredLocale !== props.preferredLocale) {
             return;
@@ -70,7 +89,7 @@ function SignInPageLayout(props) {
 
     return (
         <View style={containerStyles}>
-            {!props.isSmallScreenWidth ? (
+            {!shouldShowSmallScreen ? (
                 <View style={contentContainerStyles}>
                     <SignInPageContent
                         welcomeHeader={props.welcomeHeader}
@@ -108,7 +127,7 @@ function SignInPageLayout(props) {
                                         props.isLargeScreenWidth ? styles.ph25 : {},
                                     ]}
                                 >
-                                    <SignInPageHero />
+                                    <SignInPageHero customHeadline={props.customHeadline} />
                                     <Footer scrollPageToTop={scrollPageToTop} />
                                 </View>
                             </View>
@@ -121,7 +140,7 @@ function SignInPageLayout(props) {
                     keyboardShouldPersistTaps="handled"
                     ref={scrollViewRef}
                 >
-                    <View style={[styles.flex1, styles.flexColumn, StyleUtils.getMinimumHeight(Math.max(variables.signInContentMinHeight, containerHeight))]}>
+                    <View style={[styles.flex1, styles.flexColumn, styles.overflowHidden, StyleUtils.getMinimumHeight(Math.max(variables.signInContentMinHeight, containerHeight))]}>
                         <BackgroundImage
                             isSmallScreen
                             pointerEvents="none"
@@ -147,5 +166,18 @@ function SignInPageLayout(props) {
 
 SignInPageLayout.propTypes = propTypes;
 SignInPageLayout.displayName = 'SignInPageLayout';
+SignInPageLayout.defaultProps = defaultProps;
 
-export default compose(withWindowDimensions, withSafeAreaInsets, withLocalize)(SignInPageLayout);
+export default compose(
+    withWindowDimensions,
+    withSafeAreaInsets,
+    withLocalize,
+)(
+    forwardRef((props, ref) => (
+        <SignInPageLayout
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            innerRef={ref}
+        />
+    )),
+);

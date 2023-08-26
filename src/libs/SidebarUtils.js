@@ -31,7 +31,10 @@ Onyx.connect({
         // does not match a closed or created state.
         const reportActionsForDisplay = _.filter(
             actionsArray,
-            (reportAction, actionKey) => ReportActionsUtils.shouldReportActionBeVisible(reportAction, actionKey) && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED,
+            (reportAction, actionKey) =>
+                ReportActionsUtils.shouldReportActionBeVisible(reportAction, actionKey) &&
+                reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED &&
+                reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         );
         visibleReportActionItems[reportID] = _.last(reportActionsForDisplay);
     },
@@ -86,9 +89,7 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
     const isInDefaultMode = !isInGSDMode;
 
     // Filter out all the reports that shouldn't be displayed
-    const reportsToDisplay = _.filter(allReportsDict, (report) =>
-        ReportUtils.shouldReportBeInOptionList(report, currentReportId, isInGSDMode, allReportsDict, betas, policies, allReportActions, true),
-    );
+    const reportsToDisplay = _.filter(allReportsDict, (report) => ReportUtils.shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas, policies, allReportActions, true));
 
     if (_.isEmpty(reportsToDisplay)) {
         // Display Concierge chat report when there is no report to be displayed
@@ -114,7 +115,7 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
     // 1. Pinned - Always sorted by reportDisplayName
     // 2. Outstanding IOUs - Always sorted by iouReportAmount with the largest amounts at the top of the group
     // 3. Drafts - Always sorted by reportDisplayName
-    // 4. Non-archived reports
+    // 4. Non-archived reports and settled IOUs
     //      - Sorted by lastVisibleActionCreated in default (most recent) view mode
     //      - Sorted by reportDisplayName in GSD (focus) view mode
     // 5. Archived reports
@@ -131,7 +132,7 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
             return;
         }
 
-        if (ReportUtils.isWaitingForIOUActionFromCurrentUser(report, allReportsDict)) {
+        if (ReportUtils.isWaitingForIOUActionFromCurrentUser(report)) {
             outstandingIOUReports.push(report);
             return;
         }
@@ -255,14 +256,13 @@ function getOptionData(report, reportActions, personalDetails, preferredLocale, 
     result.parentReportID = report.parentReportID || null;
     result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
     result.notificationPreference = report.notificationPreference || null;
-
-    // If the composer is hidden then the user is not allowed to comment, same can be used to hide the draft icon.
-    result.isAllowedToComment = !ReportUtils.shouldHideComposer(report);
+    result.isAllowedToComment = !ReportUtils.shouldDisableWriteActions(report);
 
     const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
     const subtitle = ReportUtils.getChatRoomSubtitle(report);
 
     const login = Str.removeSMSDomain(lodashGet(personalDetail, 'login', ''));
+    const status = lodashGet(personalDetail, 'status', '');
     const formattedLogin = Str.isSMSLogin(login) ? LocalePhoneNumber.formatPhoneNumber(login) : login;
 
     // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
@@ -352,6 +352,12 @@ function getOptionData(report, reportActions, personalDetails, preferredLocale, 
     result.searchText = OptionsListUtils.getSearchText(report, reportName, participantPersonalDetailList, result.isChatRoom || result.isPolicyExpenseChat, result.isThread);
     result.displayNamesWithTooltips = displayNamesWithTooltips;
     result.isLastMessageDeletedParentAction = report.isLastMessageDeletedParentAction;
+
+    if (status) {
+        result.status = status;
+    }
+    result.type = report.type;
+
     return result;
 }
 
