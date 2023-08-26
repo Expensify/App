@@ -6,7 +6,7 @@ import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import Text from './Text';
 import TextLink from './TextLink';
-import withLocalize from './withLocalize';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import compose from '../libs/compose';
@@ -17,9 +17,13 @@ import styles from '../styles/styles';
 const propTypes = {
     /** The location error code from onyx */
     locationErrorCode: PropTypes.number,
+
+    ...withLocalizePropTypes,
 };
 
-const defaultProps = {};
+const defaultProps = {
+    locationErrorCode: 0,
+};
 
 function LocationErrorMessage({locationErrorCode, translate}) {
     if (!locationErrorCode) {

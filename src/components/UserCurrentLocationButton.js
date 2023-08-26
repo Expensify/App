@@ -7,19 +7,26 @@ import styles from '../styles/styles';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import LocationErrorMessage from './LocationErrorMessage';
-import withLocalize from './withLocalize';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import colors from '../styles/colors';
-import { PressableWithFeedback } from './Pressable';
+import PressableWithFeedback from '../Pressable/PressableWithFeedback';
 
 const propTypes = {
     /** Callback that runs when location data is fetched */
     onLocationFetched: PropTypes.func.isRequired,
+
+    /** Accessibility label for the component */
+    accessibilityLabel: PropTypes.string,
+
+    ...withLocalizePropTypes,
 };
 
-const defaultProps = {};
+const defaultProps = {
+    accessibilityLabel: 'location.useCurrent',
+};
 
-function UserCurrentLocationButton({onLocationFetched, translate}) {
-    const isFetchingLocation = useRef(false)
+function UserCurrentLocationButton({onLocationFetched, accessibilityLabel, translate}) {
+    const isFetchingLocation = useRef(false);
 
     /**
      * handles error when failed to get user's current location
@@ -50,8 +57,8 @@ function UserCurrentLocationButton({onLocationFetched, translate}) {
 
     /** Gets the user's current location and registers success/error callbacks */
     const useCurrentLocation = () => {
-        if(isFetchingLocation.current) return;
-        
+        if (isFetchingLocation.current) return;
+
         isFetchingLocation.current = true;
 
         getCurrentPosition(onSuccess, onError);
@@ -67,8 +74,12 @@ function UserCurrentLocationButton({onLocationFetched, translate}) {
             <PressableWithFeedback
                 style={[styles.flexRow, styles.mt4]}
                 onPress={useCurrentLocation}
+                accessibilityLabel={accessibilityLabel}
             >
-                <Icon src={Expensicons.Location} fill={colors.green} />
+                <Icon
+                    src={Expensicons.Location}
+                    fill={colors.green}
+                />
                 <Text style={[styles.textLabel, styles.mh2]}>{translate('location.useCurrent')}</Text>
             </PressableWithFeedback>
             <LocationErrorMessage />
