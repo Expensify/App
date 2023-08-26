@@ -116,7 +116,7 @@ function buildOnyxDataForMoneyRequest(
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
             value: {
                 ...iouReport,
-                lastMessageText: ReportUtils.formatReportLastMessageText(iouAction.message[0].text),
+                lastMessageText: iouAction.message[0].text,
                 lastMessageHtml: iouAction.message[0].html,
                 ...(isNewIOUReport ? {pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}} : {}),
             },
