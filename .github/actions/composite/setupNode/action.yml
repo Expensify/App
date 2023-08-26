@@ -29,6 +29,7 @@ runs:
       shell: bash
       run: |
         set -e
+        git remote get-url origin
         if [[ `git diff main --name-only | grep \.patch` != null ]]; then 
           echo 'CHANGES_IN_PATCH_FILES=true' >> "$GITHUB_OUTPUT"
         else 
