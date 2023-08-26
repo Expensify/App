@@ -63,9 +63,9 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, report
     const {translate} = useLocalize();
     const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
-    const isPolicyAdmin = lodashGet(policy, 'role') === CONST.POLICY.ROLE.ADMIN;
-    const isManager = ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(session, 'accountID', null) === moneyRequestReport.managerID;
     const policyType = lodashGet(policy, 'type');
+    const isPolicyAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && lodashGet(policy, 'role') === CONST.POLICY.ROLE.ADMIN;
+    const isManager = ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(session, 'accountID', null) === moneyRequestReport.managerID;
     const isPayer = policyType === CONST.POLICY.TYPE.CORPORATE ? isPolicyAdmin && isApproved : isPolicyAdmin || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && isManager);
     const shouldShowSettlementButton = useMemo(() => isPayer && !isSettled, [isPayer, isSettled]);
     const shouldShowApproveButton = useMemo(() => {
@@ -73,7 +73,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, report
             return false;
         }
         return isManager && !isApproved && !isSettled;
-    }, [policy, isManager, isApproved, isSettled]);
+    }, [policyType, isManager, isApproved, isSettled]);
     const reportTotal = ReportUtils.getMoneyRequestTotal(moneyRequestReport);
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
     const shouldShowPaypal = Boolean(lodashGet(personalDetails, [moneyRequestReport.managerID, 'payPalMeAddress']));
@@ -127,7 +127,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, report
                         shouldShowPaypal={shouldShowPaypal}
                         chatReportID={moneyRequestReport.chatReportID}
                         iouReport={moneyRequestReport}
-                        onPress={(paymentType) => IOU.payMoneyRequest(paymentType, chatReport, moneyRequestReportt)}
+                        onPress={(paymentType) => IOU.payMoneyRequest(paymentType, chatReport, moneyRequestReport)}
                         enablePaymentsRoute={ROUTES.BANK_ACCOUNT_NEW}
                         addBankAccountRoute={bankAccountRoute}
                         shouldShowPaymentOptions
