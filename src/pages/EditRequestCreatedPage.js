@@ -31,16 +31,16 @@ function EditRequestCreatedPage({defaultCreated, onSubmit}) {
             />
             <Form
                 style={[styles.flexGrow1, styles.ph5]}
-                formID={ONYXKEYS.FORMS.MONEY_REQUEST_CREATED_FORM}
+                formID={ONYXKEYS.FORMS.MONEY_REQUEST_DATE_FORM}
                 onSubmit={onSubmit}
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
             >
                 <NewDatePicker
-                    // We will add date limitations as a follow-up
                     inputID="created"
                     label={translate('common.date')}
                     defaultValue={defaultCreated}
+                    maxDate={new Date()}
                 />
             </Form>
         </ScreenWrapper>

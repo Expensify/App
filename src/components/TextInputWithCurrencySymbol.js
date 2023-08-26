@@ -5,10 +5,11 @@ import CurrencySymbolButton from './CurrencySymbolButton';
 import * as CurrencyUtils from '../libs/CurrencyUtils';
 import useLocalize from '../hooks/useLocalize';
 import * as MoneyRequestUtils from '../libs/MoneyRequestUtils';
+import refPropTypes from './refPropTypes';
 
 const propTypes = {
     /** A ref to forward to amount text input */
-    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
+    forwardedRef: refPropTypes,
 
     /** Formatted amount in local currency  */
     formattedAmount: PropTypes.string.isRequired,
@@ -33,9 +34,6 @@ const propTypes = {
 
     /** Function to call when selection in text input is changed */
     onSelectionChange: PropTypes.func,
-
-    /** Flag to indicate if the button should be disabled */
-    disabled: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -44,7 +42,6 @@ const defaultProps = {
     onCurrencyButtonPress: () => {},
     selection: undefined,
     onSelectionChange: () => {},
-    disabled: false,
 };
 
 function TextInputWithCurrencySymbol(props) {
@@ -62,7 +59,6 @@ function TextInputWithCurrencySymbol(props) {
         <CurrencySymbolButton
             currencySymbol={currencySymbol}
             onCurrencyButtonPress={props.onCurrencyButtonPress}
-            disabled={props.disabled}
         />
     );
 

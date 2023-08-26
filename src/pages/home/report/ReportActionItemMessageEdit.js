@@ -131,7 +131,7 @@ function ReportActionItemMessageEdit(props) {
         return () => {
             // Skip if this is not the focused message so the other edit composer stays focused.
             // In small screen devices, when EmojiPicker is shown, the current edit message will lose focus, we need to check this case as well.
-            if (!isFocusedRef.current && !EmojiPickerAction.isActiveReportAction(props.action.reportActionID)) {
+            if (!isFocusedRef.current && !EmojiPickerAction.isActive(props.action.reportActionID)) {
                 return;
             }
 
@@ -174,7 +174,7 @@ function ReportActionItemMessageEdit(props) {
      */
     const updateDraft = useCallback(
         (newDraftInput) => {
-            const {text: newDraft = '', emojis = []} = EmojiUtils.replaceEmojis(newDraftInput, props.preferredSkinTone, props.preferredLocale);
+            const {text: newDraft, emojis} = EmojiUtils.replaceAndExtractEmojis(newDraftInput, props.preferredSkinTone, props.preferredLocale);
 
             if (!_.isEmpty(emojis)) {
                 insertedEmojis.current = [...insertedEmojis.current, ...emojis];
@@ -212,6 +212,7 @@ function ReportActionItemMessageEdit(props) {
         debouncedSaveDraft.cancel();
         Report.saveReportActionDraft(props.reportID, props.action.reportActionID, '');
         ComposerActions.setShouldShowComposeInput(true);
+        ReportActionComposeFocusManager.clear();
         ReportActionComposeFocusManager.focus();
 
         // Scroll to the last comment after editing to make sure the whole comment is clearly visible in the report.
@@ -381,7 +382,7 @@ function ReportActionItemMessageEdit(props) {
                             }}
                             onEmojiSelected={addEmojiToTextBox}
                             nativeID={emojiButtonID}
-                            reportAction={props.action}
+                            emojiPickerID={props.action.reportActionID}
                         />
                     </View>
 

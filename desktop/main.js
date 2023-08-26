@@ -11,7 +11,7 @@ const CONFIG = require('../src/CONFIG').default;
 const CONST = require('../src/CONST').default;
 const Localize = require('../src/libs/Localize');
 
-const port = process.env.PORT || 8080;
+const port = process.env.PORT || 8082;
 const {DESKTOP_SHORTCUT_ACCELERATOR} = CONST;
 
 app.setName('New Expensify');

@@ -19,6 +19,7 @@ resolveIsReadyPromise();
 
 let isSequentialQueueRunning = false;
 let currentRequest = null;
+let isQueuePaused = false;
 
 /**
  * Process any persisted requests, when online, one at a time until the queue is empty.
@@ -30,6 +31,11 @@ let currentRequest = null;
  * @returns {Promise}
  */
 function process() {
+    // When the queue is paused, return early. This prevents any new requests from happening. The queue will be flushed again when the queue is unpaused.
+    if (isQueuePaused) {
+        return Promise.resolve();
+    }
+
     const persistedRequests = PersistedRequests.getAll();
     if (_.isEmpty(persistedRequests) || NetworkStore.isOffline()) {
         return Promise.resolve();
@@ -57,6 +63,11 @@ function process() {
 }
 
 function flush() {
+    // When the queue is paused, return early. This will keep an requests in the queue and they will get flushed again when the queue is unpaused
+    if (isQueuePaused) {
+        return;
+    }
+
     if (isSequentialQueueRunning || _.isEmpty(PersistedRequests.getAll())) {
         return;
     }
@@ -101,11 +112,10 @@ NetworkStore.onReconnection(flush);
 
 /**
  * @param {Object} request
- * @param {Boolean} [front] whether or not the request should be placed in the front of the queue
  */
-function push(request, front = false) {
+function push(request) {
     // Add request to Persisted Requests so that it can be retried if it fails
-    PersistedRequests.save([request], front);
+    PersistedRequests.save([request]);
 
     // If we are offline we don't need to trigger the queue to empty as it will happen when we come back online
     if (NetworkStore.isOffline()) {
@@ -139,4 +149,30 @@ function waitForIdle() {
     return isReadyPromise;
 }
 
-export {flush, getCurrentRequest, isRunning, push, waitForIdle};
+/**
+ * Puts the queue into a paused state so that no requests will be processed
+ */
+function pause() {
+    if (isQueuePaused) {
+        return;
+    }
+
+    console.debug('[SequentialQueue] Pausing the queue');
+    isQueuePaused = true;
+}
+
+/**
+ * Unpauses the queue and flushes all the requests that were in it or were added to it while paused
+ */
+function unpause() {
+    if (!isQueuePaused) {
+        return;
+    }
+
+    const numberOfPersistedRequests = PersistedRequests.getAll().length || 0;
+    console.debug(`[SequentialQueue] Unpausing the queue and flushing ${numberOfPersistedRequests} requests`);
+    isQueuePaused = false;
+    flush();
+}
+
+export {flush, getCurrentRequest, isRunning, push, waitForIdle, pause, unpause};
