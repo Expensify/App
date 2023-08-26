@@ -19,6 +19,8 @@ import ROUTES from '../../ROUTES';
 import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
 import transactionPropTypes from '../../components/transactionPropTypes';
+import * as User from '../../libs/actions/User';
+import UserCurrentLocationButton from '../../components/UserCurrentLocationButton';
 
 const propTypes = {
     /** The transactionID of the IOU */
@@ -103,8 +105,26 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
             address: values.address,
         };
 
+        User.clearLocationError();
         Transaction.saveWaypoint(transactionID, waypointIndex, waypoint);
         Navigation.goBack(ROUTES.getMoneyRequestDistanceTabRoute(iouType));
+    };
+
+    /**
+     * sets user current location as a waypoint
+     * @param {Object} geolocationData 
+     * @param {Object} geolocationData.coords.latitude
+     * @param {Object} geolocationData.coords.longitude
+     * @param {Object} geolocationData.timestamp
+     */
+    const selectWaypointFromCurrentLocation = (geolocationData) => {
+        const waypoint = {
+            lat: geolocationData.coords.latitude,
+            lng: geolocationData.coords.longitude,
+            address: 'Your Location',
+        };
+
+        selectWaypoint(waypoint);
     };
 
     return (
@@ -134,7 +154,6 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
                     <AddressSearch
                         inputID={`waypoint${waypointIndex}`}
                         ref={(e) => (textInput.current = e)}
-                        hint={!network.isOffline ? translate('distance.errors.selectSuggestedAddress') : ''}
                         containerStyles={[styles.mt4]}
                         label={translate('distance.address')}
                         defaultValue={waypointAddress}
@@ -153,6 +172,7 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
                         }}
                     />
                 </View>
+                <UserCurrentLocationButton onLocationFetched={selectWaypointFromCurrentLocation} />
             </Form>
         </ScreenWrapper>
     );

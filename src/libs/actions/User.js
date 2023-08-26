@@ -885,6 +885,22 @@ function clearDraftCustomStatus() {
     Onyx.merge(ONYXKEYS.CUSTOM_STATUS_DRAFT, {text: '', emojiCode: '', clearAfter: ''});
 }
 
+/**
+ * Sets the error code when trying to get user's current location
+ *
+ */
+function setLocationError(errorCode) {
+    Onyx.merge(ONYXKEYS.LOCATION_ERROR_CODE, errorCode);
+}
+
+/**
+ * Clears the error code from location
+ *
+ */
+function clearLocationError() {
+    Onyx.merge(ONYXKEYS.LOCATION_ERROR_CODE, null);
+}
+
 export {
     closeAccount,
     resendValidateCode,
@@ -914,4 +930,6 @@ export {
     clearCustomStatus,
     updateDraftCustomStatus,
     clearDraftCustomStatus,
+    setLocationError,
+    clearLocationError,
 };

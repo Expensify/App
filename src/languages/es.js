@@ -158,6 +158,13 @@ export default {
         receipt: 'Recibo',
         replace: 'Sustituir',
     },
+    location: {
+        useCurrent: 'Usar ubicación actual',
+        notFound: 'No pudimos encontrar su ubicación, inténtelo nuevamente o ingrese una dirección manualmente',
+        permissionDenied: 'Parece que has denegado el permiso a tu ubicación.',
+        allowPermission: 'permitir permiso de ubicación en la configuración',
+        tryAgain: 'y luego inténtalo de nuevo.',
+    },
     anonymousReportFooter: {
         logoTagline: 'Únete a la discusión.',
     },

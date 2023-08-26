@@ -254,6 +254,7 @@ const mainWindow = () => {
                         preload: `${__dirname}/contextBridge.js`,
                         contextIsolation: true,
                         sandbox: false,
+                        nodeIntegration: true, // required for geolocation https://github.com/electron/electron/blob/main/docs/api/environment-variables.md#google_api_key
                     },
                     titleBarStyle: 'hidden',
                 });
