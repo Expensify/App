@@ -12,6 +12,7 @@ import * as ReportUtils from '../../../libs/ReportUtils';
 import * as CurrencyUtils from '../../../libs/CurrencyUtils';
 import CONST from '../../../CONST';
 import reportPropTypes from '../../reportPropTypes';
+import participantPropTypes from '../../../components/participantPropTypes';
 import * as IOU from '../../../libs/actions/IOU';
 import useLocalize from '../../../hooks/useLocalize';
 import MoneyRequestAmountForm from './MoneyRequestAmountForm';
@@ -22,44 +23,49 @@ import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 
 const propTypes = {
+    /** React Navigation route */
     route: PropTypes.shape({
+        /** Params from the route */
         params: PropTypes.shape({
+            /** The type of IOU report, i.e. bill, request, send */
             iouType: PropTypes.string,
+
+            /** The report ID of the IOU */
             reportID: PropTypes.string,
+
+            /** Selected currency from IOUCurrencySelection */
+            currency: PropTypes.string,
         }),
-    }),
+    }).isRequired,
 
     /** The report on which the request is initiated on */
     report: reportPropTypes,
 
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     iou: PropTypes.shape({
+        /** ID (iouType + reportID) of the request */
         id: PropTypes.string,
+
+        /** Amount of the request */
         amount: PropTypes.number,
+
+        /** Currency of the request */
         currency: PropTypes.string,
-        participants: PropTypes.arrayOf(
-            PropTypes.shape({
-                accountID: PropTypes.number,
-                login: PropTypes.string,
-                isPolicyExpenseChat: PropTypes.bool,
-                isOwnPolicyExpenseChat: PropTypes.bool,
-                selected: PropTypes.bool,
-            }),
-        ),
+        merchant: PropTypes.string,
+        created: PropTypes.string,
+
+        /** List of the participants */
+        participants: PropTypes.arrayOf(participantPropTypes),
     }),
 };
 
 const defaultProps = {
-    route: {
-        params: {
-            iouType: '',
-            reportID: '',
-        },
-    },
     report: {},
     iou: {
         id: '',
         amount: 0,
+        created: '',
+        merchant: '',
         currency: CONST.CURRENCY.USD,
         participants: [],
     },
