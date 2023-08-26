@@ -39,6 +39,8 @@ function LocationErrorMessage({locationErrorCode, translate}) {
         }
     };
 
+    const isPermissionDenied = locationErrorCode === 1;
+
     return (
         <View style={[styles.dotIndicatorMessage, styles.mt4]}>
             <View style={styles.offlineFeedback.errorDot}>
@@ -55,7 +57,7 @@ function LocationErrorMessage({locationErrorCode, translate}) {
                   - errorCode = 2 -> location is unavailable or there is some connection issue
                   - errorCode = 3 -> location fetch timeout  
                 */}
-                {locationErrorCode === 1 ? (
+                {isPermissionDenied ? (
                     <Text style={styles.offlineFeedback.text}>
                         <Text>{`${translate('location.permissionDenied')} ${translate('common.please')}`}</Text>
                         <TextLink onPress={navigateToSettings}>{` ${translate('location.allowPermission')} `}</TextLink>
