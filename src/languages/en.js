@@ -1612,6 +1612,8 @@ export default {
     },
     distance: {
         addStop: 'Add stop',
+        deleteStop: 'Delete stop',
+        deleteStopConfirmation: 'Are you sure you want to delete this stop?',
         address: 'Address',
         waypointEditor: 'Waypoint Editor',
         waypointDescription: {

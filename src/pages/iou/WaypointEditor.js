@@ -1,4 +1,4 @@
-import React, {useRef} from 'react';
+import React, {useRef, useState} from 'react';
 import lodashGet from 'lodash/get';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
@@ -11,7 +11,10 @@ import ONYXKEYS from '../../ONYXKEYS';
 import Form from '../../components/Form';
 import styles from '../../styles/styles';
 import compose from '../../libs/compose';
+import withWindowDimensions from '../../components/withWindowDimensions';
 import CONST from '../../CONST';
+import * as Expensicons from '../../components/Icon/Expensicons';
+import ConfirmModal from '../../components/ConfirmModal';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import * as Transaction from '../../libs/actions/Transaction';
 import * as ValidationUtils from '../../libs/ValidationUtils';
@@ -53,8 +56,9 @@ const defaultProps = {
     transaction: {},
 };
 
-function WaypointEditor({transactionID, route: {params: {iouType = '', waypointIndex = ''} = {}} = {}, network, translate, transaction}) {
+function WaypointEditor({transactionID, route: {params: {iouType = '', waypointIndex = ''} = {}} = {}, network, translate, transaction, windowWidth}) {
     const textInput = useRef(null);
+    const [isDeleteStopModalOpen, setIsDeleteStopModalOpen] = useState(false);
     const currentWaypoint = lodashGet(transaction, `comment.waypoints.waypoint${waypointIndex}`, {});
     const waypointAddress = lodashGet(currentWaypoint, 'address', '');
 
@@ -96,6 +100,12 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
         Navigation.goBack(ROUTES.getMoneyRequestDistanceTabRoute(iouType));
     };
 
+    const confirmDeleteStopAndHideModal = () => {
+        Transaction.removeWaypoint(transactionID, waypointIndex);
+        setIsDeleteStopModalOpen(false);
+        Navigation.goBack(ROUTES.getMoneyRequestDistanceTabRoute(iouType));
+    };
+
     const selectWaypoint = (values) => {
         const waypoint = {
             lat: values.lat,
@@ -119,6 +129,25 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
                 onBackButtonPress={() => {
                     Navigation.goBack(ROUTES.getMoneyRequestDistanceTabRoute(iouType));
                 }}
+                shouldShowThreeDotsButton
+                threeDotsAnchorPosition={styles.threeDotsPopoverOffset(windowWidth)}
+                threeDotsMenuItems={[
+                    {
+                        icon: Expensicons.Trashcan,
+                        text: translate('distance.deleteStop'),
+                        onSelected: () => setIsDeleteStopModalOpen(true),
+                    },
+                ]}
+            />
+            <ConfirmModal
+                title={translate('distance.deleteStop')}
+                isVisible={isDeleteStopModalOpen}
+                onConfirm={confirmDeleteStopAndHideModal}
+                onCancel={() => setIsDeleteStopModalOpen(false)}
+                prompt={translate('distance.deleteStopConfirmation')}
+                confirmText={translate('common.delete')}
+                cancelText={translate('common.cancel')}
+                danger
             />
             <Form
                 style={[styles.flexGrow1, styles.mh5]}
@@ -164,6 +193,7 @@ WaypointEditor.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withNetwork(),
+    withWindowDimensions,
     withOnyx({
         transaction: {
             key: (props) => `${ONYXKEYS.COLLECTION.TRANSACTION}${props.transactionID}`,
