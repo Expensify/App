@@ -12,7 +12,6 @@ import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import MenuItem from '../../components/MenuItem';
 import * as ReportUtils from '../../libs/ReportUtils';
 import useLocalize from '../../hooks/useLocalize';
-import useNetwork from '../../hooks/useNetwork';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import * as Report from '../../libs/actions/Report';
 import personalDetailsPropType from '../personalDetailsPropType';
@@ -22,6 +21,8 @@ import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
+import { withNetwork } from '../../components/OnyxProvider';
+import networkPropTypes from '../../components/networkPropTypes';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -43,6 +44,9 @@ const propTypes = {
 
      /** All of the personal details for everyone */
      personalDetailsList: PropTypes.objectOf(personalDetailsPropType),
+
+     /** Information about the network */
+    network: networkPropTypes.isRequired,
      ...withLocalizePropTypes,
 };
 
@@ -54,14 +58,16 @@ const defaultProps = {
     personalDetailsList: {},
 };
 
-function PrivateNotesListPage({session, report, personalDetailsList}) {
+function PrivateNotesListPage({report, personalDetailsList, network, session}) {
     const {translate} = useLocalize();
 
     useEffect(() => {
+        if (network.isOffline) {
+            return;
+        }
         Report.getReportPrivateNote(report.reportID);
-    }, [report.reportID]);
+    }, [report.reportID, network.isOffline]);
 
-    useNetwork({onReconnect: () => Report.getReportPrivateNote(report.reportID)});
     /**
      * Gets the menu item for each workspace
      *
@@ -94,26 +100,26 @@ function PrivateNotesListPage({session, report, personalDetailsList}) {
     }
 
     /**
-     * Add free policies (workspaces) to the list of menu items and returns the list of menu items
+     * Returns a list of private notes on the given chat report
      * @returns {Array} the menu item list
      */
     const privateNotes = useMemo(() => {
         const privateNoteBrickRoadIndicator = (accountID) => !_.isEmpty(lodashGet(report, `privateNotes.${accountID}.errors`, '')) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
         return _.chain(lodashGet(report, 'privateNotes'))
-            .map(([accountID]) => ({
-                title: lodashGet(personalDetailsList, `${accountID}.login`, ''),
-                icon: UserUtils.getAvatar(lodashGet(personalDetailsList, `${accountID}.avatar`, UserUtils.getDefaultAvatar(accountID))),
-                iconType: CONST.ICON_TYPE_AVATAR,
-                action: () => ReportUtils.navigateToPrivateNotesPage(report, accountID),
-                brickRoadIndicator: privateNoteBrickRoadIndicator(accountID),
-            }))
+            .map((privateNote, accountID) => ({
+                    title: Number(lodashGet(session, 'accountID', null)) === accountID ? 'Your note' : lodashGet(personalDetailsList, `${accountID}.login`, ''),
+                    icon: UserUtils.getAvatar(lodashGet(personalDetailsList, `${accountID}.avatar`, UserUtils.getDefaultAvatar(accountID)), accountID),
+                    iconType: CONST.ICON_TYPE_AVATAR,
+                    action: () => ReportUtils.navigateToPrivateNotesPage(report, accountID),
+                    brickRoadIndicator: privateNoteBrickRoadIndicator(accountID),
+                }))
             .value();
-    }, [report.privateNotes]);
+    }, [report, personalDetailsList, session]);
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <FullPageNotFoundView
-                shouldShow={(_.isEmpty(report.reportID) || !report.isLoadingPrivateNotes && _.isEmpty(lodashGet(report, 'privateNotes', [])))}
+                shouldShow={_.isEmpty(report.reportID) || (!report.isLoadingPrivateNotes && _.isEmpty(lodashGet(report, 'privateNotes', [])))}
                 onBackButtonPress={() => Navigation.goBack()}
             >
                 <HeaderWithBackButton
@@ -122,8 +128,7 @@ function PrivateNotesListPage({session, report, personalDetailsList}) {
                 onCloseButtonPress={() => Navigation.dismissModal()}
                 onBackButtonPress={() => Navigation.goBack()}
                 />
-                {report.isLoading && <FullScreenLoadingIndicator/>}
-                {!report.isLoading && _.map(privateNotes, (item, index) => getMenuItem(item, index))}
+                {report.isLoadingPrivateNotes && _.isEmpty(lodashGet(report, 'privateNotes', [])) ?  <FullScreenLoadingIndicator/> : _.map(privateNotes, (item, index) => getMenuItem(item, index))}
             </FullPageNotFoundView>
         </ScreenWrapper>
     );
@@ -133,6 +138,7 @@ PrivateNotesListPage.propTypes = propTypes;
 PrivateNotesListPage.defaultProps = defaultProps;
 
 export default compose(
+    withLocalize,
     withOnyx({
         report: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID.toString()}`,
@@ -144,5 +150,5 @@ export default compose(
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
     }),
-    withLocalize,
+    withNetwork(),
 )(PrivateNotesListPage);
