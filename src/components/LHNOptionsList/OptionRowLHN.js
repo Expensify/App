@@ -2,9 +2,11 @@ import _ from 'underscore';
 import React, {useState, useRef} from 'react';
 import PropTypes from 'prop-types';
 import {View, StyleSheet} from 'react-native';
+import lodashGet from 'lodash/get';
 import * as optionRowStyles from '../../styles/optionRowStyles';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
+import DateUtils from '../../libs/DateUtils';
 import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
 import MultipleAvatars from '../MultipleAvatars';
@@ -22,11 +24,16 @@ import * as ContextMenuActions from '../../pages/home/report/ContextMenu/Context
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import * as ReportUtils from '../../libs/ReportUtils';
 import useLocalize from '../../hooks/useLocalize';
+import Permissions from '../../libs/Permissions';
+import Tooltip from '../Tooltip';
 
 const propTypes = {
     /** Style for hovered state */
     // eslint-disable-next-line react/forbid-prop-types
     hoverStyle: PropTypes.object,
+
+    /** List of betas available to current user */
+    betas: PropTypes.arrayOf(PropTypes.string),
 
     /** The ID of the report that the option is for */
     reportID: PropTypes.string.isRequired,
@@ -54,6 +61,7 @@ const defaultProps = {
     style: null,
     optionItem: null,
     isFocused: false,
+    betas: [],
 };
 
 function OptionRowLHN(props) {
@@ -68,8 +76,8 @@ function OptionRowLHN(props) {
         return null;
     }
 
-    const isMuted = optionItem.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE;
-    if (isMuted && !props.isFocused && !optionItem.isPinned) {
+    const isHidden = optionItem.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+    if (isHidden && !props.isFocused && !optionItem.isPinned) {
         return null;
     }
 
@@ -123,6 +131,13 @@ function OptionRowLHN(props) {
             optionItem.isUnread,
         );
     };
+
+    const emojiCode = lodashGet(optionItem, 'status.emojiCode', '');
+    const statusText = lodashGet(optionItem, 'status.text', '');
+    const statusClearAfterDate = lodashGet(optionItem, 'status.clearAfter', '');
+    const formattedDate = DateUtils.getStatusUntilDate(statusClearAfterDate);
+    const statusContent = formattedDate ? `${statusText} (${formattedDate})` : statusText;
+    const isStatusVisible = Permissions.canUseCustomStatus(props.betas) && !!emojiCode && ReportUtils.isOneOnOneChat(optionItem);
 
     return (
         <OfflineWithFeedback
@@ -202,6 +217,14 @@ function OptionRowLHN(props) {
                                                 optionItem.isChatRoom || optionItem.isPolicyExpenseChat || optionItem.isTaskReport || optionItem.isThread || optionItem.isMoneyRequestReport
                                             }
                                         />
+                                        {isStatusVisible && (
+                                            <Tooltip
+                                                text={statusContent}
+                                                shiftVertical={-4}
+                                            >
+                                                <Text style={styles.ml1}>{emojiCode}</Text>
+                                            </Tooltip>
+                                        )}
                                     </View>
                                     {optionItem.alternateText ? (
                                         <Text
