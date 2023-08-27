@@ -22,6 +22,7 @@ import personalDetailsPropType from '../personalDetailsPropType';
 import RenderHTML from '../../components/RenderHTML';
 import PressableWithoutFeedback from '../../components/Pressable/PressableWithoutFeedback';
 import * as Report from '../../libs/actions/Report';
+import useLocalize from '../../hooks/useLocalize';
 
 const propTypes = {
     /** All of the personal details for everyone */
@@ -56,7 +57,8 @@ const defaultProps = {
     personalDetailsList: {},
 };
 
-const PrivateNotesPage = ({route, personalDetailsList, session, report}) => {
+const PrivateNotesPage = ({ route, personalDetailsList, session, report }) => {
+    const { translate } = useLocalize();
     const [privateNote, setPrivateNote] = useState(
         lodashGet(report, `privateNotes.${route.params.accountID}.note`, ''),
     );
@@ -64,6 +66,7 @@ const PrivateNotesPage = ({route, personalDetailsList, session, report}) => {
     const isCurrentUser = Number(session.accountID) === Number(route.params.accountID);
 
     const savePrivateNote = () => {
+        debugger;
         Report.updatePrivateNotes(report.reportID, route.params.accountID, privateNote);
         Keyboard.dismiss();
     };
@@ -77,14 +80,14 @@ const PrivateNotesPage = ({route, personalDetailsList, session, report}) => {
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <FullPageNotFoundView
-                shouldShow={false}
+                shouldShow={_.isEmpty(report) || _.isEmpty(report.privateNotes) || !_.has(report, `privateNotes.${route.params.accountID}.note`)}
                 subtitleKey="privateNotes.notesUnavailable"
                 onBackButtonPress={() => Navigation.goBack(ROUTES.PRIVATE_NOTES_LIST)}
             >
                 <HeaderWithBackButton
                     title={translate('privateNotes.title')}
                     subtitle={
-                        accountIDMatches
+                        isCurrentUser
                             ? 'Your note'
                             : `${lodashGet(personalDetailsList, `${route.params.accountID}.login`, '')} note`
                     }
@@ -92,13 +95,7 @@ const PrivateNotesPage = ({route, personalDetailsList, session, report}) => {
                     onCloseButtonPress={() => Navigation.dismissModal()}
                     onBackButtonPress={() => Navigation.goBack()}
                 />
-                <Form
-                    style={[styles.flexGrow1, styles.ph5]}
-                    formID={ONYXKEYS.FORMS.PRIVATE_NOTES_FORM}
-                    onSubmit={savePrivateNote}
-                    submitButtonText={translate('common.save')}
-                    enabledWhenOffline
-                >
+                <View style={[styles.flexGrow1, styles.ph5]}>
                     <View style={[styles.mb5]}>
                         <Text>
                             {translate(
@@ -114,26 +111,31 @@ const PrivateNotesPage = ({route, personalDetailsList, session, report}) => {
                             )}
                         </Text>
                     </View>
+
                     {editMode ? (
-                        <View style={[styles.mb3]}>
-                            <TextInput
-                                ref={(el) => {
-                                    this.welcomeMessageInputRef = el;
-                                }}
-                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                                inputID="privateNotes"
-                                label={translate('privateNotes.composerLabel')}
-                                accessibilityLabel={translate('privateNotes.title')}
-                                autoCompleteType="off"
-                                autoCorrect={false}
-                                autoGrowHeight
-                                textAlignVertical="top"
-                                containerStyles={[styles.autoGrowHeightMultilineInput]}
-                                defaultValue={privateNote}
-                                value={privateNote}
-                                onChangeText={(text) => setPrivateNote(text)}
-                            />
-                        </View>
+                        <Form
+                            formID={ONYXKEYS.FORMS.PRIVATE_NOTES_FORM}
+                            onSubmit={savePrivateNote}
+                            submitButtonText={translate('common.save')}
+                            enabledWhenOffline
+                        >
+                            <View style={[styles.mb3]}>
+                                <TextInput
+                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                                    inputID="privateNotes"
+                                    label={translate('privateNotes.composerLabel')}
+                                    accessibilityLabel={translate('privateNotes.title')}
+                                    autoCompleteType="off"
+                                    autoCorrect={false}
+                                    autoGrowHeight
+                                    textAlignVertical="top"
+                                    containerStyles={[styles.autoGrowHeightMultilineInput]}
+                                    defaultValue={privateNote}
+                                    value={privateNote}
+                                    onChangeText={(text) => setPrivateNote(text)}
+                                />
+                            </View>
+                        </Form>
                     ) : (
                         <PressableWithoutFeedback
                             accessibilityLabel={translate('common.edit')}
@@ -143,7 +145,7 @@ const PrivateNotesPage = ({route, personalDetailsList, session, report}) => {
                             <RenderHTML html={privateNote} />
                         </PressableWithoutFeedback>
                     )}
-                </Form>
+                </View>
             </FullPageNotFoundView>
         </ScreenWrapper>
     );
