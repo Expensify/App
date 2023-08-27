@@ -31,7 +31,7 @@ index c879838..288316c 100644
                progressViewOffset: props.progressViewOffset
 -            }) : props.refreshControl
 +            }) : props.refreshControl,
-+            contentContainerStyle: StyleSheet.compose(inversionStyle, this.props.contentContainerStyle)
++            contentContainerStyle: [inversionStyle, this.props.contentContainerStyle]
            }))
          );
        } else {
@@ -39,7 +39,7 @@ index c879838..288316c 100644
          // $FlowFixMe[incompatible-use]
 -        return /*#__PURE__*/React.createElement(ScrollView, props);
 +        return /*#__PURE__*/React.createElement(ScrollView, _extends({}, props, {
-+          contentContainerStyle: StyleSheet.compose(inversionStyle, this.props.contentContainerStyle)
++          contentContainerStyle: [inversionStyle, this.props.contentContainerStyle]
 +        }));
        }
      };
@@ -239,10 +239,10 @@ index c7d68bb..46b3fc9 100644
                props.refreshControl
              )
            }
-+          contentContainerStyle={StyleSheet.compose(
++          contentContainerStyle={[
 +            inversionStyle,
 +            this.props.contentContainerStyle,
-+          )}
++          ]}
          />
        );
      } else {
@@ -252,10 +252,10 @@ index c7d68bb..46b3fc9 100644
 +      return (
 +        <ScrollView
 +          {...props}
-+          contentContainerStyle={StyleSheet.compose(
++          contentContainerStyle={[
 +            inversionStyle,
 +            this.props.contentContainerStyle,
-+          )}
++          ]}
 +        />
 +      );
      }
