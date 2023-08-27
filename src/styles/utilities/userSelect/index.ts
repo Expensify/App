@@ -1,4 +1,6 @@
-export default {
+import UserSelectStyles from './types';
+
+const userSelect: UserSelectStyles = {
     userSelectText: {
         userSelect: 'text',
         WebkitUserSelect: 'text',
@@ -8,3 +10,5 @@ export default {
         WebkitUserSelect: 'none',
     },
 };
+
+export default userSelect;
