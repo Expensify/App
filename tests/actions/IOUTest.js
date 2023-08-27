@@ -1525,5 +1525,39 @@ describe('actions/IOU', () => {
                         }),
                 );
         });
+        it('delete the IOU report when there are no visible comments left in the IOU report', () => {
+            fetch.pause();
+            IOU.deleteMoneyRequest(transaction.transactionID, createIOUAction, true);
+            return waitForPromisesToResolve()
+                .then(
+                    () =>
+                        new Promise((resolve) => {
+                            const connectionID = Onyx.connect({
+                                key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+                                waitForCollectionCallback: true,
+                                callback: (report) => {
+                                    Onyx.disconnect(connectionID);
+                                    expect(report).toBeFalsy();
+                                    resolve();
+                                },
+                            });
+                        }),
+                )
+                .then(fetch.resume)
+                .then(
+                    () =>
+                        new Promise((resolve) => {
+                            const connectionID = Onyx.connect({
+                                key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+                                waitForCollectionCallback: true,
+                                callback: (report) => {
+                                    Onyx.disconnect(connectionID);
+                                    expect(report).toBeFalsy();
+                                    resolve();
+                                },
+                            });
+                        }),
+                );
+        });
     });
 });
