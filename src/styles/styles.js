@@ -10,6 +10,7 @@ import sizing from './utilities/sizing';
 import flex from './utilities/flex';
 import display from './utilities/display';
 import overflow from './utilities/overflow';
+import overflowWrap from './utilities/overflowWrap';
 import whiteSpace from './utilities/whiteSpace';
 import wordBreak from './utilities/wordBreak';
 import positioning from './utilities/positioning';
@@ -3660,15 +3661,14 @@ const styles = {
         height: 450,
     },
 
-    tabSelectorButton: (isSelected) => ({
+    tabSelectorButton: {
         height: 40,
         padding: 12,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         borderRadius: variables.buttonBorderRadius,
-        backgroundColor: isSelected ? themeColors.midtone : themeColors.appBG,
-    }),
+    },
 
     tabSelector: {
         flexDirection: 'row',
@@ -3681,6 +3681,7 @@ const styles = {
         fontFamily: isSelected ? fontFamily.EXP_NEUE_BOLD : fontFamily.EXP_NEUE,
         fontWeight: isSelected ? fontWeightBold : 400,
         color: isSelected ? themeColors.textLight : themeColors.textSupporting,
+        ...overflowWrap.overflowWrapNormal,
     }),
 
     /**
