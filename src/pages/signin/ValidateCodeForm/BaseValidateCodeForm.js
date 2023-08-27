@@ -186,6 +186,8 @@ function BaseValidateCodeForm(props) {
         setTwoFactorAuthCode('');
         setFormError({});
         setValidateCode('');
+        setIsUsingRecoveryCode(false);
+        setRecoveryCode('');
     };
 
     /**
