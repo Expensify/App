@@ -8,8 +8,6 @@ import CONST from '../../CONST';
 import useLocalize from '../../hooks/useLocalize';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
-import fontFamilies from '../../styles/fontFamily';
-import fontWeightBold from '../../styles/fontWeight/bold';
 
 const propTypes = {
     /* Navigation state provided by React Navigation */
