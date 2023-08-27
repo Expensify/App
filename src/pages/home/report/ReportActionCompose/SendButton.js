@@ -58,7 +58,7 @@ function SendButton({isDisabled: isDisabledProp, animatedRef, setIsCommentEmpty,
                             isDisabledProp || pressed || isDisabled ? undefined : styles.buttonSuccess,
                             isDisabledProp ? styles.cursorDisabled : undefined,
                         ]}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         accessibilityLabel={translate('common.send')}
                     >
                         {({pressed}) => (
