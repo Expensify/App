@@ -161,7 +161,7 @@ function AddPlaidBankAccount({plaidData, selectedPlaidAccountID, plaidLinkToken,
 
     if (isPlaidDisabled) {
         return (
-            <View style={[styles.m5]}>
+            <View>
                 <Text style={[styles.formError]}>{translate('bankAccount.error.tooManyAttempts')}</Text>
             </View>
         );
