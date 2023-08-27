@@ -104,7 +104,7 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
         Navigation.goBack(ROUTES.getMoneyRequestDistanceTabRoute(iouType));
     };
 
-    const confirmDeleteStopAndHideModal = () => {
+    const deleteStopAndHideModal = () => {
         Transaction.removeWaypoint(transactionID, waypointIndex);
         setIsDeleteStopModalOpen(false);
         Navigation.goBack(ROUTES.getMoneyRequestDistanceTabRoute(iouType));
@@ -146,7 +146,7 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
             <ConfirmModal
                 title={translate('distance.deleteWaypoint')}
                 isVisible={isDeleteStopModalOpen}
-                onConfirm={confirmDeleteStopAndHideModal}
+                onConfirm={deleteStopAndHideModal}
                 onCancel={() => setIsDeleteStopModalOpen(false)}
                 prompt={translate('distance.deleteWaypointConfirmation')}
                 confirmText={translate('common.delete')}
