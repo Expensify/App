@@ -39,7 +39,7 @@ const propTypes = {
  * @param {string} data - one of the values from CONST.CUSTOM_STATUS_TYPES or data in format YYYY-MM-DD HH:mm
  * @returns {string}
  */
-function getDateBasedFromType(data) {
+function getInitialDateBasedFromStatusType(data) {
     switch (data) {
         case DateUtils.getEndOfToday():
             return CONST.CUSTOM_STATUS_TYPES.AFTER_TODAY;
@@ -58,7 +58,7 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
     const clearAfter = lodashGet(currentUserPersonalDetails, 'status.clearAfter', '');
     const draftClearAfter = lodashGet(customStatus, 'clearAfter', '');
     const customDateTemporary = lodashGet(customStatus, 'customDateTemporary', '');
-    const [draftPeriod, setDraftPeriod] = useState(getDateBasedFromType(clearAfter || draftClearAfter));
+    const [draftPeriod, setDraftPeriod] = useState(getInitialDateBasedFromStatusType(clearAfter || draftClearAfter));
     const localesToThemes = useMemo(
         () =>
             _.map(CONST.CUSTOM_STATUS_TYPES, (value, key) => ({
@@ -73,10 +73,10 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
     const onSubmit = () => {
         let calculatedDraftDate = '';
         if (draftPeriod === CONST.CUSTOM_STATUS_TYPES.CUSTOM) {
-            calculatedDraftDate = customDateTemporary || draftClearAfter;
+            calculatedDraftDate = customDateTemporary;
         } else {
             const selectedRange = _.find(localesToThemes, (item) => item.isSelected);
-            calculatedDraftDate = DateUtils.getDateBasedFromType(selectedRange.value);
+            calculatedDraftDate = DateUtils.getDateFromStatusType(selectedRange.value);
         }
 
         User.updateDraftCustomStatus({clearAfter: calculatedDraftDate, customDateTemporary: calculatedDraftDate});
@@ -87,7 +87,7 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
         (mode) => {
             if (mode.value === draftPeriod) return;
             User.updateDraftCustomStatus({
-                customDateTemporary: mode.value === CONST.CUSTOM_STATUS_TYPES.CUSTOM ? DateUtils.getOneHourFromNow() : DateUtils.getDateBasedFromType(mode.value),
+                customDateTemporary: mode.value === CONST.CUSTOM_STATUS_TYPES.CUSTOM ? DateUtils.getOneHourFromNow() : DateUtils.getDateFromStatusType(mode.value),
             });
             setDraftPeriod(mode.value);
         },

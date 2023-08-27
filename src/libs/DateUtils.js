@@ -292,25 +292,28 @@ function getDateStringFromISOTimestamp(isoTimestamp) {
 }
 
 /**
- * @returns {string} example: 2023-05-16
+ * @returns {string} example: 2023-05-16 05:34:14
  */
 function getThirtyMinutesFromNow() {
     return moment().add(30, 'minutes').format('YYYY-MM-DD HH:mm:ss');
 }
 
+/**
+ * @returns {string} example: 2023-05-16 05:34:14
+ */
 function getOneHourFromNow() {
     return moment().add(1, 'hours').format('YYYY-MM-DD HH:mm:ss');
 }
 
 /**
- * @returns {string} example: 2023-05-16
+ * @returns {string} example: 2023-05-16 05:34:14
  */
 function getEndOfToday() {
     return moment().endOf('day').format('YYYY-MM-DD HH:mm:ss');
 }
 
 /**
- * @returns {string} example: 2023-05-16
+ * @returns {string} example: 2023-05-16 05:34:14
  */
 function getEndOfWeekFromNow() {
     return moment().add(7, 'days').format('YYYY-MM-DD HH:mm:ss');
@@ -319,7 +322,6 @@ function getEndOfWeekFromNow() {
 /**
  * @param {string} time
  * @returns {string} example: 2023-05-16
- * it's kind of 'newer' date
  */
 function extractDate(time) {
     return moment(time).format('YYYY-MM-DD');
@@ -327,16 +329,14 @@ function extractDate(time) {
 
 /**
  * @param {string} dateTimeString
- * @returns {string} example: 2023-05-16
- * it's kind of 'newer' date
+ * @returns {string} example: 11:10
  */
 function extractTime(dateTimeString) {
     return moment(dateTimeString).format('hh:mm');
 }
 /**
  * @param {string} dateTimeString
- * @returns {string} example: 2023-05-16
- * it's kind of 'newer' date
+ * @returns {string} example: 11:10 PM
  */
 function extractTime12Hour(dateTimeString) {
     return moment(dateTimeString).format('hh:mm A');
@@ -344,8 +344,7 @@ function extractTime12Hour(dateTimeString) {
 
 /**
  * @param {string} dateTimeString
- * @returns {string} example: 2023-05-16
- * it's kind of 'newer' date
+ * @returns {string} example: 2023-05-16 11:10 PM
  */
 function formatDateTo12Hour(dateTimeString) {
     if (!dateTimeString) return '';
@@ -354,9 +353,9 @@ function formatDateTo12Hour(dateTimeString) {
 
 /**
  * @param {string} type - one of the values from CONST.CUSTOM_STATUS_TYPES
- * @returns {string} example: 2023-05-16
+ * @returns {string} example: 2023-05-16 11:10:00 or ''
  */
-function getDateBasedFromType(type) {
+function getDateFromStatusType(type) {
     switch (type) {
         case CONST.CUSTOM_STATUS_TYPES.THIRTY_MINUTES:
             return getThirtyMinutesFromNow();
@@ -377,7 +376,7 @@ function getDateBasedFromType(type) {
  * @param {string} data - one of the values from CONST.CUSTOM_STATUS_TYPES or data in format YYYY-MM-DD HH:mm
  * @returns {string} example: 2023-05-16 11:10 PM or 'Today'
  */
-function getDateForTitleBasedFromType(data) {
+function getLocalizedTimePeriodDescription(data) {
     const {translateLocal} = Localize;
     switch (data) {
         case getEndOfToday():
@@ -513,7 +512,7 @@ const DateUtils = {
     getThirtyMinutesFromNow,
     getEndOfToday,
     getEndOfWeekFromNow,
-    getDateBasedFromType,
+    getDateFromStatusType,
     getOneHourFromNow,
     extractDate,
     extractTime,
@@ -524,7 +523,7 @@ const DateUtils = {
     parseTimeTo12HourFormat,
     areDatesIdentical,
     getTimePeriod,
-    getDateForTitleBasedFromType,
+    getLocalizedTimePeriodDescription,
 };
 
 export default DateUtils;
