@@ -70,7 +70,19 @@ const defaultProps = {
     isPlaidDisabled: false,
 };
 
-function AddPlaidBankAccount({plaidData, selectedPlaidAccountID, plaidLinkToken, onExitPlaid, onSelect, text, receivedRedirectURI, plaidLinkOAuthToken, bankAccountID, allowDebit, isPlaidDisabled}) {
+function AddPlaidBankAccount({
+    plaidData,
+    selectedPlaidAccountID,
+    plaidLinkToken,
+    onExitPlaid,
+    onSelect,
+    text,
+    receivedRedirectURI,
+    plaidLinkOAuthToken,
+    bankAccountID,
+    allowDebit,
+    isPlaidDisabled,
+}) {
     const subscribedKeyboardShortcuts = useRef([]);
     const previousNetworkState = useRef();
 
