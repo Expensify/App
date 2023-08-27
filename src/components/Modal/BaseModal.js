@@ -80,8 +80,10 @@ function BaseModal({
 
         // To handle closing any modal already visible when this modal is mounted, i.e. PopoverReportActionContextMenu
         Modal.setCloseModal(isVisible ? onClose : null);
+    }, [isVisible, onClose]);
 
-        return () => {
+    useEffect(
+        () => () => {
             // Only trigger onClose and setModalVisibility if the modal is unmounting while visible.
             if (isVisible) {
                 hideModal(true);
@@ -90,8 +92,9 @@ function BaseModal({
 
             // To prevent closing any modal already unmounted when this modal still remains as visible state
             Modal.setCloseModal(null);
-        };
-    }, [hideModal, isVisible, onClose]);
+        },
+        [hideModal, isVisible],
+    );
 
     const handleShowModal = () => {
         if (shouldSetModalVisibility) {
