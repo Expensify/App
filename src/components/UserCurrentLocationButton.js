@@ -15,17 +15,12 @@ const propTypes = {
     /** Callback that runs when location data is fetched */
     onLocationFetched: PropTypes.func.isRequired,
 
-    /** Accessibility label for the component */
-    accessibilityLabel: PropTypes.string,
-
     ...withLocalizePropTypes,
 };
 
-const defaultProps = {
-    accessibilityLabel: 'location.useCurrent',
-};
+const defaultProps = {};
 
-function UserCurrentLocationButton({onLocationFetched, accessibilityLabel, translate}) {
+function UserCurrentLocationButton({onLocationFetched, translate}) {
     const isFetchingLocation = useRef(false);
 
     /**
@@ -74,7 +69,7 @@ function UserCurrentLocationButton({onLocationFetched, accessibilityLabel, trans
             <PressableWithFeedback
                 style={[styles.flexRow, styles.mt4]}
                 onPress={useCurrentLocation}
-                accessibilityLabel={accessibilityLabel}
+                accessibilityLabel={translate('location.useCurrent')}
             >
                 <Icon
                     src={Expensicons.Location}
