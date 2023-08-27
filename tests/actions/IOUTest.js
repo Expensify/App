@@ -1559,5 +1559,74 @@ describe('actions/IOU', () => {
                         }),
                 );
         });
+        it('does not delete the IOU report when there are visible comments left in the IOU report', () => {
+            let reportActions;
+            const connectionID = Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+                callback: (val) => (reportActions = val),
+            });
+            Report.addComment(iouReport.reportID, 'Test Comment');
+            return waitForPromisesToResolve()
+                .then(() => {
+                    const action = _.find(reportActions, (ra) => ra.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT);
+                    expect(action).toBeTruthy();
+                    expect(action.message[0].text).toBe('Test Comment');
+                    Onyx.disconnect(connectionID);
+                })
+                .then(() => {
+                    fetch.pause();
+                    IOU.deleteMoneyRequest(transaction.transactionID, createIOUAction, true);
+                    return waitForPromisesToResolve();
+                })
+                .then(() => {
+                    const connectionID = Onyx.connect({
+                        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+                        callback: (val) => (reportActions = val),
+                    });
+                    const action = _.find(reportActions, (ra) => ra.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT);
+                    expect(action).toBeTruthy();
+                    expect(action.message[0].text).toBe('Test Comment');
+                    Onyx.disconnect(connectionID);
+                })
+                .then(
+                    () =>
+                        new Promise((resolve) => {
+                            const connectionID = Onyx.connect({
+                                key: ONYXKEYS.COLLECTION.REPORT,
+                                waitForCollectionCallback: true,
+                                callback: (allReports) => {
+                                    Onyx.disconnect(connectionID);
+
+                                    iouReport = _.find(allReports, (report) => report.type === CONST.REPORT.TYPE.IOU);
+                                    expect(iouReport).toBeTruthy();
+                                    expect(iouReport).toHaveProperty('reportID');
+                                    expect(iouReport).toHaveProperty('chatReportID');
+
+                                    resolve();
+                                },
+                            });
+                        }),
+                )
+                .then(fetch.resume)
+                .then(
+                    () =>
+                        new Promise((resolve) => {
+                            const connectionID = Onyx.connect({
+                                key: ONYXKEYS.COLLECTION.REPORT,
+                                waitForCollectionCallback: true,
+                                callback: (allReports) => {
+                                    Onyx.disconnect(connectionID);
+
+                                    iouReport = _.find(allReports, (report) => report.type === CONST.REPORT.TYPE.IOU);
+                                    expect(iouReport).toBeTruthy();
+                                    expect(iouReport).toHaveProperty('reportID');
+                                    expect(iouReport).toHaveProperty('chatReportID');
+
+                                    resolve();
+                                },
+                            });
+                        }),
+                );
+        });
     });
 });
