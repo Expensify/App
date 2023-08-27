@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import {View, Keyboard} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
+import { View, Keyboard } from 'react-native';
+import { withOnyx } from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import Str from 'expensify-common/lib/str';
 import withLocalize from '../../components/withLocalize';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
@@ -19,14 +19,13 @@ import Form from '../../components/Form';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import reportPropTypes from '../reportPropTypes';
 import personalDetailsPropType from '../personalDetailsPropType';
-import Str from 'expensify-common/lib/str';
 import RenderHTML from '../../components/RenderHTML';
-import { PressableWithoutFeedback } from '../../components/Pressable';
+import PressableWithoutFeedback from '../../components/Pressable/PressableWithoutFeedback';
 import * as Report from '../../libs/actions/Report';
 
 const propTypes = {
-     /** All of the personal details for everyone */
-     personalDetailsList: PropTypes.objectOf(personalDetailsPropType),
+    /** All of the personal details for everyone */
+    personalDetailsList: PropTypes.objectOf(personalDetailsPropType),
 
     /** The report currently being looked at */
     report: reportPropTypes,
@@ -41,8 +40,8 @@ const propTypes = {
 
     /** Session of currently logged in user */
     session: PropTypes.shape({
-        /** Currently logged in user authToken */
-        authToken: PropTypes.string,
+        /** Currently logged in user accountID */
+        accountID: PropTypes.number,
     }),
 
     /** Returns translated string for given locale and phrase */
@@ -53,95 +52,102 @@ const defaultProps = {
     report: {},
     session: {
         accountID: null,
-    }
+    },
+    personalDetailsList: {},
 };
 
-class PrivateNotesPage extends React.Component {
-    constructor(props) {
-        super(props);
+const PrivateNotesPage = ({route, personalDetailsList, session, report}) => {
+    const [privateNote, setPrivateNote] = useState(
+        lodashGet(report, `privateNotes.${route.params.accountID}.note`, ''),
+    );
+    const [editMode, setEditMode] = useState(false);
+    const isCurrentUser = Number(session.accountID) === Number(route.params.accountID);
 
-        this.state = {
-            privateNote: lodashGet(this.props.report, `privateNotes.${this.props.route.params.accountID}.note`, ''),
-            editMode: false,
-        };
-    }
-
-    componentWillUnmount() {
-        if (!this.focusTimeout) {
-            return;
-        }
-        clearTimeout(this.focusTimeout);
-    }
-
-    savePrivateNote() {
-        Report.updatePrivateNotes(this.props.reportID, this.props.route.params.accountID, this.state.privateNote);
+    const savePrivateNote = () => {
+        Report.updatePrivateNotes(report.reportID, route.params.accountID, privateNote);
         Keyboard.dismiss();
-        
-    }
+    };
 
-    focusWelcomeMessageInput() {
-        this.focusTimeout = setTimeout(() => {
-            this.welcomeMessageInputRef.focus();
-            // Below condition is needed for web, desktop and mweb only, for native cursor is set at end by default.
-            if (this.welcomeMessageInputRef.value && this.welcomeMessageInputRef.setSelectionRange) {
-                const length = this.welcomeMessageInputRef.value.length;
-                this.welcomeMessageInputRef.setSelectionRange(length, length);
-            }
-        }, CONST.ANIMATED_TRANSITION);
-    }
+    const switchToEditMode = () => {
+        if (isCurrentUser) {
+            setEditMode(true);
+        }
+    };
 
-    render() {
-        return (
-            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-                <FullPageNotFoundView
-                    shouldShow={false}
-                    subtitleKey='privateNotes.notesUnavailable'
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.PRIVATE_NOTES_LIST)}
+    return (
+        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+            <FullPageNotFoundView
+                shouldShow={false}
+                subtitleKey="privateNotes.notesUnavailable"
+                onBackButtonPress={() => Navigation.goBack(ROUTES.PRIVATE_NOTES_LIST)}
+            >
+                <HeaderWithBackButton
+                    title={translate('privateNotes.title')}
+                    subtitle={
+                        accountIDMatches
+                            ? 'Your note'
+                            : `${lodashGet(personalDetailsList, `${route.params.accountID}.login`, '')} note`
+                    }
+                    shouldShowBackButton
+                    onCloseButtonPress={() => Navigation.dismissModal()}
+                    onBackButtonPress={() => Navigation.goBack()}
+                />
+                <Form
+                    style={[styles.flexGrow1, styles.ph5]}
+                    formID={ONYXKEYS.FORMS.PRIVATE_NOTES_FORM}
+                    onSubmit={savePrivateNote}
+                    submitButtonText={translate('common.save')}
+                    enabledWhenOffline
                 >
-                    <HeaderWithBackButton
-                        title={this.props.translate('privateNotes.title')}
-                        subtitle= {Number(lodashGet(this.props.session, 'accountID', null)) === Number(this.props.route.params.accountID) ? 'Your note' : `${lodashGet(this.props.personalDetailsList, `${accountID}.login`, '')} note`}
-                        shouldShowBackButton
-                        onCloseButtonPress={() => Navigation.dismissModal()}
-                        onBackButtonPress={() => Navigation.goBack()}
-                    />
-                    <Form
-                        style={[styles.flexGrow1, styles.ph5]}
-                        formID={ONYXKEYS.FORMS.PRIVATE_NOTES_FORM}
-                        onSubmit={this.savePrivateNote}
-                        submitButtonText={this.props.translate('common.save')}
-                        enabledWhenOffline
-                    >
-                        <View style={[styles.mb5]}>
-                            <Text>{this.props.translate(Str.extractEmailDomain(lodashGet(this.props.personalDetailsList, [this.props.route.params.accountID, 'login'], '')) === CONST.EMAIL.GUIDES_DOMAIN ? 'privateNotes.sharedNoteMessage' : 'privateNotes.personalNoteMessage')}</Text>
-                        </View>
-                        {
-                            this.state.editMode ? <View style={[styles.mb3]}>
+                    <View style={[styles.mb5]}>
+                        <Text>
+                            {translate(
+                                Str.extractEmailDomain(
+                                    lodashGet(
+                                        personalDetailsList,
+                                        [route.params.accountID, 'login'],
+                                        '',
+                                    ),
+                                ) === CONST.EMAIL.GUIDES_DOMAIN
+                                    ? 'privateNotes.sharedNoteMessage'
+                                    : 'privateNotes.personalNoteMessage',
+                            )}
+                        </Text>
+                    </View>
+                    {editMode ? (
+                        <View style={[styles.mb3]}>
                             <TextInput
-                                ref={(el) => (this.welcomeMessageInputRef = el)}
+                                ref={(el) => {
+                                    this.welcomeMessageInputRef = el;
+                                }}
                                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                                 inputID="privateNotes"
-                                label={this.props.translate('privateNotes.composerLabel')}
-                                accessibilityLabel={this.props.translate('privateNotes.title')}
+                                label={translate('privateNotes.composerLabel')}
+                                accessibilityLabel={translate('privateNotes.title')}
                                 autoCompleteType="off"
                                 autoCorrect={false}
                                 autoGrowHeight
                                 textAlignVertical="top"
                                 containerStyles={[styles.autoGrowHeightMultilineInput]}
-                                defaultValue={this.state.privateNote}
-                                value={this.state.privateNote}
-                                onChangeText={(text) => this.setState({privateNote: text})}
+                                defaultValue={privateNote}
+                                value={privateNote}
+                                onChangeText={(text) => setPrivateNote(text)}
                             />
-                        </View> : <PressableWithoutFeedback>
-                        <RenderHTML html={this.state.privateNote} />
+                        </View>
+                    ) : (
+                        <PressableWithoutFeedback
+                            accessibilityLabel={translate('common.edit')}
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.Button}
+                            onPress={switchToEditMode}
+                        >
+                            <RenderHTML html={privateNote} />
                         </PressableWithoutFeedback>
-                        }
-                    </Form>
-                </FullPageNotFoundView>
-            </ScreenWrapper>
-        );
-    }
-}
+                    )}
+                </Form>
+            </FullPageNotFoundView>
+        </ScreenWrapper>
+    );
+};
 
 PrivateNotesPage.propTypes = propTypes;
 PrivateNotesPage.defaultProps = defaultProps;
@@ -150,7 +156,7 @@ export default compose(
     withLocalize,
     withOnyx({
         report: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID.toString()}`,
+            key: ({ route }) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID.toString()}`,
         },
         session: {
             key: ONYXKEYS.SESSION,

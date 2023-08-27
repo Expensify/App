@@ -1,5 +1,5 @@
-import React, {useMemo, useEffect} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import React, { useMemo, useEffect } from 'react';
+import { withOnyx } from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -18,7 +18,7 @@ import personalDetailsPropType from '../personalDetailsPropType';
 import * as UserUtils from '../../libs/UserUtils';
 import reportPropTypes from '../reportPropTypes';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import withLocalize, { withLocalizePropTypes } from '../../components/withLocalize';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import { withNetwork } from '../../components/OnyxProvider';
@@ -38,16 +38,16 @@ const propTypes = {
 
     /** Session info for the currently logged in user. */
     session: PropTypes.shape({
-        /** Currently logged in user email */
+        /** Currently logged in user accountID */
         accountID: PropTypes.number,
     }),
 
-     /** All of the personal details for everyone */
-     personalDetailsList: PropTypes.objectOf(personalDetailsPropType),
+    /** All of the personal details for everyone */
+    personalDetailsList: PropTypes.objectOf(personalDetailsPropType),
 
-     /** Information about the network */
+    /** Information about the network */
     network: networkPropTypes.isRequired,
-     ...withLocalizePropTypes,
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -58,8 +58,8 @@ const defaultProps = {
     personalDetailsList: {},
 };
 
-function PrivateNotesListPage({report, personalDetailsList, network, session}) {
-    const {translate} = useLocalize();
+function PrivateNotesListPage({ report, personalDetailsList, network, session }) {
+    const { translate } = useLocalize();
 
     useEffect(() => {
         if (network.isOffline) {
@@ -107,12 +107,12 @@ function PrivateNotesListPage({report, personalDetailsList, network, session}) {
         const privateNoteBrickRoadIndicator = (accountID) => !_.isEmpty(lodashGet(report, `privateNotes.${accountID}.errors`, '')) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
         return _.chain(lodashGet(report, 'privateNotes'))
             .map((privateNote, accountID) => ({
-                    title: Number(lodashGet(session, 'accountID', null)) === accountID ? 'Your note' : lodashGet(personalDetailsList, `${accountID}.login`, ''),
-                    icon: UserUtils.getAvatar(lodashGet(personalDetailsList, `${accountID}.avatar`, UserUtils.getDefaultAvatar(accountID)), accountID),
-                    iconType: CONST.ICON_TYPE_AVATAR,
-                    action: () => ReportUtils.navigateToPrivateNotesPage(report, accountID),
-                    brickRoadIndicator: privateNoteBrickRoadIndicator(accountID),
-                }))
+                title: Number(lodashGet(session, 'accountID', null)) === accountID ? 'Your note' : lodashGet(personalDetailsList, `${accountID}.login`, ''),
+                icon: UserUtils.getAvatar(lodashGet(personalDetailsList, `${accountID}.avatar`, UserUtils.getDefaultAvatar(accountID)), accountID),
+                iconType: CONST.ICON_TYPE_AVATAR,
+                action: () => ReportUtils.navigateToPrivateNotesPage(report, accountID),
+                brickRoadIndicator: privateNoteBrickRoadIndicator(accountID),
+            }))
             .value();
     }, [report, personalDetailsList, session]);
 
@@ -123,12 +123,12 @@ function PrivateNotesListPage({report, personalDetailsList, network, session}) {
                 onBackButtonPress={() => Navigation.goBack()}
             >
                 <HeaderWithBackButton
-                title={translate('privateNotes.title')}
-                shouldShowBackButton
-                onCloseButtonPress={() => Navigation.dismissModal()}
-                onBackButtonPress={() => Navigation.goBack()}
+                    title={translate('privateNotes.title')}
+                    shouldShowBackButton
+                    onCloseButtonPress={() => Navigation.dismissModal()}
+                    onBackButtonPress={() => Navigation.goBack()}
                 />
-                {report.isLoadingPrivateNotes && _.isEmpty(lodashGet(report, 'privateNotes', [])) ?  <FullScreenLoadingIndicator/> : _.map(privateNotes, (item, index) => getMenuItem(item, index))}
+                {report.isLoadingPrivateNotes && _.isEmpty(lodashGet(report, 'privateNotes', [])) ? <FullScreenLoadingIndicator /> : _.map(privateNotes, (item, index) => getMenuItem(item, index))}
             </FullPageNotFoundView>
         </ScreenWrapper>
     );
@@ -141,7 +141,7 @@ export default compose(
     withLocalize,
     withOnyx({
         report: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID.toString()}`,
+            key: ({ route }) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID.toString()}`,
         },
         session: {
             key: ONYXKEYS.SESSION,
