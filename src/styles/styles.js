@@ -10,7 +10,6 @@ import sizing from './utilities/sizing';
 import flex from './utilities/flex';
 import display from './utilities/display';
 import overflow from './utilities/overflow';
-import overflowWrap from './utilities/overflowWrap';
 import whiteSpace from './utilities/whiteSpace';
 import wordBreak from './utilities/wordBreak';
 import positioning from './utilities/positioning';
@@ -3681,7 +3680,6 @@ const styles = {
         fontFamily: isSelected ? fontFamily.EXP_NEUE_BOLD : fontFamily.EXP_NEUE,
         fontWeight: isSelected ? fontWeightBold : 400,
         color: isSelected ? themeColors.textLight : themeColors.textSupporting,
-        ...overflowWrap.overflowWrapNormal,
     }),
 
     /**

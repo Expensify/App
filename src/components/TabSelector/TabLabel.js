@@ -25,11 +25,11 @@ const defaultProps = {
 function TabLabel({title, activeOpacity, inactiveOpacity}) {
     return (
         <View>
-            <Animated.View style={{opacity: inactiveOpacity}}>
-                <Text style={styles.tabText(false)}>{title}</Text>
-            </Animated.View>
-            <Animated.View style={[StyleSheet.absoluteFill, {opacity: activeOpacity}]}>
+            <Animated.View style={[{opacity: activeOpacity}]}>
                 <Text style={styles.tabText(true)}>{title}</Text>
+            </Animated.View>
+            <Animated.View style={[StyleSheet.absoluteFill, {opacity: inactiveOpacity}]}>
+                <Text style={styles.tabText(false)}>{title}</Text>
             </Animated.View>
         </View>
     );
