@@ -1572,7 +1572,7 @@ describe('actions/IOU', () => {
                     const action = _.find(reportActions, (ra) => ra.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT);
                     expect(action).toBeTruthy();
                     expect(action.message[0].text).toBe('Test Comment');
-                    Onyx.disconnect(connectionID);
+                    Onyx.disconnect(connection);
                 })
                 .then(() => {
                     fetch.pause();
@@ -1587,7 +1587,7 @@ describe('actions/IOU', () => {
                     const action = _.find(reportActions, (ra) => ra.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT);
                     expect(action).toBeTruthy();
                     expect(action.message[0].text).toBe('Test Comment');
-                    Onyx.disconnect(connection);
+                    Onyx.disconnect(connectionID);
                 })
                 .then(
                     () =>
