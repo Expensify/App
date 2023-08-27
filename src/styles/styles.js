@@ -2805,7 +2805,7 @@ const styles = {
         alignItems: 'center',
         flexDirection: 'row',
         justifyContent: 'space-between',
-        shadowColor: themeColors.shadow,
+        boxShadow: `${themeColors.shadow}`,
         ...spacing.p5,
     },
 
