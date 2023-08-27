@@ -136,33 +136,32 @@ function Form(props) {
             // Validate the input for html tags. It should supercede any other error
             _.each(trimmedStringValues, (inputValue, inputID) => {
 
-                const workspaceRegex = inputValue.search(CONST.VALIDATE_FOR_HTML_TAG_REGEX);
-                const matches = inputValue.match(CONST.VALIDATE_FOR_HTML_TAG_REGEX);
+                const foundHtmlTagIndex = inputValue.search(CONST.VALIDATE_FOR_HTML_TAG_REGEX);
+                const matchedHtmlTags  = inputValue.match(CONST.VALIDATE_FOR_HTML_TAG_REGEX);
 
                 let isMatch = CONST.WHITELISTED_TAGS.some(r => r.test(inputValue));
-                const leadingSpaceRegex = inputValue.search(CONST.VALIDATE_FOR_LEADINGSPACES_HTML_TAG_REGEX);
+                const leadingSpaceIndex = inputValue.search(CONST.VALIDATE_FOR_LEADINGSPACES_HTML_TAG_REGEX);
 
                 // Return early if there is no value OR the value is not a string OR there are no HTML characters
-                if (!inputValue || !_.isString(inputValue) || (leadingSpaceRegex === -1 && workspaceRegex === -1) ) {
+                if (!inputValue || !_.isString(inputValue) || (leadingSpaceIndex === -1 && foundHtmlTagIndex === -1) ) {
                     return;
                 }
 
-                // check for any matches that the original regex (workspaceRegex) matched
-                if(matches)
+                // Check for any matches that the original regex (foundHtmlTagIndex) matched
+                if(matchedHtmlTags)
                 {
-                    // original regex does not catch leading spaces before tagnames 
-                    // need to check if any invalid input is matched along valid ignoreRegxList
-                    for(let x of matches)
+                    // Check if any matched inputs does not match in WHITELISTED_TAGS list and return early if needed.
+                    for(let x of matchedHtmlTags)
                     {
                         isMatch = CONST.WHITELISTED_TAGS.some(r => r.test(x));
-                        if(isMatch == false)
+                        if(isMatch === false)
                         {
                             break;
                         }
                     }
                 }
 
-                if(isMatch == true && leadingSpaceRegex === -1)
+                if(isMatch === true && leadingSpaceIndex === -1)
                 {
                     return;
                 }
