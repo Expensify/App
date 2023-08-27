@@ -24,6 +24,24 @@ const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
  * IOU Currency selection for selecting currency
  */
 const propTypes = {
+    /** Route from navigation */
+    route: PropTypes.shape({
+        /** Params from the route */
+        params: PropTypes.shape({
+            /** The type of IOU report, i.e. bill, request, send */
+            iouType: PropTypes.string,
+
+            /** The report ID of the IOU */
+            reportID: PropTypes.string,
+
+            /** Currently selected currency */
+            currency: PropTypes.string,
+
+            /** Route to navigate back after selecting a currency */
+            backTo: PropTypes.string,
+        }),
+    }).isRequired,
+
     // The currency list constant object from Onyx
     currencyList: PropTypes.objectOf(
         PropTypes.shape({
@@ -40,6 +58,7 @@ const propTypes = {
 
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     iou: PropTypes.shape({
+        /** Currency of the request */
         currency: PropTypes.string,
     }),
 
