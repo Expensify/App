@@ -82,16 +82,20 @@ function BaseModal({
         Modal.setCloseModal(isVisible ? onClose : null);
     }, [isVisible, onClose]);
 
-    useEffect(() => () => {
-        // Only trigger onClose and setModalVisibility if the modal is unmounting while visible.
-        if (isVisible) {
-            hideModal(true);
-            Modal.willAlertModalBecomeVisible(false);
-        }
+    useEffect(
+        () => () => {
+            // Only trigger onClose and setModalVisibility if the modal is unmounting while visible.
+            if (isVisible) {
+                hideModal(true);
+                Modal.willAlertModalBecomeVisible(false);
+            }
 
-        // To prevent closing any modal already unmounted when this modal still remains as visible state
-        Modal.setCloseModal(null);
-    });
+            // To prevent closing any modal already unmounted when this modal still remains as visible state
+            Modal.setCloseModal(null);
+        },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [],
+    );
 
     const handleShowModal = () => {
         if (shouldSetModalVisibility) {
