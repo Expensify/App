@@ -1,22 +1,23 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import {Linking, View} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
-import Text from './Text';
-import TextLink from './TextLink';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import CONST from '../CONST';
-import ONYXKEYS from '../ONYXKEYS';
-import compose from '../libs/compose';
-import getPlatform from '../libs/getPlatform';
-import colors from '../styles/colors';
-import styles from '../styles/styles';
+import ONYXKEYS from '../../ONYXKEYS';
+import compose from '../../libs/compose';
+import colors from '../../styles/colors';
+import styles from '../../styles/styles';
+import Icon from '../Icon';
+import * as Expensicons from '../Icon/Expensicons';
+import Text from '../Text';
+import TextLink from '../TextLink';
+import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 
 const propTypes = {
     /** The location error code from onyx */
     locationErrorCode: PropTypes.number,
+
+    /** A callback that runs when 'allow location permission' link is pressed */
+    onAllowLocationLinkPress: PropTypes.func.isRequired,
 
     ...withLocalizePropTypes,
 };
@@ -25,19 +26,10 @@ const defaultProps = {
     locationErrorCode: undefined,
 };
 
-function LocationErrorMessage({locationErrorCode, translate}) {
+function BaseLocationErrorMessage({locationErrorCode, onAllowLocationLinkPress, translate}) {
     if (!locationErrorCode) {
         return null;
     }
-
-    const navigateToSettings = () => {
-        const platform = getPlatform();
-        if (platform === CONST.PLATFORM.IOS || platform === CONST.PLATFORM.ANDROID) {
-            Linking.openSettings();
-        } else {
-            Linking.openURL(CONST.NEWHELP_URL);
-        }
-    };
 
     const isPermissionDenied = locationErrorCode === 1;
 
@@ -60,7 +52,7 @@ function LocationErrorMessage({locationErrorCode, translate}) {
                 {isPermissionDenied ? (
                     <Text style={styles.offlineFeedback.text}>
                         <Text>{`${translate('location.permissionDenied')} ${translate('common.please')}`}</Text>
-                        <TextLink onPress={navigateToSettings}>{` ${translate('location.allowPermission')} `}</TextLink>
+                        <TextLink onPress={onAllowLocationLinkPress}>{` ${translate('location.allowPermission')} `}</TextLink>
                         <Text>{translate('location.tryAgain')}</Text>
                     </Text>
                 ) : (
@@ -71,9 +63,9 @@ function LocationErrorMessage({locationErrorCode, translate}) {
     );
 }
 
-LocationErrorMessage.displayName = 'LocationErrorMessage';
-LocationErrorMessage.propTypes = propTypes;
-LocationErrorMessage.defaultProps = defaultProps;
+BaseLocationErrorMessage.displayName = 'BaseLocationErrorMessage';
+BaseLocationErrorMessage.propTypes = propTypes;
+BaseLocationErrorMessage.defaultProps = defaultProps;
 export default compose(
     withOnyx({
         locationErrorCode: {
@@ -81,4 +73,4 @@ export default compose(
         },
     }),
     withLocalize,
-)(LocationErrorMessage);
+)(BaseLocationErrorMessage);
