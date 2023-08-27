@@ -1378,6 +1378,7 @@ describe('actions/IOU', () => {
         let iouReport;
         let createIOUAction;
         let transaction;
+        let iouAction;
 
         beforeEach(() => {
             // Create a money request
@@ -1481,10 +1482,10 @@ describe('actions/IOU', () => {
                             const connectionID = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
                                 waitForCollectionCallback: true,
-                                callback: (transaction) => {
+                                callback: (t) => {
                                     Onyx.disconnect(connectionID);
 
-                                    expect(transaction).toBeFalsy();
+                                    expect(t).toBeFalsy();
 
                                     resolve();
                                 },
@@ -1514,10 +1515,10 @@ describe('actions/IOU', () => {
                             const connectionID = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
                                 waitForCollectionCallback: true,
-                                callback: (transaction) => {
+                                callback: (tr) => {
                                     Onyx.disconnect(connectionID);
 
-                                    expect(transaction).toBeFalsy();
+                                    expect(tr).toBeFalsy();
 
                                     resolve();
                                 },
@@ -1561,7 +1562,7 @@ describe('actions/IOU', () => {
         });
         it('does not delete the IOU report when there are visible comments left in the IOU report', () => {
             let reportActions;
-            const connectionID = Onyx.connect({
+            const connection = Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
                 callback: (val) => (reportActions = val),
             });
@@ -1586,7 +1587,7 @@ describe('actions/IOU', () => {
                     const action = _.find(reportActions, (ra) => ra.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT);
                     expect(action).toBeTruthy();
                     expect(action.message[0].text).toBe('Test Comment');
-                    Onyx.disconnect(connectionID);
+                    Onyx.disconnect(connection);
                 })
                 .then(
                     () =>
