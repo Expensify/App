@@ -333,8 +333,6 @@ function BaseTextInput(props) {
 
                                     // Stop scrollbar flashing when breaking lines with autoGrowHeight enabled.
                                     props.autoGrowHeight && StyleUtils.getAutoGrowHeightInputStyle(textInputHeight, maxHeight),
-                                    // Disable cursor when the field is not editable.
-                                    !isEditable && styles.cursorDisabled,
                                 ]}
                                 multiline={isMultiline}
                                 maxLength={props.maxLength}
