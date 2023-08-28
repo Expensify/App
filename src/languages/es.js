@@ -515,7 +515,7 @@ export default {
             enteredMethodIsAlreadySubmited: 'El método de contacto ingresado ya existe.',
             passwordRequired: 'Se requiere contraseña',
             contactMethodRequired: 'Se requiere método de contacto.',
-            invalidContactMethod: 'Método de contacto no válido.',
+            invalidContactMethod: 'Método de contacto no válido',
         },
         newContactMethod: 'Nuevo método de contacto',
     },

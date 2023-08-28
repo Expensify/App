@@ -2,7 +2,6 @@ import React, {useCallback} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import {parsePhoneNumber} from 'awesome-phonenumber';
 import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -37,34 +36,6 @@ function KnowATeacherPage(props) {
     const {translate} = useLocalize();
 
     /**
-     * Check if number is valid
-     * @param {String} values
-     * @returns {String} - Returns valid phone number formatted
-     */
-    const validateNumber = (values) => {
-        const parsedPhoneNumber = parsePhoneNumber(values);
-
-        if (parsedPhoneNumber.possible && Str.isValidPhone(values.slice(0))) {
-            return parsedPhoneNumber.number.e164;
-        }
-
-        return '';
-    };
-
-    /**
-     * Check number is valid and attach country code
-     * @param {String} partnerUserID
-     * @returns {String} - Returns valid phone number with country code
-     */
-    const getPhoneLogin = (partnerUserID) => {
-        if (_.isEmpty(partnerUserID)) {
-            return '';
-        }
-
-        return LoginUtils.appendCountryCode(LoginUtils.getPhoneNumberWithoutSpecialChars(partnerUserID));
-    };
-
-    /**
      * Submit form to pass firstName, partnerUserID and lastName
      * @param {Object} values
      * @param {String} values.firstName
@@ -72,8 +43,8 @@ function KnowATeacherPage(props) {
      * @param {String} values.lastName
      */
     const onSubmit = (values) => {
-        const phoneLogin = getPhoneLogin(values.partnerUserID);
-        const validateIfnumber = validateNumber(phoneLogin);
+        const phoneLogin = LoginUtils.getPhoneLogin(values.partnerUserID);
+        const validateIfnumber = LoginUtils.validateNumber(phoneLogin);
         const contactMethod = (validateIfnumber || values.partnerUserID).trim().toLowerCase();
         const firstName = values.firstName.trim();
         const lastName = values.lastName.trim();
@@ -90,8 +61,8 @@ function KnowATeacherPage(props) {
     const validate = useCallback(
         (values) => {
             const errors = {};
-            const phoneLogin = getPhoneLogin(values.partnerUserID);
-            const validateIfnumber = validateNumber(phoneLogin);
+            const phoneLogin = LoginUtils.getPhoneLogin(values.partnerUserID);
+            const validateIfnumber = LoginUtils.validateNumber(phoneLogin);
 
             if (_.isEmpty(values.firstName)) {
                 ErrorUtils.addErrorMessage(errors, 'firstName', translate('bankAccount.error.firstName'));
