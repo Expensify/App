@@ -8,8 +8,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 function retrieveMaxCanvasArea() {
     canvasSize.maxArea({
         onSuccess: (width, height) => {
-            const maxCanvasArea = width * height;
-            Onyx.merge(ONYXKEYS.MAX_CANVAS_AREA, maxCanvasArea);
+            Onyx.merge(ONYXKEYS.MAX_CANVAS_AREA, width * height);
         },
     });
 }
@@ -20,8 +19,7 @@ function retrieveMaxCanvasArea() {
 function retrieveMaxCanvasHeight() {
     canvasSize.maxHeight({
         onSuccess: (width, height) => {
-            const maxCanvasHeight = height;
-            Onyx.merge(ONYXKEYS.MAX_CANVAS_HEIGHT, maxCanvasHeight);
+            Onyx.merge(ONYXKEYS.MAX_CANVAS_HEIGHT, height);
         },
     });
 }
@@ -32,8 +30,7 @@ function retrieveMaxCanvasHeight() {
 function retrieveMaxCanvasWidth() {
     canvasSize.maxWidth({
         onSuccess: (width) => {
-            const maxCanvasWidth = width;
-            Onyx.merge(ONYXKEYS.MAX_CANVAS_WIDTH, maxCanvasWidth);
+            Onyx.merge(ONYXKEYS.MAX_CANVAS_WIDTH, width);
         },
     });
 }

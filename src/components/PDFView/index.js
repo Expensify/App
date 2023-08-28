@@ -51,6 +51,7 @@ class PDFView extends Component {
         this.calculatePageHeight = this.calculatePageHeight.bind(this);
         this.calculatePageWidth = this.calculatePageWidth.bind(this);
         this.renderPage = this.renderPage.bind(this);
+        this.getDevicePixelRatio = _.memoize(this.getDevicePixelRatio);
         this.setListAttributes = this.setListAttributes.bind(this);
 
         const workerBlob = new Blob([pdfWorkerSource], {type: 'text/javascript'});
@@ -214,6 +215,24 @@ class PDFView extends Component {
         this.setState({isKeyboardOpen});
         this.props.onToggleKeyboard(isKeyboardOpen);
     }
+    // 
+        
+    /**
+     * Calculate the devicePixelRatio the page should be rendered with
+     * Each platform has a different default devicePixelRatio and different canvas limits, we need to verify that
+     * with the default devicePixelRatio it will be able to diplay the pdf correctly, if not we must change the devicePixelRatio.
+     * @param {Number} width of the page
+     * @param {Number} height of the page
+     * @returns {Number} devicePixelRatio for this page on this platform
+     */
+    getDevicePixelRatio(width, height) {
+        const nbPixels = width * height;
+        const ratioHeight = this.props.maxCanvasHeight / height;
+        const ratioWidth = this.props.maxCanvasWidth / width;
+        const ratioArea = Math.sqrt(this.props.maxCanvasArea / nbPixels);
+        const ratio = Math.min(ratioHeight, ratioArea, ratioWidth);
+        return ratio > window.devicePixelRatio ? undefined : ratio;
+    }
 
     /**
      * Render a specific page based on its index.
@@ -226,15 +245,7 @@ class PDFView extends Component {
     renderPage({index, style}) {
         const pageWidth = this.calculatePageWidth();
         const pageHeight = this.calculatePageHeight(index);
-
-        // Each platform has a different default devicePixelRatio and different canvas limits, we need to verify that
-        // with the default devicePixelRatio it will be able to diplay the pdf correctly, if not we must change the devicePixelRatio.
-        const nbPixels = pageWidth * pageHeight;
-        const ratioHeight = this.props.maxCanvasHeight / pageHeight;
-        const ratioWidth = this.props.maxCanvasWidth / pageWidth;
-        const ratioArea = Math.sqrt(this.props.maxCanvasArea / nbPixels);
-        const ratio = Math.min(ratioHeight, ratioArea, ratioWidth);
-        const devicePixelRatio = ratio > window.devicePixelRatio ? undefined : ratio;
+        const devicePixelRatio = this.getDevicePixelRatio(pageWidth, pageHeight);
 
         return (
             <View style={style}>

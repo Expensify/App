@@ -224,10 +224,13 @@ const ONYXKEYS = {
     // Information on any active demos being run
     DEMO_INFO: 'demoInfo',
 
+    // Max area handled for canvas on this platform
     MAX_CANVAS_AREA: 'maxCanvasArea',
 
+    // Max height handled for canvas on this platform
     MAX_CANVAS_HEIGHT: 'maxCanvasHeight',
 
+    // Max width handled for canvas on this platform
     MAX_CANVAS_WIDTH: 'maxCanvasWidth',
 
     /** Collection Keys */
