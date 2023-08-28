@@ -136,8 +136,6 @@ function show({routes, showCreateMenu = () => {}, showPopoverMenu = () => {}}) {
         if (shouldNavigateToWorkspaceChat && workspaceChatReport) {
             Navigation.navigate(ROUTES.getReportRoute(workspaceChatReport.reportID));
 
-
-
             // If showPopoverMenu exists and returns true then it opened the Popover Menu successfully, and we can update isFirstTimeNewExpensifyUser
             // so the Welcome logic doesn't run again
             if (showPopoverMenu()) {
