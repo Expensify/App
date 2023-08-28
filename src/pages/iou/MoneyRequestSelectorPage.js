@@ -20,7 +20,6 @@ import DragAndDropProvider from '../../components/DragAndDrop/Provider';
 import usePermissions from '../../hooks/usePermissions';
 import OnyxTabNavigator, {TopTab} from '../../libs/Navigation/OnyxTabNavigator';
 import NewRequestAmountPage from './steps/NewRequestAmountPage';
-import {iouPropTypes, iouDefaultProps} from './propTypes';
 
 const propTypes = {
     /** React Navigation route */
