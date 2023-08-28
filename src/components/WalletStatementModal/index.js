@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import {View} from 'react-native';
@@ -13,21 +13,16 @@ import ROUTES from '../../ROUTES';
 import Navigation from '../../libs/Navigation/Navigation';
 import * as Report from '../../libs/actions/Report';
 
-class WalletStatementModal extends React.Component {
-    constructor(props) {
-        super(props);
-
-        this.state = {
-            isLoading: true,
-        };
-    }
+function WalletStatementModal({statementPageURL, session}) {
+    const [isLoading, setIsLoading] = useState(true);
+    const authToken = lodashGet(session, 'authToken', null);
 
     /**
      * Handles in-app navigation for iframe links
      *
      * @param {MessageEvent} e
      */
-    navigate(e) {
+    const navigate = (e) => {
         if (!e.data || !e.data.type || (e.data.type !== 'STATEMENT_NAVIGATE' && e.data.type !== 'CONCIERGE_NAVIGATE')) {
             return;
         }
@@ -45,31 +40,28 @@ class WalletStatementModal extends React.Component {
         }
     }
 
-    render() {
-        const authToken = lodashGet(this.props, 'session.authToken', null);
-        return (
-            <>
-                {this.state.isLoading && <FullScreenLoadingIndicator />}
-                <View style={[styles.flex1]}>
-                    <iframe
-                        src={`${this.props.statementPageURL}&authToken=${authToken}`}
-                        title="Statements"
-                        height="100%"
-                        width="100%"
-                        seamless="seamless"
-                        frameBorder="0"
-                        onLoad={() => {
-                            this.setState({isLoading: false});
+    return (
+        <>
+            {isLoading && <FullScreenLoadingIndicator />}
+            <View style={[styles.flex1]}>
+                <iframe
+                    src={`${statementPageURL}&authToken=${authToken}`}
+                    title="Statements"
+                    height="100%"
+                    width="100%"
+                    seamless="seamless"
+                    frameBorder="0"
+                    onLoad={() => {
+                        setIsLoading(false);
 
-                            // We listen to a message sent from the iframe to the parent component when a link is clicked.
-                            // This lets us handle navigation in the app, outside of the iframe.
-                            window.onmessage = (e) => this.navigate(e);
-                        }}
-                    />
-                </View>
-            </>
-        );
-    }
+                        // We listen to a message sent from the iframe to the parent component when a link is clicked.
+                        // This lets us handle navigation in the app, outside of the iframe.
+                        window.onmessage = (e) => navigate(e);
+                    }}
+                />
+            </View>
+        </>
+    );
 }
 
 WalletStatementModal.propTypes = walletStatementPropTypes;
