@@ -107,8 +107,6 @@ function AddressForm(props) {
                     hint={props.translate('common.noPO')}
                     renamedInputKeys={props.inputKeys}
                     maxInputLength={CONST.FORM_CHARACTER_LIMIT}
-                    // Limit the address search only to the USA until we fully can support international reimbursement accounts
-                    isLimitedToUSA
                 />
             </View>
             <TextInput
