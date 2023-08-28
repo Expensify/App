@@ -15,6 +15,7 @@ import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import EmptyStateBackgroundImage from '../../../assets/images/empty-state_background-fade.png';
 import useLocalize from '../../hooks/useLocalize';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
+import getPlatform from '../../libs/getPlatform';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -31,10 +32,12 @@ function MoneyReportView(props) {
     const formattedAmount = CurrencyUtils.convertToDisplayString(ReportUtils.getMoneyRequestTotal(props.report), props.report.currency);
     const isSettled = ReportUtils.isSettled(props.report.reportID);
     const {translate} = useLocalize();
-
-    // If window width is greater than the max background width, repeat the background image
-    const maxBackgroundWidth = variables.sideBarWidth + (CONST.EMPTY_STATE_BACKGROUND.ASPECT_RATIO * CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.IMAGE_HEIGHT);
     
+    // If window width is greater than the max background width, repeat the background image
+    const maxBackgroundWidth = variables.sideBarWidth + (CONST.EMPTY_STATE_BACKGROUND.ASPECT_RATIO * CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.IMAGE_HEIGHT);    
+    const platform = getPlatform();
+    const isWebPlatform = [CONST.PLATFORM.WEB, CONST.PLATFORM.DESKTOP].includes(platform);
+
     return (
         <View>
             <View style={[StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth), StyleUtils.getMinimumHeight(CONST.EMPTY_STATE_BACKGROUND.MONEY_REPORT.MIN_HEIGHT)]}>
@@ -42,7 +45,8 @@ function MoneyReportView(props) {
                     pointerEvents="none"
                     source={EmptyStateBackgroundImage}
                     style={[StyleUtils.getReportWelcomeBackgroundImageStyle(isSmallScreenWidth)]}
-                    resizeMode={props.windowWidth < maxBackgroundWidth ? 'cover' : 'repeat'}
+                    resizeMode={isWebPlatform && props.windowWidth > maxBackgroundWidth ? 'repeat' : 'cover'}
+                    
                 />
             </View>
             <View style={[styles.flexRow, styles.menuItemTextContainer, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.ph5, styles.pv2]}>

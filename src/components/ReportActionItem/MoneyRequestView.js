@@ -28,6 +28,7 @@ import ReportActionItemImage from './ReportActionItemImage';
 import * as TransactionUtils from '../../libs/TransactionUtils';
 import OfflineWithFeedback from '../OfflineWithFeedback';
 import variables from '../../styles/variables';
+import getPlatform from '../../libs/getPlatform';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -94,6 +95,8 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, trans
 
      // If window width is greater than the max background width, repeat the background image
      const maxBackgroundWidth = variables.sideBarWidth + (CONST.EMPTY_STATE_BACKGROUND.ASPECT_RATIO * CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.IMAGE_HEIGHT);
+     const platform = getPlatform();
+     const isWebPlatform = [CONST.PLATFORM.WEB, CONST.PLATFORM.DESKTOP].includes(platform);
 
     return (
         <View>
@@ -102,7 +105,7 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, trans
                     pointerEvents="none"
                     source={EmptyStateBackgroundImage}
                     style={[StyleUtils.getReportWelcomeBackgroundImageStyle(isSmallScreenWidth)]}
-                    resizeMode={windowWidth < maxBackgroundWidth ? 'cover' : 'repeat'}
+                    resizeMode={isWebPlatform && windowWidth > maxBackgroundWidth ? 'repeat' : 'cover'}
                 />
             </View>
             {hasReceipt && (
