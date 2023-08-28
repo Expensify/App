@@ -1,4 +1,5 @@
 import React, {useRef} from 'react';
+import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
@@ -53,7 +54,7 @@ const defaultProps = {
     transaction: {},
 };
 
-function WaypointEditor({transactionID, route: {params: {iouType = '', waypointIndex = ''} = {}} = {}, network, translate, transaction}) {
+function WaypointEditor({transactionID, route: {params: {iouType = '', waypointIndex = ''} = {}} = {}, network, translate, transaction, recentWaypoints}) {
     const textInput = useRef(null);
     const currentWaypoint = lodashGet(transaction, `comment.waypoints.waypoint${waypointIndex}`, {});
     const waypointAddress = lodashGet(currentWaypoint, 'address', '');
@@ -151,6 +152,7 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
                             lng: null,
                             state: null,
                         }}
+                        predefinedPlaces={recentWaypoints}
                     />
                 </View>
             </Form>
@@ -168,6 +170,23 @@ export default compose(
         transaction: {
             key: (props) => `${ONYXKEYS.COLLECTION.TRANSACTION}${props.transactionID}`,
             selector: (transaction) => (transaction ? {transactionID: transaction.transactionID, comment: {waypoints: lodashGet(transaction, 'comment.waypoints')}} : null),
+        },
+
+        recentWaypoints: {
+            key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
+
+            // Only grab the most recent 5 waypoints because that's all that is shown in the UI. This also puts them into the format of data
+            // that the google autocomplete component expects for it's "predefined places" feature.
+            selector: (waypoints) =>
+                _.map(waypoints ? waypoints.slice(0, 5) : [], (waypoint) => ({
+                    description: waypoint.address,
+                    geometry: {
+                        location: {
+                            lat: waypoint.lat,
+                            lng: waypoint.lng,
+                        },
+                    },
+                })),
         },
     }),
 )(WaypointEditor);

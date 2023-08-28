@@ -1,3 +1,5 @@
+import {ViewStyle} from 'react-native';
+
 /**
  * Sizing utility styles with Bootstrap inspired naming.
  *
@@ -59,4 +61,4 @@ export default {
     wAuto: {
         width: 'auto',
     },
-};
+} satisfies Record<string, ViewStyle>;
