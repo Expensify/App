@@ -160,7 +160,7 @@ function MoneyRequestConfirmationList(props) {
     const distance = lodashGet(transaction, 'routes.route0.distance', 0);
 
     const formattedAmount = CurrencyUtils.convertToDisplayString(
-        props.isDistanceRequest ? DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate) : props.iouAmount,
+        props.isDistanceRequest && props.iouAmount === 0 ? DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate) : props.iouAmount,
         props.isDistanceRequest ? CONST.CURRENCY.USD : props.iouCurrencyCode,
     );
 
