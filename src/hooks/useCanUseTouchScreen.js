@@ -12,7 +12,7 @@ export default function useCanUseTouchScreen() {
     useEffect(() => {
         const newCanUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
         if (canUseTouchScreen === newCanUseTouchScreen) return;
-        setCanUseTouchScreen();
+        setCanUseTouchScreen(newCanUseTouchScreen);
     });
 
     return canUseTouchScreen;
