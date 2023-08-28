@@ -61,6 +61,7 @@ const defaultProps = {
 
 function MoneyReportHeader({session, personalDetails, policy, chatReport, report: moneyRequestReport, isSmallScreenWidth}) {
     const {translate} = useLocalize();
+    const reportTotal = ReportUtils.getMoneyRequestTotal(moneyRequestReport);
     const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
     const policyType = lodashGet(policy, 'type');
@@ -77,7 +78,6 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, report
         }
         return isManager && !isApproved && !isSettled;
     }, [policyType, isManager, isApproved, isSettled]);
-    const reportTotal = ReportUtils.getMoneyRequestTotal(moneyRequestReport);
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
     const shouldShowPaypal = Boolean(lodashGet(personalDetails, [moneyRequestReport.managerID, 'payPalMeAddress']));
     const formattedAmount = CurrencyUtils.convertToDisplayString(reportTotal, moneyRequestReport.currency);
@@ -115,8 +115,9 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, report
                     <View style={[styles.pv2]}>
                         <Button
                             success
+                            medium
                             text={translate('iou.approve')}
-                            style={[styles.mnw120]}
+                            style={[styles.mnw120, styles.pv2, styles.pr0]}
                             onPress={() => IOU.approveMoneyRequest(moneyRequestReport)}
                         />
                     </View>
@@ -139,11 +140,12 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, report
                 </View>
             )}
             {shouldShowApproveButton && isSmallScreenWidth && (
-                <View style={[styles.pv2]}>
+                <View style={[styles.ph5, styles.pb2, isSmallScreenWidth && styles.borderBottom]}>
                     <Button
                         success
+                        medium
                         text={translate('iou.approve')}
-                        style={[styles.w100]}
+                        style={[styles.w100, styles.pr0]}
                         onPress={() => IOU.approveMoneyRequest(moneyRequestReport)}
                     />
                 </View>
