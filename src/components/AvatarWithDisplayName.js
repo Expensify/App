@@ -2,6 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
+import lodashGet from 'lodash/get';
 import CONST from '../CONST';
 import reportPropTypes from '../pages/reportPropTypes';
 import participantPropTypes from './participantPropTypes';
@@ -18,6 +19,10 @@ import * as OptionsListUtils from '../libs/OptionsListUtils';
 import Text from './Text';
 import * as StyleUtils from '../styles/StyleUtils';
 import ParentNavigationSubtitle from './ParentNavigationSubtitle';
+import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
+import Navigation from '../libs/Navigation/Navigation';
+import ROUTES from '../ROUTES';
+import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -50,6 +55,31 @@ const defaultProps = {
     size: CONST.AVATAR_SIZE.DEFAULT,
 };
 
+const showActorDetails = (report) => {
+    if (ReportUtils.isExpenseReport(report)) {
+        Navigation.navigate(ROUTES.getProfileRoute(report.ownerAccountID));
+        return;
+    }
+
+    if (ReportUtils.isIOUReport(report)) {
+        Navigation.navigate(ROUTES.getReportParticipantsRoute(report.reportID));
+        return;
+    }
+
+    if (ReportUtils.isChatThread(report)) {
+        const parentReportAction = ReportActionsUtils.getParentReportAction(report);
+        const actorAccountID = lodashGet(parentReportAction, 'actorAccountID', -1);
+        // in an ideal situation account ID won't be 0
+        if (actorAccountID > 0) {
+            Navigation.navigate(ROUTES.getProfileRoute(actorAccountID));
+            return;
+        }
+    }
+
+    // report detail route is added as fallback but based on the current implementation this route won't be executed
+    Navigation.navigate(ROUTES.getReportDetailsRoute(report.reportID));
+};
+
 function AvatarWithDisplayName(props) {
     const title = ReportUtils.getReportName(props.report);
     const subtitle = ReportUtils.getChatRoomSubtitle(props.report);
@@ -61,24 +91,31 @@ function AvatarWithDisplayName(props) {
     const shouldShowSubscriptAvatar = ReportUtils.shouldReportShowSubscript(props.report);
     const isExpenseRequest = ReportUtils.isExpenseRequest(props.report);
     const defaultSubscriptSize = isExpenseRequest ? CONST.AVATAR_SIZE.SMALL_NORMAL : props.size;
+
     return (
         <View style={[styles.appContentHeaderTitle, styles.flex1]}>
             {Boolean(props.report && title) && (
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                    {shouldShowSubscriptAvatar ? (
-                        <SubscriptAvatar
-                            backgroundColor={themeColors.highlightBG}
-                            mainAvatar={icons[0]}
-                            secondaryAvatar={icons[1]}
-                            size={defaultSubscriptSize}
-                        />
-                    ) : (
-                        <MultipleAvatars
-                            icons={icons}
-                            size={props.size}
-                            secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(themeColors.highlightBG)]}
-                        />
-                    )}
+                    <PressableWithoutFeedback
+                        onPress={() => showActorDetails(props.report)}
+                        accessibilityLabel={title}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                    >
+                        {shouldShowSubscriptAvatar ? (
+                            <SubscriptAvatar
+                                backgroundColor={themeColors.highlightBG}
+                                mainAvatar={icons[0]}
+                                secondaryAvatar={icons[1]}
+                                size={defaultSubscriptSize}
+                            />
+                        ) : (
+                            <MultipleAvatars
+                                icons={icons}
+                                size={props.size}
+                                secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(themeColors.highlightBG)]}
+                            />
+                        )}
+                    </PressableWithoutFeedback>
                     <View style={[styles.flex1, styles.flexColumn, shouldShowSubscriptAvatar && !isExpenseRequest ? styles.ml4 : {}]}>
                         <DisplayNames
                             fullTitle={title}

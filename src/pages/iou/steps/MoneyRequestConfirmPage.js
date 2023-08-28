@@ -20,28 +20,44 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../../components/withCurrentUserPersonalDetails';
 import reportPropTypes from '../../reportPropTypes';
 import personalDetailsPropType from '../../personalDetailsPropType';
+import participantPropTypes from '../../../components/participantPropTypes';
 import * as FileUtils from '../../../libs/fileDownload/FileUtils';
 import * as Policy from '../../../libs/actions/Policy';
 
 const propTypes = {
+    /** React Navigation route */
+    route: PropTypes.shape({
+        /** Params from the route */
+        params: PropTypes.shape({
+            /** The type of IOU report, i.e. bill, request, send */
+            iouType: PropTypes.string,
+
+            /** The report ID of the IOU */
+            reportID: PropTypes.string,
+        }),
+    }).isRequired,
+
     report: reportPropTypes,
 
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     iou: PropTypes.shape({
+        /** ID (iouType + reportID) of the request */
         id: PropTypes.string,
+
+        /** Amount of the request */
         amount: PropTypes.number,
-        receiptPath: PropTypes.string,
-        currency: PropTypes.string,
+
+        /** Description of the request */
         comment: PropTypes.string,
-        participants: PropTypes.arrayOf(
-            PropTypes.shape({
-                accountID: PropTypes.number,
-                login: PropTypes.string,
-                isPolicyExpenseChat: PropTypes.bool,
-                isOwnPolicyExpenseChat: PropTypes.bool,
-                selected: PropTypes.bool,
-            }),
-        ),
+        created: PropTypes.string,
+
+        /** Currency of the request */
+        currency: PropTypes.string,
+        merchant: PropTypes.string,
+
+        /** List of the participants */
+        participants: PropTypes.arrayOf(participantPropTypes),
+        receiptPath: PropTypes.string,
     }),
 
     /** Personal details of all users */
@@ -58,6 +74,8 @@ const defaultProps = {
         amount: 0,
         currency: CONST.CURRENCY.USD,
         comment: '',
+        merchant: '',
+        created: '',
         participants: [],
     },
     ...withCurrentUserPersonalDetailsDefaultProps,
@@ -130,6 +148,8 @@ function MoneyRequestConfirmPage(props) {
                 props.report,
                 props.iou.amount,
                 props.iou.currency,
+                props.iou.created,
+                props.iou.merchant,
                 props.currentUserPersonalDetails.login,
                 props.currentUserPersonalDetails.accountID,
                 selectedParticipants[0],
@@ -137,7 +157,7 @@ function MoneyRequestConfirmPage(props) {
                 receipt,
             );
         },
-        [props.report, props.iou.amount, props.iou.currency, props.currentUserPersonalDetails.login, props.currentUserPersonalDetails.accountID],
+        [props.report, props.iou.amount, props.iou.currency, props.iou.created, props.iou.merchant, props.currentUserPersonalDetails.login, props.currentUserPersonalDetails.accountID],
     );
 
     const createTransaction = useCallback(
@@ -259,8 +279,7 @@ function MoneyRequestConfirmPage(props) {
                         policyID={props.report.policyID}
                         bankAccountRoute={ReportUtils.getBankAccountRoute(props.report)}
                         iouMerchant={props.iou.merchant}
-                        iouModifiedMerchant={props.iou.modifiedMerchant}
-                        iouDate={props.iou.date}
+                        iouCreated={props.iou.created}
                     />
                 </View>
             )}

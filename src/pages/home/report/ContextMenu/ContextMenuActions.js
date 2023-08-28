@@ -7,7 +7,8 @@ import * as Report from '../../../../libs/actions/Report';
 import * as Download from '../../../../libs/actions/Download';
 import Clipboard from '../../../../libs/Clipboard';
 import * as ReportUtils from '../../../../libs/ReportUtils';
-import * as ReportActionUtils from '../../../../libs/ReportActionsUtils';
+import * as ReportActionsUtils from '../../../../libs/ReportActionsUtils';
+import * as PersonalDetailsUtils from '../../../../libs/PersonalDetailsUtils';
 import ReportActionComposeFocusManager from '../../../../libs/ReportActionComposeFocusManager';
 import {hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
 import CONST from '../../../../CONST';
@@ -43,7 +44,7 @@ export default [
     {
         isAnonymousAction: false,
         shouldKeepOpen: true,
-        shouldShow: (type, reportAction) => type === CONTEXT_MENU_TYPES.REPORT_ACTION && _.has(reportAction, 'message') && !ReportActionUtils.isMessageDeleted(reportAction),
+        shouldShow: (type, reportAction) => type === CONTEXT_MENU_TYPES.REPORT_ACTION && _.has(reportAction, 'message') && !ReportActionsUtils.isMessageDeleted(reportAction),
         renderContent: (closePopover, {reportID, reportAction, close: closeManually, openContextMenu}) => {
             const isMini = !closePopover;
 
@@ -96,7 +97,7 @@ export default [
         shouldShow: (type, reportAction) => {
             const message = _.last(lodashGet(reportAction, 'message', [{}]));
             const isAttachment = _.has(reportAction, 'isAttachment') ? reportAction.isAttachment : ReportUtils.isReportMessageAttachment(message);
-            return isAttachment && message.html !== CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML && reportAction.reportActionID && !ReportActionUtils.isMessageDeleted(reportAction);
+            return isAttachment && message.html !== CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML && reportAction.reportActionID && !ReportActionsUtils.isMessageDeleted(reportAction);
         },
         onPress: (closePopover, {reportAction}) => {
             const message = _.last(lodashGet(reportAction, 'message', [{}]));
@@ -125,7 +126,7 @@ export default [
             }
             const isCommentAction = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && !ReportUtils.isThreadFirstChat(reportAction, reportID);
             const isReportPreviewAction = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW;
-            const isIOUAction = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && !ReportActionUtils.isSplitBillAction(reportAction);
+            const isIOUAction = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && !ReportActionsUtils.isSplitBillAction(reportAction);
             return isCommentAction || isReportPreviewAction || isIOUAction;
         },
         onPress: (closePopover, {reportAction, reportID}) => {
@@ -175,29 +176,29 @@ export default [
         successIcon: Expensicons.Checkmark,
         shouldShow: (type, reportAction) =>
             type === CONTEXT_MENU_TYPES.REPORT_ACTION &&
-            reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU &&
-            reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED &&
-            reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED &&
-            reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.TASKREOPENED &&
-            !ReportActionUtils.isCreatedTaskReportAction(reportAction) &&
             !ReportUtils.isReportMessageAttachment(_.last(lodashGet(reportAction, ['message'], [{}]))) &&
-            !ReportActionUtils.isMessageDeleted(reportAction),
+            !ReportActionsUtils.isMessageDeleted(reportAction),
 
         // If return value is true, we switch the `text` and `icon` on
         // `ContextMenuItem` with `successText` and `successIcon` which will fallback to
         // the `text` and `icon`
         onPress: (closePopover, {reportAction, selection}) => {
-            const isReportPreviewAction = ReportActionUtils.isReportPreviewAction(reportAction);
+            const isTaskAction = ReportActionsUtils.isTaskAction(reportAction);
+            const isReportPreviewAction = ReportActionsUtils.isReportPreviewAction(reportAction);
             const message = _.last(lodashGet(reportAction, 'message', [{}]));
-            const messageHtml = lodashGet(message, 'html', '');
+            const originalMessage = _.get(reportAction, 'originalMessage', {});
+            const messageHtml = isTaskAction ? lodashGet(originalMessage, 'html', '') : lodashGet(message, 'html', '');
 
             const isAttachment = _.has(reportAction, 'isAttachment') ? reportAction.isAttachment : ReportUtils.isReportMessageAttachment(message);
             if (!isAttachment) {
                 const content = selection || messageHtml;
                 if (isReportPreviewAction) {
-                    const iouReport = ReportUtils.getReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(reportAction));
+                    const iouReport = ReportUtils.getReport(ReportActionsUtils.getIOUReportIDFromReportActionPreview(reportAction));
                     const displayMessage = ReportUtils.getReportPreviewMessage(iouReport, reportAction);
                     Clipboard.setString(displayMessage);
+                } else if (ReportActionsUtils.isModifiedExpenseAction(reportAction)) {
+                    const modifyExpenseMessage = ReportUtils.getModifiedExpenseMessage(reportAction);
+                    Clipboard.setString(modifyExpenseMessage);
                 } else if (content) {
                     const parser = new ExpensiMark();
                     if (!Clipboard.canSetHtml()) {
@@ -229,11 +230,11 @@ export default [
 
             // Only hide the copylink menu item when context menu is opened over img element.
             const isAttachmentTarget = lodashGet(menuTarget, 'tagName') === 'IMG' && isAttachment;
-            return Permissions.canUseCommentLinking(betas) && type === CONTEXT_MENU_TYPES.REPORT_ACTION && !isAttachmentTarget && !ReportActionUtils.isMessageDeleted(reportAction);
+            return Permissions.canUseCommentLinking(betas) && type === CONTEXT_MENU_TYPES.REPORT_ACTION && !isAttachmentTarget && !ReportActionsUtils.isMessageDeleted(reportAction);
         },
         onPress: (closePopover, {reportAction, reportID}) => {
             Environment.getEnvironmentURL().then((environmentURL) => {
-                const reportActionID = parseInt(lodashGet(reportAction, 'reportActionID'), 10);
+                const reportActionID = lodashGet(reportAction, 'reportActionID');
                 Clipboard.setString(`${environmentURL}/r/${reportID}/${reportActionID}`);
             });
             hideContextMenu(true, ReportActionComposeFocusManager.focus);
@@ -274,12 +275,26 @@ export default [
 
     {
         isAnonymousAction: false,
-        textTranslateKey: 'reportActionContextMenu.editComment',
+        textTranslateKey: 'reportActionContextMenu.editAction',
         icon: Expensicons.Pencil,
         shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport) =>
             type === CONTEXT_MENU_TYPES.REPORT_ACTION && ReportUtils.canEditReportAction(reportAction) && !isArchivedRoom && !isChronosReport,
         onPress: (closePopover, {reportID, reportAction, draftMessage}) => {
-            const editAction = () => Report.saveReportActionDraft(reportID, reportAction, _.isEmpty(draftMessage) ? getActionText(reportAction) : '');
+            if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
+                hideContextMenu(false);
+                const childReportID = lodashGet(reportAction, 'childReportID', 0);
+                if (!childReportID) {
+                    const thread = ReportUtils.buildTransactionThread(reportAction);
+                    const userLogins = PersonalDetailsUtils.getLoginsByAccountIDs(thread.participantAccountIDs);
+                    Report.openReport(thread.reportID, userLogins, thread, reportAction.reportActionID);
+                    Navigation.navigate(ROUTES.getReportRoute(thread.reportID));
+                    return;
+                }
+                Report.openReport(childReportID);
+                Navigation.navigate(ROUTES.getReportRoute(childReportID));
+                return;
+            }
+            const editAction = () => Report.saveReportActionDraft(reportID, reportAction.reportActionID, _.isEmpty(draftMessage) ? getActionText(reportAction) : '');
 
             if (closePopover) {
                 // Hide popover, then call editAction
@@ -302,7 +317,7 @@ export default [
             ReportUtils.canDeleteReportAction(reportAction, reportID) &&
             !isArchivedRoom &&
             !isChronosReport &&
-            !ReportActionUtils.isMessageDeleted(reportAction),
+            !ReportActionsUtils.isMessageDeleted(reportAction),
         onPress: (closePopover, {reportID, reportAction}) => {
             if (closePopover) {
                 // Hide popover, then call showDeleteConfirmModal
