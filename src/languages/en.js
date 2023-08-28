@@ -160,7 +160,7 @@ export default {
         replace: 'Replace',
     },
     anonymousReportFooter: {
-        logoTagline: 'Join in on the discussion.',
+        logoTagline: 'Join the discussion.',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera access',
@@ -510,7 +510,7 @@ export default {
         failedNewContact: 'Failed to add this contact method.',
         genericFailureMessages: {
             requestContactMethodValidateCode: 'Failed to send a new magic code. Please wait a bit and try again.',
-            validateSecondaryLogin: 'Failed to validate contact method with given magic code. Please request a new code and try again.',
+            validateSecondaryLogin: 'Incorrect or invalid magic code. Please try again or request a new code.',
             deleteContactMethod: 'Failed to delete contact method. Please reach out to Concierge for help.',
             setDefaultContactMethod: 'Failed to set a new default contact method. Please reach out to Concierge for help.',
             addContactMethod: 'Failed to add this contact method. Please reach out to Concierge for help.',

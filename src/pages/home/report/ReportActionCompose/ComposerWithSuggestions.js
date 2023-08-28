@@ -545,6 +545,9 @@ export default compose(
     withOnyx({
         numberOfLines: {
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT_NUMBER_OF_LINES}${reportID}`,
+            // We might not have number of lines in onyx yet, for which the composer would be rendered as null
+            // during the first render, which we want to avoid:
+            initWithStoredValues: false,
         },
         modal: {
             key: ONYXKEYS.MODAL,
@@ -556,6 +559,7 @@ export default compose(
         parentReportActions: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
             canEvict: false,
+            initWithStoredValues: false,
         },
     }),
 )(
