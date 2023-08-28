@@ -51,6 +51,7 @@ function BaseOptionsList({
     shouldDisableRowInnerPadding,
     disableFocusOptions,
     canSelectMultipleOptions,
+    highlightSelectedOptions,
     onSelectRow,
     boldStyle,
     isDisabled,
@@ -172,6 +173,7 @@ function BaseOptionsList({
                 onSelectRow={onSelectRow}
                 isSelected={Boolean(_.find(selectedOptions, (option) => option.accountID === item.accountID || option.name === item.searchText))}
                 showSelectedState={canSelectMultipleOptions}
+                highlightSelected={highlightSelectedOptions}
                 boldStyle={boldStyle}
                 isDisabled={isItemDisabled}
                 shouldHaveOptionSeparator={index > 0 && shouldHaveOptionSeparator}
