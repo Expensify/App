@@ -25,7 +25,6 @@ export default {
         return `bank-account/${stepToOpen}?policyID=${policyID}${backToParam}`;
     },
     HOME: '',
-    SAASTR_HOME: 'saastr',
     SETTINGS: 'settings',
     SETTINGS_PROFILE: 'settings/profile',
     SETTINGS_SHARE_CODE: 'settings/shareCode',
@@ -59,11 +58,7 @@ export default {
     SETTINGS_CONTACT_METHOD_DETAILS: `${SETTINGS_CONTACT_METHODS}/:contactMethod/details`,
     getEditContactMethodRoute: (contactMethod) => `${SETTINGS_CONTACT_METHODS}/${encodeURIComponent(contactMethod)}/details`,
     SETTINGS_NEW_CONTACT_METHOD: `${SETTINGS_CONTACT_METHODS}/new`,
-    SETTINGS_2FA_IS_ENABLED: 'settings/security/two-factor-auth/enabled',
-    SETTINGS_2FA_DISABLE: 'settings/security/two-factor-auth/disable',
-    SETTINGS_2FA_CODES: 'settings/security/two-factor-auth/codes',
-    SETTINGS_2FA_VERIFY: 'settings/security/two-factor-auth/verify',
-    SETTINGS_2FA_SUCCESS: 'settings/security/two-factor-auth/success',
+    SETTINGS_2FA: 'settings/security/two-factor-auth',
     SETTINGS_STATUS,
     SETTINGS_STATUS_SET,
     NEW_GROUP: 'new/group',
@@ -93,8 +88,11 @@ export default {
     MONEY_REQUEST_AMOUNT: ':iouType/new/amount/:reportID?',
     MONEY_REQUEST_PARTICIPANTS: ':iouType/new/participants/:reportID?',
     MONEY_REQUEST_CONFIRMATION: ':iouType/new/confirmation/:reportID?',
+    MONEY_REQUEST_DATE: ':iouType/new/date/:reportID?',
     MONEY_REQUEST_CURRENCY: ':iouType/new/currency/:reportID?',
     MONEY_REQUEST_DESCRIPTION: ':iouType/new/description/:reportID?',
+    MONEY_REQUEST_CATEGORY: ':iouType/new/category/:reportID?',
+    MONEY_REQUEST_MERCHANT: ':iouType/new/merchant/:reportID?',
     MONEY_REQUEST_MANUAL_TAB: ':iouType/new/:reportID?/manual',
     MONEY_REQUEST_SCAN_TAB: ':iouType/new/:reportID?/scan',
     MONEY_REQUEST_DISTANCE_TAB: ':iouType/new/:reportID?/distance',
@@ -106,8 +104,11 @@ export default {
     getMoneyRequestAmountRoute: (iouType, reportID = '') => `${iouType}/new/amount/${reportID}`,
     getMoneyRequestParticipantsRoute: (iouType, reportID = '') => `${iouType}/new/participants/${reportID}`,
     getMoneyRequestConfirmationRoute: (iouType, reportID = '') => `${iouType}/new/confirmation/${reportID}`,
+    getMoneyRequestCreatedRoute: (iouType, reportID = '') => `${iouType}/new/date/${reportID}`,
     getMoneyRequestCurrencyRoute: (iouType, reportID = '', currency, backTo) => `${iouType}/new/currency/${reportID}?currency=${currency}&backTo=${backTo}`,
     getMoneyRequestDescriptionRoute: (iouType, reportID = '') => `${iouType}/new/description/${reportID}`,
+    getMoneyRequestCategoryRoute: (iouType, reportID = '') => `${iouType}/new/category/${reportID}`,
+    getMoneyRequestMerchantRoute: (iouType, reportID = '') => `${iouType}/new/merchant/${reportID}`,
     getMoneyRequestDistanceTabRoute: (iouType, reportID = '') => `${iouType}/new/${reportID}/distance`,
     getMoneyRequestWaypointRoute: (iouType, waypointIndex) => `${iouType}/new/waypoint/${waypointIndex}`,
     SPLIT_BILL_DETAILS: `r/:reportID/split/:reportActionID`,
@@ -131,7 +132,10 @@ export default {
     DETAILS: 'details',
     getDetailsRoute: (login) => `details?login=${encodeURIComponent(login)}`,
     PROFILE: 'a/:accountID',
-    getProfileRoute: (accountID) => `a/${accountID}`,
+    getProfileRoute: (accountID, backTo = '') => {
+        const backToParam = backTo ? `?backTo=${encodeURIComponent(backTo)}` : '';
+        return `a/${accountID}${backToParam}`;
+    },
     REPORT_PARTICIPANTS: 'r/:reportID/participants',
     getReportParticipantsRoute: (reportID) => `r/${reportID}/participants`,
     REPORT_WITH_ID_DETAILS: 'r/:reportID/details',
@@ -186,6 +190,10 @@ export default {
     getWorkspaceTravelRoute: (policyID) => `workspace/${policyID}/travel`,
     getWorkspaceMembersRoute: (policyID) => `workspace/${policyID}/members`,
 
+    // These are some on-off routes that will be removed once they're no longer needed (see GH issues for details)
+    SAASTR: 'saastr',
+    SBE: 'sbe',
+
     /**
      * @param {String} route
      * @returns {Object}
@@ -207,4 +215,5 @@ export default {
             isSubReportPageRoute: pathSegments.length > 2,
         };
     },
+    SIGN_IN_MODAL: 'sign-in-modal',
 };

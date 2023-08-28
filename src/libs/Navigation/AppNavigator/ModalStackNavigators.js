@@ -71,10 +71,31 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
+            const MoneyRequestDatePage = require('../../../pages/iou/MoneyRequestDatePage').default;
+            return MoneyRequestDatePage;
+        },
+        name: 'Money_Request_Date',
+    },
+    {
+        getComponent: () => {
             const MoneyRequestDescriptionPage = require('../../../pages/iou/MoneyRequestDescriptionPage').default;
             return MoneyRequestDescriptionPage;
         },
         name: 'Money_Request_Description',
+    },
+    {
+        getComponent: () => {
+            const MoneyRequestCategoryPage = require('../../../pages/iou/MoneyRequestCategoryPage').default;
+            return MoneyRequestCategoryPage;
+        },
+        name: 'Money_Request_Category',
+    },
+    {
+        getComponent: () => {
+            const MoneyRequestMerchantPage = require('../../../pages/iou/MoneyRequestMerchantPage').default;
+            return MoneyRequestMerchantPage;
+        },
+        name: 'Money_Request_Merchant',
     },
     {
         getComponent: () => {
@@ -637,38 +658,10 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
-            const SettingsTwoFactorAuthIsEnabled = require('../../../pages/settings/Security/TwoFactorAuth/IsEnabledPage').default;
-            return SettingsTwoFactorAuthIsEnabled;
+            const SettingsTwoFactorAuth = require('../../../pages/settings/Security/TwoFactorAuth/TwoFactorAuthPage').default;
+            return SettingsTwoFactorAuth;
         },
-        name: 'Settings_TwoFactorAuthIsEnabled',
-    },
-    {
-        getComponent: () => {
-            const SettingsTwoFactorAuthDisable = require('../../../pages/settings/Security/TwoFactorAuth/DisablePage').default;
-            return SettingsTwoFactorAuthDisable;
-        },
-        name: 'Settings_TwoFactorAuthDisable',
-    },
-    {
-        getComponent: () => {
-            const SettingsTwoFactorAuthCodes = require('../../../pages/settings/Security/TwoFactorAuth/CodesPage').default;
-            return SettingsTwoFactorAuthCodes;
-        },
-        name: 'Settings_TwoFactorAuthCodes',
-    },
-    {
-        getComponent: () => {
-            const SettingsTwoFactorAuthVerify = require('../../../pages/settings/Security/TwoFactorAuth/VerifyPage').default;
-            return SettingsTwoFactorAuthVerify;
-        },
-        name: 'Settings_TwoFactorAuthVerify',
-    },
-    {
-        getComponent: () => {
-            const SettingsTwoFactorAuthSuccess = require('../../../pages/settings/Security/TwoFactorAuth/SuccessPage').default;
-            return SettingsTwoFactorAuthSuccess;
-        },
-        name: 'Settings_TwoFactorAuthSuccess',
+        name: 'Settings_TwoFactorAuth',
     },
 ]);
 
@@ -739,6 +732,16 @@ const EditRequestStackNavigator = createModalStackNavigator([
     },
 ]);
 
+const SignInModalStackNavigator = createModalStackNavigator([
+    {
+        getComponent: () => {
+            const SignInModal = require('../../../pages/signin/SignInModal').default;
+            return SignInModal;
+        },
+        name: 'SignIn_Root',
+    },
+]);
+
 export {
     MoneyRequestModalStackNavigator,
     SplitDetailsModalStackNavigator,
@@ -760,4 +763,5 @@ export {
     WalletStatementStackNavigator,
     FlagCommentStackNavigator,
     EditRequestStackNavigator,
+    SignInModalStackNavigator,
 };
