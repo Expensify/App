@@ -2,6 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
+import lodashGet from 'lodash/get';
 import CONST from '../CONST';
 import reportPropTypes from '../pages/reportPropTypes';
 import participantPropTypes from './participantPropTypes';
@@ -21,6 +22,7 @@ import ParentNavigationSubtitle from './ParentNavigationSubtitle';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
+import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -59,12 +61,23 @@ const showActorDetails = (report) => {
         return;
     }
 
-    if (!ReportUtils.isIOUReport(report) && report.participantAccountIDs.length === 1) {
-        Navigation.navigate(ROUTES.getProfileRoute(report.participantAccountIDs[0]));
+    if (ReportUtils.isIOUReport(report)) {
+        Navigation.navigate(ROUTES.getReportParticipantsRoute(report.reportID));
         return;
     }
 
-    Navigation.navigate(ROUTES.getReportParticipantsRoute(report.reportID));
+    if (ReportUtils.isChatThread(report)) {
+        const parentReportAction = ReportActionsUtils.getParentReportAction(report);
+        const actorAccountID = lodashGet(parentReportAction, 'actorAccountID', -1);
+        // in an ideal situation account ID won't be 0
+        if (actorAccountID > 0) {
+            Navigation.navigate(ROUTES.getProfileRoute(actorAccountID));
+            return;
+        }
+    }
+
+    // report detail route is added as fallback but based on the current implementation this route won't be executed
+    Navigation.navigate(ROUTES.getReportDetailsRoute(report.reportID));
 };
 
 function AvatarWithDisplayName(props) {
