@@ -2,12 +2,17 @@ import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import * as ReportActionUtils from '../ReportActionsUtils';
+import * as IOU from './IOU';
 
 /**
  * @param {String} reportID
  * @param {Object} reportAction
  */
 function clearReportActionErrors(reportID, reportAction) {
+    if (ReportActionUtils.isMoneyRequestAction(reportAction)) {
+        IOU.cleanUpFailedMoneyRequest(reportID, reportAction);
+    }
+
     if (reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
         // Delete the optimistic action
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {

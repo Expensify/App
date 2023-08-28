@@ -303,7 +303,13 @@ function buildOnyxDataForMoneyRequest(
     return [optimisticData, successData, failureData];
 }
 
-function cleanUpFailedMoneyRequest(chatReportID, iouReport, iouAction) {
+function cleanUpFailedMoneyRequest(chatReportID, iouAction) {
+    const iouReportID = String(lodashGet(iouAction, 'originalMessage.IOUReportID', ''));
+    const iouReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
+    if (!iouReport) {
+        Log.warn('[cleanUpFailedMoneyRequest] No iouReport found', {iouReportID});
+        return;
+    }
     const transactionID = ReportActionsUtils.getLinkedTransactionID(iouReport.reportID, iouAction.reportActionID);
     if (!transactionID) {
         Log.warn('[cleanUpFailedMoneyRequest] No transactionID for reportID, actionID', {reportID: iouReport.reportID, reportActionID: iouAction.reportActionID});
@@ -334,7 +340,7 @@ function cleanUpFailedMoneyRequest(chatReportID, iouReport, iouAction) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, {lastMessageText, lastMessageHtml: lastMessageText, total: newTotal});
 
         // Get the report with the updated total
-        const updatedIOUReport = iouReports[iouReport.reportID] || {};
+        const updatedIOUReport = allReports[iouReport.reportID] || {};
 
         // Update the preview action after clearing the failed request
         const message = ReportUtils.getReportPreviewMessage(updatedIOUReport, reportPreviewAction);
