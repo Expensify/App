@@ -7,11 +7,13 @@ import * as StyleUtils from '../../styles/StyleUtils';
 import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
 import Text from '../Text';
 import PDFPasswordForm from './PDFPasswordForm';
+import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 import {propTypes as pdfViewPropTypes, defaultProps} from './pdfViewPropTypes';
 import compose from '../../libs/compose';
 import withWindowDimensions from '../withWindowDimensions';
 import withKeyboardState, {keyboardStatePropTypes} from '../withKeyboardState';
 import withLocalize from '../withLocalize';
+import CONST from '../../CONST';
 
 const propTypes = {
     ...pdfViewPropTypes,
@@ -41,6 +43,7 @@ class PDFView extends Component {
             shouldShowLoadingIndicator: true,
             isPasswordInvalid: false,
             failedToLoadPDF: false,
+            successToLoadPDF: false,
             password: '',
         };
         this.initiatePasswordChallenge = this.initiatePasswordChallenge.bind(this);
@@ -118,11 +121,12 @@ class PDFView extends Component {
         this.setState({
             shouldRequestPassword: false,
             shouldShowLoadingIndicator: false,
+            successToLoadPDF: true,
         });
         this.props.onLoadComplete();
     }
 
-    render() {
+    renderPDFView() {
         const pdfStyles = [styles.imageModalPDF, StyleUtils.getWidthAndHeightStyle(this.props.windowWidth, this.props.windowHeight)];
 
         // If we haven't yet successfully validated the password and loaded the PDF,
@@ -167,6 +171,21 @@ class PDFView extends Component {
                     </KeyboardAvoidingView>
                 )}
             </View>
+        );
+    }
+
+    render() {
+        return this.props.onPress && !this.state.successToLoadPDF ? (
+            <PressableWithoutFeedback
+                onPress={this.props.onPress}
+                style={[styles.flex1, styles.flexRow, styles.alignSelfStretch]}
+                accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                accessibilityLabel={this.props.fileName || this.props.translate('attachmentView.unknownFilename')}
+            >
+                {this.renderPDFView()}
+            </PressableWithoutFeedback>
+        ) : (
+            this.renderPDFView()
         );
     }
 }

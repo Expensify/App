@@ -53,7 +53,7 @@ function TaskTitlePage(props) {
         (values) => {
             // Set the title of the report in the store and then call Task.editTaskReport
             // to update the title of the report on the server
-            Task.editTaskAndNavigate(props.report, props.session.email, props.session.accountID, {title: values.title});
+            Task.editTaskAndNavigate(props.report, props.session.accountID, {title: values.title});
         },
         [props],
     );
@@ -64,6 +64,7 @@ function TaskTitlePage(props) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             onEntryTransitionEnd={() => inputRef.current && inputRef.current.focus()}
+            shouldEnableMaxHeight
         >
             <HeaderWithBackButton title={props.translate('task.task')} />
             <Form
@@ -79,9 +80,6 @@ function TaskTitlePage(props) {
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         inputID="title"
                         name="title"
-                        autoGrowHeight
-                        textAlignVertical="top"
-                        containerStyles={[styles.autoGrowHeightMultilineInput]}
                         label={props.translate('task.title')}
                         accessibilityLabel={props.translate('task.title')}
                         defaultValue={(props.report && props.report.reportName) || ''}

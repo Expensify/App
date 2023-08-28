@@ -3,6 +3,7 @@ import _ from 'underscore';
 import CONST from '../CONST';
 import stylePropTypes from '../styles/stylePropTypes';
 import avatarPropTypes from './avatarPropTypes';
+import refPropTypes from './refPropTypes';
 
 const propTypes = {
     /** Text to be shown as badge near the right end. */
@@ -23,6 +24,9 @@ const propTypes = {
 
     /** Icon to display on the left side of component */
     icon: PropTypes.oneOfType([PropTypes.elementType, PropTypes.string, PropTypes.arrayOf(avatarPropTypes)]),
+
+    /** Secondary icon to display on the left side of component, right of the icon */
+    secondaryIcon: PropTypes.elementType,
 
     /** Icon Width */
     iconWidth: PropTypes.number,
@@ -72,6 +76,9 @@ const propTypes = {
     /** The fill color to pass into the icon. */
     iconFill: PropTypes.string,
 
+    /** The fill color to pass into the secondary icon. */
+    secondaryIconFill: PropTypes.string,
+
     /** Whether item is focused or active */
     focused: PropTypes.bool,
 
@@ -112,7 +119,7 @@ const propTypes = {
     shouldBlockSelection: PropTypes.bool,
 
     /** The ref to the menu item */
-    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
+    forwardedRef: refPropTypes,
 
     /** Any adjustments to style when menu item is hovered or pressed */
     hoverAndPressStyle: PropTypes.arrayOf(PropTypes.object),
@@ -122,6 +129,9 @@ const propTypes = {
 
     /** An icon to display under the main item */
     furtherDetailsIcon: PropTypes.oneOfType([PropTypes.elementType, PropTypes.string]),
+
+    /** The action accept for anonymous user or not */
+    isAnonymousAction: PropTypes.bool,
 
     /**  Whether we should use small avatar subscript sizing the for menu item */
     isSmallAvatarSubscriptMenu: PropTypes.bool,

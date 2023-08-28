@@ -66,7 +66,10 @@ function DisplayNamePage(props) {
     };
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            shouldEnableMaxHeight
+        >
             <HeaderWithBackButton
                 title={props.translate('displayNamePage.headerTitle')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PROFILE)}
@@ -89,7 +92,7 @@ function DisplayNamePage(props) {
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         defaultValue={lodashGet(currentUserDetails, 'firstName', '')}
                         maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
-                        autoCapitalize="words"
+                        spellCheck={false}
                     />
                 </View>
                 <View>
@@ -101,7 +104,7 @@ function DisplayNamePage(props) {
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         defaultValue={lodashGet(currentUserDetails, 'lastName', '')}
                         maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
-                        autoCapitalize="words"
+                        spellCheck={false}
                     />
                 </View>
             </Form>

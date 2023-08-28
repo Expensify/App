@@ -1,21 +1,11 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import BaseValidateCodeForm from './BaseValidateCodeForm';
 
-const defaultProps = {
-    isVisible: false,
-};
+const defaultProps = {};
 
-const propTypes = {
-    isVisible: PropTypes.bool,
-};
-function ValidateCodeForm(props) {
-    return (
-        <BaseValidateCodeForm
-            isVisible={props.isVisible}
-            autoComplete="sms-otp"
-        />
-    );
+const propTypes = {};
+function ValidateCodeForm() {
+    return <BaseValidateCodeForm autoComplete="sms-otp" />;
 }
 
 ValidateCodeForm.displayName = 'ValidateCodeForm';

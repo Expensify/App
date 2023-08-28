@@ -12,6 +12,7 @@ import styles from '../../styles/styles';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Policy from '../../libs/actions/Policy';
+import * as PolicyUtils from '../../libs/PolicyUtils';
 import TextInput from '../../components/TextInput';
 import MultipleAvatars from '../../components/MultipleAvatars';
 import CONST from '../../CONST';
@@ -28,8 +29,11 @@ import withNavigationFocus from '../../components/withNavigationFocus';
 import PressableWithoutFeedback from '../../components/Pressable/PressableWithoutFeedback';
 
 const personalDetailsPropTypes = PropTypes.shape({
+    /** The accountID of the person */
+    accountID: PropTypes.number.isRequired,
+
     /** The login of the person (either email or phone number) */
-    login: PropTypes.string.isRequired,
+    login: PropTypes.string,
 
     /** The URL of the person's avatar (there should already be a default avatar if
     the person doesn't have their own avatar uploaded yet, except for anon users) */
@@ -41,10 +45,7 @@ const personalDetailsPropTypes = PropTypes.shape({
 
 const propTypes = {
     /** All of the personal details for everyone */
-    personalDetails: PropTypes.objectOf(personalDetailsPropTypes),
-
-    /** Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string),
+    allPersonalDetails: PropTypes.objectOf(personalDetailsPropTypes),
 
     invitedEmailsToAccountIDsDraft: PropTypes.objectOf(PropTypes.number),
 
@@ -63,8 +64,7 @@ const propTypes = {
 
 const defaultProps = {
     ...policyDefaultProps,
-    personalDetails: {},
-    betas: [],
+    allPersonalDetails: {},
     invitedEmailsToAccountIDsDraft: {},
 };
 
@@ -119,8 +119,10 @@ class WorkspaceInviteMessagePage extends React.Component {
 
     sendInvitation() {
         Keyboard.dismiss();
-        Policy.addMembersToWorkspace(this.props.invitedEmailsToAccountIDsDraft, this.state.welcomeNote, this.props.route.params.policyID, this.props.betas);
+        Policy.addMembersToWorkspace(this.props.invitedEmailsToAccountIDsDraft, this.state.welcomeNote, this.props.route.params.policyID);
         Policy.setWorkspaceInviteMembersDraft(this.props.route.params.policyID, {});
+        // Pop the invite message page before navigating to the members page.
+        Navigation.goBack();
         Navigation.navigate(ROUTES.getWorkspaceMembersRoute(this.props.route.params.policyID));
     }
 
@@ -158,7 +160,8 @@ class WorkspaceInviteMessagePage extends React.Component {
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <FullPageNotFoundView
-                    shouldShow={_.isEmpty(this.props.policy)}
+                    shouldShow={_.isEmpty(this.props.policy) || !PolicyUtils.isPolicyAdmin(this.props.policy)}
+                    subtitleKey={_.isEmpty(this.props.policy) ? undefined : 'workspace.common.notAuthorized'}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
                 >
                     <HeaderWithBackButton
@@ -194,7 +197,11 @@ class WorkspaceInviteMessagePage extends React.Component {
                         <View style={[styles.mv4, styles.justifyContentCenter, styles.alignItemsCenter]}>
                             <MultipleAvatars
                                 size={CONST.AVATAR_SIZE.LARGE}
-                                icons={OptionsListUtils.getAvatarsForAccountIDs(_.values(this.props.invitedEmailsToAccountIDsDraft), this.props.personalDetails)}
+                                icons={OptionsListUtils.getAvatarsForAccountIDs(
+                                    _.values(this.props.invitedEmailsToAccountIDsDraft),
+                                    this.props.allPersonalDetails,
+                                    this.props.invitedEmailsToAccountIDsDraft,
+                                )}
                                 shouldStackHorizontally
                                 shouldDisplayAvatarsInRows
                                 secondAvatarStyle={[styles.secondAvatarInline]}
@@ -234,11 +241,8 @@ export default compose(
     withLocalize,
     withPolicyAndFullscreenLoading,
     withOnyx({
-        personalDetails: {
+        allPersonalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
         },
         invitedEmailsToAccountIDsDraft: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`,

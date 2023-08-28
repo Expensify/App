@@ -60,7 +60,6 @@ git fetch origin main # This will fetch the full history of the main branch, plu
 # Good
 git fetch origin main --no-tags --depth=1 # This will just fetch the latest commit from main
 git fetch origin tag 1.0.0-0 --no-tags --depth=1 # This will fetch the latest commit from the 1.0.0-0 tag and create a local tag to match
-git fetch origin staging --no-tags --shallow-since="$(( $(date -%s) - 3600 ))" # This will fetch all commits made to the staging branch in the last hour
 git fetch origin tag 1.0.1-0 --no-tags --shallow-exclude=1.0.0-0 # This will fetch all commits from the 1.0.1-0 tag, except for those that are reachable from the 1.0.0-0 tag.
 ```
 
@@ -104,6 +103,11 @@ The GitHub workflows require a large list of secrets to deploy, notify and test 
 1. `APPLE_DEMO_EMAIL` - Demo account email used for https://appstoreconnect.apple.com/
 1. `APPLE_DEMO_PASSWORD` - Demo account password used for https://appstoreconnect.apple.com/
 1. `BROWSERSTACK` - Used to access Browserstack's API
+
+### Important note about Secrets
+Secrets are available by default in most workflows. The exception to the rule is callable workflows. If a workflow is triggered by the `workflow_call` event, it will only have access to repo secrets if the workflow that called it passed in the secrets explicitly (for example, using `secrets: inherit`).
+
+Furthermore, secrets are not accessible in actions. If you need to access a secret in an action, you must declare it as an input and pass it in. GitHub _should_ still obfuscate the value of the secret in workflow run logs.
 
 ## Actions
 

@@ -26,6 +26,12 @@ Onyx.connect({
     callback: (val) => (allPersonalDetails = val),
 });
 
+let privatePersonalDetails;
+Onyx.connect({
+    key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+    callback: (val) => (privatePersonalDetails = val),
+});
+
 /**
  * Returns the displayName for a user
  *
@@ -137,7 +143,7 @@ function updatePronouns(pronouns) {
             ],
         },
     );
-    Navigation.navigate(ROUTES.SETTINGS_PROFILE);
+    Navigation.goBack(ROUTES.SETTINGS_PROFILE);
 }
 
 /**
@@ -167,7 +173,7 @@ function updateDisplayName(firstName, lastName) {
             ],
         },
     );
-    Navigation.navigate(ROUTES.SETTINGS_PROFILE);
+    Navigation.goBack(ROUTES.SETTINGS_PROFILE);
 }
 
 /**
@@ -191,7 +197,7 @@ function updateLegalName(legalFirstName, legalLastName) {
             ],
         },
     );
-    Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS);
+    Navigation.goBack(ROUTES.SETTINGS_PERSONAL_DETAILS);
 }
 
 /**
@@ -213,7 +219,7 @@ function updateDateOfBirth({dob}) {
             ],
         },
     );
-    Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS);
+    Navigation.goBack(ROUTES.SETTINGS_PERSONAL_DETAILS);
 }
 
 /**
@@ -256,7 +262,7 @@ function updateAddress(street, street2, city, state, zip, country) {
             },
         ],
     });
-    Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS);
+    Navigation.goBack(ROUTES.SETTINGS_PERSONAL_DETAILS);
 }
 
 /**
@@ -318,14 +324,44 @@ function updateSelectedTimezone(selectedTimezone) {
             ],
         },
     );
-    Navigation.navigate(ROUTES.SETTINGS_TIMEZONE);
+    Navigation.goBack(ROUTES.SETTINGS_TIMEZONE);
 }
 
 /**
  * Fetches additional personal data like legal name, date of birth, address
  */
 function openPersonalDetailsPage() {
-    API.read('OpenPersonalDetailsPage');
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+            value: {
+                isLoading: true,
+            },
+        },
+    ];
+
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    API.read('OpenPersonalDetailsPage', {}, {optimisticData, successData, failureData});
 }
 
 /**
@@ -478,6 +514,14 @@ function clearAvatarErrors() {
     });
 }
 
+/**
+ * Get private personal details value
+ * @returns {Object}
+ */
+function getPrivatePersonalDetails() {
+    return privatePersonalDetails;
+}
+
 export {
     getDisplayName,
     getDisplayNameForTypingIndicator,
@@ -495,4 +539,5 @@ export {
     updateAutomaticTimezone,
     updateSelectedTimezone,
     getCountryISO,
+    getPrivatePersonalDetails,
 };

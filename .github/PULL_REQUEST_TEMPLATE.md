@@ -5,18 +5,18 @@
 
 ### Fixed Issues
 <!---
-1. Please postfix `$` with a URL link to the GitHub issue this Pull Request is fixing. For example, `$ https://github.com/Expensify/App/issues/123`.
-2. Please postfix  `PROPOSAL:` with a URL link to your GitHub comment, which contains the approved proposal (i.e. the proposal that was approved by Expensify).  For example, `PROPOSAL: https://github.com/Expensify/App/issues/123#issuecomment-1369752925`
+1. Please postfix `$` with a URL link to the GitHub issue this Pull Request is fixing. For example, `$ https://github.com/Expensify/App/issues/<issueID>`.
+2. Please postfix  `PROPOSAL:` with a URL link to your GitHub comment, which contains the approved proposal (i.e. the proposal that was approved by Expensify).  For example, `PROPOSAL: https://github.com/Expensify/App/issues/<issueID>#issuecomment-1369752925`
 
 Do NOT add the special GH keywords like `fixed` etc, we have our own process of managing the flow.
 It MUST be an entire link to the github issue and your comment proposal ; otherwise, the linking and its automation will not work as expected.
 
 Make sure this section looks similar to this (you can link multiple issues using the same formatting, just add a new line):
 
-$ https://github.com/Expensify/App/issues/<number-of-the-issue>
-$ https://github.com/Expensify/App/issues/<number-of-the-issue(comment)>
+$ https://github.com/Expensify/App/issues/<issueID>
+$ https://github.com/Expensify/App/issues/<issueID(comment)>
 
-Do NOT only link the issue number like this: $ #<number-of-the-issue>
+Do NOT only link the issue number like this: $ #<issueID>
 --->
 $ 
 PROPOSAL: 
@@ -113,6 +113,7 @@ This is a checklist for PR authors. Please make sure to complete all tasks and c
 - [ ] If the PR modifies code that runs when editing or sending messages, I tested and verified there is no unexpected behavior for all supported markdown - URLs, single line code, code blocks, quotes, headings, bold, strikethrough, and italic.
 - [ ] If the PR modifies a generic component, I tested and verified that those changes do not break usages of that component in the rest of the App (i.e. if a shared library or component like `Avatar` is modified, I verified that `Avatar` is working as expected in all cases)
 - [ ] If the PR modifies a component related to any of the existing Storybook stories, I tested and verified all stories for that component are still working as expected.
+- [ ] If the PR modifies a component or page that can be accessed by a direct deeplink, I verified that the code functions as expected when the deeplink is used - from a logged in and logged out account.
 - [ ] If a new page is added, I verified it's using the `ScrollView` component to make it scrollable when more elements are added to the page.
 - [ ] If the `main` branch was merged into this PR after a review, I tested again and verified the outcome was still expected according to the `Test` steps.
 - [ ] I have checked off every checkbox in the PR author checklist, including those that don't apply to this PR.

@@ -7,6 +7,7 @@ import styles from '../../styles/styles';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import MenuItem from '../MenuItem';
 import {propTypes as createMenuPropTypes, defaultProps as createMenuDefaultProps} from './popoverMenuPropTypes';
+import refPropTypes from '../refPropTypes';
 import Text from '../Text';
 import CONST from '../../CONST';
 import useArrowKeyFocusManager from '../../hooks/useArrowKeyFocusManager';
@@ -23,11 +24,16 @@ const propTypes = {
         vertical: PropTypes.number.isRequired,
     }).isRequired,
 
+    /** Ref of the anchor */
+    anchorRef: refPropTypes,
+
     /** Where the popover should be positioned relative to the anchor points. */
     anchorAlignment: PropTypes.shape({
         horizontal: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL)),
         vertical: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL)),
     }),
+
+    withoutOverlay: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -36,6 +42,8 @@ const defaultProps = {
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
     },
+    anchorRef: () => {},
+    withoutOverlay: false,
 };
 
 function PopoverMenu(props) {
@@ -45,7 +53,7 @@ function PopoverMenu(props) {
 
     const selectItem = (index) => {
         const selectedItem = props.menuItems[index];
-        props.onItemSelected(selectedItem);
+        props.onItemSelected(selectedItem, index);
         setSelectedItemIndex(index);
     };
 
@@ -64,6 +72,7 @@ function PopoverMenu(props) {
     return (
         <PopoverWithMeasuredContent
             anchorPosition={props.anchorPosition}
+            anchorRef={props.anchorRef}
             anchorAlignment={props.anchorAlignment}
             onClose={props.onClose}
             isVisible={props.isVisible}
@@ -79,6 +88,7 @@ function PopoverMenu(props) {
             animationInTiming={props.animationInTiming}
             disableAnimation={props.disableAnimation}
             fromSidebarMediumScreen={props.fromSidebarMediumScreen}
+            withoutOverlay={props.withoutOverlay}
         >
             <View style={isSmallScreenWidth ? {} : styles.createMenuContainer}>
                 {!_.isEmpty(props.headerText) && <Text style={[styles.createMenuHeaderText, styles.ml3]}>{props.headerText}</Text>}

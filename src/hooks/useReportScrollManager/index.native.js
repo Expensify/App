@@ -1,4 +1,4 @@
-import {useContext} from 'react';
+import {useContext, useCallback} from 'react';
 import ReportScreenContext from '../../pages/home/ReportScreenContext';
 
 function useReportScrollManager() {
@@ -20,13 +20,13 @@ function useReportScrollManager() {
     /**
      * Scroll to the bottom of the flatlist.
      */
-    const scrollToBottom = () => {
+    const scrollToBottom = useCallback(() => {
         if (!flatListRef.current) {
             return;
         }
 
         flatListRef.current.scrollToOffset({animated: false, offset: 0});
-    };
+    }, [flatListRef]);
 
     return {ref: flatListRef, scrollToIndex, scrollToBottom};
 }

@@ -1,5 +1,5 @@
 import _, {compose} from 'underscore';
-import React from 'react';
+import React, {useCallback} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
@@ -12,7 +12,7 @@ import * as User from '../../../libs/actions/User';
 import CONST from '../../../CONST';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
-import SelectionListRadio from '../../../components/SelectionListRadio';
+import SelectionList from '../../../components/SelectionList';
 
 const propTypes = {
     /** The chat priority mode */
@@ -30,12 +30,20 @@ function PriorityModePage(props) {
         value: key,
         text: mode.label,
         alternateText: mode.description,
-
-        // Set max line to undefined to reset line restriction
-        alternateTextMaxLines: undefined,
         keyForList: key,
         isSelected: props.priorityMode === key,
     }));
+
+    const updateMode = useCallback(
+        (mode) => {
+            if (mode.value === props.priorityMode) {
+                Navigation.navigate(ROUTES.SETTINGS_PREFERENCES);
+                return;
+            }
+            User.updateChatPriorityMode(mode.value);
+        },
+        [props.priorityMode],
+    );
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -44,9 +52,9 @@ function PriorityModePage(props) {
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PREFERENCES)}
             />
             <Text style={[styles.mh5, styles.mv4]}>{props.translate('priorityModePage.explainerText')}</Text>
-            <SelectionListRadio
+            <SelectionList
                 sections={[{data: priorityModes}]}
-                onSelectRow={(mode) => User.updateChatPriorityMode(mode.value)}
+                onSelectRow={updateMode}
                 initiallyFocusedOptionKey={_.find(priorityModes, (mode) => mode.isSelected).keyForList}
             />
         </ScreenWrapper>

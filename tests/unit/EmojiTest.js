@@ -182,6 +182,7 @@ describe('EmojiTest', () => {
                     name: 'wave',
                     count: 2,
                     lastUpdatedAt: 4,
+                    types: ['👋🏿', '👋🏾', '👋🏽', '👋🏼', '👋🏻'],
                 },
                 {
                     code: '💤',
@@ -234,6 +235,7 @@ describe('EmojiTest', () => {
                     name: 'wave',
                     count: 2,
                     lastUpdatedAt: 4,
+                    types: ['👋🏿', '👋🏾', '👋🏽', '👋🏼', '👋🏻'],
                 },
                 {
                     code: '💤',
@@ -280,6 +282,7 @@ describe('EmojiTest', () => {
                     name: 'wave',
                     count: 2,
                     lastUpdatedAt: 4,
+                    types: ['👋🏿', '👋🏾', '👋🏽', '👋🏼', '👋🏻'],
                 },
                 {...zzzEmoji, count: 2, lastUpdatedAt: 3},
                 {
@@ -329,6 +332,7 @@ describe('EmojiTest', () => {
                     name: 'wave',
                     count: 3,
                     lastUpdatedAt: 23,
+                    types: ['👋🏿', '👋🏾', '👋🏽', '👋🏼', '👋🏻'],
                 },
                 {
                     code: '😡',
@@ -389,6 +393,7 @@ describe('EmojiTest', () => {
                     name: 'baby',
                     count: 3,
                     lastUpdatedAt: 13,
+                    types: ['👶🏿', '👶🏾', '👶🏽', '👶🏼', '👶🏻'],
                 },
                 {
                     code: '👄',

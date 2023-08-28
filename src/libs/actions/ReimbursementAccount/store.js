@@ -1,6 +1,8 @@
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import ONYXKEYS from '../../../ONYXKEYS';
+import BankAccount from '../../models/BankAccount';
 
 /** Reimbursement account actively being set up */
 let reimbursementAccountInSetup = {};
@@ -43,6 +45,13 @@ function getBankAccountList() {
     return bankAccountList;
 }
 
+function hasCreditBankAccount() {
+    return _.some(bankAccountList, (bankAccountJSON) => {
+        const bankAccount = new BankAccount(bankAccountJSON);
+        return bankAccount.isDefaultCredit();
+    });
+}
+
 function getCredentials() {
     return credentials;
 }
@@ -51,4 +60,4 @@ function getReimbursementAccountWorkspaceID() {
     return reimbursementAccountWorkspaceID;
 }
 
-export {getReimbursementAccountInSetup, getBankAccountList, getCredentials, getReimbursementAccountWorkspaceID};
+export {getReimbursementAccountInSetup, getBankAccountList, getCredentials, getReimbursementAccountWorkspaceID, hasCreditBankAccount};

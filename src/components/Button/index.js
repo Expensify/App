@@ -15,6 +15,7 @@ import * as Expensicons from '../Icon/Expensicons';
 import withNavigationFocus from '../withNavigationFocus';
 import validateSubmitShortcut from './validateSubmitShortcut';
 import PressableWithFeedback from '../Pressable/PressableWithFeedback';
+import refPropTypes from '../refPropTypes';
 
 const propTypes = {
     /** The text for the button label */
@@ -87,6 +88,9 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     textStyles: PropTypes.arrayOf(PropTypes.object),
 
+    /** Whether we should use the default hover style */
+    shouldUseDefaultHover: PropTypes.bool,
+
     /** Whether we should use the success theme color */
     success: PropTypes.bool,
 
@@ -115,8 +119,7 @@ const propTypes = {
     accessibilityLabel: PropTypes.string,
 
     /** A ref to forward the button */
-    // eslint-disable-next-line react/forbid-prop-types
-    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.object})]),
+    forwardedRef: refPropTypes,
 };
 
 const defaultProps = {
@@ -142,6 +145,7 @@ const defaultProps = {
     style: [],
     innerStyles: [],
     textStyles: [],
+    shouldUseDefaultHover: false,
     success: false,
     danger: false,
     children: null,
@@ -295,6 +299,7 @@ class Button extends Component {
                     ...this.props.innerStyles,
                 ]}
                 hoverStyle={[
+                    this.props.shouldUseDefaultHover && !this.props.isDisabled ? styles.buttonDefaultHovered : undefined,
                     this.props.success && !this.props.isDisabled ? styles.buttonSuccessHovered : undefined,
                     this.props.danger && !this.props.isDisabled ? styles.buttonDangerHovered : undefined,
                 ]}

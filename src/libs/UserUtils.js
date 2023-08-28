@@ -88,8 +88,8 @@ function getDefaultAvatar(accountID = -1) {
     }
 
     // There are 24 possible default avatars, so we choose which one this user has based
-    // on a simple hash of their login. Note that Avatar count starts at 1.
-    const accountIDHashBucket = hashText(accountID.toString(), CONST.DEFAULT_AVATAR_COUNT) + 1;
+    // on a simple modulo operation of their login number. Note that Avatar count starts at 1.
+    const accountIDHashBucket = (accountID % CONST.DEFAULT_AVATAR_COUNT) + 1;
 
     return defaultAvatars[`Avatar${accountIDHashBucket}`];
 }
@@ -207,13 +207,12 @@ function getSmallSizeAvatar(avatarURL, accountID) {
 }
 
 /**
- * Generate a random accountID.
- * Uses the same approach of 'generateReportID'.
- *
+ * Generate a random accountID base on searchValue.
+ * @param {String} searchValue
  * @returns {Number}
  */
-function generateAccountID() {
-    return Math.floor(Math.random() * 2 ** 21) * 2 ** 32 + Math.floor(Math.random() * 2 ** 32);
+function generateAccountID(searchValue) {
+    return hashText(searchValue, 2 ** 32);
 }
 
 export {
