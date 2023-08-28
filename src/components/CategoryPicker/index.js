@@ -39,6 +39,7 @@ function CategoryPicker({policyCategories, reportID, iouType}) {
                     contentContainerStyles={[safeAreaPaddingBottomStyle]}
                     sections={sections}
                     onSelectRow={navigateBack}
+                    shouldDebounceRowSelect
                 />
             )}
         </ScreenWrapper>
