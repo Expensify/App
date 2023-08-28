@@ -192,7 +192,7 @@ WaypointEditor.propTypes = propTypes;
 WaypointEditor.defaultProps = defaultProps;
 export default withOnyx({
     transaction: {
-        key: (props) => `${ONYXKEYS.COLLECTION.TRANSACTION}${props.transactionID}`,
+        key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
         selector: (transaction) => (transaction ? {transactionID: transaction.transactionID, comment: {waypoints: lodashGet(transaction, 'comment.waypoints')}} : null),
     },
 })(WaypointEditor);
