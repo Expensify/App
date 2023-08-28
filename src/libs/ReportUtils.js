@@ -2500,6 +2500,8 @@ function buildOptimisticTaskReport(ownerAccountID, assigneeAccountID = 0, parent
  *
  * @param {Object} reportAction - the parent IOU report action from which to create the thread
  *
+ * @param {String} moneyRequestReportID - the reportID which the report action belong to
+ *
  * @returns {Object}
  */
 function buildTransactionThread(reportAction, moneyRequestReportID) {
