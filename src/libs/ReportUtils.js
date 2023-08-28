@@ -187,27 +187,6 @@ function sortReportsByLastRead(reports) {
 }
 
 /**
- * Can only edit if:
- *
- * - It was written by the current user
- * - It's an ADDCOMMENT that is not an attachment
- * - It's not pending deletion
- *
- * @param {Object} reportAction
- * @returns {Boolean}
- */
-function canEditReportAction(reportAction) {
-    return (
-        reportAction.actorAccountID === currentUserAccountID &&
-        reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT &&
-        !isReportMessageAttachment(lodashGet(reportAction, ['message', 0], {})) &&
-        !ReportActionsUtils.isDeletedAction(reportAction) &&
-        !ReportActionsUtils.isCreatedTaskReportAction(reportAction) &&
-        reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
-    );
-}
-
-/**
  * Whether the Money Request report is settled
  *
  * @param {String} reportID
@@ -526,6 +505,15 @@ function findLastAccessedReport(reports, ignoreDomainRooms, policies, isFirstTim
  */
 function isArchivedRoom(report) {
     return lodashGet(report, ['statusNum']) === CONST.REPORT.STATUS.CLOSED && lodashGet(report, ['stateNum']) === CONST.REPORT.STATE_NUM.SUBMITTED;
+}
+
+/**
+ * @param {String} policyID
+ * @returns {Object}
+ */
+function getPolicy(policyID) {
+    const policy = lodashGet(allPolicies, `${ONYXKEYS.COLLECTION.POLICY}${policyID}`) || {};
+    return policy;
 }
 
 /**
@@ -1249,6 +1237,58 @@ function getTransactionDetails(transaction) {
         comment: TransactionUtils.getDescription(transaction),
         merchant: TransactionUtils.getMerchant(transaction),
     };
+}
+
+/**
+ * Can only edit if:
+ *
+ * - in case of IOU report
+ *    - the current user is the requestor
+ * - in case of expense report
+ *    - the current user is the requestor
+ *    - or the user is an admin on the policy the expense report is tied to
+ *
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
+function canEditMoneyRequest(reportAction) {
+    // If the report action i snot IOU type, return true early
+    if (reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) {
+        return true;
+    }
+    const moneyRequestReportID = lodashGet(reportAction, 'originalMessage.IOUReportID', 0);
+    if (!moneyRequestReportID) {
+        return false;
+    }
+    const moneyRequestReport = getReport(moneyRequestReportID);
+    const isReportSettled = isSettled(moneyRequestReport.reportID);
+    const isAdmin = isExpenseReport(moneyRequestReport) && lodashGet(getPolicy(moneyRequestReport.policyID), 'role', '') === CONST.POLICY.ROLE.ADMIN;
+    const isRequestor = currentUserAccountID === reportAction.actorAccountID;
+    return !isReportSettled && (isAdmin || isRequestor);
+}
+
+/**
+ * Can only edit if:
+ *
+ * - It was written by the current user
+ * - It's an ADDCOMMENT that is not an attachment
+ * - It's money request where conditions for editability are defined in canEditMoneyRequest method
+ * - It's not pending deletion
+ *
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
+function canEditReportAction(reportAction) {
+    const isCommentOrIOU = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT || reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU;
+    return (
+        reportAction.actorAccountID === currentUserAccountID &&
+        isCommentOrIOU &&
+        canEditMoneyRequest(reportAction) && // Returns true for non-IOU actions
+        !isReportMessageAttachment(lodashGet(reportAction, ['message', 0], {})) &&
+        !ReportActionsUtils.isDeletedAction(reportAction) &&
+        !ReportActionsUtils.isCreatedTaskReportAction(reportAction) &&
+        reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
+    );
 }
 
 /**
@@ -2456,6 +2496,31 @@ function buildOptimisticTaskReport(ownerAccountID, assigneeAccountID = 0, parent
 }
 
 /**
+ * A helper method to create transaction thread
+ *
+ * @param {Object} reportAction - the parent IOU report action from which to create the thread
+ *
+ * @returns {Object}
+ */
+function buildTransactionThread(reportAction) {
+    const participantAccountIDs = _.uniq([currentUserAccountID, Number(reportAction.actorAccountID)]);
+    return buildOptimisticChatReport(
+        participantAccountIDs,
+        getTransactionReportName(reportAction),
+        '',
+        lodashGet(getReport(reportAction.reportID), 'policyID', CONST.POLICY.OWNER_EMAIL_FAKE),
+        CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
+        false,
+        '',
+        undefined,
+        undefined,
+        CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+        reportAction.reportActionID,
+        reportAction.reportID,
+    );
+}
+
+/**
  * @param {Object} report
  * @returns {Boolean}
  */
@@ -3119,15 +3184,6 @@ function getReportOfflinePendingActionAndErrors(report) {
 }
 
 /**
- * @param {String} policyID
- * @returns {Object}
- */
-function getPolicy(policyID) {
-    const policy = lodashGet(allPolicies, `${ONYXKEYS.COLLECTION.POLICY}${policyID}`) || {};
-    return policy;
-}
-
-/**
  * @param {String} policyOwner
  * @returns {String|null}
  */
@@ -3442,6 +3498,8 @@ export {
     getTransactionReportName,
     getTransactionDetails,
     getTaskAssigneeChatOnyxData,
+    canEditMoneyRequest,
+    buildTransactionThread,
     areAllRequestsBeingSmartScanned,
     getReportPreviewDisplayTransactions,
     getTransactionsWithReceipts,

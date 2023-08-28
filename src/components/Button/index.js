@@ -15,6 +15,7 @@ import * as Expensicons from '../Icon/Expensicons';
 import withNavigationFocus from '../withNavigationFocus';
 import validateSubmitShortcut from './validateSubmitShortcut';
 import PressableWithFeedback from '../Pressable/PressableWithFeedback';
+import refPropTypes from '../refPropTypes';
 
 const propTypes = {
     /** The text for the button label */
@@ -117,12 +118,14 @@ const propTypes = {
     /** Accessibility label for the component */
     accessibilityLabel: PropTypes.string,
 
-    /** A ref to forward the button */
     // eslint-disable-next-line react/forbid-prop-types
     forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.object})]),
-
+    
     /** Whether the long press is disabled */
     isDisabledLongPress: PropTypes.bool,
+
+    /** A ref to forward the button */
+    forwardedRef: refPropTypes,
 };
 
 const defaultProps = {

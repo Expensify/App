@@ -3,13 +3,14 @@ import PropTypes from 'prop-types';
 import TextInput from './TextInput';
 import styles from '../styles/styles';
 import CONST from '../CONST';
+import refPropTypes from './refPropTypes';
 
 const propTypes = {
     /** Formatted amount in local currency  */
     formattedAmount: PropTypes.string.isRequired,
 
     /** A ref to forward to amount text input */
-    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
+    forwardedRef: refPropTypes,
 
     /** Function to call when amount in text input is changed */
     onChangeAmount: PropTypes.func.isRequired,
