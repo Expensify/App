@@ -272,6 +272,7 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
 
 CompanyStep.propTypes = propTypes;
 CompanyStep.defaultProps = defaultProps;
+CompanyStep.displayName = 'CompanyStep';
 
 export default compose(
     withLocalize,
