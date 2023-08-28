@@ -1984,7 +1984,7 @@ const updatePrivateNotes = (reportID, accountID, note) => {
         'UpdateReportPrivateNote',
         {
             reportID,
-            'note-html': note,
+            'privateNotes': note,
         },
         {optimisticData, successData, failureData},
     );
