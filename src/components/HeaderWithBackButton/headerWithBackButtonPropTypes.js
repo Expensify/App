@@ -73,7 +73,7 @@ const propTypes = {
     /** Report, if we're showing the details for one and using AvatarWithDisplay */
     report: iouReportPropTypes,
 
-    /** The report's poolicy, if we're showing the details for a report and need info about it for AvatarWithDisplay */
+    /** The report's policy, if we're showing the details for a report and need info about it for AvatarWithDisplay */
     policy: PropTypes.shape({
         /** Name of the policy */
         name: PropTypes.string,
