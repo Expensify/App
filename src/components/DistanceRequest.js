@@ -25,7 +25,6 @@ import ROUTES from '../ROUTES';
 import participantPropTypes from './participantPropTypes';
 import reportPropTypes from '../pages/reportPropTypes';
 import transactionPropTypes from './transactionPropTypes';
-import ScreenWrapper from './ScreenWrapper';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import * as ErrorUtils from '../libs/ErrorUtils';
 import usePrevious from '../hooks/usePrevious';
@@ -156,7 +155,7 @@ function DistanceRequest({transactionID, report, transaction, mapboxAccessToken,
     useEffect(updateGradientVisibility, [scrollContainerHeight, scrollContentHeight]);
 
     return (
-        <ScreenWrapper shouldEnableMaxHeight>
+        <>
             <View
                 style={styles.distanceRequestContainer(scrollContainerMaxHeight)}
                 onLayout={(event = {}) => setScrollContainerHeight(lodashGet(event, 'nativeEvent.layout.height', 0))}
@@ -248,15 +247,7 @@ function DistanceRequest({transactionID, report, transaction, mapboxAccessToken,
                     </View>
                 )}
             </View>
-            <Button
-                success
-                style={[styles.w100, styles.mb4, styles.ph4, styles.flexShrink0]}
-                onPress={() => onSubmit(waypoints)}
-                pressOnEnter
-                isDisabled={waypointMarkers.length < 2}
-                text={translate(isEditingRequest ? 'common.save' : 'common.next')}
-            />
-        </ScreenWrapper>
+        </>
     );
 }
 

@@ -15,7 +15,7 @@ import Navigation from '../../libs/Navigation/Navigation';
 import styles from '../../styles/styles';
 import ReceiptSelector from './ReceiptSelector';
 import * as IOU from '../../libs/actions/IOU';
-import DistanceRequestPage from './DistanceRequestPage';
+import NewDistanceRequestPage from './NewDistanceRequestPage';
 import DragAndDropProvider from '../../components/DragAndDrop/Provider';
 import usePermissions from '../../hooks/usePermissions';
 import OnyxTabNavigator, {TopTab} from '../../libs/Navigation/OnyxTabNavigator';
@@ -88,7 +88,7 @@ function MoneyRequestSelectorPage(props) {
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType)}>
-                    <DragAndDropProvider isDisabled={props.selectedTab === CONST.TAB.MANUAL}>
+                    <DragAndDropProvider isDisabled={props.selectedTab !== CONST.TAB.SCAN}>
                         <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                             <HeaderWithBackButton
                                 title={title[iouType]}
@@ -120,7 +120,7 @@ function MoneyRequestSelectorPage(props) {
                                     {canUseDistanceRequests && (
                                         <TopTab.Screen
                                             name={CONST.TAB.DISTANCE}
-                                            component={DistanceRequestPage}
+                                            component={NewDistanceRequestPage}
                                             initialParams={{reportID, iouType, transactionID: props.iou.transactionID}}
                                         />
                                     )}
