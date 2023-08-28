@@ -13,11 +13,6 @@ type IOU = {
     /** Selected Currency Code of the current IOU */
     currency?: string;
     comment?: string;
-    merchant?: string;
-    created?: string;
-    receiptPath?: string;
-    receiptSource?: string;
-    transactionID?: string;
     participants?: Participant[];
 };
 
