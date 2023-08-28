@@ -114,9 +114,9 @@ function ReportActionsList({
     const readActionSkipped = useRef(false);
     const reportActionSize = useRef(sortedReportActions.length);
 
-    // Considering that renderItem is enclosed within a useCallback, marking it as "read" twice will retain the value as "true," preventing the useCallback from re-executing.
-    // However, if we create and listen to an object, it will lead to a new useCallback execution.
-    const [messageManuallyMarked, setMessageManuallyMarked] = useState({read: false});
+    // This state is used to force a re-render when the user manually marks a message as unread
+    // by using a timestamp you can force re-renders without having to worry about if another message was marked as unread before
+    const [messageManuallyMarkedUnread, setMessageManuallyMarkedUnread] = useState(0);
     const [isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible] = useState(false);
     const animatedStyles = useAnimatedStyle(() => ({
         opacity: opacity.value,
@@ -163,14 +163,13 @@ function ReportActionsList({
 
     useEffect(() => {
         const didManuallyMarkReportAsUnread = report.lastReadTime < DateUtils.getDBTime() && ReportUtils.isUnread(report);
-        if (!didManuallyMarkReportAsUnread) {
-            setMessageManuallyMarked({read: false});
-            return;
+        if (didManuallyMarkReportAsUnread) {
+            // Clearing the current unread marker so that it can be recalculated
+            currentUnreadMarker.current = null;
+            setMessageManuallyMarkedUnread(new Date().getTime());
+        } else {
+            setMessageManuallyMarkedUnread(0);
         }
-
-        // Clearing the current unread marker so that it can be recalculated
-        currentUnreadMarker.current = null;
-        setMessageManuallyMarked({read: true});
 
         // We only care when a new lastReadTime is set in the report
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -230,7 +229,7 @@ function ReportActionsList({
                 const isCurrentMessageUnread = isMessageUnread(reportAction, report.lastReadTime);
                 shouldDisplayNewMarker = isCurrentMessageUnread && !isMessageUnread(nextMessage, report.lastReadTime);
 
-                if (!messageManuallyMarked.read) {
+                if (!messageManuallyMarkedUnread) {
                     shouldDisplayNewMarker = shouldDisplayNewMarker && reportAction.actorAccountID !== Report.getCurrentUserAccountID();
                 }
                 const canDisplayMarker = scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD ? reportAction.created < userActiveSince.current : true;
@@ -272,7 +271,7 @@ function ReportActionsList({
                 />
             );
         },
-        [report, hasOutstandingIOU, sortedReportActions, mostRecentIOUReportActionID, messageManuallyMarked],
+        [report, hasOutstandingIOU, sortedReportActions, mostRecentIOUReportActionID, messageManuallyMarkedUnread],
     );
 
     // Native mobile does not render updates flatlist the changes even though component did update called.
