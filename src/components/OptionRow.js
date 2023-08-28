@@ -119,9 +119,9 @@ class OptionRow extends Component {
             this.setState({isDisabled: this.props.isDisabled});
         }
 
-        // update onRowSelect to be either the normal or debounced version whenever shouldDebounceRowSelect changes
+        // Update onRowSelect to be either the normal or debounced version whenever shouldDebounceRowSelect changes
         if (prevProps.onSelectRow !== this.props.onSelectRow || prevProps.shouldDebounceRowSelect !== this.props.shouldDebounceRowSelect) {
-            // cancel the existing onSelectRow debounce if switched to use non-debounced version
+            // Cancel the existing onSelectRow debounce if switched to use non-debounced version
             if (prevProps.shouldDebounceRowSelect && !this.props.shouldDebounceRowSelect && this.onSelectRow) {
                 this.onSelectRow.cancel();
             }
@@ -138,7 +138,7 @@ class OptionRow extends Component {
         this.onSelectRow.cancel();
     }
 
-    /** sets the onSelectRow callback to be either the normal or debounced version */
+    /** Sets the onSelectRow callback to be either the normal or debounced version */
     updateOnSelectRow() {
         this.onSelectRow = this.props.shouldDebounceRowSelect && this.props.onSelectRow ? _.debounce(this.props.onSelectRow, 1000, {leading: true}) : this.props.onSelectRow;
     }
