@@ -36,6 +36,9 @@ const propTypes = {
         }),
     }),
 
+    /** Recent waypoints array */
+    recentWaypoints: PropTypes.array,
+
     /** The optimistic transaction for this request */
     transaction: transactionPropTypes,
 
