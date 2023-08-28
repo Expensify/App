@@ -4,13 +4,13 @@ description: How to get the most out of the Custom Reporing and Insights
 ---
 <!-- The lines above are required by Jekyll to process the .md file -->
 {% raw %}
-
 # What is Custom Reporting and Insights?
 The Insights dashboard allows you to monitor all aspects of company spend across categories, employees, projects, departments, and more. You can see trends in real time, forecast company budgets, and build unlimited custom reports with help from our trained specialist team. 
 
+![Insights Pie Chart](https://help.expensify.com/assets/images/insights-chart.png){:width="100%"}
 ## Review your Insights data: 
 
-1. Navigate to your [Insights page](https://www.expensify.com/expenses?param={%22fromInsightsTab%22:true,%22viewMode%22:%22charts%22,%22categoryList%22:-1,%22tagList%22:-1,%22policyIDList%22:%22A5F944A401046336%22,%22cardIDList%22:-1,%22submitterEmail%22:-1,%22typeList%22:-1,%22startDate%22:%222023-08-01%22,%22endDate%22:%222023-08-31%22,%22merchant%22:%22%22,%22reportStatusList%22:[%22Unreported%22,%22Open%22,%22Processing%22,%22Approved%22,%22Reimbursed%22,%22Archived%22],%22billableReimbursable%22:%22all%22,%22offset%22:0,%22limit%22:50,%22sortBy%22:%22created_desc%22,%22usePostedDate%22:false,%22domain%22:-1,%22bank%22:-1}), located in the left hand menu
+1. Navigate to your [Insights page](https://www.expensify.com/expenses?param={"fromInsightsTab":true,"viewMode":"charts"}), located in the left hand menu
 2. Select a specific date range (the default view has the current month pre-selected) 
 3. Use the filter options to select the categories, tags, employees etc that you want insights on 
 4. Make sure that View in the top right corner is set to the pie chart icon
@@ -18,7 +18,7 @@ The Insights dashboard allows you to monitor all aspects of company spend across
 
 ## Export your Insights data:  
 
-1. Switch the View in the top right corner of the [Insights page](https://www.expensify.com/expenses?param={%22fromInsightsTab%22:true,%22viewMode%22:%22charts%22,%22categoryList%22:-1,%22tagList%22:-1,%22policyIDList%22:%22A5F944A401046336%22,%22cardIDList%22:-1,%22submitterEmail%22:-1,%22typeList%22:-1,%22startDate%22:%222023-08-01%22,%22endDate%22:%222023-08-31%22,%22merchant%22:%22%22,%22reportStatusList%22:[%22Unreported%22,%22Open%22,%22Processing%22,%22Approved%22,%22Reimbursed%22,%22Archived%22],%22billableReimbursable%22:%22all%22,%22offset%22:0,%22limit%22:50,%22sortBy%22:%22created_desc%22,%22usePostedDate%22:false,%22domain%22:-1,%22bank%22:-1}) to the lists icon
+1. Switch the View in the top right corner of the [Insights page](https://www.expensify.com/expenses?param={"fromInsightsTab":true,"viewMode":"charts"}) to the lists icon
 2. Select the expenses you want to export, either by selecting individual expenses, or checking the select all box (next to Date at the top)
 3. Select **Export To** in the top right hand corner to download the report as a .csv file 
 
@@ -38,7 +38,7 @@ The Insights dashboard allows you to monitor all aspects of company spend across
 
 #### Can I share my custom export report? 
 
-If you would like to create a custom export report that can be shared with other policy admins, you can create these by navigating to the **[Settings > Policies > Group > [Policy Name] > Export Formats](https://www.expensify.com/settings?param={%22section%22:%22preferences%22})** page. Custom export reports created under **Settings > Account > Preferences** page are only available to the member who created them.
+If you would like to create a custom export report that can be shared with other policy admins, you can create these by navigating to the **[Settings > Policies > Group > [Policy Name] > Export Formats](https://www.expensify.com/admin_policies?param={"section":"group"})** page. Custom export reports created under **Settings > Account > Preferences** page are only available to the member who created them.
 
 #### Can I put expenses from different policies on the same report? 
 
@@ -97,5 +97,4 @@ We’ve built a huge variety of custom reports for customers, so make sure to re
 - Unposted Travel Aging Report
 - Vendor Spend
 - … or anything you can imagine! 
-
 {% endraw %}
