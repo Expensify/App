@@ -1,5 +1,5 @@
 import {CSSProperties} from 'react';
-import {TextStyle, ViewStyle} from 'react-native';
+import {TextStyle, View, ViewStyle} from 'react-native';
 import spacing from './utilities/spacing';
 import styles from './styles';
 import colors from './colors';
@@ -70,7 +70,7 @@ function computeHorizontalShift(windowWidth: number, xOffset: number, componentW
  * @param tooltipTargetWidth - The width of the tooltip's target
  * @param tooltipTargetHeight - The height of the tooltip's target
  */
-function isOverlappingAtTop(xOffset: number, yOffset: number, tooltipTargetWidth: number, tooltipTargetHeight: number) {
+function isOverlappingAtTop(tooltip: View | HTMLDivElement, xOffset: number, yOffset: number, tooltipTargetWidth: number, tooltipTargetHeight: number) {
     if (typeof document.elementFromPoint !== 'function') {
         return false;
     }
@@ -81,7 +81,7 @@ function isOverlappingAtTop(xOffset: number, yOffset: number, tooltipTargetWidth
     const elementAtTargetCenterX = document.elementFromPoint(targetCenterX, yOffset);
 
     // Ensure it's not the already rendered element of this very tooltip, so the tooltip doesn't try to "avoid" itself
-    if (!elementAtTargetCenterX) {
+    if (!elementAtTargetCenterX || ('contains' in tooltip && tooltip.contains(elementAtTargetCenterX))) {
         return false;
     }
 
@@ -124,6 +124,7 @@ type TooltipStyles = {
  *                                       A positive value shifts it down, and a negative value shifts it up.
  */
 export default function getTooltipStyles(
+    tooltip: View | HTMLDivElement,
     currentSize: number,
     windowWidth: number,
     xOffset: number,
@@ -162,7 +163,7 @@ export default function getTooltipStyles(
         // If either a tooltip will try to render within GUTTER_WIDTH logical pixels of the top of the screen,
         // Or the wrapped component is overlapping at top-center with another element
         // we'll display it beneath its wrapped component rather than above it as usual.
-        shouldShowBelow = yOffset - tooltipHeight < GUTTER_WIDTH || isOverlappingAtTop(xOffset, yOffset, tooltipTargetWidth, tooltipTargetHeight);
+        shouldShowBelow = yOffset - tooltipHeight < GUTTER_WIDTH || isOverlappingAtTop(tooltip, xOffset, yOffset, tooltipTargetWidth, tooltipTargetHeight);
 
         // When the tooltip size is ready, we can start animating the scale.
         scale = currentSize;
