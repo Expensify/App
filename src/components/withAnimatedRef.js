@@ -1,7 +1,7 @@
 import React from 'react';
 import {useAnimatedRef} from 'react-native-reanimated';
-import PropTypes from 'prop-types';
 import getComponentDisplayName from '../libs/getComponentDisplayName';
+import refPropTypes from './refPropTypes';
 
 export default function withAnimatedRef(WrappedComponent) {
     function WithAnimatedRef(props) {
@@ -17,7 +17,7 @@ export default function withAnimatedRef(WrappedComponent) {
     }
     WithAnimatedRef.displayName = `withAnimatedRef(${getComponentDisplayName(WrappedComponent)})`;
     WithAnimatedRef.propTypes = {
-        forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
+        forwardedRef: refPropTypes,
     };
     WithAnimatedRef.defaultProps = {
         forwardedRef: undefined,
