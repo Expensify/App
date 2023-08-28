@@ -139,7 +139,7 @@ function Form(props) {
                 const foundHtmlTagIndex = inputValue.search(CONST.VALIDATE_FOR_HTML_TAG_REGEX);
                 const matchedHtmlTags  = inputValue.match(CONST.VALIDATE_FOR_HTML_TAG_REGEX);
 
-                let isMatch = CONST.WHITELISTED_TAGS.some(r => r.test(inputValue));
+                let isMatch = _.some(CONST.WHITELISTED_TAGS, (r) => r.test(inputValue));
                 const leadingSpaceIndex = inputValue.search(CONST.VALIDATE_FOR_LEADINGSPACES_HTML_TAG_REGEX);
 
                 // Return early if there is no value OR the value is not a string OR there are no HTML characters
@@ -151,9 +151,10 @@ function Form(props) {
                 if(matchedHtmlTags)
                 {
                     // Check if any matched inputs does not match in WHITELISTED_TAGS list and return early if needed.
-                    for(let x of matchedHtmlTags)
+                    for(let i=0; i<matchedHtmlTags.length; i++)
                     {
-                        isMatch = CONST.WHITELISTED_TAGS.some(r => r.test(x));
+                        const x = matchedHtmlTags[i];
+                        isMatch = _.some(CONST.WHITELISTED_TAGS, (r) => r.test(x));
                         if(isMatch === false)
                         {
                             break;
