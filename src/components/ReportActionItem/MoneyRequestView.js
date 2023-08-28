@@ -55,7 +55,7 @@ const defaultProps = {
     },
 };
 
-function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, transaction,windowWidth}) {
+function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, transaction, windowWidth}) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
