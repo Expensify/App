@@ -152,9 +152,6 @@ function AddressSearch(props) {
                     lat: lodashGet(details, 'geometry.location.lat', 0),
                     lng: lodashGet(details, 'geometry.location.lng', 0),
                 });
-
-                // After we select an option, we set displayListViewBorder to false to prevent UI flickering
-                setDisplayListViewBorder(false);
             }
             return;
         }
@@ -257,9 +254,6 @@ function AddressSearch(props) {
         }
 
         props.onPress(values);
-
-        // After we select an option, we set displayListViewBorder to false to prevent UI flickering
-        setDisplayListViewBorder(false);
     };
 
     return (
@@ -293,7 +287,12 @@ function AddressSearch(props) {
                             <Text style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}>{props.translate('common.noResultsFound')}</Text>
                         )
                     }
-                    onPress={saveLocationDetails}
+                    onPress={(data, details) => {
+                        saveLocationDetails(data, details);
+
+                        // After we select an option, we set displayListViewBorder to false to prevent UI flickering
+                        setDisplayListViewBorder(false);
+                    }}
                     query={query}
                     requestUrl={{
                         useOnPlatform: 'all',
