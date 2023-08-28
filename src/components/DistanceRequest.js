@@ -127,8 +127,6 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
         setShouldShowGradient(visibleAreaEnd < scrollContentHeight);
     };
 
-    // Handle fetching the route when there are at least 2 waypoints
-    // TODO: Handle first mount
     useEffect(() => {
         if (isOffline || !shouldFetchRoute) {
             return;
