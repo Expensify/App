@@ -94,7 +94,7 @@ function getImagePickerOptions(type) {
 }
 
 function ReceiptSelector(props) {
-    const devices = useCameraDevices();
+    const devices = useCameraDevices('wide-angle-camera');
     const device = devices.back;
 
     const camera = useRef(null);
