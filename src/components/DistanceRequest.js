@@ -26,7 +26,6 @@ import * as IOU from '../libs/actions/IOU';
 import participantPropTypes from './participantPropTypes';
 import reportPropTypes from '../pages/reportPropTypes';
 import transactionPropTypes from './transactionPropTypes';
-import ScreenWrapper from './ScreenWrapper';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import * as ErrorUtils from '../libs/ErrorUtils';
 import usePrevious from '../hooks/usePrevious';
@@ -161,7 +160,7 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
     useEffect(updateGradientVisibility, [scrollContainerHeight, scrollContentHeight]);
 
     return (
-        <ScreenWrapper shouldEnableMaxHeight>
+        <>
             <View
                 style={styles.distanceRequestContainer(scrollContainerMaxHeight)}
                 onLayout={(event = {}) => setScrollContainerHeight(lodashGet(event, 'nativeEvent.layout.height', 0))}
@@ -261,7 +260,7 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
                 isDisabled={waypointMarkers.length < 2}
                 text={translate('common.next')}
             />
-        </ScreenWrapper>
+        </>
     );
 }
 
