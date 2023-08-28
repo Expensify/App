@@ -157,6 +157,8 @@ export default {
         category: 'Categoría',
         receipt: 'Recibo',
         replace: 'Sustituir',
+        recent: 'Reciente',
+        all: 'Todo',
     },
     anonymousReportFooter: {
         logoTagline: 'Únete a la discusión.',

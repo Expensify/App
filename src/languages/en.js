@@ -158,6 +158,8 @@ export default {
         category: 'Category',
         receipt: 'Receipt',
         replace: 'Replace',
+        recent: 'Recent',
+        all: 'All',
     },
     anonymousReportFooter: {
         logoTagline: 'Join the discussion.',

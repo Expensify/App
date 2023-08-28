@@ -709,14 +709,14 @@ function getOptions(
 
             if (!_.isEmpty(filteredRecentlyUsedCategories)) {
                 categoryOptions.push({
-                    title: 'Recent',
+                    title: Localize.translateLocal('common.recent'),
                     shouldShow: true,
                     data: getOptionTree(filteredRecentlyUsedCategories.slice(0, maxRecentReportsToShow), true),
                 });
             }
 
             categoryOptions.push({
-                title: 'All',
+                title: Localize.translateLocal('common.all'),
                 shouldShow: true,
                 data: getOptionTree(filteredCategories),
             });
