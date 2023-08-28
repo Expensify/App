@@ -64,6 +64,9 @@ function WorkspaceBillsFirstSection(props) {
                 <Text>
                     {props.translate('workspace.bills.askYourVendorsBeforeEmail')}
                     {props.user.isFromPublicDomain ? (
+                        // user.isFromPublicDomain is evaluating to true; that's why the example.com@expensify.cash  
+                        // text is shown and the copy to clipboard button is not rendered 
+                        // if that is the case correct case then we can replace the condition if not we will have to investigate why is this user set to be from the public domain 
                         <TextLink onPress={() => Link.openExternalLink('https://community.expensify.com/discussion/7500/how-to-pay-your-company-bills-in-expensify/')}>
                             example.com@expensify.cash
                         </TextLink>
