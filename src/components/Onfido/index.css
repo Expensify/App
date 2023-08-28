@@ -47,9 +47,3 @@
         height: 92% !important;
     }
 }
-
-.onfido-sdk-ui-NavigationBar-back {
-    /* This keeps onfido back button hidden since there is already a back button in the top header which
-       programatically clicks onfido button. */
-    visibility: hidden;
-}

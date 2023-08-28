@@ -48,6 +48,7 @@ class PDFView extends Component {
         this.calculatePageHeight = this.calculatePageHeight.bind(this);
         this.calculatePageWidth = this.calculatePageWidth.bind(this);
         this.renderPage = this.renderPage.bind(this);
+        this.setListAttributes = this.setListAttributes.bind(this);
 
         const workerBlob = new Blob([pdfWorkerSource], {type: 'text/javascript'});
         pdfjs.GlobalWorkerOptions.workerSrc = URL.createObjectURL(workerBlob);
@@ -95,6 +96,22 @@ class PDFView extends Component {
                 isPasswordInvalid: false,
             });
         });
+    }
+
+    /**
+     * Sets attributes to list container.
+     * It unblocks a default scroll by keyboard of browsers.
+     * @param {Object|undefined} ref
+     */
+    setListAttributes(ref) {
+        if (!ref) {
+            return;
+        }
+
+        // Useful for elements that should not be navigated to directly using the "Tab" key,
+        // but need to have keyboard focus set to them.
+        // eslint-disable-next-line no-param-reassign
+        ref.tabIndex = -1;
     }
 
     /**
@@ -237,6 +254,7 @@ class PDFView extends Component {
                     >
                         {this.state.pageViewports.length > 0 && (
                             <List
+                                outerRef={this.setListAttributes}
                                 style={styles.PDFViewList}
                                 width={this.props.isSmallScreenWidth ? pageWidth : this.state.containerWidth}
                                 height={this.state.containerHeight}

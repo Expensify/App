@@ -3,6 +3,7 @@ import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
+import {withOnyx} from 'react-native-onyx';
 import reportActionPropTypes from './reportActionPropTypes';
 import ReportActionItemFragment from './ReportActionItemFragment';
 import styles from '../../../styles/styles';
@@ -26,6 +27,11 @@ import UserDetailsTooltip from '../../../components/UserDetailsTooltip';
 import MultipleAvatars from '../../../components/MultipleAvatars';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import themeColors from '../../../styles/themes/default';
+import Permissions from '../../../libs/Permissions';
+import ONYXKEYS from '../../../ONYXKEYS';
+import Text from '../../../components/Text';
+import Tooltip from '../../../components/Tooltip';
+import DateUtils from '../../../libs/DateUtils';
 
 const propTypes = {
     /** All the data of the action */
@@ -84,7 +90,7 @@ const showWorkspaceDetails = (reportID) => {
 function ReportActionItemSingle(props) {
     const actorAccountID = props.action.actorAccountID;
     let {displayName} = props.personalDetailsList[actorAccountID] || {};
-    const {avatar, login, pendingFields} = props.personalDetailsList[actorAccountID] || {};
+    const {avatar, login, pendingFields, status} = props.personalDetailsList[actorAccountID] || {};
     let actorHint = (login || displayName || '').replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
     const isWorkspaceActor = ReportUtils.isPolicyExpenseChat(props.report) && !actorAccountID;
     let avatarSource = UserUtils.getAvatar(avatar, actorAccountID);
@@ -105,7 +111,7 @@ function ReportActionItemSingle(props) {
 
     // If this is a report preview, display names and avatars of both people involved
     let secondaryAvatar = {};
-    const displayAllActors = props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && props.iouReport;
+    const displayAllActors = useMemo(() => props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && props.iouReport, [props.action.actionName, props.iouReport]);
     const primaryDisplayName = displayName;
     if (displayAllActors) {
         const secondaryUserDetails = props.personalDetailsList[props.iouReport.ownerAccountID] || {};
@@ -138,9 +144,14 @@ function ReportActionItemSingle(props) {
         if (isWorkspaceActor) {
             showWorkspaceDetails(props.report.reportID);
         } else {
+            // Show participants page IOU report preview
+            if (displayAllActors) {
+                Navigation.navigate(ROUTES.getReportParticipantsRoute(props.iouReport.reportID));
+                return;
+            }
             showUserDetails(props.action.delegateAccountID ? props.action.delegateAccountID : actorAccountID);
         }
-    }, [isWorkspaceActor, props.report.reportID, actorAccountID, props.action.delegateAccountID]);
+    }, [isWorkspaceActor, props.report.reportID, actorAccountID, props.action.delegateAccountID, props.iouReport, displayAllActors]);
 
     const shouldDisableDetailPage = useMemo(
         () => !isWorkspaceActor && ReportUtils.isOptimisticPersonalDetail(props.action.delegateAccountID ? props.action.delegateAccountID : actorAccountID),
@@ -189,6 +200,10 @@ function ReportActionItemSingle(props) {
             </UserDetailsTooltip>
         );
     };
+    const hasEmojiStatus = !displayAllActors && status && status.emojiCode && Permissions.canUseCustomStatus(props.betas);
+    const formattedDate = DateUtils.getStatusUntilDate(lodashGet(status, 'clearAfter'));
+    const statusText = lodashGet(status, 'text', '');
+    const statusTooltipText = formattedDate ? `${statusText} (${formattedDate})` : statusText;
 
     return (
         <View style={props.wrapperStyles}>
@@ -228,6 +243,14 @@ function ReportActionItemSingle(props) {
                                 />
                             ))}
                         </PressableWithoutFeedback>
+                        {Boolean(hasEmojiStatus) && (
+                            <Tooltip text={statusTooltipText}>
+                                <Text
+                                    style={styles.userReportStatusEmoji}
+                                    numberOfLines={1}
+                                >{`${status.emojiCode}`}</Text>
+                            </Tooltip>
+                        )}
                         <ReportActionItemDate created={props.action.created} />
                     </View>
                 ) : null}
@@ -241,4 +264,12 @@ ReportActionItemSingle.propTypes = propTypes;
 ReportActionItemSingle.defaultProps = defaultProps;
 ReportActionItemSingle.displayName = 'ReportActionItemSingle';
 
-export default compose(withLocalize, withPersonalDetails())(ReportActionItemSingle);
+export default compose(
+    withLocalize,
+    withPersonalDetails(),
+    withOnyx({
+        betas: {
+            key: ONYXKEYS.BETAS,
+        },
+    }),
+)(ReportActionItemSingle);

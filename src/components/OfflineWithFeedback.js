@@ -37,6 +37,9 @@ const propTypes = {
     /** Whether we should show the error messages */
     shouldShowErrorMessages: PropTypes.bool,
 
+    /** Whether we should disable opacity */
+    shouldDisableOpacity: PropTypes.bool,
+
     /** A function to run when the X button next to the error is clicked */
     onClose: PropTypes.func,
 
@@ -63,6 +66,7 @@ const defaultProps = {
     shouldHideOnDelete: true,
     errors: null,
     shouldShowErrorMessages: true,
+    shouldDisableOpacity: false,
     onClose: () => {},
     style: [],
     contentContainerStyle: [],
@@ -94,10 +98,10 @@ function OfflineWithFeedback(props) {
     const errorMessages = _.omit(props.errors, (e) => e === null);
     const hasErrorMessages = !_.isEmpty(errorMessages);
     const isOfflinePendingAction = props.network.isOffline && props.pendingAction;
-    const isUpdateOrDeleteError = hasErrors && (props.pendingAction === 'delete' || props.pendingAction === 'update');
-    const isAddError = hasErrors && props.pendingAction === 'add';
-    const needsOpacity = (isOfflinePendingAction && !isUpdateOrDeleteError) || isAddError;
-    const needsStrikeThrough = props.network.isOffline && props.pendingAction === 'delete';
+    const isUpdateOrDeleteError = hasErrors && (props.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || props.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+    const isAddError = hasErrors && props.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
+    const needsOpacity = !props.shouldDisableOpacity && ((isOfflinePendingAction && !isUpdateOrDeleteError) || isAddError);
+    const needsStrikeThrough = props.network.isOffline && props.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const hideChildren = props.shouldHideOnDelete && !props.network.isOffline && props.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !hasErrors;
     let children = props.children;
 

@@ -3,10 +3,13 @@ import PropTypes from 'prop-types';
 import AmountTextInput from './AmountTextInput';
 import CurrencySymbolButton from './CurrencySymbolButton';
 import * as CurrencyUtils from '../libs/CurrencyUtils';
+import useLocalize from '../hooks/useLocalize';
+import * as MoneyRequestUtils from '../libs/MoneyRequestUtils';
+import refPropTypes from './refPropTypes';
 
 const propTypes = {
     /** A ref to forward to amount text input */
-    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
+    forwardedRef: refPropTypes,
 
     /** Formatted amount in local currency  */
     formattedAmount: PropTypes.string.isRequired,
@@ -42,6 +45,7 @@ const defaultProps = {
 };
 
 function TextInputWithCurrencySymbol(props) {
+    const {fromLocaleDigit} = useLocalize();
     const currencySymbol = CurrencyUtils.getLocalizedCurrencySymbol(props.selectedCurrencyCode);
     const isCurrencySymbolLTR = CurrencyUtils.isCurrencySymbolLTR(props.selectedCurrencyCode);
 
@@ -58,10 +62,20 @@ function TextInputWithCurrencySymbol(props) {
         />
     );
 
+    /**
+     * Set a new amount value properly formatted
+     *
+     * @param {String} text - Changed text from user input
+     */
+    const setFormattedAmount = (text) => {
+        const newAmount = MoneyRequestUtils.addLeadingZero(MoneyRequestUtils.replaceAllDigits(text, fromLocaleDigit));
+        props.onChangeAmount(newAmount);
+    };
+
     const amountTextInput = (
         <AmountTextInput
             formattedAmount={props.formattedAmount}
-            onChangeAmount={props.onChangeAmount}
+            onChangeAmount={setFormattedAmount}
             placeholder={props.placeholder}
             ref={props.forwardedRef}
             selection={props.selection}
