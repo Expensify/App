@@ -17,7 +17,7 @@ const propTypes = {
 
     /* Onyx Props */
     /** Collection of categories attached to a policy */
-    recentlyUsedPolicyCategories: PropTypes.objectOf(categoryPropTypes),
+    recentlyUsedPolicyCategories: PropTypes.arrayOf(categoryPropTypes),
 
     /* Onyx Props */
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
