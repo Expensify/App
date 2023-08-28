@@ -178,6 +178,13 @@ function ReportActionCompose({
         return translate('reportActionCompose.writeSomething');
     }, [report, blockedFromConcierge, translate, conciergePlaceholderRandomIndex]);
 
+    const focus = () => {
+        if (composerRef === null || composerRef.current === null) {
+            return;
+        }
+        composerRef.current.focus(true);
+    };
+
     const isKeyboardVisibleWhenShowingModalRef = useRef(false);
     const restoreKeyboardState = useCallback(() => {
         if (!isKeyboardVisibleWhenShowingModalRef.current) {
@@ -269,13 +276,6 @@ function ReportActionCompose({
         }
         isNextModalWillOpenRef.current = true;
     }, []);
-
-    const focus = () => {
-        if (composerRef === null || composerRef.current === null) {
-            return;
-        }
-        composerRef.current.focus(true);
-    };
 
     const onBlur = useCallback((e) => {
         setIsFocused(false);
