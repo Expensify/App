@@ -19,6 +19,7 @@ import withLocalize from '../../../components/withLocalize';
 import PressableWithoutFeedback from '../../../components/Pressable/PressableWithoutFeedback';
 import MultipleAvatars from '../../../components/MultipleAvatars';
 import CONST from '../../../CONST';
+import variables from '../../../styles/variables';
 
 const propTypes = {
     /** The id of the report */
@@ -55,6 +56,9 @@ function ReportActionItemCreated(props) {
     const icons = ReportUtils.getIcons(props.report, props.personalDetails);
     const shouldDisableDetailPage = ReportUtils.shouldDisableDetailPage(props.report);
 
+    // If window width is greater than the max background width, repeat the background image
+    const maxBackgroundWidth = variables.sideBarWidth + (CONST.EMPTY_STATE_BACKGROUND.ASPECT_RATIO * CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.IMAGE_HEIGHT);
+
     return (
         <OfflineWithFeedback
             pendingAction={lodashGet(props.report, 'pendingFields.addWorkspaceRoom') || lodashGet(props.report, 'pendingFields.createChat')}
@@ -68,6 +72,7 @@ function ReportActionItemCreated(props) {
                     pointerEvents="none"
                     source={EmptyStateBackgroundImage}
                     style={StyleUtils.getReportWelcomeBackgroundImageStyle(props.isSmallScreenWidth)}
+                    resizeMode={props.windowWidth < maxBackgroundWidth ? 'cover' : 'repeat'}
                 />
                 <View
                     accessibilityLabel={props.translate('accessibilityHints.chatWelcomeMessage')}

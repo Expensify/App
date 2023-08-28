@@ -27,6 +27,7 @@ import Image from '../Image';
 import ReportActionItemImage from './ReportActionItemImage';
 import * as TransactionUtils from '../../libs/TransactionUtils';
 import OfflineWithFeedback from '../OfflineWithFeedback';
+import variables from '../../styles/variables';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -53,10 +54,9 @@ const defaultProps = {
     },
 };
 
-function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, transaction}) {
+function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, transaction,windowWidth}) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
-
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
     const moneyRequestReport = parentReport;
     const {
@@ -92,13 +92,17 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, trans
 
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
 
+     // If window width is greater than the max background width, repeat the background image
+     const maxBackgroundWidth = variables.sideBarWidth + (CONST.EMPTY_STATE_BACKGROUND.ASPECT_RATIO * CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.IMAGE_HEIGHT);
+
     return (
         <View>
             <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth), StyleUtils.getMinimumHeight(CONST.EMPTY_STATE_BACKGROUND.MONEY_REPORT.MIN_HEIGHT)]}>
                 <Image
                     pointerEvents="none"
                     source={EmptyStateBackgroundImage}
-                    style={[StyleUtils.getReportWelcomeBackgroundImageStyle(true)]}
+                    style={[StyleUtils.getReportWelcomeBackgroundImageStyle(isSmallScreenWidth)]}
+                    resizeMode={windowWidth < maxBackgroundWidth ? 'cover' : 'repeat'}
                 />
             </View>
             {hasReceipt && (
