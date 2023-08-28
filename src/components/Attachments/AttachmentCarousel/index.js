@@ -18,7 +18,7 @@ import Navigation from '../../../libs/Navigation/Navigation';
 import BlockingView from '../../BlockingViews/BlockingView';
 import * as Illustrations from '../../Icon/Illustrations';
 import variables from '../../../styles/variables';
-import useCanUseTouchScreen from '../../../hooks/useCanUseTouchScreen';
+import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
 
 const viewabilityConfig = {
     // To facilitate paging through the attachments, we want to consider an item "viewable" when it is
@@ -30,7 +30,7 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, setDownl
     const scrollRef = useRef(null);
 
     const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
-    const canUseTouchScreen = useCanUseTouchScreen();
+    const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
 
     const [containerWidth, setContainerWidth] = useState(0);
     const [page, setPage] = useState(0);
