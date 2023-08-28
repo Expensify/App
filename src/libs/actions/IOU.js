@@ -1065,6 +1065,11 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
             value: iouReport,
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.chatReportID}`,
+            value: chatReport,
+        },
     ];
 
     // STEP 6: Call the API endpoint
