@@ -2,7 +2,7 @@ import React, {useState, forwardRef} from 'react';
 import {Keyboard} from 'react-native';
 import RNDatePicker from '@react-native-community/datetimepicker';
 import moment from 'moment';
-import _ from 'underscore';
+import isFunction from 'lodash/isFunction';
 import TextInput from '../TextInput';
 import CONST from '../../CONST';
 import {propTypes, defaultProps} from './datepickerPropTypes';
@@ -15,19 +15,33 @@ function DatePicker({value, defaultValue, label, placeholder, errorText, contain
      * @param {Event} event
      * @param {Date} selectedDate
      */
-    function setDate(event, selectedDate) {
+    const setDate = (event, selectedDate) => {
         setIsPickerVisible(false);
 
         if (event.type === 'set') {
             const asMoment = moment(selectedDate, true);
             onInputChange(asMoment.format(CONST.DATE.MOMENT_FORMAT_STRING));
         }
-    }
+    };
 
-    function showPicker() {
+    const showPicker = () => {
         Keyboard.dismiss();
         setIsPickerVisible(true);
-    }
+    };
+
+    const setRef = (element) => {
+        if (!isFunction(innerRef)) {
+            return;
+        }
+        if (element && element.focus && typeof element.focus === 'function') {
+            let inputRef = {...element};
+            inputRef = {...inputRef, focus: showPicker};
+            innerRef(inputRef);
+            return;
+        }
+
+        innerRef(element);
+    };
 
     const dateAsText = value || defaultValue ? moment(value || defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING) : '';
 
@@ -47,19 +61,7 @@ function DatePicker({value, defaultValue, label, placeholder, errorText, contain
                 editable={false}
                 disabled={disabled}
                 onBlur={onBlur}
-                ref={(el) => {
-                    if (!_.isFunction(innerRef)) {
-                        return;
-                    }
-                    if (el && el.focus && typeof el.focus === 'function') {
-                        let inputRef = {...el};
-                        inputRef = {...inputRef, focus: showPicker};
-                        innerRef(inputRef);
-                        return;
-                    }
-
-                    innerRef(el);
-                }}
+                ref={(element) => setRef(element)}
             />
             {isPickerVisible && (
                 <RNDatePicker
@@ -76,6 +78,7 @@ function DatePicker({value, defaultValue, label, placeholder, errorText, contain
 
 DatePicker.propTypes = propTypes;
 DatePicker.defaultProps = defaultProps;
+DatePicker.displayName = 'DatePicker';
 
 export default forwardRef((props, ref) => (
     <DatePicker
