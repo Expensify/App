@@ -316,6 +316,8 @@ function buildOnyxDataForMoneyRequest(
  * @param {Number} payeeAccountID
  * @param {String} payeeEmail
  * @param {Object} [receipt]
+ * @param {String} [existingTransactionID]
+ * @param {String} [category]
  * @returns {Object} data
  * @returns {String} data.payerEmail
  * @returns {Object} data.iouReport
@@ -329,9 +331,21 @@ function buildOnyxDataForMoneyRequest(
  * @returns {Object} data.onyxData.optimisticData
  * @returns {Object} data.onyxData.successData
  * @returns {Object} data.onyxData.failureData
- * @param {String} [existingTransactionID]
  */
-function getMoneyRequestInformation(report, participant, comment, amount, currency, created, merchant, payeeAccountID, payeeEmail, receipt = undefined, existingTransactionID = null) {
+function getMoneyRequestInformation(
+    report,
+    participant,
+    comment,
+    amount,
+    currency,
+    created,
+    merchant,
+    payeeAccountID,
+    payeeEmail,
+    receipt = undefined,
+    existingTransactionID = null,
+    category = undefined,
+) {
     const payerEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login);
     const payerAccountID = Number(participant.accountID);
     const isPolicyExpenseChat = participant.isPolicyExpenseChat;
@@ -395,6 +409,7 @@ function getMoneyRequestInformation(report, participant, comment, amount, curren
         receiptObject,
         filename,
         existingTransactionID,
+        category,
     );
 
     // If there is an existing transaction (which is the case for distance requests), then the data from the existing transaction
@@ -496,8 +511,9 @@ function getMoneyRequestInformation(report, participant, comment, amount, curren
  * @param {String} [waypoints[].lng] optional
  * @param {String} created
  * @param {String} [transactionID]
+ * @param {String} [category]
  */
-function createDistanceRequest(report, payeeEmail, payeeAccountID, participant, comment, waypoints, created, transactionID) {
+function createDistanceRequest(report, payeeEmail, payeeAccountID, participant, comment, waypoints, created, transactionID, category = undefined) {
     const {payerEmail, iouReport, chatReport, transaction, iouAction, createdChatReportActionID, createdIOUReportActionID, reportPreviewAction, onyxData} = getMoneyRequestInformation(
         report,
         participant,
@@ -510,6 +526,7 @@ function createDistanceRequest(report, payeeEmail, payeeAccountID, participant, 
         payeeEmail,
         null,
         transactionID,
+        category,
     );
 
     API.write(
@@ -526,6 +543,7 @@ function createDistanceRequest(report, payeeEmail, payeeAccountID, participant, 
             reportPreviewReportActionID: reportPreviewAction.reportActionID,
             waypoints,
             created,
+            category,
         },
         onyxData,
     );
@@ -544,8 +562,9 @@ function createDistanceRequest(report, payeeEmail, payeeAccountID, participant, 
  * @param {Object} participant
  * @param {String} comment
  * @param {Object} [receipt]
+ * @param {String} [category]
  */
-function requestMoney(report, amount, currency, created, merchant, payeeEmail, payeeAccountID, participant, comment, receipt = undefined) {
+function requestMoney(report, amount, currency, created, merchant, payeeEmail, payeeAccountID, participant, comment, receipt = undefined, category = undefined) {
     const {payerEmail, iouReport, chatReport, transaction, iouAction, createdChatReportActionID, createdIOUReportActionID, reportPreviewAction, onyxData} = getMoneyRequestInformation(
         report,
         participant,
@@ -557,6 +576,8 @@ function requestMoney(report, amount, currency, created, merchant, payeeEmail, p
         payeeAccountID,
         payeeEmail,
         receipt,
+        undefined,
+        category,
     );
 
     API.write(
@@ -576,6 +597,7 @@ function requestMoney(report, amount, currency, created, merchant, payeeEmail, p
             createdIOUReportActionID,
             reportPreviewReportActionID: reportPreviewAction.reportActionID,
             receipt,
+            category,
         },
         onyxData,
     );

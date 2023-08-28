@@ -158,9 +158,19 @@ function MoneyRequestConfirmPage(props) {
                 selectedParticipants[0],
                 trimmedComment,
                 receipt,
+                props.iou.category,
             );
         },
-        [props.report, props.iou.amount, props.iou.currency, props.iou.created, props.iou.merchant, props.currentUserPersonalDetails.login, props.currentUserPersonalDetails.accountID],
+        [
+            props.report,
+            props.iou.amount,
+            props.iou.currency,
+            props.iou.created,
+            props.iou.merchant,
+            props.currentUserPersonalDetails.login,
+            props.currentUserPersonalDetails.accountID,
+            props.iou.category,
+        ],
     );
 
     const createTransaction = useCallback(
