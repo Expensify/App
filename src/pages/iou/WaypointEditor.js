@@ -1,4 +1,5 @@
 import React, {useRef} from 'react';
+import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
