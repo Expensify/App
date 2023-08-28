@@ -183,7 +183,7 @@ function ReportActionCompose({
         if (!isKeyboardVisibleWhenShowingModalRef.current) {
             return;
         }
-        composerRef?.current?.focus(true);
+        composerRef.current.focus(true);
         isKeyboardVisibleWhenShowingModalRef.current = false;
     }, []);
 
@@ -197,9 +197,9 @@ function ReportActionCompose({
 
     const onAddActionPressed = useCallback(() => {
         if (!willBlurTextInputOnTapOutside) {
-            isKeyboardVisibleWhenShowingModalRef.current = composerRef?.current?.isFocused();
+            isKeyboardVisibleWhenShowingModalRef.current = composerRef.current.isFocused();
         }
-        composerRef?.current?.blur();
+        composerRef.current.blur();
     }, []);
 
     const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
@@ -218,7 +218,7 @@ function ReportActionCompose({
             // We don't really care about saving the draft the user was typing
             // We need to make sure an empty draft gets saved instead
             debouncedSaveReportComment.cancel();
-            const newComment = composerRef?.current?.prepareCommentAndResetComposer();
+            const newComment = composerRef.current.prepareCommentAndResetComposer();
             Report.addAttachment(reportID, file, newComment);
             setTextInputShouldClear(false);
         },
@@ -250,7 +250,7 @@ function ReportActionCompose({
             // We need to make sure an empty draft gets saved instead
             debouncedSaveReportComment.cancel();
 
-            const newComment = composerRef?.current?.prepareCommentAndResetComposer();
+            const newComment = composerRef.current.prepareCommentAndResetComposer();
             if (!newComment) {
                 return;
             }
@@ -403,8 +403,13 @@ function ReportActionCompose({
                     {DeviceCapabilities.canUseTouchScreen() && isMediumScreenWidth ? null : (
                         <EmojiPickerButton
                             isDisabled={isBlockedFromConcierge || disabled}
-                            onModalHide={() => composerRef?.current?.focus(true)}
-                            onEmojiSelected={(...args) => composerRef?.current?.replaceSelectionWithText(...args)}
+                            onModalHide={() => {
+                                if (composerRef === null || composerRef.current === null) {
+                                    return;
+                                }
+                                composerRef.current.focus(true);
+                            }}
+                            onEmojiSelected={(...args) => composerRef.current.replaceSelectionWithText(...args)}
                             emojiPickerID={report.reportID}
                         />
                     )}
