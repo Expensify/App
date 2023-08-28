@@ -25,27 +25,27 @@ Onyx.connect({
 });
 
 /**
- * @param {String} firstName
  * @param {String} partnerUserID
+ * @param {String} firstName
  * @param {String} lastName
  */
-function referTeachersUniteVolunteer(firstName, partnerUserID, lastName) {
-    const reportID = CONST.TEACHERS_UNITE.PUBLIC_ROOM_ID;
+function referTeachersUniteVolunteer(partnerUserID, firstName, lastName) {
+    const optimisticPublicRoom = ReportUtils.buildOptimisticChatReport([], CONST.TEACHERS_UNITE.PUBLIC_ROOM_NAME, CONST.REPORT.CHAT_TYPE.POLICY_ROOM, CONST.TEACHERS_UNITE.POLICY_ID);
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticPublicRoom.reportID}`,
             value: {
-                firstName,
-                lastName,
-                partnerUserID,
+                ...optimisticPublicRoom,
+                reportID: optimisticPublicRoom.reportID,
+                policyName: CONST.TEACHERS_UNITE.POLICY_NAME,
             },
         },
     ];
     API.write(
         'ReferTeachersUniteVolunteer',
         {
-            reportID,
+            publicRoomReportID: optimisticPublicRoom.reportID,
             firstName,
             lastName,
             partnerUserID,

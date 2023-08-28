@@ -38,8 +38,8 @@ function KnowATeacherPage(props) {
     /**
      * Submit form to pass firstName, partnerUserID and lastName
      * @param {Object} values
-     * @param {String} values.firstName
      * @param {String} values.partnerUserID
+     * @param {String} values.firstName
      * @param {String} values.lastName
      */
     const onSubmit = (values) => {
@@ -49,7 +49,7 @@ function KnowATeacherPage(props) {
         const firstName = values.firstName.trim();
         const lastName = values.lastName.trim();
 
-        TeachersUnite.referTeachersUniteVolunteer(firstName, contactMethod, lastName);
+        TeachersUnite.referTeachersUniteVolunteer(contactMethod, firstName, lastName);
     };
 
     /**
