@@ -38,7 +38,7 @@ function WalletStatementModal({statementPageURL, session}) {
                 Navigation.navigate(navigateToIOURoute);
             }
         }
-    }
+    };
 
     return (
         <>
