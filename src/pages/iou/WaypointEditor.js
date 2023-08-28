@@ -6,6 +6,7 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import AddressSearch from '../../components/AddressSearch';
 import ScreenWrapper from '../../components/ScreenWrapper';
+import * as Expensicons from '../../components/Icon/Expensicons';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -20,6 +21,11 @@ import ROUTES from '../../ROUTES';
 import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
 import transactionPropTypes from '../../components/transactionPropTypes';
+import MenuItem from '../../components/MenuItem';
+import {getCurrentPosition} from 'react-native-x-geolocation';
+import DotIndicatorMessage from '../../components/DotIndicatorMessage';
+import TextLink from '../../components/TextLink';
+import Text from '../../components/Text';
 
 const propTypes = {
     /** The transactionID of the IOU */
@@ -58,6 +64,7 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
     const textInput = useRef(null);
     const currentWaypoint = lodashGet(transaction, `comment.waypoints.waypoint${waypointIndex}`, {});
     const waypointAddress = lodashGet(currentWaypoint, 'address', '');
+    const [currentLocationError, setCurrentLocationError] = React.useState(null);
 
     const validate = (values) => {
         const errors = {};
@@ -88,6 +95,8 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
         if (network.isOffline && waypointValue) {
             const waypoint = {
                 address: waypointValue,
+                lat: null,
+                lng: null,
             };
 
             Transaction.saveWaypoint(transactionID, waypointIndex, waypoint);
@@ -104,9 +113,13 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
             address: values.address,
         };
 
+        saveWaypoint(waypoint);
+    };
+
+    const saveWaypoint = (waypoint) => {
         Transaction.saveWaypoint(transactionID, waypointIndex, waypoint);
         Navigation.goBack(ROUTES.getMoneyRequestDistanceTabRoute(iouType));
-    };
+    }
 
     return (
         <ScreenWrapper
@@ -154,8 +167,64 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
                         }}
                         predefinedPlaces={recentWaypoints}
                     />
+                    <MenuItem
+                        title={'Use current location'}
+                        style={[styles.pt2, styles.pb4, styles.ph0, styles.flexRow]}
+                        icon={Expensicons.Location}
+                        onPress={() => getCurrentPosition((position)=> {
+                            saveWaypoint({
+                                lat: lodashGet(position, 'coords.latitude', 0),
+                                lng:lodashGet(position, 'coords.longitude', 0),
+                                address: 'Your location'
+                            });
+                        }, (err) => {
+                            console.log(err);
+                
+                            const textLink = <TextLink
+                                    style={styles.mb3}
+                                    href="https://use.expensify.com/usa-patriot-act"
+                                >
+                                    {translate('distance.errors.allowPermissions')}
+                                </TextLink>
+
+                            const error = <Text>{translate('distance.errors.deniedPermission1') + textLink + translate('distance.errors.deniedPermission2')}</Text>;
+                            
+                            setCurrentLocationError(error);
+
+                            if (err.code === err.PERMISSION_DENIED) {
+                                const link = <TextLink
+                                style={styles.mb3}
+                                href="https://use.expensify.com/usa-patriot-act"
+                            >
+                                {translate('additionalDetailsStep.helpLink')}
+                            </TextLink>
+
+
+                
+                                // It looks like you have denied permission to your location. Please [allow location permission in settings](link to settings) and then try again
+
+
+                                
+                            } else {
+                                // We were unable to find your location, please try again or enter an address manually
+                                setLocationError(transactionID, err.message)
+                            }
+                        })}
+                        shouldShowRightIcon={false}
+                    />
+                    {
+                        currentLocationError && (
+                            <DotIndicatorMessage
+                                style={[styles.mv3]}
+                                messages={{
+                                    timestamp: currentLocationError,
+                                }}
+                                type="error"
+                            />
+                        )
+                    }
                 </View>
-            </Form>
+            </Form>            
         </ScreenWrapper>
     );
 }

@@ -1626,6 +1626,10 @@ export default {
         },
         errors: {
             selectSuggestedAddress: 'Please select a suggested address',
+            unableToFindLocation: 'We were unable to find your location, please try again or enter an address manually',
+            deniedPermission1: 'You have denied permission to your location. Please ',
+            allowPermissions: 'allow location permission in settings',
+            deniedPermission2: ' and then try again',
         },
     },
     countrySelectorModal: {

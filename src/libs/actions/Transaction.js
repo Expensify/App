@@ -4,6 +4,7 @@ import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as CollectionUtils from '../CollectionUtils';
 import * as API from '../API';
+import * as ErrorUtils from '../ErrorUtils';
 
 let recentWaypoints = [];
 Onyx.connect({
@@ -197,6 +198,17 @@ function getRoute(transactionID, waypoints) {
             ],
         },
     );
+}
+
+/**
+ * Adds an error on the current transaction when there was a failure
+ */
+function setLocationError(transactionID, errorMessage) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+        errorFields: {
+            location: ErrorUtils.getMicroSecondOnyxError(errorMessage),
+        },
+    })
 }
 
 export {addStop, createInitialWaypoints, saveWaypoint, removeWaypoint, getRoute};
