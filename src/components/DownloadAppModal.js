@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import CONST from '../CONST';
@@ -33,8 +34,8 @@ const defaultProps = {
 
 function DownloadAppModal({session, showDownloadAppBanner}) {
     const userLoggedIn = !_.isEmpty(session.authToken);
-    console.log({userLoggedIn})
-    const [shouldShowBanner, setshouldShowBanner] = useState(Browser.isMobile() && userLoggedIn && showDownloadAppBanner);
+    console.log({userLoggedIn});
+    const [shouldShowBanner, setshouldShowBanner] = useState((Browser.isMobile() || true) && userLoggedIn && showDownloadAppBanner);
 
     const {translate} = useLocalize();
 
