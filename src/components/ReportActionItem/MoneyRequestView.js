@@ -93,10 +93,10 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, trans
 
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
 
-     // If window width is greater than the max background width, repeat the background image
-     const maxBackgroundWidth = variables.sideBarWidth + (CONST.EMPTY_STATE_BACKGROUND.ASPECT_RATIO * CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.IMAGE_HEIGHT);
-     const platform = getPlatform();
-     const isWebPlatform = [CONST.PLATFORM.WEB, CONST.PLATFORM.DESKTOP].includes(platform);
+    // If window width is greater than the max background width, repeat the background image
+    const maxBackgroundWidth = variables.sideBarWidth + CONST.EMPTY_STATE_BACKGROUND.ASPECT_RATIO * CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.IMAGE_HEIGHT;
+    const platform = getPlatform();
+    const isWebPlatform = [CONST.PLATFORM.WEB, CONST.PLATFORM.DESKTOP].includes(platform);
 
     return (
         <View>

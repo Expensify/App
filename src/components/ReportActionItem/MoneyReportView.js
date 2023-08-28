@@ -32,9 +32,9 @@ function MoneyReportView(props) {
     const formattedAmount = CurrencyUtils.convertToDisplayString(ReportUtils.getMoneyRequestTotal(props.report), props.report.currency);
     const isSettled = ReportUtils.isSettled(props.report.reportID);
     const {translate} = useLocalize();
-    
+
     // If window width is greater than the max background width, repeat the background image
-    const maxBackgroundWidth = variables.sideBarWidth + (CONST.EMPTY_STATE_BACKGROUND.ASPECT_RATIO * CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.IMAGE_HEIGHT);    
+    const maxBackgroundWidth = variables.sideBarWidth + CONST.EMPTY_STATE_BACKGROUND.ASPECT_RATIO * CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.IMAGE_HEIGHT;
     const platform = getPlatform();
     const isWebPlatform = [CONST.PLATFORM.WEB, CONST.PLATFORM.DESKTOP].includes(platform);
 
@@ -46,7 +46,6 @@ function MoneyReportView(props) {
                     source={EmptyStateBackgroundImage}
                     style={[StyleUtils.getReportWelcomeBackgroundImageStyle(isSmallScreenWidth)]}
                     resizeMode={isWebPlatform && props.windowWidth > maxBackgroundWidth ? 'repeat' : 'cover'}
-                    
                 />
             </View>
             <View style={[styles.flexRow, styles.menuItemTextContainer, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.ph5, styles.pv2]}>
