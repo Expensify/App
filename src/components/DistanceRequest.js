@@ -36,8 +36,8 @@ const MAP_PADDING = 50;
 const DEFAULT_ZOOM_LEVEL = 10;
 
 const propTypes = {
-    /** The transactionID of the distance request we're currently looking at */
-    transactionID: PropTypes.number,
+    /** The transactionID of this request */
+    transactionID: PropTypes.string,
 
     /** The report to with which the distance request is associated */
     report: reportPropTypes,
@@ -62,11 +62,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    iou: {
-        id: '',
-        amount: 0,
-        currency: CONST.CURRENCY.USD,
-    },
+    transactionID: '',
     transaction: {},
     mapboxAccessToken: {},
     isEditingRequest: false,
