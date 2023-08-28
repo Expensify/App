@@ -242,8 +242,11 @@ function BaseSelectionList({
     };
 
     const renderItem = ({item, index, section}) => {
+        const normalizedIndex = index + lodashGet(section, 'indexOffset', 0);
         const isDisabled = section.isDisabled;
-        const isFocused = !isDisabled && focusedIndex === index + lodashGet(section, 'indexOffset', 0);
+        const isFocused = !isDisabled && focusedIndex === normalizedIndex;
+        // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
+        const showTooltip = normalizedIndex < 10;
 
         if (canSelectMultiple) {
             return (
@@ -252,6 +255,7 @@ function BaseSelectionList({
                     isFocused={isFocused}
                     onSelectRow={() => selectRow(item, index)}
                     onDismissError={onDismissError}
+                    showTooltip={showTooltip}
                 />
             );
         }
@@ -262,6 +266,7 @@ function BaseSelectionList({
                 isFocused={isFocused}
                 isDisabled={isDisabled}
                 onSelectRow={() => selectRow(item, index)}
+                showTooltip={showTooltip}
             />
         );
     };
