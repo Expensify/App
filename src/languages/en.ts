@@ -610,6 +610,7 @@ export default {
             invalidContactMethod: 'Invalid contact method',
         },
         newContactMethod: 'New contact method',
+        goBackContactMethods: 'Go back to contact methods',
     },
     pronouns: {
         coCos: 'Co / Cos',

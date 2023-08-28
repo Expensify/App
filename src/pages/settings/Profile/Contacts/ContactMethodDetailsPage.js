@@ -216,12 +216,14 @@ class ContactMethodDetailsPage extends Component {
         const loginData = this.props.loginList[contactMethod];
         if (!contactMethod || !loginData) {
             return (
-                <FullPageNotFoundView
-                    shouldShow
-                    linkKey="contacts.contactMethods"
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS)}
-                    onLinkPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS)}
-                />
+                <ScreenWrapper>
+                    <FullPageNotFoundView
+                        shouldShow
+                        linkKey="contacts.goBackContactMethods"
+                        onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS)}
+                        onLinkPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS)}
+                    />
+                </ScreenWrapper>
             );
         }
 

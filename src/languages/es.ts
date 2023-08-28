@@ -612,6 +612,7 @@ export default {
             invalidContactMethod: 'Método de contacto no válido',
         },
         newContactMethod: 'Nuevo método de contacto',
+        goBackContactMethods: 'Volver a métodos de contacto',
     },
     pronouns: {
         coCos: 'Co / Cos',
