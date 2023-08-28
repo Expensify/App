@@ -54,17 +54,12 @@ const defaultProps = {
 };
 
 const showActorDetails = (report) => {
-    if (ReportUtils.isExpenseReport(report)) {
-        Navigation.navigate(ROUTES.getProfileRoute(report.ownerAccountID));
+    if (ReportUtils.isIOUReport(report)) {
+        Navigation.navigate(ROUTES.getReportParticipantsRoute(report.reportID));
         return;
     }
 
-    if (!ReportUtils.isIOUReport(report) && report.participantAccountIDs.length === 1) {
-        Navigation.navigate(ROUTES.getProfileRoute(report.participantAccountIDs[0]));
-        return;
-    }
-
-    Navigation.navigate(ROUTES.getReportParticipantsRoute(report.reportID));
+    Navigation.navigate(ROUTES.getProfileRoute(report.ownerAccountID));
 };
 
 function AvatarWithDisplayName(props) {
