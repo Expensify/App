@@ -1,4 +1,4 @@
-import React, {useState, useMemo, useCallback, useEffect} from 'react';
+import React, {useState, useMemo, useCallback} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -17,8 +17,6 @@ import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import ROUTES from '../../ROUTES';
 import themeColors from '../../styles/themes/default';
 import * as Expensicons from '../../components/Icon/Expensicons';
-import reportPropTypes from '../reportPropTypes';
-import * as ReportUtils from '../../libs/ReportUtils';
 
 const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
 
@@ -26,6 +24,24 @@ const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
  * IOU Currency selection for selecting currency
  */
 const propTypes = {
+    /** Route from navigation */
+    route: PropTypes.shape({
+        /** Params from the route */
+        params: PropTypes.shape({
+            /** The type of IOU report, i.e. bill, request, send */
+            iouType: PropTypes.string,
+
+            /** The report ID of the IOU */
+            reportID: PropTypes.string,
+
+            /** Currently selected currency */
+            currency: PropTypes.string,
+
+            /** Route to navigate back after selecting a currency */
+            backTo: PropTypes.string,
+        }),
+    }).isRequired,
+
     // The currency list constant object from Onyx
     currencyList: PropTypes.objectOf(
         PropTypes.shape({
@@ -42,22 +58,14 @@ const propTypes = {
 
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     iou: PropTypes.shape({
+        /** Currency of the request */
         currency: PropTypes.string,
     }),
-
-    /** The report on which the request is initiated on */
-    report: reportPropTypes,
-
-    /** Any errors associated with an attempt to create a chat */
-    // eslint-disable-next-line react/forbid-prop-types
-    errors: PropTypes.object,
 
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
-    report: {},
-    errors: {},
     currencyList: {},
     iou: {
         currency: CONST.CURRENCY.USD,
@@ -70,15 +78,6 @@ function IOUCurrencySelection(props) {
 
     const iouType = lodashGet(props.route, 'params.iouType', CONST.IOU.MONEY_REQUEST_TYPE.REQUEST);
     const reportID = lodashGet(props.route, 'params.reportID', '');
-
-    const shouldDismissModal = ReportUtils.shouldHideComposer(props.report, props.errors);
-
-    useEffect(() => {
-        if (!shouldDismissModal) {
-            return;
-        }
-        Navigation.dismissModal(reportID);
-    }, [shouldDismissModal, reportID]);
 
     const confirmCurrencySelection = useCallback(
         (option) => {
@@ -165,9 +164,6 @@ export default compose(
     withOnyx({
         currencyList: {key: ONYXKEYS.CURRENCY_LIST},
         iou: {key: ONYXKEYS.IOU},
-        report: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '')}`,
-        },
     }),
     withNetwork(),
 )(IOUCurrencySelection);

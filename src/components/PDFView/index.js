@@ -48,6 +48,7 @@ class PDFView extends Component {
         this.calculatePageHeight = this.calculatePageHeight.bind(this);
         this.calculatePageWidth = this.calculatePageWidth.bind(this);
         this.renderPage = this.renderPage.bind(this);
+        this.setListAttributes = this.setListAttributes.bind(this);
 
         const workerBlob = new Blob([pdfWorkerSource], {type: 'text/javascript'});
         pdfjs.GlobalWorkerOptions.workerSrc = URL.createObjectURL(workerBlob);
@@ -98,10 +99,26 @@ class PDFView extends Component {
     }
 
     /**
+     * Sets attributes to list container.
+     * It unblocks a default scroll by keyboard of browsers.
+     * @param {Object|undefined} ref
+     */
+    setListAttributes(ref) {
+        if (!ref) {
+            return;
+        }
+
+        // Useful for elements that should not be navigated to directly using the "Tab" key,
+        // but need to have keyboard focus set to them.
+        // eslint-disable-next-line no-param-reassign
+        ref.tabIndex = -1;
+    }
+
+    /**
      * Calculates a proper page height. The method should be called only when there are page viewports.
      * It is based on a ratio between the specific page viewport width and provided page width.
      * Also, the app should take into account the page borders.
-     * @param {*} pageIndex
+     * @param {Number} pageIndex
      * @returns {Number}
      */
     calculatePageHeight(pageIndex) {
@@ -178,13 +195,17 @@ class PDFView extends Component {
     }
 
     /**
-     * It is a currying method that returns a function that renders a specific page based on its index.
-     * The function includes a wrapper to apply virtualized styles.
-     * @param {Number} pageWidth
+     * Render a specific page based on its index.
+     * The method includes a wrapper to apply virtualized styles.
+     * @param {Object} page item object of the List
+     * @param {Number} page.index index of the page
+     * @param {Object} page.style virtualized styles
      * @returns {JSX.Element}
      */
-    renderPage(pageWidth) {
-        return ({index, style}) => (
+    renderPage({index, style}) {
+        const pageWidth = this.calculatePageWidth();
+
+        return (
             <View style={style}>
                 <Page
                     key={`page_${index}`}
@@ -233,6 +254,7 @@ class PDFView extends Component {
                     >
                         {this.state.pageViewports.length > 0 && (
                             <List
+                                outerRef={this.setListAttributes}
                                 style={styles.PDFViewList}
                                 width={this.props.isSmallScreenWidth ? pageWidth : this.state.containerWidth}
                                 height={this.state.containerHeight}
@@ -240,7 +262,7 @@ class PDFView extends Component {
                                 itemCount={this.state.numPages}
                                 itemSize={this.calculatePageHeight}
                             >
-                                {this.renderPage(pageWidth)}
+                                {this.renderPage}
                             </List>
                         )}
                     </Document>

@@ -1,5 +1,5 @@
 import React, {useState, useEffect, useRef, forwardRef, useImperativeHandle} from 'react';
-import {Dimensions, Keyboard} from 'react-native';
+import {Dimensions} from 'react-native';
 import _ from 'underscore';
 import EmojiPickerMenu from './EmojiPickerMenu';
 import CONST from '../../CONST';
@@ -27,8 +27,8 @@ const EmojiPicker = forwardRef((props, ref) => {
         horizontal: 0,
         vertical: 0,
     });
-    const [reportAction, setReportAction] = useState({});
     const [emojiPopoverAnchorOrigin, setEmojiPopoverAnchorOrigin] = useState(DEFAULT_ANCHOR_ORIGIN);
+    const [activeID, setActiveID] = useState();
     const emojiPopoverAnchor = useRef(null);
     const onModalHide = useRef(() => {});
     const onEmojiSelected = useRef(() => {});
@@ -42,24 +42,25 @@ const EmojiPicker = forwardRef((props, ref) => {
      * @param {Element} emojiPopoverAnchorValue - Element to which Popover is anchored
      * @param {Object} [anchorOrigin=DEFAULT_ANCHOR_ORIGIN] - Anchor origin for Popover
      * @param {Function} [onWillShow=() => {}] - Run a callback when Popover will show
-     * @param {Object} reportActionValue - ReportAction for EmojiPicker
+     * @param {String} id - Unique id for EmojiPicker
      */
-    const showEmojiPicker = (onModalHideValue, onEmojiSelectedValue, emojiPopoverAnchorValue, anchorOrigin, onWillShow = () => {}, reportActionValue) => {
+    const showEmojiPicker = (onModalHideValue, onEmojiSelectedValue, emojiPopoverAnchorValue, anchorOrigin, onWillShow = () => {}, id) => {
         onModalHide.current = onModalHideValue;
         onEmojiSelected.current = onEmojiSelectedValue;
         emojiPopoverAnchor.current = emojiPopoverAnchorValue;
-
-        if (emojiPopoverAnchor.current) {
+        if (emojiPopoverAnchor.current && emojiPopoverAnchor.current.blur) {
             // Drop focus to avoid blue focus ring.
             emojiPopoverAnchor.current.blur();
         }
 
-        calculateAnchorPosition(emojiPopoverAnchor.current).then((value) => {
+        const anchorOriginValue = anchorOrigin || DEFAULT_ANCHOR_ORIGIN;
+
+        calculateAnchorPosition(emojiPopoverAnchor.current, anchorOriginValue).then((value) => {
             onWillShow();
             setIsEmojiPickerVisible(true);
             setEmojiPopoverAnchorPosition(value);
-            setEmojiPopoverAnchorOrigin(anchorOrigin || DEFAULT_ANCHOR_ORIGIN);
-            setReportAction(reportActionValue);
+            setEmojiPopoverAnchorOrigin(anchorOriginValue);
+            setActiveID(id);
         });
     };
 
@@ -106,22 +107,18 @@ const EmojiPicker = forwardRef((props, ref) => {
     };
 
     /**
-     * Whether Context Menu is active for the Report Action.
+     * Whether emoji picker is active for the given id.
      *
-     * @param {Number|String} actionID
+     * @param {String} id
      * @return {Boolean}
      */
-    const isActiveReportAction = (actionID) => Boolean(actionID) && reportAction.reportActionID === actionID;
+    const isActive = (id) => Boolean(id) && id === activeID;
 
     const resetEmojiPopoverAnchor = () => (emojiPopoverAnchor.current = null);
 
-    useImperativeHandle(ref, () => ({showEmojiPicker, isActiveReportAction, hideEmojiPicker, isEmojiPickerVisible, resetEmojiPopoverAnchor}));
+    useImperativeHandle(ref, () => ({showEmojiPicker, isActive, hideEmojiPicker, isEmojiPickerVisible, resetEmojiPopoverAnchor}));
 
     useEffect(() => {
-        if (isEmojiPickerVisible) {
-            Keyboard.dismiss();
-        }
-
         const emojiPopoverDimensionListener = Dimensions.addEventListener('change', () => {
             if (!emojiPopoverAnchor.current) {
                 // In small screen width, the window size change might be due to keyboard open/hide, we should avoid hide EmojiPicker in those cases
@@ -130,14 +127,14 @@ const EmojiPicker = forwardRef((props, ref) => {
                 }
                 return;
             }
-            calculateAnchorPosition(emojiPopoverAnchor.current).then((value) => {
+            calculateAnchorPosition(emojiPopoverAnchor.current, emojiPopoverAnchorOrigin).then((value) => {
                 setEmojiPopoverAnchorPosition(value);
             });
         });
         return () => {
             emojiPopoverDimensionListener.remove();
         };
-    }, [isEmojiPickerVisible, props.isSmallScreenWidth]);
+    }, [isEmojiPickerVisible, props.isSmallScreenWidth, emojiPopoverAnchorOrigin]);
 
     // There is no way to disable animations, and they are really laggy, because there are so many
     // emojis. The best alternative is to set it to 1ms so it just "pops" in and out

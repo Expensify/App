@@ -15,7 +15,7 @@ import Navigation from '../../libs/Navigation/Navigation';
 import styles from '../../styles/styles';
 import ReceiptSelector from './ReceiptSelector';
 import * as IOU from '../../libs/actions/IOU';
-import DistanceRequest from '../../components/DistanceRequest';
+import DistanceRequestPage from './DistanceRequestPage';
 import DragAndDropProvider from '../../components/DragAndDrop/Provider';
 import usePermissions from '../../hooks/usePermissions';
 import OnyxTabNavigator, {TopTab} from '../../libs/Navigation/OnyxTabNavigator';
@@ -25,17 +25,28 @@ import NewRequestAmountPage from './steps/NewRequestAmountPage';
 const propTypes = {
     /** React Navigation route */
     route: PropTypes.shape({
+        /** Params from the route */
         params: PropTypes.shape({
+            /** The type of IOU report, i.e. bill, request, send */
             iouType: PropTypes.string,
+
+            /** The report ID of the IOU */
             reportID: PropTypes.string,
         }),
-    }),
+    }).isRequired,
 
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     iou: PropTypes.shape({
+        /** ID (iouType + reportID) of the request */
         id: PropTypes.string,
+
+        /** Amount of the request */
         amount: PropTypes.number,
+
+        /** Currency of the request */
         currency: PropTypes.string,
+
+        /** List of the participants */
         participants: PropTypes.arrayOf(participantPropTypes),
     }),
 
@@ -44,12 +55,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    route: {
-        params: {
-            iouType: '',
-            reportID: '',
-        },
-    },
     iou: {
         id: '',
         amount: 0,
@@ -77,7 +82,10 @@ function MoneyRequestSelectorPage(props) {
     };
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            shouldEnableKeyboardAvoidingView={false}
+        >
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType)}>
                     <DragAndDropProvider isDisabled={props.selectedTab === CONST.TAB.MANUAL}>
@@ -112,7 +120,7 @@ function MoneyRequestSelectorPage(props) {
                                     {canUseDistanceRequests && (
                                         <TopTab.Screen
                                             name={CONST.TAB.DISTANCE}
-                                            component={DistanceRequest}
+                                            component={DistanceRequestPage}
                                         />
                                     )}
                                 </OnyxTabNavigator>

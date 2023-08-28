@@ -194,6 +194,9 @@ function BaseValidateCodeForm(props) {
      * Check that all the form fields are valid, then trigger the submit callback
      */
     const validateAndSubmitForm = useCallback(() => {
+        if (props.account.isLoading) {
+            return;
+        }
         const requiresTwoFactorAuth = props.account.requiresTwoFactorAuth;
         if (requiresTwoFactorAuth) {
             if (input2FARef.current) {
@@ -228,7 +231,7 @@ function BaseValidateCodeForm(props) {
         } else {
             Session.signIn(validateCode, twoFactorAuthCode, props.preferredLocale);
         }
-    }, [props.account.requiresTwoFactorAuth, props.credentials, props.preferredLocale, twoFactorAuthCode, validateCode]);
+    }, [props.account, props.credentials, props.preferredLocale, twoFactorAuthCode, validateCode]);
 
     return (
         <>

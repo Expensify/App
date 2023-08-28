@@ -1,4 +1,4 @@
-import React, {memo, useCallback, useContext} from 'react';
+import React, {memo, useCallback, useContext, useEffect} from 'react';
 import styles from '../../../../styles/styles';
 import {attachmentViewPdfPropTypes, attachmentViewPdfDefaultProps} from './propTypes';
 import PDFView from '../../../PDFView';
@@ -7,6 +7,11 @@ import AttachmentCarouselPagerContext from '../../AttachmentCarousel/Pager/Attac
 function AttachmentViewPdf({file, encryptedSourceUrl, isFocused, isUsedInCarousel, onPress, onScaleChanged: onScaleChangedProp, onToggleKeyboard, onLoadComplete}) {
     const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
 
+    useEffect(() => {
+        attachmentCarouselPagerContext.onPinchGestureChange(false);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we just want to call this function when component is mounted
+    }, []);
+
     const onScaleChanged = useCallback(
         (scale) => {
             onScaleChangedProp();
@@ -14,6 +19,8 @@ function AttachmentViewPdf({file, encryptedSourceUrl, isFocused, isUsedInCarouse
             // When a pdf is shown in a carousel, we want to disable the pager scroll when the pdf is zoomed in
             if (isUsedInCarousel) {
                 const shouldPagerScroll = scale === 1;
+
+                attachmentCarouselPagerContext.onPinchGestureChange(!shouldPagerScroll);
 
                 if (attachmentCarouselPagerContext.shouldPagerScroll.value === shouldPagerScroll) return;
 

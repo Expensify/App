@@ -126,7 +126,7 @@ function NewTaskPage(props) {
         }
 
         shouldClearOutTaskInfoOnUnmount.current = true;
-        Task.createTaskAndNavigate(parentReport.reportID, props.task.title, props.task.description, props.task.assignee, props.task.assigneeAccountID);
+        Task.createTaskAndNavigate(parentReport.reportID, props.task.title, props.task.description, props.task.assignee, props.task.assigneeAccountID, props.task.assigneeChatReport);
     }
 
     if (!Permissions.canUseTasks(props.betas)) {
@@ -135,10 +135,11 @@ function NewTaskPage(props) {
     }
 
     return (
-        <ScreenWrapper>
+        <ScreenWrapper shouldEnableKeyboardAvoidingView={false}>
             <FullPageNotFoundView
                 shouldShow={!isAllowedToCreateTask}
                 onBackButtonPress={() => Task.dismissModalAndClearOutTaskInfo()}
+                shouldShowLink={false}
             >
                 <HeaderWithBackButton
                     title={props.translate('newTaskPage.confirmTask')}

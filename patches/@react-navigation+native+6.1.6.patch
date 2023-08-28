@@ -1,0 +1,269 @@
+diff --git a/node_modules/@react-navigation/native/lib/module/createMemoryHistory.js b/node_modules/@react-navigation/native/lib/module/createMemoryHistory.js
+index 16fdbef..bc2c96a 100644
+--- a/node_modules/@react-navigation/native/lib/module/createMemoryHistory.js
++++ b/node_modules/@react-navigation/native/lib/module/createMemoryHistory.js
+@@ -1,8 +1,23 @@
+ import { nanoid } from 'nanoid/non-secure';
++import { findFocusedRouteKey } from './findFocusedRouteKey';
+ export default function createMemoryHistory() {
+   let index = 0;
+   let items = [];
+-
++  const log = () => {
++    console.log(JSON.stringify({
++      index,
++      indexGetter: history.index,
++      items: items.map((item, i) => {
++        var _item$state;
++        return {
++          selected: history.index === i ? '<<<<<<<' : undefined,
++          path: item.path,
++          id: item.id,
++          state: ((_item$state = item.state) === null || _item$state === void 0 ? void 0 : _item$state.key) || null
++        };
++      })
++    }, null, 4));
++  };
+   // Pending callbacks for `history.go(n)`
+   // We might modify the callback stored if it was interrupted, so we have a ref to identify it
+   const pending = [];
+@@ -16,6 +31,9 @@ export default function createMemoryHistory() {
+     });
+   };
+   const history = {
++    get items() {
++      return items;
++    },
+     get index() {
+       var _window$history$state;
+       // We store an id in the state instead of an index
+@@ -32,12 +50,13 @@ export default function createMemoryHistory() {
+     },
+     backIndex(_ref) {
+       let {
+-        path
++        path,
++        state
+       } = _ref;
+       // We need to find the index from the element before current to get closest path to go back to
+       for (let i = index - 1; i >= 0; i--) {
+         const item = items[i];
+-        if (item.path === path) {
++        if (item.path === path && findFocusedRouteKey(item.state) === findFocusedRouteKey(state)) {
+           return i;
+         }
+       }
+@@ -68,7 +87,9 @@ export default function createMemoryHistory() {
+       window.history.pushState({
+         id
+       }, '', path);
++      // log();
+     },
++
+     replace(_ref3) {
+       var _window$history$state2;
+       let {
+@@ -108,7 +129,9 @@ export default function createMemoryHistory() {
+       window.history.replaceState({
+         id
+       }, '', pathWithHash);
++      // log();
+     },
++
+     // `history.go(n)` is asynchronous, there are couple of things to keep in mind:
+     // - it won't do anything if we can't go `n` steps, the `popstate` event won't fire.
+     // - each `history.go(n)` call will trigger a separate `popstate` event with correct location.
+@@ -175,20 +198,17 @@ export default function createMemoryHistory() {
+         // But on Firefox, it seems to take much longer, around 50ms from our testing
+         // We're using a hacky timeout since there doesn't seem to be way to know for sure
+         const timer = setTimeout(() => {
+-          const index = pending.findIndex(it => it.ref === done);
+-          if (index > -1) {
+-            pending[index].cb();
+-            pending.splice(index, 1);
++          const foundIndex = pending.findIndex(it => it.ref === done);
++          if (foundIndex > -1) {
++            pending[foundIndex].cb();
++            pending.splice(foundIndex, 1);
+           }
++          index = this.index;
+         }, 100);
+         const onPopState = () => {
+-          var _window$history$state3;
+-          const id = (_window$history$state3 = window.history.state) === null || _window$history$state3 === void 0 ? void 0 : _window$history$state3.id;
+-          const currentIndex = items.findIndex(item => item.id === id);
+-
+           // Fix createMemoryHistory.index variable's value
+           // as it may go out of sync when navigating in the browser.
+-          index = Math.max(currentIndex, 0);
++          index = this.index;
+           const last = pending.pop();
+           window.removeEventListener('popstate', onPopState);
+           last === null || last === void 0 ? void 0 : last.cb();
+@@ -202,12 +222,17 @@ export default function createMemoryHistory() {
+     // Here we normalize it so that only external changes (e.g. user pressing back/forward) trigger the listener
+     listen(listener) {
+       const onPopState = () => {
++        // Fix createMemoryHistory.index variable's value
++        // as it may go out of sync when navigating in the browser.
++        index = this.index;
+         if (pending.length) {
+           // This was triggered by `history.go(n)`, we shouldn't call the listener
+           return;
+         }
+         listener();
++        // log();
+       };
++
+       window.addEventListener('popstate', onPopState);
+       return () => window.removeEventListener('popstate', onPopState);
+     }
+diff --git a/node_modules/@react-navigation/native/lib/module/findFocusedRouteKey.js b/node_modules/@react-navigation/native/lib/module/findFocusedRouteKey.js
+new file mode 100644
+index 0000000..16da117
+--- /dev/null
++++ b/node_modules/@react-navigation/native/lib/module/findFocusedRouteKey.js
+@@ -0,0 +1,7 @@
++import { findFocusedRoute } from '@react-navigation/core';
++export const findFocusedRouteKey = state => {
++  var _findFocusedRoute;
++  // @ts-ignore
++  return (_findFocusedRoute = findFocusedRoute(state)) === null || _findFocusedRoute === void 0 ? void 0 : _findFocusedRoute.key;
++};
++//# sourceMappingURL=findFocusedRouteKey.js.map
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/native/lib/module/useLinking.js b/node_modules/@react-navigation/native/lib/module/useLinking.js
+index 5bf2a88..a6d0670 100644
+--- a/node_modules/@react-navigation/native/lib/module/useLinking.js
++++ b/node_modules/@react-navigation/native/lib/module/useLinking.js
+@@ -2,6 +2,7 @@ import { findFocusedRoute, getActionFromState as getActionFromStateDefault, getP
+ import isEqual from 'fast-deep-equal';
+ import * as React from 'react';
+ import createMemoryHistory from './createMemoryHistory';
++import { findFocusedRouteKey } from './findFocusedRouteKey';
+ import ServerContext from './ServerContext';
+ /**
+  * Find the matching navigation state that changed between 2 navigation states
+@@ -60,6 +61,44 @@ const series = cb => {
+   return callback;
+ };
+ let linkingHandlers = [];
++const getAllStateKeys = state => {
++  let current = state;
++  const keys = [];
++  if (current.routes) {
++    for (let route of current.routes) {
++      keys.push(route.key);
++      if (route.state) {
++        // @ts-ignore
++        keys.push(...getAllStateKeys(route.state));
++      }
++    }
++  }
++  return keys;
++};
++const getStaleHistoryDiff = (items, newState) => {
++  const newStateKeys = getAllStateKeys(newState);
++  for (let i = items.length - 1; i >= 0; i--) {
++    const itemFocusedKey = findFocusedRouteKey(items[i].state);
++    if (newStateKeys.includes(itemFocusedKey)) {
++      return items.length - i - 1;
++    }
++  }
++  return -1;
++};
++const getHistoryDeltaByKeys = (focusedState, previousFocusedState) => {
++  const focusedStateKeys = focusedState.routes.map(r => r.key);
++  const previousFocusedStateKeys = previousFocusedState.routes.map(r => r.key);
++  const minLength = Math.min(focusedStateKeys.length, previousFocusedStateKeys.length);
++  let matchingKeys = 0;
++  for (let i = 0; i < minLength; i++) {
++    if (focusedStateKeys[i] === previousFocusedStateKeys[i]) {
++      matchingKeys++;
++    } else {
++      break;
++    }
++  }
++  return -(previousFocusedStateKeys.length - matchingKeys);
++};
+ export default function useLinking(ref, _ref) {
+   let {
+     independent,
+@@ -251,6 +290,9 @@ export default function useLinking(ref, _ref) {
+       // Otherwise it's likely a change triggered by `popstate`
+       path !== pendingPath) {
+         const historyDelta = (focusedState.history ? focusedState.history.length : focusedState.routes.length) - (previousFocusedState.history ? previousFocusedState.history.length : previousFocusedState.routes.length);
++
++        // The historyDelta and historyDeltaByKeys may differ if the new state has an entry that didn't exist in previous state
++        const historyDeltaByKeys = getHistoryDeltaByKeys(focusedState, previousFocusedState);
+         if (historyDelta > 0) {
+           // If history length is increased, we should pushState
+           // Note that path might not actually change here, for example, drawer open should pushState
+@@ -262,34 +304,55 @@ export default function useLinking(ref, _ref) {
+           // If history length is decreased, i.e. entries were removed, we want to go back
+ 
+           const nextIndex = history.backIndex({
+-            path
++            path,
++            state
+           });
+           const currentIndex = history.index;
+           try {
+             if (nextIndex !== -1 && nextIndex < currentIndex) {
+               // An existing entry for this path exists and it's less than current index, go back to that
+               await history.go(nextIndex - currentIndex);
++              history.replace({
++                path,
++                state
++              });
+             } else {
+               // We couldn't find an existing entry to go back to, so we'll go back by the delta
+               // This won't be correct if multiple routes were pushed in one go before
+               // Usually this shouldn't happen and this is a fallback for that
+-              await history.go(historyDelta);
++              await history.go(historyDeltaByKeys);
++              if (historyDeltaByKeys + 1 === historyDelta) {
++                history.push({
++                  path,
++                  state
++                });
++              } else {
++                history.replace({
++                  path,
++                  state
++                });
++              }
+             }
+-
+-            // Store the updated state as well as fix the path if incorrect
+-            history.replace({
+-              path,
+-              state
+-            });
+           } catch (e) {
+             // The navigation was interrupted
+           }
+         } else {
+           // If history length is unchanged, we want to replaceState
+-          history.replace({
+-            path,
+-            state
+-          });
++          // and remove any entries from history which focued route no longer exists in state
++          // That may happen if we replace a whole navigator.
++          const staleHistoryDiff = getStaleHistoryDiff(history.items.slice(0, history.index + 1), state);
++          if (staleHistoryDiff <= 0) {
++            history.replace({
++              path,
++              state
++            });
++          } else {
++            await history.go(-staleHistoryDiff);
++            history.push({
++              path,
++              state
++            });
++          }
+         }
+       } else {
+         // If no common navigation state was found, assume it's a replace
