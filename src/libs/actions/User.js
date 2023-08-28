@@ -19,6 +19,7 @@ import * as ErrorUtils from '../ErrorUtils';
 import * as Session from './Session';
 import * as PersonalDetails from './PersonalDetails';
 import * as OnyxUpdates from './OnyxUpdates';
+import redirectToSignIn from './SignInRedirect';
 
 let currentUserAccountID = '';
 let currentEmail = '';
@@ -70,6 +71,8 @@ function closeAccount(message) {
             ],
         },
     );
+    // Clear all the listeners/callback that are registered while logged-in
+    redirectToSignIn();
 }
 
 /**
