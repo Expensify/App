@@ -121,7 +121,7 @@ function MoneyRequestSelectorPage(props) {
                                         <TopTab.Screen
                                             name={CONST.TAB.DISTANCE}
                                             component={DistanceRequestPage}
-                                            initialParams={{reportID, iouType}}
+                                            initialParams={{reportID, iouType, transactionID: props.iou.transactionID}}
                                         />
                                     )}
                                 </OnyxTabNavigator>

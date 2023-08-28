@@ -1,4 +1,4 @@
-import React, {useRef} from 'react';
+import React, {useRef,} from 'react';
 import lodashGet from 'lodash/get';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
@@ -30,6 +30,9 @@ const propTypes = {
             /** IOU type */
             iouType: PropTypes.string,
 
+            /** Thread reportID */
+            threadReportID: PropTypes.Number,
+
             /** Index of the waypoint being edited */
             waypointIndex: PropTypes.string,
         }),
@@ -47,16 +50,18 @@ const propTypes = {
 const defaultProps = {
     route: {
         params: {
+            threadReportID: 0,
             waypointIndex: '',
         },
     },
     transaction: {},
 };
 
-function WaypointEditor({transactionID, route: {params: {iouType = '', waypointIndex = ''} = {}} = {}, network, translate, transaction}) {
+function WaypointEditor({transactionID, route: {params: {iouType = '', waypointIndex = '', threadReportID = 0} = {}} = {}, network, translate, transaction}) {
     const textInput = useRef(null);
     const currentWaypoint = lodashGet(transaction, `comment.waypoints.waypoint${waypointIndex}`, {});
     const waypointAddress = lodashGet(currentWaypoint, 'address', '');
+    const isEditingWaypoint = Boolean(threadReportID);
 
     const validate = (values) => {
         const errors = {};
@@ -96,6 +101,8 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
         Navigation.goBack(ROUTES.getMoneyRequestDistanceTabRoute(iouType));
     };
 
+    console.log(">>>> route params", {iouType, waypointIndex, threadReportID})
+
     const selectWaypoint = (values) => {
         const waypoint = {
             lat: values.lat,
@@ -103,7 +110,14 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
             address: values.address,
         };
 
+        console.log(">>>> selecting waypoint", transactionID, waypoint);
         Transaction.saveWaypoint(transactionID, waypointIndex, waypoint);
+
+        
+        if (isEditingWaypoint) {
+            Navigation.goBack(ROUTES.getReportRoute(threadReportID));
+            return;
+        }
         Navigation.goBack(ROUTES.getMoneyRequestDistanceTabRoute(iouType));
     };
 

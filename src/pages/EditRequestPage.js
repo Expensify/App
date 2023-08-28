@@ -18,6 +18,8 @@ import EditRequestAmountPage from './EditRequestAmountPage';
 import reportPropTypes from './reportPropTypes';
 import * as IOU from '../libs/actions/IOU';
 import * as CurrencyUtils from '../libs/CurrencyUtils';
+import DistanceRequest from '../components/DistanceRequest';
+import EditRequestDistancePage from './EditRequestDistancePage';
 
 const propTypes = {
     /** Route from navigation */
@@ -164,6 +166,16 @@ function EditRequestPage({report, route, parentReport, policy, session}) {
                     }
                     editMoneyRequest({merchant: transactionChanges.merchant.trim()});
                 }}
+            />
+        );
+    }
+
+    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DISTANCE) {
+        return (
+            <EditRequestDistancePage
+                iou={transaction}
+                report={report}
+                transactionID={transaction.transactionID}
             />
         );
     }

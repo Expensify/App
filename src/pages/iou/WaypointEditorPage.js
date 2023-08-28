@@ -33,6 +33,7 @@ const defaultProps = {
 // This component is responsible for grabbing the transactionID from the IOU key
 // You can't use Onyx props in the withOnyx mapping, so we need to set up and access the transactionID here, and then pass it down so that WaypointEditor can subscribe to the transaction.
 function WaypointEditorPage({transactionID, route}) {
+    console.log(">>>> transactionID", transactionID);
     return (
         <WaypointEditor
             transactionID={transactionID}
