@@ -2,7 +2,7 @@ import {useEffect, useState} from 'react';
 import * as DeviceCapabilities from '../libs/DeviceCapabilities';
 
 /**
- * This hooks returns a boolean of whether the device is a touch screen or not.
+ * This hook returns a boolean indicating whether the device is a touch screen or not.
  * @returns {Boolean}
  */
 export default function useCanUseTouchScreen() {
