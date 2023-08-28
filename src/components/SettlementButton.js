@@ -13,7 +13,6 @@ import * as PaymentMethods from '../libs/actions/PaymentMethods';
 import KYCWall from './KYCWall';
 import withNavigation from './withNavigation';
 import {withNetwork} from './OnyxProvider';
-import networkPropTypes from './networkPropTypes';
 import iouReportPropTypes from '../pages/iouReportPropTypes';
 import * as ReportUtils from '../libs/ReportUtils';
 
@@ -26,9 +25,6 @@ const propTypes = {
 
     /** Should we show paypal option */
     shouldShowPaypal: PropTypes.bool,
-
-    /** Information about the network */
-    network: networkPropTypes.isRequired,
 
     /** When the button is opened via an IOU, ID for the chatReport that the IOU is linked to */
     chatReportID: PropTypes.string,
