@@ -74,7 +74,7 @@ class BaseOptionsSelector extends Component {
             if (this.props.isFocused) {
                 this.subscribeToKeyboardShortcut();
             } else {
-                this.unSubscribeToKeyboardShortcut();
+                this.unSubscribeFromKeyboardShortcut();
             }
         }
 
@@ -127,7 +127,7 @@ class BaseOptionsSelector extends Component {
             clearTimeout(this.focusTimeout);
         }
 
-        this.unSubscribeToKeyboardShortcut();
+        this.unSubscribeFromKeyboardShortcut();
     }
 
     /**
@@ -185,7 +185,7 @@ class BaseOptionsSelector extends Component {
         );
     }
 
-    unSubscribeToKeyboardShortcut() {
+    unSubscribeFromKeyboardShortcut() {
         if (this.unsubscribeEnter) {
             this.unsubscribeEnter();
         }
