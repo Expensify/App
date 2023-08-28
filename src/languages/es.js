@@ -154,26 +154,27 @@ export default {
         edit: 'Editar',
         showMore: 'Mostrar más',
         merchant: 'Comerciante',
+        category: 'Categoría',
         receipt: 'Recibo',
         replace: 'Sustituir',
     },
     anonymousReportFooter: {
-        logoTagline: 'Únete a la discussion.',
+        logoTagline: 'Únete a la discusión.',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Permiso para acceder a la cámara',
-        expensifyDoesntHaveAccessToCamera: 'Expensify no puede tomar fotos sin acceso a tu cámara. Haz click en Configuración para actualizar los permisos.',
+        expensifyDoesntHaveAccessToCamera: 'Expensify no puede tomar fotos sin acceso a la cámara. Haz click en Configuración para actualizar los permisos.',
         attachmentError: 'Error al adjuntar archivo',
-        errorWhileSelectingAttachment: 'Ha ocurrido un error al seleccionar un adjunto. Por favor, inténtalo de nuevo',
-        errorWhileSelectingCorruptedImage: 'Ha ocurrido un error al seleccionar un adjunto corrupto. Por favor, inténtalo con otro archivo',
+        errorWhileSelectingAttachment: 'Ha ocurrido un error al seleccionar un archivo adjunto. Por favor, inténtalo de nuevo',
+        errorWhileSelectingCorruptedImage: 'Ha ocurrido un error al seleccionar un archivo adjunto corrupto. Por favor, inténtalo con otro archivo',
         takePhoto: 'Hacer una foto',
         chooseFromGallery: 'Elegir de la galería',
         chooseDocument: 'Elegir documento',
         attachmentTooLarge: 'Archivo adjunto demasiado grande',
         sizeExceeded: 'El archivo adjunto supera el límite de 24 MB.',
         attachmentTooSmall: 'Archivo adjunto demasiado pequeño',
-        sizeNotMet: 'El archivo adjunto debe ser mas grande que 240 bytes.',
-        wrongFileType: 'El tipo del archivo adjunto es incorrecto',
+        sizeNotMet: 'El archivo adjunto debe ser más grande que 240 bytes.',
+        wrongFileType: 'El tipo de archivo adjunto es incorrecto',
         notAllowedExtension: 'Este tipo de archivo no está permitido',
         folderNotAllowedMessage: 'Subir una carpeta no está permitido. Prueba con otro archivo.',
     },
@@ -245,11 +246,15 @@ export default {
         newFaceEnterMagicCode: ({login}) => `¡Siempre es genial ver una cara nueva por aquí! Por favor ingresa el código mágico enviado a ${login}. Debería llegar en un par de minutos.`,
         welcomeEnterMagicCode: ({login}) => `Por favor, introduce el código mágico enviado a ${login}. Debería llegar en un par de minutos.`,
     },
+    DownloadAppModal: {
+        downloadTheApp: 'Descarga la aplicación',
+        keepTheConversationGoing: 'Mantén la conversación en New Expensify, descarga la aplicación para una experiencia mejorada.',
+        noThanks: 'No, gracias',
+    },
     login: {
         hero: {
             header: 'Divida las facturas, solicite pagos y chatee con sus amigos.',
             body: 'Bienvenido al futuro de Expensify, tu nuevo lugar de referencia para la colaboración financiera con amigos y compañeros de equipo por igual.',
-            demoHeadline: '¡Bienvenido a SaaStr! Entra y empieza a establecer contactos.',
         },
     },
     thirdPartySignIn: {
@@ -293,7 +298,7 @@ export default {
         copyEmailToClipboard: 'Copiar email al portapapeles',
         markAsUnread: 'Marcar como no leído',
         markAsRead: 'Marcar como leído',
-        editComment: 'Editar comentario',
+        editAction: ({action}) => `Edit ${ReportActionsUtils.isMoneyRequestAction(action) ? 'pedido' : 'comentario'}`,
         deleteAction: ({action}) => `Eliminar ${ReportActionsUtils.isMoneyRequestAction(action) ? 'pedido' : 'comentario'}`,
         deleteConfirmation: ({action}) => `¿Estás seguro de que quieres eliminar este ${ReportActionsUtils.isMoneyRequestAction(action) ? 'pedido' : 'comentario'}`,
         onlyVisible: 'Visible sólo para',
@@ -505,7 +510,7 @@ export default {
         failedNewContact: 'Hubo un error al añadir este método de contacto.',
         genericFailureMessages: {
             requestContactMethodValidateCode: 'No se ha podido enviar un nuevo código mágico. Espera un rato y vuelve a intentarlo.',
-            validateSecondaryLogin: 'No se ha podido validar el método de contacto con el código mágico provisto. Solicita un nuevo código y vuelve a intentarlo.',
+            validateSecondaryLogin: 'Código mágico incorrecto o no válido. Inténtalo de nuevo o solicita otro código.',
             deleteContactMethod: 'No se ha podido eliminar este método de contacto. Por favor, contacta con Concierge para obtener ayuda.',
             setDefaultContactMethod: 'No se pudo establecer un nuevo método de contacto predeterminado. Por favor contacta con Concierge para obtener ayuda.',
             addContactMethod: 'Hubo un error al añadir este método de contacto. Por favor, contacta con Concierge para obtener ayuda.',
@@ -2115,5 +2120,13 @@ export default {
     },
     stateSelectorModal: {
         placeholderText: 'Buscar para ver opciones',
+    },
+    demos: {
+        saastr: {
+            signInWelcome: '¡Bienvenido a SaaStr! Entra y empieza a establecer contactos.',
+        },
+        sbe: {
+            signInWelcome: '¡Bienvenido a Small Business Expo! Recupera el dinero de tu viaje.',
+        },
     },
 };
