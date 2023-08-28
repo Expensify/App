@@ -3,9 +3,6 @@ import {Linking} from 'react-native';
 import CONST from '../../CONST';
 import BaseLocationErrorMessage from './BaseLocationErrorMessage';
 
-const propTypes = {};
-const defaultProps = {};
-
 function LocationErrorMessage() {
     /** opens expensify help site in a new browser tab */
     const navigateToExpensifyHelpSite = () => {
