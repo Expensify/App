@@ -22,10 +22,6 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const defaultProps = {
-    locationErrorCode: undefined,
-};
-
 function BaseLocationErrorMessage({locationErrorCode, onAllowLocationLinkPress, translate}) {
     if (!locationErrorCode) {
         return null;
@@ -65,7 +61,6 @@ function BaseLocationErrorMessage({locationErrorCode, onAllowLocationLinkPress, 
 
 BaseLocationErrorMessage.displayName = 'BaseLocationErrorMessage';
 BaseLocationErrorMessage.propTypes = propTypes;
-BaseLocationErrorMessage.defaultProps = defaultProps;
 export default compose(
     withOnyx({
         locationErrorCode: {
