@@ -50,7 +50,7 @@ const defaultProps = {
     transaction: {},
 };
 
-function WaypointEditor({transactionID, route: {params: {iouType = '', waypointIndex = ''} = {}} = {}, transaction}) {
+function WaypointEditor({transactionID, route: {params: {iouType = '', waypointIndex = ''} = {}} = {}, transaction, recentWaypoints}) {
     const {windowWidth} = useWindowDimensions();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -180,6 +180,7 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
                             lng: null,
                             state: null,
                         }}
+                        predefinedPlaces={recentWaypoints}
                     />
                 </View>
             </Form>
@@ -194,5 +195,21 @@ export default withOnyx({
     transaction: {
         key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
         selector: (transaction) => (transaction ? {transactionID: transaction.transactionID, comment: {waypoints: lodashGet(transaction, 'comment.waypoints')}} : null),
+    },
+    recentWaypoints: {
+        key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
+
+        // Only grab the most recent 5 waypoints because that's all that is shown in the UI. This also puts them into the format of data
+        // that the google autocomplete component expects for it's "predefined places" feature.
+        selector: (waypoints) =>
+            _.map(waypoints ? waypoints.slice(0, 5) : [], (waypoint) => ({
+                description: waypoint.address,
+                geometry: {
+                    location: {
+                        lat: waypoint.lat,
+                        lng: waypoint.lng,
+                    },
+                },
+            })),
     },
 })(WaypointEditor);

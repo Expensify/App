@@ -176,7 +176,7 @@ function MoneyRequestPreview(props) {
 
     const getPreviewHeaderText = () => {
         if (isDistanceRequest) {
-            return props.translate('tabSelector.distance');
+            return props.translate('common.distance');
         }
 
         if (isScanning) {

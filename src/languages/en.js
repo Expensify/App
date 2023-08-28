@@ -158,6 +158,7 @@ export default {
         category: 'Category',
         receipt: 'Receipt',
         replace: 'Replace',
+        distance: 'Distance',
     },
     anonymousReportFooter: {
         logoTagline: 'Join the discussion.',
@@ -375,7 +376,6 @@ export default {
     tabSelector: {
         manual: 'Manual',
         scan: 'Scan',
-        distance: 'Distance',
     },
     receipt: {
         upload: 'Upload receipt',
