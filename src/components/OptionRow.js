@@ -121,6 +121,11 @@ class OptionRow extends Component {
 
         // update onRowSelect to be either the normal or debounced version whenever shouldDebounceRowSelect changes
         if (prevProps.onSelectRow !== this.props.onSelectRow || prevProps.shouldDebounceRowSelect !== this.props.shouldDebounceRowSelect) {
+            // cancel the existing onSelectRow debounce if switched to use non-debounced version
+            if (prevProps.shouldDebounceRowSelect && !this.props.shouldDebounceRowSelect && this.onSelectRow) {
+                this.onSelectRow.cancel();
+            }
+
             this.updateOnSelectRow();
         }
     }
