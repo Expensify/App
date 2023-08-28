@@ -275,7 +275,7 @@ function ReportActionCompose({
             return;
         }
         composerRef.current.focus(true);
-    }
+    };
 
     const onBlur = useCallback((e) => {
         setIsFocused(false);
