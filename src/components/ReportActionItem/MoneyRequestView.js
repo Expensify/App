@@ -6,7 +6,6 @@ import PropTypes from 'prop-types';
 import reportPropTypes from '../../pages/reportPropTypes';
 import ONYXKEYS from '../../ONYXKEYS';
 import ROUTES from '../../ROUTES';
-import * as Policy from '../../libs/actions/Policy';
 import Navigation from '../../libs/Navigation/Navigation';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes} from '../withCurrentUserPersonalDetails';
 import compose from '../../libs/compose';
@@ -36,21 +35,6 @@ const propTypes = {
     /** The expense report or iou report (only will have a value if this is a transaction thread) */
     parentReport: iouReportPropTypes,
 
-    /** The policy object for the current route */
-    policy: PropTypes.shape({
-        /** The name of the policy */
-        name: PropTypes.string,
-
-        /** The URL for the policy avatar */
-        avatar: PropTypes.string,
-    }),
-
-    /** Session info for the currently logged in user. */
-    session: PropTypes.shape({
-        /** Currently logged in user email */
-        email: PropTypes.string,
-    }),
-
     /** The transaction associated with the transactionThread */
     transaction: transactionPropTypes,
 
@@ -62,10 +46,6 @@ const propTypes = {
 
 const defaultProps = {
     parentReport: {},
-    policy: null,
-    session: {
-        email: null,
-    },
     transaction: {
         amount: 0,
         currency: CONST.CURRENCY.USD,
@@ -73,7 +53,7 @@ const defaultProps = {
     },
 };
 
-function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, policy, session, transaction}) {
+function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, transaction}) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
 
@@ -89,9 +69,7 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, polic
     const formattedTransactionAmount = transactionAmount && transactionCurrency && CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency);
 
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
-    const isAdmin = Policy.isAdminOfFreePolicy([policy]) && ReportUtils.isExpenseReport(moneyRequestReport);
-    const isRequestor = ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(session, 'accountID', null) === parentReportAction.actorAccountID;
-    const canEdit = !isSettled && (isAdmin || isRequestor);
+    const canEdit = ReportUtils.canEditMoneyRequest(parentReportAction);
 
     let description = `${translate('iou.amount')} • ${translate('iou.cash')}`;
     if (isSettled) {
