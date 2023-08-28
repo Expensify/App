@@ -16,7 +16,6 @@ import * as App from '../../src/libs/actions/App';
 import NetworkConnection from '../../src/libs/NetworkConnection';
 
 jest.mock('../../src/libs/Log');
-jest.useFakeTimers();
 
 Onyx.init({
     keys: ONYXKEYS,
