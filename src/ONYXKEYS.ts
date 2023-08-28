@@ -230,6 +230,7 @@ const ONYXKEYS = {
         POLICY: 'policy_',
         POLICY_MEMBERS: 'policyMembers_',
         POLICY_CATEGORIES: 'policyCategories_',
+        RECENTLY_USED_POLICY_CATEGORIES: 'recentlyUsedPolicyCategories_',
         WORKSPACE_INVITE_MEMBERS_DRAFT: 'workspaceInviteMembersDraft_',
         REPORT: 'report_',
         REPORT_ACTIONS: 'reportActions_',
@@ -358,6 +359,7 @@ type OnyxValues = {
     [ONYXKEYS.COLLECTION.DOWNLOAD]: OnyxTypes.Download;
     [ONYXKEYS.COLLECTION.POLICY]: OnyxTypes.Policy;
     [ONYXKEYS.COLLECTION.POLICY_CATEGORIES]: unknown;
+    [ONYXKEYS.COLLECTION.RECENTLY_USED_POLICY_CATEGORIES]: unknown;
     [ONYXKEYS.COLLECTION.POLICY_MEMBERS]: OnyxTypes.PolicyMember;
     [ONYXKEYS.COLLECTION.DEPRECATED_POLICY_MEMBER_LIST]: OnyxTypes.PolicyMember;
     [ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT]: Record<string, number>;

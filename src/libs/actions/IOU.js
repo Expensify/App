@@ -1748,10 +1748,22 @@ function setMoneyRequestMerchant(merchant) {
 }
 
 /**
- * @param {String} category
+ * @param {Object} category
+ * @param {String} category.name
+ * @param {Boolean} category.enabled
+ * @param {String} policyID
+ * @param {Array<String>} recentlyUsedPolicyCategories
  */
-function setMoneyRequestCategory(category) {
-    Onyx.merge(ONYXKEYS.IOU, {category});
+function setMoneyRequestCategory(category, policyID, recentlyUsedPolicyCategories) {
+    Onyx.merge(ONYXKEYS.IOU, {category: category.name});
+
+    const uniqRecentlyUsedPolicyCategories = _.filter(recentlyUsedPolicyCategories, (recentlyUsedPolicyCategory) => recentlyUsedPolicyCategory.name !== category.name);
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.RECENTLY_USED_POLICY_CATEGORIES}${policyID}`, [category, ...uniqRecentlyUsedPolicyCategories]);
+}
+
+function resetMoneyRequestCategory() {
+    Onyx.merge(ONYXKEYS.IOU, {category: ''});
 }
 
 /**
@@ -1832,6 +1844,7 @@ export {
     setMoneyRequestDescription,
     setMoneyRequestMerchant,
     setMoneyRequestCategory,
+    resetMoneyRequestCategory,
     setMoneyRequestParticipants,
     setMoneyRequestReceipt,
     createEmptyTransaction,

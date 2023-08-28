@@ -12,7 +12,7 @@ import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import OptionsSelector from '../OptionsSelector';
 import useLocalize from '../../hooks/useLocalize';
 
-function CategoryPicker({policyCategories, reportID, iouType, iou}) {
+function CategoryPicker({policyCategories, reportID, policyID, iouType, iou, recentlyUsedPolicyCategories}) {
     const {translate} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
 
@@ -44,7 +44,7 @@ function CategoryPicker({policyCategories, reportID, iouType, iou}) {
         // Categories
         policyCategories,
         // Recently used categories
-        {},
+        recentlyUsedPolicyCategories,
         false,
     ).categoryOptions;
 
@@ -55,7 +55,18 @@ function CategoryPicker({policyCategories, reportID, iouType, iou}) {
     };
 
     const updateCategory = (category) => {
-        IOU.setMoneyRequestCategory(category.searchText === iou.category ? '' : category.searchText);
+        if (category.searchText === iou.category) {
+            IOU.resetMoneyRequestCategory();
+        } else {
+            IOU.setMoneyRequestCategory(
+                {
+                    name: category.searchText,
+                    enabled: true,
+                },
+                policyID,
+                recentlyUsedPolicyCategories,
+            );
+        }
         navigateBack();
     };
 
@@ -82,6 +93,9 @@ CategoryPicker.defaultProps = defaultProps;
 export default withOnyx({
     policyCategories: {
         key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+    },
+    recentlyUsedPolicyCategories: {
+        key: ({policyID}) => `${ONYXKEYS.COLLECTION.RECENTLY_USED_POLICY_CATEGORIES}${policyID}`,
     },
     iou: {
         key: ONYXKEYS.IOU,
