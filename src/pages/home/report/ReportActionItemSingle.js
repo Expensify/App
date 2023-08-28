@@ -111,7 +111,7 @@ function ReportActionItemSingle(props) {
 
     // If this is a report preview, display names and avatars of both people involved
     let secondaryAvatar = {};
-    const displayAllActors = props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && props.iouReport;
+    const displayAllActors = useMemo(() => props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && props.iouReport, [props.action.actionName, props.iouReport]);
     const primaryDisplayName = displayName;
     if (displayAllActors) {
         const secondaryUserDetails = props.personalDetailsList[props.iouReport.ownerAccountID] || {};
@@ -144,9 +144,14 @@ function ReportActionItemSingle(props) {
         if (isWorkspaceActor) {
             showWorkspaceDetails(props.report.reportID);
         } else {
+            // Show participants page IOU report preview
+            if (displayAllActors) {
+                Navigation.navigate(ROUTES.getReportParticipantsRoute(props.iouReport.reportID));
+                return;
+            }
             showUserDetails(props.action.delegateAccountID ? props.action.delegateAccountID : actorAccountID);
         }
-    }, [isWorkspaceActor, props.report.reportID, actorAccountID, props.action.delegateAccountID]);
+    }, [isWorkspaceActor, props.report.reportID, actorAccountID, props.action.delegateAccountID, props.iouReport, displayAllActors]);
 
     const shouldDisableDetailPage = useMemo(
         () => !isWorkspaceActor && ReportUtils.isOptimisticPersonalDetail(props.action.delegateAccountID ? props.action.delegateAccountID : actorAccountID),

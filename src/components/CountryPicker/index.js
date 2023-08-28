@@ -7,6 +7,7 @@ import MenuItemWithTopDescription from '../MenuItemWithTopDescription';
 import useLocalize from '../../hooks/useLocalize';
 import CountrySelectorModal from './CountrySelectorModal';
 import FormHelpMessage from '../FormHelpMessage';
+import refPropTypes from '../refPropTypes';
 
 const propTypes = {
     /** Form Error description */
@@ -19,7 +20,7 @@ const propTypes = {
     onInputChange: PropTypes.func,
 
     /** A ref to forward to MenuItemWithTopDescription */
-    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
+    forwardedRef: refPropTypes,
 };
 
 const defaultProps = {
