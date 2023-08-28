@@ -1,4 +1,6 @@
-export default {
+import WordBreakStyles from './types';
+
+const wordBreak: WordBreakStyles = {
     breakWord: {
         wordBreak: 'break-word',
     },
@@ -6,3 +8,5 @@ export default {
         wordBreak: 'break-all',
     },
 };
+
+export default wordBreak;
