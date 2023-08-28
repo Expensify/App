@@ -34,8 +34,8 @@ const propTypes = {
     /** The type of IOU report, i.e. bill, request, send */
     iouType: PropTypes.string.isRequired,
 
-    /** Whether the money request is a distance request or not */
-    isDistanceRequest: PropTypes.bool,
+    /** The current tab we have navigated to in the request modal. String that corresponds to the request type. */
+    selectedTab: PropTypes.oneOf([CONST.TAB.DISTANCE, CONST.TAB.MANUAL, CONST.TAB.SCAN]).isRequired,
 
     ...withLocalizePropTypes,
 };
@@ -45,7 +45,6 @@ const defaultProps = {
     personalDetails: {},
     reports: {},
     betas: [],
-    isDistanceRequest: false,
 };
 
 class MoneyRequestParticipantsSelector extends Component {
@@ -90,7 +89,7 @@ class MoneyRequestParticipantsSelector extends Component {
             this.props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
 
             // We don't want to include any P2P options like personal details or reports that are not workspace chats for certain features.
-            !this.props.isDistanceRequest,
+            this.props.selectedTab !== CONST.TAB.DISTANCE,
         );
     }
 
@@ -189,6 +188,9 @@ export default compose(
         },
         betas: {
             key: ONYXKEYS.BETAS,
+        },
+        selectedTab: {
+            key: `${ONYXKEYS.SELECTED_TAB}_${CONST.TAB.RECEIPT_TAB_ID}`,
         },
     }),
 )(MoneyRequestParticipantsSelector);
