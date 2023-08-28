@@ -5,10 +5,11 @@ import CurrencySymbolButton from './CurrencySymbolButton';
 import * as CurrencyUtils from '../libs/CurrencyUtils';
 import useLocalize from '../hooks/useLocalize';
 import * as MoneyRequestUtils from '../libs/MoneyRequestUtils';
+import refPropTypes from './refPropTypes';
 
 const propTypes = {
     /** A ref to forward to amount text input */
-    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
+    forwardedRef: refPropTypes,
 
     /** Formatted amount in local currency  */
     formattedAmount: PropTypes.string.isRequired,

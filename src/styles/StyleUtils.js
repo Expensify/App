@@ -1072,7 +1072,7 @@ function getAutoCompleteSuggestionContainerStyle(itemsHeight, shouldIncludeRepor
     'worklet';
 
     const optionalPadding = shouldIncludeReportRecipientLocalTimeHeight ? CONST.RECIPIENT_LOCAL_TIME_HEIGHT : 0;
-    const padding = CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_PADDING - optionalPadding;
+    const padding = CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_PADDING + optionalPadding;
     const borderWidth = 2;
     const height = itemsHeight + 2 * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_INNER_PADDING + borderWidth;
 
