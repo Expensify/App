@@ -20,24 +20,23 @@ const propTypes = {
 // It's a HACK alert since FlatList has inverted scrolling on web
 function InvertedFlatList(props) {
     const {innerRef, contentContainerStyle} = props;
-    let list;
+    const listRef = React.createRef();
 
     useEffect(() => {
         if (!_.isFunction(innerRef)) {
             // eslint-disable-next-line no-param-reassign
-            innerRef.current = list;
+            innerRef.current = listRef.current;
         } else {
-            innerRef(list);
+            innerRef(listRef);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [innerRef, listRef]);
 
     return (
         <BaseInvertedFlatList
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             inverted
-            ref={(el) => (list = el)}
+            ref={listRef}
             shouldMeasureItems
             contentContainerStyle={StyleSheet.compose(contentContainerStyle, styles.justifyContentEnd)}
         />
