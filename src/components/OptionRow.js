@@ -138,7 +138,9 @@ class OptionRow extends Component {
         this.onSelectRow.cancel();
     }
 
-    /** Sets the onSelectRow callback to be either the normal or debounced version */
+    /**
+     * Sets the onSelectRow callback to be either the normal or debounced version
+     */
     updateOnSelectRow() {
         this.onSelectRow = this.props.shouldDebounceRowSelect && this.props.onSelectRow ? _.debounce(this.props.onSelectRow, 1000, {leading: true}) : this.props.onSelectRow;
     }
