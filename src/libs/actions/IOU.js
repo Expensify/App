@@ -79,7 +79,7 @@ function resetMoneyRequestInfo(id = '') {
         currency: lodashGet(currentUserPersonalDetails, 'localCurrencyCode', CONST.CURRENCY.USD),
         comment: '',
         participants: [],
-        merchant: '',
+        merchant: CONST.TRANSACTION.DEFAULT_MERCHANT,
         created,
         receiptPath: '',
         receiptSource: '',
@@ -1006,6 +1006,7 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
                     amount: null,
                     created: null,
                     currency: null,
+                    merchant: null,
                 },
             },
         },
@@ -1757,7 +1758,7 @@ function setMoneyRequestParticipants(participants) {
  * @param {String} receiptSource
  */
 function setMoneyRequestReceipt(receiptPath, receiptSource) {
-    Onyx.merge(ONYXKEYS.IOU, {receiptPath, receiptSource});
+    Onyx.merge(ONYXKEYS.IOU, {receiptPath, receiptSource, merchant: ''});
 }
 
 function createEmptyTransaction() {

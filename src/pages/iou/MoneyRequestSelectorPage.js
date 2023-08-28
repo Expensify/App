@@ -25,17 +25,28 @@ import NewRequestAmountPage from './steps/NewRequestAmountPage';
 const propTypes = {
     /** React Navigation route */
     route: PropTypes.shape({
+        /** Params from the route */
         params: PropTypes.shape({
+            /** The type of IOU report, i.e. bill, request, send */
             iouType: PropTypes.string,
+
+            /** The report ID of the IOU */
             reportID: PropTypes.string,
         }),
-    }),
+    }).isRequired,
 
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     iou: PropTypes.shape({
+        /** ID (iouType + reportID) of the request */
         id: PropTypes.string,
+
+        /** Amount of the request */
         amount: PropTypes.number,
+
+        /** Currency of the request */
         currency: PropTypes.string,
+
+        /** List of the participants */
         participants: PropTypes.arrayOf(participantPropTypes),
     }),
 
@@ -44,12 +55,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    route: {
-        params: {
-            iouType: '',
-            reportID: '',
-        },
-    },
     iou: {
         id: '',
         amount: 0,
