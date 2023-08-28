@@ -57,6 +57,9 @@ const propTypes = {
         /** List of the participants */
         participants: PropTypes.arrayOf(participantPropTypes),
     }),
+
+    /** The current tab we have navigated to in the request modal. String that corresponds to the request type. */
+    selectedTab: PropTypes.oneOf([CONST.TAB.DISTANCE, CONST.TAB.MANUAL, CONST.TAB.SCAN]).isRequired,
 };
 
 const defaultProps = {
@@ -71,7 +74,7 @@ const defaultProps = {
     },
 };
 
-function NewRequestAmountPage({route, iou, report}) {
+function NewRequestAmountPage({route, iou, report, selectedTab}) {
     const {translate} = useLocalize();
 
     const prevMoneyRequestID = useRef(iou.id);
@@ -81,6 +84,7 @@ function NewRequestAmountPage({route, iou, report}) {
     const reportID = lodashGet(route, 'params.reportID', '');
     const isEditing = lodashGet(route, 'path', '').includes('amount');
     const currentCurrency = lodashGet(route, 'params.currency', '');
+    const isDistanceRequest = selectedTab === CONST.TAB.DISTANCE;
 
     const currency = currentCurrency || iou.currency;
 
@@ -130,7 +134,7 @@ function NewRequestAmountPage({route, iou, report}) {
                 IOU.resetMoneyRequestInfo(moneyRequestID);
             }
 
-            if (_.isEmpty(iou.participants) || iou.amount === 0 || shouldReset) {
+            if (!isDistanceRequest && (_.isEmpty(iou.participants) || iou.amount === 0 || shouldReset)) {
                 Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType, reportID), true);
             }
         }
@@ -209,5 +213,8 @@ export default withOnyx({
     iou: {key: ONYXKEYS.IOU},
     report: {
         key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '')}`,
+    },
+    selectedTab: {
+        key: `${ONYXKEYS.SELECTED_TAB}_${CONST.TAB.RECEIPT_TAB_ID}`,
     },
 })(NewRequestAmountPage);
