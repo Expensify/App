@@ -70,12 +70,9 @@ function PronounsPage(props) {
     /**
      * @param {Object} selectedPronouns
      */
-    const updatePronouns = useCallback(
-        (selectedPronouns) => {
-            PersonalDetails.updatePronouns(selectedPronouns.keyForList === initiallyFocusedOption.keyForList ? '' : lodashGet(selectedPronouns, 'value', ''));
-        },
-        [initiallyFocusedOption],
-    );
+    const updatePronouns = (selectedPronouns) => {
+        PersonalDetails.updatePronouns(selectedPronouns.keyForList === initiallyFocusedOption.keyForList ? '' : lodashGet(selectedPronouns, 'value', ''));
+    };
 
     /**
      * Pronouns list filtered by searchValue needed for the OptionsSelector.
