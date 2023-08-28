@@ -10,6 +10,10 @@ import spacing from './utilities/spacing';
 import * as UserUtils from '../libs/UserUtils';
 import * as Browser from '../libs/Browser';
 import cursor from './utilities/cursor';
+import {EdgeInsets} from 'react-native-safe-area-context'
+import { Animated, TextStyle, ViewStyle } from 'react-native';
+import { CSSProperties } from 'react';
+import { ValueOf } from 'type-fest';
 
 const workspaceColorOptions = [
     {backgroundColor: colors.blue200, fill: colors.blue700},
@@ -30,7 +34,7 @@ const workspaceColorOptions = [
     {backgroundColor: colors.ice200, fill: colors.ice700},
     {backgroundColor: colors.ice400, fill: colors.ice800},
     {backgroundColor: colors.ice700, fill: colors.ice200},
-];
+] satisfies Array<{ backgroundColor: ValueOf<typeof colors>, fill: ValueOf<typeof colors> }>
 
 const avatarBorderSizes = {
     [CONST.AVATAR_SIZE.SMALL_SUBSCRIPT]: variables.componentBorderRadiusSmall,
@@ -44,7 +48,7 @@ const avatarBorderSizes = {
     [CONST.AVATAR_SIZE.LARGE]: variables.componentBorderRadiusLarge,
     [CONST.AVATAR_SIZE.LARGE_BORDERED]: variables.componentBorderRadiusRounded,
     [CONST.AVATAR_SIZE.SMALL_NORMAL]: variables.componentBorderRadiusMedium,
-};
+} satisfies Partial<Record<ValueOf<typeof CONST.AVATAR_SIZE>, number>>;
 
 const avatarSizes = {
     [CONST.AVATAR_SIZE.DEFAULT]: variables.avatarSizeNormal,
@@ -59,50 +63,39 @@ const avatarSizes = {
     [CONST.AVATAR_SIZE.HEADER]: variables.avatarSizeHeader,
     [CONST.AVATAR_SIZE.MENTION_ICON]: variables.avatarSizeMentionIcon,
     [CONST.AVATAR_SIZE.SMALL_NORMAL]: variables.avatarSizeSmallNormal,
-};
+} satisfies Partial<Record<ValueOf<typeof CONST.AVATAR_SIZE>, number>>;
 
 const emptyAvatarStyles = {
     [CONST.AVATAR_SIZE.SMALL]: styles.emptyAvatarSmall,
     [CONST.AVATAR_SIZE.MEDIUM]: styles.emptyAvatarMedium,
     [CONST.AVATAR_SIZE.LARGE]: styles.emptyAvatarLarge,
-};
+} satisfies Partial<Record<ValueOf<typeof CONST.AVATAR_SIZE>, ViewStyle | CSSProperties>>;
 
 /**
  * Return the style size from an avatar size constant
- *
- * @param {String} size
- * @returns {Number}
  */
-function getAvatarSize(size) {
+function getAvatarSize(size: ValueOf<typeof CONST.AVATAR_SIZE>): number {
     return avatarSizes[size];
 }
 
 /**
  * Return the height of magic code input container
- *
- * @returns {Object}
  */
-function getHeightOfMagicCodeInput() {
+function getHeightOfMagicCodeInput(): { height: number } {
     return {height: styles.magicCodeInputContainer.minHeight - styles.textInputContainer.borderBottomWidth};
 }
 
 /**
  * Return the style from an empty avatar size constant
- *
- * @param {String} size
- * @returns {Object}
  */
-function getEmptyAvatarStyle(size) {
+function getEmptyAvatarStyle(size: string) {
     return emptyAvatarStyles[size];
 }
 
 /**
  * Return the width style from an avatar size constant
- *
- * @param {String} size
- * @returns {Object}
  */
-function getAvatarWidthStyle(size) {
+function getAvatarWidthStyle(size: string): {width: number} {
     const avatarSize = getAvatarSize(size);
     return {
         width: avatarSize,
@@ -111,11 +104,8 @@ function getAvatarWidthStyle(size) {
 
 /**
  * Return the style from an avatar size constant
- *
- * @param {String} size
- * @returns {Object}
  */
-function getAvatarStyle(size) {
+function getAvatarStyle(size: string): {height: number, width: number, borderRadius: number, backgroundColor: string} {
     const avatarSize = getAvatarSize(size);
     return {
         height: avatarSize,
@@ -127,10 +117,8 @@ function getAvatarStyle(size) {
 
 /**
  * Get Font size of '+1' text on avatar overlay
- * @param {String} size
- * @returns {Object}
  */
-function getAvatarExtraFontSizeStyle(size) {
+function getAvatarExtraFontSizeStyle(size: string): { fontSize: number } {
     const AVATAR_SIZES = {
         [CONST.AVATAR_SIZE.DEFAULT]: variables.fontSizeNormal,
         [CONST.AVATAR_SIZE.SMALL_SUBSCRIPT]: variables.fontSizeExtraSmall,
@@ -149,10 +137,8 @@ function getAvatarExtraFontSizeStyle(size) {
 
 /**
  * Get Bordersize of Avatar based on avatar size
- * @param {String} size
- * @returns {Object}
  */
-function getAvatarBorderWidth(size) {
+function getAvatarBorderWidth(size: string): {borderWidth: number} {
     const AVATAR_SIZES = {
         [CONST.AVATAR_SIZE.DEFAULT]: 3,
         [CONST.AVATAR_SIZE.SMALL_SUBSCRIPT]: 1,
@@ -169,14 +155,12 @@ function getAvatarBorderWidth(size) {
     };
 }
 
+// satisfies Partial<Record<ValueOf<typeof CONST.AVATAR_SIZE>, number>>;
+type Test = ValueOf<typeof CONST.AVATAR_SIZE>
 /**
  * Return the border radius for an avatar
- *
- * @param {String} size
- * @param {String} type
- * @returns {Object}
  */
-function getAvatarBorderRadius(size, type) {
+function getAvatarBorderRadius(size: ValueOf<typeof CONST.AVATAR_SIZE>, type: string): {borderRadius: number} {
     if (type === CONST.ICON_TYPE_WORKSPACE) {
         return {borderRadius: avatarBorderSizes[size]};
     }
@@ -187,12 +171,8 @@ function getAvatarBorderRadius(size, type) {
 
 /**
  * Return the border style for an avatar
- *
- * @param {String} size
- * @param {String} type
- * @returns {Object}
  */
-function getAvatarBorderStyle(size, type) {
+function getAvatarBorderStyle(size: string, type: string): {overflow: string, borderRadius: number} {
     return {
         overflow: 'hidden',
         ...getAvatarBorderRadius(size, type),
@@ -201,11 +181,8 @@ function getAvatarBorderStyle(size, type) {
 
 /**
  * Helper method to return old dot default avatar associated with login
- *
- * @param {String} [workspaceName]
- * @returns {Object}
  */
-function getDefaultWorkspaceAvatarColor(workspaceName) {
+function getDefaultWorkspaceAvatarColor(workspaceName: string) {
     const colorHash = UserUtils.hashText(workspaceName.trim(), workspaceColorOptions.length);
 
     return workspaceColorOptions[colorHash];
@@ -213,12 +190,13 @@ function getDefaultWorkspaceAvatarColor(workspaceName) {
 
 /**
  * Takes safe area insets and returns padding to use for a View
- *
- * @param {Object} insets
- * @param {Number} [insetsPercentage] - Percentage of the insets to use for sides and bottom padding
- * @returns {Object}
  */
-function getSafeAreaPadding(insets, insetsPercentage = variables.safeInsertPercentage) {
+function getSafeAreaPadding(insets: EdgeInsets, insetsPercentage: number = variables.safeInsertPercentage): {
+    paddingTop: number,
+    paddingBottom: number,
+    paddingLeft: number,
+    paddingRight: number,
+} {
     return {
         paddingTop: insets.top,
         paddingBottom: insets.bottom * insetsPercentage,
@@ -229,20 +207,15 @@ function getSafeAreaPadding(insets, insetsPercentage = variables.safeInsertPerce
 
 /**
  * Takes safe area insets and returns margin to use for a View
- *
- * @param {Object} insets
- * @returns {Object}
  */
-function getSafeAreaMargins(insets) {
+function getSafeAreaMargins(insets: EdgeInsets) {
     return {marginBottom: insets.bottom * variables.safeInsertPercentage};
 }
 
 /**
- * @param {Boolean} isZoomed
- * @param {Boolean} isDragging
- * @return {Object}
+ * 
  */
-function getZoomCursorStyle(isZoomed, isDragging) {
+function getZoomCursorStyle(isZoomed: boolean, isDragging: boolean) {
     if (!isZoomed) {
         return styles.cursorZoomIn;
     }
@@ -251,16 +224,9 @@ function getZoomCursorStyle(isZoomed, isDragging) {
 }
 
 /**
- * @param {Boolean} isZoomed
- * @param {Number} imgWidth
- * @param {Number} imgHeight
- * @param {Number} zoomScale
- * @param {Number} containerHeight
- * @param {Number} containerWidth
- * @param {Boolean} isLoading
- * @returns {Object | undefined}
+ * 
  */
-function getZoomSizingStyle(isZoomed, imgWidth, imgHeight, zoomScale, containerHeight, containerWidth, isLoading) {
+function getZoomSizingStyle(isZoomed: boolean, imgWidth: number, imgHeight: number, zoomScale: number, containerHeight: number, containerWidth: number, isLoading: boolean) {
     // Hide image until finished loading to prevent showing preview with wrong dimensions
     if (isLoading || imgWidth === 0 || imgHeight === 0) {
         return undefined;
@@ -311,11 +277,8 @@ function getZoomSizingStyle(isZoomed, imgWidth, imgHeight, zoomScale, containerH
 
 /**
  * Returns auto grow text input style
- *
- * @param {Number} width
- * @return {Object}
  */
-function getWidthStyle(width) {
+function getWidthStyle(width: number) {
     return {
         width,
     };
@@ -323,12 +286,8 @@ function getWidthStyle(width) {
 
 /**
  * Returns auto grow height text input style
- *
- * @param {Number} textInputHeight
- * @param {Number} maxHeight
- * @returns {Object}
  */
-function getAutoGrowHeightInputStyle(textInputHeight, maxHeight) {
+function getAutoGrowHeightInputStyle(textInputHeight: number, maxHeight: number) {
     if (textInputHeight > maxHeight) {
         return {
             ...styles.pr0,
@@ -347,11 +306,8 @@ function getAutoGrowHeightInputStyle(textInputHeight, maxHeight) {
 
 /**
  * Returns a style with backgroundColor and borderColor set to the same color
- *
- * @param {String} backgroundColor
- * @returns {Object}
  */
-function getBackgroundAndBorderStyle(backgroundColor) {
+function getBackgroundAndBorderStyle(backgroundColor: string) {
     return {
         backgroundColor,
         borderColor: backgroundColor,
@@ -360,11 +316,8 @@ function getBackgroundAndBorderStyle(backgroundColor) {
 
 /**
  * Returns a style with the specified backgroundColor
- *
- * @param {String} backgroundColor
- * @returns {Object}
  */
-function getBackgroundColorStyle(backgroundColor) {
+function getBackgroundColorStyle(backgroundColor: string) {
     return {
         backgroundColor,
     };
@@ -372,11 +325,8 @@ function getBackgroundColorStyle(backgroundColor) {
 
 /**
  * Returns a style for text color
- *
- * @param {String} color
- * @returns {Object}
  */
-function getTextColorStyle(color) {
+function getTextColorStyle(color: string) {
     return {
         color,
     };
@@ -384,11 +334,8 @@ function getTextColorStyle(color) {
 
 /**
  * Returns a style with the specified borderColor
- *
- * @param {String} borderColor
- * @returns {Object}
  */
-function getBorderColorStyle(borderColor) {
+function getBorderColorStyle(borderColor: string) {
     return {
         borderColor,
     };
@@ -396,12 +343,8 @@ function getBorderColorStyle(borderColor) {
 
 /**
  * Returns the width style for the wordmark logo on the sign in page
- *
- * @param {String} environment
- * @param {Boolean} isSmallScreenWidth
- * @returns {Object}
  */
-function getSignInWordmarkWidthStyle(environment, isSmallScreenWidth) {
+function getSignInWordmarkWidthStyle(environment: string, isSmallScreenWidth: boolean) {
     if (environment === CONST.ENVIRONMENT.DEV) {
         return isSmallScreenWidth ? {width: variables.signInLogoWidthPill} : {width: variables.signInLogoWidthLargeScreenPill};
     }
@@ -416,11 +359,8 @@ function getSignInWordmarkWidthStyle(environment, isSmallScreenWidth) {
 
 /**
  * Converts a color in hexadecimal notation into RGB notation.
- *
- * @param {String} hexadecimal A color in hexadecimal notation.
- * @returns {Array} `undefined` if the input color is not in hexadecimal notation. Otherwise, the RGB components of the input color.
  */
-function hexadecimalToRGBArray(hexadecimal) {
+function hexadecimalToRGBArray(hexadecimal: string) {
     const components = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hexadecimal);
 
     if (components === null) {
@@ -432,12 +372,8 @@ function hexadecimalToRGBArray(hexadecimal) {
 
 /**
  * Returns a background color with opacity style
- *
- * @param {String} backgroundColor
- * @param {number} opacity
- * @returns {Object}
  */
-function getBackgroundColorWithOpacityStyle(backgroundColor, opacity) {
+function getBackgroundColorWithOpacityStyle(backgroundColor: string, opacity: number) {
     const result = hexadecimalToRGBArray(backgroundColor);
     if (result !== undefined) {
         return {
@@ -449,14 +385,8 @@ function getBackgroundColorWithOpacityStyle(backgroundColor, opacity) {
 
 /**
  * Generate a style for the background color of the Badge
- *
- * @param {Boolean} success
- * @param {Boolean} error
- * @param {boolean} [isPressed=false]
- * @param {boolean} [isAdHoc=false]
- * @return {Object}
  */
-function getBadgeColorStyle(success, error, isPressed = false, isAdHoc = false) {
+function getBadgeColorStyle(success: boolean, error: boolean, isPressed: boolean = false, isAdHoc: boolean = false) {
     if (success) {
         if (isAdHoc) {
             return isPressed ? styles.badgeAdHocSuccessPressed : styles.badgeAdHocSuccess;
@@ -471,12 +401,8 @@ function getBadgeColorStyle(success, error, isPressed = false, isAdHoc = false) 
 
 /**
  * Generate a style for the background color of the button, based on its current state.
- *
- * @param {String} [buttonState] - One of {'default', 'hovered', 'pressed'}
- * @param {Boolean} isMenuItem - whether this button is apart of a list
- * @returns {Object}
  */
-function getButtonBackgroundColorStyle(buttonState = CONST.BUTTON_STATES.DEFAULT, isMenuItem = false) {
+function getButtonBackgroundColorStyle(buttonState: string = CONST.BUTTON_STATES.DEFAULT, isMenuItem: boolean = false) {
     switch (buttonState) {
         case CONST.BUTTON_STATES.PRESSED:
             return {backgroundColor: themeColors.buttonPressedBG};
@@ -491,12 +417,8 @@ function getButtonBackgroundColorStyle(buttonState = CONST.BUTTON_STATES.DEFAULT
 
 /**
  * Generate fill color of an icon based on its state.
- *
- * @param {String} [buttonState] - One of {'default', 'hovered', 'pressed'}
- * @param {Boolean} isMenuIcon - whether this icon is apart of a list
- * @returns {Object}
  */
-function getIconFillColor(buttonState = CONST.BUTTON_STATES.DEFAULT, isMenuIcon = false) {
+function getIconFillColor(buttonState: string = CONST.BUTTON_STATES.DEFAULT, isMenuIcon: boolean = false) {
     switch (buttonState) {
         case CONST.BUTTON_STATES.ACTIVE:
         case CONST.BUTTON_STATES.PRESSED:
@@ -514,11 +436,9 @@ function getIconFillColor(buttonState = CONST.BUTTON_STATES.DEFAULT, isMenuIcon 
 }
 
 /**
- * @param {Animated.Value} rotate
- * @param {Animated.Value} backgroundColor
- * @returns {Object}
+ * 
  */
-function getAnimatedFABStyle(rotate, backgroundColor) {
+function getAnimatedFABStyle(rotate: Animated.Value, backgroundColor: Animated.Value) {
     return {
         transform: [{rotate}],
         backgroundColor,
@@ -526,11 +446,9 @@ function getAnimatedFABStyle(rotate, backgroundColor) {
 }
 
 /**
- * @param {Number} width
- * @param {Number | null} height
- * @returns {Object}
+ * 
  */
-function getWidthAndHeightStyle(width, height = null) {
+function getWidthAndHeightStyle(width: number, height: number | null = null) {
     return {
         width,
         height: height != null ? height : width,
@@ -538,8 +456,7 @@ function getWidthAndHeightStyle(width, height = null) {
 }
 
 /**
- * @param {Object} params
- * @returns {Object}
+ * 
  */
 function getModalPaddingStyles({
     shouldAddBottomSafeAreaMargin,
@@ -555,6 +472,20 @@ function getModalPaddingStyles({
     modalContainerStylePaddingTop,
     modalContainerStylePaddingBottom,
     insets,
+}: {
+    shouldAddBottomSafeAreaMargin: boolean,
+    shouldAddTopSafeAreaMargin: boolean,
+    shouldAddBottomSafeAreaPadding: boolean,
+    shouldAddTopSafeAreaPadding: boolean,
+    safeAreaPaddingTop: number,
+    safeAreaPaddingBottom: number,
+    safeAreaPaddingLeft: number,
+    safeAreaPaddingRight: number,
+    modalContainerStyleMarginTop: number,
+    modalContainerStyleMarginBottom: number,
+    modalContainerStylePaddingTop: number,
+    modalContainerStylePaddingBottom: number,
+    insets: EdgeInsets,
 }) {
     // use fallback value for safeAreaPaddingBottom to keep padding bottom consistent with padding top.
     // More info: issue #17376
@@ -571,11 +502,8 @@ function getModalPaddingStyles({
 
 /**
  * Takes fontStyle and fontWeight and returns the correct fontFamily
- *
- * @param {Object} params
- * @returns {String}
  */
-function getFontFamilyMonospace({fontStyle, fontWeight}) {
+function getFontFamilyMonospace({fontStyle, fontWeight}: {fontStyle: string, fontWeight: string}): string {
     const italic = fontStyle === 'italic' && fontFamily.MONOSPACE_ITALIC;
     const bold = fontWeight === 'bold' && fontFamily.MONOSPACE_BOLD;
     const italicBold = italic && bold && fontFamily.MONOSPACE_BOLD_ITALIC;
@@ -585,11 +513,8 @@ function getFontFamilyMonospace({fontStyle, fontWeight}) {
 
 /**
  * Gives the width for Emoji picker Widget
- *
- * @param {Boolean} isSmallScreenWidth
- * @returns {String}
  */
-function getEmojiPickerStyle(isSmallScreenWidth) {
+function getEmojiPickerStyle(isSmallScreenWidth: boolean) {
     if (isSmallScreenWidth) {
         return {
             width: CONST.SMALL_EMOJI_PICKER_SIZE.WIDTH,
@@ -603,8 +528,6 @@ function getEmojiPickerStyle(isSmallScreenWidth) {
 
 /**
  * Get the random promo color and image for Login page
- *
- * @return {Object}
  */
 function getLoginPagePromoStyle() {
     const promos = [
@@ -655,11 +578,8 @@ function getReportActionItemStyle(isHovered = false, isLoading = false) {
 
 /**
  * Generate the wrapper styles for the mini ReportActionContextMenu.
- *
- * @param {Boolean} isReportActionItemGrouped
- * @returns {Object}
  */
-function getMiniReportActionContextMenuWrapperStyle(isReportActionItemGrouped) {
+function getMiniReportActionContextMenuWrapperStyle(isReportActionItemGrouped: boolean) {
     return {
         ...(isReportActionItemGrouped ? positioning.tn8 : positioning.tn4),
         ...positioning.r4,
@@ -670,10 +590,9 @@ function getMiniReportActionContextMenuWrapperStyle(isReportActionItemGrouped) {
 }
 
 /**
- * @param {Boolean} isSmallScreenWidth
- * @returns {Object}
+ * 
  */
-function getPaymentMethodMenuWidth(isSmallScreenWidth) {
+function getPaymentMethodMenuWidth(isSmallScreenWidth: boolean) {
     const margin = 20;
     return {width: !isSmallScreenWidth ? variables.sideBarWidth - margin * 2 : undefined};
 }
@@ -686,7 +605,7 @@ function getPaymentMethodMenuWidth(isSmallScreenWidth) {
  * @param {number} opacity The desired opacity of the foreground color.
  * @returns {Array} The RGB components of the RGBA color converted to RGB.
  */
-function convertRGBAToRGB(foregroundRGB, backgroundRGB, opacity) {
+function convertRGBAToRGB(foregroundRGB: any[], backgroundRGB: any[], opacity: number) {
     const [foregroundRed, foregroundGreen, foregroundBlue] = foregroundRGB;
     const [backgroundRed, backgroundGreen, backgroundBlue] = backgroundRGB;
 
@@ -695,36 +614,24 @@ function convertRGBAToRGB(foregroundRGB, backgroundRGB, opacity) {
 
 /**
  * Converts three unit values to the three components of a color in RGB notation.
- *
- * @param {number} red A unit value representing the first component of a color in RGB notation.
- * @param {number} green A unit value representing the second component of a color in RGB notation.
- * @param {number} blue A unit value representing the third component of a color in RGB notation.
- * @returns {Array} An array with the three components of a color in RGB notation.
  */
-function convertUnitValuesToRGB(red, green, blue) {
+function convertUnitValuesToRGB(red: number, green: number, blue: number): number[] {
     return [Math.floor(red * 255), Math.floor(green * 255), Math.floor(blue * 255)];
 }
 
 /**
  * Converts the three components of a color in RGB notation to three unit values.
- *
- * @param {number} red The first component of a color in RGB notation.
- * @param {number} green The second component of a color in RGB notation.
- * @param {number} blue The third component of a color in RGB notation.
- * @returns {Array} An array with three unit values representing the components of a color in RGB notation.
  */
-function convertRGBToUnitValues(red, green, blue) {
+function convertRGBToUnitValues(red: number, green: number, blue: number): number[] {
     return [red / 255, green / 255, blue / 255];
 }
 
 /**
  * Matches an RGBA or RGB color value and extracts the color components.
- *
- * @param {string} color - The RGBA or RGB color value to match and extract components from.
- * @returns {Array} An array containing the extracted color components [red, green, blue, alpha].
+ * 
  * Returns null if the input string does not match the pattern.
  */
-function extractValuesFromRGB(color) {
+function extractValuesFromRGB(color: string): number[] | null {
     const rgbaPattern = /rgba?\((?<r>[.\d]+)[, ]+(?<g>[.\d]+)[, ]+(?<b>[.\d]+)(?:\s?[,/]\s?(?<a>[.\d]+%?))?\)$/i;
     const matchRGBA = color.match(rgbaPattern);
     if (matchRGBA) {
@@ -738,11 +645,8 @@ function extractValuesFromRGB(color) {
 /**
  * Determines the theme color for a modal based on the app's background color,
  * the modal's backdrop, and the backdrop's opacity.
- *
- * @param {String} bgColor - theme background color
- * @returns {String} The theme color as an RGB value.
  */
-function getThemeBackgroundColor(bgColor = themeColors.appBG) {
+function getThemeBackgroundColor(bgColor: string = themeColors.appBG): string {
     const backdropOpacity = variables.modalFullscreenBackdropOpacity;
 
     const [backgroundRed, backgroundGreen, backgroundBlue] = extractValuesFromRGB(bgColor) || hexadecimalToRGBArray(bgColor);
@@ -760,7 +664,7 @@ function getThemeBackgroundColor(bgColor = themeColors.appBG) {
  * @param {Object|Object[]} styleParam
  * @returns {Object[]}
  */
-function parseStyleAsArray(styleParam) {
+function parseStyleAsArray(styleParam: ViewStyle | TextStyle | CSSProperties | Array<ViewStyle | TextStyle | CSSProperties>) {
     return _.isArray(styleParam) ? styleParam : [styleParam];
 }
 
