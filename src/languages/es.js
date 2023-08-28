@@ -2099,8 +2099,8 @@ export default {
     },
     distance: {
         addStop: 'Agregar parada',
-        deleteWaypoint: 'Delete waypoint',
-        deleteWaypointConfirmation: 'Are you sure you want to delete this waypoint?',
+        deleteWaypoint: 'Eliminar punto de ruta',
+        deleteWaypointConfirmation: '¿Estás seguro de que quieres eliminar este punto de ruta?',
         address: 'Dirección',
         waypointEditor: 'Editor de puntos de ruta',
         waypointDescription: {
