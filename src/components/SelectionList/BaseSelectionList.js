@@ -278,7 +278,10 @@ function BaseSelectionList({
     // eslint-disable-next-line arrow-body-style
     useEffect(() => {
         return () => {
-            if (!(shouldDebounceRowSelect && debouncedOnSelectRow.cancel)) return;
+            if (!(shouldDebounceRowSelect && debouncedOnSelectRow.cancel)) {
+                return;
+            }
+
             debouncedOnSelectRow.cancel();
         };
     }, [debouncedOnSelectRow, shouldDebounceRowSelect]);
