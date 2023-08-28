@@ -183,7 +183,7 @@ function ReportActionCompose({
         if (!isKeyboardVisibleWhenShowingModalRef.current) {
             return;
         }
-        composerRef.current.focus(true);
+        focus();
         isKeyboardVisibleWhenShowingModalRef.current = false;
     }, []);
 
@@ -270,6 +270,12 @@ function ReportActionCompose({
         isNextModalWillOpenRef.current = true;
     }, []);
 
+    const focus = () => {
+        if (composerRef === null || composerRef.current === null) {
+            return;
+        }
+        composerRef.current.focus(true);
+    }
     const onBlur = useCallback((e) => {
         setIsFocused(false);
         suggestionsRef.current.resetSuggestions();
@@ -403,12 +409,7 @@ function ReportActionCompose({
                     {DeviceCapabilities.canUseTouchScreen() && isMediumScreenWidth ? null : (
                         <EmojiPickerButton
                             isDisabled={isBlockedFromConcierge || disabled}
-                            onModalHide={() => {
-                                if (composerRef === null || composerRef.current === null) {
-                                    return;
-                                }
-                                composerRef.current.focus(true);
-                            }}
+                            onModalHide={focus}
                             onEmojiSelected={(...args) => composerRef.current.replaceSelectionWithText(...args)}
                             emojiPickerID={report.reportID}
                         />
