@@ -224,7 +224,7 @@ const ONYXKEYS = {
     // Information on any active demos being run
     DEMO_INFO: 'demoInfo',
 
-    // Max area handled for canvas on this platform
+    // Max area supported for HTML <canvas> element
     MAX_CANVAS_AREA: 'maxCanvasArea',
 
     // Max height handled for canvas on this platform
