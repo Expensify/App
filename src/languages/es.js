@@ -2115,12 +2115,6 @@ export default {
             selectSuggestedAddress: 'Por favor, selecciona una dirección sugerida',
         },
     },
-    countrySelectorModal: {
-        placeholderText: 'Buscar para ver opciones',
-    },
-    stateSelectorModal: {
-        placeholderText: 'Buscar para ver opciones',
-    },
     demos: {
         saastr: {
             signInWelcome: '¡Bienvenido a SaaStr! Entra y empieza a establecer contactos.',

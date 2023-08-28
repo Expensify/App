@@ -1628,12 +1628,6 @@ export default {
             selectSuggestedAddress: 'Please select a suggested address',
         },
     },
-    countrySelectorModal: {
-        placeholderText: 'Search to see options',
-    },
-    stateSelectorModal: {
-        placeholderText: 'Search to see options',
-    },
     demos: {
         saastr: {
             signInWelcome: 'Welcome to SaaStr! Hop in to start networking now.',

@@ -10,7 +10,7 @@ import StringUtils from './StringUtils';
 function searchCountryOptions(searchValue, countriesData) {
     const trimmedSearchValue = StringUtils.sanitizeString(searchValue);
     if (_.isEmpty(trimmedSearchValue)) {
-        return [];
+        return countriesData;
     }
 
     const filteredData = _.filter(countriesData, (country) => _.includes(country.searchValue, trimmedSearchValue));
