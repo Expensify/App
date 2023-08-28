@@ -37,7 +37,7 @@ const propTypes = {
     }),
 
     /** Recent waypoints array */
-    recentWaypoints: PropTypes.array,
+    recentWaypoints: PropTypes.arrayOf(PropTypes.object),
 
     /** The optimistic transaction for this request */
     transaction: transactionPropTypes,
