@@ -1,5 +1,5 @@
-import {CSSProperties, RefObject} from 'react';
-import {TextStyle, View, ViewStyle} from 'react-native';
+import {CSSProperties} from 'react';
+import {TextStyle, ViewStyle} from 'react-native';
 import spacing from './utilities/spacing';
 import styles from './styles';
 import colors from './colors';
@@ -124,7 +124,6 @@ type TooltipStyles = {
  *                                       A positive value shifts it down, and a negative value shifts it up.
  */
 export default function getTooltipStyles(
-    tooltip: RefObject<View>,
     currentSize: number,
     windowWidth: number,
     xOffset: number,
