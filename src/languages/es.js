@@ -158,6 +158,8 @@ export default {
         receipt: 'Recibo',
         replace: 'Sustituir',
         distance: 'Distancia',
+        recent: 'Reciente',
+        all: 'Todo',
     },
     anonymousReportFooter: {
         logoTagline: 'Únete a la discusión.',

@@ -159,6 +159,8 @@ export default {
         receipt: 'Receipt',
         replace: 'Replace',
         distance: 'Distance',
+        recent: 'Recent',
+        all: 'All',
     },
     anonymousReportFooter: {
         logoTagline: 'Join the discussion.',
