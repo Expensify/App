@@ -1309,6 +1309,7 @@ const CONST = {
         DATE: 'date',
         DESCRIPTION: 'description',
         MERCHANT: 'merchant',
+        DISTANCE: 'distance',
     },
     FOOTER: {
         EXPENSE_MANAGEMENT_URL: `${USE_EXPENSIFY_URL}/expense-management`,
