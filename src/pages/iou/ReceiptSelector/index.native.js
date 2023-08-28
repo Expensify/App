@@ -94,6 +94,7 @@ function getImagePickerOptions(type) {
 }
 
 function ReceiptSelector(props) {
+    // By default, the device with the most features gets selected, which might be a multi-camera (e.g. triple camera) - since this is not needed (we don't use zoom), we should use a simple wide angle camera instead which makes the Camera start up faster.
     const devices = useCameraDevices('wide-angle-camera');
     const device = devices.back;
 
