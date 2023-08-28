@@ -231,7 +231,7 @@ class OptionRow extends Component {
                                             fullTitle={this.props.option.text}
                                             displayNamesWithTooltips={displayNamesWithTooltips}
                                             tooltipEnabled={this.props.showTitleTooltip}
-                                            numberOfLines={1}
+                                            numberOfLines={2}
                                             textStyles={displayNameStyle}
                                             shouldUseFullTitle={
                                                 this.props.option.isChatRoom ||
