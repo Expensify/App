@@ -2559,7 +2559,7 @@ const CONST = {
     },
     TEACHERS_UNITE: {
         PUBLIC_ROOM_ID: '795574440662771',
-        POLICY_ID: '0A4315E7509A88E0',
+        POLICY_ID: 'B795B6319125BDF2',
         POLICY_NAME: 'Teachers Unite!',
         PUBLIC_ROOM_NAME: '#teachers-unite',
     },
