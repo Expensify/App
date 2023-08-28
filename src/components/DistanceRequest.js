@@ -22,7 +22,6 @@ import useNetwork from '../hooks/useNetwork';
 import useLocalize from '../hooks/useLocalize';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
-import * as IOU from '../libs/actions/IOU';
 import participantPropTypes from './participantPropTypes';
 import reportPropTypes from '../pages/reportPropTypes';
 import transactionPropTypes from './transactionPropTypes';
@@ -38,17 +37,8 @@ const MAP_PADDING = 50;
 const DEFAULT_ZOOM_LEVEL = 10;
 
 const propTypes = {
-    /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
-    iou: PropTypes.shape({
-        id: PropTypes.string,
-        amount: PropTypes.number,
-        currency: PropTypes.string,
-        participants: PropTypes.arrayOf(participantPropTypes),
-        transactionID: PropTypes.string,
-    }),
-
-    /** Type of money request (i.e. IOU) */
-    iouType: PropTypes.string,
+    /** The transactionID of the distance request we're currently looking at */
+    transactionID: PropTypes.number,
 
     /** The report to with which the distance request is associated */
     report: reportPropTypes,
@@ -64,6 +54,12 @@ const propTypes = {
         /** Time when the token will expire in ISO 8601 */
         expiration: PropTypes.string,
     }),
+
+    /** Are we editing an existing distance request, or creating a new one? */
+    isEditingRequest: PropTypes.bool,
+
+    /** Called on submit of this page */
+    onSubmit: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
@@ -71,15 +67,13 @@ const defaultProps = {
         id: '',
         amount: 0,
         currency: CONST.CURRENCY.USD,
-        participants: [],
     },
-    iouType: '',
-    report: {},
     transaction: {},
     mapboxAccessToken: {},
+    isEditingRequest: false,
 };
 
-function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken}) {
+function DistanceRequest({transactionID, report, transaction, mapboxAccessToken, isEditingRequest, onSubmit}) {
     const [shouldShowGradient, setShouldShowGradient] = useState(false);
     const [scrollContainerHeight, setScrollContainerHeight] = useState(0);
     const [scrollContentHeight, setScrollContentHeight] = useState(0);
@@ -136,12 +130,13 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
     }, []);
 
     useEffect(() => {
-        if (!iou.transactionID || !_.isEmpty(waypoints)) {
+        console.log(">>>>", transactionID, waypoints);
+        if (!transactionID || !_.isEmpty(waypoints)) {
             return;
         }
         // Create the initial start and stop waypoints
-        Transaction.createInitialWaypoints(iou.transactionID);
-    }, [iou.transactionID, waypoints]);
+        Transaction.createInitialWaypoints(transactionID);
+    }, [transactionID, waypoints]);
 
     const updateGradientVisibility = (event = {}) => {
         // If a waypoint extends past the bottom of the visible area show the gradient, else hide it.
@@ -155,8 +150,8 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
             return;
         }
 
-        Transaction.getRoute(iou.transactionID, waypoints);
-    }, [shouldFetchRoute, iou.transactionID, waypoints]);
+        Transaction.getRoute(transactionID, waypoints);
+    }, [shouldFetchRoute, transactionID, waypoints]);
 
     useEffect(updateGradientVisibility, [scrollContainerHeight, scrollContentHeight]);
 
@@ -196,7 +191,7 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
                                 secondaryIcon={waypointIcon}
                                 secondaryIconFill={theme.icon}
                                 shouldShowRightIcon
-                                onPress={() => Navigation.navigate(ROUTES.getMoneyRequestWaypointRoute('request', index))}
+                                onPress={() => Navigation.navigate(isEditingRequest ? ROUTES.getMoneyRequestEditWaypointRoute(report.reportID, index) : ROUTES.getMoneyRequestWaypointRoute('request', index))}
                                 key={key}
                             />
                         );
@@ -220,7 +215,7 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
                 <Button
                     small
                     icon={Expensicons.Plus}
-                    onPress={() => Transaction.addStop(iou.transactionID)}
+                    onPress={() => Transaction.addStop(transactionID)}
                     text={translate('distance.addStop')}
                     isDisabled={numberOfWaypoints === MAX_WAYPOINTS}
                     innerStyles={[styles.ph10]}
@@ -256,10 +251,10 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
             <Button
                 success
                 style={[styles.w100, styles.mb4, styles.ph4, styles.flexShrink0]}
-                onPress={() => IOU.navigateToNextPage(iou, iouType, report.reportID, report)}
+                onPress={() => onSubmit(waypoints)}
                 pressOnEnter
                 isDisabled={waypointMarkers.length < 2}
-                text={translate('common.next')}
+                text={translate(isEditingRequest ? 'common.save' : 'common.next')}
             />
         </ScreenWrapper>
     );
@@ -270,7 +265,7 @@ DistanceRequest.propTypes = propTypes;
 DistanceRequest.defaultProps = defaultProps;
 export default withOnyx({
     transaction: {
-        key: (props) => `${ONYXKEYS.COLLECTION.TRANSACTION}${props.iou.transactionID}`,
+        key: (props) => `${ONYXKEYS.COLLECTION.TRANSACTION}${props.transactionID}`,
     },
     mapboxAccessToken: {
         key: ONYXKEYS.MAPBOX_ACCESS_TOKEN,
