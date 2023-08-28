@@ -9,19 +9,17 @@ function TextInputWithCurrencySymbol(props) {
         setSkipNextSelectionChange(true);
     }, [props.formattedAmount]);
 
-    const onSelectionChange = (e) => {
-        if (skipNextSelectionChange) {
-            setSkipNextSelectionChange(false);
-            return;
-        }
-        props.onSelectionChange(e);
-    };
-
     return (
         <BaseTextInputWithCurrencySymbol
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
-            onSelectionChange={onSelectionChange}
+            onSelectionChange={(e) => {
+                if (skipNextSelectionChange) {
+                    setSkipNextSelectionChange(false);
+                    return;
+                }
+                props.onSelectionChange(e);
+            }}
         />
     );
 }
