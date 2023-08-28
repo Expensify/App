@@ -37,6 +37,25 @@ const propTypes = {
         }),
     }),
 
+    recentWaypoints: PropTypes.arrayOf(
+        PropTypes.shape({
+            /** A description of the location (usually the address) */
+            description: PropTypes.string,
+
+            /** Data required by the google auto complete plugin to know where to put the markers on the map */
+            geometry: PropTypes.shape({
+                /** Data about the location */
+                location: PropTypes.shape({
+                    /** Lattitude of the location */
+                    lat: PropTypes.number,
+
+                    /** Longitude of the location */
+                    lng: PropTypes.number,
+                }),
+            }),
+        }),
+    ),
+
     /** The optimistic transaction for this request */
     transaction: transactionPropTypes,
 };
@@ -47,6 +66,7 @@ const defaultProps = {
             waypointIndex: '',
         },
     },
+    recentWaypoints: [],
     transaction: {},
 };
 
