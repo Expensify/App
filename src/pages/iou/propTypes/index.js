@@ -15,6 +15,7 @@ const iouPropTypes = PropTypes.shape({
     /** Description of the request */
     comment: PropTypes.string,
 
+    /** The merchant name */
     merchant: PropTypes.string,
 
     /** Date that the request was created */
