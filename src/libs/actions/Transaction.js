@@ -92,7 +92,6 @@ function saveWaypoint(transactionID, index, waypoint) {
                 },
             },
         },
-
     });
 
     // You can save offline waypoints without verifying the address (we will geocode it on the backend)
