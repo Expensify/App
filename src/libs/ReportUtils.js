@@ -2502,7 +2502,7 @@ function buildOptimisticTaskReport(ownerAccountID, assigneeAccountID = 0, parent
  *
  * @returns {Object}
  */
-function buildTransactionThread(reportAction) {
+function buildTransactionThread(reportAction, moneyRequestReportID) {
     const participantAccountIDs = _.uniq([currentUserAccountID, Number(reportAction.actorAccountID)]);
     return buildOptimisticChatReport(
         participantAccountIDs,
@@ -2516,7 +2516,7 @@ function buildTransactionThread(reportAction) {
         undefined,
         CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
         reportAction.reportActionID,
-        reportAction.reportID,
+        moneyRequestReportID,
     );
 }
 
