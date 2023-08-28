@@ -125,7 +125,6 @@ function DistanceRequest({transactionID, report, transaction, mapboxAccessToken,
     }, []);
 
     useEffect(() => {
-        console.log(">>>>", transactionID, waypoints);
         if (!transactionID || !_.isEmpty(waypoints)) {
             return;
         }
