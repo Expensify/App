@@ -407,7 +407,7 @@ function ReportActionCompose({
                                 if (composerRef === null || composerRef.current === null) {
                                     return;
                                 }
-                                composerRef.current.focus(true)
+                                composerRef.current.focus(true);
                             }}
                             onEmojiSelected={(...args) => composerRef.current.replaceSelectionWithText(...args)}
                             emojiPickerID={report.reportID}
