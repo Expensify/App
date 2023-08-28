@@ -48,7 +48,7 @@ function isEmailPublicDomain(email) {
  * @param {String} values
  * @returns {String} - Returns valid phone number formatted
  */
-const validateNumber = (values) => {
+function validateNumber(values) {
     const parsedPhoneNumber = parsePhoneNumber(values);
 
     if (parsedPhoneNumber.possible && Str.isValidPhone(values.slice(0))) {
@@ -56,19 +56,19 @@ const validateNumber = (values) => {
     }
 
     return '';
-};
+}
 
 /**
  * Check number is valid and attach country code
  * @param {String} partnerUserID
  * @returns {String} - Returns valid phone number with country code
  */
-const getPhoneLogin = (partnerUserID) => {
+function getPhoneLogin(partnerUserID) {
     if (_.isEmpty(partnerUserID)) {
         return '';
     }
 
     return appendCountryCode(getPhoneNumberWithoutSpecialChars(partnerUserID));
-};
+}
 
 export {getPhoneNumberWithoutSpecialChars, appendCountryCode, isEmailPublicDomain, validateNumber, getPhoneLogin};
