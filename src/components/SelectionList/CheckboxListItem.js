@@ -6,10 +6,13 @@ import PressableWithFeedback from '../Pressable/PressableWithFeedback';
 import styles from '../../styles/styles';
 import Text from '../Text';
 import {checkboxListItemPropTypes} from './selectionListPropTypes';
-import Checkbox from '../Checkbox';
 import Avatar from '../Avatar';
 import OfflineWithFeedback from '../OfflineWithFeedback';
 import CONST from '../../CONST';
+import * as StyleUtils from '../../styles/StyleUtils';
+import Icon from '../Icon';
+import * as Expensicons from '../Icon/Expensicons';
+import themeColors from '../../styles/themes/default';
 
 function CheckboxListItem({item, isFocused = false, onSelectRow, onDismissError = () => {}}) {
     const hasError = !_.isEmpty(item.errors);
@@ -32,13 +35,24 @@ function CheckboxListItem({item, isFocused = false, onSelectRow, onDismissError 
                 hoverStyle={styles.hoveredComponentBG}
                 focusStyle={styles.hoveredComponentBG}
             >
-                <Checkbox
-                    accessibilityLabel={item.text}
-                    disabled={item.isDisabled}
-                    isChecked={item.isSelected}
-                    onPress={() => onSelectRow(item)}
-                    style={item.isDisabled ? styles.buttonOpacityDisabled : {}}
-                />
+                <View
+                    style={[
+                        StyleUtils.getCheckboxContainerStyle(20, 4),
+                        item.isSelected && styles.checkedContainer,
+                        item.isSelected && styles.borderColorFocus,
+                        item.isDisabled && styles.cursorDisabled,
+                        item.isDisabled && styles.buttonOpacityDisabled,
+                    ]}
+                >
+                    {item.isSelected && (
+                        <Icon
+                            src={Expensicons.Checkmark}
+                            fill={themeColors.textLight}
+                            height={14}
+                            width={14}
+                        />
+                    )}
+                </View>
                 {Boolean(item.avatar) && (
                     <Avatar
                         containerStyles={styles.pl5}
