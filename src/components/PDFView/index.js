@@ -120,23 +120,6 @@ class PDFView extends Component {
     }
 
     /**
-     * Verify that the canvas limits have been calculated already, if not calculate them and put them in Onyx
-     */
-    retrieveCanvasLimits() {
-        if (!this.props.maxCanvasArea) {
-            CanvasSize.retrieveMaxCanvasArea();
-        }
-
-        if (!this.props.maxCanvasHeight) {
-            CanvasSize.retrieveMaxCanvasHeight();
-        }
-
-        if (!this.props.maxCanvasWidth) {
-            CanvasSize.retrieveMaxCanvasWidth();
-        }
-    }
-
-    /**
      * Calculates a proper page height. The method should be called only when there are page viewports.
      * It is based on a ratio between the specific page viewport width and provided page width.
      * Also, the app should take into account the page borders.
@@ -215,8 +198,7 @@ class PDFView extends Component {
         this.setState({isKeyboardOpen});
         this.props.onToggleKeyboard(isKeyboardOpen);
     }
-    // 
-        
+
     /**
      * Calculate the devicePixelRatio the page should be rendered with
      * Each platform has a different default devicePixelRatio and different canvas limits, we need to verify that
@@ -232,6 +214,23 @@ class PDFView extends Component {
         const ratioArea = Math.sqrt(this.props.maxCanvasArea / nbPixels);
         const ratio = Math.min(ratioHeight, ratioArea, ratioWidth);
         return ratio > window.devicePixelRatio ? undefined : ratio;
+    }
+
+    /**
+     * Verify that the canvas limits have been calculated already, if not calculate them and put them in Onyx
+     */
+    retrieveCanvasLimits() {
+        if (!this.props.maxCanvasArea) {
+            CanvasSize.retrieveMaxCanvasArea();
+        }
+
+        if (!this.props.maxCanvasHeight) {
+            CanvasSize.retrieveMaxCanvasHeight();
+        }
+
+        if (!this.props.maxCanvasWidth) {
+            CanvasSize.retrieveMaxCanvasWidth();
+        }
     }
 
     /**
