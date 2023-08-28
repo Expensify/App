@@ -21,7 +21,6 @@ import * as ErrorUtils from '../ErrorUtils';
 import * as UserUtils from '../UserUtils';
 import * as Report from './Report';
 import * as NumberUtils from '../NumberUtils';
-import * as SessionUtils from '../SessionUtils';
 
 let allReports;
 Onyx.connect({
@@ -52,20 +51,29 @@ Onyx.connect({
     },
 });
 
+let didInitCurrency = false;
+Onyx.connect({
+    key: ONYXKEYS.IOU,
+    callback: (val) => {
+        didInitCurrency = lodashGet(val, 'didInitCurrency');
+    },
+});
+
 let shouldResetIOUAfterLogin = true;
 let currentUserPersonalDetails = {};
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => {
         currentUserPersonalDetails = lodashGet(val, userAccountID, {});
-        if (val && SessionUtils.didUserLogInDuringSession() && shouldResetIOUAfterLogin) {
-            // eslint-disable-next-line no-use-before-define
-            resetMoneyRequestInfo();
-            shouldResetIOUAfterLogin = false;
-            Onyx.merge(ONYXKEYS.IOU, {
-                didInitCurrency: true,
-            });
+        if (!val || !shouldResetIOUAfterLogin || didInitCurrency) {
+            return;
         }
+        // eslint-disable-next-line no-use-before-define
+        resetMoneyRequestInfo();
+        shouldResetIOUAfterLogin = false;
+        Onyx.merge(ONYXKEYS.IOU, {
+            didInitCurrency: true,
+        });
     },
 });
 
