@@ -31,7 +31,10 @@ Onyx.connect({
         // does not match a closed or created state.
         const reportActionsForDisplay = _.filter(
             actionsArray,
-            (reportAction, actionKey) => ReportActionsUtils.shouldReportActionBeVisible(reportAction, actionKey) && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED,
+            (reportAction, actionKey) =>
+                ReportActionsUtils.shouldReportActionBeVisible(reportAction, actionKey) &&
+                reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED &&
+                reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         );
         visibleReportActionItems[reportID] = _.last(reportActionsForDisplay);
     },
@@ -259,6 +262,7 @@ function getOptionData(report, reportActions, personalDetails, preferredLocale, 
     const subtitle = ReportUtils.getChatRoomSubtitle(report);
 
     const login = Str.removeSMSDomain(lodashGet(personalDetail, 'login', ''));
+    const status = lodashGet(personalDetail, 'status', '');
     const formattedLogin = Str.isSMSLogin(login) ? LocalePhoneNumber.formatPhoneNumber(login) : login;
 
     // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
@@ -348,6 +352,12 @@ function getOptionData(report, reportActions, personalDetails, preferredLocale, 
     result.searchText = OptionsListUtils.getSearchText(report, reportName, participantPersonalDetailList, result.isChatRoom || result.isPolicyExpenseChat, result.isThread);
     result.displayNamesWithTooltips = displayNamesWithTooltips;
     result.isLastMessageDeletedParentAction = report.isLastMessageDeletedParentAction;
+
+    if (status) {
+        result.status = status;
+    }
+    result.type = report.type;
+
     return result;
 }
 
