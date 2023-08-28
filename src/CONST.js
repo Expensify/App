@@ -586,6 +586,7 @@ const CONST = {
             MUTE: 'mute',
             DAILY: 'daily',
             ALWAYS: 'always',
+            HIDDEN: 'hidden',
         },
         // Options for which room members can post
         WRITE_CAPABILITIES: {
@@ -817,8 +818,10 @@ const CONST = {
     },
 
     FILE_TYPE_REGEX: {
-        IMAGE: /\.(jpg|jpeg|png|webp|avif|gif|tiff|wbmp|ico|jng|bmp|heic|svg|svg2)$/,
-        VIDEO: /\.(3gp|h261|h263|h264|m4s|jpgv|jpm|jpgm|mp4|mp4v|mpg4|mpeg|mpg|ogv|ogg|mov|qt|webm|flv|mkv|wmv|wav|avi|movie|f4v|avchd|mp2|mpe|mpv|m4v|swf)$/,
+        // Image MimeTypes allowed by iOS photos app.
+        IMAGE: /\.(jpg|jpeg|png|webp|gif|tiff|bmp|heic|heif)$/,
+        // Video MimeTypes allowed by iOS photos app.
+        VIDEO: /\.(mov|mp4)$/,
     },
     IOS_CAMERAROLL_ACCESS_ERROR: 'Access to photo library was denied',
     ADD_PAYMENT_MENU_POSITION_Y: 226,
@@ -895,8 +898,6 @@ const CONST = {
         QA_TRAVIS: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_QA_TRAVIS', 8595733)),
         RECEIPTS: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_RECEIPTS', -1)),
         REWARDS: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_REWARDS', 11023767)), // rewards@expensify.com
-        SAASTR: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_SAASTR', 15252830)),
-        SBE: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_SBE', 15305309)),
         STUDENT_AMBASSADOR: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_STUDENT_AMBASSADOR', 10476956)),
         SVFG: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_SVFG', 2012843)),
     },
@@ -1200,6 +1201,8 @@ const CONST = {
         TIME_STARTS_01: /^01:\d{2} [AP]M$/,
         TIME_FORMAT: /^\d{2}:\d{2} [AP]M$/,
         DATE_TIME_FORMAT: /^\d{2}-\d{2} \d{2}:\d{2} [AP]M$/,
+        ATTACHMENT_ROUTE: /\/r\/(\d*)\/attachment/,
+        ILLEGAL_FILENAME_CHARACTERS: /\/|<|>|\*|"|:|\?|\\|\|/g,
     },
 
     PRONOUNS: {
@@ -1233,8 +1236,6 @@ const CONST = {
             this.EMAIL.QA,
             this.EMAIL.QA_TRAVIS,
             this.EMAIL.RECEIPTS,
-            this.EMAIL.SAASTR,
-            this.EMAIL.SBE,
             this.EMAIL.STUDENT_AMBASSADOR,
             this.EMAIL.SVFG,
         ];
@@ -1255,8 +1256,6 @@ const CONST = {
             this.ACCOUNT_ID.QA_TRAVIS,
             this.ACCOUNT_ID.RECEIPTS,
             this.ACCOUNT_ID.REWARDS,
-            this.ACCOUNT_ID.SAASTR,
-            this.ACCOUNT_ID.SBE,
             this.ACCOUNT_ID.STUDENT_AMBASSADOR,
             this.ACCOUNT_ID.SVFG,
         ];

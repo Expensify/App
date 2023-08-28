@@ -16,21 +16,31 @@ import compose from '../../../../libs/compose';
 import * as DeviceCapabilities from '../../../../libs/DeviceCapabilities';
 import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 import * as IOU from '../../../../libs/actions/IOU';
+import participantPropTypes from '../../../../components/participantPropTypes';
 
 const propTypes = {
+    /** React Navigation route */
+    route: PropTypes.shape({
+        /** Params from the route */
+        params: PropTypes.shape({
+            /** The type of IOU report, i.e. bill, request, send */
+            iouType: PropTypes.string,
+
+            /** The report ID of the IOU */
+            reportID: PropTypes.string,
+        }),
+    }).isRequired,
+
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     iou: PropTypes.shape({
+        /** ID (iouType + reportID) of the request */
         id: PropTypes.string,
+
+        /** Amount of the request */
         amount: PropTypes.number,
-        participants: PropTypes.arrayOf(
-            PropTypes.shape({
-                accountID: PropTypes.number,
-                login: PropTypes.string,
-                isPolicyExpenseChat: PropTypes.bool,
-                isOwnPolicyExpenseChat: PropTypes.bool,
-                selected: PropTypes.bool,
-            }),
-        ),
+
+        /** List of the participants */
+        participants: PropTypes.arrayOf(participantPropTypes),
     }),
 
     ...withLocalizePropTypes,
