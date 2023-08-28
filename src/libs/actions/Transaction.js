@@ -95,8 +95,9 @@ function saveWaypoint(transactionID, index, waypoint) {
     });
     const recentWaypointAlreadyExists = _.find(recentWaypoints, (recentWaypoint) => recentWaypoint.address === waypoint.address);
     if (!recentWaypointAlreadyExists) {
-        recentWaypoints.unshift(waypoint);
-        Onyx.merge(ONYXKEYS.NVP_RECENT_WAYPOINTS, recentWaypoints.slice(0, 5));
+        const clonedWaypoints = _.clone(recentWaypoints);
+        clonedWaypoints.unshift(waypoint);
+        Onyx.merge(ONYXKEYS.NVP_RECENT_WAYPOINTS, clonedWaypoints.slice(0, 5));
     }
 }
 

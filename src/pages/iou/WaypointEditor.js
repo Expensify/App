@@ -178,7 +178,7 @@ export default compose(
             // Only grab the most recent 5 waypoints because that's all that is shown in the UI. This also puts them into the format of data
             // that the google autocomplete component expects for it's "predefined places" feature.
             selector: (waypoints) =>
-                _.map(waypoints && waypoints.length ? waypoints.slice(0, 5) : [], (waypoint) => ({
+                _.map(waypoints ? waypoints.slice(0, 5) : [], (waypoint) => ({
                     description: waypoint.address,
                     geometry: {
                         location: {
