@@ -62,49 +62,28 @@ const localeProviderDefaultProps = {
     currentUserPersonalDetails: {},
 };
 
-class LocaleContextProvider extends React.Component {
-    /**
-     * The context this component exposes to child components
-     * @returns {object} translation util functions and locale
-     */
-    getContextValue() {
-        return {
-            translate: this.translate.bind(this),
-            numberFormat: this.numberFormat.bind(this),
-            datetimeToRelative: this.datetimeToRelative.bind(this),
-            datetimeToCalendarTime: this.datetimeToCalendarTime.bind(this),
-            formatPhoneNumber: this.formatPhoneNumber.bind(this),
-            fromLocaleDigit: this.fromLocaleDigit.bind(this),
-            toLocaleDigit: this.toLocaleDigit.bind(this),
-            preferredLocale: this.props.preferredLocale,
-        };
-    }
+function LocaleContextProvider ({children, currentUserPersonalDetails, preferredLocale}) {
+    const selectedTimezone = lodashGet(currentUserPersonalDetails, 'timezone.selected');
 
     /**
      * @param {String} phrase
      * @param {Object} [variables]
      * @returns {String}
      */
-    translate(phrase, variables) {
-        return Localize.translate(this.props.preferredLocale, phrase, variables);
-    }
+    const translate = (phrase, variables) => Localize.translate(preferredLocale, phrase, variables)
 
     /**
      * @param {Number} number
      * @param {Intl.NumberFormatOptions} options
      * @returns {String}
      */
-    numberFormat(number, options) {
-        return NumberFormatUtils.format(this.props.preferredLocale, number, options);
-    }
+    const numberFormat = (number, options) => NumberFormatUtils.format(preferredLocale, number, options)
 
     /**
      * @param {String} datetime
      * @returns {String}
      */
-    datetimeToRelative(datetime) {
-        return DateUtils.datetimeToRelative(this.props.preferredLocale, datetime);
-    }
+    const datetimeToRelative = (datetime) => DateUtils.datetimeToRelative(preferredLocale, datetime)
 
     /**
      * @param {String} datetime - ISO-formatted datetime string
@@ -112,37 +91,42 @@ class LocaleContextProvider extends React.Component {
      * @param {Boolean} isLowercase
      * @returns {String}
      */
-    datetimeToCalendarTime(datetime, includeTimezone, isLowercase = false) {
-        return DateUtils.datetimeToCalendarTime(this.props.preferredLocale, datetime, includeTimezone, lodashGet(this.props, 'currentUserPersonalDetails.timezone.selected'), isLowercase);
-    }
+    const datetimeToCalendarTime = (datetime, includeTimezone, isLowercase = false) => DateUtils.datetimeToCalendarTime(preferredLocale, datetime, includeTimezone, selectedTimezone, isLowercase)
 
     /**
      * @param {String} phoneNumber
      * @returns {String}
      */
-    formatPhoneNumber(phoneNumber) {
-        return LocalePhoneNumber.formatPhoneNumber(phoneNumber);
-    }
+    const formatPhoneNumber = (phoneNumber) => LocalePhoneNumber.formatPhoneNumber(phoneNumber)
 
     /**
      * @param {String} digit
      * @returns {String}
      */
-    toLocaleDigit(digit) {
-        return LocaleDigitUtils.toLocaleDigit(this.props.preferredLocale, digit);
-    }
-
+    const toLocaleDigit = (digit) => LocaleDigitUtils.toLocaleDigit(preferredLocale, digit)
+    
     /**
      * @param {String} localeDigit
      * @returns {String}
      */
-    fromLocaleDigit(localeDigit) {
-        return LocaleDigitUtils.fromLocaleDigit(this.props.preferredLocale, localeDigit);
-    }
+    const fromLocaleDigit = (localeDigit) => LocaleDigitUtils.fromLocaleDigit(preferredLocale, localeDigit)
 
-    render() {
-        return <LocaleContext.Provider value={this.getContextValue()}>{this.props.children}</LocaleContext.Provider>;
-    }
+    /**
+     * The context this component exposes to child components
+     * @returns {object} translation util functions and locale
+     */
+    const getContextValue = () => ({
+        translate,
+        numberFormat,
+        datetimeToRelative,
+        datetimeToCalendarTime,
+        formatPhoneNumber,
+        toLocaleDigit,
+        fromLocaleDigit,
+        preferredLocale,
+    })
+
+    return <LocaleContext.Provider value={getContextValue()}>{children}</LocaleContext.Provider>;
 }
 
 LocaleContextProvider.propTypes = localeProviderPropTypes;
