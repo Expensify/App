@@ -3,6 +3,7 @@ title: Custom Reporting and Insights
 description: How to get the most out of the Custom Reporing and Insights
 ---
 <!-- The lines above are required by Jekyll to process the .md file -->
+{% raw %}
 
 # What is Custom Reporting and Insights?
 The Insights dashboard allows you to monitor all aspects of company spend across categories, employees, projects, departments, and more. You can see trends in real time, forecast company budgets, and build unlimited custom reports with help from our trained specialist team. 
@@ -97,3 +98,4 @@ We’ve built a huge variety of custom reports for customers, so make sure to re
 - Vendor Spend
 - … or anything you can imagine! 
 
+{% endraw %}
