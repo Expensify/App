@@ -120,6 +120,23 @@ class PDFView extends Component {
     }
 
     /**
+     * Calculate the devicePixelRatio the page should be rendered with
+     * Each platform has a different default devicePixelRatio and different canvas limits, we need to verify that
+     * with the default devicePixelRatio it will be able to diplay the pdf correctly, if not we must change the devicePixelRatio.
+     * @param {Number} width of the page
+     * @param {Number} height of the page
+     * @returns {Number} devicePixelRatio for this page on this platform
+     */
+    getDevicePixelRatio(width, height) {
+        const nbPixels = width * height;
+        const ratioHeight = this.props.maxCanvasHeight / height;
+        const ratioWidth = this.props.maxCanvasWidth / width;
+        const ratioArea = Math.sqrt(this.props.maxCanvasArea / nbPixels);
+        const ratio = Math.min(ratioHeight, ratioArea, ratioWidth);
+        return ratio > window.devicePixelRatio ? undefined : ratio;
+    }
+
+    /**
      * Calculates a proper page height. The method should be called only when there are page viewports.
      * It is based on a ratio between the specific page viewport width and provided page width.
      * Also, the app should take into account the page borders.
@@ -197,23 +214,6 @@ class PDFView extends Component {
         }
         this.setState({isKeyboardOpen});
         this.props.onToggleKeyboard(isKeyboardOpen);
-    }
-
-    /**
-     * Calculate the devicePixelRatio the page should be rendered with
-     * Each platform has a different default devicePixelRatio and different canvas limits, we need to verify that
-     * with the default devicePixelRatio it will be able to diplay the pdf correctly, if not we must change the devicePixelRatio.
-     * @param {Number} width of the page
-     * @param {Number} height of the page
-     * @returns {Number} devicePixelRatio for this page on this platform
-     */
-    getDevicePixelRatio(width, height) {
-        const nbPixels = width * height;
-        const ratioHeight = this.props.maxCanvasHeight / height;
-        const ratioWidth = this.props.maxCanvasWidth / width;
-        const ratioArea = Math.sqrt(this.props.maxCanvasArea / nbPixels);
-        const ratio = Math.min(ratioHeight, ratioArea, ratioWidth);
-        return ratio > window.devicePixelRatio ? undefined : ratio;
     }
 
     /**
