@@ -36,40 +36,10 @@ runs:
           echo 'CHANGES_IN_PATCH_FILES=false' >> "$GITHUB_OUTPUT"
         fi
 
-    - name: Patch root project node packages
-      shell: bash {0}
-      id: patch
-      if: | 
-        steps.patchCheck.outputs.CHANGES_IN_PATCH_FILES == 'true' && 
-        steps.cache-node-modules.outputs.cache-hit == 'true'
-      run: |
-        set +e
-        {
-          npx patch-package &&
-          echo 'PATCH_EXECUTED=true' >> "$GITHUB_OUTPUT"
-        } || {
-          echo 'PATCH_EXECUTED=false' >> "$GITHUB_OUTPUT"
-        }
-
-    - name: Patch node packages for desktop submodule
-      shell: bash {0}
-      id: patchDesktop
-      if: | 
-        steps.patchCheck.outputs.CHANGES_IN_PATCH_FILES == 'true' && 
-        steps.cache-desktop-node-modules.outputs.cache-hit == 'true'
-      run: |
-        set +e
-        {
-          cd desktop && npx patch-package &&
-          echo 'PATCH_EXECUTED=true' >> "$GITHUB_OUTPUT"
-        } || {
-          echo 'PATCH_EXECUTED=false' >> "$GITHUB_OUTPUT"
-        }
-
     - name: Install root project node packages
       if: |
         steps.cache-node-modules.outputs.cache-hit != 'true' ||
-        steps.patch.outputs.PATCH_EXECUTED == 'false'
+        steps.patchCheck.outputs.CHANGES_IN_PATCH_FILES == 'true'
       uses: nick-fields/retry@v2
       with:
         timeout_minutes: 30
@@ -79,7 +49,7 @@ runs:
     - name: Install node packages for desktop submodule
       if: |
         steps.cache-desktop-node-modules.outputs.cache-hit != 'true' ||
-        steps.patchDesktop.outputs.PATCH_EXECUTED == 'false'
+        steps.patchCheck.outputs.CHANGES_IN_PATCH_FILES == 'true'
       uses: nick-fields/retry@v2
       with:
         timeout_minutes: 30
