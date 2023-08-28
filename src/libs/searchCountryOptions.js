@@ -8,9 +8,13 @@ import StringUtils from './StringUtils';
  * @returns {Object[]} An array of countries/states sorted based on the search query
  */
 function searchCountryOptions(searchValue, countriesData) {
+    if (_.isEmpty(searchValue)) {
+        return countriesData;
+    }
+
     const trimmedSearchValue = StringUtils.sanitizeString(searchValue);
     if (_.isEmpty(trimmedSearchValue)) {
-        return countriesData;
+        return [];
     }
 
     const filteredData = _.filter(countriesData, (country) => _.includes(country.searchValue, trimmedSearchValue));
