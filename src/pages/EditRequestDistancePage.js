@@ -16,10 +16,10 @@ const propTypes = {
     report: reportPropTypes,
 };
 
-function EditRequestDistancePage({iou, report}) {
+function EditRequestDistancePage({transactionID, report}) {
 
     useEffect(() => {
-        IOU.setDistanceRequestTransactionID(iou.transactionID);
+        IOU.setDistanceRequestTransactionID(transactionID);
     }, [])
 
     const {translate} = useLocalize();
@@ -34,7 +34,7 @@ function EditRequestDistancePage({iou, report}) {
             />
             <DistanceRequest
                 report={report}
-                transactionID={iou.transactionID}
+                transactionID={transactionID}
                 isEditingRequest
                 onSubmit={(waypoints) => {
                     IOU.editDistanceRequest(iou.transactionID, report.reportID, {waypoints});
@@ -47,5 +47,4 @@ function EditRequestDistancePage({iou, report}) {
 
 EditRequestDistancePage.propTypes = propTypes;
 EditRequestDistancePage.displayName = 'EditRequestDistancePage';
-
 export default EditRequestDistancePage;

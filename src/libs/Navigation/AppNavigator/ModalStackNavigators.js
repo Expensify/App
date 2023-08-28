@@ -127,7 +127,7 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
-            const WaypointEditorPage = require('../../../pages/iou/WaypointEditorPage').default;
+            const WaypointEditorPage = require('../../../pages/iou/MoneyRequestEditWaypointPage').default;
             return WaypointEditorPage;
         },
         name: 'Money_Request_Edit_Waypoint',

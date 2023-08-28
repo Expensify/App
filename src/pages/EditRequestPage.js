@@ -173,7 +173,6 @@ function EditRequestPage({report, route, parentReport, policy, session}) {
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DISTANCE) {
         return (
             <EditRequestDistancePage
-                iou={transaction}
                 report={report}
                 transactionID={transaction.transactionID}
             />
