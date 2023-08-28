@@ -71,8 +71,7 @@ function BaseModal({
                 ComposerFocusManager.setReadyToFocus();
             }
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- adding onModalHide to the dependency array causes too many unnecessary rerenders
-        [shouldSetModalVisibility, onModalHide],
+        [shouldSetModalVisibility, onModalHide, fullscreen],
     );
 
     useEffect(() => {
