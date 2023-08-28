@@ -84,7 +84,23 @@ function saveWaypoint(transactionID, index, waypoint) {
             route: null,
         },
 
+        // Clear the existing route so that we don't show an old route
+        routes: {
+            route0: {
+                geometry: {
+                    coordinates: null,
+                },
+            },
+        },
+
     });
+
+    // You can save offline waypoints without verifying the address (we will geocode it on the backend)
+    // We're going to prevent saving those addresses in the recent waypoints though since they could be invalid addresses
+    if (!waypoint.lat || !waypoint.lng) {
+        return;
+    }
+
     const recentWaypointAlreadyExists = _.find(recentWaypoints, (recentWaypoint) => recentWaypoint.address === waypoint.address);
     if (!recentWaypointAlreadyExists) {
         const clonedWaypoints = _.clone(recentWaypoints);
