@@ -21,8 +21,6 @@ import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 import refPropTypes from '../refPropTypes';
 import RenderHTML from '../RenderHTML';
 import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
-import OfflineWithFeedback from '../OfflineWithFeedback';
-import * as IOU from '../../libs/actions/IOU';
 import reportPropTypes from '../../pages/reportPropTypes';
 import useLocalize from '../../hooks/useLocalize';
 
@@ -63,9 +61,6 @@ const propTypes = {
     /** Styles to be assigned to Container */
     // eslint-disable-next-line react/forbid-prop-types
     style: PropTypes.arrayOf(PropTypes.object),
-
-    /** Errors on the money request transaction keyed by microtime */
-    transactionErrors: PropTypes.objectOf(PropTypes.string),
 };
 
 const defaultProps = {
@@ -76,7 +71,6 @@ const defaultProps = {
     reportActions: {},
     isHovered: false,
     style: [],
-    transactionErrors: {},
 };
 
 function MoneyRequestAction({
@@ -92,7 +86,6 @@ function MoneyRequestAction({
     isHovered,
     network,
     style,
-    transactionErrors,
 }) {
     const {translate} = useLocalize();
     const isSplitBillAction = lodashGet(action, 'originalMessage.type', '') === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
@@ -130,28 +123,21 @@ function MoneyRequestAction({
         shouldShowPendingConversionMessage = IOUUtils.isIOUReportPendingCurrencyConversion(iouReport);
     }
 
-    return (
-        <OfflineWithFeedback
-            errors={transactionErrors}
-            onClose={() => IOU.cleanUpFailedMoneyRequest(iouReport.chatReportID, iouReport, action)}
-        >
-            {isDeletedParentAction ? (
-                <RenderHTML html={`<comment>${translate('parentReportAction.deletedRequest')}</comment>`} />
-            ) : (
-                <MoneyRequestPreview
-                    iouReportID={requestReportID}
-                    chatReportID={chatReportID}
-                    isBillSplit={isSplitBillAction}
-                    action={action}
-                    contextMenuAnchor={contextMenuAnchor}
-                    checkIfContextMenuActive={checkIfContextMenuActive}
-                    shouldShowPendingConversionMessage={shouldShowPendingConversionMessage}
-                    onPreviewPressed={onMoneyRequestPreviewPressed}
-                    containerStyles={[styles.cursorPointer, isHovered ? styles.reportPreviewBoxHoverBorder : undefined, ...style]}
-                    isHovered={isHovered}
-                />
-            )}
-        </OfflineWithFeedback>
+    return isDeletedParentAction ? (
+        <RenderHTML html={`<comment>${translate('parentReportAction.deletedRequest')}</comment>`} />
+    ) : (
+        <MoneyRequestPreview
+            iouReportID={requestReportID}
+            chatReportID={chatReportID}
+            isBillSplit={isSplitBillAction}
+            action={action}
+            contextMenuAnchor={contextMenuAnchor}
+            checkIfContextMenuActive={checkIfContextMenuActive}
+            shouldShowPendingConversionMessage={shouldShowPendingConversionMessage}
+            onPreviewPressed={onMoneyRequestPreviewPressed}
+            containerStyles={[styles.cursorPointer, isHovered ? styles.reportPreviewBoxHoverBorder : undefined, ...style]}
+            isHovered={isHovered}
+        />
     );
 }
 
@@ -173,10 +159,6 @@ export default compose(
         },
         session: {
             key: ONYXKEYS.SESSION,
-        },
-        transactionErrors: {
-            key: ({requestReportID, action}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${ReportActionsUtils.getLinkedTransactionID(requestReportID, action.reportActionID)}`,
-            selector: (transaction) => (transaction && transaction.errors) || {},
         },
     }),
     withNetwork(),
