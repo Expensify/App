@@ -375,6 +375,7 @@ export default {
     tabSelector: {
         manual: 'Manual',
         scan: 'Escanear',
+        distance: 'Distancia',
     },
     receipt: {
         upload: 'Subir recibo',
