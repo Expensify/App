@@ -157,6 +157,7 @@ export default {
         category: 'Categoría',
         receipt: 'Recibo',
         replace: 'Sustituir',
+        distance: 'Distancia',
     },
     anonymousReportFooter: {
         logoTagline: 'Únete a la discusión.',
