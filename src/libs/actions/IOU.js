@@ -531,6 +531,61 @@ function createDistanceRequest(report, payeeEmail, payeeAccountID, participant, 
 }
 
 /**
+ * Edits an existing distance request
+ *
+ * @param {String} transactionID
+ * @param {Object} transactionChanges
+ * @param {String} [transactionChanges.created]
+ * @param {Number} [transactionChanges.amount]
+ * @param {String} [transactionChanges.comment]
+ * @param {String} [transactionChanges.waypoints]
+ * 
+ */
+function editDistanceRequest(transactionID, transactionThreadReportID, transactionChanges) {
+    const pendingFields = _.mapObject(updatedProperties, () => CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+    const clearedPendingFields = _.mapObject(updatedProperties, () => null);
+    const errorFields = _.mapObject(pendingFields, () => ({
+        [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.edit.genericError'),
+    }));
+
+    const transactionThread = allReports[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`];
+    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    const iouReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${transactionThread.parentReportID}`];
+    const isFromExpenseReport = ReportUtils.isExpenseReport(iouReport);
+    const updatedTransaction = TransactionUtils.getUpdatedTransaction(transaction, transactionChanges, isFromExpenseReport);
+    API.write(
+        'EditDistanceRequest',
+        {transactionID, ...ReportUtils.getTransactionDetails(updatedTransaction)},
+        {
+            optimisticData: [
+                {
+                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                    value: {...updatedProperties, pendingFields},
+                },
+            ],
+            successData: [
+                {
+                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                    value: {pendingFields: clearedPendingFields},
+                },
+            ],
+            failureData: [
+                {
+                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                    value: {
+                        pendingFields: clearedPendingFields,
+                        errorFields,
+                    },
+                },
+            ],
+        },
+    );
+}
+
+/**
  * Request money from another user
  *
  * @param {Object} report
@@ -1768,6 +1823,13 @@ function createEmptyTransaction() {
 }
 
 /**
+ * @param {String} transactionID
+ */
+function setDistanceRequestTransactionID(transactionID) {
+    Onyx.set(ONYXKEYS.DISTANCE_REQUEST, {transactionID});
+}
+
+/**
  * Navigates to the next IOU page based on where the IOU request was started
  *
  * @param {Object} iou
@@ -1825,6 +1887,8 @@ export {
     setMoneyRequestMerchant,
     setMoneyRequestParticipants,
     setMoneyRequestReceipt,
+    setDistanceRequestTransactionID,
     createEmptyTransaction,
     navigateToNextPage,
+    editDistanceRequest,
 };
