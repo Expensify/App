@@ -2,7 +2,6 @@ import React, {useRef, useCallback, useState, useEffect} from 'react';
 import {View, FlatList, PixelRatio, Keyboard} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
 import styles from '../../../styles/styles';
 import CarouselActions from './CarouselActions';
 import AttachmentView from '../AttachmentView';
