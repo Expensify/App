@@ -276,6 +276,7 @@ function ReportActionCompose({
         }
         composerRef.current.focus(true);
     }
+
     const onBlur = useCallback((e) => {
         setIsFocused(false);
         suggestionsRef.current.resetSuggestions();
