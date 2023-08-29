@@ -17,6 +17,8 @@ function CategoryPicker({policyCategories, reportID, policyID, iouType, iou, rec
     const {translate} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
 
+    const policyCategoriesAmount = _.size(policyCategories);
+
     const selectedOptions = useMemo(() => {
         if (!iou.category) {
             return [];
@@ -30,6 +32,17 @@ function CategoryPicker({policyCategories, reportID, policyID, iouType, iou, rec
             },
         ];
     }, [iou.category]);
+
+    const initialFocusedIndex = useMemo(() => {
+        if (policyCategoriesAmount < CONST.CATEGORY_LIST_THRESHOLD && selectedOptions.length > 0) {
+            return _.chain(policyCategories)
+                .values()
+                .findIndex((category) => category.name === selectedOptions[0].name, true)
+                .value();
+        }
+
+        return 0;
+    }, [policyCategories, policyCategoriesAmount, selectedOptions]);
 
     const sections = OptionsListUtils.getNewChatOptions(
         {},
@@ -45,8 +58,6 @@ function CategoryPicker({policyCategories, reportID, policyID, iouType, iou, rec
         recentlyUsedPolicyCategories,
         false,
     ).categoryOptions;
-
-    const policyCategoriesAmount = _.size(policyCategories);
 
     const headerMessage = OptionsListUtils.getHeaderMessage(lodashGet(sections, '[0].data.length', 0) > 0, false, searchValue);
 
@@ -80,6 +91,7 @@ function CategoryPicker({policyCategories, reportID, policyID, iouType, iou, rec
             value={searchValue}
             headerMessage={headerMessage}
             textInputLabel={translate('common.search')}
+            initialFocusedIndex={initialFocusedIndex}
             boldStyle
             highlightSelectedOptions
             isRowMultilineSupported

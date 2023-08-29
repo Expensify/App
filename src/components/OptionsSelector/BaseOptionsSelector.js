@@ -135,6 +135,10 @@ class BaseOptionsSelector extends Component {
      * @returns {Number}
      */
     getInitiallyFocusedIndex(allOptions) {
+        if (_.isNumber(this.props.initialFocusedIndex)) {
+            return this.props.initialFocusedIndex;
+        }
+
         if (this.props.selectedOptions.length > 0) {
             return this.props.selectedOptions.length;
         }
