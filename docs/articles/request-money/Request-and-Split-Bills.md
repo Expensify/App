@@ -16,7 +16,10 @@ These two features ensure you can live in the moment and settle up afterward.
 
 # How to Request Money
 - Select the Green **+** button and choose **Request Money**
-- Enter the amount **$** they owe and click **Next**
+- Select the relevant option: 
+    - **Manual:** Input the amount and description manually
+    - **Scan:** Take a photo of the receipt to have the merchant/amount autofilled, and input description manually
+    - **Distance:** Input the address of your start/end points for your trip to calculate mileage 
 - Search for the user or enter their email!
 - Enter a reason for the request (optional)
 - Click **Request!**
