@@ -88,7 +88,7 @@ function MoneyRequestSelectorPage(props) {
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType)}>
-                    <DragAndDropProvider isDisabled={props.selectedTab === CONST.TAB.MANUAL}>
+                    <DragAndDropProvider isDisabled={props.selectedTab !== CONST.TAB.SCAN}>
                         <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                             <HeaderWithBackButton
                                 title={title[iouType]}

@@ -35,6 +35,9 @@ const propTypes = {
 
     /** Style for the container */
     containerStyles: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
+
+    /** Function to call to handle key presses in the text input */
+    onKeyPress: PropTypes.func,
 };
 
 const defaultProps = {
