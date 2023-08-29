@@ -144,7 +144,7 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, trans
             </OfflineWithFeedback>
             <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.merchant') || lodashGet(transaction, 'pendingAction')}>
                 <MenuItemWithTopDescription
-                    description={isDistanceRequest ? translate('tabSelector.distance') : translate('common.merchant')}
+                    description={isDistanceRequest ? translate('common.distance') : translate('common.merchant')}
                     title={transactionMerchant}
                     disabled={isSettled || !canEdit}
                     shouldShowRightIcon={canEdit}

@@ -158,6 +158,7 @@ export default {
         category: 'Category',
         receipt: 'Receipt',
         replace: 'Replace',
+        distance: 'Distance',
     },
     anonymousReportFooter: {
         logoTagline: 'Join the discussion.',
@@ -375,7 +376,6 @@ export default {
     tabSelector: {
         manual: 'Manual',
         scan: 'Scan',
-        distance: 'Distance',
     },
     receipt: {
         upload: 'Upload receipt',
@@ -396,6 +396,8 @@ export default {
     },
     iou: {
         amount: 'Amount',
+        approve: 'Approve',
+        approved: 'Approved',
         cash: 'Cash',
         split: 'Split',
         request: 'Request',
@@ -426,6 +428,7 @@ export default {
         payerOwes: ({payer}) => `${payer} owes: `,
         payerPaidAmount: ({payer, amount}) => `${payer} paid ${amount}`,
         payerPaid: ({payer}) => `${payer} paid: `,
+        managerApproved: ({manager}) => `${manager} approved:`,
         payerSettled: ({amount}) => `paid ${amount}`,
         waitingOnBankAccount: ({submitterDisplayName}) => `started settling up, payment is held until ${submitterDisplayName} adds a bank account`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}) => `${submitterDisplayName} added a bank account. The ${amount} payment has been made.`,
@@ -1612,6 +1615,8 @@ export default {
     },
     distance: {
         addStop: 'Add stop',
+        deleteWaypoint: 'Delete waypoint',
+        deleteWaypointConfirmation: 'Are you sure you want to delete this waypoint?',
         address: 'Address',
         waypointEditor: 'Waypoint Editor',
         waypointDescription: {
