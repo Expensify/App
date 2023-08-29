@@ -1,3 +1,3 @@
-type GetPlaidDesktopMessage = () => string | void;
+type GetPlaidDesktopMessage = () => string | undefined;
 
 export default GetPlaidDesktopMessage;

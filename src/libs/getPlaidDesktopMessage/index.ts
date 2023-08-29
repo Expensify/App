@@ -1,5 +1,5 @@
 import GetPlaidDesktopMessage from './types';
 
-const getPlaidDesktopMessage: GetPlaidDesktopMessage = () => {};
+const getPlaidDesktopMessage: GetPlaidDesktopMessage = () => undefined;
 
 export default getPlaidDesktopMessage;
