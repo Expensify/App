@@ -1,6 +1,7 @@
 import React, {useRef} from 'react';
 import CONST from '../../CONST';
 import {propTypes, defaultProps} from './attachmentPickerPropTypes';
+import Visibility from '../../libs/Visibility';
 
 /**
  * Returns acceptable FileTypes based on ATTACHMENT_PICKER_TYPE
@@ -53,7 +54,16 @@ function AttachmentPicker(props) {
                     if (!fileInput.current) {
                         return;
                     }
-                    fileInput.current.addEventListener('cancel', () => onCanceled.current(), {once: true});
+                    fileInput.current.addEventListener('cancel', () => {
+                        if (Visibility.isVisible()) {
+                            onCanceled.current();
+                            return;
+                        }
+                        const unsubscribeVisibilityListener = Visibility.onVisibilityChange(() => {
+                            onCanceled.current();
+                            unsubscribeVisibilityListener();
+                        });
+                    }, {once: true});
                 }}
                 accept={getAcceptableFileTypes(props.type)}
             />
