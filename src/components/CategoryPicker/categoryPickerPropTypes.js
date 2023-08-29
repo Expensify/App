@@ -29,7 +29,7 @@ const propTypes = {
 const defaultProps = {
     policyID: '',
     policyCategories: {},
-    recentlyUsedPolicyCategories: {},
+    recentlyUsedPolicyCategories: [],
     iou: {},
 };
 
