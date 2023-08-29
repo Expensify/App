@@ -161,7 +161,7 @@ function FloatingActionButtonAndPopover(props) {
         if (!props.showDownloadAppBanner || !Browser.isMobile()) {
             Welcome.show({routes, showCreateMenu});
         }
-    });
+    }, [props.showDownloadAppBanner]);
 
     useEffect(() => {
         if (!didScreenBecomeInactive()) {
