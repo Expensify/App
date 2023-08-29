@@ -711,7 +711,7 @@ function getOptions(
                 categoryOptions.push({
                     title: 'Recent',
                     shouldShow: true,
-                    data: getOptionTree(filteredRecentlyUsedCategories.slice(0, maxRecentReportsToShow)),
+                    data: getOptionTree(filteredRecentlyUsedCategories.slice(0, maxRecentReportsToShow), true),
                 });
             }
 
