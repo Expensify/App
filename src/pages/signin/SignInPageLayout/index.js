@@ -94,6 +94,7 @@ function SignInPageLayout(props) {
                     <SignInPageContent
                         welcomeHeader={props.welcomeHeader}
                         welcomeText={props.welcomeText}
+                        shouldShowSmallScreen={false}
                         shouldShowWelcomeText={props.shouldShowWelcomeText}
                         shouldShowWelcomeHeader={props.shouldShowWelcomeHeader}
                     >
@@ -149,6 +150,7 @@ function SignInPageLayout(props) {
                         <SignInPageContent
                             welcomeHeader={props.welcomeHeader}
                             welcomeText={props.welcomeText}
+                            shouldShowSmallScreen
                             shouldShowWelcomeText={props.shouldShowWelcomeText}
                             shouldShowWelcomeHeader={props.shouldShowWelcomeHeader}
                         >
