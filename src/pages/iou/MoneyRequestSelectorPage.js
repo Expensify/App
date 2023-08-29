@@ -21,6 +21,8 @@ import usePermissions from '../../hooks/usePermissions';
 import OnyxTabNavigator, {TopTab} from '../../libs/Navigation/OnyxTabNavigator';
 import participantPropTypes from '../../components/participantPropTypes';
 import NewRequestAmountPage from './steps/NewRequestAmountPage';
+import withReportOrNotFound from '../home/report/withReportOrNotFound';
+import compose from '../../libs/compose';
 
 const propTypes = {
     /** React Navigation route */
@@ -139,8 +141,11 @@ MoneyRequestSelectorPage.propTypes = propTypes;
 MoneyRequestSelectorPage.defaultProps = defaultProps;
 MoneyRequestSelectorPage.displayName = 'MoneyRequestSelectorPage';
 
-export default withOnyx({
-    selectedTab: {
-        key: `${ONYXKEYS.SELECTED_TAB}_${CONST.TAB.RECEIPT_TAB_ID}`,
-    },
-})(MoneyRequestSelectorPage);
+export default compose(
+    withReportOrNotFound(false),
+    withOnyx({
+        selectedTab: {
+            key: `${ONYXKEYS.SELECTED_TAB}_${CONST.TAB.RECEIPT_TAB_ID}`,
+        },
+    }),
+)(MoneyRequestSelectorPage);

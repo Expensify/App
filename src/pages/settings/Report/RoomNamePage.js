@@ -114,7 +114,7 @@ RoomNamePage.displayName = 'RoomNamePage';
 
 export default compose(
     withLocalize,
-    withReportOrNotFound,
+    withReportOrNotFound(),
     withOnyx({
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
