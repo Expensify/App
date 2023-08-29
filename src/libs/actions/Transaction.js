@@ -199,4 +199,12 @@ function getRoute(transactionID, waypoints) {
     );
 }
 
-export {addStop, createInitialWaypoints, saveWaypoint, removeWaypoint, getRoute};
+function updateWaypoints(transactionID, waypoints) {
+    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+        comment: {
+            waypoints,
+        },
+    });
+}
+
+export {addStop, createInitialWaypoints, saveWaypoint, removeWaypoint, getRoute, updateWaypoints};

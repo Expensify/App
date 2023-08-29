@@ -5,6 +5,7 @@ import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import MapView from 'react-native-x-maps';
+import DraggableList from '../components/DraggableList';
 import ONYXKEYS from '../ONYXKEYS';
 import * as Transaction from '../libs/actions/Transaction';
 import * as TransactionUtils from '../libs/TransactionUtils';
@@ -23,6 +24,7 @@ import useLocalize from '../hooks/useLocalize';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import transactionPropTypes from './transactionPropTypes';
+import ScreenWrapper from './ScreenWrapper';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import * as ErrorUtils from '../libs/ErrorUtils';
 import usePrevious from '../hooks/usePrevious';
@@ -64,6 +66,7 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
     const {translate} = useLocalize();
 
     const waypoints = lodashGet(transaction, 'comment.waypoints', {});
+    const waypointsList = _.keys(waypoints);
     const numberOfWaypoints = _.size(waypoints);
 
     const lastWaypointIndex = numberOfWaypoints - 1;
@@ -138,19 +141,24 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
     useEffect(updateGradientVisibility, [scrollContainerHeight, scrollContentHeight]);
 
     return (
-        <>
+        <ScreenWrapper shouldEnableMaxHeight>
             <View
                 style={styles.distanceRequestContainer(scrollContainerMaxHeight)}
                 onLayout={(event = {}) => setScrollContainerHeight(lodashGet(event, 'nativeEvent.layout.height', 0))}
             >
-                <ScrollView
-                    onContentSizeChange={(width, height) => setScrollContentHeight(height)}
-                    onScroll={updateGradientVisibility}
-                    scrollEventThrottle={16}
-                >
-                    {_.map(waypoints, (waypoint, key) => {
-                        // key is of the form waypoint0, waypoint1, ...
-                        const index = Number(key.replace('waypoint', ''));
+                <DraggableList
+                    data={waypointsList}
+                    keyExtractor={(item) => item}
+                    shouldUsePortal
+                    onDragEnd={({data}) => {
+                        const newWaypoints = {};
+                        _.each(data, (waypoint, index) => {
+                            newWaypoints[`waypoint${index}`] = lodashGet(waypoints, waypoint, null);
+                        });
+                        Transaction.updateWaypoints(transactionID, newWaypoints);
+                    }}
+                    renderItem={({item, drag, getIndex}) => {
+                        const index = getIndex();
                         let descriptionKey = 'distance.waypointDescription.';
                         let waypointIcon;
                         if (index === 0) {
@@ -174,11 +182,12 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
                                 secondaryIconFill={theme.icon}
                                 shouldShowRightIcon
                                 onPress={() => Navigation.navigate(ROUTES.getMoneyRequestWaypointRoute('request', index))}
-                                key={key}
+                                onSecondaryInteraction={drag}
+                                key={item}
                             />
                         );
-                    })}
-                </ScrollView>
+                    }}
+                />
                 {shouldShowGradient && (
                     <LinearGradient
                         style={[styles.pAbsolute, styles.b0, styles.l0, styles.r0, {height: halfMenuItemHeight}]}
@@ -230,7 +239,7 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
                     </View>
                 )}
             </View>
-        </>
+        </ScreenWrapper>
     );
 }
 
