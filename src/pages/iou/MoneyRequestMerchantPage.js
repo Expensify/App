@@ -21,11 +21,18 @@ const propTypes = {
     /** Onyx Props */
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     iou: PropTypes.shape({
+        /** ID (iouType + reportID) of the request */
         id: PropTypes.string,
+
+        /** Amount of the request */
         amount: PropTypes.number,
+
+        /** Description of the request */
         comment: PropTypes.string,
         created: PropTypes.string,
         merchant: PropTypes.string,
+
+        /** List of the participants */
         participants: PropTypes.arrayOf(optionPropTypes),
         receiptPath: PropTypes.string,
     }),
@@ -34,6 +41,12 @@ const propTypes = {
     route: PropTypes.shape({
         /** Params from the route */
         params: PropTypes.shape({
+            /** The type of IOU report, i.e. bill, request, send */
+            iouType: PropTypes.string,
+
+            /** The report ID of the IOU */
+            reportID: PropTypes.string,
+
             /** Which field we are editing */
             field: PropTypes.string,
 
