@@ -227,6 +227,15 @@ const ONYXKEYS = {
     // Information on any active demos being run
     DEMO_INFO: 'demoInfo',
 
+    // Max area supported for HTML <canvas> element
+    MAX_CANVAS_AREA: 'maxCanvasArea',
+
+    // Max height supported for HTML <canvas> element
+    MAX_CANVAS_HEIGHT: 'maxCanvasHeight',
+
+    // Max width supported for HTML <canvas> element
+    MAX_CANVAS_WIDTH: 'maxCanvasWidth',
+
     /** Collection Keys */
     COLLECTION: {
         DOWNLOAD: 'download_',
@@ -356,6 +365,9 @@ type OnyxValues = {
     [ONYXKEYS.MAPBOX_ACCESS_TOKEN]: OnyxTypes.MapboxAccessToken;
     [ONYXKEYS.ONYX_UPDATES_FROM_SERVER]: number;
     [ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT]: number;
+    [ONYXKEYS.MAX_CANVAS_AREA]: number;
+    [ONYXKEYS.MAX_CANVAS_HEIGHT]: number;
+    [ONYXKEYS.MAX_CANVAS_WIDTH]: number;
 
     // Collections
     [ONYXKEYS.COLLECTION.DOWNLOAD]: OnyxTypes.Download;
