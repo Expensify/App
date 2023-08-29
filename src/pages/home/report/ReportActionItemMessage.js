@@ -35,6 +35,15 @@ const defaultProps = {
 function ReportActionItemMessage(props) {
     const messages = _.compact(props.action.previousMessage || props.action.message);
     const isAttachment = ReportUtils.isReportMessageAttachment(_.last(messages));
+    const isIOUReport = ReportActionsUtils.isMoneyRequestAction(props.action);
+    let iouMessage;
+    if (isIOUReport) {
+        const iouReportID = lodashGet(props.action, 'originalMessage.IOUReportID');
+        if (iouReportID) {
+            iouMessage = ReportUtils.getReportPreviewMessage(ReportUtils.getReport(iouReportID), props.action);
+        }
+    }
+
     return (
         <View style={[styles.chatItemMessage, !props.displayAsGroup && isAttachment ? styles.mt2 : {}, ...props.style]}>
             {!props.isHidden ? (
@@ -43,6 +52,7 @@ function ReportActionItemMessage(props) {
                         key={`actionFragment-${props.action.reportActionID}-${index}`}
                         fragment={fragment}
                         isAttachment={props.action.isAttachment}
+                        iouMessage={iouMessage}
                         hasCommentThread={ReportActionsUtils.hasCommentThread(props.action)}
                         attachmentInfo={props.action.attachmentInfo}
                         pendingAction={props.action.pendingAction}
