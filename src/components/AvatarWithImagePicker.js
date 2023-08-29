@@ -23,6 +23,8 @@ import getImageResolution from '../libs/fileDownload/getImageResolution';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import * as Browser from '../libs/Browser';
+import withNavigationFocus from './withNavigationFocus';
+import compose from '../libs/compose';
 
 const propTypes = {
     /** Avatar source to display */
@@ -353,4 +355,7 @@ class AvatarWithImagePicker extends React.Component {
 AvatarWithImagePicker.propTypes = propTypes;
 AvatarWithImagePicker.defaultProps = defaultProps;
 
-export default withLocalize(AvatarWithImagePicker);
+export default compose(
+    withLocalize,
+    withNavigationFocus
+)(AvatarWithImagePicker);
