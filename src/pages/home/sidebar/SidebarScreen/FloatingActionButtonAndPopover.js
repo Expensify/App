@@ -63,7 +63,7 @@ const propTypes = {
     isLoading: PropTypes.bool,
 
     /** For first time users, whether the download app banner should show */
-    showDownloadAppBanner: PropTypes.bool,
+    shouldShowDownloadAppBanner: PropTypes.bool,
 
     /** Forwarded ref to FloatingActionButtonAndPopover */
     innerRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
@@ -75,7 +75,7 @@ const defaultProps = {
     betas: [],
     isLoading: false,
     innerRef: null,
-    showDownloadAppBanner: true,
+    shouldShowDownloadAppBanner: true,
 };
 
 /**
@@ -158,10 +158,12 @@ function FloatingActionButtonAndPopover(props) {
         if (currentRoute && ![NAVIGATORS.CENTRAL_PANE_NAVIGATOR, SCREENS.HOME].includes(currentRoute.name)) {
             return;
         }
-        if (!props.showDownloadAppBanner || !Browser.isMobile()) {
-            Welcome.show({routes, showCreateMenu});
+        // Avoid rendering the create menu for first-time users until they have dismissed the download app banner (mWeb only).
+        if (props.shouldShowDownloadAppBanner || Browser.isMobile()) {
+            return;
         }
-    }, [props.showDownloadAppBanner, props.navigation, showCreateMenu]);
+        Welcome.show({routes, showCreateMenu});
+    }, [props.shouldShowDownloadAppBanner, props.navigation, showCreateMenu]);
 
     useEffect(() => {
         if (!didScreenBecomeInactive()) {
@@ -289,7 +291,7 @@ export default compose(
         isLoading: {
             key: ONYXKEYS.IS_LOADING_REPORT_DATA,
         },
-        showDownloadAppBanner: {
+        shouldShowDownloadAppBanner: {
             key: ONYXKEYS.SHOW_DOWNLOAD_APP_BANNER,
         },
     }),
