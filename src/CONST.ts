@@ -2558,8 +2558,8 @@ const CONST = {
         ATTACHMENT: 'common.attachment',
     },
     TEACHERS_UNITE: {
-        PUBLIC_ROOM_ID: '795574440662771',
-        POLICY_ID: 'B795B6319125BDF2',
+        PUBLIC_ROOM_ID: '207591744844000',
+        POLICY_ID: 'ABD1345ED7293535',
         POLICY_NAME: 'Expensify.org / Teachers Unite!',
         PUBLIC_ROOM_NAME: '#teachers-unite',
     },
