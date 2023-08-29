@@ -27,7 +27,7 @@ function HeaderWithBackButton({
     onDownloadButtonPress = () => {},
     onThreeDotsButtonPress = () => {},
     report = null,
-    policies = {},
+    policy = {},
     personalDetails = {},
     shouldShowAvatarWithDisplay = false,
     shouldShowBackButton = true,
@@ -78,7 +78,7 @@ function HeaderWithBackButton({
                 {shouldShowAvatarWithDisplay ? (
                     <AvatarWithDisplayName
                         report={report}
-                        policies={policies}
+                        policy={policy}
                         personalDetails={personalDetails}
                         shouldEnableDetailPageNavigation={shouldEnableDetailPageNavigation}
                     />

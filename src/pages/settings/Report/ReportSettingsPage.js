@@ -66,13 +66,16 @@ function ReportSettingsPage(props) {
 
     const shouldDisableSettings = _.isEmpty(report) || ReportUtils.shouldDisableSettings(report) || ReportUtils.isArchivedRoom(report);
     const shouldShowRoomName = !ReportUtils.isPolicyExpenseChat(report) && !ReportUtils.isChatThread(report);
-    const notificationPreference = translate(`notificationPreferencesPage.notificationPreferences.${report.notificationPreference}`);
+    const notificationPreference =
+        report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN
+            ? translate(`notificationPreferencesPage.notificationPreferences.${report.notificationPreference}`)
+            : '';
     const writeCapability = ReportUtils.isAdminRoom(report) ? CONST.REPORT.WRITE_CAPABILITIES.ADMINS : report.writeCapability || CONST.REPORT.WRITE_CAPABILITIES.ALL;
 
     const writeCapabilityText = translate(`writeCapabilityPage.writeCapability.${writeCapability}`);
     const shouldAllowWriteCapabilityEditing = lodashGet(linkedWorkspace, 'role', '') === CONST.POLICY.ROLE.ADMIN && !ReportUtils.isAdminRoom(report) && !isMoneyRequestReport;
 
-    const shouldShowNotificationPref = !isMoneyRequestReport;
+    const shouldShowNotificationPref = !isMoneyRequestReport && report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
     const roomNameLabel = translate(isMoneyRequestReport ? 'workspace.editor.nameInputLabel' : 'newRoomPage.roomName');
     const reportName = ReportUtils.getReportName(props.report);
 
