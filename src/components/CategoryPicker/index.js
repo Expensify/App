@@ -1,11 +1,13 @@
 import React, {useMemo, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../ONYXKEYS';
 import {propTypes, defaultProps} from './categoryPickerPropTypes';
 import styles from '../../styles/styles';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
+import CONST from '../../CONST';
 import * as IOU from '../../libs/actions/IOU';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import OptionsSelector from '../OptionsSelector';
@@ -44,6 +46,8 @@ function CategoryPicker({policyCategories, reportID, policyID, iouType, iou, rec
         false,
     ).categoryOptions;
 
+    const policyCategoriesAmount = _.size(policyCategories);
+
     const headerMessage = OptionsListUtils.getHeaderMessage(lodashGet(sections, '[0].data.length', 0) > 0, false, searchValue);
 
     const navigateBack = () => {
@@ -72,6 +76,7 @@ function CategoryPicker({policyCategories, reportID, policyID, iouType, iou, rec
             optionHoveredStyle={styles.hoveredComponentBG}
             sections={sections}
             selectedOptions={selectedOptions}
+            shouldShowTextInput={policyCategoriesAmount >= CONST.CATEGORY_LIST_THRESHOLD}
             value={searchValue}
             headerMessage={headerMessage}
             textInputLabel={translate('common.search')}
