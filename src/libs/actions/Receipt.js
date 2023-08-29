@@ -3,6 +3,8 @@ import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 import * as CollectionUtils from '../CollectionUtils';
+import Navigation from '../Navigation/Navigation';
+import ROUTES from '../../ROUTES';
 
 const allTransactionData = {};
 Onyx.connect({
@@ -47,7 +49,7 @@ function clearUploadReceiptError() {
  *
  * @param {String} transactionID
  */
-function detachReceipt(transactionID) {
+function detachReceipt(transactionID, reportID) {
     API.write('DetachReceipt', {transactionID}, {
         optimisticData: [
             {
@@ -68,6 +70,7 @@ function detachReceipt(transactionID) {
             },
         ],
     });
+    Navigation.navigate(ROUTES.getReportRoute(reportID));
 }
 
 export default {

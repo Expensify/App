@@ -32,7 +32,7 @@ function ReceiptAttachmentHeader(props) {
         const transactionID = lodashGet(parentReportAction, ['originalMessage', 'IOUTransactionID'], 0);
 
         // Detatch receipt & clear modal open state
-        ReceiptActions.detachReceipt(transactionID);
+        ReceiptActions.detachReceipt(transactionID, props.report.reportID);
         setIsDeleteModalVisible(false);
     }, [props.report, setIsDeleteModalVisible]);
 
@@ -75,6 +75,5 @@ function ReceiptAttachmentHeader(props) {
 
 ReceiptAttachmentHeader.displayName = 'ReceiptAttachmentHeader';
 ReceiptAttachmentHeader.propTypes = propTypes;
-ReceiptAttachmentHeader.defaultProps = defaultProps;
 
 export default withWindowDimensions(ReceiptAttachmentHeader);
