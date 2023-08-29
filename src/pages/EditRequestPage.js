@@ -12,6 +12,7 @@ import * as TransactionUtils from '../libs/TransactionUtils';
 import * as Policy from '../libs/actions/Policy';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes} from '../components/withCurrentUserPersonalDetails';
 import EditRequestDescriptionPage from './EditRequestDescriptionPage';
+import EditRequestMerchantPage from './EditRequestMerchantPage';
 import EditRequestCreatedPage from './EditRequestCreatedPage';
 import EditRequestAmountPage from './EditRequestAmountPage';
 import reportPropTypes from './reportPropTypes';
@@ -67,7 +68,7 @@ const defaultProps = {
 function EditRequestPage({report, route, parentReport, policy, session}) {
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
     const transaction = TransactionUtils.getLinkedTransaction(parentReportAction);
-    const {amount: transactionAmount, currency: transactionCurrency, comment: transactionDescription} = ReportUtils.getTransactionDetails(transaction);
+    const {amount: transactionAmount, currency: transactionCurrency, comment: transactionDescription, merchant: transactionMerchant} = ReportUtils.getTransactionDetails(transaction);
 
     const defaultCurrency = lodashGet(route, 'params.currency', '') || transactionCurrency;
 
@@ -146,6 +147,22 @@ function EditRequestPage({report, route, parentReport, policy, session}) {
                         amount,
                         currency: defaultCurrency,
                     });
+                }}
+            />
+        );
+    }
+
+    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.MERCHANT) {
+        return (
+            <EditRequestMerchantPage
+                defaultMerchant={transactionMerchant}
+                onSubmit={(transactionChanges) => {
+                    // In case the merchant hasn't been changed, do not make the API request.
+                    if (transactionChanges.merchant.trim() === transactionMerchant) {
+                        Navigation.dismissModal();
+                        return;
+                    }
+                    editMoneyRequest({merchant: transactionChanges.merchant.trim()});
                 }}
             />
         );

@@ -34,7 +34,6 @@ import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator
 import BlockingView from '../components/BlockingViews/BlockingView';
 import * as Illustrations from '../components/Icon/Illustrations';
 import variables from '../styles/variables';
-import ROUTES from '../ROUTES';
 import * as ValidationUtils from '../libs/ValidationUtils';
 import Permissions from '../libs/Permissions';
 
@@ -138,6 +137,8 @@ function ProfilePage(props) {
     const statusText = lodashGet(details, 'status.text', '');
     const hasStatus = !!statusEmojiCode && Permissions.canUseCustomStatus(props.betas);
     const statusContent = `${statusEmojiCode}  ${statusText}`;
+ 
+    const navigateBackTo = lodashGet(props.route, 'params.backTo', '');
 
     const chatReportWithCurrentUser = !isCurrentUser && !Session.isAnonymousUser() ? ReportUtils.getChatByParticipants([accountID]) : 0;
 
@@ -145,7 +146,7 @@ function ProfilePage(props) {
         <ScreenWrapper>
             <HeaderWithBackButton
                 title={props.translate('common.profile')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.HOME)}
+                onBackButtonPress={() => Navigation.goBack(navigateBackTo)}
             />
             <View
                 pointerEvents="box-none"

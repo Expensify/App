@@ -43,7 +43,7 @@ function buildOptimisticTransaction(
     created = '',
     source = '',
     originalTransactionID = '',
-    merchant = CONST.REPORT.TYPE.IOU,
+    merchant = '',
     receipt = {},
     filename = '',
     existingTransactionID = null,
@@ -60,13 +60,16 @@ function buildOptimisticTransaction(
         commentJSON.originalTransactionID = originalTransactionID;
     }
 
+    // For the SmartScan to run successfully, we need to pass the merchant field empty to the API
+    const defaultMerchant = _.isEmpty(receipt) ? CONST.TRANSACTION.DEFAULT_MERCHANT : '';
+
     return {
         transactionID,
         amount,
         currency,
         reportID,
         comment: commentJSON,
-        merchant: merchant || CONST.REPORT.TYPE.IOU,
+        merchant: merchant || defaultMerchant,
         created: created || DateUtils.getDBTime(),
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         receipt,
@@ -79,7 +82,7 @@ function buildOptimisticTransaction(
  * @returns {Boolean}
  */
 function hasReceipt(transaction) {
-    return !_.isEmpty(lodashGet(transaction, 'receipt'));
+    return lodashGet(transaction, 'receipt.state', '') !== '';
 }
 
 /**
@@ -128,6 +131,7 @@ function getUpdatedTransaction(transaction, transactionChanges, isFromExpenseRep
         ...(_.has(transactionChanges, 'created') && {created: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
         ...(_.has(transactionChanges, 'amount') && {amount: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
         ...(_.has(transactionChanges, 'currency') && {currency: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+        ...(_.has(transactionChanges, 'merchant') && {merchant: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
     };
 
     return updatedTransaction;
@@ -225,6 +229,7 @@ function getCreated(transaction) {
 }
 
 /**
+ * Get the transactions related to a report preview with receipts
  * Get the details linked to the IOU reportAction
  *
  * @param {Object} reportAction
@@ -276,9 +281,10 @@ function validateWaypoints(waypoints) {
 
 /*
  * @param {Object} transaction
- * @param {String} transaction.type
- * @param {Object} [transaction.customUnit]
- * @param {String} [transaction.customUnit.name]
+ * @param {Object} transaction.comment
+ * @param {String} transaction.comment.type
+ * @param {Object} [transaction.comment.customUnit]
+ * @param {String} [transaction.comment.customUnit.name]
  * @returns {Boolean}
  */
 function isDistanceRequest(transaction) {
