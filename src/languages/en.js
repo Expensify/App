@@ -1618,7 +1618,6 @@ export default {
         deleteWaypoint: 'Delete waypoint',
         deleteWaypointConfirmation: 'Are you sure you want to delete this waypoint?',
         address: 'Address',
-        waypointEditor: 'Waypoint Editor',
         waypointDescription: {
             start: 'Start',
             finish: 'Finish',

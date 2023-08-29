@@ -2105,7 +2105,6 @@ export default {
         deleteWaypoint: 'Eliminar punto de ruta',
         deleteWaypointConfirmation: '¿Estás seguro de que quieres eliminar este punto de ruta?',
         address: 'Dirección',
-        waypointEditor: 'Editor de puntos de ruta',
         waypointDescription: {
             start: 'Comienzo',
             finish: 'Final',
