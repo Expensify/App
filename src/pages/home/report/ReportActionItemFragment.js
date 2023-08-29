@@ -121,7 +121,7 @@ function ReportActionItemFragment(props) {
             // Only render HTML if we have html in the fragment
             if (!differByLineBreaksOnly) {
                 const editedTag = props.fragment.isEdited ? `<edited ${isPendingDelete ? 'deleted' : ''}></edited>` : '';
-                const htmlContent = isPendingDelete ? `<del>${html}</del>` : html
+                const htmlContent = isPendingDelete ? `<del>${html}</del>` : html;
 
                 const htmlWithTag = editedTag ? `${htmlContent}${editedTag}` : htmlContent;
 
@@ -130,7 +130,7 @@ function ReportActionItemFragment(props) {
             const containsOnlyEmojis = EmojiUtils.containsOnlyEmojis(text);
 
             return (
-                <Text>
+                <Text style={[containsOnlyEmojis ? styles.onlyEmojisText : undefined, styles.ltr, ...props.style]}>
                     <Text
                         selectable={!DeviceCapabilities.canUseTouchScreen() || !props.isSmallScreenWidth}
                         style={[containsOnlyEmojis ? styles.onlyEmojisText : undefined, styles.ltr, ...props.style, isPendingDelete && styles.offlineFeedback.deleted]}

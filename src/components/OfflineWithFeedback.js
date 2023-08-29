@@ -12,8 +12,8 @@ import * as StyleUtils from '../styles/StyleUtils';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import shouldRenderOffscreen from '../libs/shouldRenderOffscreen';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
-import useLocalize from "../hooks/useLocalize";
-import useNetwork from "../hooks/useNetwork";
+import useLocalize from '../hooks/useLocalize';
+import useNetwork from '../hooks/useNetwork';
 
 /**
  * This component should be used when we are using the offline pattern B (offline with feedback).
@@ -55,6 +55,9 @@ const propTypes = {
 
     /** Whether to apply strikethrough to the children */
     noStrikeThrough: PropTypes.bool,
+
+    /** Whether to apply needsOffscreenAlphaCompositing prop to the children */
+    needsOffscreenAlphaCompositing: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -68,6 +71,7 @@ const defaultProps = {
     contentContainerStyle: [],
     errorRowStyles: [],
     noStrikeThrough: false,
+    needsOffscreenAlphaCompositing: false,
 };
 
 /**
