@@ -138,7 +138,6 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
             address: values.address,
         };
 
-        console.log(">>>> selecting waypoint", transactionID, waypoint);
         Transaction.saveWaypoint(transactionID, waypointIndex, waypoint);
 
         
