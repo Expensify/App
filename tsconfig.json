@@ -32,6 +32,6 @@
         "skipLibCheck": true,
         "incremental": true
     },
-    "exclude": ["**/node_modules/*", "**/dist/*", ".github/actions/**/index.js"],
+    "exclude": ["**/node_modules/*", "**/dist/*", ".github/actions/**/index.js", "**/docs/*"],
     "include": ["src", "desktop", "web", "docs", "assets", "config", "tests", "jest", "__mocks__", ".github/**/*", ".storybook/**/*"]
 }
