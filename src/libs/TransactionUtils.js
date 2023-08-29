@@ -123,8 +123,8 @@ function getUpdatedTransaction(transaction, transactionChanges, isFromExpenseRep
         shouldStopSmartscan = true;
     }
 
-    if (_.has(transactionChanges, 'comment.waypoints')) {
-        updatedTransaction.comment.modifiedWaypoints = transactionChanges.comment.waypoints;
+    if (_.has(transactionChanges, 'waypoints')) {
+        updatedTransaction.modifiedWaypoints = transactionChanges.waypoints;
         shouldStopSmartscan = true;
     }
 
@@ -225,7 +225,7 @@ function getMerchant(transaction) {
  * @returns {String}
  */
 function getWaypoints(transaction) {
-    return lodashGet(transaction, 'comment.modifiedWaypoints', null) || lodashGet(transaction, 'comment.waypoints', '');
+    return lodashGet(transaction, 'modifiedWaypoints', null) || lodashGet(transaction, 'waypoints', '');
 }
 
 /**

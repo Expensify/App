@@ -537,8 +537,8 @@ function createDistanceRequest(report, payeeEmail, payeeAccountID, participant, 
  * @param {Object} transactionChanges
  * @param {String} [transactionChanges.created]
  * @param {Number} [transactionChanges.amount]
- * @param {String} [transactionChanges.comment]
- * @param {String} [transactionChanges.waypoints]
+ * @param {Object} [transactionChanges.comment]
+ * @param {Object} [transactionChanges.comment.waypoints]
  * 
  */
 function editDistanceRequest(transactionID, transactionThreadReportID, transactionChanges) {
@@ -554,6 +554,8 @@ function editDistanceRequest(transactionID, transactionThreadReportID, transacti
     const isFromExpenseReport = ReportUtils.isExpenseReport(iouReport);
     const updatedTransaction = TransactionUtils.getUpdatedTransaction(transaction, transactionChanges, isFromExpenseReport);
     const transactionDetails = ReportUtils.getTransactionDetails(updatedTransaction);
+
+    // This needs to be a JSON object since we're sending this to the MapBox API
     transactionDetails.waypoints = JSON.stringify(transactionDetails.waypoints);
 
     API.write(

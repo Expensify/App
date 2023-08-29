@@ -78,6 +78,8 @@ function DistanceRequest({transactionID, report, transaction, mapboxAccessToken,
     const waypoints = lodashGet(transaction, 'comment.waypoints', {});
     const numberOfWaypoints = _.size(waypoints);
 
+    console.log(">>>>", transaction);
+
     const lastWaypointIndex = numberOfWaypoints - 1;
     const isLoadingRoute = lodashGet(transaction, 'comment.isLoading', false);
     const hasRouteError = Boolean(lodashGet(transaction, 'errorFields.route'));

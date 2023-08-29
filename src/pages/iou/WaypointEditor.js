@@ -138,7 +138,7 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
             address: values.address,
         };
 
-        Transaction.saveWaypoint(transactionID, waypointIndex, waypoint);
+        Transaction.saveWaypoint(transactionID, waypointIndex, waypoint, isEditingWaypoint);
 
         
         if (isEditingWaypoint) {
