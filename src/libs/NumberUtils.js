@@ -47,4 +47,18 @@ function generateHexadecimalValue(num) {
         .toUpperCase();
 }
 
-export {rand64, generateHexadecimalValue};
+/**
+ * Generates a random integer between a and b
+ * It's and equivalent of _.random(a, b)
+ *
+ * @param {number} a
+ * @param {number} b
+ * @returns {number} random integer between a and b
+ */
+function generateRandomInt(a, b) {
+    const lower = Math.ceil(Math.min(a, b));
+    const upper = Math.floor(Math.max(a, b));
+    return Math.floor(lower + Math.random() * (upper - lower + 1));
+}
+
+export {rand64, generateHexadecimalValue, generateRandomInt};
