@@ -239,6 +239,15 @@ function getCreated(transaction) {
     return '';
 }
 
+function hasFieldErrors(transaction) {
+    if (!_.has(transaction, 'errors')) {
+        return false;
+    }
+    return getAmount(transaction, false) === 0
+        || getMerchant(transaction) === CONST.TRANSACTION.UNKNOWN_MERCHANT
+        || getCreated(transaction) === '';
+}
+
 /**
  * Get the transactions related to a report preview with receipts
  * Get the details linked to the IOU reportAction
@@ -319,4 +328,5 @@ export {
     isReceiptBeingScanned,
     validateWaypoints,
     isDistanceRequest,
+    hasFieldErrors,
 };

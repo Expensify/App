@@ -448,6 +448,7 @@ export default {
             genericCreateFailureMessage: 'Unexpected error requesting money, please try again later',
             genericDeleteFailureMessage: 'Unexpected error deleting the money request, please try again later',
             genericEditFailureMessage: 'Unexpected error editing the money request, please try again later',
+            genericSmartscanFailureMessage: 'Transaction is missing fields',
         },
     },
     notificationPreferencesPage: {

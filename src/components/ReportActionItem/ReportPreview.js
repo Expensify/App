@@ -30,6 +30,7 @@ import * as ReceiptUtils from '../../libs/ReceiptUtils';
 import * as ReportActionUtils from '../../libs/ReportActionsUtils';
 import * as TransactionUtils from '../../libs/TransactionUtils';
 import ReportActionItemImages from './ReportActionItemImages';
+import colors from "../../styles/colors";
 
 const propTypes = {
     /** All the data of the action */
@@ -113,6 +114,7 @@ function ReportPreview(props) {
     const numberOfScanningReceipts = _.filter(transactionsWithReceipts, (transaction) => TransactionUtils.isReceiptBeingScanned(transaction)).length;
     const hasReceipts = transactionsWithReceipts.length > 0;
     const isScanning = hasReceipts && ReportUtils.areAllRequestsBeingSmartScanned(props.iouReportID, props.action);
+    const hasErrors = hasReceipts && ReportUtils.hasFieldErrors(props.iouReportID, props.action);
     const lastThreeTransactionsWithReceipts = ReportUtils.getReportPreviewDisplayTransactions(props.action);
 
     const hasOnlyOneReceiptRequest = numberOfRequests === 1 && hasReceipts;
@@ -186,6 +188,12 @@ function ReportPreview(props) {
                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                                 <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh16]}>{getPreviewMessage()}</Text>
                             </View>
+                            {hasErrors && (
+                                <Icon
+                                    src={Expensicons.DotIndicator}
+                                    fill={colors.red}
+                                />
+                            )}
                             <Icon src={Expensicons.ArrowRight} />
                         </View>
                         <View style={styles.flexRow}>

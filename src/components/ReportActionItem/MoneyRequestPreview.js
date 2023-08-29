@@ -32,6 +32,7 @@ import PressableWithFeedback from '../Pressable/PressableWithoutFeedback';
 import * as ReceiptUtils from '../../libs/ReceiptUtils';
 import ReportActionItemImages from './ReportActionItemImages';
 import transactionPropTypes from '../transactionPropTypes';
+import colors from "../../styles/colors";
 
 const propTypes = {
     /** The active IOUReport, used for Onyx subscription */
@@ -244,7 +245,13 @@ function MoneyRequestPreview(props) {
                                     </>
                                 )}
                             </View>
-                            <Icon src={Expensicons.ArrowRight} />
+                            {TransactionUtils.hasFieldErrors(props.transaction) && (
+                                <Icon
+                                    src={Expensicons.DotIndicator}
+                                    fill={colors.red}
+                                />
+                            )}
+                                <Icon src={Expensicons.ArrowRight} />
                         </View>
                         <View style={[styles.flexRow]}>
                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>

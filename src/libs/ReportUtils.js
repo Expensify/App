@@ -1358,6 +1358,11 @@ function areAllRequestsBeingSmartScanned(iouReportID, reportPreviewAction) {
     return _.all(transactionsWithReceipts, (transaction) => TransactionUtils.isReceiptBeingScanned(transaction));
 }
 
+function hasFieldErrors(iouReportID, reportPreviewAction) {
+    const transactionsWithReceipts = getTransactionsWithReceipts(iouReportID);
+    return _.some(transactionsWithReceipts, (transaction) => TransactionUtils.hasFieldErrors(transaction));
+}
+
 /**
  * Given a parent IOU report action get report name for the LHN.
  *
@@ -3578,4 +3583,5 @@ export {
     areAllRequestsBeingSmartScanned,
     getReportPreviewDisplayTransactions,
     getTransactionsWithReceipts,
+    hasFieldErrors,
 };
