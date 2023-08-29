@@ -13,4 +13,10 @@ function isMobileChrome() {
     return false;
 }
 
-export {getBrowser, isMobile, isMobileSafari, isMobileChrome};
+function isSafari() {
+    return false;
+}
+
+function openRouteInDesktopApp() {}
+
+export {getBrowser, isMobile, isMobileSafari, isSafari, isMobileChrome, openRouteInDesktopApp};

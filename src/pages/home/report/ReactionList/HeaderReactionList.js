@@ -5,6 +5,7 @@ import Text from '../../../../components/Text';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
 import compose from '../../../../libs/compose';
+import * as EmojiUtils from '../../../../libs/EmojiUtils';
 import * as StyleUtils from '../../../../styles/StyleUtils';
 import styles from '../../../../styles/styles';
 import reactionPropTypes from './reactionPropTypes';
@@ -32,7 +33,7 @@ function HeaderReactionList(props) {
                     <Text style={[styles.miniQuickEmojiReactionText, StyleUtils.getEmojiReactionBubbleTextStyle(true)]}>{props.emojiCodes.join('')}</Text>
                     <Text style={[styles.reactionCounterText, StyleUtils.getEmojiReactionCounterTextStyle(props.hasUserReacted)]}>{props.emojiCount}</Text>
                 </View>
-                <Text style={styles.reactionListHeaderText}>{`:${props.emojiName}:`}</Text>
+                <Text style={styles.reactionListHeaderText}>{`:${EmojiUtils.getLocalizedEmojiName(props.emojiName, props.preferredLocale)}:`}</Text>
             </View>
         </View>
     );

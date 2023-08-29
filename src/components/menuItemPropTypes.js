@@ -3,6 +3,7 @@ import _ from 'underscore';
 import CONST from '../CONST';
 import stylePropTypes from '../styles/stylePropTypes';
 import avatarPropTypes from './avatarPropTypes';
+import refPropTypes from './refPropTypes';
 
 const propTypes = {
     /** Text to be shown as badge near the right end. */
@@ -24,6 +25,9 @@ const propTypes = {
     /** Icon to display on the left side of component */
     icon: PropTypes.oneOfType([PropTypes.elementType, PropTypes.string, PropTypes.arrayOf(avatarPropTypes)]),
 
+    /** Secondary icon to display on the left side of component, right of the icon */
+    secondaryIcon: PropTypes.elementType,
+
     /** Icon Width */
     iconWidth: PropTypes.number,
 
@@ -31,7 +35,7 @@ const propTypes = {
     iconHeight: PropTypes.number,
 
     /** Text to display for the item */
-    title: PropTypes.string.isRequired,
+    title: PropTypes.string,
 
     /** Text that appears above the title */
     label: PropTypes.string,
@@ -72,6 +76,9 @@ const propTypes = {
     /** The fill color to pass into the icon. */
     iconFill: PropTypes.string,
 
+    /** The fill color to pass into the secondary icon. */
+    secondaryIconFill: PropTypes.string,
+
     /** Whether item is focused or active */
     focused: PropTypes.bool,
 
@@ -99,6 +106,9 @@ const propTypes = {
     /** Prop to identify if we should load avatars vertically instead of diagonally */
     shouldStackHorizontally: PropTypes.bool,
 
+    /** Prop to represent the size of the float right avatar images to be shown */
+    floatRightAvatarSize: PropTypes.oneOf(_.values(CONST.AVATAR_SIZE)),
+
     /** Prop to represent the size of the avatar images to be shown */
     avatarSize: PropTypes.oneOf(_.values(CONST.AVATAR_SIZE)),
 
@@ -109,7 +119,7 @@ const propTypes = {
     shouldBlockSelection: PropTypes.bool,
 
     /** The ref to the menu item */
-    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
+    forwardedRef: refPropTypes,
 
     /** Any adjustments to style when menu item is hovered or pressed */
     hoverAndPressStyle: PropTypes.arrayOf(PropTypes.object),
@@ -119,6 +129,18 @@ const propTypes = {
 
     /** An icon to display under the main item */
     furtherDetailsIcon: PropTypes.oneOfType([PropTypes.elementType, PropTypes.string]),
+
+    /** The action accept for anonymous user or not */
+    isAnonymousAction: PropTypes.bool,
+
+    /**  Whether we should use small avatar subscript sizing the for menu item */
+    isSmallAvatarSubscriptMenu: PropTypes.bool,
+
+    /** The max number of lines the title text should occupy before ellipses are added */
+    numberOfLines: PropTypes.number,
+
+    /** Should we grey out the menu item when it is disabled? */
+    shouldGreyOutWhenDisabled: PropTypes.bool,
 };
 
 export default propTypes;

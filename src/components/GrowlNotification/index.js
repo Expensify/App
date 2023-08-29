@@ -1,6 +1,6 @@
-import React, {Component} from 'react';
-import {View, Animated} from 'react-native';
+import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {Directions, FlingGestureHandler, State} from 'react-native-gesture-handler';
+import {View, Animated} from 'react-native';
 import colors from '../../styles/colors';
 import Text from '../Text';
 import Icon from '../Icon';
@@ -30,23 +30,11 @@ const INACTIVE_POSITION_Y = -255;
 
 const PressableWithoutFeedback = Pressables.PressableWithoutFeedback;
 
-class GrowlNotification extends Component {
-    constructor(props) {
-        super(props);
-
-        this.state = {
-            bodyText: '',
-            type: 'success',
-            translateY: new Animated.Value(INACTIVE_POSITION_Y),
-        };
-
-        this.show = this.show.bind(this);
-        this.fling = this.fling.bind(this);
-    }
-
-    componentDidMount() {
-        Growl.setIsReady();
-    }
+function GrowlNotification(_, ref) {
+    const translateY = useRef(new Animated.Value(INACTIVE_POSITION_Y)).current;
+    const [bodyText, setBodyText] = useState('');
+    const [type, setType] = useState('success');
+    const [duration, setDuration] = useState();
 
     /**
      * Show the growl notification
@@ -55,65 +43,83 @@ class GrowlNotification extends Component {
      * @param {String} type
      * @param {Number} duration
      */
-    show(bodyText, type, duration) {
-        this.setState(
-            {
-                bodyText,
-                type,
-            },
-            () => {
-                this.fling(0);
-                setTimeout(() => {
-                    this.fling(INACTIVE_POSITION_Y);
-                }, duration);
-            },
-        );
-    }
+    const show = useCallback((text, growlType, growlDuration) => {
+        setBodyText(text);
+        setType(growlType);
+        setDuration(growlDuration);
+    }, []);
 
     /**
      * Animate growl notification
      *
      * @param {Number} val
      */
-    fling(val = INACTIVE_POSITION_Y) {
-        Animated.spring(this.state.translateY, {
-            toValue: val,
-            duration: 80,
-            useNativeDriver: true,
-        }).start();
-    }
+    const fling = useCallback(
+        (val = INACTIVE_POSITION_Y) => {
+            Animated.spring(translateY, {
+                toValue: val,
+                duration: 80,
+                useNativeDriver: true,
+            }).start();
+        },
+        [translateY],
+    );
 
-    render() {
-        return (
-            <FlingGestureHandler
-                direction={Directions.UP}
-                onHandlerStateChange={({nativeEvent}) => {
-                    if (nativeEvent.state !== State.ACTIVE) {
-                        return;
-                    }
+    useImperativeHandle(
+        ref,
+        () => ({
+            show,
+        }),
+        [show],
+    );
 
-                    this.fling(INACTIVE_POSITION_Y);
-                }}
-            >
-                <View style={styles.growlNotificationWrapper}>
-                    <GrowlNotificationContainer translateY={this.state.translateY}>
-                        <PressableWithoutFeedback
-                            accessibilityLabel={this.state.bodyText}
-                            onPress={() => this.fling(INACTIVE_POSITION_Y)}
-                        >
-                            <View style={styles.growlNotificationBox}>
-                                <Icon
-                                    src={types[this.state.type].icon}
-                                    fill={types[this.state.type].iconColor}
-                                />
-                                <Text style={styles.growlNotificationText}>{this.state.bodyText}</Text>
-                            </View>
-                        </PressableWithoutFeedback>
-                    </GrowlNotificationContainer>
-                </View>
-            </FlingGestureHandler>
-        );
-    }
+    useEffect(() => {
+        Growl.setIsReady();
+    }, []);
+
+    useEffect(() => {
+        if (!duration) {
+            return;
+        }
+
+        fling(0);
+        setTimeout(() => {
+            fling();
+            setDuration(undefined);
+        }, duration);
+    }, [duration, fling]);
+
+    return (
+        <FlingGestureHandler
+            direction={Directions.UP}
+            onHandlerStateChange={({nativeEvent}) => {
+                if (nativeEvent.state !== State.ACTIVE) {
+                    return;
+                }
+
+                fling();
+            }}
+        >
+            <View style={styles.growlNotificationWrapper}>
+                <GrowlNotificationContainer translateY={translateY}>
+                    <PressableWithoutFeedback
+                        accessibilityLabel={bodyText}
+                        onPress={() => fling()}
+                    >
+                        <View style={styles.growlNotificationBox}>
+                            <Icon
+                                src={types[type].icon}
+                                fill={types[type].iconColor}
+                            />
+                            <Text style={styles.growlNotificationText}>{bodyText}</Text>
+                        </View>
+                    </PressableWithoutFeedback>
+                </GrowlNotificationContainer>
+            </View>
+        </FlingGestureHandler>
+    );
 }
 
-export default GrowlNotification;
+GrowlNotification.displayName = 'GrowlNotification';
+
+export default forwardRef(GrowlNotification);

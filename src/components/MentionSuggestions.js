@@ -42,10 +42,14 @@ const propTypes = {
 
     /** Show that we should include ReportRecipientLocalTime view height */
     shouldIncludeReportRecipientLocalTimeHeight: PropTypes.bool.isRequired,
+
+    /** Meaures the parent container's position and dimensions. */
+    measureParentContainer: PropTypes.func,
 };
 
 const defaultProps = {
     highlightedMentionIndex: 0,
+    measureParentContainer: () => {},
 };
 
 /**
@@ -65,7 +69,7 @@ function MentionSuggestions(props) {
     const renderSuggestionMenuItem = (item) => {
         const isIcon = item.text === CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT;
         const styledDisplayName = getStyledTextArray(item.text, props.prefix);
-        const styledHandle = getStyledTextArray(item.alternateText, props.prefix);
+        const styledHandle = item.text === item.alternateText ? '' : getStyledTextArray(item.alternateText, props.prefix);
 
         return (
             <View style={[styles.autoCompleteSuggestionContainer, styles.ph2]}>
@@ -95,14 +99,18 @@ function MentionSuggestions(props) {
                     style={[styles.mentionSuggestionsText, styles.flex1]}
                     numberOfLines={1}
                 >
-                    {_.map(styledHandle, ({text, isColored}, i) => (
-                        <Text
-                            key={`${text}${i}`}
-                            style={[StyleUtils.getColoredBackgroundStyle(isColored), styles.mentionSuggestionsHandle, {...(isColored && {color: styles.text})}]}
-                        >
-                            {text}
-                        </Text>
-                    ))}
+                    {_.map(
+                        styledHandle,
+                        ({text, isColored}, i) =>
+                            text !== '' && (
+                                <Text
+                                    key={`${text}${i}`}
+                                    style={[StyleUtils.getColoredBackgroundStyle(isColored), styles.mentionSuggestionsHandle, {...(isColored && {color: styles.text})}]}
+                                >
+                                    {text}
+                                </Text>
+                            ),
+                    )}
                 </Text>
             </View>
         );
@@ -118,6 +126,7 @@ function MentionSuggestions(props) {
             isSuggestionPickerLarge={props.isMentionPickerLarge}
             shouldIncludeReportRecipientLocalTimeHeight={props.shouldIncludeReportRecipientLocalTimeHeight}
             accessibilityLabelExtractor={keyExtractor}
+            measureParentContainer={props.measureParentContainer}
         />
     );
 }

@@ -12,6 +12,7 @@ import themeColors from '../styles/themes/default';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import CONST from '../CONST';
 
 const propTypes = {
     ...windowDimensionsPropTypes,
@@ -31,7 +32,7 @@ function ReportHeaderSkeletonView(props) {
                     <PressableWithFeedback
                         onPress={() => {}}
                         style={[styles.LHNToggle]}
-                        accessibilityRole="button"
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         accessibilityLabel={props.translate('common.back')}
                     >
                         <Icon src={Expensicons.BackArrow} />

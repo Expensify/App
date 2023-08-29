@@ -29,6 +29,6 @@ export default {
     /** Error message that's come back from the server. */
     error: PropTypes.string,
 
-    /** Emails of the people to which the whisper was sent to (if any). Returns empty array if it is not a whisper */
-    whisperedTo: PropTypes.arrayOf(PropTypes.string),
+    /** accountIDs of the people to which the whisper was sent to (if any). Returns empty array if it is not a whisper */
+    whisperedToAccountIDs: PropTypes.arrayOf(PropTypes.number),
 };

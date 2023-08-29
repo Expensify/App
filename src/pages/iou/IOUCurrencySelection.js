@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React, {useState, useMemo, useCallback} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -24,6 +24,24 @@ const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
  * IOU Currency selection for selecting currency
  */
 const propTypes = {
+    /** Route from navigation */
+    route: PropTypes.shape({
+        /** Params from the route */
+        params: PropTypes.shape({
+            /** The type of IOU report, i.e. bill, request, send */
+            iouType: PropTypes.string,
+
+            /** The report ID of the IOU */
+            reportID: PropTypes.string,
+
+            /** Currently selected currency */
+            currency: PropTypes.string,
+
+            /** Route to navigate back after selecting a currency */
+            backTo: PropTypes.string,
+        }),
+    }).isRequired,
+
     // The currency list constant object from Onyx
     currencyList: PropTypes.objectOf(
         PropTypes.shape({
@@ -40,6 +58,7 @@ const propTypes = {
 
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     iou: PropTypes.shape({
+        /** Currency of the request */
         currency: PropTypes.string,
     }),
 
@@ -53,50 +72,32 @@ const defaultProps = {
     },
 };
 
-class IOUCurrencySelection extends Component {
-    constructor(props) {
-        super(props);
+function IOUCurrencySelection(props) {
+    const [searchValue, setSearchValue] = useState('');
+    const selectedCurrencyCode = lodashGet(props.route, 'params.currency', props.iou.currency, CONST.CURRENCY.USD);
 
-        this.state = {
-            searchValue: '',
-            currencyData: this.getCurrencyOptions(this.props.currencyList),
-        };
-        this.getCurrencyOptions = this.getCurrencyOptions.bind(this);
-        this.getSections = this.getSections.bind(this);
-        this.confirmCurrencySelection = this.confirmCurrencySelection.bind(this);
-        this.changeSearchValue = this.changeSearchValue.bind(this);
-    }
+    const iouType = lodashGet(props.route, 'params.iouType', CONST.IOU.MONEY_REQUEST_TYPE.REQUEST);
+    const reportID = lodashGet(props.route, 'params.reportID', '');
 
-    /**
-     * Returns the sections needed for the OptionsSelector
-     *
-     * @returns {Array}
-     */
-    getSections() {
-        if (this.state.searchValue.trim() && !this.state.currencyData.length) {
-            return [];
-        }
-        const sections = [];
-        sections.push({
-            title: this.props.translate('iOUCurrencySelection.allCurrencies'),
-            data: this.state.currencyData,
-            shouldShow: true,
-            indexOffset: 0,
-        });
+    const confirmCurrencySelection = useCallback(
+        (option) => {
+            const backTo = lodashGet(props.route, 'params.backTo', '');
+            // When we refresh the web, the money request route gets cleared from the navigation stack.
+            // Navigating to "backTo" will result in forward navigation instead, causing disruption to the currency selection.
+            // To prevent any negative experience, we have made the decision to simply close the currency selection page.
+            if (_.isEmpty(backTo) || props.navigation.getState().routes.length === 1) {
+                Navigation.goBack();
+            } else {
+                Navigation.navigate(`${props.route.params.backTo}?currency=${option.currencyCode}`);
+            }
+        },
+        [props.route, props.navigation],
+    );
 
-        return sections;
-    }
-
-    getSelectedCurrencyCode() {
-        return lodashGet(this.props.route, 'params.currency', this.props.iou.currency);
-    }
-
-    /**
-     * @returns {Object}
-     */
-    getCurrencyOptions() {
-        return _.map(this.props.currencyList, (currencyInfo, currencyCode) => {
-            const isSelectedCurrency = currencyCode === this.getSelectedCurrencyCode();
+    const {translate, currencyList} = props;
+    const {sections, headerMessage, initiallyFocusedOptionKey} = useMemo(() => {
+        const currencyOptions = _.map(currencyList, (currencyInfo, currencyCode) => {
+            const isSelectedCurrency = currencyCode === selectedCurrencyCode;
             return {
                 text: `${currencyCode} - ${CurrencyUtils.getLocalizedCurrencySymbol(currencyCode)}`,
                 currencyCode,
@@ -105,75 +106,56 @@ class IOUCurrencySelection extends Component {
                 boldStyle: isSelectedCurrency,
             };
         });
-    }
 
-    /**
-     * Sets new search value
-     * @param {String} searchValue
-     * @return {void}
-     */
-    changeSearchValue(searchValue) {
-        const currencyOptions = this.getCurrencyOptions(this.props.currencyList);
         const searchRegex = new RegExp(Str.escapeForRegExp(searchValue), 'i');
         const filteredCurrencies = _.filter(currencyOptions, (currencyOption) => searchRegex.test(currencyOption.text));
+        const isEmpty = searchValue.trim() && !filteredCurrencies.length;
 
-        this.setState({
-            searchValue,
-            currencyData: filteredCurrencies,
-        });
-    }
+        return {
+            initiallyFocusedOptionKey: _.get(
+                _.find(filteredCurrencies, (currency) => currency.currencyCode === selectedCurrencyCode),
+                'keyForList',
+            ),
+            sections: isEmpty
+                ? []
+                : [
+                      {
+                          title: translate('iOUCurrencySelection.allCurrencies'),
+                          data: filteredCurrencies,
+                          shouldShow: true,
+                          indexOffset: 0,
+                      },
+                  ],
+            headerMessage: isEmpty ? translate('common.noResultsFound') : '',
+        };
+    }, [currencyList, searchValue, selectedCurrencyCode, translate]);
 
-    /**
-     * Confirms the selection of currency
-     *
-     * @param {Object} option
-     * @param {String} option.currencyCode
-     */
-    confirmCurrencySelection(option) {
-        const backTo = lodashGet(this.props.route, 'params.backTo', '');
-        // When we refresh the web, the money request route gets cleared from the navigation stack.
-        // Navigating to "backTo" will result in forward navigation instead, causing disruption to the currency selection.
-        // To prevent any negative experience, we have made the decision to simply close the currency selection page.
-        if (_.isEmpty(backTo) || this.props.navigation.getState().routes.length === 1) {
-            Navigation.goBack();
-        } else {
-            Navigation.navigate(`${this.props.route.params.backTo}?currency=${option.currencyCode}`);
-        }
-    }
-
-    render() {
-        const headerMessage = this.state.searchValue.trim() && !this.state.currencyData.length ? this.props.translate('common.noResultsFound') : '';
-        const iouType = lodashGet(this.props.route, 'params.iouType', CONST.IOU.MONEY_REQUEST_TYPE.REQUEST);
-        const reportID = lodashGet(this.props.route, 'params.reportID', '');
-        return (
-            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-                {({safeAreaPaddingBottomStyle}) => (
-                    <>
-                        <HeaderWithBackButton
-                            title={this.props.translate('iOUCurrencySelection.selectCurrency')}
-                            onBackButtonPress={() => Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType, reportID))}
-                        />
-                        <OptionsSelector
-                            sections={this.getSections()}
-                            onSelectRow={this.confirmCurrencySelection}
-                            value={this.state.searchValue}
-                            onChangeText={this.changeSearchValue}
-                            textInputLabel={this.props.translate('common.search')}
-                            headerMessage={headerMessage}
-                            safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
-                            initiallyFocusedOptionKey={_.get(
-                                _.find(this.state.currencyData, (currency) => currency.currencyCode === this.getSelectedCurrencyCode()),
-                                'keyForList',
-                            )}
-                            shouldHaveOptionSeparator
-                        />
-                    </>
-                )}
-            </ScreenWrapper>
-        );
-    }
+    return (
+        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+            {({safeAreaPaddingBottomStyle}) => (
+                <>
+                    <HeaderWithBackButton
+                        title={translate('iOUCurrencySelection.selectCurrency')}
+                        onBackButtonPress={() => Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType, reportID))}
+                    />
+                    <OptionsSelector
+                        sections={sections}
+                        onSelectRow={confirmCurrencySelection}
+                        value={searchValue}
+                        onChangeText={setSearchValue}
+                        textInputLabel={translate('common.search')}
+                        headerMessage={headerMessage}
+                        safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
+                        initiallyFocusedOptionKey={initiallyFocusedOptionKey}
+                        shouldHaveOptionSeparator
+                    />
+                </>
+            )}
+        </ScreenWrapper>
+    );
 }
 
+IOUCurrencySelection.displayName = 'IOUCurrencySelection';
 IOUCurrencySelection.propTypes = propTypes;
 IOUCurrencySelection.defaultProps = defaultProps;
 

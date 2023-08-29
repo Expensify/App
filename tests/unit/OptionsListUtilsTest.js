@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import * as OptionsListUtils from '../../src/libs/OptionsListUtils';
+import * as ReportUtils from '../../src/libs/ReportUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import CONST from '../../src/CONST';
@@ -13,7 +14,6 @@ describe('OptionsListUtils', () => {
             lastVisibleActionCreated: '2022-11-22 03:26:02.015',
             isPinned: false,
             reportID: 1,
-            participants: ['tonystark@expensify.com', 'reedrichards@expensify.com'],
             participantAccountIDs: [2, 1],
             reportName: 'Iron Man, Mister Fantastic',
             hasDraft: true,
@@ -23,7 +23,6 @@ describe('OptionsListUtils', () => {
             lastVisibleActionCreated: '2022-11-22 03:26:02.016',
             isPinned: false,
             reportID: 2,
-            participants: ['peterparker@expensify.com'],
             participantAccountIDs: [3],
             reportName: 'Spider-Man',
         },
@@ -34,7 +33,6 @@ describe('OptionsListUtils', () => {
             lastVisibleActionCreated: '2022-11-22 03:26:02.170',
             isPinned: true,
             reportID: 3,
-            participants: ['reedrichards@expensify.com'],
             participantAccountIDs: [1],
             reportName: 'Mister Fantastic',
         },
@@ -43,7 +41,6 @@ describe('OptionsListUtils', () => {
             lastVisibleActionCreated: '2022-11-22 03:26:02.180',
             isPinned: false,
             reportID: 4,
-            participants: ['tchalla@expensify.com'],
             participantAccountIDs: [4],
             reportName: 'Black Panther',
         },
@@ -52,7 +49,6 @@ describe('OptionsListUtils', () => {
             lastVisibleActionCreated: '2022-11-22 03:26:02.019',
             isPinned: false,
             reportID: 5,
-            participants: ['suestorm@expensify.com'],
             participantAccountIDs: [5],
             reportName: 'Invisible Woman',
         },
@@ -61,7 +57,6 @@ describe('OptionsListUtils', () => {
             lastVisibleActionCreated: '2022-11-22 03:26:02.020',
             isPinned: false,
             reportID: 6,
-            participants: ['thor@expensify.com'],
             participantAccountIDs: [6],
             reportName: 'Thor',
         },
@@ -72,7 +67,6 @@ describe('OptionsListUtils', () => {
             lastVisibleActionCreated: '2022-11-22 03:26:03.999',
             isPinned: false,
             reportID: 7,
-            participants: ['steverogers@expensify.com'],
             participantAccountIDs: [7],
             reportName: 'Captain America',
         },
@@ -83,7 +77,6 @@ describe('OptionsListUtils', () => {
             lastVisibleActionCreated: '2022-11-22 03:26:02.000',
             isPinned: false,
             reportID: 8,
-            participants: ['galactus_herald@expensify.com'],
             participantAccountIDs: [12],
             reportName: 'Silver Surfer',
         },
@@ -94,7 +87,6 @@ describe('OptionsListUtils', () => {
             lastVisibleActionCreated: '2022-11-22 03:26:02.998',
             isPinned: false,
             reportID: 9,
-            participants: ['mistersinister@marauders.com'],
             participantAccountIDs: [8],
             reportName: 'Mister Sinister',
             iouReportID: 100,
@@ -107,12 +99,15 @@ describe('OptionsListUtils', () => {
             lastVisibleActionCreated: '2022-11-22 03:26:02.001',
             reportID: 10,
             isPinned: false,
-            participants: ['tonystark@expensify.com', 'steverogers@expensify.com'],
             participantAccountIDs: [2, 7],
             reportName: '',
             oldPolicyName: "SHIELD's workspace",
             chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
             isOwnPolicyExpenseChat: true,
+
+            // This indicates that the report is archived
+            stateNum: 2,
+            statusNum: 2,
         },
     };
 
@@ -181,8 +176,6 @@ describe('OptionsListUtils', () => {
             lastVisibleActionCreated: '2022-11-22 03:26:02.022',
             isPinned: false,
             reportID: 11,
-            // NOTE: possibly remove 'participants' field in the future
-            participants: ['concierge@expensify.com'],
             participantAccountIDs: [999],
             reportName: 'Concierge',
         },
@@ -195,7 +188,6 @@ describe('OptionsListUtils', () => {
             lastVisibleActionCreated: '2022-11-22 03:26:02.022',
             isPinned: false,
             reportID: 12,
-            participants: ['chronos@expensify.com'],
             participantAccountIDs: [1000],
             reportName: 'Chronos',
         },
@@ -208,7 +200,6 @@ describe('OptionsListUtils', () => {
             lastVisibleActionCreated: '2022-11-22 03:26:02.022',
             isPinned: false,
             reportID: 13,
-            participants: ['receipts@expensify.com'],
             participantAccountIDs: [1001],
             reportName: 'Receipts',
         },
@@ -221,7 +212,6 @@ describe('OptionsListUtils', () => {
             lastVisibleActionCreated: '2022-11-22 03:26:02.022',
             isPinned: false,
             reportID: 14,
-            participants: ['reedrichards@expensify.com', 'brucebanner@expensify.com', 'peterparker@expensify.com'],
             participantAccountIDs: [1, 10, 3],
             reportName: '',
             oldPolicyName: 'Avengers Room',
@@ -283,7 +273,6 @@ describe('OptionsListUtils', () => {
             initialKeyStates: {
                 [ONYXKEYS.SESSION]: {accountID: 2, email: 'tonystark@expensify.com'},
                 [`${ONYXKEYS.COLLECTION.REPORT}100`]: {
-                    ownerEmail: 'mistersinister@marauders.com',
                     ownerAccountID: 8,
                     total: '1000',
                 },
@@ -296,7 +285,7 @@ describe('OptionsListUtils', () => {
 
     it('getSearchOptions()', () => {
         // When we filter in the Search view without providing a searchValue
-        let results = OptionsListUtils.getSearchOptions(REPORTS, PERSONAL_DETAILS, '');
+        let results = OptionsListUtils.getSearchOptions(REPORTS, PERSONAL_DETAILS, '', [CONST.BETAS.ALL]);
 
         // Then the 2 personalDetails that don't have reports should be returned
         expect(results.personalDetails.length).toBe(2);
@@ -538,6 +527,14 @@ describe('OptionsListUtils', () => {
         expect(results.userToInvite).not.toBe(null);
         expect(results.userToInvite.login).toBe('+18003243233');
 
+        // When we use a search term for contact number that contains alphabet characters
+        results = OptionsListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, [], '998243aaaa');
+
+        // Then we shouldn't have any results or user to invite
+        expect(results.recentReports.length).toBe(0);
+        expect(results.personalDetails.length).toBe(0);
+        expect(results.userToInvite).toBe(null);
+
         // Test Concierge's existence in new group options
         results = OptionsListUtils.getNewChatOptions(REPORTS_WITH_CONCIERGE, PERSONAL_DETAILS_WITH_CONCIERGE);
 
@@ -575,40 +572,57 @@ describe('OptionsListUtils', () => {
     });
 
     it('getShareDestinationsOptions()', () => {
-        // When we pass an empty search value
-        let results = OptionsListUtils.getShareDestinationOptions(REPORTS, PERSONAL_DETAILS, [], '');
+        // Filter current REPORTS as we do in the component, before getting share destination options
+        const filteredReports = {};
+        _.keys(REPORTS).forEach((reportKey) => {
+            if (ReportUtils.shouldDisableWriteActions(REPORTS[reportKey]) || ReportUtils.isExpensifyOnlyParticipantInReport(REPORTS[reportKey])) {
+                return;
+            }
+            filteredReports[reportKey] = REPORTS[reportKey];
+        });
 
-        // Then we should expect 5 recent reports to show because we're grabbing DM chats and group chats
-        // because we've limited the number of recent reports to 5
-        expect(results.recentReports.length).toBe(5);
+        // When we pass an empty search value
+        let results = OptionsListUtils.getShareDestinationOptions(filteredReports, PERSONAL_DETAILS, [], '');
+
+        // Then we should expect all the recent reports to show but exclude the archived rooms
+        expect(results.recentReports.length).toBe(_.size(REPORTS) - 1);
 
         // When we pass a search value that doesn't match the group chat name
-        results = OptionsListUtils.getShareDestinationOptions(REPORTS, PERSONAL_DETAILS, [], 'mutants');
+        results = OptionsListUtils.getShareDestinationOptions(filteredReports, PERSONAL_DETAILS, [], 'mutants');
 
         // Then we should expect no recent reports to show
         expect(results.recentReports.length).toBe(0);
 
         // When we pass a search value that matches the group chat name
-        results = OptionsListUtils.getShareDestinationOptions(REPORTS, PERSONAL_DETAILS, [], 'Iron Man, Mr. Fantastic');
+        results = OptionsListUtils.getShareDestinationOptions(filteredReports, PERSONAL_DETAILS, [], 'Iron Man, Fantastic');
 
         // Then we should expect the group chat to show along with the contacts matching the search
-        expect(results.recentReports.length).toBe(4);
+        expect(results.recentReports.length).toBe(1);
+
+        // Filter current REPORTS_WITH_WORKSPACE_ROOMS as we do in the component, before getting share destination options
+        const filteredReportsWithWorkspaceRooms = {};
+        _.keys(REPORTS_WITH_WORKSPACE_ROOMS).forEach((reportKey) => {
+            if (ReportUtils.shouldDisableWriteActions(REPORTS_WITH_WORKSPACE_ROOMS[reportKey]) || ReportUtils.isExpensifyOnlyParticipantInReport(REPORTS_WITH_WORKSPACE_ROOMS[reportKey])) {
+                return;
+            }
+            filteredReportsWithWorkspaceRooms[reportKey] = REPORTS_WITH_WORKSPACE_ROOMS[reportKey];
+        });
 
         // When we also have a policy to return rooms in the results
-        results = OptionsListUtils.getShareDestinationOptions(REPORTS_WITH_WORKSPACE_ROOMS, PERSONAL_DETAILS, [], '');
+        results = OptionsListUtils.getShareDestinationOptions(filteredReportsWithWorkspaceRooms, PERSONAL_DETAILS, [], '');
 
         // Then we should expect the DMS, the group chats and the workspace room to show
-        // We should expect 5 recent reports to show because we've limited the number of recent reports to 5
-        expect(results.recentReports.length).toBe(5);
+        // We should expect all the recent reports to show, excluding the archived rooms
+        expect(results.recentReports.length).toBe(_.size(REPORTS_WITH_WORKSPACE_ROOMS) - 1);
 
         // When we search for a workspace room
-        results = OptionsListUtils.getShareDestinationOptions(REPORTS_WITH_WORKSPACE_ROOMS, PERSONAL_DETAILS, [], 'Avengers Room');
+        results = OptionsListUtils.getShareDestinationOptions(filteredReportsWithWorkspaceRooms, PERSONAL_DETAILS, [], 'Avengers Room');
 
         // Then we should expect only the workspace room to show
         expect(results.recentReports.length).toBe(1);
 
         // When we search for a workspace room that doesn't exist
-        results = OptionsListUtils.getShareDestinationOptions(REPORTS_WITH_WORKSPACE_ROOMS, PERSONAL_DETAILS, [], 'Mutants Lair');
+        results = OptionsListUtils.getShareDestinationOptions(filteredReportsWithWorkspaceRooms, PERSONAL_DETAILS, [], 'Mutants Lair');
 
         // Then we should expect no results to show
         expect(results.recentReports.length).toBe(0);
@@ -636,5 +650,29 @@ describe('OptionsListUtils', () => {
         // Then one personal should be in personalDetails list
         expect(results.personalDetails.length).toBe(1);
         expect(results.personalDetails[0].text).toBe('Spider-Man');
+    });
+
+    it('formatMemberForList()', () => {
+        const formattedMembers = _.map(PERSONAL_DETAILS, (personalDetail, key) => OptionsListUtils.formatMemberForList(personalDetail, key === '1'));
+
+        // We're only formatting items inside the array, so the order should be the same as the original PERSONAL_DETAILS array
+        expect(formattedMembers[0].text).toBe('Mister Fantastic');
+        expect(formattedMembers[1].text).toBe('Iron Man');
+        expect(formattedMembers[2].text).toBe('Spider-Man');
+
+        // We should expect only the first item to be selected
+        expect(formattedMembers[0].isSelected).toBe(true);
+
+        // And all the others to be unselected
+        expect(_.every(formattedMembers.slice(1), (personalDetail) => !personalDetail.isSelected)).toBe(true);
+
+        // `isDisabled` is always false
+        expect(_.every(formattedMembers, (personalDetail) => !personalDetail.isDisabled)).toBe(true);
+
+        // `rightElement` is always null
+        expect(_.every(formattedMembers, (personalDetail) => personalDetail.rightElement === null)).toBe(true);
+
+        // The PERSONAL_DETAILS list doesn't specify `participantsList[n].avatar`, so the default one should be used
+        expect(_.every(formattedMembers, (personalDetail) => Boolean(personalDetail.avatar.source))).toBe(true);
     });
 });

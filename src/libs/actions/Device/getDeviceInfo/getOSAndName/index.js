@@ -1,3 +1,4 @@
-import * as Device from 'expensify-common/lib/Device';
+// Don't import this file with '* as Device'. It's known to make VSCode IntelliSense crash.
+import {getOSAndName} from 'expensify-common/lib/Device';
 
-export default Device.getOSAndName;
+export default getOSAndName;

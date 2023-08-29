@@ -1,9 +1,10 @@
 import _ from 'underscore';
 import React, {useMemo, useRef, useState} from 'react';
 import PropTypes from 'prop-types';
-import {LogBox, ScrollView, View} from 'react-native';
+import {LogBox, ScrollView, View, Text} from 'react-native';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
 import lodashGet from 'lodash/get';
+import compose from '../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
@@ -14,6 +15,8 @@ import CONST from '../../CONST';
 import * as StyleUtils from '../../styles/StyleUtils';
 import resetDisplayListViewBorderOnBlur from './resetDisplayListViewBorderOnBlur';
 import variables from '../../styles/variables';
+import {withNetwork} from '../OnyxProvider';
+import networkPropTypes from '../networkPropTypes';
 
 // The error that's being thrown below will be ignored until we fork the
 // react-native-google-places-autocomplete repo and replace the
@@ -48,6 +51,9 @@ const propTypes = {
     /** A callback function when the value of this field has changed */
     onInputChange: PropTypes.func.isRequired,
 
+    /** A callback function when an address has been auto-selected */
+    onPress: PropTypes.func,
+
     /** Customize the TextInput container */
     // eslint-disable-next-line react/forbid-prop-types
     containerStyles: PropTypes.arrayOf(PropTypes.object),
@@ -55,16 +61,42 @@ const propTypes = {
     /** Should address search be limited to results in the USA */
     isLimitedToUSA: PropTypes.bool,
 
+    /** A list of predefined places that can be shown when the user isn't searching for something */
+    predefinedPlaces: PropTypes.arrayOf(
+        PropTypes.shape({
+            /** A description of the location (usually the address) */
+            description: PropTypes.string,
+
+            /** Data required by the google auto complete plugin to know where to put the markers on the map */
+            geometry: PropTypes.shape({
+                /** Data about the location */
+                location: PropTypes.shape({
+                    /** Lattitude of the location */
+                    lat: PropTypes.number,
+
+                    /** Longitude of the location */
+                    lng: PropTypes.number,
+                }),
+            }),
+        }),
+    ),
+
     /** A map of inputID key names */
     renamedInputKeys: PropTypes.shape({
         street: PropTypes.string,
+        street2: PropTypes.string,
         city: PropTypes.string,
         state: PropTypes.string,
+        lat: PropTypes.string,
+        lng: PropTypes.string,
         zipCode: PropTypes.string,
     }),
 
     /** Maximum number of characters allowed in search input */
     maxInputLength: PropTypes.number,
+
+    /** Information about the network */
+    network: networkPropTypes.isRequired,
 
     ...withLocalizePropTypes,
 };
@@ -73,19 +105,24 @@ const defaultProps = {
     inputID: undefined,
     shouldSaveDraft: false,
     onBlur: () => {},
+    onPress: () => {},
     errorText: '',
     hint: '',
     value: undefined,
     defaultValue: undefined,
     containerStyles: [],
-    isLimitedToUSA: true,
+    isLimitedToUSA: false,
     renamedInputKeys: {
         street: 'addressStreet',
+        street2: 'addressStreet2',
         city: 'addressCity',
         state: 'addressState',
         zipCode: 'addressZipCode',
+        lat: 'addressLat',
+        lng: 'addressLng',
     },
     maxInputLength: undefined,
+    predefinedPlaces: [],
 };
 
 // Do not convert to class component! It's been tried before and presents more challenges than it's worth.
@@ -106,6 +143,16 @@ function AddressSearch(props) {
     const saveLocationDetails = (autocompleteData, details) => {
         const addressComponents = details.address_components;
         if (!addressComponents) {
+            // When there are details, but no address_components, this indicates that some predefined options have been passed
+            // to this component which don't match the usual properties coming from auto-complete. In that case, only a limited
+            // amount of data massaging needs to happen for what the parent expects to get from this function.
+            if (_.size(details)) {
+                props.onPress({
+                    address: lodashGet(details, 'description', ''),
+                    lat: lodashGet(details, 'geometry.location.lat', 0),
+                    lng: lodashGet(details, 'geometry.location.lng', 0),
+                });
+            }
             return;
         }
 
@@ -120,7 +167,7 @@ function AddressSearch(props) {
             postal_code: zipCode,
             administrative_area_level_1: state,
             administrative_area_level_2: stateFallback,
-            country,
+            country: countryPrimary,
         } = GooglePlacesUtils.getAddressComponents(addressComponents, {
             street_number: 'long_name',
             route: 'long_name',
@@ -142,7 +189,15 @@ function AddressSearch(props) {
 
         // Make sure that the order of keys remains such that the country is always set above the state.
         // Refer to https://github.com/Expensify/App/issues/15633 for more information.
-        const {state: stateAutoCompleteFallback = '', city: cityAutocompleteFallback = ''} = GooglePlacesUtils.getPlaceAutocompleteTerms(autocompleteData.terms);
+        const {
+            country: countryFallbackLongName = '',
+            state: stateAutoCompleteFallback = '',
+            city: cityAutocompleteFallback = '',
+        } = GooglePlacesUtils.getPlaceAutocompleteTerms(autocompleteData.terms);
+
+        const countryFallback = _.findKey(CONST.ALL_COUNTRIES, (country) => country === countryFallbackLongName);
+
+        const country = countryPrimary || countryFallback;
 
         const values = {
             street: `${streetNumber} ${streetName}`.trim(),
@@ -158,6 +213,9 @@ function AddressSearch(props) {
             zipCode,
             country: '',
             state: state || stateAutoCompleteFallback,
+            lat: lodashGet(details, 'geometry.location.lat', 0),
+            lng: lodashGet(details, 'geometry.location.lng', 0),
+            address: lodashGet(details, 'formatted_address', ''),
         };
 
         // If the address is not in the US, use the full length state name since we're displaying the address's
@@ -186,11 +244,16 @@ function AddressSearch(props) {
         if (props.inputID) {
             _.each(values, (value, key) => {
                 const inputKey = lodashGet(props.renamedInputKeys, key, key);
+                if (!inputKey) {
+                    return;
+                }
                 props.onInputChange(value, inputKey);
             });
         } else {
             props.onInputChange(values);
         }
+
+        props.onPress(values);
     };
 
     return (
@@ -218,6 +281,12 @@ function AddressSearch(props) {
                     fetchDetails
                     suppressDefaultStyles
                     enablePoweredByContainer={false}
+                    predefinedPlaces={props.predefinedPlaces}
+                    ListEmptyComponent={
+                        props.network.isOffline ? null : (
+                            <Text style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}>{props.translate('common.noResultsFound')}</Text>
+                        )
+                    }
                     onPress={(data, details) => {
                         saveLocationDetails(data, details);
 
@@ -270,6 +339,7 @@ function AddressSearch(props) {
                             }
                         },
                         maxLength: props.maxInputLength,
+                        spellCheck: false,
                     }}
                     styles={{
                         textInputContainer: [styles.flexColumn],
@@ -297,7 +367,10 @@ AddressSearch.propTypes = propTypes;
 AddressSearch.defaultProps = defaultProps;
 AddressSearch.displayName = 'AddressSearch';
 
-export default withLocalize(
+export default compose(
+    withNetwork(),
+    withLocalize,
+)(
     React.forwardRef((props, ref) => (
         <AddressSearch
             // eslint-disable-next-line react/jsx-props-no-spreading

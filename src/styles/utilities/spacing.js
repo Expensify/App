@@ -113,6 +113,10 @@ export default {
         marginLeft: 'auto',
     },
 
+    ml0: {
+        marginLeft: 0,
+    },
+
     ml1: {
         marginLeft: 4,
     },
@@ -127,6 +131,10 @@ export default {
 
     ml4: {
         marginLeft: 16,
+    },
+
+    mln4: {
+        marginLeft: -16,
     },
 
     ml5: {
@@ -262,6 +270,11 @@ export default {
     p5: {
         padding: 20,
     },
+
+    p9: {
+        padding: 36,
+    },
+
     p10: {
         padding: 40,
     },
@@ -330,6 +343,10 @@ export default {
         paddingHorizontal: 32,
     },
 
+    ph9: {
+        paddingHorizontal: 36,
+    },
+
     ph10: {
         paddingHorizontal: 40,
     },
@@ -382,6 +399,10 @@ export default {
         paddingLeft: 8,
     },
 
+    pl3: {
+        paddingLeft: 12,
+    },
+
     pl5: {
         paddingLeft: 20,
     },
@@ -426,6 +447,10 @@ export default {
         paddingTop: 80,
     },
 
+    pb0: {
+        paddingBottom: 0,
+    },
+
     pb1: {
         paddingBottom: 4,
     },
@@ -460,6 +485,22 @@ export default {
 
     gap1: {
         gap: 4,
+    },
+
+    gap2: {
+        gap: 8,
+    },
+
+    gap3: {
+        gap: 12,
+    },
+
+    gap4: {
+        gap: 16,
+    },
+
+    gap5: {
+        gap: 20,
     },
 
     gap7: {

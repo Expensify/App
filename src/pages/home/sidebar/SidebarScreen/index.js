@@ -1,4 +1,4 @@
-import React, {useRef, useCallback} from 'react';
+import React, {useCallback, useRef} from 'react';
 import {InteractionManager} from 'react-native';
 import {useFocusEffect} from '@react-navigation/native';
 import sidebarPropTypes from './sidebarPropTypes';
@@ -27,14 +27,14 @@ function SidebarScreen(props) {
      * Method create event listener
      */
     const createDragoverListener = () => {
-        document.addEventListener('dragover', popoverModal.current.hideCreateMenu);
+        document.addEventListener('dragover', () => popoverModal.current.hideCreateMenu());
     };
 
     /**
      * Method remove event listener.
      */
     const removeDragoverListener = () => {
-        document.removeEventListener('dragover', popoverModal.current.hideCreateMenu);
+        document.removeEventListener('dragover', () => popoverModal.current.hideCreateMenu());
     };
 
     return (

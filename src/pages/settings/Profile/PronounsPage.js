@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import React, {useState, useEffect, useMemo, useCallback} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
@@ -9,14 +9,10 @@ import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
 import * as PersonalDetails from '../../../libs/actions/PersonalDetails';
 import compose from '../../../libs/compose';
-import themeColors from '../../../styles/themes/default';
-import * as Expensicons from '../../../components/Icon/Expensicons';
 import CONST from '../../../CONST';
-import OptionsSelector from '../../../components/OptionsSelector';
 import ROUTES from '../../../ROUTES';
 import Navigation from '../../../libs/Navigation/Navigation';
-
-const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
+import SelectionList from '../../../components/SelectionList';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -56,12 +52,7 @@ function PronounsPage(props) {
                     text: value,
                     value: fullPronounKey,
                     keyForList: key,
-
-                    // Include the green checkmark icon to indicate the currently selected value
-                    customIcon: isCurrentPronouns ? greenCheckmark : undefined,
-
-                    // This property will make the currently selected value have bold text
-                    boldStyle: isCurrentPronouns,
+                    isSelected: isCurrentPronouns,
                 };
             })
             .sortBy((pronoun) => pronoun.text.toLowerCase())
@@ -87,13 +78,7 @@ function PronounsPage(props) {
      * Pronouns list filtered by searchValue needed for the OptionsSelector.
      * Empty array if the searchValue is empty.
      */
-    const filteredPronounsList = useMemo(() => {
-        const searchedValue = searchValue.trim();
-        if (searchedValue.length === 0) {
-            return [];
-        }
-        return _.filter(pronounsList, (pronous) => pronous.text.toLowerCase().indexOf(searchedValue.toLowerCase()) >= 0);
-    }, [pronounsList, searchValue]);
+    const filteredPronounsList = _.filter(pronounsList, (pronous) => pronous.text.toLowerCase().indexOf(searchValue.trim().toLowerCase()) >= 0);
 
     const headerMessage = searchValue.trim() && !filteredPronounsList.length ? props.translate('common.noResultsFound') : '';
 
@@ -108,29 +93,24 @@ function PronounsPage(props) {
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-            {({safeAreaPaddingBottomStyle}) => (
-                <>
-                    <HeaderWithBackButton
-                        title={props.translate('pronounsPage.pronouns')}
-                        onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PROFILE)}
-                    />
-                    <Text style={[styles.ph5, styles.mb3]}>{props.translate('pronounsPage.isShownOnProfile')}</Text>
-                    <OptionsSelector
-                        textInputLabel={props.translate('pronounsPage.pronouns')}
-                        placeholderText={props.translate('pronounsPage.placeholderText')}
-                        headerMessage={headerMessage}
-                        sections={[{data: filteredPronounsList, indexOffset: 0}]}
-                        value={searchValue}
-                        onSelectRow={updatePronouns}
-                        onChangeText={onChangeText}
-                        optionHoveredStyle={styles.hoveredComponentBG}
-                        safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
-                        shouldDelayFocus
-                        shouldFocusOnSelectRow
-                        shouldHaveOptionSeparator
-                        initiallyFocusedOptionKey={initiallyFocusedOption.keyForList}
-                    />
-                </>
+            <HeaderWithBackButton
+                title={props.translate('pronounsPage.pronouns')}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PROFILE)}
+            />
+            <Text style={[styles.ph5, styles.mb3]}>{props.translate('pronounsPage.isShownOnProfile')}</Text>
+            {/* Only render pronouns if list was loaded (not filtered list), otherwise initially focused item will be empty */}
+            {pronounsList.length > 0 && (
+                <SelectionList
+                    headerMessage={headerMessage}
+                    textInputLabel={props.translate('pronounsPage.pronouns')}
+                    textInputPlaceholder={props.translate('pronounsPage.placeholderText')}
+                    textInputValue={searchValue}
+                    sections={[{data: filteredPronounsList, indexOffset: 0}]}
+                    onSelectRow={updatePronouns}
+                    onChangeText={onChangeText}
+                    initiallyFocusedOptionKey={initiallyFocusedOption.keyForList}
+                    shouldDelayFocus
+                />
             )}
         </ScreenWrapper>
     );

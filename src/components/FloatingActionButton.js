@@ -1,5 +1,5 @@
 import React, {PureComponent} from 'react';
-import {Pressable, Animated, Easing, View} from 'react-native';
+import {Animated, Easing, View} from 'react-native';
 import PropTypes from 'prop-types';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
@@ -8,11 +8,12 @@ import * as StyleUtils from '../styles/StyleUtils';
 import themeColors from '../styles/themes/default';
 import Tooltip from './Tooltip';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import PressableWithFeedback from './Pressable/PressableWithFeedback';
 
 const AnimatedIcon = Animated.createAnimatedComponent(Icon);
 AnimatedIcon.displayName = 'AnimatedIcon';
 
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+const AnimatedPressable = Animated.createAnimatedComponent(PressableWithFeedback);
 AnimatedPressable.displayName = 'AnimatedPressable';
 
 const propTypes = {
@@ -22,7 +23,14 @@ const propTypes = {
     // Current state (active or not active) of the component
     isActive: PropTypes.bool.isRequired,
 
+    // Ref for the button
+    buttonRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
+
     ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    buttonRef: () => {},
 };
 
 class FloatingActionButton extends PureComponent {
@@ -74,9 +82,15 @@ class FloatingActionButton extends PureComponent {
             <Tooltip text={this.props.translate('common.new')}>
                 <View style={styles.floatingActionButtonContainer}>
                     <AnimatedPressable
-                        ref={(el) => (this.fabPressable = el)}
+                        ref={(el) => {
+                            this.fabPressable = el;
+                            if (this.props.buttonRef) {
+                                this.props.buttonRef.current = el;
+                            }
+                        }}
                         accessibilityLabel={this.props.accessibilityLabel}
                         accessibilityRole={this.props.accessibilityRole}
+                        pressDimmingValue={1}
                         onPress={(e) => {
                             // Drop focus to avoid blue focus ring.
                             this.fabPressable.blur();
@@ -97,5 +111,14 @@ class FloatingActionButton extends PureComponent {
 }
 
 FloatingActionButton.propTypes = propTypes;
+FloatingActionButton.defaultProps = defaultProps;
 
-export default withLocalize(FloatingActionButton);
+const FloatingActionButtonWithLocalize = withLocalize(FloatingActionButton);
+
+export default React.forwardRef((props, ref) => (
+    <FloatingActionButtonWithLocalize
+        // eslint-disable-next-line
+        {...props}
+        buttonRef={ref}
+    />
+));

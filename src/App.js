@@ -12,16 +12,23 @@ import Expensify from './Expensify';
 import {LocaleContextProvider} from './components/withLocalize';
 import OnyxProvider from './components/OnyxProvider';
 import HTMLEngineProvider from './components/HTMLEngineProvider';
+import PopoverContextProvider from './components/PopoverProvider';
 import ComposeProviders from './components/ComposeProviders';
 import SafeArea from './components/SafeArea';
 import * as Environment from './libs/Environment/Environment';
 import {WindowDimensionsProvider} from './components/withWindowDimensions';
 import {KeyboardStateProvider} from './components/withKeyboardState';
-import {CurrentReportIdContextProvider} from './components/withCurrentReportId';
+import ThemeProvider from './styles/themes/ThemeProvider';
+import ThemeStylesProvider from './styles/ThemeStylesProvider';
+import {CurrentReportIDContextProvider} from './components/withCurrentReportID';
+import {EnvironmentProvider} from './components/withEnvironment';
+import * as Session from './libs/actions/Session';
+import useDefaultDragAndDrop from './hooks/useDefaultDragAndDrop';
 
 // For easier debugging and development, when we are in web we expose Onyx to the window, so you can more easily set data into Onyx
 if (window && Environment.isDevelopment()) {
     window.Onyx = Onyx;
+    window.setSupportToken = Session.setSupportAuthToken;
 }
 
 LogBox.ignoreLogs([
@@ -34,6 +41,7 @@ LogBox.ignoreLogs([
 const fill = {flex: 1};
 
 function App() {
+    useDefaultDragAndDrop();
     return (
         <GestureHandlerRootView style={fill}>
             <ComposeProviders
@@ -46,8 +54,12 @@ function App() {
                     HTMLEngineProvider,
                     WindowDimensionsProvider,
                     KeyboardStateProvider,
-                    CurrentReportIdContextProvider,
+                    PopoverContextProvider,
+                    CurrentReportIDContextProvider,
                     PickerStateProvider,
+                    EnvironmentProvider,
+                    ThemeProvider,
+                    ThemeStylesProvider,
                 ]}
             >
                 <CustomStatusBar />

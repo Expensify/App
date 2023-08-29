@@ -6,6 +6,9 @@ const propTypes = {
     /** URL to full-sized image */
     sourceURL: PropTypes.string,
 
+    /** PDF file name */
+    fileName: PropTypes.string,
+
     /** Additional style props */
     style: stylePropTypes,
 
@@ -21,16 +24,21 @@ const propTypes = {
     /** Handles load complete event in PDF component */
     onLoadComplete: PropTypes.func,
 
+    /** Should focus to the password input  */
+    isFocused: PropTypes.bool,
+
     ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
     sourceURL: '',
+    fileName: '',
     style: {},
-    onPress: () => {},
+    onPress: undefined,
     onToggleKeyboard: () => {},
     onScaleChanged: () => {},
     onLoadComplete: () => {},
+    isFocused: false,
 };
 
 export {propTypes, defaultProps};

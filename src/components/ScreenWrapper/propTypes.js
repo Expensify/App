@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import stylePropTypes from '../../styles/stylePropTypes';
 import {windowDimensionsPropTypes} from '../withWindowDimensions';
 import {environmentPropTypes} from '../withEnvironment';
 
@@ -22,6 +23,9 @@ const propTypes = {
      *  Search 'switch(behavior)' in ./node_modules/react-native/Libraries/Components/Keyboard/KeyboardAvoidingView.js for more context */
     keyboardAvoidingViewBehavior: PropTypes.oneOf(['padding', 'height', 'position']),
 
+    /** Whether KeyboardAvoidingView should be enabled. Use false for screens where this functionality is not necessary */
+    shouldEnableKeyboardAvoidingView: PropTypes.bool,
+
     /** Whether picker modal avoiding should be enabled. Should be enabled when there's a picker at the bottom of a
      *  scrollable form, gives a subtly better UX if disabled on non-scrollable screens with a submit button */
     shouldEnablePickerAvoiding: PropTypes.bool,
@@ -38,6 +42,9 @@ const propTypes = {
 
     /** Whether to show offline indicator */
     shouldShowOfflineIndicator: PropTypes.bool,
+
+    /** Styles for the offline indicator */
+    offlineIndicatorStyle: stylePropTypes,
 };
 
 const defaultProps = {
@@ -47,9 +54,11 @@ const defaultProps = {
     includePaddingTop: true,
     onEntryTransitionEnd: () => {},
     keyboardAvoidingViewBehavior: 'padding',
+    shouldEnableKeyboardAvoidingView: true,
     shouldEnableMaxHeight: false,
     shouldEnablePickerAvoiding: true,
     shouldShowOfflineIndicator: true,
+    offlineIndicatorStyle: [],
 };
 
 export {propTypes, defaultProps};

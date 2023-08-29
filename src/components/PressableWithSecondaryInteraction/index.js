@@ -73,11 +73,12 @@ class PressableWithSecondaryInteraction extends Component {
 
     render() {
         const defaultPressableProps = _.omit(this.props, ['onSecondaryInteraction', 'children', 'onLongPress']);
+        const inlineStyle = this.props.inline ? styles.dInline : {};
 
         // On Web, Text does not support LongPress events thus manage inline mode with styling instead of using Text.
         return (
             <PressableWithFeedback
-                wrapperStyle={StyleUtils.combineStyles(DeviceCapabilities.canUseTouchScreen() ? [styles.userSelectNone, styles.noSelect] : [])}
+                wrapperStyle={StyleUtils.combineStyles(DeviceCapabilities.canUseTouchScreen() ? [styles.userSelectNone, styles.noSelect] : [], inlineStyle)}
                 onPressIn={this.props.onPressIn}
                 onLongPress={this.props.onSecondaryInteraction ? this.executeSecondaryInteraction : undefined}
                 pressDimmingValue={this.props.activeOpacity}
@@ -86,7 +87,7 @@ class PressableWithSecondaryInteraction extends Component {
                 ref={(el) => (this.pressableRef = el)}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...defaultPressableProps}
-                style={(state) => [StyleUtils.parseStyleFromFunction(this.props.style, state), ...[this.props.inline && styles.dInline]]}
+                style={(state) => [StyleUtils.parseStyleFromFunction(this.props.style, state), inlineStyle]}
             >
                 {this.props.children}
             </PressableWithFeedback>

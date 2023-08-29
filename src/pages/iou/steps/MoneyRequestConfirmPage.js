@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useRef, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -10,7 +10,6 @@ import ScreenWrapper from '../../../components/ScreenWrapper';
 import styles from '../../../styles/styles';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
-import * as ReportScrollManager from '../../../libs/ReportScrollManager';
 import * as IOU from '../../../libs/actions/IOU';
 import compose from '../../../libs/compose';
 import * as ReportUtils from '../../../libs/ReportUtils';
@@ -21,25 +20,44 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../../components/withCurrentUserPersonalDetails';
 import reportPropTypes from '../../reportPropTypes';
 import personalDetailsPropType from '../../personalDetailsPropType';
+import participantPropTypes from '../../../components/participantPropTypes';
+import * as FileUtils from '../../../libs/fileDownload/FileUtils';
+import * as Policy from '../../../libs/actions/Policy';
 
 const propTypes = {
+    /** React Navigation route */
+    route: PropTypes.shape({
+        /** Params from the route */
+        params: PropTypes.shape({
+            /** The type of IOU report, i.e. bill, request, send */
+            iouType: PropTypes.string,
+
+            /** The report ID of the IOU */
+            reportID: PropTypes.string,
+        }),
+    }).isRequired,
+
     report: reportPropTypes,
 
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     iou: PropTypes.shape({
+        /** ID (iouType + reportID) of the request */
         id: PropTypes.string,
+
+        /** Amount of the request */
         amount: PropTypes.number,
-        currency: PropTypes.string,
+
+        /** Description of the request */
         comment: PropTypes.string,
-        participants: PropTypes.arrayOf(
-            PropTypes.shape({
-                accountID: PropTypes.number,
-                login: PropTypes.string,
-                isPolicyExpenseChat: PropTypes.bool,
-                isOwnPolicyExpenseChat: PropTypes.bool,
-                selected: PropTypes.bool,
-            }),
-        ),
+        created: PropTypes.string,
+
+        /** Currency of the request */
+        currency: PropTypes.string,
+        merchant: PropTypes.string,
+
+        /** List of the participants */
+        participants: PropTypes.arrayOf(participantPropTypes),
+        receiptPath: PropTypes.string,
     }),
 
     /** Personal details of all users */
@@ -56,6 +74,8 @@ const defaultProps = {
         amount: 0,
         currency: CONST.CURRENCY.USD,
         comment: '',
+        merchant: '',
+        created: '',
         participants: [],
     },
     ...withCurrentUserPersonalDetailsDefaultProps,
@@ -74,6 +94,14 @@ function MoneyRequestConfirmPage(props) {
     );
 
     useEffect(() => {
+        const policyExpenseChat = _.find(participants, (participant) => participant.isPolicyExpenseChat);
+        if (policyExpenseChat) {
+            Policy.openDraftWorkspaceRequest(policyExpenseChat.policyID);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    useEffect(() => {
         // ID in Onyx could change by initiating a new request in a separate browser tab or completing a request
         if (prevMoneyRequestId.current !== props.iou.id) {
             // The ID is cleared on completing a request. In that case, we will do nothing.
@@ -90,14 +118,14 @@ function MoneyRequestConfirmPage(props) {
             IOU.resetMoneyRequestInfo(moneyRequestId);
         }
 
-        if (_.isEmpty(props.iou.participants) || props.iou.amount === 0 || shouldReset) {
+        if (_.isEmpty(props.iou.participants) || (props.iou.amount === 0 && !props.iou.receiptPath) || shouldReset) {
             Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current), true);
         }
 
         return () => {
             prevMoneyRequestId.current = props.iou.id;
         };
-    }, [props.iou.participants, props.iou.amount, props.iou.id]);
+    }, [props.iou.participants, props.iou.amount, props.iou.id, props.iou.receiptPath]);
 
     const navigateBack = () => {
         let fallback;
@@ -108,6 +136,29 @@ function MoneyRequestConfirmPage(props) {
         }
         Navigation.goBack(fallback);
     };
+
+    /**
+     * @param {Array} selectedParticipants
+     * @param {String} trimmedComment
+     * @param {File} [receipt]
+     */
+    const requestMoney = useCallback(
+        (selectedParticipants, trimmedComment, receipt) => {
+            IOU.requestMoney(
+                props.report,
+                props.iou.amount,
+                props.iou.currency,
+                props.iou.created,
+                props.iou.merchant,
+                props.currentUserPersonalDetails.login,
+                props.currentUserPersonalDetails.accountID,
+                selectedParticipants[0],
+                trimmedComment,
+                receipt,
+            );
+        },
+        [props.report, props.iou.amount, props.iou.currency, props.iou.created, props.iou.merchant, props.currentUserPersonalDetails.login, props.currentUserPersonalDetails.accountID],
+    );
 
     const createTransaction = useCallback(
         (selectedParticipants) => {
@@ -141,17 +192,25 @@ function MoneyRequestConfirmPage(props) {
                 return;
             }
 
-            IOU.requestMoney(
-                props.report,
-                props.iou.amount,
-                props.iou.currency,
-                props.currentUserPersonalDetails.login,
-                props.currentUserPersonalDetails.accountID,
-                selectedParticipants[0],
-                trimmedComment,
-            );
+            if (props.iou.receiptPath && props.iou.receiptSource) {
+                FileUtils.readFileAsync(props.iou.receiptPath, props.iou.receiptSource).then((receipt) => {
+                    requestMoney(selectedParticipants, trimmedComment, receipt);
+                });
+                return;
+            }
+
+            requestMoney(selectedParticipants, trimmedComment);
         },
-        [props.iou.amount, props.iou.comment, props.currentUserPersonalDetails.login, props.currentUserPersonalDetails.accountID, props.iou.currency, props.report],
+        [
+            props.iou.amount,
+            props.iou.comment,
+            props.currentUserPersonalDetails.login,
+            props.currentUserPersonalDetails.accountID,
+            props.iou.currency,
+            props.iou.receiptPath,
+            props.iou.receiptSource,
+            requestMoney,
+        ],
     );
 
     /**
@@ -192,18 +251,12 @@ function MoneyRequestConfirmPage(props) {
                     />
                     <MoneyRequestConfirmationList
                         hasMultipleParticipants={iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT}
-                        participants={participants}
+                        selectedParticipants={participants}
                         iouAmount={props.iou.amount}
                         iouComment={props.iou.comment}
                         iouCurrencyCode={props.iou.currency}
-                        onConfirm={(selectedParticipants) => {
-                            createTransaction(selectedParticipants);
-                            ReportScrollManager.scrollToBottom();
-                        }}
-                        onSendMoney={(paymentMethodType) => {
-                            sendMoney(paymentMethodType);
-                            ReportScrollManager.scrollToBottom();
-                        }}
+                        onConfirm={createTransaction}
+                        onSendMoney={sendMoney}
                         onSelectParticipant={(option) => {
                             const newParticipants = _.map(props.iou.participants, (participant) => {
                                 if (participant.accountID === option.accountID) {
@@ -213,6 +266,8 @@ function MoneyRequestConfirmPage(props) {
                             });
                             IOU.setMoneyRequestParticipants(newParticipants);
                         }}
+                        receiptPath={props.iou.receiptPath}
+                        receiptSource={props.iou.receiptSource}
                         iouType={iouType.current}
                         reportID={reportID.current}
                         // The participants can only be modified when the action is initiated from directly within a group chat and not the floating-action-button.
@@ -223,6 +278,8 @@ function MoneyRequestConfirmPage(props) {
                         canModifyParticipants={!_.isEmpty(reportID.current)}
                         policyID={props.report.policyID}
                         bankAccountRoute={ReportUtils.getBankAccountRoute(props.report)}
+                        iouMerchant={props.iou.merchant}
+                        iouCreated={props.iou.created}
                     />
                 </View>
             )}

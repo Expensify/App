@@ -6,7 +6,7 @@ import tryResolveUrlFromApiRoot from '../tryResolveUrlFromApiRoot';
  * @param {String} html
  * @returns {Object}
  */
-export default function getAttachmentName(html) {
+export default function getAttachmentDetails(html) {
     // Files can be rendered either as anchor tag or as an image so based on that we have to form regex.
     const IS_IMAGE_TAG = /<img([\w\W]+?)\/>/i.test(html);
     const PREVIEW_SOURCE_REGEX = new RegExp(`${CONST.ATTACHMENT_PREVIEW_ATTRIBUTE}*=*"(.+?)"`, 'i');
