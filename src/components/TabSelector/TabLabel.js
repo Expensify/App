@@ -8,12 +8,10 @@ const propTypes = {
     title: PropTypes.string,
 
     /** Animated opacity value while the label is inactive state */
-    // eslint-disable-next-line
-    inactiveOpacity: PropTypes.any,
+    inactiveOpacity: PropTypes.number,
 
     /** Animated opacity value while the label is in active state */
-    // eslint-disable-next-line
-    activeOpacity: PropTypes.any,
+    activeOpacity: PropTypes.number,
 };
 
 const defaultProps = {
