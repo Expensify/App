@@ -36,6 +36,7 @@ import MapboxAccessToken from './MapboxAccessToken';
 import Download from './Download';
 import PolicyMember from './PolicyMember';
 import Policy from './Policy';
+import PolicyCategory from './PolicyCategory';
 import Report from './Report';
 import ReportAction from './ReportAction';
 import ReportActionReactions from './ReportActionReactions';
@@ -82,6 +83,7 @@ export type {
     Download,
     PolicyMember,
     Policy,
+    PolicyCategory,
     Report,
     ReportAction,
     ReportActionReactions,
