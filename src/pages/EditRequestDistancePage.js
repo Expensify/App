@@ -10,10 +10,10 @@ import * as IOU from '../libs/actions/IOU';
 
 const propTypes = {
     /** The transactionID we're currently editing */
-    transactionID: PropTypes.number,
+    transactionID: PropTypes.string.isRequired,
 
     /** The report to with which the distance request is associated */
-    report: reportPropTypes,
+    report: reportPropTypes.isRequired,
 };
 
 function EditRequestDistancePage({transactionID, report}) {
@@ -37,7 +37,7 @@ function EditRequestDistancePage({transactionID, report}) {
                 transactionID={transactionID}
                 isEditingRequest
                 onSubmit={(waypoints) => {
-                    IOU.editDistanceRequest(iou.transactionID, report.reportID, {waypoints});
+                    IOU.editDistanceRequest(transactionID, report.reportID, {waypoints});
                     Navigation.dismissModal();
                 }}
             />
