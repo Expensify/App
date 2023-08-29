@@ -81,6 +81,9 @@ const propTypes = {
 
     /** Whether to show the scroll bar */
     showScrollIndicator: PropTypes.bool,
+
+    /** Whether to wrap large text up to 2 lines */
+    isRowMultilineSupported: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -105,6 +108,7 @@ const defaultProps = {
     shouldHaveOptionSeparator: false,
     shouldDisableRowInnerPadding: false,
     showScrollIndicator: false,
+    isRowMultilineSupported: false,
 };
 
 export {propTypes, defaultProps};

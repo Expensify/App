@@ -376,6 +376,7 @@ class BaseOptionsSelector extends Component {
                 listContainerStyles={this.props.listContainerStyles}
                 isLoading={!this.props.shouldShowOptions}
                 showScrollIndicator={this.props.showScrollIndicator}
+                isRowMultilineSupported={this.props.isRowMultilineSupported}
             />
         );
         return (

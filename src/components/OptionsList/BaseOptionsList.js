@@ -56,6 +56,7 @@ function BaseOptionsList({
     boldStyle,
     isDisabled,
     innerRef,
+    isRowMultilineSupported,
 }) {
     const flattenedData = useRef();
     const previousSections = usePrevious(sections);
@@ -178,6 +179,7 @@ function BaseOptionsList({
                 isDisabled={isItemDisabled}
                 shouldHaveOptionSeparator={index > 0 && shouldHaveOptionSeparator}
                 shouldDisableRowInnerPadding={shouldDisableRowInnerPadding}
+                isMultilineSupported={isRowMultilineSupported}
             />
         );
     };

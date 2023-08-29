@@ -77,6 +77,7 @@ function CategoryPicker({policyCategories, reportID, policyID, iouType, iou, rec
             textInputLabel={translate('common.search')}
             boldStyle
             highlightSelectedOptions
+            isRowMultilineSupported
             onChangeText={setSearchValue}
             onSelectRow={updateCategory}
         />

@@ -109,6 +109,9 @@ const propTypes = {
 
     /** Whether to use default padding and flex styles for children */
     shouldUseStyleForChildren: PropTypes.bool,
+
+    /** Whether to wrap large text up to 2 lines */
+    isRowMultilineSupported: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -140,6 +143,7 @@ const defaultProps = {
     shouldShowTextInput: true,
     onChangeText: () => {},
     shouldUseStyleForChildren: true,
+    isRowMultilineSupported: false,
 };
 
 export {propTypes, defaultProps};

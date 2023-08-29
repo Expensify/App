@@ -60,6 +60,9 @@ const propTypes = {
     /** Whether to remove the lateral padding and align the content with the margins */
     shouldDisableRowInnerPadding: PropTypes.bool,
 
+    /** Whether to wrap large text up to 2 lines */
+    isMultilineSupported: PropTypes.bool,
+
     style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
     ...withLocalizePropTypes,
@@ -75,6 +78,7 @@ const defaultProps = {
     onSelectRow: undefined,
     isDisabled: false,
     optionIsFocused: false,
+    isMultilineSupported: false,
     style: null,
     shouldHaveOptionSeparator: false,
     shouldDisableRowInnerPadding: false,
@@ -93,6 +97,7 @@ class OptionRow extends Component {
         return (
             this.state.isDisabled !== nextState.isDisabled ||
             this.props.isDisabled !== nextProps.isDisabled ||
+            this.props.isMultilineSupported !== nextProps.isMultilineSupported ||
             this.props.isSelected !== nextProps.isSelected ||
             this.props.shouldHaveOptionSeparator !== nextProps.shouldHaveOptionSeparator ||
             this.props.showSelectedState !== nextProps.showSelectedState ||
@@ -222,7 +227,7 @@ class OptionRow extends Component {
                                             fullTitle={this.props.option.text}
                                             displayNamesWithTooltips={displayNamesWithTooltips}
                                             tooltipEnabled={this.props.showTitleTooltip}
-                                            numberOfLines={2}
+                                            numberOfLines={this.props.isMultilineSupported ? 2 : 1}
                                             textStyles={displayNameStyle}
                                             shouldUseFullTitle={
                                                 this.props.option.isChatRoom ||
