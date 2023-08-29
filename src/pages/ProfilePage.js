@@ -139,6 +139,8 @@ function ProfilePage(props) {
     const hasStatus = !!statusEmojiCode && Permissions.canUseCustomStatus(props.betas);
     const statusContent = `${statusEmojiCode}  ${statusText}`;
 
+    const chatReportIDWithCurrentUser = !isCurrentUser && !Session.isAnonymousUser() ? ReportUtils.getChatByParticipants([accountID, Number(lodashGet(props.session, 'accountID'))]) : 0;
+
     return (
         <ScreenWrapper>
             <HeaderWithBackButton
@@ -234,6 +236,16 @@ function ProfilePage(props) {
                                 shouldShowRightIcon
                             />
                         )}
+                        {chatReportIDWithCurrentUser && (
+                            <MenuItem
+                                title={`${props.translate('privateNotes.title')}`}
+                                titleStyle={styles.flex1}
+                                icon={Expensicons.Pencil}
+                                onPress={() => ReportUtils.navigateToPrivateNotesPage([accountID])}
+                                wrapperStyle={styles.breakAll}
+                                shouldShowRightIcon
+                            />
+                        )}
                     </ScrollView>
                 )}
                 {!hasMinimumDetails && isLoading && <FullScreenLoadingIndicator style={styles.flex1} />}
@@ -271,5 +283,8 @@ export default compose(
         betas: {
             key: ONYXKEYS.BETAS,
         },
+        session: {
+            key: ONYXKEYS.SESSION,
+        }
     }),
 )(ProfilePage);

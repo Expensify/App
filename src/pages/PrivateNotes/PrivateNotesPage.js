@@ -88,7 +88,7 @@ const PrivateNotesPage = ({ route, personalDetailsList, session, report }) => {
                     title={translate('privateNotes.title')}
                     subtitle={
                         isCurrentUser
-                            ? 'Your note'
+                            ? 'My note'
                             : `${lodashGet(personalDetailsList, `${route.params.accountID}.login`, '')} note`
                     }
                     shouldShowBackButton

@@ -111,6 +111,15 @@ function ReportDetailsPage(props) {
                 },
             });
         }
+        
+        // We display private notes option for all the chat reports
+        items.push({
+            key: CONST.REPORT_DETAILS_MENU_ITEM.PRIVATE_NOTES,
+            translationKey: 'privateNotes.title',
+            icon: Expensicons.Pencil,
+            isAnonymousAction: false,
+            action: () => ReportUtils.navigateToPrivateNotesPage(props.report.reportID),
+        });
 
         if (isUserCreatedPolicyRoom || canLeaveRoom || isThread) {
             items.push({
