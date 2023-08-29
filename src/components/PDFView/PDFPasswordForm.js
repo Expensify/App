@@ -132,6 +132,7 @@ function PDFPasswordForm({isFocused, isPasswordInvalid, shouldShowLoadingIndicat
                 secureTextEntry
             />
             <Button
+                // Keep focus on the TextInput effectively keeping keyboard open
                 onMouseDown={(e) => e.preventDefault()}
                 text={translate('common.confirm')}
                 onPress={submitPassword}
