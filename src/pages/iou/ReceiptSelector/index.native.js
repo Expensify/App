@@ -1,4 +1,4 @@
-import {ActivityIndicator, Alert, AppState, Linking, Text, View} from 'react-native';
+import {ActivityIndicator, Alert, AppState, Linking, PermissionsAndroid, Text, View} from 'react-native';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {Camera, useCameraDevices} from 'react-native-vision-camera';
 import lodashGet from 'lodash/get';
@@ -21,6 +21,8 @@ import useLocalize from '../../../hooks/useLocalize';
 import ONYXKEYS from '../../../ONYXKEYS';
 import Log from '../../../libs/Log';
 import participantPropTypes from '../../../components/participantPropTypes';
+import * as CameraPermission from './CameraPermission';
+import {RESULTS} from 'react-native-permissions';
 
 const propTypes = {
     /** React Navigation route */
@@ -113,7 +115,7 @@ function ReceiptSelector(props) {
     useEffect(() => {
         const subscription = AppState.addEventListener('change', (nextAppState) => {
             if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
-                Camera.getCameraPermissionStatus().then((permissionStatus) => {
+                CameraPermission.getCameraPermissionStatus().then((permissionStatus) => {
                     setPermissions(permissionStatus);
                 });
             }
@@ -156,11 +158,11 @@ function ReceiptSelector(props) {
     };
 
     const askForPermissions = () => {
-        if (permissions === 'not-determined') {
-            Camera.requestCameraPermission().then((permissionStatus) => {
+        if (permissions === 'denied') {
+            CameraPermission.requestCameraPermission().then((permissionStatus) => {
                 setPermissions(permissionStatus);
             });
-        } else {
+        } else if (['blocked', 'never_ask_again'].includes(permissions)) {
             Linking.openSettings();
         }
     };
@@ -219,13 +221,13 @@ function ReceiptSelector(props) {
             });
     }, [flash, iouType, props.iou, props.report, reportID, translate]);
 
-    Camera.getCameraPermissionStatus().then((permissionStatus) => {
+    CameraPermission.getCameraPermissionStatus().then((permissionStatus) => {
         setPermissions(permissionStatus);
     });
 
     return (
         <View style={styles.flex1}>
-            {permissions !== CONST.RECEIPT.PERMISSION_AUTHORIZED && (
+            {permissions !== CONST.RECEIPT.PERMISSION_GRANTED && (
                 <View style={[styles.cameraView, styles.permissionView]}>
                     <Hand
                         width={CONST.RECEIPT.HAND_ICON_WIDTH}
@@ -248,7 +250,7 @@ function ReceiptSelector(props) {
                     </PressableWithFeedback>
                 </View>
             )}
-            {permissions === CONST.RECEIPT.PERMISSION_AUTHORIZED && device == null && (
+            {permissions === CONST.RECEIPT.PERMISSION_GRANTED && device == null && (
                 <View style={[styles.cameraView]}>
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
@@ -257,7 +259,7 @@ function ReceiptSelector(props) {
                     />
                 </View>
             )}
-            {permissions === CONST.RECEIPT.PERMISSION_AUTHORIZED && device != null && (
+            {permissions === CONST.RECEIPT.PERMISSION_GRANTED && device != null && (
                 <Camera
                     ref={camera}
                     device={device}
