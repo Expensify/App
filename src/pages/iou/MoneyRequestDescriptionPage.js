@@ -16,6 +16,8 @@ import * as IOU from '../../libs/actions/IOU';
 import optionPropTypes from '../../components/optionPropTypes';
 import CONST from '../../CONST';
 import useLocalize from '../../hooks/useLocalize';
+import focusAndUpdateMultilineInputRange from '../../libs/focusAndUpdateMultilineInputRange';
+import * as Browser from '../../libs/Browser';
 
 const propTypes = {
     /** Onyx Props */
@@ -101,7 +103,7 @@ function MoneyRequestDescriptionPage({iou, route}) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
-            onEntryTransitionEnd={() => inputRef.current && inputRef.current.focus()}
+            onEntryTransitionEnd={() => focusAndUpdateMultilineInputRange(inputRef.current)}
         >
             <HeaderWithBackButton
                 title={translate('common.description')}
@@ -123,6 +125,10 @@ function MoneyRequestDescriptionPage({iou, route}) {
                         accessibilityLabel={translate('moneyRequestConfirmationList.whatsItFor')}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         ref={(el) => (inputRef.current = el)}
+                        autoGrowHeight
+                        containerStyles={[styles.autoGrowHeightMultilineInput]}
+                        textAlignVertical="top"
+                        submitOnEnter={!Browser.isMobile()}
                     />
                 </View>
             </Form>

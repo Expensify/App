@@ -158,9 +158,10 @@ export default {
         category: 'Category',
         receipt: 'Receipt',
         replace: 'Replace',
+        distance: 'Distance',
     },
     anonymousReportFooter: {
-        logoTagline: 'Join in on the discussion.',
+        logoTagline: 'Join the discussion.',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera access',
@@ -375,7 +376,6 @@ export default {
     tabSelector: {
         manual: 'Manual',
         scan: 'Scan',
-        distance: 'Distance',
     },
     receipt: {
         upload: 'Upload receipt',
@@ -396,6 +396,8 @@ export default {
     },
     iou: {
         amount: 'Amount',
+        approve: 'Approve',
+        approved: 'Approved',
         cash: 'Cash',
         split: 'Split',
         request: 'Request',
@@ -426,6 +428,7 @@ export default {
         payerOwes: ({payer}) => `${payer} owes: `,
         payerPaidAmount: ({payer, amount}) => `${payer} paid ${amount}`,
         payerPaid: ({payer}) => `${payer} paid: `,
+        managerApproved: ({manager}) => `${manager} approved:`,
         payerSettled: ({amount}) => `paid ${amount}`,
         waitingOnBankAccount: ({submitterDisplayName}) => `started settling up, payment is held until ${submitterDisplayName} adds a bank account`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}) => `${submitterDisplayName} added a bank account. The ${amount} payment has been made.`,
@@ -510,7 +513,7 @@ export default {
         failedNewContact: 'Failed to add this contact method.',
         genericFailureMessages: {
             requestContactMethodValidateCode: 'Failed to send a new magic code. Please wait a bit and try again.',
-            validateSecondaryLogin: 'Failed to validate contact method with given magic code. Please request a new code and try again.',
+            validateSecondaryLogin: 'Incorrect or invalid magic code. Please try again or request a new code.',
             deleteContactMethod: 'Failed to delete contact method. Please reach out to Concierge for help.',
             setDefaultContactMethod: 'Failed to set a new default contact method. Please reach out to Concierge for help.',
             addContactMethod: 'Failed to add this contact method. Please reach out to Concierge for help.',
@@ -1612,6 +1615,8 @@ export default {
     },
     distance: {
         addStop: 'Add stop',
+        deleteWaypoint: 'Delete waypoint',
+        deleteWaypointConfirmation: 'Are you sure you want to delete this waypoint?',
         address: 'Address',
         waypointEditor: 'Waypoint Editor',
         waypointDescription: {
