@@ -1503,6 +1503,14 @@ const styles = {
         paddingBottom: 12,
     },
 
+    optionRowSelected: {
+        backgroundColor: themeColors.activeComponentBG,
+    },
+
+    optionRowDisabled: {
+        color: themeColors.textSupporting,
+    },
+
     optionRowCompact: {
         height: variables.optionRowHeightCompact,
         paddingTop: 12,

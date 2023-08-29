@@ -124,13 +124,7 @@ class OptionRow extends Component {
         let pressableRef = null;
         const textStyle = this.props.optionIsFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
         const textUnreadStyle = this.props.boldStyle || this.props.option.boldStyle ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
-        const displayNameStyle = StyleUtils.combineStyles(
-            styles.optionDisplayName,
-            textUnreadStyle,
-            this.props.style,
-            styles.pre,
-            this.state.isDisabled ? {color: themeColors.textSupporting} : {},
-        );
+        const displayNameStyle = StyleUtils.combineStyles(styles.optionDisplayName, textUnreadStyle, this.props.style, styles.pre, this.state.isDisabled ? styles.optionRowDisabled : {});
         const alternateTextStyle = StyleUtils.combineStyles(
             textStyle,
             styles.optionAlternateText,
@@ -193,10 +187,7 @@ class OptionRow extends Component {
                                 this.props.optionIsFocused ? styles.sidebarLinkActive : null,
                                 this.props.shouldHaveOptionSeparator && styles.borderTop,
                                 !this.props.onSelectRow && !this.props.isDisabled ? styles.cursorDefault : null,
-                                this.props.isSelected &&
-                                    this.props.highlightSelected && {
-                                        backgroundColor: themeColors.activeComponentBG,
-                                    },
+                                this.props.isSelected && this.props.highlightSelected && styles.optionRowSelected,
                             ]}
                             accessibilityLabel={this.props.option.text}
                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
@@ -265,10 +256,12 @@ class OptionRow extends Component {
                                     )}
                                     {this.props.showSelectedState && <SelectCircle isChecked={this.props.isSelected} />}
                                     {this.props.isSelected && this.props.highlightSelected && (
-                                        <Icon
-                                            src={Expensicons.Checkmark}
-                                            fill={themeColors.iconSuccessFill}
-                                        />
+                                        <View style={styles.defaultCheckmarkWrapper}>
+                                            <Icon
+                                                src={Expensicons.Checkmark}
+                                                fill={themeColors.iconSuccessFill}
+                                            />
+                                        </View>
                                     )}
                                 </View>
                             </View>
