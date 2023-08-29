@@ -22,6 +22,7 @@ import Button from '../Button';
 import useLocalize from '../../hooks/useLocalize';
 import Log from '../../libs/Log';
 import OptionsListSkeletonView from '../OptionsListSkeletonView';
+import useActiveElement from '../../hooks/useActiveElement';
 
 const propTypes = {
     ...keyboardStatePropTypes,
@@ -49,6 +50,7 @@ function BaseSelectionList({
     onConfirm,
     showScrollIndicator = false,
     showLoadingPlaceholder = false,
+    showConfirmButton = false,
     isKeyboardShown = false,
 }) {
     const {translate} = useLocalize();
@@ -58,7 +60,7 @@ function BaseSelectionList({
     const focusTimeoutRef = useRef(null);
     const shouldShowTextInput = Boolean(textInputLabel);
     const shouldShowSelectAll = Boolean(onSelectAll);
-    const shouldShowConfirmButton = Boolean(onConfirm);
+    const activeElement = useActiveElement();
 
     /**
      * Iterates through the sections and items inside each section, and builds 3 arrays along the way:
@@ -133,17 +135,8 @@ function BaseSelectionList({
         };
     }, [canSelectMultiple, sections]);
 
-    const [focusedIndex, setFocusedIndex] = useState(() => {
-        const defaultIndex = 0;
-
-        const indexOfInitiallyFocusedOption = _.findIndex(flattenedSections.allOptions, (option) => option.keyForList === initiallyFocusedOptionKey);
-
-        if (indexOfInitiallyFocusedOption >= 0) {
-            return indexOfInitiallyFocusedOption;
-        }
-
-        return defaultIndex;
-    });
+    // If `initiallyFocusedOptionKey` is not passed, we fall back to `-1`, to avoid showing the highlight on the first member
+    const [focusedIndex, setFocusedIndex] = useState(() => _.findIndex(flattenedSections.allOptions, (option) => option.keyForList === initiallyFocusedOptionKey));
 
     /**
      * Scrolls to the desired item index in the section list
@@ -171,7 +164,7 @@ function BaseSelectionList({
             }
         }
 
-        listRef.current.scrollToLocation({sectionIndex: adjustedSectionIndex, itemIndex, animated});
+        listRef.current.scrollToLocation({sectionIndex: adjustedSectionIndex, itemIndex, animated, viewOffset: variables.contentHeaderHeight});
     };
 
     const selectRow = (item, index) => {
@@ -185,6 +178,11 @@ function BaseSelectionList({
                 // If the list has multiple sections (e.g. Workspace Invite list), we focus the first one after all the selected (selected items are always at the top)
                 const selectedOptionsCount = item.isSelected ? flattenedSections.selectedOptions.length - 1 : flattenedSections.selectedOptions.length + 1;
                 setFocusedIndex(selectedOptionsCount);
+
+                if (!item.isSelected) {
+                    // If we're selecting an item, scroll to it's position at the top, so we can see it
+                    scrollToIndex(Math.max(selectedOptionsCount - 1, 0), true);
+                }
             }
         }
 
@@ -286,10 +284,18 @@ function BaseSelectionList({
         };
     }, [shouldDelayFocus, shouldShowTextInput]);
 
-    /** Selects row when pressing enter */
+    /** Selects row when pressing Enter */
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
         captureOnInputs: true,
         shouldBubble: () => !flattenedSections.allOptions[focusedIndex],
+        isActive: !activeElement,
+    });
+
+    /** Calls confirm action when pressing CTRL (CMD) + Enter */
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER, onConfirm, {
+        captureOnInputs: true,
+        shouldBubble: () => !flattenedSections.allOptions[focusedIndex],
+        isActive: Boolean(onConfirm),
     });
 
     return (
@@ -380,7 +386,7 @@ function BaseSelectionList({
                                 />
                             </>
                         )}
-                        {shouldShowConfirmButton && (
+                        {showConfirmButton && (
                             <FixedFooter>
                                 <Button
                                     success
