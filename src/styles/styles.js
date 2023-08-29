@@ -777,6 +777,11 @@ const styles = {
         borderColor: themeColors.danger,
     },
 
+    textInputDisabled: {
+        backgroundColor: themeColors.overlay,
+        borderColor: themeColors.borderLighter,
+    },
+
     uploadReceiptView: (isSmallScreenWidth) => ({
         borderRadius: variables.componentBorderRadiusLarge,
         borderWidth: isSmallScreenWidth ? 0 : 2,
@@ -3876,6 +3881,6 @@ const styles = {
         fontSize: variables.fontSizeNormal,
         marginRight: 4,
     },
-};
+    };
 
 export default styles;
