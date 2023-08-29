@@ -1,3 +1,4 @@
+import {TextInput} from 'react-native';
 /**
  * Focus a multiline text input and place the cursor at the end of the value (if there is a value in the input).
  *
@@ -6,16 +7,14 @@
  * focus. This provides a better user experience in cases where the text in the field has to be edited. The auto-
  * scroll behaviour works on all platforms except iOS native.
  * See https://github.com/Expensify/App/issues/20836 for more details.
- *
- * @param {Object} input the input element
  */
-export default function focusAndUpdateMultilineInputRange(input) {
+export default function focusAndUpdateMultilineInputRange(input: TextInput | HTMLTextAreaElement) {
     if (!input) {
         return;
     }
 
     input.focus();
-    if (input.value && input.setSelectionRange) {
+    if ('setSelectionRange' in input && input.value) {
         const length = input.value.length;
         input.setSelectionRange(length, length);
         // eslint-disable-next-line no-param-reassign
