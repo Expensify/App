@@ -157,6 +157,7 @@ export default {
         category: 'Categoría',
         receipt: 'Recibo',
         replace: 'Sustituir',
+        distance: 'Distancia',
     },
     anonymousReportFooter: {
         logoTagline: 'Únete a la discusión.',
@@ -374,7 +375,6 @@ export default {
     tabSelector: {
         manual: 'Manual',
         scan: 'Escanear',
-        distance: 'Distancia',
     },
     receipt: {
         upload: 'Subir recibo',
@@ -395,6 +395,8 @@ export default {
     },
     iou: {
         amount: 'Importe',
+        approve: 'Aprobar',
+        approved: 'Aprobado',
         cash: 'Efectivo',
         split: 'Dividir',
         request: 'Solicitar',
@@ -425,6 +427,7 @@ export default {
         payerOwes: ({payer}) => `${payer} debe: `,
         payerPaidAmount: ({payer, amount}) => `${payer} pagó ${amount}`,
         payerPaid: ({payer}) => `${payer} pagó: `,
+        managerApproved: ({manager}) => `${manager} aprobó:`,
         payerSettled: ({amount}) => `pagó ${amount}`,
         waitingOnBankAccount: ({submitterDisplayName}) => `inicio el pago, pero no se procesará hasta que ${submitterDisplayName} añada una cuenta bancaria`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}) => `${submitterDisplayName} añadió una cuenta bancaria. El pago de ${amount} se ha realizado.`,
@@ -510,7 +513,7 @@ export default {
         failedNewContact: 'Hubo un error al añadir este método de contacto.',
         genericFailureMessages: {
             requestContactMethodValidateCode: 'No se ha podido enviar un nuevo código mágico. Espera un rato y vuelve a intentarlo.',
-            validateSecondaryLogin: 'No se ha podido validar el método de contacto con el código mágico provisto. Solicita un nuevo código y vuelve a intentarlo.',
+            validateSecondaryLogin: 'Código mágico incorrecto o no válido. Inténtalo de nuevo o solicita otro código.',
             deleteContactMethod: 'No se ha podido eliminar este método de contacto. Por favor, contacta con Concierge para obtener ayuda.',
             setDefaultContactMethod: 'No se pudo establecer un nuevo método de contacto predeterminado. Por favor contacta con Concierge para obtener ayuda.',
             addContactMethod: 'Hubo un error al añadir este método de contacto. Por favor, contacta con Concierge para obtener ayuda.',
@@ -978,7 +981,7 @@ export default {
             routingAndAccountNumberCannotBeSame: 'El número de ruta y el número de cuenta no pueden ser iguales',
             companyType: 'Por favor, selecciona un tipo de compañía válido',
             tooManyAttempts:
-                'Debido a la gran cantidad de intentos de inicio de sesión, esta opción se ha desactivado temporalmente durante 24 horas. Vuelve a intentarlo más tarde o introduce los detalles manualmente.',
+                'Debido a la gran cantidad de intentos de inicio de sesión, esta opción ha sido desactivada temporalmente durante 24 horas. Por favor, inténtalo de nuevo más tarde.',
             address: 'Por favor, introduce una dirección válida',
             dob: 'Por favor, selecciona una fecha de nacimiento válida',
             age: 'Debe ser mayor de 18 años',
@@ -2099,8 +2102,9 @@ export default {
     },
     distance: {
         addStop: 'Agregar parada',
+        deleteWaypoint: 'Eliminar punto de ruta',
+        deleteWaypointConfirmation: '¿Estás seguro de que quieres eliminar este punto de ruta?',
         address: 'Dirección',
-        waypointEditor: 'Editor de puntos de ruta',
         waypointDescription: {
             start: 'Comienzo',
             finish: 'Final',
