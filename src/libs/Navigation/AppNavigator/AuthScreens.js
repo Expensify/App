@@ -64,7 +64,7 @@ Onyx.connect({
         }
 
         timezone = lodashGet(val, [currentAccountID, 'timezone'], {});
-        const currentTimezone = moment.tz.guess(true);
+        const currentTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
         // If the current timezone is different than the user's timezone, and their timezone is set to automatic
         // then update their timezone.

@@ -399,7 +399,7 @@ function openProfile(personalDetails) {
     if (lodashGet(oldTimezoneData, 'automatic', true)) {
         newTimezoneData = {
             automatic: true,
-            selected: moment.tz.guess(true),
+            selected: Intl.DateTimeFormat().resolvedOptions().timeZone,
         };
     }
 
