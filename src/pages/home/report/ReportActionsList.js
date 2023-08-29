@@ -34,6 +34,9 @@ const propTypes = {
     /** The ID of the most recent IOU report action connected with the shown report */
     mostRecentIOUReportActionID: PropTypes.string,
 
+    /** The report metada loading states */
+    isLoadingReportActions: PropTypes.bool,
+
     /** Are we loading more report actions? */
     isLoadingMoreReportActions: PropTypes.bool,
 
@@ -63,6 +66,7 @@ const defaultProps = {
     personalDetails: {},
     onScroll: () => {},
     mostRecentIOUReportActionID: '',
+    isLoadingReportActions: false,
     isLoadingMoreReportActions: false,
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
@@ -92,6 +96,8 @@ function isMessageUnread(message, lastReadTime) {
 
 function ReportActionsList({
     report,
+    isLoadingReportActions,
+    isLoadingMoreReportActions,
     sortedReportActions,
     windowHeight,
     onScroll,
@@ -299,7 +305,7 @@ function ReportActionsList({
                     onEndReached={loadMoreChats}
                     onEndReachedThreshold={0.75}
                     ListFooterComponent={() => {
-                        if (report.isLoadingMoreReportActions) {
+                        if (isLoadingMoreReportActions) {
                             return <ReportActionsSkeletonView containerHeight={CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT * 3} />;
                         }
 
@@ -307,7 +313,7 @@ function ReportActionsList({
                         // skeleton view above the created action in a newly generated optimistic chat or one with not
                         // that many comments.
                         const lastReportAction = _.last(sortedReportActions) || {};
-                        if (report.isLoadingReportActions && lastReportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED) {
+                        if (isLoadingReportActions && lastReportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED) {
                             return (
                                 <ReportActionsSkeletonView
                                     containerHeight={skeletonViewHeight}

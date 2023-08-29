@@ -36,6 +36,7 @@ import Download from './Download';
 import PolicyMember from './PolicyMember';
 import Policy from './Policy';
 import Report from './Report';
+import ReportMetadata from './ReportMetadata';
 import ReportAction from './ReportAction';
 import ReportActionReactions from './ReportActionReactions';
 import SecurityGroup from './SecurityGroup';
@@ -82,6 +83,7 @@ export type {
     PolicyMember,
     Policy,
     Report,
+    ReportMetadata,
     ReportAction,
     ReportActionReactions,
     SecurityGroup,

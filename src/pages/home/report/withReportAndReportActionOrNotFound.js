@@ -6,6 +6,7 @@ import getComponentDisplayName from '../../../libs/getComponentDisplayName';
 import NotFoundPage from '../../ErrorPage/NotFoundPage';
 import ONYXKEYS from '../../../ONYXKEYS';
 import reportPropTypes from '../../reportPropTypes';
+import reportMetadataPropTypes from '../../reportMetadataPropTypes';
 import reportActionPropTypes from './reportActionPropTypes';
 import FullscreenLoadingIndicator from '../../../components/FullscreenLoadingIndicator';
 import * as ReportUtils from '../../../libs/ReportUtils';
@@ -22,6 +23,9 @@ export default function (WrappedComponent) {
 
         /** The report currently being looked at */
         report: reportPropTypes,
+
+        /** The report metadata */
+        reportMetadata: reportMetadataPropTypes,
 
         /** Array of report actions for this report */
         reportActions: PropTypes.shape(reportActionPropTypes),
@@ -62,6 +66,10 @@ export default function (WrappedComponent) {
         forwardedRef: () => {},
         reportActions: {},
         report: {},
+        reportMetadata: {
+            isLoadingReportActions: false,
+            isLoadingMoreReportActions: false,
+        },
         policies: {},
         betas: [],
         isLoadingReportData: true,
@@ -94,7 +102,7 @@ export default function (WrappedComponent) {
 
         // Perform all the loading checks
         const isLoadingReport = props.isLoadingReportData && (_.isEmpty(props.report) || !props.report.reportID);
-        const isLoadingReportAction = _.isEmpty(props.reportActions) || (props.report.isLoadingReportActions && _.isEmpty(getReportAction()));
+        const isLoadingReportAction = _.isEmpty(props.reportActions) || (props.reportMetadata.isLoadingReportActions && _.isEmpty(getReportAction()));
         const shouldHideReport = !isLoadingReport && (_.isEmpty(props.report) || !props.report.reportID || !ReportUtils.canAccessReport(props.report, props.policies, props.betas));
 
         if ((isLoadingReport || isLoadingReportAction) && !shouldHideReport) {
@@ -134,6 +142,9 @@ export default function (WrappedComponent) {
         withOnyx({
             report: {
                 key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
+            },
+            reportMetadata: {
+                key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_METADATA}${route.params.reportID}`,
             },
             isLoadingReportData: {
                 key: ONYXKEYS.IS_LOADING_REPORT_DATA,

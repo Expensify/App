@@ -25,6 +25,7 @@ import ReportFooter from './report/ReportFooter';
 import Banner from '../../components/Banner';
 import withLocalize from '../../components/withLocalize';
 import reportPropTypes from '../reportPropTypes';
+import reportMetadataPropTypes from '../reportMetadataPropTypes';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import withViewportOffsetTop, {viewportOffsetTopPropTypes} from '../../components/withViewportOffsetTop';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
@@ -56,6 +57,9 @@ const propTypes = {
 
     /** The report currently being looked at */
     report: reportPropTypes,
+
+    /** The report metada loading states */
+    reportMetadata: reportMetadataPropTypes,
 
     /** Array of report actions for this report */
     reportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)),
@@ -95,7 +99,10 @@ const defaultProps = {
     reportActions: [],
     report: {
         hasOutstandingIOU: false,
+    },
+    reportMetadata: {
         isLoadingReportActions: false,
+        isLoadingMoreReportActions: false,
     },
     isComposerFullSize: false,
     betas: [],
@@ -120,6 +127,7 @@ function ReportScreen({
     betas,
     route,
     report,
+    reportMetadata,
     reportActions,
     accountManagerReportID,
     personalDetails,
@@ -145,7 +153,7 @@ function ReportScreen({
     const screenWrapperStyle = [styles.appContent, styles.flex1, {marginTop: viewportOffsetTop}];
 
     // There are no reportActions at all to display and we are still in the process of loading the next set of actions.
-    const isLoadingInitialReportActions = _.isEmpty(reportActions) && report.isLoadingReportActions;
+    const isLoadingInitialReportActions = _.isEmpty(reportActions) && reportMetadata.isLoadingReportActions;
 
     const shouldHideReport = !ReportUtils.canAccessReport(report, policies, betas);
 
@@ -292,7 +300,7 @@ function ReportScreen({
                     shouldEnableKeyboardAvoidingView={isTopMostReportId}
                 >
                     <FullPageNotFoundView
-                        shouldShow={(!report.reportID && !report.isLoadingReportActions && !isLoading) || shouldHideReport}
+                        shouldShow={(!report.reportID && !reportMetadata.isLoadingReportActions && !isLoading) || shouldHideReport}
                         subtitleKey="notFound.noAccess"
                         shouldShowCloseButton={false}
                         shouldShowBackButton={isSmallScreenWidth}
@@ -345,6 +353,8 @@ function ReportScreen({
                                     <ReportActionsView
                                         reportActions={reportActions}
                                         report={report}
+                                        isLoadingReportActions={reportMetadata.isLoadingReportActions}
+                                        isLoadingMoreReportActions={reportMetadata.isLoadingMoreReportActions}
                                         isComposerFullSize={isComposerFullSize}
                                         parentViewHeight={skeletonViewContainerHeight}
                                         policy={policy}
@@ -404,6 +414,9 @@ export default compose(
         },
         report: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`,
+        },
+        reportMetadata: {
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_METADATA}${getReportID(route)}`,
         },
         isComposerFullSize: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${getReportID(route)}`,

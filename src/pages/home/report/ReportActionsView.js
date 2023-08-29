@@ -28,6 +28,12 @@ const propTypes = {
     /** Array of report actions for this report */
     reportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)),
 
+    /** The report metadata loading states */
+    isLoadingReportActions: PropTypes.bool,
+
+    /** The report actions are loading more data */
+    isLoadingMoreReportActions: PropTypes.bool,
+
     /** Whether the composer is full size */
     /* eslint-disable-next-line react/no-unused-prop-types */
     isComposerFullSize: PropTypes.bool.isRequired,
@@ -51,6 +57,8 @@ const propTypes = {
 const defaultProps = {
     reportActions: [],
     policy: null,
+    isLoadingReportActions: false,
+    isLoadingMoreReportActions: false,
 };
 
 function ReportActionsView(props) {
@@ -136,7 +144,7 @@ function ReportActionsView(props) {
      */
     const loadMoreChats = () => {
         // Only fetch more if we are not already fetching so that we don't initiate duplicate requests.
-        if (props.report.isLoadingMoreReportActions) {
+        if (props.isLoadingMoreReportActions) {
             return;
         }
 
@@ -183,7 +191,8 @@ function ReportActionsView(props) {
                 onLayout={recordTimeToMeasureItemLayout}
                 sortedReportActions={props.reportActions}
                 mostRecentIOUReportActionID={mostRecentIOUReportActionID.current}
-                isLoadingMoreReportActions={props.report.isLoadingMoreReportActions}
+                isLoadingReportActions={props.isLoadingReportActions}
+                isLoadingMoreReportActions={props.isLoadingMoreReportActions}
                 loadMoreChats={loadMoreChats}
                 policy={props.policy}
             />
@@ -213,11 +222,11 @@ function arePropsEqual(oldProps, newProps) {
         return false;
     }
 
-    if (oldProps.report.isLoadingMoreReportActions !== newProps.report.isLoadingMoreReportActions) {
+    if (oldProps.isLoadingMoreReportActions !== newProps.isLoadingMoreReportActions) {
         return false;
     }
 
-    if (oldProps.report.isLoadingReportActions !== newProps.report.isLoadingReportActions) {
+    if (oldProps.isLoadingReportActions !== newProps.isLoadingReportActions) {
         return false;
     }
 
