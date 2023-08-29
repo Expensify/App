@@ -1,5 +1,5 @@
 import {View} from 'react-native';
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import * as Expensicons from '../Icon/Expensicons';
@@ -7,6 +7,7 @@ import TabSelectorItem from './TabSelectorItem';
 import CONST from '../../CONST';
 import useLocalize from '../../hooks/useLocalize';
 import styles from '../../styles/styles';
+import {Animated} from 'react-native';
 
 const propTypes = {
     /* Navigation state provided by React Navigation */
@@ -49,8 +50,16 @@ const getTitle = (route, translate) => {
     }
 };
 
-function TabSelector({state, navigation, onTabPress}) {
+let animationProgressRef;
+export const getProgressAnimationRef = () => animationProgressRef;
+
+function TabSelector({state, navigation, onTabPress, position}) {
     const {translate} = useLocalize();
+
+    useEffect(() => {
+        animationProgressRef = position;
+    }, [position]);
+
     return (
         <View style={styles.tabSelector}>
             {_.map(state.routes, (route, index) => {
@@ -81,6 +90,19 @@ function TabSelector({state, navigation, onTabPress}) {
                     />
                 );
             })}
+
+            {/* Note: this view doesn't render anything but binds the animation value so adding a listener works */}
+            <Animated.View
+                style={{
+                    height: 0,
+                    width: 0,
+                    transform: [
+                        {
+                            translateX: position,
+                        },
+                    ],
+                }}
+            />
         </View>
     );
 }

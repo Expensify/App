@@ -1,6 +1,6 @@
 import {withOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
-import React from 'react';
+import React, {useEffect, useRef} from 'react';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -97,10 +97,11 @@ function MoneyRequestSelectorPage(props) {
                             {(canUseScanReceipts || canUseDistanceRequests) && iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST ? (
                                 <OnyxTabNavigator
                                     id={CONST.TAB.RECEIPT_TAB_ID}
-                                    tabBar={({state, navigation}) => (
+                                    tabBar={({state, navigation, position}) => (
                                         <TabSelector
                                             state={state}
                                             navigation={navigation}
+                                            position={position}
                                             onTabPress={resetMoneyRequestInfo}
                                         />
                                     )}

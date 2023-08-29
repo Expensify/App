@@ -21,6 +21,7 @@ import useLocalize from '../../../hooks/useLocalize';
 import ONYXKEYS from '../../../ONYXKEYS';
 import Log from '../../../libs/Log';
 import participantPropTypes from '../../../components/participantPropTypes';
+import {getProgressAnimationRef} from '../../../components/TabSelector/TabSelector';
 
 const propTypes = {
     /** React Navigation route */
@@ -94,7 +95,7 @@ function getImagePickerOptions(type) {
 }
 
 function ReceiptSelector(props) {
-    const devices = useCameraDevices();
+    const devices = useCameraDevices('wide-angle-camera');
     const device = devices.back;
 
     const camera = useRef(null);
@@ -106,8 +107,8 @@ function ReceiptSelector(props) {
     const reportID = lodashGet(props.route, 'params.reportID', '');
 
     const {translate} = useLocalize();
-    // Keep track of whether the camera is visible, when we navigate elsewhere, turn off the camera
-    const isFocused = useIsFocused();
+    const [isCameraActive, setIsCameraActive] = useState(false);
+    console.log('isCameraActive', isCameraActive);
 
     // We want to listen to if the app has come back from background and refresh the permissions status to show camera when permissions were granted
     useEffect(() => {
@@ -123,6 +124,17 @@ function ReceiptSelector(props) {
 
         return () => {
             subscription.remove();
+        };
+    }, []);
+
+    useEffect(() => {
+        const animationValue = getProgressAnimationRef();
+        const listenerId = animationValue.addListener(({value}) => {
+            setIsCameraActive(value > 0 && value < 2);
+        });
+
+        return () => {
+            animationValue.removeListener(listenerId);
         };
     }, []);
 
@@ -263,7 +275,7 @@ function ReceiptSelector(props) {
                     device={device}
                     style={[styles.cameraView]}
                     zoom={device.neutralZoom}
-                    isActive={isFocused}
+                    isActive={isCameraActive}
                     photo
                 />
             )}
