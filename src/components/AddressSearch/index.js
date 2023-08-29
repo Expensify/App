@@ -111,7 +111,7 @@ const defaultProps = {
     value: undefined,
     defaultValue: undefined,
     containerStyles: [],
-    isLimitedToUSA: true,
+    isLimitedToUSA: false,
     renamedInputKeys: {
         street: 'addressStreet',
         street2: 'addressStreet2',

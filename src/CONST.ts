@@ -465,6 +465,7 @@ const CONST = {
         ACTIONS: {
             LIMIT: 50,
             TYPE: {
+                APPROVED: 'APPROVED',
                 ADDCOMMENT: 'ADDCOMMENT',
                 CLOSED: 'CLOSED',
                 CREATED: 'CREATED',

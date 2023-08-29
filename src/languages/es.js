@@ -395,6 +395,8 @@ export default {
     },
     iou: {
         amount: 'Importe',
+        approve: 'Aprobar',
+        approved: 'Aprobado',
         cash: 'Efectivo',
         split: 'Dividir',
         request: 'Solicitar',
@@ -425,6 +427,7 @@ export default {
         payerOwes: ({payer}) => `${payer} debe: `,
         payerPaidAmount: ({payer, amount}) => `${payer} pagó ${amount}`,
         payerPaid: ({payer}) => `${payer} pagó: `,
+        managerApproved: ({manager}) => `${manager} aprobó:`,
         payerSettled: ({amount}) => `pagó ${amount}`,
         waitingOnBankAccount: ({submitterDisplayName}) => `inicio el pago, pero no se procesará hasta que ${submitterDisplayName} añada una cuenta bancaria`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}) => `${submitterDisplayName} añadió una cuenta bancaria. El pago de ${amount} se ha realizado.`,
@@ -2099,6 +2102,8 @@ export default {
     },
     distance: {
         addStop: 'Agregar parada',
+        deleteWaypoint: 'Eliminar punto de ruta',
+        deleteWaypointConfirmation: '¿Estás seguro de que quieres eliminar este punto de ruta?',
         address: 'Dirección',
         waypointEditor: 'Editor de puntos de ruta',
         waypointDescription: {
