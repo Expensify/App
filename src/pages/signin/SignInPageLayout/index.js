@@ -94,6 +94,7 @@ function SignInPageLayout(props) {
                     <ScrollView
                         keyboardShouldPersistTaps="handled"
                         style={[styles.signInPageLeftContainerWide, styles.flex1]}
+                        contentContainerStyle={[styles.flex1]}
                     >
                         <SignInPageContent
                             welcomeHeader={props.welcomeHeader}
