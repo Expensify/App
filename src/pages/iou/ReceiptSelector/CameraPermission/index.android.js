@@ -1,11 +1,12 @@
-import {PermissionsAndroid} from 'react-native';
+import {check, PERMISSIONS, request} from "react-native-permissions";
 
 function requestCameraPermission() {
-    return PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.CAMERA);
+    return request(PERMISSIONS.ANDROID.CAMERA);
 }
 
+// Android will never return blocked after a check, you have to request the permission to get the info.
 function getCameraPermissionStatus() {
-    return PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.CAMERA);
+    return check(PERMISSIONS.ANDROID.CAMERA);
 }
 
 export {requestCameraPermission, getCameraPermissionStatus};

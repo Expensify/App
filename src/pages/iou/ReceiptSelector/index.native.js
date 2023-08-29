@@ -1,4 +1,4 @@
-import {ActivityIndicator, Alert, AppState, Linking, PermissionsAndroid, Text, View} from 'react-native';
+import {ActivityIndicator, Alert, AppState, Linking, Text, View} from 'react-native';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {Camera, useCameraDevices} from 'react-native-vision-camera';
 import lodashGet from 'lodash/get';
@@ -22,7 +22,6 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import Log from '../../../libs/Log';
 import participantPropTypes from '../../../components/participantPropTypes';
 import * as CameraPermission from './CameraPermission';
-import {RESULTS} from 'react-native-permissions';
 
 const propTypes = {
     /** React Navigation route */
@@ -161,8 +160,12 @@ function ReceiptSelector(props) {
         if (permissions === 'denied') {
             CameraPermission.requestCameraPermission().then((permissionStatus) => {
                 setPermissions(permissionStatus);
+                // Android will never return blocked after a check, you have to request the permission to get the info.
+                if (permissionStatus === 'blocked') {
+                    Linking.openSettings();
+                }
             });
-        } else if (['blocked', 'never_ask_again'].includes(permissions)) {
+        } else if (permissions === 'blocked') {
             Linking.openSettings();
         }
     };
