@@ -207,9 +207,6 @@ function getSafeAreaMargins(insets: EdgeInsets): ViewStyle | CSSProperties {
     return {marginBottom: insets.bottom * variables.safeInsertPercentage};
 }
 
-/**
- *
- */
 function getZoomCursorStyle(isZoomed: boolean, isDragging: boolean): ViewStyle | CSSProperties {
     if (!isZoomed) {
         return styles.cursorZoomIn;
@@ -218,9 +215,6 @@ function getZoomCursorStyle(isZoomed: boolean, isDragging: boolean): ViewStyle |
     return isDragging ? styles.cursorGrabbing : styles.cursorZoomOut;
 }
 
-/**
- *
- */
 function getZoomSizingStyle(
     isZoomed: boolean,
     imgWidth: number,
@@ -329,7 +323,7 @@ function getBackgroundColorStyle(backgroundColor: string): ViewStyle | CSSProper
 /**
  * Returns a style for text color
  */
-function getTextColorStyle(color: string): TextStyle {
+function getTextColorStyle(color: string): TextStyle | CSSProperties {
     return {
         color,
     };
@@ -438,9 +432,6 @@ function getIconFillColor(buttonState: string = CONST.BUTTON_STATES.DEFAULT, isM
     }
 }
 
-/**
- *
- */
 function getAnimatedFABStyle(rotate: Animated.Value, backgroundColor: Animated.Value): Animated.WithAnimatedValue<ViewStyle> {
     return {
         transform: [{rotate}],
@@ -448,9 +439,6 @@ function getAnimatedFABStyle(rotate: Animated.Value, backgroundColor: Animated.V
     };
 }
 
-/**
- *
- */
 function getWidthAndHeightStyle(width: number, height: number | null = null): ViewStyle | CSSProperties {
     return {
         width,
@@ -458,9 +446,6 @@ function getWidthAndHeightStyle(width: number, height: number | null = null): Vi
     };
 }
 
-/**
- *
- */
 function getModalPaddingStyles({
     shouldAddBottomSafeAreaMargin,
     shouldAddTopSafeAreaMargin,
@@ -588,9 +573,6 @@ function getMiniReportActionContextMenuWrapperStyle(isReportActionItemGrouped: b
     };
 }
 
-/**
- *
- */
 function getPaymentMethodMenuWidth(isSmallScreenWidth: boolean): ViewStyle | CSSProperties {
     const margin = 20;
     return {width: !isSmallScreenWidth ? variables.sideBarWidth - margin * 2 : undefined};
@@ -657,8 +639,6 @@ function getThemeBackgroundColor(bgColor: string = themeColors.appBG): string {
 
 /**
  * Parse styleParam and return Styles array
- * @param styleParam
- * @returns
  */
 function parseStyleAsArray(styleParam: ViewStyle | CSSProperties | Array<ViewStyle | CSSProperties>): Array<ViewStyle | CSSProperties> {
     return Array.isArray(styleParam) ? styleParam : [styleParam];
@@ -666,9 +646,6 @@ function parseStyleAsArray(styleParam: ViewStyle | CSSProperties | Array<ViewSty
 
 /**
  * Parse style function and return Styles object
- * @param style
- * @param state
- * @returns
  */
 function parseStyleFromFunction(
     style: ViewStyle | CSSProperties | ((state: PressableStateCallbackType) => ViewStyle | CSSProperties),
@@ -692,7 +669,7 @@ function combineStyles(...allStyles: Array<ViewStyle | CSSProperties | Array<Vie
 /**
  * Get variable padding-left as style
  */
-function getPaddingLeft(paddingLeft: number): {paddingLeft: number} {
+function getPaddingLeft(paddingLeft: number): ViewStyle | CSSProperties {
     return {
         paddingLeft,
     };
@@ -752,14 +729,6 @@ function getKeyboardShortcutsModalWidth(isSmallScreenWidth: boolean): ViewStyle 
     return {maxWidth: 600};
 }
 
-/**
- * @param params
- * @param params.isHovered
- * @param params.isPressed
- * @param params.isInReportAction
- * @param params.shouldUseCardBackground
- * @returns
- */
 function getHorizontalStackedAvatarBorderStyle({
     isHovered,
     isPressed,
@@ -807,9 +776,6 @@ function getHorizontalStackedOverlayAvatarStyle(oneAvatarSize: {width: number}, 
     };
 }
 
-/**
- *
- */
 function getErrorPageContainerStyle(safeAreaPaddingBottom = 0): ViewStyle | CSSProperties {
     return {
         backgroundColor: themeColors.componentBG,
@@ -943,7 +909,9 @@ function getAutoCompleteSuggestionContainerStyle(itemsHeight: number, shouldIncl
 /**
  * Select the correct color for text.
  */
-const getColoredBackgroundStyle = (isColored: boolean): ViewStyle | CSSProperties => ({backgroundColor: isColored ? colors.blueLink : undefined});
+function getColoredBackgroundStyle(isColored: boolean): ViewStyle | CSSProperties {
+    return {backgroundColor: isColored ? colors.blueLink : undefined};
+}
 
 function getEmojiReactionBubbleStyle(isHovered: boolean, hasUserReacted: boolean, isContextMenu = false): ViewStyle | CSSProperties {
     let backgroundColor = themeColors.border;
@@ -1007,11 +975,10 @@ function getDirectionStyle(direction: string): ViewStyle | CSSProperties {
 /**
  * Returns a style object with display flex or none basing on the condition value.
  */
-const displayIfTrue = (condition: boolean): ViewStyle | CSSProperties => ({display: condition ? 'flex' : 'none'});
+function displayIfTrue(condition: boolean): ViewStyle | CSSProperties {
+    return {display: condition ? 'flex' : 'none'};
+}
 
-/**
- *
- */
 function getGoogleListViewStyle(shouldDisplayBorder: boolean): ViewStyle | CSSProperties {
     if (shouldDisplayBorder) {
         return {
