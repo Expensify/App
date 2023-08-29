@@ -1502,7 +1502,7 @@ function getModifiedExpenseMessage(reportAction) {
  *
  * @param {Object} oldTransaction
  * @param {Object} transactionChanges
- * @param {Boolen} isFromExpenseReport
+ * @param {Boolean} isFromExpenseReport
  * @returns {Object}
  */
 function getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges, isFromExpenseReport) {
@@ -3428,10 +3428,14 @@ function getTaskAssigneeChatOnyxData(accountID, assigneeEmail, assigneeAccountID
  * @returns {Array}
  */
 function getParticipantsIDs(report) {
-    if (isMoneyRequestReport(report)) {
-        return [report.managerID, report.ownerAccountID];
+    if (!report) {
+        return [];
     }
-    return lodashGet(report, 'participantAccountIDs', []);
+    // Build participants list for IOU/expense reports
+    if (isMoneyRequestReport(report)) {
+        return [report.managerID || '', report.ownerAccountID || ''];
+    }
+    return report.participantAccountIDs || [];
 }
 
 /**
