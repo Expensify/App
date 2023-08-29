@@ -58,6 +58,9 @@ const propTypes = {
     /** Additional style object for the error row */
     errorRowStyles: stylePropTypes,
 
+    /** Whether to apply strikethrough to the children */
+    noStrikeThrough: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
@@ -71,6 +74,7 @@ const defaultProps = {
     style: [],
     contentContainerStyle: [],
     errorRowStyles: [],
+    noStrikeThrough: false,
 };
 
 /**
