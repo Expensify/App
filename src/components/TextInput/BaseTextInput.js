@@ -241,8 +241,7 @@ function BaseTextInput(props) {
         props.autoGrowHeight && {scrollPaddingTop: 2 * maxHeight},
     ]);
     const isMultiline = props.multiline || props.autoGrowHeight;
-    const isDatePicker = props.icon !== Expensicons.Calendar;
-
+    
     return (
         <>
             <View style={styles.pointerEventsNone}>
@@ -266,7 +265,7 @@ function BaseTextInput(props) {
                             // When autoGrow is on and minWidth is not supplied, add a minWidth to allow the input to be focusable.
                             props.autoGrow && !textInputContainerStyles.minWidth && styles.mnw2,
                             // Remove border bottom when field is not editable.
-                            !isEditable && isDatePicker && styles.textInputDisabled,
+                            props.disabled && styles.textInputDisabled,
                         ]}
                     >
                         {hasLabel ? (
