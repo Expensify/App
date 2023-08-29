@@ -82,6 +82,52 @@ function getChatType(report) {
 }
 
 /**
+ * @param {String} policyID
+ * @returns {Object}
+ */
+function getPolicy(policyID) {
+    const policy = lodashGet(allPolicies, `${ONYXKEYS.COLLECTION.POLICY}${policyID}`) || {};
+    return policy;
+}
+
+/**
+ * Get the policy type from a given report
+ * @param {Object} report
+ * @param {String} report.policyID
+ * @param {Object} policies must have Onyxkey prefix (i.e 'policy_') for keys
+ * @returns {String}
+ */
+function getPolicyType(report, policies) {
+    return lodashGet(policies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'type'], '');
+}
+
+/**
+ * Get the policy name from a given report
+ * @param {Object} report
+ * @param {String} report.policyID
+ * @param {String} report.oldPolicyName
+ * @param {String} report.policyName
+ * @param {Boolean} [returnEmptyIfNotFound]
+ * @param {Object} [policy]
+ * @returns {String}
+ */
+function getPolicyName(report, returnEmptyIfNotFound = false, policy = undefined) {
+    const noPolicyFound = returnEmptyIfNotFound ? '' : Localize.translateLocal('workspace.common.unavailable');
+    if (_.isEmpty(report)) {
+        return noPolicyFound;
+    }
+
+    if ((!allPolicies || _.size(allPolicies) === 0) && !report.policyName) {
+        return Localize.translateLocal('workspace.common.unavailable');
+    }
+    const finalPolicy = policy || _.get(allPolicies, `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`);
+
+    // Public rooms send back the policy name with the reportSummary,
+    // since they can also be accessed by people who aren't in the workspace
+    return lodashGet(finalPolicy, 'name') || report.policyName || report.oldPolicyName || noPolicyFound;
+}
+
+/**
  * Returns the concatenated title for the PrimaryLogins of a report
  *
  * @param {Array} accountIDs
@@ -168,8 +214,24 @@ function isCompletedTaskReport(report) {
     return isTaskReport(report) && report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && report.statusNum === CONST.REPORT.STATUS.APPROVED;
 }
 
-function isTaskAssignee(report) {
+/**
+ * Checks if the current user is the manager of the supplied report
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isReportManager(report) {
     return lodashGet(report, 'managerID') === currentUserAccountID;
+}
+
+/**
+ * Checks if the supplied report has been approved
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isReportApproved(report) {
+    return lodashGet(report, 'stateNum') === CONST.REPORT.STATE_NUM.SUBMITTED && lodashGet(report, 'statusNum') === CONST.REPORT.STATUS.APPROVED;
 }
 
 /**
@@ -194,7 +256,12 @@ function sortReportsByLastRead(reports) {
  */
 function isSettled(reportID) {
     const report = lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {});
-    return !_.isEmpty(report) && !report.isWaitingOnBankAccount && report.stateNum > CONST.REPORT.STATE_NUM.PROCESSING;
+
+    if (_.isEmpty(report) || report.isWaitingOnBankAccount) {
+        return false;
+    }
+
+    return report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && report.statusNum === CONST.REPORT.STATUS.REIMBURSED;
 }
 
 /**
@@ -266,17 +333,6 @@ function isDomainRoom(report) {
  */
 function isUserCreatedPolicyRoom(report) {
     return getChatType(report) === CONST.REPORT.CHAT_TYPE.POLICY_ROOM;
-}
-
-/**
- * Get the policy type from a given report
- * @param {Object} report
- * @param {String} report.policyID
- * @param {Object} policies must have Onyxkey prefix (i.e 'policy_') for keys
- * @returns {String}
- */
-function getPolicyType(report, policies) {
-    return lodashGet(policies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'type'], '');
 }
 
 /**
@@ -505,42 +561,6 @@ function findLastAccessedReport(reports, ignoreDomainRooms, policies, isFirstTim
  */
 function isArchivedRoom(report) {
     return lodashGet(report, ['statusNum']) === CONST.REPORT.STATUS.CLOSED && lodashGet(report, ['stateNum']) === CONST.REPORT.STATE_NUM.SUBMITTED;
-}
-
-/**
- * @param {String} policyID
- * @returns {Object}
- */
-function getPolicy(policyID) {
-    const policy = lodashGet(allPolicies, `${ONYXKEYS.COLLECTION.POLICY}${policyID}`) || {};
-    return policy;
-}
-
-/**
- * Get the policy name from a given report
- * @param {Object} report
- * @param {String} report.policyID
- * @param {String} report.oldPolicyName
- * @param {String} report.policyName
- * @param {Boolean} [returnEmptyIfNotFound]
- * @param {Object} [policy]
- * @returns {String}
- */
-function getPolicyName(report, returnEmptyIfNotFound = false, policy = undefined) {
-    const noPolicyFound = returnEmptyIfNotFound ? '' : Localize.translateLocal('workspace.common.unavailable');
-    if (_.isEmpty(report)) {
-        return noPolicyFound;
-    }
-
-    if ((!allPolicies || _.size(allPolicies) === 0) && !report.policyName) {
-        return Localize.translateLocal('workspace.common.unavailable');
-    }
-    const finalPolicy = policy || _.get(allPolicies, `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`);
-
-    // Public rooms send back the policy name with the reportSummary,
-    // since they can also be accessed by people who aren't in the workspace
-
-    return lodashGet(finalPolicy, 'name') || report.policyName || report.oldPolicyName || noPolicyFound;
 }
 
 /**
@@ -1111,6 +1131,22 @@ function isWaitingForIOUActionFromCurrentUser(report) {
         return false;
     }
 
+    const policy = getPolicy(report.policyID);
+    if (policy.type === CONST.POLICY.TYPE.CORPORATE) {
+        // If the report is already settled, there's no action required from any user.
+        if (isSettled(report.reportID)) {
+            return false;
+        }
+
+        // Report is pending approval and the current user is the manager
+        if (isReportManager(report) && !isReportApproved(report)) {
+            return true;
+        }
+
+        // Current user is an admin and the report has been approved but not settled yet
+        return policy.role === CONST.POLICY.ROLE.ADMIN && isReportApproved(report);
+    }
+
     // Money request waiting for current user to add their credit bank account
     if (report.hasOutstandingIOU && report.ownerAccountID === currentUserAccountID && report.isWaitingOnBankAccount) {
         return true;
@@ -1125,7 +1161,7 @@ function isWaitingForIOUActionFromCurrentUser(report) {
 }
 
 function isWaitingForTaskCompleteFromAssignee(report) {
-    return isTaskReport(report) && isTaskAssignee(report) && isOpenTaskReport(report);
+    return isTaskReport(report) && isReportManager(report) && isOpenTaskReport(report);
 }
 
 /**
@@ -1298,20 +1334,8 @@ function canEditReportAction(reportAction) {
  * @returns {[Object]}
  */
 function getTransactionsWithReceipts(iouReportID) {
-    const reportActions = ReportActionsUtils.getAllReportActions(iouReportID);
-    return _.reduce(
-        reportActions,
-        (transactions, action) => {
-            if (ReportActionsUtils.isMoneyRequestAction(action)) {
-                const transaction = TransactionUtils.getLinkedTransaction(action);
-                if (TransactionUtils.hasReceipt(transaction)) {
-                    transactions.push(transaction);
-                }
-            }
-            return transactions;
-        },
-        [],
-    );
+    const allTransactions = TransactionUtils.getAllReportTransactions(iouReportID);
+    return _.filter(allTransactions, (transaction) => TransactionUtils.hasReceipt(transaction));
 }
 
 /**
@@ -1377,6 +1401,10 @@ function getReportPreviewMessage(report, reportAction = {}) {
     const totalAmount = getMoneyRequestTotal(report);
     const payerName = isExpenseReport(report) ? getPolicyName(report) : getDisplayNameForParticipant(report.managerID, true);
     const formattedAmount = CurrencyUtils.convertToDisplayString(totalAmount, report.currency);
+
+    if (isReportApproved(report) && getPolicyType(report, allPolicies) === CONST.POLICY.TYPE.CORPORATE) {
+        return `approved ${formattedAmount}`;
+    }
 
     if (isSettled(report.reportID)) {
         // A settled report preview message can come in three formats "paid ... using Paypal.me", "paid ... elsewhere" or "paid ... using Expensify"
@@ -1933,7 +1961,11 @@ function buildOptimisticExpenseReport(chatReportID, policyID, payeeAccountID, to
  * @returns {Array}
  */
 function getIOUReportActionMessage(iouReportID, type, total, comment, currency, paymentType = '', isSettlingUp = false) {
-    let amount = CurrencyUtils.convertToDisplayString(total, currency);
+    const amount =
+        type === CONST.IOU.REPORT_ACTION_TYPE.PAY
+            ? CurrencyUtils.convertToDisplayString(getMoneyRequestTotal(getReport(iouReportID)), currency)
+            : CurrencyUtils.convertToDisplayString(total, currency);
+
     let paymentMethodMessage;
     switch (paymentType) {
         case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
@@ -1949,6 +1981,9 @@ function getIOUReportActionMessage(iouReportID, type, total, comment, currency, 
 
     let iouMessage;
     switch (type) {
+        case CONST.REPORT.ACTIONS.TYPE.APPROVED:
+            iouMessage = `approved ${amount}`;
+            break;
         case CONST.IOU.REPORT_ACTION_TYPE.CREATE:
             iouMessage = `requested ${amount}${comment && ` for ${comment}`}`;
             break;
@@ -1959,7 +1994,6 @@ function getIOUReportActionMessage(iouReportID, type, total, comment, currency, 
             iouMessage = `deleted the ${amount} request${comment && ` for ${comment}`}`;
             break;
         case CONST.IOU.REPORT_ACTION_TYPE.PAY:
-            amount = CurrencyUtils.convertToDisplayString(getMoneyRequestTotal(getReport(iouReportID)), currency);
             iouMessage = isSettlingUp ? `paid ${amount}${paymentMethodMessage}` : `sent ${amount}${comment && ` for ${comment}`}${paymentMethodMessage}`;
             break;
         default:
@@ -2067,6 +2101,43 @@ function buildOptimisticIOUReportAction(
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         receipt,
         whisperedToAccountIDs: !_.isEmpty(receipt) ? [currentUserAccountID] : [],
+    };
+}
+/**
+ * Builds an optimistic APPROVED report action with a randomly generated reportActionID.
+ *
+ * @param {Number} amount
+ * @param {String} currency
+ * @param {Number} expenseReportID
+ *
+ * @returns {Object}
+ */
+function buildOptimisticApprovedReportAction(amount, currency, expenseReportID) {
+    const originalMessage = {
+        amount,
+        currency,
+        expenseReportID,
+    };
+
+    return {
+        actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+        actorAccountID: currentUserAccountID,
+        automatic: false,
+        avatar: lodashGet(currentUserPersonalDetails, 'avatar', UserUtils.getDefaultAvatar(currentUserAccountID)),
+        isAttachment: false,
+        originalMessage,
+        message: getIOUReportActionMessage(expenseReportID, CONST.REPORT.ACTIONS.TYPE.APPROVED, Math.abs(amount), '', currency),
+        person: [
+            {
+                style: 'strong',
+                text: lodashGet(currentUserPersonalDetails, 'displayName', currentUserEmail),
+                type: 'TEXT',
+            },
+        ],
+        reportActionID: NumberUtils.rand64(),
+        shouldShow: true,
+        created: DateUtils.getDBTime(),
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
     };
 }
 
@@ -2500,9 +2571,11 @@ function buildOptimisticTaskReport(ownerAccountID, assigneeAccountID = 0, parent
  *
  * @param {Object} reportAction - the parent IOU report action from which to create the thread
  *
+ * @param {String} moneyRequestReportID - the reportID which the report action belong to
+ *
  * @returns {Object}
  */
-function buildTransactionThread(reportAction) {
+function buildTransactionThread(reportAction, moneyRequestReportID) {
     const participantAccountIDs = _.uniq([currentUserAccountID, Number(reportAction.actorAccountID)]);
     return buildOptimisticChatReport(
         participantAccountIDs,
@@ -2516,7 +2589,7 @@ function buildTransactionThread(reportAction) {
         undefined,
         CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
         reportAction.reportActionID,
-        reportAction.reportID,
+        moneyRequestReportID,
     );
 }
 
@@ -3122,7 +3195,7 @@ function isReportDataReady() {
  * @returns {Object}
  */
 function getTaskParentReportActionIDInAssigneeReport(taskReport) {
-    const assigneeChatReportID = lodashGet(getChatByParticipants(isTaskAssignee(taskReport) ? [taskReport.ownerAccountID] : [taskReport.managerID]), 'reportID');
+    const assigneeChatReportID = lodashGet(getChatByParticipants(isReportManager(taskReport) ? [taskReport.ownerAccountID] : [taskReport.managerID]), 'reportID');
     if (!assigneeChatReportID || assigneeChatReportID === taskReport.parentReportID) {
         return {};
     }
@@ -3426,6 +3499,7 @@ export {
     buildOptimisticCreatedReportAction,
     buildOptimisticEditedTaskReportAction,
     buildOptimisticIOUReport,
+    buildOptimisticApprovedReportAction,
     buildOptimisticExpenseReport,
     buildOptimisticIOUReportAction,
     buildOptimisticReportPreview,
@@ -3455,7 +3529,8 @@ export {
     isOpenTaskReport,
     isCanceledTaskReport,
     isCompletedTaskReport,
-    isTaskAssignee,
+    isReportManager,
+    isReportApproved,
     isMoneyRequestReport,
     isMoneyRequest,
     chatIncludesChronos,
