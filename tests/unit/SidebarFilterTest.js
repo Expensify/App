@@ -38,13 +38,13 @@ describe('Sidebar', () => {
         // Wrap Onyx each onyx action with waitForPromiseToResolve
         wrapOnyxWithWaitForPromisesToResolve(Onyx);
         // Initialize the network key for OfflineWithFeedback
-        Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+        return Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
     });
 
     // Cleanup (ie. unmount) all rendered components and clear out Onyx after each test so that each test starts with a clean slate
     afterEach(() => {
         cleanup();
-        Onyx.clear();
+        return Onyx.clear();
     });
 
     describe('in default (most recent) mode', () => {
