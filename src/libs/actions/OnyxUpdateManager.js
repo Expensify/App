@@ -108,7 +108,7 @@ export default () => {
             // Since people will have migrations hapening in their accounts while they use the app, we don't want to trigger
             // a full ReconnectApp and then trigger a GetOnyxUpdates. Let's use this as a control variable until we enable
             // the beta to all users.
-            let updateEnablesBeta = false;
+            let isUserGettingReliableUpdatesForTheVeryFirstTime = false;
 
             const {lastUpdateIDFromServer, previousUpdateIDFromServer, updateParams} = val;
 
@@ -124,12 +124,12 @@ export default () => {
             ) {
                 console.debug('[OnyxUpdateManager] Client has not gotten reliable updates before so reconnecting the app to start the process');
                 App.reconnectApp();
-                updateEnablesBeta = true;
+                isUserGettingReliableUpdatesForTheVeryFirstTime = true;
             }
 
             // If the previous update from the server does not match the last update the client got, then the client is missing some updates.
             // getMissingOnyxUpdates will fetch updates starting from the last update this client got and going to the last update the server sent.
-            if (!updateEnablesBeta && previousUpdateIDFromServer && lastUpdateIDAppliedToClient < previousUpdateIDFromServer) {
+            if (!isUserGettingReliableUpdatesForTheVeryFirstTime && previousUpdateIDFromServer && lastUpdateIDAppliedToClient < previousUpdateIDFromServer) {
                 console.debug(`[OnyxUpdateManager] Client is behind the server by ${previousUpdateIDFromServer - lastUpdateIDAppliedToClient} so fetching incremental updates`);
                 Log.info('Gap detected in update IDs from server so fetching incremental updates', true, {
                     lastUpdateIDFromServer,
