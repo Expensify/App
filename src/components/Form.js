@@ -138,7 +138,6 @@ function Form(props) {
 
                 const foundHtmlTagIndex = inputValue.search(CONST.VALIDATE_FOR_HTML_TAG_REGEX);
                 const matchedHtmlTags  = inputValue.match(CONST.VALIDATE_FOR_HTML_TAG_REGEX);
-
                 let isMatch = _.some(CONST.WHITELISTED_TAGS, (r) => r.test(inputValue));
                 const leadingSpaceIndex = inputValue.search(CONST.VALIDATE_FOR_LEADINGSPACES_HTML_TAG_REGEX);
 
