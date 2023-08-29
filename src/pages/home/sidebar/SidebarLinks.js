@@ -1,5 +1,4 @@
 /* eslint-disable rulesdir/onyx-props-must-have-default */
-import lodashGet from 'lodash/get';
 import React from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
@@ -32,7 +31,6 @@ import KeyboardShortcut from '../../../libs/KeyboardShortcut';
 import onyxSubscribe from '../../../libs/onyxSubscribe';
 import * as ReportActionContextMenu from '../report/ContextMenu/ReportActionContextMenu';
 import withCurrentReportID from '../../../components/withCurrentReportID';
-import OptionRowLHNData from '../../../components/LHNOptionsList/OptionRowLHNData';
 import SignInOrAvatarWithOptionalStatus from './SignInOrAvatarWithOptionalStatus';
 
 const basePropTypes = {
@@ -161,7 +159,7 @@ class SidebarLinks extends React.PureComponent {
             <View style={[styles.flex1, styles.h100]}>
                 <View
                     style={[styles.flexRow, styles.ph5, styles.pv3, styles.justifyContentBetween, styles.alignItemsCenter]}
-                    nativeID="drag-area"
+                    dataSet={{dragArea: true}}
                 >
                     <Header
                         title={
@@ -186,27 +184,16 @@ class SidebarLinks extends React.PureComponent {
                     </Tooltip>
                     <SignInOrAvatarWithOptionalStatus isCreateMenuOpen={this.props.isCreateMenuOpen} />
                 </View>
-                {this.props.isLoading ? (
-                    <>
-                        {lodashGet(this.props.report, 'reportID') && (
-                            <OptionRowLHNData
-                                reportID={this.props.currentReportID}
-                                viewMode={viewMode}
-                                shouldDisableFocusOptions={this.props.isSmallScreenWidth}
-                                onSelectRow={this.showReportPage}
-                            />
-                        )}
-                        <OptionsListSkeletonView shouldAnimate />
-                    </>
-                ) : (
-                    <LHNOptionsList
-                        contentContainerStyles={[styles.sidebarListContainer, {paddingBottom: StyleUtils.getSafeAreaMargins(this.props.insets).marginBottom}]}
-                        data={this.props.optionListItems}
-                        onSelectRow={this.showReportPage}
-                        shouldDisableFocusOptions={this.props.isSmallScreenWidth}
-                        optionMode={viewMode}
-                    />
-                )}
+
+                <LHNOptionsList
+                    style={[this.props.isLoading ? styles.flexShrink1 : styles.flex1]}
+                    contentContainerStyles={[styles.sidebarListContainer, {paddingBottom: StyleUtils.getSafeAreaMargins(this.props.insets).marginBottom}]}
+                    data={this.props.optionListItems}
+                    onSelectRow={this.showReportPage}
+                    shouldDisableFocusOptions={this.props.isSmallScreenWidth}
+                    optionMode={viewMode}
+                />
+                {this.props.isLoading && <OptionsListSkeletonView shouldAnimate />}
             </View>
         );
     }

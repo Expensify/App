@@ -46,6 +46,17 @@ const getIcon = (route) => {
     }
 };
 
+const getTitle = (route, translate) => {
+    switch (route) {
+        case CONST.TAB.SCAN:
+            return translate('tabSelector.scan');
+        case CONST.TAB.DISTANCE:
+            return translate('common.distance');
+        default:
+            return translate('tabSelector.manual');
+    }
+};
+
 const getOpacity = (position, routesLength, tabIndex, active) => {
     const activeValue = active ? 1 : 0;
     const inactiveValue = active ? 0 : 1;
@@ -103,7 +114,7 @@ function TabSelector({state, navigation, onTabPress, position}) {
                 return (
                     <TabSelectorItem
                         key={route.name}
-                        title={translate(`tabSelector.${route.name}`)}
+                        title={getTitle(route.name, translate)}
                         icon={getIcon(route.name)}
                         onPress={onPress}
                         activeOpacity={activeOpacity}
