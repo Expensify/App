@@ -53,8 +53,8 @@ const propTypes = {
     /** Additional style object for the error row */
     errorRowStyles: stylePropTypes,
 
-    /** Whether to apply strikethrough to the children */
-    noStrikeThrough: PropTypes.bool,
+    /** Whether applying strikethrough to the children should be disabled */
+    shouldDisableStrikeThrough: PropTypes.bool,
 
     /** Whether to apply needsOffscreenAlphaCompositing prop to the children */
     needsOffscreenAlphaCompositing: PropTypes.bool,
@@ -70,7 +70,7 @@ const defaultProps = {
     style: [],
     contentContainerStyle: [],
     errorRowStyles: [],
-    noStrikeThrough: false,
+    shouldDisableStrikeThrough: false,
     needsOffscreenAlphaCompositing: false,
 };
 
@@ -105,7 +105,7 @@ function OfflineWithFeedback(props) {
     const isUpdateOrDeleteError = hasErrors && (props.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || props.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
     const isAddError = hasErrors && props.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
     const needsOpacity = !props.shouldDisableOpacity && ((isOfflinePendingAction && !isUpdateOrDeleteError) || isAddError);
-    const needsStrikeThrough = !props.noStrikeThrough && isOffline && props.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    const needsStrikeThrough = !props.shouldDisableStrikeThrough && isOffline && props.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const hideChildren = props.shouldHideOnDelete && !isOffline && props.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !hasErrors;
     let children = props.children;
 
