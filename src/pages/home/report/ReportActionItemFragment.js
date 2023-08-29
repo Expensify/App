@@ -133,7 +133,7 @@ function ReportActionItemFragment(props) {
                 <Text style={[containsOnlyEmojis ? styles.onlyEmojisText : undefined, styles.ltr, ...props.style]}>
                     <Text
                         selectable={!DeviceCapabilities.canUseTouchScreen() || !props.isSmallScreenWidth}
-                        style={[containsOnlyEmojis ? styles.onlyEmojisText : undefined, styles.ltr, ...props.style, isPendingDelete && styles.offlineFeedback.deleted]}
+                        style={[containsOnlyEmojis ? styles.onlyEmojisText : undefined, styles.ltr, ...props.style, isPendingDelete ? styles.offlineFeedback.deleted: undefined]}
                     >
                         {convertToLTR(text)}
                     </Text>
@@ -148,7 +148,7 @@ function ReportActionItemFragment(props) {
                             <Text
                                 fontSize={variables.fontSizeSmall}
                                 color={themeColors.textSupporting}
-                                style={[editedLabelStyles, isPendingDelete && styles.offlineFeedback.deleted, ...props.style]}
+                                style={[editedLabelStyles, isPendingDelete ? styles.offlineFeedback.deleted: undefined, ...props.style]}
                             >
                                 {props.translate('reportActionCompose.edited')}
                             </Text>
