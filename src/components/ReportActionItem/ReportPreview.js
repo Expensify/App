@@ -30,7 +30,7 @@ import * as ReceiptUtils from '../../libs/ReceiptUtils';
 import * as ReportActionUtils from '../../libs/ReportActionsUtils';
 import * as TransactionUtils from '../../libs/TransactionUtils';
 import ReportActionItemImages from './ReportActionItemImages';
-import colors from "../../styles/colors";
+import colors from '../../styles/colors';
 
 const propTypes = {
     /** All the data of the action */

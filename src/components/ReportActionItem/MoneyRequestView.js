@@ -93,8 +93,6 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, trans
     }
 
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
-    console.log('eeee');
-    console.log(transaction);
 
     return (
         <View>
