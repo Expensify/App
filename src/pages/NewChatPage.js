@@ -41,8 +41,7 @@ const defaultProps = {
 
 const excludedGroupEmails = _.without(CONST.EXPENSIFY_EMAILS, CONST.EMAIL.CONCIERGE);
 
-function NewChatPage(props) {
-    const {translate} = props;
+function NewChatPage({betas, isGroupChat, personalDetails, reports, translate}) {
     const [searchTerm, setSearchTerm] = useState('');
     const [filteredRecentReports, setFilteredRecentReports] = useState([]);
     const [filteredPersonalDetails, setFilteredPersonalDetails] = useState([]);
@@ -56,7 +55,7 @@ function NewChatPage(props) {
         searchTerm,
         maxParticipantsReached,
     );
-    const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(props.personalDetails);
+    const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails);
 
     const sections = useMemo(() => {
         const sectionsList = [];
@@ -117,10 +116,10 @@ function NewChatPage(props) {
             newSelectedOptions = [...selectedOptions, option];
         }
 
-        const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getNewChatOptions(
-            props.reports,
-            props.personalDetails,
-            props.betas,
+        const {recentReports, personalDetails: newChatPersonalDetails, userToInvite} = OptionsListUtils.getNewChatOptions(
+            reports,
+            personalDetails,
+            betas,
             searchTerm,
             newSelectedOptions,
             excludedGroupEmails,
@@ -128,7 +127,7 @@ function NewChatPage(props) {
 
         setSelectedOptions(newSelectedOptions);
         setFilteredRecentReports(recentReports);
-        setFilteredPersonalDetails(personalDetails);
+        setFilteredPersonalDetails(newChatPersonalDetails);
         setFilteredUserToInvite(userToInvite);
     }
 
@@ -155,20 +154,20 @@ function NewChatPage(props) {
     };
 
     useEffect(() => {
-        const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getNewChatOptions(
-            props.reports,
-            props.personalDetails,
-            props.betas,
+        const {recentReports, personalDetails: newChatPersonalDetails, userToInvite} = OptionsListUtils.getNewChatOptions(
+            reports,
+            personalDetails,
+            betas,
             searchTerm,
             selectedOptions,
-            props.isGroupChat ? excludedGroupEmails : [],
+            isGroupChat ? excludedGroupEmails : [],
         );
         setFilteredRecentReports(recentReports);
-        setFilteredPersonalDetails(personalDetails);
+        setFilteredPersonalDetails(newChatPersonalDetails);
         setFilteredUserToInvite(userToInvite);
         // props.betas is not added as dependency since it doesn't change during the component lifecycle
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [props.reports, props.personalDetails, searchTerm]);
+    }, [reports, personalDetails, searchTerm]);
 
     return (
         <ScreenWrapper
@@ -181,7 +180,7 @@ function NewChatPage(props) {
                     <OptionsSelector
                         canSelectMultipleOptions
                         shouldShowMultipleOptionSelectorAsButton
-                        multipleOptionSelectorButtonText={props.translate('newChatPage.addToGroup')}
+                        multipleOptionSelectorButtonText={translate('newChatPage.addToGroup')}
                         onAddToSelection={(option) => toggleOption(option)}
                         sections={sections}
                         selectedOptions={selectedOptions}
@@ -193,9 +192,9 @@ function NewChatPage(props) {
                         shouldFocusOnSelectRow={!Browser.isMobile()}
                         shouldShowOptions={isOptionsDataReady}
                         shouldShowConfirmButton
-                        confirmButtonText={selectedOptions.length > 1 ? props.translate('newChatPage.createGroup') : props.translate('newChatPage.createChat')}
+                        confirmButtonText={selectedOptions.length > 1 ? translate('newChatPage.createGroup') : translate('newChatPage.createChat')}
                         onConfirmSelection={createGroup}
-                        textInputLabel={props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                        textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                         safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                     />
                 </View>
