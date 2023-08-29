@@ -170,8 +170,7 @@ describe('EmojiTest', () => {
 
         beforeEach(() => {
             spy.mockClear();
-            Onyx.clear();
-            return waitForPromisesToResolve();
+            return Onyx.clear();
         });
 
         it('should put a less frequent and recent used emoji behind', () => {
