@@ -149,6 +149,12 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
     };
 
     const navigateToCurrencySelectionPage = () => {
+        // If the money request being created is a distance request, don't allow the user to choose the currency.
+        // Only USD is allowed for distance requests.
+        if (isDistanceRequest) {
+            return;
+        }
+
         // Remove query from the route and encode it.
         const activeRoute = encodeURIComponent(Navigation.getActiveRoute().replace(/\?.*/, ''));
         Navigation.navigate(ROUTES.getMoneyRequestCurrencyRoute(iouType, reportID, currency, activeRoute));
