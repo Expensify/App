@@ -436,7 +436,7 @@ function MoneyRequestConfirmationList(props) {
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly && isTypeRequest}
                             title={DistanceRequestUtils.getDistanceString(distance, unit, rate)}
-                            description={translate('tabSelector.distance')}
+                            description={translate('common.distance')}
                             style={[styles.moneyRequestMenuItem, styles.mb2]}
                             titleStyle={styles.flex1}
                             onPress={() => Navigation.navigate(ROUTES.getMoneyRequestDistanceTabRoute(props.iouType, props.reportID))}

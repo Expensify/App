@@ -376,7 +376,6 @@ export default {
     tabSelector: {
         manual: 'Manual',
         scan: 'Scan',
-        distance: 'Distance',
     },
     receipt: {
         upload: 'Upload receipt',

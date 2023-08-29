@@ -169,13 +169,7 @@ function MoneyRequestConfirmPage(props) {
      */
     const createDistanceRequest = useCallback(
         (selectedParticipants, trimmedComment) => {
-            IOU.createDistanceRequest(
-                props.report,
-                selectedParticipants[0],
-                trimmedComment,
-                props.iou.created,
-                props.iou.transactionID,
-            );
+            IOU.createDistanceRequest(props.report, selectedParticipants[0], trimmedComment, props.iou.created, props.iou.transactionID);
         },
         [props.report, props.iou.created, props.iou.transactionID],
     );
@@ -273,7 +267,7 @@ function MoneyRequestConfirmPage(props) {
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                     <HeaderWithBackButton
-                        title={isDistanceRequest ? props.translate('tabSelector.distance') : props.translate('iou.cash')}
+                        title={isDistanceRequest ? props.translate('common.distance') : props.translate('iou.cash')}
                         onBackButtonPress={navigateBack}
                     />
                     <MoneyRequestConfirmationList
