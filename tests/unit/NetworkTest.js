@@ -28,12 +28,12 @@ beforeEach(() => {
     HttpUtils.xhr = originalXHR;
     MainQueue.clear();
     HttpUtils.cancelPendingRequests();
-    PersistedRequests.clear();
     NetworkStore.checkRequiredData();
 
     // Wait for any Log command to finish and Onyx to fully clear
-    jest.advanceTimersByTime(CONST.NETWORK.PROCESS_REQUEST_DELAY_MS);
+    // jest.advanceTimersByTime(CONST.NETWORK.PROCESS_REQUEST_DELAY_MS);
     return waitForPromisesToResolve()
+        .then(() => PersistedRequests.clear())
         .then(() => Onyx.clear())
         .then(waitForPromisesToResolve);
 });

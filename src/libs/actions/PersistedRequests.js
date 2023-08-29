@@ -10,7 +10,7 @@ Onyx.connect({
 });
 
 function clear() {
-    Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, []);
+    return Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, []);
 }
 
 /**
