@@ -18,7 +18,7 @@ function createDemoWorkspaceAndNavigate(workspaceOwnerEmail, apiCommand) {
     const demoWorkspaceChatReportID = ReportUtils.getPolicyExpenseChatReportIDByOwner(workspaceOwnerEmail);
     if (demoWorkspaceChatReportID) {
         // We must call goBack() to remove the demo route from nav history
-        Navigation.goBack();
+        Navigation.goBack(ROUTES.HOME);
         Navigation.navigate(ROUTES.getReportRoute(demoWorkspaceChatReportID));
         return;
     }
@@ -40,7 +40,7 @@ function createDemoWorkspaceAndNavigate(workspaceOwnerEmail, apiCommand) {
 
         // Navigate to the new policy expense chat report
         // Note: We must call goBack() to remove the demo route from history
-        Navigation.goBack();
+        Navigation.goBack(ROUTES.HOME);
         Navigation.navigate(ROUTES.getReportRoute(policyExpenseChatReport.reportID));
     });
 }

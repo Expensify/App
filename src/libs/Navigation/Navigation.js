@@ -97,7 +97,7 @@ function navigate(route = ROUTES.HOME, type) {
  * @param {Bool} shouldEnforceFallback - Enforces navigation to fallback route
  * @param {Bool} shouldPopToTop - Should we navigate to LHN on back press
  */
-function goBack(fallbackRoute = ROUTES.HOME, shouldEnforceFallback = false, shouldPopToTop = false) {
+function goBack(fallbackRoute, shouldEnforceFallback = false, shouldPopToTop = false) {
     if (!canNavigate('goBack')) {
         return;
     }

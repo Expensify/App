@@ -5,6 +5,7 @@ import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import styles from '../../styles/styles';
 import * as Session from '../../libs/actions/Session';
+import ROUTES from '../../ROUTES';
 
 const propTypes = {};
 
@@ -23,7 +24,7 @@ function SignInModal() {
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
         >
-            <HeaderWithBackButton onBackButtonPress={() => Navigation.goBack()} />
+            <HeaderWithBackButton onBackButtonPress={() => Navigation.goBack(ROUTES.HOME)} />
             <SignInPage isInModal />
         </ScreenWrapper>
     );

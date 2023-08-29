@@ -5,6 +5,7 @@ import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator
 import CONST from '../CONST';
 import * as DemoActions from '../libs/actions/DemoActions';
 import Navigation from '../libs/Navigation/Navigation';
+import ROUTES from '../ROUTES';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -28,7 +29,7 @@ function DemoSetupPage(props) {
         } else if (props.route.name === CONST.DEMO_PAGES.SBE) {
             DemoActions.runSbeDemo();
         } else {
-            Navigation.goBack();
+            Navigation.goBack(ROUTES.HOME);
         }
     });
 
