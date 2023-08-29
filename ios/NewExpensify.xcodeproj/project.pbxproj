@@ -29,7 +29,7 @@
 		70CF6E82262E297300711ADC /* BootSplash.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 70CF6E81262E297300711ADC /* BootSplash.storyboard */; };
 		BDB853621F354EBB84E619C2 /* ExpensifyNewKansas-MediumItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = D2AFB39EC1D44BF9B91D3227 /* ExpensifyNewKansas-MediumItalic.otf */; };
 		DD79042B2792E76D004484B4 /* RCTBootSplash.m in Sources */ = {isa = PBXBuildFile; fileRef = DD79042A2792E76D004484B4 /* RCTBootSplash.m */; };
-		E51DC681C7DEE40AEBDDFBFE /* BuildFile in Frameworks */ = {isa = PBXBuildFile; };
+		E51DC681C7DEE40AEBDDFBFE /* (null) in Frameworks */ = {isa = PBXBuildFile; };
 		E9DF872D2525201700607FDC /* AirshipConfig.plist in Resources */ = {isa = PBXBuildFile; fileRef = E9DF872C2525201700607FDC /* AirshipConfig.plist */; };
 		ED222ED90E074A5481A854FA /* ExpensifyNeue-BoldItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 8B28D84EF339436DBD42A203 /* ExpensifyNeue-BoldItalic.otf */; };
 		F0C450EA2705020500FD2970 /* colors.json in Resources */ = {isa = PBXBuildFile; fileRef = F0C450E92705020500FD2970 /* colors.json */; };
@@ -112,7 +112,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E51DC681C7DEE40AEBDDFBFE /* BuildFile in Frameworks */,
+				E51DC681C7DEE40AEBDDFBFE /* (null) in Frameworks */,
 				5A464BC8112CDB1DE1E38F1C /* libPods-NewExpensify.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -641,7 +641,7 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
-		00E356F61AD99517003FC87E /* Debug Development */ = {
+		00E356F61AD99517003FC87E /* DebugDevelopment */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = E2F1036F70CBFE39E9352674 /* Pods-NewExpensify-NewExpensifyTests.debug development.xcconfig */;
 			buildSettings = {
@@ -664,9 +664,9 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/NewExpensify.app/NewExpensify";
 			};
-			name = "Debug Development";
+			name = DebugDevelopment;
 		};
-		00E356F71AD99517003FC87E /* Release Development */ = {
+		00E356F71AD99517003FC87E /* ReleaseDevelopment */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = BD6E1BA27D6ABE0AC9D70586 /* Pods-NewExpensify-NewExpensifyTests.release development.xcconfig */;
 			buildSettings = {
@@ -687,9 +687,9 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/NewExpensify.app/NewExpensify";
 			};
-			name = "Release Development";
+			name = ReleaseDevelopment;
 		};
-		13B07F941A680F5B00A75B9A /* Debug Development */ = {
+		13B07F941A680F5B00A75B9A /* DebugDevelopment */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = CECC4CBB97A55705A33BEA9E /* Pods-NewExpensify.debug development.xcconfig */;
 			buildSettings = {
@@ -719,9 +719,9 @@
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
 			};
-			name = "Debug Development";
+			name = DebugDevelopment;
 		};
-		13B07F951A680F5B00A75B9A /* Release Development */ = {
+		13B07F951A680F5B00A75B9A /* ReleaseDevelopment */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 02BE6CF80ED1BD2445267F92 /* Pods-NewExpensify.release development.xcconfig */;
 			buildSettings = {
@@ -749,9 +749,9 @@
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
 			};
-			name = "Release Development";
+			name = ReleaseDevelopment;
 		};
-		83CBBA201A601CBA00E9B192 /* Debug Development */ = {
+		83CBBA201A601CBA00E9B192 /* DebugDevelopment */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -814,9 +814,9 @@
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
 			};
-			name = "Debug Development";
+			name = DebugDevelopment;
 		};
-		83CBBA211A601CBA00E9B192 /* Release Development */ = {
+		83CBBA211A601CBA00E9B192 /* ReleaseDevelopment */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -873,9 +873,9 @@
 				SDKROOT = iphoneos;
 				VALIDATE_PRODUCT = YES;
 			};
-			name = "Release Development";
+			name = ReleaseDevelopment;
 		};
-		CF9AF93E29EE9276001FA527 /* Debug Production */ = {
+		CF9AF93E29EE9276001FA527 /* DebugProduction */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -938,9 +938,9 @@
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
 			};
-			name = "Debug Production";
+			name = DebugProduction;
 		};
-		CF9AF93F29EE9276001FA527 /* Debug Production */ = {
+		CF9AF93F29EE9276001FA527 /* DebugProduction */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 0E27AA27706D894246E7946D /* Pods-NewExpensify.debug production.xcconfig */;
 			buildSettings = {
@@ -970,9 +970,9 @@
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
 			};
-			name = "Debug Production";
+			name = DebugProduction;
 		};
-		CF9AF94029EE9276001FA527 /* Debug Production */ = {
+		CF9AF94029EE9276001FA527 /* DebugProduction */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = DB76E0D5C670190A0997C71E /* Pods-NewExpensify-NewExpensifyTests.debug production.xcconfig */;
 			buildSettings = {
@@ -995,9 +995,9 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/NewExpensify.app/NewExpensify";
 			};
-			name = "Debug Production";
+			name = DebugProduction;
 		};
-		CF9AF94429EE927A001FA527 /* Debug AdHoc */ = {
+		CF9AF94429EE927A001FA527 /* DebugAdHoc */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -1060,9 +1060,9 @@
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
 			};
-			name = "Debug AdHoc";
+			name = DebugAdHoc;
 		};
-		CF9AF94529EE927A001FA527 /* Debug AdHoc */ = {
+		CF9AF94529EE927A001FA527 /* DebugAdHoc */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 0B09CE5BDAF34DD3573AB4E2 /* Pods-NewExpensify.debug adhoc.xcconfig */;
 			buildSettings = {
@@ -1092,9 +1092,9 @@
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
 			};
-			name = "Debug AdHoc";
+			name = DebugAdHoc;
 		};
-		CF9AF94629EE927A001FA527 /* Debug AdHoc */ = {
+		CF9AF94629EE927A001FA527 /* DebugAdHoc */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 432FF5842B766535509FC547 /* Pods-NewExpensify-NewExpensifyTests.debug adhoc.xcconfig */;
 			buildSettings = {
@@ -1117,9 +1117,9 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/NewExpensify.app/NewExpensify";
 			};
-			name = "Debug AdHoc";
+			name = DebugAdHoc;
 		};
-		CF9AF94729EE928E001FA527 /* Release Production */ = {
+		CF9AF94729EE928E001FA527 /* ReleaseProduction */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -1176,9 +1176,9 @@
 				SDKROOT = iphoneos;
 				VALIDATE_PRODUCT = YES;
 			};
-			name = "Release Production";
+			name = ReleaseProduction;
 		};
-		CF9AF94829EE928E001FA527 /* Release Production */ = {
+		CF9AF94829EE928E001FA527 /* ReleaseProduction */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 34A8FDD1F9AA58B8F15C8380 /* Pods-NewExpensify.release production.xcconfig */;
 			buildSettings = {
@@ -1206,9 +1206,9 @@
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
 			};
-			name = "Release Production";
+			name = ReleaseProduction;
 		};
-		CF9AF94929EE928E001FA527 /* Release Production */ = {
+		CF9AF94929EE928E001FA527 /* ReleaseProduction */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 96552D489D9F09B6A5ABD81B /* Pods-NewExpensify-NewExpensifyTests.release production.xcconfig */;
 			buildSettings = {
@@ -1229,9 +1229,9 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/NewExpensify.app/NewExpensify";
 			};
-			name = "Release Production";
+			name = ReleaseProduction;
 		};
-		CF9AF94D29EE9293001FA527 /* Release AdHoc */ = {
+		CF9AF94D29EE9293001FA527 /* ReleaseAdHoc */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -1288,9 +1288,9 @@
 				SDKROOT = iphoneos;
 				VALIDATE_PRODUCT = YES;
 			};
-			name = "Release AdHoc";
+			name = ReleaseAdHoc;
 		};
-		CF9AF94E29EE9293001FA527 /* Release AdHoc */ = {
+		CF9AF94E29EE9293001FA527 /* ReleaseAdHoc */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 1DDE5449979A136852B939B5 /* Pods-NewExpensify.release adhoc.xcconfig */;
 			buildSettings = {
@@ -1318,9 +1318,9 @@
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
 			};
-			name = "Release AdHoc";
+			name = ReleaseAdHoc;
 		};
-		CF9AF94F29EE9293001FA527 /* Release AdHoc */ = {
+		CF9AF94F29EE9293001FA527 /* ReleaseAdHoc */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 6B5211DB0EEB46E12DF4AD2D /* Pods-NewExpensify-NewExpensifyTests.release adhoc.xcconfig */;
 			buildSettings = {
@@ -1341,7 +1341,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/NewExpensify.app/NewExpensify";
 			};
-			name = "Release AdHoc";
+			name = ReleaseAdHoc;
 		};
 /* End XCBuildConfiguration section */
 
@@ -1349,41 +1349,41 @@
 		00E357021AD99517003FC87E /* Build configuration list for PBXNativeTarget "NewExpensifyTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				00E356F61AD99517003FC87E /* Debug Development */,
-				CF9AF94629EE927A001FA527 /* Debug AdHoc */,
-				CF9AF94029EE9276001FA527 /* Debug Production */,
-				00E356F71AD99517003FC87E /* Release Development */,
-				CF9AF94F29EE9293001FA527 /* Release AdHoc */,
-				CF9AF94929EE928E001FA527 /* Release Production */,
+				00E356F61AD99517003FC87E /* DebugDevelopment */,
+				CF9AF94629EE927A001FA527 /* DebugAdHoc */,
+				CF9AF94029EE9276001FA527 /* DebugProduction */,
+				00E356F71AD99517003FC87E /* ReleaseDevelopment */,
+				CF9AF94F29EE9293001FA527 /* ReleaseAdHoc */,
+				CF9AF94929EE928E001FA527 /* ReleaseProduction */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = "Debug Development";
+			defaultConfigurationName = DebugDevelopment;
 		};
 		13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "NewExpensify" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				13B07F941A680F5B00A75B9A /* Debug Development */,
-				CF9AF94529EE927A001FA527 /* Debug AdHoc */,
-				CF9AF93F29EE9276001FA527 /* Debug Production */,
-				13B07F951A680F5B00A75B9A /* Release Development */,
-				CF9AF94E29EE9293001FA527 /* Release AdHoc */,
-				CF9AF94829EE928E001FA527 /* Release Production */,
+				13B07F941A680F5B00A75B9A /* DebugDevelopment */,
+				CF9AF94529EE927A001FA527 /* DebugAdHoc */,
+				CF9AF93F29EE9276001FA527 /* DebugProduction */,
+				13B07F951A680F5B00A75B9A /* ReleaseDevelopment */,
+				CF9AF94E29EE9293001FA527 /* ReleaseAdHoc */,
+				CF9AF94829EE928E001FA527 /* ReleaseProduction */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = "Debug Development";
+			defaultConfigurationName = DebugDevelopment;
 		};
 		83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "NewExpensify" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				83CBBA201A601CBA00E9B192 /* Debug Development */,
-				CF9AF94429EE927A001FA527 /* Debug AdHoc */,
-				CF9AF93E29EE9276001FA527 /* Debug Production */,
-				83CBBA211A601CBA00E9B192 /* Release Development */,
-				CF9AF94D29EE9293001FA527 /* Release AdHoc */,
-				CF9AF94729EE928E001FA527 /* Release Production */,
+				83CBBA201A601CBA00E9B192 /* DebugDevelopment */,
+				CF9AF94429EE927A001FA527 /* DebugAdHoc */,
+				CF9AF93E29EE9276001FA527 /* DebugProduction */,
+				83CBBA211A601CBA00E9B192 /* ReleaseDevelopment */,
+				CF9AF94D29EE9293001FA527 /* ReleaseAdHoc */,
+				CF9AF94729EE928E001FA527 /* ReleaseProduction */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = "Debug Development";
+			defaultConfigurationName = DebugDevelopment;
 		};
 /* End XCConfigurationList section */
 	};
