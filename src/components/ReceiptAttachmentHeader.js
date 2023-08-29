@@ -6,7 +6,6 @@ import HeaderWithBackButton from './HeaderWithBackButton';
 import * as Expensicons from './Icon/Expensicons';
 import styles from '../styles/styles';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
-import compose from '../libs/compose';
 import ConfirmModal from './ConfirmModal';
 import useLocalize from '../hooks/useLocalize';
 import ReceiptActions from '../libs/actions/Receipt';

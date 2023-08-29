@@ -48,28 +48,33 @@ function clearUploadReceiptError() {
  * Detaches the receipt from a transaction
  *
  * @param {String} transactionID
+ * @param {String} reportID
  */
 function detachReceipt(transactionID, reportID) {
-    API.write('DetachReceipt', {transactionID}, {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-                value: {
-                    receipt: {},
+    API.write(
+        'DetachReceipt',
+        {transactionID},
+        {
+            optimisticData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                    value: {
+                        receipt: {},
+                    },
                 },
-            },
-        ],
-        failureData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-                value: {
-                    receipt: lodashGet(allTransactionData, [transactionID, 'receipt'], {}),
+            ],
+            failureData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                    value: {
+                        receipt: lodashGet(allTransactionData, [transactionID, 'receipt'], {}),
+                    },
                 },
-            },
-        ],
-    });
+            ],
+        },
+    );
     Navigation.navigate(ROUTES.getReportRoute(reportID));
 }
 
