@@ -385,7 +385,7 @@ function getLastMessageTextForReport(report) {
         lastMessageTextFromReport = `[${Localize.translateLocal(report.lastMessageTranslationKey || 'common.attachment')}]`;
     } else if (ReportActionUtils.isReportPreviewAction(lastReportAction)) {
         const iouReport = ReportUtils.getReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(lastReportAction));
-        lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(iouReport, lastReportAction);
+        lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(iouReport, lastReportAction, false);
     } else if (ReportActionUtils.isModifiedExpenseAction(lastReportAction)) {
         lastMessageTextFromReport = ReportUtils.getModifiedExpenseMessage(lastReportAction);
     } else {

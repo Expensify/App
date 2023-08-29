@@ -1387,9 +1387,10 @@ function getTransactionReportName(reportAction) {
  *
  * @param {Object} report
  * @param {Object} [reportAction={}]
+ * @param {Boolean} shouldShowEmailForSettledIOU
  * @returns  {String}
  */
-function getReportPreviewMessage(report, reportAction = {}) {
+function getReportPreviewMessage(report, reportAction = {}, shouldShowEmailForSettledIOU = true) {
     const reportActionMessage = lodashGet(reportAction, 'message[0].html', '');
 
     if (_.isEmpty(report) || !report.reportID) {
@@ -1414,7 +1415,7 @@ function getReportPreviewMessage(report, reportAction = {}) {
         } else if (reportActionMessage.match(/ using Expensify$/)) {
             translatePhraseKey = 'iou.paidUsingExpensifyWithAmount';
         }
-        return Localize.translateLocal(translatePhraseKey, {amount: formattedAmount});
+        return Localize.translateLocal(translatePhraseKey, {amount: formattedAmount, payer: shouldShowEmailForSettledIOU && payerName});
     }
 
     if (report.isWaitingOnBankAccount) {
