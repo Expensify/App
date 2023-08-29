@@ -11,9 +11,8 @@ type DraggableListProps<T extends DefaultItemProps> = {
     renderItem: (params: RenderItemParams<T>) => React.ReactNode;
     onDragEnd?: (params: {data: T[]}) => void;
     onDragBegin?: () => void;
-    onPlaceholderIndexChange?: ((placeholderIndex: number) => void) | undefined;
-    // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
-    renderClone?: DraggableChildrenFn | undefined;
+    onPlaceholderIndexChange?: ((placeholderIndex: number) => void);
+    renderClone?: DraggableChildrenFn;
     shouldUsePortal?: boolean;
 };
 
