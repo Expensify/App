@@ -429,10 +429,6 @@ function Composer({
         [style, maxLines, numberOfLinesProp, numberOfLines],
     );
 
-    // On mobile safari the input will be focused if we set the selection for it.
-    // We don't pass selection if it is not focused. So when the input re-mount, it won't be re-focused
-    const isBlurredSafari = Browser.isMobileSafari() && (!textInput.current || !textInput.current.isFocused());
-
     return (
         <>
             <RNTextInput
@@ -440,7 +436,7 @@ function Composer({
                 autoCorrect={!Browser.isMobileSafari()}
                 placeholderTextColor={themeColors.placeholderText}
                 ref={(el) => (textInput.current = el)}
-                selection={isBlurredSafari ? null : selection}
+                selection={selection}
                 style={inputStyleMemo}
                 value={value}
                 forwardedRef={forwardedRef}
