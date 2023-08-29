@@ -142,7 +142,7 @@ function ReportActionItem(props) {
                 ReportActionContextMenu.hideContextMenu();
                 ReportActionContextMenu.hideDeleteModal();
             }
-            if (EmojiPickerAction.isActiveReportAction(props.action.reportActionID)) {
+            if (EmojiPickerAction.isActive(props.action.reportActionID)) {
                 EmojiPickerAction.hideEmojiPicker(true);
             }
             if (reactionListRef.current && reactionListRef.current.isActiveReportAction(props.action.reportActionID)) {
@@ -279,6 +279,7 @@ function ReportActionItem(props) {
                 <ReportPreview
                     iouReportID={ReportActionsUtils.getIOUReportIDFromReportActionPreview(props.action)}
                     chatReportID={props.report.reportID}
+                    policyID={props.report.policyID}
                     containerStyles={props.displayAsGroup ? [] : [styles.mt2]}
                     action={props.action}
                     isHovered={hovered}
@@ -343,7 +344,10 @@ function ReportActionItem(props) {
                                 displayAsGroup={props.displayAsGroup}
                                 isHidden={isHidden}
                                 style={[
-                                    _.contains([..._.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG), CONST.REPORT.ACTIONS.TYPE.IOU], props.action.actionName)
+                                    _.contains(
+                                        [..._.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG), CONST.REPORT.ACTIONS.TYPE.IOU, CONST.REPORT.ACTIONS.TYPE.APPROVED],
+                                        props.action.actionName,
+                                    )
                                         ? styles.colorMuted
                                         : undefined,
                                 ]}
