@@ -1,4 +1,4 @@
-import { OnyxUpdate } from "react-native-onyx";
+import {OnyxUpdate} from 'react-native-onyx';
 
 type Request = {
     command?: string;
