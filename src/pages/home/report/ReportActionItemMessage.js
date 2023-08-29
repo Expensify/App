@@ -36,6 +36,13 @@ function ReportActionItemMessage(props) {
     const messages = _.compact(props.action.previousMessage || props.action.message);
     const isAttachment = ReportUtils.isReportMessageAttachment(_.last(messages));
     const isIOUReport = ReportActionsUtils.isMoneyRequestAction(props.action);
+    let iouMessage;
+    if (isIOUReport) {
+        const iouReportID = lodashGet(props.action, 'originalMessage.IOUReportID');
+        if (iouReportID) {
+            iouMessage = ReportUtils.getReportPreviewMessage(ReportUtils.getReport(iouReportID), props.action);
+        }
+    }
 
     return (
         <View style={[styles.chatItemMessage, !props.displayAsGroup && isAttachment ? styles.mt2 : {}, ...props.style]}>
@@ -45,9 +52,7 @@ function ReportActionItemMessage(props) {
                         key={`actionFragment-${props.action.reportActionID}-${index}`}
                         fragment={fragment}
                         isAttachment={props.action.isAttachment}
-                        isIOUReport={isIOUReport}
-                        IOUReportID={isIOUReport ? props.action.originalMessage.IOUReportID : ''}
-                        IOUReportActionID={isIOUReport ? props.action.reportActionID : ''}
+                        iouMessage={iouMessage}
                         hasCommentThread={ReportActionsUtils.hasCommentThread(props.action)}
                         attachmentInfo={props.action.attachmentInfo}
                         pendingAction={props.action.pendingAction}
