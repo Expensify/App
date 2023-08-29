@@ -1,6 +1,6 @@
 import {OnyxUpdate} from 'react-native-onyx';
 
-type Request = {
+type Response = {
     previousUpdateID?: number;
     lastUpdateID?: number;
     jsonCode?: number;

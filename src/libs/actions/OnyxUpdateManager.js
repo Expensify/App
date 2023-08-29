@@ -119,8 +119,8 @@ export default () => {
             if (
                 !lastUpdateIDAppliedToClient &&
                 previousUpdateIDFromServer > 0 &&
-                (updateParams.type == CONST.ONYX_UPDATE_TYPES.PUSHER ||
-                    (updateParams.type == CONST.ONYX_UPDATE_TYPES.HTTPS && (updateParams.data.request.command !== 'OpenApp' || updateParams.data.request.command !== 'ReconnectApp')))
+                (updateParams.type === CONST.ONYX_UPDATE_TYPES.PUSHER ||
+                    (updateParams.type === CONST.ONYX_UPDATE_TYPES.HTTPS && (updateParams.data.request.command !== 'OpenApp' || updateParams.data.request.command !== 'ReconnectApp')))
             ) {
                 console.debug('[OnyxUpdateManager] Client has not gotten reliable updates before so reconnecting the app to start the process');
                 App.reconnectApp();
