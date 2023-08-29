@@ -23,7 +23,6 @@ import useLocalize from '../hooks/useLocalize';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import transactionPropTypes from './transactionPropTypes';
-import ScreenWrapper from './ScreenWrapper';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import * as ErrorUtils from '../libs/ErrorUtils';
 import usePrevious from '../hooks/usePrevious';
@@ -139,7 +138,7 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
     useEffect(updateGradientVisibility, [scrollContainerHeight, scrollContentHeight]);
 
     return (
-        <ScreenWrapper shouldEnableMaxHeight>
+        <>
             <View
                 style={styles.distanceRequestContainer(scrollContainerMaxHeight)}
                 onLayout={(event = {}) => setScrollContainerHeight(lodashGet(event, 'nativeEvent.layout.height', 0))}
@@ -231,7 +230,7 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
                     </View>
                 )}
             </View>
-        </ScreenWrapper>
+        </>
     );
 }
 

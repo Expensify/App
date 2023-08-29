@@ -24,6 +24,31 @@ runs:
         path: desktop/node_modules
         key: ${{ runner.os }}-desktop-node-modules-${{ hashFiles('desktop/package-lock.json') }}
 
+    - name: Check if patch files changed
+      id: patchCheck
+      shell: bash
+      run: |
+        set -e
+        if [[ `git diff main --name-only | grep \.patch` != null ]]; then 
+          echo 'CHANGES_IN_PATCH_FILES=true' >> "$GITHUB_OUTPUT"
+        else 
+          echo 'CHANGES_IN_PATCH_FILES=false' >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Patch root project node packages
+      shell: bash
+      if: | 
+        steps.patchCheck.outputs.CHANGES_IN_PATCH_FILES == 'true' && 
+        steps.cache-node-modules.outputs.cache-hit == 'true'
+      run: npx patch-package
+
+    - name: Patch node packages for desktop submodule
+      shell: bash
+      if: | 
+        steps.patchCheck.outputs.CHANGES_IN_PATCH_FILES == 'true' && 
+        steps.cache-desktop-node-modules.outputs.cache-hit == 'true'
+      run: cd desktop && npx patch-package
+
     - name: Install root project node packages
       if: steps.cache-node-modules.outputs.cache-hit != 'true'
       uses: nick-fields/retry@v2

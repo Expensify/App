@@ -201,6 +201,9 @@ function getOptionData(report, reportActions, personalDetails, preferredLocale, 
         accountID: null,
         managerID: null,
         reportID: null,
+        policyID: null,
+        statusNum: null,
+        stateNum: null,
         phoneNumber: null,
         payPalMeAddress: null,
         isUnread: null,
@@ -232,7 +235,7 @@ function getOptionData(report, reportActions, personalDetails, preferredLocale, 
     result.isTaskReport = ReportUtils.isTaskReport(report);
     if (result.isTaskReport) {
         result.isCompletedTaskReport = ReportUtils.isCompletedTaskReport(report);
-        result.isTaskAssignee = ReportUtils.isTaskAssignee(report);
+        result.isTaskAssignee = ReportUtils.isReportManager(report);
     }
     result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
     result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
@@ -245,6 +248,9 @@ function getOptionData(report, reportActions, personalDetails, preferredLocale, 
     result.ownerAccountID = report.ownerAccountID;
     result.managerID = report.managerID;
     result.reportID = report.reportID;
+    result.policyID = report.policyID;
+    result.stateNum = report.stateNum;
+    result.statusNum = report.statusNum;
     result.isUnread = ReportUtils.isUnread(report);
     result.isUnreadWithMention = ReportUtils.isUnreadWithMention(report);
     result.hasDraftComment = report.hasDraft;

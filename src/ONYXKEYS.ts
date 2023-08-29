@@ -106,6 +106,9 @@ const ONYXKEYS = {
     /** The NVP with the last payment method used per policy */
     NVP_LAST_PAYMENT_METHOD: 'nvp_lastPaymentMethod',
 
+    /** This NVP holds to most recent waypoints that a person has used when creating a distance request */
+    NVP_RECENT_WAYPOINTS: 'expensify_recentWaypoints',
+
     /** Does this user have push notifications enabled for this device? */
     PUSH_NOTIFICATIONS_ENABLED: 'pushNotificationsEnabled',
 
@@ -224,6 +227,15 @@ const ONYXKEYS = {
     // Information on any active demos being run
     DEMO_INFO: 'demoInfo',
 
+    // Max area supported for HTML <canvas> element
+    MAX_CANVAS_AREA: 'maxCanvasArea',
+
+    // Max height supported for HTML <canvas> element
+    MAX_CANVAS_HEIGHT: 'maxCanvasHeight',
+
+    // Max width supported for HTML <canvas> element
+    MAX_CANVAS_WIDTH: 'maxCanvasWidth',
+
     /** Collection Keys */
     COLLECTION: {
         DOWNLOAD: 'download_',
@@ -315,6 +327,7 @@ type OnyxValues = {
     [ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE]: OnyxTypes.BlockedFromConcierge;
     [ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID]: string;
     [ONYXKEYS.NVP_LAST_PAYMENT_METHOD]: Record<string, string>;
+    [ONYXKEYS.NVP_RECENT_WAYPOINTS]: OnyxTypes.RecentWaypoints[];
     [ONYXKEYS.PUSH_NOTIFICATIONS_ENABLED]: boolean;
     [ONYXKEYS.PLAID_DATA]: OnyxTypes.PlaidData;
     [ONYXKEYS.IS_PLAID_DISABLED]: boolean;
@@ -352,6 +365,9 @@ type OnyxValues = {
     [ONYXKEYS.MAPBOX_ACCESS_TOKEN]: OnyxTypes.MapboxAccessToken;
     [ONYXKEYS.ONYX_UPDATES_FROM_SERVER]: number;
     [ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT]: number;
+    [ONYXKEYS.MAX_CANVAS_AREA]: number;
+    [ONYXKEYS.MAX_CANVAS_HEIGHT]: number;
+    [ONYXKEYS.MAX_CANVAS_WIDTH]: number;
 
     // Collections
     [ONYXKEYS.COLLECTION.DOWNLOAD]: OnyxTypes.Download;
