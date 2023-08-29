@@ -1358,7 +1358,7 @@ function areAllRequestsBeingSmartScanned(iouReportID, reportPreviewAction) {
     return _.all(transactionsWithReceipts, (transaction) => TransactionUtils.isReceiptBeingScanned(transaction));
 }
 
-function hasFieldErrors(iouReportID, reportPreviewAction) {
+function hasFieldErrors(iouReportID) {
     const transactionsWithReceipts = getTransactionsWithReceipts(iouReportID);
     return _.some(transactionsWithReceipts, (transaction) => TransactionUtils.hasFieldErrors(transaction));
 }

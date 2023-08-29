@@ -85,6 +85,12 @@ function hasReceipt(transaction) {
     return lodashGet(transaction, 'receipt.state', '') !== '';
 }
 
+function areRequiredFieldsPopulated(transaction) {
+    return transaction.merchant !== CONST.TRANSACTION.DEFAULT_MERCHANT && transaction.modifiedMerchant !== CONST.TRANSACTION.DEFAULT_MERCHANT
+        && transaction.amount !== 0 && transaction.modifiedAmount !== 0
+        && transaction.created !== '' && transaction.modifiedCreated !== '';
+}
+
 /**
  * Given the edit made to the money request, return an updated transaction object.
  *
@@ -140,12 +146,6 @@ function getUpdatedTransaction(transaction, transactionChanges, isFromExpenseRep
     };
 
     return updatedTransaction;
-}
-
-function areRequiredFieldsPopulated(transaction) {
-    return transaction.merchant !== CONST.TRANSACTION.DEFAULT_MERCHANT && transaction.modifiedMerchant !== CONST.TRANSACTION.DEFAULT_MERCHANT
-        && transaction.amount !== 0 && transaction.modifiedAmount !== 0
-        && transaction.created !== '' && transaction.modifiedCreated !== '';
 }
 
 /**

@@ -351,7 +351,7 @@ function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolic
 function getAllReportErrors(report, reportActions) {
     const reportErrors = report.errors || {};
     const reportErrorFields = report.errorFields || {};
-    let reportActionErrors = {};
+    const reportActionErrors = {};
     _.each(reportActions, (action) => {
         if (action && !_.isEmpty(action.errors)) {
             _.extend(reportActionErrors, action.errors);
@@ -360,7 +360,7 @@ function getAllReportErrors(report, reportActions) {
 
             // Instead of adding all Smartscan errors, let's just add a generic error if there are any. This
             // will be more performant and provide the same result in the UI
-            if (ReportUtils.hasFieldErrors(iouReportID, action)) {
+            if (ReportUtils.hasFieldErrors(iouReportID)) {
                 _.extend(reportActionErrors, {createChat: ErrorUtils.getMicroSecondOnyxError('report.genericSmartscanFailureMessage')});
             }
         }

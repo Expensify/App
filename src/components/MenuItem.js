@@ -103,14 +103,6 @@ const MenuItem = React.forwardRef((props, ref) => {
         isDeleted ? styles.offlineFeedback.deleted : undefined,
     ]);
 
-    const subtitleTextStyle = StyleUtils.combineStyles([
-        styles.textLabelSupporting,
-        props.icon && !_.isArray(props.icon) ? styles.ml3 : undefined,
-        props.title ? descriptionVerticalMargin : StyleUtils.getFontSizeStyle(variables.fontSizeNormal),
-        props.descriptionTextStyle,
-        isDeleted ? styles.offlineFeedback.deleted : undefined,
-    ]);
-
     const fallbackAvatarSize = props.viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT;
 
     return (
