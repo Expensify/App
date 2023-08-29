@@ -26,9 +26,6 @@ const propTypes = {
      * on form type (for example. sign in) and small vs large screens */
     welcomeHeader: PropTypes.string.isRequired,
 
-    /** Whether to show the sign in content in a small screen style */
-    shouldShowSmallScreen: PropTypes.bool.isRequired,
-
     /** Whether to show welcome text on a particular page */
     shouldShowWelcomeText: PropTypes.bool.isRequired,
 
@@ -41,11 +38,7 @@ const propTypes = {
 
 function SignInPageContent(props) {
     return (
-        <ScrollView
-            contentContainerStyle={[styles.flex1, styles.signInPageLeftContainer]}
-            keyboardShouldPersistTaps="handled"
-            style={[!props.isSmallScreenWidth && styles.signInPageLeftContainerWide, styles.flex1, props.shouldShowSmallScreen && styles.overflowHidden]}
-        >
+        <View style={[styles.flex1, styles.signInPageLeftContainer]}>
             <View style={[styles.flex1, styles.alignSelfCenter, styles.signInPageWelcomeFormContainer]}>
                 {/* This empty view creates margin on the top of the sign in form which will shrink and grow depending on if the keyboard is open or not */}
                 <View style={[styles.flexGrow1, props.isSmallScreenWidth ? styles.signInPageContentTopSpacerSmallScreens : styles.signInPageContentTopSpacer]} />
@@ -85,7 +78,7 @@ function SignInPageContent(props) {
                     ) : null}
                 </View>
             </View>
-        </ScrollView>
+        </View>
     );
 }
 
