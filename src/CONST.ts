@@ -2560,7 +2560,7 @@ const CONST = {
     TEACHERS_UNITE: {
         PUBLIC_ROOM_ID: '795574440662771',
         POLICY_ID: 'B795B6319125BDF2',
-        POLICY_NAME: 'Teachers Unite!',
+        POLICY_NAME: 'Expensify.org / Teachers Unite!',
         PUBLIC_ROOM_NAME: '#teachers-unite',
     },
     CUSTOM_STATUS_TYPES: {
