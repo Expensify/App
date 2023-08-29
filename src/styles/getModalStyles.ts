@@ -1,25 +1,60 @@
-import CONST from '../../CONST';
-import variables from '../variables';
-import themeColors from '../themes/default';
-import styles from '../styles';
+import {CSSProperties} from 'react';
+import {ViewStyle} from 'react-native';
+import {ValueOf} from 'type-fest';
+import {ModalProps} from 'react-native-modal';
+import CONST from '../CONST';
+import variables from './variables';
+import themeColors from './themes/default';
+import styles from './styles';
 
-const getCenteredModalStyles = (windowWidth, isSmallScreenWidth, isFullScreenWhenSmall = false) => ({
-    borderWidth: styles.centeredModalStyles(isSmallScreenWidth, isFullScreenWhenSmall).borderWidth,
-    width: isSmallScreenWidth ? '100%' : windowWidth - styles.centeredModalStyles(isSmallScreenWidth, isFullScreenWhenSmall).marginHorizontal * 2,
-});
+function getCenteredModalStyles(windowWidth: number, isSmallScreenWidth: boolean, isFullScreenWhenSmall = false): ViewStyle {
+    return {
+        borderWidth: styles.centeredModalStyles(isSmallScreenWidth, isFullScreenWhenSmall).borderWidth,
+        width: isSmallScreenWidth ? '100%' : windowWidth - styles.centeredModalStyles(isSmallScreenWidth, isFullScreenWhenSmall).marginHorizontal * 2,
+    };
+}
 
-export default (type, windowDimensions, popoverAnchorPosition = {}, innerContainerStyle = {}, outerStyle = {}) => {
+type ModalType = ValueOf<typeof CONST.MODAL.MODAL_TYPE>;
+
+type WindowDimensions = {
+    windowWidth: number;
+    windowHeight: number;
+    isSmallScreenWidth: boolean;
+    isMediumScreenWidth: boolean;
+    isLargeScreenWidth: boolean;
+};
+
+type GetModalStyles = {
+    modalStyle: ViewStyle;
+    modalContainerStyle: ViewStyle | Pick<CSSProperties, 'boxShadow'>;
+    swipeDirection: ModalProps['swipeDirection'];
+    animationIn: ModalProps['animationIn'];
+    animationOut: ModalProps['animationOut'];
+    hideBackdrop: boolean;
+    shouldAddTopSafeAreaMargin: boolean;
+    shouldAddBottomSafeAreaMargin: boolean;
+    shouldAddBottomSafeAreaPadding: boolean;
+    shouldAddTopSafeAreaPadding: boolean;
+};
+
+export default function getModalStyles(
+    type: ModalType,
+    windowDimensions: WindowDimensions,
+    popoverAnchorPosition: ViewStyle = {},
+    innerContainerStyle: ViewStyle = {},
+    outerStyle: ViewStyle = {},
+): GetModalStyles {
     const {isSmallScreenWidth, windowWidth} = windowDimensions;
 
-    let modalStyle = {
+    let modalStyle: GetModalStyles['modalStyle'] = {
         margin: 0,
         ...outerStyle,
     };
 
-    let modalContainerStyle;
-    let swipeDirection;
-    let animationIn;
-    let animationOut;
+    let modalContainerStyle: GetModalStyles['modalContainerStyle'];
+    let swipeDirection: GetModalStyles['swipeDirection'];
+    let animationIn: GetModalStyles['animationIn'];
+    let animationOut: GetModalStyles['animationOut'];
     let hideBackdrop = false;
     let shouldAddBottomSafeAreaMargin = false;
     let shouldAddTopSafeAreaMargin = false;
@@ -264,4 +299,4 @@ export default (type, windowDimensions, popoverAnchorPosition = {}, innerContain
         shouldAddBottomSafeAreaPadding,
         shouldAddTopSafeAreaPadding,
     };
-};
+}
