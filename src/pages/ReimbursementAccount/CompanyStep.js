@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import Str from 'expensify-common/lib/str';
 import {withOnyx} from 'react-native-onyx';
@@ -53,33 +53,24 @@ const defaultProps = {
     policyID: '',
 };
 
-class CompanyStep extends React.Component {
-    constructor(props) {
-        super(props);
-
-        this.submit = this.submit.bind(this);
-        this.validate = this.validate.bind(this);
-
-        this.defaultWebsite = lodashGet(props, 'user.isFromPublicDomain', false) ? 'https://' : `https://www.${Str.extractEmailDomain(props.session.email, '')}`;
-    }
-
+function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaultStateForField, onBackButtonPress, translate, session, user, policyID}) {
     /**
      * @param {Array} fieldNames
      *
      * @returns {*}
      */
-    getBankAccountFields(fieldNames) {
-        return {
-            ..._.pick(lodashGet(this.props.reimbursementAccount, 'achData'), ...fieldNames),
-            ..._.pick(this.props.reimbursementAccountDraft, ...fieldNames),
-        };
-    }
+    const getBankAccountFields = (fieldNames) => ({
+        ..._.pick(lodashGet(reimbursementAccount, 'achData'), ...fieldNames),
+        ..._.pick(reimbursementAccountDraft, ...fieldNames),
+    });
+
+    const defaultWebsite = useMemo(() => (lodashGet(user, 'isFromPublicDomain', false) ? 'https://' : `https://www.${Str.extractEmailDomain(session.email, '')}`), [user, session]);
 
     /**
      * @param {Object} values - form input values passed by the Form component
      * @returns {Object} - Object containing the errors for each inputID, e.g. {inputID1: error1, inputID2: error2}
      */
-    validate(values) {
+    const validate = (values) => {
         const requiredFields = [
             'companyName',
             'addressStreet',
@@ -126,14 +117,14 @@ class CompanyStep extends React.Component {
         }
 
         return errors;
-    }
+    };
 
-    submit(values) {
+    const submit = (values) => {
         const bankAccount = {
-            bankAccountID: lodashGet(this.props.reimbursementAccount, 'achData.bankAccountID') || 0,
+            bankAccountID: lodashGet(reimbursementAccount, 'achData.bankAccountID') || 0,
 
             // Fields from BankAccount step
-            ...this.getBankAccountFields(['routingNumber', 'accountNumber', 'bankName', 'plaidAccountID', 'plaidAccessToken', 'isSavings']),
+            ...getBankAccountFields(['routingNumber', 'accountNumber', 'bankName', 'plaidAccountID', 'plaidAccessToken', 'isSavings']),
 
             // Fields from Company step
             ...values,
@@ -141,148 +132,147 @@ class CompanyStep extends React.Component {
             companyPhone: parsePhoneNumber(values.companyPhone, {regionCode: CONST.COUNTRY.US}).number.significant,
         };
 
-        BankAccounts.updateCompanyInformationForBankAccount(bankAccount, this.props.policyID);
-    }
+        BankAccounts.updateCompanyInformationForBankAccount(bankAccount, policyID);
+    };
 
-    render() {
-        const bankAccountID = lodashGet(this.props.reimbursementAccount, 'achData.bankAccountID', 0);
-        const shouldDisableCompanyName = Boolean(bankAccountID && this.props.getDefaultStateForField('companyName'));
-        const shouldDisableCompanyTaxID = Boolean(bankAccountID && this.props.getDefaultStateForField('companyTaxID'));
+    const bankAccountID = lodashGet(reimbursementAccount, 'achData.bankAccountID', 0);
+    const shouldDisableCompanyName = Boolean(bankAccountID && getDefaultStateForField('companyName'));
+    const shouldDisableCompanyTaxID = Boolean(bankAccountID && getDefaultStateForField('companyTaxID'));
 
-        return (
-            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-                <HeaderWithBackButton
-                    title={this.props.translate('companyStep.headerTitle')}
-                    stepCounter={{step: 2, total: 5}}
-                    shouldShowGetAssistanceButton
-                    guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
-                    onBackButtonPress={this.props.onBackButtonPress}
+    return (
+        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+            <HeaderWithBackButton
+                title={translate('companyStep.headerTitle')}
+                stepCounter={{step: 2, total: 5}}
+                shouldShowGetAssistanceButton
+                guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
+                onBackButtonPress={onBackButtonPress}
+            />
+            <Form
+                formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
+                validate={validate}
+                onSubmit={submit}
+                scrollContextEnabled
+                submitButtonText={translate('common.saveAndContinue')}
+                style={[styles.mh5, styles.flexGrow1]}
+            >
+                <Text>{translate('companyStep.subtitle')}</Text>
+                <TextInput
+                    label={translate('companyStep.legalBusinessName')}
+                    accessibilityLabel={translate('companyStep.legalBusinessName')}
+                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    inputID="companyName"
+                    containerStyles={[styles.mt4]}
+                    disabled={shouldDisableCompanyName}
+                    defaultValue={getDefaultStateForField('companyName')}
+                    shouldSaveDraft
+                    shouldUseDefaultValue={shouldDisableCompanyName}
                 />
-                <Form
-                    formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
-                    validate={this.validate}
-                    onSubmit={this.submit}
-                    scrollContextEnabled
-                    submitButtonText={this.props.translate('common.saveAndContinue')}
-                    style={[styles.mh5, styles.flexGrow1]}
-                >
-                    <Text>{this.props.translate('companyStep.subtitle')}</Text>
-                    <TextInput
-                        label={this.props.translate('companyStep.legalBusinessName')}
-                        accessibilityLabel={this.props.translate('companyStep.legalBusinessName')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        inputID="companyName"
-                        containerStyles={[styles.mt4]}
-                        disabled={shouldDisableCompanyName}
-                        defaultValue={this.props.getDefaultStateForField('companyName')}
-                        shouldSaveDraft
-                        shouldUseDefaultValue={shouldDisableCompanyName}
-                    />
-                    <AddressForm
-                        translate={this.props.translate}
-                        defaultValues={{
-                            street: this.props.getDefaultStateForField('addressStreet'),
-                            city: this.props.getDefaultStateForField('addressCity'),
-                            state: this.props.getDefaultStateForField('addressState'),
-                            zipCode: this.props.getDefaultStateForField('addressZipCode'),
-                        }}
-                        inputKeys={{
-                            street: 'addressStreet',
-                            city: 'addressCity',
-                            state: 'addressState',
-                            zipCode: 'addressZipCode',
-                        }}
-                        shouldSaveDraft
-                        streetTranslationKey="common.companyAddress"
-                    />
-                    <TextInput
-                        inputID="companyPhone"
-                        label={this.props.translate('common.phoneNumber')}
-                        accessibilityLabel={this.props.translate('common.phoneNumber')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        containerStyles={[styles.mt4]}
-                        keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
-                        placeholder={this.props.translate('common.phoneNumberPlaceholder')}
-                        defaultValue={this.props.getDefaultStateForField('companyPhone')}
-                        shouldSaveDraft
-                    />
-                    <TextInput
-                        inputID="website"
-                        label={this.props.translate('companyStep.companyWebsite')}
-                        accessibilityLabel={this.props.translate('companyStep.companyWebsite')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        containerStyles={[styles.mt4]}
-                        defaultValue={this.props.getDefaultStateForField('website', this.defaultWebsite)}
-                        shouldSaveDraft
-                        hint={this.props.translate('common.websiteExample')}
-                        keyboardType={CONST.KEYBOARD_TYPE.URL}
-                    />
-                    <TextInput
-                        inputID="companyTaxID"
-                        label={this.props.translate('companyStep.taxIDNumber')}
-                        accessibilityLabel={this.props.translate('companyStep.taxIDNumber')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        containerStyles={[styles.mt4]}
-                        keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                        disabled={shouldDisableCompanyTaxID}
-                        placeholder={this.props.translate('companyStep.taxIDNumberPlaceholder')}
-                        defaultValue={this.props.getDefaultStateForField('companyTaxID')}
-                        shouldSaveDraft
-                        shouldUseDefaultValue={shouldDisableCompanyTaxID}
-                    />
-                    <View style={styles.mt4}>
-                        <Picker
-                            inputID="incorporationType"
-                            label={this.props.translate('companyStep.companyType')}
-                            items={_.map(this.props.translate('companyStep.incorporationTypes'), (label, value) => ({value, label}))}
-                            placeholder={{value: '', label: '-'}}
-                            defaultValue={this.props.getDefaultStateForField('incorporationType')}
-                            shouldSaveDraft
-                        />
-                    </View>
-                    <View style={styles.mt4}>
-                        <DatePicker
-                            inputID="incorporationDate"
-                            label={this.props.translate('companyStep.incorporationDate')}
-                            placeholder={this.props.translate('companyStep.incorporationDatePlaceholder')}
-                            defaultValue={this.props.getDefaultStateForField('incorporationDate')}
-                            shouldSaveDraft
-                        />
-                    </View>
-                    <View style={[styles.mt4, styles.mhn5]}>
-                        <StatePicker
-                            inputID="incorporationState"
-                            label={this.props.translate('companyStep.incorporationState')}
-                            defaultValue={this.props.getDefaultStateForField('incorporationState')}
-                            shouldSaveDraft
-                        />
-                    </View>
-                    <CheckboxWithLabel
-                        accessibilityLabel={`${this.props.translate('companyStep.confirmCompanyIsNot')} ${this.props.translate('companyStep.listOfRestrictedBusinesses')}`}
-                        inputID="hasNoConnectionToCannabis"
-                        defaultValue={this.props.getDefaultStateForField('hasNoConnectionToCannabis', false)}
-                        LabelComponent={() => (
-                            <Text>
-                                {`${this.props.translate('companyStep.confirmCompanyIsNot')} `}
-                                <TextLink
-                                    // eslint-disable-next-line max-len
-                                    href="https://community.expensify.com/discussion/6191/list-of-restricted-businesses"
-                                >
-                                    {`${this.props.translate('companyStep.listOfRestrictedBusinesses')}.`}
-                                </TextLink>
-                            </Text>
-                        )}
-                        style={[styles.mt4]}
+                <AddressForm
+                    translate={translate}
+                    defaultValues={{
+                        street: getDefaultStateForField('addressStreet'),
+                        city: getDefaultStateForField('addressCity'),
+                        state: getDefaultStateForField('addressState'),
+                        zipCode: getDefaultStateForField('addressZipCode'),
+                    }}
+                    inputKeys={{
+                        street: 'addressStreet',
+                        city: 'addressCity',
+                        state: 'addressState',
+                        zipCode: 'addressZipCode',
+                    }}
+                    shouldSaveDraft
+                    streetTranslationKey="common.companyAddress"
+                />
+                <TextInput
+                    inputID="companyPhone"
+                    label={translate('common.phoneNumber')}
+                    accessibilityLabel={translate('common.phoneNumber')}
+                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    containerStyles={[styles.mt4]}
+                    keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
+                    placeholder={translate('common.phoneNumberPlaceholder')}
+                    defaultValue={getDefaultStateForField('companyPhone')}
+                    shouldSaveDraft
+                />
+                <TextInput
+                    inputID="website"
+                    label={translate('companyStep.companyWebsite')}
+                    accessibilityLabel={translate('companyStep.companyWebsite')}
+                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    containerStyles={[styles.mt4]}
+                    defaultValue={getDefaultStateForField('website', defaultWebsite)}
+                    shouldSaveDraft
+                    hint={translate('common.websiteExample')}
+                    keyboardType={CONST.KEYBOARD_TYPE.URL}
+                />
+                <TextInput
+                    inputID="companyTaxID"
+                    label={translate('companyStep.taxIDNumber')}
+                    accessibilityLabel={translate('companyStep.taxIDNumber')}
+                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    containerStyles={[styles.mt4]}
+                    keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                    disabled={shouldDisableCompanyTaxID}
+                    placeholder={translate('companyStep.taxIDNumberPlaceholder')}
+                    defaultValue={getDefaultStateForField('companyTaxID')}
+                    shouldSaveDraft
+                    shouldUseDefaultValue={shouldDisableCompanyTaxID}
+                />
+                <View style={styles.mt4}>
+                    <Picker
+                        inputID="incorporationType"
+                        label={translate('companyStep.companyType')}
+                        items={_.map(translate('companyStep.incorporationTypes'), (label, value) => ({value, label}))}
+                        placeholder={{value: '', label: '-'}}
+                        defaultValue={getDefaultStateForField('incorporationType')}
                         shouldSaveDraft
                     />
-                </Form>
-            </ScreenWrapper>
-        );
-    }
+                </View>
+                <View style={styles.mt4}>
+                    <DatePicker
+                        inputID="incorporationDate"
+                        label={translate('companyStep.incorporationDate')}
+                        placeholder={translate('companyStep.incorporationDatePlaceholder')}
+                        defaultValue={getDefaultStateForField('incorporationDate')}
+                        shouldSaveDraft
+                    />
+                </View>
+                <View style={[styles.mt4, styles.mhn5]}>
+                    <StatePicker
+                        inputID="incorporationState"
+                        label={translate('companyStep.incorporationState')}
+                        defaultValue={getDefaultStateForField('incorporationState')}
+                        shouldSaveDraft
+                    />
+                </View>
+                <CheckboxWithLabel
+                    accessibilityLabel={`${translate('companyStep.confirmCompanyIsNot')} ${translate('companyStep.listOfRestrictedBusinesses')}`}
+                    inputID="hasNoConnectionToCannabis"
+                    defaultValue={getDefaultStateForField('hasNoConnectionToCannabis', false)}
+                    LabelComponent={() => (
+                        <Text>
+                            {`${translate('companyStep.confirmCompanyIsNot')} `}
+                            <TextLink
+                                // eslint-disable-next-line max-len
+                                href="https://community.expensify.com/discussion/6191/list-of-restricted-businesses"
+                            >
+                                {`${translate('companyStep.listOfRestrictedBusinesses')}.`}
+                            </TextLink>
+                        </Text>
+                    )}
+                    style={[styles.mt4]}
+                    shouldSaveDraft
+                />
+            </Form>
+        </ScreenWrapper>
+    );
 }
 
 CompanyStep.propTypes = propTypes;
 CompanyStep.defaultProps = defaultProps;
+CompanyStep.displayName = 'CompanyStep';
 
 export default compose(
     withLocalize,
