@@ -1,22 +1,24 @@
 import React, {useState, useCallback} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import HeaderWithBackButton from './HeaderWithBackButton';
-import iouReportPropTypes from '../pages/iouReportPropTypes';
 import * as Expensicons from './Icon/Expensicons';
 import styles from '../styles/styles';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import compose from '../libs/compose';
-import ONYXKEYS from '../ONYXKEYS';
 import ConfirmModal from './ConfirmModal';
 import useLocalize from '../hooks/useLocalize';
+import ReceiptActions from '../libs/actions/Receipt';
+import * as ReportActionsUtils from '../libs/ReportActionsUtils';
+import _ from 'lodash';
 
 const propTypes = {
     /** The report currently being looked at */
-    report: iouReportPropTypes.isRequired,
-
-    /** The expense report or iou report (only will have a value if this is a transaction thread) */
-    parentReport: iouReportPropTypes,
+    report: PropTypes.shape({
+        parentReportID: PropTypes.string.isRequired,
+        parentReportActionID: PropTypes.string.isRequired,
+    }).isRequired,
 
     ...windowDimensionsPropTypes,
 };
@@ -30,9 +32,14 @@ function ReceiptAttachmentHeader(props) {
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
 
     const deleteReceipt = useCallback(() => {
-        // IOU.deleteMoneyRequest(parentReportAction.originalMessage.IOUTransactionID, parentReportAction, true);
+        // Get receipt attachment transaction ID
+        const parentReportAction = ReportActionsUtils.getParentReportAction(props.report);
+        const transactionID = lodashGet(parentReportAction, ['originalMessage', 'IOUTransactionID'], 0);
+
+        // Detatch receipt & clear modal open state
+        ReceiptActions.detachReceipt(transactionID);
         setIsDeleteModalVisible(false);
-    }, [props.parentReport, setIsDeleteModalVisible]);
+    }, [props.receiptTransactions, setIsDeleteModalVisible]);
 
     return (
         <>
@@ -78,9 +85,4 @@ ReceiptAttachmentHeader.defaultProps = defaultProps;
 
 export default compose(
     withWindowDimensions,
-    withOnyx({
-        parentReport: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`,
-        },
-    }),
 )(ReceiptAttachmentHeader);
