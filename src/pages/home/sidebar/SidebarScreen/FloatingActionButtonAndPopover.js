@@ -90,8 +90,6 @@ function FloatingActionButtonAndPopover(props) {
 
     const prevIsFocused = usePrevious(props.isFocused);
 
-    console.log({showDownloadAppBanner: props.showDownloadAppBanner});
-
     /**
      * Check if LHN status changed from active to inactive.
      * Used to close already opened FAB menu when open any other pages (i.e. Press Command + K on web).

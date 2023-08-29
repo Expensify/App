@@ -34,8 +34,7 @@ const defaultProps = {
 
 function DownloadAppModal({session, showDownloadAppBanner}) {
     const userLoggedIn = !_.isEmpty(session.authToken);
-    console.log({userLoggedIn});
-    const [shouldShowBanner, setshouldShowBanner] = useState((Browser.isMobile() || true) && userLoggedIn && showDownloadAppBanner);
+    const [shouldShowBanner, setshouldShowBanner] = useState(Browser.isMobile() && userLoggedIn && showDownloadAppBanner);
 
     const {translate} = useLocalize();
 
