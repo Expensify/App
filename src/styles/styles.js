@@ -3863,7 +3863,7 @@ const styles = {
     },
 
     confirmationListMapItem: {
-        margin: spacing.m5,
+        ...spacing.m5,
         height: 200,
     },
 
