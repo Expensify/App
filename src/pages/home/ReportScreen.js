@@ -308,7 +308,7 @@ function ReportScreen({
 
         fetchReportIfNeeded();
         ComposerActions.setShouldShowComposeInput(true);
-    }, [route, report, errors, fetchReportIfNeeded, prevReport.reportID, userLeavingStatus]);
+    }, [route, report, errors, fetchReportIfNeeded, prevReport.reportID, userLeavingStatus, prevReport.statusNum]);
 
     useEffect(() => {
         // Ensures subscription event succeeds when the report/workspace room is created optimistically.
