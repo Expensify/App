@@ -113,7 +113,7 @@ const propTypes = {
 
     /** Unit and rate used for if the money request is a distance request */
     mileageRate: PropTypes.shape({
-        unit: PropTypes.oneOf(['mi', 'ki']),
+        unit: PropTypes.oneOf([CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS]),
         rate: PropTypes.number,
     }),
 
@@ -142,7 +142,7 @@ const defaultProps = {
     policyCategories: {},
     transactionID: '',
     transaction: {},
-    mileageRate: {unit: 'mi', rate: 0},
+    mileageRate: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, rate: 0},
     isDistanceRequest: false,
 };
 

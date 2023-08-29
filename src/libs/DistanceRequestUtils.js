@@ -6,12 +6,12 @@ const getDefaultMileageRate = (policy) => {
         return null;
     }
 
-    const distanceUnit = _.find(_.values(policy.customUnits), (unit) => unit.name === 'Distance');
+    const distanceUnit = _.find(_.values(policy.customUnits), (unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
     if (!distanceUnit) {
         return null;
     }
 
-    const distanceRate = _.find(_.values(distanceUnit.rates), (rate) => rate.name === 'Default Rate');
+    const distanceRate = _.find(_.values(distanceUnit.rates), (rate) => rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE);
     if (!distanceRate) {
         return null;
     }
