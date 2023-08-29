@@ -44,7 +44,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
         !!draftEmojiCode || !!draftText || ((!!draftEmojiCode || !!currentUserEmojiCode) && !!draftClearAfter && !DateUtils.areDatesIdentical(draftClearAfter, currentUserClearAfter));
     const customClearAfter = useMemo(() => {
         const dataToShow = draftClearAfter || currentUserClearAfter;
-        return DateUtils.getDateForTitleBasedFromType(dataToShow);
+        return DateUtils.getLocalizedTimePeriodDescription(dataToShow);
     }, [draftClearAfter, currentUserClearAfter]);
 
     const navigateBackToSettingsPage = useCallback(() => Navigation.goBack(ROUTES.SETTINGS_PROFILE, false, true), []);
