@@ -159,7 +159,8 @@ function ReceiptSelector(props) {
     };
 
     const askForPermissions = () => {
-        // Android will never return blocked after a check, you have to request the permission to get the info.
+        // There's no way we can check for the BLOCKED status without requesting the permission first
+        // https://github.com/zoontek/react-native-permissions/blob/a836e114ce3a180b2b23916292c79841a267d828/README.md?plain=1#L670
         if (permissions === RESULTS.BLOCKED || isAndroidBlockedPermissionRef.current) {
             Linking.openSettings();
         } else if (permissions === RESULTS.DENIED) {
