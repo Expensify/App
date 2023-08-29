@@ -1,6 +1,5 @@
 import React, {useMemo, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../ONYXKEYS';
 import {propTypes, defaultProps} from './categoryPickerPropTypes';
