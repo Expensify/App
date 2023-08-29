@@ -5,6 +5,12 @@ import ONYXKEYS from '../../ONYXKEYS';
 import * as CollectionUtils from '../CollectionUtils';
 import * as API from '../API';
 
+let recentWaypoints = [];
+Onyx.connect({
+    key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
+    callback: (val) => (recentWaypoints = val || []),
+});
+
 const allTransactions = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION,
@@ -87,6 +93,12 @@ function saveWaypoint(transactionID, index, waypoint) {
             },
         },
     });
+    const recentWaypointAlreadyExists = _.find(recentWaypoints, (recentWaypoint) => recentWaypoint.address === waypoint.address);
+    if (!recentWaypointAlreadyExists) {
+        const clonedWaypoints = _.clone(recentWaypoints);
+        clonedWaypoints.unshift(waypoint);
+        Onyx.merge(ONYXKEYS.NVP_RECENT_WAYPOINTS, clonedWaypoints.slice(0, 5));
+    }
 }
 
 function removeWaypoint(transactionID, currentIndex) {
