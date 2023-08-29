@@ -54,16 +54,20 @@ function AttachmentPicker(props) {
                     if (!fileInput.current) {
                         return;
                     }
-                    fileInput.current.addEventListener('cancel', () => {
-                        if (Visibility.isVisible()) {
-                            onCanceled.current();
-                            return;
-                        }
-                        const unsubscribeVisibilityListener = Visibility.onVisibilityChange(() => {
-                            onCanceled.current();
-                            unsubscribeVisibilityListener();
-                        });
-                    }, {once: true});
+                    fileInput.current.addEventListener(
+                        'cancel',
+                        () => {
+                            if (Visibility.isVisible()) {
+                                onCanceled.current();
+                                return;
+                            }
+                            const unsubscribeVisibilityListener = Visibility.onVisibilityChange(() => {
+                                onCanceled.current();
+                                unsubscribeVisibilityListener();
+                            });
+                        },
+                        {once: true},
+                    );
                 }}
                 accept={getAcceptableFileTypes(props.type)}
             />
