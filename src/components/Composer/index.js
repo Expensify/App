@@ -279,7 +279,14 @@ function Composer({
             }
 
             if (textInput.current !== event.target) {
-                return;
+                // To make sure the composer does not capture paste events from other inputs, we check where the event originated
+                // If it did originate in another input, we return early to prevent the composer from handling the paste
+                const isTargetInput = event.target.nodeName === 'INPUT' || event.target.nodeName === 'TEXTAREA' || event.target.contentEditable === 'true';
+                if (isTargetInput) {
+                    return;
+                }
+
+                textInput.current.focus();
             }
 
             event.preventDefault();
