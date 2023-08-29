@@ -369,9 +369,10 @@ function MoneyRequestConfirmationList(props) {
                 style={[styles.moneyRequestMenuItem, styles.mb2]}
                 titleStyle={styles.flex1}
                 disabled={didConfirm || props.isReadOnly}
+                numberOfLinesTitle={2}
             />
             {!showAllFields && (
-                <View style={[styles.flexRow, styles.justifyContentBetween, styles.mh3, styles.alignItemsCenter]}>
+                <View style={[styles.flexRow, styles.justifyContentBetween, styles.mh3, styles.alignItemsCenter, styles.mb2]}>
                     <View style={[styles.shortTermsHorizontalRule, styles.flex1, styles.mr0]} />
                     <Button
                         small
