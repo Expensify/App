@@ -112,13 +112,6 @@ function ReportActionItemMessageEdit(props) {
     const insertedEmojis = useRef([]);
 
     useEffect(() => {
-        if (props.draftMessage === props.action.message[0].html) {
-            return;
-        }
-        setDraft(Str.htmlDecode(props.draftMessage));
-    }, [props.draftMessage, props.action.message]);
-
-    useEffect(() => {
         // required for keeping last state of isFocused variable
         isFocusedRef.current = isFocused;
     }, [isFocused]);
@@ -138,7 +131,7 @@ function ReportActionItemMessageEdit(props) {
         return () => {
             // Skip if this is not the focused message so the other edit composer stays focused.
             // In small screen devices, when EmojiPicker is shown, the current edit message will lose focus, we need to check this case as well.
-            if (!isFocusedRef.current && !EmojiPickerAction.isActiveReportAction(props.action.reportActionID)) {
+            if (!isFocusedRef.current && !EmojiPickerAction.isActive(props.action.reportActionID)) {
                 return;
             }
 
@@ -156,9 +149,9 @@ function ReportActionItemMessageEdit(props) {
     const debouncedSaveDraft = useMemo(
         () =>
             _.debounce((newDraft) => {
-                Report.saveReportActionDraft(props.reportID, props.action, newDraft);
+                Report.saveReportActionDraft(props.reportID, props.action.reportActionID, newDraft);
             }, 1000),
-        [props.reportID, props.action],
+        [props.reportID, props.action.reportActionID],
     );
 
     /**
@@ -181,7 +174,7 @@ function ReportActionItemMessageEdit(props) {
      */
     const updateDraft = useCallback(
         (newDraftInput) => {
-            const {text: newDraft = '', emojis = []} = EmojiUtils.replaceEmojis(newDraftInput, props.preferredSkinTone, props.preferredLocale);
+            const {text: newDraft, emojis} = EmojiUtils.replaceAndExtractEmojis(newDraftInput, props.preferredSkinTone, props.preferredLocale);
 
             if (!_.isEmpty(emojis)) {
                 insertedEmojis.current = [...insertedEmojis.current, ...emojis];
@@ -217,8 +210,9 @@ function ReportActionItemMessageEdit(props) {
      */
     const deleteDraft = useCallback(() => {
         debouncedSaveDraft.cancel();
-        Report.saveReportActionDraft(props.reportID, props.action, '');
+        Report.saveReportActionDraft(props.reportID, props.action.reportActionID, '');
         ComposerActions.setShouldShowComposeInput(true);
+        ReportActionComposeFocusManager.clear();
         ReportActionComposeFocusManager.focus();
 
         // Scroll to the last comment after editing to make sure the whole comment is clearly visible in the report.
@@ -228,7 +222,7 @@ function ReportActionItemMessageEdit(props) {
                 keyboardDidHideListener.remove();
             });
         }
-    }, [props.action, debouncedSaveDraft, props.index, props.reportID, reportScrollManager]);
+    }, [props.action.reportActionID, debouncedSaveDraft, props.index, props.reportID, reportScrollManager]);
 
     /**
      * Save the draft of the comment to be the new comment message. This will take the comment out of "edit mode" with
@@ -388,7 +382,7 @@ function ReportActionItemMessageEdit(props) {
                             }}
                             onEmojiSelected={addEmojiToTextBox}
                             nativeID={emojiButtonID}
-                            reportAction={props.action}
+                            emojiPickerID={props.action.reportActionID}
                         />
                     </View>
 
