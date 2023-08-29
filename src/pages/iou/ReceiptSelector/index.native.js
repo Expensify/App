@@ -6,6 +6,7 @@ import PropTypes from 'prop-types';
 import {launchImageLibrary} from 'react-native-image-picker';
 import {withOnyx} from 'react-native-onyx';
 import {useIsFocused} from '@react-navigation/native';
+import {RESULTS} from 'react-native-permissions';
 import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
 import Icon from '../../../components/Icon';
 import * as Expensicons from '../../../components/Icon/Expensicons';
@@ -100,7 +101,8 @@ function ReceiptSelector(props) {
 
     const camera = useRef(null);
     const [flash, setFlash] = useState(false);
-    const [permissions, setPermissions] = useState('authorized');
+    const [permissions, setPermissions] = useState('granted');
+    const isAndroidBlockedPermissionRef = useRef(false);
     const appState = useRef(AppState.currentState);
 
     const iouType = lodashGet(props.route, 'params.iouType', '');
@@ -157,16 +159,14 @@ function ReceiptSelector(props) {
     };
 
     const askForPermissions = () => {
-        if (permissions === 'denied') {
+        // Android will never return blocked after a check, you have to request the permission to get the info.
+        if (permissions === RESULTS.BLOCKED || isAndroidBlockedPermissionRef.current) {
+            Linking.openSettings();
+        } else if (permissions === RESULTS.DENIED) {
             CameraPermission.requestCameraPermission().then((permissionStatus) => {
                 setPermissions(permissionStatus);
-                // Android will never return blocked after a check, you have to request the permission to get the info.
-                if (permissionStatus === 'blocked') {
-                    Linking.openSettings();
-                }
+                isAndroidBlockedPermissionRef.current = permissionStatus === RESULTS.BLOCKED;
             });
-        } else if (permissions === 'blocked') {
-            Linking.openSettings();
         }
     };
 
@@ -230,7 +230,7 @@ function ReceiptSelector(props) {
 
     return (
         <View style={styles.flex1}>
-            {permissions !== CONST.RECEIPT.PERMISSION_GRANTED && (
+            {permissions !== RESULTS.GRANTED && (
                 <View style={[styles.cameraView, styles.permissionView]}>
                     <Hand
                         width={CONST.RECEIPT.HAND_ICON_WIDTH}
@@ -253,7 +253,7 @@ function ReceiptSelector(props) {
                     </PressableWithFeedback>
                 </View>
             )}
-            {permissions === CONST.RECEIPT.PERMISSION_GRANTED && device == null && (
+            {permissions === RESULTS.GRANTED && device == null && (
                 <View style={[styles.cameraView]}>
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
@@ -262,7 +262,7 @@ function ReceiptSelector(props) {
                     />
                 </View>
             )}
-            {permissions === CONST.RECEIPT.PERMISSION_GRANTED && device != null && (
+            {permissions === RESULTS.GRANTED && device != null && (
                 <Camera
                     ref={camera}
                     device={device}

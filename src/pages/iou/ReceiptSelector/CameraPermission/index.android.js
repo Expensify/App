@@ -1,4 +1,4 @@
-import {check, PERMISSIONS, request} from "react-native-permissions";
+import {check, PERMISSIONS, request} from 'react-native-permissions';
 
 function requestCameraPermission() {
     return request(PERMISSIONS.ANDROID.CAMERA);
