@@ -606,6 +606,23 @@ function getAllReportActions(reportID) {
     return lodashGet(allReportActions, reportID, []);
 }
 
+/**
+ *
+ * @param {*} reportAction
+ * @returns {Boolen}
+ */
+function isMoneyRequestPreviewAction(reportAction) {
+    const originalMessage = lodashGet(reportAction, 'originalMessage', {});
+    // IOUDetails only exists when we are sending money
+    const isSendingMoney = originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && _.has(originalMessage, 'IOUDetails');
+    return (
+        reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
+        originalMessage &&
+        // For the pay flow, we only want to show MoneyRequestAction when sending money. When paying, we display a regular system message
+        (originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE || originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT || isSendingMoney)
+    );
+}
+
 export {
     getSortedReportActions,
     getLastVisibleAction,
@@ -643,4 +660,5 @@ export {
     isSplitBillAction,
     isTaskAction,
     getAllReportActions,
+    isMoneyRequestPreviewAction,
 };
