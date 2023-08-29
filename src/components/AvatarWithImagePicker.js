@@ -129,6 +129,9 @@ class AvatarWithImagePicker extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
+        if (!prevProps.isFocused && this.props.isFocused) {
+            this.setError(null, {});
+        }
         if (!prevProps.isUploading && this.props.isUploading) {
             this.animation.start();
         } else if (prevProps.isUploading && !this.props.isUploading) {
