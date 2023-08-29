@@ -4,18 +4,16 @@ import React, {useState, useMemo} from 'react';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
 import * as PersonalDetails from '../../../libs/actions/PersonalDetails';
-import compose from '../../../libs/compose';
 import CONST from '../../../CONST';
 import ROUTES from '../../../ROUTES';
 import Navigation from '../../../libs/Navigation/Navigation';
 import SelectionList from '../../../components/SelectionList';
+import useLocalize from '../../../hooks/useLocalize';
 
 const propTypes = {
-    ...withLocalizePropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
 };
 
@@ -23,14 +21,18 @@ const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
-function PronounsPage({currentUserPersonalDetails, translate}) {
+function PronounsPage({currentUserPersonalDetails}) {
+    const {translate} = useLocalize();
     const currentPronouns = lodashGet(currentUserPersonalDetails, 'pronouns', '');
     const currentPronounsKey = currentPronouns.substring(CONST.PRONOUNS.PREFIX.length);
-    const currentPronounsText = _.chain(translate('pronouns'))
-        .find((_value, key) => key === currentPronounsKey)
-        .value();
 
-    const [searchValue, setSearchValue] = useState(currentPronounsText || '');
+    const [searchValue, setSearchValue] = useState(() => {
+        const currentPronounsText = _.chain(translate('pronouns'))
+            .find((_value, key) => key === currentPronounsKey)
+            .value();
+
+        return currentPronounsText || '';
+    });
 
     const filteredPronounsList = useMemo(() => {
         const pronouns = _.chain(translate('pronouns'))
@@ -56,7 +58,7 @@ function PronounsPage({currentUserPersonalDetails, translate}) {
         return _.filter(pronouns, (pronoun) => pronoun.text.toLowerCase().indexOf(trimmedSearch.toLowerCase()) >= 0);
     }, [searchValue, currentPronouns, translate]);
 
-    const headerMessage = searchValue.trim() && !filteredPronounsList.length ? translate('common.noResultsFound') : '';
+    const headerMessage = searchValue.trim() && filteredPronounsList.length === 0 ? translate('common.noResultsFound') : '';
 
     const updatePronouns = (selectedPronouns) => {
         PersonalDetails.updatePronouns(selectedPronouns.keyForList === currentPronouns.keyForList ? '' : lodashGet(selectedPronouns, 'value', ''));
@@ -88,4 +90,4 @@ PronounsPage.propTypes = propTypes;
 PronounsPage.defaultProps = defaultProps;
 PronounsPage.displayName = 'PronounsPage';
 
-export default compose(withLocalize, withCurrentUserPersonalDetails)(PronounsPage);
+export default withCurrentUserPersonalDetails(PronounsPage);
