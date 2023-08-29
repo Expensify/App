@@ -62,7 +62,7 @@ const localeProviderDefaultProps = {
     currentUserPersonalDetails: {},
 };
 
-function LocaleContextProvider ({children, currentUserPersonalDetails, preferredLocale}) {
+function LocaleContextProvider({children, currentUserPersonalDetails, preferredLocale}) {
     const selectedTimezone = lodashGet(currentUserPersonalDetails, 'timezone.selected');
 
     /**
@@ -70,20 +70,20 @@ function LocaleContextProvider ({children, currentUserPersonalDetails, preferred
      * @param {Object} [variables]
      * @returns {String}
      */
-    const translate = (phrase, variables) => Localize.translate(preferredLocale, phrase, variables)
+    const translate = (phrase, variables) => Localize.translate(preferredLocale, phrase, variables);
 
     /**
      * @param {Number} number
      * @param {Intl.NumberFormatOptions} options
      * @returns {String}
      */
-    const numberFormat = (number, options) => NumberFormatUtils.format(preferredLocale, number, options)
+    const numberFormat = (number, options) => NumberFormatUtils.format(preferredLocale, number, options);
 
     /**
      * @param {String} datetime
      * @returns {String}
      */
-    const datetimeToRelative = (datetime) => DateUtils.datetimeToRelative(preferredLocale, datetime)
+    const datetimeToRelative = (datetime) => DateUtils.datetimeToRelative(preferredLocale, datetime);
 
     /**
      * @param {String} datetime - ISO-formatted datetime string
@@ -91,25 +91,26 @@ function LocaleContextProvider ({children, currentUserPersonalDetails, preferred
      * @param {Boolean} isLowercase
      * @returns {String}
      */
-    const datetimeToCalendarTime = (datetime, includeTimezone, isLowercase = false) => DateUtils.datetimeToCalendarTime(preferredLocale, datetime, includeTimezone, selectedTimezone, isLowercase)
+    const datetimeToCalendarTime = (datetime, includeTimezone, isLowercase = false) =>
+        DateUtils.datetimeToCalendarTime(preferredLocale, datetime, includeTimezone, selectedTimezone, isLowercase);
 
     /**
      * @param {String} phoneNumber
      * @returns {String}
      */
-    const formatPhoneNumber = (phoneNumber) => LocalePhoneNumber.formatPhoneNumber(phoneNumber)
+    const formatPhoneNumber = (phoneNumber) => LocalePhoneNumber.formatPhoneNumber(phoneNumber);
 
     /**
      * @param {String} digit
      * @returns {String}
      */
-    const toLocaleDigit = (digit) => LocaleDigitUtils.toLocaleDigit(preferredLocale, digit)
-    
+    const toLocaleDigit = (digit) => LocaleDigitUtils.toLocaleDigit(preferredLocale, digit);
+
     /**
      * @param {String} localeDigit
      * @returns {String}
      */
-    const fromLocaleDigit = (localeDigit) => LocaleDigitUtils.fromLocaleDigit(preferredLocale, localeDigit)
+    const fromLocaleDigit = (localeDigit) => LocaleDigitUtils.fromLocaleDigit(preferredLocale, localeDigit);
 
     /**
      * The context this component exposes to child components
@@ -124,7 +125,7 @@ function LocaleContextProvider ({children, currentUserPersonalDetails, preferred
         toLocaleDigit,
         fromLocaleDigit,
         preferredLocale,
-    })
+    });
 
     return <LocaleContext.Provider value={getContextValue()}>{children}</LocaleContext.Provider>;
 }
