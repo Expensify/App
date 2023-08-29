@@ -56,7 +56,7 @@ function WalletStatementModal({statementPageURL, session}) {
 
                         // We listen to a message sent from the iframe to the parent component when a link is clicked.
                         // This lets us handle navigation in the app, outside of the iframe.
-                        window.onmessage = (e) => navigate(e);
+                        window.onmessage = navigate;
                     }}
                 />
             </View>
