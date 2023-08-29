@@ -75,10 +75,7 @@ function SidebarLinksData({isFocused, allReportActions, betas, chatReports, curr
         }
 
         // We need to update existing reports only once while loading because they are updated several times during loading and causes this regression: https://github.com/Expensify/App/issues/24596#issuecomment-1681679531
-        if ((isLoading && !reportIDsRef.current) || (_.isEmpty(reportIDsRef.current) && currentReportID)) {
-            reportIDsRef.current = reportIDs;
-        }
-        if (!isLoading) {
+        if (!isLoading || !reportIDsRef.current || (_.isEmpty(reportIDsRef.current) && currentReportID)) {
             reportIDsRef.current = reportIDs;
         }
         return reportIDsRef.current || [];
