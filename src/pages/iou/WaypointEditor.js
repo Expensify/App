@@ -74,7 +74,7 @@ const defaultProps = {
     transaction: {},
 };
 
-function WaypointEditor({transactionID, route: {iouType = '', waypointIndex = '', threadReportID = 0} = {}, transaction, recentWaypoints}) {
+function WaypointEditor({transactionID, route: {params: {iouType = '', waypointIndex = '', threadReportID = 0}} = {}, transaction, recentWaypoints}) {
     const {windowWidth} = useWindowDimensions();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
