@@ -670,19 +670,20 @@ function getOptions(
         includeP2P = true,
         includeCategories = false,
         categories = {},
-        recentlyUsedCategories = {},
+        recentlyUsedCategories = [],
         canInviteUser = true,
     },
 ) {
     if (includeCategories) {
         const categoryOptions = [];
-
         const categoriesAmount = _.size(categories);
+        let indexOffset = 0;
 
         if (!_.isEmpty(searchInputValue)) {
             categoryOptions.push({
                 title: '', // Search result
                 shouldShow: false,
+                indexOffset,
                 data: getOptionTree(
                     _.filter(categories, (category) => category.name.toLowerCase().includes(searchInputValue.toLowerCase())),
                     true,
@@ -692,6 +693,7 @@ function getOptions(
             categoryOptions.push({
                 title: '', // All
                 shouldShow: false,
+                indexOffset,
                 data: getOptionTree(categories),
             });
         } else {
@@ -703,21 +705,28 @@ function getOptions(
                 categoryOptions.push({
                     title: '', // Selected
                     shouldShow: false,
+                    indexOffset,
                     data: getOptionTree(selectedOptions, true),
                 });
+
+                indexOffset += selectedOptions.length;
             }
 
             if (!_.isEmpty(filteredRecentlyUsedCategories)) {
                 categoryOptions.push({
                     title: Localize.translateLocal('common.recent'),
                     shouldShow: true,
+                    indexOffset,
                     data: getOptionTree(filteredRecentlyUsedCategories.slice(0, maxRecentReportsToShow), true),
                 });
+
+                indexOffset += filteredRecentlyUsedCategories.length;
             }
 
             categoryOptions.push({
                 title: Localize.translateLocal('common.all'),
                 shouldShow: true,
+                indexOffset,
                 data: getOptionTree(filteredCategories),
             });
         }
@@ -1086,7 +1095,7 @@ function getNewChatOptions(
     includeP2P = true,
     includeCategories = false,
     categories = {},
-    recentlyUsedCategories = {},
+    recentlyUsedCategories = [],
     canInviteUser = true,
 ) {
     return getOptions(reports, personalDetails, {
