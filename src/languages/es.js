@@ -484,6 +484,7 @@ export default {
         syncing: 'Sincronizando',
     },
     loungeAccessPage: {
+        checkIn: 'Registrarse',
         loungeAccess: 'Acceso a la sala vip',
         headline: 'Podrás acceder a nuestras salas vip exclusivas.',
         description:

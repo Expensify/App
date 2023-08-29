@@ -485,6 +485,7 @@ export default {
         syncing: 'Syncing',
     },
     loungeAccessPage: {
+        checkIn: 'Check in',
         loungeAccess: 'Lounge access',
         headline: 'You qualify for access to our exclusive lounges.',
         description: 'The Expensify Lounge is where a "high-end airport lounge" meets a vibrant "co-working space" optimized for like-minded individuals.',
