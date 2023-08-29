@@ -2,9 +2,11 @@ import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
+import _ from 'lodash';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import ONYXKEYS from '../../ONYXKEYS';
+import CONST from '../../CONST';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 import Text from '../../components/Text';
@@ -20,17 +22,24 @@ const propTypes = {
         /** Current user primary login */
         email: PropTypes.string.isRequired,
     }),
+    /** The list of this user's policies */
+    policy: PropTypes.shape({
+        /** The user's role in the policy */
+        role: PropTypes.string,
+    }),
 };
 
 const defaultProps = {
     session: {
         email: null,
     },
+    policy: {},
 };
 
 function SaveTheWorldPage(props) {
     const {translate} = useLocalize();
     const isLoggedInEmailPublicDomain = LoginUtils.isEmailPublicDomain(props.session.email);
+    const isTeacherAlreadyInvited = !_.isUndefined(props.policy) && props.policy.role === CONST.POLICY.ROLE.USER;
 
     const handleNavigation = () => {
         if (isLoggedInEmailPublicDomain) {
@@ -59,11 +68,13 @@ function SaveTheWorldPage(props) {
                 onPress={() => Navigation.navigate(ROUTES.I_KNOW_A_TEACHER)}
             />
 
-            <MenuItem
-                shouldShowRightIcon
-                title={translate('teachersUnitePage.iAmATeacher')}
-                onPress={handleNavigation}
-            />
+            {!isTeacherAlreadyInvited && (
+                <MenuItem
+                    shouldShowRightIcon
+                    title={translate('teachersUnitePage.iAmATeacher')}
+                    onPress={handleNavigation}
+                />
+            )}
         </IllustratedHeaderPageLayout>
     );
 }
@@ -75,5 +86,8 @@ SaveTheWorldPage.displayName = 'SaveTheWorldPage';
 export default withOnyx({
     session: {
         key: ONYXKEYS.SESSION,
+    },
+    policy: {
+        key: () => `${ONYXKEYS.COLLECTION.POLICY}${CONST.TEACHERS_UNITE.POLICY_ID}`,
     },
 })(SaveTheWorldPage);
