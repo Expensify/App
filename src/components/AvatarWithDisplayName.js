@@ -58,7 +58,12 @@ const defaultProps = {
     shouldEnableDetailPageNavigation: false,
 };
 
-const showActorDetails = (report) => {
+const showActorDetails = (report, shouldEnableDetailPageNavigation = false) => {
+    // We should navigate to the details page if the report is a IOU/expense report
+    if (shouldEnableDetailPageNavigation) {
+        return ReportUtils.navigateToDetailsPage(report);
+    }
+
     if (ReportUtils.isExpenseReport(report)) {
         Navigation.navigate(ROUTES.getProfileRoute(report.ownerAccountID));
         return;
@@ -99,7 +104,7 @@ function AvatarWithDisplayName(props) {
             {Boolean(props.report && title) && (
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
                     <PressableWithoutFeedback
-                        onPress={() => showActorDetails(props.report)}
+                        onPress={() => showActorDetails(props.report, props.shouldEnableDetailPageNavigation)}
                         accessibilityLabel={title}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                     >
