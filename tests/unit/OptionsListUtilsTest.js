@@ -283,7 +283,7 @@ describe('OptionsListUtils', () => {
         return waitForPromisesToResolve().then(() => Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS));
     });
 
-    it.skip('getSearchOptions()', () => {
+    it('getSearchOptions()', () => {
         // When we filter in the Search view without providing a searchValue
         let results = OptionsListUtils.getSearchOptions(REPORTS, PERSONAL_DETAILS, '', [CONST.BETAS.ALL]);
 
@@ -320,7 +320,7 @@ describe('OptionsListUtils', () => {
             });
     });
 
-    it.skip('getNewChatOptions()', () => {
+    it('getNewChatOptions()', () => {
         // maxRecentReportsToShow in src/libs/OptionsListUtils.js
         const MAX_RECENT_REPORTS = 5;
 
@@ -411,7 +411,7 @@ describe('OptionsListUtils', () => {
         expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'receipts@expensify.com'})]));
     });
 
-    it.skip('getNewChatOptions() for group Chat', () => {
+    it('getNewChatOptions() for group Chat', () => {
         // When we call getNewChatOptions() with no search value
         let results = OptionsListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, [], '');
 
@@ -571,7 +571,7 @@ describe('OptionsListUtils', () => {
         expect(results.recentReports).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'receipts@expensify.com'})]));
     });
 
-    it.skip('getShareDestinationsOptions()', () => {
+    it('getShareDestinationsOptions()', () => {
         // Filter current REPORTS as we do in the component, before getting share destination options
         const filteredReports = {};
         _.keys(REPORTS).forEach((reportKey) => {
@@ -628,7 +628,7 @@ describe('OptionsListUtils', () => {
         expect(results.recentReports.length).toBe(0);
     });
 
-    it.skip('getMemberInviteOptions()', () => {
+    it('getMemberInviteOptions()', () => {
         // When we only pass personal details
         let results = OptionsListUtils.getMemberInviteOptions(PERSONAL_DETAILS, [], '');
 
@@ -1299,7 +1299,7 @@ describe('OptionsListUtils', () => {
         expect(OptionsListUtils.getOptionTree(categories)).toStrictEqual(result);
     });
 
-    it.skip('formatMemberForList()', () => {
+    it('formatMemberForList()', () => {
         const formattedMembers = _.map(PERSONAL_DETAILS, (personalDetail, key) => OptionsListUtils.formatMemberForList(personalDetail, key === '1'));
 
         // We're only formatting items inside the array, so the order should be the same as the original PERSONAL_DETAILS array
