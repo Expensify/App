@@ -4,6 +4,7 @@ import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as CollectionUtils from '../CollectionUtils';
 import * as API from '../API';
+import CONST from '../../CONST';
 
 let recentWaypoints = [];
 Onyx.connect({
@@ -71,9 +72,13 @@ function addStop(transactionID) {
  * @param {String} transactionID
  * @param {String} index
  * @param {Object} waypoint
+ * @param {Boolean} isEditingWaypoint
  */
-function saveWaypoint(transactionID, index, waypoint) {
+function saveWaypoint(transactionID, index, waypoint, isEditingWaypoint) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+        pendingFields: {
+            comment: isEditingWaypoint ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        },
         comment: {
             waypoints: {
                 [`waypoint${index}`]: waypoint,
