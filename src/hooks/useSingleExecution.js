@@ -20,6 +20,7 @@ export default function useSingleExecution() {
                 }
 
                 setIsExecuting(true);
+                isExecutingRef.current = true;
 
                 const execution = action(params);
                 InteractionManager.runAfterInteractions(() => {
