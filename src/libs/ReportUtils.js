@@ -3087,6 +3087,18 @@ function getMoneyRequestOptions(report, reportParticipants, betas) {
 }
 
 /**
+ * Check if the report can create the request with type is iouType
+ * @param {Object} report
+ * @param {Array} betas
+ * @param {String} iouType
+ * @returns {Boolean}
+ */
+function canCreateRequest(report, betas, iouType) {
+    const participantAccountIDs = lodashGet(report, 'participantAccountIDs', []);
+    return getMoneyRequestOptions(report, participantAccountIDs, betas).includes(iouType);
+}
+
+/**
  * Allows a user to leave a policy room according to the following conditions of the visibility or chatType rNVP:
  * `public` - Anyone can leave (because anybody can join)
  * `public_announce` - Only non-policy members can leave (it's auto-shared with policy members)
@@ -3540,6 +3552,7 @@ export {
     getCommentLength,
     getParsedComment,
     getMoneyRequestOptions,
+    canCreateRequest,
     hasIOUWaitingOnCurrentUserBankAccount,
     canRequestMoney,
     getWhisperDisplayNames,

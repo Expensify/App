@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import React from 'react';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
+import _ from 'underscore';
 import ONYXKEYS from '../../ONYXKEYS';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import ScreenWrapper from '../../components/ScreenWrapper';
@@ -23,6 +24,8 @@ import participantPropTypes from '../../components/participantPropTypes';
 import NewRequestAmountPage from './steps/NewRequestAmountPage';
 import withReportOrNotFound from '../home/report/withReportOrNotFound';
 import compose from '../../libs/compose';
+import * as ReportUtils from '../../libs/ReportUtils';
+import reportPropTypes from '../reportPropTypes';
 
 const propTypes = {
     /** React Navigation route */
@@ -54,6 +57,12 @@ const propTypes = {
 
     /** Which tab has been selected */
     selectedTab: PropTypes.string,
+
+    /** Beta features list */
+    betas: PropTypes.arrayOf(PropTypes.string),
+
+    /** The report currently being looked at */
+    report: reportPropTypes,
 };
 
 const defaultProps = {
@@ -64,6 +73,8 @@ const defaultProps = {
         participants: [],
     },
     selectedTab: CONST.TAB.MANUAL,
+    report: {},
+    betas: [],
 };
 
 function MoneyRequestSelectorPage(props) {
@@ -83,13 +94,15 @@ function MoneyRequestSelectorPage(props) {
         IOU.resetMoneyRequestInfo(moneyRequestID);
     };
 
+    const isAllowedToCreateRequest = _.isEmpty(props.report) || ReportUtils.canCreateRequest(props.report, props.betas, iouType);
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
         >
             {({safeAreaPaddingBottomStyle}) => (
-                <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType)}>
+                <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType) || !isAllowedToCreateRequest}>
                     <DragAndDropProvider isDisabled={props.selectedTab !== CONST.TAB.SCAN}>
                         <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                             <HeaderWithBackButton
