@@ -1,5 +1,5 @@
 import React from 'react';
-import {View} from 'react-native';
+import {View, Image} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
@@ -23,12 +23,10 @@ import useLocalize from '../../hooks/useLocalize';
 import * as ReceiptUtils from '../../libs/ReceiptUtils';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
 import transactionPropTypes from '../transactionPropTypes';
-import Image from '../Image';
 import ReportActionItemImage from './ReportActionItemImage';
 import * as TransactionUtils from '../../libs/TransactionUtils';
 import OfflineWithFeedback from '../OfflineWithFeedback';
 import variables from '../../styles/variables';
-import getPlatform from '../../libs/getPlatform';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -95,8 +93,6 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, trans
 
     // If window width is greater than the max background width, repeat the background image
     const maxBackgroundWidth = variables.sideBarWidth + CONST.EMPTY_STATE_BACKGROUND.ASPECT_RATIO * CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.IMAGE_HEIGHT;
-    const platform = getPlatform();
-    const isWebPlatform = [CONST.PLATFORM.WEB, CONST.PLATFORM.DESKTOP].includes(platform);
 
     return (
         <View>
@@ -105,7 +101,7 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, trans
                     pointerEvents="none"
                     source={EmptyStateBackgroundImage}
                     style={[StyleUtils.getReportWelcomeBackgroundImageStyle(isSmallScreenWidth)]}
-                    resizeMode={isWebPlatform && windowWidth > maxBackgroundWidth ? 'repeat' : 'cover'}
+                    resizeMode={windowWidth > maxBackgroundWidth ? 'repeat' : 'cover'}
                 />
             </View>
             {hasReceipt && (

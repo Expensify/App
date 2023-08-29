@@ -20,7 +20,6 @@ import PressableWithoutFeedback from '../../../components/Pressable/PressableWit
 import MultipleAvatars from '../../../components/MultipleAvatars';
 import CONST from '../../../CONST';
 import variables from '../../../styles/variables';
-import getPlatform from '../../../libs/getPlatform';
 
 const propTypes = {
     /** The id of the report */
@@ -59,8 +58,6 @@ function ReportActionItemCreated(props) {
 
     // If window width is greater than the max background width, repeat the background image
     const maxBackgroundWidth = variables.sideBarWidth + CONST.EMPTY_STATE_BACKGROUND.ASPECT_RATIO * CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.IMAGE_HEIGHT;
-    const platform = getPlatform();
-    const isWebPlatform = [CONST.PLATFORM.WEB, CONST.PLATFORM.DESKTOP].includes(platform);
 
     return (
         <OfflineWithFeedback
@@ -75,7 +72,7 @@ function ReportActionItemCreated(props) {
                     pointerEvents="none"
                     source={EmptyStateBackgroundImage}
                     style={StyleUtils.getReportWelcomeBackgroundImageStyle(props.isSmallScreenWidth)}
-                    resizeMode={isWebPlatform && props.windowWidth > maxBackgroundWidth ? 'repeat' : 'cover'}
+                    resizeMode={props.windowWidth > maxBackgroundWidth ? 'repeat' : 'cover'}
                 />
                 <View
                     accessibilityLabel={props.translate('accessibilityHints.chatWelcomeMessage')}
