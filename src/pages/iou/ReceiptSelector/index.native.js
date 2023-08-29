@@ -1,5 +1,5 @@
 import {ActivityIndicator, Alert, AppState, Linking, Text, View} from 'react-native';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Camera, useCameraDevices} from 'react-native-vision-camera';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
@@ -235,6 +235,13 @@ function ReceiptSelector(props) {
         setPermissions(permissionStatus);
     });
 
+    // const format = useMemo(() => {
+    //     if (device == null) {
+    //         return undefined;
+    //     }
+    //     return device.formats.find((f) => f.photoHeight === 720 && f.photoWidth === 1280);
+    // }, []);
+
     return (
         <View style={styles.flex1}>
             {permissions !== CONST.RECEIPT.PERMISSION_AUTHORIZED && (
@@ -276,6 +283,7 @@ function ReceiptSelector(props) {
                     style={[styles.cameraView]}
                     zoom={device.neutralZoom}
                     isActive={isCameraActive}
+                    // format={format}
                     photo
                 />
             )}
