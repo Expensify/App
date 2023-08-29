@@ -168,21 +168,16 @@ function MoneyRequestConfirmPage(props) {
      * @param {File} [receipt]
      */
     const createDistanceRequest = useCallback(
-        (selectedParticipants, trimmedComment, receipt) => {
+        (selectedParticipants, trimmedComment) => {
             IOU.createDistanceRequest(
                 props.report,
-                props.iou.amount,
-                props.iou.currency,
-                props.iou.created,
-                props.iou.merchant,
-                props.currentUserPersonalDetails.login,
-                props.currentUserPersonalDetails.accountID,
                 selectedParticipants[0],
                 trimmedComment,
-                receipt,
+                props.iou.created,
+                props.iou.transactionID,
             );
         },
-        [props.report, props.iou.amount, props.iou.currency, props.iou.created, props.iou.merchant, props.currentUserPersonalDetails.login, props.currentUserPersonalDetails.accountID],
+        [props.report, props.iou.created, props.iou.transactionID],
     );
 
     const createTransaction = useCallback(
@@ -239,7 +234,9 @@ function MoneyRequestConfirmPage(props) {
             props.iou.currency,
             props.iou.receiptPath,
             props.iou.receiptSource,
+            isDistanceRequest,
             requestMoney,
+            createDistanceRequest,
         ],
     );
 

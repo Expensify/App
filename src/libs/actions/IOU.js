@@ -44,9 +44,11 @@ Onyx.connect({
 });
 
 let userAccountID = '';
+let currentUserEmail = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
+        currentUserEmail = lodashGet(val, 'email', '');
         userAccountID = lodashGet(val, 'accountID', '');
     },
 });
@@ -312,8 +314,8 @@ function buildOnyxDataForMoneyRequest(
  * @param {String} currency
  * @param {String} created
  * @param {String} merchant
- * @param {Number} payeeAccountID
- * @param {String} payeeEmail
+ * @param {Number} [payeeAccountID]
+ * @param {String} [payeeEmail]
  * @param {Object} [receipt]
  * @returns {Object} data
  * @returns {String} data.payerEmail
@@ -330,7 +332,7 @@ function buildOnyxDataForMoneyRequest(
  * @returns {Object} data.onyxData.failureData
  * @param {String} [existingTransactionID]
  */
-function getMoneyRequestInformation(report, participant, comment, amount, currency, created, merchant, payeeAccountID, payeeEmail, receipt = undefined, existingTransactionID = null) {
+function getMoneyRequestInformation(report, participant, comment, amount, currency, created, merchant, payeeAccountID = userAccountID, payeeEmail = currentUserEmail, receipt = undefined, existingTransactionID = null) {
     const payerEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login);
     const payerAccountID = Number(participant.accountID);
     const isPolicyExpenseChat = participant.isPolicyExpenseChat;
@@ -485,19 +487,13 @@ function getMoneyRequestInformation(report, participant, comment, amount, curren
  * Requests money based on a distance (eg. mileage from a map)
  *
  * @param {Object} report
- * @param {String} payeeEmail
- * @param {Number} payeeAccountID
  * @param {Object} participant
  * @param {String} comment
- * @param {Object[]} waypoints
- * @param {String} waypoints[].address required and must be non empty
- * @param {String} [waypoints[].lat] optional
- * @param {String} [waypoints[].lng] optional
  * @param {String} created
  * @param {String} [transactionID]
  */
-function createDistanceRequest(report, payeeEmail, payeeAccountID, participant, comment, waypoints, created, transactionID) {
-    const {payerEmail, iouReport, chatReport, transaction, iouAction, createdChatReportActionID, createdIOUReportActionID, reportPreviewAction, onyxData} = getMoneyRequestInformation(
+function createDistanceRequest(report, participant, comment, created, transactionID) {
+    const {iouReport, chatReport, transaction, iouAction, createdChatReportActionID, createdIOUReportActionID, reportPreviewAction, onyxData} = getMoneyRequestInformation(
         report,
         participant,
         comment,
@@ -505,16 +501,14 @@ function createDistanceRequest(report, payeeEmail, payeeAccountID, participant, 
         'USD',
         created,
         '',
-        payeeAccountID,
-        payeeEmail,
+        null,
+        null,
         null,
         transactionID,
     );
-
     API.write(
         'CreateDistanceRequest',
         {
-            debtorEmail: payerEmail,
             comment,
             iouReportID: iouReport.reportID,
             chatReportID: chatReport.reportID,
@@ -523,7 +517,7 @@ function createDistanceRequest(report, payeeEmail, payeeAccountID, participant, 
             createdChatReportActionID,
             createdIOUReportActionID,
             reportPreviewReportActionID: reportPreviewAction.reportActionID,
-            waypoints,
+            waypoints: JSON.stringify(transaction.comment.waypoints),
             created,
         },
         onyxData,
