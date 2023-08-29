@@ -72,47 +72,56 @@ describe('Sidebar', () => {
             );
         });
 
-        it('includes or excludes policy expense chats depending on the beta', () => {
+        it('excludes an empty chat report', () => {
             LHNTestUtils.getDefaultRenderedSidebarLinks();
 
-            // Given a policy expense report
-            // and the user not being in any betas
-            const report = {
-                ...LHNTestUtils.getFakeReport(),
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-            };
+            // Given a new report
+            const report = LHNTestUtils.getFakeReport(['emptychat+1@test.com', 'emptychat+2@test.com'], 0);
 
             return (
                 waitForPromisesToResolve()
-                    // When Onyx is updated to contain that data and the sidebar re-renders
+                    // When Onyx is updated to contain that report
                     .then(() =>
                         Onyx.multiSet({
-                            [ONYXKEYS.BETAS]: [],
-                            [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+                            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
                         }),
                     )
 
                     // Then no reports are rendered in the LHN
                     .then(() => {
-                        const hintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
-                        const optionRows = screen.queryAllByAccessibilityHint(hintText);
-                        expect(optionRows).toHaveLength(0);
+                        const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
+                        const displayNames = screen.queryAllByLabelText(hintText);
+                        expect(displayNames).toHaveLength(0);
                     })
+            );
+        });
 
-                    // When the user is added to the policy expense beta and the sidebar re-renders
+        it('includes an empty chat report if it has a draft', () => {
+            LHNTestUtils.getDefaultRenderedSidebarLinks();
+
+            // Given a new report with a draft text
+            const report = {
+                ...LHNTestUtils.getFakeReport([1, 2], 0),
+                hasDraft: true,
+            };
+
+            return (
+                waitForPromisesToResolve()
+                    // When Onyx is updated to contain that report
                     .then(() =>
                         Onyx.multiSet({
-                            [ONYXKEYS.BETAS]: [CONST.BETAS.POLICY_EXPENSE_CHAT],
+                            [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+                            [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
+                            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
                         }),
                     )
 
-                    // Then there is one report rendered in the LHN
+                    // Then the report should be rendered in the LHN since it has a draft
                     .then(() => {
-                        const hintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
-                        const optionRows = screen.queryAllByAccessibilityHint(hintText);
-                        expect(optionRows).toHaveLength(1);
+                        const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
+                        const displayNames = screen.queryAllByLabelText(hintText);
+                        expect(displayNames).toHaveLength(1);
                     })
             );
         });
@@ -277,7 +286,7 @@ describe('Sidebar', () => {
             };
 
             // Given the user is in all betas
-            const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS, CONST.BETAS.POLICY_EXPENSE_CHAT];
+            const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS];
 
             // Given there are 6 boolean variables tested in the filtering logic:
             // 1. isArchived
@@ -481,7 +490,7 @@ describe('Sidebar', () => {
             };
             LHNTestUtils.getDefaultRenderedSidebarLinks();
 
-            const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS, CONST.BETAS.POLICY_EXPENSE_CHAT];
+            const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS];
 
             return (
                 waitForPromisesToResolve()
@@ -544,7 +553,7 @@ describe('Sidebar', () => {
             };
             LHNTestUtils.getDefaultRenderedSidebarLinks();
 
-            const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS, CONST.BETAS.POLICY_EXPENSE_CHAT];
+            const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS];
 
             return (
                 waitForPromisesToResolve()
@@ -602,7 +611,7 @@ describe('Sidebar', () => {
         };
 
         // Given the user is in all betas
-        const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS, CONST.BETAS.POLICY_EXPENSE_CHAT];
+        const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS];
 
         // Given there are 6 boolean variables tested in the filtering logic:
         // 1. isArchived
@@ -695,7 +704,7 @@ describe('Sidebar', () => {
                 };
 
                 // Given the user is in all betas
-                const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS, CONST.BETAS.POLICY_EXPENSE_CHAT];
+                const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS];
 
                 return (
                     waitForPromisesToResolve()
@@ -746,7 +755,7 @@ describe('Sidebar', () => {
                 };
 
                 // Given the user is in all betas
-                const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS, CONST.BETAS.POLICY_EXPENSE_CHAT];
+                const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS];
 
                 return (
                     waitForPromisesToResolve()
@@ -795,7 +804,7 @@ describe('Sidebar', () => {
                 };
 
                 // Given the user is in all betas
-                const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS, CONST.BETAS.POLICY_EXPENSE_CHAT];
+                const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS];
 
                 return (
                     waitForPromisesToResolve()
@@ -840,7 +849,7 @@ describe('Sidebar', () => {
                 };
 
                 // Given the user is in all betas
-                const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS, CONST.BETAS.POLICY_EXPENSE_CHAT];
+                const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS];
 
                 return (
                     waitForPromisesToResolve()

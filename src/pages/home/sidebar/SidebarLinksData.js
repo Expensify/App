@@ -66,26 +66,23 @@ const defaultProps = {
 function SidebarLinksData({isFocused, allReportActions, betas, chatReports, currentReportID, insets, isLoadingReportData, isSmallScreenWidth, onLinkClick, policies, priorityMode}) {
     const {translate} = useLocalize();
 
+    const reportIDsRef = useRef(null);
     const isLoading = SessionUtils.didUserLogInDuringSession() && isLoadingReportData;
-
-    const currentReportIDRef = useRef(currentReportID);
-    currentReportIDRef.current = currentReportID;
-
-    const reportIDsRef = useRef([]);
     const optionListItems = useMemo(() => {
-        if (isLoading && !lodashGet(chatReports, [`${ONYXKEYS.COLLECTION.REPORT}${currentReportIDRef.current}`, 'reportID'])) {
-            reportIDsRef.current = [];
-            return reportIDsRef.current;
-        }
-
-        const reportIDs = SidebarUtils.getOrderedReportIDs(currentReportIDRef.current, chatReports, betas, policies, priorityMode, allReportActions);
+        const reportIDs = SidebarUtils.getOrderedReportIDs(currentReportID, chatReports, betas, policies, priorityMode, allReportActions);
         if (deepEqual(reportIDsRef.current, reportIDs)) {
             return reportIDsRef.current;
         }
-        reportIDsRef.current = reportIDs;
-        return reportIDs;
-    }, [allReportActions, betas, chatReports, isLoading, policies, priorityMode]);
 
+        // We need to update existing reports only once while loading because they are updated several times during loading and causes this regression: https://github.com/Expensify/App/issues/24596#issuecomment-1681679531
+        if (!isLoading || !reportIDsRef.current || (_.isEmpty(reportIDsRef.current) && currentReportID)) {
+            reportIDsRef.current = reportIDs;
+        }
+        return reportIDsRef.current || [];
+    }, [allReportActions, betas, chatReports, currentReportID, policies, priorityMode, isLoading]);
+
+    const currentReportIDRef = useRef(currentReportID);
+    currentReportIDRef.current = currentReportID;
     const isActiveReport = useCallback((reportID) => currentReportIDRef.current === reportID, []);
 
     return (

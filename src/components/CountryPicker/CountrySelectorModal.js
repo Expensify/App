@@ -4,11 +4,12 @@ import PropTypes from 'prop-types';
 import CONST from '../../CONST';
 import useLocalize from '../../hooks/useLocalize';
 import HeaderWithBackButton from '../HeaderWithBackButton';
-import SelectionListRadio from '../SelectionListRadio';
+import SelectionList from '../SelectionList';
 import Modal from '../Modal';
 import ScreenWrapper from '../ScreenWrapper';
 import styles from '../../styles/styles';
 import searchCountryOptions from '../../libs/searchCountryOptions';
+import StringUtils from '../../libs/StringUtils';
 
 const propTypes = {
     /** Whether the modal is visible */
@@ -46,7 +47,7 @@ function CountrySelectorModal({currentCountry, isVisible, onClose, onCountrySele
                 keyForList: countryISO,
                 text: countryName,
                 isSelected: currentCountry === countryISO,
-                searchValue: `${countryISO}${countryName}`.toLowerCase().replaceAll(CONST.REGEX.NON_ALPHABETIC_AND_NON_LATIN_CHARS, ''),
+                searchValue: StringUtils.sanitizeString(`${countryISO}${countryName}`),
             })),
         [translate, currentCountry],
     );
@@ -72,7 +73,7 @@ function CountrySelectorModal({currentCountry, isVisible, onClose, onCountrySele
                     title={translate('common.country')}
                     onBackButtonPress={onClose}
                 />
-                <SelectionListRadio
+                <SelectionList
                     headerMessage={headerMessage}
                     textInputLabel={translate('common.country')}
                     textInputPlaceholder={translate('countrySelectorModal.placeholderText')}
@@ -80,8 +81,6 @@ function CountrySelectorModal({currentCountry, isVisible, onClose, onCountrySele
                     sections={[{data: searchResults, indexOffset: 0}]}
                     onSelectRow={onCountrySelected}
                     onChangeText={setSearchValue}
-                    shouldFocusOnSelectRow
-                    shouldHaveOptionSeparator
                     shouldDelayFocus
                     initiallyFocusedOptionKey={currentCountry}
                 />
