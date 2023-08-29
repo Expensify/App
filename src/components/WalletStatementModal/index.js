@@ -20,20 +20,20 @@ function WalletStatementModal({statementPageURL, session}) {
     /**
      * Handles in-app navigation for iframe links
      *
-     * @param {MessageEvent} e
+     * @param {MessageEvent} event
      */
-    const navigate = (e) => {
-        if (!e.data || !e.data.type || (e.data.type !== 'STATEMENT_NAVIGATE' && e.data.type !== 'CONCIERGE_NAVIGATE')) {
+    const navigate = (event) => {
+        if (!event.data || !event.data.type || (event.data.type !== 'STATEMENT_NAVIGATE' && event.data.type !== 'CONCIERGE_NAVIGATE')) {
             return;
         }
 
-        if (e.data.type === 'CONCIERGE_NAVIGATE') {
+        if (event.data.type === 'CONCIERGE_NAVIGATE') {
             Report.navigateToConciergeChat();
         }
 
-        if (e.data.type === 'STATEMENT_NAVIGATE' && e.data.url) {
+        if (event.data.type === 'STATEMENT_NAVIGATE' && event.data.url) {
             const iouRoutes = [ROUTES.IOU_REQUEST, ROUTES.IOU_SEND, ROUTES.IOU_BILL];
-            const navigateToIOURoute = _.find(iouRoutes, (iouRoute) => e.data.url.includes(iouRoute));
+            const navigateToIOURoute = _.find(iouRoutes, (iouRoute) => event.data.url.includes(iouRoute));
             if (navigateToIOURoute) {
                 Navigation.navigate(navigateToIOURoute);
             }
