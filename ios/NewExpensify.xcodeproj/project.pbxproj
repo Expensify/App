@@ -29,7 +29,7 @@
 		70CF6E82262E297300711ADC /* BootSplash.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 70CF6E81262E297300711ADC /* BootSplash.storyboard */; };
 		BDB853621F354EBB84E619C2 /* ExpensifyNewKansas-MediumItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = D2AFB39EC1D44BF9B91D3227 /* ExpensifyNewKansas-MediumItalic.otf */; };
 		DD79042B2792E76D004484B4 /* RCTBootSplash.m in Sources */ = {isa = PBXBuildFile; fileRef = DD79042A2792E76D004484B4 /* RCTBootSplash.m */; };
-		E51DC681C7DEE40AEBDDFBFE /* (null) in Frameworks */ = {isa = PBXBuildFile; };
+		E51DC681C7DEE40AEBDDFBFE /* BuildFile in Frameworks */ = {isa = PBXBuildFile; };
 		E9DF872D2525201700607FDC /* AirshipConfig.plist in Resources */ = {isa = PBXBuildFile; fileRef = E9DF872C2525201700607FDC /* AirshipConfig.plist */; };
 		ED222ED90E074A5481A854FA /* ExpensifyNeue-BoldItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 8B28D84EF339436DBD42A203 /* ExpensifyNeue-BoldItalic.otf */; };
 		F0C450EA2705020500FD2970 /* colors.json in Resources */ = {isa = PBXBuildFile; fileRef = F0C450E92705020500FD2970 /* colors.json */; };
@@ -52,6 +52,7 @@
 		00E356F11AD99517003FC87E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		02BE6CF80ED1BD2445267F92 /* Pods-NewExpensify.release development.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify.release development.xcconfig"; path = "Target Support Files/Pods-NewExpensify/Pods-NewExpensify.release development.xcconfig"; sourceTree = "<group>"; };
 		0B09CE5BDAF34DD3573AB4E2 /* Pods-NewExpensify.debug adhoc.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify.debug adhoc.xcconfig"; path = "Target Support Files/Pods-NewExpensify/Pods-NewExpensify.debug adhoc.xcconfig"; sourceTree = "<group>"; };
+		0B627F2A465153FFA6E3A4E0 /* Pods-NewExpensify.debugdevelopment.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify.debugdevelopment.xcconfig"; path = "Target Support Files/Pods-NewExpensify/Pods-NewExpensify.debugdevelopment.xcconfig"; sourceTree = "<group>"; };
 		0CDA8E33287DD650004ECBEC /* AppDelegate.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = AppDelegate.mm; path = NewExpensify/AppDelegate.mm; sourceTree = "<group>"; };
 		0CDA8E36287DD6A0004ECBEC /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = NewExpensify/Images.xcassets; sourceTree = "<group>"; };
 		0E27AA27706D894246E7946D /* Pods-NewExpensify.debug production.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify.debug production.xcconfig"; path = "Target Support Files/Pods-NewExpensify/Pods-NewExpensify.debug production.xcconfig"; sourceTree = "<group>"; };
@@ -64,38 +65,49 @@
 		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = NewExpensify/main.m; sourceTree = "<group>"; };
 		18D050DF262400AF000D658B /* BridgingFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BridgingFile.swift; sourceTree = "<group>"; };
 		1DDE5449979A136852B939B5 /* Pods-NewExpensify.release adhoc.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify.release adhoc.xcconfig"; path = "Target Support Files/Pods-NewExpensify/Pods-NewExpensify.release adhoc.xcconfig"; sourceTree = "<group>"; };
+		25A4587E168FD67CF890B448 /* Pods-NewExpensify-NewExpensifyTests.debugadhoc.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify-NewExpensifyTests.debugadhoc.xcconfig"; path = "Target Support Files/Pods-NewExpensify-NewExpensifyTests/Pods-NewExpensify-NewExpensifyTests.debugadhoc.xcconfig"; sourceTree = "<group>"; };
+		30FFBD291B71222A393D9CC9 /* Pods-NewExpensify.releasedevelopment.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify.releasedevelopment.xcconfig"; path = "Target Support Files/Pods-NewExpensify/Pods-NewExpensify.releasedevelopment.xcconfig"; sourceTree = "<group>"; };
 		34A8FDD1F9AA58B8F15C8380 /* Pods-NewExpensify.release production.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify.release production.xcconfig"; path = "Target Support Files/Pods-NewExpensify/Pods-NewExpensify.release production.xcconfig"; sourceTree = "<group>"; };
 		374FB8D528A133A7000D84EF /* OriginImageRequestHandler.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = OriginImageRequestHandler.h; path = NewExpensify/OriginImageRequestHandler.h; sourceTree = "<group>"; };
 		374FB8D628A133FE000D84EF /* OriginImageRequestHandler.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = OriginImageRequestHandler.mm; path = NewExpensify/OriginImageRequestHandler.mm; sourceTree = "<group>"; };
 		3D393D7ABC1092F1DE91397F /* Pods-NewExpensify-NewExpensifyTests.debug staging.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify-NewExpensifyTests.debug staging.xcconfig"; path = "Target Support Files/Pods-NewExpensify-NewExpensifyTests/Pods-NewExpensify-NewExpensifyTests.debug staging.xcconfig"; sourceTree = "<group>"; };
 		432FF5842B766535509FC547 /* Pods-NewExpensify-NewExpensifyTests.debug adhoc.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify-NewExpensifyTests.debug adhoc.xcconfig"; path = "Target Support Files/Pods-NewExpensify-NewExpensifyTests/Pods-NewExpensify-NewExpensifyTests.debug adhoc.xcconfig"; sourceTree = "<group>"; };
 		44BF435285B94E5B95F90994 /* ExpensifyNewKansas-Medium.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "ExpensifyNewKansas-Medium.otf"; path = "../assets/fonts/native/ExpensifyNewKansas-Medium.otf"; sourceTree = "<group>"; };
+		47D5DF3C6779D41BE70CD031 /* Pods-NewExpensify.releaseproduction.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify.releaseproduction.xcconfig"; path = "Target Support Files/Pods-NewExpensify/Pods-NewExpensify.releaseproduction.xcconfig"; sourceTree = "<group>"; };
+		4E8BF7B08BA3181991BFCF4B /* Pods-NewExpensify-NewExpensifyTests.releasedevelopment.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify-NewExpensifyTests.releasedevelopment.xcconfig"; path = "Target Support Files/Pods-NewExpensify-NewExpensifyTests/Pods-NewExpensify-NewExpensifyTests.releasedevelopment.xcconfig"; sourceTree = "<group>"; };
 		52796131E6554494B2DDB056 /* ExpensifyNeue-Bold.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "ExpensifyNeue-Bold.otf"; path = "../assets/fonts/native/ExpensifyNeue-Bold.otf"; sourceTree = "<group>"; };
+		57DBBEDB9692E096D4BA0141 /* Pods-NewExpensify-NewExpensifyTests.releaseproduction.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify-NewExpensifyTests.releaseproduction.xcconfig"; path = "Target Support Files/Pods-NewExpensify-NewExpensifyTests/Pods-NewExpensify-NewExpensifyTests.releaseproduction.xcconfig"; sourceTree = "<group>"; };
 		6B5211DB0EEB46E12DF4AD2D /* Pods-NewExpensify-NewExpensifyTests.release adhoc.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify-NewExpensifyTests.release adhoc.xcconfig"; path = "Target Support Files/Pods-NewExpensify-NewExpensifyTests/Pods-NewExpensify-NewExpensifyTests.release adhoc.xcconfig"; sourceTree = "<group>"; };
 		6BE16DA6EFF88513DB1CD47B /* Pods-NewExpensify-NewExpensifyTests.release staging.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify-NewExpensifyTests.release staging.xcconfig"; path = "Target Support Files/Pods-NewExpensify-NewExpensifyTests/Pods-NewExpensify-NewExpensifyTests.release staging.xcconfig"; sourceTree = "<group>"; };
+		6F6A514B4DF07A60EC8355BA /* Pods-NewExpensify.debugadhoc.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify.debugadhoc.xcconfig"; path = "Target Support Files/Pods-NewExpensify/Pods-NewExpensify.debugadhoc.xcconfig"; sourceTree = "<group>"; };
 		6FB387B20AE4E6E98858B6AA /* libPods-NewExpensify-NewExpensifyTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-NewExpensify-NewExpensifyTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		7041848326A8E40900E09F4D /* RCTStartupTimer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = RCTStartupTimer.h; path = NewExpensify/RCTStartupTimer.h; sourceTree = "<group>"; };
 		7041848426A8E47D00E09F4D /* RCTStartupTimer.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = RCTStartupTimer.m; path = NewExpensify/RCTStartupTimer.m; sourceTree = "<group>"; };
 		70CF6E81262E297300711ADC /* BootSplash.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = BootSplash.storyboard; path = NewExpensify/BootSplash.storyboard; sourceTree = "<group>"; };
 		75CABB0D0ABB0082FE0EB600 /* Pods-NewExpensify.release staging.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify.release staging.xcconfig"; path = "Target Support Files/Pods-NewExpensify/Pods-NewExpensify.release staging.xcconfig"; sourceTree = "<group>"; };
+		8709DF3C8D91F0FC1581CDD7 /* Pods-NewExpensify-NewExpensifyTests.debugdevelopment.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify-NewExpensifyTests.debugdevelopment.xcconfig"; path = "Target Support Files/Pods-NewExpensify-NewExpensifyTests/Pods-NewExpensify-NewExpensifyTests.debugdevelopment.xcconfig"; sourceTree = "<group>"; };
 		8B28D84EF339436DBD42A203 /* ExpensifyNeue-BoldItalic.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "ExpensifyNeue-BoldItalic.otf"; path = "../assets/fonts/native/ExpensifyNeue-BoldItalic.otf"; sourceTree = "<group>"; };
 		8D3B36BF88E773E3C1A383FA /* Pods-NewExpensify.debug staging.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify.debug staging.xcconfig"; path = "Target Support Files/Pods-NewExpensify/Pods-NewExpensify.debug staging.xcconfig"; sourceTree = "<group>"; };
 		96552D489D9F09B6A5ABD81B /* Pods-NewExpensify-NewExpensifyTests.release production.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify-NewExpensifyTests.release production.xcconfig"; path = "Target Support Files/Pods-NewExpensify-NewExpensifyTests/Pods-NewExpensify-NewExpensifyTests.release production.xcconfig"; sourceTree = "<group>"; };
 		AEFE6CD54912D427D19133C7 /* libPods-NewExpensify.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-NewExpensify.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		BD6E1BA27D6ABE0AC9D70586 /* Pods-NewExpensify-NewExpensifyTests.release development.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify-NewExpensifyTests.release development.xcconfig"; path = "Target Support Files/Pods-NewExpensify-NewExpensifyTests/Pods-NewExpensify-NewExpensifyTests.release development.xcconfig"; sourceTree = "<group>"; };
+		BD8828A882E2D6B51362AAC3 /* Pods-NewExpensify.releaseadhoc.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify.releaseadhoc.xcconfig"; path = "Target Support Files/Pods-NewExpensify/Pods-NewExpensify.releaseadhoc.xcconfig"; sourceTree = "<group>"; };
 		BF6A4C5167244B9FB8E4D4E3 /* ExpensifyNeue-Italic.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "ExpensifyNeue-Italic.otf"; path = "../assets/fonts/native/ExpensifyNeue-Italic.otf"; sourceTree = "<group>"; };
+		CE2F84BEE9A6DCC228AF7E42 /* Pods-NewExpensify.debugproduction.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify.debugproduction.xcconfig"; path = "Target Support Files/Pods-NewExpensify/Pods-NewExpensify.debugproduction.xcconfig"; sourceTree = "<group>"; };
 		CECC4CBB97A55705A33BEA9E /* Pods-NewExpensify.debug development.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify.debug development.xcconfig"; path = "Target Support Files/Pods-NewExpensify/Pods-NewExpensify.debug development.xcconfig"; sourceTree = "<group>"; };
 		D2AFB39EC1D44BF9B91D3227 /* ExpensifyNewKansas-MediumItalic.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "ExpensifyNewKansas-MediumItalic.otf"; path = "../assets/fonts/native/ExpensifyNewKansas-MediumItalic.otf"; sourceTree = "<group>"; };
 		DB76E0D5C670190A0997C71E /* Pods-NewExpensify-NewExpensifyTests.debug production.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify-NewExpensifyTests.debug production.xcconfig"; path = "Target Support Files/Pods-NewExpensify-NewExpensifyTests/Pods-NewExpensify-NewExpensifyTests.debug production.xcconfig"; sourceTree = "<group>"; };
 		DCF33E34FFEC48128CDD41D4 /* ExpensifyMono-Bold.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "ExpensifyMono-Bold.otf"; path = "../assets/fonts/native/ExpensifyMono-Bold.otf"; sourceTree = "<group>"; };
 		DD7904292792E76D004484B4 /* RCTBootSplash.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RCTBootSplash.h; path = NewExpensify/RCTBootSplash.h; sourceTree = "<group>"; };
 		DD79042A2792E76D004484B4 /* RCTBootSplash.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = RCTBootSplash.m; path = NewExpensify/RCTBootSplash.m; sourceTree = "<group>"; };
+		E2C8555C607612465A7473F8 /* Pods-NewExpensify-NewExpensifyTests.releaseadhoc.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify-NewExpensifyTests.releaseadhoc.xcconfig"; path = "Target Support Files/Pods-NewExpensify-NewExpensifyTests/Pods-NewExpensify-NewExpensifyTests.releaseadhoc.xcconfig"; sourceTree = "<group>"; };
 		E2F1036F70CBFE39E9352674 /* Pods-NewExpensify-NewExpensifyTests.debug development.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify-NewExpensifyTests.debug development.xcconfig"; path = "Target Support Files/Pods-NewExpensify-NewExpensifyTests/Pods-NewExpensify-NewExpensifyTests.debug development.xcconfig"; sourceTree = "<group>"; };
 		E704648954784DDFBAADF568 /* ExpensifyMono-Regular.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "ExpensifyMono-Regular.otf"; path = "../assets/fonts/native/ExpensifyMono-Regular.otf"; sourceTree = "<group>"; };
 		E9DF872C2525201700607FDC /* AirshipConfig.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = AirshipConfig.plist; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		ED2971642150620600B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS12.0.sdk/System/Library/Frameworks/JavaScriptCore.framework; sourceTree = DEVELOPER_DIR; };
 		F0C450E92705020500FD2970 /* colors.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = colors.json; path = ../colors.json; sourceTree = "<group>"; };
+		F15A36A3262EEC3B0CAB8EDF /* Pods-NewExpensify-NewExpensifyTests.debugproduction.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify-NewExpensifyTests.debugproduction.xcconfig"; path = "Target Support Files/Pods-NewExpensify-NewExpensifyTests/Pods-NewExpensify-NewExpensifyTests.debugproduction.xcconfig"; sourceTree = "<group>"; };
 		F4F8A052A22040339996324B /* ExpensifyNeue-Regular.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "ExpensifyNeue-Regular.otf"; path = "../assets/fonts/native/ExpensifyNeue-Regular.otf"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -112,7 +124,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E51DC681C7DEE40AEBDDFBFE /* (null) in Frameworks */,
+				E51DC681C7DEE40AEBDDFBFE /* BuildFile in Frameworks */,
 				5A464BC8112CDB1DE1E38F1C /* libPods-NewExpensify.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -239,6 +251,18 @@
 				6B5211DB0EEB46E12DF4AD2D /* Pods-NewExpensify-NewExpensifyTests.release adhoc.xcconfig */,
 				6BE16DA6EFF88513DB1CD47B /* Pods-NewExpensify-NewExpensifyTests.release staging.xcconfig */,
 				96552D489D9F09B6A5ABD81B /* Pods-NewExpensify-NewExpensifyTests.release production.xcconfig */,
+				0B627F2A465153FFA6E3A4E0 /* Pods-NewExpensify.debugdevelopment.xcconfig */,
+				6F6A514B4DF07A60EC8355BA /* Pods-NewExpensify.debugadhoc.xcconfig */,
+				CE2F84BEE9A6DCC228AF7E42 /* Pods-NewExpensify.debugproduction.xcconfig */,
+				30FFBD291B71222A393D9CC9 /* Pods-NewExpensify.releasedevelopment.xcconfig */,
+				BD8828A882E2D6B51362AAC3 /* Pods-NewExpensify.releaseadhoc.xcconfig */,
+				47D5DF3C6779D41BE70CD031 /* Pods-NewExpensify.releaseproduction.xcconfig */,
+				8709DF3C8D91F0FC1581CDD7 /* Pods-NewExpensify-NewExpensifyTests.debugdevelopment.xcconfig */,
+				25A4587E168FD67CF890B448 /* Pods-NewExpensify-NewExpensifyTests.debugadhoc.xcconfig */,
+				F15A36A3262EEC3B0CAB8EDF /* Pods-NewExpensify-NewExpensifyTests.debugproduction.xcconfig */,
+				4E8BF7B08BA3181991BFCF4B /* Pods-NewExpensify-NewExpensifyTests.releasedevelopment.xcconfig */,
+				E2C8555C607612465A7473F8 /* Pods-NewExpensify-NewExpensifyTests.releaseadhoc.xcconfig */,
+				57DBBEDB9692E096D4BA0141 /* Pods-NewExpensify-NewExpensifyTests.releaseproduction.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -386,29 +410,29 @@
 				"${PODS_ROOT}/Target Support Files/Pods-NewExpensify/Pods-NewExpensify-frameworks.sh",
 				"${BUILT_PRODUCTS_DIR}/MapboxMaps/MapboxMaps.framework",
 				"${BUILT_PRODUCTS_DIR}/Turf/Turf.framework",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/Flipper-DoubleConversion/double-conversion.framework/double-conversion",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/Flipper-Glog/glog.framework/glog",
 				"${PODS_XCFRAMEWORKS_BUILD_DIR}/MapboxCommon/MapboxCommon.framework/MapboxCommon",
 				"${PODS_XCFRAMEWORKS_BUILD_DIR}/MapboxCoreMaps/MapboxCoreMaps.framework/MapboxCoreMaps",
 				"${PODS_XCFRAMEWORKS_BUILD_DIR}/MapboxMobileEvents/MapboxMobileEvents.framework/MapboxMobileEvents",
 				"${PODS_XCFRAMEWORKS_BUILD_DIR}/Onfido/Onfido.framework/Onfido",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/OpenSSL-Universal/OpenSSL.framework/OpenSSL",
 				"${PODS_XCFRAMEWORKS_BUILD_DIR}/Plaid/LinkKit.framework/LinkKit",
 				"${PODS_XCFRAMEWORKS_BUILD_DIR}/hermes-engine/Pre-built/hermes.framework/hermes",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/Flipper-DoubleConversion/double-conversion.framework/double-conversion",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/Flipper-Glog/glog.framework/glog",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/OpenSSL-Universal/OpenSSL.framework/OpenSSL",
 			);
 			name = "[CP] Embed Pods Frameworks";
 			outputPaths = (
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/MapboxMaps.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Turf.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/double-conversion.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/glog.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/MapboxCommon.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/MapboxCoreMaps.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/MapboxMobileEvents.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Onfido.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/OpenSSL.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/LinkKit.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/hermes.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/double-conversion.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/glog.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/OpenSSL.framework",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -467,29 +491,29 @@
 				"${PODS_ROOT}/Target Support Files/Pods-NewExpensify-NewExpensifyTests/Pods-NewExpensify-NewExpensifyTests-frameworks.sh",
 				"${BUILT_PRODUCTS_DIR}/MapboxMaps/MapboxMaps.framework",
 				"${BUILT_PRODUCTS_DIR}/Turf/Turf.framework",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/Flipper-DoubleConversion/double-conversion.framework/double-conversion",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/Flipper-Glog/glog.framework/glog",
 				"${PODS_XCFRAMEWORKS_BUILD_DIR}/MapboxCommon/MapboxCommon.framework/MapboxCommon",
 				"${PODS_XCFRAMEWORKS_BUILD_DIR}/MapboxCoreMaps/MapboxCoreMaps.framework/MapboxCoreMaps",
 				"${PODS_XCFRAMEWORKS_BUILD_DIR}/MapboxMobileEvents/MapboxMobileEvents.framework/MapboxMobileEvents",
 				"${PODS_XCFRAMEWORKS_BUILD_DIR}/Onfido/Onfido.framework/Onfido",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/OpenSSL-Universal/OpenSSL.framework/OpenSSL",
 				"${PODS_XCFRAMEWORKS_BUILD_DIR}/Plaid/LinkKit.framework/LinkKit",
 				"${PODS_XCFRAMEWORKS_BUILD_DIR}/hermes-engine/Pre-built/hermes.framework/hermes",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/Flipper-DoubleConversion/double-conversion.framework/double-conversion",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/Flipper-Glog/glog.framework/glog",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/OpenSSL-Universal/OpenSSL.framework/OpenSSL",
 			);
 			name = "[CP] Embed Pods Frameworks";
 			outputPaths = (
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/MapboxMaps.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Turf.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/double-conversion.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/glog.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/MapboxCommon.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/MapboxCoreMaps.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/MapboxMobileEvents.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Onfido.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/OpenSSL.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/LinkKit.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/hermes.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/double-conversion.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/glog.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/OpenSSL.framework",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -643,7 +667,7 @@
 /* Begin XCBuildConfiguration section */
 		00E356F61AD99517003FC87E /* DebugDevelopment */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = E2F1036F70CBFE39E9352674 /* Pods-NewExpensify-NewExpensifyTests.debug development.xcconfig */;
+			baseConfigurationReference = 8709DF3C8D91F0FC1581CDD7 /* Pods-NewExpensify-NewExpensifyTests.debugdevelopment.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
@@ -668,7 +692,7 @@
 		};
 		00E356F71AD99517003FC87E /* ReleaseDevelopment */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = BD6E1BA27D6ABE0AC9D70586 /* Pods-NewExpensify-NewExpensifyTests.release development.xcconfig */;
+			baseConfigurationReference = 4E8BF7B08BA3181991BFCF4B /* Pods-NewExpensify-NewExpensifyTests.releasedevelopment.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
@@ -691,7 +715,7 @@
 		};
 		13B07F941A680F5B00A75B9A /* DebugDevelopment */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = CECC4CBB97A55705A33BEA9E /* Pods-NewExpensify.debug development.xcconfig */;
+			baseConfigurationReference = 0B627F2A465153FFA6E3A4E0 /* Pods-NewExpensify.debugdevelopment.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIconDev;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
@@ -723,7 +747,7 @@
 		};
 		13B07F951A680F5B00A75B9A /* ReleaseDevelopment */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 02BE6CF80ED1BD2445267F92 /* Pods-NewExpensify.release development.xcconfig */;
+			baseConfigurationReference = 30FFBD291B71222A393D9CC9 /* Pods-NewExpensify.releasedevelopment.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIconDev;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
@@ -942,7 +966,7 @@
 		};
 		CF9AF93F29EE9276001FA527 /* DebugProduction */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 0E27AA27706D894246E7946D /* Pods-NewExpensify.debug production.xcconfig */;
+			baseConfigurationReference = CE2F84BEE9A6DCC228AF7E42 /* Pods-NewExpensify.debugproduction.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
@@ -974,7 +998,7 @@
 		};
 		CF9AF94029EE9276001FA527 /* DebugProduction */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = DB76E0D5C670190A0997C71E /* Pods-NewExpensify-NewExpensifyTests.debug production.xcconfig */;
+			baseConfigurationReference = F15A36A3262EEC3B0CAB8EDF /* Pods-NewExpensify-NewExpensifyTests.debugproduction.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
@@ -1064,7 +1088,7 @@
 		};
 		CF9AF94529EE927A001FA527 /* DebugAdHoc */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 0B09CE5BDAF34DD3573AB4E2 /* Pods-NewExpensify.debug adhoc.xcconfig */;
+			baseConfigurationReference = 6F6A514B4DF07A60EC8355BA /* Pods-NewExpensify.debugadhoc.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIconAdHoc;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
@@ -1096,7 +1120,7 @@
 		};
 		CF9AF94629EE927A001FA527 /* DebugAdHoc */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 432FF5842B766535509FC547 /* Pods-NewExpensify-NewExpensifyTests.debug adhoc.xcconfig */;
+			baseConfigurationReference = 25A4587E168FD67CF890B448 /* Pods-NewExpensify-NewExpensifyTests.debugadhoc.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
@@ -1180,7 +1204,7 @@
 		};
 		CF9AF94829EE928E001FA527 /* ReleaseProduction */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 34A8FDD1F9AA58B8F15C8380 /* Pods-NewExpensify.release production.xcconfig */;
+			baseConfigurationReference = 47D5DF3C6779D41BE70CD031 /* Pods-NewExpensify.releaseproduction.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
@@ -1210,7 +1234,7 @@
 		};
 		CF9AF94929EE928E001FA527 /* ReleaseProduction */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 96552D489D9F09B6A5ABD81B /* Pods-NewExpensify-NewExpensifyTests.release production.xcconfig */;
+			baseConfigurationReference = 57DBBEDB9692E096D4BA0141 /* Pods-NewExpensify-NewExpensifyTests.releaseproduction.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
@@ -1292,7 +1316,7 @@
 		};
 		CF9AF94E29EE9293001FA527 /* ReleaseAdHoc */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 1DDE5449979A136852B939B5 /* Pods-NewExpensify.release adhoc.xcconfig */;
+			baseConfigurationReference = BD8828A882E2D6B51362AAC3 /* Pods-NewExpensify.releaseadhoc.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIconAdHoc;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
@@ -1322,7 +1346,7 @@
 		};
 		CF9AF94F29EE9293001FA527 /* ReleaseAdHoc */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 6B5211DB0EEB46E12DF4AD2D /* Pods-NewExpensify-NewExpensifyTests.release adhoc.xcconfig */;
+			baseConfigurationReference = E2C8555C607612465A7473F8 /* Pods-NewExpensify-NewExpensifyTests.releaseadhoc.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
