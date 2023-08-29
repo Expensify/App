@@ -44,20 +44,10 @@ function CategoryPicker({policyCategories, reportID, policyID, iouType, iou, rec
         return 0;
     }, [policyCategories, policyCategoriesAmount, selectedOptions]);
 
-    const sections = OptionsListUtils.getNewChatOptions(
-        {},
-        {},
-        [],
-        searchValue,
-        selectedOptions,
-        [],
-        false,
-        false,
-        true,
-        policyCategories,
-        recentlyUsedPolicyCategories,
-        false,
-    ).categoryOptions;
+    const sections = useMemo(
+        () => OptionsListUtils.getNewChatOptions({}, {}, [], searchValue, selectedOptions, [], false, false, true, policyCategories, recentlyUsedPolicyCategories, false).categoryOptions,
+        [policyCategories, recentlyUsedPolicyCategories, searchValue, selectedOptions],
+    );
 
     const headerMessage = OptionsListUtils.getHeaderMessage(lodashGet(sections, '[0].data.length', 0) > 0, false, searchValue);
 
