@@ -355,7 +355,4 @@ class AvatarWithImagePicker extends React.Component {
 AvatarWithImagePicker.propTypes = propTypes;
 AvatarWithImagePicker.defaultProps = defaultProps;
 
-export default compose(
-    withLocalize,
-    withNavigationFocus
-)(AvatarWithImagePicker);
+export default compose(withLocalize, withNavigationFocus)(AvatarWithImagePicker);
