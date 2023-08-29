@@ -722,6 +722,98 @@ function readOldestAction(reportID, reportActionID) {
 }
 
 /**
+ * Gets the older actions that have not been read yet.
+ * Normally happens when you scroll up on a chat, and the actions have not been read yet.
+ *
+ * @param {String} reportID
+ * @param {String} reportActionID
+ */
+function getOlderAction(reportID, reportActionID) {
+    API.read(
+        'GetOlderActions',
+        {
+            reportID,
+            reportActionID,
+        },
+        {
+            optimisticData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                    value: {
+                        isLoadingOlderReportActions: true,
+                    },
+                },
+            ],
+            successData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                    value: {
+                        isLoadingOlderReportActions: false,
+                    },
+                },
+            ],
+            failureData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                    value: {
+                        isLoadingOlderReportActions: false,
+                    },
+                },
+            ],
+        },
+    );
+}
+
+/**
+ * Gets the newer actions that have not been read yet.
+ * Normally happens when you located not in the edge of the list and scroll down on a chat.
+ *
+ * @param {String} reportID
+ * @param {String} reportActionID
+ */
+function getNewerAction(reportID, reportActionID) {
+    API.read(
+        'GetNewerActions',
+        {
+            reportID,
+            reportActionID,
+        },
+        {
+            optimisticData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                    value: {
+                        isLoadingNewerReportActions: true,
+                    },
+                },
+            ],
+            successData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                    value: {
+                        isLoadingNewerReportActions: false,
+                    },
+                },
+            ],
+            failureData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                    value: {
+                        isLoadingNewerReportActions: false,
+                    },
+                },
+            ],
+        },
+    );
+}
+
+/**
  * Gets metadata info about links in the provided report action
  *
  * @param {String} reportID
@@ -1981,4 +2073,6 @@ export {
     setLastOpenedPublicRoom,
     flagComment,
     openLastOpenedPublicRoom,
+    getOlderAction,
+    getNewerAction,
 };
