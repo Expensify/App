@@ -172,7 +172,7 @@ function ReportScreen({
         headerView = (
             <MoneyRequestHeader
                 report={report}
-                policies={policies}
+                policy={policy}
                 personalDetails={personalDetails}
                 isSingleTransactionView={isSingleTransactionView}
                 parentReportAction={parentReportAction}
@@ -184,7 +184,7 @@ function ReportScreen({
         headerView = (
             <MoneyReportHeader
                 report={report}
-                policies={policies}
+                policy={policy}
                 personalDetails={personalDetails}
                 isSingleTransactionView={isSingleTransactionView}
                 parentReportAction={parentReportAction}

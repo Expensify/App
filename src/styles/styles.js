@@ -3876,6 +3876,10 @@ const styles = {
         fontSize: variables.fontSizeNormal,
         marginRight: 4,
     },
+    draggableTopBar: {
+        height: 30,
+        width: '100%',
+    },
 };
 
 export default styles;
