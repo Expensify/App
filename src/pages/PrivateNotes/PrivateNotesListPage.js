@@ -119,7 +119,7 @@ function PrivateNotesListPage({ report, personalDetailsList, network, session })
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <FullPageNotFoundView
-                shouldShow={_.isEmpty(report.reportID) || (!report.isLoadingPrivateNotes && _.isEmpty(lodashGet(report, 'privateNotes', [])))}
+                shouldShow={_.isEmpty(report.reportID) || (!report.isLoadingPrivateNotes && network.isOffline && _.isEmpty(lodashGet(report, 'privateNotes', [])))}
                 onBackButtonPress={() => Navigation.goBack()}
             >
                 <HeaderWithBackButton

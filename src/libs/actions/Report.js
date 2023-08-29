@@ -1934,6 +1934,13 @@ function flagComment(reportID, reportAction, severity) {
     API.write('FlagComment', parameters, {optimisticData, successData, failureData});
 }
 
+/**
+ * Updates a given user's private notes on a report
+ *
+ * @param {String} reportID
+ * @param {Number} accountID
+ * @param {String} note
+ */
 const updatePrivateNotes = (reportID, accountID, note) => {
     const optimisticData = [
         {
@@ -1990,6 +1997,11 @@ const updatePrivateNotes = (reportID, accountID, note) => {
     );
 };
 
+/**
+ * Fetches all the private notes for a given report
+ *
+ * @param {String} reportID
+ */
 function getReportPrivateNote(reportID) {
     if (_.isEmpty(reportID)) {
         return;
@@ -2029,6 +2041,26 @@ function getReportPrivateNote(reportID) {
             ],
         },
     );
+}
+
+/**
+ * Checks if there are any errors in the private notes for a given report
+ * 
+ * @param {Object} report
+ **/
+function hasErrorInPrivateNotes(report) {
+    const privateNotes = lodashGet(report, 'privateNotes', {}); 
+    return _.some(privateNotes, (privateNote) => !_.isEmpty(privateNote.errors));
+}
+
+/**
+ * Clears all errors associated with a given private note
+ * 
+ * @param {String} reportID
+ * @param {Number} accountID
+ **/
+function clearPrivateNotesError(reportID, accountID) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {privateNotes: {[accountID]: {errors: null}}}); 
 }
 
 export {
@@ -2080,4 +2112,6 @@ export {
     openLastOpenedPublicRoom,
     updatePrivateNotes,
     getReportPrivateNote,
+    clearPrivateNotesError,
+    hasErrorInPrivateNotes,
 };

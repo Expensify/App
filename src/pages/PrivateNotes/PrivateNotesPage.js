@@ -23,6 +23,8 @@ import RenderHTML from '../../components/RenderHTML';
 import PressableWithoutFeedback from '../../components/Pressable/PressableWithoutFeedback';
 import * as Report from '../../libs/actions/Report';
 import useLocalize from '../../hooks/useLocalize';
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
+import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 
 const propTypes = {
     /** All of the personal details for everyone */
@@ -62,16 +64,28 @@ const PrivateNotesPage = ({ route, personalDetailsList, session, report }) => {
     const [privateNote, setPrivateNote] = useState(
         lodashGet(report, `privateNotes.${route.params.accountID}.note`, ''),
     );
-    const [editMode, setEditMode] = useState(false);
+    const [editMode, setEditMode] = useState(_.isEmpty(privateNote));
     const isCurrentUser = Number(session.accountID) === Number(route.params.accountID);
 
     const savePrivateNote = () => {
-        debugger;
-        Report.updatePrivateNotes(report.reportID, route.params.accountID, privateNote);
+        if (_.isEmpty(privateNote)) {
+            return;
+        }
+        const parser = new ExpensiMark();
+        const editedNote = parser.replace(privateNote);
+        Report.updatePrivateNotes(report.reportID, route.params.accountID, editedNote);
         Keyboard.dismiss();
+       
+        // Enable the view mode once we have saved the updated note
+        setPrivateNote(editedNote);
+        setEditMode(false);
     };
 
     const switchToEditMode = () => {
+        // Every time we switch to edit mode we want to render the content in the markdown format
+        const parser = new ExpensiMark();
+        setPrivateNote(parser.htmlToMarkdown(privateNote).trim());
+        
         if (isCurrentUser) {
             setEditMode(true);
         }
@@ -142,7 +156,17 @@ const PrivateNotesPage = ({ route, personalDetailsList, session, report }) => {
                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.Button}
                             onPress={switchToEditMode}
                         >
-                            <RenderHTML html={privateNote} />
+                            <OfflineWithFeedback
+                            errors={{
+                                ...lodashGet(report, `privateNotes.${route.params.accountID}.errors`, ''),
+                            }}
+                            pendingAction={lodashGet(report, `privateNotes.${route.params.accountID}.pendingAction`, '')}
+                            onClose={() =>
+                                Report.clearPrivateNotesError(report.reportID, route.params.accountID) 
+                            }
+                            >
+                                <RenderHTML html={privateNote} />
+                            </OfflineWithFeedback>
                         </PressableWithoutFeedback>
                     )}
                 </View>

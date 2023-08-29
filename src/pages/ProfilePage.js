@@ -139,7 +139,7 @@ function ProfilePage(props) {
     const hasStatus = !!statusEmojiCode && Permissions.canUseCustomStatus(props.betas);
     const statusContent = `${statusEmojiCode}  ${statusText}`;
 
-    const chatReportIDWithCurrentUser = !isCurrentUser && !Session.isAnonymousUser() ? ReportUtils.getChatByParticipants([accountID, Number(lodashGet(props.session, 'accountID'))]) : 0;
+    const chatReportWithCurrentUser = !isCurrentUser && !Session.isAnonymousUser() ? ReportUtils.getChatByParticipants([accountID]) : 0;
 
     return (
         <ScreenWrapper>
@@ -236,14 +236,17 @@ function ProfilePage(props) {
                                 shouldShowRightIcon
                             />
                         )}
-                        {chatReportIDWithCurrentUser && (
+                        {!_.isEmpty(chatReportWithCurrentUser) && (
                             <MenuItem
                                 title={`${props.translate('privateNotes.title')}`}
                                 titleStyle={styles.flex1}
                                 icon={Expensicons.Pencil}
-                                onPress={() => ReportUtils.navigateToPrivateNotesPage([accountID])}
+                                onPress={() => {
+                                    ReportUtils.navigateToPrivateNotesPage(chatReportWithCurrentUser, Number(lodashGet(props.session, 'accountID')));
+                                }}
                                 wrapperStyle={styles.breakAll}
                                 shouldShowRightIcon
+                                brickRoadIndicator={Report.hasErrorInPrivateNotes(chatReportWithCurrentUser) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
                             />
                         )}
                     </ScrollView>

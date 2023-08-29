@@ -118,7 +118,10 @@ function ReportDetailsPage(props) {
             translationKey: 'privateNotes.title',
             icon: Expensicons.Pencil,
             isAnonymousAction: false,
-            action: () => ReportUtils.navigateToPrivateNotesPage(props.report.reportID),
+            action: () => {
+                 ReportUtils.navigateToPrivateNotesPage(props.report);
+            },
+            brickRoadIndicator: Report.hasErrorInPrivateNotes(props.report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '',
         });
 
         if (isUserCreatedPolicyRoom || canLeaveRoom || isThread) {
@@ -185,6 +188,7 @@ function ReportDetailsPage(props) {
                         </View>
                     </View>
                     {_.map(menuItems, (item) => {
+                        console.log(item)
                         const brickRoadIndicator =
                             ReportUtils.hasReportNameError(props.report) && item.key === CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
                         return (
@@ -196,7 +200,7 @@ function ReportDetailsPage(props) {
                                 onPress={item.action}
                                 isAnonymousAction={item.isAnonymousAction}
                                 shouldShowRightIcon
-                                brickRoadIndicator={brickRoadIndicator}
+                                brickRoadIndicator={brickRoadIndicator || item.brickRoadIndicator}
                             />
                         );
                     })}
