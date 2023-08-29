@@ -65,7 +65,7 @@ export default {
     NEW_CHAT: 'new/chat',
     NEW_TASK,
     REPORT,
-    REPORT_WITH_ID: 'r/:reportID?',
+    REPORT_WITH_ID: 'r/:reportID/:reportActionID?',
     EDIT_REQUEST: 'r/:threadReportID/edit/:field',
     getEditRequestRoute: (threadReportID, field) => `r/${threadReportID}/edit/${field}`,
     EDIT_CURRENCY_REQUEST: 'r/:threadReportID/edit/currency',
@@ -132,7 +132,10 @@ export default {
     DETAILS: 'details',
     getDetailsRoute: (login) => `details?login=${encodeURIComponent(login)}`,
     PROFILE: 'a/:accountID',
-    getProfileRoute: (accountID) => `a/${accountID}`,
+    getProfileRoute: (accountID, backTo = '') => {
+        const backToParam = backTo ? `?backTo=${encodeURIComponent(backTo)}` : '';
+        return `a/${accountID}${backToParam}`;
+    },
     REPORT_PARTICIPANTS: 'r/:reportID/participants',
     getReportParticipantsRoute: (reportID) => `r/${reportID}/participants`,
     REPORT_WITH_ID_DETAILS: 'r/:reportID/details',

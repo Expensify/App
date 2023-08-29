@@ -257,7 +257,9 @@ function MoneyRequestConfirmationList(props) {
      */
     const navigateToReportOrUserDetail = (option) => {
         if (option.accountID) {
-            Navigation.navigate(ROUTES.getProfileRoute(option.accountID));
+            const activeRoute = Navigation.getActiveRoute().replace(/\?.*/, '');
+
+            Navigation.navigate(ROUTES.getProfileRoute(option.accountID, activeRoute));
         } else if (option.reportID) {
             Navigation.navigate(ROUTES.getReportDetailsRoute(option.reportID));
         }
@@ -367,9 +369,10 @@ function MoneyRequestConfirmationList(props) {
                 style={[styles.moneyRequestMenuItem, styles.mb2]}
                 titleStyle={styles.flex1}
                 disabled={didConfirm || props.isReadOnly}
+                numberOfLinesTitle={2}
             />
             {!showAllFields && (
-                <View style={[styles.flexRow, styles.justifyContentBetween, styles.mh3, styles.alignItemsCenter]}>
+                <View style={[styles.flexRow, styles.justifyContentBetween, styles.mh3, styles.alignItemsCenter, styles.mb2]}>
                     <View style={[styles.shortTermsHorizontalRule, styles.flex1, styles.mr0]} />
                     <Button
                         small
@@ -396,7 +399,7 @@ function MoneyRequestConfirmationList(props) {
                     />
                     <MenuItemWithTopDescription
                         shouldShowRightIcon={!props.isReadOnly && isTypeRequest}
-                        title={props.iouMerchant || CONST.TRANSACTION.DEFAULT_MERCHANT}
+                        title={props.iouMerchant}
                         description={translate('common.merchant')}
                         style={[styles.moneyRequestMenuItem, styles.mb2]}
                         titleStyle={styles.flex1}

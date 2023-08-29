@@ -16,14 +16,23 @@ import * as IOU from '../../libs/actions/IOU';
 import optionPropTypes from '../../components/optionPropTypes';
 import CONST from '../../CONST';
 import useLocalize from '../../hooks/useLocalize';
+import focusAndUpdateMultilineInputRange from '../../libs/focusAndUpdateMultilineInputRange';
+import * as Browser from '../../libs/Browser';
 
 const propTypes = {
     /** Onyx Props */
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     iou: PropTypes.shape({
+        /** ID (iouType + reportID) of the request */
         id: PropTypes.string,
+
+        /** Amount of the request */
         amount: PropTypes.number,
+
+        /** Description of the request */
         comment: PropTypes.string,
+
+        /** List of the participants */
         participants: PropTypes.arrayOf(optionPropTypes),
         receiptPath: PropTypes.string,
     }),
@@ -32,6 +41,12 @@ const propTypes = {
     route: PropTypes.shape({
         /** Params from the route */
         params: PropTypes.shape({
+            /** The type of IOU report, i.e. bill, request, send */
+            iouType: PropTypes.string,
+
+            /** The report ID of the IOU */
+            reportID: PropTypes.string,
+
             /** Which field we are editing */
             field: PropTypes.string,
 
@@ -88,7 +103,7 @@ function MoneyRequestDescriptionPage({iou, route}) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
-            onEntryTransitionEnd={() => inputRef.current && inputRef.current.focus()}
+            onEntryTransitionEnd={() => focusAndUpdateMultilineInputRange(inputRef.current)}
         >
             <HeaderWithBackButton
                 title={translate('common.description')}
@@ -110,6 +125,10 @@ function MoneyRequestDescriptionPage({iou, route}) {
                         accessibilityLabel={translate('moneyRequestConfirmationList.whatsItFor')}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         ref={(el) => (inputRef.current = el)}
+                        autoGrowHeight
+                        containerStyles={[styles.autoGrowHeightMultilineInput]}
+                        textAlignVertical="top"
+                        submitOnEnter={!Browser.isMobile()}
                     />
                 </View>
             </Form>
