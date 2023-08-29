@@ -162,6 +162,29 @@ function MoneyRequestConfirmPage(props) {
         [props.report, props.iou.amount, props.iou.currency, props.iou.created, props.iou.merchant, props.currentUserPersonalDetails.login, props.currentUserPersonalDetails.accountID],
     );
 
+    /**
+     * @param {Array} selectedParticipants
+     * @param {String} trimmedComment
+     * @param {File} [receipt]
+     */
+    const createDistanceRequest = useCallback(
+        (selectedParticipants, trimmedComment, receipt) => {
+            IOU.createDistanceRequest(
+                props.report,
+                props.iou.amount,
+                props.iou.currency,
+                props.iou.created,
+                props.iou.merchant,
+                props.currentUserPersonalDetails.login,
+                props.currentUserPersonalDetails.accountID,
+                selectedParticipants[0],
+                trimmedComment,
+                receipt,
+            );
+        },
+        [props.report, props.iou.amount, props.iou.currency, props.iou.created, props.iou.merchant, props.currentUserPersonalDetails.login, props.currentUserPersonalDetails.accountID],
+    );
+
     const createTransaction = useCallback(
         (selectedParticipants) => {
             const trimmedComment = props.iou.comment.trim();
@@ -198,6 +221,11 @@ function MoneyRequestConfirmPage(props) {
                 FileUtils.readFileAsync(props.iou.receiptPath, props.iou.receiptSource).then((receipt) => {
                     requestMoney(selectedParticipants, trimmedComment, receipt);
                 });
+                return;
+            }
+
+            if (isDistanceRequest) {
+                createDistanceRequest(selectedParticipants, trimmedComment);
                 return;
             }
 
