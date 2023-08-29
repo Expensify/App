@@ -7,6 +7,7 @@ import AttachmentCarouselPagerContext from '../../AttachmentCarousel/Pager/Attac
 function AttachmentViewPdf({file, encryptedSourceUrl, isFocused, isUsedInCarousel, onPress, onScaleChanged: onScaleChangedProp, onToggleKeyboard, onLoadComplete}) {
     const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
 
+        // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
         if (attachmentCarouselPagerContext) {
             attachmentCarouselPagerContext.onPinchGestureChange(false);
