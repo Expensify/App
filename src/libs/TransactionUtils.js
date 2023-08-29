@@ -86,9 +86,14 @@ function hasReceipt(transaction) {
 }
 
 function areRequiredFieldsPopulated(transaction) {
-    return transaction.merchant !== CONST.TRANSACTION.DEFAULT_MERCHANT && transaction.modifiedMerchant !== CONST.TRANSACTION.DEFAULT_MERCHANT
-        && transaction.amount !== 0 && transaction.modifiedAmount !== 0
-        && transaction.created !== '' && transaction.modifiedCreated !== '';
+    return (
+        transaction.merchant !== CONST.TRANSACTION.DEFAULT_MERCHANT &&
+        transaction.modifiedMerchant !== CONST.TRANSACTION.DEFAULT_MERCHANT &&
+        transaction.amount !== 0 &&
+        transaction.modifiedAmount !== 0 &&
+        transaction.created !== '' &&
+        transaction.modifiedCreated !== ''
+    );
 }
 
 /**
@@ -243,9 +248,7 @@ function hasFieldErrors(transaction) {
     if (!_.has(transaction, 'errors')) {
         return false;
     }
-    return getAmount(transaction, false) === 0
-        || getMerchant(transaction) === CONST.TRANSACTION.UNKNOWN_MERCHANT
-        || getCreated(transaction) === '';
+    return getAmount(transaction, false) === 0 || getMerchant(transaction) === CONST.TRANSACTION.UNKNOWN_MERCHANT || getCreated(transaction) === '';
 }
 
 /**

@@ -252,7 +252,7 @@ function MoneyRequestPreview(props) {
                                     fill={colors.red}
                                 />
                             )}
-                                <Icon src={Expensicons.ArrowRight} />
+                            <Icon src={Expensicons.ArrowRight} />
                         </View>
                         <View style={[styles.flexRow]}>
                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
