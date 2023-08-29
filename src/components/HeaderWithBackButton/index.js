@@ -46,6 +46,7 @@ function HeaderWithBackButton({
         horizontal: 0,
     },
     threeDotsMenuItems = [],
+    outerThreeDotsMenuStyle = {},
     children = null,
 }) {
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
@@ -137,6 +138,7 @@ function HeaderWithBackButton({
                             menuItems={threeDotsMenuItems}
                             onIconPress={onThreeDotsButtonPress}
                             anchorPosition={threeDotsAnchorPosition}
+                            outerStyle={outerThreeDotsMenuStyle}
                         />
                     )}
                     {shouldShowCloseButton && (

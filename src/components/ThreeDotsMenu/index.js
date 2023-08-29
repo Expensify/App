@@ -29,6 +29,9 @@ const propTypes = {
     /** Function to call on icon press */
     onIconPress: PropTypes.func,
 
+    /** Outer styles that get passed down to Modal */
+    outerStyle: PropTypes.oneOfType([PropTypes.array, PropTypes.object]),
+
     /** menuItems that'll show up on toggle of the popup menu */
     menuItems: ThreeDotsMenuItemPropTypes.isRequired,
 
@@ -53,13 +56,14 @@ const defaultProps = {
     iconStyles: [],
     icon: Expensicons.ThreeDots,
     onIconPress: () => {},
+    outerStyle: {},
     anchorAlignment: {
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP, // we assume that popover menu opens below the button, anchor is at TOP
     },
 };
 
-function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, menuItems, anchorPosition, anchorAlignment}) {
+function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, outerStyle, menuItems, anchorPosition, anchorAlignment}) {
     const [isPopupMenuVisible, setPopupMenuVisible] = useState(false);
     const buttonRef = useRef(null);
     const {translate} = useLocalize();
@@ -108,6 +112,7 @@ function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, me
                 menuItems={menuItems}
                 withoutOverlay
                 anchorRef={buttonRef}
+                outerStyle={outerStyle}
             />
         </>
     );

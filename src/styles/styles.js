@@ -2148,6 +2148,10 @@ const styles = {
         width: '100%',
     },
 
+    receiptAttachmentHeaderThreeDotsMenuStyles: {
+        zIndex: variables.popoverModalzIndex,
+    },
+
     defaultAttachmentView: {
         backgroundColor: themeColors.sidebar,
         borderRadius: variables.componentBorderRadiusNormal,
@@ -3102,8 +3106,8 @@ const styles = {
         flex: 1,
     },
 
-    threeDotsPopoverOffset: (windowWidth) => ({
-        ...getPopOverVerticalOffset(60),
+    threeDotsPopoverOffset: (windowWidth, isWithinFullScreenModal) => ({
+        ...getPopOverVerticalOffset(60 + (isWithinFullScreenModal ? 20 : 0)),
         horizontal: windowWidth - 60,
     }),
 

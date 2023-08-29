@@ -18,6 +18,7 @@ import compose from '../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import Button from './Button';
 import HeaderWithBackButton from './HeaderWithBackButton';
+import ReceiptAttachmentHeader from './ReceiptAttachmentHeader';
 import fileDownload from '../libs/fileDownload';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import ConfirmModal from './ConfirmModal';
@@ -336,16 +337,24 @@ function AttachmentModal(props) {
                 propagateSwipe
             >
                 {props.isSmallScreenWidth && <HeaderGap />}
-                <HeaderWithBackButton
-                    title={props.headerTitle || translate(isAttachmentReceipt ? 'common.receipt' : 'common.attachment')}
-                    shouldShowBorderBottom
-                    shouldShowDownloadButton={props.allowDownload && shouldShowDownloadButton}
-                    onDownloadButtonPress={() => downloadAttachment(source)}
-                    shouldShowCloseButton={!props.isSmallScreenWidth}
-                    shouldShowBackButton={props.isSmallScreenWidth}
-                    onBackButtonPress={closeModal}
-                    onCloseButtonPress={closeModal}
-                />
+                {isAttachmentReceipt ? (
+                    <ReceiptAttachmentHeader
+                        onBackButtonPress={closeModal}
+                        onCloseButtonPress={closeModal}
+                        report={props.report}
+                    />
+                ) : (
+                    <HeaderWithBackButton
+                        title={props.headerTitle || translate('common.attachment')}
+                        shouldShowBorderBottom
+                        shouldShowDownloadButton={props.allowDownload && shouldShowDownloadButton}
+                        onDownloadButtonPress={() => downloadAttachment(source)}
+                        shouldShowCloseButton={!props.isSmallScreenWidth}
+                        shouldShowBackButton={props.isSmallScreenWidth}
+                        onBackButtonPress={closeModal}
+                        onCloseButtonPress={closeModal}
+                    />
+                )}
                 <View style={styles.imageModalImageCenterContainer}>
                     {!_.isEmpty(props.report) ? (
                         <AttachmentCarousel
