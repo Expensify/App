@@ -394,7 +394,7 @@ function getLastVisibleMessage(reportID, actionsToMerge = {}) {
         return {
             lastMessageTranslationKey: CONST.TRANSLATION_KEYS.ATTACHMENT,
             lastMessageText: CONST.TRANSLATION_KEYS.ATTACHMENT,
-            lastMessageHtml: CONST.TRANSLATION_KEYS.ATTACHMENT
+            lastMessageHtml: CONST.TRANSLATION_KEYS.ATTACHMENT,
         };
     }
 
