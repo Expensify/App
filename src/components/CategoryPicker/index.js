@@ -17,33 +17,30 @@ function CategoryPicker({policyCategories, reportID, policyID, iouType, iou, rec
     const [searchValue, setSearchValue] = useState('');
 
     const selectedOptions = useMemo(() => {
-        const selectedCategories = [];
-
-        const selectedCategory = _.find(policyCategories, ({name}) => name === iou.category);
-
-        if (selectedCategory) {
-            selectedCategories.push({...selectedCategory, accountID: null});
+        if (!iou.category) {
+            return [];
         }
 
-        return selectedCategories;
-    }, [policyCategories, iou.category]);
+        return [
+            {
+                name: iou.category,
+                enabled: true,
+                accountID: null,
+            },
+        ];
+    }, [iou.category]);
 
     const sections = OptionsListUtils.getNewChatOptions(
         {},
         {},
         [],
-        // Search
         searchValue,
-        // Selected options
         selectedOptions,
         [],
         false,
         false,
-        // Include categories
         true,
-        // Categories
         policyCategories,
-        // Recently used categories
         recentlyUsedPolicyCategories,
         false,
     ).categoryOptions;
@@ -67,6 +64,7 @@ function CategoryPicker({policyCategories, reportID, policyID, iouType, iou, rec
                 recentlyUsedPolicyCategories,
             );
         }
+
         navigateBack();
     };
 
@@ -76,9 +74,9 @@ function CategoryPicker({policyCategories, reportID, policyID, iouType, iou, rec
             sections={sections}
             selectedOptions={selectedOptions}
             value={searchValue}
-            boldStyle
             headerMessage={headerMessage}
             textInputLabel={translate('common.search')}
+            boldStyle
             highlightSelectedOptions
             onChangeText={setSearchValue}
             onSelectRow={updateCategory}
