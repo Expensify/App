@@ -393,6 +393,8 @@ export default {
         flash: 'flash',
         shutter: 'shutter',
         gallery: 'gallery',
+        deleteReceipt: 'Delete receipt',
+        deleteConfirmation: 'Are you sure you want to delete this receipt?',
     },
     iou: {
         amount: 'Amount',
@@ -408,7 +410,6 @@ export default {
         pay: 'Pay',
         viewDetails: 'View details',
         pending: 'Pending',
-        deleteReceipt: 'Delete receipt',
         receiptScanning: 'Receipt scan in progress…',
         receiptStatusTitle: 'Scanning…',
         receiptStatusText: "Only you can see this receipt when it's scanning. Check back later or enter the details now.",
