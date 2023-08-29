@@ -1,7 +1,6 @@
 import React, {useState} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import CONST from '../CONST';
@@ -19,7 +18,7 @@ const propTypes = {
     showDownloadAppBanner: PropTypes.bool,
 
     /** Whether the user is logged in */
-    isAuthenticated: PropTypes.bool,
+    isAuthenticated: PropTypes.bool.isRequired,
 };
 
 const defaultProps = {
