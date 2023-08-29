@@ -78,14 +78,6 @@ class BaseOptionsSelector extends Component {
             }
         }
 
-        if (this.textInput && this.props.autoFocus && !prevProps.isFocused && this.props.isFocused) {
-            InteractionManager.runAfterInteractions(() => {
-                // If we automatically focus on a text input when mounting a component,
-                // let's automatically focus on it when the component updates as well (eg, when navigating back from a page)
-                this.textInput.focus();
-            });
-        }
-
         if (_.isEqual(this.props.sections, prevProps.sections)) {
             return;
         }
@@ -343,7 +335,7 @@ class BaseOptionsSelector extends Component {
                 selectTextOnFocus
                 blurOnSubmit={Boolean(this.state.allOptions.length)}
                 spellCheck={false}
-                autoFocus={this.props.autoFocus}
+                autoFocus={this.props.isFocused && this.props.autoFocus}
                 shouldDelayFocus={this.props.shouldDelayFocus}
             />
         );
