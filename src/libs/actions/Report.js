@@ -2047,7 +2047,8 @@ function getReportPrivateNote(reportID) {
  * Checks if there are any errors in the private notes for a given report
  * 
  * @param {Object} report
- **/
+ * @returns {Boolean} Returns true if there are errors in any of the private notes on the report
+ */
 function hasErrorInPrivateNotes(report) {
     const privateNotes = lodashGet(report, 'privateNotes', {}); 
     return _.some(privateNotes, (privateNote) => !_.isEmpty(privateNote.errors));
@@ -2058,7 +2059,7 @@ function hasErrorInPrivateNotes(report) {
  * 
  * @param {String} reportID
  * @param {Number} accountID
- **/
+ */
 function clearPrivateNotesError(reportID, accountID) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {privateNotes: {[accountID]: {errors: null}}}); 
 }

@@ -135,7 +135,7 @@ function ReportDetailsPage(props) {
         }
 
         return items;
-    }, [props.report.reportID, participants, isArchivedRoom, shouldDisableSettings, isThread, isUserCreatedPolicyRoom, canLeaveRoom]);
+    }, [props.report, participants, isArchivedRoom, shouldDisableSettings, isThread, isUserCreatedPolicyRoom, canLeaveRoom]);
 
     const displayNamesWithTooltips = useMemo(() => {
         const hasMultipleParticipants = participants.length > 1;
@@ -188,7 +188,6 @@ function ReportDetailsPage(props) {
                         </View>
                     </View>
                     {_.map(menuItems, (item) => {
-                        console.log(item)
                         const brickRoadIndicator =
                             ReportUtils.hasReportNameError(props.report) && item.key === CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
                         return (

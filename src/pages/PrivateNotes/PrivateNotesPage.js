@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { View, Keyboard } from 'react-native';
 import { withOnyx } from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
+import _ from 'underscore';
 import withLocalize from '../../components/withLocalize';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
@@ -23,7 +25,6 @@ import RenderHTML from '../../components/RenderHTML';
 import PressableWithoutFeedback from '../../components/Pressable/PressableWithoutFeedback';
 import * as Report from '../../libs/actions/Report';
 import useLocalize from '../../hooks/useLocalize';
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 
 const propTypes = {
@@ -46,9 +47,6 @@ const propTypes = {
         /** Currently logged in user accountID */
         accountID: PropTypes.number,
     }),
-
-    /** Returns translated string for given locale and phrase */
-    translate: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
@@ -59,7 +57,7 @@ const defaultProps = {
     personalDetailsList: {},
 };
 
-const PrivateNotesPage = ({ route, personalDetailsList, session, report }) => {
+function PrivateNotesPage({ route, personalDetailsList, session, report }) {
     const { translate } = useLocalize();
     const [privateNote, setPrivateNote] = useState(
         lodashGet(report, `privateNotes.${route.params.accountID}.note`, ''),
@@ -175,6 +173,7 @@ const PrivateNotesPage = ({ route, personalDetailsList, session, report }) => {
     );
 };
 
+PrivateNotesPage.displayName = 'PrivateNotesPage';
 PrivateNotesPage.propTypes = propTypes;
 PrivateNotesPage.defaultProps = defaultProps;
 
