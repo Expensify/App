@@ -5,6 +5,7 @@ import lodashGet from 'lodash/get';
 import {View} from 'react-native';
 import styles from '../../../../styles/styles';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
+import * as Browser from '../../../../libs/Browser';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../ROUTES';
 import NAVIGATORS from '../../../../NAVIGATORS';
@@ -157,7 +158,7 @@ function FloatingActionButtonAndPopover(props) {
         if (currentRoute && ![NAVIGATORS.CENTRAL_PANE_NAVIGATOR, SCREENS.HOME].includes(currentRoute.name)) {
             return;
         }
-        if (!props.showDownloadAppBanner) {
+        if (!props.showDownloadAppBanner || !Browser.isMobile()) {
             Welcome.show({routes, showCreateMenu});
         }
     });
