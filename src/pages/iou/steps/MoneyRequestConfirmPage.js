@@ -55,6 +55,7 @@ const propTypes = {
         currency: PropTypes.string,
         merchant: PropTypes.string,
 
+        /** Selected category of the request */
         category: PropTypes.string,
 
         /** List of the participants */
