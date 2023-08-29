@@ -35,11 +35,11 @@ const propTypes = {
 
 const [shouldRequestPassword, setShouldRequestPassword] = useState(false);
 const [shouldAttemptPDFLoad, setShouldAttemptPDFLoad] = useState(true);
-const [shouldShowLoadingIndicator, setShouldShowLoadingIndicator] = useState(true),
-const [isPasswordInvalid, setIsPasswordInvalid] = useState(false),
-const [failedToLoadPDF, setFailedToLoadPDF] = useState(false),
-const [successToLoadPDF, setSuccessToLoadPDF] = useState(false),
-const [password, setPassword] = useState(''),
+const [shouldShowLoadingIndicator, setShouldShowLoadingIndicator] = useState(true);
+const [isPasswordInvalid, setIsPasswordInvalid] = useState(false);
+const [failedToLoadPDF, setFailedToLoadPDF] = useState(false);
+const [successToLoadPDF, setSuccessToLoadPDF] = useState(false);
+const [password, setPassword] = useState('');
 
 function PDFView(props) {
 
@@ -166,7 +166,6 @@ function PDFView(props) {
         renderPDFView()
     );
 }
-
 PDFView.propTypes = propTypes;
 PDFView.defaultProps = defaultProps;
 
