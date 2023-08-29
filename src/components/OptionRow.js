@@ -77,7 +77,7 @@ const defaultProps = {
     showSelectedState: false,
     shouldShowSelectedStateAsButton: false,
     selectedStateButtonText: 'Select',
-    onSelectedStatePressed: undefined,
+    onSelectedStatePressed: () => {},
     isSelected: false,
     boldStyle: false,
     showTitleTooltip: false,
