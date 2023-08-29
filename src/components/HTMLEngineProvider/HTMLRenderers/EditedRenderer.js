@@ -31,7 +31,6 @@ function EditedRenderer(props) {
                 color={themeColors.textSupporting}
                 style={[editedLabelStyles, isPendingDelete && styles.offlineFeedback.deleted]}
             >
-                {/* Native devices do not support margin between nested text */}
                 {props.translate('reportActionCompose.edited')}
             </Text>
         </Text>
