@@ -2955,7 +2955,7 @@ const styles = {
         },
         textContainer: {
             flexDirection: 'column',
-            flex: 1,
+            // flex: 1,
         },
         text: {
             color: themeColors.textSupporting,
