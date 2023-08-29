@@ -542,10 +542,10 @@ function createDistanceRequest(report, payeeEmail, payeeAccountID, participant, 
  * 
  */
 function editDistanceRequest(transactionID, transactionThreadReportID, transactionChanges) {
-    const pendingFields = _.mapObject(updatedProperties, () => CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
-    const clearedPendingFields = _.mapObject(updatedProperties, () => null);
+    const pendingFields = _.mapObject(transactionChanges, () => CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+    const clearedPendingFields = _.mapObject(transactionChanges, () => null);
     const errorFields = _.mapObject(pendingFields, () => ({
-        [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.edit.genericError'),
+        [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericEditFailureMessage'),
     }));
 
     const transactionThread = allReports[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`];
@@ -553,27 +553,30 @@ function editDistanceRequest(transactionID, transactionThreadReportID, transacti
     const iouReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${transactionThread.parentReportID}`];
     const isFromExpenseReport = ReportUtils.isExpenseReport(iouReport);
     const updatedTransaction = TransactionUtils.getUpdatedTransaction(transaction, transactionChanges, isFromExpenseReport);
+    const transactionDetails = ReportUtils.getTransactionDetails(updatedTransaction);
+    transactionDetails.waypoints = JSON.stringify(transactionDetails.waypoints);
+
     API.write(
         'EditDistanceRequest',
-        {transactionID, ...ReportUtils.getTransactionDetails(updatedTransaction)},
+        {transactionID, ...transactionDetails},
         {
             optimisticData: [
                 {
-                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-                    value: {...updatedProperties, pendingFields},
+                    value: {pendingFields},
                 },
             ],
             successData: [
                 {
-                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                     value: {pendingFields: clearedPendingFields},
                 },
             ],
             failureData: [
                 {
-                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                     value: {
                         pendingFields: clearedPendingFields,

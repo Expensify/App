@@ -1259,7 +1259,8 @@ function getReport(reportID) {
 }
 
 /**
- * Gets transaction created, amount, currency and comment
+ * Gets transaction created, amount, currency, comment, and waypoints (for distance request)
+ * into a flat object. Used for displaying transactions and sending them in API commands
  *
  * @param {Object} transaction
  * @returns {Object}
