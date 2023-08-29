@@ -138,7 +138,7 @@ function ReportActionsView(props) {
      */
     const loadMoreChats = () => {
         // Only fetch more if we are not already fetching so that we don't initiate duplicate requests.
-        if (props.report.isLoadingMoreReportActions) {
+        if (props.report.isLoadingOlderReportActions) {
             return;
         }
 
@@ -150,7 +150,7 @@ function ReportActionsView(props) {
         }
 
         // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments
-        Report.readOldestAction(reportID, oldestReportAction.reportActionID);
+        Report.getOlderAction(reportID, oldestReportAction.reportActionID);
     };
 
     /**
@@ -185,7 +185,7 @@ function ReportActionsView(props) {
                 onLayout={recordTimeToMeasureItemLayout}
                 sortedReportActions={props.reportActions}
                 mostRecentIOUReportActionID={mostRecentIOUReportActionID.current}
-                isLoadingMoreReportActions={props.report.isLoadingMoreReportActions}
+                isLoadingMoreReportActions={props.report.isLoadingOlderReportActions}
                 loadMoreChats={loadMoreChats}
                 policy={props.policy}
             />
@@ -215,7 +215,7 @@ function arePropsEqual(oldProps, newProps) {
         return false;
     }
 
-    if (oldProps.report.isLoadingMoreReportActions !== newProps.report.isLoadingMoreReportActions) {
+    if (oldProps.report.isLoadingOlderReportActions !== newProps.report.isLoadingOlderReportActions) {
         return false;
     }
 
