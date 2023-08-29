@@ -11,7 +11,6 @@ import ConfirmModal from './ConfirmModal';
 import useLocalize from '../hooks/useLocalize';
 import ReceiptActions from '../libs/actions/Receipt';
 import * as ReportActionsUtils from '../libs/ReportActionsUtils';
-import _ from 'lodash';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -21,10 +20,6 @@ const propTypes = {
     }).isRequired,
 
     ...windowDimensionsPropTypes,
-};
-
-const defaultProps = {
-    parentReport: {},
 };
 
 function ReceiptAttachmentHeader(props) {
@@ -39,7 +34,7 @@ function ReceiptAttachmentHeader(props) {
         // Detatch receipt & clear modal open state
         ReceiptActions.detachReceipt(transactionID);
         setIsDeleteModalVisible(false);
-    }, [props.receiptTransactions, setIsDeleteModalVisible]);
+    }, [props.report, setIsDeleteModalVisible]);
 
     return (
         <>
@@ -60,7 +55,6 @@ function ReceiptAttachmentHeader(props) {
                     ]}
                     threeDotsAnchorPosition={styles.threeDotsPopoverOffset(props.windowWidth, true)}
                     outerThreeDotsMenuStyle={styles.receiptAttachmentHeaderThreeDotsMenuStyles}
-                    shouldShowBackButton={props.isSmallScreenWidth}
                     onBackButtonPress={props.onBackButtonPress}
                     onCloseButtonPress={props.onCloseButtonPress}
                 />
@@ -83,6 +77,4 @@ ReceiptAttachmentHeader.displayName = 'ReceiptAttachmentHeader';
 ReceiptAttachmentHeader.propTypes = propTypes;
 ReceiptAttachmentHeader.defaultProps = defaultProps;
 
-export default compose(
-    withWindowDimensions,
-)(ReceiptAttachmentHeader);
+export default withWindowDimensions(ReceiptAttachmentHeader);
