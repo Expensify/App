@@ -46,12 +46,18 @@ const getIcon = (route) => {
 
 const getTitle = (route, translate) => {
     switch (route) {
+        case CONST.TAB.MANUAL:
+            return translate('tabSelector.manual');
         case CONST.TAB.SCAN:
             return translate('tabSelector.scan');
+        case CONST.TAB.NEW_CHAT:
+            return translate('tabSelector.chat');
+        case CONST.TAB.NEW_ROOM:
+            return translate('tabSelector.room');
         case CONST.TAB.DISTANCE:
             return translate('common.distance');
         default:
-            return translate('tabSelector.manual');
+            throw new Error(`Route ${route} has no title set.`);
     }
 };
 
