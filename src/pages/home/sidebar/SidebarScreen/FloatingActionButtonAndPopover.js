@@ -61,6 +61,9 @@ const propTypes = {
     /** Indicated whether the report data is loading */
     isLoading: PropTypes.bool,
 
+    /** For first time users, whether the download app banner should show */
+    showDownloadAppBanner: PropTypes.bool,
+
     /** Forwarded ref to FloatingActionButtonAndPopover */
     innerRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
 };
@@ -71,6 +74,7 @@ const defaultProps = {
     betas: [],
     isLoading: false,
     innerRef: null,
+    showDownloadAppBanner: true,
 };
 
 /**
@@ -85,6 +89,8 @@ function FloatingActionButtonAndPopover(props) {
     const anchorRef = useRef(null);
 
     const prevIsFocused = usePrevious(props.isFocused);
+
+    console.log({showDownloadAppBanner: props.showDownloadAppBanner});
 
     /**
      * Check if LHN status changed from active to inactive.
@@ -146,19 +152,17 @@ function FloatingActionButtonAndPopover(props) {
         }
     };
 
-    useEffect(
-        () => {
-            const navigationState = props.navigation.getState();
-            const routes = lodashGet(navigationState, 'routes', []);
-            const currentRoute = routes[navigationState.index];
-            if (currentRoute && ![NAVIGATORS.CENTRAL_PANE_NAVIGATOR, SCREENS.HOME].includes(currentRoute.name)) {
-                return;
-            }
+    useEffect(() => {
+        const navigationState = props.navigation.getState();
+        const routes = lodashGet(navigationState, 'routes', []);
+        const currentRoute = routes[navigationState.index];
+        if (currentRoute && ![NAVIGATORS.CENTRAL_PANE_NAVIGATOR, SCREENS.HOME].includes(currentRoute.name)) {
+            return;
+        }
+        if (!props.showDownloadAppBanner) {
             Welcome.show({routes, showCreateMenu});
-        },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [],
-    );
+        }
+    });
 
     useEffect(() => {
         if (!didScreenBecomeInactive()) {
@@ -285,6 +289,9 @@ export default compose(
         },
         isLoading: {
             key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+        },
+        showDownloadAppBanner: {
+            key: ONYXKEYS.SHOW_DOWNLOAD_APP_BANNER,
         },
     }),
 )(
