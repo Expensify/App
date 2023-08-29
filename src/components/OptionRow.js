@@ -104,6 +104,7 @@ class OptionRow extends Component {
             this.props.isDisabled !== nextProps.isDisabled ||
             this.props.isSelected !== nextProps.isSelected ||
             this.props.shouldHaveOptionSeparator !== nextProps.shouldHaveOptionSeparator ||
+            this.props.selectedStateButtonText !== nextProps.selectedStateButtonText ||
             this.props.showSelectedState !== nextProps.showSelectedState ||
             this.props.showTitleTooltip !== nextProps.showTitleTooltip ||
             !_.isEqual(this.props.option.icons, nextProps.option.icons) ||

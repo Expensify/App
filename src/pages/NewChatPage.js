@@ -42,6 +42,7 @@ const defaultProps = {
 const excludedGroupEmails = _.without(CONST.EXPENSIFY_EMAILS, CONST.EMAIL.CONCIERGE);
 
 function NewChatPage(props) {
+    const {translate} = props;
     const [searchTerm, setSearchTerm] = useState('');
     const [filteredRecentReports, setFilteredRecentReports] = useState([]);
     const [filteredPersonalDetails, setFilteredPersonalDetails] = useState([]);
@@ -74,7 +75,7 @@ function NewChatPage(props) {
         }
 
         sectionsList.push({
-            title: props.translate('common.recents'),
+            title: translate('common.recents'),
             data: filteredRecentReports,
             shouldShow: !_.isEmpty(filteredRecentReports),
             indexOffset,
@@ -82,7 +83,7 @@ function NewChatPage(props) {
         indexOffset += filteredRecentReports.length;
 
         sectionsList.push({
-            title: props.translate('common.contacts'),
+            title: translate('common.contacts'),
             data: filteredPersonalDetails,
             shouldShow: !_.isEmpty(filteredPersonalDetails),
             indexOffset,
@@ -99,8 +100,7 @@ function NewChatPage(props) {
         }
 
         return sectionsList;
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [filteredPersonalDetails, filteredRecentReports, filteredUserToInvite, maxParticipantsReached, selectedOptions]);
+    }, [translate, filteredPersonalDetails, filteredRecentReports, filteredUserToInvite, maxParticipantsReached, selectedOptions]);
 
     /**
      * Removes a selected option from list if already selected. If not already selected add this option to the list.
