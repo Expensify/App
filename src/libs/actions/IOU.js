@@ -85,6 +85,7 @@ function resetMoneyRequestInfo(id = '') {
         created,
         receiptPath: '',
         receiptSource: '',
+        transactionID: '',
     });
 }
 
@@ -332,7 +333,19 @@ function buildOnyxDataForMoneyRequest(
  * @returns {Object} data.onyxData.failureData
  * @param {String} [existingTransactionID]
  */
-function getMoneyRequestInformation(report, participant, comment, amount, currency, created, merchant, payeeAccountID = userAccountID, payeeEmail = currentUserEmail, receipt = undefined, existingTransactionID = null) {
+function getMoneyRequestInformation(
+    report,
+    participant,
+    comment,
+    amount,
+    currency,
+    created,
+    merchant,
+    payeeAccountID = userAccountID,
+    payeeEmail = currentUserEmail,
+    receipt = undefined,
+    existingTransactionID = null,
+) {
     const payerEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login);
     const payerAccountID = Number(participant.accountID);
     const isPolicyExpenseChat = participant.isPolicyExpenseChat;
@@ -522,6 +535,7 @@ function createDistanceRequest(report, participant, comment, created, transactio
         },
         onyxData,
     );
+    resetMoneyRequestInfo();
 }
 
 /**
