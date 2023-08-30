@@ -155,16 +155,6 @@ function getTransaction(transactionID) {
 }
 
 /**
- * Given a report, looks up the transaction associated with its parent report action
- * @param {Object} report 
- */
-function getParentTransaction(report) {
-    const parentReportAction = ReportActionsUtils.getParentReportAction(report);
-    const transactionID = lodashGet(parentReportAction, ['originalMessage', 'IOUTransactionID'], 0);
-    return getTransaction(transactionID);
-}
-
-/**
  * Return the comment field (referred to as description in the App) from the transaction.
  * The comment does not have its modifiedComment counterpart.
  *
@@ -324,7 +314,6 @@ export {
     buildOptimisticTransaction,
     getUpdatedTransaction,
     getTransaction,
-    getParentTransaction,
     getDescription,
     getAmount,
     getCurrency,
