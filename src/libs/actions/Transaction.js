@@ -93,6 +93,7 @@ function saveWaypoint(transactionID, index, waypoint) {
             },
         },
     });
+    if (!waypoint) return;
     const recentWaypointAlreadyExists = _.find(recentWaypoints, (recentWaypoint) => recentWaypoint.address === waypoint.address);
     if (!recentWaypointAlreadyExists) {
         const clonedWaypoints = _.clone(recentWaypoints);
