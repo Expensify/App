@@ -12,6 +12,9 @@ const propTypes = {
     /** Override the green headline copy */
     customHeadline: PropTypes.string,
 
+    /** Override the smaller hero body copy below the headline */
+    customHeroBody: PropTypes.string,
+
     ...windowDimensionsPropTypes,
 };
 
@@ -33,7 +36,7 @@ function SignInPageHero(props) {
         >
             <View style={[styles.flex1, styles.alignSelfCenter, styles.gap7]}>
                 <SignInHeroImage />
-                <SignInHeroCopy customHeadline={props.customHeadline} />
+                <SignInHeroCopy customHeadline={props.customHeadline} customHeroBody={props.customHeroBody} />
             </View>
         </View>
     );
