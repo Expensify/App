@@ -20,6 +20,7 @@ const propTypes = {
 
 const defaultProps = {
     customHeadline: '',
+    customHeroBody: '',
 };
 
 function SignInPageHero(props) {
@@ -36,7 +37,10 @@ function SignInPageHero(props) {
         >
             <View style={[styles.flex1, styles.alignSelfCenter, styles.gap7]}>
                 <SignInHeroImage />
-                <SignInHeroCopy customHeadline={props.customHeadline} customHeroBody={props.customHeroBody} />
+                <SignInHeroCopy
+                    customHeadline={props.customHeadline}
+                    customHeroBody={props.customHeroBody}
+                />
             </View>
         </View>
     );

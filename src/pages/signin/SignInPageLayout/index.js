@@ -43,7 +43,7 @@ const propTypes = {
 
     /** Override the green headline copy */
     customHeadline: PropTypes.string,
-    
+
     /** Override the smaller hero body copy below the headline */
     customHeroBody: PropTypes.string,
 
@@ -54,6 +54,7 @@ const propTypes = {
 const defaultProps = {
     innerRef: () => {},
     customHeadline: '',
+    customHeroBody: '',
 };
 
 function SignInPageLayout(props) {
@@ -136,7 +137,10 @@ function SignInPageLayout(props) {
                                         props.isLargeScreenWidth ? styles.ph25 : {},
                                     ]}
                                 >
-                                    <SignInPageHero customHeadline={props.customHeadline} customHeroBody={props.customHeroBody} />
+                                    <SignInPageHero
+                                        customHeadline={props.customHeadline}
+                                        customHeroBody={props.customHeroBody}
+                                    />
                                     <Footer scrollPageToTop={scrollPageToTop} />
                                 </View>
                             </View>

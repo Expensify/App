@@ -81,7 +81,7 @@ function runDemoByURL(url = '') {
 
 /**
  * @param {Object} demoInfo
- * @returns Object
+ * @returns {Object}
  */
 function getCustomTextForDemo(demoInfo = {}) {
     if (lodashGet(demoInfo, 'saastr.isBeginningDemo')) {
