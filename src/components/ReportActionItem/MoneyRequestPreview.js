@@ -27,6 +27,8 @@ import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import * as IOUUtils from '../../libs/IOUUtils';
 import * as ReportUtils from '../../libs/ReportUtils';
 import * as TransactionUtils from '../../libs/TransactionUtils';
+import * as StyleUtils from '../../styles/StyleUtils';
+import getButtonState from '../../libs/getButtonState';
 import refPropTypes from '../refPropTypes';
 import PressableWithFeedback from '../Pressable/PressableWithoutFeedback';
 import * as ReceiptUtils from '../../libs/ReceiptUtils';
@@ -188,7 +190,9 @@ function MoneyRequestPreview(props) {
         }
 
         let message = props.translate('iou.cash');
-        if (props.iouReport.isWaitingOnBankAccount) {
+        if (ReportUtils.isControlPolicyExpenseReport(props.iouReport) && ReportUtils.isReportApproved(props.iouReport) && !ReportUtils.isSettled(props.iouReport)) {
+            message += ` • ${props.translate('iou.approved')}`;
+        } else if (props.iouReport.isWaitingOnBankAccount) {
             message += ` • ${props.translate('iou.pending')}`;
         } else if (ReportUtils.isSettled(props.iouReport.reportID)) {
             message += ` • ${props.translate('iou.settledExpensify')}`;
@@ -242,7 +246,10 @@ function MoneyRequestPreview(props) {
                                     </>
                                 )}
                             </View>
-                            <Icon src={Expensicons.ArrowRight} />
+                            <Icon
+                                fill={StyleUtils.getIconFillColor(getButtonState(props.isHovered))}
+                                src={Expensicons.ArrowRight}
+                            />
                         </View>
                         <View style={[styles.flexRow]}>
                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
@@ -270,7 +277,7 @@ function MoneyRequestPreview(props) {
                         </View>
                         {!props.isBillSplit && !_.isEmpty(requestMerchant) && (
                             <View style={[styles.flexRow]}>
-                                <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh16]}>{requestMerchant}</Text>
+                                <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh16, styles.breakWord]}>{requestMerchant}</Text>
                             </View>
                         )}
                         <View style={[styles.flexRow]}>

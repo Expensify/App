@@ -20,9 +20,9 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../../components/withCurrentUserPersonalDetails';
 import reportPropTypes from '../../reportPropTypes';
 import personalDetailsPropType from '../../personalDetailsPropType';
-import participantPropTypes from '../../../components/participantPropTypes';
 import * as FileUtils from '../../../libs/fileDownload/FileUtils';
 import * as Policy from '../../../libs/actions/Policy';
+import {iouPropTypes, iouDefaultProps} from '../propTypes';
 
 const propTypes = {
     /** React Navigation route */
@@ -40,25 +40,7 @@ const propTypes = {
     report: reportPropTypes,
 
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
-    iou: PropTypes.shape({
-        /** ID (iouType + reportID) of the request */
-        id: PropTypes.string,
-
-        /** Amount of the request */
-        amount: PropTypes.number,
-
-        /** Description of the request */
-        comment: PropTypes.string,
-        created: PropTypes.string,
-
-        /** Currency of the request */
-        currency: PropTypes.string,
-        merchant: PropTypes.string,
-
-        /** List of the participants */
-        participants: PropTypes.arrayOf(participantPropTypes),
-        receiptPath: PropTypes.string,
-    }),
+    iou: iouPropTypes,
 
     /** Personal details of all users */
     personalDetails: personalDetailsPropType,
@@ -69,15 +51,7 @@ const propTypes = {
 const defaultProps = {
     report: {},
     personalDetails: {},
-    iou: {
-        id: '',
-        amount: 0,
-        currency: CONST.CURRENCY.USD,
-        comment: '',
-        merchant: '',
-        created: '',
-        participants: [],
-    },
+    iou: iouDefaultProps,
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 

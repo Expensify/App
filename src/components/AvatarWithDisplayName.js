@@ -28,8 +28,8 @@ const propTypes = {
     /** The report currently being looked at */
     report: reportPropTypes,
 
-    /** The policies which the user has access to and which the report could be tied to */
-    policies: PropTypes.shape({
+    /** The policy which the user has access to and which the report is tied to */
+    policy: PropTypes.shape({
         /** Name of the policy */
         name: PropTypes.string,
     }),
@@ -49,7 +49,7 @@ const propTypes = {
 
 const defaultProps = {
     personalDetails: {},
-    policies: {},
+    policy: {},
     report: {},
     isAnonymous: false,
     size: CONST.AVATAR_SIZE.DEFAULT,
@@ -85,7 +85,7 @@ function AvatarWithDisplayName(props) {
     const subtitle = ReportUtils.getChatRoomSubtitle(props.report);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(props.report);
     const isMoneyRequestOrReport = ReportUtils.isMoneyRequestReport(props.report) || ReportUtils.isMoneyRequest(props.report);
-    const icons = ReportUtils.getIcons(props.report, props.personalDetails, props.policies, true);
+    const icons = ReportUtils.getIcons(props.report, props.personalDetails, props.policy, true);
     const ownerPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs([props.report.ownerAccountID], props.personalDetails);
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(_.values(ownerPersonalDetails), false);
     const shouldShowSubscriptAvatar = ReportUtils.shouldReportShowSubscript(props.report);

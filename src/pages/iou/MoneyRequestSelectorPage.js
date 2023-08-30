@@ -19,7 +19,6 @@ import DistanceRequestPage from './DistanceRequestPage';
 import DragAndDropProvider from '../../components/DragAndDrop/Provider';
 import usePermissions from '../../hooks/usePermissions';
 import OnyxTabNavigator, {TopTab} from '../../libs/Navigation/OnyxTabNavigator';
-import participantPropTypes from '../../components/participantPropTypes';
 import NewRequestAmountPage from './steps/NewRequestAmountPage';
 import reportPropTypes from '../reportPropTypes';
 
@@ -51,19 +50,14 @@ const propTypes = {
         participants: PropTypes.arrayOf(participantPropTypes),
     }),
 
+    /** Report on which the money request is being created */
     report: reportPropTypes,
-
+      
     /** Which tab has been selected */
     selectedTab: PropTypes.string,
 };
 
 const defaultProps = {
-    iou: {
-        id: '',
-        amount: 0,
-        currency: CONST.CURRENCY.USD,
-        participants: [],
-    },
     selectedTab: CONST.TAB.MANUAL,
     report: {},
 };
