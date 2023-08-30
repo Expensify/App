@@ -34,7 +34,7 @@ const propTypes = {
     /** The ID of the most recent IOU report action connected with the shown report */
     mostRecentIOUReportActionID: PropTypes.string,
 
-    /** The report metada loading states */
+    /** The report metadata loading states */
     isLoadingReportActions: PropTypes.bool,
 
     /** Are we loading more report actions? */
