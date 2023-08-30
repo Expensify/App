@@ -79,7 +79,7 @@ function getCommitHistoryAsJSON(fromTag, toTag) {
  * Parse merged PRs, excluding those from irrelevant branches.
  *
  * @param {Array<Object<{commit: String, subject: String, authorName: String}>>} commits
- * @returns {Array<String>}
+ * @returns {Array<Number>}
  */
 function getValidMergedPRs(commits) {
     const mergedPRs = new Set();
@@ -102,7 +102,7 @@ function getValidMergedPRs(commits) {
             return;
         }
 
-        mergedPRs.add(pr);
+        mergedPRs.add(Number.parseInt(pr, 10));
     });
 
     return Array.from(mergedPRs);
@@ -122,7 +122,7 @@ function getPullRequestsMergedBetween(fromTag, toTag) {
         // Find which commit messages correspond to merged PR's
         const pullRequestNumbers = getValidMergedPRs(commitList);
         console.log(`List of pull requests merged between ${fromTag} and ${toTag}`, pullRequestNumbers);
-        return _.map(pullRequestNumbers, (num) => Number.parseInt(num, 10));
+        return pullRequestNumbers;
     });
 }
 

@@ -316,7 +316,7 @@ function getValidMergedPRs(commits) {
             return;
         }
 
-        mergedPRs.add(pr);
+        mergedPRs.add(Number.parseInt(pr, 10));
     });
 
     return Array.from(mergedPRs);
@@ -336,7 +336,7 @@ function getPullRequestsMergedBetween(fromTag, toTag) {
         // Find which commit messages correspond to merged PR's
         const pullRequestNumbers = getValidMergedPRs(commitList);
         console.log(`List of pull requests merged between ${fromTag} and ${toTag}`, pullRequestNumbers);
-        return _.map(pullRequestNumbers, (num) => Number.parseInt(num, 10));
+        return pullRequestNumbers;
     });
 }
 
