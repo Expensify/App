@@ -36,9 +36,6 @@ const propTypes = {
         }),
     }).isRequired,
 
-    /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
-    iou: iouPropTypes,
-
     /** Report on which the money request is being created */
     report: reportPropTypes,
 
@@ -48,7 +45,6 @@ const propTypes = {
 
 const defaultProps = {
     selectedTab: CONST.TAB.MANUAL,
-    iou: {},
     report: {},
 };
 

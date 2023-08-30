@@ -23,7 +23,6 @@ import useLocalize from '../hooks/useLocalize';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import * as IOU from '../libs/actions/IOU';
-import participantPropTypes from './participantPropTypes';
 import reportPropTypes from '../pages/reportPropTypes';
 import transactionPropTypes from './transactionPropTypes';
 import DotIndicatorMessage from './DotIndicatorMessage';

@@ -8,6 +8,7 @@ import DistanceRequest from '../../components/DistanceRequest';
 import reportPropTypes from '../reportPropTypes';
 import CONST from '../../CONST';
 import {iouPropTypes} from './propTypes';
+import _ from 'underscore';
 
 const propTypes = {
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
