@@ -38,6 +38,17 @@ const getIcon = (route) => {
     }
 };
 
+const getTitle = (route, translate) => {
+    switch (route) {
+        case CONST.TAB.SCAN:
+            return translate('tabSelector.scan');
+        case CONST.TAB.DISTANCE:
+            return translate('common.distance');
+        default:
+            return translate('tabSelector.manual');
+    }
+};
+
 function TabSelector({state, navigation, onTabPress}) {
     const {translate} = useLocalize();
     return (
@@ -64,7 +75,7 @@ function TabSelector({state, navigation, onTabPress}) {
                     <TabSelectorItem
                         isSelected={isFocused}
                         key={route.name}
-                        title={translate(`tabSelector.${route.name}`)}
+                        title={getTitle(route.name, translate)}
                         icon={getIcon(route.name)}
                         onPress={onPress}
                     />
