@@ -77,6 +77,8 @@ async function run() {
                 repo: CONST.APP_REPO,
                 labels: CONST.LABELS.DEPLOY_BLOCKER,
             });
+
+            // First, make sure we include all current deploy blockers
             const deployBlockers = _.reduce(
                 openDeployBlockers,
                 (memo, deployBlocker) => {
@@ -92,6 +94,15 @@ async function run() {
                 },
                 [],
             );
+
+            // Then make sure we include any demoted or closed blockers as well, and just check them off automatically
+            for (const deployBlocker of currentChecklistData.deployBlockers) {
+                const isResolved = _.findIndex(deployBlockers, (openBlocker) => openBlocker.number === deployBlocker.number) < 0;
+                deployBlockers.push({
+                    ...deployBlocker,
+                    isResolved,
+                });
+            }
 
             const didVersionChange = newVersion ? newVersion !== currentChecklistData.tag : false;
             checklistBody = await GithubUtils.generateStagingDeployCashBody(
