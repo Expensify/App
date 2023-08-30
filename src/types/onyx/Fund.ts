@@ -20,7 +20,7 @@ type AccountData = {
     fundID?: number;
 };
 
-type Card = {
+type Fund = {
     accountData?: AccountData;
     accountType?: string;
     description?: string;
@@ -29,4 +29,4 @@ type Card = {
     title?: string;
 };
 
-export default Card;
+export default Fund;
