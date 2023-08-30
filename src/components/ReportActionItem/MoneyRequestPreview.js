@@ -133,11 +133,11 @@ const defaultProps = {
 };
 
 function MoneyRequestPreview(props) {
+    const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
+
     if (_.isEmpty(props.iouReport) && !props.isBillSplit) {
         return null;
     }
-
-    const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
 
     const sessionAccountID = lodashGet(props.session, 'accountID', null);
     const managerID = props.iouReport.managerID || '';
