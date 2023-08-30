@@ -249,16 +249,14 @@ function DistanceRequest({transactionID, report, mapboxAccessToken, isEditingReq
                     </View>
                 )}
             </View>
-            {isEditingRequest && (
-                <Button
-                    success
-                    style={[styles.w100, styles.mb4, styles.ph4, styles.flexShrink0]}
-                    onPress={() => onSubmit(waypoints)}
-                    pressOnEnter
-                    isDisabled={waypointMarkers.length < 2}
-                    text={translate(isEditingRequest ? 'common.save' : 'common.next')}
-                />
-            )}
+            <Button
+                success
+                style={[styles.w100, styles.mb4, styles.ph4, styles.flexShrink0]}
+                onPress={() => onSubmit(waypoints)}
+                pressOnEnter
+                isDisabled={waypointMarkers.length < 2}
+                text={translate(isEditingRequest ? 'common.save' : 'common.next')}
+            />
         </>
     );
 }
