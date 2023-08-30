@@ -45,6 +45,9 @@ const propTypes = {
         params: PropTypes.shape({
             /** The ID of the report this screen should display */
             reportID: PropTypes.string,
+
+            /** The reportActionID to scroll to */
+            reportActionID: PropTypes.string,
         }).isRequired,
     }).isRequired,
 
@@ -169,7 +172,7 @@ function ReportScreen({
         headerView = (
             <MoneyRequestHeader
                 report={report}
-                policies={policies}
+                policy={policy}
                 personalDetails={personalDetails}
                 isSingleTransactionView={isSingleTransactionView}
                 parentReportAction={parentReportAction}
@@ -181,7 +184,7 @@ function ReportScreen({
         headerView = (
             <MoneyReportHeader
                 report={report}
-                policies={policies}
+                policy={policy}
                 personalDetails={personalDetails}
                 isSingleTransactionView={isSingleTransactionView}
                 parentReportAction={parentReportAction}
