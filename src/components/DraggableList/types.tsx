@@ -14,6 +14,7 @@ type DraggableListProps<T extends DefaultItemProps> = {
     onPlaceholderIndexChange?: ((placeholderIndex: number) => void);
     renderClone?: DraggableChildrenFn;
     shouldUsePortal?: boolean;
+    onContentSizeChange?: ((w: number, h: number) => void) | undefined;
 };
 
 type RenderItemParams<T> = OriginalRenderItemParams<T>;

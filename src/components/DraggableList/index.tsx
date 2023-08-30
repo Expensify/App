@@ -31,6 +31,7 @@ export default function DraggableList<T extends DefaultItemProps>({
     onPlaceholderIndexChange,
     renderClone,
     shouldUsePortal = false,
+    onContentSizeChange,
 }: DraggableListProps<T>) {
     const onDragEnd: OnDragEndResponder = useCallback(
         (result) => {
@@ -73,7 +74,7 @@ export default function DraggableList<T extends DefaultItemProps>({
             >
                 {(droppableProvided) => (
                     // We use ScrollView to match the native behavior of FlatList
-                    <ScrollView>
+                    <ScrollView onContentSizeChange={onContentSizeChange}>
                         {/* We can't use the react-native View here, because it doesn't support all props */}
                         <div
                             // eslint-disable-next-line react/jsx-props-no-spreading

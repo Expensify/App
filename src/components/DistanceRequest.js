@@ -61,8 +61,6 @@ const defaultProps = {
 function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
     const [shouldShowGradient, setShouldShowGradient] = useState(false);
     const [scrollContainerHeight, setScrollContainerHeight] = useState(0);
-    // TODO: Verify setScrollContentHeight is needed
-    // eslint-disable-next-line no-unused-vars
     const [scrollContentHeight, setScrollContentHeight] = useState(0);
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
@@ -152,6 +150,7 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
                     data={waypointsList}
                     keyExtractor={(item) => item}
                     shouldUsePortal
+                    onContentSizeChange={(width, height) => setScrollContentHeight(height)}
                     onDragEnd={({data}) => {
                         const newWaypoints = {};
                         _.each(data, (waypoint, index) => {
