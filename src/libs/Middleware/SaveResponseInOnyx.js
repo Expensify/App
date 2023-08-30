@@ -28,9 +28,9 @@ function SaveResponseInOnyx(response, request) {
         // Supports both the old format and the new format
         const onyxUpdates = _.isArray(responseData) ? responseData : responseData.onyxData;
 
-        // Sometimes we call requests that are successfull but they don't have any response. Let's return early since
+        // Sometimes we call requests that are successfull but they don't have any response or any success/failure data to set. Let's return early since
         // we don't need to store anything here.
-        if (!onyxUpdates) {
+        if (!onyxUpdates && !request.successData && !request.failureData) {
             return;
         }
 
