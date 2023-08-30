@@ -3673,15 +3673,14 @@ const styles = {
         height: 450,
     },
 
-    tabSelectorButton: (isSelected) => ({
+    tabSelectorButton: {
         height: 40,
         padding: 12,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         borderRadius: variables.buttonBorderRadius,
-        backgroundColor: isSelected ? themeColors.midtone : themeColors.appBG,
-    }),
+    },
 
     tabSelector: {
         flexDirection: 'row',
