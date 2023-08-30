@@ -19,7 +19,7 @@ type ColorsValues = ValueOf<typeof colors>;
 type AvatarSizesValues = ValueOf<typeof CONST.AVATAR_SIZE>;
 type ButtonSizesValues = ValueOf<typeof CONST.DROPDOWN_BUTTON_SIZE>;
 
-type WorkspaceColorStyle = {backgroundColor: ColorsValues; fill: ColorsValues}
+type WorkspaceColorStyle = {backgroundColor: ColorsValues; fill: ColorsValues};
 
 type ModalPaddingStylesArgs = {
     shouldAddBottomSafeAreaMargin: boolean;
@@ -35,14 +35,14 @@ type ModalPaddingStylesArgs = {
     modalContainerStylePaddingTop: number;
     modalContainerStylePaddingBottom: number;
     insets: EdgeInsets;
-}
+};
 
 type AvatarBorderStyleArgs = {
     isHovered: boolean;
     isPressed: boolean;
     isInReportAction: boolean;
     shouldUseCardBackground: boolean;
-}
+};
 
 const workspaceColorOptions: WorkspaceColorStyle[] = [
     {backgroundColor: colors.blue200, fill: colors.blue700},
@@ -385,6 +385,9 @@ function getSignInWordmarkWidthStyle(environment: string, isSmallScreenWidth: bo
 
 /**
  * Converts a color in hexadecimal notation into RGB notation.
+ *
+ * @param hexadecimal A color in hexadecimal notation.
+ * @returns `undefined` if the input color is not in hexadecimal notation. Otherwise, the RGB components of the input color.
  */
 function hexadecimalToRGBArray(hexadecimal: string): number[] | undefined {
     const components = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hexadecimal);
@@ -427,6 +430,9 @@ function getBadgeColorStyle(success: boolean, error: boolean, isPressed = false,
 
 /**
  * Generate a style for the background color of the button, based on its current state.
+ *
+ * @param buttonState - One of {'default', 'hovered', 'pressed'}
+ * @param isMenuItem - whether this button is apart of a list
  */
 function getButtonBackgroundColorStyle(buttonState: ValueOf<typeof CONST.BUTTON_STATES> = CONST.BUTTON_STATES.DEFAULT, isMenuItem = false): ViewStyle | CSSProperties {
     switch (buttonState) {
@@ -443,6 +449,9 @@ function getButtonBackgroundColorStyle(buttonState: ValueOf<typeof CONST.BUTTON_
 
 /**
  * Generate fill color of an icon based on its state.
+ *
+ * @param buttonState - One of {'default', 'hovered', 'pressed'}
+ * @param isMenuIcon - whether this icon is apart of a list
  */
 function getIconFillColor(buttonState: string = CONST.BUTTON_STATES.DEFAULT, isMenuIcon = false): string {
     switch (buttonState) {
@@ -595,6 +604,11 @@ function getPaymentMethodMenuWidth(isSmallScreenWidth: boolean): ViewStyle | CSS
 
 /**
  * Converts a color in RGBA notation to an equivalent color in RGB notation.
+ *
+ * @param foregroundRGB The three components of the foreground color in RGB notation.
+ * @param backgroundRGB The three components of the background color in RGB notation.
+ * @param opacity The desired opacity of the foreground color.
+ * @returns The RGB components of the RGBA color converted to RGB.
  */
 function convertRGBAToRGB(foregroundRGB: number[], backgroundRGB: number[], opacity: number): number[] {
     const [foregroundRed, foregroundGreen, foregroundBlue] = foregroundRGB;
@@ -605,6 +619,11 @@ function convertRGBAToRGB(foregroundRGB: number[], backgroundRGB: number[], opac
 
 /**
  * Converts three unit values to the three components of a color in RGB notation.
+ *
+ * @param red A unit value representing the first component of a color in RGB notation.
+ * @param green A unit value representing the second component of a color in RGB notation.
+ * @param blue A unit value representing the third component of a color in RGB notation.
+ * @returns An array with the three components of a color in RGB notation.
  */
 function convertUnitValuesToRGB(red: number, green: number, blue: number): number[] {
     return [Math.floor(red * 255), Math.floor(green * 255), Math.floor(blue * 255)];
@@ -612,6 +631,11 @@ function convertUnitValuesToRGB(red: number, green: number, blue: number): numbe
 
 /**
  * Converts the three components of a color in RGB notation to three unit values.
+ *
+ * @param red The first component of a color in RGB notation.
+ * @param green The second component of a color in RGB notation.
+ * @param blue The third component of a color in RGB notation.
+ * @returns An array with three unit values representing the components of a color in RGB notation.
  */
 function convertRGBToUnitValues(red: number, green: number, blue: number): number[] {
     return [red / 255, green / 255, blue / 255];
@@ -619,6 +643,9 @@ function convertRGBToUnitValues(red: number, green: number, blue: number): numbe
 
 /**
  * Matches an RGBA or RGB color value and extracts the color components.
+ *
+ * @param color - The RGBA or RGB color value to match and extract components from.
+ * @returns An array containing the extracted color components [red, green, blue, alpha].
  *
  * Returns null if the input string does not match the pattern.
  */
@@ -636,6 +663,9 @@ function extractValuesFromRGB(color: string): number[] | null {
 /**
  * Determines the theme color for a modal based on the app's background color,
  * the modal's backdrop, and the backdrop's opacity.
+ *
+ * @param bgColor - theme background color
+ * @returns The theme color as an RGB value.
  */
 function getThemeBackgroundColor(bgColor: string = themeColors.appBG): string {
     const backdropOpacity = variables.modalFullscreenBackdropOpacity;
@@ -742,12 +772,7 @@ function getKeyboardShortcutsModalWidth(isSmallScreenWidth: boolean): ViewStyle 
     return {maxWidth: 600};
 }
 
-function getHorizontalStackedAvatarBorderStyle({
-    isHovered,
-    isPressed,
-    isInReportAction = false,
-    shouldUseCardBackground = false,
-}: AvatarBorderStyleArgs): ViewStyle | CSSProperties {
+function getHorizontalStackedAvatarBorderStyle({isHovered, isPressed, isInReportAction = false, shouldUseCardBackground = false}: AvatarBorderStyleArgs): ViewStyle | CSSProperties {
     let borderColor = shouldUseCardBackground ? themeColors.cardBG : themeColors.appBG;
 
     if (isHovered) {
@@ -971,6 +996,8 @@ function getEmojiReactionCounterTextStyle(hasUserReacted: boolean): TextStyle | 
 
 /**
  * Returns a style object with a rotation transformation applied based on the provided direction prop.
+ *
+ * @param direction - The direction of the rotation (CONST.DIRECTION.LEFT or CONST.DIRECTION.RIGHT).
  */
 function getDirectionStyle(direction: string): ViewStyle | CSSProperties {
     if (direction === CONST.DIRECTION.LEFT) {
