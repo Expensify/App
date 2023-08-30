@@ -86,7 +86,7 @@ const assertAndroidJobExecuted = (workflowResult, ref = '', didExecute = true, f
             ],
             [],
         ),
-        utils.createStepAssertion('Setup credentails for Mapbox SDK', true, null, 'ANDROID', 'Setup credentials for Mapbox SDK'),
+        utils.createStepAssertion('Configure MapBox SDK', true, null, 'ANDROID', 'Configure MapBox SDK'),
         utils.createStepAssertion(
             'Run Fastlane beta test',
             true,
@@ -138,6 +138,7 @@ const assertAndroidJobExecuted = (workflowResult, ref = '', didExecute = true, f
 const assertIOSJobExecuted = (workflowResult, ref = '', didExecute = true, failsAt = -1) => {
     const steps = [
         utils.createStepAssertion('Checkout', true, null, 'IOS', 'Checkout', [{key: 'ref', value: ref}], []),
+        utils.createStepAssertion('Configure MapBox SDK', true, null, 'IOS', 'Configure MapBox SDK'),
         utils.createStepAssertion('Create .env.adhoc file based on staging and add PULL_REQUEST_NUMBER env to it', true, null, 'IOS', 'Creating .env.adhoc file based on staging', [], []),
         utils.createStepAssertion('Setup Node', true, null, 'IOS', 'Setup Node', [], []),
         utils.createStepAssertion('Setup XCode', true, null, 'IOS', 'Setup XCode', [], []),
@@ -153,7 +154,6 @@ const assertIOSJobExecuted = (workflowResult, ref = '', didExecute = true, fails
             ],
             [],
         ),
-        utils.createStepAssertion('Setup credentails for Mapbox SDK', true, null, 'IOS', 'Setup credentials for Mapbox SDK'),
         utils.createStepAssertion(
             'Install cocoapods',
             true,

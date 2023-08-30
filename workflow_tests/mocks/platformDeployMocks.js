@@ -22,6 +22,7 @@ const PLATFORM_DEPLOY__VALIDATE_ACTOR__OUTSIDER__STEP_MOCKS = [PLATFORM_DEPLOY__
 
 // android
 const PLATFORM_DEPLOY__ANDROID__CHECKOUT__STEP_MOCK = utils.createMockStep('Checkout', 'Checking out', 'ANDROID');
+const PLATFORM_DEPLOY__ANDROID__CONFIGURE_MAPBOX_SDK__STEP_MOCK = utils.createMockStep('Configure MapBox SDK', 'Configure MapBox SDK', 'ANDROID');
 const PLATFORM_DEPLOY__ANDROID__SETUP_NODE__STEP_MOCK = utils.createMockStep('Setup Node', 'Setting up Node', 'ANDROID');
 const PLATFORM_DEPLOY__ANDROID__SETUP_RUBY__STEP_MOCK = utils.createMockStep('Setup Ruby', 'Setting up Ruby', 'ANDROID', ['ruby-version', 'bundler-cache']);
 const PLATFORM_DEPLOY__ANDROID__DECRYPT_KEYSTORE__STEP_MOCK = utils.createMockStep('Decrypt keystore', 'Decrypting keystore', 'ANDROID', null, ['LARGE_SECRET_PASSPHRASE']);
@@ -49,6 +50,7 @@ const PLATFORM_DEPLOY__ANDROID__WARN_DEPLOYERS__STEP_MOCK = utils.createMockStep
 );
 const PLATFORM_DEPLOY__ANDROID__STEP_MOCKS = [
     PLATFORM_DEPLOY__ANDROID__CHECKOUT__STEP_MOCK,
+    PLATFORM_DEPLOY__ANDROID__CONFIGURE_MAPBOX_SDK__STEP_MOCK,
     PLATFORM_DEPLOY__ANDROID__SETUP_NODE__STEP_MOCK,
     PLATFORM_DEPLOY__ANDROID__SETUP_RUBY__STEP_MOCK,
     PLATFORM_DEPLOY__ANDROID__DECRYPT_KEYSTORE__STEP_MOCK,
@@ -93,9 +95,9 @@ const PLATFORM_DEPLOY__DESKTOP__STEP_MOCKS = [
 
 // ios
 const PLATFORM_DEPLOY__IOS__CHECKOUT__STEP_MOCK = utils.createMockStep('Checkout', 'Checking out', 'IOS');
+const PLATFORM_DEPLOY__IOS__CONFIGURE_MAPBOX_SDK__STEP_MOCK = utils.createMockStep('Configure MapBox SDK', 'Configure MapBox SDK', 'IOS');
 const PLATFORM_DEPLOY__IOS__SETUP_NODE__STEP_MOCK = utils.createMockStep('Setup Node', 'Setting up Node', 'IOS');
 const PLATFORM_DEPLOY__IOS__SETUP_RUBY__STEP_MOCK = utils.createMockStep('Setup Ruby', 'Setting up Ruby', 'IOS', ['ruby-version', 'bundler-cache']);
-const PLATFORM_DEPLOY__IOS__SETUP_CREDENTIALS_FOR_MAPBOX_SDK__STEP_MOCK = utils.createMockStep('Setup credentails for Mapbox SDK', 'Setup credentials for Mapbox SDK', 'IOS');
 const PLATFORM_DEPLOY__IOS__COCOAPODS__STEP_MOCK = utils.createMockStep('Install cocoapods', 'Installing cocoapods', 'IOS', ['timeout_minutes', 'max_attempts', 'command']);
 const PLATFORM_DEPLOY__IOS__DECRYPT_PROFILE__STEP_MOCK = utils.createMockStep('Decrypt profile', 'Decrypting profile', 'IOS', null, ['LARGE_SECRET_PASSPHRASE']);
 const PLATFORM_DEPLOY__IOS__DECRYPT_CERTIFICATE__STEP_MOCK = utils.createMockStep('Decrypt certificate', 'Decrypting certificate', 'IOS', null, ['LARGE_SECRET_PASSPHRASE']);
@@ -121,9 +123,9 @@ const PLATFORM_DEPLOY__IOS__WARN_FAIL__STEP_MOCK = utils.createMockStep(
 );
 const PLATFORM_DEPLOY__IOS__STEP_MOCKS = [
     PLATFORM_DEPLOY__IOS__CHECKOUT__STEP_MOCK,
+    PLATFORM_DEPLOY__IOS__CONFIGURE_MAPBOX_SDK__STEP_MOCK,
     PLATFORM_DEPLOY__IOS__SETUP_NODE__STEP_MOCK,
     PLATFORM_DEPLOY__IOS__SETUP_RUBY__STEP_MOCK,
-    PLATFORM_DEPLOY__IOS__SETUP_CREDENTIALS_FOR_MAPBOX_SDK__STEP_MOCK,
     PLATFORM_DEPLOY__IOS__COCOAPODS__STEP_MOCK,
     PLATFORM_DEPLOY__IOS__DECRYPT_PROFILE__STEP_MOCK,
     PLATFORM_DEPLOY__IOS__DECRYPT_CERTIFICATE__STEP_MOCK,
@@ -144,7 +146,6 @@ const PLATFORM_DEPLOY__WEB__AWS_CREDENTIALS__STEP_MOCK = utils.createMockStep('C
     'AWS_ACCESS_KEY_ID',
     'AWS_SECRET_ACCESS_KEY',
 ]);
-const PLATFORM_DEPLOY__WEB__SETUP_CREDENTIALS_FOR_MAPBOX_SDK__STEP_MOCK = utils.createMockStep('Setup credentails for Mapbox SDK', 'Setup credentials for Mapbox SDK', 'WEB');
 const PLATFORM_DEPLOY__WEB__BUILD_PRODUCTION__STEP_MOCK = utils.createMockStep('Build web for production', 'Building web for production', 'WEB');
 const PLATFORM_DEPLOY__WEB__BUILD_STAGING__STEP_MOCK = utils.createMockStep('Build web for staging', 'Building web for staging', 'WEB');
 const PLATFORM_DEPLOY__WEB__BUILD_STORYBOOK_DOCS_FOR_PRODUCTION__STEP_MOCK = utils.createMockStep('Build storybook docs for production', 'Build storybook docs for production', 'WEB');
@@ -158,7 +159,6 @@ const PLATFORM_DEPLOY__WEB__STEP_MOCKS = [
     PLATFORM_DEPLOY__WEB__SETUP_NODE__STEP_MOCK,
     PLATFORM_DEPLOY__WEB__CLOUDFLARE__STEP_MOCK,
     PLATFORM_DEPLOY__WEB__AWS_CREDENTIALS__STEP_MOCK,
-    PLATFORM_DEPLOY__WEB__SETUP_CREDENTIALS_FOR_MAPBOX_SDK__STEP_MOCK,
     PLATFORM_DEPLOY__WEB__BUILD_PRODUCTION__STEP_MOCK,
     PLATFORM_DEPLOY__WEB__BUILD_STAGING__STEP_MOCK,
     PLATFORM_DEPLOY__WEB__BUILD_STORYBOOK_DOCS_FOR_PRODUCTION__STEP_MOCK,

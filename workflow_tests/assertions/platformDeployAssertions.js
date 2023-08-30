@@ -15,6 +15,7 @@ const assertVerifyActorJobExecuted = (workflowResult, username, didExecute = tru
 const assertAndroidJobExecuted = (workflowResult, didExecute = true, isProduction = true, isSuccessful = true) => {
     const steps = [
         utils.createStepAssertion('Checkout', true, null, 'ANDROID', 'Checking out'),
+        utils.createStepAssertion('Configure MapBox SDK', true, null, 'ANDROID', 'Configure MapBox SDK'),
         utils.createStepAssertion('Setup Node', true, null, 'ANDROID', 'Setting up Node'),
         utils.createStepAssertion('Setup Ruby', true, null, 'ANDROID', 'Setting up Ruby', [
             {key: 'ruby-version', value: '2.7'},
@@ -124,12 +125,12 @@ const assertDesktopJobExecuted = (workflowResult, didExecute = true, isProductio
 const assertIOSJobExecuted = (workflowResult, didExecute = true, isProduction = true, isSuccessful = true) => {
     const steps = [
         utils.createStepAssertion('Checkout', true, null, 'IOS', 'Checking out'),
+        utils.createStepAssertion('Configure MapBox SDK', true, null, 'IOS', 'Configure MapBox SDK'),
         utils.createStepAssertion('Setup Node', true, null, 'IOS', 'Setting up Node'),
         utils.createStepAssertion('Setup Ruby', true, null, 'IOS', 'Setting up Ruby', [
             {key: 'ruby-version', value: '2.7'},
             {key: 'bundler-cache', value: 'true'},
         ]),
-        utils.createStepAssertion('Setup credentails for Mapbox SDK', true, null, 'IOS', 'Setup credentials for Mapbox SDK'),
         utils.createStepAssertion('Install cocoapods', true, null, 'IOS', 'Installing cocoapods', [
             {key: 'timeout_minutes', value: '10'},
             {key: 'max_attempts', value: '5'},
@@ -205,7 +206,6 @@ const assertWebJobExecuted = (workflowResult, didExecute = true, isProduction = 
             {key: 'AWS_ACCESS_KEY_ID', value: '***'},
             {key: 'AWS_SECRET_ACCESS_KEY', value: '***'},
         ]),
-        utils.createStepAssertion('Setup credentails for Mapbox SDK', true, null, 'WEB', 'Setup credentials for Mapbox SDK'),
     ];
     if (isProduction) {
         steps.push(
