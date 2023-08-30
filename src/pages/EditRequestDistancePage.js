@@ -7,7 +7,7 @@ import useLocalize from '../hooks/useLocalize';
 import DistanceRequest from '../components/DistanceRequest';
 import reportPropTypes from './reportPropTypes';
 import * as IOU from '../libs/actions/IOU';
-import * as TransactionUtils from '../libs/TransactionUtils';
+import * as Report from '../libs/actions/Report';
 
 const propTypes = {
     /** The transactionID we're currently editing */
@@ -23,7 +23,6 @@ function EditRequestDistancePage({transactionID, report}) {
         IOU.setDistanceRequestTransactionID(transactionID);
     }, []);
 
-    const transaction = TransactionUtils.getTransaction(transactionID);
     const {translate} = useLocalize();
     return (
         <ScreenWrapper
@@ -36,7 +35,7 @@ function EditRequestDistancePage({transactionID, report}) {
             />
             <DistanceRequest
                 report={report}
-                transaction={transaction}
+                transactionID={transactionID}
                 isEditingRequest
                 onSubmit={(waypoints) => {
                     IOU.editDistanceRequest(transactionID, report.reportID, {waypoints});
