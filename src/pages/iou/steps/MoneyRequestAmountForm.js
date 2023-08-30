@@ -13,6 +13,8 @@ import TextInputWithCurrencySymbol from '../../../components/TextInputWithCurren
 import useLocalize from '../../../hooks/useLocalize';
 import CONST from '../../../CONST';
 import refPropTypes from '../../../components/refPropTypes';
+import getOperatingSystem from '../../../libs/getOperatingSystem';
+import * as Browser from '../../../libs/Browser';
 import useWindowDimensions from '../../../hooks/useWindowDimensions';
 
 const propTypes = {
@@ -75,6 +77,8 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
         end: selectedAmountAsString.length,
     });
 
+    const forwardDeletePressedRef = useRef(false);
+
     /**
      * Event occurs when a user presses a mouse button over an DOM element.
      *
@@ -125,7 +129,8 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
         }
         setCurrentAmount((prevAmount) => {
             const strippedAmount = MoneyRequestUtils.stripCommaFromAmount(newAmountWithoutSpaces);
-            setSelection((prevSelection) => getNewSelection(prevSelection, prevAmount.length, strippedAmount.length));
+            const isForwardDelete = prevAmount.length > strippedAmount.length && forwardDeletePressedRef.current;
+            setSelection((prevSelection) => getNewSelection(prevSelection, isForwardDelete ? strippedAmount.length : prevAmount.length, strippedAmount.length));
             return strippedAmount;
         });
     };
@@ -175,6 +180,22 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
         onSubmitButtonPress(currentAmount);
     }, [onSubmitButtonPress, currentAmount]);
 
+    /**
+     * Input handler to check for a forward-delete key (or keyboard shortcut) press.
+     */
+    const textInputKeyPress = ({nativeEvent}) => {
+        const key = nativeEvent.key.toLowerCase();
+        if (Browser.isMobileSafari() && key === CONST.PLATFORM_SPECIFIC_KEYS.CTRL.DEFAULT) {
+            // Optimistically anticipate forward-delete on iOS Safari (in cases where the Mac Accessiblity keyboard is being
+            // used for input). If the Control-D shortcut doesn't get sent, the ref will still be reset on the next key press.
+            forwardDeletePressedRef.current = true;
+            return;
+        }
+        // Control-D on Mac is a keyboard shortcut for forward-delete. See https://support.apple.com/en-us/HT201236 for Mac keyboard shortcuts.
+        // Also check for the keyboard shortcut on iOS in cases where a hardware keyboard may be connected to the device.
+        forwardDeletePressedRef.current = key === 'delete' || (_.contains([CONST.OS.MAC_OS, CONST.OS.IOS], getOperatingSystem()) && nativeEvent.ctrlKey && key === 'd');
+    };
+
     const formattedAmount = MoneyRequestUtils.replaceAllDigits(currentAmount, toLocaleDigit);
     const buttonText = isEditing ? translate('common.save') : translate('common.next');
 
@@ -207,6 +228,7 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
                         }
                         setSelection(e.nativeEvent.selection);
                     }}
+                    onKeyPress={textInputKeyPress}
                 />
             </View>
             <View
