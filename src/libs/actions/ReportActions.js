@@ -10,7 +10,7 @@ import * as IOU from './IOU';
  */
 function clearReportActionErrors(reportID, reportAction) {
     if (ReportActionUtils.isMoneyRequestAction(reportAction)) {
-        IOU.cleanUpFailedMoneyRequest(reportID, reportAction);
+        IOU.cleanUpFailedMoneyRequest(reportAction);
     }
 
     if (reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {

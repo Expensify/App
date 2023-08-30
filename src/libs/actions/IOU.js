@@ -303,19 +303,20 @@ function buildOnyxDataForMoneyRequest(
     return [optimisticData, successData, failureData];
 }
 
-function cleanUpFailedMoneyRequest(chatReportID, iouAction) {
+function cleanUpFailedMoneyRequest(iouAction) {
     const iouReportID = String(lodashGet(iouAction, 'originalMessage.IOUReportID', ''));
     const iouReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
     if (!iouReport) {
         Log.warn('[cleanUpFailedMoneyRequest] No iouReport found', {iouReportID});
         return;
     }
+    const policyExpenseChatID = iouReport.parentReportID;
     const transactionID = ReportActionsUtils.getLinkedTransactionID(iouReport.reportID, iouAction.reportActionID);
     if (!transactionID) {
         Log.warn('[cleanUpFailedMoneyRequest] No transactionID for reportID, actionID', {reportID: iouReport.reportID, reportActionID: iouAction.reportActionID});
         return;
     }
-    const reportPreviewAction = ReportActionsUtils.getReportPreviewAction(chatReportID, iouReport.reportID);
+    const reportPreviewAction = ReportActionsUtils.getReportPreviewAction(policyExpenseChatID, iouReport.reportID);
 
     // If the report failed to create, delete it.
     if (lodashGet(iouReport, 'errorFields.createChat')) {
@@ -325,7 +326,7 @@ function cleanUpFailedMoneyRequest(chatReportID, iouAction) {
 
         // Delete the report preview action
         if (reportPreviewAction) {
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {[reportPreviewAction.reportActionID]: null});
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${policyExpenseChatID}`, {[reportPreviewAction.reportActionID]: null});
         }
     } else {
         console.log('iouReport.reportID, iouAction.reportActionID', iouReport.reportID, iouAction.reportActionID);
@@ -344,7 +345,7 @@ function cleanUpFailedMoneyRequest(chatReportID, iouAction) {
 
         // Update the preview action after clearing the failed request
         const message = ReportUtils.getReportPreviewMessage(updatedIOUReport, reportPreviewAction);
-        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${policyExpenseChatID}`, {
             [reportPreviewAction.reportActionID]: {
                 created: reportPreviewAction.previousCreated,
                 message: [{html: message, text: message}],
