@@ -1356,7 +1356,7 @@ function getAmountFontSizeAndLineHeight(baseFontSize, baseLineHeight, isSmallScr
         fontSize: baseFontSize - toSubtract,
         lineHeight: baseLineHeight - toSubtract,
     };
-};
+}
 
 export {
     getAvatarSize,
@@ -1433,5 +1433,5 @@ export {
     getDisabledLinkStyles,
     getCheckboxContainerStyle,
     getDropDownButtonHeight,
-    getAmountFontSizeAndLineHeight
+    getAmountFontSizeAndLineHeight,
 };
