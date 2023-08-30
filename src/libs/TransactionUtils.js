@@ -138,10 +138,6 @@ function getUpdatedTransaction(transaction, transactionChanges, isFromExpenseRep
         updatedTransaction.receipt.state = CONST.IOU.RECEIPT_STATE.OPEN;
     }
 
-    if (_.has(transaction, 'receipt') && _.has(transaction, 'errors') && areRequiredFieldsPopulated) {
-        updatedTransaction.errors = {};
-    }
-
     updatedTransaction.pendingFields = {
         ...(_.has(transactionChanges, 'comment') && {comment: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
         ...(_.has(transactionChanges, 'created') && {created: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
