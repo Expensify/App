@@ -71,7 +71,7 @@ function closeAccount(message) {
             ],
         },
     );
-    // Removing callbacks/listener which are added after login. Fixes the issue user's not able to login after app came to active from inactive
+    // Run cleanup actions to prevent reconnection callbacks from blocking logging in again
     redirectToSignIn();
 }
 
