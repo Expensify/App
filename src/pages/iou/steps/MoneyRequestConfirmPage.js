@@ -56,6 +56,7 @@ const defaultProps = {
 };
 
 function MoneyRequestConfirmPage(props) {
+    const isDistanceRequest = props.selectedTab === CONST.TAB.DISTANCE;
     const prevMoneyRequestId = useRef(props.iou.id);
     const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
     const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
@@ -77,7 +78,7 @@ function MoneyRequestConfirmPage(props) {
 
     useEffect(() => {
         // ID in Onyx could change by initiating a new request in a separate browser tab or completing a request
-        if (prevMoneyRequestId.current !== props.iou.id) {
+        if (!isDistanceRequest && prevMoneyRequestId.current !== props.iou.id) {
             // The ID is cleared on completing a request. In that case, we will do nothing.
             if (props.iou.id) {
                 Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current), true);
@@ -87,7 +88,7 @@ function MoneyRequestConfirmPage(props) {
 
         // Reset the money request Onyx if the ID in Onyx does not match the ID from params
         const moneyRequestId = `${iouType.current}${reportID.current}`;
-        const shouldReset = props.iou.id !== moneyRequestId;
+        const shouldReset = !isDistanceRequest && props.iou.id !== moneyRequestId;
         if (shouldReset) {
             IOU.resetMoneyRequestInfo(moneyRequestId);
         }
@@ -99,7 +100,7 @@ function MoneyRequestConfirmPage(props) {
         return () => {
             prevMoneyRequestId.current = props.iou.id;
         };
-    }, [props.iou.participants, props.iou.amount, props.iou.id, props.iou.receiptPath]);
+    }, [props.iou.participants, props.iou.amount, props.iou.id, props.iou.receiptPath, isDistanceRequest]);
 
     const navigateBack = () => {
         let fallback;
@@ -244,6 +245,7 @@ function MoneyRequestConfirmPage(props) {
                         onBackButtonPress={navigateBack}
                     />
                     <MoneyRequestConfirmationList
+                        transactionID={props.iou.transactionID}
                         hasMultipleParticipants={iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT}
                         selectedParticipants={participants}
                         iouAmount={props.iou.amount}
@@ -274,6 +276,7 @@ function MoneyRequestConfirmPage(props) {
                         bankAccountRoute={ReportUtils.getBankAccountRoute(props.report)}
                         iouMerchant={props.iou.merchant}
                         iouCreated={props.iou.created}
+                        isDistanceRequest={isDistanceRequest}
                     />
                 </View>
             )}
@@ -297,6 +300,9 @@ export default compose(
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+        },
+        selectedTab: {
+            key: `${ONYXKEYS.SELECTED_TAB}_${CONST.TAB.RECEIPT_TAB_ID}`,
         },
     }),
 )(MoneyRequestConfirmPage);
