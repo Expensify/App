@@ -38,18 +38,18 @@ function validateReceipt(file) {
  * @returns {Object}
  */
 function getThumbnailAndImageURIs(path, filename) {
+    const isReceiptImage = Str.isImage(filename);
+
     // For local files, we won't have a thumbnail yet
-    if (path.startsWith('blob:') || path.startsWith('file:')) {
+    if (isReceiptImage && (path.startsWith('blob:') || path.startsWith('file:'))) {
         return {thumbnail: null, image: path};
     }
-
-    const {fileExtension} = FileUtils.splitExtensionFromFileName(filename);
-    const isReceiptImage = Str.isImage(filename);
 
     if (isReceiptImage) {
         return {thumbnail: `${path}.1024.jpg`, image: path};
     }
 
+    const {fileExtension} = FileUtils.splitExtensionFromFileName(filename);
     let image = ReceiptGeneric;
     if (fileExtension === CONST.IOU.FILE_TYPES.HTML) {
         image = ReceiptHTML;
