@@ -164,7 +164,7 @@ function MoneyRequestConfirmationList(props) {
     const shouldCategoryEditable = !_.isEmpty(props.policyCategories) && !props.isDistanceRequest;
 
     const formattedAmount = CurrencyUtils.convertToDisplayString(
-        shouldCalculateDistanceAmount ? DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate, translate) : props.iouAmount,
+        shouldCalculateDistanceAmount ? DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate) : props.iouAmount,
         props.iouCurrencyCode,
     );
 
@@ -438,7 +438,7 @@ function MoneyRequestConfirmationList(props) {
                     {props.isDistanceRequest ? (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly && isTypeRequest}
-                            title={DistanceRequestUtils.getDistanceString(distance, unit, rate)}
+                            title={DistanceRequestUtils.getDistanceString(distance, unit, rate, translate)}
                             description={translate('common.distance')}
                             style={[styles.moneyRequestMenuItem, styles.mb2]}
                             titleStyle={styles.flex1}
