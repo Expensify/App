@@ -92,11 +92,7 @@ function MoneyRequestConfirmPage(props) {
             IOU.resetMoneyRequestInfo(moneyRequestId);
         }
 
-<<<<<<< HEAD
-        if (_.isEmpty(props.iou.participants) || (props.iou.amount === 0 && !props.iou.receiptPath) || shouldReset) {
-=======
         if (_.isEmpty(props.iou.participants) || shouldReset) {
->>>>>>> 471b017ebce33f5883d2a8dd5f2970fc876611c7
             Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current), true);
         }
 
@@ -244,11 +240,7 @@ function MoneyRequestConfirmPage(props) {
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                     <HeaderWithBackButton
-<<<<<<< HEAD
-                        title={props.translate('iou.cash')}
-=======
                         title={isDistanceRequest ? props.translate('common.distance') : props.translate('iou.cash')}
->>>>>>> 471b017ebce33f5883d2a8dd5f2970fc876611c7
                         onBackButtonPress={navigateBack}
                     />
                     <MoneyRequestConfirmationList
