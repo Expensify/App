@@ -1,6 +1,18 @@
 import _ from 'underscore';
 import CONST from '../CONST';
 
+/**
+ * Retrieves the default mileage rate based on a given policy.
+ *
+ * @param {Object} policy - The policy from which to extract the default mileage rate.
+ * @param {Object} [policy.customUnits] - Custom units defined in the policy.
+ * @param {Object[]} [policy.customUnits.rates] - Rates used int the policy.
+ * @param {Object} [policy.customUnits.attributes] - attributes on a custom unit
+ *
+ * @returns {Object|null} An object containing the rate and unit for the default mileage or null if not found.
+ * @returns {number} .rate - The default rate for the mileage.
+ * @returns {string} .unit - The unit of measurement for the distance.
+ */
 const getDefaultMileageRate = (policy) => {
     if (!policy || !policy.customUnits) {
         return null;
