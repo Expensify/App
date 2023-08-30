@@ -387,3 +387,32 @@ jobs:
           DESKTOP: ${{ needs.desktop.result }}
           IOS: ${{ needs.iOS.result }}
           WEB: ${{ needs.web.result }}
+
+  deployChecklist:
+    name: Create or update deploy checklist
+    runs-on: ubuntu-latest
+    if: ${{ always() }}
+    needs: [android, desktop, iOS, web]
+    steps:
+      - name: Quit early if all platforms failed
+        run: |
+          if [[ ${{ needs.android.result }} != 'success' && \
+                ${{ needs.desktop.result }} != 'success' && \
+                ${{ needs.iOS.result }} != 'success' && \
+                ${{ needs.web.result }} != 'success' ]]; then
+            echo 'Deploy failed on all platforms, not updating the checklist...'
+            exit 1
+          fi
+
+      - uses: actions/checkout@v3
+
+      - uses: Expensify/App/.github/actions/composite/setupNode@main
+
+      - name: Set version
+        run: echo "VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
+
+      - name: Create or update staging deploy
+        uses: Expensify/App/.github/actions/javascript/createOrUpdateStagingDeploy@main
+        with:
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          NPM_VERSION: ${{ needs.createNewVersion.outputs.NEW_VERSION }}
