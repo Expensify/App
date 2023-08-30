@@ -3927,6 +3927,10 @@ const styles = {
       paddingTop: 4,
       borderTopWidth: 1,
       borderColor: 'red'
+    },
+
+    formHelperMessage: {
+      height: 32
     }
 };
 

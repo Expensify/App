@@ -13,6 +13,7 @@ import CONST from '../CONST';
 import DateUtils from '../libs/DateUtils';
 import Text from './Text';
 import useKeyboardShortcut from '../hooks/useKeyboardShortcut';
+import FormHelpMessage from './FormHelpMessage';
 
 const propTypes = {
     /** Refs forwarded to the TextInputWithCurrencySymbol */
@@ -22,13 +23,14 @@ const propTypes = {
     onSubmitButtonPress: PropTypes.func,
 
     /** Default value for the inputs */
-    defaultValue: PropTypes.string,
+    value: PropTypes.string,
 };
 
 const defaultProps = {
     forwardedRef: null,
     onSubmitButtonPress: () => {},
-    defaultValue: '',
+    onInputChange: () => {},
+    value: '',
 };
 
 const AMOUNT_VIEW_ID = 'amountView';
@@ -80,15 +82,15 @@ function replaceWithZeroAtPosition(originalString, position) {
     }
     return `${originalString.slice(0, position - 1)}0${originalString.slice(position)}`;
 }
-function TimePicker({forwardedRef, onSubmitButtonPress, defaultValue}) {
-    const {translate, numberFormat} = useLocalize();
 
-    const [hours, setHours] = useState(DateUtils.parseTimeTo12HourFormat(defaultValue).hour);
-    const [minute, setMinute] = useState(DateUtils.parseTimeTo12HourFormat(defaultValue).minute);
+function TimePicker({forwardedRef, onSubmitButtonPress, value, errorText, onInputChange}) {
+    const {translate, numberFormat} = useLocalize();
+    const [hours, setHours] = useState(DateUtils.parseTimeTo12HourFormat(value).hour);
+    const [minute, setMinute] = useState(DateUtils.parseTimeTo12HourFormat(value).minute);
     const [selectionHour, setSelectionHour] = useState({start: 0, end: 0});
     const [selectionMinute, setSelectionMinute] = useState({start: 2, end: 2}); // we focus it by default so need  to have selection on the end
 
-    const [amPmValue, setAmPmValue] = useState(DateUtils.getTimePeriod(defaultValue));
+    const [amPmValue, setAmPmValue] = useState(DateUtils.getTimePeriod(value));
 
     const hourInputRef = useRef(null);
     const minuteInputRef = useRef(null);
@@ -307,6 +309,12 @@ function TimePicker({forwardedRef, onSubmitButtonPress, defaultValue}) {
         );
     }, [canUseTouchScreen, updateAmountNumberPad]);
 
+    useEffect(() => {
+        if (!_.isFunction(onInputChange)) return;
+        onInputChange(`${hours}:${minute} ${amPmValue}`);
+    }, [hours, minute, amPmValue]);
+
+
     return (
         <>
             <View style={[styles.flex1, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}>
@@ -360,6 +368,14 @@ function TimePicker({forwardedRef, onSubmitButtonPress, defaultValue}) {
                         containerStyles={[styles.timePickerHeight100]}
                     />
                 </View>
+                {!!errorText ? (
+                    <FormHelpMessage
+                        isError={!!errorText}
+                        message={errorText}
+                    />
+                ) : (
+                    <View style={styles.formHelperMessage} />
+                )}
                 <View style={styles.timePickerSwitcherContainer}>
                     <Button
                         shouldEnableHapticFeedback
@@ -390,13 +406,6 @@ function TimePicker({forwardedRef, onSubmitButtonPress, defaultValue}) {
                 nativeID={NUM_PAD_CONTAINER_VIEW_ID}
             >
                 {numberPad()}
-                <Button
-                    success
-                    style={[styles.w100, styles.mt5]}
-                    onPress={submitAndNavigateToNextPage}
-                    pressOnEnter
-                    text={translate('common.save')}
-                />
             </View>
         </>
     );

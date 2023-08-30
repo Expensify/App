@@ -91,15 +91,14 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
         [hasDraftStatus, localize, updateStatus, isValidClearAfterDate],
     );
 
-    
     const isValidClearAfterDate = useMemo(() => {
-      const clearAfterTime = draftClearAfter || currentUserClearAfter;
-      if (clearAfterTime === CONST.CUSTOM_STATUS_TYPES.NEVER) return true;
-      
-      return !DateUtils.hasDateExpired(clearAfterTime);
+        const clearAfterTime = draftClearAfter || currentUserClearAfter;
+        if (clearAfterTime === CONST.CUSTOM_STATUS_TYPES.NEVER) return true;
+
+        return !DateUtils.hasDateExpired(clearAfterTime);
     }, [draftClearAfter, currentUserClearAfter]);
-    
-    const brickRoadIndicator = () => isValidClearAfterDate ? null : CONST.BRICK_INDICATOR.ERROR;
+
+    const brickRoadIndicator = useMemo(() => (isValidClearAfterDate ? null : CONST.BRICK_INDICATOR.ERROR), [isValidClearAfterDate]);
     useEffect(() => () => User.clearDraftCustomStatus(), []);
 
     return (
