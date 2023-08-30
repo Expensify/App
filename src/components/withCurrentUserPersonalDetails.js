@@ -1,6 +1,7 @@
-import React, {useMemo} from 'react';
+import React, {memo} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
 import getComponentDisplayName from '../libs/getComponentDisplayName';
 import ONYXKEYS from '../ONYXKEYS';
 import personalDetailsPropType from '../pages/personalDetailsPropType';
@@ -34,19 +35,24 @@ export default function (WrappedComponent) {
         },
     };
 
-    function WithCurrentUserPersonalDetails(props) {
-        const accountID = props.session.accountID;
-        const accountPersonalDetails = props.personalDetails[accountID];
-        const currentUserPersonalDetails = useMemo(() => ({...accountPersonalDetails, accountID}), [accountPersonalDetails, accountID]);
-        return (
-            <WrappedComponent
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...props}
-                ref={props.forwardedRef}
-                currentUserPersonalDetails={currentUserPersonalDetails}
-            />
-        );
-    }
+    const WithCurrentUserPersonalDetails = memo(
+        (props) => {
+            const accountID = props.session.accountID;
+            return (
+                <WrappedComponent
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...props}
+                    ref={props.forwardedRef}
+                    currentUserPersonalDetails={props.personalDetails[accountID]}
+                />
+            );
+        },
+        (prevProps, nextProps) => {
+            const accountPersonalDetailsWithoutIsLoading = _.omit(prevProps.personalDetails[prevProps.session.accountID], 'isLoading');
+            const nextAccountPersonalDetailsWithoutIsLoading = _.omit(nextProps.personalDetails[nextProps.session.accountID], 'isLoading');
+            return _.isEqual(accountPersonalDetailsWithoutIsLoading, nextAccountPersonalDetailsWithoutIsLoading);
+        },
+    );
 
     WithCurrentUserPersonalDetails.displayName = `WithCurrentUserPersonalDetails(${getComponentDisplayName(WrappedComponent)})`;
     WithCurrentUserPersonalDetails.propTypes = propTypes;
