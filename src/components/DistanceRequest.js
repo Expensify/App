@@ -22,14 +22,10 @@ import useNetwork from '../hooks/useNetwork';
 import useLocalize from '../hooks/useLocalize';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
-import participantPropTypes from './participantPropTypes';
-import * as IOU from '../libs/actions/IOU';
 import reportPropTypes from '../pages/reportPropTypes';
-import transactionPropTypes from './transactionPropTypes';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import * as ErrorUtils from '../libs/ErrorUtils';
 import usePrevious from '../hooks/usePrevious';
-import {iouPropTypes} from '../pages/iou/propTypes';
 
 const MAX_WAYPOINTS = 25;
 const MAX_WAYPOINTS_TO_DISPLAY = 4;
@@ -39,11 +35,6 @@ const DEFAULT_ZOOM_LEVEL = 10;
 const propTypes = {
     /** The transactionID of this request */
     transactionID: PropTypes.string,
-    /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
-    iou: iouPropTypes,
-
-    /** Type of money request (i.e. IOU) */
-    iouType: PropTypes.oneOf(_.values(CONST.IOU.MONEY_REQUEST_TYPE)),
 
     /** The report to with which the distance request is associated */
     report: reportPropTypes,
@@ -67,7 +58,6 @@ const propTypes = {
 const defaultProps = {
     transactionID: '',
     iou: {},
-    iouType: '',
     report: {},
     transaction: {},
     mapboxAccessToken: {},
