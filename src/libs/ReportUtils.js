@@ -1277,7 +1277,8 @@ function getMoneyRequestReportName(report, policy = undefined) {
  * @returns {Object}
  */
 function getReport(reportID) {
-    return lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {});
+    // Deleted reports are set to null and lodashGet will still return null in that case, so we need to add an extra check
+    return lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {}) || {};
 }
 
 /**
@@ -1356,20 +1357,8 @@ function canEditReportAction(reportAction) {
  * @returns {[Object]}
  */
 function getTransactionsWithReceipts(iouReportID) {
-    const reportActions = ReportActionsUtils.getAllReportActions(iouReportID);
-    return _.reduce(
-        reportActions,
-        (transactions, action) => {
-            if (ReportActionsUtils.isMoneyRequestAction(action)) {
-                const transaction = TransactionUtils.getLinkedTransaction(action);
-                if (TransactionUtils.hasReceipt(transaction)) {
-                    transactions.push(transaction);
-                }
-            }
-            return transactions;
-        },
-        [],
-    );
+    const allTransactions = TransactionUtils.getAllReportTransactions(iouReportID);
+    return _.filter(allTransactions, (transaction) => TransactionUtils.hasReceipt(transaction));
 }
 
 /**
