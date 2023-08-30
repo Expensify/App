@@ -81,6 +81,7 @@ function OptionRowLHNData({
     policies,
     receiptTransactions,
     parentReportActions,
+    lastIOUReportActions,
     ...propsToForward
 }) {
     const reportID = propsToForward.reportID;
@@ -113,7 +114,7 @@ function OptionRowLHNData({
         const transactionsWithReceipts = ReportUtils.getSortedTransactionsWithReceipts(reportIDLocal);
         return _.first(transactionsWithReceipts);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [fullReport.reportID, receiptTransactions, reportActions]);
+    }, [fullReport.reportID, receiptTransactions, reportActions, lastIOUReportActions]);
 
     const memoizedLastTransaction = useDeepCompareMemo(lastTransaction);
 
@@ -220,6 +221,20 @@ export default React.memo(
             // This can lead to situations where `lastTransaction` doesn't update and retains the previous value.
             // However, performance overhead of this is minimized by using memos inside the component.
             receiptTransactions: {key: ONYXKEYS.COLLECTION.TRANSACTION},
+            lastIOUReportActions: {
+                key: ({fullReport, reportActions}) => {
+                    let reportIDLocal = fullReport.reportID;
+
+                    // Check if reportIDLocal needs to be updated with the IOU report of the last report action, in case this report is a chat.
+                    const filteredReportActions = ReportActionUtils.getFilteredSortedReportActionsForDisplay(reportActions);
+                    const lastReportAction = _.first(filteredReportActions);
+                    if (ReportActionUtils.isReportPreviewAction(lastReportAction)) {
+                        reportIDLocal = ReportActionUtils.getIOUReportIDFromReportActionPreview(lastReportAction);
+                    }
+                    return `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportIDLocal}`;
+                },
+                canEvict: false,
+            },
         }),
     )(OptionRowLHNData),
 );
