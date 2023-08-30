@@ -23,7 +23,8 @@ import WalletOnfido from './WalletOnfido';
 import WalletAdditionalDetails from './WalletAdditionalDetails';
 import WalletTerms from './WalletTerms';
 import BankAccount from './BankAccount';
-import Card from './Fund';
+import Fund from './Fund';
+import Card from './Card';
 import WalletStatement from './WalletStatement';
 import PersonalBankAccount from './PersonalBankAccount';
 import FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
@@ -70,6 +71,7 @@ export type {
     WalletTerms,
     BankAccount,
     Card,
+    Fund,
     WalletStatement,
     PersonalBankAccount,
     ReimbursementAccount,
