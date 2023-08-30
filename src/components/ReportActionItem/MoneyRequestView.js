@@ -119,7 +119,7 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, trans
                     titleIcon={Expensicons.Checkmark}
                     description={description}
                     titleStyle={styles.newKansasLarge}
-                    disabled={isSettled || !canEdit}
+                    interactive={canEdit}
                     shouldShowRightIcon={canEdit}
                     onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.AMOUNT))}
                     brickRoadIndicator={hasErrors && transactionAmount === 0 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
@@ -131,7 +131,7 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, trans
                 <MenuItemWithTopDescription
                     description={translate('common.description')}
                     title={transactionDescription}
-                    disabled={isSettled || !canEdit}
+                    interactive={canEdit}
                     shouldShowRightIcon={canEdit}
                     titleStyle={styles.flex1}
                     onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DESCRIPTION))}
@@ -141,7 +141,7 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, trans
                 <MenuItemWithTopDescription
                     description={translate('common.date')}
                     title={transactionDate}
-                    disabled={isSettled || !canEdit}
+                    interactive={canEdit}
                     shouldShowRightIcon={canEdit}
                     titleStyle={styles.flex1}
                     onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DATE))}
@@ -154,7 +154,7 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, trans
                 <MenuItemWithTopDescription
                     description={isDistanceRequest ? translate('common.distance') : translate('common.merchant')}
                     title={transactionMerchant}
-                    disabled={isSettled || !canEdit}
+                    interactive={canEdit}
                     shouldShowRightIcon={canEdit}
                     titleStyle={styles.flex1}
                     onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.MERCHANT))}
