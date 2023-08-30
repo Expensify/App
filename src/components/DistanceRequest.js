@@ -42,9 +42,6 @@ const propTypes = {
     /** The report to with which the distance request is associated */
     report: reportPropTypes,
 
-    /** The optimistic transaction for this request */
-    transaction: transactionPropTypes,
-
     /** Data about Mapbox token for calling Mapbox API */
     mapboxAccessToken: PropTypes.shape({
         /** Temporary token for Mapbox API */
@@ -68,17 +65,16 @@ const defaultProps = {
     isEditingRequest: false,
 };
 
-function DistanceRequest({transactionID, report, transaction, mapboxAccessToken, isEditingRequest, onSubmit}) {
+function DistanceRequest({transactionID, report, mapboxAccessToken, isEditingRequest, onSubmit}) {
     const [shouldShowGradient, setShouldShowGradient] = useState(false);
     const [scrollContainerHeight, setScrollContainerHeight] = useState(0);
     const [scrollContentHeight, setScrollContentHeight] = useState(0);
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
 
+    const transaction = TransactionUtils.getTransaction(transactionID);
     const waypoints = lodashGet(transaction, 'comment.waypoints', {});
     const numberOfWaypoints = _.size(waypoints);
-
-    console.log(">>>>", transaction);
 
     const lastWaypointIndex = numberOfWaypoints - 1;
     const isLoadingRoute = lodashGet(transaction, 'comment.isLoading', false);
