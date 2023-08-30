@@ -57,7 +57,6 @@ const propTypes = {
 
 const defaultProps = {
     transactionID: '',
-    iou: {},
     report: {},
     transaction: {},
     mapboxAccessToken: {},

@@ -1909,6 +1909,7 @@ function setDistanceRequestTransactionID(transactionID) {
  * @param {Object} report
  */
 function navigateToNextPage(iou, iouType, reportID, report) {
+    console.log(">>>> navigate to next page", {iou, iouType, reportID, report});
     const moneyRequestID = `${iouType}${reportID}`;
     const shouldReset = iou.id !== moneyRequestID;
 
@@ -1920,6 +1921,7 @@ function navigateToNextPage(iou, iouType, reportID, report) {
 
     // If a request is initiated on a report, skip the participants selection step and navigate to the confirmation page.
     if (report.reportID) {
+        console.log(">>>> 1");
         // Reinitialize the participants when the money request ID in Onyx does not match the ID from params
         if (_.isEmpty(iou.participants) || shouldReset) {
             const currentUserAccountID = currentUserPersonalDetails.accountID;
@@ -1934,6 +1936,7 @@ function navigateToNextPage(iou, iouType, reportID, report) {
         Navigation.navigate(ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID));
         return;
     }
+    console.log(">>>> 2");
     Navigation.navigate(ROUTES.getMoneyRequestParticipantsRoute(iouType));
 }
 
