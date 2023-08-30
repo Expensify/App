@@ -329,7 +329,8 @@ describe('createOrUpdateStagingDeployCash', () => {
                 if (args.labels === CONST.LABELS.DEPLOY_BLOCKER) {
                     return {
                         data: [
-                            ...currentDeployBlockers,
+                            // Suppose the first deploy blocker is demoted, it should not be removed from the checklist and instead just be checked off
+                            ...currentDeployBlockers.slice(1),
                             {
                                 html_url: 'https://github.com/Expensify/App/issues/11', // New
                                 number: 11,
@@ -363,7 +364,7 @@ describe('createOrUpdateStagingDeployCash', () => {
                     `${lineBreak}${closedCheckbox}${basePRList[6]}` +
                     `${lineBreak}${openCheckbox}${basePRList[7]}${lineBreak}` +
                     `${lineBreakDouble}${deployBlockerHeader}` +
-                    `${lineBreak}${openCheckbox}${basePRList[5]}` +
+                    `${lineBreak}${closedCheckbox}${basePRList[5]}` +
                     `${lineBreak}${openCheckbox}${basePRList[8]}` +
                     `${lineBreak}${closedCheckbox}${basePRList[9]}` +
                     `${lineBreak}${openCheckbox}${baseIssueList[0]}` +
