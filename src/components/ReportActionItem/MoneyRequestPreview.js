@@ -154,8 +154,8 @@ function MoneyRequestPreview(props) {
     const isScanning = hasReceipt && TransactionUtils.isReceiptBeingScanned(props.transaction);
     const isDistanceRequest = TransactionUtils.isDistanceRequest(props.transaction);
 
-    const shouldShowDescription = !_.isEmpty(description) && !hasReceipt;
     const shouldShowMerchant = !_.isEmpty(requestMerchant) && !props.isBillSplit && hasReceipt;
+    const shouldShowDescription = !_.isEmpty(description) && !shouldShowMerchant;
 
     // On a distance request the merchant of the transaction will be used for the description since that's where it's stored in the database
     if (isDistanceRequest) {
