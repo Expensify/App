@@ -43,38 +43,43 @@ function ImageRenderer(props) {
     const imageHeight = htmlAttribs['data-expensify-height'] ? parseInt(htmlAttribs['data-expensify-height'], 10) : undefined;
     const imagePreviewModalDisabled = htmlAttribs['data-expensify-preview-modal-disabled'] === 'true';
 
-    const shouldFitContainer = htmlAttribs['data-expensify-fit-container'] === 'true';
-    const sizingStyle = shouldFitContainer ? [styles.w100, styles.h100] : [];
-
     return imagePreviewModalDisabled ? (
         <ThumbnailImage
             previewSourceURL={previewSource}
-            style={shouldFitContainer ? [styles.w100, styles.h100] : styles.webViewStyles.tagStyles.img}
+            style={styles.webViewStyles.tagStyles.img}
             isAuthTokenRequired={isAttachmentOrReceipt}
             imageWidth={imageWidth}
             imageHeight={imageHeight}
-            shouldDynamicallyResize={!shouldFitContainer}
         />
     ) : (
         <ShowContextMenuContext.Consumer>
             {({anchor, report, action, checkIfContextMenuActive}) => (
                 <PressableWithoutFocus
-                    style={[styles.noOutline, ...sizingStyle]}
+                    style={[styles.noOutline]}
                     onPress={() => {
                         const route = ROUTES.getReportAttachmentRoute(report.reportID, source);
                         Navigation.navigate(route);
                     }}
-                    onLongPress={(event) => showContextMenuForReport(event, anchor, report.reportID, action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report))}
+                    onLongPress={(event) =>
+                        showContextMenuForReport(
+                            // Imitate the web event for native renderers
+                            {nativeEvent: {...(event.nativeEvent || {}), target: {tagName: 'IMG'}}},
+                            anchor,
+                            report.reportID,
+                            action,
+                            checkIfContextMenuActive,
+                            ReportUtils.isArchivedRoom(report),
+                        )
+                    }
                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                     accessibilityLabel={props.translate('accessibilityHints.viewAttachment')}
                 >
                     <ThumbnailImage
                         previewSourceURL={previewSource}
-                        style={shouldFitContainer ? [styles.w100, styles.h100] : styles.webViewStyles.tagStyles.img}
+                        style={styles.webViewStyles.tagStyles.img}
                         isAuthTokenRequired={isAttachmentOrReceipt}
                         imageWidth={imageWidth}
                         imageHeight={imageHeight}
-                        shouldDynamicallyResize={!shouldFitContainer}
                     />
                 </PressableWithoutFocus>
             )}
