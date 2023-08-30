@@ -160,6 +160,10 @@ export default {
         receipt: 'Recibo',
         replace: 'Sustituir',
         distance: 'Distancia',
+        mile: 'milla',
+        miles: 'millas',
+        kilometer: 'kilómetro',
+        kilometers: 'kilómetros',
     },
     anonymousReportFooter: {
         logoTagline: 'Únete a la discusión.',
@@ -1228,10 +1232,6 @@ export default {
             memberNotFound: 'Miembro no encontrado. Para invitar a un nuevo miembro al espacio de trabajo, por favor, utiliza el botón Invitar que está arriba.',
             notAuthorized: `No tienes acceso a esta página. ¿Estás tratando de unirte al espacio de trabajo? Comunícate con el propietario de este espacio de trabajo para que pueda añadirte como miembro. ¿Necesitas algo más? Comunícate con ${CONST.EMAIL.CONCIERGE}`,
             goToRoom: ({roomName}) => `Ir a la sala ${roomName}`,
-            mile: 'milla',
-            miles: 'millas',
-            kilometer: 'kilómetro',
-            kilometers: 'kilómetros',
         },
         emptyWorkspace: {
             title: 'Crear un nuevo espacio de trabajo',
