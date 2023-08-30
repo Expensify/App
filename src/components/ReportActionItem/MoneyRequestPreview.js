@@ -34,6 +34,8 @@ import PressableWithFeedback from '../Pressable/PressableWithoutFeedback';
 import * as ReceiptUtils from '../../libs/ReceiptUtils';
 import ReportActionItemImages from './ReportActionItemImages';
 import transactionPropTypes from '../transactionPropTypes';
+import variables from '../../styles/variables';
+import useWindowDimensions from '../../hooks/useWindowDimensions';
 
 const propTypes = {
     /** The active IOUReport, used for Onyx subscription */
@@ -134,6 +136,9 @@ function MoneyRequestPreview(props) {
     if (_.isEmpty(props.iouReport) && !props.isBillSplit) {
         return null;
     }
+
+    const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
+
     const sessionAccountID = lodashGet(props.session, 'accountID', null);
     const managerID = props.iouReport.managerID || '';
     const ownerAccountID = props.iouReport.ownerAccountID || '';
@@ -158,6 +163,22 @@ function MoneyRequestPreview(props) {
     if (isDistanceRequest) {
         description = props.transaction.merchant;
     }
+
+    // Prevents large amounts from being cropped on small screens
+    const getFontSizeToSubstract = () => {
+        let toSubstract = 0;
+        if (isSmallScreenWidth) {
+            const widthDifference = variables.mobileResponsiveWidthBreakpoint - windowWidth;
+            if (widthDifference > 450) toSubstract = 9;
+            else if (widthDifference > 400) toSubstract = 6;
+            else if (widthDifference > 350) toSubstract = 2;
+        }
+
+        // requestAmount also includes digits after ".", so "10000.00" qualifies.
+        if (requestAmount >= 1000000) toSubstract += 2;
+        
+        return toSubstract;
+    };
 
     const getSettledMessage = () => {
         switch (lodashGet(props.action, 'originalMessage.paymentType', '')) {
@@ -253,7 +274,15 @@ function MoneyRequestPreview(props) {
                         </View>
                         <View style={[styles.flexRow]}>
                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                <Text style={styles.textHeadline}>{getDisplayAmountText()}</Text>
+                                <Text
+                                    style={[
+                                        styles.moneyRequestPreviewAmount,
+                                        StyleUtils.getFontSizeStyle(variables.fontSizeXLarge - getFontSizeToSubstract()),
+                                    ]}
+                                    maxNumberOfLines={2}
+                                >
+                                    {getDisplayAmountText()}
+                                </Text>
                                 {ReportUtils.isSettled(props.iouReport.reportID) && !props.isBillSplit && (
                                     <View style={styles.defaultCheckmarkWrapper}>
                                         <Icon
