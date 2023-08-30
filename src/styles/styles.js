@@ -780,6 +780,7 @@ const styles = {
     textInputDisabled: {
         backgroundColor: themeColors.overlay,
         borderColor: themeColors.borderLighter,
+        color: themeColors.textSupporting,
     },
 
     uploadReceiptView: (isSmallScreenWidth) => ({
