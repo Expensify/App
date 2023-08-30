@@ -41,15 +41,16 @@ const propTypes = {
     report: reportPropTypes,
 
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
-    iou: iouPropTypes
+    iou: iouPropTypes,
 
     /** The current tab we have navigated to in the request modal. String that corresponds to the request type. */
-    selectedTab: PropTypes.oneOf([CONST.TAB.DISTANCE, CONST.TAB.MANUAL, CONST.TAB.SCAN]).isRequired,
+    selectedTab: PropTypes.oneOf([CONST.TAB.DISTANCE, CONST.TAB.MANUAL, CONST.TAB.SCAN]),
 };
 
 const defaultProps = {
     report: {},
     iou: iouDefaultProps,
+    selectedTab: CONST.TAB.MANUAL,
 };
 
 function NewRequestAmountPage({route, iou, report, selectedTab}) {
