@@ -33,8 +33,15 @@ export default function DraggableList<T extends DefaultItemProps>({
     shouldUsePortal = false,
     onContentSizeChange,
 }: DraggableListProps<T>) {
+
+    /**
+     * Function to be called when the user finishes dragging an item
+     * It will reorder the list and call the callback function
+     * to notify the parent component about the change
+     */
     const onDragEnd: OnDragEndResponder = useCallback(
         (result) => {
+            // If user dropped the item outside of the list
             if (!result.destination) {
                 return;
             }
@@ -60,6 +67,12 @@ export default function DraggableList<T extends DefaultItemProps>({
         [onPlaceholderIndexChange],
     );
 
+    /**
+     * The `react-beautiful-dnd` library uses `position: fixed` to move the dragged item to the top of the screen.
+     * But when the parent component uses the `transform` property, the `position: fixed` doesn't work as expected.
+     * Since the TabSelector component uses the `transform` property to animate the tab change
+     * we have to use portals when any of the parent components use the `transform` property.
+     */
     const renderDraggable = useDraggableInPortal({shouldUsePortal});
 
     return (
