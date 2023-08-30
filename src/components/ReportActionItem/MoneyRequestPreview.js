@@ -174,8 +174,8 @@ function MoneyRequestPreview(props) {
             else if (widthDifference > 350) toSubstract = 2;
         }
 
-        // requestAmount also includes digits after ".", so "10000.00" qualifies.
-        if (requestAmount >= 1000000) toSubstract += 2;
+        // requestAmount also includes digits after ".", so "1,000,000.00" qualifies.
+        if (requestAmount >= 100000000) toSubstract += 2;
         
         return toSubstract;
     };
@@ -279,7 +279,7 @@ function MoneyRequestPreview(props) {
                                         styles.moneyRequestPreviewAmount,
                                         StyleUtils.getFontSizeStyle(variables.fontSizeXLarge - getFontSizeToSubstract()),
                                     ]}
-                                    maxNumberOfLines={2}
+                                    maxNumberOfLines={3}
                                 >
                                     {getDisplayAmountText()}
                                 </Text>
