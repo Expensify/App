@@ -166,18 +166,18 @@ function MoneyRequestPreview(props) {
 
     // Prevents large amounts from being cut off on small screen widths.
     const getFontSizeAndLineHeightToSubtract = () => {
-        let toSubstract = 0;
+        let toSubtract = 0;
         if (isSmallScreenWidth) {
             const widthDifference = variables.mobileResponsiveWidthBreakpoint - windowWidth;
-            if (widthDifference > 450) toSubstract = 9;
-            else if (widthDifference > 400) toSubstract = 6;
-            else if (widthDifference > 350) toSubstract = 2;
+            if (widthDifference > 450) toSubtract = 9;
+            else if (widthDifference > 400) toSubtract = 6;
+            else if (widthDifference > 350) toSubtract = 2;
         }
 
         // requestAmount also includes digits after ".", so "1,000,000.00" qualifies.
-        if (requestAmount >= 100000000) toSubstract += 2;
+        if (requestAmount >= 100000000) toSubtract += 2;
 
-        return toSubstract;
+        return toSubtract;
     };
 
     const getSettledMessage = () => {
