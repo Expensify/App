@@ -90,9 +90,7 @@ class SidebarLinks extends React.PureComponent {
         // Eagerly set the locale on date-fns, it helps navigating to the report screen faster
         InteractionManager.runAfterInteractions(() => {
             requestAnimationFrame(() => {
-                requestIdleCallback(() => {
-                    this.props.updateLocale();
-                });
+                this.props.updateLocale();
             });
         });
 
