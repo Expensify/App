@@ -1344,9 +1344,17 @@ function getAmountFontSizeAndLineHeight(baseFontSize, baseLineHeight, isSmallScr
 
     if (isSmallScreenWidth) {
         const widthDifference = variables.mobileResponsiveWidthBreakpoint - windowWidth;
-        if (widthDifference > 350) toSubtract = 2;
-        if (widthDifference > 400) toSubtract = 6;
-        if (widthDifference > 450) toSubtract = 9;
+        switch (true) {
+            case widthDifference > 450:
+                toSubtract = 9;
+                break;
+            case widthDifference > 400:
+                toSubtract = 6;
+                break;
+            case widthDifference > 350:
+                toSubtract = 2;
+                break;
+        }
     }
 
     // requestAmount also includes digits after ".", so "1,000,000.00" qualifies.
