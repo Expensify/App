@@ -113,7 +113,9 @@ const propTypes = {
 
     /** Unit and rate used for if the money request is a distance request */
     mileageRate: PropTypes.shape({
+        /** Unit used to represent distance */
         unit: PropTypes.oneOf([CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS]),
+        /** Rate used to calculate the distance request amount */
         rate: PropTypes.number,
     }),
 
