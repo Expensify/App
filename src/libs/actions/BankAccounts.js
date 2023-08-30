@@ -88,7 +88,7 @@ function getVBBADataForOnyx() {
                 key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
                 value: {
                     isLoading: false,
-                    errors: ErrorUtils.getMicroSecondOnyxError('paymentsPage.addBankAccountFailure'),
+                    errors: ErrorUtils.getMicroSecondOnyxError('walletPage.addBankAccountFailure'),
                 },
             },
         ],
@@ -165,7 +165,7 @@ function addPersonalBankAccount(account) {
                 key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
                 value: {
                     isLoading: false,
-                    errors: ErrorUtils.getMicroSecondOnyxError('paymentsPage.addBankAccountFailure'),
+                    errors: ErrorUtils.getMicroSecondOnyxError('walletPage.addBankAccountFailure'),
                 },
             },
         ],
@@ -401,6 +401,15 @@ function openWorkspaceView() {
     API.read('OpenWorkspaceView');
 }
 
+function handlePlaidError(bankAccountID, error, error_description, plaidRequestID) {
+    API.write('BankAccount_HandlePlaidError', {
+        bankAccountID,
+        error,
+        error_description,
+        plaidRequestID,
+    });
+}
+
 /**
  * Set the reimbursement account loading so that it happens right away, instead of when the API command is processed.
  *
@@ -419,6 +428,7 @@ export {
     connectBankAccountManually,
     connectBankAccountWithPlaid,
     deletePaymentBankAccount,
+    handlePlaidError,
     openPersonalBankAccountSetupView,
     openReimbursementAccountPage,
     updateBeneficialOwnersForBankAccount,
