@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import MagicCodeInput from '../components/MagicCodeInput';
 
 /**
@@ -11,8 +11,17 @@ const story = {
     component: MagicCodeInput,
 };
 
-// eslint-disable-next-line react/jsx-props-no-spreading
-const Template = (args) => <MagicCodeInput {...args} />;
+function Template(args) {
+    const [value, setValue] = useState('');
+    return (
+        <MagicCodeInput
+            value={value}
+            onChangeText={setValue}
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...args}
+        />
+    );
+}
 
 // Arguments can be passed to the component by binding
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args

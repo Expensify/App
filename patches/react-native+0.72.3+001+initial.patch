@@ -1,0 +1,83 @@
+diff --git a/node_modules/react-native/Libraries/Components/Keyboard/KeyboardAvoidingView.js b/node_modules/react-native/Libraries/Components/Keyboard/KeyboardAvoidingView.js
+index 9fb5637..e26d677 100644
+--- a/node_modules/react-native/Libraries/Components/Keyboard/KeyboardAvoidingView.js
++++ b/node_modules/react-native/Libraries/Components/Keyboard/KeyboardAvoidingView.js
+@@ -65,6 +65,7 @@ class KeyboardAvoidingView extends React.Component<Props, State> {
+   _subscriptions: Array<EventSubscription> = [];
+   viewRef: {current: React.ElementRef<typeof View> | null, ...};
+   _initialFrameHeight: number = 0;
++  _bottom: number = 0;
+ 
+   constructor(props: Props) {
+     super(props);
+@@ -112,14 +113,15 @@ class KeyboardAvoidingView extends React.Component<Props, State> {
+   };
+ 
+   _onLayout = async (event: ViewLayoutEvent) => {
+-    const wasFrameNull = this._frame == null;
++    const oldFrame = this._frame;
+     this._frame = event.nativeEvent.layout;
+     if (!this._initialFrameHeight) {
+       // save the initial frame height, before the keyboard is visible
+       this._initialFrameHeight = this._frame.height;
+     }
+ 
+-    if (wasFrameNull) {
++    // update bottom height for the first time or when the height is changed
++    if (!oldFrame || oldFrame.height !== this._frame.height) {
+       await this._updateBottomIfNecessary();
+     }
+ 
+@@ -128,20 +130,32 @@ class KeyboardAvoidingView extends React.Component<Props, State> {
+     }
+   };
+ 
++  // Avoid unnecessary renders if the KeyboardAvoidingView is disabled.
++  _setBottom = (value: number) => {
++    const enabled = this.props.enabled ?? true;
++    this._bottom = value;
++    if (enabled) {
++      this.setState({bottom: value});
++    }
++  };
++
+   _updateBottomIfNecessary = async () => {
+     if (this._keyboardEvent == null) {
+-      this.setState({bottom: 0});
++      this._setBottom(0);
+       return;
+     }
+ 
+     const {duration, easing, endCoordinates} = this._keyboardEvent;
+     const height = await this._relativeKeyboardHeight(endCoordinates);
+ 
+-    if (this.state.bottom === height) {
++    if (this._bottom === height) {
+       return;
+     }
+ 
+-    if (duration && easing) {
++    this._setBottom(height);
++
++    const enabled = this.props.enabled ?? true;
++    if (enabled && duration && easing) {
+       LayoutAnimation.configureNext({
+         // We have to pass the duration equal to minimal accepted duration defined here: RCTLayoutAnimation.m
+         duration: duration > 10 ? duration : 10,
+@@ -151,9 +165,15 @@ class KeyboardAvoidingView extends React.Component<Props, State> {
+         },
+       });
+     }
+-    this.setState({bottom: height});
+   };
+ 
++  componentDidUpdate(_: Props, prevState: State): void {
++    const enabled = this.props.enabled ?? true;
++    if (enabled && this._bottom !== prevState.bottom) {
++      this.setState({bottom: this._bottom});
++    }
++  }
++
+   componentDidMount(): void {
+     if (Platform.OS === 'ios') {
+       this._subscriptions = [

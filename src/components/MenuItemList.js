@@ -14,7 +14,7 @@ const defaultProps = {
     menuItems: [],
 };
 
-const MenuItemList = (props) => {
+function MenuItemList(props) {
     let popoverAnchor;
 
     /**
@@ -45,7 +45,7 @@ const MenuItemList = (props) => {
             ))}
         </>
     );
-};
+}
 
 MenuItemList.displayName = 'MenuItemList';
 MenuItemList.propTypes = propTypes;

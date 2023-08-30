@@ -1,32 +1,43 @@
-import React, {Component} from 'react';
+import React, {useCallback, useMemo, useReducer, useState} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import {format} from 'date-fns';
 import _ from 'underscore';
+import {View} from 'react-native';
 import styles from '../styles/styles';
+import * as ReportUtils from '../libs/ReportUtils';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
 import OptionsSelector from './OptionsSelector';
 import ONYXKEYS from '../ONYXKEYS';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import compose from '../libs/compose';
 import CONST from '../CONST';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import Log from '../libs/Log';
 import SettlementButton from './SettlementButton';
 import ROUTES from '../ROUTES';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from './withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from './withCurrentUserPersonalDetails';
 import * as IOUUtils from '../libs/IOUUtils';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import Navigation from '../libs/Navigation/Navigation';
 import optionPropTypes from './optionPropTypes';
 import * as CurrencyUtils from '../libs/CurrencyUtils';
+import Button from './Button';
+import * as Expensicons from './Icon/Expensicons';
+import themeColors from '../styles/themes/default';
+import Image from './Image';
+import useLocalize from '../hooks/useLocalize';
+import * as ReceiptUtils from '../libs/ReceiptUtils';
+import categoryPropTypes from './categoryPropTypes';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
-    onConfirm: PropTypes.func.isRequired,
+    onConfirm: PropTypes.func,
 
     /** Callback to parent modal to send money */
-    onSendMoney: PropTypes.func.isRequired,
+    onSendMoney: PropTypes.func,
+
+    /** Callback to inform a participant is selected */
+    onSelectParticipant: PropTypes.func,
 
     /** Should we request a single or multiple participant selection from user */
     hasMultipleParticipants: PropTypes.bool.isRequired,
@@ -34,308 +45,394 @@ const propTypes = {
     /** IOU amount */
     iouAmount: PropTypes.number.isRequired,
 
+    /** IOU comment */
+    iouComment: PropTypes.string,
+
+    /** IOU currency */
+    iouCurrencyCode: PropTypes.string,
+
     /** IOU type */
     iouType: PropTypes.string,
 
-    /** Selected participants from MoneyRequestModal with login */
-    participants: PropTypes.arrayOf(optionPropTypes).isRequired,
+    /** IOU date */
+    iouCreated: PropTypes.string,
+
+    /** IOU merchant */
+    iouMerchant: PropTypes.string,
+
+    /** IOU Category */
+    iouCategory: PropTypes.string,
+
+    /** Selected participants from MoneyRequestModal with login / accountID */
+    selectedParticipants: PropTypes.arrayOf(optionPropTypes).isRequired,
+
+    /** Payee of the money request with login */
+    payeePersonalDetails: optionPropTypes,
 
     /** Can the participants be modified or not */
     canModifyParticipants: PropTypes.bool,
 
-    ...windowDimensionsPropTypes,
+    /** Should the list be read only, and not editable? */
+    isReadOnly: PropTypes.bool,
 
-    ...withLocalizePropTypes,
+    /** Depending on expense report or personal IOU report, respective bank account route */
+    bankAccountRoute: PropTypes.string,
 
     ...withCurrentUserPersonalDetailsPropTypes,
-
-    /* Onyx Props */
-
-    /** Holds data related to IOU view state, rather than the underlying IOU data. */
-    iou: PropTypes.shape({
-        /** Whether or not the IOU step is loading (creating the IOU Report) */
-        loading: PropTypes.bool,
-
-        // Selected Currency Code of the current IOU
-        selectedCurrencyCode: PropTypes.string,
-    }),
 
     /** Current user session */
     session: PropTypes.shape({
         email: PropTypes.string.isRequired,
     }),
 
-    /** Callback function to navigate to a provided step in the MoneyRequestModal flow */
-    navigateToStep: PropTypes.func.isRequired,
-
     /** The policyID of the request */
     policyID: PropTypes.string,
+
+    /** The reportID of the request */
+    reportID: PropTypes.string,
+
+    /** File path of the receipt */
+    receiptPath: PropTypes.string,
+
+    /** File source of the receipt */
+    receiptSource: PropTypes.string,
+
+    /* Onyx Props */
+    /** Collection of categories attached to a policy */
+    policyCategories: PropTypes.objectOf(categoryPropTypes),
 };
 
 const defaultProps = {
-    iou: {
-        selectedCurrencyCode: CONST.CURRENCY.USD,
-    },
+    onConfirm: () => {},
+    onSendMoney: () => {},
+    onSelectParticipant: () => {},
     iouType: CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
+    iouCategory: '',
+    payeePersonalDetails: null,
     canModifyParticipants: false,
+    isReadOnly: false,
+    bankAccountRoute: '',
     session: {
         email: null,
     },
     policyID: '',
+    reportID: '',
     ...withCurrentUserPersonalDetailsDefaultProps,
+    receiptPath: '',
+    receiptSource: '',
+    policyCategories: {},
 };
 
-class MoneyRequestConfirmationList extends Component {
-    constructor(props) {
-        super(props);
+function MoneyRequestConfirmationList(props) {
+    // Destructure functions from props to pass it as a dependecy to useCallback/useMemo hooks.
+    // Prop functions pass props itself as a "this" value to the function which means they change every time props change.
+    const {onSendMoney, onConfirm, onSelectParticipant} = props;
+    const {translate} = useLocalize();
 
-        const formattedParticipants = _.map(this.getParticipantsWithAmount(props.participants), (participant) => ({
-            ...participant,
-            selected: true,
-        }));
-
-        this.state = {
-            participants: formattedParticipants,
-            didConfirm: false,
-        };
-
-        this.toggleOption = this.toggleOption.bind(this);
-        this.confirm = this.confirm.bind(this);
-    }
-
-    /**
-     * Get the confirmation button options
-     * @returns {Array}
-     */
-    getSplitOrRequestOptions() {
-        const text = this.props.translate(this.props.hasMultipleParticipants ? 'iou.splitAmount' : 'iou.requestAmount', {
-            amount: CurrencyUtils.convertToDisplayString(this.props.iouAmount, this.props.iou.selectedCurrencyCode),
-        });
-        return [
-            {
-                text: text[0].toUpperCase() + text.slice(1),
-                value: this.props.hasMultipleParticipants ? CONST.IOU.MONEY_REQUEST_TYPE.SPLIT : CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
-            },
-        ];
-    }
-
-    /**
-     * Get selected participants
-     * @returns {Array}
-     */
-    getSelectedParticipants() {
-        return _.filter(this.state.participants, (participant) => participant.selected);
-    }
-
-    /**
-     * Get unselected participants
-     * @returns {Array}
-     */
-    getUnselectedParticipants() {
-        return _.filter(this.state.participants, (participant) => !participant.selected);
-    }
+    // A flag and a toggler for showing the rest of the form fields
+    const [showAllFields, toggleShowAllFields] = useReducer((state) => !state, false);
+    const isTypeRequest = props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST;
 
     /**
      * Returns the participants with amount
      * @param {Array} participants
      * @returns {Array}
      */
-    getParticipantsWithAmount(participants) {
-        const iouAmount = IOUUtils.calculateAmount(participants.length, this.props.iouAmount);
-        return OptionsListUtils.getIOUConfirmationOptionsFromParticipants(participants, CurrencyUtils.convertToDisplayString(iouAmount, this.props.iou.selectedCurrencyCode));
-    }
+    const getParticipantsWithAmount = useCallback(
+        (participantsList) => {
+            const iouAmount = IOUUtils.calculateAmount(participantsList.length, props.iouAmount, props.iouCurrencyCode);
+            return OptionsListUtils.getIOUConfirmationOptionsFromParticipants(participantsList, CurrencyUtils.convertToDisplayString(iouAmount, props.iouCurrencyCode));
+        },
+        [props.iouAmount, props.iouCurrencyCode],
+    );
 
-    /**
-     * Returns the participants without amount
-     *
-     * @param {Array} participants
-     * @returns {Array}
-     */
-    getParticipantsWithoutAmount(participants) {
-        return _.map(participants, (option) => _.omit(option, 'descriptiveText'));
-    }
+    const [didConfirm, setDidConfirm] = useState(false);
 
-    /**
-     * Returns the sections needed for the OptionsSelector
-     *
-     * @returns {Array}
-     */
-    getSections() {
+    const splitOrRequestOptions = useMemo(() => {
+        let text;
+        if (props.receiptPath) {
+            text = translate('iou.request');
+        } else {
+            const translationKey = props.hasMultipleParticipants ? 'iou.splitAmount' : 'iou.requestAmount';
+            text = translate(translationKey, {amount: CurrencyUtils.convertToDisplayString(props.iouAmount, props.iouCurrencyCode)});
+        }
+        return [
+            {
+                text: text[0].toUpperCase() + text.slice(1),
+                value: props.hasMultipleParticipants ? CONST.IOU.MONEY_REQUEST_TYPE.SPLIT : CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
+            },
+        ];
+    }, [props.hasMultipleParticipants, props.iouAmount, props.receiptPath, props.iouCurrencyCode, translate]);
+
+    const selectedParticipants = useMemo(() => _.filter(props.selectedParticipants, (participant) => participant.selected), [props.selectedParticipants]);
+    const payeePersonalDetails = useMemo(() => props.payeePersonalDetails || props.currentUserPersonalDetails, [props.payeePersonalDetails, props.currentUserPersonalDetails]);
+    const canModifyParticipants = !props.isReadOnly && props.canModifyParticipants && props.hasMultipleParticipants;
+    const shouldDisablePaidBySection = canModifyParticipants;
+
+    const optionSelectorSections = useMemo(() => {
         const sections = [];
-        if (this.props.hasMultipleParticipants) {
-            const selectedParticipants = this.getSelectedParticipants();
-            const unselectedParticipants = this.getUnselectedParticipants();
+        const unselectedParticipants = _.filter(props.selectedParticipants, (participant) => !participant.selected);
+        if (props.hasMultipleParticipants) {
+            const formattedSelectedParticipants = getParticipantsWithAmount(selectedParticipants);
+            let formattedParticipantsList = _.union(formattedSelectedParticipants, unselectedParticipants);
 
-            const formattedSelectedParticipants = this.getParticipantsWithAmount(selectedParticipants);
-            const formattedUnselectedParticipants = this.getParticipantsWithoutAmount(unselectedParticipants);
-            const formattedParticipants = _.union(formattedSelectedParticipants, formattedUnselectedParticipants);
+            if (!canModifyParticipants) {
+                formattedParticipantsList = _.map(formattedParticipantsList, (participant) => ({
+                    ...participant,
+                    isDisabled: ReportUtils.isOptimisticPersonalDetail(participant.accountID),
+                }));
+            }
 
-            const myIOUAmount = IOUUtils.calculateAmount(selectedParticipants.length, this.props.iouAmount, true);
-            const formattedMyPersonalDetails = OptionsListUtils.getIOUConfirmationOptionsFromMyPersonalDetail(
-                this.props.currentUserPersonalDetails,
-                CurrencyUtils.convertToDisplayString(myIOUAmount, this.props.iou.selectedCurrencyCode),
+            const myIOUAmount = IOUUtils.calculateAmount(selectedParticipants.length, props.iouAmount, props.iouCurrencyCode, true);
+            const formattedPayeeOption = OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(
+                payeePersonalDetails,
+                CurrencyUtils.convertToDisplayString(myIOUAmount, props.iouCurrencyCode),
             );
 
             sections.push(
                 {
-                    title: this.props.translate('moneyRequestConfirmationList.whoPaid'),
-                    data: [formattedMyPersonalDetails],
+                    title: translate('moneyRequestConfirmationList.paidBy'),
+                    data: [formattedPayeeOption],
                     shouldShow: true,
                     indexOffset: 0,
-                    isDisabled: true,
+                    isDisabled: shouldDisablePaidBySection,
                 },
                 {
-                    title: this.props.translate('moneyRequestConfirmationList.whoWasThere'),
-                    data: formattedParticipants,
+                    title: translate('moneyRequestConfirmationList.splitWith'),
+                    data: formattedParticipantsList,
                     shouldShow: true,
                     indexOffset: 1,
                 },
             );
         } else {
-            const formattedParticipants = this.getParticipantsWithoutAmount(this.props.participants);
+            const formattedSelectedParticipants = _.map(props.selectedParticipants, (participant) => ({
+                ...participant,
+                isDisabled: ReportUtils.isOptimisticPersonalDetail(participant.accountID),
+            }));
             sections.push({
-                title: this.props.translate('common.to'),
-                data: formattedParticipants,
+                title: translate('common.to'),
+                data: formattedSelectedParticipants,
                 shouldShow: true,
                 indexOffset: 0,
             });
         }
         return sections;
-    }
+    }, [
+        props.selectedParticipants,
+        props.hasMultipleParticipants,
+        props.iouAmount,
+        props.iouCurrencyCode,
+        getParticipantsWithAmount,
+        selectedParticipants,
+        payeePersonalDetails,
+        translate,
+        shouldDisablePaidBySection,
+        canModifyParticipants,
+    ]);
 
-    /**
-     * Returns selected options -- there is checkmark for every row in List for split flow
-     * @returns {Array}
-     */
-    getSelectedOptions() {
-        if (!this.props.hasMultipleParticipants) {
+    const selectedOptions = useMemo(() => {
+        if (!props.hasMultipleParticipants) {
             return [];
         }
-        const selectedParticipants = this.getSelectedParticipants();
-        return [...selectedParticipants, OptionsListUtils.getIOUConfirmationOptionsFromMyPersonalDetail(this.props.currentUserPersonalDetails)];
-    }
+        return [...selectedParticipants, OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetails)];
+    }, [selectedParticipants, props.hasMultipleParticipants, payeePersonalDetails]);
 
     /**
-     * Toggle selected option's selected prop.
      * @param {Object} option
      */
-    toggleOption(option) {
-        // Return early if selected option is currently logged in user.
-        if (option.login === this.props.session.email) {
-            return;
-        }
+    const selectParticipant = useCallback(
+        (option) => {
+            // Return early if selected option is currently logged in user.
+            if (option.accountID === props.session.accountID) {
+                return;
+            }
+            onSelectParticipant(option);
+        },
+        [props.session.accountID, onSelectParticipant],
+    );
 
-        this.setState((prevState) => {
-            const newParticipants = _.map(prevState.participants, (participant) => {
-                if (participant.login === option.login) {
-                    return {...participant, selected: !participant.selected};
-                }
-                return participant;
-            });
-            return {participants: newParticipants};
-        });
-    }
+    /**
+     * Navigate to report details or profile of selected user
+     * @param {Object} option
+     */
+    const navigateToReportOrUserDetail = (option) => {
+        if (option.accountID) {
+            const activeRoute = Navigation.getActiveRoute().replace(/\?.*/, '');
+
+            Navigation.navigate(ROUTES.getProfileRoute(option.accountID, activeRoute));
+        } else if (option.reportID) {
+            Navigation.navigate(ROUTES.getReportDetailsRoute(option.reportID));
+        }
+    };
 
     /**
      * @param {String} paymentMethod
      */
-    confirm(paymentMethod) {
-        this.setState({didConfirm: true});
+    const confirm = useCallback(
+        (paymentMethod) => {
+            setDidConfirm(true);
 
-        const selectedParticipants = this.getSelectedParticipants();
-        if (_.isEmpty(selectedParticipants)) {
-            return;
-        }
-
-        if (this.props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.SEND) {
-            if (!paymentMethod) {
+            if (_.isEmpty(selectedParticipants)) {
                 return;
             }
 
-            Log.info(`[IOU] Sending money via: ${paymentMethod}`);
-            this.props.onSendMoney(paymentMethod);
-        } else {
-            this.props.onConfirm(selectedParticipants);
-        }
-    }
-
-    render() {
-        const selectedParticipants = this.getSelectedParticipants();
-        const shouldShowSettlementButton = this.props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.SEND;
-        const shouldDisableButton = selectedParticipants.length === 0;
-        const recipient = this.state.participants[0];
-        const canModifyParticipants = this.props.canModifyParticipants && this.props.hasMultipleParticipants;
-        const formattedAmount = CurrencyUtils.convertToDisplayString(this.props.iouAmount, this.props.iou.selectedCurrencyCode);
-
-        return (
-            <OptionsSelector
-                sections={this.getSections()}
-                value=""
-                onSelectRow={canModifyParticipants ? this.toggleOption : undefined}
-                onConfirmSelection={this.confirm}
-                selectedOptions={this.getSelectedOptions()}
-                canSelectMultipleOptions={canModifyParticipants}
-                disableArrowKeysActions={!canModifyParticipants}
-                isDisabled={!canModifyParticipants}
-                boldStyle
-                shouldTextInputAppearBelowOptions
-                shouldShowTextInput={false}
-                shouldUseStyleForChildren={false}
-                optionHoveredStyle={canModifyParticipants ? styles.hoveredComponentBG : {}}
-                footerContent={
-                    shouldShowSettlementButton ? (
-                        <SettlementButton
-                            isDisabled={shouldDisableButton}
-                            onPress={this.confirm}
-                            shouldShowPaypal={Boolean(recipient.payPalMeAddress)}
-                            enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
-                            addBankAccountRoute={ROUTES.IOU_SEND_ADD_BANK_ACCOUNT}
-                            addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
-                            currency={this.props.iou.selectedCurrencyCode}
-                            policyID={this.props.policyID}
-                        />
-                    ) : (
-                        <ButtonWithDropdownMenu
-                            isDisabled={shouldDisableButton}
-                            onPress={(_event, value) => this.confirm(value)}
-                            options={this.getSplitOrRequestOptions()}
-                        />
-                    )
+            if (props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.SEND) {
+                if (!paymentMethod) {
+                    return;
                 }
-            >
+
+                Log.info(`[IOU] Sending money via: ${paymentMethod}`);
+                onSendMoney(paymentMethod);
+            } else {
+                onConfirm(selectedParticipants);
+            }
+        },
+        [selectedParticipants, onSendMoney, onConfirm, props.iouType],
+    );
+
+    const formattedAmount = CurrencyUtils.convertToDisplayString(props.iouAmount, props.iouCurrencyCode);
+
+    const footerContent = useMemo(() => {
+        if (props.isReadOnly) {
+            return;
+        }
+
+        const shouldShowSettlementButton = props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.SEND;
+        const shouldDisableButton = selectedParticipants.length === 0;
+        const recipient = props.selectedParticipants[0] || {};
+
+        return shouldShowSettlementButton ? (
+            <SettlementButton
+                isDisabled={shouldDisableButton}
+                onPress={confirm}
+                shouldShowPaypal={Boolean(recipient && recipient.payPalMeAddress)}
+                enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
+                addBankAccountRoute={props.bankAccountRoute}
+                addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
+                currency={props.iouCurrencyCode}
+                policyID={props.policyID}
+                shouldShowPaymentOptions
+                buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
+                anchorAlignment={{
+                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                }}
+            />
+        ) : (
+            <ButtonWithDropdownMenu
+                isDisabled={shouldDisableButton}
+                onPress={(_event, value) => confirm(value)}
+                options={splitOrRequestOptions}
+                buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
+            />
+        );
+    }, [confirm, props.selectedParticipants, props.bankAccountRoute, props.iouCurrencyCode, props.iouType, props.isReadOnly, props.policyID, selectedParticipants, splitOrRequestOptions]);
+
+    return (
+        <OptionsSelector
+            sections={optionSelectorSections}
+            value=""
+            onSelectRow={canModifyParticipants ? selectParticipant : navigateToReportOrUserDetail}
+            onConfirmSelection={confirm}
+            selectedOptions={selectedOptions}
+            canSelectMultipleOptions={canModifyParticipants}
+            disableArrowKeysActions={!canModifyParticipants}
+            boldStyle
+            showTitleTooltip
+            shouldTextInputAppearBelowOptions
+            shouldShowTextInput={false}
+            shouldUseStyleForChildren={false}
+            optionHoveredStyle={canModifyParticipants ? styles.hoveredComponentBG : {}}
+            footerContent={footerContent}
+        >
+            {!_.isEmpty(props.receiptPath) ? (
+                <Image
+                    style={styles.moneyRequestImage}
+                    source={{uri: ReceiptUtils.getThumbnailAndImageURIs(props.receiptPath, props.receiptSource).image}}
+                />
+            ) : (
                 <MenuItemWithTopDescription
-                    shouldShowRightIcon
+                    shouldShowRightIcon={!props.isReadOnly}
                     title={formattedAmount}
-                    description={this.props.translate('iou.amount')}
-                    onPress={() => this.props.navigateToStep(0)}
+                    description={translate('iou.amount')}
+                    onPress={() => Navigation.navigate(ROUTES.getMoneyRequestAmountRoute(props.iouType, props.reportID))}
                     style={[styles.moneyRequestMenuItem, styles.mt2]}
                     titleStyle={styles.moneyRequestConfirmationAmount}
-                    disabled={this.state.didConfirm}
+                    disabled={didConfirm || props.isReadOnly}
                 />
-                <MenuItemWithTopDescription
-                    shouldShowRightIcon
-                    title={this.props.iou.comment}
-                    description={this.props.translate('common.description')}
-                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_DESCRIPTION)}
-                    style={[styles.moneyRequestMenuItem, styles.mb2]}
-                    disabled={this.state.didConfirm}
-                />
-            </OptionsSelector>
-        );
-    }
+            )}
+            <MenuItemWithTopDescription
+                shouldShowRightIcon={!props.isReadOnly}
+                title={props.iouComment}
+                description={translate('common.description')}
+                onPress={() => Navigation.navigate(ROUTES.getMoneyRequestDescriptionRoute(props.iouType, props.reportID))}
+                style={[styles.moneyRequestMenuItem, styles.mb2]}
+                titleStyle={styles.flex1}
+                disabled={didConfirm || props.isReadOnly}
+                numberOfLinesTitle={2}
+            />
+            {!showAllFields && (
+                <View style={[styles.flexRow, styles.justifyContentBetween, styles.mh3, styles.alignItemsCenter, styles.mb2]}>
+                    <View style={[styles.shortTermsHorizontalRule, styles.flex1, styles.mr0]} />
+                    <Button
+                        small
+                        onPress={toggleShowAllFields}
+                        text={translate('common.showMore')}
+                        shouldShowRightIcon
+                        iconRight={Expensicons.DownArrow}
+                        iconFill={themeColors.icon}
+                        style={styles.mh0}
+                    />
+                    <View style={[styles.shortTermsHorizontalRule, styles.flex1, styles.ml0]} />
+                </View>
+            )}
+            {showAllFields && (
+                <>
+                    <MenuItemWithTopDescription
+                        shouldShowRightIcon={!props.isReadOnly && isTypeRequest}
+                        title={props.iouCreated || format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}
+                        description={translate('common.date')}
+                        style={[styles.moneyRequestMenuItem, styles.mb2]}
+                        titleStyle={styles.flex1}
+                        onPress={() => Navigation.navigate(ROUTES.getMoneyRequestCreatedRoute(props.iouType, props.reportID))}
+                        disabled={didConfirm || props.isReadOnly || !isTypeRequest}
+                    />
+                    <MenuItemWithTopDescription
+                        shouldShowRightIcon={!props.isReadOnly && isTypeRequest}
+                        title={props.iouMerchant}
+                        description={translate('common.merchant')}
+                        style={[styles.moneyRequestMenuItem, styles.mb2]}
+                        titleStyle={styles.flex1}
+                        onPress={() => Navigation.navigate(ROUTES.getMoneyRequestMerchantRoute(props.iouType, props.reportID))}
+                        disabled={didConfirm || props.isReadOnly || !isTypeRequest}
+                    />
+                    {!_.isEmpty(props.policyCategories) && (
+                        <MenuItemWithTopDescription
+                            shouldShowRightIcon={!props.isReadOnly}
+                            title={props.iouCategory}
+                            description={translate('common.category')}
+                            onPress={() => Navigation.navigate(ROUTES.getMoneyRequestCategoryRoute(props.iouType, props.reportID))}
+                            style={[styles.moneyRequestMenuItem, styles.mb2]}
+                            disabled={didConfirm || props.isReadOnly}
+                        />
+                    )}
+                </>
+            )}
+        </OptionsSelector>
+    );
 }
 
 MoneyRequestConfirmationList.propTypes = propTypes;
 MoneyRequestConfirmationList.defaultProps = defaultProps;
 
 export default compose(
-    withLocalize,
-    withWindowDimensions,
     withCurrentUserPersonalDetails,
     withOnyx({
-        iou: {key: ONYXKEYS.IOU},
         session: {
             key: ONYXKEYS.SESSION,
+        },
+        policyCategories: {
+            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
         },
     }),
 )(MoneyRequestConfirmationList);

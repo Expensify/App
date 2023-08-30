@@ -11,8 +11,10 @@ const story = {
     component: Banner,
 };
 
-// eslint-disable-next-line react/jsx-props-no-spreading
-const Template = (args) => <Banner {...args} />;
+function Template(args) {
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    return <Banner {...args} />;
+}
 
 // Arguments can be passed to the component by binding
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args

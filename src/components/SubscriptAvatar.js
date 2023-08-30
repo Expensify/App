@@ -2,13 +2,14 @@ import React, {memo} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import styles from '../styles/styles';
-import Tooltip from './Tooltip';
 import themeColors from '../styles/themes/default';
 import Avatar from './Avatar';
 import CONST from '../CONST';
 import * as StyleUtils from '../styles/StyleUtils';
 import avatarPropTypes from './avatarPropTypes';
+import UserDetailsTooltip from './UserDetailsTooltip';
 
 const propTypes = {
     /** Avatar URL or icon */
@@ -16,12 +17,6 @@ const propTypes = {
 
     /** Subscript avatar URL or icon */
     secondaryAvatar: avatarPropTypes,
-
-    /** Tooltip for the main avatar */
-    mainTooltip: PropTypes.string,
-
-    /** Tooltip for the subscript avatar */
-    secondaryTooltip: PropTypes.string,
 
     /** Set the size of avatars */
     size: PropTypes.oneOf(_.values(CONST.AVATAR_SIZE)),
@@ -34,8 +29,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    mainTooltip: '',
-    secondaryTooltip: '',
     size: CONST.AVATAR_SIZE.DEFAULT,
     backgroundColor: themeColors.componentBG,
     mainAvatar: {},
@@ -43,11 +36,12 @@ const defaultProps = {
     noMargin: false,
 };
 
-const SubscriptAvatar = (props) => {
-    const containerStyle = props.size === CONST.AVATAR_SIZE.SMALL ? styles.emptyAvatarSmall : styles.emptyAvatar;
-
+function SubscriptAvatar(props) {
+    const isSmall = props.size === CONST.AVATAR_SIZE.SMALL;
+    const subscriptSyle = props.size === CONST.AVATAR_SIZE.SMALL_NORMAL ? styles.secondAvatarSubscriptSmallNormal : styles.secondAvatarSubscript;
+    const containerStyle = isSmall ? styles.emptyAvatarSmall : styles.emptyAvatar;
     // Default the margin style to what is normal for small or normal sized avatars
-    let marginStyle = props.size === CONST.AVATAR_SIZE.SMALL ? styles.emptyAvatarMargin : styles.emptyAvatarMarginSmall;
+    let marginStyle = isSmall ? styles.emptyAvatarMarginSmall : styles.emptyAvatarMargin;
 
     // Some views like the chat view require that there be no margins
     if (props.noMargin) {
@@ -55,32 +49,42 @@ const SubscriptAvatar = (props) => {
     }
     return (
         <View style={[containerStyle, marginStyle]}>
-            <Tooltip text={props.mainTooltip}>
-                <Avatar
-                    source={props.mainAvatar.source}
-                    size={props.size === CONST.AVATAR_SIZE.SMALL ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
-                    name={props.mainAvatar.name}
-                    type={props.mainAvatar.type}
-                />
-            </Tooltip>
-            <Tooltip text={props.secondaryTooltip}>
-                <Avatar
-                    imageStyles={null}
-                    containerStyles={[props.size === CONST.AVATAR_SIZE.SMALL ? styles.secondAvatarSubscriptCompact : styles.secondAvatarSubscript]}
-                    iconAdditionalStyles={[
-                        StyleUtils.getAvatarBorderWidth(props.size === CONST.AVATAR_SIZE.SMALL ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : CONST.AVATAR_SIZE.SUBSCRIPT),
-                        StyleUtils.getBorderColorStyle(props.backgroundColor),
-                    ]}
-                    source={props.secondaryAvatar.source}
-                    size={props.size === CONST.AVATAR_SIZE.SMALL ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : CONST.AVATAR_SIZE.SUBSCRIPT}
-                    fill={themeColors.iconSuccessFill}
-                    name={props.secondaryAvatar.name}
-                    type={props.secondaryAvatar.type}
-                />
-            </Tooltip>
+            <UserDetailsTooltip
+                accountID={lodashGet(props.mainAvatar, 'id', -1)}
+                icon={props.mainAvatar}
+            >
+                <View>
+                    <Avatar
+                        containerStyles={StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(props.size || CONST.AVATAR_SIZE.DEFAULT))}
+                        source={props.mainAvatar.source}
+                        size={props.size || CONST.AVATAR_SIZE.DEFAULT}
+                        name={props.mainAvatar.name}
+                        type={props.mainAvatar.type}
+                    />
+                </View>
+            </UserDetailsTooltip>
+            <UserDetailsTooltip
+                accountID={lodashGet(props.secondaryAvatar, 'id', -1)}
+                icon={props.secondaryAvatar}
+            >
+                <View style={props.size === CONST.AVATAR_SIZE.SMALL_NORMAL ? styles.flex1 : {}}>
+                    <Avatar
+                        containerStyles={[isSmall ? styles.secondAvatarSubscriptCompact : subscriptSyle]}
+                        iconAdditionalStyles={[
+                            StyleUtils.getAvatarBorderWidth(isSmall ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : CONST.AVATAR_SIZE.SUBSCRIPT),
+                            StyleUtils.getBorderColorStyle(props.backgroundColor),
+                        ]}
+                        source={props.secondaryAvatar.source}
+                        size={isSmall ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : CONST.AVATAR_SIZE.SUBSCRIPT}
+                        fill={themeColors.iconSuccessFill}
+                        name={props.secondaryAvatar.name}
+                        type={props.secondaryAvatar.type}
+                    />
+                </View>
+            </UserDetailsTooltip>
         </View>
     );
-};
+}
 
 SubscriptAvatar.displayName = 'SubscriptAvatar';
 SubscriptAvatar.propTypes = propTypes;

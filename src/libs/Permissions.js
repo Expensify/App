@@ -1,5 +1,4 @@
 import _ from 'underscore';
-import * as Environment from './Environment/Environment';
 import CONST from '../CONST';
 
 /**
@@ -8,7 +7,7 @@ import CONST from '../CONST';
  * @returns {Boolean}
  */
 function canUseAllBetas(betas) {
-    return Environment.isDevelopment() || _.contains(betas, CONST.BETAS.ALL);
+    return _.contains(betas, CONST.BETAS.ALL);
 }
 
 /**
@@ -17,14 +16,6 @@ function canUseAllBetas(betas) {
  */
 function canUseChronos(betas) {
     return _.contains(betas, CONST.BETAS.CHRONOS_IN_CASH) || canUseAllBetas(betas);
-}
-
-/**
- * @param {Array<String>} betas
- * @returns {Boolean}
- */
-function canUseIOU(betas) {
-    return _.contains(betas, CONST.BETAS.IOU) || canUseAllBetas(betas);
 }
 
 /**
@@ -44,11 +35,12 @@ function canUseDefaultRooms(betas) {
 }
 
 /**
- * @param {Array<String>} betas
+ * IOU Send feature is temporarily disabled.
+ *
  * @returns {Boolean}
  */
-function canUseIOUSend(betas) {
-    return _.contains(betas, CONST.BETAS.IOU_SEND) || canUseAllBetas(betas);
+function canUseIOUSend() {
+    return false;
 }
 
 /**
@@ -75,23 +67,7 @@ function canUseCommentLinking(betas) {
  * @returns {Boolean}
  */
 function canUsePolicyRooms(betas) {
-    return _.contains(betas, CONST.BETAS.POLICY_ROOMS) || _.contains(betas, CONST.BETAS.ALL);
-}
-
-/**
- * @param {Array<String>} betas
- * @returns {Boolean}
- */
-function canUsePolicyExpenseChat(betas) {
-    return _.contains(betas, CONST.BETAS.POLICY_EXPENSE_CHAT) || canUseAllBetas(betas);
-}
-
-/**
- * @param {Array<String>} betas
- * @returns {Boolean}
- */
-function canUsePasswordlessLogins(betas) {
-    return _.contains(betas, CONST.BETAS.PASSWORDLESS) || _.contains(betas, CONST.BETAS.ALL);
+    return _.contains(betas, CONST.BETAS.POLICY_ROOMS) || canUseAllBetas(betas);
 }
 
 /**
@@ -99,28 +75,52 @@ function canUsePasswordlessLogins(betas) {
  * @returns {Boolean}
  */
 function canUseTasks(betas) {
-    return _.contains(betas, CONST.BETAS.TASKS) || _.contains(betas, CONST.BETAS.ALL);
+    return _.contains(betas, CONST.BETAS.TASKS) || canUseAllBetas(betas);
 }
 
 /**
  * @param {Array<String>} betas
  * @returns {Boolean}
  */
-function canUseThreads(betas) {
-    return _.contains(betas, CONST.BETAS.THREADS) || canUseAllBetas(betas);
+function canUseScanReceipts(betas) {
+    return _.contains(betas, CONST.BETAS.SCAN_RECEIPTS) || canUseAllBetas(betas);
+}
+
+/**
+ * @param {Array<String>} betas
+ * @returns {Boolean}
+ */
+function canUseCustomStatus(betas) {
+    return _.contains(betas, CONST.BETAS.CUSTOM_STATUS) || canUseAllBetas(betas);
+}
+
+/**
+ * @param {Array<String>} betas
+ * @returns {Boolean}
+ */
+function canUseDistanceRequests(betas) {
+    return _.contains(betas, CONST.BETAS.DISTANCE_REQUESTS) || canUseAllBetas(betas);
+}
+
+/**
+ * Link previews are temporarily disabled.
+ * @returns {Boolean}
+ */
+function canUseLinkPreviews() {
+    return false;
 }
 
 export default {
     canUseChronos,
-    canUseIOU,
     canUsePayWithExpensify,
     canUseDefaultRooms,
     canUseIOUSend,
     canUseWallet,
     canUseCommentLinking,
     canUsePolicyRooms,
-    canUsePolicyExpenseChat,
-    canUsePasswordlessLogins,
     canUseTasks,
-    canUseThreads,
+    canUseScanReceipts,
+    canUseCustomStatus,
+    canUseDistanceRequests,
+    canUseLinkPreviews,
 };

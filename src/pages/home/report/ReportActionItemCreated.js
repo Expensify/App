@@ -1,10 +1,9 @@
-import React from 'react';
-import {Pressable, View, Image} from 'react-native';
+import React, {memo} from 'react';
+import {View, Image} from 'react-native';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import ONYXKEYS from '../../../ONYXKEYS';
-import RoomHeaderAvatars from '../../../components/RoomHeaderAvatars';
 import ReportWelcomeText from '../../../components/ReportWelcomeText';
 import participantPropTypes from '../../../components/participantPropTypes';
 import * as ReportUtils from '../../../libs/ReportUtils';
@@ -17,6 +16,9 @@ import * as StyleUtils from '../../../styles/StyleUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import compose from '../../../libs/compose';
 import withLocalize from '../../../components/withLocalize';
+import PressableWithoutFeedback from '../../../components/Pressable/PressableWithoutFeedback';
+import MultipleAvatars from '../../../components/MultipleAvatars';
+import CONST from '../../../CONST';
 
 const propTypes = {
     /** The id of the report */
@@ -28,19 +30,30 @@ const propTypes = {
     /** Personal details of all the users */
     personalDetails: PropTypes.objectOf(participantPropTypes),
 
+    /** The policy object for the current route */
+    policy: PropTypes.shape({
+        /** The name of the policy */
+        name: PropTypes.string,
+
+        /** The URL for the policy avatar */
+        avatar: PropTypes.string,
+    }),
+
     ...windowDimensionsPropTypes,
 };
 const defaultProps = {
     report: {},
     personalDetails: {},
+    policy: {},
 };
 
-const ReportActionItemCreated = (props) => {
+function ReportActionItemCreated(props) {
     if (!ReportUtils.isChatReport(props.report)) {
         return null;
     }
 
     const icons = ReportUtils.getIcons(props.report, props.personalDetails);
+    const shouldDisableDetailPage = ReportUtils.shouldDisableDetailPage(props.report);
 
     return (
         <OfflineWithFeedback
@@ -48,6 +61,7 @@ const ReportActionItemCreated = (props) => {
             errors={lodashGet(props.report, 'errorFields.addWorkspaceRoom') || lodashGet(props.report, 'errorFields.createChat')}
             errorRowStyles={[styles.ml10, styles.mr2]}
             onClose={() => Report.navigateToConciergeChatAndDeleteReport(props.report.reportID)}
+            needsOffscreenAlphaCompositing
         >
             <View style={StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth)}>
                 <Image
@@ -59,20 +73,32 @@ const ReportActionItemCreated = (props) => {
                     accessibilityLabel={props.translate('accessibilityHints.chatWelcomeMessage')}
                     style={[styles.p5, StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]}
                 >
-                    <Pressable
+                    <PressableWithoutFeedback
                         onPress={() => ReportUtils.navigateToDetailsPage(props.report)}
-                        style={[styles.ph5, styles.pb3, styles.alignSelfStart]}
+                        style={[styles.mh5, styles.mb3, styles.alignSelfStart]}
+                        accessibilityLabel={props.translate('common.details')}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        disabled={shouldDisableDetailPage}
                     >
-                        <RoomHeaderAvatars icons={icons} />
-                    </Pressable>
+                        <MultipleAvatars
+                            icons={icons}
+                            size={props.isLargeScreenWidth || (icons && icons.length < 3) ? CONST.AVATAR_SIZE.LARGE : CONST.AVATAR_SIZE.MEDIUM}
+                            shouldStackHorizontally
+                            shouldDisplayAvatarsInRows={props.isSmallScreenWidth}
+                            maxAvatarsInRow={props.isSmallScreenWidth ? CONST.AVATAR_ROW_SIZE.DEFAULT : CONST.AVATAR_ROW_SIZE.LARGE_SCREEN}
+                        />
+                    </PressableWithoutFeedback>
                     <View style={[styles.ph5]}>
-                        <ReportWelcomeText report={props.report} />
+                        <ReportWelcomeText
+                            report={props.report}
+                            policy={props.policy}
+                        />
                     </View>
                 </View>
             </View>
         </OfflineWithFeedback>
     );
-};
+}
 
 ReportActionItemCreated.defaultProps = defaultProps;
 ReportActionItemCreated.propTypes = propTypes;
@@ -86,7 +112,20 @@ export default compose(
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
         },
         personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+        },
+        policy: {
+            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
         },
     }),
-)(ReportActionItemCreated);
+)(
+    memo(
+        ReportActionItemCreated,
+        (prevProps, nextProps) =>
+            lodashGet(prevProps.props, 'policy.name') === lodashGet(nextProps, 'policy.name') &&
+            lodashGet(prevProps.props, 'policy.avatar') === lodashGet(nextProps, 'policy.avatar') &&
+            lodashGet(prevProps.props, 'report.lastReadTime') === lodashGet(nextProps, 'report.lastReadTime') &&
+            lodashGet(prevProps.props, 'report.statusNum') === lodashGet(nextProps, 'report.statusNum') &&
+            lodashGet(prevProps.props, 'report.stateNum') === lodashGet(nextProps, 'report.stateNum'),
+    ),
+);

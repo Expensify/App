@@ -1,63 +1,64 @@
-import React, {Component} from 'react';
+import React, {useEffect} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import {propTypes as validateLinkPropTypes, defaultProps as validateLinkDefaultProps} from './validateLinkPropTypes';
-import * as User from '../../libs/actions/User';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Session from '../../libs/actions/Session';
-import Permissions from '../../libs/Permissions';
+import useLocalize from '../../hooks/useLocalize';
 import Navigation from '../../libs/Navigation/Navigation';
 
 const propTypes = {
     /** The accountID and validateCode are passed via the URL */
     route: validateLinkPropTypes,
 
-    /** List of betas available to current user */
-    betas: PropTypes.arrayOf(PropTypes.string),
-
     /** Session of currently logged in user */
     session: PropTypes.shape({
         /** Currently logged in user authToken */
         authToken: PropTypes.string,
     }),
+
+    /** The credentials of the person logging in */
+    credentials: PropTypes.shape({
+        /** The email the user logged in with */
+        login: PropTypes.string,
+    }),
 };
 
 const defaultProps = {
     route: validateLinkDefaultProps,
-    betas: [],
     session: {
         authToken: null,
     },
+    credentials: {},
 };
 
-class ValidateLoginPage extends Component {
-    componentDidMount() {
-        const accountID = lodashGet(this.props.route.params, 'accountID', '');
-        const validateCode = lodashGet(this.props.route.params, 'validateCode', '');
-        if (Permissions.canUsePasswordlessLogins(this.props.betas)) {
-            if (lodashGet(this.props, 'session.authToken')) {
-                // If already signed in, do not show the validate code if not on web,
-                // because we don't want to block the user with the interstitial page.
-                Navigation.goBack(false);
-            } else {
-                Session.signInWithValidateCodeAndNavigate(accountID, validateCode);
-            }
-        } else {
-            User.validateLogin(accountID, validateCode);
-        }
-    }
+function ValidateLoginPage(props) {
+    const {preferredLocale} = useLocalize();
 
-    render() {
-        return <FullScreenLoadingIndicator />;
-    }
+    useEffect(() => {
+        const accountID = lodashGet(props.route.params, 'accountID', '');
+        const validateCode = lodashGet(props.route.params, 'validateCode', '');
+
+        if (lodashGet(props, 'session.authToken')) {
+            // If already signed in, do not show the validate code if not on web,
+            // because we don't want to block the user with the interstitial page.
+            Navigation.goBack(false);
+        } else {
+            Session.signInWithValidateCodeAndNavigate(accountID, validateCode, preferredLocale);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    return <FullScreenLoadingIndicator />;
 }
 
-ValidateLoginPage.propTypes = propTypes;
 ValidateLoginPage.defaultProps = defaultProps;
+ValidateLoginPage.displayName = 'ValidateLoginPage';
+ValidateLoginPage.propTypes = propTypes;
 
 export default withOnyx({
-    betas: {key: ONYXKEYS.BETAS},
+    credentials: {key: ONYXKEYS.CREDENTIALS},
     session: {key: ONYXKEYS.SESSION},
 })(ValidateLoginPage);

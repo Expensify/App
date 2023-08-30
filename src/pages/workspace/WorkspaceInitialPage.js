@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import React, {useCallback, useState} from 'react';
-import {View, ScrollView, Pressable} from 'react-native';
+import React, {useCallback, useEffect, useState} from 'react';
+import {View, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import Navigation from '../../libs/Navigation/Navigation';
@@ -14,7 +14,7 @@ import * as Expensicons from '../../components/Icon/Expensicons';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import MenuItem from '../../components/MenuItem';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import compose from '../../libs/compose';
 import Avatar from '../../components/Avatar';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
@@ -30,6 +30,7 @@ import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import * as ReimbursementAccountProps from '../ReimbursementAccount/reimbursementAccountPropTypes';
 import * as ReportUtils from '../../libs/ReportUtils';
 import withWindowDimensions from '../../components/withWindowDimensions';
+import PressableWithoutFeedback from '../../components/Pressable/PressableWithoutFeedback';
 
 const propTypes = {
     ...policyPropTypes,
@@ -59,13 +60,14 @@ function openEditor(policyID) {
  * @param {string} policyID
  */
 function dismissError(policyID) {
-    Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
+    Navigation.goBack(ROUTES.SETTINGS_WORKSPACES);
     Policy.removeWorkspace(policyID);
 }
 
-const WorkspaceInitialPage = (props) => {
+function WorkspaceInitialPage(props) {
     const policy = props.policy;
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
     const hasPolicyCreationError = Boolean(policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && policy.errors);
 
     /**
@@ -75,11 +77,40 @@ const WorkspaceInitialPage = (props) => {
         const policyReports = _.filter(props.reports, (report) => report && report.policyID === policy.id);
         Policy.deleteWorkspace(policy.id, policyReports, policy.name);
         setIsDeleteModalOpen(false);
-        Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
+        // Pop the deleted workspace page before opening workspace settings.
+        Navigation.goBack(ROUTES.SETTINGS_WORKSPACES);
     }, [props.reports, policy]);
 
+    useEffect(() => {
+        if (!isCurrencyModalOpen || policy.outputCurrency !== CONST.CURRENCY.USD) {
+            return;
+        }
+        setIsCurrencyModalOpen(false);
+    }, [policy.outputCurrency, isCurrencyModalOpen]);
+
+    /**
+     * Call update workspace currency and hide the modal
+     */
+    const confirmCurrencyChangeAndHideModal = useCallback(() => {
+        Policy.updateGeneralSettings(policy.id, policy.name, CONST.CURRENCY.USD);
+        setIsCurrencyModalOpen(false);
+        ReimbursementAccount.navigateToBankAccountRoute(policy.id);
+    }, [policy]);
+
+    /**
+     * Navigates to workspace rooms
+     * @param {String} chatType
+     */
+    const goToRoom = useCallback(
+        (type) => {
+            const room = _.find(props.reports, (report) => report && report.policyID === policy.id && report.chatType === type && !ReportUtils.isThread(report));
+            Navigation.navigate(ROUTES.getReportRoute(room.reportID));
+        },
+        [props.reports, policy],
+    );
+
     const policyName = lodashGet(policy, 'name', '');
-    const hasMembersError = PolicyUtils.hasPolicyMemberError(props.policyMemberList);
+    const hasMembersError = PolicyUtils.hasPolicyMemberError(props.policyMembers);
     const hasGeneralSettingsError = !_.isEmpty(lodashGet(policy, 'errorFields.generalSettings', {})) || !_.isEmpty(lodashGet(policy, 'errorFields.avatar', {}));
     const hasCustomUnitsError = PolicyUtils.hasCustomUnitsError(policy);
     const menuItems = [
@@ -124,8 +155,29 @@ const WorkspaceInitialPage = (props) => {
         {
             translationKey: 'workspace.common.bankAccount',
             icon: Expensicons.Bank,
-            action: () => ReimbursementAccount.navigateToBankAccountRoute(policy.id),
+            action: () =>
+                policy.outputCurrency === CONST.CURRENCY.USD
+                    ? ReimbursementAccount.navigateToBankAccountRoute(policy.id, Navigation.getActiveRoute().replace(/\?.*/, ''))
+                    : setIsCurrencyModalOpen(true),
             brickRoadIndicator: !_.isEmpty(props.reimbursementAccount.errors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '',
+        },
+    ];
+
+    const threeDotsMenuItems = [
+        {
+            icon: Expensicons.Trashcan,
+            text: props.translate('workspace.common.delete'),
+            onSelected: () => setIsDeleteModalOpen(true),
+        },
+        {
+            icon: Expensicons.Hashtag,
+            text: props.translate('workspace.common.goToRoom', {roomName: CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS}),
+            onSelected: () => goToRoom(CONST.REPORT.CHAT_TYPE.POLICY_ADMINS),
+        },
+        {
+            icon: Expensicons.Hashtag,
+            text: props.translate('workspace.common.goToRoom', {roomName: CONST.REPORT.WORKSPACE_CHAT_ROOMS.ANNOUNCE}),
+            onSelected: () => goToRoom(CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE),
         },
     ];
 
@@ -133,42 +185,37 @@ const WorkspaceInitialPage = (props) => {
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView
-                    shouldShow={_.isEmpty(policy)}
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
+                    shouldShow={_.isEmpty(props.policy) || !PolicyUtils.isPolicyAdmin(props.policy)}
+                    subtitleKey={_.isEmpty(props.policy) ? undefined : 'workspace.common.notAuthorized'}
                 >
-                    <HeaderWithCloseButton
+                    <HeaderWithBackButton
                         title={props.translate('workspace.common.workspace')}
-                        shouldShowBackButton
-                        onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
-                        onCloseButtonPress={() => Navigation.dismissModal()}
                         shouldShowThreeDotsButton
                         shouldShowGetAssistanceButton
                         guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_INITIAL}
-                        threeDotsMenuItems={[
-                            {
-                                icon: Expensicons.Trashcan,
-                                text: props.translate('workspace.common.delete'),
-                                onSelected: () => setIsDeleteModalOpen(true),
-                            },
-                        ]}
+                        threeDotsMenuItems={threeDotsMenuItems}
                         threeDotsAnchorPosition={styles.threeDotsPopoverOffset(props.windowWidth)}
+                        onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
                     />
                     <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexColumn, styles.justifyContentBetween, safeAreaPaddingBottomStyle]}>
                         <OfflineWithFeedback
                             pendingAction={policy.pendingAction}
                             onClose={() => dismissError(policy.id)}
                             errors={policy.errors}
-                            errorRowStyles={[styles.ph6, styles.pv2]}
+                            errorRowStyles={[styles.ph5, styles.pv2]}
                         >
                             <View style={[styles.flex1]}>
                                 <View style={styles.avatarSectionWrapper}>
                                     <View style={[styles.settingsPageBody, styles.alignItemsCenter]}>
-                                        <Pressable
-                                            disabled={hasPolicyCreationError}
-                                            style={[styles.pRelative, styles.avatarLarge]}
-                                            onPress={() => openEditor(policy.id)}
-                                        >
-                                            <Tooltip text={props.translate('workspace.common.settings')}>
+                                        <Tooltip text={props.translate('workspace.common.settings')}>
+                                            <PressableWithoutFeedback
+                                                disabled={hasPolicyCreationError}
+                                                style={[styles.pRelative, styles.avatarLarge]}
+                                                onPress={() => openEditor(policy.id)}
+                                                accessibilityLabel={props.translate('workspace.common.settings')}
+                                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                            >
                                                 <Avatar
                                                     containerStyles={styles.avatarLarge}
                                                     imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
@@ -178,23 +225,25 @@ const WorkspaceInitialPage = (props) => {
                                                     name={policyName}
                                                     type={CONST.ICON_TYPE_WORKSPACE}
                                                 />
-                                            </Tooltip>
-                                        </Pressable>
+                                            </PressableWithoutFeedback>
+                                        </Tooltip>
                                         {!_.isEmpty(policy.name) && (
-                                            <Pressable
-                                                disabled={hasPolicyCreationError}
-                                                style={[styles.alignSelfCenter, styles.mt4, styles.w100]}
-                                                onPress={() => openEditor(policy.id)}
-                                            >
-                                                <Tooltip text={props.translate('workspace.common.settings')}>
+                                            <Tooltip text={props.translate('workspace.common.settings')}>
+                                                <PressableWithoutFeedback
+                                                    disabled={hasPolicyCreationError}
+                                                    style={[styles.alignSelfCenter, styles.mt4, styles.w100]}
+                                                    onPress={() => openEditor(policy.id)}
+                                                    accessibilityLabel={props.translate('workspace.common.settings')}
+                                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                                >
                                                     <Text
                                                         numberOfLines={1}
                                                         style={[styles.textHeadline, styles.alignSelfCenter, styles.pre]}
                                                     >
                                                         {policy.name}
                                                     </Text>
-                                                </Tooltip>
-                                            </Pressable>
+                                                </PressableWithoutFeedback>
+                                            </Tooltip>
                                         )}
                                     </View>
                                 </View>
@@ -215,6 +264,16 @@ const WorkspaceInitialPage = (props) => {
                         </OfflineWithFeedback>
                     </ScrollView>
                     <ConfirmModal
+                        title={props.translate('workspace.bankAccount.workspaceCurrency')}
+                        isVisible={isCurrencyModalOpen}
+                        onConfirm={confirmCurrencyChangeAndHideModal}
+                        onCancel={() => setIsCurrencyModalOpen(false)}
+                        prompt={props.translate('workspace.bankAccount.updateCurrencyPrompt')}
+                        confirmText={props.translate('workspace.bankAccount.updateToUSD')}
+                        cancelText={props.translate('common.cancel')}
+                        danger
+                    />
+                    <ConfirmModal
                         title={props.translate('workspace.common.delete')}
                         isVisible={isDeleteModalOpen}
                         onConfirm={confirmDeleteAndHideModal}
@@ -228,7 +287,7 @@ const WorkspaceInitialPage = (props) => {
             )}
         </ScreenWrapper>
     );
-};
+}
 
 WorkspaceInitialPage.propTypes = propTypes;
 WorkspaceInitialPage.defaultProps = defaultProps;

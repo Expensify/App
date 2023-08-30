@@ -109,7 +109,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    onSelectRow: () => {},
+    onSelectRow: undefined,
     textInputLabel: '',
     placeholderText: '',
     keyboardType: 'default',

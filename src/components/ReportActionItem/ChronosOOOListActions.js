@@ -22,7 +22,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const ChronosOOOListActions = (props) => {
+function ChronosOOOListActions(props) {
     const events = lodashGet(props.action, 'originalMessage.events', []);
 
     if (!events.length) {
@@ -37,8 +37,8 @@ const ChronosOOOListActions = (props) => {
         <OfflineWithFeedback pendingAction={lodashGet(props.action, 'pendingAction', null)}>
             <View style={[styles.chatItemMessage]}>
                 {_.map(events, (event) => {
-                    const start = DateUtils.getLocalMomentFromDatetime(props.preferredLocale, lodashGet(event, 'start.date', ''));
-                    const end = DateUtils.getLocalMomentFromDatetime(props.preferredLocale, lodashGet(event, 'end.date', ''));
+                    const start = DateUtils.getLocalDateFromDatetime(props.preferredLocale, lodashGet(event, 'start.date', ''));
+                    const end = DateUtils.getLocalDateFromDatetime(props.preferredLocale, lodashGet(event, 'end.date', ''));
                     return (
                         <View
                             key={event.id}
@@ -49,12 +49,12 @@ const ChronosOOOListActions = (props) => {
                                     ? props.translate('chronos.oooEventSummaryFullDay', {
                                           summary: event.summary,
                                           dayCount: event.lengthInDays,
-                                          date: end.format('dddd LL'),
+                                          date: DateUtils.formatToLongDateWithWeekday(end),
                                       })
                                     : props.translate('chronos.oooEventSummaryPartialDay', {
                                           summary: event.summary,
-                                          timePeriod: `${start.format('LT')} - ${end.format('LT')}`,
-                                          date: end.format('dddd LL'),
+                                          timePeriod: `${DateUtils.formatToLocalTime(start)} - ${DateUtils.formatToLocalTime(end)}`,
+                                          date: DateUtils.formatToLongDateWithWeekday(end),
                                       })}
                             </Text>
                             <Button
@@ -70,7 +70,7 @@ const ChronosOOOListActions = (props) => {
             </View>
         </OfflineWithFeedback>
     );
-};
+}
 
 ChronosOOOListActions.propTypes = propTypes;
 ChronosOOOListActions.displayName = 'ChronosOOOListActions';

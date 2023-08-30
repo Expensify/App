@@ -15,6 +15,7 @@ import * as Expensicons from '../Icon/Expensicons';
 import withNavigationFocus from '../withNavigationFocus';
 import validateSubmitShortcut from './validateSubmitShortcut';
 import PressableWithFeedback from '../Pressable/PressableWithFeedback';
+import refPropTypes from '../refPropTypes';
 
 const propTypes = {
     /** The text for the button label */
@@ -32,9 +33,13 @@ const propTypes = {
     /** The fill color to pass into the icon. */
     iconFill: PropTypes.string,
 
-    /** Any additional styles to pass to the icon container. */
+    /** Any additional styles to pass to the left icon container. */
     // eslint-disable-next-line react/forbid-prop-types
     iconStyles: PropTypes.arrayOf(PropTypes.object),
+
+    /** Any additional styles to pass to the right icon container. */
+    // eslint-disable-next-line react/forbid-prop-types
+    iconRightStyles: PropTypes.arrayOf(PropTypes.object),
 
     /** Small sized button */
     small: PropTypes.bool,
@@ -83,6 +88,9 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     textStyles: PropTypes.arrayOf(PropTypes.object),
 
+    /** Whether we should use the default hover style */
+    shouldUseDefaultHover: PropTypes.bool,
+
     /** Whether we should use the success theme color */
     success: PropTypes.bool,
 
@@ -111,8 +119,7 @@ const propTypes = {
     accessibilityLabel: PropTypes.string,
 
     /** A ref to forward the button */
-    // eslint-disable-next-line react/forbid-prop-types
-    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.object})]),
+    forwardedRef: refPropTypes,
 };
 
 const defaultProps = {
@@ -122,6 +129,7 @@ const defaultProps = {
     iconRight: Expensicons.ArrowRight,
     iconFill: themeColors.textLight,
     iconStyles: [],
+    iconRightStyles: [],
     isLoading: false,
     isDisabled: false,
     small: false,
@@ -137,6 +145,7 @@ const defaultProps = {
     style: [],
     innerStyles: [],
     textStyles: [],
+    shouldUseDefaultHover: false,
     success: false,
     danger: false,
     children: null,
@@ -214,24 +223,27 @@ class Button extends Component {
             </Text>
         );
 
-        if (this.props.icon) {
+        if (this.props.icon || this.props.shouldShowRightIcon) {
             return (
                 <View style={[styles.justifyContentBetween, styles.flexRow]}>
                     <View style={[styles.alignItemsCenter, styles.flexRow, styles.flexShrink1]}>
-                        <View style={[styles.mr1, ...this.props.iconStyles]}>
-                            <Icon
-                                src={this.props.icon}
-                                fill={this.props.iconFill}
-                                small={this.props.small}
-                            />
-                        </View>
+                        {this.props.icon && (
+                            <View style={[styles.mr1, ...this.props.iconStyles]}>
+                                <Icon
+                                    src={this.props.icon}
+                                    fill={this.props.iconFill}
+                                    small={this.props.small}
+                                />
+                            </View>
+                        )}
                         {textComponent}
                     </View>
                     {this.props.shouldShowRightIcon && (
-                        <View style={styles.justifyContentCenter}>
+                        <View style={[styles.justifyContentCenter, styles.ml1, ...this.props.iconRightStyles]}>
                             <Icon
                                 src={this.props.iconRight}
                                 fill={this.props.iconFill}
+                                small={this.props.small}
                             />
                         </View>
                     )}
@@ -287,6 +299,7 @@ class Button extends Component {
                     ...this.props.innerStyles,
                 ]}
                 hoverStyle={[
+                    this.props.shouldUseDefaultHover && !this.props.isDisabled ? styles.buttonDefaultHovered : undefined,
                     this.props.success && !this.props.isDisabled ? styles.buttonSuccessHovered : undefined,
                     this.props.danger && !this.props.isDisabled ? styles.buttonDangerHovered : undefined,
                 ]}

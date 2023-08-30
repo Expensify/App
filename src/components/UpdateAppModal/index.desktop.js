@@ -3,7 +3,7 @@ import BaseUpdateAppModal from './BaseUpdateAppModal';
 import {propTypes} from './updateAppModalPropTypes';
 import ELECTRON_EVENTS from '../../../desktop/ELECTRON_EVENTS';
 
-const UpdateAppModal = (props) => {
+function UpdateAppModal(props) {
     const updateApp = () => {
         if (props.onSubmit) {
             props.onSubmit();
@@ -11,7 +11,7 @@ const UpdateAppModal = (props) => {
         window.electron.send(ELECTRON_EVENTS.START_UPDATE);
     };
     return <BaseUpdateAppModal onSubmit={updateApp} />;
-};
+}
 UpdateAppModal.propTypes = propTypes;
 UpdateAppModal.displayName = 'UpdateAppModal';
 export default UpdateAppModal;

@@ -13,15 +13,16 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const EditedRenderer = (props) => {
+function EditedRenderer(props) {
     const defaultRendererProps = _.omit(props, ['TDefaultRenderer', 'style', 'tnode']);
+    const isPendingDelete = Boolean(props.tnode.attributes.deleted !== undefined);
     return (
         <Text
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...defaultRendererProps}
             fontSize={variables.fontSizeSmall}
             color={themeColors.textSupporting}
-            style={[styles.alignItemsBaseline, editedLabelStyles]}
+            style={[editedLabelStyles, isPendingDelete && styles.offlineFeedback.deleted]}
         >
             {/* Native devices do not support margin between nested text */}
             <Text
@@ -33,7 +34,7 @@ const EditedRenderer = (props) => {
             {props.translate('reportActionCompose.edited')}
         </Text>
     );
-};
+}
 
 EditedRenderer.propTypes = propTypes;
 EditedRenderer.displayName = 'EditedRenderer';

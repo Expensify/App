@@ -16,7 +16,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const WorkspaceInvoicesFirstSection = (props) => {
+function WorkspaceInvoicesFirstSection(props) {
     const sendInvoiceUrl = encodeURI('reports?param={"createInvoice":true}');
     const viewAllInvoicesUrl = `reports?policyID=${props.policyID}&from=all&type=invoice&showStates=Open,Processing,Approved,Reimbursed,Archived&isAdvancedFilterMode=true`;
 
@@ -51,7 +51,7 @@ const WorkspaceInvoicesFirstSection = (props) => {
             </View>
         </Section>
     );
-};
+}
 
 WorkspaceInvoicesFirstSection.propTypes = propTypes;
 WorkspaceInvoicesFirstSection.displayName = 'WorkspaceInvoicesFirstSection';

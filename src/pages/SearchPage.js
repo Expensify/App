@@ -9,10 +9,9 @@ import * as ReportUtils from '../libs/ReportUtils';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import Navigation from '../libs/Navigation/Navigation';
-import ROUTES from '../ROUTES';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
 import * as Report from '../libs/actions/Report';
-import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../components/HeaderWithBackButton';
 import ScreenWrapper from '../components/ScreenWrapper';
 import Timing from '../libs/actions/Timing';
 import CONST from '../CONST';
@@ -29,7 +28,7 @@ const propTypes = {
     betas: PropTypes.arrayOf(PropTypes.string),
 
     /** All of the personal details for everyone */
-    personalDetails: personalDetailsPropType,
+    personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
     /** All reports shared with the user */
     reports: PropTypes.objectOf(reportPropTypes),
@@ -62,7 +61,6 @@ class SearchPage extends Component {
 
         this.state = {
             searchValue: '',
-            headerMessage: '',
             recentReports,
             personalDetails,
             userToInvite,
@@ -130,14 +128,10 @@ class SearchPage extends Component {
             this.state.searchValue.trim(),
             this.props.betas,
         );
-        this.setState((prevState) => {
-            const headerMessage = OptionsListUtils.getHeaderMessage(recentReports.length + personalDetails.length !== 0, Boolean(userToInvite), prevState.searchValue);
-            return {
-                headerMessage,
-                userToInvite,
-                recentReports,
-                personalDetails,
-            };
+        this.setState({
+            userToInvite,
+            recentReports,
+            personalDetails,
         });
     }
 
@@ -157,7 +151,7 @@ class SearchPage extends Component {
                     searchValue: '',
                 },
                 () => {
-                    Navigation.navigate(ROUTES.getReportRoute(option.reportID));
+                    Navigation.dismissModal(option.reportID);
                 },
             );
         } else {
@@ -168,22 +162,24 @@ class SearchPage extends Component {
     render() {
         const sections = this.getSections();
         const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(this.props.personalDetails);
+        const headerMessage = OptionsListUtils.getHeaderMessage(
+            this.state.recentReports.length + this.state.personalDetails.length !== 0,
+            Boolean(this.state.userToInvite),
+            this.state.searchValue,
+        );
 
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                     <>
-                        <HeaderWithCloseButton
-                            title={this.props.translate('common.search')}
-                            onCloseButtonPress={() => Navigation.dismissModal(true)}
-                        />
+                        <HeaderWithBackButton title={this.props.translate('common.search')} />
                         <View style={[styles.flex1, styles.w100, styles.pRelative]}>
                             <OptionsSelector
                                 sections={sections}
                                 value={this.state.searchValue}
                                 onSelectRow={this.selectReport}
                                 onChangeText={this.onChangeText}
-                                headerMessage={this.state.headerMessage}
+                                headerMessage={headerMessage}
                                 hideSectionHeaders
                                 showTitleTooltip
                                 shouldShowOptions={didScreenTransitionEnd && isOptionsDataReady}
@@ -210,7 +206,7 @@ export default compose(
             key: ONYXKEYS.COLLECTION.REPORT,
         },
         personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
         betas: {
             key: ONYXKEYS.BETAS,

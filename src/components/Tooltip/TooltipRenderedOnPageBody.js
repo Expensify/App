@@ -59,12 +59,13 @@ const defaultProps = {
 // We also update the state on layout changes which will be triggered often.
 // There will be n number of tooltip components in the page.
 // It's good to memoize this one.
-const TooltipRenderedOnPageBody = (props) => {
-    // The width and height of tooltip's inner content. Has to be undefined in the beginning
-    // as a width/height of 0 will cause the content to be rendered of a width/height of 0,
+function TooltipRenderedOnPageBody(props) {
+    // The width of tooltip's inner content. Has to be undefined in the beginning
+    // as a width of 0 will cause the content to be rendered of a width of 0,
     // which prevents us from measuring it correctly.
     const [contentMeasuredWidth, setContentMeasuredWidth] = useState(undefined);
-    const [contentMeasuredHeight, setContentMeasuredHeight] = useState(undefined);
+    // The height of tooltip's wrapper.
+    const [wrapperMeasuredHeight, setWrapperMeasuredHeight] = useState(undefined);
     const contentRef = useRef();
     const rootWrapper = useRef();
 
@@ -78,9 +79,8 @@ const TooltipRenderedOnPageBody = (props) => {
     useLayoutEffect(() => {
         // Calculate the tooltip width and height before the browser repaints the screen to prevent flicker
         // because of the late update of the width and the height from onLayout.
-        const rect = contentRef.current.getBoundingClientRect();
-        setContentMeasuredWidth(rect.width);
-        setContentMeasuredHeight(rect.height);
+        setContentMeasuredWidth(contentRef.current.getBoundingClientRect().width);
+        setWrapperMeasuredHeight(rootWrapper.current.getBoundingClientRect().height);
     }, []);
 
     const {animationStyle, rootWrapperStyle, textStyle, pointerWrapperStyle, pointerStyle} = useMemo(
@@ -94,7 +94,7 @@ const TooltipRenderedOnPageBody = (props) => {
                 props.targetHeight,
                 props.maxWidth,
                 contentMeasuredWidth,
-                contentMeasuredHeight,
+                wrapperMeasuredHeight,
                 props.shiftHorizontal,
                 props.shiftVertical,
                 rootWrapper.current,
@@ -108,7 +108,7 @@ const TooltipRenderedOnPageBody = (props) => {
             props.targetHeight,
             props.maxWidth,
             contentMeasuredWidth,
-            contentMeasuredHeight,
+            wrapperMeasuredHeight,
             props.shiftHorizontal,
             props.shiftVertical,
         ],
@@ -145,7 +145,7 @@ const TooltipRenderedOnPageBody = (props) => {
         </Animated.View>,
         document.querySelector('body'),
     );
-};
+}
 
 TooltipRenderedOnPageBody.propTypes = propTypes;
 TooltipRenderedOnPageBody.defaultProps = defaultProps;

@@ -1,9 +1,10 @@
-/* eslint-disable react/no-unused-state */
-import React, {forwardRef, createContext} from 'react';
+import React, {forwardRef, createContext, useState, useEffect} from 'react';
 import PropTypes from 'prop-types';
 import {Dimensions} from 'react-native';
+import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
 import getComponentDisplayName from '../libs/getComponentDisplayName';
 import variables from '../styles/variables';
+import getWindowHeightAdjustment from '../libs/getWindowHeightAdjustment';
 
 const WindowDimensionsContext = createContext(null);
 const windowDimensionsPropTypes = {
@@ -13,10 +14,13 @@ const windowDimensionsPropTypes = {
     // Height of the window
     windowHeight: PropTypes.number.isRequired,
 
+    // Is the window width extra narrow, like on a Fold mobile device?
+    isExtraSmallScreenWidth: PropTypes.bool.isRequired,
+
     // Is the window width narrow, like on a mobile device?
     isSmallScreenWidth: PropTypes.bool.isRequired,
 
-    // Is the window width narrow, like on a tablet device?
+    // Is the window width medium sized, like on a tablet device?
     isMediumScreenWidth: PropTypes.bool.isRequired,
 
     // Is the window width wide, like on a browser or desktop?
@@ -28,65 +32,63 @@ const windowDimensionsProviderPropTypes = {
     children: PropTypes.node.isRequired,
 };
 
-class WindowDimensionsProvider extends React.Component {
-    constructor(props) {
-        super(props);
-
-        this.onDimensionChange = this.onDimensionChange.bind(this);
-
+function WindowDimensionsProvider(props) {
+    const [windowDimension, setWindowDimension] = useState(() => {
         const initialDimensions = Dimensions.get('window');
-        const isSmallScreenWidth = initialDimensions.width <= variables.mobileResponsiveWidthBreakpoint;
-        const isMediumScreenWidth = initialDimensions.width > variables.mobileResponsiveWidthBreakpoint && initialDimensions.width <= variables.tabletResponsiveWidthBreakpoint;
-        const isLargeScreenWidth = !isSmallScreenWidth && !isMediumScreenWidth;
-
-        this.dimensionsEventListener = null;
-
-        this.state = {
+        return {
             windowHeight: initialDimensions.height,
             windowWidth: initialDimensions.width,
-            isSmallScreenWidth,
-            isMediumScreenWidth,
-            isLargeScreenWidth,
         };
-    }
+    });
 
-    componentDidMount() {
-        this.dimensionsEventListener = Dimensions.addEventListener('change', this.onDimensionChange);
-    }
+    useEffect(() => {
+        const onDimensionChange = (newDimensions) => {
+            const {window} = newDimensions;
 
-    componentWillUnmount() {
-        if (!this.dimensionsEventListener) {
-            return;
-        }
-        this.dimensionsEventListener.remove();
-    }
+            setWindowDimension({
+                windowHeight: window.height,
+                windowWidth: window.width,
+            });
+        };
 
-    /**
-     * Stores the application window's width and height in a component state variable.
-     * Called each time the application's window dimensions or screen dimensions change.
-     * @link https://reactnative.dev/docs/dimensions
-     * @param {Object} newDimensions Dimension object containing updated window and screen dimensions
-     */
-    onDimensionChange(newDimensions) {
-        const {window} = newDimensions;
-        const isSmallScreenWidth = window.width <= variables.mobileResponsiveWidthBreakpoint;
-        const isMediumScreenWidth = !isSmallScreenWidth && window.width <= variables.tabletResponsiveWidthBreakpoint;
-        const isLargeScreenWidth = !isSmallScreenWidth && !isMediumScreenWidth;
-        this.setState({
-            windowHeight: window.height,
-            windowWidth: window.width,
-            isSmallScreenWidth,
-            isMediumScreenWidth,
-            isLargeScreenWidth,
-        });
-    }
+        const dimensionsEventListener = Dimensions.addEventListener('change', onDimensionChange);
 
-    render() {
-        return <WindowDimensionsContext.Provider value={this.state}>{this.props.children}</WindowDimensionsContext.Provider>;
-    }
+        return () => {
+            if (!dimensionsEventListener) {
+                return;
+            }
+            dimensionsEventListener.remove();
+        };
+    }, []);
+
+    return (
+        <SafeAreaInsetsContext.Consumer>
+            {(insets) => {
+                const isExtraSmallScreenWidth = windowDimension.windowWidth <= variables.extraSmallMobileResponsiveWidthBreakpoint;
+                const isSmallScreenWidth = windowDimension.windowWidth <= variables.mobileResponsiveWidthBreakpoint;
+                const isMediumScreenWidth = !isSmallScreenWidth && windowDimension.windowWidth <= variables.tabletResponsiveWidthBreakpoint;
+                const isLargeScreenWidth = !isSmallScreenWidth && !isMediumScreenWidth;
+                return (
+                    <WindowDimensionsContext.Provider
+                        value={{
+                            windowHeight: windowDimension.windowHeight + getWindowHeightAdjustment(insets),
+                            windowWidth: windowDimension.windowWidth,
+                            isExtraSmallScreenWidth,
+                            isSmallScreenWidth,
+                            isMediumScreenWidth,
+                            isLargeScreenWidth,
+                        }}
+                    >
+                        {props.children}
+                    </WindowDimensionsContext.Provider>
+                );
+            }}
+        </SafeAreaInsetsContext.Consumer>
+    );
 }
 
 WindowDimensionsProvider.propTypes = windowDimensionsProviderPropTypes;
+WindowDimensionsProvider.displayName = 'WindowDimensionsProvider';
 
 /**
  * @param {React.Component} WrappedComponent

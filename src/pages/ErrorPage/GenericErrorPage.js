@@ -24,69 +24,71 @@ const propTypes = {
     onRefresh: PropTypes.func.isRequired,
 };
 
-const GenericErrorPage = (props) => (
-    <SafeAreaConsumer>
-        {({paddingBottom}) => (
-            <View style={[styles.flex1, styles.pt10, styles.ph5, StyleUtils.getErrorPageContainerStyle(paddingBottom)]}>
-                <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                    <View>
-                        <View style={styles.mb5}>
-                            <Icon
-                                src={Expensicons.Bug}
-                                height={variables.componentSizeNormal}
-                                width={variables.componentSizeNormal}
-                                fill={defaultTheme.iconSuccessFill}
-                            />
-                        </View>
-                        <View style={styles.mb5}>
-                            <Text style={[styles.textHeadline]}>{props.translate('genericErrorPage.title')}</Text>
-                        </View>
-                        <View style={styles.mb5}>
-                            <ErrorBodyText />
-                            <Text>
-                                {`${props.translate('genericErrorPage.body.helpTextConcierge')} `}
-                                <TextLink
-                                    href={`mailto:${CONST.EMAIL.CONCIERGE}`}
-                                    style={[styles.link]}
-                                >
-                                    {CONST.EMAIL.CONCIERGE}
-                                </TextLink>
-                            </Text>
-                        </View>
-                        <View style={[styles.flexRow]}>
-                            <View style={[styles.flex1, styles.flexRow]}>
-                                <Button
-                                    success
-                                    medium
-                                    onPress={props.onRefresh}
-                                    text={props.translate('genericErrorPage.refresh')}
-                                    style={styles.mr3}
+function GenericErrorPage(props) {
+    return (
+        <SafeAreaConsumer>
+            {({paddingBottom}) => (
+                <View style={[styles.flex1, styles.pt10, styles.ph5, StyleUtils.getErrorPageContainerStyle(paddingBottom)]}>
+                    <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                        <View>
+                            <View style={styles.mb5}>
+                                <Icon
+                                    src={Expensicons.Bug}
+                                    height={variables.componentSizeNormal}
+                                    width={variables.componentSizeNormal}
+                                    fill={defaultTheme.iconSuccessFill}
                                 />
-                                <Button
-                                    medium
-                                    onPress={() => {
-                                        Session.signOutAndRedirectToSignIn();
-                                        props.onRefresh();
-                                    }}
-                                    text={props.translate('initialSettingsPage.signOut')}
-                                />
+                            </View>
+                            <View style={styles.mb5}>
+                                <Text style={[styles.textHeadline]}>{props.translate('genericErrorPage.title')}</Text>
+                            </View>
+                            <View style={styles.mb5}>
+                                <ErrorBodyText />
+                                <Text>
+                                    {`${props.translate('genericErrorPage.body.helpTextConcierge')} `}
+                                    <TextLink
+                                        href={`mailto:${CONST.EMAIL.CONCIERGE}`}
+                                        style={[styles.link]}
+                                    >
+                                        {CONST.EMAIL.CONCIERGE}
+                                    </TextLink>
+                                </Text>
+                            </View>
+                            <View style={[styles.flexRow]}>
+                                <View style={[styles.flex1, styles.flexRow]}>
+                                    <Button
+                                        success
+                                        medium
+                                        onPress={props.onRefresh}
+                                        text={props.translate('genericErrorPage.refresh')}
+                                        style={styles.mr3}
+                                    />
+                                    <Button
+                                        medium
+                                        onPress={() => {
+                                            Session.signOutAndRedirectToSignIn();
+                                            props.onRefresh();
+                                        }}
+                                        text={props.translate('initialSettingsPage.signOut')}
+                                    />
+                                </View>
                             </View>
                         </View>
                     </View>
-                </View>
-                <View styles={styles.alignSelfEnd}>
-                    <View style={[styles.flex1, styles.flexRow, styles.justifyContentCenter]}>
-                        <LogoWordmark
-                            height={30}
-                            width={80}
-                            fill={defaultTheme.textLight}
-                        />
+                    <View styles={styles.alignSelfEnd}>
+                        <View style={[styles.flex1, styles.flexRow, styles.justifyContentCenter]}>
+                            <LogoWordmark
+                                height={30}
+                                width={80}
+                                fill={defaultTheme.textLight}
+                            />
+                        </View>
                     </View>
                 </View>
-            </View>
-        )}
-    </SafeAreaConsumer>
-);
+            )}
+        </SafeAreaConsumer>
+    );
+}
 
 GenericErrorPage.propTypes = propTypes;
 GenericErrorPage.displayName = 'ErrorPage';

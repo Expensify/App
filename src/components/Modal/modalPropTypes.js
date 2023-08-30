@@ -55,6 +55,17 @@ const propTypes = {
     /** Whether the modal should go under the system statusbar */
     statusBarTranslucent: PropTypes.bool,
 
+    /** Whether the modal should avoid the keyboard */
+    avoidKeyboard: PropTypes.bool,
+
+    /**
+     * Whether the modal should hide its content while animating. On iOS, set to true
+     * if `useNativeDriver` is also true, to avoid flashes in the UI.
+     *
+     * See: https://github.com/react-native-modal/react-native-modal/pull/116
+     * */
+    hideModalContentWhileAnimating: PropTypes.bool,
+
     ...windowDimensionsPropTypes,
 };
 
@@ -71,6 +82,8 @@ const defaultProps = {
     popoverAnchorPosition: {},
     innerContainerStyle: {},
     statusBarTranslucent: true,
+    avoidKeyboard: false,
+    hideModalContentWhileAnimating: false,
 };
 
 export {propTypes, defaultProps};

@@ -19,21 +19,23 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const WorkspaceTravelPage = (props) => (
-    <WorkspacePageWithSections
-        shouldUseScrollView
-        headerText={props.translate('workspace.common.travel')}
-        route={props.route}
-        guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_TRAVEL}
-    >
-        {(hasVBA, policyID) => (
-            <>
-                {!hasVBA && <WorkspaceTravelNoVBAView policyID={policyID} />}
-                {hasVBA && <WorkspaceTravelVBAView />}
-            </>
-        )}
-    </WorkspacePageWithSections>
-);
+function WorkspaceTravelPage(props) {
+    return (
+        <WorkspacePageWithSections
+            shouldUseScrollView
+            headerText={props.translate('workspace.common.travel')}
+            route={props.route}
+            guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_TRAVEL}
+        >
+            {(hasVBA, policyID) => (
+                <>
+                    {!hasVBA && <WorkspaceTravelNoVBAView policyID={policyID} />}
+                    {hasVBA && <WorkspaceTravelVBAView />}
+                </>
+            )}
+        </WorkspacePageWithSections>
+    );
+}
 
 WorkspaceTravelPage.propTypes = propTypes;
 WorkspaceTravelPage.displayName = 'WorkspaceTravelPage';

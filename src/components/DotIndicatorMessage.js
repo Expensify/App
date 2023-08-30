@@ -7,6 +7,7 @@ import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import colors from '../styles/colors';
 import Text from './Text';
+import * as Localize from '../libs/Localize';
 
 const propTypes = {
     /**
@@ -16,7 +17,7 @@ const propTypes = {
      *      timestamp: 'message',
      *  }
      */
-    messages: PropTypes.objectOf(PropTypes.string),
+    messages: PropTypes.objectOf(PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.object]))])),
 
     // The type of message, 'error' shows a red dot, 'success' shows a green dot
     type: PropTypes.oneOf(['error', 'success']).isRequired,
@@ -31,7 +32,7 @@ const defaultProps = {
     style: [],
 };
 
-const DotIndicatorMessage = (props) => {
+function DotIndicatorMessage(props) {
     if (_.isEmpty(props.messages)) {
         return null;
     }
@@ -48,6 +49,7 @@ const DotIndicatorMessage = (props) => {
         // Using uniq here since some fields are wrapped by the same OfflineWithFeedback component (e.g. WorkspaceReimburseView)
         // and can potentially pass the same error.
         .uniq()
+        .map((message) => Localize.translateIfPhraseKey(message))
         .value();
 
     return (
@@ -70,7 +72,7 @@ const DotIndicatorMessage = (props) => {
             </View>
         </View>
     );
-};
+}
 
 DotIndicatorMessage.propTypes = propTypes;
 DotIndicatorMessage.defaultProps = defaultProps;

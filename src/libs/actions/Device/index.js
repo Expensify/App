@@ -45,4 +45,20 @@ function setDeviceID() {
         .catch((err) => Log.info('Found existing deviceID', false, err.message));
 }
 
-export {getDeviceInfo, getDeviceID, setDeviceID};
+/**
+ * Returns a string object with device info and uniqueID
+ * @returns {Promise<string>}
+ */
+function getDeviceInfoWithID() {
+    return new Promise((resolve) => {
+        getDeviceID().then((currentDeviceID) =>
+            resolve(
+                JSON.stringify({
+                    ...getDeviceInfo(),
+                    deviceID: currentDeviceID,
+                }),
+            ),
+        );
+    });
+}
+export {getDeviceID, setDeviceID, getDeviceInfoWithID};

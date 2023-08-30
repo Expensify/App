@@ -1,11 +1,10 @@
-import moment from 'moment';
+import {subYears, addYears, startOfDay, endOfMonth, isAfter, isBefore, isValid, isWithinInterval, isSameDay, format} from 'date-fns';
 import _ from 'underscore';
 import {URL_REGEX_WITH_REQUIRED_PROTOCOL} from 'expensify-common/lib/Url';
 import {parsePhoneNumber} from 'awesome-phonenumber';
 import CONST from '../CONST';
 import * as CardUtils from './CardUtils';
 import * as LoginUtils from './LoginUtils';
-import * as Localize from './Localize';
 
 /**
  * Implements the Luhn Algorithm, a checksum formula used to validate credit card
@@ -54,10 +53,10 @@ function isValidDate(date) {
         return false;
     }
 
-    const pastDate = moment().subtract(1000, 'years');
-    const futureDate = moment().add(1000, 'years');
-    const testDate = moment(date);
-    return testDate.isValid() && testDate.isBetween(pastDate, futureDate);
+    const pastDate = subYears(new Date(), 1000);
+    const futureDate = addYears(new Date(), 1000);
+    const testDate = new Date(date);
+    return isValid(testDate) && isAfter(testDate, pastDate) && isBefore(testDate, futureDate);
 }
 
 /**
@@ -71,10 +70,10 @@ function isValidPastDate(date) {
         return false;
     }
 
-    const pastDate = moment().subtract(1000, 'years');
-    const currentDate = moment();
-    const testDate = moment(date).startOf('day');
-    return testDate.isValid() && testDate.isBetween(pastDate, currentDate);
+    const pastDate = subYears(new Date(), 1000);
+    const currentDate = new Date();
+    const testDate = startOfDay(new Date(date));
+    return isValid(testDate) && isAfter(testDate, pastDate) && isBefore(testDate, currentDate);
 }
 
 /**
@@ -97,6 +96,24 @@ function isRequiredFulfilled(value) {
 }
 
 /**
+ * Used to add requiredField error to the fields passed.
+ *
+ * @param {Object} values
+ * @param {Array} requiredFields
+ * @returns {Object}
+ */
+function getFieldRequiredErrors(values, requiredFields) {
+    const errors = {};
+    _.each(requiredFields, (fieldKey) => {
+        if (isRequiredFulfilled(values[fieldKey])) {
+            return;
+        }
+        errors[fieldKey] = 'common.error.fieldRequired';
+    });
+    return errors;
+}
+
+/**
  * Validates that this is a valid expiration date. Supports the following formats:
  * 1. MM/YY
  * 2. MM/YYYY
@@ -113,7 +130,7 @@ function isValidExpirationDate(string) {
 
     // Use the last of the month to check if the expiration date is in the future or not
     const expirationDate = `${CardUtils.getYearFromExpirationDateString(string)}-${CardUtils.getMonthFromExpirationDateString(string)}-01`;
-    return moment(expirationDate).endOf('month').isAfter(moment());
+    return isAfter(new Date(expirationDate), endOfMonth(new Date()));
 }
 
 /**
@@ -139,19 +156,6 @@ function isValidDebitCard(string) {
     }
 
     return validateCardNumber(string);
-}
-
-/**
- *
- * @param {String} nameOnCard
- * @returns {Boolean}
- */
-function isValidCardName(nameOnCard) {
-    if (!CONST.REGEX.ALPHABETIC_CHARS.test(nameOnCard)) {
-        return false;
-    }
-
-    return !_.isEmpty(nameOnCard.trim());
 }
 
 /**
@@ -202,9 +206,9 @@ function isValidPaypalUsername(paypalUsername) {
  * @returns {Boolean}
  */
 function meetsMinimumAgeRequirement(date) {
-    const testDate = moment(date);
-    const minDate = moment().subtract(CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT, 'years');
-    return testDate.isValid() && testDate.isSameOrBefore(minDate, 'day');
+    const testDate = new Date(date);
+    const minDate = subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT);
+    return isValid(testDate) && (isSameDay(testDate, minDate) || isBefore(testDate, minDate));
 }
 
 /**
@@ -214,9 +218,9 @@ function meetsMinimumAgeRequirement(date) {
  * @returns {Boolean}
  */
 function meetsMaximumAgeRequirement(date) {
-    const testDate = moment(date);
-    const maxDate = moment().subtract(CONST.DATE_BIRTH.MAX_AGE, 'years');
-    return testDate.isValid() && testDate.isSameOrAfter(maxDate, 'day');
+    const testDate = new Date(date);
+    const maxDate = subYears(new Date(), CONST.DATE_BIRTH.MAX_AGE);
+    return isValid(testDate) && (isSameDay(testDate, maxDate) || isAfter(testDate, maxDate));
 }
 
 /**
@@ -225,22 +229,23 @@ function meetsMaximumAgeRequirement(date) {
  * @param {String} date
  * @param {Number} minimumAge
  * @param {Number} maximumAge
- * @returns {String}
+ * @returns {String|Array}
  */
 function getAgeRequirementError(date, minimumAge, maximumAge) {
-    const recentDate = moment().startOf('day').subtract(minimumAge, 'years');
-    const longAgoDate = moment().startOf('day').subtract(maximumAge, 'years');
-    const testDate = moment(date);
-    if (!testDate.isValid()) {
-        return Localize.translateLocal('common.error.dateInvalid');
+    const currentDate = startOfDay(new Date());
+    const recentDate = subYears(currentDate, minimumAge);
+    const longAgoDate = subYears(currentDate, maximumAge);
+    const testDate = new Date(date);
+    if (!isValid(testDate)) {
+        return 'common.error.dateInvalid';
     }
-    if (testDate.isBetween(longAgoDate, recentDate, undefined, '[]')) {
+    if (isWithinInterval(testDate, {start: longAgoDate, end: recentDate})) {
         return '';
     }
-    if (testDate.isSameOrAfter(recentDate)) {
-        return Localize.translateLocal('privatePersonalDetails.error.dateShouldBeBefore', {dateString: recentDate.format(CONST.DATE.MOMENT_FORMAT_STRING)});
+    if (isSameDay(testDate, recentDate) || isAfter(testDate, recentDate)) {
+        return ['privatePersonalDetails.error.dateShouldBeBefore', {dateString: format(recentDate, CONST.DATE.FNS_FORMAT_STRING)}];
     }
-    return Localize.translateLocal('privatePersonalDetails.error.dateShouldBeAfter', {dateString: longAgoDate.format(CONST.DATE.MOMENT_FORMAT_STRING)});
+    return ['privatePersonalDetails.error.dateShouldBeAfter', {dateString: format(longAgoDate, CONST.DATE.FNS_FORMAT_STRING)}];
 }
 
 /**
@@ -306,14 +311,6 @@ function isValidUSPhone(phoneNumber = '', isCountryCodeOptional) {
 }
 
 /**
- * @param {String} password
- * @returns {Boolean}
- */
-function isValidPassword(password) {
-    return password.match(CONST.PASSWORD_COMPLEXITY_REGEX_STRING);
-}
-
-/**
  * @param {string} validateCode
  * @returns {Boolean}
  */
@@ -335,7 +332,7 @@ function isValidTwoFactorCode(code) {
  * @returns {Boolean}
  */
 function isNumericWithSpecialChars(input) {
-    return /^\+?\d*$/.test(LoginUtils.getPhoneNumberWithoutSpecialChars(input));
+    return /^\+?[\d\\+]*$/.test(LoginUtils.getPhoneNumberWithoutSpecialChars(input));
 }
 
 /**
@@ -375,7 +372,7 @@ function isValidDisplayName(name) {
  * @returns {Boolean}
  */
 function isValidLegalName(name) {
-    return CONST.REGEX.ALPHABETIC_CHARS_WITH_NUMBER.test(name);
+    return CONST.REGEX.ALPHABETIC_AND_LATIN_CHARS.test(name);
 }
 
 /**
@@ -433,7 +430,7 @@ function isValidRoomName(roomName) {
  * @returns {Boolean}
  */
 function isValidTaxID(taxID) {
-    return taxID && CONST.REGEX.TAX_ID.test(taxID.replace(CONST.REGEX.NON_NUMERIC, ''));
+    return taxID && CONST.REGEX.TAX_ID.test(taxID);
 }
 
 /**
@@ -449,13 +446,22 @@ function isNumeric(value) {
     return /^\d*$/.test(value);
 }
 
+/**
+ * Checks that the provided accountID is a number and bigger than 0.
+ *
+ * @param {Number} accountID
+ * @returns {Boolean}
+ */
+function isValidAccountRoute(accountID) {
+    return CONST.REGEX.NUMBER.test(accountID) && accountID > 0;
+}
+
 export {
     meetsMinimumAgeRequirement,
     meetsMaximumAgeRequirement,
     getAgeRequirementError,
     isValidAddress,
     isValidDate,
-    isValidCardName,
     isValidPastDate,
     isValidSecurityCode,
     isValidExpirationDate,
@@ -463,10 +469,10 @@ export {
     isValidIndustryCode,
     isValidZipCode,
     isRequiredFulfilled,
+    getFieldRequiredErrors,
     isValidUSPhone,
     isValidWebsite,
     validateIdentity,
-    isValidPassword,
     isValidTwoFactorCode,
     isNumericWithSpecialChars,
     isValidPaypalUsername,
@@ -482,4 +488,5 @@ export {
     isValidLegalName,
     doesContainReservedWord,
     isNumeric,
+    isValidAccountRoute,
 };

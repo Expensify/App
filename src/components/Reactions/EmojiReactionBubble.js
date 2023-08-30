@@ -6,6 +6,7 @@ import * as StyleUtils from '../../styles/StyleUtils';
 import PressableWithSecondaryInteraction from '../PressableWithSecondaryInteraction';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import {withCurrentUserPersonalDetailsDefaultProps} from '../withCurrentUserPersonalDetails';
+import CONST from '../../CONST';
 
 const propTypes = {
     /**
@@ -37,6 +38,9 @@ const propTypes = {
      */
     hasUserReacted: PropTypes.bool,
 
+    /** We disable reacting with emojis on report actions that have errors */
+    shouldBlockReactions: PropTypes.bool,
+
     ...windowDimensionsPropTypes,
 };
 
@@ -44,25 +48,47 @@ const defaultProps = {
     count: 0,
     onReactionListOpen: () => {},
     isContextMenu: false,
+    shouldBlockReactions: false,
 
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
-const EmojiReactionBubble = (props) => (
-    <PressableWithSecondaryInteraction
-        style={({hovered, pressed}) => [styles.emojiReactionBubble, StyleUtils.getEmojiReactionBubbleStyle(hovered || pressed, props.hasUserReacted, props.isContextMenu)]}
-        onPress={props.onPress}
-        onLongPress={props.onReactionListOpen}
-        onSecondaryInteraction={props.onReactionListOpen}
-        ref={props.forwardedRef}
-        enableLongPressWithHover={props.isSmallScreenWidth}
-        // Prevent text input blur when emoji reaction is clicked
-        onMouseDown={(e) => e.preventDefault()}
-    >
-        <Text style={[styles.emojiReactionBubbleText, styles.userSelectNone, StyleUtils.getEmojiReactionBubbleTextStyle(props.isContextMenu)]}>{props.emojiCodes.join('')}</Text>
-        {props.count > 0 && <Text style={[styles.reactionCounterText, styles.userSelectNone, StyleUtils.getEmojiReactionCounterTextStyle(props.hasUserReacted)]}>{props.count}</Text>}
-    </PressableWithSecondaryInteraction>
-);
+function EmojiReactionBubble(props) {
+    return (
+        <PressableWithSecondaryInteraction
+            style={({hovered, pressed}) => [
+                styles.emojiReactionBubble,
+                StyleUtils.getEmojiReactionBubbleStyle(hovered || pressed, props.hasUserReacted, props.isContextMenu),
+                props.shouldBlockReactions && styles.cursorDisabled,
+            ]}
+            onPress={() => {
+                if (props.shouldBlockReactions) {
+                    return;
+                }
+
+                props.onPress();
+            }}
+            onLongPress={props.onReactionListOpen}
+            onSecondaryInteraction={props.onReactionListOpen}
+            ref={props.forwardedRef}
+            enableLongPressWithHover={props.isSmallScreenWidth}
+            onMouseDown={(e) => {
+                // Allow text input blur when emoji reaction is right clicked
+                if (e && e.button === 2) {
+                    return;
+                }
+
+                // Prevent text input blur when emoji reaction is left clicked
+                e.preventDefault();
+            }}
+            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+            accessibilityLabel={props.emojiCodes.join('')}
+        >
+            <Text style={[styles.emojiReactionBubbleText, styles.userSelectNone, StyleUtils.getEmojiReactionBubbleTextStyle(props.isContextMenu)]}>{props.emojiCodes.join('')}</Text>
+            {props.count > 0 && <Text style={[styles.reactionCounterText, styles.userSelectNone, StyleUtils.getEmojiReactionCounterTextStyle(props.hasUserReacted)]}>{props.count}</Text>}
+        </PressableWithSecondaryInteraction>
+    );
+}
 
 EmojiReactionBubble.propTypes = propTypes;
 EmojiReactionBubble.defaultProps = defaultProps;

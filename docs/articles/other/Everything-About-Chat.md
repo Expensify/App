@@ -23,6 +23,21 @@ In addition to 1:1 and group chat, members of a Workspace or Policy will have ac
 All workspace members are added to the #announce room by default. The #announce room lets you share important company announcements and have conversations between workspace members.
 
 All workspace admins can access the #admins room. Use the #admins room to collaborate with the other admins on your policy, and chat with your dedicated Expensify Onboarding Guide. If you have a subscription of 10 or more users, you're automatically assigned an Account Manager. You can ask for help and collaborate with your Account Manager in this same #admins room. Anytime someone on your team, your dedicated setup specialist, or your dedicated account manager makes any changes to your Workspace settings, that update is logged in the #admins room.
+## How to format text
+
+- To italicize your message, place an underscore on both sides of the text:  *text*
+- To bold your message, place an asterisk on both sides of the text:  **text**
+- To strikethrough your message, place a tilde on both sides of the text:  ~~text~~
+- To turn your message into code, place a backtick on both sides of the text: `text`
+- To turn your text into a blockquote, add an angled bracket (>) in front of the text: 
+   >your text
+- To turn your message into a heading, place a number sign (#) in front of the text:
+# Heading
+- To turn your entire message into code block, place three backticks on both sides of the text:
+```
+here's some text 
+and even more text
+```
 
 # FAQs
 ## How do I add more than one person to a chat?
@@ -50,3 +65,23 @@ You can find your display mode by clicking on your User Icon > Preferences > Pri
 If the person you want to chat with doesn’t appear in your contact list, simply type their email or phone number to invite them to chat! From there, they will receive an email with instructions and a link to create an account.
 
 Once they click the link, a new.expensify.com account is set up for them automatically (if they don't have one already), and they can start chatting with you immediately!
+
+## Flagging content as offensive
+In order to maintain a safe community for our users, Expensify provides tools to report offensive content and unwanted behavior in Expensify Chat. If you see a message (or attachment/image) from another user that you’d like our moderators to review, you can flag it by clicking the flag icon in the message context menu (on desktop) or holding down on the message and selecting “Flag as offensive” (on mobile).
+
+![Moderation Context Menu](https://help.expensify.com/assets/images/moderation-context-menu.png){:width="100%"}
+
+Once the flag is selected, you will be asked to categorize the message (such as spam, bullying, and harassment). Select what you feel best represents the issue is with the content, and you’re done - the message will be sent off to our internal team for review. 
+
+![Moderation Flagging Options](https://help.expensify.com/assets/images/moderation-flag-page.png){:width="100%"}
+
+Depending on the severity of the offense, messages can be hidden (with an option to reveal) or fully removed, and in extreme cases, the sender of the message can be temporarily or permanently blocked from posting.
+
+You will receive a whisper from Concierge any time your content has been flagged, as well as when you have successfully flagged a piece of content.
+
+![Moderation Reportee Whisper](https://help.expensify.com/assets/images/moderation-reportee-whisper.png){:width="100%"}
+![Moderation Reporter Whisper](https://help.expensify.com/assets/images/moderation-reporter-whisper.png){:width="100%"}
+
+*Note: Any message sent in public chat rooms are automatically reviewed by an automated system looking for offensive content and sent to our moderators for final decisions if it is found.*
+
+

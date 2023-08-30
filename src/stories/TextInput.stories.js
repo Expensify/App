@@ -11,8 +11,10 @@ const story = {
     component: TextInput,
 };
 
-// eslint-disable-next-line react/jsx-props-no-spreading
-const Template = (args) => <TextInput {...args} />;
+function Template(args) {
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    return <TextInput {...args} />;
+}
 
 // Arguments can be passed to the component by binding
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
@@ -58,32 +60,6 @@ PlaceholderInput.args = {
     placeholder: 'My placeholder text',
 };
 
-const AutoGrowInput = Template.bind({});
-AutoGrowInput.args = {
-    label: 'Autogrow input',
-    name: 'AutoGrow',
-    placeholder: 'My placeholder text',
-    autoGrow: true,
-    textInputContainerStyles: [
-        {
-            minWidth: 150,
-        },
-    ],
-};
-
-const AutoGrowHeightInput = Template.bind({});
-AutoGrowHeightInput.args = {
-    label: 'Autogrowheight input',
-    name: 'AutoGrowHeight',
-    placeholder: 'My placeholder text',
-    autoGrowHeight: true,
-    textInputContainerStyles: [
-        {
-            maxHeight: 115,
-        },
-    ],
-};
-
 const PrefixedInput = Template.bind({});
 PrefixedInput.args = {
     label: 'Prefixed input',
@@ -100,7 +76,7 @@ MaxLengthInput.args = {
     maxLength: 50,
 };
 
-const HintAndErrorInput = (args) => {
+function HintAndErrorInput(args) {
     const [error, setError] = useState('');
     return (
         <TextInput
@@ -116,12 +92,57 @@ const HintAndErrorInput = (args) => {
             errorText={error}
         />
     );
-};
+}
 HintAndErrorInput.args = {
     label: 'HintAndError input',
     name: 'HintAndError',
     placeholder: 'My placeholder text',
     hint: 'Type "Oops!" to see the error',
+};
+
+// To use autoGrow we need to control the TextInput's value
+function AutoGrowSupportInput(args) {
+    const [value, setValue] = useState(args.value || '');
+    React.useEffect(() => {
+        setValue(args.value || '');
+    }, [args.value]);
+
+    return (
+        <TextInput
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...args}
+            onChangeText={setValue}
+            value={value}
+        />
+    );
+}
+
+const AutoGrowInput = AutoGrowSupportInput.bind({});
+AutoGrowInput.args = {
+    label: 'Autogrow input',
+    name: 'AutoGrow',
+    placeholder: 'My placeholder text',
+    autoGrow: true,
+    textInputContainerStyles: [
+        {
+            minWidth: 150,
+            maxWidth: 500,
+        },
+    ],
+    value: '',
+};
+
+const AutoGrowHeightInput = AutoGrowSupportInput.bind({});
+AutoGrowHeightInput.args = {
+    label: 'Autogrowheight input',
+    name: 'AutoGrowHeight',
+    placeholder: 'My placeholder text',
+    autoGrowHeight: true,
+    textInputContainerStyles: [
+        {
+            maxHeight: 115,
+        },
+    ],
 };
 
 export default story;

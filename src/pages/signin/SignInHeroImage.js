@@ -1,6 +1,6 @@
 import React from 'react';
 import Lottie from 'lottie-react-native';
-import hands from '../../../assets/animations/Hands.json';
+import * as LottieAnimations from '../../components/LottieAnimations';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import styles from '../../styles/styles';
 import variables from '../../styles/variables';
@@ -9,7 +9,7 @@ const propTypes = {
     ...windowDimensionsPropTypes,
 };
 
-const SignInHeroImage = (props) => {
+function SignInHeroImage(props) {
     let imageSize;
     if (props.isSmallScreenWidth) {
         imageSize = {
@@ -30,13 +30,13 @@ const SignInHeroImage = (props) => {
 
     return (
         <Lottie
-            source={hands}
+            source={LottieAnimations.Hands}
             loop
             autoPlay
             style={[styles.alignSelfCenter, imageSize]}
         />
     );
-};
+}
 
 SignInHeroImage.displayName = 'SignInHeroImage';
 SignInHeroImage.propTypes = propTypes;

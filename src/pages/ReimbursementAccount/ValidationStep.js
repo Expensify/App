@@ -10,8 +10,7 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import compose from '../../libs/compose';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
 import * as Report from '../../libs/actions/Report';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
-import Navigation from '../../libs/Navigation/Navigation';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import TextInput from '../../components/TextInput';
 import Text from '../../components/Text';
 import BankAccount from '../../libs/models/BankAccount';
@@ -41,7 +40,7 @@ const propTypes = {
 
     /** User's account who is setting up bank account */
     account: PropTypes.shape({
-        /** If user has Two factor authentication enabled */
+        /** If user has two-factor authentication enabled */
         requiresTwoFactorAuth: PropTypes.bool,
     }),
 };
@@ -68,11 +67,11 @@ class ValidationStep extends React.Component {
         const errors = {};
 
         _.each(values, (value, key) => {
-            const filteredValue = this.filterInput(value);
+            const filteredValue = typeof value === 'string' ? this.filterInput(value) : value;
             if (ValidationUtils.isRequiredFulfilled(filteredValue)) {
                 return;
             }
-            errors[key] = this.props.translate('common.error.invalidAmount');
+            errors[key] = 'common.error.invalidAmount';
         });
 
         return errors;
@@ -104,7 +103,7 @@ class ValidationStep extends React.Component {
      */
     filterInput(amount) {
         let value = amount ? amount.toString().trim() : '';
-        if (value === '' || !Math.abs(Str.fromUSDToNumber(value)) || _.isNaN(Number(value))) {
+        if (value === '' || _.isNaN(Number(value)) || !Math.abs(Str.fromUSDToNumber(value))) {
             return '';
         }
 
@@ -133,15 +132,12 @@ class ValidationStep extends React.Component {
                 style={[styles.flex1, styles.justifyContentBetween]}
                 includeSafeAreaPaddingBottom={false}
             >
-                <HeaderWithCloseButton
+                <HeaderWithBackButton
                     title={isVerifying ? this.props.translate('validationStep.headerTitle') : this.props.translate('workspace.common.testTransactions')}
-                    stepCounter={{step: 5, total: 5}}
-                    onCloseButtonPress={Navigation.dismissModal}
+                    stepCounter={isVerifying ? undefined : {step: 5, total: 5}}
                     onBackButtonPress={this.props.onBackButtonPress}
                     shouldShowGetAssistanceButton
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
-                    shouldShowBackButton
-                    shouldShowStepCounter={!isVerifying}
                 />
                 {maxAttemptsReached && (
                     <View style={[styles.m5, styles.flex1]}>
@@ -170,6 +166,7 @@ class ValidationStep extends React.Component {
                                 containerStyles={[styles.mb1]}
                                 placeholder="1.52"
                                 keyboardType="decimal-pad"
+                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                             />
                             <TextInput
                                 inputID="amount2"
@@ -177,6 +174,7 @@ class ValidationStep extends React.Component {
                                 containerStyles={[styles.mb1]}
                                 placeholder="1.53"
                                 keyboardType="decimal-pad"
+                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                             />
                             <TextInput
                                 shouldSaveDraft
@@ -184,6 +182,7 @@ class ValidationStep extends React.Component {
                                 containerStyles={[styles.mb1]}
                                 placeholder="1.54"
                                 keyboardType="decimal-pad"
+                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                             />
                         </View>
                         {!requiresTwoFactorAuth && (

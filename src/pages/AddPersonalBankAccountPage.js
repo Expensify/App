@@ -3,7 +3,7 @@ import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../components/HeaderWithBackButton';
 import ScreenWrapper from '../components/ScreenWrapper';
 import Navigation from '../libs/Navigation/Navigation';
 import * as BankAccounts from '../libs/actions/BankAccounts';
@@ -32,6 +32,9 @@ const propTypes = {
         /** Whether we should show the view that the bank account was successfully added */
         shouldShowSuccess: PropTypes.bool,
 
+        /** Any reportID we should redirect to at the end of the flow */
+        exitReportID: PropTypes.string,
+
         /** Whether the form is loading */
         isLoading: PropTypes.bool,
 
@@ -47,6 +50,7 @@ const defaultProps = {
         shouldShowSuccess: false,
         isLoading: false,
         plaidAccountID: '',
+        exitReportID: '',
     },
 };
 
@@ -56,6 +60,7 @@ class AddPersonalBankAccountPage extends React.Component {
 
         this.validate = this.validate.bind(this);
         this.submit = this.submit.bind(this);
+        this.exitFlow = this.exitFlow.bind(this);
 
         this.state = {
             selectedPlaidAccountID: '',
@@ -81,6 +86,15 @@ class AddPersonalBankAccountPage extends React.Component {
         BankAccounts.addPersonalBankAccount(selectedPlaidBankAccount);
     }
 
+    exitFlow() {
+        const exitReportID = lodashGet(this.props, 'personalBankAccount.exitReportID');
+        if (exitReportID) {
+            Navigation.dismissModal(exitReportID);
+        } else {
+            Navigation.goBack(ROUTES.SETTINGS_WALLET);
+        }
+    }
+
     render() {
         const shouldShowSuccess = lodashGet(this.props, 'personalBankAccount.shouldShowSuccess', false);
 
@@ -88,12 +102,11 @@ class AddPersonalBankAccountPage extends React.Component {
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={shouldShowSuccess}
                 shouldEnablePickerAvoiding={false}
+                shouldShowOfflineIndicator={false}
             >
-                <HeaderWithCloseButton
+                <HeaderWithBackButton
                     title={this.props.translate('bankAccount.addBankAccount')}
-                    onCloseButtonPress={Navigation.dismissModal}
-                    shouldShowBackButton
-                    onBackButtonPress={Navigation.goBack}
+                    onBackButtonPress={this.exitFlow}
                 />
                 {shouldShowSuccess ? (
                     <ConfirmationPage
@@ -101,9 +114,7 @@ class AddPersonalBankAccountPage extends React.Component {
                         description={this.props.translate('addPersonalBankAccountPage.successMessage')}
                         shouldShowButton
                         buttonText={this.props.translate('common.continue')}
-                        onButtonPress={() => {
-                            Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
-                        }}
+                        onButtonPress={this.exitFlow}
                     />
                 ) : (
                     <Form

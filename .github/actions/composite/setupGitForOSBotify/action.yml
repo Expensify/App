@@ -24,3 +24,8 @@ runs:
         git config commit.gpgsign true
         git config user.name OSBotify
         git config user.email infra+osbotify@expensify.com
+
+    - name: Enable debug logs for git
+      shell: bash
+      if: runner.debug == '1'
+      run: echo "GIT_TRACE=true" >> "$GITHUB_ENV"

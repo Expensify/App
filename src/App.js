@@ -12,16 +12,24 @@ import Expensify from './Expensify';
 import {LocaleContextProvider} from './components/withLocalize';
 import OnyxProvider from './components/OnyxProvider';
 import HTMLEngineProvider from './components/HTMLEngineProvider';
+import PopoverContextProvider from './components/PopoverProvider';
 import ComposeProviders from './components/ComposeProviders';
 import SafeArea from './components/SafeArea';
 import * as Environment from './libs/Environment/Environment';
 import {WindowDimensionsProvider} from './components/withWindowDimensions';
 import {KeyboardStateProvider} from './components/withKeyboardState';
+import ThemeProvider from './styles/themes/ThemeProvider';
+import ThemeStylesProvider from './styles/ThemeStylesProvider';
+import {CurrentReportIDContextProvider} from './components/withCurrentReportID';
+import {EnvironmentProvider} from './components/withEnvironment';
+import * as Session from './libs/actions/Session';
+import useDefaultDragAndDrop from './hooks/useDefaultDragAndDrop';
 import * as ActionSheetAwareScrollView from './components/ActionSheetAwareScrollView';
 
 // For easier debugging and development, when we are in web we expose Onyx to the window, so you can more easily set data into Onyx
 if (window && Environment.isDevelopment()) {
     window.Onyx = Onyx;
+    window.setSupportToken = Session.setSupportAuthToken;
 }
 
 LogBox.ignoreLogs([
@@ -33,29 +41,37 @@ LogBox.ignoreLogs([
 
 const fill = {flex: 1};
 
-const App = () => (
-    <GestureHandlerRootView style={fill}>
-        <ComposeProviders
-            components={[
-                OnyxProvider,
-                SafeAreaProvider,
-                PortalProvider,
-                SafeArea,
-                LocaleContextProvider,
-                HTMLEngineProvider,
-                WindowDimensionsProvider,
-                KeyboardStateProvider,
-                ActionSheetAwareScrollView.ActionSheetAwareScrollViewProvider,
-                PickerStateProvider,
-            ]}
-        >
-            <CustomStatusBar />
-            <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
-                <Expensify />
-            </ErrorBoundary>
-        </ComposeProviders>
-    </GestureHandlerRootView>
-);
+function App() {
+    useDefaultDragAndDrop();
+    return (
+        <GestureHandlerRootView style={fill}>
+            <ComposeProviders
+                components={[
+                    OnyxProvider,
+                    SafeAreaProvider,
+                    PortalProvider,
+                    SafeArea,
+                    LocaleContextProvider,
+                    HTMLEngineProvider,
+                    WindowDimensionsProvider,
+                    KeyboardStateProvider,
+                    PopoverContextProvider,
+                    CurrentReportIDContextProvider,
+                    PickerStateProvider,
+                    EnvironmentProvider,
+                    ThemeProvider,
+                    ThemeStylesProvider,
+                    ActionSheetAwareScrollView.ActionSheetAwareScrollViewProvider,
+                ]}
+            >
+                <CustomStatusBar />
+                <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
+                    <Expensify />
+                </ErrorBoundary>
+            </ComposeProviders>
+        </GestureHandlerRootView>
+    );
+}
 
 App.displayName = 'App';
 

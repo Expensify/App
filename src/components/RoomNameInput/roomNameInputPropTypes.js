@@ -1,5 +1,4 @@
 import PropTypes from 'prop-types';
-import {withLocalizePropTypes} from '../withLocalize';
 
 const propTypes = {
     /** Callback to execute when the text input is modified correctly */
@@ -12,9 +11,7 @@ const propTypes = {
     disabled: PropTypes.bool,
 
     /** Error text to show */
-    errorText: PropTypes.string,
-
-    ...withLocalizePropTypes,
+    errorText: PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.object]))]),
 
     /** A ref forwarded to the TextInput */
     forwardedRef: PropTypes.func,

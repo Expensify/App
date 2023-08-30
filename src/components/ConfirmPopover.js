@@ -55,27 +55,29 @@ const defaultProps = {
     contentStyles: [],
 };
 
-const ConfirmPopover = (props) => (
-    <Popover
-        onSubmit={props.onConfirm}
-        onClose={props.onCancel}
-        isVisible={props.isVisible}
-        anchorPosition={props.anchorPosition}
-    >
-        <ConfirmContent
-            contentStyles={props.contentStyles}
-            title={props.title}
-            prompt={props.prompt}
-            confirmText={props.confirmText}
-            cancelText={props.cancelText}
-            danger={props.danger}
-            shouldShowCancelButton={props.shouldShowCancelButton}
-            onConfirm={props.onConfirm}
-            onCancel={props.onCancel}
+function ConfirmPopover(props) {
+    return (
+        <Popover
+            onSubmit={props.onConfirm}
             onClose={props.onCancel}
-        />
-    </Popover>
-);
+            isVisible={props.isVisible}
+            anchorPosition={props.anchorPosition}
+        >
+            <ConfirmContent
+                contentStyles={props.contentStyles}
+                title={props.title}
+                prompt={props.prompt}
+                confirmText={props.confirmText}
+                cancelText={props.cancelText}
+                danger={props.danger}
+                shouldShowCancelButton={props.shouldShowCancelButton}
+                onConfirm={props.onConfirm}
+                onCancel={props.onCancel}
+                onClose={props.onCancel}
+            />
+        </Popover>
+    );
+}
 
 ConfirmPopover.propTypes = propTypes;
 ConfirmPopover.defaultProps = defaultProps;

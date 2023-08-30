@@ -279,29 +279,22 @@ describe('GithubUtils', () => {
             },
             {
                 number: 4,
-                title: 'Test Automated PR',
+                title: '[NO QA] Test No QA PR uppercase',
                 html_url: 'https://github.com/Expensify/App/pull/4',
-                user: {login: 'OSBotify'},
-                labels: [{name: 'automerge'}],
+                user: {login: 'testUser'},
+                labels: [],
             },
             {
                 number: 5,
-                title: '[NO QA] Test No QA PR uppercase',
+                title: '[NoQa] Test No QA PR Title Case',
                 html_url: 'https://github.com/Expensify/App/pull/5',
                 user: {login: 'testUser'},
                 labels: [],
             },
             {
                 number: 6,
-                title: '[NoQa] Test No QA PR Title Case',
-                html_url: 'https://github.com/Expensify/App/pull/6',
-                user: {login: 'testUser'},
-                labels: [],
-            },
-            {
-                number: 7,
                 title: '[Internal QA] Test Internal QA PR',
-                html_url: 'https://github.com/Expensify/App/pull/7',
+                html_url: 'https://github.com/Expensify/App/pull/6',
                 user: {login: 'testUser'},
                 labels: [
                     {
@@ -323,9 +316,9 @@ describe('GithubUtils', () => {
                 ],
             },
             {
-                number: 8,
+                number: 7,
                 title: '[Internal QA] Another Test Internal QA PR',
-                html_url: 'https://github.com/Expensify/App/pull/8',
+                html_url: 'https://github.com/Expensify/App/pull/7',
                 user: {login: 'testUser'},
                 labels: [
                     {
@@ -369,15 +362,14 @@ describe('GithubUtils', () => {
             'https://github.com/Expensify/App/pull/2',
             'https://github.com/Expensify/App/pull/3',
             'https://github.com/Expensify/App/pull/1',
-            'https://github.com/Expensify/App/pull/4', // Automated
             'https://github.com/Expensify/App/pull/3', // This is an intentional duplicate for testing duplicates
+            'https://github.com/Expensify/App/pull/4', // No QA
             'https://github.com/Expensify/App/pull/5', // No QA
-            'https://github.com/Expensify/App/pull/6', // No QA
         ];
 
         const internalQAPRList = [
+            'https://github.com/Expensify/App/pull/6', // Internal QA
             'https://github.com/Expensify/App/pull/7', // Internal QA
-            'https://github.com/Expensify/App/pull/8', // Internal QA
         ];
 
         const baseDeployBlockerList = ['https://github.com/Expensify/App/pull/3', 'https://github.com/Expensify/App/issues/4'];
@@ -408,8 +400,8 @@ describe('GithubUtils', () => {
             `${closedCheckbox}${basePRList[2]}` +
             `${lineBreak}${closedCheckbox}${basePRList[0]}` +
             `${lineBreak}${closedCheckbox}${basePRList[1]}` +
+            `${lineBreak}${closedCheckbox}${basePRList[4]}` +
             `${lineBreak}${closedCheckbox}${basePRList[5]}` +
-            `${lineBreak}${closedCheckbox}${basePRList[6]}` +
             `${lineBreak}`;
 
         test('Test no verified PRs', () =>
@@ -419,8 +411,8 @@ describe('GithubUtils', () => {
                         `${openCheckbox}${basePRList[2]}` +
                         `${lineBreak}${openCheckbox}${basePRList[0]}` +
                         `${lineBreak}${openCheckbox}${basePRList[1]}` +
+                        `${lineBreak}${closedCheckbox}${basePRList[4]}` +
                         `${lineBreak}${closedCheckbox}${basePRList[5]}` +
-                        `${lineBreak}${closedCheckbox}${basePRList[6]}` +
                         `${lineBreakDouble}${deployerVerificationsHeader}` +
                         `${lineBreak}${openCheckbox}${timingDashboardVerification}` +
                         `${lineBreak}${openCheckbox}${firebaseVerification}` +
@@ -436,8 +428,8 @@ describe('GithubUtils', () => {
                         `${openCheckbox}${basePRList[2]}` +
                         `${lineBreak}${closedCheckbox}${basePRList[0]}` +
                         `${lineBreak}${openCheckbox}${basePRList[1]}` +
+                        `${lineBreak}${closedCheckbox}${basePRList[4]}` +
                         `${lineBreak}${closedCheckbox}${basePRList[5]}` +
-                        `${lineBreak}${closedCheckbox}${basePRList[6]}` +
                         `${lineBreakDouble}${deployerVerificationsHeader}` +
                         `${lineBreak}${openCheckbox}${timingDashboardVerification}` +
                         `${lineBreak}${openCheckbox}${firebaseVerification}` +
@@ -495,8 +487,8 @@ describe('GithubUtils', () => {
                         `${closedCheckbox}${basePRList[2]}` +
                         `${lineBreak}${closedCheckbox}${basePRList[0]}` +
                         `${lineBreak}${closedCheckbox}${basePRList[1]}` +
+                        `${lineBreak}${closedCheckbox}${basePRList[4]}` +
                         `${lineBreak}${closedCheckbox}${basePRList[5]}` +
-                        `${lineBreak}${closedCheckbox}${basePRList[6]}` +
                         `${lineBreakDouble}${deployBlockerHeader}` +
                         `${lineBreak}${closedCheckbox}${baseDeployBlockerList[0]}` +
                         `${lineBreak}${closedCheckbox}${baseDeployBlockerList[1]}` +
@@ -515,8 +507,8 @@ describe('GithubUtils', () => {
                         `${openCheckbox}${basePRList[2]}` +
                         `${lineBreak}${openCheckbox}${basePRList[0]}` +
                         `${lineBreak}${openCheckbox}${basePRList[1]}` +
+                        `${lineBreak}${closedCheckbox}${basePRList[4]}` +
                         `${lineBreak}${closedCheckbox}${basePRList[5]}` +
-                        `${lineBreak}${closedCheckbox}${basePRList[6]}` +
                         `${lineBreak}${internalQAHeader}` +
                         `${lineBreak}${openCheckbox}${internalQAPRList[0]}${assignOctocatHubot}` +
                         `${lineBreak}${openCheckbox}${internalQAPRList[1]}${assignOctocatHubot}` +
@@ -535,8 +527,8 @@ describe('GithubUtils', () => {
                         `${openCheckbox}${basePRList[2]}` +
                         `${lineBreak}${openCheckbox}${basePRList[0]}` +
                         `${lineBreak}${openCheckbox}${basePRList[1]}` +
+                        `${lineBreak}${closedCheckbox}${basePRList[4]}` +
                         `${lineBreak}${closedCheckbox}${basePRList[5]}` +
-                        `${lineBreak}${closedCheckbox}${basePRList[6]}` +
                         `${lineBreak}${internalQAHeader}` +
                         `${lineBreak}${closedCheckbox}${internalQAPRList[0]}${assignOctocatHubot}` +
                         `${lineBreak}${openCheckbox}${internalQAPRList[1]}${assignOctocatHubot}` +

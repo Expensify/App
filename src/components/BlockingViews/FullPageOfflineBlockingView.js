@@ -18,7 +18,7 @@ const propTypes = {
     network: networkPropTypes.isRequired,
 };
 
-const FullPageOfflineBlockingView = (props) => {
+function FullPageOfflineBlockingView(props) {
     if (props.network.isOffline) {
         return (
             <BlockingView
@@ -30,7 +30,7 @@ const FullPageOfflineBlockingView = (props) => {
     }
 
     return props.children;
-};
+}
 
 FullPageOfflineBlockingView.propTypes = propTypes;
 FullPageOfflineBlockingView.displayName = 'FullPageOfflineBlockingView';

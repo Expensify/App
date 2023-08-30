@@ -1,7 +1,7 @@
 import React from 'react';
 import {View, ScrollView} from 'react-native';
 import ScreenWrapper from '../components/ScreenWrapper';
-import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../components/HeaderWithBackButton';
 import Navigation from '../libs/Navigation/Navigation';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import QRShareWithDownload from '../components/QRShare/QRShareWithDownload';
@@ -9,7 +9,7 @@ import compose from '../libs/compose';
 import reportPropTypes from './reportPropTypes';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../components/withCurrentUserPersonalDetails';
 import styles from '../styles/styles';
-import roomAvatar from '../../assets/images/avatars/room.png';
+import expensifyLogo from '../../assets/images/expensify-logo-round-transparent.png';
 import * as ReportUtils from '../libs/ReportUtils';
 import MenuItem from '../components/MenuItem';
 import Clipboard from '../libs/Clipboard';
@@ -17,6 +17,10 @@ import * as Expensicons from '../components/Icon/Expensicons';
 import getPlatform from '../libs/getPlatform';
 import CONST from '../CONST';
 import ContextMenuItem from '../components/ContextMenuItem';
+import * as UserUtils from '../libs/UserUtils';
+import ROUTES from '../ROUTES';
+import withEnvironment, {environmentPropTypes} from '../components/withEnvironment';
+import * as Url from '../libs/Url';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -24,6 +28,7 @@ const propTypes = {
 
     ...withLocalizePropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
+    ...environmentPropTypes,
 };
 
 const defaultProps = {
@@ -39,18 +44,20 @@ class ShareCodePage extends React.Component {
         const isReport = this.props.report != null && this.props.report.reportID != null;
         const subtitle = ReportUtils.getChatRoomSubtitle(this.props.report);
 
-        const url = isReport ? `${CONST.NEW_EXPENSIFY_URL}r/${this.props.report.reportID}` : `${CONST.NEW_EXPENSIFY_URL}details?login=${encodeURIComponent(this.props.session.email)}`;
+        const urlWithTrailingSlash = Url.addTrailingForwardSlash(this.props.environmentURL);
+        const url = isReport
+            ? `${urlWithTrailingSlash}${ROUTES.getReportRoute(this.props.report.reportID)}`
+            : `${urlWithTrailingSlash}${ROUTES.getProfileRoute(this.props.session.accountID)}`;
 
         const platform = getPlatform();
         const isNative = platform === CONST.PLATFORM.IOS || platform === CONST.PLATFORM.ANDROID;
+        const formattedEmail = this.props.formatPhoneNumber(this.props.session.email);
 
         return (
             <ScreenWrapper>
-                <HeaderWithCloseButton
+                <HeaderWithBackButton
                     title={this.props.translate('common.shareCode')}
-                    shouldShowBackButton
-                    onBackButtonPress={() => Navigation.goBack()}
-                    onCloseButtonPress={() => Navigation.dismissModal(true)}
+                    onBackButtonPress={() => Navigation.goBack(isReport ? ROUTES.getReportDetailsRoute(this.props.report.reportID) : ROUTES.SETTINGS)}
                 />
 
                 <ScrollView style={[styles.flex1, styles.mt3]}>
@@ -59,13 +66,16 @@ class ShareCodePage extends React.Component {
                             ref={this.qrCodeRef}
                             url={url}
                             title={isReport ? this.props.report.reportName : this.props.currentUserPersonalDetails.displayName}
-                            subtitle={isReport ? subtitle : this.props.session.email}
-                            logo={isReport ? roomAvatar : this.props.currentUserPersonalDetails.avatar}
+                            subtitle={isReport ? subtitle : formattedEmail}
+                            logo={isReport ? expensifyLogo : UserUtils.getAvatarUrl(this.props.currentUserPersonalDetails.avatar, this.props.currentUserPersonalDetails.accountID)}
+                            logoRatio={isReport ? CONST.QR.EXPENSIFY_LOGO_SIZE_RATIO : CONST.QR.DEFAULT_LOGO_SIZE_RATIO}
+                            logoMarginRatio={isReport ? CONST.QR.EXPENSIFY_LOGO_MARGIN_RATIO : CONST.QR.DEFAULT_LOGO_MARGIN_RATIO}
                         />
                     </View>
 
                     <View style={{marginTop: 36}}>
                         <ContextMenuItem
+                            isAnonymousAction
                             text={this.props.translate('qrCodes.copyUrlToClipboard')}
                             shouldShowRightIcon
                             icon={Expensicons.Copy}
@@ -76,6 +86,7 @@ class ShareCodePage extends React.Component {
 
                         {isNative && (
                             <MenuItem
+                                isAnonymousAction
                                 title={this.props.translate('common.download')}
                                 icon={Expensicons.Download}
                                 // eslint-disable-next-line es/no-optional-chaining
@@ -92,4 +103,4 @@ class ShareCodePage extends React.Component {
 ShareCodePage.propTypes = propTypes;
 ShareCodePage.defaultProps = defaultProps;
 
-export default compose(withLocalize, withCurrentUserPersonalDetails)(ShareCodePage);
+export default compose(withEnvironment, withLocalize, withCurrentUserPersonalDetails)(ShareCodePage);

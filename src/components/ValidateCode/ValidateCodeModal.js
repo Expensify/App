@@ -39,7 +39,7 @@ const defaultProps = {
 };
 
 function ValidateCodeModal(props) {
-    const signInHere = useCallback(() => Session.signInWithValidateCode(props.accountID, props.code), [props.accountID, props.code]);
+    const signInHere = useCallback(() => Session.signInWithValidateCode(props.accountID, props.code, props.preferredLocale), [props.accountID, props.code, props.preferredLocale]);
 
     return (
         <View style={styles.deeplinkWrapperContainer}>

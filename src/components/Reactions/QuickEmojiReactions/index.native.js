@@ -15,11 +15,11 @@ const propTypes = {
     closeContextMenu: PropTypes.func.isRequired,
 };
 
-const QuickEmojiReactions = (props) => {
-    const actionSheetContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
+function QuickEmojiReactions(props) {
+    const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
 
     const onPressOpenPicker = (openPicker) => {
-        actionSheetContext.transitionActionSheetState({
+        actionSheetAwareScrollViewContext.transitionActionSheetState({
             type: ActionSheetAwareScrollView.Actions.OPEN_EMOJI_PICKER_POPOVER,
         });
 
@@ -32,7 +32,7 @@ const QuickEmojiReactions = (props) => {
             // ref as anchor for the emoji picker popover.
 
             openPicker(ReportActionComposeFocusManager.composerRef.current, undefined, () => {
-                actionSheetContext.transitionActionSheetState({
+                actionSheetAwareScrollViewContext.transitionActionSheetState({
                     type: ActionSheetAwareScrollView.Actions.CLOSE_EMOJI_PICKER_POPOVER,
                 });
             });
@@ -40,7 +40,7 @@ const QuickEmojiReactions = (props) => {
     };
 
     const onEmojiSelected = (emoji) => {
-        actionSheetContext.transitionActionSheetState({
+        actionSheetAwareScrollViewContext.transitionActionSheetState({
             type: ActionSheetAwareScrollView.Actions.CLOSE_EMOJI_PICKER_POPOVER,
         });
 
@@ -55,7 +55,7 @@ const QuickEmojiReactions = (props) => {
             onPressOpenPicker={onPressOpenPicker}
         />
     );
-};
+}
 
 QuickEmojiReactions.displayName = 'QuickEmojiReactions';
 QuickEmojiReactions.propTypes = propTypes;

@@ -33,6 +33,9 @@ const propTypes = {
     /** Is the action destructive */
     danger: PropTypes.bool,
 
+    /** Whether we should disable the confirm button when offline */
+    shouldDisableConfirmButtonWhenOffline: PropTypes.bool,
+
     /** Whether we should show the cancel button */
     shouldShowCancelButton: PropTypes.bool,
 
@@ -41,6 +44,27 @@ const propTypes = {
 
     /** Should we announce the Modal visibility changes? */
     shouldSetModalVisibility: PropTypes.bool,
+
+    /** Icon to display above the title */
+    iconSource: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
+
+    /** Styles for title */
+    // eslint-disable-next-line react/forbid-prop-types
+    titleStyles: PropTypes.arrayOf(PropTypes.object),
+
+    /** Styles for prompt */
+    // eslint-disable-next-line react/forbid-prop-types
+    promptStyles: PropTypes.arrayOf(PropTypes.object),
+
+    /** Styles for icon */
+    // eslint-disable-next-line react/forbid-prop-types
+    iconAdditionalStyles: PropTypes.arrayOf(PropTypes.object),
+
+    /** Whether to center the icon / text content */
+    shouldCenterContent: PropTypes.bool,
+
+    /** Whether to stack the buttons */
+    shouldStackButtons: PropTypes.bool,
 
     ...windowDimensionsPropTypes,
 };
@@ -52,36 +76,52 @@ const defaultProps = {
     success: true,
     danger: false,
     onCancel: () => {},
+    shouldDisableConfirmButtonWhenOffline: false,
     shouldShowCancelButton: true,
     shouldSetModalVisibility: true,
     title: '',
+    iconSource: null,
     onModalHide: () => {},
+    titleStyles: [],
+    iconAdditionalStyles: [],
+    promptStyles: [],
+    shouldCenterContent: false,
+    shouldStackButtons: true,
 };
 
-const ConfirmModal = (props) => (
-    <Modal
-        onSubmit={props.onConfirm}
-        onClose={props.onCancel}
-        isVisible={props.isVisible}
-        shouldSetModalVisibility={props.shouldSetModalVisibility}
-        onModalHide={props.onModalHide}
-        type={props.isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
-    >
-        <ConfirmContent
-            title={props.title}
-            /* Disable onConfirm function if the modal is being dismissed, otherwise the confirmation
+function ConfirmModal(props) {
+    return (
+        <Modal
+            onSubmit={props.onConfirm}
+            onClose={props.onCancel}
+            isVisible={props.isVisible}
+            shouldSetModalVisibility={props.shouldSetModalVisibility}
+            onModalHide={props.onModalHide}
+            type={props.isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
+        >
+            <ConfirmContent
+                title={props.title}
+                /* Disable onConfirm function if the modal is being dismissed, otherwise the confirmation
             function can be triggered multiple times if the user clicks on the button multiple times. */
-            onConfirm={() => (props.isVisible ? props.onConfirm() : null)}
-            onCancel={props.onCancel}
-            confirmText={props.confirmText}
-            cancelText={props.cancelText}
-            prompt={props.prompt}
-            success={props.success}
-            danger={props.danger}
-            shouldShowCancelButton={props.shouldShowCancelButton}
-        />
-    </Modal>
-);
+                onConfirm={() => (props.isVisible ? props.onConfirm() : null)}
+                onCancel={props.onCancel}
+                confirmText={props.confirmText}
+                cancelText={props.cancelText}
+                prompt={props.prompt}
+                success={props.success}
+                danger={props.danger}
+                shouldDisableConfirmButtonWhenOffline={props.shouldDisableConfirmButtonWhenOffline}
+                shouldShowCancelButton={props.shouldShowCancelButton}
+                shouldCenterContent={props.shouldCenterContent}
+                iconSource={props.iconSource}
+                iconAdditionalStyles={props.iconAdditionalStyles}
+                titleStyles={props.titleStyles}
+                promptStyles={props.promptStyles}
+                shouldStackButtons={props.shouldStackButtons}
+            />
+        </Modal>
+    );
+}
 
 ConfirmModal.propTypes = propTypes;
 ConfirmModal.defaultProps = defaultProps;

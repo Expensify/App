@@ -1,62 +1,90 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import {render} from '@testing-library/react-native';
 import ComposeProviders from '../../src/components/ComposeProviders';
 import OnyxProvider from '../../src/components/OnyxProvider';
 import {LocaleContextProvider} from '../../src/components/withLocalize';
-import SidebarLinks from '../../src/pages/home/sidebar/SidebarLinks';
+import SidebarLinksData from '../../src/pages/home/sidebar/SidebarLinksData';
+import {EnvironmentProvider} from '../../src/components/withEnvironment';
 import CONST from '../../src/CONST';
 import DateUtils from '../../src/libs/DateUtils';
 
+// we have to mock `useIsFocused` because it's used in the SidebarLinks component
+const mockedNavigate = jest.fn();
+jest.mock('@react-navigation/native', () => {
+    const actualNav = jest.requireActual('@react-navigation/native');
+    return {
+        ...actualNav,
+        useIsFocused: () => ({
+            navigate: mockedNavigate,
+        }),
+        useNavigation: () => ({
+            navigate: jest.fn(),
+            addListener: jest.fn(),
+        }),
+        createNavigationContainerRef: jest.fn(),
+    };
+});
+
 const fakePersonalDetails = {
-    'email1@test.com': {
+    1: {
+        accountID: 1,
         login: 'email1@test.com',
         displayName: 'Email One',
         avatar: 'none',
         firstName: 'One',
     },
-    'email2@test.com': {
+    2: {
+        accountID: 2,
         login: 'email2@test.com',
         displayName: 'Email Two',
         avatar: 'none',
         firstName: 'Two',
     },
-    'email3@test.com': {
+    3: {
+        accountID: 3,
         login: 'email3@test.com',
         displayName: 'Email Three',
         avatar: 'none',
         firstName: 'Three',
     },
-    'email4@test.com': {
+    4: {
+        accountID: 4,
         login: 'email4@test.com',
         displayName: 'Email Four',
         avatar: 'none',
         firstName: 'Four',
     },
-    'email5@test.com': {
+    5: {
+        accountID: 5,
         login: 'email5@test.com',
         displayName: 'Email Five',
         avatar: 'none',
         firstName: 'Five',
     },
-    'email6@test.com': {
+    6: {
+        accountID: 6,
         login: 'email6@test.com',
         displayName: 'Email Six',
         avatar: 'none',
         firstName: 'Six',
     },
-    'email7@test.com': {
+    7: {
+        accountID: 7,
         login: 'email7@test.com',
         displayName: 'Email Seven',
         avatar: 'none',
         firstName: 'Seven',
     },
-    'email8@test.com': {
+    8: {
+        accountID: 8,
         login: 'email8@test.com',
         displayName: 'Email Eight',
         avatar: 'none',
         firstName: 'Eight',
     },
-    'email9@test.com': {
+    9: {
+        accountID: 9,
         login: 'email9@test.com',
         displayName: 'Email Nine',
         avatar: 'none',
@@ -68,12 +96,12 @@ let lastFakeReportID = 0;
 let lastFakeReportActionID = 0;
 
 /**
- * @param {String[]} participants
+ * @param {Number[]} participantAccountIDs
  * @param {Number} millisecondsInThePast the number of milliseconds in the past for the last message timestamp (to order reports by most recent messages)
  * @param {boolean} isUnread
  * @returns {Object}
  */
-function getFakeReport(participants = ['email1@test.com', 'email2@test.com'], millisecondsInThePast = 0, isUnread = false) {
+function getFakeReport(participantAccountIDs = [1, 2], millisecondsInThePast = 0, isUnread = false) {
     const lastVisibleActionCreated = DateUtils.getDBTime(Date.now() - millisecondsInThePast);
     return {
         type: CONST.REPORT.TYPE.CHAT,
@@ -81,7 +109,7 @@ function getFakeReport(participants = ['email1@test.com', 'email2@test.com'], mi
         reportName: 'Report',
         lastVisibleActionCreated,
         lastReadTime: isUnread ? DateUtils.subtractMillisecondsFromDateTime(lastVisibleActionCreated, 1) : lastVisibleActionCreated,
-        participants,
+        participantAccountIDs,
     };
 }
 
@@ -107,7 +135,7 @@ function getFakeReportAction(actor = 'email1@test.com', millisecondsInThePast = 
                 text: 'Email One',
             },
         ],
-        whisperedTo: [],
+        whisperedToAccountIDs: [],
         automatic: false,
     };
 }
@@ -126,7 +154,7 @@ function getFakeReportAction(actor = 'email1@test.com', millisecondsInThePast = 
  */
 function getAdvancedFakeReport(isArchived, isUserCreatedPolicyRoom, hasAddWorkspaceError, isUnread, isPinned, hasDraft) {
     return {
-        ...getFakeReport(['email1@test.com', 'email2@test.com'], 0, isUnread),
+        ...getFakeReport([1, 2], 0, isUnread),
         type: CONST.REPORT.TYPE.CHAT,
         chatType: isUserCreatedPolicyRoom ? CONST.REPORT.CHAT_TYPE.POLICY_ROOM : CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
         statusNum: isArchived ? CONST.REPORT.STATUS.CLOSED : 0,
@@ -138,52 +166,54 @@ function getAdvancedFakeReport(isArchived, isUserCreatedPolicyRoom, hasAddWorksp
 }
 
 /**
- * @param {String} [reportIDFromRoute]
+ * @param {String} [currentReportID]
  */
-function getDefaultRenderedSidebarLinks(reportIDFromRoute = '') {
-    // An ErrorBoundary needs to be added to the rendering so that any errors that happen while the component
-    // renders are logged to the console. Without an error boundary, Jest only reports the error like "The above error
-    // occurred in your component", except, there is no "above error". It's just swallowed up by Jest somewhere.
-    // With the ErrorBoundary, those errors are caught and logged to the console so you can find exactly which error
-    // might be causing a rendering issue when developing tests.
-    class ErrorBoundary extends React.Component {
-        // Error boundaries have to implement this method. It's for providing a fallback UI, but
-        // we don't need that for unit testing, so this is basically a no-op.
-        static getDerivedStateFromError(error) {
-            return {error};
-        }
+function getDefaultRenderedSidebarLinks(currentReportID = '') {
+    // A try-catch block needs to be added to the rendering so that any errors that happen while the component
+    // renders are caught and logged to the console. Without the try-catch block, Jest might only report the error
+    // as "The above error occurred in your component", without providing specific details. By using a try-catch block,
+    // any errors are caught and logged, allowing you to identify the exact error that might be causing a rendering issue
+    // when developing tests.
 
-        componentDidCatch(error, errorInfo) {
-            console.error(error, errorInfo);
-        }
-
-        render() {
-            // eslint-disable-next-line react/prop-types
-            return this.props.children;
-        }
+    try {
+        // Wrap the SideBarLinks inside of LocaleContextProvider so that all the locale props
+        // are passed to the component. If this is not done, then all the locale props are missing
+        // and there are a lot of render warnings. It needs to be done like this because normally in
+        // our app (App.js) is when the react application is wrapped in the context providers
+        render(<MockedSidebarLinks currentReportID={currentReportID} />);
+    } catch (error) {
+        console.error(error);
     }
+}
 
-    // Wrap the SideBarLinks inside of LocaleContextProvider so that all the locale props
-    // are passed to the component. If this is not done, then all the locale props are missing
-    // and there are a lot of render warnings. It needs to be done like this because normally in
-    // our app (App.js) is when the react application is wrapped in the context providers
-    render(
-        <ComposeProviders components={[OnyxProvider, LocaleContextProvider]}>
-            <ErrorBoundary>
-                <SidebarLinks
-                    onLinkClick={() => {}}
-                    insets={{
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                    }}
-                    isSmallScreenWidth={false}
-                    reportIDFromRoute={reportIDFromRoute}
-                />
-            </ErrorBoundary>
-        </ComposeProviders>,
+/**
+ * @param {String} [currentReportID]
+ * @returns {JSX.Element}
+ */
+function MockedSidebarLinks({currentReportID}) {
+    return (
+        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, EnvironmentProvider]}>
+            <SidebarLinksData
+                onLinkClick={() => {}}
+                insets={{
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                }}
+                isSmallScreenWidth={false}
+                currentReportID={currentReportID}
+            />
+        </ComposeProviders>
     );
 }
 
-export {fakePersonalDetails, getDefaultRenderedSidebarLinks, getAdvancedFakeReport, getFakeReport, getFakeReportAction};
+MockedSidebarLinks.propTypes = {
+    currentReportID: PropTypes.string,
+};
+
+MockedSidebarLinks.defaultProps = {
+    currentReportID: '',
+};
+
+export {fakePersonalDetails, getDefaultRenderedSidebarLinks, getAdvancedFakeReport, getFakeReport, getFakeReportAction, MockedSidebarLinks};

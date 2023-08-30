@@ -149,7 +149,7 @@ const columns = ({scrollPageToTop}) => [
     },
 ];
 
-const Footer = (props) => {
+function Footer(props) {
     const isVertical = props.isSmallScreenWidth;
     const imageDirection = isVertical ? styles.flexRow : styles.flexColumn;
     const imageStyle = isVertical ? styles.pr0 : styles.alignSelfCenter;
@@ -157,11 +157,12 @@ const Footer = (props) => {
     const pageFooterWrapper = [styles.footerWrapper, imageDirection, imageStyle, isVertical ? styles.pl10 : {}];
     const footerColumns = [styles.footerColumnsContainer, columnDirection];
     const footerColumn = isVertical ? [styles.p4] : [styles.p4, props.isMediumScreenWidth ? styles.w50 : styles.w25];
+    const footerWrapper = isVertical ? [StyleUtils.getBackgroundColorStyle(themeColors.signInPage), styles.overflowHidden] : [];
 
     return (
         <View style={[styles.flex1]}>
-            <View style={[props.isSmallScreenWidth ? StyleUtils.getBackgroundColorStyle(themeColors.signInPage) : {}]}>
-                {props.isSmallScreenWidth ? (
+            <View style={footerWrapper}>
+                {isVertical ? (
                     <View style={[styles.signInPageGradientMobile]}>
                         <SignInGradient height="100%" />
                     </View>
@@ -178,18 +179,20 @@ const Footer = (props) => {
                                     {_.map(column.rows, (row) => (
                                         <Hoverable key={row.translationPath}>
                                             {(hovered) => (
-                                                <TextLink
-                                                    style={[styles.footerRow, hovered ? styles.textBlue : {}]}
-                                                    href={row.link}
-                                                    onPress={row.onPress}
-                                                >
-                                                    {props.translate(row.translationPath)}
-                                                </TextLink>
+                                                <View>
+                                                    <TextLink
+                                                        style={[styles.footerRow, hovered ? styles.textBlue : {}]}
+                                                        href={row.link}
+                                                        onPress={row.onPress}
+                                                    >
+                                                        {props.translate(row.translationPath)}
+                                                    </TextLink>
+                                                </View>
                                             )}
                                         </Hoverable>
                                     ))}
                                     {i === 2 && (
-                                        <View style={styles.mt5}>
+                                        <View style={styles.mt4}>
                                             <Socials />
                                         </View>
                                     )}
@@ -216,7 +219,7 @@ const Footer = (props) => {
             </View>
         </View>
     );
-};
+}
 
 Footer.propTypes = propTypes;
 Footer.displayName = 'Footer';

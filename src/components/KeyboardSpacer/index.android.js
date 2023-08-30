@@ -3,17 +3,19 @@
  * view up with the keyboard allowing the user to see what they are typing.
  */
 import React from 'react';
-import {StatusBar} from 'react-native';
+import StatusBar from '../../libs/StatusBar';
 import BaseKeyboardSpacer from './BaseKeyboardSpacer';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 
-const KeyboardSpacer = () => (
-    <BaseKeyboardSpacer
-        topSpacing={StatusBar.currentHeight}
-        keyboardShowMethod="keyboardDidShow"
-        keyboardHideMethod="keyboardDidHide"
-    />
-);
+function KeyboardSpacer() {
+    return (
+        <BaseKeyboardSpacer
+            topSpacing={StatusBar.currentHeight}
+            keyboardShowMethod="keyboardDidShow"
+            keyboardHideMethod="keyboardDidHide"
+        />
+    );
+}
 
 KeyboardSpacer.propTypes = windowDimensionsPropTypes;
 KeyboardSpacer.displayName = 'KeyboardSpacer';

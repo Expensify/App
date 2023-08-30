@@ -17,13 +17,13 @@ const defaultProps = {
     styles: [],
 };
 
-const InlineErrorText = (props) => {
+function InlineErrorText(props) {
     if (_.isEmpty(props.children)) {
         return null;
     }
 
     return <Text style={[...props.styles, styles.formError, styles.mt1]}>{props.children}</Text>;
-};
+}
 
 InlineErrorText.propTypes = propTypes;
 InlineErrorText.defaultProps = defaultProps;

@@ -16,7 +16,9 @@ const defaultProps = {
     style: [],
 };
 
-const FixedFooter = (props) => <View style={[styles.ph5, styles.pb5, styles.flexShrink0, ...props.style]}>{props.children}</View>;
+function FixedFooter(props) {
+    return <View style={[styles.ph5, styles.pb5, styles.flexShrink0, ...props.style]}>{props.children}</View>;
+}
 
 FixedFooter.propTypes = propTypes;
 FixedFooter.defaultProps = defaultProps;

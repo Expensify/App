@@ -8,6 +8,8 @@ import Text from '../Text';
 import themeColors from '../../styles/themes/default';
 import TextLink from '../TextLink';
 import Navigation from '../../libs/Navigation/Navigation';
+import AutoEmailLink from '../AutoEmailLink';
+import useLocalize from '../../hooks/useLocalize';
 
 const propTypes = {
     /** Expensicon for the page */
@@ -20,49 +22,77 @@ const propTypes = {
     title: PropTypes.string.isRequired,
 
     /** Subtitle message below the title */
-    subtitle: PropTypes.string.isRequired,
+    subtitle: PropTypes.string,
 
     /** Link message below the subtitle */
-    link: PropTypes.string,
+    linkKey: PropTypes.string,
 
-    /** Whether we should show a go back home link */
-    shouldShowBackHomeLink: PropTypes.bool,
+    /** Whether we should show a link to navigate elsewhere */
+    shouldShowLink: PropTypes.bool,
 
     /** The custom icon width */
     iconWidth: PropTypes.number,
 
     /** The custom icon height */
     iconHeight: PropTypes.number,
+
+    /** Function to call when pressing the navigation link */
+    onLinkPress: PropTypes.func,
+
+    /** Whether we should embed the link with subtitle */
+    shouldEmbedLinkWithSubtitle: PropTypes.bool,
 };
 
 const defaultProps = {
     iconColor: themeColors.offline,
-    shouldShowBackHomeLink: false,
-    link: 'notFound.goBackHome',
+    subtitle: '',
+    shouldShowLink: false,
+    linkKey: 'notFound.goBackHome',
     iconWidth: variables.iconSizeSuperLarge,
     iconHeight: variables.iconSizeSuperLarge,
+    onLinkPress: () => Navigation.dismissModal(),
+    shouldEmbedLinkWithSubtitle: false,
 };
 
-const BlockingView = (props) => (
-    <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph10]}>
-        <Icon
-            src={props.icon}
-            fill={props.iconColor}
-            width={props.iconWidth}
-            height={props.iconHeight}
-        />
-        <Text style={[styles.notFoundTextHeader]}>{props.title}</Text>
-        <Text style={[styles.textAlignCenter]}>{props.subtitle}</Text>
-        {props.shouldShowBackHomeLink ? (
-            <TextLink
-                onPress={() => Navigation.dismissModal(true)}
-                style={[styles.link, styles.mt2]}
-            >
-                {props.link}
-            </TextLink>
-        ) : null}
-    </View>
-);
+function BlockingView(props) {
+    const {translate} = useLocalize();
+    function renderContent() {
+        return (
+            <>
+                <AutoEmailLink
+                    style={[styles.textAlignCenter]}
+                    text={props.subtitle}
+                />
+                {props.shouldShowLink ? (
+                    <TextLink
+                        onPress={props.onLinkPress}
+                        style={[styles.link, styles.mt2]}
+                    >
+                        {translate(props.linkKey)}
+                    </TextLink>
+                ) : null}
+            </>
+        );
+    }
+
+    return (
+        <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph10]}>
+            <Icon
+                src={props.icon}
+                fill={props.iconColor}
+                width={props.iconWidth}
+                height={props.iconHeight}
+            />
+            <Text style={[styles.notFoundTextHeader]}>{props.title}</Text>
+
+            {props.shouldEmbedLinkWithSubtitle ? (
+                <Text style={[styles.textAlignCenter]}>{renderContent()}</Text>
+            ) : (
+                <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>{renderContent()}</View>
+            )}
+        </View>
+    );
+}
 
 BlockingView.propTypes = propTypes;
 BlockingView.defaultProps = defaultProps;

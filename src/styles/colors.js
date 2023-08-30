@@ -6,7 +6,7 @@ export default {
     black: '#000000',
     blue: '#0185ff',
     blueHover: '#B0D9FF',
-    floralwhite: '#fffaf0',
+    ivory: '#fffaf0',
     orange: '#FF7101',
     pink: '#F68DFE',
     green: '#03D47C',
@@ -30,6 +30,7 @@ export default {
     white: '#E7ECE9',
     blueLink: '#5AB0FF',
     blueLinkHover: '#B0D9FF',
+    blueLinkPreview: '#2EAAE2',
     greenDefaultButton: '#184E3D',
     greenDefaultButtonHover: '#2C6755',
     greenDefaultButtonPressed: '#467164',
@@ -40,6 +41,7 @@ export default {
     blue100: '#B0D9FF',
     blue200: '#8DC8FF',
     blue400: '#0185FF',
+    blue500: '#0676DE',
     blue600: '#0164BF',
     blue700: '#003C73',
     blue800: '#002140',
@@ -71,6 +73,8 @@ export default {
     ice400: '#50EEF6',
     ice700: '#28736D',
     ice800: '#134038',
+
+    orange800: '#400000',
 
     // DEPRECATED COLORS. Do not reference these colors. Will be deleted in color switch PR.
     gray1: '#FAFAFA',

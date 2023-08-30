@@ -1,4 +1,5 @@
 const _ = require('underscore');
+const CONST = require('../../../libs/CONST');
 const ActionUtils = require('../../../libs/ActionUtils');
 const GitHubUtils = require('../../../libs/GithubUtils');
 const {promiseDoWhile} = require('../../../libs/promiseWhile');
@@ -13,8 +14,8 @@ function run() {
                 Promise.all([
                     // These are active deploys
                     GitHubUtils.octokit.actions.listWorkflowRuns({
-                        owner: GitHubUtils.GITHUB_OWNER,
-                        repo: GitHubUtils.APP_REPO,
+                        owner: CONST.GITHUB_OWNER,
+                        repo: CONST.APP_REPO,
                         workflow_id: 'platformDeploy.yml',
                         event: 'push',
                         branch: tag,
@@ -24,8 +25,8 @@ function run() {
                     // In this context, we'll refer to unresolved preDeploy workflow runs as staging deploys as well
                     !tag &&
                         GitHubUtils.octokit.actions.listWorkflowRuns({
-                            owner: GitHubUtils.GITHUB_OWNER,
-                            repo: GitHubUtils.APP_REPO,
+                            owner: CONST.GITHUB_OWNER,
+                            repo: CONST.APP_REPO,
                             workflow_id: 'preDeploy.yml',
                         }),
                 ])

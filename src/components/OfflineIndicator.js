@@ -38,7 +38,7 @@ const setStyles = (containerStyles, isSmallScreenWidth) => {
     return isSmallScreenWidth ? styles.offlineIndicatorMobile : styles.offlineIndicator;
 };
 
-const OfflineIndicator = (props) => {
+function OfflineIndicator(props) {
     if (!props.network.isOffline) {
         return null;
     }
@@ -53,7 +53,7 @@ const OfflineIndicator = (props) => {
             <Text style={[styles.ml3, styles.chatItemComposeSecondaryRowSubText]}>{props.translate('common.youAppearToBeOffline')}</Text>
         </View>
     );
-};
+}
 
 OfflineIndicator.propTypes = propTypes;
 OfflineIndicator.defaultProps = defaultProps;

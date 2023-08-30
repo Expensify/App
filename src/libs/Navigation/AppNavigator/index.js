@@ -6,7 +6,7 @@ const propTypes = {
     authenticated: PropTypes.bool.isRequired,
 };
 
-const AppNavigator = (props) => {
+function AppNavigator(props) {
     if (props.authenticated) {
         const AuthScreens = require('./AuthScreens').default;
 
@@ -15,7 +15,7 @@ const AppNavigator = (props) => {
     }
     const PublicScreens = require('./PublicScreens').default;
     return <PublicScreens />;
-};
+}
 
 AppNavigator.propTypes = propTypes;
 AppNavigator.displayName = 'AppNavigator';

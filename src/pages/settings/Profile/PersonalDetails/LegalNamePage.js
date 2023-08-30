@@ -5,18 +5,20 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
-import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
-import ROUTES from '../../../../ROUTES';
 import Form from '../../../../components/Form';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import CONST from '../../../../CONST';
 import * as ValidationUtils from '../../../../libs/ValidationUtils';
 import TextInput from '../../../../components/TextInput';
 import styles from '../../../../styles/styles';
-import Navigation from '../../../../libs/Navigation/Navigation';
 import * as PersonalDetails from '../../../../libs/actions/PersonalDetails';
 import compose from '../../../../libs/compose';
+import Navigation from '../../../../libs/Navigation/Navigation';
+import ROUTES from '../../../../ROUTES';
+import usePrivatePersonalDetails from '../../../../hooks/usePrivatePersonalDetails';
+import FullscreenLoadingIndicator from '../../../../components/FullscreenLoadingIndicator';
 
 const propTypes = {
     /* Onyx Props */
@@ -42,38 +44,40 @@ const updateLegalName = (values) => {
 };
 
 function LegalNamePage(props) {
+    usePrivatePersonalDetails();
     const legalFirstName = lodashGet(props.privatePersonalDetails, 'legalFirstName', '');
     const legalLastName = lodashGet(props.privatePersonalDetails, 'legalLastName', '');
-    const translate = props.translate;
 
-    const validate = useCallback(
-        (values) => {
-            const errors = {};
+    const validate = useCallback((values) => {
+        const errors = {};
 
-            if (!ValidationUtils.isValidLegalName(values.legalFirstName)) {
-                errors.legalFirstName = translate('privatePersonalDetails.error.hasInvalidCharacter');
-            } else if (_.isEmpty(values.legalFirstName)) {
-                errors.legalFirstName = translate('common.error.fieldRequired');
-            }
+        if (!ValidationUtils.isValidLegalName(values.legalFirstName)) {
+            errors.legalFirstName = 'privatePersonalDetails.error.hasInvalidCharacter';
+        } else if (_.isEmpty(values.legalFirstName)) {
+            errors.legalFirstName = 'common.error.fieldRequired';
+        }
 
-            if (!ValidationUtils.isValidLegalName(values.legalLastName)) {
-                errors.legalLastName = translate('privatePersonalDetails.error.hasInvalidCharacter');
-            } else if (_.isEmpty(values.legalLastName)) {
-                errors.legalLastName = translate('common.error.fieldRequired');
-            }
+        if (!ValidationUtils.isValidLegalName(values.legalLastName)) {
+            errors.legalLastName = 'privatePersonalDetails.error.hasInvalidCharacter';
+        } else if (_.isEmpty(values.legalLastName)) {
+            errors.legalLastName = 'common.error.fieldRequired';
+        }
 
-            return errors;
-        },
-        [translate],
-    );
+        return errors;
+    }, []);
+
+    if (lodashGet(props.privatePersonalDetails, 'isLoading', true)) {
+        return <FullscreenLoadingIndicator />;
+    }
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-            <HeaderWithCloseButton
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            shouldEnableMaxHeight
+        >
+            <HeaderWithBackButton
                 title={props.translate('privatePersonalDetails.legalName')}
-                shouldShowBackButton
-                onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS)}
-                onCloseButtonPress={() => Navigation.dismissModal(true)}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PERSONAL_DETAILS)}
             />
             <Form
                 style={[styles.flexGrow1, styles.ph5]}
@@ -88,8 +92,11 @@ function LegalNamePage(props) {
                         inputID="legalFirstName"
                         name="lfname"
                         label={props.translate('privatePersonalDetails.legalFirstName')}
+                        accessibilityLabel={props.translate('privatePersonalDetails.legalFirstName')}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         defaultValue={legalFirstName}
                         maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
+                        spellCheck={false}
                     />
                 </View>
                 <View>
@@ -97,8 +104,11 @@ function LegalNamePage(props) {
                         inputID="legalLastName"
                         name="llname"
                         label={props.translate('privatePersonalDetails.legalLastName')}
+                        accessibilityLabel={props.translate('privatePersonalDetails.legalLastName')}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         defaultValue={legalLastName}
                         maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
+                        spellCheck={false}
                     />
                 </View>
             </Form>

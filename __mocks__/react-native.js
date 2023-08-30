@@ -1,7 +1,6 @@
 // eslint-disable-next-line no-restricted-imports
 import * as ReactNative from 'react-native';
 import _ from 'underscore';
-import CONST from '../src/CONST';
 
 jest.doMock('react-native', () => {
     let url = 'https://new.expensify.com/';
@@ -15,7 +14,12 @@ jest.doMock('react-native', () => {
     // runs against index.native.js source and so anything that is testing a component reliant on withWindowDimensions()
     // would be most commonly assumed to be on a mobile phone vs. a tablet or desktop style view. This behavior can be
     // overridden by explicitly setting the dimensions inside a test via Dimensions.set()
-    let dimensions = CONST.TESTING.SCREEN_SIZE.SMALL;
+    let dimensions = {
+        width: 300,
+        height: 700,
+        scale: 1,
+        fontScale: 1,
+    };
 
     return Object.setPrototypeOf(
         {
@@ -66,6 +70,14 @@ jest.doMock('react-native', () => {
                 set: (newDimensions) => {
                     dimensions = newDimensions;
                 },
+            },
+
+            // `runAfterInteractions` method would normally be triggered after the native animation is completed,
+            // we would have to mock waiting for the animation end and more state changes,
+            // so it seems easier to just run the callback immediately in tests.
+            InteractionManager: {
+                ...ReactNative.InteractionManager,
+                runAfterInteractions: (callback) => callback(),
             },
         },
         ReactNative,

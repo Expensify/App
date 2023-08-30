@@ -3,7 +3,7 @@ import {usePlaidLink} from 'react-plaid-link';
 import {plaidLinkPropTypes, plaidLinkDefaultProps} from './plaidLinkPropTypes';
 import Log from '../../libs/Log';
 
-const PlaidLink = (props) => {
+function PlaidLink(props) {
     const [isPlaidLoaded, setIsPlaidLoaded] = useState(false);
     const onSuccess = props.onSuccess;
     const onError = props.onError;
@@ -23,6 +23,7 @@ const PlaidLink = (props) => {
         },
         onEvent: (event, metadata) => {
             Log.info('[PlaidLink] Event: ', false, {event, metadata});
+            props.onEvent(event, metadata);
         },
         onLoad: () => setIsPlaidLoaded(true),
 
@@ -49,7 +50,7 @@ const PlaidLink = (props) => {
     }, [ready, error, isPlaidLoaded, open, onError]);
 
     return null;
-};
+}
 
 PlaidLink.propTypes = plaidLinkPropTypes;
 PlaidLink.defaultProps = plaidLinkDefaultProps;

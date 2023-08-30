@@ -15,7 +15,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const WorkspaceResetBankAccountModal = (props) => {
+function WorkspaceResetBankAccountModal(props) {
     const achData = lodashGet(props.reimbursementAccount, 'achData') || {};
     const isInOpenState = achData.state === BankAccount.STATE.OPEN;
     const bankAccountID = achData.bankAccountID;
@@ -44,7 +44,7 @@ const WorkspaceResetBankAccountModal = (props) => {
             isVisible
         />
     );
-};
+}
 
 WorkspaceResetBankAccountModal.displayName = 'WorkspaceResetBankAccountModal';
 WorkspaceResetBankAccountModal.propTypes = propTypes;

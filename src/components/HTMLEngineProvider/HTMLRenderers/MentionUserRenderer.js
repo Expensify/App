@@ -4,11 +4,13 @@ import {TNodeChildrenRenderer} from 'react-native-render-html';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import Text from '../../Text';
-import Tooltip from '../../Tooltip';
+import UserDetailsTooltip from '../../UserDetailsTooltip';
 import htmlRendererPropTypes from './htmlRendererPropTypes';
 import withCurrentUserPersonalDetails from '../../withCurrentUserPersonalDetails';
 import personalDetailsPropType from '../../../pages/personalDetailsPropType';
 import * as StyleUtils from '../../../styles/StyleUtils';
+import * as PersonalDetailsUtils from '../../../libs/PersonalDetailsUtils';
+import TextLink from '../../TextLink';
 
 const propTypes = {
     ...htmlRendererPropTypes,
@@ -26,33 +28,39 @@ const propTypes = {
  * */
 const showUserDetails = (email) => Navigation.navigate(ROUTES.getDetailsRoute(email));
 
-const MentionUserRenderer = (props) => {
+function MentionUserRenderer(props) {
     const defaultRendererProps = _.omit(props, ['TDefaultRenderer', 'style']);
 
     // We need to remove the leading @ from data as it is not part of the login
-    const loginWhithoutLeadingAt = props.tnode.data.slice(1);
+    const loginWithoutLeadingAt = props.tnode.data ? props.tnode.data.slice(1) : '';
 
-    const isOurMention = loginWhithoutLeadingAt === props.currentUserPersonalDetails.login;
+    const accountID = _.first(PersonalDetailsUtils.getAccountIDsByLogins([loginWithoutLeadingAt]));
+
+    const isOurMention = loginWithoutLeadingAt === props.currentUserPersonalDetails.login;
 
     return (
         <Text>
-            <Tooltip
-                absolute
-                text={loginWhithoutLeadingAt}
+            <UserDetailsTooltip
+                accountID={accountID}
+                fallbackUserDetails={{
+                    displayName: loginWithoutLeadingAt,
+                }}
             >
-                <Text
+                <TextLink
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...defaultRendererProps}
-                    color={StyleUtils.getMentionTextColor(isOurMention)}
-                    style={StyleUtils.getMentionStyle(isOurMention)}
-                    onPress={() => showUserDetails(loginWhithoutLeadingAt)}
+                    href={ROUTES.getDetailsRoute(loginWithoutLeadingAt)}
+                    style={[_.omit(props.style, 'color'), StyleUtils.getMentionStyle(isOurMention), {color: StyleUtils.getMentionTextColor(isOurMention)}]}
+                    onPress={() => showUserDetails(loginWithoutLeadingAt)}
+                    // Add testID so it is NOT selected as an anchor tag by SelectionScraper
+                    testID="span"
                 >
                     <TNodeChildrenRenderer tnode={props.tnode} />
-                </Text>
-            </Tooltip>
+                </TextLink>
+            </UserDetailsTooltip>
         </Text>
     );
-};
+}
 
 MentionUserRenderer.propTypes = propTypes;
 MentionUserRenderer.displayName = 'MentionUserRenderer';

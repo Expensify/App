@@ -11,7 +11,7 @@ index b63bcfc..bd6419e 100644
      buildPanResponder: () => void;
      getAccDistancePerDirection: (gestureState: PanResponderGestureState) => number;
 diff --git a/node_modules/react-native-modal/dist/modal.js b/node_modules/react-native-modal/dist/modal.js
-index 80f4e75..fe028ab 100644
+index 80f4e75..a88a2ca 100644
 --- a/node_modules/react-native-modal/dist/modal.js
 +++ b/node_modules/react-native-modal/dist/modal.js
 @@ -75,6 +75,13 @@ export class ReactNativeModal extends React.Component {
@@ -44,3 +44,12 @@ index 80f4e75..fe028ab 100644
          if (this.didUpdateDimensionsEmitter) {
              this.didUpdateDimensionsEmitter.remove();
          }
+@@ -525,7 +538,7 @@ export class ReactNativeModal extends React.Component {
+         }
+         return (React.createElement(Modal, Object.assign({ transparent: true, animationType: 'none', visible: this.state.isVisible, onRequestClose: onBackButtonPress }, otherProps),
+             this.makeBackdrop(),
+-            avoidKeyboard ? (React.createElement(KeyboardAvoidingView, { behavior: Platform.OS === 'ios' ? 'padding' : undefined, pointerEvents: "box-none", style: computedStyle.concat([{ margin: 0 }]) }, containerView)) : (containerView)));
++            avoidKeyboard ? (React.createElement(KeyboardAvoidingView, { behavior: 'padding', pointerEvents: "box-none", style: computedStyle.concat([{ margin: 0 }]) }, containerView)) : (containerView)));
+     }
+ }
+ ReactNativeModal.propTypes = {

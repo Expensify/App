@@ -19,7 +19,7 @@ const MENU_LINKS = {
     SETTLEMENT_FREQUENCY: encodeURI('domain_companycards?param={"section":"configureSettings"}'),
 };
 
-const WorkspaceCardVBAWithECardView = (props) => {
+function WorkspaceCardVBAWithECardView(props) {
     const menuItems = [
         {
             title: props.translate('workspace.common.issueAndManageCards'),
@@ -72,7 +72,7 @@ const WorkspaceCardVBAWithECardView = (props) => {
             </View>
         </Section>
     );
-};
+}
 
 WorkspaceCardVBAWithECardView.propTypes = propTypes;
 WorkspaceCardVBAWithECardView.displayName = 'WorkspaceCardVBAWithECardView';

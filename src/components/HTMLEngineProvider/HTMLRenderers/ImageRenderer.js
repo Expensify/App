@@ -1,15 +1,19 @@
 import React from 'react';
+import Navigation from '../../../libs/Navigation/Navigation';
 import htmlRendererPropTypes from './htmlRendererPropTypes';
-import AttachmentModal from '../../AttachmentModal';
 import styles from '../../../styles/styles';
 import ThumbnailImage from '../../ThumbnailImage';
-import PressableWithoutFocus from '../../PressableWithoutFocus';
+import PressableWithoutFocus from '../../Pressable/PressableWithoutFocus';
 import CONST from '../../../CONST';
 import {ShowContextMenuContext, showContextMenuForReport} from '../../ShowContextMenuContext';
 import tryResolveUrlFromApiRoot from '../../../libs/tryResolveUrlFromApiRoot';
 import * as ReportUtils from '../../../libs/ReportUtils';
+import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
+import ROUTES from '../../../ROUTES';
 
-const ImageRenderer = (props) => {
+const propTypes = {...htmlRendererPropTypes, ...withLocalizePropTypes};
+
+function ImageRenderer(props) {
     const htmlAttribs = props.tnode.attributes;
 
     // There are two kinds of images that need to be displayed:
@@ -29,12 +33,11 @@ const ImageRenderer = (props) => {
     //           Concierge responder attachments are uploaded to S3 without any access
     //           control and thus require no authToken to verify access.
     //
-    const isAttachment = Boolean(htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]);
-    const originalFileName = htmlAttribs['data-name'];
+    const isAttachmentOrReceipt = Boolean(htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]);
 
     // Files created/uploaded/hosted by App should resolve from API ROOT. Other URLs aren't modified
     const previewSource = tryResolveUrlFromApiRoot(htmlAttribs.src);
-    const source = tryResolveUrlFromApiRoot(isAttachment ? htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE] : htmlAttribs.src);
+    const source = tryResolveUrlFromApiRoot(isAttachmentOrReceipt ? htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE] : htmlAttribs.src);
 
     const imageWidth = htmlAttribs['data-expensify-width'] ? parseInt(htmlAttribs['data-expensify-width'], 10) : undefined;
     const imageHeight = htmlAttribs['data-expensify-height'] ? parseInt(htmlAttribs['data-expensify-height'], 10) : undefined;
@@ -44,46 +47,49 @@ const ImageRenderer = (props) => {
         <ThumbnailImage
             previewSourceURL={previewSource}
             style={styles.webViewStyles.tagStyles.img}
-            isAuthTokenRequired={isAttachment}
+            isAuthTokenRequired={isAttachmentOrReceipt}
             imageWidth={imageWidth}
             imageHeight={imageHeight}
         />
     ) : (
         <ShowContextMenuContext.Consumer>
             {({onShowContextMenu, anchor, report, action, checkIfContextMenuActive}) => (
-                <AttachmentModal
-                    allowDownload
-                    reportID={report.reportID}
-                    source={source}
-                    isAuthTokenRequired={isAttachment}
-                    originalFileName={originalFileName}
+                <PressableWithoutFocus
+                    style={[styles.noOutline]}
+                    onPress={() => {
+                        const route = ROUTES.getReportAttachmentRoute(report.reportID, source);
+                        Navigation.navigate(route);
+                    }}
+                    onLongPress={(event) =>
+                        onShowContextMenu(() => {
+                            showContextMenuForReport(
+                                // Imitate the web event for native renderers
+                                {nativeEvent: {...(event.nativeEvent || {}), target: {tagName: 'IMG'}}},
+                                anchor,
+                                report.reportID,
+                                action,
+                                checkIfContextMenuActive,
+                                ReportUtils.isArchivedRoom(report),
+                            );
+                        })
+                    }
+                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                    accessibilityLabel={props.translate('accessibilityHints.viewAttachment')}
                 >
-                    {({show}) => (
-                        <PressableWithoutFocus
-                            styles={[styles.noOutline, styles.alignItemsStart]}
-                            onPress={show}
-                            onLongPress={(event) =>
-                                onShowContextMenu(() => {
-                                    showContextMenuForReport(event, anchor, report.reportID, action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report));
-                                })
-                            }
-                        >
-                            <ThumbnailImage
-                                previewSourceURL={previewSource}
-                                style={styles.webViewStyles.tagStyles.img}
-                                isAuthTokenRequired={isAttachment}
-                                imageWidth={imageWidth}
-                                imageHeight={imageHeight}
-                            />
-                        </PressableWithoutFocus>
-                    )}
-                </AttachmentModal>
+                    <ThumbnailImage
+                        previewSourceURL={previewSource}
+                        style={styles.webViewStyles.tagStyles.img}
+                        isAuthTokenRequired={isAttachmentOrReceipt}
+                        imageWidth={imageWidth}
+                        imageHeight={imageHeight}
+                    />
+                </PressableWithoutFocus>
             )}
         </ShowContextMenuContext.Consumer>
     );
-};
+}
 
-ImageRenderer.propTypes = htmlRendererPropTypes;
+ImageRenderer.propTypes = propTypes;
 ImageRenderer.displayName = 'ImageRenderer';
 
-export default ImageRenderer;
+export default withLocalize(ImageRenderer);

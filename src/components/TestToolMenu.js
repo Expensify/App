@@ -36,65 +36,67 @@ const defaultProps = {
     },
 };
 
-const TestToolMenu = (props) => (
-    <>
-        <Text
-            style={[styles.textLabelSupporting, styles.mb4]}
-            numberOfLines={1}
-        >
-            Test Preferences
-        </Text>
+function TestToolMenu(props) {
+    return (
+        <>
+            <Text
+                style={[styles.textLabelSupporting, styles.mb4]}
+                numberOfLines={1}
+            >
+                Test Preferences
+            </Text>
 
-        {/* Option to switch between staging and default api endpoints.
+            {/* Option to switch between staging and default api endpoints.
         This enables QA, internal testers and external devs to take advantage of sandbox environments for 3rd party services like Plaid and Onfido.
         This toggle is not rendered for internal devs as they make environment changes directly to the .env file. */}
-        {!CONFIG.IS_USING_LOCAL_WEB && (
-            <TestToolRow title="Use Staging Server">
+            {!CONFIG.IS_USING_LOCAL_WEB && (
+                <TestToolRow title="Use Staging Server">
+                    <Switch
+                        accessibilityLabel="Use Staging Server"
+                        isOn={lodashGet(props, 'user.shouldUseStagingServer', ApiUtils.isUsingStagingApi())}
+                        onToggle={() => User.setShouldUseStagingServer(!lodashGet(props, 'user.shouldUseStagingServer', ApiUtils.isUsingStagingApi()))}
+                    />
+                </TestToolRow>
+            )}
+
+            {/* When toggled the app will be forced offline. */}
+            <TestToolRow title="Force offline">
                 <Switch
-                    accessibilityLabel="Use Staging Server"
-                    isOn={lodashGet(props, 'user.shouldUseStagingServer', ApiUtils.isUsingStagingApi())}
-                    onToggle={() => User.setShouldUseStagingServer(!lodashGet(props, 'user.shouldUseStagingServer', ApiUtils.isUsingStagingApi()))}
+                    accessibilityLabel="Force offline"
+                    isOn={Boolean(props.network.shouldForceOffline)}
+                    onToggle={() => Network.setShouldForceOffline(!props.network.shouldForceOffline)}
                 />
             </TestToolRow>
-        )}
 
-        {/* When toggled the app will be forced offline. */}
-        <TestToolRow title="Force offline">
-            <Switch
-                accessibilityLabel="Force offline"
-                isOn={Boolean(props.network.shouldForceOffline)}
-                onToggle={() => Network.setShouldForceOffline(!props.network.shouldForceOffline)}
-            />
-        </TestToolRow>
+            {/* When toggled all network requests will fail. */}
+            <TestToolRow title="Simulate failing network requests">
+                <Switch
+                    accessibilityLabel="Simulate failing network requests"
+                    isOn={Boolean(props.network.shouldFailAllRequests)}
+                    onToggle={() => Network.setShouldFailAllRequests(!props.network.shouldFailAllRequests)}
+                />
+            </TestToolRow>
 
-        {/* When toggled all network requests will fail. */}
-        <TestToolRow title="Simulate failing network requests">
-            <Switch
-                accessibilityLabel="Simulate failing network requests"
-                isOn={Boolean(props.network.shouldFailAllRequests)}
-                onToggle={() => Network.setShouldFailAllRequests(!props.network.shouldFailAllRequests)}
-            />
-        </TestToolRow>
+            {/* Instantly invalidates a user's local authToken. Useful for testing flows related to reauthentication. */}
+            <TestToolRow title="Authentication status">
+                <Button
+                    small
+                    text="Invalidate"
+                    onPress={() => Session.invalidateAuthToken()}
+                />
+            </TestToolRow>
 
-        {/* Instantly invalidates a user's local authToken. Useful for testing flows related to reauthentication. */}
-        <TestToolRow title="Authentication status">
-            <Button
-                small
-                text="Invalidate"
-                onPress={() => Session.invalidateAuthToken()}
-            />
-        </TestToolRow>
-
-        {/* Invalidate stored user auto-generated credentials. Useful for manually testing sign out logic. */}
-        <TestToolRow title="Device credentials">
-            <Button
-                small
-                text="Destroy"
-                onPress={() => Session.invalidateCredentials()}
-            />
-        </TestToolRow>
-    </>
-);
+            {/* Invalidate stored user auto-generated credentials. Useful for manually testing sign out logic. */}
+            <TestToolRow title="Device credentials">
+                <Button
+                    small
+                    text="Destroy"
+                    onPress={() => Session.invalidateCredentials()}
+                />
+            </TestToolRow>
+        </>
+    );
+}
 
 TestToolMenu.propTypes = propTypes;
 TestToolMenu.defaultProps = defaultProps;

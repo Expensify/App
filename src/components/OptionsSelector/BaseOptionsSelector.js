@@ -2,18 +2,20 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {View} from 'react-native';
+import {View, InteractionManager} from 'react-native';
 import Button from '../Button';
 import FixedFooter from '../FixedFooter';
 import OptionsList from '../OptionsList';
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+import withNavigationFocus, {withNavigationFocusPropTypes} from '../withNavigationFocus';
 import TextInput from '../TextInput';
 import ArrowKeyFocusManager from '../ArrowKeyFocusManager';
 import KeyboardShortcut from '../../libs/KeyboardShortcut';
 import {propTypes as optionsSelectorPropTypes, defaultProps as optionsSelectorDefaultProps} from './optionsSelectorPropTypes';
 import setSelection from '../../libs/setSelection';
+import compose from '../../libs/compose';
 
 const propTypes = {
     /** Whether we should wait before focusing the TextInput, useful when using transitions on Android */
@@ -22,13 +24,22 @@ const propTypes = {
     /** padding bottom style of safe area */
     safeAreaPaddingBottomStyle: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
+    /** Content container styles for OptionsList */
+    contentContainerStyles: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
+
+    /** List container styles for OptionsList */
+    listContainerStyles: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
+
     ...optionsSelectorPropTypes,
     ...withLocalizePropTypes,
+    ...withNavigationFocusPropTypes,
 };
 
 const defaultProps = {
     shouldDelayFocus: false,
     safeAreaPaddingBottomStyle: {},
+    contentContainerStyles: [],
+    listContainerStyles: [styles.flex1],
     ...optionsSelectorDefaultProps,
 };
 
@@ -39,6 +50,7 @@ class BaseOptionsSelector extends Component {
         this.updateFocusedIndex = this.updateFocusedIndex.bind(this);
         this.scrollToIndex = this.scrollToIndex.bind(this);
         this.selectRow = this.selectRow.bind(this);
+        this.selectFocusedOption = this.selectFocusedOption.bind(this);
         this.relatedTarget = null;
 
         const allOptions = this.flattenSections();
@@ -52,74 +64,42 @@ class BaseOptionsSelector extends Component {
     }
 
     componentDidMount() {
-        const enterConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
-        this.unsubscribeEnter = KeyboardShortcut.subscribe(
-            enterConfig.shortcutKey,
-            () => {
-                const focusedOption = this.state.allOptions[this.state.focusedIndex];
-                if (!focusedOption) {
-                    return;
-                }
-                if (this.props.canSelectMultipleOptions) {
-                    this.selectRow(focusedOption);
-                } else if (!this.state.shouldDisableRowSelection) {
-                    this.setState({shouldDisableRowSelection: true});
-                    let result = this.selectRow(focusedOption);
-                    if (!(result instanceof Promise)) {
-                        result = Promise.resolve();
-                    }
-                    setTimeout(() => result.finally(() => this.setState({shouldDisableRowSelection: false})), 500);
-                }
-            },
-            enterConfig.descriptionKey,
-            enterConfig.modifiers,
-            true,
-            () => !this.state.allOptions[this.state.focusedIndex],
-        );
-
-        const CTRLEnterConfig = CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER;
-        this.unsubscribeCTRLEnter = KeyboardShortcut.subscribe(
-            CTRLEnterConfig.shortcutKey,
-            () => {
-                if (this.props.canSelectMultipleOptions) {
-                    this.props.onConfirmSelection();
-                    return;
-                }
-
-                const focusedOption = this.state.allOptions[this.state.focusedIndex];
-                if (!focusedOption) {
-                    return;
-                }
-
-                this.selectRow(focusedOption);
-            },
-            CTRLEnterConfig.descriptionKey,
-            CTRLEnterConfig.modifiers,
-            true,
-        );
+        this.subscribeToKeyboardShortcut();
 
         this.scrollToIndex(this.props.selectedOptions.length ? 0 : this.state.focusedIndex, false);
-
-        if (!this.props.autoFocus) {
-            return;
-        }
-
-        if (this.props.shouldShowTextInput) {
-            if (this.props.shouldDelayFocus) {
-                this.focusTimeout = setTimeout(() => this.textInput.focus(), CONST.ANIMATED_TRANSITION);
-            } else {
-                this.textInput.focus();
-            }
-        }
     }
 
     componentDidUpdate(prevProps) {
+        if (prevProps.isFocused !== this.props.isFocused) {
+            if (this.props.isFocused) {
+                this.subscribeToKeyboardShortcut();
+            } else {
+                this.unSubscribeFromKeyboardShortcut();
+            }
+        }
+
+        if (this.textInput && this.props.autoFocus && !prevProps.isFocused && this.props.isFocused) {
+            InteractionManager.runAfterInteractions(() => {
+                // If we automatically focus on a text input when mounting a component,
+                // let's automatically focus on it when the component updates as well (eg, when navigating back from a page)
+                this.textInput.focus();
+            });
+        }
+
         if (_.isEqual(this.props.sections, prevProps.sections)) {
             return;
         }
 
         const newOptions = this.flattenSections();
+
+        if (prevProps.preferredLocale !== this.props.preferredLocale) {
+            this.setState({
+                allOptions: newOptions,
+            });
+            return;
+        }
         const newFocusedIndex = this.props.selectedOptions.length;
+
         // eslint-disable-next-line react/no-did-update-set-state
         this.setState(
             {
@@ -147,13 +127,7 @@ class BaseOptionsSelector extends Component {
             clearTimeout(this.focusTimeout);
         }
 
-        if (this.unsubscribeEnter) {
-            this.unsubscribeEnter();
-        }
-
-        if (this.unsubscribeCTRLEnter) {
-            this.unsubscribeCTRLEnter();
-        }
+        this.unSubscribeFromKeyboardShortcut();
     }
 
     /**
@@ -176,6 +150,74 @@ class BaseOptionsSelector extends Component {
         }
 
         return defaultIndex;
+    }
+
+    subscribeToKeyboardShortcut() {
+        const enterConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
+        this.unsubscribeEnter = KeyboardShortcut.subscribe(
+            enterConfig.shortcutKey,
+            this.selectFocusedOption,
+            enterConfig.descriptionKey,
+            enterConfig.modifiers,
+            true,
+            () => !this.state.allOptions[this.state.focusedIndex],
+        );
+
+        const CTRLEnterConfig = CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER;
+        this.unsubscribeCTRLEnter = KeyboardShortcut.subscribe(
+            CTRLEnterConfig.shortcutKey,
+            () => {
+                if (this.props.canSelectMultipleOptions) {
+                    this.props.onConfirmSelection();
+                    return;
+                }
+
+                const focusedOption = this.state.allOptions[this.state.focusedIndex];
+                if (!focusedOption) {
+                    return;
+                }
+
+                this.selectRow(focusedOption);
+            },
+            CTRLEnterConfig.descriptionKey,
+            CTRLEnterConfig.modifiers,
+            true,
+        );
+    }
+
+    unSubscribeFromKeyboardShortcut() {
+        if (this.unsubscribeEnter) {
+            this.unsubscribeEnter();
+        }
+
+        if (this.unsubscribeCTRLEnter) {
+            this.unsubscribeCTRLEnter();
+        }
+    }
+
+    selectFocusedOption() {
+        const focusedOption = this.state.allOptions[this.state.focusedIndex];
+
+        if (!focusedOption || !this.props.isFocused) {
+            return;
+        }
+
+        if (this.props.canSelectMultipleOptions) {
+            this.selectRow(focusedOption);
+        } else if (!this.state.shouldDisableRowSelection) {
+            this.setState({shouldDisableRowSelection: true});
+
+            let result = this.selectRow(focusedOption);
+            if (!(result instanceof Promise)) {
+                result = Promise.resolve();
+            }
+
+            setTimeout(() => {
+                result.finally(() => {
+                    this.setState({shouldDisableRowSelection: false});
+                });
+            }, 500);
+        }
     }
 
     /**
@@ -275,15 +317,20 @@ class BaseOptionsSelector extends Component {
     }
 
     render() {
-        const shouldShowFooter = (this.props.shouldShowConfirmButton || this.props.footerContent) && !(this.props.canSelectMultipleOptions && _.isEmpty(this.props.selectedOptions));
+        const shouldShowFooter =
+            !this.props.isReadOnly && (this.props.shouldShowConfirmButton || this.props.footerContent) && !(this.props.canSelectMultipleOptions && _.isEmpty(this.props.selectedOptions));
         const defaultConfirmButtonText = _.isUndefined(this.props.confirmButtonText) ? this.props.translate('common.confirm') : this.props.confirmButtonText;
         const shouldShowDefaultConfirmButton = !this.props.footerContent && defaultConfirmButtonText;
+        const safeAreaPaddingBottomStyle = shouldShowFooter ? undefined : this.props.safeAreaPaddingBottomStyle;
         const textInput = (
             <TextInput
                 ref={(el) => (this.textInput = el)}
                 value={this.props.value}
                 label={this.props.textInputLabel}
+                accessibilityLabel={this.props.textInputLabel}
+                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                 onChangeText={this.props.onChangeText}
+                onSubmitEditing={this.selectFocusedOption}
                 placeholder={this.props.placeholderText}
                 maxLength={this.props.maxLength}
                 keyboardType={this.props.keyboardType}
@@ -295,13 +342,16 @@ class BaseOptionsSelector extends Component {
                 }}
                 selectTextOnFocus
                 blurOnSubmit={Boolean(this.state.allOptions.length)}
+                spellCheck={false}
+                autoFocus={this.props.autoFocus}
+                shouldDelayFocus={this.props.shouldDelayFocus}
             />
         );
         const optionsList = (
             <OptionsList
                 ref={(el) => (this.list = el)}
                 optionHoveredStyle={this.props.optionHoveredStyle}
-                onSelectRow={this.selectRow}
+                onSelectRow={this.props.onSelectRow ? this.selectRow : undefined}
                 sections={this.props.sections}
                 focusedIndex={this.state.focusedIndex}
                 selectedOptions={this.props.selectedOptions}
@@ -321,8 +371,10 @@ class BaseOptionsSelector extends Component {
                         this.props.onLayout();
                     }
                 }}
-                contentContainerStyles={shouldShowFooter ? undefined : [this.props.safeAreaPaddingBottomStyle]}
+                contentContainerStyles={[safeAreaPaddingBottomStyle, ...this.props.contentContainerStyles]}
+                listContainerStyles={this.props.listContainerStyles}
                 isLoading={!this.props.shouldShowOptions}
+                showScrollIndicator={this.props.showScrollIndicator}
             />
         );
         return (
@@ -331,8 +383,9 @@ class BaseOptionsSelector extends Component {
                 focusedIndex={this.state.focusedIndex}
                 maxIndex={this.state.allOptions.length - 1}
                 onFocusedIndexChanged={this.props.disableArrowKeysActions ? () => {} : this.updateFocusedIndex}
+                shouldResetIndexOnEndReached={false}
             >
-                <View style={[styles.flex1]}>
+                <View style={[styles.flexGrow1, styles.flexShrink1, styles.flexBasisAuto]}>
                     {this.props.shouldTextInputAppearBelowOptions ? (
                         <>
                             <View style={[styles.flexGrow0, styles.flexShrink1, styles.flexBasisAuto, styles.w100, styles.flexRow]}>{optionsList}</View>
@@ -374,4 +427,4 @@ class BaseOptionsSelector extends Component {
 BaseOptionsSelector.defaultProps = defaultProps;
 BaseOptionsSelector.propTypes = propTypes;
 
-export default withLocalize(BaseOptionsSelector);
+export default compose(withLocalize, withNavigationFocus)(BaseOptionsSelector);

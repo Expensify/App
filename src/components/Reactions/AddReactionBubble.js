@@ -1,5 +1,5 @@
-import React, {useRef} from 'react';
-import {Pressable, View} from 'react-native';
+import React, {useRef, useEffect} from 'react';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import Tooltip from '../Tooltip';
 import styles from '../../styles/styles';
@@ -11,6 +11,9 @@ import getButtonState from '../../libs/getButtonState';
 import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
 import variables from '../../styles/variables';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+import * as Session from '../../libs/actions/Session';
+import PressableWithFeedback from '../Pressable/PressableWithFeedback';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** Whether it is for context menu so we can modify its style */
@@ -33,6 +36,13 @@ const propTypes = {
      */
     onSelectEmoji: PropTypes.func.isRequired,
 
+    /**
+     * ReportAction for EmojiPicker.
+     */
+    reportAction: PropTypes.shape({
+        reportActionID: PropTypes.string.isRequired,
+    }),
+
     ...withLocalizePropTypes,
 };
 
@@ -40,10 +50,12 @@ const defaultProps = {
     isContextMenu: false,
     onWillShowPicker: () => {},
     onPressOpenPicker: undefined,
+    reportAction: {},
 };
 
-const AddReactionBubble = (props) => {
+function AddReactionBubble(props) {
     const ref = useRef();
+    useEffect(() => EmojiPickerAction.resetEmojiPopoverAnchor, []);
 
     const onPress = () => {
         const openPicker = (refParam, anchorOrigin, onHide = () => {}) => {
@@ -55,27 +67,33 @@ const AddReactionBubble = (props) => {
                 refParam || ref.current,
                 anchorOrigin,
                 props.onWillShowPicker,
+                props.reportAction.reportActionID,
             );
         };
 
-        if (props.onPressOpenPicker) {
-            props.onPressOpenPicker(openPicker);
+        if (!EmojiPickerAction.emojiPickerRef.current.isEmojiPickerVisible) {
+            if (props.onPressOpenPicker) {
+                props.onPressOpenPicker(openPicker);
+            } else {
+                openPicker();
+            }
         } else {
-            openPicker();
+            EmojiPickerAction.emojiPickerRef.current.hideEmojiPicker();
         }
     };
 
     return (
-        <Tooltip
-            text={props.translate('emojiReactions.addReactionTooltip')}
-            focusable={false}
-        >
-            <Pressable
+        <Tooltip text={props.translate('emojiReactions.addReactionTooltip')}>
+            <PressableWithFeedback
                 ref={ref}
                 style={({hovered, pressed}) => [styles.emojiReactionBubble, styles.userSelectNone, StyleUtils.getEmojiReactionBubbleStyle(hovered || pressed, false, props.isContextMenu)]}
-                onPress={onPress}
+                onPress={Session.checkIfActionIsAllowed(onPress)}
                 // Prevent text input blur when Add reaction is clicked
                 onMouseDown={(e) => e.preventDefault()}
+                accessibilityLabel={props.translate('emojiReactions.addReactionTooltip')}
+                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                // disable dimming
+                pressDimmingValue={1}
             >
                 {({hovered, pressed}) => (
                     <>
@@ -93,10 +111,10 @@ const AddReactionBubble = (props) => {
                         </View>
                     </>
                 )}
-            </Pressable>
+            </PressableWithFeedback>
         </Tooltip>
     );
-};
+}
 
 AddReactionBubble.propTypes = propTypes;
 AddReactionBubble.defaultProps = defaultProps;

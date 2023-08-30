@@ -1,12 +1,15 @@
-import React from 'react';
-import {StatusBar} from 'react-native';
+import React, {useEffect} from 'react';
+import StatusBar from '../../libs/StatusBar';
+import themeColors from '../../styles/themes/default';
 
-export default class CustomStatusBar extends React.Component {
-    componentDidMount() {
+function CustomStatusBar() {
+    useEffect(() => {
         StatusBar.setBarStyle('light-content', true);
-    }
-
-    render() {
-        return <StatusBar />;
-    }
+        StatusBar.setBackgroundColor(themeColors.appBG);
+    }, []);
+    return <StatusBar />;
 }
+
+CustomStatusBar.displayName = 'CustomStatusBar';
+
+export default CustomStatusBar;

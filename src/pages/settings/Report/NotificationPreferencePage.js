@@ -1,16 +1,18 @@
 import React from 'react';
 import _ from 'underscore';
 import ScreenWrapper from '../../../components/ScreenWrapper';
-import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import styles from '../../../styles/styles';
 import OptionsList from '../../../components/OptionsList';
 import Navigation from '../../../libs/Navigation/Navigation';
 import compose from '../../../libs/compose';
 import withReportOrNotFound from '../../home/report/withReportOrNotFound';
+import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
 import reportPropTypes from '../../reportPropTypes';
 import ROUTES from '../../../ROUTES';
 import * as Report from '../../../libs/actions/Report';
+import * as ReportUtils from '../../../libs/ReportUtils';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import themeColors from '../../../styles/themes/default';
 
@@ -22,7 +24,8 @@ const propTypes = {
 };
 const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
 
-const NotificationPreferencePage = (props) => {
+function NotificationPreferencePage(props) {
+    const shouldDisableNotificationPreferences = ReportUtils.shouldDisableSettings(props.report) || ReportUtils.isArchivedRoom(props.report);
     const notificationPreferenceOptions = _.map(props.translate('notificationPreferencesPage.notificationPreferences'), (preference, key) => ({
         value: key,
         text: preference,
@@ -37,28 +40,28 @@ const NotificationPreferencePage = (props) => {
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-            <HeaderWithCloseButton
-                title={props.translate('notificationPreferencesPage.header')}
-                shouldShowBackButton
-                onBackButtonPress={() => Navigation.navigate(ROUTES.getReportSettingsRoute(props.report.reportID))}
-                onCloseButtonPress={() => Navigation.dismissModal(true)}
-            />
-            <OptionsList
-                sections={[{data: notificationPreferenceOptions}]}
-                onSelectRow={(option) => Report.updateNotificationPreferenceAndNavigate(props.report.reportID, props.report.notificationPreference, option.value)}
-                hideSectionHeaders
-                optionHoveredStyle={{
-                    ...styles.hoveredComponentBG,
-                    ...styles.mhn5,
-                    ...styles.ph5,
-                }}
-                shouldHaveOptionSeparator
-                shouldDisableRowInnerPadding
-                contentContainerStyles={[styles.ph5]}
-            />
+            <FullPageNotFoundView shouldShow={shouldDisableNotificationPreferences}>
+                <HeaderWithBackButton
+                    title={props.translate('notificationPreferencesPage.header')}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.getReportSettingsRoute(props.report.reportID))}
+                />
+                <OptionsList
+                    sections={[{data: notificationPreferenceOptions}]}
+                    onSelectRow={(option) => Report.updateNotificationPreferenceAndNavigate(props.report.reportID, props.report.notificationPreference, option.value)}
+                    hideSectionHeaders
+                    optionHoveredStyle={{
+                        ...styles.hoveredComponentBG,
+                        ...styles.mhn5,
+                        ...styles.ph5,
+                    }}
+                    shouldHaveOptionSeparator
+                    shouldDisableRowInnerPadding
+                    contentContainerStyles={[styles.ph5]}
+                />
+            </FullPageNotFoundView>
         </ScreenWrapper>
     );
-};
+}
 
 NotificationPreferencePage.displayName = 'NotificationPreferencePage';
 NotificationPreferencePage.propTypes = propTypes;

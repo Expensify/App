@@ -42,10 +42,14 @@ const propTypes = {
 
     /** Show that we should include ReportRecipientLocalTime view height */
     shouldIncludeReportRecipientLocalTimeHeight: PropTypes.bool.isRequired,
+
+    /** Meaures the parent container's position and dimensions. */
+    measureParentContainer: PropTypes.func,
 };
 
 const defaultProps = {
     highlightedMentionIndex: 0,
+    measureParentContainer: () => {},
 };
 
 /**
@@ -56,36 +60,57 @@ const defaultProps = {
  */
 const keyExtractor = (item) => item.alternateText;
 
-const MentionSuggestions = (props) => {
+function MentionSuggestions(props) {
     /**
      * Render a suggestion menu item component.
      * @param {Object} item
      * @returns {JSX.Element}
      */
     const renderSuggestionMenuItem = (item) => {
-        const displayedText = _.uniq([item.text, item.alternateText]).join(' - ');
-        const styledTextArray = getStyledTextArray(displayedText, props.prefix);
+        const isIcon = item.text === CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT;
+        const styledDisplayName = getStyledTextArray(item.text, props.prefix);
+        const styledHandle = item.text === item.alternateText ? '' : getStyledTextArray(item.alternateText, props.prefix);
 
         return (
             <View style={[styles.autoCompleteSuggestionContainer, styles.ph2]}>
-                <Avatar
-                    source={item.icons[0].source}
-                    size={CONST.AVATAR_SIZE.SMALLER}
-                    name={item.icons[0].name}
-                    type={item.icons[0].type}
-                />
+                <View style={styles.mentionSuggestionsAvatarContainer}>
+                    <Avatar
+                        source={item.icons[0].source}
+                        size={isIcon ? CONST.AVATAR_SIZE.MENTION_ICON : CONST.AVATAR_SIZE.SMALLER}
+                        name={item.icons[0].name}
+                        type={item.icons[0].type}
+                        fill={styles.success}
+                    />
+                </View>
                 <Text
-                    style={styles.mentionSuggestionsText}
+                    style={[styles.mentionSuggestionsText, styles.flexShrink1]}
                     numberOfLines={1}
                 >
-                    {_.map(styledTextArray, ({text, isColored}, i) => (
+                    {_.map(styledDisplayName, ({text, isColored}, i) => (
                         <Text
                             key={`${text}${i}`}
-                            style={StyleUtils.getColoredBackgroundStyle(isColored)}
+                            style={[StyleUtils.getColoredBackgroundStyle(isColored), styles.mentionSuggestionsDisplayName]}
                         >
                             {text}
                         </Text>
                     ))}
+                </Text>
+                <Text
+                    style={[styles.mentionSuggestionsText, styles.flex1]}
+                    numberOfLines={1}
+                >
+                    {_.map(
+                        styledHandle,
+                        ({text, isColored}, i) =>
+                            text !== '' && (
+                                <Text
+                                    key={`${text}${i}`}
+                                    style={[StyleUtils.getColoredBackgroundStyle(isColored), styles.mentionSuggestionsHandle, {...(isColored && {color: styles.text})}]}
+                                >
+                                    {text}
+                                </Text>
+                            ),
+                    )}
                 </Text>
             </View>
         );
@@ -100,9 +125,11 @@ const MentionSuggestions = (props) => {
             onSelect={props.onSelect}
             isSuggestionPickerLarge={props.isMentionPickerLarge}
             shouldIncludeReportRecipientLocalTimeHeight={props.shouldIncludeReportRecipientLocalTimeHeight}
+            accessibilityLabelExtractor={keyExtractor}
+            measureParentContainer={props.measureParentContainer}
         />
     );
-};
+}
 
 MentionSuggestions.propTypes = propTypes;
 MentionSuggestions.defaultProps = defaultProps;

@@ -40,7 +40,7 @@ const defaultProps = {
     user: {},
 };
 
-const WorkspaceBillsFirstSection = (props) => {
+function WorkspaceBillsFirstSection(props) {
     const emailDomain = Str.extractEmailDomain(props.session.email);
     const manageYourBillsUrl = `reports?policyID=${props.policyID}&from=all&type=bill&showStates=Open,Processing,Approved,Reimbursed,Archived&isAdvancedFilterMode=true`;
     return (
@@ -78,7 +78,7 @@ const WorkspaceBillsFirstSection = (props) => {
             </View>
         </Section>
     );
-};
+}
 
 WorkspaceBillsFirstSection.propTypes = propTypes;
 WorkspaceBillsFirstSection.defaultProps = defaultProps;

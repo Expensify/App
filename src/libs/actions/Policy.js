@@ -7,14 +7,12 @@ import {escapeRegExp} from 'lodash';
 import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
-import * as Localize from '../Localize';
-import Navigation, {navigationRef} from '../Navigation/Navigation';
-import ROUTES from '../../ROUTES';
+import * as NumberUtils from '../NumberUtils';
 import * as OptionsListUtils from '../OptionsListUtils';
-import DateUtils from '../DateUtils';
+import * as ErrorUtils from '../ErrorUtils';
 import * as ReportUtils from '../ReportUtils';
+import * as PersonalDetailsUtils from '../PersonalDetailsUtils';
 import Log from '../Log';
-import Permissions from '../Permissions';
 
 const allPolicies = {};
 Onyx.connect({
@@ -52,11 +50,19 @@ Onyx.connect({
 });
 
 let sessionEmail = '';
+let sessionAccountID = 0;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
         sessionEmail = lodashGet(val, 'email', '');
+        sessionAccountID = lodashGet(val, 'accountID', 0);
     },
+});
+
+let allPersonalDetails;
+Onyx.connect({
+    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    callback: (val) => (allPersonalDetails = val),
 });
 
 /**
@@ -96,8 +102,13 @@ function deleteWorkspace(policyID, reports, policyName) {
         })),
 
         // Add closed actions to all chat reports linked to this policy
-        ..._.map(reports, ({reportID, ownerEmail}) => {
-            const optimisticClosedReportAction = ReportUtils.buildOptimisticClosedReportAction(ownerEmail, policyName, CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED);
+        ..._.map(reports, ({reportID, ownerAccountID}) => {
+            // Announce & admin chats have FAKE owners, but workspace chats w/ users do have owners.
+            let reportOwnerEmail = CONST.POLICY.OWNER_EMAIL_FAKE;
+            if (ownerAccountID !== CONST.POLICY.OWNER_ACCOUNT_ID_FAKE) {
+                reportOwnerEmail = lodashGet(allPersonalDetails, [ownerAccountID, 'login'], '');
+            }
+            const optimisticClosedReportAction = ReportUtils.buildOptimisticClosedReportAction(reportOwnerEmail, policyName, CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED);
             const optimisticReportActions = {};
             optimisticReportActions[optimisticClosedReportAction.reportActionID] = optimisticClosedReportAction;
             return {
@@ -144,16 +155,6 @@ function isAdminOfFreePolicy(policies) {
 }
 
 /**
- * Is the user the owner of the given policy?
- *
- * @param {Object} policy
- * @returns {Boolean}
- */
-function isPolicyOwner(policy) {
-    return policy.owner === sessionEmail;
-}
-
-/**
  * Check if the user has any active free policies (aka workspaces)
  *
  * @param {Array} policies
@@ -186,41 +187,41 @@ function hasActiveFreePolicy(policies) {
 /**
  * Remove the passed members from the policy employeeList
  *
- * @param {Array} members
+ * @param {Array} accountIDs
  * @param {String} policyID
  */
-function removeMembers(members, policyID) {
+function removeMembers(accountIDs, policyID) {
     // In case user selects only themselves (admin), their email will be filtered out and the members
-    // array passed will be empty, prevent the function from proceeding in that case as there is noone to remove
-    if (members.length === 0) {
+    // array passed will be empty, prevent the function from proceeding in that case as there is no one to remove
+    if (accountIDs.length === 0) {
         return;
     }
-    const membersListKey = `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`;
+    const membersListKey = `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`;
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: membersListKey,
-            value: _.object(members, Array(members.length).fill({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE})),
+            value: _.object(accountIDs, Array(accountIDs.length).fill({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE})),
         },
     ];
     const successData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: membersListKey,
-            value: _.object(members, Array(members.length).fill(null)),
+            value: _.object(accountIDs, Array(accountIDs.length).fill(null)),
         },
     ];
     const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: membersListKey,
-            value: _.object(members, Array(members.length).fill({errors: {[DateUtils.getMicroseconds()]: Localize.translateLocal('workspace.people.error.genericRemove')}})),
+            value: _.object(accountIDs, Array(accountIDs.length).fill({errors: ErrorUtils.getMicroSecondOnyxError('workspace.people.error.genericRemove')})),
         },
     ];
     API.write(
         'DeleteMembersFromWorkspace',
         {
-            emailList: members.join(','),
+            emailList: _.map(accountIDs, (accountID) => allPersonalDetails[accountID].login).join(','),
             policyID,
         },
         {optimisticData, successData, failureData},
@@ -231,11 +232,10 @@ function removeMembers(members, policyID) {
  * Optimistically create a chat for each member of the workspace, creates both optimistic and success data for onyx.
  *
  * @param {String} policyID
- * @param {Array} members
- * @param {Array} betas
+ * @param {Object} invitedEmailsToAccountIDs
  * @returns {Object} - object with onyxSuccessData, onyxOptimisticData, and optimisticReportIDs (map login to reportID)
  */
-function createPolicyExpenseChats(policyID, members, betas) {
+function createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs) {
     const workspaceMembersChats = {
         onyxSuccessData: [],
         onyxOptimisticData: [],
@@ -243,13 +243,11 @@ function createPolicyExpenseChats(policyID, members, betas) {
         reportCreationData: {},
     };
 
-    // If the user is not in the beta, we don't want to create any chats
-    if (!Permissions.canUsePolicyExpenseChat(betas)) {
-        return workspaceMembersChats;
-    }
+    _.each(invitedEmailsToAccountIDs, (accountID, email) => {
+        const cleanAccountID = Number(accountID);
+        const login = OptionsListUtils.addSMSDomainIfPhoneNumber(email);
 
-    _.each(members, (login) => {
-        const oldChat = ReportUtils.getChatByParticipantsAndPolicy([sessionEmail, login], policyID);
+        const oldChat = ReportUtils.getChatByParticipantsAndPolicy([sessionAccountID, cleanAccountID], policyID);
 
         // If the chat already exists, we don't want to create a new one - just make sure it's not archived
         if (oldChat) {
@@ -266,8 +264,8 @@ function createPolicyExpenseChats(policyID, members, betas) {
             });
             return;
         }
-        const optimisticReport = ReportUtils.buildOptimisticChatReport([sessionEmail, login], undefined, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, policyID, login);
-        const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(optimisticReport.ownerEmail);
+        const optimisticReport = ReportUtils.buildOptimisticChatReport([sessionAccountID, cleanAccountID], undefined, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, policyID, cleanAccountID);
+        const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(login);
 
         workspaceMembersChats.reportCreationData[login] = {
             reportID: optimisticReport.reportID,
@@ -324,17 +322,18 @@ function createPolicyExpenseChats(policyID, members, betas) {
 /**
  * Adds members to the specified workspace/policyID
  *
- * @param {Array<String>} memberLogins
+ * @param {Object} invitedEmailsToAccountIDs
  * @param {String} welcomeNote
  * @param {String} policyID
- * @param {Array<String>} betas
  */
-function addMembersToWorkspace(memberLogins, welcomeNote, policyID, betas) {
-    const membersListKey = `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`;
-    const logins = _.map(memberLogins, (memberLogin) => OptionsListUtils.addSMSDomainIfPhoneNumber(memberLogin));
+function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID) {
+    const membersListKey = `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`;
+    const logins = _.map(_.keys(invitedEmailsToAccountIDs), (memberLogin) => OptionsListUtils.addSMSDomainIfPhoneNumber(memberLogin));
+    const accountIDs = _.values(invitedEmailsToAccountIDs);
+    const newPersonalDetailsOnyxData = PersonalDetailsUtils.getNewPersonalDetailsOnyxData(logins, accountIDs);
 
     // create onyx data for policy expense chats for each new member
-    const membersChats = createPolicyExpenseChats(policyID, logins, betas);
+    const membersChats = createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs);
 
     const optimisticData = [
         {
@@ -342,8 +341,9 @@ function addMembersToWorkspace(memberLogins, welcomeNote, policyID, betas) {
             key: membersListKey,
 
             // Convert to object with each key containing {pendingAction: ‘add’}
-            value: _.object(logins, Array(logins.length).fill({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD})),
+            value: _.object(accountIDs, Array(accountIDs.length).fill({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD})),
         },
+        ...newPersonalDetailsOnyxData.optimisticData,
         ...membersChats.onyxOptimisticData,
     ];
 
@@ -352,10 +352,27 @@ function addMembersToWorkspace(memberLogins, welcomeNote, policyID, betas) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: membersListKey,
 
-            // Convert to object with each key clearing pendingAction. We don’t
-            // need to remove the members since that will be handled by onClose of OfflineWithFeedback.
-            value: _.object(logins, Array(logins.length).fill({pendingAction: null, errors: null})),
+            // Convert to object with each key clearing pendingAction, when it is an existing account.
+            // Remove the object, when it is a newly created account.
+            value: _.reduce(
+                accountIDs,
+                (accountIDsWithClearedPendingAction, accountID) => {
+                    let value = null;
+                    const accountAlreadyExists = !_.isEmpty(allPersonalDetails[accountID]);
+
+                    if (accountAlreadyExists) {
+                        value = {pendingAction: null, errors: null};
+                    }
+
+                    // eslint-disable-next-line no-param-reassign
+                    accountIDsWithClearedPendingAction[accountID] = value;
+
+                    return accountIDsWithClearedPendingAction;
+                },
+                {},
+            ),
         },
+        ...newPersonalDetailsOnyxData.successData,
         ...membersChats.onyxSuccessData,
     ];
 
@@ -367,29 +384,28 @@ function addMembersToWorkspace(memberLogins, welcomeNote, policyID, betas) {
             // Convert to object with each key containing the error. We don’t
             // need to remove the members since that is handled by onClose of OfflineWithFeedback.
             value: _.object(
-                logins,
-                Array(logins.length).fill({
-                    errors: {
-                        [DateUtils.getMicroseconds()]: Localize.translateLocal('workspace.people.error.genericAdd'),
-                    },
+                accountIDs,
+                Array(accountIDs.length).fill({
+                    errors: ErrorUtils.getMicroSecondOnyxError('workspace.people.error.genericAdd'),
                 }),
             ),
         },
+        ...newPersonalDetailsOnyxData.failureData,
         ...membersChats.onyxFailureData,
     ];
 
-    API.write(
-        'AddMembersToWorkspace',
-        {
-            employees: JSON.stringify(_.map(logins, (login) => ({email: login}))),
+    const params = {
+        employees: JSON.stringify(_.map(logins, (login) => ({email: login}))),
 
-            // Escape HTML special chars to enable them to appear in the invite email
-            welcomeNote: _.escape(welcomeNote),
-            policyID,
-            reportCreationData: JSON.stringify(membersChats.reportCreationData),
-        },
-        {optimisticData, successData, failureData},
-    );
+        // Do not escape HTML special chars for welcomeNote as this will be handled in the backend.
+        // See https://github.com/Expensify/App/issues/20081 for more details.
+        welcomeNote,
+        policyID,
+    };
+    if (!_.isEmpty(membersChats.reportCreationData)) {
+        params.reportCreationData = JSON.stringify(membersChats.reportCreationData);
+    }
+    API.write('AddMembersToWorkspace', params, {optimisticData, successData, failureData});
 }
 
 /**
@@ -481,9 +497,7 @@ function deleteWorkspaceAvatar(policyID) {
                     avatar: null,
                 },
                 errorFields: {
-                    avatar: {
-                        [DateUtils.getMicroseconds()]: Localize.translateLocal('avatarWithImagePicker.deleteWorkspaceError'),
-                    },
+                    avatar: ErrorUtils.getMicroSecondOnyxError('avatarWithImagePicker.deleteWorkspaceError'),
                 },
             },
         },
@@ -517,9 +531,12 @@ function clearAvatarErrors(policyID) {
 function updateGeneralSettings(policyID, name, currency) {
     const optimisticData = [
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            // We use SET because it's faster than merge and avoids a race condition when setting the currency and navigating the user to the Bank account page in confirmCurrencyChangeAndHideModal
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
+                ...allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`],
+
                 pendingFields: {
                     generalSettings: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
@@ -553,15 +570,21 @@ function updateGeneralSettings(policyID, name, currency) {
                     generalSettings: null,
                 },
                 errorFields: {
-                    generalSettings: {
-                        [DateUtils.getMicroseconds()]: Localize.translateLocal('workspace.editor.genericFailureMessage'),
-                    },
+                    generalSettings: ErrorUtils.getMicroSecondOnyxError('workspace.editor.genericFailureMessage'),
                 },
             },
         },
     ];
 
-    API.write('UpdateWorkspaceGeneralSettings', {policyID, workspaceName: name, currency}, {optimisticData, successData, failureData});
+    API.write(
+        'UpdateWorkspaceGeneralSettings',
+        {policyID, workspaceName: name, currency},
+        {
+            optimisticData,
+            successData,
+            failureData,
+        },
+    );
 }
 
 /**
@@ -627,7 +650,7 @@ function hideWorkspaceAlertMessage(policyID) {
  * @param {Object} newCustomUnit
  * @param {Number} lastModified
  */
-function updateWorkspaceCustomUnit(policyID, currentCustomUnit, newCustomUnit, lastModified) {
+function updateWorkspaceCustomUnitAndRate(policyID, currentCustomUnit, newCustomUnit, lastModified) {
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -636,6 +659,13 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnit, newCustomUnit, l
                 customUnits: {
                     [newCustomUnit.customUnitID]: {
                         ...newCustomUnit,
+                        rates: {
+                            [newCustomUnit.rates.customUnitRateID]: {
+                                ...newCustomUnit.rates,
+                                errors: null,
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            },
+                        },
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     },
                 },
@@ -652,76 +682,8 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnit, newCustomUnit, l
                     [newCustomUnit.customUnitID]: {
                         pendingAction: null,
                         errors: null,
-                    },
-                },
-            },
-        },
-    ];
-
-    const failureData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                customUnits: {
-                    [currentCustomUnit.customUnitID]: {
-                        customUnitID: currentCustomUnit.customUnitID,
-                        name: currentCustomUnit.name,
-                        attributes: currentCustomUnit.attributes,
-                    },
-                },
-            },
-        },
-    ];
-
-    API.write(
-        'UpdateWorkspaceCustomUnit',
-        {
-            policyID,
-            lastModified,
-            customUnit: JSON.stringify(newCustomUnit),
-        },
-        {optimisticData, successData, failureData},
-    );
-}
-
-/**
- * @param {String} policyID
- * @param {Object} currentCustomUnitRate
- * @param {String} customUnitID
- * @param {Object} newCustomUnitRate
- * @param {Number} lastModified
- */
-function updateCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, newCustomUnitRate, lastModified) {
-    const optimisticData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                customUnits: {
-                    [customUnitID]: {
                         rates: {
-                            [newCustomUnitRate.customUnitRateID]: {
-                                ...newCustomUnitRate,
-                                errors: null,
-                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                            },
-                        },
-                    },
-                },
-            },
-        },
-    ];
-
-    const successData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                customUnits: {
-                    [customUnitID]: {
-                        rates: {
-                            [newCustomUnitRate.customUnitRateID]: {
+                            [newCustomUnit.rates.customUnitRateID]: {
                                 pendingAction: null,
                             },
                         },
@@ -737,13 +699,12 @@ function updateCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, new
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 customUnits: {
-                    [customUnitID]: {
+                    [currentCustomUnit.customUnitID]: {
+                        customUnitID: currentCustomUnit.customUnitID,
                         rates: {
-                            [currentCustomUnitRate.customUnitRateID]: {
-                                ...currentCustomUnitRate,
-                                errors: {
-                                    [DateUtils.getMicroseconds()]: Localize.translateLocal('workspace.reimburse.updateCustomUnitError'),
-                                },
+                            [currentCustomUnit.rates.customUnitRateID]: {
+                                ...currentCustomUnit.rates,
+                                errors: ErrorUtils.getMicroSecondOnyxError('workspace.reimburse.updateCustomUnitError'),
                             },
                         },
                     },
@@ -753,12 +714,12 @@ function updateCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, new
     ];
 
     API.write(
-        'UpdateWorkspaceCustomUnitRate',
+        'UpdateWorkspaceCustomUnitAndRate',
         {
             policyID,
-            customUnitID,
             lastModified,
-            customUnitRate: JSON.stringify(newCustomUnitRate),
+            customUnit: JSON.stringify(newCustomUnit),
+            customUnitRate: JSON.stringify(newCustomUnit.rates),
         },
         {optimisticData, successData, failureData},
     );
@@ -768,11 +729,11 @@ function updateCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, new
  * Removes an error after trying to delete a member
  *
  * @param {String} policyID
- * @param {String} memberEmail
+ * @param {Number} accountID
  */
-function clearDeleteMemberError(policyID, memberEmail) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`, {
-        [memberEmail]: {
+function clearDeleteMemberError(policyID, accountID) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`, {
+        [accountID]: {
             pendingAction: null,
             errors: null,
         },
@@ -783,11 +744,14 @@ function clearDeleteMemberError(policyID, memberEmail) {
  * Removes an error after trying to add a member
  *
  * @param {String} policyID
- * @param {String} memberEmail
+ * @param {Number} accountID
  */
-function clearAddMemberError(policyID, memberEmail) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`, {
-        [memberEmail]: null,
+function clearAddMemberError(policyID, accountID) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`, {
+        [accountID]: null,
+    });
+    Onyx.merge(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
+        [accountID]: null,
     });
 }
 
@@ -855,23 +819,60 @@ function generateDefaultWorkspaceName(email = '') {
  * @returns {String}
  */
 function generatePolicyID() {
-    return _.times(16, () => Math.floor(Math.random() * 16).toString(16))
-        .join('')
-        .toUpperCase();
+    return NumberUtils.generateHexadecimalValue(16);
+}
+
+/**
+ * Returns a client generated 13 character hexadecimal value for a custom unit ID
+ * @returns {String}
+ */
+function generateCustomUnitID() {
+    return NumberUtils.generateHexadecimalValue(13);
+}
+
+/**
+ * @returns {Object}
+ */
+function buildOptimisticCustomUnits() {
+    const customUnitID = generateCustomUnitID();
+    const customUnitRateID = generateCustomUnitID();
+    const customUnits = {
+        [customUnitID]: {
+            customUnitID,
+            name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+            attributes: {
+                unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+            },
+            rates: {
+                [customUnitRateID]: {
+                    customUnitRateID,
+                    name: CONST.CUSTOM_UNITS.DEFAULT_RATE,
+                    rate: CONST.CUSTOM_UNITS.MILEAGE_IRS_RATE * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET,
+                },
+            },
+        },
+    };
+
+    return {
+        customUnits,
+        customUnitID,
+        customUnitRateID,
+    };
 }
 
 /**
  * Optimistically creates a new workspace and default workspace chats
  *
- * @param {String} [ownerEmail] Optional, the email of the account to make the owner of the policy
+ * @param {String} [policyOwnerEmail] Optional, the email of the account to make the owner of the policy
  * @param {Boolean} [makeMeAdmin] Optional, leave the calling account as an admin on the policy
  * @param {String} [policyName] Optional, custom policy name we will use for created workspace
- * @param {Boolean} [transitionFromOldDot] Optional, if the user is transitioning from old dot
- * @returns {Promise}
+ * @param {String} [policyID] Optional, custom policy id we will use for created workspace
+ * @returns {String}
  */
-function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '', transitionFromOldDot = false) {
-    const policyID = generatePolicyID();
-    const workspaceName = policyName || generateDefaultWorkspaceName(ownerEmail);
+function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName = '', policyID = generatePolicyID()) {
+    const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
+
+    const {customUnits, customUnitID, customUnitRateID} = buildOptimisticCustomUnits();
 
     const {
         announceChatReportID,
@@ -895,13 +896,15 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '', 
             announceChatReportID,
             adminsChatReportID,
             expenseChatReportID,
-            ownerEmail,
+            ownerEmail: policyOwnerEmail,
             makeMeAdmin,
             policyName: workspaceName,
             type: CONST.POLICY.TYPE.FREE,
             announceCreatedReportActionID,
             adminsCreatedReportActionID,
             expenseCreatedReportActionID,
+            customUnitID,
+            customUnitRateID,
         },
         {
             optimisticData: [
@@ -914,15 +917,17 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '', 
                         name: workspaceName,
                         role: CONST.POLICY.ROLE.ADMIN,
                         owner: sessionEmail,
-                        outputCurrency: 'USD',
+                        isPolicyExpenseChatEnabled: true,
+                        outputCurrency: lodashGet(allPersonalDetails, [sessionAccountID, 'localCurrencyCode'], CONST.CURRENCY.USD),
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                        customUnits,
                     },
                 },
                 {
                     onyxMethod: Onyx.METHOD.SET,
-                    key: `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`,
+                    key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`,
                     value: {
-                        [sessionEmail]: {
+                        [sessionAccountID]: {
                             role: CONST.POLICY.ROLE.ADMIN,
                             errors: {},
                         },
@@ -1041,7 +1046,7 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '', 
             failureData: [
                 {
                     onyxMethod: Onyx.METHOD.SET,
-                    key: `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`,
+                    key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`,
                     value: null,
                 },
                 {
@@ -1077,18 +1082,7 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '', 
             ],
         },
     );
-
-    return Navigation.isNavigationReady().then(() => {
-        if (transitionFromOldDot) {
-            Navigation.dismissModal(); // Dismiss /transition route for OldDot to NewDot transitions
-        }
-
-        // Get the reportID associated with the newly created #admins room and route the user to that chat
-        const routeKey = lodashGet(navigationRef.getState(), 'routes[0].state.routes[0].key');
-        Navigation.setParams({reportID: adminsChatReportID}, routeKey);
-
-        Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID));
-    });
+    return adminsChatReportID;
 }
 
 /**
@@ -1148,8 +1142,27 @@ function openWorkspaceInvitePage(policyID, clientMemberEmails) {
     });
 }
 
-function setWorkspaceInviteMembersDraft(policyID, memberEmails) {
-    Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`, memberEmails);
+/**
+ * @param {String} policyID
+ */
+function openDraftWorkspaceRequest(policyID) {
+    API.read('OpenDraftWorkspaceRequest', {policyID});
+}
+
+/**
+ * @param {String} policyID
+ * @param {Object} invitedEmailsToAccountIDs
+ */
+function setWorkspaceInviteMembersDraft(policyID, invitedEmailsToAccountIDs) {
+    Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`, invitedEmailsToAccountIDs);
+}
+
+/**
+ * @param {String} policyID
+ */
+function clearErrors(policyID) {
+    setWorkspaceErrors(policyID, {});
+    hideWorkspaceAlertMessage(policyID);
 }
 
 export {
@@ -1161,8 +1174,7 @@ export {
     clearCustomUnitErrors,
     hideWorkspaceAlertMessage,
     deleteWorkspace,
-    updateWorkspaceCustomUnit,
-    updateCustomUnitRate,
+    updateWorkspaceCustomUnitAndRate,
     updateLastAccessedWorkspace,
     clearDeleteMemberError,
     clearAddMemberError,
@@ -1180,5 +1192,6 @@ export {
     openWorkspaceInvitePage,
     removeWorkspace,
     setWorkspaceInviteMembersDraft,
-    isPolicyOwner,
+    clearErrors,
+    openDraftWorkspaceRequest,
 };

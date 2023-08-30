@@ -15,19 +15,21 @@ const propTypes = {
  * @param {Object} props
  * @returns {React.Component}
  */
-const SafeAreaConsumer = (props) => (
-    <SafeAreaInsetsContext.Consumer>
-        {(insets) => {
-            const {paddingTop, paddingBottom} = StyleUtils.getSafeAreaPadding(insets);
-            return props.children({
-                paddingTop,
-                paddingBottom,
-                insets,
-                safeAreaPaddingBottomStyle: {paddingBottom},
-            });
-        }}
-    </SafeAreaInsetsContext.Consumer>
-);
+function SafeAreaConsumer(props) {
+    return (
+        <SafeAreaInsetsContext.Consumer>
+            {(insets) => {
+                const {paddingTop, paddingBottom} = StyleUtils.getSafeAreaPadding(insets);
+                return props.children({
+                    paddingTop,
+                    paddingBottom,
+                    insets,
+                    safeAreaPaddingBottomStyle: {paddingBottom},
+                });
+            }}
+        </SafeAreaInsetsContext.Consumer>
+    );
+}
 
 SafeAreaConsumer.displayName = 'SafeAreaConsumer';
 SafeAreaConsumer.propTypes = propTypes;

@@ -4,6 +4,8 @@
  * @returns {null}
  * @constructor
  */
-const KeyboardSpacer = () => null;
+function KeyboardSpacer() {
+    return null;
+}
 
 export default KeyboardSpacer;

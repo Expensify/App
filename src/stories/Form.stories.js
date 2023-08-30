@@ -11,6 +11,7 @@ import styles from '../styles/styles';
 import CheckboxWithLabel from '../components/CheckboxWithLabel';
 import Text from '../components/Text';
 import NetworkConnection from '../libs/NetworkConnection';
+import CONST from '../CONST';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
@@ -30,7 +31,7 @@ const story = {
     },
 };
 
-const Template = (args) => {
+function Template(args) {
     // Form consumes data from Onyx, so we initialize Onyx with the necessary data here
     NetworkConnection.setOfflineStatus(false);
     FormActions.setIsLoading(args.formID, args.formState.isLoading);
@@ -42,13 +43,17 @@ const Template = (args) => {
         <Form {...args}>
             <View>
                 <TextInput
+                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    accessibilityLabel="Routing number"
                     label="Routing number"
                     inputID="routingNumber"
                     shouldSaveDraft
                 />
             </View>
             <TextInput
+                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                 label="Account number"
+                accessibilityLabel="Account number"
                 inputID="accountNumber"
                 containerStyles={[styles.mt4]}
             />
@@ -117,14 +122,14 @@ const Template = (args) => {
             />
         </Form>
     );
-};
+}
 
 /**
  * Story to exhibit the native event handlers for TextInput in the Form Component
  * @param {Object} args
  * @returns {JSX}
  */
-const WithNativeEventHandler = (args) => {
+function WithNativeEventHandler(args) {
     const [log, setLog] = useState('');
 
     // Form consumes data from Onyx, so we initialize Onyx with the necessary data here
@@ -137,6 +142,8 @@ const WithNativeEventHandler = (args) => {
         // eslint-disable-next-line react/jsx-props-no-spreading
         <Form {...args}>
             <TextInput
+                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                accessibilityLabel="Routing number"
                 label="Routing number"
                 inputID="routingNumber"
                 onChangeText={setLog}
@@ -145,7 +152,7 @@ const WithNativeEventHandler = (args) => {
             <Text>{`Entered routing number: ${log}`}</Text>
         </Form>
     );
-};
+}
 
 // Arguments can be passed to the component by binding
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args

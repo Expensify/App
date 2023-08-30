@@ -1,6 +1,6 @@
 import _ from 'underscore';
-import React, {Component} from 'react';
-import {View, Pressable, Dimensions, Linking} from 'react-native';
+import React, {useState, useRef, useEffect, useCallback, useContext} from 'react';
+import {View, Dimensions} from 'react-native';
 import PropTypes from 'prop-types';
 import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
@@ -17,6 +17,9 @@ import compose from '../../libs/compose';
 import Tooltip from '../Tooltip';
 import {propTypes as videoChatButtonAndMenuPropTypes, defaultProps} from './videoChatButtonAndMenuPropTypes';
 import * as ActionSheetAwareScrollView from '../ActionSheetAwareScrollView';
+import * as Session from '../../libs/actions/Session';
+import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
+import * as Link from '../../libs/actions/Link';
 
 const propTypes = {
     /** Link to open when user wants to create a new google meet meeting */
@@ -27,148 +30,140 @@ const propTypes = {
     ...windowDimensionsPropTypes,
 };
 
-class BaseVideoChatButtonAndMenu extends Component {
-    constructor(props) {
-        super(props);
+function BaseVideoChatButtonAndMenu(props) {
+    const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
 
-        this.dimensionsEventListener = null;
+    const [isVideoChatMenuActive, setIsVideoChatMenuActive] = useState(false);
+    const [videoChatIconPosition, setVideoChatIconPosition] = useState({x: 0, y: 0});
+    const videoChatIconWrapperRef = useRef(null);
+    const videoChatButtonRef = useRef(null);
 
-        this.measureVideoChatIconPosition = this.measureVideoChatIconPosition.bind(this);
-        this.onPopoverLayout = this.onPopoverLayout.bind(this);
-        this.videoChatIconWrapper = null;
-        this.menuItemData = [
-            {
-                icon: ZoomIcon,
-                text: props.translate('videoChatButtonAndMenu.zoom'),
-                onPress: () => {
-                    this.setMenuVisibility(false);
-                    Linking.openURL(CONST.NEW_ZOOM_MEETING_URL);
-                },
+    const menuItemData = [
+        {
+            icon: ZoomIcon,
+            text: props.translate('videoChatButtonAndMenu.zoom'),
+            onPress: () => {
+                setIsVideoChatMenuActive(false);
+                Link.openExternalLink(CONST.NEW_ZOOM_MEETING_URL);
             },
-            {
-                icon: GoogleMeetIcon,
-                text: props.translate('videoChatButtonAndMenu.googleMeet'),
-                onPress: () => {
-                    this.setMenuVisibility(false);
-                    Linking.openURL(this.props.googleMeetURL);
-                },
+        },
+        {
+            icon: GoogleMeetIcon,
+            text: props.translate('videoChatButtonAndMenu.googleMeet'),
+            onPress: () => {
+                setIsVideoChatMenuActive(false);
+                Link.openExternalLink(props.googleMeetURL);
             },
-        ];
-
-        this.state = {
-            isVideoChatMenuActive: false,
-            videoChatIconPosition: {x: 0, y: 0},
-        };
-    }
-
-    componentDidMount() {
-        this.dimensionsEventListener = Dimensions.addEventListener('change', this.measureVideoChatIconPosition);
-    }
-
-    componentWillUnmount() {
-        if (!this.dimensionsEventListener) {
-            return;
-        }
-        this.dimensionsEventListener.remove();
-    }
-
-    onPopoverLayout(event) {
-        const {height} = event.nativeEvent.layout;
-        this.context.transitionActionSheetState({
-            type: ActionSheetAwareScrollView.Actions.MEASURE_CALL_POPOVER,
-            payload: {
-                popoverHeight: height,
-            },
-        });
-    }
+        },
+    ];
 
     /**
-     * Set the state variable isVideoChatMenuActive
-     * @param {Boolean} isVideoChatMenuActive
+     * This gets called onLayout to find the coordinates of the wrapper for the video chat button.
      */
-    setMenuVisibility(isVideoChatMenuActive) {
-        this.context.transitionActionSheetState({
+    const measureVideoChatIconPosition = useCallback(() => {
+        if (!videoChatIconWrapperRef.current) {
+            return;
+        }
+
+        videoChatIconWrapperRef.current.measureInWindow((x, y) => {
+            setVideoChatIconPosition({x, y});
+        });
+    }, []);
+
+    const onPopoverLayout = useCallback(
+        (event) => {
+            const {height} = event.nativeEvent.layout;
+            actionSheetAwareScrollViewContext.transitionActionSheetState({
+                type: ActionSheetAwareScrollView.Actions.MEASURE_CALL_POPOVER,
+                payload: {
+                    popoverHeight: height,
+                },
+            });
+        },
+        [actionSheetAwareScrollViewContext],
+    );
+
+    useEffect(() => {
+        actionSheetAwareScrollViewContext.transitionActionSheetState({
             type: isVideoChatMenuActive ? ActionSheetAwareScrollView.Actions.OPEN_CALL_POPOVER : ActionSheetAwareScrollView.Actions.CLOSE_CALL_POPOVER,
         });
+    }, [actionSheetAwareScrollViewContext, isVideoChatMenuActive]);
 
-        this.setState({isVideoChatMenuActive});
-    }
+    useEffect(() => {
+        const dimensionsEventListener = Dimensions.addEventListener('change', measureVideoChatIconPosition);
 
-    /**
-     * This gets called onLayout to find the cooridnates of the wrapper for the video chat button.
-     */
-    measureVideoChatIconPosition() {
-        if (!this.videoChatIconWrapper) {
-            return;
-        }
+        return () => {
+            if (!dimensionsEventListener) {
+                return;
+            }
 
-        this.videoChatIconWrapper.measureInWindow((x, y) =>
-            this.setState({
-                videoChatIconPosition: {x, y},
-            }),
-        );
-    }
+            dimensionsEventListener.remove();
+        };
+    }, [measureVideoChatIconPosition]);
 
-    render() {
-        return (
-            <>
-                <View
-                    ref={(el) => (this.videoChatIconWrapper = el)}
-                    onLayout={this.measureVideoChatIconPosition}
-                >
-                    <Tooltip text={this.props.translate('videoChatButtonAndMenu.tooltip')}>
-                        <Pressable
-                            ref={(el) => (this.videoChatButton = el)}
-                            onPress={() => {
-                                // Drop focus to avoid blue focus ring.
-                                this.videoChatButton.blur();
+    return (
+        <>
+            <View
+                ref={videoChatIconWrapperRef}
+                onLayout={measureVideoChatIconPosition}
+            >
+                <Tooltip text={props.translate('videoChatButtonAndMenu.tooltip')}>
+                    <PressableWithoutFeedback
+                        ref={videoChatButtonRef}
+                        onPress={Session.checkIfActionIsAllowed(() => {
+                            // Drop focus to avoid blue focus ring.
+                            videoChatButtonRef.current.blur();
 
-                                // If this is the Concierge chat, we'll open the modal for requesting a setup call instead
-                                if (this.props.isConcierge && this.props.guideCalendarLink) {
-                                    Linking.openURL(this.props.guideCalendarLink);
-                                    return;
-                                }
-                                this.setMenuVisibility(true);
-                            }}
-                            style={[styles.touchableButtonImage]}
-                        >
-                            <Icon
-                                src={Expensicons.Phone}
-                                fill={this.state.isVideoChatMenuActive ? themeColors.heading : themeColors.icon}
-                            />
-                        </Pressable>
-                    </Tooltip>
-                </View>
-                <Popover
-                    onClose={() => this.setMenuVisibility(false)}
-                    isVisible={this.state.isVideoChatMenuActive}
-                    anchorPosition={{
-                        left: this.state.videoChatIconPosition.x - 150,
-                        top: this.state.videoChatIconPosition.y + 40,
-                    }}
-                >
-                    <View
-                        onLayout={this.onPopoverLayout}
-                        style={this.props.isSmallScreenWidth ? {} : styles.pv3}
+                            // If this is the Concierge chat, we'll open the modal for requesting a setup call instead
+                            if (props.isConcierge && props.guideCalendarLink) {
+                                Link.openExternalLink(props.guideCalendarLink);
+                                return;
+                            }
+                            setIsVideoChatMenuActive((previousVal) => !previousVal);
+                        })}
+                        style={styles.touchableButtonImage}
+                        accessibilityLabel={props.translate('videoChatButtonAndMenu.tooltip')}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                     >
-                        {_.map(this.menuItemData, ({icon, text, onPress}) => (
-                            <MenuItem
-                                wrapperStyle={styles.mr3}
-                                key={text}
-                                icon={icon}
-                                title={text}
-                                onPress={onPress}
-                            />
-                        ))}
-                    </View>
-                </Popover>
-            </>
-        );
-    }
+                        <Icon
+                            src={Expensicons.Phone}
+                            fill={isVideoChatMenuActive ? themeColors.heading : themeColors.icon}
+                        />
+                    </PressableWithoutFeedback>
+                </Tooltip>
+            </View>
+
+            <Popover
+                onClose={() => setIsVideoChatMenuActive(false)}
+                isVisible={isVideoChatMenuActive}
+                anchorPosition={{
+                    left: videoChatIconPosition.x - 150,
+                    top: videoChatIconPosition.y + 40,
+                }}
+                withoutOverlay
+                anchorRef={videoChatButtonRef}
+            >
+                <View
+                    onLayout={onPopoverLayout}
+                    style={props.isSmallScreenWidth ? {} : styles.pv3}
+                >
+                    {_.map(menuItemData, ({icon, text, onPress}) => (
+                        <MenuItem
+                            wrapperStyle={styles.mr3}
+                            key={text}
+                            icon={icon}
+                            title={text}
+                            onPress={onPress}
+                        />
+                    ))}
+                </View>
+            </Popover>
+        </>
+    );
 }
 
 BaseVideoChatButtonAndMenu.propTypes = propTypes;
 BaseVideoChatButtonAndMenu.defaultProps = defaultProps;
-BaseVideoChatButtonAndMenu.contextType = ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext;
+BaseVideoChatButtonAndMenu.displayName = 'BaseVideoChatButtonAndMenu';
 
 export default compose(withWindowDimensions, withLocalize)(BaseVideoChatButtonAndMenu);

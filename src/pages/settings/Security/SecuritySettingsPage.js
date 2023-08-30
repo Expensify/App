@@ -3,7 +3,7 @@ import React from 'react';
 import {View, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import styles from '../../../styles/styles';
@@ -13,7 +13,6 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import MenuItem from '../../../components/MenuItem';
 import compose from '../../../libs/compose';
 import ONYXKEYS from '../../../ONYXKEYS';
-import * as Session from '../../../libs/actions/Session';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -36,21 +35,7 @@ function SecuritySettingsPage(props) {
         {
             translationKey: 'twoFactorAuth.headerTitle',
             icon: Expensicons.Shield,
-            action: () => {
-                if (props.account.requiresTwoFactorAuth) {
-                    Navigation.navigate(ROUTES.SETTINGS_2FA_IS_ENABLED);
-                } else {
-                    Session.toggleTwoFactorAuth(true);
-                    Navigation.navigate(ROUTES.SETTINGS_2FA_CODES);
-                }
-            },
-        },
-        {
-            translationKey: 'passwordPage.changePassword',
-            icon: Expensicons.Key,
-            action: () => {
-                Navigation.navigate(ROUTES.SETTINGS_PASSWORD);
-            },
+            action: () => Navigation.navigate(ROUTES.SETTINGS_2FA),
         },
         {
             translationKey: 'closeAccountPage.closeAccount',
@@ -63,11 +48,9 @@ function SecuritySettingsPage(props) {
 
     return (
         <ScreenWrapper>
-            <HeaderWithCloseButton
+            <HeaderWithBackButton
                 title={props.translate('initialSettingsPage.security')}
-                shouldShowBackButton
-                onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
-                onCloseButtonPress={() => Navigation.dismissModal(true)}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
             />
             <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexColumn, styles.justifyContentBetween]}>
                 <View style={[styles.flex1]}>

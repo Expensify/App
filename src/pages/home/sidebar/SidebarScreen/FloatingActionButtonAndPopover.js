@@ -1,15 +1,18 @@
-import React from 'react';
-import _ from 'underscore';
+import React, {useState, useEffect, useRef, useCallback, useImperativeHandle, forwardRef} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import {View} from 'react-native';
 import styles from '../../../../styles/styles';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
+import * as Browser from '../../../../libs/Browser';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../ROUTES';
+import NAVIGATORS from '../../../../NAVIGATORS';
+import SCREENS from '../../../../SCREENS';
 import Permissions from '../../../../libs/Permissions';
 import * as Policy from '../../../../libs/actions/Policy';
+import * as PolicyUtils from '../../../../libs/PolicyUtils';
 import PopoverMenu from '../../../../components/PopoverMenu';
 import CONST from '../../../../CONST';
 import FloatingActionButton from '../../../../components/FloatingActionButton';
@@ -20,8 +23,11 @@ import ONYXKEYS from '../../../../ONYXKEYS';
 import withNavigation from '../../../../components/withNavigation';
 import * as Welcome from '../../../../libs/actions/Welcome';
 import withNavigationFocus from '../../../../components/withNavigationFocus';
-import withDrawerState from '../../../../components/withDrawerState';
-import * as TaskUtils from '../../../../libs/actions/Task';
+import * as Task from '../../../../libs/actions/Task';
+import * as Session from '../../../../libs/actions/Session';
+import * as IOU from '../../../../libs/actions/IOU';
+import usePrevious from '../../../../hooks/usePrevious';
+import * as App from '../../../../libs/actions/App';
 
 /**
  * @param {Object} [policy]
@@ -31,9 +37,13 @@ const policySelector = (policy) =>
     policy && {
         type: policy.type,
         role: policy.role,
+        isPolicyExpenseChatEnabled: policy.isPolicyExpenseChatEnabled,
+        pendingAction: policy.pendingAction,
     };
 
 const propTypes = {
+    ...withLocalizePropTypes,
+
     /* Callback function when the menu is shown */
     onShowCreateMenu: PropTypes.func,
 
@@ -52,7 +62,11 @@ const propTypes = {
     /** Indicated whether the report data is loading */
     isLoading: PropTypes.bool,
 
-    ...withLocalizePropTypes,
+    /** For first time users, whether the download app banner should show */
+    shouldShowDownloadAppBanner: PropTypes.bool,
+
+    /** Forwarded ref to FloatingActionButtonAndPopover */
+    innerRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
 };
 const defaultProps = {
     onHideCreateMenu: () => {},
@@ -60,37 +74,22 @@ const defaultProps = {
     allPolicies: {},
     betas: [],
     isLoading: false,
+    innerRef: null,
+    shouldShowDownloadAppBanner: true,
 };
 
 /**
  * Responsible for rendering the {@link PopoverMenu}, and the accompanying
  * FAB that can open or close the menu.
+ * @param {Object} props
+ * @returns {JSX.Element}
  */
-class FloatingActionButtonAndPopover extends React.Component {
-    constructor(props) {
-        super(props);
+function FloatingActionButtonAndPopover(props) {
+    const [isCreateMenuActive, setIsCreateMenuActive] = useState(false);
+    const isAnonymousUser = Session.isAnonymousUser();
+    const anchorRef = useRef(null);
 
-        this.showCreateMenu = this.showCreateMenu.bind(this);
-        this.hideCreateMenu = this.hideCreateMenu.bind(this);
-
-        this.state = {
-            isCreateMenuActive: false,
-        };
-    }
-
-    componentDidMount() {
-        const routes = lodashGet(this.props.navigation.getState(), 'routes', []);
-        Welcome.show({routes, showCreateMenu: this.showCreateMenu});
-    }
-
-    componentDidUpdate(prevProps) {
-        if (!this.didScreenBecomeInactive(prevProps)) {
-            return;
-        }
-
-        // Hide menu manually when other pages are opened using shortcut key
-        this.hideCreateMenu();
-    }
+    const prevIsFocused = usePrevious(props.isFocused);
 
     /**
      * Check if LHN status changed from active to inactive.
@@ -99,170 +98,192 @@ class FloatingActionButtonAndPopover extends React.Component {
      * @param {Object} prevProps
      * @return {Boolean}
      */
-    didScreenBecomeInactive(prevProps) {
-        // When the Drawer gets closed and ReportScreen is shown
-        if (!this.props.isDrawerOpen && prevProps.isDrawerOpen) {
-            return true;
-        }
-
-        // When any other page is opened over LHN
-        if (!this.props.isFocused && prevProps.isFocused) {
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * Check if LHN is inactive.
-     * Used to prevent FAB menu showing after opening any other pages.
-     *
-     * @return {Boolean}
-     */
-    isScreenInactive() {
-        // When drawer is closed and Report page is open
-        if (this.props.isSmallScreenWidth && !this.props.isDrawerOpen) {
-            return true;
-        }
-
-        // When any other page is open
-        if (!this.props.isFocused) {
-            return true;
-        }
-
-        return false;
-    }
+    const didScreenBecomeInactive = useCallback(
+        () =>
+            // When any other page is opened over LHN
+            !props.isFocused && prevIsFocused,
+        [props.isFocused, prevIsFocused],
+    );
 
     /**
      * Method called when we click the floating action button
      */
-    showCreateMenu() {
-        if (this.isScreenInactive()) {
-            // Prevent showing menu when click FAB icon quickly after opening other pages
-            return;
-        }
-        this.setState({
-            isCreateMenuActive: true,
-        });
-        this.props.onShowCreateMenu();
-    }
+    const showCreateMenu = useCallback(
+        () => {
+            if (!props.isFocused && props.isSmallScreenWidth) {
+                return;
+            }
+            setIsCreateMenuActive(true);
+            props.onShowCreateMenu();
+        },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [props.isFocused, props.isSmallScreenWidth],
+    );
 
     /**
      * Method called either when:
      * - Pressing the floating action button to open the CreateMenu modal
      * - Selecting an item on CreateMenu or closing it by clicking outside of the modal component
      */
-    hideCreateMenu() {
-        if (!this.state.isCreateMenuActive) {
+    const hideCreateMenu = useCallback(
+        () => {
+            if (!isCreateMenuActive) {
+                return;
+            }
+            props.onHideCreateMenu();
+            setIsCreateMenuActive(false);
+        },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [isCreateMenuActive],
+    );
+
+    /**
+     * Checks if user is anonymous. If true, shows the sign in modal, else,
+     * executes the callback.
+     *
+     * @param {Function} callback
+     */
+    const interceptAnonymousUser = (callback) => {
+        if (isAnonymousUser) {
+            Session.signOutAndRedirectToSignIn();
+        } else {
+            callback();
+        }
+    };
+
+    useEffect(() => {
+        const navigationState = props.navigation.getState();
+        const routes = lodashGet(navigationState, 'routes', []);
+        const currentRoute = routes[navigationState.index];
+        if (currentRoute && ![NAVIGATORS.CENTRAL_PANE_NAVIGATOR, SCREENS.HOME].includes(currentRoute.name)) {
             return;
         }
-        this.props.onHideCreateMenu();
-        this.setState({
-            isCreateMenuActive: false,
-        });
-    }
+        // Avoid rendering the create menu for first-time users until they have dismissed the download app banner (mWeb only).
+        if (props.shouldShowDownloadAppBanner || Browser.isMobile()) {
+            return;
+        }
+        Welcome.show({routes, showCreateMenu});
+    }, [props.shouldShowDownloadAppBanner, props.navigation, showCreateMenu]);
 
-    render() {
-        // Workspaces are policies with type === 'free'
-        const workspaces = _.filter(this.props.allPolicies, (policy) => policy && policy.type === CONST.POLICY.TYPE.FREE);
+    useEffect(() => {
+        if (!didScreenBecomeInactive()) {
+            return;
+        }
 
-        return (
-            <View>
-                <PopoverMenu
-                    onClose={this.hideCreateMenu}
-                    isVisible={this.state.isCreateMenuActive}
-                    anchorPosition={styles.createMenuPositionSidebar(this.props.windowHeight)}
-                    onItemSelected={this.hideCreateMenu}
-                    fromSidebarMediumScreen={!this.props.isSmallScreenWidth}
-                    menuItems={[
-                        {
-                            icon: Expensicons.ChatBubble,
-                            text: this.props.translate('sidebarScreen.newChat'),
-                            onSelected: () => Navigation.navigate(ROUTES.NEW_CHAT),
-                        },
-                        {
-                            icon: Expensicons.Users,
-                            text: this.props.translate('sidebarScreen.newGroup'),
-                            onSelected: () => Navigation.navigate(ROUTES.NEW_GROUP),
-                        },
-                        ...(Permissions.canUsePolicyRooms(this.props.betas) && workspaces.length
-                            ? [
-                                  {
-                                      icon: Expensicons.Hashtag,
-                                      text: this.props.translate('sidebarScreen.newRoom'),
-                                      onSelected: () => Navigation.navigate(ROUTES.WORKSPACE_NEW_ROOM),
-                                  },
-                              ]
-                            : []),
-                        ...(Permissions.canUseIOUSend(this.props.betas)
-                            ? [
-                                  {
-                                      icon: Expensicons.Send,
-                                      text: this.props.translate('iou.sendMoney'),
-                                      onSelected: () => Navigation.navigate(ROUTES.IOU_SEND),
-                                  },
-                              ]
-                            : []),
-                        ...(Permissions.canUseIOU(this.props.betas)
-                            ? [
-                                  {
-                                      icon: Expensicons.MoneyCircle,
-                                      text: this.props.translate('iou.requestMoney'),
-                                      onSelected: () => Navigation.navigate(ROUTES.IOU_REQUEST),
-                                  },
-                              ]
-                            : []),
-                        ...(Permissions.canUseIOU(this.props.betas)
-                            ? [
-                                  {
-                                      icon: Expensicons.Receipt,
-                                      text: this.props.translate('iou.splitBill'),
-                                      onSelected: () => Navigation.navigate(ROUTES.IOU_BILL),
-                                  },
-                              ]
-                            : []),
-                        ...(Permissions.canUseTasks(this.props.betas)
-                            ? [
-                                  {
-                                      icon: Expensicons.Task,
-                                      text: this.props.translate('newTaskPage.assignTask'),
-                                      onSelected: () => TaskUtils.clearOutTaskInfoAndNavigate(),
-                                  },
-                              ]
-                            : []),
-                        ...(!this.props.isLoading && !Policy.hasActiveFreePolicy(this.props.allPolicies)
-                            ? [
-                                  {
-                                      icon: Expensicons.NewWorkspace,
-                                      iconWidth: 46,
-                                      iconHeight: 40,
-                                      text: this.props.translate('workspace.new.newWorkspace'),
-                                      description: this.props.translate('workspace.new.getTheExpensifyCardAndMore'),
-                                      onSelected: () => Policy.createWorkspace(),
-                                  },
-                              ]
-                            : []),
-                    ]}
-                />
-                <FloatingActionButton
-                    accessibilityLabel={this.props.translate('sidebarScreen.fabNewChat')}
-                    accessibilityRole="button"
-                    isActive={this.state.isCreateMenuActive}
-                    onPress={this.showCreateMenu}
-                />
-            </View>
-        );
-    }
+        // Hide menu manually when other pages are opened using shortcut key
+        hideCreateMenu();
+    }, [didScreenBecomeInactive, hideCreateMenu]);
+
+    useImperativeHandle(props.innerRef, () => ({
+        hideCreateMenu() {
+            hideCreateMenu();
+        },
+    }));
+
+    const workspaces = PolicyUtils.getActivePolicies(props.allPolicies);
+
+    return (
+        <View>
+            <PopoverMenu
+                onClose={hideCreateMenu}
+                isVisible={isCreateMenuActive}
+                anchorPosition={styles.createMenuPositionSidebar(props.windowHeight)}
+                onItemSelected={hideCreateMenu}
+                fromSidebarMediumScreen={!props.isSmallScreenWidth}
+                menuItems={[
+                    {
+                        icon: Expensicons.ChatBubble,
+                        text: props.translate('sidebarScreen.newChat'),
+                        onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.NEW_CHAT)),
+                    },
+                    {
+                        icon: Expensicons.Users,
+                        text: props.translate('sidebarScreen.newGroup'),
+                        onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.NEW_GROUP)),
+                    },
+                    ...(Permissions.canUsePolicyRooms(props.betas) && workspaces.length
+                        ? [
+                              {
+                                  icon: Expensicons.Hashtag,
+                                  text: props.translate('sidebarScreen.newRoom'),
+                                  onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_NEW_ROOM)),
+                              },
+                          ]
+                        : []),
+                    ...(Permissions.canUseIOUSend(props.betas)
+                        ? [
+                              {
+                                  icon: Expensicons.Send,
+                                  text: props.translate('iou.sendMoney'),
+                                  onSelected: () => interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.MONEY_REQUEST_TYPE.SEND)),
+                              },
+                          ]
+                        : []),
+                    {
+                        icon: Expensicons.MoneyCircle,
+                        text: props.translate('iou.requestMoney'),
+                        onSelected: () => interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)),
+                    },
+                    {
+                        icon: Expensicons.Heart,
+                        text: props.translate('sidebarScreen.saveTheWorld'),
+                        onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.SAVE_THE_WORLD)),
+                    },
+                    {
+                        icon: Expensicons.Receipt,
+                        text: props.translate('iou.splitBill'),
+                        onSelected: () => interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT)),
+                    },
+                    ...(Permissions.canUseTasks(props.betas)
+                        ? [
+                              {
+                                  icon: Expensicons.Task,
+                                  text: props.translate('newTaskPage.assignTask'),
+                                  onSelected: () => interceptAnonymousUser(() => Task.clearOutTaskInfoAndNavigate()),
+                              },
+                          ]
+                        : []),
+                    ...(!props.isLoading && !Policy.hasActiveFreePolicy(props.allPolicies)
+                        ? [
+                              {
+                                  icon: Expensicons.NewWorkspace,
+                                  iconWidth: 46,
+                                  iconHeight: 40,
+                                  text: props.translate('workspace.new.newWorkspace'),
+                                  description: props.translate('workspace.new.getTheExpensifyCardAndMore'),
+                                  onSelected: () => interceptAnonymousUser(() => App.createWorkspaceAndNavigateToIt('', false, '', false, !props.isSmallScreenWidth)),
+                              },
+                          ]
+                        : []),
+                ]}
+                withoutOverlay
+                anchorRef={anchorRef}
+            />
+            <FloatingActionButton
+                accessibilityLabel={props.translate('sidebarScreen.fabNewChat')}
+                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                isActive={isCreateMenuActive}
+                ref={anchorRef}
+                onPress={() => {
+                    if (isCreateMenuActive) {
+                        hideCreateMenu();
+                    } else {
+                        showCreateMenu();
+                    }
+                }}
+            />
+        </View>
+    );
 }
 
 FloatingActionButtonAndPopover.propTypes = propTypes;
 FloatingActionButtonAndPopover.defaultProps = defaultProps;
+FloatingActionButtonAndPopover.displayName = 'FloatingActionButtonAndPopover';
 
 export default compose(
     withLocalize,
     withNavigation,
     withNavigationFocus,
-    withDrawerState,
     withWindowDimensions,
     withOnyx({
         allPolicies: {
@@ -275,5 +296,16 @@ export default compose(
         isLoading: {
             key: ONYXKEYS.IS_LOADING_REPORT_DATA,
         },
+        shouldShowDownloadAppBanner: {
+            key: ONYXKEYS.SHOW_DOWNLOAD_APP_BANNER,
+        },
     }),
-)(FloatingActionButtonAndPopover);
+)(
+    forwardRef((props, ref) => (
+        <FloatingActionButtonAndPopover
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            innerRef={ref}
+        />
+    )),
+);

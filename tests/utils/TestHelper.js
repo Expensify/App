@@ -62,9 +62,9 @@ function signInWithTestUser(accountID = 1, login = 'test@user.com', password = '
             },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.PERSONAL_DETAILS,
+                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                 value: {
-                    [login]: buildPersonalDetails(login, accountID, firstName),
+                    [accountID]: buildPersonalDetails(login, accountID, firstName),
                 },
             },
         ],
@@ -189,24 +189,22 @@ function getGlobalFetchMock() {
  * @returns {Promise}
  */
 function setPersonalDetails(login, accountID) {
-    Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, {
-        [login]: buildPersonalDetails(login, accountID),
+    Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        [accountID]: buildPersonalDetails(login, accountID),
     });
     return waitForPromisesToResolve();
 }
 
 /**
- * @param {String} actorEmail
  * @param {String} created
  * @param {Number} actorAccountID
  * @param {String} actionID
  * @returns {Object}
  */
-function buildTestReportComment(actorEmail, created, actorAccountID, actionID = null) {
+function buildTestReportComment(created, actorAccountID, actionID = null) {
     const reportActionID = actionID || NumberUtils.rand64();
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
-        actorEmail,
         person: [{type: 'TEXT', style: 'strong', text: 'User B'}],
         created,
         message: [{type: 'COMMENT', html: `Comment ${actionID}`, text: `Comment ${actionID}`}],

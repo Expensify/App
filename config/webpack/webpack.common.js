@@ -20,7 +20,6 @@ const includeModules = [
     'react-native-gesture-handler',
     'react-native-flipper',
     'react-native-google-places-autocomplete',
-    '@react-navigation/drawer',
     'react-native-qrcode-svg',
     'react-native-view-shot',
 ].join('|');
@@ -59,13 +58,7 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
         publicPath: '/',
     },
     stats: {
-        warningsFilter: [
-            // @react-navigation for web uses the legacy modules (related to react-native-reanimated)
-            // This results in 33 warnings with stack traces that appear during build and each time we make a change
-            // We can't do anything about the warnings, and they only get in the way, so we suppress them
-            './node_modules/@react-navigation/drawer/lib/module/views/legacy/Drawer.js',
-            './node_modules/@react-navigation/drawer/lib/module/views/legacy/Overlay.js',
-        ],
+        warningsFilter: [],
     },
     plugins: [
         new CleanWebpackPlugin(),
@@ -89,9 +82,11 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
                 {from: 'web/favicon.png'},
                 {from: 'web/favicon-unread.png'},
                 {from: 'web/og-preview-image.png'},
+                {from: 'web/apple-touch-icon.png'},
                 {from: 'assets/css', to: 'css'},
                 {from: 'assets/fonts/web', to: 'fonts'},
                 {from: 'node_modules/react-pdf/dist/esm/Page/AnnotationLayer.css', to: 'css/AnnotationLayer.css'},
+                {from: 'node_modules/react-pdf/dist/esm/Page/TextLayer.css', to: 'css/TextLayer.css'},
                 {from: 'assets/images/shadow.png', to: 'images/shadow.png'},
                 {from: '.well-known/apple-app-site-association', to: '.well-known/apple-app-site-association', toType: 'file'},
                 {from: '.well-known/assetlinks.json', to: '.well-known/assetlinks.json'},
@@ -124,7 +119,7 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
         rules: [
             // Transpiles and lints all the JS
             {
-                test: /\.js$/,
+                test: /\.(js|ts)x?$/,
                 loader: 'babel-loader',
 
                 /**
@@ -199,7 +194,7 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
         // This is also why we have to use .website.js for our own web-specific files...
         // Because desktop also relies on "web-specific" module implementations
         // This also skips packing web only dependencies to desktop and vice versa
-        extensions: ['.web.js', platform === 'web' ? '.website.js' : '.desktop.js', '.js', '.jsx'],
+        extensions: ['.web.js', platform === 'web' ? '.website.js' : '.desktop.js', '.js', '.jsx', '.web.ts', platform === 'web' ? '.website.ts' : '.desktop.ts', '.ts', '.tsx'],
         fallback: {
             'process/browser': require.resolve('process/browser'),
         },

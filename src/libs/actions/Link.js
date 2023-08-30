@@ -1,11 +1,7 @@
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import {Linking} from 'react-native';
 import _ from 'underscore';
 import ONYXKEYS from '../../ONYXKEYS';
-import Growl from '../Growl';
-import * as Localize from '../Localize';
-import CONST from '../../CONST';
 import asyncOpenURL from '../asyncOpenURL';
 import * as API from '../API';
 import * as Environment from '../Environment/Environment';
@@ -22,16 +18,6 @@ Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => (currentUserEmail = lodashGet(val, 'email', '')),
 });
-
-/**
- * @returns {Boolean}
- */
-function showGrowlIfOffline() {
-    if (isNetworkOffline) {
-        Growl.show(Localize.translateLocal('session.offlineMessageRetry'), CONST.GROWL.WARNING);
-    }
-    return isNetworkOffline;
-}
 
 /**
  * @param {String} [url] the url path
@@ -57,39 +43,29 @@ function buildOldDotURL(url, shortLivedAuthToken) {
 }
 
 /**
- * @param {String} url the url path
- */
-function openOldDotLink(url) {
-    if (isNetworkOffline) {
-        buildOldDotURL(url).then((oldDotURL) => Linking.openURL(oldDotURL));
-        return;
-    }
-
-    // If shortLivedAuthToken is not accessible, fallback to opening the link without the token.
-    // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    API.makeRequestWithSideEffects('OpenOldDotLink', {}, {})
-        .then((response) => {
-            buildOldDotURL(url, response.shortLivedAuthToken).then((oldDotUrl) => {
-                Linking.openURL(oldDotUrl);
-            });
-        })
-        .catch(() => {
-            buildOldDotURL(url).then((oldDotUrl) => {
-                Linking.openURL(oldDotUrl);
-            });
-        });
-}
-
-/**
  * @param {String} url
  * @param {Boolean} shouldSkipCustomSafariLogic When true, we will use `Linking.openURL` even if the browser is Safari.
  */
 function openExternalLink(url, shouldSkipCustomSafariLogic = false) {
-    if (showGrowlIfOffline()) {
-        return;
-    }
-
     asyncOpenURL(Promise.resolve(), url, shouldSkipCustomSafariLogic);
 }
 
+/**
+ * @param {String} url the url path
+ */
+function openOldDotLink(url) {
+    if (isNetworkOffline) {
+        buildOldDotURL(url).then((oldDotURL) => openExternalLink(oldDotURL));
+        return;
+    }
+
+    // If shortLivedAuthToken is not accessible, fallback to opening the link without the token.
+    asyncOpenURL(
+        // eslint-disable-next-line rulesdir/no-api-side-effects-method
+        API.makeRequestWithSideEffects('OpenOldDotLink', {}, {})
+            .then((response) => buildOldDotURL(url, response.shortLivedAuthToken))
+            .catch(() => buildOldDotURL(url)),
+        (oldDotURL) => oldDotURL,
+    );
+}
 export {buildOldDotURL, openOldDotLink, openExternalLink};

@@ -1,18 +1,10 @@
-import React from 'react';
-import {StatusBar} from 'react-native';
-import themeColors from '../../styles/themes/default';
-
 /**
- * Only the Android platform supports "setBackgroundColor"
+ * On Android we setup the status bar in native code.
  */
 
-export default class CustomStatusBar extends React.Component {
-    componentDidMount() {
-        StatusBar.setBarStyle('light-content');
-        StatusBar.setBackgroundColor(themeColors.appBG);
-    }
-
-    render() {
-        return <StatusBar />;
-    }
+export default function CustomStatusBar() {
+    // Prefer to not render the StatusBar component in Android as it can cause
+    // issues with edge to edge display. We setup the status bar appearance in
+    // MainActivity.java and styles.xml.
+    return null;
 }

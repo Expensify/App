@@ -21,17 +21,19 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const WorkspaceReimbursePage = (props) => (
-    <WorkspacePageWithSections
-        shouldUseScrollView
-        headerText={props.translate('workspace.common.reimburse')}
-        route={props.route}
-        guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_REIMBURSE}
-        shouldSkipVBBACall
-    >
-        {() => <WorkspaceReimburseView policy={props.policy} />}
-    </WorkspacePageWithSections>
-);
+function WorkspaceReimbursePage(props) {
+    return (
+        <WorkspacePageWithSections
+            shouldUseScrollView
+            headerText={props.translate('workspace.common.reimburse')}
+            route={props.route}
+            guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_REIMBURSE}
+            shouldSkipVBBACall
+        >
+            {() => <WorkspaceReimburseView policy={props.policy} />}
+        </WorkspacePageWithSections>
+    );
+}
 
 WorkspaceReimbursePage.propTypes = propTypes;
 WorkspaceReimbursePage.displayName = 'WorkspaceReimbursePage';

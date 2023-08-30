@@ -1,62 +1,58 @@
-import React, {PureComponent} from 'react';
+import React, {useEffect, useState, useMemo} from 'react';
 import PropTypes from 'prop-types';
 import {debounce} from 'lodash';
+import {withOnyx} from 'react-native-onyx';
 import CONST from '../CONST';
 import * as ReportUtils from '../libs/ReportUtils';
 import Text from './Text';
 import styles from '../styles/styles';
+import ONYXKEYS from '../ONYXKEYS';
 
 const propTypes = {
+    /** Report ID to get the comment from (used in withOnyx) */
+    // eslint-disable-next-line react/no-unused-prop-types
+    reportID: PropTypes.string.isRequired,
+
     /** Text Comment */
-    comment: PropTypes.string.isRequired,
+    comment: PropTypes.string,
 
     /** Update UI on parent when comment length is exceeded */
     onExceededMaxCommentLength: PropTypes.func.isRequired,
 };
 
-class ExceededCommentLength extends PureComponent {
-    constructor(props) {
-        super(props);
+const defaultProps = {
+    comment: '',
+};
 
-        this.state = {
-            commentLength: 0,
-        };
+function ExceededCommentLength(props) {
+    const [commentLength, setCommentLength] = useState(0);
+    const updateCommentLength = useMemo(
+        () =>
+            debounce((comment, onExceededMaxCommentLength) => {
+                const newCommentLength = ReportUtils.getCommentLength(comment);
+                setCommentLength(newCommentLength);
+                onExceededMaxCommentLength(newCommentLength > CONST.MAX_COMMENT_LENGTH);
+            }, CONST.TIMING.COMMENT_LENGTH_DEBOUNCE_TIME),
+        [],
+    );
 
-        // By debouncing, we defer the calculation until there is a break in typing
-        this.updateCommentLength = debounce(this.updateCommentLength.bind(this), CONST.TIMING.COMMENT_LENGTH_DEBOUNCE_TIME);
+    useEffect(() => {
+        updateCommentLength(props.comment, props.onExceededMaxCommentLength);
+    }, [props.comment, props.onExceededMaxCommentLength, updateCommentLength]);
+
+    if (commentLength <= CONST.MAX_COMMENT_LENGTH) {
+        return null;
     }
 
-    componentDidMount() {
-        this.updateCommentLength();
-    }
-
-    componentDidUpdate(prevProps) {
-        if (prevProps.comment === this.props.comment) {
-            return;
-        }
-
-        this.updateCommentLength();
-    }
-
-    updateCommentLength() {
-        const commentLength = ReportUtils.getCommentLength(this.props.comment);
-        this.setState({commentLength});
-        this.props.onExceededMaxCommentLength(commentLength > CONST.MAX_COMMENT_LENGTH);
-    }
-
-    render() {
-        if (this.state.commentLength <= CONST.MAX_COMMENT_LENGTH) {
-            return null;
-        }
-
-        return (
-            <Text style={[styles.textMicro, styles.textDanger, styles.chatItemComposeSecondaryRow, styles.mlAuto, styles.pl2]}>
-                {`${this.state.commentLength}/${CONST.MAX_COMMENT_LENGTH}`}
-            </Text>
-        );
-    }
+    return <Text style={[styles.textMicro, styles.textDanger, styles.chatItemComposeSecondaryRow, styles.mlAuto, styles.pl2]}>{`${commentLength}/${CONST.MAX_COMMENT_LENGTH}`}</Text>;
 }
 
 ExceededCommentLength.propTypes = propTypes;
+ExceededCommentLength.defaultProps = defaultProps;
+ExceededCommentLength.displayName = 'ExceededCommentLength';
 
-export default ExceededCommentLength;
+export default withOnyx({
+    comment: {
+        key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,
+    },
+})(ExceededCommentLength);

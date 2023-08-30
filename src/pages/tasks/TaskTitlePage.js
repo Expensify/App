@@ -4,23 +4,20 @@ import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import Form from '../../components/Form';
 import ONYXKEYS from '../../ONYXKEYS';
 import TextInput from '../../components/TextInput';
 import styles from '../../styles/styles';
-import Navigation from '../../libs/Navigation/Navigation';
 import reportPropTypes from '../reportPropTypes';
 import compose from '../../libs/compose';
-import * as TaskUtils from '../../libs/actions/Task';
+import * as Task from '../../libs/actions/Task';
+import CONST from '../../CONST';
 
 const propTypes = {
-    /** Task Report Info */
-    task: PropTypes.shape({
-        /** Title of the Task */
-        report: reportPropTypes,
-    }),
+    /** The report currently being looked at */
+    report: reportPropTypes,
 
     /** Current user session */
     session: PropTypes.shape({
@@ -33,7 +30,7 @@ const propTypes = {
 
 const defaultProps = {
     session: {},
-    task: {},
+    report: {},
 };
 
 function TaskTitlePage(props) {
@@ -42,25 +39,21 @@ function TaskTitlePage(props) {
      * @param {String} values.title
      * @returns {Object} - An object containing the errors for each inputID
      */
-    const validate = useCallback(
-        (values) => {
-            const errors = {};
+    const validate = useCallback((values) => {
+        const errors = {};
 
-            if (_.isEmpty(values.title)) {
-                errors.title = props.translate('common.error.fieldRequired');
-            }
+        if (_.isEmpty(values.title)) {
+            errors.title = 'newTaskPage.pleaseEnterTaskName';
+        }
 
-            return errors;
-        },
-        [props],
-    );
+        return errors;
+    }, []);
 
     const submit = useCallback(
         (values) => {
-            // Set the description of the report in the store and then call TaskUtils.editTaskReport
-            // to update the description of the report on the server
-
-            TaskUtils.editTaskAndNavigate(props.task.report, props.session.email, values.title, '', '');
+            // Set the title of the report in the store and then call Task.editTaskReport
+            // to update the title of the report on the server
+            Task.editTaskAndNavigate(props.report, props.session.accountID, {title: values.title});
         },
         [props],
     );
@@ -71,13 +64,9 @@ function TaskTitlePage(props) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             onEntryTransitionEnd={() => inputRef.current && inputRef.current.focus()}
+            shouldEnableMaxHeight
         >
-            <HeaderWithCloseButton
-                title={props.translate('newTaskPage.task')}
-                shouldShowBackButton
-                onBackButtonPress={() => Navigation.goBack()}
-                onCloseButtonPress={() => Navigation.dismissModal(true)}
-            />
+            <HeaderWithBackButton title={props.translate('task.task')} />
             <Form
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.EDIT_TASK_FORM}
@@ -88,10 +77,12 @@ function TaskTitlePage(props) {
             >
                 <View style={[styles.mb4]}>
                     <TextInput
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         inputID="title"
                         name="title"
-                        label={props.translate('newTaskPage.title')}
-                        defaultValue={(props.task.report && props.task.report.reportName) || ''}
+                        label={props.translate('task.title')}
+                        accessibilityLabel={props.translate('task.title')}
+                        defaultValue={(props.report && props.report.reportName) || ''}
                         ref={(el) => (inputRef.current = el)}
                     />
                 </View>
@@ -109,8 +100,8 @@ export default compose(
         session: {
             key: ONYXKEYS.SESSION,
         },
-        task: {
-            key: ONYXKEYS.TASK,
+        report: {
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
         },
     }),
 )(TaskTitlePage);

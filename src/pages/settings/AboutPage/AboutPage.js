@@ -1,7 +1,8 @@
 import _ from 'underscore';
 import React from 'react';
-import {View, ScrollView} from 'react-native';
-import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
+import {ScrollView, View} from 'react-native';
+import DeviceInfo from 'react-native-device-info';
+import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import styles from '../../../styles/styles';
@@ -28,7 +29,18 @@ const propTypes = {
     ...windowDimensionsPropTypes,
 };
 
-const AboutPage = (props) => {
+function getFlavor() {
+    const bundleId = DeviceInfo.getBundleId();
+    if (bundleId.includes('dev')) {
+        return ' Develop';
+    }
+    if (bundleId.includes('adhoc')) {
+        return ' Ad-Hoc';
+    }
+    return '';
+}
+
+function AboutPage(props) {
     let popoverAnchor;
     const menuItems = [
         {
@@ -72,11 +84,9 @@ const AboutPage = (props) => {
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             {({safeAreaPaddingBottomStyle}) => (
                 <>
-                    <HeaderWithCloseButton
+                    <HeaderWithBackButton
                         title={props.translate('initialSettingsPage.about')}
-                        shouldShowBackButton
-                        onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
-                        onCloseButtonPress={() => Navigation.dismissModal(true)}
+                        onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
                     />
                     <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexColumn, styles.justifyContentBetween, safeAreaPaddingBottomStyle]}>
                         <View style={[styles.flex1]}>
@@ -90,7 +100,7 @@ const AboutPage = (props) => {
                                         selectable
                                         style={[styles.textLabel, styles.alignSelfCenter, styles.mt6, styles.mb2, styles.colorMuted]}
                                     >
-                                        v{Environment.isInternalTestBuild() ? `${pkg.version} PR:${CONST.PULL_REQUEST_NUMBER}` : pkg.version}
+                                        v{Environment.isInternalTestBuild() ? `${pkg.version} PR:${CONST.PULL_REQUEST_NUMBER}${getFlavor()}` : `${pkg.version}${getFlavor()}`}
                                     </Text>
                                     <Text style={[styles.baseFontStyle, styles.mv5]}>{props.translate('initialSettingsPage.aboutPage.description')}</Text>
                                 </View>
@@ -138,7 +148,7 @@ const AboutPage = (props) => {
             )}
         </ScreenWrapper>
     );
-};
+}
 
 AboutPage.propTypes = propTypes;
 AboutPage.displayName = 'AboutPage';

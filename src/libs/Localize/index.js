@@ -92,6 +92,33 @@ function translateLocal(phrase, variables) {
 }
 
 /**
+ * Return translated string for given error.
+ *
+ * @param {String|Array} message
+ * @returns {String}
+ */
+function translateIfPhraseKey(message) {
+    if (_.isEmpty(message)) {
+        return '';
+    }
+
+    try {
+        // check if error message has a variable parameter
+        const [phrase, variables] = _.isArray(message) ? message : [message];
+
+        // This condition checks if the error is already translated. For example, if there are multiple errors per input, we handle translation in ErrorUtils.addErrorMessage due to the inability to concatenate error keys.
+
+        if (variables && variables.isTranslated) {
+            return phrase;
+        }
+
+        return translateLocal(phrase, variables);
+    } catch (error) {
+        return message;
+    }
+}
+
+/**
  * Format an array into a string with comma and "and" ("a dog, a cat and a chicken")
  *
  * @param {Array} anArray
@@ -114,4 +141,4 @@ function getDevicePreferredLocale() {
     return lodashGet(RNLocalize.findBestAvailableLanguage([CONST.LOCALES.EN, CONST.LOCALES.ES]), 'languageTag', CONST.LOCALES.DEFAULT);
 }
 
-export {translate, translateLocal, arrayToString, getDevicePreferredLocale};
+export {translate, translateLocal, translateIfPhraseKey, arrayToString, getDevicePreferredLocale};

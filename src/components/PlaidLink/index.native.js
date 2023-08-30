@@ -4,7 +4,7 @@ import Log from '../../libs/Log';
 import CONST from '../../CONST';
 import {plaidLinkPropTypes, plaidLinkDefaultProps} from './plaidLinkPropTypes';
 
-const PlaidLink = (props) => {
+function PlaidLink(props) {
     useDeepLinkRedirector();
     usePlaidEmitter((event) => {
         Log.info('[PlaidLink] Handled Plaid Event: ', false, event);
@@ -20,6 +20,9 @@ const PlaidLink = (props) => {
             onSuccess: ({publicToken, metadata}) => {
                 props.onSuccess({publicToken, metadata});
             },
+            onEvent: (event, metadata) => {
+                props.onEvent(event, metadata);
+            },
             onExit: (exitError, metadata) => {
                 Log.info('[PlaidLink] Exit: ', false, {exitError, metadata});
                 props.onExit();
@@ -30,7 +33,7 @@ const PlaidLink = (props) => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
     return null;
-};
+}
 
 PlaidLink.propTypes = plaidLinkPropTypes;
 PlaidLink.defaultProps = plaidLinkDefaultProps;

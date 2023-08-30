@@ -1,6 +1,6 @@
 import {useCallback, useRef} from 'react';
 import PropTypes from 'prop-types';
-import {StatusBar, StyleSheet} from 'react-native';
+import {StyleSheet} from 'react-native';
 import Reanimated, {useSharedValue, withTiming, Easing, useAnimatedStyle, runOnJS} from 'react-native-reanimated';
 import BootSplash from '../../libs/BootSplash';
 import Logo from '../../../assets/images/new-expensify-dark.svg';
@@ -15,7 +15,7 @@ const defaultProps = {
     onHide: () => {},
 };
 
-const SplashScreenHider = (props) => {
+function SplashScreenHider(props) {
     const {onHide} = props;
 
     const opacity = useSharedValue(1);
@@ -64,21 +64,20 @@ const SplashScreenHider = (props) => {
                 opacityStyle,
                 {
                     // Apply negative margins to center the logo on window (instead of screen)
-                    marginTop: -(StatusBar.currentHeight || 0),
                     marginBottom: -(BootSplash.navigationBarHeight || 0),
                 },
             ]}
         >
             <Reanimated.View style={scaleStyle}>
                 <Logo
-                    viewBox="0 0 100 100"
+                    viewBox="0 0 80 80"
                     width={100}
                     height={100}
                 />
             </Reanimated.View>
         </Reanimated.View>
     );
-};
+}
 
 SplashScreenHider.displayName = 'SplashScreenHider';
 SplashScreenHider.propTypes = propTypes;

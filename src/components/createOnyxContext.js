@@ -11,7 +11,9 @@ const propTypes = {
 
 export default (onyxKeyName, defaultValue) => {
     const Context = createContext();
-    const Provider = (props) => <Context.Provider value={props[onyxKeyName]}>{props.children}</Context.Provider>;
+    function Provider(props) {
+        return <Context.Provider value={props[onyxKeyName]}>{props.children}</Context.Provider>;
+    }
 
     Provider.propTypes = propTypes;
     Provider.displayName = `${Str.UCFirst(onyxKeyName)}Provider`;

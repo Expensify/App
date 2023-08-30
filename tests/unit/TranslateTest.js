@@ -78,7 +78,7 @@ describe('Translation Keys', () => {
     _.each(languages, (ln) => {
         const languageKeys = traverseKeyPath(originalTranslations.default[ln]);
 
-        it(`Does ${ln} locale has all the keys`, () => {
+        it(`Does ${ln} locale have all the keys`, () => {
             const hasAllKeys = _.difference(mainLanguageKeys, languageKeys);
             if (hasAllKeys.length) {
                 console.debug(`🏹 [ ${hasAllKeys.join(', ')} ] are missing from ${ln}.js`);
@@ -87,7 +87,7 @@ describe('Translation Keys', () => {
             expect(hasAllKeys).toEqual([]);
         });
 
-        it(`Does ${ln} locale has unused keys`, () => {
+        it(`Does ${ln} locale have unused keys`, () => {
             const hasAllKeys = _.difference(languageKeys, mainLanguageKeys);
             if (hasAllKeys.length) {
                 console.debug(`🏹 [ ${hasAllKeys.join(', ')} ] are unused keys in ${ln}.js`);

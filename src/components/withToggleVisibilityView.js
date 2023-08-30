@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 import getComponentDisplayName from '../libs/getComponentDisplayName';
+import refPropTypes from './refPropTypes';
 
 const toggleVisibilityViewPropTypes = {
     /** Whether the content is visible. */
@@ -10,20 +11,22 @@ const toggleVisibilityViewPropTypes = {
 };
 
 export default function (WrappedComponent) {
-    const WithToggleVisibilityView = (props) => (
-        <View style={!props.isVisible && styles.visuallyHidden}>
-            <WrappedComponent
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...props}
-                ref={props.forwardedRef}
-                isVisible={props.isVisible}
-            />
-        </View>
-    );
+    function WithToggleVisibilityView(props) {
+        return (
+            <View style={!props.isVisible && styles.visuallyHidden}>
+                <WrappedComponent
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...props}
+                    ref={props.forwardedRef}
+                    isVisible={props.isVisible}
+                />
+            </View>
+        );
+    }
 
     WithToggleVisibilityView.displayName = `WithToggleVisibilityView(${getComponentDisplayName(WrappedComponent)})`;
     WithToggleVisibilityView.propTypes = {
-        forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
+        forwardedRef: refPropTypes,
 
         /** Whether the content is visible. */
         isVisible: PropTypes.bool,

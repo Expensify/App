@@ -20,24 +20,26 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const WorkspaceCardPage = (props) => (
-    <WorkspacePageWithSections
-        shouldUseScrollView
-        headerText={props.translate('workspace.common.card')}
-        route={props.route}
-        guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_CARD}
-    >
-        {(hasVBA, policyID, isUsingECard) => (
-            <>
-                {!hasVBA && <WorkspaceCardNoVBAView policyID={policyID} />}
+function WorkspaceCardPage(props) {
+    return (
+        <WorkspacePageWithSections
+            shouldUseScrollView
+            headerText={props.translate('workspace.common.card')}
+            route={props.route}
+            guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_CARD}
+        >
+            {(hasVBA, policyID, isUsingECard) => (
+                <>
+                    {!hasVBA && <WorkspaceCardNoVBAView policyID={policyID} />}
 
-                {hasVBA && !isUsingECard && <WorkspaceCardVBANoECardView />}
+                    {hasVBA && !isUsingECard && <WorkspaceCardVBANoECardView />}
 
-                {hasVBA && isUsingECard && <WorkspaceCardVBAWithECardView />}
-            </>
-        )}
-    </WorkspacePageWithSections>
-);
+                    {hasVBA && isUsingECard && <WorkspaceCardVBAWithECardView />}
+                </>
+            )}
+        </WorkspacePageWithSections>
+    );
+}
 
 WorkspaceCardPage.propTypes = propTypes;
 WorkspaceCardPage.displayName = 'WorkspaceCardPage';

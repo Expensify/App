@@ -14,7 +14,7 @@ As a small to medium-sized business owner, your main aim is to achieve success a
 This playbook is built on best practices we’ve developed after processing expenses for tens of thousands of companies around the world. As such, use this playbook as your starting point, knowing that you can customize Expensify to suit your business needs. Every company is different, and your dedicated Setup Specialist is always one chat away with any questions you may have.
 
 ### Step 1: Create your Expensify account
-If you don't already have one, go to [Expensify.com](https://expensify.com) and sign up for an account with your work email address. The account is free so don’t worry about the cost at this stage.
+If you don't already have one, go to *[new.expensify.com](https://new.expensify.com)* and sign up for an account with your work email address. The account is free so don’t worry about the cost at this stage.
 
 > _Employees really appreciate how easy it is to use, and the fact that the reimbursement drops right into their bank account. Since most employees are submitting expenses from their phones, the ease of use of the app is critical_
 >
@@ -37,7 +37,7 @@ To create your Control Policy:
 2. Select *Group* and click the button that says *New Policy*
 3. Click *Select* under Control
 
-The Control Plan also gives you access to a dedicated Setup Specialist. You can find yours by looking at your policy's *#admins* room in [new.expensify.com](https://new.expensify.com), and in your company’s policy settings in the *Overview* tab, where you can chat with them and schedule an onboarding call to walk through any setup questions. The Control Plan bundled with the Expensify Card is only *$9 per user per month* (not taking into account cash back your earn) when you commit annually. That’s a 75% discount off the unbundled price point if you choose to use a different Corporate Card (or no) provider.
+The Control Plan also gives you access to a dedicated Setup Specialist. You can find yours by looking at your policy's *#admins* room in *[new.expensify.com](https://new.expensify.com)*, and in your company’s policy settings in the *Overview* tab, where you can chat with them and schedule an onboarding call to walk through any setup questions. The Control Plan bundled with the Expensify Card is only *$9 per user per month* (not taking into account cash back your earn) when you commit annually. That’s a 75% discount off the unbundled price point if you choose to use a different Corporate Card (or no) provider.
 
 ### Step 3: Connect your accounting system
 As a small to medium-sized business, it's important to maintain proper spend management to ensure the success and stability of your organization. This requires paying close attention to your expenses, streamlining your financial processes, and making sure that your financial information is accurate, compliant, and transparent. Include best practices such as:
@@ -100,7 +100,7 @@ This is essentially like setting a daily or individual expense limitation on any
 *Receipt Required Amount: $75*
 Receipts are important, and in most cases you prefer an itemized receipt. However, Expensify will generate an IRS-compliant electronic receipt (not itemized) for every expense not tied to hotels expense. For this reason, it’s important to enforce a rule where anytime an employee is on the road, and making business-related purchases at hotel (which happens a lot!), they are required to attach a physical receipt. 
 
-![Expense Basics](https://help.expensify.com/assets/images/playbook-expense-basics.png)
+![Expense Basics](https://help.expensify.com/assets/images/playbook-expense-basics.png){:width="100%"}
 
 At this point, you’ve set enough compliance controls around categorical spend and general expenses for all employees, such that you can put trust in our solution to audit all expenses up front so you don’t have to. Next, let’s dive into how we can comfortably take on more automation, while relying on compliance controls to capture bad behavior (or better yet, instill best practices in our employees).
 
@@ -117,7 +117,7 @@ Between Expensify's SmartScan technology, automatic categorization, and [DoubleC
 
 Expenses with violations will stay behind for the employee to fix, while expenses that are “in-policy” will move into an approver’s queue to mitigate any potential for delays. Scheduled Submit will ensure all expenses are submitted automatically for approval.
 
-![Scheduled submit](https://help.expensify.com/assets/images/playbook-scheduled-submit.png)
+![Scheduled submit](https://help.expensify.com/assets/images/playbook-scheduled-submit.png){:width="100%"}
 
 > _We spent twice as much time and effort on expenses without getting nearly as accurate of results as with Expensify._
 > 
@@ -151,7 +151,7 @@ We recommend you select *Advanced Approval* as your Approval Mode to set up a mi
 *Import your employees in bulk via CSV*
 Given the amount of employees you have, it’s best you import employees in bulk via CSV. You can learn more about using a CSV file to bulk upload employees with *Advanced Approval [here](https://community.expensify.com/discussion/5735/deep-dive-the-ins-and-outs-of-advanced-approval)*
 
-![Bulk import your employees](https://help.expensify.com/assets/images/playbook-impoort-employees.png)
+![Bulk import your employees](https://help.expensify.com/assets/images/playbook-impoort-employees.png){:width="100%"}
 
 *Manually Approve All Reports*
 In most cases, at this stage, approvers prefer to review all expenses for a few reasons. 1) We want to make sure expense coding is accurate, and 2) We want to make sure there are no bad actors before we export transactions to our accounting system. 
@@ -182,7 +182,7 @@ Expensify supports direct card feeds from most financial institutions. Setting u
 3. Next, assign the corporate cards to your employees by selecting the employee’s email address and the corresponding card number from the two drop-down menus under the *Assign a Card* section
 4. Set a transaction start date (this is really important to avoid pulling in multiple outdated historical expenses that you don’t want employees to submit)
 
-![If you have existing corporate cards](https://help.expensify.com/assets/images/playbook-existing-corporate-card.png)
+![If you have existing corporate cards](https://help.expensify.com/assets/images/playbook-existing-corporate-card.png){:width="100%"}
 
 As mentioned above, we’ll be able to pull in transactions as they post (daily) and handle receipt matching for you and your employees. One benefit of the Expensify Card for your company is being able to see transactions at the point of purchase which provides you with real-time compliance. We even send users push notifications to SmartScan their receipt when it’s required and generate IRS-compliant e-receipts as a backup wherever applicable. 
 
@@ -235,7 +235,7 @@ Similarly, you can send bills directly from Expensify as well.
 3. At this point, you can also upload an attachment to further validate the bill if necessary
 4. Click *Submit*, we’ll forward the newly created bill directly to your Supplier.
 
-![Send bills directly from Expensify](https://help.expensify.com/assets/images/playbook-new-bill.png)
+![Send bills directly from Expensify](https://help.expensify.com/assets/images/playbook-new-bill.png){:width="100%"}
 
 Reports, invoices, and bills are largely the same, in theory, just with different rules. As such, creating a customer invoice is just like creating an expense report and even a bill.
 
@@ -258,7 +258,7 @@ We recommend reporting:
 - *Quarterly* - for budget comparison reporting. Pull up your BI tool and compare your active budgets with your spend reporting here in Expensify
 - *Annually* - Run annual spend trend reports with month-over-month spend analysis, and prepare yourself for the upcoming fiscal year.
 
-![Expenses!](https://help.expensify.com/assets/images/playbook-expenses.png)
+![Expenses!](https://help.expensify.com/assets/images/playbook-expenses.png){:width="100%"}
 
 ### Step 14: Set your Subscription Size and Add a Payment card
 Our pricing model is unique in the sense that you are in full control of your billing. Meaning, you have the ability to set a minimum number of employees you know will be active each month and you can choose which level of commitment fits best. We recommend setting your subscription to *Annual* to get an additional 50% off on your monthly Expensify bill. In the end, you've spent enough time getting your company fully set up with Expensify, and you've seen how well it supports you and your employees. Committing annually just makes sense. 
@@ -280,4 +280,4 @@ Now that we’ve gone through all of the steps for setting up your account, let�
 4. Click *Accept Terms*
 
 ## You’re all set!
-Congrats, you are all set up! If you need any assistance with anything mentioned above or would like to understand other features available in Expensify, reach out to your Setup Specialist directly in new.expensify.com. Don’t have one yet? Create a Control Policy, and we’ll automatically assign a dedicated Setup Specialist to you. 
+Congrats, you are all set up! If you need any assistance with anything mentioned above or would like to understand other features available in Expensify, reach out to your Setup Specialist directly in *[new.expensify.com](https://new.expensify.com)*. Don’t have one yet? Create a Control Policy, and we’ll automatically assign a dedicated Setup Specialist to you. 

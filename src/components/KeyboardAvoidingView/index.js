@@ -1,7 +1,8 @@
 /* eslint-disable react/prop-types */
 import React, {forwardRef, useCallback} from 'react';
-import {StyleSheet, useWindowDimensions} from 'react-native';
+import {StyleSheet} from 'react-native';
 import Reanimated, {useAnimatedKeyboard, useAnimatedStyle, useWorkletCallback, runOnUI, useSharedValue} from 'react-native-reanimated';
+import useWindowDimensions from '../../hooks/useWindowDimensions';
 
 /**
  * View that moves out of the way when the keyboard appears by automatically
@@ -13,7 +14,7 @@ const KeyboardAvoidingView = forwardRef(({behavior, children, contentContainerSt
     const currentFrame = useSharedValue(null);
 
     const keyboard = useAnimatedKeyboard();
-    const {height: screenHeight} = useWindowDimensions();
+    const {windowHeight} = useWindowDimensions();
 
     const onLayoutWorklet = useWorkletCallback((layout) => {
         if (initialFrame.value == null) {
@@ -39,7 +40,7 @@ const KeyboardAvoidingView = forwardRef(({behavior, children, contentContainerSt
             return 0;
         }
 
-        const keyboardY = screenHeight - keyboardHeight - keyboardVerticalOffset;
+        const keyboardY = windowHeight - keyboardHeight - keyboardVerticalOffset;
 
         if (behavior === 'height') {
             return Math.max(keyboardHeight + currentFrame.value.y + currentFrame.value.height - keyboardY - initialFrame.value.height, 0);

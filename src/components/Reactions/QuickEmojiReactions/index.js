@@ -15,7 +15,7 @@ const propTypes = {
     closeContextMenu: PropTypes.func.isRequired,
 };
 
-const QuickEmojiReactions = (props) => {
+function QuickEmojiReactions(props) {
     const onPressOpenPicker = (openPicker) => {
         openPicker(contextMenuRef.current.contentRef.current, {
             horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
@@ -31,7 +31,7 @@ const QuickEmojiReactions = (props) => {
             onWillShowPicker={props.closeContextMenu}
         />
     );
-};
+}
 
 QuickEmojiReactions.displayName = 'QuickEmojiReactions';
 QuickEmojiReactions.propTypes = propTypes;

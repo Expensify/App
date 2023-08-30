@@ -1,4 +1,4 @@
-const {notarize} = require('electron-notarize');
+const {notarize} = require('@electron/notarize');
 const electron = require('../config/electronBuilder.config');
 
 exports.default = function notarizing(context) {
@@ -14,7 +14,7 @@ exports.default = function notarizing(context) {
         appBundleId: electron.appId,
         appPath: `${appOutDir}/${appName}.app`,
         appleId: process.env.APPLE_ID,
-        appleIdPassword: process.env.APPLE_ID_PASSWORD,
+        appleIdPassword: process.env.APPLE_APP_SPECIFIC_PASSWORD,
         teamId: '368M544MTT',
     });
 };

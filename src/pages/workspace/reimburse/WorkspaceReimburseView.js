@@ -1,32 +1,30 @@
-import React from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
-import TextInput from '../../../components/TextInput';
-import Picker from '../../../components/Picker';
+import MenuItemWithTopDescription from '../../../components/MenuItemWithTopDescription';
 import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
-import themeColors from '../../../styles/themes/default';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as Illustrations from '../../../components/Icon/Illustrations';
 import Section from '../../../components/Section';
+import Navigation from '../../../libs/Navigation/Navigation';
 import CopyTextToClipboard from '../../../components/CopyTextToClipboard';
 import * as Link from '../../../libs/actions/Link';
 import compose from '../../../libs/compose';
 import * as Policy from '../../../libs/actions/Policy';
 import CONST from '../../../CONST';
+import ROUTES from '../../../ROUTES';
 import ONYXKEYS from '../../../ONYXKEYS';
 import * as ReimbursementAccountProps from '../../ReimbursementAccount/reimbursementAccountPropTypes';
-import getPermittedDecimalSeparator from '../../../libs/getPermittedDecimalSeparator';
 import {withNetwork} from '../../../components/OnyxProvider';
-import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import networkPropTypes from '../../../components/networkPropTypes';
-import Log from '../../../libs/Log';
 import WorkspaceReimburseSection from './WorkspaceReimburseSection';
 import * as BankAccounts from '../../../libs/actions/BankAccounts';
+import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 
 const propTypes = {
     /** Policy values needed in the component */
@@ -66,250 +64,130 @@ const defaultProps = {
     reimbursementAccount: ReimbursementAccountProps.reimbursementAccountDefaultProps,
 };
 
-class WorkspaceReimburseView extends React.Component {
-    constructor(props) {
-        super(props);
-        const distanceCustomUnit = _.find(lodashGet(props, 'policy.customUnits', {}), (unit) => unit.name === 'Distance');
-        const customUnitRate = _.find(lodashGet(distanceCustomUnit, 'rates', {}), (rate) => rate.name === 'Default Rate');
+function WorkspaceReimburseView(props) {
+    const [currentRatePerUnit, setCurrentRatePerUnit] = useState('');
+    const viewAllReceiptsUrl = `expenses?policyIDList=${props.policy.id}&billableReimbursable=reimbursable&submitterEmail=%2B%2B`;
+    const distanceCustomUnit = _.find(lodashGet(props.policy, 'customUnits', {}), (unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
+    const distanceCustomRate = _.find(lodashGet(distanceCustomUnit, 'rates', {}), (rate) => rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE);
+    const {translate, toLocaleDigit} = props;
 
-        this.state = {
-            unitID: lodashGet(distanceCustomUnit, 'customUnitID', ''),
-            unitName: lodashGet(distanceCustomUnit, 'name', ''),
-            unitValue: lodashGet(distanceCustomUnit, 'attributes.unit', 'mi'),
-            unitRateID: lodashGet(customUnitRate, 'customUnitRateID', ''),
-            unitRateValue: this.getUnitRateValue(customUnitRate),
-        };
+    const getNumericValue = useCallback(
+        (value) => {
+            const numValue = parseFloat(value.toString().replace(toLocaleDigit('.'), '.'));
+            if (Number.isNaN(numValue)) {
+                return NaN;
+            }
+            return numValue.toFixed(3);
+        },
+        [toLocaleDigit],
+    );
 
-        this.debounceUpdateOnCursorMove = this.debounceUpdateOnCursorMove.bind(this);
-        this.updateRateValueDebounced = _.debounce(this.updateRateValue.bind(this), 1000);
-        this.updatedValue = this.state.unitRateValue;
-    }
+    const getRateDisplayValue = useCallback(
+        (value) => {
+            const numValue = getNumericValue(value);
+            if (Number.isNaN(numValue)) {
+                return '';
+            }
+            return numValue.toString().replace('.', toLocaleDigit('.')).substring(0, value.length);
+        },
+        [getNumericValue, toLocaleDigit],
+    );
 
-    componentDidMount() {
-        this.fetchData();
-    }
+    const getRateLabel = useCallback((customUnitRate) => getRateDisplayValue(lodashGet(customUnitRate, 'rate', 0) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET), [getRateDisplayValue]);
 
-    componentDidUpdate(prevProps) {
-        if (prevProps.policy.customUnits !== this.props.policy.customUnits) {
-            const distanceCustomUnit = _.chain(lodashGet(this.props, 'policy.customUnits', [])).values().findWhere({name: CONST.CUSTOM_UNITS.NAME_DISTANCE}).value();
-            const customUnitRate = _.find(lodashGet(distanceCustomUnit, 'rates', {}), (rate) => rate.name === 'Default Rate');
-            this.setState({
-                unitID: lodashGet(distanceCustomUnit, 'customUnitID', ''),
-                unitName: lodashGet(distanceCustomUnit, 'name', ''),
-                unitValue: lodashGet(distanceCustomUnit, 'attributes.unit', 'mi'),
-                unitRateID: lodashGet(customUnitRate, 'customUnitRateID'),
-                unitRateValue: this.getUnitRateValue(customUnitRate),
-            });
-            this.updatedValue = this.getUnitRateValue(customUnitRate);
-        }
+    const getUnitLabel = useCallback((value) => translate(`common.${value}`), [translate]);
 
-        const reconnecting = prevProps.network.isOffline && !this.props.network.isOffline;
-        if (!reconnecting) {
-            return;
-        }
+    const getCurrentRatePerUnitLabel = useCallback(() => {
+        const customUnitRate = _.find(lodashGet(distanceCustomUnit, 'rates', '{}'), (rate) => rate && rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE);
+        const currentUnit = getUnitLabel(lodashGet(distanceCustomUnit, 'attributes.unit', CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES));
+        const currentRate = getRateLabel(customUnitRate);
+        const perWord = translate('common.per');
+        return `${currentRate} ${perWord} ${currentUnit}`;
+    }, [translate, distanceCustomUnit, getUnitLabel, getRateLabel]);
 
-        this.fetchData();
-    }
-
-    getUnitRateValue(customUnitRate) {
-        return this.getRateDisplayValue(lodashGet(customUnitRate, 'rate', 0) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET);
-    }
-
-    getUnitItems() {
-        return [
-            {label: this.props.translate('workspace.reimburse.kilometers'), value: 'km'},
-            {label: this.props.translate('workspace.reimburse.miles'), value: 'mi'},
-        ];
-    }
-
-    getRateDisplayValue(value) {
-        const numValue = this.getNumericValue(value);
-        if (Number.isNaN(numValue)) {
-            return '';
-        }
-        return numValue.toString().replace('.', this.props.toLocaleDigit('.')).substring(0, value.length);
-    }
-
-    getNumericValue(value) {
-        const numValue = parseFloat(value.toString().replace(this.props.toLocaleDigit('.'), '.'));
-        if (Number.isNaN(numValue)) {
-            return NaN;
-        }
-
-        return numValue.toFixed(3);
-    }
-
-    setRate(inputValue) {
-        const value = inputValue.replace(/[^0-9.,]/g, '');
-
-        const decimalSeparator = this.props.toLocaleDigit('.');
-        const rateValueRegex = RegExp(String.raw`^\d{1,8}([${getPermittedDecimalSeparator(decimalSeparator)}]\d{0,3})?$`, 'i');
-        const isInvalidRateValue = value !== '' && !rateValueRegex.test(value);
-
-        if (!isInvalidRateValue) {
-            this.updatedValue = this.getRateDisplayValue(value);
-        }
-        this.setState({unitRateValue: value}, () => {
-            // Set the corrected value with a delay and sync to the server
-            this.updateRateValueDebounced(this.updatedValue);
-        });
-    }
-
-    setUnit(value) {
-        if (value === this.state.unitValue) {
-            return;
-        }
-
-        const distanceCustomUnit = _.find(lodashGet(this.props, 'policy.customUnits', {}), (unit) => unit.name === 'Distance');
-        if (!distanceCustomUnit) {
-            Log.warn('Policy has no customUnits, returning early.', {
-                policyID: this.props.policy.id,
-            });
-            return;
-        }
-
-        Policy.updateWorkspaceCustomUnit(
-            this.props.policy.id,
-            distanceCustomUnit,
-            {
-                customUnitID: this.state.unitID,
-                name: this.state.unitName,
-                attributes: {unit: value},
-            },
-            this.props.policy.lastModified,
-        );
-    }
-
-    fetchData() {
+    const fetchData = useCallback(() => {
         // Instead of setting the reimbursement account loading within the optimistic data of the API command, use a separate action so that the Onyx value is updated right away.
         // openWorkspaceReimburseView uses API.read which will not make the request until all WRITE requests in the sequential queue have finished responding, so there would be a delay in
         // updating Onyx with the optimistic data.
         BankAccounts.setReimbursementAccountLoading(true);
-        Policy.openWorkspaceReimburseView(this.props.policy.id);
-    }
+        Policy.openWorkspaceReimburseView(props.policy.id);
+    }, [props.policy.id]);
 
-    debounceUpdateOnCursorMove(event) {
-        if (!_.contains(['ArrowLeft', 'ArrowRight'], event.key)) {
+    useEffect(() => {
+        if (props.network.isOffline) {
             return;
         }
+        fetchData();
+    }, [props.network.isOffline, fetchData]);
 
-        this.updateRateValueDebounced(this.state.unitRateValue);
-    }
+    useEffect(() => {
+        setCurrentRatePerUnit(getCurrentRatePerUnitLabel());
+    }, [props.policy.customUnits, getCurrentRatePerUnitLabel]);
 
-    updateRateValue(value) {
-        const numValue = this.getNumericValue(value);
+    return (
+        <>
+            <Section
+                title={translate('workspace.reimburse.captureReceipts')}
+                icon={Illustrations.MoneyReceipts}
+                menuItems={[
+                    {
+                        title: translate('workspace.reimburse.viewAllReceipts'),
+                        onPress: () => Link.openOldDotLink(viewAllReceiptsUrl),
+                        icon: Expensicons.Receipt,
+                        shouldShowRightIcon: true,
+                        iconRight: Expensicons.NewWindow,
+                        wrapperStyle: [styles.cardMenuItem],
+                        link: () => Link.buildOldDotURL(viewAllReceiptsUrl),
+                    },
+                ]}
+            >
+                <View style={[styles.mv3, styles.flexRow, styles.flexWrap]}>
+                    <Text>
+                        {translate('workspace.reimburse.captureNoVBACopyBeforeEmail')}
+                        <CopyTextToClipboard
+                            text={CONST.EMAIL.RECEIPTS}
+                            textStyles={[styles.textBlue]}
+                        />
+                        <Text>{translate('workspace.reimburse.captureNoVBACopyAfterEmail')}</Text>
+                    </Text>
+                </View>
+            </Section>
 
-        if (_.isNaN(numValue)) {
-            if (value === '') {
-                this.setState({unitRateValue: value});
-            }
-            return;
-        }
-
-        const distanceCustomUnit = _.find(lodashGet(this.props, 'policy.customUnits', {}), (unit) => unit.name === 'Distance');
-        const currentCustomUnitRate = lodashGet(distanceCustomUnit, ['rates', this.state.unitRateID], {});
-        Policy.updateCustomUnitRate(
-            this.props.policy.id,
-            currentCustomUnitRate,
-            this.state.unitID,
-            {
-                ...currentCustomUnitRate,
-                rate: numValue * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET,
-            },
-            this.props.policy.lastModified,
-        );
-    }
-
-    render() {
-        const viewAllReceiptsUrl = `expenses?policyIDList=${this.props.policy.id}&billableReimbursable=reimbursable&submitterEmail=%2B%2B`;
-        const outputCurrency = lodashGet(this.props, 'policy.outputCurrency', CONST.CURRENCY.USD);
-
-        return (
-            <>
-                <Section
-                    title={this.props.translate('workspace.reimburse.captureReceipts')}
-                    icon={Illustrations.MoneyReceipts}
-                    menuItems={[
-                        {
-                            title: this.props.translate('workspace.reimburse.viewAllReceipts'),
-                            onPress: () => Link.openOldDotLink(viewAllReceiptsUrl),
-                            icon: Expensicons.Receipt,
-                            shouldShowRightIcon: true,
-                            iconRight: Expensicons.NewWindow,
-                            wrapperStyle: [styles.cardMenuItem],
-                            link: () => Link.buildOldDotURL(viewAllReceiptsUrl),
-                        },
-                    ]}
+            <Section
+                title={translate('workspace.reimburse.trackDistance')}
+                icon={Illustrations.TrackShoe}
+            >
+                <View style={[styles.mv3]}>
+                    <Text>{translate('workspace.reimburse.trackDistanceCopy')}</Text>
+                </View>
+                <OfflineWithFeedback
+                    pendingAction={lodashGet(distanceCustomUnit, 'pendingAction') || lodashGet(distanceCustomRate, 'pendingAction')}
+                    shouldShowErrorMessages={false}
                 >
-                    <View style={[styles.mv3, styles.flexRow, styles.flexWrap]}>
-                        <Text>
-                            {this.props.translate('workspace.reimburse.captureNoVBACopyBeforeEmail')}
-                            <CopyTextToClipboard
-                                text="receipts@expensify.com"
-                                textStyles={[styles.textBlue]}
-                            />
-                            <Text>{this.props.translate('workspace.reimburse.captureNoVBACopyAfterEmail')}</Text>
-                        </Text>
-                    </View>
-                </Section>
+                    <MenuItemWithTopDescription
+                        title={currentRatePerUnit}
+                        description={translate('workspace.reimburse.trackDistanceRate')}
+                        shouldShowRightIcon
+                        onPress={() => Navigation.navigate(ROUTES.getWorkspaceRateAndUnitRoute(props.policy.id))}
+                        wrapperStyle={[styles.mhn5, styles.wAuto]}
+                        brickRoadIndicator={(lodashGet(distanceCustomUnit, 'errors') || lodashGet(distanceCustomRate, 'errors')) && CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR}
+                    />
+                </OfflineWithFeedback>
+            </Section>
 
-                <Section
-                    title={this.props.translate('workspace.reimburse.trackDistance')}
-                    icon={Illustrations.TrackShoe}
-                >
-                    <View style={[styles.mv3]}>
-                        <Text>{this.props.translate('workspace.reimburse.trackDistanceCopy')}</Text>
-                    </View>
-                    <OfflineWithFeedback
-                        errors={{
-                            ...lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'errors'], {}),
-                            ...lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'rates', this.state.unitRateID, 'errors'], {}),
-                        }}
-                        pendingAction={
-                            lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'pendingAction']) ||
-                            lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'rates', this.state.unitRateID, 'pendingAction'])
-                        }
-                        onClose={() => Policy.clearCustomUnitErrors(this.props.policy.id, this.state.unitID, this.state.unitRateID)}
-                    >
-                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.mv2]}>
-                            <View style={[styles.rateCol]}>
-                                <TextInput
-                                    label={this.props.translate('workspace.reimburse.trackDistanceRate')}
-                                    placeholder={outputCurrency}
-                                    onChangeText={(value) => this.setRate(value)}
-                                    value={this.state.unitRateValue}
-                                    autoCompleteType="off"
-                                    autoCorrect={false}
-                                    keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
-                                    onKeyPress={this.debounceUpdateOnCursorMove}
-                                    maxLength={12}
-                                />
-                            </View>
-                            <View style={[styles.unitCol]}>
-                                <Picker
-                                    label={this.props.translate('workspace.reimburse.trackDistanceUnit')}
-                                    items={this.getUnitItems()}
-                                    value={this.state.unitValue}
-                                    onInputChange={(value) => this.setUnit(value)}
-                                    backgroundColor={themeColors.cardBG}
-                                />
-                            </View>
-                        </View>
-                    </OfflineWithFeedback>
-                </Section>
-                <WorkspaceReimburseSection
-                    policy={this.props.policy}
-                    reimbursementAccount={this.props.reimbursementAccount}
-                    network={this.props.network}
-                    translate={this.props.translate}
-                />
-            </>
-        );
-    }
+            <WorkspaceReimburseSection
+                policy={props.policy}
+                reimbursementAccount={props.reimbursementAccount}
+                network={props.network}
+                translate={translate}
+            />
+        </>
+    );
 }
 
 WorkspaceReimburseView.defaultProps = defaultProps;
 WorkspaceReimburseView.propTypes = propTypes;
+WorkspaceReimburseView.displayName = 'WorkspaceReimburseView';
 
 export default compose(
     withLocalize,

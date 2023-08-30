@@ -1,0 +1,21 @@
+name: TypeScript Checks
+
+on:
+  workflow_call:
+  pull_request:
+    types: [opened, synchronize]
+    branches-ignore: [staging, production]
+
+jobs:
+  typecheck:
+    if: ${{ github.actor != 'OSBotify' || github.event_name == 'workflow_call' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: Expensify/App/.github/actions/composite/setupNode@main
+
+      - name: Type check with TypeScript
+        run: npm run typecheck
+        env:
+          CI: true
