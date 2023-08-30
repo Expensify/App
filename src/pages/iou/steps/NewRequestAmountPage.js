@@ -20,6 +20,7 @@ import styles from '../../../styles/styles';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import {iouPropTypes, iouDefaultProps} from '../propTypes';
+import CONST from '../../../CONST';
 
 const propTypes = {
     /** React Navigation route */
