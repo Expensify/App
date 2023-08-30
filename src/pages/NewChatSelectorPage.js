@@ -27,6 +27,7 @@ const defaultProps = {
 function NewChatSelectorPage(props) {
     return (
         <ScreenWrapper
+            shouldEnableKeyboardAvoidingView={false}
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
         >
