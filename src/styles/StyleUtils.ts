@@ -15,7 +15,11 @@ import * as Browser from '../libs/Browser';
 import cursor from './utilities/cursor';
 import * as NumberUtils from '../libs/NumberUtils';
 
-const workspaceColorOptions: Array<{backgroundColor: ValueOf<typeof colors>; fill: ValueOf<typeof colors>}> = [
+type ColorsValues = ValueOf<typeof colors>;
+type AvatarSizesValues = ValueOf<typeof CONST.AVATAR_SIZE>;
+type ButtonSizesValues = ValueOf<typeof CONST.DROPDOWN_BUTTON_SIZE>;
+
+const workspaceColorOptions: Array<{backgroundColor: ColorsValues; fill: ColorsValues}> = [
     {backgroundColor: colors.blue200, fill: colors.blue700},
     {backgroundColor: colors.blue400, fill: colors.blue800},
     {backgroundColor: colors.blue700, fill: colors.blue200},
@@ -36,7 +40,7 @@ const workspaceColorOptions: Array<{backgroundColor: ValueOf<typeof colors>; fil
     {backgroundColor: colors.ice700, fill: colors.ice200},
 ];
 
-const avatarBorderSizes: Partial<Record<ValueOf<typeof CONST.AVATAR_SIZE>, number>> = {
+const avatarBorderSizes: Partial<Record<AvatarSizesValues, number>> = {
     [CONST.AVATAR_SIZE.SMALL_SUBSCRIPT]: variables.componentBorderRadiusSmall,
     [CONST.AVATAR_SIZE.MID_SUBSCRIPT]: variables.componentBorderRadiusSmall,
     [CONST.AVATAR_SIZE.SUBSCRIPT]: variables.componentBorderRadiusMedium,
@@ -50,7 +54,7 @@ const avatarBorderSizes: Partial<Record<ValueOf<typeof CONST.AVATAR_SIZE>, numbe
     [CONST.AVATAR_SIZE.SMALL_NORMAL]: variables.componentBorderRadiusMedium,
 };
 
-const avatarSizes: Record<ValueOf<typeof CONST.AVATAR_SIZE>, number> = {
+const avatarSizes: Record<AvatarSizesValues, number> = {
     [CONST.AVATAR_SIZE.DEFAULT]: variables.avatarSizeNormal,
     [CONST.AVATAR_SIZE.SMALL_SUBSCRIPT]: variables.avatarSizeSmallSubscript,
     [CONST.AVATAR_SIZE.MID_SUBSCRIPT]: variables.avatarSizeMidSubscript,
@@ -65,13 +69,13 @@ const avatarSizes: Record<ValueOf<typeof CONST.AVATAR_SIZE>, number> = {
     [CONST.AVATAR_SIZE.SMALL_NORMAL]: variables.avatarSizeSmallNormal,
 };
 
-const emptyAvatarStyles: Partial<Record<ValueOf<typeof CONST.AVATAR_SIZE>, ViewStyle | CSSProperties>> = {
+const emptyAvatarStyles: Partial<Record<AvatarSizesValues, ViewStyle | CSSProperties>> = {
     [CONST.AVATAR_SIZE.SMALL]: styles.emptyAvatarSmall,
     [CONST.AVATAR_SIZE.MEDIUM]: styles.emptyAvatarMedium,
     [CONST.AVATAR_SIZE.LARGE]: styles.emptyAvatarLarge,
 };
 
-const avatarFontSizes: Partial<Record<ValueOf<typeof CONST.AVATAR_SIZE>, number>> = {
+const avatarFontSizes: Partial<Record<AvatarSizesValues, number>> = {
     [CONST.AVATAR_SIZE.DEFAULT]: variables.fontSizeNormal,
     [CONST.AVATAR_SIZE.SMALL_SUBSCRIPT]: variables.fontSizeExtraSmall,
     [CONST.AVATAR_SIZE.MID_SUBSCRIPT]: variables.fontSizeExtraSmall,
@@ -83,7 +87,7 @@ const avatarFontSizes: Partial<Record<ValueOf<typeof CONST.AVATAR_SIZE>, number>
     [CONST.AVATAR_SIZE.LARGE_BORDERED]: variables.fontSizeXLarge,
 };
 
-const avatarBorderWidths: Partial<Record<ValueOf<typeof CONST.AVATAR_SIZE>, number>> = {
+const avatarBorderWidths: Partial<Record<AvatarSizesValues, number>> = {
     [CONST.AVATAR_SIZE.DEFAULT]: 3,
     [CONST.AVATAR_SIZE.SMALL_SUBSCRIPT]: 1,
     [CONST.AVATAR_SIZE.MID_SUBSCRIPT]: 2,
@@ -98,7 +102,7 @@ const avatarBorderWidths: Partial<Record<ValueOf<typeof CONST.AVATAR_SIZE>, numb
 /**
  * Return the style size from an avatar size constant
  */
-function getAvatarSize(size: ValueOf<typeof CONST.AVATAR_SIZE>): number {
+function getAvatarSize(size: AvatarSizesValues): number {
     return avatarSizes[size];
 }
 
@@ -112,14 +116,14 @@ function getHeightOfMagicCodeInput(): ViewStyle | CSSProperties {
 /**
  * Return the style from an empty avatar size constant
  */
-function getEmptyAvatarStyle(size: ValueOf<typeof CONST.AVATAR_SIZE>): ViewStyle | CSSProperties | undefined {
+function getEmptyAvatarStyle(size: AvatarSizesValues): ViewStyle | CSSProperties | undefined {
     return emptyAvatarStyles[size];
 }
 
 /**
  * Return the width style from an avatar size constant
  */
-function getAvatarWidthStyle(size: ValueOf<typeof CONST.AVATAR_SIZE>): ViewStyle | CSSProperties {
+function getAvatarWidthStyle(size: AvatarSizesValues): ViewStyle | CSSProperties {
     const avatarSize = getAvatarSize(size);
     return {
         width: avatarSize,
@@ -129,7 +133,7 @@ function getAvatarWidthStyle(size: ValueOf<typeof CONST.AVATAR_SIZE>): ViewStyle
 /**
  * Return the style from an avatar size constant
  */
-function getAvatarStyle(size: ValueOf<typeof CONST.AVATAR_SIZE>): ViewStyle | CSSProperties {
+function getAvatarStyle(size: AvatarSizesValues): ViewStyle | CSSProperties {
     const avatarSize = getAvatarSize(size);
     return {
         height: avatarSize,
@@ -142,7 +146,7 @@ function getAvatarStyle(size: ValueOf<typeof CONST.AVATAR_SIZE>): ViewStyle | CS
 /**
  * Get Font size of '+1' text on avatar overlay
  */
-function getAvatarExtraFontSizeStyle(size: ValueOf<typeof CONST.AVATAR_SIZE>): TextStyle | CSSProperties {
+function getAvatarExtraFontSizeStyle(size: AvatarSizesValues): TextStyle | CSSProperties {
     return {
         fontSize: avatarFontSizes[size],
     };
@@ -151,7 +155,7 @@ function getAvatarExtraFontSizeStyle(size: ValueOf<typeof CONST.AVATAR_SIZE>): T
 /**
  * Get Bordersize of Avatar based on avatar size
  */
-function getAvatarBorderWidth(size: ValueOf<typeof CONST.AVATAR_SIZE>): ViewStyle | CSSProperties {
+function getAvatarBorderWidth(size: AvatarSizesValues): ViewStyle | CSSProperties {
     return {
         borderWidth: avatarBorderWidths[size],
     };
@@ -160,7 +164,7 @@ function getAvatarBorderWidth(size: ValueOf<typeof CONST.AVATAR_SIZE>): ViewStyl
 /**
  * Return the border radius for an avatar
  */
-function getAvatarBorderRadius(size: ValueOf<typeof CONST.AVATAR_SIZE>, type: string): ViewStyle | CSSProperties {
+function getAvatarBorderRadius(size: AvatarSizesValues, type: string): ViewStyle | CSSProperties {
     if (type === CONST.ICON_TYPE_WORKSPACE) {
         return {borderRadius: avatarBorderSizes[size]};
     }
@@ -172,7 +176,7 @@ function getAvatarBorderRadius(size: ValueOf<typeof CONST.AVATAR_SIZE>, type: st
 /**
  * Return the border style for an avatar
  */
-function getAvatarBorderStyle(size: ValueOf<typeof CONST.AVATAR_SIZE>, type: string): ViewStyle | CSSProperties {
+function getAvatarBorderStyle(size: AvatarSizesValues, type: string): ViewStyle | CSSProperties {
     return {
         overflow: 'hidden',
         ...getAvatarBorderRadius(size, type),
@@ -1107,7 +1111,7 @@ function getCheckboxContainerStyle(size: number, borderRadius: number): ViewStyl
 /**
  * Returns style object for the dropbutton height
  */
-function getDropDownButtonHeight(buttonSize: ValueOf<typeof CONST.DROPDOWN_BUTTON_SIZE>): ViewStyle | CSSProperties {
+function getDropDownButtonHeight(buttonSize: ButtonSizesValues): ViewStyle | CSSProperties {
     if (buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE) {
         return {
             height: variables.componentSizeLarge,
