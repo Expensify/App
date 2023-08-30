@@ -170,10 +170,7 @@ function fetchTag(tag) {
         console.log(`Running command: ${command}`);
         execSync(command);
     } catch (e) {
-        // This can happen if the tag was only created locally but does not exist in the remote. In this case, we'll fetch history of the staging branch instead
-        const command = `git fetch origin staging --no-tags --shallow-exclude=${previousPatchVersion}`;
-        console.log(`Running command: ${command}`);
-        execSync(command);
+        console.error(e);
     }
 }
 
