@@ -7,6 +7,7 @@ import MenuItemWithTopDescription from '../MenuItemWithTopDescription';
 import useLocalize from '../../hooks/useLocalize';
 import FormHelpMessage from '../FormHelpMessage';
 import StateSelectorModal from './StateSelectorModal';
+import refPropTypes from '../refPropTypes';
 
 const propTypes = {
     /** Error text to display */
@@ -19,7 +20,7 @@ const propTypes = {
     onInputChange: PropTypes.func,
 
     /** A ref to forward to MenuItemWithTopDescription */
-    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
+    forwardedRef: refPropTypes,
 
     /** Label to display on field */
     label: PropTypes.string,

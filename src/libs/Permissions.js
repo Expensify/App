@@ -74,14 +74,6 @@ function canUsePolicyRooms(betas) {
  * @param {Array<String>} betas
  * @returns {Boolean}
  */
-function canUsePolicyExpenseChat(betas) {
-    return _.contains(betas, CONST.BETAS.POLICY_EXPENSE_CHAT) || canUseAllBetas(betas);
-}
-
-/**
- * @param {Array<String>} betas
- * @returns {Boolean}
- */
 function canUseTasks(betas) {
     return _.contains(betas, CONST.BETAS.TASKS) || canUseAllBetas(betas);
 }
@@ -126,7 +118,6 @@ export default {
     canUseWallet,
     canUseCommentLinking,
     canUsePolicyRooms,
-    canUsePolicyExpenseChat,
     canUseTasks,
     canUseScanReceipts,
     canUseCustomStatus,

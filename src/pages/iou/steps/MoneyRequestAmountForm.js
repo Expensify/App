@@ -13,6 +13,10 @@ import TextInputWithCurrencySymbol from '../../../components/TextInputWithCurren
 import useLocalize from '../../../hooks/useLocalize';
 import CONST from '../../../CONST';
 import FormHelpMessage from '../../../components/FormHelpMessage';
+import refPropTypes from '../../../components/refPropTypes';
+import getOperatingSystem from '../../../libs/getOperatingSystem';
+import * as Browser from '../../../libs/Browser';
+import useWindowDimensions from '../../../hooks/useWindowDimensions';
 
 const propTypes = {
     /** IOU amount saved in Onyx */
@@ -25,7 +29,7 @@ const propTypes = {
     isEditing: PropTypes.bool,
 
     /** Refs forwarded to the TextInputWithCurrencySymbol */
-    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
+    forwardedRef: refPropTypes,
 
     /** Fired when back button pressed, navigates to currency selection page */
     onCurrencyButtonPress: PropTypes.func.isRequired,
@@ -61,6 +65,7 @@ const NUM_PAD_CONTAINER_VIEW_ID = 'numPadContainerView';
 const NUM_PAD_VIEW_ID = 'numPadView';
 
 function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCurrencyButtonPress, onSubmitButtonPress}) {
+    const {isExtraSmallScreenHeight} = useWindowDimensions();
     const {translate, toLocaleDigit, numberFormat} = useLocalize();
 
     const textInput = useRef(null);
@@ -77,6 +82,8 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
         start: selectedAmountAsString.length,
         end: selectedAmountAsString.length,
     });
+
+    const forwardDeletePressedRef = useRef(false);
 
     /**
      * Event occurs when a user presses a mouse button over an DOM element.
@@ -130,8 +137,10 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
         setIsInvalidAmount(checkInValidAmount);
         setFormError(checkInValidAmount ? 'iou.error.invalidAmount' : '');
         setCurrentAmount((prevAmount) => {
-            setSelection((prevSelection) => getNewSelection(prevSelection, prevAmount.length, newAmountWithoutSpaces.length));
-            return MoneyRequestUtils.stripCommaFromAmount(newAmountWithoutSpaces);
+            const strippedAmount = MoneyRequestUtils.stripCommaFromAmount(newAmountWithoutSpaces);
+            const isForwardDelete = prevAmount.length > strippedAmount.length && forwardDeletePressedRef.current;
+            setSelection((prevSelection) => getNewSelection(prevSelection, isForwardDelete ? strippedAmount.length : prevAmount.length, strippedAmount.length));
+            return strippedAmount;
         });
     };
 
@@ -185,6 +194,22 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
         onSubmitButtonPress(currentAmount);
     }, [onSubmitButtonPress, currentAmount, isInvaidAmount]);
 
+    /**
+     * Input handler to check for a forward-delete key (or keyboard shortcut) press.
+     */
+    const textInputKeyPress = ({nativeEvent}) => {
+        const key = nativeEvent.key.toLowerCase();
+        if (Browser.isMobileSafari() && key === CONST.PLATFORM_SPECIFIC_KEYS.CTRL.DEFAULT) {
+            // Optimistically anticipate forward-delete on iOS Safari (in cases where the Mac Accessiblity keyboard is being
+            // used for input). If the Control-D shortcut doesn't get sent, the ref will still be reset on the next key press.
+            forwardDeletePressedRef.current = true;
+            return;
+        }
+        // Control-D on Mac is a keyboard shortcut for forward-delete. See https://support.apple.com/en-us/HT201236 for Mac keyboard shortcuts.
+        // Also check for the keyboard shortcut on iOS in cases where a hardware keyboard may be connected to the device.
+        forwardDeletePressedRef.current = key === 'delete' || (_.contains([CONST.OS.MAC_OS, CONST.OS.IOS], getOperatingSystem()) && nativeEvent.ctrlKey && key === 'd');
+    };
+
     const formattedAmount = MoneyRequestUtils.replaceAllDigits(currentAmount, toLocaleDigit);
     const buttonText = isEditing ? translate('common.save') : translate('common.next');
 
@@ -217,6 +242,7 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
                         }
                         setSelection(e.nativeEvent.selection);
                     }}
+                    onKeyPress={textInputKeyPress}
                 />
             </View>
             <View
@@ -232,18 +258,18 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
                     />
                 ) : null}
                 <View style={[styles.w100, styles.mt5]}>
-                    {!_.isEmpty(formError) && firstPress && (
-                        <FormHelpMessage
-                            isError
-                            message={translate(formError)}
-                        />
-                    )}
                     <Button
                         success
                         onPress={submitAndNavigateToNextPage}
                         pressOnEnter
                         text={buttonText}
                     />
+                    {!_.isEmpty(formError) && firstPress && (
+                        <FormHelpMessage
+                            isError
+                            message={translate(formError)}
+                        />
+                    )}
                 </View>
             </View>
         </>

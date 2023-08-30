@@ -71,10 +71,31 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
+            const MoneyRequestDatePage = require('../../../pages/iou/MoneyRequestDatePage').default;
+            return MoneyRequestDatePage;
+        },
+        name: 'Money_Request_Date',
+    },
+    {
+        getComponent: () => {
             const MoneyRequestDescriptionPage = require('../../../pages/iou/MoneyRequestDescriptionPage').default;
             return MoneyRequestDescriptionPage;
         },
         name: 'Money_Request_Description',
+    },
+    {
+        getComponent: () => {
+            const MoneyRequestCategoryPage = require('../../../pages/iou/MoneyRequestCategoryPage').default;
+            return MoneyRequestCategoryPage;
+        },
+        name: 'Money_Request_Category',
+    },
+    {
+        getComponent: () => {
+            const MoneyRequestMerchantPage = require('../../../pages/iou/MoneyRequestMerchantPage').default;
+            return MoneyRequestMerchantPage;
+        },
+        name: 'Money_Request_Merchant',
     },
     {
         getComponent: () => {
@@ -300,6 +321,37 @@ const NewTaskModalStackNavigator = createModalStackNavigator([
             return NewTaskDescriptionPage;
         },
         name: 'NewTask_Description',
+    },
+]);
+
+const NewTeachersUniteNavigator = createModalStackNavigator([
+    {
+        getComponent: () => {
+            const SaveTheWorldPage = require('../../../pages/TeachersUnite/SaveTheWorldPage').default;
+            return SaveTheWorldPage;
+        },
+        name: 'SaveTheWorld_Root',
+    },
+    {
+        getComponent: () => {
+            const KnowATeacherPage = require('../../../pages/TeachersUnite/KnowATeacherPage').default;
+            return KnowATeacherPage;
+        },
+        name: 'I_Know_A_Teacher',
+    },
+    {
+        getComponent: () => {
+            const IntroSchoolPrincipalPage = require('../../../pages/TeachersUnite/IntroSchoolPrincipalPage').default;
+            return IntroSchoolPrincipalPage;
+        },
+        name: 'Intro_School_Principal',
+    },
+    {
+        getComponent: () => {
+            const ImTeacherPage = require('../../../pages/TeachersUnite/ImTeacherPage').default;
+            return ImTeacherPage;
+        },
+        name: 'I_Am_A_Teacher',
     },
 ]);
 
@@ -742,5 +794,6 @@ export {
     WalletStatementStackNavigator,
     FlagCommentStackNavigator,
     EditRequestStackNavigator,
+    NewTeachersUniteNavigator,
     SignInModalStackNavigator,
 };
