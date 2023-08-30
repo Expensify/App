@@ -29,6 +29,7 @@ import transactionPropTypes from './transactionPropTypes';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import * as ErrorUtils from '../libs/ErrorUtils';
 import usePrevious from '../hooks/usePrevious';
+import {iouPropTypes} from '../pages/iou/propTypes';
 
 const MAX_WAYPOINTS = 25;
 const MAX_WAYPOINTS_TO_DISPLAY = 4;
@@ -37,13 +38,7 @@ const DEFAULT_ZOOM_LEVEL = 10;
 
 const propTypes = {
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
-    iou: PropTypes.shape({
-        id: PropTypes.string,
-        amount: PropTypes.number,
-        currency: PropTypes.string,
-        participants: PropTypes.arrayOf(participantPropTypes),
-        transactionID: PropTypes.string,
-    }),
+    iou: iouPropTypes,
 
     /** Type of money request (i.e. IOU) */
     iouType: PropTypes.string,
