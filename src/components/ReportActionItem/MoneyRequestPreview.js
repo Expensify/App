@@ -231,25 +231,19 @@ function MoneyRequestPreview(props) {
                         />
                     )}
                     <View style={styles.moneyRequestPreviewBoxText}>
-                        <View style={[styles.flexRow]}>
-                            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh16]}>{getPreviewHeaderText()}</Text>
-                                {Boolean(getSettledMessage()) && (
-                                    <>
-                                        <Icon
-                                            src={Expensicons.DotIndicator}
-                                            width={4}
-                                            height={4}
-                                            additionalStyles={[styles.mr1, styles.ml1]}
-                                        />
-                                        <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh16]}>{getSettledMessage()}</Text>
-                                    </>
-                                )}
-                            </View>
-                            <Icon
-                                fill={StyleUtils.getIconFillColor(getButtonState(props.isHovered))}
-                                src={Expensicons.ArrowRight}
-                            />
+                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                            <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh16]}>{getPreviewHeaderText()}</Text>
+                            {Boolean(getSettledMessage()) && (
+                                <>
+                                    <Icon
+                                        src={Expensicons.DotIndicator}
+                                        width={4}
+                                        height={4}
+                                        additionalStyles={[styles.mr1, styles.ml1]}
+                                    />
+                                    <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh16]}>{getSettledMessage()}</Text>
+                                </>
+                            )}
                         </View>
                         <View style={[styles.flexRow]}>
                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
