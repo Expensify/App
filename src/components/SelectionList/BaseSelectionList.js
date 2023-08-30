@@ -11,7 +11,7 @@ import CONST from '../../CONST';
 import variables from '../../styles/variables';
 import {propTypes as selectionListPropTypes} from './selectionListPropTypes';
 import RadioListItem from './RadioListItem';
-import CheckboxListItem from './CheckboxListItem';
+import UserListItem from './UserListItem';
 import useKeyboardShortcut from '../../hooks/useKeyboardShortcut';
 import SafeAreaConsumer from '../SafeAreaConsumer';
 import withKeyboardState, {keyboardStatePropTypes} from '../withKeyboardState';
@@ -250,7 +250,7 @@ function BaseSelectionList({
 
         if (canSelectMultiple) {
             return (
-                <CheckboxListItem
+                <UserListItem
                     item={item}
                     isFocused={isFocused}
                     onSelectRow={() => selectRow(item, index)}
