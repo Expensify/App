@@ -2,53 +2,35 @@ import React, {useEffect} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import * as IOU from '../../libs/actions/IOU';
 import ONYXKEYS from '../../ONYXKEYS';
 import DistanceRequest from '../../components/DistanceRequest';
 import reportPropTypes from '../reportPropTypes';
 import CONST from '../../CONST';
+import {iouPropTypes} from './propTypes';
 
 const propTypes = {
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
-    iou: PropTypes.shape({
-        id: PropTypes.string,
-        amount: PropTypes.number,
-        currency: PropTypes.string,
-        merchant: PropTypes.string,
-        created: PropTypes.string,
-        participants: PropTypes.arrayOf(
-            PropTypes.shape({
-                accountID: PropTypes.number,
-                login: PropTypes.string,
-                isPolicyExpenseChat: PropTypes.bool,
-                isOwnPolicyExpenseChat: PropTypes.bool,
-                selected: PropTypes.bool,
-            }),
-        ),
-        transactionID: PropTypes.string,
-    }),
+    iou: iouPropTypes,
 
     /** The report on which the request is initiated on */
     report: reportPropTypes,
 
     /** Passed from the navigator */
     route: PropTypes.shape({
+        /** Parameters the route gets */
         params: PropTypes.shape({
-            iouType: PropTypes.string,
+            /** Type of IOU */
+            iouType: PropTypes.oneOf(_.values(CONST.IOU.MONEY_REQUEST_TYPE)),
+            /** Id of the report on which the distance request is being created */
             reportID: PropTypes.string,
         }),
     }),
 };
 
 const defaultProps = {
-    iou: {
-        id: '',
-        amount: 0,
-        created: '',
-        merchant: '',
-        currency: CONST.CURRENCY.USD,
-        participants: [],
-    },
+    iou: {},
     report: {},
     route: {
         params: {

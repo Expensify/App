@@ -10,9 +10,7 @@ import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import * as CurrencyUtils from '../../../libs/CurrencyUtils';
-import CONST from '../../../CONST';
 import reportPropTypes from '../../reportPropTypes';
-import participantPropTypes from '../../../components/participantPropTypes';
 import * as IOU from '../../../libs/actions/IOU';
 import useLocalize from '../../../hooks/useLocalize';
 import MoneyRequestAmountForm from './MoneyRequestAmountForm';
@@ -21,6 +19,8 @@ import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotF
 import styles from '../../../styles/styles';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import ScreenWrapper from '../../../components/ScreenWrapper';
+import {iouPropTypes, iouDefaultProps} from '../propTypes';
+import CONST from '../../../CONST';
 
 const propTypes = {
     /** React Navigation route */
@@ -42,36 +42,19 @@ const propTypes = {
     report: reportPropTypes,
 
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
-    iou: PropTypes.shape({
-        /** ID (iouType + reportID) of the request */
-        id: PropTypes.string,
+    iou: iouPropTypes,
 
-        /** Amount of the request */
-        amount: PropTypes.number,
-
-        /** Currency of the request */
-        currency: PropTypes.string,
-        merchant: PropTypes.string,
-        created: PropTypes.string,
-
-        /** List of the participants */
-        participants: PropTypes.arrayOf(participantPropTypes),
-    }),
+    /** The current tab we have navigated to in the request modal. String that corresponds to the request type. */
+    selectedTab: PropTypes.oneOf([CONST.TAB.DISTANCE, CONST.TAB.MANUAL, CONST.TAB.SCAN]),
 };
 
 const defaultProps = {
     report: {},
-    iou: {
-        id: '',
-        amount: 0,
-        created: '',
-        merchant: '',
-        currency: CONST.CURRENCY.USD,
-        participants: [],
-    },
+    iou: iouDefaultProps,
+    selectedTab: CONST.TAB.MANUAL,
 };
 
-function NewRequestAmountPage({route, iou, report}) {
+function NewRequestAmountPage({route, iou, report, selectedTab}) {
     const {translate} = useLocalize();
 
     const prevMoneyRequestID = useRef(iou.id);
@@ -81,6 +64,7 @@ function NewRequestAmountPage({route, iou, report}) {
     const reportID = lodashGet(route, 'params.reportID', '');
     const isEditing = lodashGet(route, 'path', '').includes('amount');
     const currentCurrency = lodashGet(route, 'params.currency', '');
+    const isDistanceRequest = selectedTab === CONST.TAB.DISTANCE;
 
     const currency = currentCurrency || iou.currency;
 
@@ -130,7 +114,7 @@ function NewRequestAmountPage({route, iou, report}) {
                 IOU.resetMoneyRequestInfo(moneyRequestID);
             }
 
-            if (_.isEmpty(iou.participants) || iou.amount === 0 || shouldReset) {
+            if (!isDistanceRequest && (_.isEmpty(iou.participants) || iou.amount === 0 || shouldReset)) {
                 Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType, reportID), true);
             }
         }
@@ -138,13 +122,19 @@ function NewRequestAmountPage({route, iou, report}) {
         return () => {
             prevMoneyRequestID.current = iou.id;
         };
-    }, [iou.participants, iou.amount, iou.id, isEditing, iouType, reportID]);
+    }, [iou.participants, iou.amount, iou.id, isEditing, iouType, reportID, isDistanceRequest]);
 
     const navigateBack = () => {
         Navigation.goBack(isEditing ? ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID) : null);
     };
 
     const navigateToCurrencySelectionPage = () => {
+        // If the money request being created is a distance request, don't allow the user to choose the currency.
+        // Only USD is allowed for distance requests.
+        if (isDistanceRequest) {
+            return;
+        }
+
         // Remove query from the route and encode it.
         const activeRoute = encodeURIComponent(Navigation.getActiveRoute().replace(/\?.*/, ''));
         Navigation.navigate(ROUTES.getMoneyRequestCurrencyRoute(iouType, reportID, currency, activeRoute));
@@ -209,5 +199,8 @@ export default withOnyx({
     iou: {key: ONYXKEYS.IOU},
     report: {
         key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '')}`,
+    },
+    selectedTab: {
+        key: `${ONYXKEYS.SELECTED_TAB}_${CONST.TAB.RECEIPT_TAB_ID}`,
     },
 })(NewRequestAmountPage);

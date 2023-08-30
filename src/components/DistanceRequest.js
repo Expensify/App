@@ -23,21 +23,27 @@ import useLocalize from '../hooks/useLocalize';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import participantPropTypes from './participantPropTypes';
+import * as IOU from '../libs/actions/IOU';
 import reportPropTypes from '../pages/reportPropTypes';
 import transactionPropTypes from './transactionPropTypes';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import * as ErrorUtils from '../libs/ErrorUtils';
 import usePrevious from '../hooks/usePrevious';
+import {iouPropTypes} from '../pages/iou/propTypes';
 
 const MAX_WAYPOINTS = 25;
 const MAX_WAYPOINTS_TO_DISPLAY = 4;
 
-const MAP_PADDING = 50;
 const DEFAULT_ZOOM_LEVEL = 10;
 
 const propTypes = {
     /** The transactionID of this request */
     transactionID: PropTypes.string,
+    /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
+    iou: iouPropTypes,
+
+    /** Type of money request (i.e. IOU) */
+    iouType: PropTypes.oneOf(_.values(CONST.IOU.MONEY_REQUEST_TYPE)),
 
     /** The report to with which the distance request is associated */
     report: reportPropTypes,
@@ -60,6 +66,9 @@ const propTypes = {
 
 const defaultProps = {
     transactionID: '',
+    iou: {},
+    iouType: '',
+    report: {},
     transaction: {},
     mapboxAccessToken: {},
     isEditingRequest: false,
@@ -103,8 +112,8 @@ function DistanceRequest({transactionID, report, mapboxAccessToken, isEditingReq
                 coordinate: [waypoint.lng, waypoint.lat],
                 markerComponent: () => (
                     <MarkerComponent
-                        width={20}
-                        height={20}
+                        width={CONST.MAP_MARKER_SIZE}
+                        height={CONST.MAP_MARKER_SIZE}
                         fill={theme.icon}
                     />
                 ),
@@ -217,7 +226,7 @@ function DistanceRequest({transactionID, report, mapboxAccessToken, isEditingReq
                 {!isOffline && Boolean(mapboxAccessToken.token) ? (
                     <MapView
                         accessToken={mapboxAccessToken.token}
-                        mapPadding={MAP_PADDING}
+                        mapPadding={CONST.MAP_PADDING}
                         pitchEnabled={false}
                         initialState={{
                             location: CONST.SF_COORDINATES,
@@ -247,7 +256,7 @@ function DistanceRequest({transactionID, report, mapboxAccessToken, isEditingReq
                     onPress={() => onSubmit(waypoints)}
                     pressOnEnter
                     isDisabled={waypointMarkers.length < 2}
-                    text={translate('common.save')}
+                    text={translate(isEditingRequest ? 'common.save' : 'common.next')}
                 />
             )}
         </>

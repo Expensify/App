@@ -27,6 +27,8 @@ import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import * as IOUUtils from '../../libs/IOUUtils';
 import * as ReportUtils from '../../libs/ReportUtils';
 import * as TransactionUtils from '../../libs/TransactionUtils';
+import * as StyleUtils from '../../styles/StyleUtils';
+import getButtonState from '../../libs/getButtonState';
 import refPropTypes from '../refPropTypes';
 import PressableWithFeedback from '../Pressable/PressableWithoutFeedback';
 import * as ReceiptUtils from '../../libs/ReceiptUtils';
@@ -244,7 +246,10 @@ function MoneyRequestPreview(props) {
                                     </>
                                 )}
                             </View>
-                            <Icon src={Expensicons.ArrowRight} />
+                            <Icon
+                                fill={StyleUtils.getIconFillColor(getButtonState(props.isHovered))}
+                                src={Expensicons.ArrowRight}
+                            />
                         </View>
                         <View style={[styles.flexRow]}>
                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>

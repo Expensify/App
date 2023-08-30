@@ -1255,7 +1255,8 @@ function getMoneyRequestReportName(report, policy = undefined) {
  * @returns {Object}
  */
 function getReport(reportID) {
-    return lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {});
+    // Deleted reports are set to null and lodashGet will still return null in that case, so we need to add an extra check
+    return lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {}) || {};
 }
 
 /**

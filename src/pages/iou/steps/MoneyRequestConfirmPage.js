@@ -20,9 +20,9 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../../components/withCurrentUserPersonalDetails';
 import reportPropTypes from '../../reportPropTypes';
 import personalDetailsPropType from '../../personalDetailsPropType';
-import participantPropTypes from '../../../components/participantPropTypes';
 import * as FileUtils from '../../../libs/fileDownload/FileUtils';
 import * as Policy from '../../../libs/actions/Policy';
+import {iouPropTypes, iouDefaultProps} from '../propTypes';
 
 const propTypes = {
     /** React Navigation route */
@@ -40,25 +40,7 @@ const propTypes = {
     report: reportPropTypes,
 
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
-    iou: PropTypes.shape({
-        /** ID (iouType + reportID) of the request */
-        id: PropTypes.string,
-
-        /** Amount of the request */
-        amount: PropTypes.number,
-
-        /** Description of the request */
-        comment: PropTypes.string,
-        created: PropTypes.string,
-
-        /** Currency of the request */
-        currency: PropTypes.string,
-        merchant: PropTypes.string,
-
-        /** List of the participants */
-        participants: PropTypes.arrayOf(participantPropTypes),
-        receiptPath: PropTypes.string,
-    }),
+    iou: iouPropTypes,
 
     /** Personal details of all users */
     personalDetails: personalDetailsPropType,
@@ -69,15 +51,7 @@ const propTypes = {
 const defaultProps = {
     report: {},
     personalDetails: {},
-    iou: {
-        id: '',
-        amount: 0,
-        currency: CONST.CURRENCY.USD,
-        comment: '',
-        merchant: '',
-        created: '',
-        participants: [],
-    },
+    iou: iouDefaultProps,
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
@@ -118,7 +92,11 @@ function MoneyRequestConfirmPage(props) {
             IOU.resetMoneyRequestInfo(moneyRequestId);
         }
 
+<<<<<<< HEAD
         if (_.isEmpty(props.iou.participants) || (props.iou.amount === 0 && !props.iou.receiptPath) || shouldReset) {
+=======
+        if (_.isEmpty(props.iou.participants) || shouldReset) {
+>>>>>>> 471b017ebce33f5883d2a8dd5f2970fc876611c7
             Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current), true);
         }
 
@@ -160,6 +138,18 @@ function MoneyRequestConfirmPage(props) {
         [props.report, props.iou.amount, props.iou.currency, props.iou.created, props.iou.merchant, props.currentUserPersonalDetails.login, props.currentUserPersonalDetails.accountID],
     );
 
+    /**
+     * @param {Array} selectedParticipants
+     * @param {String} trimmedComment
+     * @param {File} [receipt]
+     */
+    const createDistanceRequest = useCallback(
+        (selectedParticipants, trimmedComment) => {
+            IOU.createDistanceRequest(props.report, selectedParticipants[0], trimmedComment, props.iou.created, props.iou.transactionID);
+        },
+        [props.report, props.iou.created, props.iou.transactionID],
+    );
+
     const createTransaction = useCallback(
         (selectedParticipants) => {
             const trimmedComment = props.iou.comment.trim();
@@ -199,6 +189,12 @@ function MoneyRequestConfirmPage(props) {
                 return;
             }
 
+            if (isDistanceRequest) {
+                createDistanceRequest(selectedParticipants, trimmedComment);
+                Navigation.dismissModal();
+                return;
+            }
+
             requestMoney(selectedParticipants, trimmedComment);
         },
         [
@@ -209,7 +205,9 @@ function MoneyRequestConfirmPage(props) {
             props.iou.currency,
             props.iou.receiptPath,
             props.iou.receiptSource,
+            isDistanceRequest,
             requestMoney,
+            createDistanceRequest,
         ],
     );
 
@@ -246,7 +244,11 @@ function MoneyRequestConfirmPage(props) {
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                     <HeaderWithBackButton
+<<<<<<< HEAD
                         title={props.translate('iou.cash')}
+=======
+                        title={isDistanceRequest ? props.translate('common.distance') : props.translate('iou.cash')}
+>>>>>>> 471b017ebce33f5883d2a8dd5f2970fc876611c7
                         onBackButtonPress={navigateBack}
                     />
                     <MoneyRequestConfirmationList
