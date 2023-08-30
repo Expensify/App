@@ -27,7 +27,6 @@ import * as TransactionUtils from '../libs/TransactionUtils';
 
 import Button from './Button';
 import MapView from './MapView';
-import ScreenWrapper from './ScreenWrapper';
 import LinearGradient from './LinearGradient';
 import * as Expensicons from './Icon/Expensicons';
 import BlockingView from './BlockingViews/BlockingView';
@@ -148,7 +147,7 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
     useEffect(updateGradientVisibility, [scrollContainerHeight, scrollContentHeight]);
 
     return (
-        <ScreenWrapper shouldEnableMaxHeight>
+        <>
             <View
                 style={styles.distanceRequestContainer(scrollContainerMaxHeight)}
                 onLayout={(event = {}) => setScrollContainerHeight(lodashGet(event, 'nativeEvent.layout.height', 0))}
@@ -240,7 +239,7 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
                     </View>
                 )}
             </View>
-        </ScreenWrapper>
+        </>
     );
 }
 

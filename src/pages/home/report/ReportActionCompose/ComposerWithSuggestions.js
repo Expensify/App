@@ -1,5 +1,5 @@
 import React, {useEffect, useCallback, useState, useRef, useMemo, useImperativeHandle} from 'react';
-import {View, InteractionManager, NativeModules, findNodeHandle} from 'react-native';
+import {View, NativeModules, findNodeHandle} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -22,6 +22,7 @@ import usePrevious from '../../../../hooks/usePrevious';
 import * as EmojiUtils from '../../../../libs/EmojiUtils';
 import * as User from '../../../../libs/actions/User';
 import * as ReportUtils from '../../../../libs/ReportUtils';
+import * as ReportActionsUtils from '../../../../libs/ReportActionsUtils';
 import canFocusInputOnScreenFocus from '../../../../libs/canFocusInputOnScreenFocus';
 import debouncedSaveReportComment from '../../../../libs/ComposerUtils/debouncedSaveReportComment';
 import SilentCommentUpdater from './SilentCommentUpdater';
@@ -31,6 +32,7 @@ import useLocalize from '../../../../hooks/useLocalize';
 import compose from '../../../../libs/compose';
 import withKeyboardState from '../../../../components/withKeyboardState';
 import {propTypes, defaultProps} from './composerWithSuggestionsProps';
+import focusWithDelay from '../../../../libs/focusWithDelay';
 
 const {RNTextInputReset} = NativeModules;
 
@@ -289,9 +291,11 @@ function ComposerWithSuggestions({
 
                 const parentReportActionID = lodashGet(report, 'parentReportActionID', '');
                 const parentReportAction = lodashGet(parentReportActions, [parentReportActionID], {});
-                const lastReportAction = _.find([...reportActions, parentReportAction], (action) => ReportUtils.canEditReportAction(action));
-
-                if (lastReportAction !== -1 && lastReportAction) {
+                const lastReportAction = _.find(
+                    [...reportActions, parentReportAction],
+                    (action) => ReportUtils.canEditReportAction(action) && !ReportActionsUtils.isMoneyRequestAction(action),
+                );
+                if (lastReportAction) {
                     Report.saveReportActionDraft(reportID, lastReportAction.reportActionID, _.last(lastReportAction.message).html);
                 }
             }
@@ -330,23 +334,7 @@ function ComposerWithSuggestions({
      * @memberof ReportActionCompose
      */
     const focus = useCallback((shouldDelay = false) => {
-        // There could be other animations running while we trigger manual focus.
-        // This prevents focus from making those animations janky.
-        InteractionManager.runAfterInteractions(() => {
-            if (!textInputRef.current) {
-                return;
-            }
-
-            if (!shouldDelay) {
-                textInputRef.current.focus();
-            } else {
-                // Keyboard is not opened after Emoji Picker is closed
-                // SetTimeout is used as a workaround
-                // https://github.com/react-native-modal/react-native-modal/issues/114
-                // We carefully choose a delay. 100ms is found enough for keyboard to open.
-                setTimeout(() => textInputRef.current.focus(), 100);
-            }
-        });
+        focusWithDelay(textInputRef.current)(shouldDelay);
     }, []);
 
     const setUpComposeFocusManager = useCallback(() => {
@@ -545,6 +533,9 @@ export default compose(
     withOnyx({
         numberOfLines: {
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT_NUMBER_OF_LINES}${reportID}`,
+            // We might not have number of lines in onyx yet, for which the composer would be rendered as null
+            // during the first render, which we want to avoid:
+            initWithStoredValues: false,
         },
         modal: {
             key: ONYXKEYS.MODAL,
@@ -556,6 +547,7 @@ export default compose(
         parentReportActions: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
             canEvict: false,
+            initWithStoredValues: false,
         },
     }),
 )(
