@@ -8,13 +8,12 @@ module.exports =
 /***/ 8201:
 /***/ ((__unused_webpack_module, __unused_webpack_exports, __nccwpck_require__) => {
 
-const _ = __nccwpck_require__(2947);
 const core = __nccwpck_require__(2186);
 const ActionUtils = __nccwpck_require__(970);
 const GithubUtils = __nccwpck_require__(7999);
 
 // Parse the stringified JSON array of PR numbers, and cast each from String -> Number
-const PRList = _.map(ActionUtils.getJSONInput('PR_LIST', {required: true}), Number);
+const PRList = ActionUtils.getJSONInput('PR_LIST', {required: true});
 console.log(`Got PR list: ${PRList}`);
 
 const releaseBody = GithubUtils.getReleaseBody(PRList);
@@ -531,7 +530,7 @@ class GithubUtils {
     /**
      * Generate the well-formatted body of a production release.
      *
-     * @param {Array} pullRequests
+     * @param {Array<Number>} pullRequests
      * @returns {String}
      */
     static getReleaseBody(pullRequests) {

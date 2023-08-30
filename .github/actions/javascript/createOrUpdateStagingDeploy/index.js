@@ -785,7 +785,7 @@ class GithubUtils {
     /**
      * Generate the well-formatted body of a production release.
      *
-     * @param {Array} pullRequests
+     * @param {Array<Number>} pullRequests
      * @returns {String}
      */
     static getReleaseBody(pullRequests) {
