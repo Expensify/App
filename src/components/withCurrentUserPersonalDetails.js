@@ -47,11 +47,7 @@ export default function (WrappedComponent) {
                 />
             );
         },
-        (prevProps, nextProps) => {
-            const accountPersonalDetailsWithoutIsLoading = _.omit(prevProps.personalDetails[prevProps.session.accountID], 'isLoading');
-            const nextAccountPersonalDetailsWithoutIsLoading = _.omit(nextProps.personalDetails[nextProps.session.accountID], 'isLoading');
-            return _.isEqual(accountPersonalDetailsWithoutIsLoading, nextAccountPersonalDetailsWithoutIsLoading);
-        },
+        (prevProps, nextProps) => _.isEqual(prevProps.personalDetails[prevProps.session.accountID], nextProps.personalDetails[nextProps.session.accountID]),
     );
 
     WithCurrentUserPersonalDetails.displayName = `WithCurrentUserPersonalDetails(${getComponentDisplayName(WrappedComponent)})`;
