@@ -638,6 +638,88 @@ function getOptionTree(options, isOneLine = false) {
 }
 
 /**
+ * Build the section list for categories
+ *
+ * @param {Object[]} categories
+ * @param {String} categories[].name
+ * @param {Boolean} categories[].enabled
+ * @param {Object[]} recentlyUsedCategories
+ * @param {String} recentlyUsedCategories[].name
+ * @param {Boolean} recentlyUsedCategories[].enabled
+ * @param {Object[]} selectedOptions
+ * @param {String} selectedOptions[].name
+ * @param {String} searchInputValue
+ * @param {Number} maxRecentReportsToShow
+ * @returns {Array<Object>}
+ */
+function getCategoryListSections(categories, recentlyUsedCategories, selectedOptions, searchInputValue, maxRecentReportsToShow) {
+    const categorySections = [];
+    const categoriesAmount = _.size(categories);
+    let indexOffset = 0;
+
+    if (!_.isEmpty(searchInputValue)) {
+        const searchCategories = _.filter(categories, (category) => category.name.toLowerCase().includes(searchInputValue.toLowerCase()));
+
+        categorySections.push({
+            title: '', // Search
+            shouldShow: false,
+            indexOffset,
+            data: getOptionTree(searchCategories, true),
+        });
+
+        return categorySections;
+    }
+
+    if (categoriesAmount < CONST.CATEGORY_LIST_THRESHOLD) {
+        categorySections.push({
+            title: '', // All
+            shouldShow: false,
+            indexOffset,
+            data: getOptionTree(categories),
+        });
+
+        return categorySections;
+    }
+
+    const selectedOptionNames = _.map(selectedOptions, (selectedOption) => selectedOption.name);
+    const filteredRecentlyUsedCategories = _.filter(recentlyUsedCategories, (category) => !_.includes(selectedOptionNames, category.name));
+    const filteredCategories = _.filter(categories, (category) => !_.includes(selectedOptionNames, category.name));
+
+    if (!_.isEmpty(selectedOptions)) {
+        categorySections.push({
+            title: '', // Selected
+            shouldShow: false,
+            indexOffset,
+            data: getOptionTree(selectedOptions, true),
+        });
+
+        indexOffset += selectedOptions.length;
+    }
+
+    if (!_.isEmpty(filteredRecentlyUsedCategories)) {
+        const cutRecentlyUsedCategories = filteredRecentlyUsedCategories.slice(0, maxRecentReportsToShow);
+
+        categorySections.push({
+            title: Localize.translateLocal('common.recent'),
+            shouldShow: true,
+            indexOffset,
+            data: getOptionTree(cutRecentlyUsedCategories, true),
+        });
+
+        indexOffset += filteredRecentlyUsedCategories.length;
+    }
+
+    categorySections.push({
+        title: Localize.translateLocal('common.all'),
+        shouldShow: true,
+        indexOffset,
+        data: getOptionTree(filteredCategories),
+    });
+
+    return categorySections;
+}
+
+/**
  * Build the options
  *
  * @param {Object} reports
@@ -677,61 +759,7 @@ function getOptions(
     },
 ) {
     if (includeCategories) {
-        const categoryOptions = [];
-        const categoriesAmount = _.size(categories);
-        let indexOffset = 0;
-
-        if (!_.isEmpty(searchInputValue)) {
-            categoryOptions.push({
-                title: '', // Search result
-                shouldShow: false,
-                indexOffset,
-                data: getOptionTree(
-                    _.filter(categories, (category) => category.name.toLowerCase().includes(searchInputValue.toLowerCase())),
-                    true,
-                ),
-            });
-        } else if (categoriesAmount < CONST.CATEGORY_LIST_THRESHOLD) {
-            categoryOptions.push({
-                title: '', // All
-                shouldShow: false,
-                indexOffset,
-                data: getOptionTree(categories),
-            });
-        } else {
-            const selectedOptionNames = _.map(selectedOptions, (selectedOption) => selectedOption.name);
-            const filteredRecentlyUsedCategories = _.filter(recentlyUsedCategories, (category) => !_.includes(selectedOptionNames, category.name));
-            const filteredCategories = _.filter(categories, (category) => !_.includes(selectedOptionNames, category.name));
-
-            if (!_.isEmpty(selectedOptions)) {
-                categoryOptions.push({
-                    title: '', // Selected
-                    shouldShow: false,
-                    indexOffset,
-                    data: getOptionTree(selectedOptions, true),
-                });
-
-                indexOffset += selectedOptions.length;
-            }
-
-            if (!_.isEmpty(filteredRecentlyUsedCategories)) {
-                categoryOptions.push({
-                    title: Localize.translateLocal('common.recent'),
-                    shouldShow: true,
-                    indexOffset,
-                    data: getOptionTree(filteredRecentlyUsedCategories.slice(0, maxRecentReportsToShow), true),
-                });
-
-                indexOffset += filteredRecentlyUsedCategories.length;
-            }
-
-            categoryOptions.push({
-                title: Localize.translateLocal('common.all'),
-                shouldShow: true,
-                indexOffset,
-                data: getOptionTree(filteredCategories),
-            });
-        }
+        const categoryOptions = getCategoryListSections(_.values(categories), recentlyUsedCategories, selectedOptions, searchInputValue, maxRecentReportsToShow);
 
         return {
             recentReports: [],
