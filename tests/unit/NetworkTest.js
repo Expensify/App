@@ -22,6 +22,7 @@ jest.useFakeTimers();
 Onyx.init({
     keys: ONYXKEYS,
 });
+
 OnyxUpdateManager();
 const originalXHR = HttpUtils.xhr;
 
