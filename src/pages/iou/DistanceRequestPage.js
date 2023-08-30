@@ -18,22 +18,18 @@ const propTypes = {
 
     /** Passed from the navigator */
     route: PropTypes.shape({
+        /** Parameters the route gets */
         params: PropTypes.shape({
-            iouType: PropTypes.string,
+            /** Type of IOU */
+            iouType: PropTypes.oneOf(_.values(CONST.IOU.MONEY_REQUEST_TYPE)),
+            /** Id of the report on which the distance request is being created */
             reportID: PropTypes.string,
         }),
     }),
 };
 
 const defaultProps = {
-    iou: {
-        id: '',
-        amount: 0,
-        created: '',
-        merchant: '',
-        currency: CONST.CURRENCY.USD,
-        participants: [],
-    },
+    iou: {},
     report: {},
     route: {
         params: {
