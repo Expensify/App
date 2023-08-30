@@ -5,7 +5,7 @@ import lodashGet from 'lodash/get';
 import PressableWithFeedback from '../Pressable/PressableWithFeedback';
 import styles from '../../styles/styles';
 import Text from '../Text';
-import {checkboxListItemPropTypes} from './selectionListPropTypes';
+import {userListItemPropTypes} from './selectionListPropTypes';
 import Avatar from '../Avatar';
 import OfflineWithFeedback from '../OfflineWithFeedback';
 import CONST from '../../CONST';
@@ -16,7 +16,7 @@ import themeColors from '../../styles/themes/default';
 import Tooltip from '../Tooltip';
 import UserDetailsTooltip from '../UserDetailsTooltip';
 
-function CheckboxListItem({item, isFocused = false, showTooltip = false, onSelectRow, onDismissError = () => {}}) {
+function UserListItem({item, isFocused = false, showTooltip = false, onSelectRow, onDismissError = () => {}}) {
     const hasError = !_.isEmpty(item.errors);
 
     const avatar = (
@@ -103,7 +103,7 @@ function CheckboxListItem({item, isFocused = false, showTooltip = false, onSelec
     );
 }
 
-CheckboxListItem.displayName = 'CheckboxListItem';
-CheckboxListItem.propTypes = checkboxListItemPropTypes;
+UserListItem.displayName = 'UserListItem';
+UserListItem.propTypes = userListItemPropTypes;
 
-export default CheckboxListItem;
+export default UserListItem;
