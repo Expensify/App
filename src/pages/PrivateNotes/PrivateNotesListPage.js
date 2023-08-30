@@ -104,11 +104,11 @@ function PrivateNotesListPage({report, personalDetailsList, network, session}) {
      * @returns {Array} the menu item list
      */
     const privateNotes = useMemo(() => {
-        const privateNoteBrickRoadIndicator = (accountID) => (!_.isEmpty(lodashGet(report, `privateNotes.${accountID}.errors`, '')) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '');
-        return _.chain(lodashGet(report, 'privateNotes'))
+        const privateNoteBrickRoadIndicator = (accountID) => (!_.isEmpty(lodashGet(report, ['privateNotes', accountID, 'errors'], '')) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '');
+        return _.chain(lodashGet(report, 'privateNotes', {}))
             .map((privateNote, accountID) => ({
-                title: Number(lodashGet(session, 'accountID', null)) === Number(accountID) ? 'My note' : lodashGet(personalDetailsList, `${accountID}.login`, ''),
-                icon: UserUtils.getAvatar(lodashGet(personalDetailsList, `${accountID}.avatar`, UserUtils.getDefaultAvatar(accountID)), accountID),
+                title: Number(lodashGet(session, 'accountID', null)) === Number(accountID) ? 'My note' : lodashGet(personalDetailsList, [accountID, 'login'], ''),
+                icon: UserUtils.getAvatar(lodashGet(personalDetailsList, [accountID, 'avatar'], UserUtils.getDefaultAvatar(accountID)), accountID),
                 iconType: CONST.ICON_TYPE_AVATAR,
                 action: () => ReportUtils.navigateToPrivateNotesPage(report, accountID),
                 brickRoadIndicator: privateNoteBrickRoadIndicator(accountID),
@@ -119,7 +119,7 @@ function PrivateNotesListPage({report, personalDetailsList, network, session}) {
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <FullPageNotFoundView
-                shouldShow={_.isEmpty(report.reportID) || (!report.isLoadingPrivateNotes && network.isOffline && _.isEmpty(lodashGet(report, 'privateNotes', [])))}
+                shouldShow={_.isEmpty(report.reportID) || (!report.isLoadingPrivateNotes && network.isOffline && _.isEmpty(lodashGet(report, 'privateNotes', {})))}
                 onBackButtonPress={() => Navigation.goBack()}
             >
                 <HeaderWithBackButton
@@ -128,7 +128,7 @@ function PrivateNotesListPage({report, personalDetailsList, network, session}) {
                     onCloseButtonPress={() => Navigation.dismissModal()}
                     onBackButtonPress={() => Navigation.goBack()}
                 />
-                {report.isLoadingPrivateNotes && _.isEmpty(lodashGet(report, 'privateNotes', [])) ? (
+                {report.isLoadingPrivateNotes && _.isEmpty(lodashGet(report, 'privateNotes', {})) ? (
                     <FullScreenLoadingIndicator />
                 ) : (
                     _.map(privateNotes, (item, index) => getMenuItem(item, index))

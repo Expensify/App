@@ -59,7 +59,7 @@ const defaultProps = {
 
 function PrivateNotesPage({route, personalDetailsList, session, report}) {
     const {translate} = useLocalize();
-    const [privateNote, setPrivateNote] = useState(lodashGet(report, `privateNotes.${route.params.accountID}.note`, ''));
+    const [privateNote, setPrivateNote] = useState(lodashGet(report, ['privateNotes', route.params.accountID, 'note'], ''));
     const [editMode, setEditMode] = useState(_.isEmpty(privateNote));
     const isCurrentUser = Number(session.accountID) === Number(route.params.accountID);
 
@@ -86,17 +86,16 @@ function PrivateNotesPage({route, personalDetailsList, session, report}) {
             setEditMode(true);
         }
     };
-
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <FullPageNotFoundView
-                shouldShow={_.isEmpty(report) || _.isEmpty(report.privateNotes) || !_.has(report, `privateNotes.${route.params.accountID}.note`)}
+                shouldShow={_.isEmpty(report) || _.isEmpty(report.privateNotes) || !_.has(report, ['privateNotes', route.params.accountID, 'note'])}
                 subtitleKey="privateNotes.notesUnavailable"
                 onBackButtonPress={() => Navigation.goBack(ROUTES.PRIVATE_NOTES_LIST)}
             >
                 <HeaderWithBackButton
                     title={translate('privateNotes.title')}
-                    subtitle={isCurrentUser ? 'My note' : `${lodashGet(personalDetailsList, `${route.params.accountID}.login`, '')} note`}
+                    subtitle={isCurrentUser ? 'My note' : `${lodashGet(personalDetailsList, [route.params.accountID, 'login'], '')} note`}
                     shouldShowBackButton
                     onCloseButtonPress={() => Navigation.dismissModal()}
                     onBackButtonPress={() => Navigation.goBack()}
@@ -144,9 +143,9 @@ function PrivateNotesPage({route, personalDetailsList, session, report}) {
                         >
                             <OfflineWithFeedback
                                 errors={{
-                                    ...lodashGet(report, `privateNotes.${route.params.accountID}.errors`, ''),
+                                    ...lodashGet(report, ['privateNotes', route.params.accountID, 'errors'], ''),
                                 }}
-                                pendingAction={lodashGet(report, `privateNotes.${route.params.accountID}.pendingAction`, '')}
+                                pendingAction={lodashGet(report, ['privateNotes', route.params.accountID, 'pendingAction'], '')}
                                 onClose={() => Report.clearPrivateNotesError(report.reportID, route.params.accountID)}
                             >
                                 <RenderHTML html={privateNote} />
