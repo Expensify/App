@@ -1,3 +1,4 @@
+import CONFIG from '../../CONFIG';
 import {GetCurrentPosition, GeolocationErrorCode} from './getCurrentPosition.types';
 
 type GoogleAPIsGeoLocateResponse = {
@@ -31,7 +32,7 @@ const getCurrentPosition: GetCurrentPosition = (
     }
 
     // Gets current location from google geolocation api
-    fetch(`${BASE_URL}?key=${process.env.GOOGLE_GEOLOCATION_API_KEY}`, requestConfig)
+    fetch(`${BASE_URL}?key=${CONFIG.GOOGLE_GEOLOCATION_API_KEY}`, requestConfig)
         .then((response) => {
             if (!response.ok) {
                 throw new Error(response.statusText);
