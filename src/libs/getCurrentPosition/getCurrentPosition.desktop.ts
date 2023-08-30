@@ -87,10 +87,12 @@ const getCurrentPosition: GetCurrentPosition = (
             });
         })
         .finally(() => {
-            // Clear any leftover timeouts
-            if (timeoutID) {
-                clearTimeout(timeoutID);
+            if (!timeoutID) {
+                return;
             }
+
+            // Clear any leftover timeouts
+            clearTimeout(timeoutID);
         });
 };
 

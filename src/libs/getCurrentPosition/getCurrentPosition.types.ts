@@ -1,4 +1,4 @@
-export type GeolocationSuccessCallback = (position: {
+type GeolocationSuccessCallback = (position: {
     coords: {
         latitude: number;
         longitude: number;
@@ -11,7 +11,7 @@ export type GeolocationSuccessCallback = (position: {
     timestamp: number;
 }) => void;
 
-export type GeolocationErrorCallback = (error: {
+type GeolocationErrorCallback = (error: {
     code: (typeof GeolocationErrorCode)[keyof typeof GeolocationErrorCode];
     message: string;
     PERMISSION_DENIED: typeof GeolocationErrorCode.PERMISSION_DENIED;
@@ -22,14 +22,14 @@ export type GeolocationErrorCallback = (error: {
     NOT_SUPPORTED?: typeof GeolocationErrorCode.NOT_SUPPORTED;
 }) => void;
 
-export const GeolocationErrorCode = {
+const GeolocationErrorCode = {
     PERMISSION_DENIED: 1,
     POSITION_UNAVAILABLE: 2,
     TIMEOUT: 3,
     NOT_SUPPORTED: -1,
 };
 
-export type GeolocationOptions = {
+type GeolocationOptions = {
     timeout?: number;
     maximumAge?: number;
     enableHighAccuracy?: boolean;
@@ -47,4 +47,8 @@ export type GeolocationOptions = {
     fastestInterval?: number;
 };
 
-export type GetCurrentPosition = (success: GeolocationSuccessCallback, error: GeolocationErrorCallback, options?: GeolocationOptions) => void;
+type GetCurrentPosition = (success: GeolocationSuccessCallback, error: GeolocationErrorCallback, options?: GeolocationOptions) => void;
+
+export {GeolocationErrorCode};
+
+export type {GeolocationSuccessCallback, GeolocationErrorCallback, GeolocationOptions, GetCurrentPosition};
