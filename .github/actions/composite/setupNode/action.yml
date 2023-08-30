@@ -16,30 +16,16 @@ runs:
       uses: actions/cache@v3
       with:
         path: node_modules
-        key: ${{ runner.os }}-node-modules-${{ hashFiles('package-lock.json') }}
+        key: ${{ runner.os }}-node-modules-${{ hashFiles('package-lock.json', 'patches/**') }}
 
     - id: cache-desktop-node-modules
       uses: actions/cache@v3
       with:
         path: desktop/node_modules
-        key: ${{ runner.os }}-desktop-node-modules-${{ hashFiles('desktop/package-lock.json') }}
-
-    - name: Check if patch files changed
-      id: patchCheck
-      shell: bash
-      run: |
-        set -e
-        git fetch origin main --no-tags --depth=1
-        if git diff --name-only origin/main HEAD | grep -q '\.patch'; then
-          echo 'CHANGES_IN_PATCH_FILES=true' >> "$GITHUB_OUTPUT"
-        else
-          echo 'CHANGES_IN_PATCH_FILES=false' >> "$GITHUB_OUTPUT"
-        fi
+        key: ${{ runner.os }}-desktop-node-modules-${{ hashFiles('desktop/package-lock.json', 'desktop/patches/**') }}
 
     - name: Install root project node packages
-      if: |
-        steps.cache-node-modules.outputs.cache-hit != 'true' ||
-        steps.patchCheck.outputs.CHANGES_IN_PATCH_FILES == 'true'
+      if: steps.cache-node-modules.outputs.cache-hit != 'true'
       uses: nick-fields/retry@v2
       with:
         timeout_minutes: 30
@@ -47,9 +33,7 @@ runs:
         command: npm ci
 
     - name: Install node packages for desktop submodule
-      if: |
-        steps.cache-desktop-node-modules.outputs.cache-hit != 'true' ||
-        steps.patchCheck.outputs.CHANGES_IN_PATCH_FILES == 'true'
+      if: steps.cache-desktop-node-modules.outputs.cache-hit != 'true'
       uses: nick-fields/retry@v2
       with:
         timeout_minutes: 30
