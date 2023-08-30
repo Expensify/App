@@ -164,7 +164,11 @@ module.exports = {
             },
         },
         {
-            files: ['workflow_tests/**/*.js'],
+            files: [
+                'workflow_tests/**/*.{js,jsx,ts,tsx}',
+                'tests/**/*.{js,jsx,ts,tsx}',
+                '.github/**/*.{js,jsx,ts,tsx}'
+            ],
             rules: {
                 '@lwc/lwc/no-async-await': 'off',
             },
