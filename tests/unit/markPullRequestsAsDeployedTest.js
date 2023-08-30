@@ -1,10 +1,10 @@
 /**
  * @jest-environment node
  */
-const core = require('@actions/core');
 const GitUtils = require('../../.github/libs/GitUtils');
 const GithubUtils = require('../../.github/libs/GithubUtils');
-const run = require('../../.github/actions/javascript/markPullRequestsAsDeployed/markPullRequestsAsDeployed');
+
+let run;
 
 const mockGetInput = jest.fn();
 const mockListIssues = jest.fn();
@@ -14,6 +14,7 @@ const mockGetPullRequestsMergedBetween = jest.fn();
 let workflowRunURL;
 
 const PRList = [1, 2, 3, 4];
+const version = '42.42.42-42';
 
 /**
  * @param {String} key
@@ -27,7 +28,7 @@ function defaultMockGetInput(key) {
         case 'IS_PRODUCTION_DEPLOY':
             return false;
         case 'DEPLOY_VERSION':
-            return '42.42.42-42';
+            return version;
         case 'IOS':
         case 'ANDROID':
         case 'DESKTOP':
@@ -42,12 +43,14 @@ function defaultMockGetInput(key) {
  * @returns {Promise<[{actor: {login: string}, event: string}]>}
  */
 async function defaultMockListEvents() {
-    return [{event: 'closed', actor: {login: 'thor'}}];
+    return {data: [{event: 'closed', actor: {login: 'thor'}}]};
 }
 
 beforeAll(() => {
     // Mock core module
-    core.getInput = mockGetInput;
+    jest.mock('@actions/core', () => ({
+        getInput: mockGetInput,
+    }));
     mockGetInput.mockImplementation(defaultMockGetInput);
 
     // Mock octokit module
@@ -73,15 +76,31 @@ beforeAll(() => {
         paginate: jest.fn().mockImplementation((objectMethod) => objectMethod().then(({data}) => data)),
     };
     GithubUtils.internalOctokit = moctokit;
+    mockListEvents.mockImplementation(defaultMockListEvents);
 
     // Mock GitUtils
     GitUtils.getPullRequestsMergedBetween = mockGetPullRequestsMergedBetween;
+
+    jest.mock('../../.github/libs/ActionUtils', () => ({
+        getJSONInput: jest.fn().mockImplementation((name, defaultValue) => {
+            const input = mockGetInput(name);
+            if (input) {
+                return JSON.parse(input);
+            }
+            return defaultValue;
+        }),
+    }));
 
     // Set GH runner environment variables
     process.env.GITHUB_SERVER_URL = 'https://github.com';
     process.env.GITHUB_REPOSITORY = 'Expensify/App';
     process.env.GITHUB_RUN_ID = 1234;
     workflowRunURL = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`;
+});
+
+beforeEach(() => {
+    // Note: we import this in here so that it executes after all the mocks are set up
+    run = require('../../.github/actions/javascript/markPullRequestsAsDeployed/markPullRequestsAsDeployed');
 });
 
 afterEach(() => {
@@ -107,7 +126,21 @@ describe('markPullRequestsAsDeployed', () => {
 
         await run();
         expect(mockCreateComment).toHaveBeenCalledTimes(PRList.length);
-        expect(mockCreateComment).toHaveBeenNthCalledWith(`🚀 [Deployed](${workflowRunURL}) to production `);
+        for (let i = 0; i < PRList.length; i++) {
+            expect(mockCreateComment).toHaveBeenNthCalledWith(i + 1, {
+                body: `🚀 [Deployed](${workflowRunURL}) to production by https://github.com/thor in version: ${version} 🚀
+
+platform | result
+---|---
+🤖 android 🤖|success ✅
+🖥 desktop 🖥|success ✅
+🍎 iOS 🍎|success ✅
+🕸 web 🕸|success ✅`,
+                issue_number: PRList[i],
+                owner: 'Expensify',
+                repo: 'App',
+            });
+        }
     });
 
     it('comments on pull requests correctly for a cherry pick', async () => {});

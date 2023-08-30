@@ -45,8 +45,8 @@ const workflowURL = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOS
 function getDeployMessage(deployer, deployVerb, prTitle) {
     let message = `🚀 [${deployVerb}](${workflowURL}) to ${isProd ? 'production' : 'staging'}`;
     message += ` by https://github.com/${deployer} in version: ${version} 🚀`;
-    message += `\n\n platform | result \n ---|--- \n🤖 android 🤖|${androidResult} \n🖥 desktop 🖥|${desktopResult}`;
-    message += `\n🍎 iOS 🍎|${iOSResult} \n🕸 web 🕸|${webResult}`;
+    message += `\n\nplatform | result\n---|---\n🤖 android 🤖|${androidResult}\n🖥 desktop 🖥|${desktopResult}`;
+    message += `\n🍎 iOS 🍎|${iOSResult}\n🕸 web 🕸|${webResult}`;
 
     if (deployVerb === 'Cherry-picked' && !/no qa/gi.test(prTitle)) {
         // eslint-disable-next-line max-len
@@ -66,7 +66,7 @@ function getDeployMessage(deployer, deployVerb, prTitle) {
  */
 async function commentPR(PR, message) {
     try {
-        await GithubUtils.createComment(context.repo.report, PR, message);
+        await GithubUtils.createComment(context.repo.repo, PR, message);
         console.log(`Comment created on #${PR} successfully 🎉`);
     } catch (err) {
         console.log(`Unable to write comment on #${PR} 😞`);
