@@ -1359,6 +1359,12 @@ function areAllRequestsBeingSmartScanned(iouReportID, reportPreviewAction) {
     return _.all(transactionsWithReceipts, (transaction) => TransactionUtils.isReceiptBeingScanned(transaction));
 }
 
+/**
+ * Check if any of the transactions in the report has required missing fields
+ *
+ * @param {Object|null} iouReportID
+ * @returns {Boolean}
+ */
 function hasMissingSmartscanFields(iouReportID) {
     const transactionsWithReceipts = getTransactionsWithReceipts(iouReportID);
     return _.some(transactionsWithReceipts, (transaction) => TransactionUtils.hasMissingSmartscanFields(transaction));

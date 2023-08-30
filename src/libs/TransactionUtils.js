@@ -85,6 +85,10 @@ function hasReceipt(transaction) {
     return lodashGet(transaction, 'receipt.state', '') !== '';
 }
 
+/**
+ * @param {Object} transaction
+ * @returns {Boolean}
+ */
 function areRequiredFieldsPopulated(transaction) {
     return (
         transaction.merchant !== CONST.TRANSACTION.DEFAULT_MERCHANT &&
@@ -240,6 +244,12 @@ function getCreated(transaction) {
     return '';
 }
 
+/**
+ * Check if the transaction has a non-smartscanning receipt and is missing required fields
+ *
+ * @param {Object} transaction
+ * @returns {Boolean}
+ */
 function hasMissingSmartscanFields(transaction) {
     return hasReceipt(transaction) && !isReceiptBeingScanned(transaction) && !areRequiredFieldsPopulated(transaction);
 }
