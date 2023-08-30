@@ -139,7 +139,7 @@ const ONYXKEYS = {
     /** The user's bank accounts */
     BANK_ACCOUNT_LIST: 'bankAccountList',
 
-    /** The user's credit / P2P cards */
+    /** The user's cash card and imported cards */
     FUND_LIST: 'fundList',
 
     // The user's Expensify cards
