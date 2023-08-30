@@ -164,8 +164,8 @@ function MoneyRequestPreview(props) {
         description = props.transaction.merchant;
     }
 
-    // Prevents large amounts from being cropped on small screens
-    const getFontSizeToSubstract = () => {
+    // Prevents large amounts from being cut off on small screen widths.
+    const getFontSizeAndLineHeightToSubtract = () => {
         let toSubstract = 0;
         if (isSmallScreenWidth) {
             const widthDifference = variables.mobileResponsiveWidthBreakpoint - windowWidth;
@@ -176,7 +176,7 @@ function MoneyRequestPreview(props) {
 
         // requestAmount also includes digits after ".", so "1,000,000.00" qualifies.
         if (requestAmount >= 100000000) toSubstract += 2;
-        
+
         return toSubstract;
     };
 
@@ -277,7 +277,8 @@ function MoneyRequestPreview(props) {
                                 <Text
                                     style={[
                                         styles.moneyRequestPreviewAmount,
-                                        StyleUtils.getFontSizeStyle(variables.fontSizeXLarge - getFontSizeToSubstract()),
+                                        StyleUtils.getFontSizeStyle(variables.fontSizeXLarge - getFontSizeAndLineHeightToSubtract()),
+                                        StyleUtils.getLineHeightStyle(variables.lineHeightXXLarge - getFontSizeAndLineHeightToSubtract()),
                                     ]}
                                     maxNumberOfLines={3}
                                 >

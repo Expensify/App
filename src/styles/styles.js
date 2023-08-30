@@ -2685,7 +2685,6 @@ const styles = {
         ...headlineFont,
         ...whiteSpace.preWrap,
         color: themeColors.heading,
-        lineHeight: variables.lineHeightXXLarge,
     },
 
     defaultCheckmarkWrapper: {
