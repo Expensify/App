@@ -6,6 +6,7 @@ import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import DateUtils from './DateUtils';
 import * as NumberUtils from './NumberUtils';
+import * as ReportActionsUtils from './ReportActionsUtils';
 
 let allTransactions = {};
 Onyx.connect({
@@ -151,6 +152,16 @@ function getUpdatedTransaction(transaction, transactionChanges, isFromExpenseRep
  */
 function getTransaction(transactionID) {
     return lodashGet(allTransactions, `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {});
+}
+
+/**
+ * Given a report, looks up the transaction associated with its parent report action
+ * @param {Object} report 
+ */
+function getParentTransaction(report) {
+    const parentReportAction = ReportActionsUtils.getParentReportAction(report);
+    const transactionID = lodashGet(parentReportAction, ['originalMessage', 'IOUTransactionID'], 0);
+    return getTransaction(transactionID);
 }
 
 /**
@@ -313,6 +324,7 @@ export {
     buildOptimisticTransaction,
     getUpdatedTransaction,
     getTransaction,
+    getParentTransaction,
     getDescription,
     getAmount,
     getCurrency,
