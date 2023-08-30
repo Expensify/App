@@ -19,7 +19,32 @@ type ColorsValues = ValueOf<typeof colors>;
 type AvatarSizesValues = ValueOf<typeof CONST.AVATAR_SIZE>;
 type ButtonSizesValues = ValueOf<typeof CONST.DROPDOWN_BUTTON_SIZE>;
 
-const workspaceColorOptions: Array<{backgroundColor: ColorsValues; fill: ColorsValues}> = [
+type WorkspaceColorStyle = {backgroundColor: ColorsValues; fill: ColorsValues}
+
+type ModalPaddingStylesArgs = {
+    shouldAddBottomSafeAreaMargin: boolean;
+    shouldAddTopSafeAreaMargin: boolean;
+    shouldAddBottomSafeAreaPadding: boolean;
+    shouldAddTopSafeAreaPadding: boolean;
+    safeAreaPaddingTop: number;
+    safeAreaPaddingBottom: number;
+    safeAreaPaddingLeft: number;
+    safeAreaPaddingRight: number;
+    modalContainerStyleMarginTop: number;
+    modalContainerStyleMarginBottom: number;
+    modalContainerStylePaddingTop: number;
+    modalContainerStylePaddingBottom: number;
+    insets: EdgeInsets;
+}
+
+type AvatarBorderStyleArgs = {
+    isHovered: boolean;
+    isPressed: boolean;
+    isInReportAction: boolean;
+    shouldUseCardBackground: boolean;
+}
+
+const workspaceColorOptions: WorkspaceColorStyle[] = [
     {backgroundColor: colors.blue200, fill: colors.blue700},
     {backgroundColor: colors.blue400, fill: colors.blue800},
     {backgroundColor: colors.blue700, fill: colors.blue200},
@@ -195,20 +220,20 @@ function getDefaultWorkspaceAvatarColor(workspaceName: string): ViewStyle | CSSP
 /**
  * Takes safe area insets and returns padding to use for a View
  */
-function getSafeAreaPadding(insets: EdgeInsets, insetsPercentage: number = variables.safeInsertPercentage): ViewStyle | CSSProperties {
+function getSafeAreaPadding(insets: EdgeInsets | undefined, insetsPercentage: number = variables.safeInsertPercentage): ViewStyle | CSSProperties {
     return {
-        paddingTop: insets.top,
-        paddingBottom: insets.bottom * insetsPercentage,
-        paddingLeft: insets.left * insetsPercentage,
-        paddingRight: insets.right * insetsPercentage,
+        paddingTop: insets?.top,
+        paddingBottom: (insets?.bottom ?? 0) * insetsPercentage,
+        paddingLeft: (insets?.left ?? 0) * insetsPercentage,
+        paddingRight: (insets?.right ?? 0) * insetsPercentage,
     };
 }
 
 /**
  * Takes safe area insets and returns margin to use for a View
  */
-function getSafeAreaMargins(insets: EdgeInsets): ViewStyle | CSSProperties {
-    return {marginBottom: insets.bottom * variables.safeInsertPercentage};
+function getSafeAreaMargins(insets: EdgeInsets | undefined): ViewStyle | CSSProperties {
+    return {marginBottom: (insets?.bottom ?? 0) * variables.safeInsertPercentage};
 }
 
 function getZoomCursorStyle(isZoomed: boolean, isDragging: boolean): ViewStyle | CSSProperties {
@@ -403,7 +428,7 @@ function getBadgeColorStyle(success: boolean, error: boolean, isPressed = false,
 /**
  * Generate a style for the background color of the button, based on its current state.
  */
-function getButtonBackgroundColorStyle(buttonState: string = CONST.BUTTON_STATES.DEFAULT, isMenuItem = false): ViewStyle | CSSProperties {
+function getButtonBackgroundColorStyle(buttonState: ValueOf<typeof CONST.BUTTON_STATES> = CONST.BUTTON_STATES.DEFAULT, isMenuItem = false): ViewStyle | CSSProperties {
     switch (buttonState) {
         case CONST.BUTTON_STATES.PRESSED:
             return {backgroundColor: themeColors.buttonPressedBG};
@@ -464,21 +489,7 @@ function getModalPaddingStyles({
     modalContainerStylePaddingTop,
     modalContainerStylePaddingBottom,
     insets,
-}: {
-    shouldAddBottomSafeAreaMargin: boolean;
-    shouldAddTopSafeAreaMargin: boolean;
-    shouldAddBottomSafeAreaPadding: boolean;
-    shouldAddTopSafeAreaPadding: boolean;
-    safeAreaPaddingTop: number;
-    safeAreaPaddingBottom: number;
-    safeAreaPaddingLeft: number;
-    safeAreaPaddingRight: number;
-    modalContainerStyleMarginTop: number;
-    modalContainerStyleMarginBottom: number;
-    modalContainerStylePaddingTop: number;
-    modalContainerStylePaddingBottom: number;
-    insets: EdgeInsets;
-}): ViewStyle | CSSProperties {
+}: ModalPaddingStylesArgs): ViewStyle | CSSProperties {
     // use fallback value for safeAreaPaddingBottom to keep padding bottom consistent with padding top.
     // More info: issue #17376
     const safeAreaPaddingBottomWithFallback = insets.bottom === 0 ? modalContainerStylePaddingTop || 0 : safeAreaPaddingBottom;
@@ -633,8 +644,6 @@ function getThemeBackgroundColor(bgColor: string = themeColors.appBG): string {
     const [backdropRed, backdropGreen, backdropBlue] = hexadecimalToRGBArray(themeColors.modalBackdrop) ?? [];
     const normalizedBackdropRGB = convertRGBToUnitValues(backdropRed, backdropGreen, backdropBlue);
     const normalizedBackgroundRGB = convertRGBToUnitValues(backgroundRed, backgroundGreen, backgroundBlue);
-    // const themeRGBNormalized = convertRGBAToRGB(normalizedBackdropRGB, normalizedBackgroundRGB, backdropOpacity);
-    // const themeRGB = convertUnitValuesToRGB(...themeRGBNormalized);
     const [red, green, blue] = convertRGBAToRGB(normalizedBackdropRGB, normalizedBackgroundRGB, backdropOpacity);
     const themeRGB = convertUnitValuesToRGB(red, green, blue);
 
@@ -738,12 +747,7 @@ function getHorizontalStackedAvatarBorderStyle({
     isPressed,
     isInReportAction = false,
     shouldUseCardBackground = false,
-}: {
-    isHovered: boolean;
-    isPressed: boolean;
-    isInReportAction: boolean;
-    shouldUseCardBackground: boolean;
-}): ViewStyle | CSSProperties {
+}: AvatarBorderStyleArgs): ViewStyle | CSSProperties {
     let borderColor = shouldUseCardBackground ? themeColors.cardBG : themeColors.appBG;
 
     if (isHovered) {
