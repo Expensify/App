@@ -77,6 +77,23 @@ jobs:
         id: cherryPick
         run: |
           echo "Attempting to cherry-pick ${{ steps.getCPMergeCommit.outputs.MERGE_COMMIT_SHA }}"
+
+          # Set up a git hook to include the actor who triggered this CP in the commit message
+          # Note that the -x flag to `git cherry-pick` appends a message like '(cherry picked from commit abcd)' to the original commit message
+          # The git hook we create here will update that to: '(cherry picked from commit by roryabraham)' (using the username of the deployer that triggered the CP)
+          # Note that we can't change the actor because only OSBotify has permission to push code straight to staging
+          echo '#!/bin/bash' >> .git/hooks/prepare-commit-msg
+
+          # Explaining this command:
+          #    -i flag tells sed to "edit the file inline"
+          #    -E means "use extended regex"
+          #    The regex itself captures "(cherry picked from commit abcd" and then appends "by ${{ github.actor }}" using \1 (the capture group)
+          #    $1 – the first argument to the prepare-commit-msg hook is the filepath of the text file containing the commit message
+          # shellcheck disable=SC2016
+          echo 'sed -i "" -E "s/(\(cherry picked from commit .*[^)])/\1 by ${{ github.actor }}/" $1' >> .git/hooks/prepare-commit-msg
+          chmod u+x .git/hooks/prepare-commit-msg
+
+          # Run the cherry-pick command
           if git cherry-pick -S -x --mainline 1 ${{ steps.getCPMergeCommit.outputs.MERGE_COMMIT_SHA }}; then
             echo "🎉 No conflicts! CP was a success, PR can be automerged 🎉"
             echo "HAS_CONFLICTS=false" >> "$GITHUB_OUTPUT"
@@ -87,6 +104,9 @@ jobs:
             GIT_MERGE_AUTOEDIT=no git cherry-pick --continue
             echo "HAS_CONFLICTS=true" >> "$GITHUB_OUTPUT"
           fi
+
+          # Clean up git hook
+          rm .git/hooks/prepare-commit-msg
 
       - name: Push changes
         run: |
