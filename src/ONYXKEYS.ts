@@ -287,6 +287,8 @@ const ONYXKEYS = {
         SETTINGS_STATUS_SET_FORM: 'settingsStatusSetForm',
         SETTINGS_STATUS_CLEAR_AFTER_FORM: 'settingsStatusClearAfterForm',
         SETTINGS_STATUS_SET_CLEAR_AFTER_FORM: 'settingsStatusSetClearAfterForm',
+        I_KNOW_A_TEACHER_FORM: 'iKnowTeacherForm',
+        INTRO_SCHOOL_PRINCIPAL_FORM: 'introSchoolPrincipalForm',
     },
 } as const;
 
