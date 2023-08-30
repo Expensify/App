@@ -112,6 +112,6 @@ export default withOnyx({
     },
 })(ConfirmedRoute);
 
-ConfirmedRoute.displayName = 'MoneyRequestConfirmPage';
+ConfirmedRoute.displayName = 'ConfirmedRoute';
 ConfirmedRoute.propTypes = propTypes;
 ConfirmedRoute.defaultProps = defaultProps;
