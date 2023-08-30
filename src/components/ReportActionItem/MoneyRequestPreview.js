@@ -153,7 +153,9 @@ function MoneyRequestPreview(props) {
     const hasReceipt = TransactionUtils.hasReceipt(props.transaction);
     const isScanning = hasReceipt && TransactionUtils.isReceiptBeingScanned(props.transaction);
     const isDistanceRequest = TransactionUtils.isDistanceRequest(props.transaction);
-    const isIOU = props.action.actionName !== CONST.REPORT.TYPE.IOU;
+
+    const shouldShowDescription = !_.isEmpty(description) && !hasReceipt;
+    const shouldShowMerchant = !_.isEmpty(requestMerchant) && !props.isBillSplit && hasReceipt;
 
     // On a distance request the merchant of the transaction will be used for the description since that's where it's stored in the database
     if (isDistanceRequest) {
@@ -270,7 +272,7 @@ function MoneyRequestPreview(props) {
                                 </View>
                             )}
                         </View>
-                        {!props.isBillSplit && !isIOU && !_.isEmpty(requestMerchant) && (
+                        {shouldShowMerchant && (
                             <View style={[styles.flexRow]}>
                                 <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh16, styles.breakWord]}>{requestMerchant}</Text>
                             </View>
@@ -280,7 +282,7 @@ function MoneyRequestPreview(props) {
                                 {!isCurrentUserManager && props.shouldShowPendingConversionMessage && (
                                     <Text style={[styles.textLabel, styles.colorMuted, styles.mt1]}>{props.translate('iou.pendingConversionMessage')}</Text>
                                 )}
-                                {!_.isEmpty(description) && <Text style={[styles.mt1, styles.colorMuted]}>{description}</Text>}
+                                {shouldShowDescription && <Text style={[styles.mt1, styles.colorMuted]}>{description}</Text>}
                             </View>
                             {props.isBillSplit && !_.isEmpty(participantAccountIDs) && (
                                 <Text style={[styles.textLabel, styles.colorMuted, styles.ml1]}>
