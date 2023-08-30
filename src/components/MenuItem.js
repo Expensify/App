@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import React from 'react';
 import {View} from 'react-native';
+import FormHelpMessage from './FormHelpMessage';
 import Text from './Text';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
@@ -123,6 +124,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                     onPressOut={ControlSelection.unblock}
                     onSecondaryInteraction={props.onSecondaryInteraction}
                     style={({pressed}) => [
+                        props.errorText ? styles.pb8 : {},
                         props.style,
                         props.containerStyle,
                         !props.interactive && styles.cursorDefault,
@@ -312,6 +314,13 @@ const MenuItem = React.forwardRef((props, ref) => {
                                 )}
                                 {props.shouldShowSelectedState && <SelectCircle isChecked={props.isSelected} />}
                             </View>
+                            {Boolean(props.errorText) && (
+                                <FormHelpMessage
+                                    isError={true}
+                                    message={props.errorText}
+                                    style={[styles.menuItemError]}
+                                />
+                            )}
                         </>
                     )}
                 </PressableWithSecondaryInteraction>

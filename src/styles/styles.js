@@ -3918,6 +3918,16 @@ const styles = {
         height: 30,
         width: '100%',
     },
+
+    menuItemError: {
+      position: 'absolute',
+      bottom: -4,
+      left: 20,
+      right: 20,
+      paddingTop: 4,
+      borderTopWidth: 1,
+      borderColor: 'red'
+    }
 };
 
 export default styles;
