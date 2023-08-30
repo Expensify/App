@@ -8,7 +8,6 @@ module.exports =
 /***/ 8201:
 /***/ ((__unused_webpack_module, __unused_webpack_exports, __nccwpck_require__) => {
 
-const _ = __nccwpck_require__(2947);
 const core = __nccwpck_require__(2186);
 const ActionUtils = __nccwpck_require__(970);
 const GithubUtils = __nccwpck_require__(7999);
