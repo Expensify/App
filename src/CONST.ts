@@ -1364,6 +1364,7 @@ const CONST = {
     },
 
     MAP_PADDING: 50,
+    MAP_MARKER_SIZE: 20,
 
     QUICK_REACTIONS: [
         {

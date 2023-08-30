@@ -114,8 +114,8 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
                 coordinate: [waypoint.lng, waypoint.lat],
                 markerComponent: () => (
                     <MarkerComponent
-                        width={20}
-                        height={20}
+                        width={CONST.MAP_MARKER_SIZE}
+                        height={CONST.MAP_MARKER_SIZE}
                         fill={theme.icon}
                     />
                 ),
