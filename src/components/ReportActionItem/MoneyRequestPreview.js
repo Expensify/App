@@ -263,6 +263,7 @@ function MoneyRequestPreview(props) {
                                         styles.moneyRequestPreviewAmount,
                                         StyleUtils.getAmountFontSizeAndLineHeight(variables.fontSizeXLarge, variables.lineHeightXXLarge, isSmallScreenWidth, windowWidth, requestAmount),
                                     ]}
+                                    numberOfLines={1}
                                 >
                                     {getDisplayAmountText()}
                                 </Text>
