@@ -1329,6 +1329,35 @@ function getDropDownButtonHeight(buttonSize) {
     };
 }
 
+/**
+ * Returns fitting fontSize and lineHeight values in order to prevent large amounts from being cut off on small screen widths.
+ *
+ * @param {Number} baseFontSize
+ * @param {Number} baseLineHeight
+ * @param {Boolean} isSmallScreenWidth
+ * @param {Number} windowWidth
+ * @param {Number} requestAmount
+ * @returns {Object}
+ */
+function getAmountFontSizeAndLineHeight(baseFontSize, baseLineHeight, isSmallScreenWidth, windowWidth, requestAmount) {
+    let toSubtract = 0;
+
+    if (isSmallScreenWidth) {
+        const widthDifference = variables.mobileResponsiveWidthBreakpoint - windowWidth;
+        if (widthDifference > 350) toSubtract = 2;
+        if (widthDifference > 400) toSubtract = 6;
+        if (widthDifference > 450) toSubtract = 9;
+    }
+
+    // requestAmount also includes digits after ".", so "1,000,000.00" qualifies.
+    if (requestAmount >= 100000000) toSubtract += 2;
+
+    return {
+        fontSize: baseFontSize - toSubtract,
+        lineHeight: baseLineHeight - toSubtract,
+    };
+};
+
 export {
     getAvatarSize,
     getAvatarWidthStyle,
@@ -1404,4 +1433,5 @@ export {
     getDisabledLinkStyles,
     getCheckboxContainerStyle,
     getDropDownButtonHeight,
+    getAmountFontSizeAndLineHeight
 };

@@ -164,22 +164,6 @@ function MoneyRequestPreview(props) {
         description = props.transaction.merchant;
     }
 
-    // Prevents large amounts from being cut off on small screen widths.
-    const getFontSizeAndLineHeightToSubtract = () => {
-        let toSubtract = 0;
-        if (isSmallScreenWidth) {
-            const widthDifference = variables.mobileResponsiveWidthBreakpoint - windowWidth;
-            if (widthDifference > 450) toSubtract = 9;
-            else if (widthDifference > 400) toSubtract = 6;
-            else if (widthDifference > 350) toSubtract = 2;
-        }
-
-        // requestAmount also includes digits after ".", so "1,000,000.00" qualifies.
-        if (requestAmount >= 100000000) toSubtract += 2;
-
-        return toSubtract;
-    };
-
     const getSettledMessage = () => {
         switch (lodashGet(props.action, 'originalMessage.paymentType', '')) {
             case CONST.IOU.PAYMENT_TYPE.PAYPAL_ME:
@@ -277,10 +261,8 @@ function MoneyRequestPreview(props) {
                                 <Text
                                     style={[
                                         styles.moneyRequestPreviewAmount,
-                                        StyleUtils.getFontSizeStyle(variables.fontSizeXLarge - getFontSizeAndLineHeightToSubtract()),
-                                        StyleUtils.getLineHeightStyle(variables.lineHeightXXLarge - getFontSizeAndLineHeightToSubtract()),
+                                        StyleUtils.getAmountFontSizeAndLineHeight(variables.fontSizeXLarge, variables.lineHeightXXLarge, isSmallScreenWidth, windowWidth, requestAmount),
                                     ]}
-                                    maxNumberOfLines={3}
                                 >
                                     {getDisplayAmountText()}
                                 </Text>
