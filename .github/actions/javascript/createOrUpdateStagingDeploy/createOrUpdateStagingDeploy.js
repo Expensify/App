@@ -98,7 +98,7 @@ const run = function () {
                     _.union(
                         currentStagingDeployCashData.PRList,
                         _.map(mergedPRs, (number) => ({
-                            number: Number.parseInt(number, 10),
+                            number,
                             url: GithubUtils.getPullRequestURLFromNumber(number),
 
                             // Since this is the second argument to _.union,
