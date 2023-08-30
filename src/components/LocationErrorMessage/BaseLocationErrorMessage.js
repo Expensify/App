@@ -11,6 +11,10 @@ import * as Expensicons from '../Icon/Expensicons';
 import Text from '../Text';
 import TextLink from '../TextLink';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+import Tooltip from '../Tooltip';
+import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
+import * as User from '../../libs/actions/User';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** The location error code from onyx */
@@ -32,6 +36,13 @@ function BaseLocationErrorMessage({locationErrorCode, onAllowLocationLinkPress, 
     }
 
     const isPermissionDenied = locationErrorCode === 1;
+
+    /**
+     * Clears the location error on press of close icon
+     */
+    const dismissError = () => {
+        User.clearLocationError();
+    };
 
     return (
         <View style={[styles.dotIndicatorMessage, styles.mt4]}>
@@ -58,6 +69,18 @@ function BaseLocationErrorMessage({locationErrorCode, onAllowLocationLinkPress, 
                 ) : (
                     <Text style={styles.offlineFeedback.text}>{translate('location.notFound')}</Text>
                 )}
+            </View>
+            <View>
+                <Tooltip text={translate('common.close')}>
+                    <PressableWithoutFeedback
+                        onPress={dismissError}
+                        style={[styles.touchableButtonImage]}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        accessibilityLabel={translate('common.close')}
+                    >
+                        <Icon src={Expensicons.Close} />
+                    </PressableWithoutFeedback>
+                </Tooltip>
             </View>
         </View>
     );
