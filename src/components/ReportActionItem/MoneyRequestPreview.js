@@ -153,6 +153,7 @@ function MoneyRequestPreview(props) {
     const hasReceipt = TransactionUtils.hasReceipt(props.transaction);
     const isScanning = hasReceipt && TransactionUtils.isReceiptBeingScanned(props.transaction);
     const isDistanceRequest = TransactionUtils.isDistanceRequest(props.transaction);
+    const isIOU = props.action.actionName !== CONST.REPORT.TYPE.IOU;
 
     // On a distance request the merchant of the transaction will be used for the description since that's where it's stored in the database
     if (isDistanceRequest) {
@@ -269,7 +270,7 @@ function MoneyRequestPreview(props) {
                                 </View>
                             )}
                         </View>
-                        {!props.isBillSplit && !_.isEmpty(requestMerchant) && (
+                        {!props.isBillSplit && !isIOU && !_.isEmpty(requestMerchant) && (
                             <View style={[styles.flexRow]}>
                                 <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh16, styles.breakWord]}>{requestMerchant}</Text>
                             </View>
