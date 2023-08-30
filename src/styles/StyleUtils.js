@@ -1357,6 +1357,8 @@ function getAmountFontSizeAndLineHeight(baseFontSize, baseLineHeight, isSmallScr
             case widthDifference > 350:
                 toSubtract += 2;
                 break;
+            default:
+                break;
         }
     }
 
