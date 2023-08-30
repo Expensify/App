@@ -7,26 +7,11 @@ import ONYXKEYS from '../../ONYXKEYS';
 import DistanceRequest from '../../components/DistanceRequest';
 import reportPropTypes from '../reportPropTypes';
 import CONST from '../../CONST';
+import {iouPropTypes} from './propTypes';
 
 const propTypes = {
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
-    iou: PropTypes.shape({
-        id: PropTypes.string,
-        amount: PropTypes.number,
-        currency: PropTypes.string,
-        merchant: PropTypes.string,
-        created: PropTypes.string,
-        participants: PropTypes.arrayOf(
-            PropTypes.shape({
-                accountID: PropTypes.number,
-                login: PropTypes.string,
-                isPolicyExpenseChat: PropTypes.bool,
-                isOwnPolicyExpenseChat: PropTypes.bool,
-                selected: PropTypes.bool,
-            }),
-        ),
-        transactionID: PropTypes.string,
-    }),
+    iou: iouPropTypes,
 
     /** The report on which the request is initiated on */
     report: reportPropTypes,
