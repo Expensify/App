@@ -646,9 +646,11 @@ export default {
         allSet: 'Todo está listo. Guarda tu contraseña en un lugar seguro.',
     },
     privateNotes: {
-        title: 'Private notes',
-        personalNoteMessage: 'Keep notes about this chat here. You are the only person who can add, edit or view these notes.',
-        sharedNoteMessage: 'Keep notes about this chat here. Expensify employee and other users on team.expensify.com domain can view these notes.',
+        title: 'Notas privadas',
+        personalNoteMessage: 'Guarda notas sobre este chat aquí. Usted es la única persona que puede añadir, editar o ver estas notas.',
+        sharedNoteMessage: 'Guarda notas sobre este chat aquí. Los empleados de Expensify y otros usuarios del dominio team.expensify.com pueden ver estas notas.',
+        notesUnavailable: 'No se han encontrado notas para el usuario',
+        composerLabel: 'Notas',
     },
     addPayPalMePage: {
         enterYourUsernameToGetPaidViaPayPal: 'Recibe pagos vía PayPal.',
