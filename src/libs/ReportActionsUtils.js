@@ -433,6 +433,21 @@ function getSortedReportActionsForDisplay(reportActions) {
 }
 
 /**
+ * Gets sorted and filtered report actions for display.
+ *
+ * First, it sorts the report actions using `getSortedReportActionsForDisplay`.
+ * Then, it filters out actions that are pending deletion.
+ *
+ * @param {Array} reportActions - The array of report actions to filter.
+ * @returns {Array} - The filtered and sorted array of report actions.
+ */
+function getFilteredSortedReportActionsForDisplay(reportActions) {
+    const sortedReportActions = getSortedReportActionsForDisplay(reportActions);
+    const filteredReportActions = _.filter(sortedReportActions, (reportAction) => reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    return filteredReportActions;
+}
+
+/**
  * In some cases, there can be multiple closed report actions in a chat report.
  * This method returns the last closed report action so we can always show the correct archived report reason.
  * Additionally, archived #admins and #announce do not have the closed report action so we will return null if none is found.
@@ -643,4 +658,5 @@ export {
     isSplitBillAction,
     isTaskAction,
     getAllReportActions,
+    getFilteredSortedReportActionsForDisplay,
 };

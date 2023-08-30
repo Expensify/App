@@ -1237,10 +1237,11 @@ function getMoneyRequestReportName(report, policy = undefined) {
         amount: formattedAmount,
     });
 
+    /* === Start - Check for Report Scan === */
+
     // get lastReportActionTransaction
     const reportActions = ReportActionsUtils.getAllReportActions(report.reportID);
-    const sortedReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(reportActions);
-    const filteredReportActions = _.filter(sortedReportActions, (reportAction) => reportAction.pendingAction !== 'delete');
+    const filteredReportActions = ReportActionsUtils.getFilteredSortedReportActionsForDisplay(reportActions);
 
     const lastReportAction = _.first(filteredReportActions);
     const lastReportActionTransaction = TransactionUtils.getLinkedTransaction(lastReportAction);
@@ -1255,6 +1256,8 @@ function getMoneyRequestReportName(report, policy = undefined) {
     if (lastTransaction && transactionIsLastReportAction && TransactionUtils.isReceiptBeingScanned(lastTransaction)) {
         return Localize.translateLocal('iou.receiptScanning');
     }
+
+    /* === End - Check for Report Scan === */
 
     if (report.isWaitingOnBankAccount) {
         return `${payerPaidAmountMesssage} • ${Localize.translateLocal('iou.pending')}`;
@@ -1377,8 +1380,8 @@ function getTransactionsWithReceipts(iouReportID) {
  */
 function getSortedTransactionsWithReceipts(iouReportID) {
     const reportActions = ReportActionsUtils.getAllReportActions(iouReportID);
-    const sortedReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(reportActions);
-    const filteredSortedReportActions = _.filter(sortedReportActions, (reportAction) => reportAction.pendingAction !== 'delete');
+    const filteredSortedReportActions = ReportActionsUtils.getFilteredSortedReportActionsForDisplay(reportActions);
+
     return _.reduce(
         filteredSortedReportActions,
         (transactions, action) => {
@@ -1388,6 +1391,26 @@ function getSortedTransactionsWithReceipts(iouReportID) {
                     transactions.push(transaction);
                 }
             }
+            return transactions;
+        },
+        [],
+    );
+}
+
+/**
+ * Gets all sorted money request reportActions
+ *
+ * @param {Object|null} iouReportID
+ * @returns {[Object]}
+ */
+function getSortedMoneyRequestActions(iouReportID) {
+    const reportActions = ReportActionsUtils.getAllReportActions(iouReportID);
+    const filteredSortedReportActions = ReportActionsUtils.getFilteredSortedReportActionsForDisplay(reportActions);
+
+    return _.reduce(
+        filteredSortedReportActions,
+        (transactions, action) => {
+            if (ReportActionsUtils.isMoneyRequestAction(action)) transactions.push(action);
             return transactions;
         },
         [],
@@ -1461,6 +1484,25 @@ function getReportPreviewMessage(report, reportAction = {}) {
     if (isReportApproved(report) && getPolicyType(report, allPolicies) === CONST.POLICY.TYPE.CORPORATE) {
         return `approved ${formattedAmount}`;
     }
+
+    /* === Start - Check for Report Scan === */
+
+    const filteredIouReportActions = getSortedMoneyRequestActions(report.reportID);
+    const lastIouReportAction = _.first(filteredIouReportActions);
+    const lastIouReportActionTransaction = TransactionUtils.getLinkedTransaction(lastIouReportAction);
+
+    // get lastTransaction
+    // eslint-disable-next-line no-use-before-define
+    const transactionsWithReceipts = getSortedTransactionsWithReceipts(report.reportID);
+    const lastTransaction = _.first(transactionsWithReceipts);
+
+    const transactionIsLastReportAction = _.isEqual(lastIouReportActionTransaction, lastTransaction);
+
+    if (lastTransaction && transactionIsLastReportAction && TransactionUtils.isReceiptBeingScanned(lastTransaction)) {
+        return Localize.translateLocal('iou.receiptScanning');
+    }
+
+    /* === End - Check for Report Scan === */
 
     if (isSettled(report.reportID)) {
         // A settled report preview message can come in three formats "paid ... using Paypal.me", "paid ... elsewhere" or "paid ... using Expensify"
@@ -3635,4 +3677,5 @@ export {
     getReportPreviewDisplayTransactions,
     getTransactionsWithReceipts,
     getSortedTransactionsWithReceipts,
+    getSortedMoneyRequestActions,
 };
