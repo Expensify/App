@@ -1,7 +1,6 @@
 import React from 'react';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import moment from 'moment';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
