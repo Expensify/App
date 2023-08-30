@@ -13,6 +13,7 @@ import FormHelpMessage from './FormHelpMessage';
 import {withNetwork} from './OnyxProvider';
 import networkPropTypes from './networkPropTypes';
 import useNetwork from '../hooks/useNetwork';
+import * as Browser from '../libs/Browser';
 
 const TEXT_INPUT_EMPTY_STATE = '';
 
@@ -187,7 +188,9 @@ function MagicCodeInput(props) {
      */
     const onPress = (index) => {
         shouldFocusLast.current = false;
-        inputRefs.current.focus();
+        if (!Browser.isMobileChrome()) {
+            inputRefs.current.focus();
+        }
         setInput(TEXT_INPUT_EMPTY_STATE);
         setFocusedIndex(index);
         setEditIndex(index);
@@ -301,7 +304,16 @@ function MagicCodeInput(props) {
             <View style={[styles.magicCodeInputContainer]}>
                 <View style={[StyleSheet.absoluteFillObject, styles.w100, styles.invisibleOverlay]}>
                     <TapGestureHandler
+                        onActivated={(e) => {
+                            if (!Browser.isMobileSafari()) {
+                                return;
+                            }
+                            onPress(Math.floor(e.nativeEvent.x / (inputWidth.current / props.maxLength)));
+                        }}
                         onBegan={(e) => {
+                            if (Browser.isMobileSafari()) {
+                                return;
+                            }
                             onPress(Math.floor(e.nativeEvent.x / (inputWidth.current / props.maxLength)));
                         }}
                     >
