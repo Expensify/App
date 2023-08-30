@@ -1132,6 +1132,13 @@ const CONST = {
         MENTION_ICON: 'mention-icon',
         SMALL_NORMAL: 'small-normal',
     },
+    EXPENSIFY_CARD: {
+        FRAUD_TYPES: {
+            DOMAIN: 'domain',
+            INDIVIDUAL: 'individal',
+            NONE: 'none',
+        },
+    },
     AVATAR_ROW_SIZE: {
         DEFAULT: 4,
         LARGE_SCREEN: 8,
