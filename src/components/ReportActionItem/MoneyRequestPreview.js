@@ -153,7 +153,7 @@ function MoneyRequestPreview(props) {
     let description = requestComment;
     const hasReceipt = TransactionUtils.hasReceipt(props.transaction);
     const isScanning = hasReceipt && TransactionUtils.isReceiptBeingScanned(props.transaction);
-    const hasFieldErrors = hasReceipt && !isScanning && TransactionUtils.hasFieldErrors(props.transaction);
+    const hasFieldErrors = TransactionUtils.hasMissingSmartscanFields(props.transaction);
     const isDistanceRequest = TransactionUtils.isDistanceRequest(props.transaction);
 
     // On a distance request the merchant of the transaction will be used for the description since that's where it's stored in the database

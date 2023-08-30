@@ -89,7 +89,7 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, trans
     let hasErrors = false;
     if (hasReceipt) {
         receiptURIs = ReceiptUtils.getThumbnailAndImageURIs(transaction.receipt.source, transaction.filename);
-        hasErrors = TransactionUtils.hasFieldErrors(transaction);
+        hasErrors = TransactionUtils.hasMissingSmartscanFields(transaction);
     }
 
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);

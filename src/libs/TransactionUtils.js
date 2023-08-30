@@ -244,11 +244,8 @@ function getCreated(transaction) {
     return '';
 }
 
-function hasFieldErrors(transaction) {
-    if (!_.has(transaction, 'errors')) {
-        return false;
-    }
-    return getAmount(transaction, false) === 0 || getMerchant(transaction) === CONST.TRANSACTION.UNKNOWN_MERCHANT || getCreated(transaction) === '';
+function hasMissingSmartscanFields(transaction) {
+    return hasReceipt(transaction) && !isReceiptBeingScanned(transaction) && !areRequiredFieldsPopulated(transaction);
 }
 
 /**
@@ -331,5 +328,5 @@ export {
     isReceiptBeingScanned,
     validateWaypoints,
     isDistanceRequest,
-    hasFieldErrors,
+    hasMissingSmartscanFields,
 };

@@ -360,7 +360,7 @@ function getAllReportErrors(report, reportActions) {
 
             // Instead of adding all Smartscan errors, let's just add a generic error if there are any. This
             // will be more performant and provide the same result in the UI
-            if (ReportUtils.hasFieldErrors(iouReportID)) {
+            if (ReportUtils.hasMissingSmartscanFields(iouReportID)) {
                 _.extend(reportActionErrors, {createChat: ErrorUtils.getMicroSecondOnyxError('report.genericSmartscanFailureMessage')});
             }
         }

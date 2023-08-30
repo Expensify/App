@@ -1359,9 +1359,9 @@ function areAllRequestsBeingSmartScanned(iouReportID, reportPreviewAction) {
     return _.all(transactionsWithReceipts, (transaction) => TransactionUtils.isReceiptBeingScanned(transaction));
 }
 
-function hasFieldErrors(iouReportID) {
+function hasMissingSmartscanFields(iouReportID) {
     const transactionsWithReceipts = getTransactionsWithReceipts(iouReportID);
-    return _.some(transactionsWithReceipts, (transaction) => TransactionUtils.hasFieldErrors(transaction));
+    return _.some(transactionsWithReceipts, (transaction) => TransactionUtils.hasMissingSmartscanFields(transaction));
 }
 
 /**
@@ -3584,5 +3584,5 @@ export {
     areAllRequestsBeingSmartScanned,
     getReportPreviewDisplayTransactions,
     getTransactionsWithReceipts,
-    hasFieldErrors,
+    hasMissingSmartscanFields,
 };
