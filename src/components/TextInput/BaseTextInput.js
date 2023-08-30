@@ -241,7 +241,7 @@ function BaseTextInput(props) {
         props.autoGrowHeight && {scrollPaddingTop: 2 * maxHeight},
     ]);
     const isMultiline = props.multiline || props.autoGrowHeight;
-    
+
     return (
         <>
             <View style={styles.pointerEventsNone}>
@@ -333,7 +333,7 @@ function BaseTextInput(props) {
 
                                     // Stop scrollbar flashing when breaking lines with autoGrowHeight enabled.
                                     props.autoGrowHeight && StyleUtils.getAutoGrowHeightInputStyle(textInputHeight, maxHeight),
-                                                                    ]}
+                                ]}
                                 multiline={isMultiline}
                                 maxLength={props.maxLength}
                                 onFocus={onFocus}
