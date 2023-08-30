@@ -41,21 +41,15 @@ const getDefaultMileageRate = (policy) => {
  * @param {string} unit - The desired unit of conversion, either 'km' for kilometers or 'mi' for miles.
  *
  * @returns {number} The converted distance in the specified unit.
- *
- * @throws {Error} Throws an error if the input is invalid or if the unit is unsupported.
  */
 function convertDistanceUnit(distanceInMeters, unit) {
-    if (typeof distanceInMeters !== 'number' || (unit !== CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES && unit !== CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS)) {
-        throw new Error('Invalid input');
-    }
-
     const METERS_TO_KM = 0.001; // 1 kilometer is 1000 meters
     const METERS_TO_MILES = 0.000621371; // There are approximately 0.000621371 miles in a meter
 
     switch (unit) {
-        case 'km':
+        case CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS:
             return distanceInMeters * METERS_TO_KM;
-        case 'mi':
+        case CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES:
             return distanceInMeters * METERS_TO_MILES;
         default:
             throw new Error('Unsupported unit. Supported units are "mi" or "km".');
