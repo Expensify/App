@@ -2601,6 +2601,11 @@ const CONST = {
         SAASTR: 'SaaStrDemoSetup',
         SBE: 'SbeDemoSetup',
     },
+    MAP_VIEW: {
+        PADDING: 50,
+        DEFAULT_ZOOM: 10,
+        DEFAULT_COORDINATE: [-122.4021, 37.7911],
+    },
 };
 
 export default CONST;

@@ -1,33 +1,38 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import {ScrollView, View} from 'react-native';
-import lodashGet from 'lodash/get';
-import _ from 'underscore';
-import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import MapView from 'react-native-x-maps';
+import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
+import _ from 'underscore';
+
+import CONST from '../CONST';
+import ROUTES from '../ROUTES';
 import ONYXKEYS from '../ONYXKEYS';
-import * as Transaction from '../libs/actions/Transaction';
-import * as TransactionUtils from '../libs/TransactionUtils';
-import MenuItemWithTopDescription from './MenuItemWithTopDescription';
-import * as Expensicons from './Icon/Expensicons';
-import theme from '../styles/themes/default';
-import Button from './Button';
+
 import styles from '../styles/styles';
 import variables from '../styles/variables';
-import LinearGradient from './LinearGradient';
-import * as MapboxToken from '../libs/actions/MapboxToken';
-import CONST from '../CONST';
-import BlockingView from './BlockingViews/BlockingView';
-import useNetwork from '../hooks/useNetwork';
-import useLocalize from '../hooks/useLocalize';
-import Navigation from '../libs/Navigation/Navigation';
-import ROUTES from '../ROUTES';
+import theme from '../styles/themes/default';
+
 import transactionPropTypes from './transactionPropTypes';
-import ScreenWrapper from './ScreenWrapper';
-import DotIndicatorMessage from './DotIndicatorMessage';
-import * as ErrorUtils from '../libs/ErrorUtils';
+
+import useNetwork from '../hooks/useNetwork';
 import usePrevious from '../hooks/usePrevious';
-import { useIsFocused } from '@react-navigation/native';
+import useLocalize from '../hooks/useLocalize';
+
+import * as ErrorUtils from '../libs/ErrorUtils';
+import Navigation from '../libs/Navigation/Navigation';
+import * as MapboxToken from '../libs/actions/MapboxToken';
+import * as Transaction from '../libs/actions/Transaction';
+import * as TransactionUtils from '../libs/TransactionUtils';
+
+import Button from './Button';
+import MapView from './MapView';
+import ScreenWrapper from './ScreenWrapper';
+import LinearGradient from './LinearGradient';
+import * as Expensicons from './Icon/Expensicons';
+import BlockingView from './BlockingViews/BlockingView';
+import DotIndicatorMessage from './DotIndicatorMessage';
+import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 
 const MAX_WAYPOINTS = 25;
 const MAX_WAYPOINTS_TO_DISPLAY = 4;
@@ -64,7 +69,6 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
     const [scrollContentHeight, setScrollContentHeight] = useState(0);
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
-    const isFocused = useIsFocused()
     const waypoints = useMemo(() => lodashGet(transaction, 'comment.waypoints', {}), [transaction]);
     const numberOfWaypoints = _.size(waypoints);
 
@@ -212,7 +216,6 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
             <View style={styles.mapViewContainer}>
                 {!isOffline && Boolean(mapboxAccessToken.token) ? (
                     <MapView
-                        isFocused={isFocused}
                         accessToken={mapboxAccessToken.token}
                         mapPadding={MAP_PADDING}
                         pitchEnabled={false}
