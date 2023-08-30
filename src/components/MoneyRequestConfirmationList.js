@@ -162,7 +162,7 @@ function MoneyRequestConfirmationList(props) {
     const shouldCategoryEditable = !_.isEmpty(props.policyCategories) && !props.isDistanceRequest;
 
     const formattedAmount = CurrencyUtils.convertToDisplayString(
-        shouldCalculateDistanceAmount ? DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate) : props.iouAmount,
+        shouldCalculateDistanceAmount ? DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate, translate) : props.iouAmount,
         props.iouCurrencyCode,
     );
 

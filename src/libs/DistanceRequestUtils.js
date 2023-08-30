@@ -45,14 +45,14 @@ function convertDistanceUnit(distanceInMeters, unit) {
  * @param {number} distanceInMeters Distance traveled
  * @param {('mi' | 'ki')} unit Unit that should be used to display the distance
  * @param {number} rate Expensable amount allowed per unit
+ * @param {function} translate Translate function
  * @returns {string} A string that describes the distance travled and the rate used for expense calculation
  */
-const getDistanceString = (distanceInMeters, unit, rate) => {
+const getDistanceString = (distanceInMeters, unit, rate, translate) => {
     const convertedDistance = convertDistanceUnit(distanceInMeters, unit);
 
-    const distanceUnit = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES_FULL_PLURAL : CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS_FULL_PLURAL;
-    const singularDistanceUnit =
-        unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES_FULL_SINGULAR : CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS_FULL_SINGULAR;
+    const distanceUnit = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.miles') : translate('common.kilometers');
+    const singularDistanceUnit = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.mile') : translate('common.kilometer');
     const roundedDistance = convertedDistance.toFixed(2);
     const unitString = roundedDistance === 1 ? singularDistanceUnit : distanceUnit;
     const ratePerUnit = rate * 0.01;

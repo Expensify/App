@@ -161,6 +161,10 @@ export default {
         receipt: 'Receipt',
         replace: 'Replace',
         distance: 'Distance',
+        mile: 'mile',
+        miles: 'miles',
+        kilometer: 'kilometer',
+        kilometers: 'kilometers',
     },
     anonymousReportFooter: {
         logoTagline: 'Join the discussion.',
