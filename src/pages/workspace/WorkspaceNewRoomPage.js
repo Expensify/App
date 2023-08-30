@@ -2,6 +2,7 @@ import React, {useState, useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
+import withNavigationFocus from '../../components/withNavigationFocus';
 import PropTypes from 'prop-types';
 import * as Report from '../../libs/actions/Report';
 import useLocalize from '../../hooks/useLocalize';
@@ -19,6 +20,7 @@ import * as PolicyUtils from '../../libs/PolicyUtils';
 import Form from '../../components/Form';
 import policyMemberPropType from '../policyMemberPropType';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
+import compose from '../../libs/compose';
 
 const propTypes = {
     /** All reports shared with the user */
@@ -148,7 +150,7 @@ function WorkspaceNewRoomPage(props) {
                 enabledWhenOffline
             >
                 <View style={styles.mb5}>
-                    <RoomNameInput inputID="roomName" />
+                    <RoomNameInput inputID="roomName" isFocused={props.isFocused} autoFocus />
                 </View>
                 <View style={styles.mb2}>
                     <Picker
@@ -188,17 +190,20 @@ WorkspaceNewRoomPage.propTypes = propTypes;
 WorkspaceNewRoomPage.defaultProps = defaultProps;
 WorkspaceNewRoomPage.displayName = 'WorkspaceNewRoomPage';
 
-export default withOnyx({
-    betas: {
-        key: ONYXKEYS.BETAS,
-    },
-    policies: {
-        key: ONYXKEYS.COLLECTION.POLICY,
-    },
-    reports: {
-        key: ONYXKEYS.COLLECTION.REPORT,
-    },
-    allPolicyMembers: {
-        key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
-    },
-})(WorkspaceNewRoomPage);
+export default compose(
+    withNavigationFocus,
+    withOnyx({
+        betas: {
+            key: ONYXKEYS.BETAS,
+        },
+        policies: {
+            key: ONYXKEYS.COLLECTION.POLICY,
+        },
+        reports: {
+            key: ONYXKEYS.COLLECTION.REPORT,
+        },
+        allPolicyMembers: {
+            key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
+        },
+    })
+)(WorkspaceNewRoomPage);
