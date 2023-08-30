@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import PropTypes from 'prop-types';
-import { View, Keyboard } from 'react-native';
-import { withOnyx } from 'react-native-onyx';
+import {View, Keyboard} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
@@ -57,11 +57,9 @@ const defaultProps = {
     personalDetailsList: {},
 };
 
-function PrivateNotesPage({ route, personalDetailsList, session, report }) {
-    const { translate } = useLocalize();
-    const [privateNote, setPrivateNote] = useState(
-        lodashGet(report, `privateNotes.${route.params.accountID}.note`, ''),
-    );
+function PrivateNotesPage({route, personalDetailsList, session, report}) {
+    const {translate} = useLocalize();
+    const [privateNote, setPrivateNote] = useState(lodashGet(report, `privateNotes.${route.params.accountID}.note`, ''));
     const [editMode, setEditMode] = useState(_.isEmpty(privateNote));
     const isCurrentUser = Number(session.accountID) === Number(route.params.accountID);
 
@@ -73,7 +71,7 @@ function PrivateNotesPage({ route, personalDetailsList, session, report }) {
         const editedNote = parser.replace(privateNote);
         Report.updatePrivateNotes(report.reportID, route.params.accountID, editedNote);
         Keyboard.dismiss();
-       
+
         // Enable the view mode once we have saved the updated note
         setPrivateNote(editedNote);
         setEditMode(false);
@@ -83,7 +81,7 @@ function PrivateNotesPage({ route, personalDetailsList, session, report }) {
         // Every time we switch to edit mode we want to render the content in the markdown format
         const parser = new ExpensiMark();
         setPrivateNote(parser.htmlToMarkdown(privateNote).trim());
-        
+
         if (isCurrentUser) {
             setEditMode(true);
         }
@@ -98,11 +96,7 @@ function PrivateNotesPage({ route, personalDetailsList, session, report }) {
             >
                 <HeaderWithBackButton
                     title={translate('privateNotes.title')}
-                    subtitle={
-                        isCurrentUser
-                            ? 'My note'
-                            : `${lodashGet(personalDetailsList, `${route.params.accountID}.login`, '')} note`
-                    }
+                    subtitle={isCurrentUser ? 'My note' : `${lodashGet(personalDetailsList, `${route.params.accountID}.login`, '')} note`}
                     shouldShowBackButton
                     onCloseButtonPress={() => Navigation.dismissModal()}
                     onBackButtonPress={() => Navigation.goBack()}
@@ -111,13 +105,7 @@ function PrivateNotesPage({ route, personalDetailsList, session, report }) {
                     <View style={[styles.mb5]}>
                         <Text>
                             {translate(
-                                Str.extractEmailDomain(
-                                    lodashGet(
-                                        personalDetailsList,
-                                        [route.params.accountID, 'login'],
-                                        '',
-                                    ),
-                                ) === CONST.EMAIL.GUIDES_DOMAIN
+                                Str.extractEmailDomain(lodashGet(personalDetailsList, [route.params.accountID, 'login'], '')) === CONST.EMAIL.GUIDES_DOMAIN
                                     ? 'privateNotes.sharedNoteMessage'
                                     : 'privateNotes.personalNoteMessage',
                             )}
@@ -155,13 +143,11 @@ function PrivateNotesPage({ route, personalDetailsList, session, report }) {
                             onPress={switchToEditMode}
                         >
                             <OfflineWithFeedback
-                            errors={{
-                                ...lodashGet(report, `privateNotes.${route.params.accountID}.errors`, ''),
-                            }}
-                            pendingAction={lodashGet(report, `privateNotes.${route.params.accountID}.pendingAction`, '')}
-                            onClose={() =>
-                                Report.clearPrivateNotesError(report.reportID, route.params.accountID) 
-                            }
+                                errors={{
+                                    ...lodashGet(report, `privateNotes.${route.params.accountID}.errors`, ''),
+                                }}
+                                pendingAction={lodashGet(report, `privateNotes.${route.params.accountID}.pendingAction`, '')}
+                                onClose={() => Report.clearPrivateNotesError(report.reportID, route.params.accountID)}
                             >
                                 <RenderHTML html={privateNote} />
                             </OfflineWithFeedback>
@@ -171,7 +157,7 @@ function PrivateNotesPage({ route, personalDetailsList, session, report }) {
             </FullPageNotFoundView>
         </ScreenWrapper>
     );
-};
+}
 
 PrivateNotesPage.displayName = 'PrivateNotesPage';
 PrivateNotesPage.propTypes = propTypes;
@@ -181,7 +167,7 @@ export default compose(
     withLocalize,
     withOnyx({
         report: {
-            key: ({ route }) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID.toString()}`,
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID.toString()}`,
         },
         session: {
             key: ONYXKEYS.SESSION,

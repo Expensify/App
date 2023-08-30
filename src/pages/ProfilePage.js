@@ -137,7 +137,7 @@ function ProfilePage(props) {
     const statusText = lodashGet(details, 'status.text', '');
     const hasStatus = !!statusEmojiCode && Permissions.canUseCustomStatus(props.betas);
     const statusContent = `${statusEmojiCode}  ${statusText}`;
- 
+
     const navigateBackTo = lodashGet(props.route, 'params.backTo', '');
 
     const chatReportWithCurrentUser = !isCurrentUser && !Session.isAnonymousUser() ? ReportUtils.getChatByParticipants([accountID]) : 0;
@@ -289,6 +289,6 @@ export default compose(
         },
         session: {
             key: ONYXKEYS.SESSION,
-        }
+        },
     }),
 )(ProfilePage);

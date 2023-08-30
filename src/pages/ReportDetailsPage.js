@@ -111,7 +111,7 @@ function ReportDetailsPage(props) {
                 },
             });
         }
-        
+
         // We display private notes option for all the chat reports
         items.push({
             key: CONST.REPORT_DETAILS_MENU_ITEM.PRIVATE_NOTES,
@@ -119,7 +119,7 @@ function ReportDetailsPage(props) {
             icon: Expensicons.Pencil,
             isAnonymousAction: false,
             action: () => {
-                 ReportUtils.navigateToPrivateNotesPage(props.report);
+                ReportUtils.navigateToPrivateNotesPage(props.report);
             },
             brickRoadIndicator: Report.hasErrorInPrivateNotes(props.report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '',
         });

@@ -1949,11 +1949,11 @@ const updatePrivateNotes = (reportID, accountID, note) => {
             value: {
                 privateNotes: {
                     [accountID]: {
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                    errors: null,
-                    note
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        errors: null,
+                        note,
                     },
-                }
+                },
             },
         },
     ];
@@ -1968,7 +1968,7 @@ const updatePrivateNotes = (reportID, accountID, note) => {
                         pendingAction: null,
                         errors: null,
                     },
-                }
+                },
             },
         },
     ];
@@ -1980,9 +1980,9 @@ const updatePrivateNotes = (reportID, accountID, note) => {
             value: {
                 privateNotes: {
                     [accountID]: {
-                        errors: ErrorUtils.getMicroSecondOnyxError('Private notes couldn\'t be saved'),
+                        errors: ErrorUtils.getMicroSecondOnyxError("Private notes couldn't be saved"),
                     },
-                }
+                },
             },
         },
     ];
@@ -1991,7 +1991,7 @@ const updatePrivateNotes = (reportID, accountID, note) => {
         'UpdateReportPrivateNote',
         {
             reportID,
-            'privateNotes': note,
+            privateNotes: note,
         },
         {optimisticData, successData, failureData},
     );
@@ -2045,23 +2045,23 @@ function getReportPrivateNote(reportID) {
 
 /**
  * Checks if there are any errors in the private notes for a given report
- * 
+ *
  * @param {Object} report
  * @returns {Boolean} Returns true if there are errors in any of the private notes on the report
  */
 function hasErrorInPrivateNotes(report) {
-    const privateNotes = lodashGet(report, 'privateNotes', {}); 
+    const privateNotes = lodashGet(report, 'privateNotes', {});
     return _.some(privateNotes, (privateNote) => !_.isEmpty(privateNote.errors));
 }
 
 /**
  * Clears all errors associated with a given private note
- * 
+ *
  * @param {String} reportID
  * @param {Number} accountID
  */
 function clearPrivateNotesError(reportID, accountID) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {privateNotes: {[accountID]: {errors: null}}}); 
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {privateNotes: {[accountID]: {errors: null}}});
 }
 
 export {
