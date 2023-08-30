@@ -185,16 +185,6 @@ function isTaskReport(report) {
 }
 
 /**
- * Checks if a report is an open task report.
- *
- * @param {Object} report
- * @returns {Boolean}
- */
-function isOpenTaskReport(report) {
-    return isTaskReport(report) && report.stateNum === CONST.REPORT.STATE_NUM.OPEN && report.statusNum === CONST.REPORT.STATUS.OPEN;
-}
-
-/**
  * Checks if a task has been cancelled
  * When a task is deleted, the parentReportAction is updated to have a isDeletedParentAction deleted flag
  * This is because when you delete a task, we still allow you to chat on the report itself
@@ -215,6 +205,17 @@ function isCanceledTaskReport(report = {}, parentReportAction = {}) {
     }
 
     return false;
+}
+
+/**
+ * Checks if a report is an open task report.
+ * 
+ * @param {Object} report
+ * @param {Object} parentReportAction - The parent report action of the report (Used to check if the task has been canceled)
+ * @returns {Boolean}
+ */
+function isOpenTaskReport(report, parentReportAction = {}) {
+    return isTaskReport(report) && !isCanceledTaskReport(report, parentReportAction) && report.stateNum === CONST.REPORT.STATE_NUM.OPEN && report.statusNum === CONST.REPORT.STATUS.OPEN;
 }
 
 /**
