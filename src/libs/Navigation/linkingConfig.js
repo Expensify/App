@@ -265,6 +265,14 @@ export default {
                             NewTask_Description: ROUTES.NEW_TASK_DESCRIPTION,
                         },
                     },
+                    TeachersUnite: {
+                        screens: {
+                            SaveTheWorld_Root: ROUTES.SAVE_THE_WORLD,
+                            I_Know_A_Teacher: ROUTES.I_KNOW_A_TEACHER,
+                            Intro_School_Principal: ROUTES.INTRO_SCHOOL_PRINCIPAL,
+                            I_Am_A_Teacher: ROUTES.I_AM_A_TEACHER,
+                        },
+                    },
                     Search: {
                         screens: {
                             Search_Root: ROUTES.SEARCH,
