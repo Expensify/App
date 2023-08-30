@@ -52,13 +52,14 @@ const propTypes = {
 
     /** Report on which the money request is being created */
     report: reportPropTypes,
-      
+
     /** Which tab has been selected */
     selectedTab: PropTypes.string,
 };
 
 const defaultProps = {
     selectedTab: CONST.TAB.MANUAL,
+    iou: {},
     report: {},
 };
 
