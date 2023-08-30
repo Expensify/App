@@ -17,7 +17,7 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(({accessToken, style, ma
     useImperativeHandle(
         ref,
         () => ({
-            flyTo: (location: [number, number], zoomLevel: number = CONST.MAP_VIEW.DEFAULT_ZOOM, animationDuration?: number) =>
+            flyTo: (location: [number, number], zoomLevel: number = CONST.MAPBOX.DEFAULT_ZOOM, animationDuration?: number) =>
                 cameraRef.current?.setCamera({zoomLevel, centerCoordinate: location, animationDuration}),
             fitBounds: (ne: [number, number], sw: [number, number], paddingConfig?: number | number[] | undefined, animationDuration?: number | undefined) =>
                 cameraRef.current?.fitBounds(ne, sw, paddingConfig, animationDuration),

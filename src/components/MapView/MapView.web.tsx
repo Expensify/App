@@ -20,7 +20,7 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(
             accessToken,
             directionStyle,
             directionCoordinates,
-            initialState = {location: CONST.MAP_VIEW.DEFAULT_COORDINATE, zoom: CONST.MAP_VIEW.DEFAULT_ZOOM},
+            initialState = {location: CONST.MAPBOX.DEFAULT_COORDINATE, zoom: CONST.MAPBOX.DEFAULT_ZOOM},
         },
         ref,
     ) => {
@@ -53,7 +53,7 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(
         useImperativeHandle(
             ref,
             () => ({
-                flyTo: (location: [number, number], zoomLevel: number = CONST.MAP_VIEW.DEFAULT_ZOOM, animationDuration?: number) =>
+                flyTo: (location: [number, number], zoomLevel: number = CONST.MAPBOX.DEFAULT_ZOOM, animationDuration?: number) =>
                     mapRef?.flyTo({
                         center: location,
                         zoom: zoomLevel,

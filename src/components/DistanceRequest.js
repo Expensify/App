@@ -36,9 +36,6 @@ import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 const MAX_WAYPOINTS = 25;
 const MAX_WAYPOINTS_TO_DISPLAY = 4;
 
-const MAP_PADDING = 50;
-const DEFAULT_ZOOM_LEVEL = 10;
-
 const propTypes = {
     /** The transactionID of this request */
     transactionID: PropTypes.string,
@@ -216,17 +213,17 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
                 {!isOffline && Boolean(mapboxAccessToken.token) ? (
                     <MapView
                         accessToken={mapboxAccessToken.token}
-                        mapPadding={MAP_PADDING}
+                        mapPadding={CONST.MAPBOX.PADDING}
                         pitchEnabled={false}
                         initialState={{
-                            location: CONST.SF_COORDINATES,
-                            zoom: DEFAULT_ZOOM_LEVEL,
+                            zoom: CONST.MAPBOX.DEFAULT_ZOOM,
+                            location: CONST.MAPBOX.DEFAULT_COORDINATE,
                         }}
                         directionCoordinates={lodashGet(transaction, 'routes.route0.geometry.coordinates', [])}
                         directionStyle={styles.mapDirection}
                         style={styles.mapView}
                         waypoints={waypointMarkers}
-                        styleURL={CONST.MAPBOX_STYLE_URL}
+                        styleURL={CONST.MAPBOX.STYLE_URL}
                     />
                 ) : (
                     <View style={[styles.mapPendingView]}>
