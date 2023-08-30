@@ -1,6 +1,4 @@
-import GetNavigationModalCardStyles from './types';
-
-const getNavigationModalCardStyles: GetNavigationModalCardStyles = () => ({
+export default () => ({
     // position: fixed is set instead of position absolute to workaround Safari known issues of updating heights in DOM.
     // Safari issues:
     // https://github.com/Expensify/App/issues/12005
@@ -10,5 +8,3 @@ const getNavigationModalCardStyles: GetNavigationModalCardStyles = () => ({
     height: '100%',
     position: 'fixed',
 });
-
-export default getNavigationModalCardStyles;
