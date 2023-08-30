@@ -1,6 +1,6 @@
 /* eslint-disable rulesdir/onyx-props-must-have-default */
 import React from 'react';
-import {View} from 'react-native';
+import {View, InteractionManager} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -86,6 +86,15 @@ class SidebarLinks extends React.PureComponent {
         App.setSidebarLoaded();
         SidebarUtils.setIsSidebarLoadedReady();
         this.isSidebarLoaded = true;
+
+        // Eagerly set the locale on date-fns, it helps navigating to the report screen faster
+        InteractionManager.runAfterInteractions(() => {
+            requestAnimationFrame(() => {
+                requestIdleCallback(() => {
+                    this.props.updateLocale();
+                });
+            });
+        });
 
         let modal = {};
         this.unsubscribeOnyxModal = onyxSubscribe({

@@ -344,6 +344,7 @@ const DateUtils = {
     subtractMillisecondsFromDateTime,
     getDateStringFromISOTimestamp,
     getStatusUntilDate,
+    setLocale,
 };
 
 export default DateUtils;
