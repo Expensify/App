@@ -58,7 +58,7 @@ const propTypes = {
     /** The report currently being looked at */
     report: reportPropTypes,
 
-    /** The report metada loading states */
+    /** The report metadata loading states */
     reportMetadata: reportMetadataPropTypes,
 
     /** Array of report actions for this report */
