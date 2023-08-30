@@ -249,6 +249,18 @@ function ReportScreen({
         [route],
     );
 
+    const calculateSkeletonViewHeight = (event) => {
+        // Rounding this value for comparison because they can look like this: 411.9999694824219
+        const newSkeletonViewContainerHeight = Math.round(event.nativeEvent.layout.height);
+
+        // The height can be 0 if the component unmounts - we are not interested in this value and want to know how much space it
+        // takes up so we can set the skeleton view container height.
+        if (newSkeletonViewContainerHeight === 0) {
+            return;
+        }
+        setSkeletonViewContainerHeight(newSkeletonViewContainerHeight);
+    };
+
     useEffect(() => {
         const unsubscribeVisibilityListener = Visibility.onVisibilityChange(() => {
             // If the report is not fully visible (AKA on small screen devices and LHR is open) or the report is optimistic (AKA not yet created)
@@ -337,17 +349,7 @@ function ReportScreen({
                         <DragAndDropProvider isDisabled={!isReportReadyForDisplay}>
                             <View
                                 style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
-                                onLayout={(event) => {
-                                    // Rounding this value for comparison because they can look like this: 411.9999694824219
-                                    const newSkeletonViewContainerHeight = Math.round(event.nativeEvent.layout.height);
-
-                                    // The height can be 0 if the component unmounts - we are not interested in this value and want to know how much space it
-                                    // takes up so we can set the skeleton view container height.
-                                    if (newSkeletonViewContainerHeight === 0) {
-                                        return;
-                                    }
-                                    setSkeletonViewContainerHeight(newSkeletonViewContainerHeight);
-                                }}
+                                onLayout={calculateSkeletonViewHeight}
                             >
                                 {isReportReadyForDisplay && !isLoadingInitialReportActions && !isLoading && (
                                     <ReportActionsView
@@ -361,11 +363,11 @@ function ReportScreen({
                                     />
                                 )}
 
-                                {/* Note: The report should be allowed to mount even if the initial report actions are not loaded. If we prevent rendering the report while they are loading then
+                                {/* Note: The ReportActionsSkeletonView should be allowed to mount even if the initial report actions are not loaded. If we prevent rendering the report while they are loading then
                             we'll unnecessarily unmount the ReportActionsView which will clear the new marker lines initial state. */}
                                 {(!isReportReadyForDisplay || isLoadingInitialReportActions || isLoading) && <ReportActionsSkeletonView containerHeight={skeletonViewContainerHeight} />}
 
-                                {isReportReadyForDisplay && (
+                                {isReportReadyForDisplay ? (
                                     <>
                                         <ReportFooter
                                             pendingAction={addWorkspaceRoomOrChatPendingAction}
@@ -377,9 +379,7 @@ function ReportScreen({
                                             policies={policies}
                                         />
                                     </>
-                                )}
-
-                                {!isReportReadyForDisplay && (
+                                ) : (
                                     <ReportFooter
                                         shouldDisableCompose
                                         isOffline={network.isOffline}
