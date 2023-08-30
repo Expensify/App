@@ -1342,23 +1342,23 @@ function getDropDownButtonHeight(buttonSize) {
 function getAmountFontSizeAndLineHeight(baseFontSize, baseLineHeight, isSmallScreenWidth, windowWidth, requestAmount) {
     let toSubtract = 0;
 
+    // requestAmount also includes digits after ".", so "1,000,000.00" qualifies.
+    if (requestAmount >= 100000000) toSubtract = 2;
+
     if (isSmallScreenWidth) {
         const widthDifference = variables.mobileResponsiveWidthBreakpoint - windowWidth;
         switch (true) {
             case widthDifference > 450:
-                toSubtract = 9;
+                toSubtract += 9;
                 break;
             case widthDifference > 400:
-                toSubtract = 6;
+                toSubtract += 6;
                 break;
             case widthDifference > 350:
-                toSubtract = 2;
+                toSubtract += 2;
                 break;
         }
     }
-
-    // requestAmount also includes digits after ".", so "1,000,000.00" qualifies.
-    if (requestAmount >= 100000000) toSubtract += 2;
 
     return {
         fontSize: baseFontSize - toSubtract,
