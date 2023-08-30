@@ -1,6 +1,7 @@
 /**
  * @jest-environment node
  */
+const _ = require('underscore');
 const GitUtils = require('../../.github/libs/GitUtils');
 const GithubUtils = require('../../.github/libs/GithubUtils');
 
@@ -12,8 +13,22 @@ const mockListEvents = jest.fn();
 const mockCreateComment = jest.fn();
 const mockGetPullRequestsMergedBetween = jest.fn();
 let workflowRunURL;
-
-const PRList = [1, 2, 3, 4];
+const PRList = {
+    1: {
+        issue_number: 1,
+        title: 'Test PR 1',
+        merged_by: {
+            login: 'odin',
+        },
+    },
+    2: {
+        issue_number: 2,
+        title: 'Test PR 2',
+        merged_by: {
+            login: 'loki',
+        },
+    },
+};
 const version = '42.42.42-42';
 
 /**
@@ -24,7 +39,7 @@ const version = '42.42.42-42';
 function defaultMockGetInput(key) {
     switch (key) {
         case 'PR_LIST':
-            return JSON.stringify(PRList);
+            return JSON.stringify(_.keys(PRList));
         case 'IS_PRODUCTION_DEPLOY':
             return false;
         case 'DEPLOY_VERSION':
@@ -71,6 +86,23 @@ beforeAll(() => {
                 // Static mock for pulls.list (only used to filter out automated PRs, and that functionality is covered
                 // in the test for GithubUtils.generateStagingDeployCashBody
                 list: jest.fn().mockResolvedValue([]),
+                get: jest.fn().mockImplementation(async ({pull_number}) => (pull_number in PRList ? {data: PRList[pull_number]} : {})),
+            },
+            repos: {
+                listTags: jest.fn().mockResolvedValue({
+                    data: [
+                        {name: '42.42.42-42', commit: {sha: 'abcd'}},
+                        {name: '42.42.42-41', commit: {sha: 'efgh'}},
+                    ],
+                }),
+            },
+            git: {
+                getCommit: jest.fn().mockImplementation(async (sha) => {
+                    if (sha === 'abcd') {
+                        return {data: {message: 'Test commit 1'}};
+                    }
+                    return {data: {message: 'Test commit 2'}};
+                }),
             },
         },
         paginate: jest.fn().mockImplementation((objectMethod) => objectMethod().then(({data}) => data)),
@@ -83,11 +115,12 @@ beforeAll(() => {
 
     jest.mock('../../.github/libs/ActionUtils', () => ({
         getJSONInput: jest.fn().mockImplementation((name, defaultValue) => {
-            const input = mockGetInput(name);
-            if (input) {
+            try {
+                const input = mockGetInput(name);
                 return JSON.parse(input);
+            } catch (err) {
+                return defaultValue;
             }
-            return defaultValue;
         }),
     }));
 
@@ -98,15 +131,13 @@ beforeAll(() => {
     workflowRunURL = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`;
 });
 
-beforeEach(() => {
-    // Note: we import this in here so that it executes after all the mocks are set up
-    run = require('../../.github/actions/javascript/markPullRequestsAsDeployed/markPullRequestsAsDeployed');
-});
+beforeEach(() => {});
 
 afterEach(() => {
     mockGetInput.mockClear();
     mockListIssues.mockClear();
     mockGetPullRequestsMergedBetween.mockClear();
+    mockCreateComment.mockClear();
 });
 
 afterAll(() => {
@@ -114,7 +145,28 @@ afterAll(() => {
 });
 
 describe('markPullRequestsAsDeployed', () => {
-    it('comments on pull requests correctly for a standard staging deploy', async () => {});
+    it('comments on pull requests correctly for a standard staging deploy', async () => {
+        // Note: we import this in here so that it executes after all the mocks are set up
+        run = require('../../.github/actions/javascript/markPullRequestsAsDeployed/markPullRequestsAsDeployed');
+        await run();
+        expect(mockCreateComment).toHaveBeenCalledTimes(_.keys(PRList).length);
+        for (let i = 0; i < _.keys(PRList).length; i++) {
+            const PR = PRList[i + 1];
+            expect(mockCreateComment).toHaveBeenNthCalledWith(i + 1, {
+                body: `🚀 [Deployed](${workflowRunURL}) to staging by https://github.com/${PR.merged_by.login} in version: ${version} 🚀
+
+platform | result
+---|---
+🤖 android 🤖|success ✅
+🖥 desktop 🖥|success ✅
+🍎 iOS 🍎|success ✅
+🕸 web 🕸|success ✅`,
+                issue_number: PR.issue_number,
+                owner: 'Expensify',
+                repo: 'App',
+            });
+        }
+    });
 
     it('comments on pull requests correctly for a standard production deploy', async () => {
         mockGetInput.mockImplementation((key) => {
@@ -124,9 +176,12 @@ describe('markPullRequestsAsDeployed', () => {
             return defaultMockGetInput(key);
         });
 
+        // Note: we import this in here so that it executes after all the mocks are set up
+        run = require('../../.github/actions/javascript/markPullRequestsAsDeployed/markPullRequestsAsDeployed');
+
         await run();
-        expect(mockCreateComment).toHaveBeenCalledTimes(PRList.length);
-        for (let i = 0; i < PRList.length; i++) {
+        expect(mockCreateComment).toHaveBeenCalledTimes(_.keys(PRList).length);
+        for (let i = 0; i < _.keys(PRList).length; i++) {
             expect(mockCreateComment).toHaveBeenNthCalledWith(i + 1, {
                 body: `🚀 [Deployed](${workflowRunURL}) to production by https://github.com/thor in version: ${version} 🚀
 
@@ -136,7 +191,7 @@ platform | result
 🖥 desktop 🖥|success ✅
 🍎 iOS 🍎|success ✅
 🕸 web 🕸|success ✅`,
-                issue_number: PRList[i],
+                issue_number: PRList[i + 1].issue_number,
                 owner: 'Expensify',
                 repo: 'App',
             });
@@ -158,5 +213,9 @@ platform | result
             }
             return defaultMockGetInput(key);
         });
+
+        // Note: we import this in here so that it executes after all the mocks are set up
+        run = require('../../.github/actions/javascript/markPullRequestsAsDeployed/markPullRequestsAsDeployed');
+        await run();
     });
 });

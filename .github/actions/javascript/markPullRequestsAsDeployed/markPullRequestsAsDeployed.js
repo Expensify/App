@@ -5,10 +5,6 @@ const CONST = require('../../../libs/CONST');
 const ActionUtils = require('../../../libs/ActionUtils');
 const GithubUtils = require('../../../libs/GithubUtils');
 
-const prList = ActionUtils.getJSONInput('PR_LIST', {required: true});
-const isProd = ActionUtils.getJSONInput('IS_PRODUCTION_DEPLOY', {required: true});
-const version = core.getInput('DEPLOY_VERSION', {required: true});
-
 /**
  * Return a nicely formatted message for the table based on the result of the GitHub action job
  *
@@ -29,34 +25,6 @@ function getDeployTableMessage(platformResult) {
     }
 }
 
-const androidResult = getDeployTableMessage(core.getInput('ANDROID', {required: true}));
-const desktopResult = getDeployTableMessage(core.getInput('DESKTOP', {required: true}));
-const iOSResult = getDeployTableMessage(core.getInput('IOS', {required: true}));
-const webResult = getDeployTableMessage(core.getInput('WEB', {required: true}));
-
-const workflowURL = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`;
-
-/**
- * @param {String} deployer
- * @param {String} deployVerb
- * @param {String} prTitle
- * @returns {String}
- */
-function getDeployMessage(deployer, deployVerb, prTitle) {
-    let message = `🚀 [${deployVerb}](${workflowURL}) to ${isProd ? 'production' : 'staging'}`;
-    message += ` by https://github.com/${deployer} in version: ${version} 🚀`;
-    message += `\n\nplatform | result\n---|---\n🤖 android 🤖|${androidResult}\n🖥 desktop 🖥|${desktopResult}`;
-    message += `\n🍎 iOS 🍎|${iOSResult}\n🕸 web 🕸|${webResult}`;
-
-    if (deployVerb === 'Cherry-picked' && !/no qa/gi.test(prTitle)) {
-        // eslint-disable-next-line max-len
-        message +=
-            '\n\n@Expensify/applauseleads please QA this PR and check it off on the [deploy checklist](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3AStagingDeployCash) if it passes.';
-    }
-
-    return message;
-}
-
 /**
  * Comment Single PR
  *
@@ -74,7 +42,39 @@ async function commentPR(PR, message) {
     }
 }
 
+const workflowURL = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`;
+
 async function run() {
+    const prList = _.map(ActionUtils.getJSONInput('PR_LIST', {required: true}), (num) => Number.parseInt(num, 10));
+    const isProd = ActionUtils.getJSONInput('IS_PRODUCTION_DEPLOY', {required: true});
+    const version = core.getInput('DEPLOY_VERSION', {required: true});
+
+    const androidResult = getDeployTableMessage(core.getInput('ANDROID', {required: true}));
+    const desktopResult = getDeployTableMessage(core.getInput('DESKTOP', {required: true}));
+    const iOSResult = getDeployTableMessage(core.getInput('IOS', {required: true}));
+    const webResult = getDeployTableMessage(core.getInput('WEB', {required: true}));
+
+    /**
+     * @param {String} deployer
+     * @param {String} deployVerb
+     * @param {String} prTitle
+     * @returns {String}
+     */
+    function getDeployMessage(deployer, deployVerb, prTitle) {
+        let message = `🚀 [${deployVerb}](${workflowURL}) to ${isProd ? 'production' : 'staging'}`;
+        message += ` by https://github.com/${deployer} in version: ${version} 🚀`;
+        message += `\n\nplatform | result\n---|---\n🤖 android 🤖|${androidResult}\n🖥 desktop 🖥|${desktopResult}`;
+        message += `\n🍎 iOS 🍎|${iOSResult}\n🕸 web 🕸|${webResult}`;
+
+        if (deployVerb === 'Cherry-picked' && !/no qa/gi.test(prTitle)) {
+            // eslint-disable-next-line max-len
+            message +=
+                '\n\n@Expensify/applauseleads please QA this PR and check it off on the [deploy checklist](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3AStagingDeployCash) if it passes.';
+        }
+
+        return message;
+    }
+
     if (isProd) {
         // Find the previous deploy checklist
         const {data: deployChecklists} = await GithubUtils.octokit.issues.listForRepo({
