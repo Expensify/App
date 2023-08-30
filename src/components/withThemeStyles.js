@@ -4,8 +4,8 @@ import useThemeStyles from '../styles/useThemeStyles';
 import getComponentDisplayName from '../libs/getComponentDisplayName';
 import refPropTypes from './refPropTypes';
 
-const withThemePropTypes = {
-    theme: PropTypes.object.isRequired,
+const withThemeStylesPropTypes = {
+    themeStyles: PropTypes.object.isRequired,
 };
 
 export default function withThemeStyles(WrappedComponent) {
@@ -37,4 +37,4 @@ export default function withThemeStyles(WrappedComponent) {
     ));
 }
 
-export {withThemePropTypes};
+export {withThemeStylesPropTypes};
