@@ -135,7 +135,7 @@ function HeaderView(props) {
     const defaultSubscriptSize = ReportUtils.isExpenseRequest(props.report) ? CONST.AVATAR_SIZE.SMALL_NORMAL : CONST.AVATAR_SIZE.DEFAULT;
     const icons = ReportUtils.getIcons(reportHeaderData, props.personalDetails);
     const brickRoadIndicator = ReportUtils.hasReportNameError(props.report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
-    const shouldShowBorderBottom = !props.isSmallScreenWidth;
+    const shouldShowBorderBottom = !isTaskReport || !props.isSmallScreenWidth;
     const shouldDisableDetailPage = ReportUtils.shouldDisableDetailPage(props.report);
 
     return (
@@ -218,7 +218,7 @@ function HeaderView(props) {
                             )}
                         </PressableWithoutFeedback>
                         <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
-                            {isTaskReport && !props.isSmallScreenWidth && ReportUtils.isOpenTaskReport(props.report) && !isCanceledTaskReport && <TaskHeaderActionButton report={props.report} />}
+                            {isTaskReport && !props.isSmallScreenWidth && ReportUtils.isOpenTaskReport(props.report) && <TaskHeaderActionButton report={props.report} />}
                             {shouldShowCallButton && (
                                 <VideoChatButtonAndMenu
                                     isConcierge={isConcierge}

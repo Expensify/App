@@ -103,7 +103,6 @@ function TaskPreview(props) {
                     />
                     <RenderHTML html={htmlForTaskPreview} />
                 </View>
-
                 <Icon
                     src={Expensicons.ArrowRight}
                     fill={StyleUtils.getIconFillColor(getButtonState(props.isHovered))}
