@@ -227,7 +227,7 @@ function getCommitHistoryAsJSON(fromTag, toTag) {
  * Parse merged PRs, excluding those from irrelevant branches.
  *
  * @param {Array<Object<{commit: String, subject: String, authorName: String}>>} commits
- * @returns {Array<String>}
+ * @returns {Array<Number>}
  */
 function getValidMergedPRs(commits) {
     const mergedPRs = new Set();
