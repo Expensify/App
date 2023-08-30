@@ -61,7 +61,7 @@ function PrivateNotesPage({route, personalDetailsList, session, report}) {
     const {translate} = useLocalize();
     const [privateNote, setPrivateNote] = useState(lodashGet(report, ['privateNotes', route.params.accountID, 'note'], ''));
     const [editMode, setEditMode] = useState(_.isEmpty(privateNote));
-    const isCurrentUser = Number(session.accountID) === Number(route.params.accountID);
+    const isCurrentUserNote = Number(session.accountID) === Number(route.params.accountID);
 
     const savePrivateNote = () => {
         if (_.isEmpty(privateNote)) {
@@ -78,13 +78,13 @@ function PrivateNotesPage({route, personalDetailsList, session, report}) {
     };
 
     const switchToEditMode = () => {
+        if (!isCurrentUserNote) {
+            return;
+        }
         // Every time we switch to edit mode we want to render the content in the markdown format
         const parser = new ExpensiMark();
         setPrivateNote(parser.htmlToMarkdown(privateNote).trim());
-
-        if (isCurrentUser) {
-            setEditMode(true);
-        }
+        setEditMode(true);
     };
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -95,7 +95,7 @@ function PrivateNotesPage({route, personalDetailsList, session, report}) {
             >
                 <HeaderWithBackButton
                     title={translate('privateNotes.title')}
-                    subtitle={isCurrentUser ? 'My note' : `${lodashGet(personalDetailsList, [route.params.accountID, 'login'], '')} note`}
+                    subtitle={isCurrentUserNote ? 'My note' : `${lodashGet(personalDetailsList, [route.params.accountID, 'login'], '')} note`}
                     shouldShowBackButton
                     onCloseButtonPress={() => Navigation.dismissModal()}
                     onBackButtonPress={() => Navigation.goBack()}
