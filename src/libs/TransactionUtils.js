@@ -244,6 +244,10 @@ function getCreated(transaction) {
     return '';
 }
 
+function isReceiptBeingScanned(transaction) {
+    return transaction.receipt.state === CONST.IOU.RECEIPT_STATE.SCANREADY || transaction.receipt.state === CONST.IOU.RECEIPT_STATE.SCANNING;
+}
+
 /**
  * Check if the transaction has a non-smartscanning receipt and is missing required fields
  *
@@ -268,10 +272,6 @@ function getLinkedTransaction(reportAction = {}) {
 
 function getAllReportTransactions(reportID) {
     return _.filter(allTransactions, (transaction) => transaction.reportID === reportID);
-}
-
-function isReceiptBeingScanned(transaction) {
-    return transaction.receipt.state === CONST.IOU.RECEIPT_STATE.SCANREADY || transaction.receipt.state === CONST.IOU.RECEIPT_STATE.SCANNING;
 }
 
 /**
