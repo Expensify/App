@@ -123,6 +123,7 @@ function MagicCodeInput(props) {
         clear() {
             setInput(TEXT_INPUT_EMPTY_STATE);
             setFocusedIndex(0);
+            lastFocusedIndex.current = 0;
             setEditIndex(0);
             inputRefs.current.focus();
             props.onChangeText('');
