@@ -47,7 +47,7 @@ const userListItemPropTypes = {
     isFocused: PropTypes.bool,
 
     /** Whether this item should show Tooltip */
-    showTooltip: PropTypes.bool,
+    showTooltip: PropTypes.bool.isRequired,
 
     /** Callback to fire when the item is pressed */
     onSelectRow: PropTypes.func.isRequired,

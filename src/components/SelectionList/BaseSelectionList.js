@@ -266,7 +266,6 @@ function BaseSelectionList({
                 isFocused={isFocused}
                 isDisabled={isDisabled}
                 onSelectRow={() => selectRow(item, index)}
-                showTooltip={showTooltip}
             />
         );
     };

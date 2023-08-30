@@ -16,7 +16,7 @@ import themeColors from '../../styles/themes/default';
 import Tooltip from '../Tooltip';
 import UserDetailsTooltip from '../UserDetailsTooltip';
 
-function UserListItem({item, isFocused = false, showTooltip = false, onSelectRow, onDismissError = () => {}}) {
+function UserListItem({item, isFocused = false, showTooltip, onSelectRow, onDismissError = () => {}}) {
     const hasError = !_.isEmpty(item.errors);
 
     const avatar = (
