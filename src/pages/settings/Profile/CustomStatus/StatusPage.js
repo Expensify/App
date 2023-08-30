@@ -49,15 +49,17 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
 
     const navigateBackToSettingsPage = useCallback(() => Navigation.goBack(ROUTES.SETTINGS_PROFILE, false, true), []);
     const updateStatus = useCallback(() => {
-        let clearAfter = '';
-        if (draftClearAfter !== CONST.CUSTOM_STATUS_TYPES.NEVER) {
-            clearAfter = draftClearAfter || currentUserClearAfter;
-        }
-        User.updateCustomStatus({text: defaultText, emojiCode: defaultEmoji, clearAfter});
+        const clearAfterTime = draftClearAfter || currentUserClearAfter;
+        if (DateUtils.hasDateExpired(clearAfterTime)) return;
+        User.updateCustomStatus({
+            text: defaultText,
+            emojiCode: defaultEmoji,
+            clearAfter: clearAfterTime !== CONST.CUSTOM_STATUS_TYPES.NEVER ? clearAfterTime : '',
+        });
 
         User.clearDraftCustomStatus();
         Navigation.goBack(ROUTES.SETTINGS_PROFILE);
-    }, [defaultText, defaultEmoji, currentUserClearAfter, draftClearAfter]);
+    }, [defaultText, defaultEmoji, currentUserClearAfter, draftClearAfter, isValidClearAfterDate]);
 
     useEffect(() => {
         if (currentUserEmojiCode || currentUserClearAfter || draftClearAfter) return;
@@ -86,9 +88,18 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
                     innerStyles={[styles.mb6]}
                 />
             ) : null,
-        [hasDraftStatus, localize, updateStatus],
+        [hasDraftStatus, localize, updateStatus, isValidClearAfterDate],
     );
 
+    
+    const isValidClearAfterDate = useMemo(() => {
+      const clearAfterTime = draftClearAfter || currentUserClearAfter;
+      if (clearAfterTime === CONST.CUSTOM_STATUS_TYPES.NEVER) return true;
+      
+      return !DateUtils.hasDateExpired(clearAfterTime);
+    }, [draftClearAfter, currentUserClearAfter]);
+    
+    const brickRoadIndicator = () => isValidClearAfterDate ? null : CONST.BRICK_INDICATOR.ERROR;
     useEffect(() => () => User.clearDraftCustomStatus(), []);
 
     return (
@@ -107,6 +118,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
                 title={customStatus}
                 description={localize.translate('statusPage.status')}
                 shouldShowRightIcon
+                containerStyle={styles.pr2}
                 inputID="test"
                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS_SET)}
             />
@@ -115,6 +127,8 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
                 description={localize.translate('statusPage.clearAfter')}
                 shouldShowRightIcon
                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS_CLEAR_AFTER)}
+                containerStyle={styles.pr2}
+                brickRoadIndicator={brickRoadIndicator}
             />
 
             {(!!currentUserEmojiCode || !!currentUserStatusText) && (
