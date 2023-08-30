@@ -10,8 +10,8 @@ type Fund = {
     maskedPan?: string;
     isVirtual?: boolean;
     fraud?: ValueOf<typeof CONST.EXPENSIFY_CARD.FRAUD_TYPES>;
-    cardholderFirstName?: string,
-    cardholderLastName?: string,
+    cardholderFirstName?: string;
+    cardholderLastName?: string;
 };
 
 export default Fund;
