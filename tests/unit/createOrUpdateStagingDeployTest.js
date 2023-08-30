@@ -94,8 +94,6 @@ const basePRList = [
     'https://github.com/Expensify/App/pull/8',
     'https://github.com/Expensify/App/pull/9',
     'https://github.com/Expensify/App/pull/10',
-    'https://github.com/Expensify/App/issues/11',
-    'https://github.com/Expensify/App/issues/12',
 ];
 
 const baseIssueList = ['https://github.com/Expensify/App/issues/11', 'https://github.com/Expensify/App/issues/12'];
@@ -138,7 +136,7 @@ describe('createOrUpdateStagingDeployCash', () => {
             `${lineBreakDouble}${ccApplauseLeads}`,
     };
 
-    const baseNewPullRequests = ['6', '7', '8'];
+    const baseNewPullRequests = [6, 7, 8];
 
     test('creates new issue when there is none open', () => {
         mockGetInput.mockImplementation((arg) => {
@@ -220,13 +218,13 @@ describe('createOrUpdateStagingDeployCash', () => {
                 labels: [LABELS.DEPLOY_BLOCKER_CASH],
             },
             {
-                html_url: 'https://github.com/Expensify/App/issues/9',
+                html_url: 'https://github.com/Expensify/App/pull/9',
                 number: 9,
                 state: 'open',
                 labels: [LABELS.DEPLOY_BLOCKER_CASH],
             },
             {
-                html_url: 'https://github.com/Expensify/App/issues/10',
+                html_url: 'https://github.com/Expensify/App/pull/10',
                 number: 10,
                 state: 'closed',
                 labels: [LABELS.DEPLOY_BLOCKER_CASH],
@@ -245,7 +243,7 @@ describe('createOrUpdateStagingDeployCash', () => {
             });
 
             // New pull requests to add to open StagingDeployCash
-            const newPullRequests = ['9', '10'];
+            const newPullRequests = [9, 10];
             mockGetPullRequestsMergedBetween.mockImplementation((fromRef, toRef) => {
                 if (fromRef === '1.0.1-0' && toRef === '1.0.2-2') {
                     return [...baseNewPullRequests, ...newPullRequests];
@@ -300,8 +298,8 @@ describe('createOrUpdateStagingDeployCash', () => {
                         `${lineBreak}${openCheckbox}${basePRList[5]}` +
                         `${lineBreak}${openCheckbox}${basePRList[8]}` +
                         `${lineBreak}${closedCheckbox}${basePRList[9]}` +
-                        `${lineBreak}${openCheckbox}${basePRList[10]}` +
-                        `${lineBreak}${openCheckbox}${basePRList[11]}${lineBreak}` +
+                        `${lineBreak}${openCheckbox}${baseIssueList[0]}` +
+                        `${lineBreak}${openCheckbox}${baseIssueList[1]}${lineBreak}` +
                         `${lineBreakDouble}${deployerVerificationsHeader}` +
                         // Note: these will be unchecked with a new app version, and that's intentional
                         `${lineBreak}${openCheckbox}${timingDashboardVerification}` +
@@ -320,7 +318,7 @@ describe('createOrUpdateStagingDeployCash', () => {
                 return 'fake_token';
             });
             mockGetPullRequestsMergedBetween.mockImplementation((fromRef, toRef) => {
-                if (fromRef === '1.0.1-0' && toRef === '1.0.2-2') {
+                if (fromRef === '1.0.1-0' && toRef === '1.0.2-1') {
                     return [...baseNewPullRequests];
                 }
                 return [];
