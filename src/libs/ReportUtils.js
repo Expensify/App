@@ -1255,7 +1255,8 @@ function getMoneyRequestReportName(report, policy = undefined) {
  * @returns {Object}
  */
 function getReport(reportID) {
-    return lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {});
+    // Deleted reports are set to null and lodashGet will still return null in that case, so we need to add an extra check
+    return lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {}) || {};
 }
 
 /**
@@ -3092,6 +3093,7 @@ function getMoneyRequestOptions(report, reportParticipants, betas) {
  * `public_announce` - Only non-policy members can leave (it's auto-shared with policy members)
  * `policy_admins` - Nobody can leave (it's auto-shared with all policy admins)
  * `policy_announce` - Nobody can leave (it's auto-shared with all policy members)
+ * `policyExpenseChat` - Nobody can leave (it's auto-shared with all policy members)
  * `policy` - Anyone can leave (though only policy members can join)
  * `domain` - Nobody can leave (it's auto-shared with domain members)
  * `dm` - Nobody can leave (it's auto-shared with users)
@@ -3108,6 +3110,7 @@ function canLeaveRoom(report, isPolicyMember) {
         if (
             report.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS ||
             report.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE ||
+            report.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT ||
             report.chatType === CONST.REPORT.CHAT_TYPE.DOMAIN_ALL ||
             _.isEmpty(report.chatType)
         ) {
