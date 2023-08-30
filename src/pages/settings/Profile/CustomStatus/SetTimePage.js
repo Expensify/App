@@ -8,13 +8,17 @@ import withLocalize, {withLocalizePropTypes} from '../../../../components/withLo
 import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import TimePicker from '../../../../components/TimePicker';
+import Form from '../../../../components/Form';
 import usePrivatePersonalDetails from '../../../../hooks/usePrivatePersonalDetails';
+import useLocalize from '../../../../hooks/useLocalize';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import * as User from '../../../../libs/actions/User';
 import DateUtils from '../../../../libs/DateUtils';
+import * as ValidationUtils from '../../../../libs/ValidationUtils';
 import compose from '../../../../libs/compose';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import ROUTES from '../../../../ROUTES';
+import styles from '../../../../styles/styles';
 
 const propTypes = {
     /** User's private personal details */
@@ -33,36 +37,51 @@ const defaultProps = {
 
 function SetTimePage({translate, privatePersonalDetails, customStatus, currentUserPersonalDetails}) {
     usePrivatePersonalDetails();
-
+    const localize = useLocalize();
     const clearAfter = lodashGet(currentUserPersonalDetails, 'status.clearAfter', '');
     const customDateTemporary = lodashGet(customStatus, 'customDateTemporary', '');
     const draftClearAfter = lodashGet(customStatus, 'clearAfter', '');
 
-    const onSubmitButtonPress = useCallback(
-        (time, amPmValue) => {
-            const timeToUse = DateUtils.setTimeOrDefaultToTomorrow(`${time} ${amPmValue}`, customDateTemporary);
+    const onSubmit = ({timePicker}, amPmValue) => {
+        const timeToUse = DateUtils.combineDateAndTime(`${timePicker} ${amPmValue}`, customDateTemporary);
 
-            User.updateDraftCustomStatus({customDateTemporary: timeToUse});
-            Navigation.goBack(ROUTES.SETTINGS_STATUS_CLEAR_AFTER);
-        },
-        [customDateTemporary],
-    );
+        User.updateDraftCustomStatus({customDateTemporary: timeToUse});
+        Navigation.goBack(ROUTES.SETTINGS_STATUS_CLEAR_AFTER);
+    };
+    const validate = (v) => {
+        const error = {};
+
+        if (!ValidationUtils.isTimeAtLeastOneMinuteInFuture(v.timePicker, customDateTemporary || draftClearAfter || clearAfter)) {
+            error.timePicker = localize.translate('common.error.timeInvalid');
+        }
+
+        return error;
+    };
 
     if (lodashGet(privatePersonalDetails, 'isLoading', true)) {
         return <FullscreenLoadingIndicator />;
     }
 
     return (
-        <ScreenWrapper>
+        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <HeaderWithBackButton
                 title={translate('statusPage.time')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_STATUS_CLEAR_AFTER)}
             />
-            <TimePicker
-                inputID="timePicker"
-                defaultValue={customDateTemporary || draftClearAfter || clearAfter}
-                onSubmitButtonPress={onSubmitButtonPress}
-            />
+            <Form
+                style={[styles.flexGrow1, styles.ph5]}
+                formID={ONYXKEYS.FORMS.SETTINGS_STATUS_SET_TIME_FORM}
+                onSubmit={onSubmit}
+                submitButtonText={'SAVE'}
+                validate={validate}
+                enabledWhenOffline
+                shouldUseDefaultValue
+            >
+                <TimePicker
+                    inputID="timePicker"
+                    defaultValue={customDateTemporary || draftClearAfter || clearAfter}
+                />
+            </Form>
         </ScreenWrapper>
     );
 }

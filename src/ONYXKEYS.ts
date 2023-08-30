@@ -279,6 +279,7 @@ const ONYXKEYS = {
         SETTINGS_STATUS_CLEAR_AFTER_FORM: 'settingsStatusClearAfterForm',
         SETTINGS_STATUS_SET_CLEAR_AFTER_FORM: 'settingsStatusSetClearAfterForm',
         SETTINGS_STATUS_CLEAR_DATE_FORM: 'settingsStatusClearDateForm',
+        SETTINGS_STATUS_SET_TIME_FORM: 'settingsStatusSetTIMEForm',
     },
 } as const;
 

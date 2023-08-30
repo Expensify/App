@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import moment from 'moment';
 import PropTypes from 'prop-types';
 import React from 'react';
@@ -11,6 +12,8 @@ import Form from '../../../../components/Form';
 import usePrivatePersonalDetails from '../../../../hooks/usePrivatePersonalDetails';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import * as User from '../../../../libs/actions/User';
+import * as ValidationUtils from '../../../../libs/ValidationUtils';
+import DateUtils from '../../../../libs/DateUtils';
 import compose from '../../../../libs/compose';
 import styles from '../../../../styles/styles';
 import ONYXKEYS from '../../../../ONYXKEYS';
@@ -44,6 +47,19 @@ function CustomClearAfterPage({translate, customStatus, personalDetails}) {
         Navigation.goBack(ROUTES.SETTINGS_STATUS_CLEAR_AFTER);
     };
 
+        const validate = useCallback((values) => {
+          const requiredFields = ['dob'];
+          const errors = ValidationUtils.getFieldRequiredErrors(values, requiredFields);
+          const dateError = ValidationUtils.isExpiredData(values.dob);
+  
+          if (values.dob && dateError) {
+              errors.dob = dateError;
+          }
+  
+          return errors;
+      }, []);
+  
+
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <HeaderWithBackButton
@@ -55,13 +71,14 @@ function CustomClearAfterPage({translate, customStatus, personalDetails}) {
                 formID={ONYXKEYS.FORMS.SETTINGS_STATUS_CLEAR_DATE_FORM}
                 onSubmit={onSubmit}
                 submitButtonText={translate('common.save')}
+                validate={validate}
                 enabledWhenOffline
                 shouldUseDefaultValue
             >
                 <NewDatePicker
                     inputID="dob"
                     label={translate('statusPage.date')}
-                    defaultValue={defaultValue}
+                    defaultValue={DateUtils.extractDate(defaultValue)}
                     minDate={moment().toDate()}
                 />
             </Form>

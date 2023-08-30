@@ -106,6 +106,7 @@ export default {
             fieldRequired: 'This field is required.',
             characterLimit: ({limit}) => `Exceeds the maximum length of ${limit} characters`,
             dateInvalid: 'Please select a valid date',
+            timeInvalid: 'Please select a valid time',
             invalidCharacter: 'Invalid character',
         },
         comma: 'comma',

@@ -430,27 +430,21 @@ function getStatusUntilDate(inputDate) {
  *
  * @returns {string} - Date with updated time in "YYYY-MM-DD HH:mm:ss" format.
  */
-function setTimeOrDefaultToTomorrow(time, date) {
-    const dateToUse = date ? moment(date) : moment().endOf('day');
+const combineDateAndTime = (inputTime, inputDateTime) => {
+    // Parse the time from the input
+    const parsedTime = moment(inputTime, 'hh:mm A');
 
-    // Split the time into hour, minute, and period (AM/PM)
-    const [hour, minute, period] = time.match(/(\d+):(\d+) (\w\w)/).slice(1);
+    // Create a moment object from the input date-time (or just date)
+    const parsedDateTime = moment(inputDateTime, inputDateTime.includes(':') ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD');
 
-    // Adjust the hour based on the period
-    let adjustedHour = parseInt(hour, 10);
-    if (period === 'PM' && adjustedHour !== 12) {
-        adjustedHour += 12;
-    } else if (period === 'AM' && adjustedHour === 12) {
-        adjustedHour = 0; // For 12 AM, set to 00
-    }
+    // Set the hour and minute from the time input to the date from the date-time input
+    parsedDateTime.set({
+        hour: parsedTime.get('hour'),
+        minute: parsedTime.get('minute'),
+    });
 
-    // Set the hour, minute, and second
-    dateToUse.hour(adjustedHour);
-    dateToUse.minute(minute);
-    dateToUse.second(0); // Reset seconds to zero
-
-    return dateToUse.format('YYYY-MM-DD HH:mm:ss');
-}
+    return parsedDateTime.format('YYYY-MM-DD HH:mm:ss');
+};
 
 function parseTimeTo12HourFormat(datetime) {
     if (!datetime) {
@@ -491,6 +485,16 @@ function areDatesIdentical(dateParam1, dateParam2) {
 }
 
 /**
+ * @param {String} dateString
+ * @returns {Boolean}
+ */
+function hasDateExpired(dateString) {
+    const validUntil = moment().add(1, 'minutes');
+    const dateToCheck = moment(dateString);
+    return dateToCheck.isBefore(validUntil);
+}
+
+/**
  * @namespace DateUtils
  */
 const DateUtils = {
@@ -519,11 +523,12 @@ const DateUtils = {
     formatDateTo12Hour,
     getStatusUntilDate,
     extractTime12Hour,
-    setTimeOrDefaultToTomorrow,
     parseTimeTo12HourFormat,
     areDatesIdentical,
     getTimePeriod,
     getLocalizedTimePeriodDescription,
+    hasDateExpired,
+    combineDateAndTime,
 };
 
 export default DateUtils;

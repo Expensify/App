@@ -4,6 +4,7 @@ import _ from 'lodash';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
+import moment from 'moment';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import Form from '../../../../components/Form';
 import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
@@ -53,6 +54,42 @@ function getInitialDateBasedFromStatusType(data) {
     }
 }
 
+const useValidateCustomDate = (data) => {
+    const localize = useLocalize();
+    const [customDateError, setCustomDateError] = useState('');
+    const [customTimeError, setCustomTimeError] = useState('');
+
+    const validate = () => {
+        const inputData = moment(data, 'YYYY-MM-DD HH:mm:ss');
+        const currentDate = moment().startOf('day');
+        const currentDateTimePlus2 = moment().add(1, 'minutes');
+
+        // Date validation
+        if (inputData.isBefore(currentDate)) {
+            setCustomDateError(localize.translate('common.error.dateInvalid'));
+        } else {
+            setCustomDateError('');
+        }
+
+        // Time validation
+        if (inputData.isBefore(currentDateTimePlus2)) {
+            setCustomTimeError(localize.translate('common.error.timeInvalid'));
+        } else {
+            setCustomTimeError('');
+        }
+    };
+
+    useEffect(() => {
+        validate();
+    }, [data]);
+
+    const triggerValidation = () => {
+        validate();
+    };
+
+    return {customDateError, customTimeError, triggerValidation};
+};
+
 function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
     const localize = useLocalize();
     const clearAfter = lodashGet(currentUserPersonalDetails, 'status.clearAfter', '');
@@ -70,15 +107,19 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
         [draftPeriod, localize],
     );
 
+    const {customDateError, customTimeError, triggerValidation} = useValidateCustomDate(customDateTemporary);
+
     const onSubmit = () => {
+        triggerValidation();
+        if (customDateError || customTimeError) return;
         let calculatedDraftDate = '';
         if (draftPeriod === CONST.CUSTOM_STATUS_TYPES.CUSTOM) {
+            // calculatedDraftDate = customDateTemporary || draftClearAfter;
             calculatedDraftDate = customDateTemporary;
         } else {
             const selectedRange = _.find(localesToThemes, (item) => item.isSelected);
             calculatedDraftDate = DateUtils.getDateFromStatusType(selectedRange.value);
         }
-
         User.updateDraftCustomStatus({clearAfter: calculatedDraftDate, customDateTemporary: calculatedDraftDate});
         Navigation.goBack(ROUTES.SETTINGS_STATUS);
     };
@@ -142,6 +183,7 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
                                 shouldShowRightIcon
                                 containerStyle={styles.pr2}
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS_CLEAR_AFTER_CUSTOM)}
+                                errorText={customDateError}
                             />
                             <MenuItemWithTopDescription
                                 title={customStatusTime}
@@ -149,6 +191,7 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
                                 shouldShowRightIcon
                                 containerStyle={styles.pr2}
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS_CLEAR_AFTER_TIME)}
+                                errorText={customTimeError}
                             />
                         </>
                     )}

@@ -1,4 +1,4 @@
-import {subYears, addYears, startOfDay, endOfMonth, isAfter, isBefore, isValid, isWithinInterval, isSameDay, format} from 'date-fns';
+import {subYears, addYears, addMinutes, startOfDay, endOfMonth, isAfter, isBefore, isValid, isWithinInterval, isSam, parse, set, format} from 'date-fns';
 import _ from 'underscore';
 import {URL_REGEX_WITH_REQUIRED_PROTOCOL} from 'expensify-common/lib/Url';
 import {parsePhoneNumber} from 'awesome-phonenumber';
@@ -249,6 +249,31 @@ function getAgeRequirementError(date, minimumAge, maximumAge) {
 }
 
 /**
+ * Validate that given date is not expired more than two minutes.
+ *
+ * @param {String} inputDate
+ * @returns {String|Array}
+ */
+function isExpiredData(inputDate) {
+    const currentDate = new Date();
+    const parsedDate = new Date(inputDate + 'T00:00:00'); // set time to 00:00:00 for accurate comparison
+
+    // If input date is not valid, return an error
+    if (!isValid(parsedDate)) {
+        return 'common.error.dateInvalid';
+    }
+
+    // Clear time for currentDate so comparison is based solely on the date
+    currentDate.setHours(0, 0, 0, 0);
+
+    if (parsedDate < currentDate) {
+        return 'common.error.dateInvalid';
+    }
+
+    return '';
+}
+
+/**
  * Similar to backend, checks whether a website has a valid URL or not.
  * http/https/ftp URL scheme required.
  *
@@ -456,6 +481,37 @@ function isValidAccountRoute(accountID) {
     return CONST.REGEX.NUMBER.test(accountID) && accountID > 0;
 }
 
+const isTimeAtLeastOneMinuteInFuture = (inputTime = '', inputDateTime = '') => {
+    if (!inputTime) return false;
+      // Parse the hour and minute from the time input
+      const [hourStr, minuteStr, period] = inputTime.split(/[:\s]+/);
+      let hour = parseInt(hourStr, 10);
+  
+      // Convert 12-hour format to 24-hour format
+      if (period.toUpperCase() === "PM" && hour !== 12) {
+          hour += 12;
+      } else if (period.toUpperCase() === "AM" && hour === 12) {
+          hour = 0;
+      }
+  
+      const minute = parseInt(minuteStr, 10);
+  
+      // Check if the inputDateTime contains a time portion or is just a date
+      const dateTimeFormat = inputDateTime.includes(':') ? 'yyyy-MM-dd HH:mm:ss' : 'yyyy-MM-dd';
+      
+      // Parse the input date and time (or just date) accordingly
+      const parsedInputDateTime = parse(inputDateTime, dateTimeFormat, new Date());
+  
+      // Set the hour and minute from the time input to the date from the date-time input
+      const combinedDate = set(parsedInputDateTime, { hours: hour, minutes: minute });
+  
+      // Get current date and time
+      const now = new Date();
+  
+      // Check if the combinedDate is at least one minute later than the current date and time
+      return isAfter(combinedDate, addMinutes(now, 1));
+};
+
 export {
     meetsMinimumAgeRequirement,
     meetsMaximumAgeRequirement,
@@ -489,4 +545,6 @@ export {
     doesContainReservedWord,
     isNumeric,
     isValidAccountRoute,
+    isExpiredData,
+    isTimeAtLeastOneMinuteInFuture,
 };

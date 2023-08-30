@@ -105,6 +105,7 @@ export default {
             fieldRequired: 'Este campo es obligatorio.',
             characterLimit: ({limit}) => `Supera el límite de ${limit} caracteres`,
             dateInvalid: 'Por favor, selecciona una fecha válida',
+            timeInvalid: 'Por favor, selecciona una hora válida',
             invalidCharacter: 'Carácter invalido',
         },
         comma: 'la coma',

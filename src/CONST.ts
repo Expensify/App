@@ -2608,6 +2608,9 @@ const CONST = {
         SAASTR: 'SaaStrDemoSetup',
         SBE: 'SbeDemoSetup',
     },
+    BRICK_INDICATOR: {
+      ERROR: 'error'
+    }
 } as const;
 
 export default CONST;
