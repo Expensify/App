@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import React, {useEffect, useRef} from 'react';
 import {Text} from 'react-native';
-import {getCurrentPosition} from 'react-native-x-geolocation';
+import getCurrentPosition from '../libs/getCurrentPosition';
 import * as User from '../libs/actions/User';
 import styles from '../styles/styles';
 import Icon from './Icon';
