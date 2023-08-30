@@ -142,10 +142,10 @@ const ONYXKEYS = {
     /** The user's bank accounts */
     BANK_ACCOUNT_LIST: 'bankAccountList',
 
-    /** The user's cash card and imported cards */
+    /** The user's payment and P2P cards */
     FUND_LIST: 'fundList',
 
-    // The user's Expensify cards
+    /** The user's cash card and imported cards (including the Expensify Card) */
     CARD_LIST: 'cardList',
 
     /** Stores information about the user's saved statements */
