@@ -108,7 +108,7 @@ export default withOnyx({
     },
     mapboxToken: {
         key: ONYXKEYS.MAPBOX_ACCESS_TOKEN,
-        selector: (mapboxAccessToken) => (mapboxAccessToken ? mapboxAccessToken.token : ''),
+        selector: (mapboxAccessToken) => mapboxAccessToken.token,
     },
 })(ConfirmedRoute);
 
