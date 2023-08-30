@@ -88,6 +88,7 @@ function SidebarLinksData({isFocused, allReportActions, betas, chatReports, curr
             style={[styles.flex1, styles.h100]}
         >
             <SidebarLinks
+                currentReportID={currentReportID}
                 // Forwarded props:
                 onLinkClick={onLinkClick}
                 insets={insets}

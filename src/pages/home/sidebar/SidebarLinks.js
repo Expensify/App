@@ -30,7 +30,6 @@ import * as Session from '../../../libs/actions/Session';
 import KeyboardShortcut from '../../../libs/KeyboardShortcut';
 import onyxSubscribe from '../../../libs/onyxSubscribe';
 import * as ReportActionContextMenu from '../report/ContextMenu/ReportActionContextMenu';
-import withCurrentReportID from '../../../components/withCurrentReportID';
 import SignInOrAvatarWithOptionalStatus from './SignInOrAvatarWithOptionalStatus';
 
 const basePropTypes = {
@@ -204,7 +203,6 @@ SidebarLinks.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withWindowDimensions,
-    withCurrentReportID,
     withOnyx({
         report: {
             key: ({currentReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${currentReportID}`,
