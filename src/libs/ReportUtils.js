@@ -261,7 +261,7 @@ function isSettled(reportID) {
         return false;
     }
 
-    return report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && report.statusNum === CONST.REPORT.STATUS.REIMBURSED;
+    return report.statusNum === CONST.REPORT.STATUS.REIMBURSED;
 }
 
 /**
