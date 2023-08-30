@@ -3,6 +3,13 @@ import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as CollectionUtils from '../CollectionUtils';
+import * as API from '../API';
+
+let recentWaypoints = [];
+Onyx.connect({
+    key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
+    callback: (val) => (recentWaypoints = val || []),
+});
 
 const allTransactions = {};
 Onyx.connect({
@@ -47,6 +54,15 @@ function addStop(transactionID) {
                 [`waypoint${newLastIndex}`]: {},
             },
         },
+
+        // Clear the existing route so that we don't show an old route
+        routes: {
+            route0: {
+                geometry: {
+                    coordinates: null,
+                },
+            },
+        },
     });
 }
 
@@ -63,7 +79,26 @@ function saveWaypoint(transactionID, index, waypoint) {
                 [`waypoint${index}`]: waypoint,
             },
         },
+        // Empty out errors when we're saving a new waypoint as this indicates the user is updating their input
+        errorFields: {
+            route: null,
+        },
+
+        // Clear the existing route so that we don't show an old route
+        routes: {
+            route0: {
+                geometry: {
+                    coordinates: null,
+                },
+            },
+        },
     });
+    const recentWaypointAlreadyExists = _.find(recentWaypoints, (recentWaypoint) => recentWaypoint.address === waypoint.address);
+    if (!recentWaypointAlreadyExists) {
+        const clonedWaypoints = _.clone(recentWaypoints);
+        clonedWaypoints.unshift(waypoint);
+        Onyx.merge(ONYXKEYS.NVP_RECENT_WAYPOINTS, clonedWaypoints.slice(0, 5));
+    }
 }
 
 function removeWaypoint(transactionID, currentIndex) {
@@ -96,8 +131,72 @@ function removeWaypoint(transactionID, currentIndex) {
             ...transaction.comment,
             waypoints: reIndexedWaypoints,
         },
+        // Clear the existing route so that we don't show an old route
+        routes: {
+            route0: {
+                geometry: {
+                    coordinates: null,
+                },
+            },
+        },
     };
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, newTransaction);
 }
 
-export {addStop, createInitialWaypoints, saveWaypoint, removeWaypoint};
+/**
+ * Gets the route for a set of waypoints
+ * Used so we can generate a map view of the provided waypoints
+ * @param {String} transactionID
+ * @param {Object} waypoints
+ */
+function getRoute(transactionID, waypoints) {
+    API.read(
+        'GetRoute',
+        {
+            transactionID,
+            waypoints: JSON.stringify(waypoints),
+        },
+        {
+            optimisticData: [
+                {
+                    // Clears any potentially stale error messages from fetching the route
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                    value: {
+                        comment: {
+                            isLoading: true,
+                        },
+                        errorFields: {
+                            route: null,
+                        },
+                    },
+                },
+            ],
+            // The route and failure are sent back via pusher in the BE, we are just clearing the loading state here
+            successData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                    value: {
+                        comment: {
+                            isLoading: false,
+                        },
+                    },
+                },
+            ],
+            failureData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                    value: {
+                        comment: {
+                            isLoading: false,
+                        },
+                    },
+                },
+            ],
+        },
+    );
+}
+
+export {addStop, createInitialWaypoints, saveWaypoint, removeWaypoint, getRoute};
