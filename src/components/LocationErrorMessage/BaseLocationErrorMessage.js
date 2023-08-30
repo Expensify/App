@@ -14,7 +14,7 @@ import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 
 const propTypes = {
     /** The location error code from onyx */
-    locationErrorCode: PropTypes.number,
+    locationErrorCode: PropTypes.oneOfType([PropTypes.number, PropTypes.oneOf([null])]),
 
     /** A callback that runs when 'allow location permission' link is pressed */
     onAllowLocationLinkPress: PropTypes.func.isRequired,

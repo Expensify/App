@@ -902,7 +902,7 @@ function setLocationError(errorCode) {
  * Clears the location error code
  */
 function clearLocationError() {
-    Onyx.merge(ONYXKEYS.LOCATION_ERROR_CODE, undefined);
+    Onyx.merge(ONYXKEYS.LOCATION_ERROR_CODE, null);
 }
 
 export {
