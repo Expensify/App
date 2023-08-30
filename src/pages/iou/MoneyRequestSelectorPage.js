@@ -3,7 +3,6 @@ import {View} from 'react-native';
 import React from 'react';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import _ from 'lodash';
 import ONYXKEYS from '../../ONYXKEYS';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import ScreenWrapper from '../../components/ScreenWrapper';
@@ -80,7 +79,7 @@ function MoneyRequestSelectorPage(props) {
         [CONST.IOU.MONEY_REQUEST_TYPE.SEND]: translate('iou.sendMoney'),
         [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT]: translate('iou.splitBill'),
     };
-    const isFromGlobalCreate = _.isEmpty(props.report);
+    const isFromGlobalCreate = !props.route.params.reportID;
     const isExpenseRequest = props.report.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT;
     const shouldDisplayDistanceRequest = (canUseDistanceRequests && isExpenseRequest) || isFromGlobalCreate;
 
