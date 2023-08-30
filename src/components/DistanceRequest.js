@@ -60,12 +60,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    iou: {
-        id: '',
-        amount: 0,
-        currency: CONST.CURRENCY.USD,
-        participants: [],
-    },
+    iou: {},
     iouType: '',
     report: {},
     transaction: {},
