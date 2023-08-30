@@ -34,6 +34,16 @@ const getDefaultMileageRate = (policy) => {
     };
 };
 
+/**
+ * Converts a given distance in meters to the specified unit (kilometers or miles).
+ *
+ * @param {number} distanceInMeters - The distance in meters to be converted.
+ * @param {string} unit - The desired unit of conversion, either 'km' for kilometers or 'mi' for miles.
+ *
+ * @returns {number} The converted distance in the specified unit.
+ *
+ * @throws {Error} Throws an error if the input is invalid or if the unit is unsupported.
+ */
 function convertDistanceUnit(distanceInMeters, unit) {
     if (typeof distanceInMeters !== 'number' || (unit !== CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES && unit !== CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS)) {
         throw new Error('Invalid input');
