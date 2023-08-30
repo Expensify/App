@@ -4,6 +4,7 @@ import {withOnyx} from 'react-native-onyx';
 import {format} from 'date-fns';
 import _ from 'underscore';
 import {View} from 'react-native';
+import lodashGet from 'lodash/get';
 import styles from '../styles/styles';
 import * as ReportUtils from '../libs/ReportUtils';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
@@ -28,6 +29,9 @@ import Image from './Image';
 import useLocalize from '../hooks/useLocalize';
 import * as ReceiptUtils from '../libs/ReceiptUtils';
 import categoryPropTypes from './categoryPropTypes';
+import ConfirmedRoute from './ConfirmedRoute';
+import transactionPropTypes from './transactionPropTypes';
+import DistanceRequestUtils from '../libs/DistanceRequestUtils';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
@@ -147,7 +151,7 @@ const defaultProps = {
 function MoneyRequestConfirmationList(props) {
     // Destructure functions from props to pass it as a dependecy to useCallback/useMemo hooks.
     // Prop functions pass props itself as a "this" value to the function which means they change every time props change.
-    const {onSendMoney, onConfirm, onSelectParticipant} = props;
+    const {onSendMoney, onConfirm, onSelectParticipant, transaction} = props;
     const {translate} = useLocalize();
 
     // A flag and a toggler for showing the rest of the form fields
@@ -185,7 +189,7 @@ function MoneyRequestConfirmationList(props) {
             text = translate('iou.request');
         } else {
             const translationKey = props.hasMultipleParticipants ? 'iou.splitAmount' : 'iou.requestAmount';
-            text = translate(translationKey, {amount: CurrencyUtils.convertToDisplayString(props.iouAmount, props.iouCurrencyCode)});
+            text = translate(translationKey, {amount: formattedAmount});
         }
         return [
             {
@@ -193,7 +197,7 @@ function MoneyRequestConfirmationList(props) {
                 value: props.hasMultipleParticipants ? CONST.IOU.MONEY_REQUEST_TYPE.SPLIT : CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
             },
         ];
-    }, [props.hasMultipleParticipants, props.iouAmount, props.receiptPath, props.iouCurrencyCode, translate]);
+    }, [props.hasMultipleParticipants, props.receiptPath, translate, formattedAmount]);
 
     const selectedParticipants = useMemo(() => _.filter(props.selectedParticipants, (participant) => participant.selected), [props.selectedParticipants]);
     const payeePersonalDetails = useMemo(() => props.payeePersonalDetails || props.currentUserPersonalDetails, [props.payeePersonalDetails, props.currentUserPersonalDetails]);
@@ -321,8 +325,6 @@ function MoneyRequestConfirmationList(props) {
         [selectedParticipants, onSendMoney, onConfirm, props.iouType],
     );
 
-    const formattedAmount = CurrencyUtils.convertToDisplayString(props.iouAmount, props.iouCurrencyCode);
-
     const footerContent = useMemo(() => {
         if (props.isReadOnly) {
             return;
@@ -376,6 +378,11 @@ function MoneyRequestConfirmationList(props) {
             optionHoveredStyle={canModifyParticipants ? styles.hoveredComponentBG : {}}
             footerContent={footerContent}
         >
+            {props.isDistanceRequest && (
+                <View style={styles.confirmationListMapItem}>
+                    <ConfirmedRoute transactionID={props.transactionID} />
+                </View>
+            )}
             {!_.isEmpty(props.receiptPath) ? (
                 <Image
                     style={styles.moneyRequestImage}
@@ -476,6 +483,13 @@ export default compose(
         },
         policyCategories: {
             key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+        },
+        mileageRate: {
+            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            selector: (policy) => DistanceRequestUtils.getDefaultMileageRate(policy),
+        },
+        transaction: {
+            key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
         },
     }),
 )(MoneyRequestConfirmationList);
