@@ -217,5 +217,22 @@ platform | result
         // Note: we import this in here so that it executes after all the mocks are set up
         run = require('../../.github/actions/javascript/markPullRequestsAsDeployed/markPullRequestsAsDeployed');
         await run();
+        expect(mockCreateComment).toHaveBeenCalledTimes(_.keys(PRList).length);
+        for (let i = 0; i < _.keys(PRList).length; i++) {
+            const PR = PRList[i + 1];
+            expect(mockCreateComment).toHaveBeenNthCalledWith(i + 1, {
+                body: `🚀 [Deployed](${workflowRunURL}) to staging by https://github.com/${PR.merged_by.login} in version: ${version} 🚀
+
+platform | result
+---|---
+🤖 android 🤖|skipped 🚫
+🖥 desktop 🖥|cancelled 🔪
+🍎 iOS 🍎|failed ❌
+🕸 web 🕸|success ✅`,
+                issue_number: PR.issue_number,
+                owner: 'Expensify',
+                repo: 'App',
+            });
+        }
     });
 });
