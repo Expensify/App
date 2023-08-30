@@ -1,11 +1,11 @@
 import React, {useEffect, useState} from 'react';
-import {ScrollView, View} from 'react-native';
+import {View} from 'react-native';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import MapView from 'react-native-x-maps';
-import DraggableList from '../components/DraggableList';
+import DraggableList from './DraggableList';
 import ONYXKEYS from '../ONYXKEYS';
 import * as Transaction from '../libs/actions/Transaction';
 import * as TransactionUtils from '../libs/TransactionUtils';
@@ -61,6 +61,8 @@ const defaultProps = {
 function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
     const [shouldShowGradient, setShouldShowGradient] = useState(false);
     const [scrollContainerHeight, setScrollContainerHeight] = useState(0);
+    // TODO: Verify setScrollContentHeight is needed
+    // eslint-disable-next-line no-unused-vars
     const [scrollContentHeight, setScrollContentHeight] = useState(0);
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
