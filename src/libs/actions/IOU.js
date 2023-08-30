@@ -613,7 +613,7 @@ function requestMoney(report, amount, currency, created, merchant, payeeEmail, p
  * @return {Object}
  */
 function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, existingSplitChatReportID = '') {
-    const currentUserEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(currentUserLogin);
+    const currentUserEmailForIOUSplit = OptionsListUtils.addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = _.map(participants, (participant) => Number(participant.accountID));
     const existingSplitChatReport = existingSplitChatReportID
         ? allReports[`${ONYXKEYS.COLLECTION.REPORT}${existingSplitChatReportID}`]
@@ -638,7 +638,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
     );
 
     // Note: The created action must be optimistically generated before the IOU action so there's no chance that the created action appears after the IOU action in the chat
-    const splitCreatedReportAction = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
+    const splitCreatedReportAction = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmailForIOUSplit);
     const splitIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
         CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
         amount,
@@ -757,13 +757,13 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
 
     // Loop through participants creating individual chats, iouReports and reportActionIDs as needed
     const splitAmount = IOUUtils.calculateAmount(participants.length, amount, currency, false);
-    const splits = [{email: currentUserEmail, accountID: currentUserAccountID, amount: IOUUtils.calculateAmount(participants.length, amount, currency, true)}];
+    const splits = [{email: currentUserEmailForIOUSplit, accountID: currentUserAccountID, amount: IOUUtils.calculateAmount(participants.length, amount, currency, true)}];
 
     const hasMultipleParticipants = participants.length > 1;
     _.each(participants, (participant) => {
         const email = isOwnPolicyExpenseChat ? '' : OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login).toLowerCase();
         const accountID = isOwnPolicyExpenseChat ? 0 : Number(participant.accountID);
-        if (email === currentUserEmail) {
+        if (email === currentUserEmailForIOUSplit) {
             return;
         }
 
@@ -818,8 +818,8 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
         // 3. IOU action for the iouReport
         // 4. REPORTPREVIEW action for the chatReport
         // Note: The CREATED action for the IOU report must be optimistically generated before the IOU action so there's no chance that it appears after the IOU action in the chat
-        const oneOnOneCreatedActionForChat = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
-        const oneOnOneCreatedActionForIOU = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
+        const oneOnOneCreatedActionForChat = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmailForIOUSplit);
+        const oneOnOneCreatedActionForIOU = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmailForIOUSplit);
         const oneOnOneIOUAction = ReportUtils.buildOptimisticIOUReportAction(
             CONST.IOU.REPORT_ACTION_TYPE.CREATE,
             splitAmount,
