@@ -128,6 +128,5 @@ function BaseReportActionContextMenu(props) {
 
 BaseReportActionContextMenu.propTypes = propTypes;
 BaseReportActionContextMenu.defaultProps = defaultProps;
-BaseReportActionContextMenu.contextType = ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext;
 
 export default compose(withLocalize, withBetas(), withWindowDimensions)(BaseReportActionContextMenu);
