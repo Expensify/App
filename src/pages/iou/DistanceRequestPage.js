@@ -2,13 +2,13 @@ import React, {useEffect} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import * as IOU from '../../libs/actions/IOU';
 import ONYXKEYS from '../../ONYXKEYS';
 import DistanceRequest from '../../components/DistanceRequest';
 import reportPropTypes from '../reportPropTypes';
 import CONST from '../../CONST';
 import {iouPropTypes} from './propTypes';
-import _ from 'underscore';
 
 const propTypes = {
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
