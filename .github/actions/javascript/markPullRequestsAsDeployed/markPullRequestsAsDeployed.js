@@ -1,5 +1,4 @@
 const _ = require('underscore');
-const lodashGet = require('lodash/get');
 const core = require('@actions/core');
 const {context} = require('@actions/github');
 const CONST = require('../../../libs/CONST');
