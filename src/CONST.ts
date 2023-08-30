@@ -1367,6 +1367,8 @@ const CONST = {
         MAKE_REQUEST_WITH_SIDE_EFFECTS: 'makeRequestWithSideEffects',
     },
 
+    MAP_PADDING: 50,
+
     QUICK_REACTIONS: [
         {
             name: '+1',

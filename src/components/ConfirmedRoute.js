@@ -16,8 +16,6 @@ import BlockingView from './BlockingViews/BlockingView';
 import useNetwork from '../hooks/useNetwork';
 import useLocalize from '../hooks/useLocalize';
 
-const MAP_PADDING = 50;
-
 const propTypes = {
     /** Transaction that stores the distance request data */
     transaction: transactionPropTypes,
@@ -82,7 +80,7 @@ function ConfirmedRoute({mapboxToken, transaction}) {
             {!isOffline && mapboxToken ? (
                 <MapView
                     accessToken={mapboxToken}
-                    mapPadding={MAP_PADDING}
+                    mapPadding={CONST.MAP_PADDING}
                     pitchEnabled={false}
                     directionCoordinates={route.geometry.coordinates}
                     directionStyle={styles.mapDirection}

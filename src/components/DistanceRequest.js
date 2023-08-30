@@ -33,7 +33,6 @@ import usePrevious from '../hooks/usePrevious';
 const MAX_WAYPOINTS = 25;
 const MAX_WAYPOINTS_TO_DISPLAY = 4;
 
-const MAP_PADDING = 50;
 const DEFAULT_ZOOM_LEVEL = 10;
 
 const propTypes = {
@@ -229,7 +228,7 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
                 {!isOffline && Boolean(mapboxAccessToken.token) ? (
                     <MapView
                         accessToken={mapboxAccessToken.token}
-                        mapPadding={MAP_PADDING}
+                        mapPadding={CONST.MAP_PADDING}
                         pitchEnabled={false}
                         initialState={{
                             location: CONST.SF_COORDINATES,
