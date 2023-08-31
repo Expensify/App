@@ -57,6 +57,9 @@ function AttachmentPicker(props) {
                     fileInput.current.addEventListener(
                         'cancel',
                         () => {
+                            // For Android Chrome, the cancel event happens before the page is visible on physical devices,
+                            // which makes it unreliable for us to show the keyboard, while on emulators it happens after the page is visible.
+                            // So here we can delay calling the onCanceled.current function based on visibility in order to reliably show the keyboard. 
                             if (Visibility.isVisible()) {
                                 onCanceled.current();
                                 return;
