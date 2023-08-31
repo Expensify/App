@@ -30,6 +30,9 @@ const propTypes = {
     /** List container styles for OptionsList */
     listContainerStyles: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
+    /** List styles for OptionsList */
+    listStyles: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
+
     ...optionsSelectorPropTypes,
     ...withLocalizePropTypes,
     ...withNavigationFocusPropTypes,
@@ -40,6 +43,7 @@ const defaultProps = {
     safeAreaPaddingBottomStyle: {},
     contentContainerStyles: [],
     listContainerStyles: [styles.flex1],
+    listStyles: [],
     ...optionsSelectorDefaultProps,
 };
 
@@ -373,6 +377,7 @@ class BaseOptionsSelector extends Component {
                 }}
                 contentContainerStyles={[safeAreaPaddingBottomStyle, ...this.props.contentContainerStyles]}
                 listContainerStyles={this.props.listContainerStyles}
+                listStyles={this.props.listStyles}
                 isLoading={!this.props.shouldShowOptions}
                 showScrollIndicator={this.props.showScrollIndicator}
             />

@@ -1135,6 +1135,13 @@ const CONST = {
         MENTION_ICON: 'mention-icon',
         SMALL_NORMAL: 'small-normal',
     },
+    EXPENSIFY_CARD: {
+        FRAUD_TYPES: {
+            DOMAIN: 'domain',
+            INDIVIDUAL: 'individal',
+            NONE: 'none',
+        },
+    },
     AVATAR_ROW_SIZE: {
         DEFAULT: 4,
         LARGE_SCREEN: 8,
@@ -2558,6 +2565,12 @@ const CONST = {
     TRANSLATION_KEYS: {
         ATTACHMENT: 'common.attachment',
     },
+    TEACHERS_UNITE: {
+        PUBLIC_ROOM_ID: '207591744844000',
+        POLICY_ID: 'ABD1345ED7293535',
+        POLICY_NAME: 'Expensify.org / Teachers Unite!',
+        PUBLIC_ROOM_NAME: '#teachers-unite',
+    },
     CUSTOM_STATUS_TYPES: {
         NEVER: 'never',
         THIRTY_MINUTES: 'thirtyMinutes',
@@ -2600,7 +2613,9 @@ const CONST = {
             NAVIGATE: 'NAVIGATE',
         },
     },
-
+    INDENTS: '    ',
+    PARENT_CHILD_SEPARATOR: ': ',
+    CATEGORY_LIST_THRESHOLD: 8,
     DEMO_PAGES: {
         SAASTR: 'SaaStrDemoSetup',
         SBE: 'SbeDemoSetup',
