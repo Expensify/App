@@ -10,10 +10,11 @@ import getButtonState from '../../libs/getButtonState';
 import * as StyleUtils from '../../styles/StyleUtils';
 import PressableWithoutFeedback from './PressableWithoutFeedback';
 import useThrottledButtonState from '../../hooks/useThrottledButtonState';
+import refPropTypes from '../refPropTypes';
 
 const propTypes = {
     /** Ref passed to the component by React.forwardRef (do not pass from parent) */
-    innerRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
+    innerRef: refPropTypes,
 
     /** The text to display */
     text: PropTypes.string,

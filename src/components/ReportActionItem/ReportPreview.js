@@ -11,6 +11,7 @@ import styles from '../../styles/styles';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import compose from '../../libs/compose';
+import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import ControlSelection from '../../libs/ControlSelection';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
@@ -22,6 +23,8 @@ import ROUTES from '../../ROUTES';
 import SettlementButton from '../SettlementButton';
 import * as IOU from '../../libs/actions/IOU';
 import refPropTypes from '../refPropTypes';
+import * as StyleUtils from '../../styles/StyleUtils';
+import getButtonState from '../../libs/getButtonState';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 import themeColors from '../../styles/themes/default';
 import reportPropTypes from '../../pages/reportPropTypes';
@@ -40,6 +43,9 @@ const propTypes = {
     /** The active IOUReport, used for Onyx subscription */
     // eslint-disable-next-line react/no-unused-prop-types
     iouReportID: PropTypes.string.isRequired,
+
+    /** The report's policyID, used for Onyx subscription */
+    policyID: PropTypes.string.isRequired,
 
     /* Onyx Props */
     /** chatReport associated with iouReport */
@@ -140,15 +146,20 @@ function ReportPreview(props) {
     };
 
     const getPreviewMessage = () => {
-        const managerName = ReportUtils.isPolicyExpenseChat(props.chatReport) ? ReportUtils.getPolicyName(props.chatReport) : ReportUtils.getDisplayNameForParticipant(managerID, true);
         if (isScanning) {
             return props.translate('common.receipt');
         }
+        if (ReportUtils.isControlPolicyExpenseChat(props.chatReport) && ReportUtils.isReportApproved(props.iouReport)) {
+            return props.translate('iou.managerApproved', {manager: ReportUtils.getDisplayNameForParticipant(managerID, true)});
+        }
+        const managerName = ReportUtils.isPolicyExpenseChat(props.chatReport) ? ReportUtils.getPolicyName(props.chatReport) : ReportUtils.getDisplayNameForParticipant(managerID, true);
         return props.translate(iouSettled || props.iouReport.isWaitingOnBankAccount ? 'iou.payerPaid' : 'iou.payerOwes', {payer: managerName});
     };
 
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
-    const shouldShowSettlementButton = !_.isEmpty(props.iouReport) && isCurrentUserManager && !iouSettled && !props.iouReport.isWaitingOnBankAccount && reportTotal !== 0;
+    const shouldShowSettlementButton = ReportUtils.isControlPolicyExpenseChat(props.chatReport)
+        ? props.policy.role === CONST.POLICY.ROLE.ADMIN && ReportUtils.isReportApproved(props.iouReport) && !iouSettled
+        : !_.isEmpty(props.iouReport) && isCurrentUserManager && !iouSettled && !props.iouReport.isWaitingOnBankAccount && reportTotal !== 0;
 
     return (
         <View style={[styles.chatItemMessage, ...props.containerStyles]}>
@@ -177,7 +188,10 @@ function ReportPreview(props) {
                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                                 <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh16]}>{getPreviewMessage()}</Text>
                             </View>
-                            <Icon src={Expensicons.ArrowRight} />
+                            <Icon
+                                fill={StyleUtils.getIconFillColor(getButtonState(props.isHovered))}
+                                src={Expensicons.ArrowRight}
+                            />
                         </View>
                         <View style={styles.flexRow}>
                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
@@ -202,7 +216,7 @@ function ReportPreview(props) {
                         {shouldShowSettlementButton && (
                             <SettlementButton
                                 currency={props.iouReport.currency}
-                                policyID={props.iouReport.policyID}
+                                policyID={props.policyID}
                                 chatReportID={props.chatReportID}
                                 iouReport={props.iouReport}
                                 onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.iouReport)}
@@ -225,6 +239,9 @@ ReportPreview.displayName = 'ReportPreview';
 export default compose(
     withLocalize,
     withOnyx({
+        policy: {
+            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+        },
         chatReport: {
             key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
         },
