@@ -57,7 +57,7 @@ function RoomNameInput({isFocused, autoFocus, disabled, errorText, forwardedRef,
             onSelectionChange={(event) => setSelection(event.nativeEvent.selection)}
             errorText={errorText}
             autoCapitalize="none"
-            onBlur={onBlur}
+            onBlur={() => isFocused && onBlur()}
             autoFocus={isFocused && autoFocus}
             maxLength={CONST.REPORT.MAX_ROOM_NAME_LENGTH}
             spellCheck={false}
