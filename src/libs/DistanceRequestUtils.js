@@ -12,6 +12,7 @@ import CONST from '../CONST';
  *
  * @returns {Object|null} An object containing the rate and unit for the default mileage or null if not found.
  * @returns {Number} .rate - The default rate for the mileage.
+ * @returns {String} .currency - The currency associated with the rate.
  * @returns {String} .unit - The unit of measurement for the distance.
  */
 const getDefaultMileageRate = (policy) => {
@@ -31,6 +32,7 @@ const getDefaultMileageRate = (policy) => {
 
     return {
         rate: distanceRate.rate,
+        currency: distanceRate.currency,
         unit: distanceUnit.attributes.unit,
     };
 };
@@ -61,20 +63,18 @@ function convertDistanceUnit(distanceInMeters, unit) {
  *
  * @param {Number} distanceInMeters Distance traveled
  * @param {'mi' | 'ki'} unit Unit that should be used to display the distance
- * @param {Number} rate Expensable amount allowed per unit
+ * @param {String} formattedAmount The amount of the distance request already formatted for display
  * @param {Function} translate Translate function
  * @returns {String} A string that describes the distance travled and the rate used for expense calculation
  */
-const getDistanceString = (distanceInMeters, unit, rate, translate) => {
+const getDistanceString = (distanceInMeters, unit, formattedAmount, translate) => {
     const convertedDistance = convertDistanceUnit(distanceInMeters, unit);
-
     const distanceUnit = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.miles') : translate('common.kilometers');
     const singularDistanceUnit = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.mile') : translate('common.kilometer');
     const roundedDistance = convertedDistance.toFixed(2);
     const unitString = roundedDistance === 1 ? singularDistanceUnit : distanceUnit;
-    const ratePerUnit = rate * 0.01;
 
-    return `${roundedDistance} ${unitString} @ $${ratePerUnit} / ${singularDistanceUnit}`;
+    return `${roundedDistance} ${unitString} @ ${formattedAmount} / ${singularDistanceUnit}`;
 };
 
 /**

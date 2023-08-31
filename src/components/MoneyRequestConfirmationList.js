@@ -119,8 +119,12 @@ const propTypes = {
     mileageRate: PropTypes.shape({
         /** Unit used to represent distance */
         unit: PropTypes.oneOf([CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS]),
+
         /** Rate used to calculate the distance request amount */
         rate: PropTypes.number,
+
+        /** The currency of the rate */
+        currency: PropTypes.string,
     }),
 
     /** Whether the money request is a distance request */
@@ -149,7 +153,7 @@ const defaultProps = {
     policyCategories: {},
     transactionID: '',
     transaction: {},
-    mileageRate: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, rate: 0},
+    mileageRate: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, rate: 0, currency: 'USD'},
     isDistanceRequest: false,
 };
 
@@ -163,14 +167,14 @@ function MoneyRequestConfirmationList(props) {
     const [showAllFields, toggleShowAllFields] = useReducer((state) => !state, false);
     const isTypeRequest = props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST;
 
-    const {unit, rate} = props.mileageRate;
+    const {unit, rate, currency} = props.mileageRate;
     const distance = lodashGet(transaction, 'routes.route0.distance', 0);
     const shouldCalculateDistanceAmount = props.isDistanceRequest && props.iouAmount === 0;
     const shouldCategoryEditable = !_.isEmpty(props.policyCategories) && !props.isDistanceRequest;
 
     const formattedAmount = CurrencyUtils.convertToDisplayString(
         shouldCalculateDistanceAmount ? DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate) : props.iouAmount,
-        props.iouCurrencyCode,
+        props.isDistanceRequest ? currency : props.iouCurrencyCode,
     );
 
     useEffect(() => {
@@ -453,7 +457,7 @@ function MoneyRequestConfirmationList(props) {
                     {props.isDistanceRequest ? (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly && isTypeRequest}
-                            title={DistanceRequestUtils.getDistanceString(distance, unit, rate, translate)}
+                            title={DistanceRequestUtils.getDistanceString(distance, unit, formattedAmount, translate)}
                             description={translate('common.distance')}
                             style={[styles.moneyRequestMenuItem, styles.mb2]}
                             titleStyle={styles.flex1}
