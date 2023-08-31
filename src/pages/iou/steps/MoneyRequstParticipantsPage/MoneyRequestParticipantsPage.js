@@ -91,7 +91,7 @@ function MoneyRequestParticipantsPage(props) {
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={styles.flex1}>
                     <HeaderWithBackButton
-                        title={props.translate('iou.cash')}
+                        title={isDistanceRequest ? props.translate('common.distance') : props.translate('iou.cash')}
                         onBackButtonPress={navigateBack}
                     />
                     {iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT ? (
