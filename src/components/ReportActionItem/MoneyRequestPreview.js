@@ -149,7 +149,7 @@ function MoneyRequestPreview(props) {
     const isCurrentUserManager = managerID === sessionAccountID;
 
     const {amount: requestAmount, currency: requestCurrency, comment: requestComment, merchant: requestMerchant} = ReportUtils.getTransactionDetails(props.transaction);
-    let description = requestComment;
+    const description = requestComment;
     const hasReceipt = TransactionUtils.hasReceipt(props.transaction);
     const isScanning = hasReceipt && TransactionUtils.isReceiptBeingScanned(props.transaction);
     const isDistanceRequest = TransactionUtils.isDistanceRequest(props.transaction);
