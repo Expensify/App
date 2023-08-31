@@ -5,6 +5,7 @@ import _ from 'underscore';
 import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
 import styles from '../../../styles/styles';
 import CarouselActions from './CarouselActions';
+import Carousel from './Carousel';
 import AttachmentView from '../AttachmentView';
 import withWindowDimensions from '../../withWindowDimensions';
 import CarouselButtons from './CarouselButtons';
@@ -19,6 +20,7 @@ import Navigation from '../../../libs/Navigation/Navigation';
 import BlockingView from '../../BlockingViews/BlockingView';
 import * as Illustrations from '../../Icon/Illustrations';
 import variables from '../../../styles/variables';
+import * as Browser from '../../../libs/Browser';
 
 const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
 const viewabilityConfig = {
@@ -93,11 +95,15 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, setDownl
             const nextIndex = page + deltaSlide;
             const nextItem = attachments[nextIndex];
 
-            if (!nextItem || !scrollRef.current) {
+            if (!nextItem) {
                 return;
             }
 
-            scrollRef.current.scrollToIndex({index: nextIndex, animated: canUseTouchScreen});
+            if (scrollRef.current) {
+                scrollRef.current.scrollToIndex({index: nextIndex, animated: canUseTouchScreen});
+            } else {
+                updatePage.current({viewableItems: [{item: attachments[nextIndex], index: page}]})
+            }
         },
         [attachments, page],
     );
@@ -189,7 +195,7 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, setDownl
                         cancelAutoHideArrow={cancelAutoHideArrows}
                     />
 
-                    {containerWidth > 0 && (
+                    {(containerWidth > 0 && (Browser.isMobileChrome() || Browser.isMobileSafari())) && (
                         <FlatList
                             keyboardShouldPersistTaps="handled"
                             listKey="AttachmentCarousel"
@@ -218,6 +224,15 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, setDownl
                             keyExtractor={(item) => item.source}
                             viewabilityConfig={viewabilityConfig}
                             onViewableItemsChanged={updatePage.current}
+                        />
+                    )}
+
+                    {!Browser.isMobileChrome() && !Browser.isMobileSafari() && (
+                        <Carousel 
+                            currentIndex={page}
+                            renderItem={renderItem}
+                            attachments={attachments}
+                            windowSize={5}
                         />
                     )}
 
