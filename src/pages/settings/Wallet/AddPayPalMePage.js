@@ -38,8 +38,10 @@ const defaultProps = {
 };
 
 const validate = (values) => {
-    const errors = {};
-    if (!ValidationUtils.isValidPaypalUsername(values.payPalMeUsername)) {
+    const requiredFields = ['payPalMeUsername'];
+    const errors = ValidationUtils.getFieldRequiredErrors(values, requiredFields);
+
+    if (values.payPalMeUsername && !ValidationUtils.isValidPaypalUsername(values.payPalMeUsername)) {
         errors.payPalMeUsername = 'addPayPalMePage.formatError';
     }
 
@@ -66,7 +68,10 @@ function AddPayPalMePage(props) {
     );
 
     return (
-        <ScreenWrapper onEntryTransitionEnd={() => payPalMeInput.current && payPalMeInput.current.focus()}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            onEntryTransitionEnd={() => payPalMeInput.current && payPalMeInput.current.focus()}
+        >
             <HeaderWithBackButton
                 title={props.translate('common.payPalMe')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)}

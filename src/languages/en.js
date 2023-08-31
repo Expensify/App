@@ -153,11 +153,17 @@ export default {
         someone: 'Someone',
         total: 'Total',
         edit: 'Edit',
+        letsDoThis: `Let's do this!`,
+        letsStart: `Let's start`,
         showMore: 'Show more',
         merchant: 'Merchant',
+        category: 'Category',
+        receipt: 'Receipt',
+        replace: 'Replace',
+        distance: 'Distance',
     },
     anonymousReportFooter: {
-        logoTagline: 'Join in on the discussion.',
+        logoTagline: 'Join the discussion.',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera access',
@@ -244,11 +250,15 @@ export default {
         newFaceEnterMagicCode: ({login}) => `It's always great to see a new face around here! Please enter the magic code sent to ${login}. It should arrive within a minute or two.`,
         welcomeEnterMagicCode: ({login}) => `Please enter the magic code sent to ${login}. It should arrive within a minute or two.`,
     },
+    DownloadAppModal: {
+        downloadTheApp: 'Download the app',
+        keepTheConversationGoing: 'Keep the conversation going in New Expensify, download the app for an enhanced experience.',
+        noThanks: 'No thanks',
+    },
     login: {
         hero: {
             header: 'Split bills, request payments, and chat with friends.',
             body: 'Welcome to the future of Expensify, your new go-to place for financial collaboration with friends and teammates alike.',
-            demoHeadline: 'Welcome to SaaStr! Hop in to start networking now.',
         },
     },
     thirdPartySignIn: {
@@ -292,7 +302,7 @@ export default {
         copyEmailToClipboard: 'Copy email to clipboard',
         markAsUnread: 'Mark as unread',
         markAsRead: 'Mark as read',
-        editComment: 'Edit comment',
+        editAction: ({action}) => `Edit ${ReportActionsUtils.isMoneyRequestAction(action) ? 'request' : 'comment'}`,
         deleteAction: ({action}) => `Delete ${ReportActionsUtils.isMoneyRequestAction(action) ? 'request' : 'comment'}`,
         deleteConfirmation: ({action}) => `Are you sure you want to delete this ${ReportActionsUtils.isMoneyRequestAction(action) ? 'request' : 'comment'}?`,
         onlyVisible: 'Only visible to',
@@ -310,8 +320,7 @@ export default {
         beginningOfChatHistoryDomainRoomPartTwo: ' to chat with colleagues, share tips, and ask questions.',
         beginningOfChatHistoryAdminRoomPartOne: ({workspaceName}) => `Collaboration among ${workspaceName} admins starts here! 🎉\nUse `,
         beginningOfChatHistoryAdminRoomPartTwo: ' to chat about topics such as workspace configurations and more.',
-        beginningOfChatHistoryAdminOnlyPostingRoomPartOne: 'Use ',
-        beginningOfChatHistoryAdminOnlyPostingRoomPartTwo: ({workspaceName}) => ` to hear about important announcements related to ${workspaceName}`,
+        beginningOfChatHistoryAdminOnlyPostingRoom: 'Only admins can send messages in this room.',
         beginningOfChatHistoryAnnounceRoomPartOne: ({workspaceName}) => `Collaboration between all ${workspaceName} members starts here! 🎉\nUse `,
         beginningOfChatHistoryAnnounceRoomPartTwo: ({workspaceName}) => ` to chat about anything ${workspaceName} related.`,
         beginningOfChatHistoryUserRoomPartOne: 'Collaboration starts here! 🎉\nUse this space to chat about anything ',
@@ -322,6 +331,7 @@ export default {
         beginningOfChatHistoryPolicyExpenseChatPartThree: ' starts here! 🎉 This is the place to chat, request money and settle up.',
         chatWithAccountManager: 'Chat with your account manager here',
         sayHello: 'Say hello!',
+        welcomeToRoom: ({roomName}) => `Welcome to ${roomName}!`,
         usePlusButton: '\n\nYou can also use the + button below to request money or assign a task!',
     },
     reportAction: {
@@ -364,11 +374,11 @@ export default {
         draftedMessage: 'Drafted message',
         listOfChatMessages: 'List of chat messages',
         listOfChats: 'List of chats',
+        saveTheWorld: 'Save the world',
     },
     tabSelector: {
         manual: 'Manual',
         scan: 'Scan',
-        distance: 'Distance',
     },
     receipt: {
         upload: 'Upload receipt',
@@ -389,6 +399,8 @@ export default {
     },
     iou: {
         amount: 'Amount',
+        approve: 'Approve',
+        approved: 'Approved',
         cash: 'Cash',
         split: 'Split',
         request: 'Request',
@@ -399,6 +411,11 @@ export default {
         pay: 'Pay',
         viewDetails: 'View details',
         pending: 'Pending',
+        deleteReceipt: 'Delete receipt',
+        receiptScanning: 'Receipt scan in progress…',
+        receiptStatusTitle: 'Scanning…',
+        receiptStatusText: "Only you can see this receipt when it's scanning. Check back later or enter the details now.",
+        requestCount: ({count, scanningReceipts = 0}) => `${count} requests${scanningReceipts > 0 ? `, ${scanningReceipts} scanning` : ''}`,
         deleteRequest: 'Delete request',
         deleteConfirmation: 'Are you sure that you want to delete this request?',
         settledExpensify: 'Paid',
@@ -414,6 +431,7 @@ export default {
         payerOwes: ({payer}) => `${payer} owes: `,
         payerPaidAmount: ({payer, amount}) => `${payer} paid ${amount}`,
         payerPaid: ({payer}) => `${payer} paid: `,
+        managerApproved: ({manager}) => `${manager} approved:`,
         payerSettled: ({amount}) => `paid ${amount}`,
         waitingOnBankAccount: ({submitterDisplayName}) => `started settling up, payment is held until ${submitterDisplayName} adds a bank account`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}) => `${submitterDisplayName} added a bank account. The ${amount} payment has been made.`,
@@ -424,7 +442,6 @@ export default {
         pendingConversionMessage: "Total will update when you're back online",
         threadRequestReportName: ({formattedAmount, comment}) => `${formattedAmount} request${comment ? ` for ${comment}` : ''}`,
         threadSentMoneyReportName: ({formattedAmount, comment}) => `${formattedAmount} sent${comment ? ` for ${comment}` : ''}`,
-        requestCount: ({count}) => `${count} requests`,
         error: {
             invalidSplit: 'Split amounts do not equal total amount',
             other: 'Unexpected error, please try again later',
@@ -499,14 +516,14 @@ export default {
         failedNewContact: 'Failed to add this contact method.',
         genericFailureMessages: {
             requestContactMethodValidateCode: 'Failed to send a new magic code. Please wait a bit and try again.',
-            validateSecondaryLogin: 'Failed to validate contact method with given magic code. Please request a new code and try again.',
+            validateSecondaryLogin: 'Incorrect or invalid magic code. Please try again or request a new code.',
             deleteContactMethod: 'Failed to delete contact method. Please reach out to Concierge for help.',
             setDefaultContactMethod: 'Failed to set a new default contact method. Please reach out to Concierge for help.',
             addContactMethod: 'Failed to add this contact method. Please reach out to Concierge for help.',
             enteredMethodIsAlreadySubmited: 'The Entered Contact Method already exists.',
             passwordRequired: 'password required.',
             contactMethodRequired: 'Contact method is required.',
-            invalidContactMethod: 'Invalid contact method.',
+            invalidContactMethod: 'Invalid contact method',
         },
         newContactMethod: 'New contact method',
     },
@@ -1599,14 +1616,43 @@ export default {
         levelTwoResult: 'Message hidden from channel, plus anonymous warning and message is reported for review.',
         levelThreeResult: 'Message removed from channel plus anonymous warning and message is reported for review.',
     },
+    teachersUnitePage: {
+        teachersUnite: 'Teachers unite!',
+        joinExpensifyOrg: 'Join Expensify.org in eliminating injustice around the world and help teachers split their expenses for classrooms in need!',
+        iKnowATeacher: 'I know a teacher',
+        iAmATeacher: 'I am a teacher',
+        getInTouch: 'Excellent! Please share their information so we can get in touch with them.',
+        introSchoolPrincipal: 'Intro to your school principal',
+        schoolPrincipalVerfiyExpense:
+            'Expensify.org splits the cost of essential school supplies so that students from low-income households can have a better learning experience. Your principal will be asked to verify your expenses.',
+        principalFirstName: 'Principal first name',
+        principalLastName: 'Principal last name',
+        principalWorkEmail: 'Principal work email',
+        updateYourEmail: 'Update your email address',
+        updateEmail: 'Update email address',
+        contactMethods: 'Contact methods.',
+        schoolMailAsDefault: 'Before you move forward, please make sure to set your school email as your default contact method. You can do so in Settings > Profile > ',
+        error: {
+            enterPhoneEmail: 'Enter a valid email or phone number',
+            enterEmail: 'Enter an email',
+            enterValidEmail: 'Enter a valid email',
+            tryDifferentEmail: 'Please try a different email',
+        },
+    },
     distance: {
         addStop: 'Add stop',
+        deleteWaypoint: 'Delete waypoint',
+        deleteWaypointConfirmation: 'Are you sure you want to delete this waypoint?',
         address: 'Address',
-        waypointEditor: 'Waypoint Editor',
         waypointDescription: {
             start: 'Start',
             finish: 'Finish',
             stop: 'Stop',
+        },
+        mapPending: {
+            title: 'Map pending',
+            subtitle: 'The map will be generated when you go back online',
+            onlineSubtitle: 'One moment while we set up the map',
         },
         errors: {
             selectSuggestedAddress: 'Please select a suggested address',
@@ -1617,5 +1663,13 @@ export default {
     },
     stateSelectorModal: {
         placeholderText: 'Search to see options',
+    },
+    demos: {
+        saastr: {
+            signInWelcome: 'Welcome to SaaStr! Hop in to start networking now.',
+        },
+        sbe: {
+            signInWelcome: 'Welcome to Small Business Expo! Get paid back for your ride.',
+        },
     },
 };

@@ -10,7 +10,6 @@ import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import * as CurrencyUtils from '../../../libs/CurrencyUtils';
-import CONST from '../../../CONST';
 import reportPropTypes from '../../reportPropTypes';
 import * as IOU from '../../../libs/actions/IOU';
 import useLocalize from '../../../hooks/useLocalize';
@@ -20,49 +19,34 @@ import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotF
 import styles from '../../../styles/styles';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import ScreenWrapper from '../../../components/ScreenWrapper';
+import {iouPropTypes, iouDefaultProps} from '../propTypes';
 
 const propTypes = {
+    /** React Navigation route */
     route: PropTypes.shape({
+        /** Params from the route */
         params: PropTypes.shape({
+            /** The type of IOU report, i.e. bill, request, send */
             iouType: PropTypes.string,
+
+            /** The report ID of the IOU */
             reportID: PropTypes.string,
+
+            /** Selected currency from IOUCurrencySelection */
+            currency: PropTypes.string,
         }),
-    }),
+    }).isRequired,
 
     /** The report on which the request is initiated on */
     report: reportPropTypes,
 
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
-    iou: PropTypes.shape({
-        id: PropTypes.string,
-        amount: PropTypes.number,
-        currency: PropTypes.string,
-        participants: PropTypes.arrayOf(
-            PropTypes.shape({
-                accountID: PropTypes.number,
-                login: PropTypes.string,
-                isPolicyExpenseChat: PropTypes.bool,
-                isOwnPolicyExpenseChat: PropTypes.bool,
-                selected: PropTypes.bool,
-            }),
-        ),
-    }),
+    iou: iouPropTypes,
 };
 
 const defaultProps = {
-    route: {
-        params: {
-            iouType: '',
-            reportID: '',
-        },
-    },
     report: {},
-    iou: {
-        id: '',
-        amount: 0,
-        currency: CONST.CURRENCY.USD,
-        participants: [],
-    },
+    iou: iouDefaultProps,
 };
 
 function NewRequestAmountPage({route, iou, report}) {

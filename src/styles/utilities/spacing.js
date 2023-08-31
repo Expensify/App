@@ -399,6 +399,10 @@ export default {
         paddingLeft: 8,
     },
 
+    pl3: {
+        paddingLeft: 12,
+    },
+
     pl5: {
         paddingLeft: 20,
     },
@@ -481,6 +485,22 @@ export default {
 
     gap1: {
         gap: 4,
+    },
+
+    gap2: {
+        gap: 8,
+    },
+
+    gap3: {
+        gap: 12,
+    },
+
+    gap4: {
+        gap: 16,
+    },
+
+    gap5: {
+        gap: 20,
     },
 
     gap7: {
