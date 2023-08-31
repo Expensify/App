@@ -24,6 +24,9 @@ const propTypes = {
     /** Function to call when the user closes the Country modal */
     onClose: PropTypes.func,
 
+    /** Function to call when the user hides the Country modal */
+    onModalHide: PropTypes.func,
+
     /** The search value from the selection list */
     searchValue: PropTypes.string.isRequired,
 
@@ -34,10 +37,11 @@ const propTypes = {
 const defaultProps = {
     currentCountry: '',
     onClose: () => {},
+    onModalHide: () => {},
     onCountrySelected: () => {},
 };
 
-function CountrySelectorModal({currentCountry, isVisible, onClose, onCountrySelected, setSearchValue, searchValue}) {
+function CountrySelectorModal({currentCountry, isVisible, onClose, onCountrySelected, onModalHide, setSearchValue, searchValue}) {
     const {translate} = useLocalize();
 
     const countries = useMemo(
@@ -60,7 +64,7 @@ function CountrySelectorModal({currentCountry, isVisible, onClose, onCountrySele
             type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
             isVisible={isVisible}
             onClose={onClose}
-            onModalHide={onClose}
+            onModalHide={onModalHide}
             hideModalContentWhileAnimating
             useNativeDriver
         >
@@ -71,7 +75,7 @@ function CountrySelectorModal({currentCountry, isVisible, onClose, onCountrySele
             >
                 <HeaderWithBackButton
                     title={translate('common.country')}
-                    onBackButtonPress={onClose}
+                    onBackButtonPress={onModalHide}
                 />
                 <SelectionList
                     headerMessage={headerMessage}

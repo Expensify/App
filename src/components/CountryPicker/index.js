@@ -8,6 +8,7 @@ import useLocalize from '../../hooks/useLocalize';
 import CountrySelectorModal from './CountrySelectorModal';
 import FormHelpMessage from '../FormHelpMessage';
 import refPropTypes from '../refPropTypes';
+import Navigation from '../../libs/Navigation/Navigation';
 
 const propTypes = {
     /** Form Error description */
@@ -48,6 +49,10 @@ function CountryPicker({value, errorText, onInputChange, forwardedRef}) {
     const hidePickerModal = () => {
         setIsPickerVisible(false);
     };
+    const closeModal = () => {
+        hidePickerModal();
+        Navigation.dismissModal();
+    };
 
     const updateCountryInput = (country) => {
         onInputChange(country.value);
@@ -75,7 +80,8 @@ function CountryPicker({value, errorText, onInputChange, forwardedRef}) {
                 currentCountry={value}
                 searchValue={searchValue}
                 setSearchValue={setSearchValue}
-                onClose={hidePickerModal}
+                onClose={closeModal}
+                onModalHide={hidePickerModal}
                 onCountrySelected={updateCountryInput}
             />
         </View>
