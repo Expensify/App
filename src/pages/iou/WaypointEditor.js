@@ -156,7 +156,6 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
 
         Transaction.saveWaypoint(transactionID, waypointIndex, waypoint, isEditingWaypoint);
 
-        
         if (isEditingWaypoint) {
             Navigation.goBack(ROUTES.getReportRoute(threadReportID));
             return;
