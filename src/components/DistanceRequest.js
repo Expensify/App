@@ -238,6 +238,7 @@ function DistanceRequest({transactionID, report, mapboxAccessToken, isEditingReq
                 )}
             </View>
             <Button
+                isLoading={transaction.isLoading}
                 success
                 style={[styles.w100, styles.mb4, styles.ph4, styles.flexShrink0]}
                 onPress={() => onSubmit(waypoints)}

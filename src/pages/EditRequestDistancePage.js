@@ -37,10 +37,7 @@ function EditRequestDistancePage({transactionID, report}) {
                 report={report}
                 transactionID={transactionID}
                 isEditingRequest
-                onSubmit={(waypoints) => {
-                    IOU.editDistanceRequest(transactionID, report.reportID, {waypoints});
-                    Navigation.dismissModal();
-                }}
+                onSubmit={waypoints => IOU.editDistanceRequest(transactionID, report.reportID, {waypoints})}
             />
         </ScreenWrapper>
     );

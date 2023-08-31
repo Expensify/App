@@ -574,14 +574,20 @@ function editDistanceRequest(transactionID, transactionThreadReportID, transacti
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-                    value: {pendingFields},
+                    value: {
+                        pendingFields,
+                        isLoading: true,
+                    },
                 },
             ],
             successData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-                    value: {pendingFields: clearedPendingFields},
+                    value: {
+                        pendingFields: clearedPendingFields,
+                        isLoading: false,
+                    },
                 },
             ],
             failureData: [
@@ -591,6 +597,7 @@ function editDistanceRequest(transactionID, transactionThreadReportID, transacti
                     value: {
                         pendingFields: clearedPendingFields,
                         errorFields,
+                        isLoading: false,
                     },
                 },
             ],
@@ -1921,7 +1928,6 @@ function navigateToNextPage(iou, iouType, reportID, report) {
 
     // If a request is initiated on a report, skip the participants selection step and navigate to the confirmation page.
     if (report.reportID) {
-        console.log(">>>> 1");
         // Reinitialize the participants when the money request ID in Onyx does not match the ID from params
         if (_.isEmpty(iou.participants) || shouldReset) {
             const currentUserAccountID = currentUserPersonalDetails.accountID;
@@ -1936,7 +1942,6 @@ function navigateToNextPage(iou, iouType, reportID, report) {
         Navigation.navigate(ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID));
         return;
     }
-    console.log(">>>> 2");
     Navigation.navigate(ROUTES.getMoneyRequestParticipantsRoute(iouType));
 }
 
