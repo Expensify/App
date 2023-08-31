@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useReducer, useState} from 'react';
+import React, {useCallback, useMemo, useReducer, useState, useEffect} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import {format} from 'date-fns';
@@ -32,6 +32,7 @@ import categoryPropTypes from './categoryPropTypes';
 import ConfirmedRoute from './ConfirmedRoute';
 import transactionPropTypes from './transactionPropTypes';
 import DistanceRequestUtils from '../libs/DistanceRequestUtils';
+import * as IOU from '../libs/actions/IOU';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
@@ -171,6 +172,15 @@ function MoneyRequestConfirmationList(props) {
         shouldCalculateDistanceAmount ? DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate) : props.iouAmount,
         props.iouCurrencyCode,
     );
+
+    useEffect(() => {
+        if (!shouldCalculateDistanceAmount) {
+            return;
+        }
+
+        const amount = DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate);
+        IOU.setMoneyRequestAmount(amount);
+    }, [shouldCalculateDistanceAmount, distance, rate, unit]);
 
     /**
      * Returns the participants with amount
