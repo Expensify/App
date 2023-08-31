@@ -23,7 +23,7 @@ import getImageResolution from '../libs/fileDownload/getImageResolution';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import * as Browser from '../libs/Browser';
-import withNavigationFocus from './withNavigationFocus';
+import withNavigationFocus, {withNavigationFocusPropTypes} from './withNavigationFocus';
 import compose from '../libs/compose';
 
 const propTypes = {
@@ -82,6 +82,7 @@ const propTypes = {
     errors: PropTypes.object,
 
     ...withLocalizePropTypes,
+    ...withNavigationFocusPropTypes,
 };
 
 const defaultProps = {
