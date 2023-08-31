@@ -124,7 +124,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                     onPressOut={ControlSelection.unblock}
                     onSecondaryInteraction={props.onSecondaryInteraction}
                     style={({pressed}) => [
-                        props.errorText ? styles.pb8 : {},
+                        props.errorText ? styles.pb5 : {},
                         props.style,
                         props.containerStyle,
                         !props.interactive && styles.cursorDefault,

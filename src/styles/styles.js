@@ -3935,7 +3935,6 @@ const styles = {
         bottom: -4,
         left: 20,
         right: 20,
-        paddingTop: 4,
     },
 
     formHelperMessage: {
