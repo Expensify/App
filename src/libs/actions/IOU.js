@@ -578,7 +578,7 @@ function updateDistanceRequest(transactionID, transactionThreadReportID, transac
     if (!_.has(transactionChanges, 'waypoints')) {
         const updatedReportAction = ReportUtils.buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges, isFromExpenseReport);
         params.reportActionID = updatedReportAction.reportActionID;
-        
+
         modifiedReportActionOptimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThread.reportID}`,
@@ -604,7 +604,7 @@ function updateDistanceRequest(transactionID, transactionThreadReportID, transac
 
     API.write(
         'UpdateDistanceRequest',
-        {transactionID, ...transactionDetails, },
+        {transactionID, ...transactionDetails},
         {
             optimisticData: [
                 {
