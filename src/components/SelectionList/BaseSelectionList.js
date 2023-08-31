@@ -2,6 +2,7 @@ import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import {useFocusEffect} from '@react-navigation/native';
 import SectionList from '../SectionList';
 import Text from '../Text';
 import styles from '../../styles/styles';
@@ -23,7 +24,6 @@ import useLocalize from '../../hooks/useLocalize';
 import Log from '../../libs/Log';
 import OptionsListSkeletonView from '../OptionsListSkeletonView';
 import useActiveElement from '../../hooks/useActiveElement';
-import {useFocusEffect} from '@react-navigation/native';
 
 const propTypes = {
     ...keyboardStatePropTypes,
