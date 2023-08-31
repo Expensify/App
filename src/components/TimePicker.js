@@ -314,7 +314,6 @@ function TimePicker({forwardedRef, onSubmitButtonPress, value, errorText, onInpu
         onInputChange(`${hours}:${minute} ${amPmValue}`);
     }, [hours, minute, amPmValue]);
 
-
     return (
         <>
             <View style={[styles.flex1, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}>
@@ -372,6 +371,7 @@ function TimePicker({forwardedRef, onSubmitButtonPress, value, errorText, onInpu
                     <FormHelpMessage
                         isError={!!errorText}
                         message={errorText}
+                        containerMessageStyle={styles.flex0}
                     />
                 ) : (
                     <View style={styles.formHelperMessage} />

@@ -106,7 +106,7 @@ class ScreenWrapper extends React.Component {
 
                     return (
                         <View
-                            style={styles.flex1}
+                            style={[styles.flex1, this.props.containerStyle]}
                             // eslint-disable-next-line react/jsx-props-no-spreading
                             {...(this.props.environment === CONST.ENVIRONMENT.DEV ? this.panResponder.panHandlers : {})}
                         >

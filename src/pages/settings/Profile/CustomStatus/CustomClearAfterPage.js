@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import {useCallback} from 'react';
 import moment from 'moment';
 import PropTypes from 'prop-types';
 import React from 'react';
@@ -9,7 +9,6 @@ import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 import NewDatePicker from '../../../../components/NewDatePicker';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import Form from '../../../../components/Form';
-import usePrivatePersonalDetails from '../../../../hooks/usePrivatePersonalDetails';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import * as User from '../../../../libs/actions/User';
 import * as ValidationUtils from '../../../../libs/ValidationUtils';
@@ -36,29 +35,25 @@ const defaultProps = {
     },
 };
 
-function CustomClearAfterPage({translate, customStatus, personalDetails}) {
-    usePrivatePersonalDetails();
-    const cleanAfter = lodashGet(personalDetails, 'status.cleanAfter', '');
+function CustomClearAfterPage({translate, customStatus}) {
     const customDateTemporary = lodashGet(customStatus, 'customDateTemporary', '');
-    const defaultValue = cleanAfter || customDateTemporary;
 
     const onSubmit = (v) => {
         User.updateDraftCustomStatus({customDateTemporary: v.dob});
         Navigation.goBack(ROUTES.SETTINGS_STATUS_CLEAR_AFTER);
     };
 
-        const validate = useCallback((values) => {
-          const requiredFields = ['dob'];
-          const errors = ValidationUtils.getFieldRequiredErrors(values, requiredFields);
-          const dateError = ValidationUtils.isExpiredData(values.dob);
-  
-          if (values.dob && dateError) {
-              errors.dob = dateError;
-          }
-  
-          return errors;
-      }, []);
-  
+    const validate = useCallback((values) => {
+        const requiredFields = ['dob'];
+        const errors = ValidationUtils.getFieldRequiredErrors(values, requiredFields);
+        const dateError = ValidationUtils.isExpiredData(values.dob);
+
+        if (values.dob && dateError) {
+            errors.dob = dateError;
+        }
+
+        return errors;
+    }, []);
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -78,7 +73,7 @@ function CustomClearAfterPage({translate, customStatus, personalDetails}) {
                 <NewDatePicker
                     inputID="dob"
                     label={translate('statusPage.date')}
-                    defaultValue={DateUtils.extractDate(defaultValue)}
+                    defaultValue={DateUtils.extractDate(customDateTemporary)}
                     minDate={moment().toDate()}
                 />
             </Form>

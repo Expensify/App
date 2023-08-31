@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import React, {useCallback} from 'react';
+import {View } from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import withCurrentUserPersonalDetails from '../../../../components/withCurrentUserPersonalDetails';
@@ -51,7 +52,7 @@ function SetTimePage({translate, privatePersonalDetails, customStatus, currentUs
     const validate = (v) => {
         const error = {};
 
-        if (!ValidationUtils.isTimeAtLeastOneMinuteInFuture(v.timePicker, customDateTemporary || draftClearAfter || clearAfter)) {
+        if (!ValidationUtils.isTimeAtLeastOneMinuteInFuture(v.timePicker, customDateTemporary)) {
             error.timePicker = localize.translate('common.error.timeInvalid');
         }
 
@@ -61,7 +62,6 @@ function SetTimePage({translate, privatePersonalDetails, customStatus, currentUs
     if (lodashGet(privatePersonalDetails, 'isLoading', true)) {
         return <FullscreenLoadingIndicator />;
     }
-
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <HeaderWithBackButton
@@ -69,18 +69,21 @@ function SetTimePage({translate, privatePersonalDetails, customStatus, currentUs
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_STATUS_CLEAR_AFTER)}
             />
             <Form
-                style={[styles.flexGrow1, styles.ph5]}
+                style={[styles.flexGrow1]}
                 formID={ONYXKEYS.FORMS.SETTINGS_STATUS_SET_TIME_FORM}
                 onSubmit={onSubmit}
-                submitButtonText={'SAVE'}
+                submitButtonText={translate('common.save')}
+                submitButtonContainerStyle={[styles.mt0, styles.flex0, styles.mh4]}
                 validate={validate}
                 enabledWhenOffline
                 shouldUseDefaultValue
             >
+            <View style={styles.flex1}>
                 <TimePicker
                     inputID="timePicker"
-                    defaultValue={customDateTemporary || draftClearAfter || clearAfter}
+                    defaultValue={customDateTemporary}
                 />
+            </View>
             </Form>
         </ScreenWrapper>
     );

@@ -144,8 +144,8 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const customStatusDate = DateUtils.extractDate(customDateTemporary || draftClearAfter || clearAfter);
-    const customStatusTime = DateUtils.extractTime12Hour(customDateTemporary || draftClearAfter || clearAfter);
+    const customStatusDate = DateUtils.extractDate(customDateTemporary);
+    const customStatusTime = DateUtils.extractTime12Hour(customDateTemporary);
 
     return (
         <ScreenWrapper

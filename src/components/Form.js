@@ -398,7 +398,7 @@ function Form(props) {
                                 focusInput.focus();
                             }
                         }}
-                        containerStyles={[styles.mh0, styles.mt5, styles.flex1]}
+                        containerStyles={[styles.mh0, styles.mt5, styles.flex1, props.submitButtonContainerStyle]}
                         enabledWhenOffline={props.enabledWhenOffline}
                         isSubmitActionDangerous={props.isSubmitActionDangerous}
                         buttonStyle={props.submitButtonStyle}

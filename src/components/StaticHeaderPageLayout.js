@@ -10,6 +10,7 @@ import themeColors from '../styles/themes/default';
 import * as StyleUtils from '../styles/StyleUtils';
 import useWindowDimensions from '../hooks/useWindowDimensions';
 import FixedFooter from './FixedFooter';
+import useNetwork from '../hooks/useNetwork';
 
 const propTypes = {
     ...headerWithBackButtonPropTypes,
@@ -31,6 +32,7 @@ const defaultProps = {
 
 function StaticHeaderPageLayout({backgroundColor, children, image: Image, footer, imageContainerStyle, style, ...propsToPassToHeader}) {
     const {windowHeight} = useWindowDimensions();
+    const {isOffline} = useNetwork();
 
     const {titleColor, iconFill} = useMemo(() => {
         const isColorfulBackground = backgroundColor !== themeColors.appBG;
@@ -55,7 +57,7 @@ function StaticHeaderPageLayout({backgroundColor, children, image: Image, footer
                         titleColor={titleColor}
                         iconFill={iconFill}
                     />
-                    <View style={[styles.flex1, StyleUtils.getBackgroundColorStyle(themeColors.appBG)]}>
+                    <View style={[styles.flex1, StyleUtils.getBackgroundColorStyle(themeColors.appBG), !isOffline ? safeAreaPaddingBottomStyle : {}]}>
                         <ScrollView
                             contentContainerStyle={[safeAreaPaddingBottomStyle, style]}
                             showsVerticalScrollIndicator={false}
