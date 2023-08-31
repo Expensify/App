@@ -1,12 +1,16 @@
+import {CSSProperties} from 'react';
+import {ViewStyle} from 'react-native';
 import styles from './styles';
 import variables from './variables';
 import themeColors from './themes/default';
 
-const defaultWrapperStyle = {
+type StylesArray = Array<ViewStyle | CSSProperties>;
+
+const defaultWrapperStyle: ViewStyle | CSSProperties = {
     backgroundColor: themeColors.componentBG,
 };
 
-const miniWrapperStyle = [
+const miniWrapperStyle: StylesArray = [
     styles.flexRow,
     defaultWrapperStyle,
     {
@@ -18,16 +22,15 @@ const miniWrapperStyle = [
     },
 ];
 
-const bigWrapperStyle = [styles.flexColumn, defaultWrapperStyle];
+const bigWrapperStyle: StylesArray = [styles.flexColumn, defaultWrapperStyle];
 
 /**
  * Generate the wrapper styles for the ReportActionContextMenu.
  *
- * @param {Boolean} isMini
- * @param {Boolean} isSmallScreenWidth
- * @returns {Array}
+ * @param isMini
+ * @param isSmallScreenWidth
  */
-function getReportActionContextMenuStyles(isMini, isSmallScreenWidth) {
+function getReportActionContextMenuStyles(isMini: boolean, isSmallScreenWidth: boolean): StylesArray {
     if (isMini) {
         return miniWrapperStyle;
     }
