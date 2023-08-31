@@ -83,6 +83,7 @@ function ReceiptSelector(props) {
 
     const iouType = lodashGet(props.route, 'params.iouType', '');
     const reportID = lodashGet(props.route, 'params.reportID', '');
+    const pageIndex = lodashGet(props.route, 'params.pageIndex', 1);
 
     const {translate} = useLocalize();
 
@@ -242,6 +243,7 @@ function ReceiptSelector(props) {
                     style={[styles.cameraView]}
                     zoom={device.neutralZoom}
                     photo
+                    cameraTabIndex={pageIndex}
                 />
             )}
             <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
