@@ -591,10 +591,10 @@ function editDistanceRequest(transactionID, transactionThreadReportID, transacti
                 [updatedReportAction.reportActionID]: updatedReportAction,
             },
         });
-    } else {
-        // This needs to be a JSON object since we're sending this to the MapBox API
-        transactionDetails.waypoints = JSON.stringify(transactionDetails.waypoints);
     }
+
+    // This needs to be a JSON object since we're sending this to the MapBox API
+    transactionDetails.waypoints = JSON.stringify(transactionDetails.waypoints);
 
     API.write(
         'EditDistanceRequest',
@@ -606,8 +606,8 @@ function editDistanceRequest(transactionID, transactionThreadReportID, transacti
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                     value: {
                         pendingFields,
-                        isLoading: true,
                         ...updatedTransaction,
+                        isLoading: true,
                     },
                 },
                 ...modifiedReportActionOptimisticData,

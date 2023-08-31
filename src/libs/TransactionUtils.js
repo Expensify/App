@@ -226,7 +226,7 @@ function getMerchant(transaction) {
  * @returns {String}
  */
 function getWaypoints(transaction) {
-    return lodashGet(transaction, 'modifiedWaypoints', null) || lodashGet(transaction, 'waypoints', '');
+    return lodashGet(transaction, 'modifiedWaypoints', null) || lodashGet(transaction, ['comment', 'waypoints']);
 }
 
 /**
