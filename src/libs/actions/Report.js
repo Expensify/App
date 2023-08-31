@@ -954,16 +954,18 @@ function deleteReportComment(reportID, reportAction) {
         };
     } else {
         const {lastMessageText = '', lastMessageTranslationKey = ''} = ReportActionsUtils.getLastVisibleMessage(originalReportID, optimisticReportActions);
+        const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(originalReportID, optimisticReportActions);
         if (lastMessageText || lastMessageTranslationKey) {
-            const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(originalReportID, optimisticReportActions);
-            const lastVisibleActionCreated = lastVisibleAction.created;
             const lastActorAccountID = lastVisibleAction.actorAccountID;
             optimisticReport = {
                 lastMessageTranslationKey,
                 lastMessageText,
-                lastVisibleActionCreated,
                 lastActorAccountID,
             };
+        }
+        if (lastVisibleAction) {
+            const lastVisibleActionCreated = lastVisibleAction.created;
+            optimisticReport.lastVisibleActionCreated = lastVisibleActionCreated;
         }
     }
 
