@@ -19,6 +19,7 @@ import Navigation from '../../libs/Navigation/Navigation';
 import TeachersUnite from '../../libs/actions/TeachersUnite';
 import useLocalize from '../../hooks/useLocalize';
 import * as ValidationUtils from '../../libs/ValidationUtils';
+
 const propTypes = {
     /** Login list for the user that is signed in */
     loginList: PropTypes.shape({
