@@ -67,6 +67,10 @@
                     {
                         "/": "/workspace/*",
                         "comment": "Details of Workspace"
+                    },
+                    {
+                        "/": "/save-the-world/*",
+                        "comment": "Teachers Pages related"
                     }
                 ]
             }
