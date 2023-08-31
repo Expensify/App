@@ -64,7 +64,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
     const reportID = lodashGet(route, 'params.reportID', '');
     const isEditing = lodashGet(route, 'path', '').includes('amount');
     const currentCurrency = lodashGet(route, 'params.currency', '');
-    const isDistanceRequest = selectedTab === CONST.TAB.DISTANCE;
+    const isDistanceRequestTab = selectedTab === CONST.TAB.DISTANCE;
 
     const currency = currentCurrency || iou.currency;
 
@@ -114,7 +114,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
                 IOU.resetMoneyRequestInfo(moneyRequestID);
             }
 
-            if (!isDistanceRequest && (_.isEmpty(iou.participants) || iou.amount === 0 || shouldReset)) {
+            if (!isDistanceRequestTab && (_.isEmpty(iou.participants) || iou.amount === 0 || shouldReset)) {
                 Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType, reportID), true);
             }
         }
@@ -122,7 +122,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
         return () => {
             prevMoneyRequestID.current = iou.id;
         };
-    }, [iou.participants, iou.amount, iou.id, isEditing, iouType, reportID, isDistanceRequest]);
+    }, [iou.participants, iou.amount, iou.id, isEditing, iouType, reportID, isDistanceRequestTab]);
 
     const navigateBack = () => {
         Navigation.goBack(isEditing ? ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID) : null);
@@ -131,7 +131,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
     const navigateToCurrencySelectionPage = () => {
         // If the money request being created is a distance request, don't allow the user to choose the currency.
         // Only USD is allowed for distance requests.
-        if (isDistanceRequest) {
+        if (isDistanceRequestTab) {
             return;
         }
 

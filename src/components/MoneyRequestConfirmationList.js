@@ -486,7 +486,7 @@ export default compose(
         },
         mileageRate: {
             key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            selector: (policy) => DistanceRequestUtils.getDefaultMileageRate(policy),
+            selector: DistanceRequestUtils.getDefaultMileageRate,
         },
         transaction: {
             key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
