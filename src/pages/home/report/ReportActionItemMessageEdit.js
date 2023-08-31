@@ -89,12 +89,13 @@ const cancelButtonID = 'cancelButton';
 const emojiButtonID = 'emojiButton';
 const messageEditInput = 'messageEditInput';
 
+const isMobileSafari = Browser.isMobileSafari();
+
 function ReportActionItemMessageEdit(props) {
     const reportScrollManager = useReportScrollManager();
     const {translate} = useLocalize();
     const {isKeyboardShown} = useKeyboardState();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const isMobileSafari = Browser.isMobileSafari();
 
     const getInitialDraft = () => {
         if (props.draftMessage === props.action.message[0].html) {
@@ -107,10 +108,11 @@ function ReportActionItemMessageEdit(props) {
     };
 
     const getInitialSelection = () => {
-        const length = getInitialDraft().length;
         if (isMobileSafari) {
             return {start: 0, end: 0};
         }
+
+        const length = getInitialDraft().length;
         return {start: length, end: length};
     };
 
