@@ -1,8 +1,9 @@
+/* eslint-disable rulesdir/prefer-underscore-method */
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import lodashOrderBy from 'lodash/orderBy';
 import Str from 'expensify-common/lib/str';
+import CryptoJS from 'crypto-js';
 import ONYXKEYS from '../ONYXKEYS';
 import * as ReportUtils from './ReportUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
@@ -75,6 +76,9 @@ function setIsSidebarLoadedReady() {
     resolveSidebarIsReadyPromise();
 }
 
+// Define a cache object to store the memoized results
+const reportIDsCache = new Map();
+
 /**
  * @param {String} currentReportId
  * @param {Object} allReportsDict
@@ -85,22 +89,37 @@ function setIsSidebarLoadedReady() {
  * @returns {String[]} An array of reportIDs sorted in the proper order
  */
 function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, priorityMode, allReportActions) {
+    // Generate a unique cache key based on the function arguments
+    const cachedReports = JSON.stringify([currentReportId, allReportsDict, betas, policies, priorityMode, Object.values(allReportActions).length], (key, value) => {
+        // Exclude 'participantAccountIDs' and 'participants' properties from all objects in the 'allReportsDict' array
+        if (key === 'participantAccountIDs' || key === 'participants' || key === 'lastMessageText') {
+            return undefined;
+        }
+        return value;
+    });
+    // // Check if the result is already in the cache
+    if (reportIDsCache.has(cachedReports)) {
+        return reportIDsCache.get(cachedReports);
+    }
+
     const isInGSDMode = priorityMode === CONST.PRIORITY_MODE.GSD;
     const isInDefaultMode = !isInGSDMode;
 
     // Filter out all the reports that shouldn't be displayed
-    const reportsToDisplay = _.filter(allReportsDict, (report) => ReportUtils.shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas, policies, allReportActions, true));
+    const reportsToDisplay = Object.values(allReportsDict).filter((report) =>
+        ReportUtils.shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas, policies, allReportActions, true),
+    );
 
-    if (_.isEmpty(reportsToDisplay)) {
+    if (reportsToDisplay.length === 0) {
         // Display Concierge chat report when there is no report to be displayed
-        const conciergeChatReport = _.find(allReportsDict, ReportUtils.isConciergeChatReport);
+        const conciergeChatReport = Object.values(allReportsDict).find(ReportUtils.isConciergeChatReport);
         if (conciergeChatReport) {
             reportsToDisplay.push(conciergeChatReport);
         }
     }
 
     // There are a few properties that need to be calculated for the report which are used when sorting reports.
-    _.each(reportsToDisplay, (report) => {
+    reportsToDisplay.forEach((report) => {
         // Normally, the spread operator would be used here to clone the report and prevent the need to reassign the params.
         // However, this code needs to be very performant to handle thousands of reports, so in the interest of speed, we're just going to disable this lint rule and add
         // the reportDisplayName property to the report object directly.
@@ -121,43 +140,36 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
     // 5. Archived reports
     //      - Sorted by lastVisibleActionCreated in default (most recent) view mode
     //      - Sorted by reportDisplayName in GSD (focus) view mode
-    let pinnedReports = [];
-    let outstandingIOUReports = [];
-    let draftReports = [];
-    let nonArchivedReports = [];
-    let archivedReports = [];
-    _.each(reportsToDisplay, (report) => {
+    const pinnedReports = [];
+    const outstandingIOUReports = [];
+    const draftReports = [];
+    const nonArchivedReports = [];
+    const archivedReports = [];
+    reportsToDisplay.forEach((report) => {
         if (report.isPinned) {
             pinnedReports.push(report);
-            return;
-        }
-
-        if (ReportUtils.isWaitingForIOUActionFromCurrentUser(report)) {
+        } else if (ReportUtils.isWaitingForIOUActionFromCurrentUser(report)) {
             outstandingIOUReports.push(report);
-            return;
-        }
-
-        if (report.hasDraft) {
+        } else if (report.hasDraft) {
             draftReports.push(report);
-            return;
-        }
-
-        if (ReportUtils.isArchivedRoom(report)) {
+        } else if (ReportUtils.isArchivedRoom(report)) {
             archivedReports.push(report);
-            return;
+        } else {
+            nonArchivedReports.push(report);
         }
-
-        nonArchivedReports.push(report);
     });
 
     // Sort each group of reports accordingly
-    pinnedReports = _.sortBy(pinnedReports, (report) => report.displayName.toLowerCase());
-    outstandingIOUReports = lodashOrderBy(outstandingIOUReports, ['iouReportAmount', (report) => report.displayName.toLowerCase()], ['desc', 'asc']);
-    draftReports = _.sortBy(draftReports, (report) => report.displayName.toLowerCase());
-    nonArchivedReports = isInDefaultMode
-        ? lodashOrderBy(nonArchivedReports, ['lastVisibleActionCreated', (report) => report.displayName.toLowerCase()], ['desc', 'asc'])
-        : lodashOrderBy(nonArchivedReports, [(report) => report.displayName.toLowerCase()], ['asc']);
-    archivedReports = _.sortBy(archivedReports, (report) => (isInDefaultMode ? report.lastVisibleActionCreated : report.displayName.toLowerCase()));
+    pinnedReports.sort((a, b) => a.displayName.localeCompare(b.displayName));
+    outstandingIOUReports.sort((a, b) => b.iouReportAmount - a.iouReportAmount || a.displayName.localeCompare(b.displayName));
+    draftReports.sort((a, b) => a.displayName.localeCompare(b.displayName));
+    if (isInDefaultMode) {
+        nonArchivedReports.sort((a, b) => new Date(b.lastVisibleActionCreated) - new Date(a.lastVisibleActionCreated) || a.displayName.localeCompare(b.displayName));
+        archivedReports.sort((a, b) => new Date(b.lastVisibleActionCreated) - new Date(a.lastVisibleActionCreated));
+    } else {
+        nonArchivedReports.sort((a, b) => a.displayName.localeCompare(b.displayName));
+        archivedReports.sort((a, b) => a.displayName.localeCompare(b.displayName));
+    }
 
     // For archived reports ensure that most recent reports are at the top by reversing the order of the arrays because underscore will only sort them in ascending order
     if (isInDefaultMode) {
@@ -166,7 +178,9 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
 
     // Now that we have all the reports grouped and sorted, they must be flattened into an array and only return the reportID.
     // The order the arrays are concatenated in matters and will determine the order that the groups are displayed in the sidebar.
-    return _.pluck([].concat(pinnedReports).concat(outstandingIOUReports).concat(draftReports).concat(nonArchivedReports).concat(archivedReports), 'reportID');
+    const LHNReports = [].concat(pinnedReports, outstandingIOUReports, draftReports, nonArchivedReports, archivedReports).map((report) => report.reportID);
+    reportIDsCache.set(cachedReports, LHNReports);
+    return LHNReports;
 }
 
 /**

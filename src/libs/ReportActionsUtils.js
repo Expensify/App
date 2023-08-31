@@ -1,9 +1,9 @@
+/* eslint-disable rulesdir/prefer-underscore-method */
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
-import lodashMerge from 'lodash/merge';
+import {max, parseISO} from 'date-fns';
 import lodashFindLast from 'lodash/findLast';
 import Onyx from 'react-native-onyx';
-import moment from 'moment';
 import * as CollectionUtils from './CollectionUtils';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
@@ -371,14 +371,18 @@ function shouldReportActionBeVisibleAsLastAction(reportAction) {
  * @return {Object}
  */
 function getLastVisibleAction(reportID, actionsToMerge = {}) {
-    const actions = _.toArray(lodashMerge({}, allReportActions[reportID], actionsToMerge));
-    const visibleActions = _.filter(actions, (action) => shouldReportActionBeVisibleAsLastAction(action));
+    const actions = Object.values({
+        ...allReportActions[reportID],
+        ...actionsToMerge,
+    });
+    const visibleActions = actions.filter((action) => shouldReportActionBeVisibleAsLastAction(action));
 
-    if (_.isEmpty(visibleActions)) {
+    if (visibleActions.length === 0) {
         return {};
     }
-
-    return _.max(visibleActions, (action) => moment.utc(action.created).valueOf());
+    const maxDate = max(visibleActions.map((action) => parseISO(action.created)));
+    const maxAction = visibleActions.find((action) => new Date(action.created).toString() === maxDate.toString());
+    return maxAction;
 }
 
 /**
