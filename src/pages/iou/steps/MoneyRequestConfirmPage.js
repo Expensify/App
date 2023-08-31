@@ -188,7 +188,6 @@ function MoneyRequestConfirmPage(props) {
 
             if (isDistanceRequest) {
                 createDistanceRequest(selectedParticipants, trimmedComment);
-                Navigation.dismissModal();
                 return;
             }
 
