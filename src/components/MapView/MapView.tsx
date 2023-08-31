@@ -9,7 +9,7 @@ import CONST from '../../CONST';
 
 import {MapViewProps, MapViewHandle} from './MapViewTypes';
 
-const MapView = forwardRef<MapViewHandle, MapViewProps>(({accessToken, style, mapPadding, styleURL, pitchEnabled, initialState, waypoints, directionCoordinates, directionStyle}, ref) => {
+const MapView = forwardRef<MapViewHandle, MapViewProps>(({accessToken, style, mapPadding, styleURL, pitchEnabled, initialState, waypoints, directionCoordinates}, ref) => {
     const isFocused = useIsFocused();
     const cameraRef = useRef<Mapbox.Camera>(null);
     const [isIdle, setIsIdle] = useState(false);
@@ -25,6 +25,10 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(({accessToken, style, ma
         [],
     );
 
+    // When the page loses focus, we temporarily set the "idled" state to false.
+    // When the page regains focus, the onIdled method of the map will set the actual "idled" state,
+    // which in turn triggers the callback of the next useEffect.
+    // If map not idled, camera transitions not working properly.
     useEffect(() => {
         if (isFocused) return;
         setIsIdle(false);
@@ -83,12 +87,7 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(({accessToken, style, ma
                     );
                 })}
 
-                {directionCoordinates && (
-                    <Direction
-                        coordinates={directionCoordinates}
-                        directionStyle={directionStyle}
-                    />
-                )}
+                {directionCoordinates && <Direction coordinates={directionCoordinates} />}
             </Mapbox.MapView>
         </View>
     );

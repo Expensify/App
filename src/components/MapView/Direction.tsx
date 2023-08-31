@@ -1,7 +1,8 @@
 import Mapbox from '@rnmapbox/maps';
 import {DirectionProps} from './MapViewTypes';
+import styles from '../../styles/styles';
 
-function Direction({coordinates, directionStyle}: DirectionProps) {
+function Direction({coordinates}: DirectionProps) {
     if (coordinates.length < 1) {
         return null;
     }
@@ -20,10 +21,7 @@ function Direction({coordinates, directionStyle}: DirectionProps) {
         >
             <Mapbox.LineLayer
                 id="routeFill"
-                style={{
-                    lineColor: directionStyle?.color ?? '#000000',
-                    lineWidth: directionStyle?.width ?? 1,
-                }}
+                style={styles.mapDirection}
             />
         </Mapbox.ShapeSource>
     );

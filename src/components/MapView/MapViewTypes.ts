@@ -18,15 +18,11 @@ type MapViewProps = {
     waypoints?: WayPoint[];
     // List of coordinates which together forms a direction.
     directionCoordinates?: Array<[number, number]>;
-    // Style used for the line that displays direction
-    directionStyle?: DirectionStyle;
 };
 
 type DirectionProps = {
     // Coordinates of points that constitute the direction
     coordinates: Array<[number, number]>;
-    // Style used for the line that displays direction
-    directionStyle?: DirectionStyle;
 };
 
 // Initial state of the map

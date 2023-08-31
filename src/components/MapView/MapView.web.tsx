@@ -1,3 +1,8 @@
+// Explanation: Different Mapbox libraries are required for web and native mobile platforms.
+// This is why we have separate components for web and native to handle the specific implementations.
+// For the web version, we use the Mapbox Web library called react-map-gl, while for the native mobile version,
+// we utilize a different Mapbox library @rnmapbox/maps tailored for mobile development.
+
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useState} from 'react';
 import {View} from 'react-native';
 import Map, {MapRef, Marker} from 'react-map-gl';
@@ -11,19 +16,7 @@ import {MapViewHandle, MapViewProps} from './MapViewTypes';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
 const MapView = forwardRef<MapViewHandle, MapViewProps>(
-    (
-        {
-            style,
-            styleURL,
-            waypoints,
-            mapPadding,
-            accessToken,
-            directionStyle,
-            directionCoordinates,
-            initialState = {location: CONST.MAPBOX.DEFAULT_COORDINATE, zoom: CONST.MAPBOX.DEFAULT_ZOOM},
-        },
-        ref,
-    ) => {
+    ({style, styleURL, waypoints, mapPadding, accessToken, directionCoordinates, initialState = {location: CONST.MAPBOX.DEFAULT_COORDINATE, zoom: CONST.MAPBOX.DEFAULT_ZOOM}}, ref) => {
         const [mapRef, setMapRef] = useState<MapRef | null>(null);
         const setRef = useCallback((newRef: MapRef | null) => setMapRef(newRef), []);
 
@@ -59,7 +52,7 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(
                         zoom: zoomLevel,
                         duration: animationDuration,
                     }),
-                fitBounds: (ne: [number, number], sw: [number, number]) => mapRef?.fitBounds([ne, sw]),
+                fitBounds: (northEast: [number, number], southWest: [number, number]) => mapRef?.fitBounds([northEast, southWest]),
             }),
             [mapRef],
         );
@@ -88,12 +81,7 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(
                             </Marker>
                         );
                     })}
-                    {directionCoordinates && (
-                        <Direction
-                            coordinates={directionCoordinates}
-                            directionStyle={directionStyle}
-                        />
-                    )}
+                    {directionCoordinates && <Direction coordinates={directionCoordinates} />}
                 </Map>
             </View>
         );

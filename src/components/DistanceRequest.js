@@ -221,7 +221,6 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
                             location: CONST.MAPBOX.DEFAULT_COORDINATE,
                         }}
                         directionCoordinates={lodashGet(transaction, 'routes.route0.geometry.coordinates', [])}
-                        directionStyle={styles.mapDirection}
                         style={styles.mapView}
                         waypoints={waypointMarkers}
                         styleURL={CONST.MAPBOX.STYLE_URL}

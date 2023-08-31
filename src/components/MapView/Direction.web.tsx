@@ -1,9 +1,19 @@
+// Explanation: Different Mapbox libraries are required for web and native mobile platforms.
+// This is why we have separate components for web and native to handle the specific implementations.
+// For the web version, we use the Mapbox Web library called react-map-gl, while for the native mobile version,
+// we utilize a different Mapbox library @rnmapbox/maps tailored for mobile development.
+
 import React from 'react';
-import {Layer, Source} from 'react-map-gl';
 import {View} from 'react-native';
+import {Layer, Source} from 'react-map-gl';
 import {DirectionProps} from './MapViewTypes';
 
-function Direction({coordinates, directionStyle}: DirectionProps) {
+import styles from '../../styles/styles';
+
+function Direction({coordinates}: DirectionProps) {
+    const layerLayoutStyle: Record<string, string> = styles.mapDirectionLayer.layout;
+    const layerPointStyle: Record<string, string | number> = styles.mapDirectionLayer.paint;
+
     if (coordinates.length < 1) {
         return null;
     }
@@ -26,10 +36,8 @@ function Direction({coordinates, directionStyle}: DirectionProps) {
                         id="route"
                         type="line"
                         source="route"
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
-                        layout={{'line-join': 'round', 'line-cap': 'round'}}
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
-                        paint={{'line-color': directionStyle?.color ?? '#000000', 'line-width': directionStyle?.width ?? 1}}
+                        paint={layerPointStyle}
+                        layout={layerLayoutStyle}
                     />
                 </Source>
             )}
