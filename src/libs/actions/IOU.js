@@ -543,14 +543,15 @@ function createDistanceRequest(report, participant, comment, created, transactio
  * Edits an existing distance request
  *
  * @param {String} transactionID
+ * @param {Number} transactionThreadReportID
  * @param {Object} transactionChanges
  * @param {String} [transactionChanges.created]
  * @param {Number} [transactionChanges.amount]
  * @param {Object} [transactionChanges.comment]
- * @param {Object} [transactionChanges.comment.waypoints]
+ * @param {Object} [transactionChanges.waypoints]
  *
  */
-function editDistanceRequest(transactionID, transactionThreadReportID, transactionChanges) {
+function updateDistanceRequest(transactionID, transactionThreadReportID, transactionChanges) {
     const pendingFields = _.mapObject(transactionChanges, () => CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
     const clearedPendingFields = _.mapObject(transactionChanges, () => null);
     const errorFields = _.mapObject(pendingFields, () => ({
@@ -563,6 +564,11 @@ function editDistanceRequest(transactionID, transactionThreadReportID, transacti
     const isFromExpenseReport = ReportUtils.isExpenseReport(iouReport);
     const updatedTransaction = TransactionUtils.getUpdatedTransaction(transaction, transactionChanges, isFromExpenseReport);
     const transactionDetails = ReportUtils.getTransactionDetails(updatedTransaction);
+
+    // This needs to be a JSON object since we're sending this to the MapBox API
+    transactionDetails.waypoints = JSON.stringify(transactionDetails.waypoints);
+
+    const params = {transactionID, ...transactionDetails};
 
     // We don't create a modified report action if we're updating the waypoints,
     // since there isn't actually any optimistic data we can create for them.
@@ -592,14 +598,12 @@ function editDistanceRequest(transactionID, transactionThreadReportID, transacti
                 [updatedReportAction.reportActionID]: updatedReportAction,
             },
         });
+        params.reportActionID = updatedReportAction.reportActionID;
     }
 
-    // This needs to be a JSON object since we're sending this to the MapBox API
-    transactionDetails.waypoints = JSON.stringify(transactionDetails.waypoints);
-
     API.write(
-        'EditDistanceRequest',
-        {transactionID, ...transactionDetails},
+        'UpdateDistanceRequest',
+        {transactionID, ...transactionDetails, },
         {
             optimisticData: [
                 {
@@ -2010,5 +2014,5 @@ export {
     setDistanceRequestTransactionID,
     createEmptyTransaction,
     navigateToNextPage,
-    editDistanceRequest,
+    updateDistanceRequest,
 };
