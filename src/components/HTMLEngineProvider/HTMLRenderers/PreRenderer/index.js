@@ -3,11 +3,10 @@ import _ from 'underscore';
 
 import ControlSelection from '../../../../libs/ControlSelection';
 import * as DeviceCapabilities from '../../../../libs/DeviceCapabilities';
-import withLocalize from '../../../withLocalize';
 import htmlRendererPropTypes from '../htmlRendererPropTypes';
 import BasePreRenderer from './BasePreRenderer';
 
-function PreRenderer(props) {
+function PreRenderer({key, style, tnode, TDefaultRenderer}) {
     const scrollViewRef = useRef();
 
     /**
@@ -16,11 +15,11 @@ function PreRenderer(props) {
      * @param {WheelEvent} event Wheel event
      * @returns {Boolean} true if user is scrolling vertically
      */
-    function isScrollingVertically(event) {
+    const isScrollingVertically = useCallback((event) => {
         // Mark as vertical scrolling only when absolute value of deltaY is more than the double of absolute
         // value of deltaX, so user can use trackpad scroll on the code block horizontally at a wide angle.
         return Math.abs(event.deltaY) > Math.abs(event.deltaX) * 2;
-    }
+    }, []);
 
     const debouncedIsScrollingVertically = useCallback((event) => _.debounce(isScrollingVertically(event), 100, true), []);
 
@@ -54,8 +53,10 @@ function PreRenderer(props) {
 
     return (
         <BasePreRenderer
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
+            key={key}
+            style={style}
+            tnode={tnode}
+            TDefaultRenderer={TDefaultRenderer}
             ref={scrollViewRef}
             onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
             onPressOut={() => ControlSelection.unblock()}
@@ -64,5 +65,6 @@ function PreRenderer(props) {
 }
 
 PreRenderer.propTypes = htmlRendererPropTypes;
+PreRenderer.displayName = 'PreRenderer';
 
-export default withLocalize(PreRenderer);
+export default PreRenderer;
