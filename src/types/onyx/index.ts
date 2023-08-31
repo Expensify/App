@@ -24,6 +24,7 @@ import WalletAdditionalDetails from './WalletAdditionalDetails';
 import WalletTerms from './WalletTerms';
 import BankAccount from './BankAccount';
 import Card from './Card';
+import Fund from './Fund';
 import WalletStatement from './WalletStatement';
 import PersonalBankAccount from './PersonalBankAccount';
 import FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
@@ -70,6 +71,7 @@ export type {
     WalletTerms,
     BankAccount,
     Card,
+    Fund,
     WalletStatement,
     PersonalBankAccount,
     ReimbursementAccount,
