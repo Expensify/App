@@ -535,7 +535,8 @@ function createDistanceRequest(report, participant, comment, created, transactio
         },
         onyxData,
     );
-    resetMoneyRequestInfo();
+    Navigation.dismissModal(chatReport.reportID);
+    Report.notifyNewAction(chatReport.reportID, userAccountID);
 }
 
 /**
