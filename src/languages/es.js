@@ -164,6 +164,8 @@ export default {
         miles: 'millas',
         kilometer: 'kilómetro',
         kilometers: 'kilómetros',
+        recent: 'Reciente',
+        all: 'Todo',
     },
     anonymousReportFooter: {
         logoTagline: 'Únete a la discusión.',
