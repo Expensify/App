@@ -547,7 +547,7 @@ function createDistanceRequest(report, participant, comment, created, transactio
  * @param {Number} [transactionChanges.amount]
  * @param {Object} [transactionChanges.comment]
  * @param {Object} [transactionChanges.comment.waypoints]
- * 
+ *
  */
 function editDistanceRequest(transactionID, transactionThreadReportID, transactionChanges) {
     const pendingFields = _.mapObject(transactionChanges, () => CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
@@ -563,8 +563,38 @@ function editDistanceRequest(transactionID, transactionThreadReportID, transacti
     const updatedTransaction = TransactionUtils.getUpdatedTransaction(transaction, transactionChanges, isFromExpenseReport);
     const transactionDetails = ReportUtils.getTransactionDetails(updatedTransaction);
 
-    // This needs to be a JSON object since we're sending this to the MapBox API
-    transactionDetails.waypoints = JSON.stringify(transactionDetails.waypoints);
+    // We don't create a modified report action if we're updating the waypoints,
+    // since there isn't actually any optimistic data we can create for them.
+    const modifiedReportActionOptimisticData = [];
+    const modifiedReportActionSuccessData = [];
+    const modifiedReportActionFailureData = [];
+    if (!_.has(transactionChanges, 'waypoints')) {
+        const updatedReportAction = ReportUtils.buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges, isFromExpenseReport);
+        modifiedReportActionOptimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThread.reportID}`,
+            value: {
+                [updatedReportAction.reportActionID]: updatedReportAction,
+            },
+        });
+        modifiedReportActionSuccessData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThread.reportID}`,
+            value: {
+                [updatedReportAction.reportActionID]: {pendingAction: null},
+            },
+        });
+        modifiedReportActionFailureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThread.reportID}`,
+            value: {
+                [updatedReportAction.reportActionID]: updatedReportAction,
+            },
+        });
+    } else {
+        // This needs to be a JSON object since we're sending this to the MapBox API
+        transactionDetails.waypoints = JSON.stringify(transactionDetails.waypoints);
+    }
 
     API.write(
         'EditDistanceRequest',
@@ -577,8 +607,11 @@ function editDistanceRequest(transactionID, transactionThreadReportID, transacti
                     value: {
                         pendingFields,
                         isLoading: true,
+                        ...updatedTransaction
                     },
                 },
+                ...modifiedReportActionOptimisticData,
+                
             ],
             successData: [
                 {
@@ -589,6 +622,7 @@ function editDistanceRequest(transactionID, transactionThreadReportID, transacti
                         isLoading: false,
                     },
                 },
+                ...modifiedReportActionSuccessData,
             ],
             failureData: [
                 {
@@ -600,6 +634,12 @@ function editDistanceRequest(transactionID, transactionThreadReportID, transacti
                         isLoading: false,
                     },
                 },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.report}`,
+                    value: iouReport,
+                },
+                ...modifiedReportActionFailureData,
             ],
         },
     );
@@ -1916,7 +1956,7 @@ function setDistanceRequestTransactionID(transactionID) {
  * @param {Object} report
  */
 function navigateToNextPage(iou, iouType, reportID, report) {
-    console.log(">>>> navigate to next page", {iou, iouType, reportID, report});
+    console.log('>>>> navigate to next page', {iou, iouType, reportID, report});
     const moneyRequestID = `${iouType}${reportID}`;
     const shouldReset = iou.id !== moneyRequestID;
 
