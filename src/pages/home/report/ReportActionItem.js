@@ -286,6 +286,7 @@ function ReportActionItem(props) {
                     isHovered={hovered}
                     contextMenuAnchor={popoverAnchorRef}
                     checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
+                    isWhisper={isWhisper}
                 />
             );
         } else if (

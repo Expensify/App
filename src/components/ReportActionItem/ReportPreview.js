@@ -88,6 +88,9 @@ const propTypes = {
     /** Callback for updating context menu active state, used for showing context menu */
     checkIfContextMenuActive: PropTypes.func,
 
+    // TODO: Comment
+    isWhisper: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
@@ -100,6 +103,7 @@ const defaultProps = {
     session: {
         accountID: null,
     },
+    isWhisper: false,
 };
 
 function ReportPreview(props) {
@@ -174,7 +178,7 @@ function ReportPreview(props) {
                 accessibilityRole="button"
                 accessibilityLabel={props.translate('iou.viewDetails')}
             >
-                <View style={[styles.reportPreviewBox, props.isHovered || isScanning ? styles.reportPreviewBoxHoverBorder : undefined]}>
+                <View style={[styles.reportPreviewBox, props.isHovered || isScanning || props.isWhisper ? styles.reportPreviewBoxHoverBorder : undefined]}>
                     {hasReceipts && (
                         <ReportActionItemImages
                             images={_.map(lastThreeTransactionsWithReceipts, ({receipt, filename}) => ReceiptUtils.getThumbnailAndImageURIs(receipt.source, filename))}
