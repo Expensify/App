@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useRef} from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -95,6 +95,7 @@ function SignInPage({credentials, account, isInModal, demoInfo}) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const shouldShowSmallScreen = isSmallScreenWidth || isInModal;
     const safeAreaInsets = useSafeAreaInsets();
+    const signInPageLayoutRef = useRef();
 
     useEffect(() => Performance.measureTTI(), []);
     useEffect(() => {
@@ -161,6 +162,7 @@ function SignInPage({credentials, account, isInModal, demoInfo}) {
                 welcomeText={welcomeText}
                 shouldShowWelcomeHeader={shouldShowWelcomeHeader || !isSmallScreenWidth || !isInModal}
                 shouldShowWelcomeText={shouldShowWelcomeText}
+                ref={signInPageLayoutRef}
                 isInModal={isInModal}
                 customHeadline={customHeadline}
             >
@@ -169,6 +171,7 @@ function SignInPage({credentials, account, isInModal, demoInfo}) {
                 <LoginForm
                     isVisible={shouldShowLoginForm}
                     blurOnSubmit={account.validated === false}
+                    scrollPageToTop={signInPageLayoutRef.current && signInPageLayoutRef.current.scrollPageToTop}
                 />
                 {shouldShowValidateCodeForm && <ValidateCodeForm />}
                 {shouldShowUnlinkLoginForm && <UnlinkLoginForm />}
