@@ -1562,7 +1562,7 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
                 lastMessageText: optimisticIOUReportAction.message[0].text,
                 lastMessageHtml: optimisticIOUReportAction.message[0].html,
                 hasOutstandingIOU: false,
-                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS.REIMBURSED,
             },
         },
         {
