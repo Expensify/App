@@ -457,7 +457,7 @@ function MoneyRequestConfirmationList(props) {
                     {props.isDistanceRequest ? (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly && isTypeRequest}
-                            title={DistanceRequestUtils.getDistanceString(distance, unit, formattedAmount, translate)}
+                            title={DistanceRequestUtils.getDistanceString(distance, unit, rate, currency, translate)}
                             description={translate('common.distance')}
                             style={[styles.moneyRequestMenuItem, styles.mb2]}
                             titleStyle={styles.flex1}

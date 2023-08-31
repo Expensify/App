@@ -1,5 +1,6 @@
 import _ from 'underscore';
 import CONST from '../CONST';
+import * as CurrencyUtils from './CurrencyUtils';
 
 /**
  * Retrieves the default mileage rate based on a given policy.
@@ -63,18 +64,21 @@ function convertDistanceUnit(distanceInMeters, unit) {
  *
  * @param {Number} distanceInMeters Distance traveled
  * @param {'mi' | 'ki'} unit Unit that should be used to display the distance
- * @param {String} formattedAmount The amount of the distance request already formatted for display
+ * @param {Number} rate Expensable amount allowed per unit
+ * @param {String} currency The currency associated with the rate
  * @param {Function} translate Translate function
  * @returns {String} A string that describes the distance travled and the rate used for expense calculation
  */
-const getDistanceString = (distanceInMeters, unit, formattedAmount, translate) => {
+const getDistanceString = (distanceInMeters, unit, rate, currency, translate) => {
     const convertedDistance = convertDistanceUnit(distanceInMeters, unit);
     const distanceUnit = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.miles') : translate('common.kilometers');
     const singularDistanceUnit = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.mile') : translate('common.kilometer');
     const roundedDistance = convertedDistance.toFixed(2);
     const unitString = roundedDistance === 1 ? singularDistanceUnit : distanceUnit;
+    const ratePerUnit = rate * 0.01;
+    const currencySymbol = CurrencyUtils.getCurrencySymbol(currency) || `${currency} `;
 
-    return `${roundedDistance} ${unitString} @ ${formattedAmount} / ${singularDistanceUnit}`;
+    return `${roundedDistance} ${unitString} @ ${currencySymbol}${ratePerUnit} / ${singularDistanceUnit}`;
 };
 
 /**
