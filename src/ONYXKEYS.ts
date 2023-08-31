@@ -142,11 +142,11 @@ const ONYXKEYS = {
     /** The user's bank accounts */
     BANK_ACCOUNT_LIST: 'bankAccountList',
 
-    /** The user's credit cards (renamed from cardList) */
+    /** The user's payment and P2P cards */
     FUND_LIST: 'fundList',
 
-    // The user's Expensify cards
-    CORPORATE_CARD_LIST: 'corporateCardList',
+    /** The user's cash card and imported cards (including the Expensify Card) */
+    CARD_LIST: 'cardList',
 
     /** Stores information about the user's saved statements */
     WALLET_STATEMENT: 'walletStatement',
@@ -341,7 +341,8 @@ type OnyxValues = {
     [ONYXKEYS.WALLET_ADDITIONAL_DETAILS]: OnyxTypes.WalletAdditionalDetails;
     [ONYXKEYS.WALLET_TERMS]: OnyxTypes.WalletTerms;
     [ONYXKEYS.BANK_ACCOUNT_LIST]: Record<string, OnyxTypes.BankAccount>;
-    [ONYXKEYS.FUND_LIST]: Record<string, OnyxTypes.Card>;
+    [ONYXKEYS.FUND_LIST]: Record<string, OnyxTypes.Fund>;
+    [ONYXKEYS.CARD_LIST]: Record<string, OnyxTypes.Card>;
     [ONYXKEYS.WALLET_STATEMENT]: OnyxTypes.WalletStatement;
     [ONYXKEYS.PERSONAL_BANK_ACCOUNT]: OnyxTypes.PersonalBankAccount;
     [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: OnyxTypes.ReimbursementAccount;

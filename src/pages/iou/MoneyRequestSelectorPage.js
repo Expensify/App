@@ -83,11 +83,12 @@ function MoneyRequestSelectorPage(props) {
                             {(canUseScanReceipts || canUseDistanceRequests) && iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST ? (
                                 <OnyxTabNavigator
                                     id={CONST.TAB.RECEIPT_TAB_ID}
-                                    tabBar={({state, navigation}) => (
+                                    tabBar={({state, navigation, position}) => (
                                         <TabSelector
                                             state={state}
                                             navigation={navigation}
                                             onTabPress={resetMoneyRequestInfo}
+                                            position={position}
                                         />
                                     )}
                                 >
