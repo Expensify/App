@@ -240,6 +240,7 @@ class AuthScreens extends React.Component {
                     <RootStack.Screen
                         name={SCREENS.VALIDATE_LOGIN}
                         options={{
+                            ...screenOptions.fullScreen,
                             headerShown: false,
                             title: 'New Expensify',
                         }}
