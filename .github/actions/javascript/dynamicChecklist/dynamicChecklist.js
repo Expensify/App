@@ -39,6 +39,8 @@ async function getChecklistCategoriesForPullRequest() {
         categories.push(CHECKLIST_CATEGORIES.TS);
     }
 
+    // TODO add more if statements to look for other dynamic checklist categories
+
     return categories;
 }
 
