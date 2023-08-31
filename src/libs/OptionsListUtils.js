@@ -954,7 +954,7 @@ function getOptions(
     }
 
     let currentUserOption = _.find(allPersonalDetailsOptions, (personalDetailsOption) => personalDetailsOption.login === currentUserLogin);
-    if (searchValue && !isSearchStringMatch(searchValue, currentUserOption.searchText)) {
+    if (searchValue && currentUserOption && !isSearchStringMatch(searchValue, currentUserOption.searchText)) {
         currentUserOption = null;
     }
 
