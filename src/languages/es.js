@@ -2159,7 +2159,8 @@ export default {
         },
         sbe: {
             signInWelcome: '¡Bienvenido a Small Business Expo! Recupera el dinero de tu viaje.',
-            heroBody: 'Utiliza New Expensify para estar al día de los eventos, establecer contactos, charlar en las redes sociales y para que te paguen el viaje de ida y vuelta a la conferencia.',
+            heroBody:
+                'Utiliza New Expensify para estar al día de los eventos, establecer contactos, charlar en las redes sociales y para que te paguen el viaje de ida y vuelta a la conferencia.',
         },
     },
 };
