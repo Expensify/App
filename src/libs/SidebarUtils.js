@@ -3,7 +3,6 @@ import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
-import CryptoJS from 'crypto-js';
 import ONYXKEYS from '../ONYXKEYS';
 import * as ReportUtils from './ReportUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
@@ -91,7 +90,7 @@ const reportIDsCache = new Map();
 function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, priorityMode, allReportActions) {
     // Generate a unique cache key based on the function arguments
     const cachedReports = JSON.stringify([currentReportId, allReportsDict, betas, policies, priorityMode, Object.values(allReportActions).length], (key, value) => {
-        // Exclude 'participantAccountIDs' and 'participants' properties from all objects in the 'allReportsDict' array
+        // Exclude 'participantAccountIDs', 'participants' and 'lastMessageText' properties from all objects in the 'allReportsDict' array
         if (key === 'participantAccountIDs' || key === 'participants' || key === 'lastMessageText') {
             return undefined;
         }

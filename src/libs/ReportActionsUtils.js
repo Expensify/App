@@ -381,7 +381,7 @@ function getLastVisibleAction(reportID, actionsToMerge = {}) {
         return {};
     }
     const maxDate = max(visibleActions.map((action) => parseISO(action.created)));
-    const maxAction = visibleActions.find((action) => new Date(action.created).toString() === maxDate.toString());
+    const maxAction = visibleActions.find((action) => parseISO(action.created).toString() === maxDate.toString());
     return maxAction;
 }
 
