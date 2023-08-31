@@ -1,0 +1,15 @@
+name: PR author dynamic Checklist
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  checklist:
+    runs-on: ubuntu-latest
+    if: github.actor != 'OSBotify'
+    steps:
+      - name: Generate dynamic checklist
+        uses: Expensify/App/.github/actions/javascript/dynamicChecklist@main
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHdUB_TOKEN }}
