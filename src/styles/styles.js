@@ -3874,11 +3874,6 @@ const styles = {
         overflow: 'hidden',
     },
 
-    distanceRequestNextButton: {
-        position: 'absolute',
-        bottom: 0,
-    },
-
     confirmationListMapItem: {
         ...spacing.m5,
         height: 200,
