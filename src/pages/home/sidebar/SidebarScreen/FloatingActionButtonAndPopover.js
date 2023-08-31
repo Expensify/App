@@ -159,7 +159,7 @@ function FloatingActionButtonAndPopover(props) {
             return;
         }
         // Avoid rendering the create menu for first-time users until they have dismissed the download app banner (mWeb only).
-        if (props.shouldShowDownloadAppBanner || Browser.isMobile()) {
+        if (props.shouldShowDownloadAppBanner && Browser.isMobile()) {
             return;
         }
         Welcome.show({routes, showCreateMenu});
