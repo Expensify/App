@@ -155,7 +155,7 @@ function ReportActionItemMessageEdit(props) {
             // to prevent the main composer stays hidden until we swtich to another chat.
             ComposerActions.setShouldShowComposeInput(true);
         };
-    }, [props.action.reportActionID, isMobileSafari]);
+    }, [props.action.reportActionID]);
 
     /**
      * Save the draft of the comment. This debounced so that we're not ceaselessly saving your edit. Saving the draft
