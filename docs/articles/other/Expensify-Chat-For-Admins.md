@@ -18,7 +18,7 @@ In order to get the most out of Expensify Chat, we created a list of best practi
 **During the conference:**
 - At a minimum, send 3 announcements throughout the day to create awareness of any sessions, activations, contests, or parties you want to promote.
 - Communicate with the Expensify Team in the #admins room if you see anything you have questions about or are unsure of to make sure we’re resolving issues together ASAP.
-- [Flag any content for moderation](https://help.expensify.com/articles/other/Everything-About-Chat#flagging-content-as-offensive) that does not fit your culture and values. It’s up to you to help keep your conference community safe and respectful, so using this feature is a
+- As an admin, It’s up to you to help keep your conference community safe and respectful. [Flag any content for moderation](https://help.expensify.com/articles/other/Everything-About-Chat#flagging-content-as-offensive) that does not fit your culture and values to keep chatrooms a positive experience for everyone involved.
 
 **After the conference:**
 - The rooms will all stay open after the conference ends, so encourage speakers to keep engaging as long as the conversation is going in their session room.
