@@ -18,7 +18,6 @@ import EditRequestAmountPage from './EditRequestAmountPage';
 import reportPropTypes from './reportPropTypes';
 import * as IOU from '../libs/actions/IOU';
 import * as CurrencyUtils from '../libs/CurrencyUtils';
-import DistanceRequest from '../components/DistanceRequest';
 import EditRequestDistancePage from './EditRequestDistancePage';
 
 const propTypes = {
@@ -95,7 +94,11 @@ function EditRequestPage({report, route, parentReport, policy, session}) {
 
     // Update the transaction object and close the modal
     function editMoneyRequest(transactionChanges) {
-        IOU.editMoneyRequest(transaction.transactionID, report.reportID, transactionChanges);
+        if (TransactionUtils.isDistanceRequest(transaction)) {
+            IOU.editDistanceRequest(transaction.transactionID, report.reportID, transactionChanges);
+        } else {
+            IOU.editMoneyRequest(transaction.transactionID, report.reportID, transactionChanges);
+        }
         Navigation.dismissModal();
     }
 
