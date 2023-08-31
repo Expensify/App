@@ -1,4 +1,6 @@
-import React from 'react';
+import React, {memo} from 'react';
+import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import Navigation from '../../../libs/Navigation/Navigation';
 import htmlRendererPropTypes from './htmlRendererPropTypes';
 import styles from '../../../styles/styles';
@@ -10,6 +12,8 @@ import tryResolveUrlFromApiRoot from '../../../libs/tryResolveUrlFromApiRoot';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
 import ROUTES from '../../../ROUTES';
+import compose from '../../../libs/compose';
+import ONYXKEYS from '../../../ONYXKEYS';
 
 const propTypes = {...htmlRendererPropTypes, ...withLocalizePropTypes};
 
@@ -90,4 +94,16 @@ function ImageRenderer(props) {
 ImageRenderer.propTypes = propTypes;
 ImageRenderer.displayName = 'ImageRenderer';
 
-export default withLocalize(ImageRenderer);
+export default compose(
+    withLocalize,
+    withOnyx({
+        user: {
+            key: ONYXKEYS.USER,
+        },
+    }),
+)(
+    memo(
+        ImageRenderer,
+        (prevProps, nextProps) => prevProps.translate === nextProps.translate && lodashGet(prevProps, 'user.shouldUseStagingServer') === lodashGet(nextProps, 'user.shouldUseStagingServer'),
+    ),
+);
