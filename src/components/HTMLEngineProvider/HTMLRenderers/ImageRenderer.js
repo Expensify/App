@@ -1,6 +1,5 @@
-import React, {memo} from 'react';
+import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import lodashGet from 'lodash/get';
 import Navigation from '../../../libs/Navigation/Navigation';
 import htmlRendererPropTypes from './htmlRendererPropTypes';
 import styles from '../../../styles/styles';
@@ -10,14 +9,15 @@ import CONST from '../../../CONST';
 import {ShowContextMenuContext, showContextMenuForReport} from '../../ShowContextMenuContext';
 import tryResolveUrlFromApiRoot from '../../../libs/tryResolveUrlFromApiRoot';
 import * as ReportUtils from '../../../libs/ReportUtils';
-import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
 import ROUTES from '../../../ROUTES';
-import compose from '../../../libs/compose';
 import ONYXKEYS from '../../../ONYXKEYS';
+import useLocalize from '../../../hooks/useLocalize';
 
-const propTypes = {...htmlRendererPropTypes, ...withLocalizePropTypes};
+const propTypes = {...htmlRendererPropTypes};
 
 function ImageRenderer(props) {
+    const {translate} = useLocalize();
+
     const htmlAttribs = props.tnode.attributes;
 
     // There are two kinds of images that need to be displayed:
@@ -76,7 +76,7 @@ function ImageRenderer(props) {
                         )
                     }
                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
-                    accessibilityLabel={props.translate('accessibilityHints.viewAttachment')}
+                    accessibilityLabel={translate('accessibilityHints.viewAttachment')}
                 >
                     <ThumbnailImage
                         previewSourceURL={previewSource}
@@ -94,16 +94,8 @@ function ImageRenderer(props) {
 ImageRenderer.propTypes = propTypes;
 ImageRenderer.displayName = 'ImageRenderer';
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        user: {
-            key: ONYXKEYS.USER,
-        },
-    }),
-)(
-    memo(
-        ImageRenderer,
-        (prevProps, nextProps) => prevProps.translate === nextProps.translate && lodashGet(prevProps, 'user.shouldUseStagingServer') === lodashGet(nextProps, 'user.shouldUseStagingServer'),
-    ),
-);
+export default withOnyx({
+    user: {
+        key: ONYXKEYS.USER,
+    },
+})(ImageRenderer);
