@@ -165,6 +165,8 @@ export default {
         miles: 'miles',
         kilometer: 'kilometer',
         kilometers: 'kilometers',
+        recent: 'Recent',
+        all: 'All',
     },
     anonymousReportFooter: {
         logoTagline: 'Join the discussion.',
