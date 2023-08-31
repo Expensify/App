@@ -65,6 +65,7 @@ const NUM_PAD_CONTAINER_VIEW_ID = 'numPadContainerView';
 const NUM_PAD_VIEW_ID = 'numPadView';
 
 function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCurrencyButtonPress, onSubmitButtonPress}) {
+    const {isExtraSmallScreenHeight} = useWindowDimensions();
     const {translate, toLocaleDigit, numberFormat} = useLocalize();
 
     const textInput = useRef(null);
@@ -244,9 +245,16 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
                     onKeyPress={textInputKeyPress}
                 />
             </View>
+            {!_.isEmpty(formError) && firstPress && (
+                <FormHelpMessage
+                    style={[styles.ph5]}
+                    isError
+                    message={translate(formError)}
+                />
+            )}
             <View
                 onMouseDown={(event) => onMouseDown(event, [NUM_PAD_CONTAINER_VIEW_ID, NUM_PAD_VIEW_ID])}
-                style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper]}
+                style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper, styles.pt0]}
                 nativeID={NUM_PAD_CONTAINER_VIEW_ID}
             >
                 {DeviceCapabilities.canUseTouchScreen() ? (
@@ -256,20 +264,14 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
                         longPressHandlerStateChanged={updateLongPressHandlerState}
                     />
                 ) : null}
-                <View style={[styles.w100, styles.mt5]}>
-                    <Button
-                        success
-                        onPress={submitAndNavigateToNextPage}
-                        pressOnEnter
-                        text={buttonText}
-                    />
-                    {!_.isEmpty(formError) && firstPress && (
-                        <FormHelpMessage
-                            isError
-                            message={translate(formError)}
-                        />
-                    )}
-                </View>
+                <Button
+                    success
+                    medium={isExtraSmallScreenHeight}
+                    style={[styles.w100, styles.mt5]}
+                    onPress={submitAndNavigateToNextPage}
+                    pressOnEnter
+                    text={buttonText}
+                />
             </View>
         </ScrollView>
     );
