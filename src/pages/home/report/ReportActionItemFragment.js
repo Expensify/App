@@ -46,6 +46,9 @@ const propTypes = {
         source: PropTypes.string,
     }),
 
+    /** Message(text) of an IOU report action */
+    iouMessage: PropTypes.string,
+
     /** Does this fragment belong to a reportAction that has not yet loaded? */
     loading: PropTypes.bool,
 
@@ -78,6 +81,7 @@ const defaultProps = {
         type: '',
         source: '',
     },
+    iouMessage: '',
     loading: false,
     isSingleLine: false,
     source: '',
@@ -133,7 +137,7 @@ function ReportActionItemFragment(props) {
                     selectable={!DeviceCapabilities.canUseTouchScreen() || !props.isSmallScreenWidth}
                     style={[containsOnlyEmojis ? styles.onlyEmojisText : undefined, styles.ltr, ...props.style]}
                 >
-                    {convertToLTR(text)}
+                    {convertToLTR(props.iouMessage || text)}
                     {Boolean(props.fragment.isEdited) && (
                         <Text
                             fontSize={variables.fontSizeSmall}

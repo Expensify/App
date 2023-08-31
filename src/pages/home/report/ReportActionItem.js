@@ -64,6 +64,7 @@ import * as PersonalDetailsUtils from '../../../libs/PersonalDetailsUtils';
 import ReportActionItemBasicMessage from './ReportActionItemBasicMessage';
 import * as store from '../../../libs/actions/ReimbursementAccount/store';
 import * as BankAccounts from '../../../libs/actions/BankAccounts';
+import usePrevious from '../../../hooks/usePrevious';
 import ReportScreenContext from '../ReportScreenContext';
 import Permissions from '../../../libs/Permissions';
 
@@ -131,6 +132,7 @@ function ReportActionItem(props) {
     const textInputRef = useRef();
     const popoverAnchorRef = useRef();
     const downloadedPreviews = useRef([]);
+    const prevDraftMessage = usePrevious(props.draftMessage);
     const originalReportID = ReportUtils.getOriginalReportID(props.report.reportID, props.action);
     const originalReport = props.report.reportID === originalReportID ? props.report : ReportUtils.getReport(originalReportID);
 
@@ -152,14 +154,13 @@ function ReportActionItem(props) {
         [props.action.reportActionID, reactionListRef],
     );
 
-    const isDraftEmpty = !props.draftMessage;
     useEffect(() => {
-        if (isDraftEmpty) {
+        if (prevDraftMessage || !props.draftMessage) {
             return;
         }
 
         focusTextInputAfterAnimation(textInputRef.current, 100);
-    }, [isDraftEmpty]);
+    }, [prevDraftMessage, props.draftMessage]);
 
     useEffect(() => {
         if (!Permissions.canUseLinkPreviews()) {
@@ -279,6 +280,7 @@ function ReportActionItem(props) {
                 <ReportPreview
                     iouReportID={ReportActionsUtils.getIOUReportIDFromReportActionPreview(props.action)}
                     chatReportID={props.report.reportID}
+                    policyID={props.report.policyID}
                     containerStyles={props.displayAsGroup ? [] : [styles.mt2]}
                     action={props.action}
                     isHovered={hovered}
@@ -343,7 +345,10 @@ function ReportActionItem(props) {
                                 displayAsGroup={props.displayAsGroup}
                                 isHidden={isHidden}
                                 style={[
-                                    _.contains([..._.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG), CONST.REPORT.ACTIONS.TYPE.IOU], props.action.actionName)
+                                    _.contains(
+                                        [..._.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG), CONST.REPORT.ACTIONS.TYPE.IOU, CONST.REPORT.ACTIONS.TYPE.APPROVED],
+                                        props.action.actionName,
+                                    )
                                         ? styles.colorMuted
                                         : undefined,
                                 ]}
