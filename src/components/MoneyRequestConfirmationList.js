@@ -409,10 +409,10 @@ function MoneyRequestConfirmationList(props) {
                 />
             ) : (
                 <MenuItemWithTopDescription
-                    shouldShowRightIcon={!props.isReadOnly}
+                    shouldShowRightIcon={!props.isReadOnly && !props.isDistanceRequest}
                     title={formattedAmount}
                     description={translate('iou.amount')}
-                    onPress={() => Navigation.navigate(ROUTES.getMoneyRequestAmountRoute(props.iouType, props.reportID))}
+                    onPress={() => !props.isDistanceRequest && Navigation.navigate(ROUTES.getMoneyRequestAmountRoute(props.iouType, props.reportID))}
                     style={[styles.moneyRequestMenuItem, styles.mt2]}
                     titleStyle={styles.moneyRequestConfirmationAmount}
                     disabled={didConfirm || props.isReadOnly}
