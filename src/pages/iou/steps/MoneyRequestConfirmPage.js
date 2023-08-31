@@ -22,29 +22,25 @@ import reportPropTypes from '../../reportPropTypes';
 import personalDetailsPropType from '../../personalDetailsPropType';
 import * as FileUtils from '../../../libs/fileDownload/FileUtils';
 import * as Policy from '../../../libs/actions/Policy';
+import {iouPropTypes, iouDefaultProps} from '../propTypes';
 
 const propTypes = {
+    /** React Navigation route */
+    route: PropTypes.shape({
+        /** Params from the route */
+        params: PropTypes.shape({
+            /** The type of IOU report, i.e. bill, request, send */
+            iouType: PropTypes.string,
+
+            /** The report ID of the IOU */
+            reportID: PropTypes.string,
+        }),
+    }).isRequired,
+
     report: reportPropTypes,
 
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
-    iou: PropTypes.shape({
-        id: PropTypes.string,
-        amount: PropTypes.number,
-        comment: PropTypes.string,
-        created: PropTypes.string,
-        currency: PropTypes.string,
-        merchant: PropTypes.string,
-        participants: PropTypes.arrayOf(
-            PropTypes.shape({
-                accountID: PropTypes.number,
-                login: PropTypes.string,
-                isPolicyExpenseChat: PropTypes.bool,
-                isOwnPolicyExpenseChat: PropTypes.bool,
-                selected: PropTypes.bool,
-            }),
-        ),
-        receiptPath: PropTypes.string,
-    }),
+    iou: iouPropTypes,
 
     /** Personal details of all users */
     personalDetails: personalDetailsPropType,
@@ -55,15 +51,7 @@ const propTypes = {
 const defaultProps = {
     report: {},
     personalDetails: {},
-    iou: {
-        id: '',
-        amount: 0,
-        currency: CONST.CURRENCY.USD,
-        comment: '',
-        merchant: '',
-        created: '',
-        participants: [],
-    },
+    iou: iouDefaultProps,
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 

@@ -383,6 +383,8 @@ function getLastMessageTextForReport(report) {
 
     if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml, translationKey: report.lastMessageTranslationKey})) {
         lastMessageTextFromReport = `[${Localize.translateLocal(report.lastMessageTranslationKey || 'common.attachment')}]`;
+    } else if (ReportActionUtils.isMoneyRequestAction(lastReportAction)) {
+        lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(report, lastReportAction);
     } else if (ReportActionUtils.isReportPreviewAction(lastReportAction)) {
         const iouReport = ReportUtils.getReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(lastReportAction));
         lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(iouReport, lastReportAction);
@@ -630,12 +632,6 @@ function getOptions(
         };
     }
 
-    // We're only picking personal details that have logins set
-    // This is a temporary fix for all the logic that's been breaking because of the new privacy changes
-    // See https://github.com/Expensify/Expensify/issues/293465 for more context
-    // eslint-disable-next-line no-param-reassign
-    personalDetails = !includeP2P ? {} : _.pick(personalDetails, (detail) => Boolean(detail.login));
-
     let recentReportOptions = [];
     let personalDetailsOptions = [];
     const reportMapForAccountIDs = {};
@@ -716,7 +712,12 @@ function getOptions(
         );
     });
 
-    let allPersonalDetailsOptions = _.map(personalDetails, (personalDetail) =>
+    // We're only picking personal details that have logins set
+    // This is a temporary fix for all the logic that's been breaking because of the new privacy changes
+    // See https://github.com/Expensify/Expensify/issues/293465 for more context
+    // Moreover, we should not override the personalDetails object, otherwise the createOption util won't work properly, it returns incorrect tooltipText
+    const havingLoginPersonalDetails = !includeP2P ? {} : _.pick(personalDetails, (detail) => Boolean(detail.login));
+    let allPersonalDetailsOptions = _.map(havingLoginPersonalDetails, (personalDetail) =>
         createOption([personalDetail.accountID], personalDetails, reportMapForAccountIDs[personalDetail.accountID], reportActions, {
             showChatPreviewLine,
             forcePolicyNamePreview,

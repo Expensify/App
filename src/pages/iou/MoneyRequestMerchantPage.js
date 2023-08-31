@@ -13,27 +13,25 @@ import styles from '../../styles/styles';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import * as IOU from '../../libs/actions/IOU';
-import optionPropTypes from '../../components/optionPropTypes';
 import CONST from '../../CONST';
 import useLocalize from '../../hooks/useLocalize';
+import {iouPropTypes, iouDefaultProps} from './propTypes';
 
 const propTypes = {
     /** Onyx Props */
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
-    iou: PropTypes.shape({
-        id: PropTypes.string,
-        amount: PropTypes.number,
-        comment: PropTypes.string,
-        created: PropTypes.string,
-        merchant: PropTypes.string,
-        participants: PropTypes.arrayOf(optionPropTypes),
-        receiptPath: PropTypes.string,
-    }),
+    iou: iouPropTypes,
 
     /** Route from navigation */
     route: PropTypes.shape({
         /** Params from the route */
         params: PropTypes.shape({
+            /** The type of IOU report, i.e. bill, request, send */
+            iouType: PropTypes.string,
+
+            /** The report ID of the IOU */
+            reportID: PropTypes.string,
+
             /** Which field we are editing */
             field: PropTypes.string,
 
@@ -44,14 +42,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    iou: {
-        id: '',
-        amount: 0,
-        comment: '',
-        merchant: '',
-        participants: [],
-        receiptPath: '',
-    },
+    iou: iouDefaultProps,
 };
 
 function MoneyRequestMerchantPage({iou, route}) {
