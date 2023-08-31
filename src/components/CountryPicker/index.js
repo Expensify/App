@@ -9,6 +9,9 @@ import CountrySelectorModal from './CountrySelectorModal';
 import FormHelpMessage from '../FormHelpMessage';
 import refPropTypes from '../refPropTypes';
 import Navigation from '../../libs/Navigation/Navigation';
+import getPlatform from '../../libs/getPlatform';
+import CONST from '../../CONST';
+import * as Browser from '../../libs/Browser';
 
 const propTypes = {
     /** Form Error description */
@@ -51,7 +54,12 @@ function CountryPicker({value, errorText, onInputChange, forwardedRef}) {
     };
     const closeModal = () => {
         hidePickerModal();
-        Navigation.dismissModal();
+        // if its macOS app or desktop browser, dismiss the modal when you click on the backdrop
+        if (getPlatform() === CONST.PLATFORM.DESKTOP || getPlatform() === CONST.PLATFORM.WEB) {
+            if (!Browser.isMobile()) {
+                Navigation.dismissModal();
+            }
+        }
     };
 
     const updateCountryInput = (country) => {
