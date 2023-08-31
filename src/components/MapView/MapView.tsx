@@ -19,8 +19,8 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(({accessToken, style, ma
         () => ({
             flyTo: (location: [number, number], zoomLevel: number = CONST.MAPBOX.DEFAULT_ZOOM, animationDuration?: number) =>
                 cameraRef.current?.setCamera({zoomLevel, centerCoordinate: location, animationDuration}),
-            fitBounds: (ne: [number, number], sw: [number, number], paddingConfig?: number | number[] | undefined, animationDuration?: number | undefined) =>
-                cameraRef.current?.fitBounds(ne, sw, paddingConfig, animationDuration),
+            fitBounds: (northEast: [number, number], southWest: [number, number], paddingConfig?: number | number[] | undefined, animationDuration?: number | undefined) =>
+                cameraRef.current?.fitBounds(northEast, southWest, paddingConfig, animationDuration),
         }),
         [],
     );
@@ -36,6 +36,7 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(({accessToken, style, ma
         if (waypoints.length === 1) {
             cameraRef.current?.setCamera({
                 zoomLevel: 15,
+                animationDuration: 1000,
                 centerCoordinate: waypoints[0].coordinate,
             });
         } else {
@@ -69,12 +70,12 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(({accessToken, style, ma
                     }}
                 />
 
-                {waypoints?.map(({coordinate, markerComponent}) => {
+                {waypoints?.map(({coordinate, markerComponent, id}) => {
                     const MarkerComponent = markerComponent;
                     return (
                         <MarkerView
-                            id={`${coordinate[0]},${coordinate[1]}`}
-                            key={`${coordinate[0]},${coordinate[1]}`}
+                            id={id}
+                            key={id}
                             coordinate={coordinate}
                         >
                             <MarkerComponent />

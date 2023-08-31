@@ -38,6 +38,7 @@ type InitialState = {
 
 // Waypoint to be displayed on the map
 type WayPoint = {
+    id: string;
     coordinate: [number, number];
     markerComponent: ComponentType;
 };

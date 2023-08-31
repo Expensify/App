@@ -94,6 +94,7 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
                     }
 
                     return {
+                        id: `${waypoint.lng},${waypoint.lat},${index}`,
                         coordinate: [waypoint.lng, waypoint.lat],
                         markerComponent: () => (
                             <MarkerComponent
