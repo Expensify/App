@@ -1,4 +1,4 @@
-import type {DraggableChildrenFn, DraggingStyle} from 'react-beautiful-dnd';
+import type {DraggableChildrenFn} from 'react-beautiful-dnd';
 import {useEffect, useRef} from 'react';
 import {createPortal} from 'react-dom';
 
@@ -32,8 +32,8 @@ export default function useDraggableInPortal({shouldUsePortal}: DraggableInPorta
 
     return (render) => (provided, snapshot, rubric) => {
         const result = render(provided, snapshot, rubric);
-        const style = provided.draggableProps.style as DraggingStyle;
-        if (style.position === 'fixed') {
+        const style = provided.draggableProps.style;
+        if (style && 'position' in style && style.position === 'fixed') {
             return createPortal(result, element);
         }
         return result;

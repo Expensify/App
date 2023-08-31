@@ -11,7 +11,7 @@ type DraggableListProps<T extends DefaultItemProps> = {
     renderItem: (params: RenderItemParams<T>) => React.ReactNode;
     onDragEnd?: (params: {data: T[]}) => void;
     onDragBegin?: () => void;
-    onPlaceholderIndexChange?: ((placeholderIndex: number) => void);
+    onPlaceholderIndexChange?: (placeholderIndex: number) => void;
     renderClone?: DraggableChildrenFn;
     shouldUsePortal?: boolean;
     onContentSizeChange?: ((w: number, h: number) => void) | undefined;

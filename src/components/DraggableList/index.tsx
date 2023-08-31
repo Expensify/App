@@ -4,14 +4,14 @@ import {ScrollView} from 'react-native';
 import useDraggableInPortal from './useDraggableInPortal';
 import type {DraggableListProps, DefaultItemProps} from './types';
 
-type ReoderParams<T> = {
+type ReorderParams<T> = {
     list: T[];
     startIndex: number;
     endIndex: number;
 };
 
 // Function to help us with reordering the result
-const reorder = <T,>({list, startIndex, endIndex}: ReoderParams<T>): T[] => {
+const reorder = <T,>({list, startIndex, endIndex}: ReorderParams<T>): T[] => {
     const result = Array.from(list);
     const [removed] = result.splice(startIndex, 1);
 
