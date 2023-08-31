@@ -163,6 +163,13 @@ export default {
         recent: 'Reciente',
         all: 'Todo',
     },
+    location: {
+        useCurrent: 'Usar ubicación actual',
+        notFound: 'No pudimos encontrar su ubicación, inténtelo nuevamente o ingrese una dirección manualmente',
+        permissionDenied: 'Parece que has denegado el permiso a tu ubicación.',
+        allowPermission: 'permitir permiso de ubicación en la configuración',
+        tryAgain: 'y luego inténtalo de nuevo.',
+    },
     anonymousReportFooter: {
         logoTagline: 'Únete a la discusión.',
     },
@@ -2145,7 +2152,7 @@ export default {
             onlineSubtitle: 'Un momento mientras configuramos el mapa',
         },
         errors: {
-            selectSuggestedAddress: 'Por favor, selecciona una dirección sugerida',
+            selectSuggestedAddress: 'Por favor, selecciona una dirección sugerida o usa la ubicación actual.',
         },
     },
     countrySelectorModal: {

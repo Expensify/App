@@ -22,6 +22,8 @@ import * as Transaction from '../../libs/actions/Transaction';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import ROUTES from '../../ROUTES';
 import transactionPropTypes from '../../components/transactionPropTypes';
+import * as User from '../../libs/actions/User';
+import UserCurrentLocationButton from '../../components/UserCurrentLocationButton';
 
 const propTypes = {
     /** The transactionID of the IOU */
@@ -149,8 +151,26 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
             address: values.address,
         };
 
+        User.clearLocationError();
         Transaction.saveWaypoint(transactionID, waypointIndex, waypoint);
         Navigation.goBack(ROUTES.getMoneyRequestDistanceTabRoute(iouType));
+    };
+
+    /**
+     * sets user current location as a waypoint
+     * @param {Object} geolocationData
+     * @param {Object} geolocationData.coords.latitude
+     * @param {Object} geolocationData.coords.longitude
+     * @param {Object} geolocationData.timestamp
+     */
+    const selectWaypointFromCurrentLocation = (geolocationData) => {
+        const waypoint = {
+            lat: geolocationData.coords.latitude,
+            lng: geolocationData.coords.longitude,
+            address: 'Your Location',
+        };
+
+        selectWaypoint(waypoint);
     };
 
     return (
@@ -220,6 +240,7 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
                             predefinedPlaces={recentWaypoints}
                         />
                     </View>
+                    <UserCurrentLocationButton onLocationFetched={selectWaypointFromCurrentLocation} />
                 </Form>
             </FullPageNotFoundView>
         </ScreenWrapper>
