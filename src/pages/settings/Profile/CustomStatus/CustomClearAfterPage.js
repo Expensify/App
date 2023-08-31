@@ -1,7 +1,6 @@
-import {useCallback} from 'react';
+import React, {useCallback} from 'react';
 import moment from 'moment';
 import PropTypes from 'prop-types';
-import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';

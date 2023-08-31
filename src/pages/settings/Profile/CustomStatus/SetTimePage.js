@@ -1,9 +1,8 @@
+import React from 'react';
 import PropTypes from 'prop-types';
-import React, {useCallback} from 'react';
-import {View } from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import withCurrentUserPersonalDetails from '../../../../components/withCurrentUserPersonalDetails';
 import FullscreenLoadingIndicator from '../../../../components/FullscreenLoadingIndicator';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
@@ -36,15 +35,13 @@ const defaultProps = {
     },
 };
 
-function SetTimePage({translate, privatePersonalDetails, customStatus, currentUserPersonalDetails}) {
+function SetTimePage({translate, privatePersonalDetails, customStatus}) {
     usePrivatePersonalDetails();
     const localize = useLocalize();
-    const clearAfter = lodashGet(currentUserPersonalDetails, 'status.clearAfter', '');
     const customDateTemporary = lodashGet(customStatus, 'customDateTemporary', '');
-    const draftClearAfter = lodashGet(customStatus, 'clearAfter', '');
 
-    const onSubmit = ({timePicker}, amPmValue) => {
-        const timeToUse = DateUtils.combineDateAndTime(`${timePicker} ${amPmValue}`, customDateTemporary);
+    const onSubmit = ({timePicker}) => {
+        const timeToUse = DateUtils.combineDateAndTime(timePicker, customDateTemporary);
 
         User.updateDraftCustomStatus({customDateTemporary: timeToUse});
         Navigation.goBack(ROUTES.SETTINGS_STATUS_CLEAR_AFTER);
@@ -73,17 +70,17 @@ function SetTimePage({translate, privatePersonalDetails, customStatus, currentUs
                 formID={ONYXKEYS.FORMS.SETTINGS_STATUS_SET_TIME_FORM}
                 onSubmit={onSubmit}
                 submitButtonText={translate('common.save')}
-                submitButtonContainerStyle={[styles.mt0, styles.flex0, styles.mh4]}
+                submitButtonContainerStyles={[styles.mt0, styles.flex0, styles.mh4]}
                 validate={validate}
                 enabledWhenOffline
                 shouldUseDefaultValue
             >
-            <View style={styles.flex1}>
-                <TimePicker
-                    inputID="timePicker"
-                    defaultValue={customDateTemporary}
-                />
-            </View>
+                <View style={styles.flex1}>
+                    <TimePicker
+                        inputID="timePicker"
+                        defaultValue={DateUtils.extractTime12Hour(customDateTemporary)}
+                    />
+                </View>
             </Form>
         </ScreenWrapper>
     );
@@ -94,7 +91,6 @@ SetTimePage.defaultProps = defaultProps;
 SetTimePage.displayName = 'SetTimePage';
 
 export default compose(
-    withCurrentUserPersonalDetails,
     withLocalize,
     withOnyx({
         privatePersonalDetails: {

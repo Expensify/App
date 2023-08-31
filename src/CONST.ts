@@ -2609,8 +2609,8 @@ const CONST = {
         SBE: 'SbeDemoSetup',
     },
     BRICK_INDICATOR: {
-      ERROR: 'error'
-    }
+        ERROR: 'error',
+    },
 } as const;
 
 export default CONST;

@@ -14,21 +14,25 @@ import DateUtils from '../libs/DateUtils';
 import Text from './Text';
 import useKeyboardShortcut from '../hooks/useKeyboardShortcut';
 import FormHelpMessage from './FormHelpMessage';
+import refPropTypes from './refPropTypes';
 
 const propTypes = {
     /** Refs forwarded to the TextInputWithCurrencySymbol */
-    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
-
-    /** Fired when submit button pressed, saves the given amount and navigates to the next page */
-    onSubmitButtonPress: PropTypes.func,
+    forwardedRef: refPropTypes,
 
     /** Default value for the inputs */
     value: PropTypes.string,
+
+    /** Form Error description */
+    errorText: PropTypes.string,
+
+    /** Callback to call when the input changes */
+    onInputChange: PropTypes.func,
 };
 
 const defaultProps = {
     forwardedRef: null,
-    onSubmitButtonPress: () => {},
+    errorText: '',
     onInputChange: () => {},
     value: '',
 };
@@ -83,8 +87,8 @@ function replaceWithZeroAtPosition(originalString, position) {
     return `${originalString.slice(0, position - 1)}0${originalString.slice(position)}`;
 }
 
-function TimePicker({forwardedRef, onSubmitButtonPress, value, errorText, onInputChange}) {
-    const {translate, numberFormat} = useLocalize();
+function TimePicker({forwardedRef, value, errorText, onInputChange}) {
+    const {numberFormat} = useLocalize();
     const [hours, setHours] = useState(DateUtils.parseTimeTo12HourFormat(value).hour);
     const [minute, setMinute] = useState(DateUtils.parseTimeTo12HourFormat(value).minute);
     const [selectionHour, setSelectionHour] = useState({start: 0, end: 0});
@@ -95,14 +99,6 @@ function TimePicker({forwardedRef, onSubmitButtonPress, value, errorText, onInpu
     const hourInputRef = useRef(null);
     const minuteInputRef = useRef(null);
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
-
-    /**
-     * Submit amount and navigate to a proper page
-     *
-     */
-    const submitAndNavigateToNextPage = useCallback(() => {
-        onSubmitButtonPress(`${hours}:${minute}`, amPmValue);
-    }, [hours, minute, onSubmitButtonPress, amPmValue]);
 
     const focusMinuteInputOnFirstCharacter = useCallback(() => {
         minuteInputRef.current.focus();
@@ -310,8 +306,8 @@ function TimePicker({forwardedRef, onSubmitButtonPress, value, errorText, onInpu
     }, [canUseTouchScreen, updateAmountNumberPad]);
 
     useEffect(() => {
-        if (!_.isFunction(onInputChange)) return;
         onInputChange(`${hours}:${minute} ${amPmValue}`);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [hours, minute, amPmValue]);
 
     return (
@@ -367,7 +363,7 @@ function TimePicker({forwardedRef, onSubmitButtonPress, value, errorText, onInpu
                         containerStyles={[styles.timePickerHeight100]}
                     />
                 </View>
-                {!!errorText ? (
+                {errorText ? (
                     <FormHelpMessage
                         isError={!!errorText}
                         message={errorText}

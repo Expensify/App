@@ -425,9 +425,8 @@ function getStatusUntilDate(inputDate) {
 /**
  * Update the hour and minute of a date.
  *
- * @param {string} time - Time in "hh:mm A" format (like "10:55 AM").
- * @param {string} date - Date in "YYYY-MM-DD HH:mm:ss" format.
- *
+ * @param {string} inputTime - Time in "hh:mm A" format (like "10:55 AM").
+ * @param {string} inputDateTime - Date in "YYYY-MM-DD HH:mm:ss" format.
  * @returns {string} - Date with updated time in "YYYY-MM-DD HH:mm:ss" format.
  */
 const combineDateAndTime = (inputTime, inputDateTime) => {
@@ -446,15 +445,20 @@ const combineDateAndTime = (inputTime, inputDateTime) => {
     return parsedDateTime.format('YYYY-MM-DD HH:mm:ss');
 };
 
-function parseTimeTo12HourFormat(datetime) {
-    if (!datetime) {
+/**
+ * @param {String} time
+ * @returns {Object}
+ * @example parseTimeTo12HourFormat('2023-08-29 11:10:00') // {hour: '11', minute: '10', period: 'AM'}
+ */
+function parseTimeTo12HourFormat(time) {
+    if (!time) {
         return {
-            hour: '',
-            minute: '',
-            period: '',
+            hour: '00',
+            minute: '01',
+            period: 'AM',
         };
     }
-    const parsedTime = moment(datetime, 'YYYY-MM-DD HH:mm:ss');
+    const parsedTime = moment(time, 'h:mm A');
 
     return {
         hour: parsedTime.format('hh'), // Hour in 12-hour format
@@ -466,10 +470,11 @@ function parseTimeTo12HourFormat(datetime) {
 /**
  * @param {String} dateStr
  * @returns {String}
- * @example
+ * @example getTimePeriod('11:10 PM') // 'PM'
  */
 function getTimePeriod(dateStr) {
-    return moment(dateStr).format('A');
+    const formattedDateStr = `2023-08-29 ${dateStr}`; // Assuming a random date for formatting
+    return moment(formattedDateStr, 'YYYY-MM-DD h:mm A').format('A');
 }
 
 /**

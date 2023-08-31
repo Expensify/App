@@ -27,9 +27,6 @@ const propTypes = {
     /** Function to call when selection in text input is changed */
     onSelectionChange: PropTypes.func,
 
-    /** Function to call when key is pressed in text input */
-    onKeyPress: PropTypes.func,
-
     /** Style for the input */
     style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 

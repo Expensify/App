@@ -117,10 +117,6 @@ const propTypes = {
 
     /** Accessibility label for the component */
     accessibilityLabel: PropTypes.string,
-
-    // eslint-disable-next-line react/forbid-prop-types
-    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.object})]),
-    
     /** Whether the long press is disabled */
     isDisabledLongPress: PropTypes.bool,
 

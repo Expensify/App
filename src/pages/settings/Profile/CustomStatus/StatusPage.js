@@ -47,6 +47,13 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
         return DateUtils.getLocalizedTimePeriodDescription(dataToShow);
     }, [draftClearAfter, currentUserClearAfter]);
 
+    const isValidClearAfterDate = useMemo(() => {
+        const clearAfterTime = draftClearAfter || currentUserClearAfter;
+        if (clearAfterTime === CONST.CUSTOM_STATUS_TYPES.NEVER) return true;
+
+        return !DateUtils.hasDateExpired(clearAfterTime);
+    }, [draftClearAfter, currentUserClearAfter]);
+
     const navigateBackToSettingsPage = useCallback(() => Navigation.goBack(ROUTES.SETTINGS_PROFILE, false, true), []);
     const updateStatus = useCallback(() => {
         const clearAfterTime = draftClearAfter || currentUserClearAfter;
@@ -59,7 +66,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
 
         User.clearDraftCustomStatus();
         Navigation.goBack(ROUTES.SETTINGS_PROFILE);
-    }, [defaultText, defaultEmoji, currentUserClearAfter, draftClearAfter, isValidClearAfterDate]);
+    }, [defaultText, defaultEmoji, currentUserClearAfter, draftClearAfter]);
 
     useEffect(() => {
         if (currentUserEmojiCode || currentUserClearAfter || draftClearAfter) return;
@@ -80,7 +87,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
 
     const footerComponent = useMemo(
         () =>
-            hasDraftStatus ? (
+            hasDraftStatus && isValidClearAfterDate ? (
                 <Button
                     success
                     text={localize.translate('statusPage.save')}
@@ -89,13 +96,6 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
             ) : null,
         [hasDraftStatus, localize, updateStatus, isValidClearAfterDate],
     );
-
-    const isValidClearAfterDate = useMemo(() => {
-        const clearAfterTime = draftClearAfter || currentUserClearAfter;
-        if (clearAfterTime === CONST.CUSTOM_STATUS_TYPES.NEVER) return true;
-
-        return !DateUtils.hasDateExpired(clearAfterTime);
-    }, [draftClearAfter, currentUserClearAfter]);
 
     const brickRoadIndicator = useMemo(() => (isValidClearAfterDate ? null : CONST.BRICK_INDICATOR.ERROR), [isValidClearAfterDate]);
     useEffect(() => () => User.clearDraftCustomStatus(), []);

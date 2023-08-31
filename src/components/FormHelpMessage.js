@@ -24,7 +24,7 @@ const propTypes = {
     style: stylePropTypes,
 
     /** Container text style props */
-    containerMessageStyle: stylePropTypes
+    containerMessageStyle: stylePropTypes,
 };
 
 const defaultProps = {
@@ -32,7 +32,7 @@ const defaultProps = {
     children: null,
     isError: true,
     style: [],
-    containerMessageStyle: {}
+    containerMessageStyle: {},
 };
 
 function FormHelpMessage(props) {
@@ -42,7 +42,7 @@ function FormHelpMessage(props) {
 
     const translatedMessage = Localize.translateIfPhraseKey(props.message);
     return (
-        <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2, styles.mb1, ...props.style,  styles.justifyContentCenter]}>
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2, styles.mb1, ...props.style, styles.justifyContentCenter]}>
             {props.isError && (
                 <Icon
                     src={Expensicons.DotIndicator}

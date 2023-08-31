@@ -85,6 +85,8 @@ const propTypes = {
     /** Style for the button */
     submitButtonStyle: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
+    submitButtonContainerStyles: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
+
     ...withLocalizePropTypes,
 };
 
@@ -103,6 +105,7 @@ const defaultProps = {
     style: [],
     validate: () => ({}),
     submitButtonStyle: {},
+    submitButtonContainerStyles: [],
 };
 
 function Form(props) {
@@ -398,7 +401,7 @@ function Form(props) {
                                 focusInput.focus();
                             }
                         }}
-                        containerStyles={[styles.mh0, styles.mt5, styles.flex1, props.submitButtonContainerStyle]}
+                        containerStyles={[styles.mh0, styles.mt5, styles.flex1, ...props.submitButtonContainerStyles]}
                         enabledWhenOffline={props.enabledWhenOffline}
                         isSubmitActionDangerous={props.isSubmitActionDangerous}
                         buttonStyle={props.submitButtonStyle}
@@ -417,6 +420,7 @@ function Form(props) {
             inputValues,
             submit,
             props.style,
+            props.submitButtonContainerStyles,
             children,
             props.formState,
             props.footerContent,

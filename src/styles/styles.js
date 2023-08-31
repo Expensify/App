@@ -3920,18 +3920,18 @@ const styles = {
     },
 
     menuItemError: {
-      position: 'absolute',
-      bottom: -4,
-      left: 20,
-      right: 20,
-      paddingTop: 4,
-      borderTopWidth: 1,
-      borderColor: 'red'
+        position: 'absolute',
+        bottom: -4,
+        left: 20,
+        right: 20,
+        paddingTop: 4,
+        borderTopWidth: 1,
+        borderColor: 'red',
     },
 
     formHelperMessage: {
-      height: 32
-    }
+        height: 32,
+    },
 };
 
 export default styles;
