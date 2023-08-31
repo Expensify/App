@@ -8,11 +8,8 @@ const GithubUtils = require('../../.github/libs/GithubUtils');
 let run;
 
 const mockGetInput = jest.fn();
-const mockListIssues = jest.fn();
-const mockListEvents = jest.fn();
 const mockGetPullRequest = jest.fn();
 const mockCreateComment = jest.fn();
-const mockGetPullRequestsMergedBetween = jest.fn();
 const mockListTags = jest.fn();
 const mockGetCommit = jest.fn();
 let workflowRunURL;
@@ -62,13 +59,6 @@ function mockGetInputDefaultImplementation(key) {
 }
 
 /**
- * @returns {Promise<[{actor: {login: String}, event: String}]>}
- */
-async function mockListEventsDefaultImplementation() {
-    return {data: [{event: 'closed', actor: {login: 'thor'}}]};
-}
-
-/**
  * @param {String} sha
  * @returns {Promise<{data: {message: String}}>}
  */
@@ -97,13 +87,12 @@ beforeAll(() => {
                         },
                     ],
                 })),
-                listEvents: mockListEvents,
+                listEvents: jest.fn().mockImplementation(async () => ({
+                    data: [{event: 'closed', actor: {login: 'thor'}}],
+                })),
                 createComment: mockCreateComment,
             },
             pulls: {
-                // Static mock for pulls.list (only used to filter out automated PRs, and that functionality is covered
-                // in the test for GithubUtils.generateStagingDeployCashBody
-                list: jest.fn().mockResolvedValue([]),
                 get: mockGetPullRequest,
             },
             repos: {
@@ -116,10 +105,9 @@ beforeAll(() => {
         paginate: jest.fn().mockImplementation((objectMethod) => objectMethod().then(({data}) => data)),
     };
     GithubUtils.internalOctokit = moctokit;
-    mockListEvents.mockImplementation(mockListEventsDefaultImplementation);
 
     // Mock GitUtils
-    GitUtils.getPullRequestsMergedBetween = mockGetPullRequestsMergedBetween;
+    GitUtils.getPullRequestsMergedBetween = jest.fn();
 
     jest.mock('../../.github/libs/ActionUtils', () => ({
         getJSONInput: jest.fn().mockImplementation((name, defaultValue) => {
@@ -149,8 +137,6 @@ beforeEach(() => {
 
 afterEach(() => {
     mockGetInput.mockClear();
-    mockListIssues.mockClear();
-    mockGetPullRequestsMergedBetween.mockClear();
     mockCreateComment.mockClear();
     mockGetPullRequest.mockClear();
 });
