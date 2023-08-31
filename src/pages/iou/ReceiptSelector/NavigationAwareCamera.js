@@ -9,7 +9,7 @@ const propTypes = {
     forwardedRef: refPropTypes.isRequired,
 };
 
-// Wraps a camera that will only be active when the tab is focused or as asoon as it start to become focused.
+// Wraps a camera that will only be active when the tab is focused or as soon as it starts to become focused.
 function NavigationAwareCamera(props) {
     // Get navigation to get initial isFocused value (only needed once during init!)
     const navigation = useNavigation();
