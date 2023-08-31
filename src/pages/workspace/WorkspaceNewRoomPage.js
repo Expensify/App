@@ -2,8 +2,8 @@ import React, {useState, useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
-import withNavigationFocus from '../../components/withNavigationFocus';
 import PropTypes from 'prop-types';
+import withNavigationFocus, { withNavigationFocusPropTypes } from '../../components/withNavigationFocus';
 import * as Report from '../../libs/actions/Report';
 import useLocalize from '../../hooks/useLocalize';
 import styles from '../../styles/styles';
@@ -54,6 +54,8 @@ const propTypes = {
 
     /** A collection of objects for all policies which key policy member objects by accountIDs */
     allPolicyMembers: PropTypes.objectOf(PropTypes.objectOf(policyMemberPropType)),
+
+    ...withNavigationFocusPropTypes
 };
 const defaultProps = {
     betas: [],
