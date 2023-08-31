@@ -1,7 +1,7 @@
 import {View} from 'react-native';
-import {useIsFocused} from '@react-navigation/native';
+import {useFocusEffect} from '@react-navigation/native';
 import Mapbox, {MapState, MarkerView, setAccessToken} from '@rnmapbox/maps';
-import {forwardRef, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import {forwardRef, memo, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 
 import utils from './utils';
 import Direction from './Direction';
@@ -10,7 +10,6 @@ import CONST from '../../CONST';
 import {MapViewProps, MapViewHandle} from './MapViewTypes';
 
 const MapView = forwardRef<MapViewHandle, MapViewProps>(({accessToken, style, mapPadding, styleURL, pitchEnabled, initialState, waypoints, directionCoordinates}, ref) => {
-    const isFocused = useIsFocused();
     const cameraRef = useRef<Mapbox.Camera>(null);
     const [isIdle, setIsIdle] = useState(false);
 
@@ -27,27 +26,26 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(({accessToken, style, ma
 
     // When the page loses focus, we temporarily set the "idled" state to false.
     // When the page regains focus, the onIdled method of the map will set the actual "idled" state,
-    // which in turn triggers the callback of the next useEffect.
-    // If map not idled, camera transitions not working properly.
-    useEffect(() => {
-        if (isFocused) return;
-        setIsIdle(false);
-    }, [isFocused]);
-
-    useEffect(() => {
-        if (!waypoints?.length || !isIdle || !isFocused) return;
-
-        if (waypoints.length === 1) {
-            cameraRef.current?.setCamera({
-                zoomLevel: 15,
-                animationDuration: 1000,
-                centerCoordinate: waypoints[0].coordinate,
-            });
-        } else {
-            const {southWest, northEast} = utils.getBounds(waypoints.map((waypoint) => waypoint.coordinate));
-            cameraRef.current?.fitBounds(northEast, southWest, mapPadding, 1000);
-        }
-    }, [mapPadding, waypoints, isFocused, isIdle]);
+    // which in turn triggers the callback.
+    useFocusEffect(
+        useCallback(() => {
+            if (waypoints?.length && isIdle) {
+                if (waypoints.length === 1) {
+                    cameraRef.current?.setCamera({
+                        zoomLevel: 15,
+                        animationDuration: 1500,
+                        centerCoordinate: waypoints[0].coordinate,
+                    });
+                } else {
+                    const {southWest, northEast} = utils.getBounds(waypoints.map((waypoint) => waypoint.coordinate));
+                    cameraRef.current?.fitBounds(northEast, southWest, mapPadding, 1000);
+                }
+            }
+            return () => {
+                setIsIdle(false);
+            };
+        }, [mapPadding, waypoints, isIdle]),
+    );
 
     useEffect(() => {
         setAccessToken(accessToken);
@@ -93,4 +91,4 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(({accessToken, style, ma
     );
 });
 
-export default MapView;
+export default memo(MapView);
