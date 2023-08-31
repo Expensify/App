@@ -22,7 +22,9 @@ platform :android do
 
     gradle(
       project_dir: './android',
-      task: ':app:assembleE2eRelease',
+      task: ':app:assemble',
+      flavor: 'e2e',
+      build_type: 'Release',
     )
   end
 
@@ -33,6 +35,7 @@ platform :android do
     gradle(
       project_dir: './android',
       task: 'assemble',
+      flavor: 'Production',
       build_type: 'Release',
     )
   end
@@ -44,7 +47,8 @@ platform :android do
     gradle(
         project_dir: './android',
         task: 'assemble',
-        build_type: 'InternalRelease',
+        flavor: 'Adhoc',
+        build_type: 'Release',
     )
 
     aws_s3(
@@ -67,13 +71,14 @@ platform :android do
     gradle(
         project_dir: './android',
         task: 'bundle',
+        flavor: 'Production',
         build_type: 'Release',
     )
 
     upload_to_play_store(
         package_name: "com.expensify.chat",
         json_key: './android/app/android-fastlane-json-key.json',
-        aab: './android/app/build/outputs/bundle/release/app-release.aab',
+        aab: './android/app/build/outputs/bundle/productionRelease/app-production-release.aab',
         track: 'internal',
         rollout: '1.0'
     )
@@ -111,7 +116,7 @@ platform :ios do
 
     build_app(
         workspace: "./ios/NewExpensify.xcworkspace",
-        scheme: "NewExpensify"
+        scheme: "New Expensify"
     )
   end
 
@@ -138,19 +143,19 @@ platform :ios do
     )
 
     install_provisioning_profile(
-        path: "./ios/chat_expensify_adhoc.mobileprovision"
+        path: "./ios/expensify_chat_adhoc.mobileprovision"
     )
 
     build_app(
         workspace: "./ios/NewExpensify.xcworkspace",
         skip_profile_detection: true,
-        scheme: "NewExpensify",
-        xcargs: { :PROVISIONING_PROFILE_SPECIFIER => "chat_expensify_adhoc", },
+        scheme: "New Expensify AdHoc",
+        xcargs: { :PROVISIONING_PROFILE_SPECIFIER => "expensify_chat_adhoc", },
         export_method: "ad-hoc",
         export_options: {
             method: "ad-hoc",
             provisioningProfiles: {
-              "com.chat.expensify.chat" => "chat_expensify_adhoc",
+              "com.expensify.chat.adhoc" => "expensify_chat_adhoc",
             },
             manageAppVersionAndBuildNumber: false
         }
@@ -197,7 +202,8 @@ platform :ios do
 
     build_app(
         workspace: "./ios/NewExpensify.xcworkspace",
-        scheme: "NewExpensify",
+        scheme: "New Expensify",
+        output_name: "New Expensify.ipa",
         export_options: {
             manageAppVersionAndBuildNumber: false
         }

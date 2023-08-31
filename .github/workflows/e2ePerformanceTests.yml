@@ -45,7 +45,7 @@ jobs:
       - name: Unmerged PR - Fetch head ref of unmerged PR
         if: ${{ !fromJSON(steps.getPullRequestDetails.outputs.IS_MERGED) }}
         run: |
-            git fetch origin ${{ steps.getPullRequestDetails.outputs.HEAD_COMMIT_SHA }} --no-tags --depth=1
+          git fetch origin ${{ steps.getPullRequestDetails.outputs.HEAD_COMMIT_SHA }} --no-tags --depth=1
 
       - name: Unmerged PR - Set dummy git credentials before merging
         if: ${{ !fromJSON(steps.getPullRequestDetails.outputs.IS_MERGED) }}
@@ -70,6 +70,9 @@ jobs:
 
       - name: Checkout "delta ref"
         run: git checkout ${{ steps.getDeltaRef.outputs.DELTA_REF }}
+
+      - name: Configure MapBox SDK
+        run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
       - name: Build APK
         uses: Expensify/App/.github/actions/composite/buildAndroidAPK@main

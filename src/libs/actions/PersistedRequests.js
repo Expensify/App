@@ -17,7 +17,11 @@ function clear() {
  * @param {Array} requestsToPersist
  */
 function save(requestsToPersist) {
-    persistedRequests = persistedRequests.concat(requestsToPersist);
+    if (persistedRequests.length) {
+        persistedRequests = persistedRequests.concat(requestsToPersist);
+    } else {
+        persistedRequests = requestsToPersist;
+    }
     Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests);
 }
 

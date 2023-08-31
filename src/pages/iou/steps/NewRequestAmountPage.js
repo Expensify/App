@@ -10,7 +10,6 @@ import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import * as CurrencyUtils from '../../../libs/CurrencyUtils';
-import CONST from '../../../CONST';
 import reportPropTypes from '../../reportPropTypes';
 import * as IOU from '../../../libs/actions/IOU';
 import useLocalize from '../../../hooks/useLocalize';
@@ -20,49 +19,34 @@ import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotF
 import styles from '../../../styles/styles';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import ScreenWrapper from '../../../components/ScreenWrapper';
+import {iouPropTypes, iouDefaultProps} from '../propTypes';
 
 const propTypes = {
+    /** React Navigation route */
     route: PropTypes.shape({
+        /** Params from the route */
         params: PropTypes.shape({
+            /** The type of IOU report, i.e. bill, request, send */
             iouType: PropTypes.string,
+
+            /** The report ID of the IOU */
             reportID: PropTypes.string,
+
+            /** Selected currency from IOUCurrencySelection */
+            currency: PropTypes.string,
         }),
-    }),
+    }).isRequired,
 
     /** The report on which the request is initiated on */
     report: reportPropTypes,
 
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
-    iou: PropTypes.shape({
-        id: PropTypes.string,
-        amount: PropTypes.number,
-        currency: PropTypes.string,
-        participants: PropTypes.arrayOf(
-            PropTypes.shape({
-                accountID: PropTypes.number,
-                login: PropTypes.string,
-                isPolicyExpenseChat: PropTypes.bool,
-                isOwnPolicyExpenseChat: PropTypes.bool,
-                selected: PropTypes.bool,
-            }),
-        ),
-    }),
+    iou: iouPropTypes,
 };
 
 const defaultProps = {
-    route: {
-        params: {
-            iouType: '',
-            reportID: '',
-        },
-    },
     report: {},
-    iou: {
-        id: '',
-        amount: 0,
-        currency: CONST.CURRENCY.USD,
-        participants: [],
-    },
+    iou: iouDefaultProps,
 };
 
 function NewRequestAmountPage({route, iou, report}) {
@@ -99,15 +83,17 @@ function NewRequestAmountPage({route, iou, report}) {
 
     // Check and dismiss modal
     useEffect(() => {
-        if (!ReportUtils.shouldHideComposer(report)) {
+        if (!ReportUtils.shouldDisableWriteActions(report)) {
             return;
         }
         Navigation.dismissModal(reportID);
     }, [report, reportID]);
 
-    // Because we use Onyx to store iou info, when we try to make two different money requests from different tabs, it can result in many bugs.
+    // Because we use Onyx to store IOU info, when we try to make two different money requests from different tabs,
+    // it can result in an IOU sent with improper values. In such cases we want to reset the flow and redirect the user to the first step of the IOU.
     useEffect(() => {
         if (isEditing) {
+            // ID in Onyx could change by initiating a new request in a separate browser tab or completing a request
             if (prevMoneyRequestID.current !== iou.id) {
                 // The ID is cleared on completing a request. In that case, we will do nothing.
                 if (!iou.id) {
@@ -143,7 +129,7 @@ function NewRequestAmountPage({route, iou, report}) {
     };
 
     const navigateToNextPage = (currentAmount) => {
-        const amountInSmallestCurrencyUnits = CurrencyUtils.convertToSmallestUnit(currency, Number.parseFloat(currentAmount));
+        const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(currentAmount));
         IOU.setMoneyRequestAmount(amountInSmallestCurrencyUnits);
         IOU.setMoneyRequestCurrency(currency);
 
@@ -175,6 +161,7 @@ function NewRequestAmountPage({route, iou, report}) {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
+            shouldEnableKeyboardAvoidingView={false}
             onEntryTransitionEnd={focusTextInput}
         >
             {({safeAreaPaddingBottomStyle}) => (
