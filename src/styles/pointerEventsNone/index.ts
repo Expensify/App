@@ -1,7 +1,7 @@
 import PointerEventsNone from './types';
 
-const pointerEventsNoneStyles: PointerEventsNone = {
+const pointerEventsNone: PointerEventsNone = {
     pointerEvents: 'none',
 };
 
-export default pointerEventsNoneStyles;
+export default pointerEventsNone;
