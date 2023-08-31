@@ -3433,7 +3433,7 @@ function getParticipantsIDs(report) {
     }
     // Build participants list for IOU/expense reports
     if (isMoneyRequestReport(report)) {
-        return [report.managerID || '', report.ownerAccountID || ''];
+        return _.compact([report.managerID, report.ownerAccountID]);
     }
     return report.participantAccountIDs || [];
 }
