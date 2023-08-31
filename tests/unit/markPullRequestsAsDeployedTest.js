@@ -10,8 +10,11 @@ let run;
 const mockGetInput = jest.fn();
 const mockListIssues = jest.fn();
 const mockListEvents = jest.fn();
+const mockGetPullRequest = jest.fn();
 const mockCreateComment = jest.fn();
 const mockGetPullRequestsMergedBetween = jest.fn();
+const mockListTags = jest.fn();
+const mockGetCommit = jest.fn();
 let workflowRunURL;
 const PRList = {
     1: {
@@ -30,6 +33,10 @@ const PRList = {
     },
 };
 const version = '42.42.42-42';
+const defaultTags = [
+    {name: '42.42.42-42', commit: {sha: 'abcd'}},
+    {name: '42.42.42-41', commit: {sha: 'efgh'}},
+];
 
 /**
  * @param {String} key
@@ -55,10 +62,21 @@ function defaultMockGetInput(key) {
 }
 
 /**
- * @returns {Promise<[{actor: {login: string}, event: string}]>}
+ * @returns {Promise<[{actor: {login: String}, event: String}]>}
  */
-async function defaultMockListEvents() {
+async function mockListEventsDefaultImplementation() {
     return {data: [{event: 'closed', actor: {login: 'thor'}}]};
+}
+
+/**
+ * @param {String} sha
+ * @returns {Promise<{data: {message: String}}>}
+ */
+async function mockGetCommitDefaultImplementation({commit_sha}) {
+    if (commit_sha === 'abcd') {
+        return {data: {message: 'Test commit 1'}};
+    }
+    return {data: {message: 'Test commit 2'}};
 }
 
 beforeAll(() => {
@@ -86,29 +104,19 @@ beforeAll(() => {
                 // Static mock for pulls.list (only used to filter out automated PRs, and that functionality is covered
                 // in the test for GithubUtils.generateStagingDeployCashBody
                 list: jest.fn().mockResolvedValue([]),
-                get: jest.fn().mockImplementation(async ({pull_number}) => (pull_number in PRList ? {data: PRList[pull_number]} : {})),
+                get: mockGetPullRequest,
             },
             repos: {
-                listTags: jest.fn().mockResolvedValue({
-                    data: [
-                        {name: '42.42.42-42', commit: {sha: 'abcd'}},
-                        {name: '42.42.42-41', commit: {sha: 'efgh'}},
-                    ],
-                }),
+                listTags: mockListTags,
             },
             git: {
-                getCommit: jest.fn().mockImplementation(async (sha) => {
-                    if (sha === 'abcd') {
-                        return {data: {message: 'Test commit 1'}};
-                    }
-                    return {data: {message: 'Test commit 2'}};
-                }),
+                getCommit: mockGetCommit,
             },
         },
         paginate: jest.fn().mockImplementation((objectMethod) => objectMethod().then(({data}) => data)),
     };
     GithubUtils.internalOctokit = moctokit;
-    mockListEvents.mockImplementation(defaultMockListEvents);
+    mockListEvents.mockImplementation(mockListEventsDefaultImplementation);
 
     // Mock GitUtils
     GitUtils.getPullRequestsMergedBetween = mockGetPullRequestsMergedBetween;
@@ -131,13 +139,20 @@ beforeAll(() => {
     workflowRunURL = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`;
 });
 
-beforeEach(() => {});
+beforeEach(() => {
+    mockGetPullRequest.mockImplementation(async ({pull_number}) => (pull_number in PRList ? {data: PRList[pull_number]} : {}));
+    mockListTags.mockResolvedValue({
+        data: defaultTags,
+    });
+    mockGetCommit.mockImplementation(mockGetCommitDefaultImplementation);
+});
 
 afterEach(() => {
     mockGetInput.mockClear();
     mockListIssues.mockClear();
     mockGetPullRequestsMergedBetween.mockClear();
     mockCreateComment.mockClear();
+    mockGetPullRequest.mockClear();
 });
 
 afterAll(() => {
@@ -198,7 +213,60 @@ platform | result
         }
     });
 
-    it('comments on pull requests correctly for a cherry pick', async () => {});
+    it('comments on pull requests correctly for a cherry pick', async () => {
+        mockGetInput.mockImplementation((key) => {
+            if (key === 'PR_LIST') {
+                return JSON.stringify([3]);
+            }
+            if (key === 'DEPLOY_VERSION') {
+                return '42.42.42-43';
+            }
+            return defaultMockGetInput(key);
+        });
+        mockGetPullRequest.mockImplementation(async ({pull_number}) => {
+            if (pull_number === 3) {
+                return {
+                    data: {
+                        issue_number: 3,
+                        title: 'Test PR 3',
+                        merged_by: {
+                            login: 'thor',
+                        },
+                    },
+                };
+            }
+            return {};
+        });
+        mockListTags.mockResolvedValue({
+            data: [{name: '42.42.42-43', commit: {sha: 'xyz'}}, ...defaultTags],
+        });
+        mockGetCommit.mockImplementation(async ({commit_sha}) => {
+            if (commit_sha === 'xyz') {
+                return {data: {message: 'Test PR 3 (cherry picked from commit dagdag)', committer: {name: 'freyja'}}};
+            }
+            return mockGetCommitDefaultImplementation(commit_sha);
+        });
+
+        // Note: we import this in here so that it executes after all the mocks are set up
+        run = require('../../.github/actions/javascript/markPullRequestsAsDeployed/markPullRequestsAsDeployed');
+        await run();
+        expect(mockCreateComment).toHaveBeenCalledTimes(1);
+        expect(mockCreateComment).toHaveBeenCalledWith({
+            body: `🚀 [Cherry-picked](${workflowRunURL}) to staging by https://github.com/freyja in version: 42.42.42-43 🚀
+
+platform | result
+---|---
+🤖 android 🤖|success ✅
+🖥 desktop 🖥|success ✅
+🍎 iOS 🍎|success ✅
+🕸 web 🕸|success ✅
+
+@Expensify/applauseleads please QA this PR and check it off on the [deploy checklist](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3AStagingDeployCash) if it passes.`,
+            issue_number: 3,
+            owner: 'Expensify',
+            repo: 'App',
+        });
+    });
 
     it('comments on pull requests correctly when one platform fails', async () => {
         mockGetInput.mockImplementation((key) => {

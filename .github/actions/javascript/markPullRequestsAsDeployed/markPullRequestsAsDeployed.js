@@ -109,27 +109,25 @@ async function run() {
         core.setFailed(err);
         return;
     }
-    const commitMessage = (
-        await GithubUtils.octokit.git.getCommit({
-            owner: CONST.GITHUB_OWNER,
-            repo: CONST.APP_REPO,
-            commit_sha: currentTag.commit.sha,
-        })
-    ).data.message;
-    const isCP = /[\S\s]*\(cherry picked from commit .*\)/.test(commitMessage);
+    const {data: commit} = await GithubUtils.octokit.git.getCommit({
+        owner: CONST.GITHUB_OWNER,
+        repo: CONST.APP_REPO,
+        commit_sha: currentTag.commit.sha,
+    });
+    const isCP = /[\S\s]*\(cherry picked from commit .*\)/.test(commit.message);
 
     for (const prNumber of prList) {
         /*
          * Determine who the deployer for the PR is. The "deployer" for staging deploys is:
          *   1. For regular staging deploys, the person who merged the PR.
-         *   2. For CPs, the person who triggered the workflow (documented in the cherry-pick commit message)
+         *   2. For CPs, the person who committed the cherry-picked commit (not necessarily the author of the commit).
          */
         const {data: pr} = await GithubUtils.octokit.pulls.get({
             owner: CONST.GITHUB_OWNER,
             repo: CONST.APP_REPO,
             pull_number: prNumber,
         });
-        const deployer = isCP ? commitMessage.match(/\(cherry picked from commit \w*(?: by (.*))?[)]/)[1] || CONST.OS_BOTIFY : pr.merged_by.login;
+        const deployer = isCP ? commit.committer.name : pr.merged_by.login;
 
         const title = pr.title;
         const deployMessage = getDeployMessage(deployer, isCP ? 'Cherry-picked' : 'Deployed', title);
