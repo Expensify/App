@@ -168,7 +168,6 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
                             <MenuItemWithTopDescription
                                 description={translate(descriptionKey)}
                                 title={lodashGet(waypoints, [`waypoint${index}`, 'address'], '')}
-                                icon={Expensicons.DragHandles}
                                 iconFill={theme.icon}
                                 secondaryIcon={waypointIcon}
                                 secondaryIconFill={theme.icon}
