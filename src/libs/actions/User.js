@@ -895,14 +895,14 @@ function clearDraftCustomStatus() {
  * @param {Object} errorCode - indicates location error.
  */
 function setLocationError(errorCode) {
-    Onyx.merge(ONYXKEYS.LOCATION_ERROR_CODE, errorCode);
+    Onyx.set(ONYXKEYS.LOCATION_ERROR_CODE, errorCode);
 }
 
 /**
  * Clears the location error code
  */
 function clearLocationError() {
-    Onyx.merge(ONYXKEYS.LOCATION_ERROR_CODE, null);
+    Onyx.set(ONYXKEYS.LOCATION_ERROR_CODE, null);
 }
 
 export {
