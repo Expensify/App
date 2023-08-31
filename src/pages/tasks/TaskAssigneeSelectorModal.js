@@ -89,6 +89,9 @@ function TaskAssigneeSelectorModal(props) {
             false,
             true,
             false,
+            {},
+            [],
+            false,
         );
 
         setHeaderMessage(OptionsListUtils.getHeaderMessage(recentReports?.length + personalDetails?.length !== 0 || currentUserOption, Boolean(userToInvite), searchValue));
