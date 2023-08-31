@@ -23,6 +23,7 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import Log from '../../../libs/Log';
 import participantPropTypes from '../../../components/participantPropTypes';
 import * as CameraPermission from './CameraPermission';
+import {iouPropTypes, iouDefaultProps} from '../propTypes';
 
 const propTypes = {
     /** React Navigation route */
@@ -41,33 +42,12 @@ const propTypes = {
     report: reportPropTypes,
 
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
-    iou: PropTypes.shape({
-        /** ID (iouType + reportID) of the request */
-        id: PropTypes.string,
-
-        /** Amount of the request */
-        amount: PropTypes.number,
-
-        /** Description of the request */
-        comment: PropTypes.string,
-        created: PropTypes.string,
-        merchant: PropTypes.string,
-
-        /** List of the participants */
-        participants: PropTypes.arrayOf(participantPropTypes),
-    }),
+    iou: iouPropTypes,
 };
 
 const defaultProps = {
     report: {},
-    iou: {
-        id: '',
-        amount: 0,
-        merchant: '',
-        created: '',
-        currency: CONST.CURRENCY.USD,
-        participants: [],
-    },
+    iou: iouDefaultProps,
 };
 
 /**
