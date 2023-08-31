@@ -16,7 +16,7 @@ import compose from '../../../../libs/compose';
 import * as DeviceCapabilities from '../../../../libs/DeviceCapabilities';
 import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 import * as IOU from '../../../../libs/actions/IOU';
-import participantPropTypes from '../../../../components/participantPropTypes';
+import {iouPropTypes, iouDefaultProps} from '../../propTypes';
 
 const propTypes = {
     /** React Navigation route */
@@ -32,26 +32,13 @@ const propTypes = {
     }).isRequired,
 
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
-    iou: PropTypes.shape({
-        /** ID (iouType + reportID) of the request */
-        id: PropTypes.string,
-
-        /** Amount of the request */
-        amount: PropTypes.number,
-
-        /** List of the participants */
-        participants: PropTypes.arrayOf(participantPropTypes),
-    }),
+    iou: iouPropTypes,
 
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
-    iou: {
-        id: '',
-        amount: 0,
-        participants: [],
-    },
+    iou: iouDefaultProps,
 };
 
 function MoneyRequestParticipantsPage(props) {
