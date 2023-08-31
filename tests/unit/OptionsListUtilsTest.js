@@ -1065,7 +1065,7 @@ describe('OptionsListUtils', () => {
         expect(largeWrongSearchResult.categoryOptions).toStrictEqual(largeWrongSearchResultList);
     });
 
-    it('getOptionTree()', () => {
+    it('getCategoryOptionTree()', () => {
         const categories = {
             Taxi: {
                 enabled: false,
@@ -1304,7 +1304,7 @@ describe('OptionsListUtils', () => {
             },
         ];
 
-        expect(OptionsListUtils.getOptionTree(categories)).toStrictEqual(result);
+        expect(OptionsListUtils.getCategoryOptionTree(categories)).toStrictEqual(result);
     });
 
     it('formatMemberForList()', () => {

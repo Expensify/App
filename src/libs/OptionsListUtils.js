@@ -588,7 +588,7 @@ function isCurrentUser(userDetails) {
 }
 
 /**
- * Build the options for the tree hierarchy via indents
+ * Build the options for the category tree hierarchy via indents
  *
  * @param {Object[]} options - an initial strings array
  * @param {Boolean} options[].enabled - a flag to enable/disable option in a list
@@ -596,7 +596,7 @@ function isCurrentUser(userDetails) {
  * @param {Boolean} [isOneLine] - a flag to determine if text should be one line
  * @returns {Array<Object>}
  */
-function getOptionTree(options, isOneLine = false) {
+function getCategoryOptionTree(options, isOneLine = false) {
     const optionCollection = {};
 
     _.each(options, (option) => {
@@ -661,10 +661,11 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
         const searchCategories = _.filter(categories, (category) => category.name.toLowerCase().includes(searchInputValue.toLowerCase()));
 
         categorySections.push({
-            title: '', // Search
+            // "Search" section
+            title: '',
             shouldShow: false,
             indexOffset,
-            data: getOptionTree(searchCategories, true),
+            data: getCategoryOptionTree(searchCategories, true),
         });
 
         return categorySections;
@@ -672,10 +673,11 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
 
     if (numberOfCategories < CONST.CATEGORY_LIST_THRESHOLD) {
         categorySections.push({
-            title: '', // All
+            // "All" section when items amount less than the threshold
+            title: '',
             shouldShow: false,
             indexOffset,
-            data: getOptionTree(categories),
+            data: getCategoryOptionTree(categories),
         });
 
         return categorySections;
@@ -687,10 +689,11 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
 
     if (!_.isEmpty(selectedOptions)) {
         categorySections.push({
-            title: '', // Selected
+            // "Selected" section
+            title: '',
             shouldShow: false,
             indexOffset,
-            data: getOptionTree(selectedOptions, true),
+            data: getCategoryOptionTree(selectedOptions, true),
         });
 
         indexOffset += selectedOptions.length;
@@ -700,20 +703,22 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
         const cutRecentlyUsedCategories = filteredRecentlyUsedCategories.slice(0, maxRecentReportsToShow);
 
         categorySections.push({
+            // "Recent" section
             title: Localize.translateLocal('common.recent'),
             shouldShow: true,
             indexOffset,
-            data: getOptionTree(cutRecentlyUsedCategories, true),
+            data: getCategoryOptionTree(cutRecentlyUsedCategories, true),
         });
 
         indexOffset += filteredRecentlyUsedCategories.length;
     }
 
     categorySections.push({
+        // "All" section when items amount more than the threshold
         title: Localize.translateLocal('common.all'),
         shouldShow: true,
         indexOffset,
-        data: getOptionTree(filteredCategories),
+        data: getCategoryOptionTree(filteredCategories),
     });
 
     return categorySections;
@@ -1310,6 +1315,6 @@ export {
     isSearchStringMatch,
     shouldOptionShowTooltip,
     getLastMessageTextForReport,
-    getOptionTree,
+    getCategoryOptionTree,
     formatMemberForList,
 };
