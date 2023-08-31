@@ -184,6 +184,15 @@ type OOOEventSummaryPartialDayParams = {summary: string; timePeriod: string; dat
 
 type ParentNavigationSummaryParams = {rootReportName: string; workspaceName: string};
 
+<<<<<<< HEAD
+=======
+type SetTheRequestParams = {valueName: string; newValueToDisplay: string};
+
+type RemovedTheRequestParams = {valueName: string; oldValueToDisplay: string};
+
+type UpdatedTheRequestParams = {valueName: string; newValueToDisplay: string; oldValueToDisplay: string};
+
+>>>>>>> dac2d87957 (fix linting)
 export type {
     AddressLineParams,
     CharacterLimitParams,
