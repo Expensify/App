@@ -1,10 +1,20 @@
-const core = require('@actions/core');
 const github = require('@actions/github');
 const _ = require('underscore');
 const GithubUtils = require('../../../libs/GithubUtils');
 const CONST = require('../../../libs/CONST');
 
+const checklistStartsWith = '### PR Author Checklist';
+const checklistEndsWith = '### Screenshots/Videos';
+
 const prNumber = github.context.payload.pull_request.number;
+
+function getTypeScriptChecklistItems() {
+    return ['Make sure types pass'];
+}
+
+const CHECKLIST_CATEGORIES = {
+    TS: getTypeScriptChecklistItems,
+};
 
 /**
  * Look at the contents of the pull request, and determine which checklist categories apply.
@@ -32,14 +42,6 @@ async function getChecklistCategoriesForPullRequest() {
     return categories;
 }
 
-function getTypeScriptChecklistItems() {
-    return ['Make sure types pass'];
-}
-
-const CHECKLIST_CATEGORIES = {
-    TS: getTypeScriptChecklistItems,
-};
-
 async function generateChecklist() {
     // Get the current checklist from the PR description
     // const checks = Set<String>
@@ -55,8 +57,37 @@ async function generateChecklist() {
         }
     }
 
+    const body = github.context.payload.pull_request.body;
+    const [contentBeforeChecklist, contentAfterStartOfChecklist] = body.split(checklistStartsWith);
+    // eslint-disable-next-line prefer-const
+    let [checklistContent, contentAfterChecklist] = contentAfterStartOfChecklist.split(checklistEndsWith);
+
     for (const check of checks) {
         // Check if it's already in the PR body, capturing the whether or not it's already checked
-        const regex = new RegExp(`- \\[([ x])] ${check}`);
+        const regex = new RegExp(`- \\[[ x]] ${check}`);
+        const match = regex.exec(checklistContent);
+        if (!match) {
+            // Add it to the PR body
+            checklistContent += `\n- [ ] ${check}`;
+        }
     }
+
+    // Put the PR body back together, need to add the markers back in
+    const newBody = contentBeforeChecklist + checklistStartsWith + checklistContent + checklistEndsWith + contentAfterChecklist;
+
+    // Update the PR body
+    const result = await GithubUtils.octokit.pulls.update({
+        owner: CONST.GITHUB_OWNER,
+        repo: CONST.APP_REPO,
+        pull_number: prNumber,
+        body: newBody,
+    });
+
+    console.log('Done. Updated PR checklist', result);
 }
+
+if (require.main === module) {
+    generateChecklist();
+}
+
+module.exports = generateChecklist;
