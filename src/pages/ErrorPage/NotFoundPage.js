@@ -8,7 +8,7 @@ function NotFoundPage() {
     return (
         <ScreenWrapper>
             <FullPageNotFoundView
-                shouldShow 
+                shouldShow
                 onLinkPress={Navigation.navigate}
             />
         </ScreenWrapper>
