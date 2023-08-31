@@ -17,7 +17,7 @@ const propTypes = {
 function NavigationAwareCamera({cameraTabIndex, forwardedRef, ...props}) {
     // Get navigation to get initial isFocused value (only needed once during init!)
     const navigation = useNavigation();
-    const [isCameraActive, setIsCameraActive] = useState(navigation.isFocused);
+    const [isCameraActive, setIsCameraActive] = useState(navigation.isFocused());
 
     // Get the animation value from the tab navigator. Its a value between 0 and the
     // number of pages we render in the tab navigator. When we even just slightly start to scroll to the camera page,
@@ -34,6 +34,26 @@ function NavigationAwareCamera({cameraTabIndex, forwardedRef, ...props}) {
             tabPositionAnimation.removeListener(listenerId);
         };
     }, [cameraTabIndex, tabPositionAnimation]);
+
+    // Note: The useEffect can be removed once VisionCamera V3 is used.
+    // Its only needed for android, because there is a native cameraX android bug. With out this flow would break the camera:
+    // 1. Open camera tab
+    // 2. Take a picture
+    // 3. Go back from the opened screen
+    // 4. The camera is not working anymore
+    useEffect(() => {
+        const removeBlurListener = navigation.addListener('blur', () => {
+            setIsCameraActive(false);
+        });
+        const removeFocusListener = navigation.addListener('focus', () => {
+            setIsCameraActive(true);
+        });
+
+        return () => {
+            removeBlurListener();
+            removeFocusListener();
+        };
+    }, [navigation]);
 
     return (
         <Camera
