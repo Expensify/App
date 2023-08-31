@@ -69,7 +69,6 @@ function MoneyRequestMerchantPage({iou, route}) {
 
     const validate = useCallback((value) => {
         const errors = {};
-        console.log("value: ", value);
 
         if (_.isEmpty(value.moneyRequestMerchant)) {
             errors.moneyRequestMerchant = 'common.error.fieldRequired';

@@ -1,4 +1,4 @@
-import React, {useRef} from 'react';
+import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import TextInput from '../components/TextInput';
@@ -22,6 +22,17 @@ const propTypes = {
 function EditRequestMerchantPage({defaultMerchant, onSubmit}) {
     const {translate} = useLocalize();
     const merchantInputRef = useRef(null);
+
+    const validate = useCallback((value) => {
+        const errors = {};
+
+        if (_.isEmpty(value.merchant)) {
+            errors.merchant = 'common.error.fieldRequired';
+        }
+
+        return errors;
+    }, []);
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -36,6 +47,7 @@ function EditRequestMerchantPage({defaultMerchant, onSubmit}) {
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM}
                 onSubmit={onSubmit}
+                validate={validate}
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
             >
