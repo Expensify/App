@@ -1,10 +1,12 @@
 import Onyx from 'react-native-onyx';
+import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as QueuedOnyxUpdates from '../actions/QueuedOnyxUpdates';
 import * as MemoryOnlyKeys from '../actions/MemoryOnlyKeys/MemoryOnlyKeys';
 import * as OnyxUpdates from '../actions/OnyxUpdates';
+import * as PersistedRequests from '../actions/PersistedRequests';
 
 /**
  * @param {Promise} response
@@ -29,9 +31,20 @@ function SaveResponseInOnyx(response, request) {
 
         // Supports both the old format and the new format
         const onyxUpdates = _.isArray(responseData) ? responseData : responseData.onyxData;
+
+        let rewriteOnyxRequestsPromise = Promise.resolve();
+
         // If there is an OnyxUpdate for using memory only keys, enable them
-        _.find(onyxUpdates, ({key, value}) => {
-            if (key !== ONYXKEYS.IS_USING_MEMORY_ONLY_KEYS || !value) {
+        _.each(onyxUpdates, ({key, value}) => {
+            if (!value) {
+                return;
+            }
+
+            if (Str.startsWith(key, ONYXKEYS.COLLECTION.REPORT) && value.preexistingReportID && value.optimisticReportID) {
+                rewriteOnyxRequestsPromise = PersistedRequests.rewriteOptimisticReportIDs(value.preexistingReportID, value.optimisticReportID);
+            }
+
+            if (key !== ONYXKEYS.IS_USING_MEMORY_ONLY_KEYS) {
                 return false;
             }
 
@@ -51,7 +64,8 @@ function SaveResponseInOnyx(response, request) {
         // in successData/failureData until after the component has received and API data.
         const onyxDataUpdatePromise = responseData.onyxData ? updateHandler(responseData.onyxData) : Promise.resolve();
 
-        return onyxDataUpdatePromise
+        return rewriteOnyxRequestsPromise
+            .then(onyxDataUpdatePromise)
             .then(() => {
                 // Handle the request's success/failure data (client-side data)
                 if (responseData.jsonCode === 200 && request.successData) {

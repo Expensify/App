@@ -26,6 +26,35 @@ function save(requestsToPersist) {
 }
 
 /**
+ * @param {number} preexistingReportID
+ * @param {string} optimisticReportID
+ * @returns {Promise}
+ */
+function rewriteOptimisticReportIDs(preexistingReportID, optimisticReportID) {
+    let didModify = false;
+    const modifiedRequests = _.map(persistedRequests, (request) => {
+        if (!request.data || request.data.reportID !== optimisticReportID) {
+            return request;
+        }
+
+        didModify = true;
+        return {
+            ...request,
+            data: {
+                ...request.data,
+                reportID: preexistingReportID,
+            },
+        };
+    });
+
+    if (!didModify) {
+        return Promise.resolve();
+    }
+
+    return Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, modifiedRequests);
+}
+
+/**
  * @param {Object} requestToRemove
  */
 function remove(requestToRemove) {
@@ -50,4 +79,4 @@ function getAll() {
     return persistedRequests;
 }
 
-export {clear, save, getAll, remove};
+export {clear, save, getAll, remove, rewriteOptimisticReportIDs};
