@@ -43,7 +43,7 @@ const defaultTags = [
  * @returns {Boolean|String}
  * @throws {Error}
  */
-function defaultMockGetInput(key) {
+function mockGetInputDefaultImplementation(key) {
     switch (key) {
         case 'PR_LIST':
             return JSON.stringify(_.keys(PRList));
@@ -84,7 +84,7 @@ beforeAll(() => {
     jest.mock('@actions/core', () => ({
         getInput: mockGetInput,
     }));
-    mockGetInput.mockImplementation(defaultMockGetInput);
+    mockGetInput.mockImplementation(mockGetInputDefaultImplementation);
 
     // Mock octokit module
     const moctokit = {
@@ -188,7 +188,7 @@ platform | result
             if (key === 'IS_PRODUCTION_DEPLOY') {
                 return true;
             }
-            return defaultMockGetInput(key);
+            return mockGetInputDefaultImplementation(key);
         });
 
         // Note: we import this in here so that it executes after all the mocks are set up
@@ -221,7 +221,7 @@ platform | result
             if (key === 'DEPLOY_VERSION') {
                 return '42.42.42-43';
             }
-            return defaultMockGetInput(key);
+            return mockGetInputDefaultImplementation(key);
         });
         mockGetPullRequest.mockImplementation(async ({pull_number}) => {
             if (pull_number === 3) {
@@ -279,7 +279,7 @@ platform | result
             if (key === 'DESKTOP') {
                 return 'cancelled';
             }
-            return defaultMockGetInput(key);
+            return mockGetInputDefaultImplementation(key);
         });
 
         // Note: we import this in here so that it executes after all the mocks are set up
