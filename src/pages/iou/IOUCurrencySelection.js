@@ -17,6 +17,7 @@ import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import ROUTES from '../../ROUTES';
 import themeColors from '../../styles/themes/default';
 import * as Expensicons from '../../components/Icon/Expensicons';
+import {iouPropTypes, iouDefaultProps} from './propTypes';
 
 const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
 
@@ -57,19 +58,14 @@ const propTypes = {
     ),
 
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
-    iou: PropTypes.shape({
-        /** Currency of the request */
-        currency: PropTypes.string,
-    }),
+    iou: iouPropTypes,
 
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     currencyList: {},
-    iou: {
-        currency: CONST.CURRENCY.USD,
-    },
+    iou: iouDefaultProps,
 };
 
 function IOUCurrencySelection(props) {
