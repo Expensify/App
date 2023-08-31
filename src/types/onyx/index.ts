@@ -24,6 +24,7 @@ import WalletAdditionalDetails from './WalletAdditionalDetails';
 import WalletTerms from './WalletTerms';
 import BankAccount from './BankAccount';
 import Card from './Card';
+import Fund from './Fund';
 import WalletStatement from './WalletStatement';
 import PersonalBankAccount from './PersonalBankAccount';
 import FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
@@ -32,7 +33,6 @@ import ReimbursementAccountDraft from './ReimbursementAccountDraft';
 import WalletTransfer from './WalletTransfer';
 import ReceiptModal from './ReceiptModal';
 import MapboxAccessToken from './MapboxAccessToken';
-
 import Download from './Download';
 import PolicyMember from './PolicyMember';
 import Policy from './Policy';
@@ -41,8 +41,8 @@ import ReportAction from './ReportAction';
 import ReportActionReactions from './ReportActionReactions';
 import SecurityGroup from './SecurityGroup';
 import Transaction from './Transaction';
-
 import Form, {AddDebitCardForm} from './Form';
+import RecentWaypoints from './RecentWaypoints';
 
 export type {
     Account,
@@ -71,6 +71,7 @@ export type {
     WalletTerms,
     BankAccount,
     Card,
+    Fund,
     WalletStatement,
     PersonalBankAccount,
     ReimbursementAccount,
@@ -89,4 +90,5 @@ export type {
     Transaction,
     Form,
     AddDebitCardForm,
+    RecentWaypoints,
 };

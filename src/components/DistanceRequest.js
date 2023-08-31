@@ -22,7 +22,7 @@ import useNetwork from '../hooks/useNetwork';
 import useLocalize from '../hooks/useLocalize';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
-import ScreenWrapper from './ScreenWrapper';
+import transactionPropTypes from './transactionPropTypes';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import * as ErrorUtils from '../libs/ErrorUtils';
 import usePrevious from '../hooks/usePrevious';
@@ -38,28 +38,7 @@ const propTypes = {
     transactionID: PropTypes.string,
 
     /** The optimistic transaction for this request */
-    transaction: PropTypes.shape({
-        /** The transactionID of this request */
-        transactionID: PropTypes.string,
-
-        /** The comment object on the transaction */
-        comment: PropTypes.shape({
-            /** The waypoints defining the distance request */
-            waypoints: PropTypes.shape({
-                /** The latitude of the waypoint */
-                lat: PropTypes.number,
-
-                /** The longitude of the waypoint */
-                lng: PropTypes.number,
-
-                /** The address of the waypoint */
-                address: PropTypes.string,
-            }),
-        }),
-
-        /** Server side errors keyed by microtime */
-        errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
-    }),
+    transaction: transactionPropTypes,
 
     /** Data about Mapbox token for calling Mapbox API */
     mapboxAccessToken: PropTypes.shape({
@@ -159,7 +138,7 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
     useEffect(updateGradientVisibility, [scrollContainerHeight, scrollContentHeight]);
 
     return (
-        <ScreenWrapper shouldEnableMaxHeight>
+        <>
             <View
                 style={styles.distanceRequestContainer(scrollContainerMaxHeight)}
                 onLayout={(event = {}) => setScrollContainerHeight(lodashGet(event, 'nativeEvent.layout.height', 0))}
@@ -251,7 +230,7 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
                     </View>
                 )}
             </View>
-        </ScreenWrapper>
+        </>
     );
 }
 
