@@ -86,7 +86,6 @@ function StateSelectorModal({currentState, isVisible, onClose, onStateSelected, 
                     sections={[{data: searchResults, indexOffset: 0}]}
                     onSelectRow={onStateSelected}
                     onChangeText={setSearchValue}
-                    shouldDelayFocus
                     initiallyFocusedOptionKey={currentState}
                 />
             </ScreenWrapper>
