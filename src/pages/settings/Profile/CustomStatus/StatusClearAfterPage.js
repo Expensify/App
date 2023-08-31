@@ -110,6 +110,14 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
 
     const {customDateError, customTimeError, triggerValidation} = useValidateCustomDate(customDateTemporary);
 
+    const {brickDateIndicator, brickTimeIndicator} = useMemo(
+        () => ({
+            brickDateIndicator: customDateError ? CONST.BRICK_INDICATOR.ERROR : null,
+            brickTimeIndicator: customTimeError ? CONST.BRICK_INDICATOR.ERROR : null,
+        }),
+        [customTimeError, customDateError],
+    );
+
     const onSubmit = () => {
         triggerValidation();
         if (customDateError || customTimeError) return;
@@ -185,6 +193,7 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
                                 containerStyle={styles.pr2}
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS_CLEAR_AFTER_CUSTOM)}
                                 errorText={customDateError}
+                                brickRoadIndicator={brickDateIndicator}
                             />
                             <MenuItemWithTopDescription
                                 title={customStatusTime}
@@ -193,6 +202,7 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
                                 containerStyle={styles.pr2}
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS_CLEAR_AFTER_TIME)}
                                 errorText={customTimeError}
+                                brickRoadIndicator={brickTimeIndicator}
                             />
                         </>
                     )}

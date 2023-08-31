@@ -3936,8 +3936,6 @@ const styles = {
         left: 20,
         right: 20,
         paddingTop: 4,
-        borderTopWidth: 1,
-        borderColor: 'red',
     },
 
     formHelperMessage: {

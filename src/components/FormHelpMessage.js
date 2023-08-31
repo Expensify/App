@@ -25,12 +25,16 @@ const propTypes = {
 
     /** Container text style props */
     containerMessageStyle: stylePropTypes,
+
+    /** Whether to show dot indicator */
+    withDot: PropTypes.bool,
 };
 
 const defaultProps = {
     message: '',
     children: null,
     isError: true,
+    withDot: true,
     style: [],
     containerMessageStyle: {},
 };
@@ -43,13 +47,13 @@ function FormHelpMessage(props) {
     const translatedMessage = Localize.translateIfPhraseKey(props.message);
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2, styles.mb1, ...props.style, styles.justifyContentCenter]}>
-            {props.isError && (
+            {props.isError && props.withDot && (
                 <Icon
                     src={Expensicons.DotIndicator}
                     fill={colors.red}
                 />
             )}
-            <View style={[styles.flex1, props.isError && styles.ml2, props.containerMessageStyle]}>
+            <View style={[styles.flex1, props.isError && props.withDot ? styles.ml2 : {}, props.containerMessageStyle]}>
                 {props.children || <Text style={[props.isError ? styles.formError : styles.formHelp, styles.mb0]}>{translatedMessage}</Text>}
             </View>
         </View>

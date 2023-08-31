@@ -317,6 +317,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                             {Boolean(props.errorText) && (
                                 <FormHelpMessage
                                     isError
+                                    withDot={false}
                                     message={props.errorText}
                                     style={[styles.menuItemError]}
                                 />
