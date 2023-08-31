@@ -73,6 +73,7 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
 
+    const reportID = lodashGet(report, 'reportID', '');
     const waypoints = lodashGet(transaction, 'comment.waypoints', {});
     const numberOfWaypoints = _.size(waypoints);
 
@@ -243,7 +244,7 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
             <Button
                 success
                 style={[styles.w100, styles.mb4, styles.ph4, styles.flexShrink0]}
-                onPress={() => IOU.navigateToNextPage(iou, iouType, report.reportID, report)}
+                onPress={() => IOU.navigateToNextPage(iou, iouType, reportID, report)}
                 pressOnEnter
                 isDisabled={waypointMarkers.length < 2}
                 text={translate('common.next')}
