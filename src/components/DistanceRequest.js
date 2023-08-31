@@ -180,7 +180,11 @@ function DistanceRequest({transactionID, report, mapboxAccessToken, isEditingReq
                                 secondaryIcon={waypointIcon}
                                 secondaryIconFill={theme.icon}
                                 shouldShowRightIcon
-                                onPress={() => Navigation.navigate(isEditingRequest ? ROUTES.getMoneyRequestEditWaypointRoute(report.reportID, index) : ROUTES.getMoneyRequestWaypointRoute('request', index))}
+                                onPress={() =>
+                                    Navigation.navigate(
+                                        isEditingRequest ? ROUTES.getMoneyRequestEditWaypointRoute(report.reportID, index) : ROUTES.getMoneyRequestWaypointRoute('request', index),
+                                    )
+                                }
                                 key={key}
                             />
                         );
