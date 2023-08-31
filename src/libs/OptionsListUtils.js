@@ -383,6 +383,8 @@ function getLastMessageTextForReport(report) {
 
     if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml, translationKey: report.lastMessageTranslationKey})) {
         lastMessageTextFromReport = `[${Localize.translateLocal(report.lastMessageTranslationKey || 'common.attachment')}]`;
+    } else if (ReportActionUtils.isMoneyRequestAction(lastReportAction)) {
+        lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(report, lastReportAction);
     } else if (ReportActionUtils.isReportPreviewAction(lastReportAction)) {
         const iouReport = ReportUtils.getReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(lastReportAction));
         lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(iouReport, lastReportAction);
@@ -586,7 +588,7 @@ function isCurrentUser(userDetails) {
 }
 
 /**
- * Build the options for the tree hierarchy via indents
+ * Build the options for the category tree hierarchy via indents
  *
  * @param {Object[]} options - an initial strings array
  * @param {Boolean} options[].enabled - a flag to enable/disable option in a list
@@ -594,7 +596,7 @@ function isCurrentUser(userDetails) {
  * @param {Boolean} [isOneLine] - a flag to determine if text should be one line
  * @returns {Array<Object>}
  */
-function getOptionTree(options, isOneLine = false) {
+function getCategoryOptionTree(options, isOneLine = false) {
     const optionCollection = {};
 
     _.each(options, (option) => {
@@ -633,6 +635,93 @@ function getOptionTree(options, isOneLine = false) {
     });
 
     return _.values(optionCollection);
+}
+
+/**
+ * Build the section list for categories
+ *
+ * @param {Object[]} categories
+ * @param {String} categories[].name
+ * @param {Boolean} categories[].enabled
+ * @param {Object[]} recentlyUsedCategories
+ * @param {String} recentlyUsedCategories[].name
+ * @param {Boolean} recentlyUsedCategories[].enabled
+ * @param {Object[]} selectedOptions
+ * @param {String} selectedOptions[].name
+ * @param {String} searchInputValue
+ * @param {Number} maxRecentReportsToShow
+ * @returns {Array<Object>}
+ */
+function getCategoryListSections(categories, recentlyUsedCategories, selectedOptions, searchInputValue, maxRecentReportsToShow) {
+    const categorySections = [];
+    const numberOfCategories = _.size(categories);
+    let indexOffset = 0;
+
+    if (!_.isEmpty(searchInputValue)) {
+        const searchCategories = _.filter(categories, (category) => category.name.toLowerCase().includes(searchInputValue.toLowerCase()));
+
+        categorySections.push({
+            // "Search" section
+            title: '',
+            shouldShow: false,
+            indexOffset,
+            data: getCategoryOptionTree(searchCategories, true),
+        });
+
+        return categorySections;
+    }
+
+    if (numberOfCategories < CONST.CATEGORY_LIST_THRESHOLD) {
+        categorySections.push({
+            // "All" section when items amount less than the threshold
+            title: '',
+            shouldShow: false,
+            indexOffset,
+            data: getCategoryOptionTree(categories),
+        });
+
+        return categorySections;
+    }
+
+    const selectedOptionNames = _.map(selectedOptions, (selectedOption) => selectedOption.name);
+    const filteredRecentlyUsedCategories = _.filter(recentlyUsedCategories, (category) => !_.includes(selectedOptionNames, category.name));
+    const filteredCategories = _.filter(categories, (category) => !_.includes(selectedOptionNames, category.name));
+
+    if (!_.isEmpty(selectedOptions)) {
+        categorySections.push({
+            // "Selected" section
+            title: '',
+            shouldShow: false,
+            indexOffset,
+            data: getCategoryOptionTree(selectedOptions, true),
+        });
+
+        indexOffset += selectedOptions.length;
+    }
+
+    if (!_.isEmpty(filteredRecentlyUsedCategories)) {
+        const cutRecentlyUsedCategories = filteredRecentlyUsedCategories.slice(0, maxRecentReportsToShow);
+
+        categorySections.push({
+            // "Recent" section
+            title: Localize.translateLocal('common.recent'),
+            shouldShow: true,
+            indexOffset,
+            data: getCategoryOptionTree(cutRecentlyUsedCategories, true),
+        });
+
+        indexOffset += filteredRecentlyUsedCategories.length;
+    }
+
+    categorySections.push({
+        // "All" section when items amount more than the threshold
+        title: Localize.translateLocal('common.all'),
+        shouldShow: true,
+        indexOffset,
+        data: getCategoryOptionTree(filteredCategories),
+    });
+
+    return categorySections;
 }
 
 /**
@@ -675,61 +764,7 @@ function getOptions(
     },
 ) {
     if (includeCategories) {
-        const categoryOptions = [];
-        const categoriesAmount = _.size(categories);
-        let indexOffset = 0;
-
-        if (!_.isEmpty(searchInputValue)) {
-            categoryOptions.push({
-                title: '', // Search result
-                shouldShow: false,
-                indexOffset,
-                data: getOptionTree(
-                    _.filter(categories, (category) => category.name.toLowerCase().includes(searchInputValue.toLowerCase())),
-                    true,
-                ),
-            });
-        } else if (categoriesAmount < CONST.CATEGORY_LIST_THRESHOLD) {
-            categoryOptions.push({
-                title: '', // All
-                shouldShow: false,
-                indexOffset,
-                data: getOptionTree(categories),
-            });
-        } else {
-            const selectedOptionNames = _.map(selectedOptions, (selectedOption) => selectedOption.name);
-            const filteredRecentlyUsedCategories = _.filter(recentlyUsedCategories, (category) => !_.includes(selectedOptionNames, category.name));
-            const filteredCategories = _.filter(categories, (category) => !_.includes(selectedOptionNames, category.name));
-
-            if (!_.isEmpty(selectedOptions)) {
-                categoryOptions.push({
-                    title: '', // Selected
-                    shouldShow: false,
-                    indexOffset,
-                    data: getOptionTree(selectedOptions, true),
-                });
-
-                indexOffset += selectedOptions.length;
-            }
-
-            if (!_.isEmpty(filteredRecentlyUsedCategories)) {
-                categoryOptions.push({
-                    title: Localize.translateLocal('common.recent'),
-                    shouldShow: true,
-                    indexOffset,
-                    data: getOptionTree(filteredRecentlyUsedCategories.slice(0, maxRecentReportsToShow), true),
-                });
-
-                indexOffset += filteredRecentlyUsedCategories.length;
-            }
-
-            categoryOptions.push({
-                title: Localize.translateLocal('common.all'),
-                shouldShow: true,
-                indexOffset,
-                data: getOptionTree(filteredCategories),
-            });
-        }
+        const categoryOptions = getCategoryListSections(_.values(categories), recentlyUsedCategories, selectedOptions, searchInputValue, maxRecentReportsToShow);
 
         return {
             recentReports: [],
@@ -1080,7 +1115,7 @@ function getIOUConfirmationOptionsFromParticipants(participants, amountText) {
  * @param {boolean} [includeP2P]
  * @param {boolean} [includeCategories]
  * @param {Object} [categories]
- * @param {Object} [recentlyUsedCategories]
+ * @param {Array<Object>} [recentlyUsedCategories]
  * @param {boolean} [canInviteUser]
  * @returns {Object}
  */
@@ -1280,6 +1315,6 @@ export {
     isSearchStringMatch,
     shouldOptionShowTooltip,
     getLastMessageTextForReport,
-    getOptionTree,
+    getCategoryOptionTree,
     formatMemberForList,
 };

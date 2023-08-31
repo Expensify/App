@@ -2558,6 +2558,12 @@ const CONST = {
     TRANSLATION_KEYS: {
         ATTACHMENT: 'common.attachment',
     },
+    TEACHERS_UNITE: {
+        PUBLIC_ROOM_ID: '207591744844000',
+        POLICY_ID: 'ABD1345ED7293535',
+        POLICY_NAME: 'Expensify.org / Teachers Unite!',
+        PUBLIC_ROOM_NAME: '#teachers-unite',
+    },
     CUSTOM_STATUS_TYPES: {
         NEVER: 'never',
         THIRTY_MINUTES: 'thirtyMinutes',

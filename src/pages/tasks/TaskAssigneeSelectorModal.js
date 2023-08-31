@@ -90,7 +90,7 @@ function TaskAssigneeSelectorModal(props) {
             true,
             false,
             {},
-            {},
+            [],
             false,
         );
 
