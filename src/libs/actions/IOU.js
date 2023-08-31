@@ -607,11 +607,10 @@ function editDistanceRequest(transactionID, transactionThreadReportID, transacti
                     value: {
                         pendingFields,
                         isLoading: true,
-                        ...updatedTransaction
+                        ...updatedTransaction,
                     },
                 },
                 ...modifiedReportActionOptimisticData,
-                
             ],
             successData: [
                 {
