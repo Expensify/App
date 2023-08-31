@@ -28,8 +28,8 @@ const propTypes = {
     /** The expense report or iou report (only will have a value if this is a transaction thread) */
     parentReport: iouReportPropTypes,
 
-    /** The policies which the user has access to and which the report could be tied to */
-    policies: PropTypes.shape({
+    /** The policy which the report is tied to */
+    policy: PropTypes.shape({
         /** Name of the policy */
         name: PropTypes.string,
     }).isRequired,
@@ -58,6 +58,7 @@ function MoneyRequestHeader(props) {
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const moneyRequestReport = props.parentReport;
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
+
     const parentReportAction = ReportActionsUtils.getParentReportAction(props.report);
 
     // Only the requestor can take delete the request, admins can only edit it.
@@ -90,7 +91,7 @@ function MoneyRequestHeader(props) {
                     ]}
                     threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(props.windowWidth)}
                     report={report}
-                    policies={props.policies}
+                    policy={props.policy}
                     personalDetails={props.personalDetails}
                     shouldShowBackButton={props.isSmallScreenWidth}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.HOME, false, true)}
@@ -122,7 +123,7 @@ export default compose(
             key: ONYXKEYS.SESSION,
         },
         parentReport: {
-            key: (props) => `${ONYXKEYS.COLLECTION.REPORT}${props.report.parentReportID}`,
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`,
         },
     }),
 )(MoneyRequestHeader);
