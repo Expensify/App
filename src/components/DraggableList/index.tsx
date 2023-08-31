@@ -33,7 +33,6 @@ export default function DraggableList<T extends DefaultItemProps>({
     shouldUsePortal = false,
     onContentSizeChange,
 }: DraggableListProps<T>) {
-
     /**
      * Function to be called when the user finishes dragging an item
      * It will reorder the list and call the callback function
