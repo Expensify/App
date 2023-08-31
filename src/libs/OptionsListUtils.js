@@ -17,6 +17,7 @@ import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as UserUtils from './UserUtils';
 import * as ReportActionUtils from './ReportActionsUtils';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
+import * as TransactionUtils from './TransactionUtils';
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
@@ -390,6 +391,11 @@ function getLastMessageTextForReport(report) {
         lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(iouReport, lastReportAction);
     } else if (ReportActionUtils.isModifiedExpenseAction(lastReportAction)) {
         lastMessageTextFromReport = ReportUtils.getModifiedExpenseMessage(lastReportAction);
+
+        // check if it is an iou thread and if it has any message to show the scanned status
+        // eslint-disable-next-line no-use-before-define
+    } else if (isReportTransactionBeingScanned(report)) {
+        lastMessageTextFromReport = Localize.translateLocal('iou.receiptScanning');
     } else {
         lastMessageTextFromReport = report ? report.lastMessageText || '' : '';
 
@@ -406,6 +412,31 @@ function getLastMessageTextForReport(report) {
         }
     }
     return lastMessageTextFromReport;
+}
+
+/**
+ * Checks if the given report satisfies the following conditions:
+ * 1. It is a chat thread.
+ * 2. Its parent report action is a transaction thread.
+ * 3. The transaction associated with the parent report action has a receipt.
+ * 4. The receipt is being scanned.
+ * 5. The last visible action of the report is either empty or created.
+ *
+ * @param {Object} report - The report to be checked.
+ *
+ * @returns {boolean} - True if all conditions are met, false otherwise.
+ */
+function isReportTransactionBeingScanned(report) {
+    const parentReportAction = ReportActionUtils.getParentReportAction(report);
+    const transaction = TransactionUtils.getLinkedTransaction(parentReportAction);
+
+    return (
+        ReportUtils.isChatThread(report) &&
+        ReportActionUtils.isTransactionThread(parentReportAction) &&
+        TransactionUtils.hasReceipt(transaction) &&
+        TransactionUtils.isReceiptBeingScanned(transaction) &&
+        (_.isEmpty(ReportActionUtils.getLastVisibleAction(report.reportID)) || ReportActionUtils.isCreatedAction(ReportActionUtils.getLastVisibleAction(report.reportID)))
+    );
 }
 
 /**
