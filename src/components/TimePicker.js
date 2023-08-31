@@ -367,7 +367,7 @@ function TimePicker({forwardedRef, value, errorText, onInputChange}) {
                     <FormHelpMessage
                         isError={!!errorText}
                         message={errorText}
-                        containerMessageStyle={styles.flex0}
+                        containerMessageStyle={styles.flexReset}
                     />
                 ) : (
                     <View style={styles.formHelperMessage} />
