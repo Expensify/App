@@ -53,10 +53,14 @@ function IntroSchoolPrincipalPage(props) {
         (values) => {
             const errors = {};
 
-            if (_.isEmpty(values.firstName)) {
+            if (!ValidationUtils.isValidLegalName(values.firstName)) {
+                ErrorUtils.addErrorMessage(errors, 'firstName', translate('privatePersonalDetails.error.hasInvalidCharacter'));
+            } else if (_.isEmpty(values.firstName)) {
                 ErrorUtils.addErrorMessage(errors, 'firstName', translate('bankAccount.error.firstName'));
             }
-            if (_.isEmpty(values.lastName)) {
+            if (!ValidationUtils.isValidLegalName(values.lastName)) {
+                ErrorUtils.addErrorMessage(errors, 'lastName', translate('privatePersonalDetails.error.hasInvalidCharacter'));
+            } else if (_.isEmpty(values.lastName)) {
                 ErrorUtils.addErrorMessage(errors, 'lastName', translate('bankAccount.error.lastName'));
             }
             if (_.isEmpty(values.partnerUserID)) {
