@@ -85,7 +85,6 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
                     success
                     text={localize.translate('statusPage.save')}
                     onPress={updateStatus}
-                    innerStyles={[styles.mb6]}
                 />
             ) : null,
         [hasDraftStatus, localize, updateStatus, isValidClearAfterDate],
