@@ -1,6 +1,7 @@
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
+import _ from 'underscore';
 import TextInput from '../components/TextInput';
 import ScreenWrapper from '../components/ScreenWrapper';
 import HeaderWithBackButton from '../components/HeaderWithBackButton';
