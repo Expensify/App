@@ -212,7 +212,7 @@ function updateWaypoints(transactionID, waypoints) {
             waypoints,
         },
 
-        // Empty out errors when we're saving a new waypoint as this indicates the user is updating their input
+        // Empty out errors when we're saving new waypoints as this indicates the user is updating their input
         errorFields: {
             route: null,
         },
