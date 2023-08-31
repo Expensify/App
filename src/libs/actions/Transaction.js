@@ -199,10 +199,31 @@ function getRoute(transactionID, waypoints) {
     );
 }
 
+/**
+ * Updates full set of waypoints for the specific transaction.
+ *
+ * @param {String} transactionID - The ID of the transaction to be updated
+ * @param {Object} waypoints - An object containing all the waypoints
+ *                             which will replace the existing ones.
+ */
 function updateWaypoints(transactionID, waypoints) {
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         comment: {
             waypoints,
+        },
+
+        // Empty out errors when we're saving a new waypoint as this indicates the user is updating their input
+        errorFields: {
+            route: null,
+        },
+
+        // Clear the existing route so that we don't show an old route
+        routes: {
+            route0: {
+                geometry: {
+                    coordinates: null,
+                },
+            },
         },
     });
 }
