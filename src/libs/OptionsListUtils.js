@@ -654,7 +654,7 @@ function getOptionTree(options, isOneLine = false) {
  */
 function getCategoryListSections(categories, recentlyUsedCategories, selectedOptions, searchInputValue, maxRecentReportsToShow) {
     const categorySections = [];
-    const categoriesAmount = _.size(categories);
+    const numberOfCategories = _.size(categories);
     let indexOffset = 0;
 
     if (!_.isEmpty(searchInputValue)) {
@@ -670,7 +670,7 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
         return categorySections;
     }
 
-    if (categoriesAmount < CONST.CATEGORY_LIST_THRESHOLD) {
+    if (numberOfCategories < CONST.CATEGORY_LIST_THRESHOLD) {
         categorySections.push({
             title: '', // All
             shouldShow: false,
