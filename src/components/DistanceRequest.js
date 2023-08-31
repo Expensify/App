@@ -243,7 +243,7 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
             </View>
             <Button
                 success
-                style={[styles.w100, styles.mb4, styles.ph4, styles.flexShrink0]}
+                style={[styles.w100, styles.mb4, styles.ph4, styles.distanceRequestNextButton]}
                 onPress={() => IOU.navigateToNextPage(iou, iouType, reportID, report)}
                 pressOnEnter
                 isDisabled={waypointMarkers.length < 2}
