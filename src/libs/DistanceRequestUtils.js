@@ -69,7 +69,7 @@ function convertDistanceUnit(distanceInMeters, unit) {
  * @param {Function} translate Translate function
  * @returns {String} A string that describes the distance travled and the rate used for expense calculation
  */
-const getDistanceString = (distanceInMeters, unit, rate, currency, translate) => {
+const getDistanceMerchant = (distanceInMeters, unit, rate, currency, translate) => {
     const convertedDistance = convertDistanceUnit(distanceInMeters, unit);
     const distanceUnit = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.miles') : translate('common.kilometers');
     const singularDistanceUnit = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.mile') : translate('common.kilometer');
@@ -94,4 +94,4 @@ const getDistanceRequestAmount = (distance, unit, rate) => {
     return convertedDistance * rate;
 };
 
-export default {getDefaultMileageRate, getDistanceString, getDistanceRequestAmount};
+export default {getDefaultMileageRate, getDistanceMerchant, getDistanceRequestAmount};
