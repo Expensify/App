@@ -292,11 +292,19 @@ export default compose(
     withCurrentUserPersonalDetails,
     withLocalize,
     withOnyx({
-        report: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '')}`,
-        },
         iou: {
             key: ONYXKEYS.IOU,
+        },
+    }),
+    withOnyx({
+        report: {
+            key: ({route, iou}) => {
+                let reportID = lodashGet(route, 'params.reportID', '');
+                if (!reportID) {
+                    reportID = lodashGet(iou, 'participants.0.reportID', '');
+                }
+                return `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
+            },
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
