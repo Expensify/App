@@ -31,6 +31,7 @@ import AppleAuthWrapper from './components/SignInButtons/AppleAuthWrapper';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
 import * as EmojiPickerAction from './libs/actions/EmojiPickerAction';
 import * as DemoActions from './libs/actions/DemoActions';
+import DownloadAppModal from './components/DownloadAppModal';
 import DeeplinkWrapper from './components/DeeplinkWrapper';
 
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
@@ -195,6 +196,7 @@ function Expensify(props) {
         <DeeplinkWrapper isAuthenticated={isAuthenticated}>
             {shouldInit && (
                 <>
+                    <DownloadAppModal isAuthenticated={isAuthenticated} />
                     <KeyboardShortcutsModal />
                     <GrowlNotification ref={Growl.growlRef} />
                     <PopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />

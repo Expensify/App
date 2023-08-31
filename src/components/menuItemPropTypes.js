@@ -3,6 +3,7 @@ import _ from 'underscore';
 import CONST from '../CONST';
 import stylePropTypes from '../styles/stylePropTypes';
 import avatarPropTypes from './avatarPropTypes';
+import refPropTypes from './refPropTypes';
 
 const propTypes = {
     /** Text to be shown as badge near the right end. */
@@ -118,7 +119,7 @@ const propTypes = {
     shouldBlockSelection: PropTypes.bool,
 
     /** The ref to the menu item */
-    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
+    forwardedRef: refPropTypes,
 
     /** Any adjustments to style when menu item is hovered or pressed */
     hoverAndPressStyle: PropTypes.arrayOf(PropTypes.object),

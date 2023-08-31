@@ -1,4 +1,5 @@
 import {defaultStyles as defaultPickerStyles} from 'react-native-picker-select/src/styles';
+import {StyleSheet} from 'react-native';
 import lodashClamp from 'lodash/clamp';
 import fontFamily from './fontFamily';
 import addOutlineWidth from './addOutlineWidth';
@@ -228,6 +229,11 @@ const styles = {
 
     mentionSuggestionsHandle: {
         color: themeColors.textSupporting,
+    },
+
+    appIconBorderRadius: {
+        overflow: 'hidden',
+        borderRadius: 12,
     },
 
     unitCol: {
@@ -638,14 +644,14 @@ const styles = {
     },
 
     visuallyHidden: {
-        ...visibility('hidden'),
+        ...visibility.hidden,
         overflow: 'hidden',
         width: 0,
         height: 0,
     },
 
     visibilityHidden: {
-        ...visibility('hidden'),
+        ...visibility.hidden,
     },
 
     loadingVBAAnimation: {
@@ -1332,13 +1338,12 @@ const styles = {
         textDecorationLine: 'none',
     },
 
-    leftPanelContainer: {
-        maxWidth: variables.sideBarWidth,
-    },
-
-    rightPanelContainer: {
-        width: variables.sideBarWidth,
-    },
+    RHPNavigatorContainer: (isSmallScreenWidth) => ({
+        width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
+        position: 'absolute',
+        right: 0,
+        height: '100%',
+    }),
 
     onlyEmojisText: {
         fontSize: variables.fontSizeOnlyEmojis,
@@ -1507,6 +1512,16 @@ const styles = {
     optionsListSectionHeader: {
         height: variables.optionsListSectionHeaderHeight,
     },
+
+    overlayStyles: (current) => ({
+        ...StyleSheet.absoluteFillObject,
+        backgroundColor: themeColors.overlay,
+        opacity: current.progress.interpolate({
+            inputRange: [0, 1],
+            outputRange: [0, variables.overlayOpacity],
+            extrapolate: 'clamp',
+        }),
+    }),
 
     appContent: {
         backgroundColor: themeColors.appBG,
@@ -2384,6 +2399,9 @@ const styles = {
         borderRadius: 88,
     },
 
+    rootNavigatorContainerStyles: (isSmallScreenWidth) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1}),
+    RHPNavigatorContainerNavigatorContainerStyles: (isSmallScreenWidth) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1}),
+
     avatarInnerTextChat: {
         color: themeColors.textLight,
         fontSize: variables.fontSizeXLarge,
@@ -3047,7 +3065,7 @@ const styles = {
         left: '50%',
         top: 0,
         zIndex: 100,
-        ...visibility('hidden'),
+        ...visibility.hidden,
     },
 
     floatingMessageCounterWrapperAndroid: {
@@ -3057,7 +3075,7 @@ const styles = {
         position: 'absolute',
         top: 0,
         zIndex: 100,
-        ...visibility('hidden'),
+        ...visibility.hidden,
     },
 
     floatingMessageCounterSubWrapperAndroid: {
@@ -3067,7 +3085,7 @@ const styles = {
 
     floatingMessageCounter: {
         left: '-50%',
-        ...visibility('visible'),
+        ...visibility.visible,
     },
 
     floatingMessageCounterTransformation: (translateY) => ({
@@ -3640,6 +3658,7 @@ const styles = {
         height: 40,
         marginLeft: 12,
         alignItems: 'center',
+        overflow: 'hidden',
     },
 
     googlePillButtonContainer: {
@@ -3654,15 +3673,14 @@ const styles = {
         height: 450,
     },
 
-    tabSelectorButton: (isSelected) => ({
+    tabSelectorButton: {
         height: 40,
         padding: 12,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         borderRadius: variables.buttonBorderRadius,
-        backgroundColor: isSelected ? themeColors.midtone : themeColors.appBG,
-    }),
+    },
 
     tabSelector: {
         flexDirection: 'row',
@@ -3804,6 +3822,27 @@ const styles = {
         transform: [{rotate: '90deg'}],
     },
 
+    emojiStatusLHN: {
+        fontSize: 22,
+    },
+    sidebarStatusAvatarContainer: {
+        height: 44,
+        width: 84,
+        backgroundColor: themeColors.componentBG,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        borderRadius: 42,
+        paddingHorizontal: 2,
+        marginVertical: -2,
+        marginRight: -2,
+    },
+    sidebarStatusAvatar: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+
     moneyRequestViewImage: {
         ...spacing.mh5,
         ...spacing.mv3,
@@ -3845,10 +3884,13 @@ const styles = {
         ...flex.flex1,
         borderRadius: variables.componentBorderRadiusLarge,
     },
-
     userReportStatusEmoji: {
         fontSize: variables.fontSizeNormal,
         marginRight: 4,
+    },
+    draggableTopBar: {
+        height: 30,
+        width: '100%',
     },
 };
 

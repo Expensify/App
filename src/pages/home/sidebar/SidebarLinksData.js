@@ -66,17 +66,20 @@ const defaultProps = {
 function SidebarLinksData({isFocused, allReportActions, betas, chatReports, currentReportID, insets, isLoadingReportData, isSmallScreenWidth, onLinkClick, policies, priorityMode}) {
     const {translate} = useLocalize();
 
-    const reportIDsRef = useRef([]);
+    const reportIDsRef = useRef(null);
+    const isLoading = SessionUtils.didUserLogInDuringSession() && isLoadingReportData;
     const optionListItems = useMemo(() => {
         const reportIDs = SidebarUtils.getOrderedReportIDs(currentReportID, chatReports, betas, policies, priorityMode, allReportActions);
         if (deepEqual(reportIDsRef.current, reportIDs)) {
             return reportIDsRef.current;
         }
-        reportIDsRef.current = reportIDs;
-        return reportIDs;
-    }, [allReportActions, betas, chatReports, currentReportID, policies, priorityMode]);
 
-    const isLoading = SessionUtils.didUserLogInDuringSession() && isLoadingReportData;
+        // We need to update existing reports only once while loading because they are updated several times during loading and causes this regression: https://github.com/Expensify/App/issues/24596#issuecomment-1681679531
+        if (!isLoading || !reportIDsRef.current || (_.isEmpty(reportIDsRef.current) && currentReportID)) {
+            reportIDsRef.current = reportIDs;
+        }
+        return reportIDsRef.current || [];
+    }, [allReportActions, betas, chatReports, currentReportID, policies, priorityMode, isLoading]);
 
     return (
         <View

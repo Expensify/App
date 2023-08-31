@@ -27,6 +27,7 @@ import themeColors from '../styles/themes/default';
 import Image from './Image';
 import useLocalize from '../hooks/useLocalize';
 import * as ReceiptUtils from '../libs/ReceiptUtils';
+import categoryPropTypes from './categoryPropTypes';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
@@ -58,6 +59,9 @@ const propTypes = {
 
     /** IOU merchant */
     iouMerchant: PropTypes.string,
+
+    /** IOU Category */
+    iouCategory: PropTypes.string,
 
     /** Selected participants from MoneyRequestModal with login / accountID */
     selectedParticipants: PropTypes.arrayOf(optionPropTypes).isRequired,
@@ -92,6 +96,13 @@ const propTypes = {
 
     /** File source of the receipt */
     receiptSource: PropTypes.string,
+
+    /** List styles for OptionsSelector */
+    listStyles: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
+
+    /* Onyx Props */
+    /** Collection of categories attached to a policy */
+    policyCategories: PropTypes.objectOf(categoryPropTypes),
 };
 
 const defaultProps = {
@@ -99,6 +110,7 @@ const defaultProps = {
     onSendMoney: () => {},
     onSelectParticipant: () => {},
     iouType: CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
+    iouCategory: '',
     payeePersonalDetails: null,
     canModifyParticipants: false,
     isReadOnly: false,
@@ -111,6 +123,8 @@ const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
     receiptPath: '',
     receiptSource: '',
+    listStyles: [],
+    policyCategories: {},
 };
 
 function MoneyRequestConfirmationList(props) {
@@ -247,7 +261,9 @@ function MoneyRequestConfirmationList(props) {
      */
     const navigateToReportOrUserDetail = (option) => {
         if (option.accountID) {
-            Navigation.navigate(ROUTES.getProfileRoute(option.accountID));
+            const activeRoute = Navigation.getActiveRoute().replace(/\?.*/, '');
+
+            Navigation.navigate(ROUTES.getProfileRoute(option.accountID, activeRoute));
         } else if (option.reportID) {
             Navigation.navigate(ROUTES.getReportDetailsRoute(option.reportID));
         }
@@ -332,6 +348,7 @@ function MoneyRequestConfirmationList(props) {
             shouldUseStyleForChildren={false}
             optionHoveredStyle={canModifyParticipants ? styles.hoveredComponentBG : {}}
             footerContent={footerContent}
+            listStyles={props.listStyles}
         >
             {!_.isEmpty(props.receiptPath) ? (
                 <Image
@@ -357,9 +374,10 @@ function MoneyRequestConfirmationList(props) {
                 style={[styles.moneyRequestMenuItem, styles.mb2]}
                 titleStyle={styles.flex1}
                 disabled={didConfirm || props.isReadOnly}
+                numberOfLinesTitle={2}
             />
             {!showAllFields && (
-                <View style={[styles.flexRow, styles.justifyContentBetween, styles.mh3, styles.alignItemsCenter]}>
+                <View style={[styles.flexRow, styles.justifyContentBetween, styles.mh3, styles.alignItemsCenter, styles.mb2]}>
                     <View style={[styles.shortTermsHorizontalRule, styles.flex1, styles.mr0]} />
                     <Button
                         small
@@ -393,6 +411,16 @@ function MoneyRequestConfirmationList(props) {
                         onPress={() => Navigation.navigate(ROUTES.getMoneyRequestMerchantRoute(props.iouType, props.reportID))}
                         disabled={didConfirm || props.isReadOnly || !isTypeRequest}
                     />
+                    {!_.isEmpty(props.policyCategories) && (
+                        <MenuItemWithTopDescription
+                            shouldShowRightIcon={!props.isReadOnly}
+                            title={props.iouCategory}
+                            description={translate('common.category')}
+                            onPress={() => Navigation.navigate(ROUTES.getMoneyRequestCategoryRoute(props.iouType, props.reportID))}
+                            style={[styles.moneyRequestMenuItem, styles.mb2]}
+                            disabled={didConfirm || props.isReadOnly}
+                        />
+                    )}
                 </>
             )}
         </OptionsSelector>
@@ -407,6 +435,9 @@ export default compose(
     withOnyx({
         session: {
             key: ONYXKEYS.SESSION,
+        },
+        policyCategories: {
+            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
         },
     }),
 )(MoneyRequestConfirmationList);
