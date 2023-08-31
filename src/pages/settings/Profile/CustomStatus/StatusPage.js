@@ -1,4 +1,4 @@
-import React, {useMemo, useCallback, useEffect} from 'react';
+import React, {useMemo, useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
@@ -28,6 +28,7 @@ const propTypes = {
 
 function StatusPage({draftStatus, currentUserPersonalDetails}) {
     const localize = useLocalize();
+    const [brickRoadIndicator, setBrickRoadIndicator] = useState('');
     const currentUserEmojiCode = lodashGet(currentUserPersonalDetails, 'status.emojiCode', '');
     const currentUserStatusText = lodashGet(currentUserPersonalDetails, 'status.text', '');
     const currentUserClearAfter = lodashGet(currentUserPersonalDetails, 'status.clearAfter', '');
@@ -47,7 +48,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
         return DateUtils.getLocalizedTimePeriodDescription(dataToShow);
     }, [draftClearAfter, currentUserClearAfter]);
 
-    const isValidClearAfterDate = useMemo(() => {
+    const isValidClearAfterDate = useCallback(() => {
         const clearAfterTime = draftClearAfter || currentUserClearAfter;
         if (clearAfterTime === CONST.CUSTOM_STATUS_TYPES.NEVER) return true;
 
@@ -57,7 +58,11 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
     const navigateBackToSettingsPage = useCallback(() => Navigation.goBack(ROUTES.SETTINGS_PROFILE, false, true), []);
     const updateStatus = useCallback(() => {
         const clearAfterTime = draftClearAfter || currentUserClearAfter;
-        if (DateUtils.hasDateExpired(clearAfterTime)) return;
+        if (DateUtils.hasDateExpired(clearAfterTime)) {
+            setBrickRoadIndicator(isValidClearAfterDate() ? null : CONST.BRICK_INDICATOR.ERROR);
+            return;
+        }
+
         User.updateCustomStatus({
             text: defaultText,
             emojiCode: defaultEmoji,
@@ -66,14 +71,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
 
         User.clearDraftCustomStatus();
         Navigation.goBack(ROUTES.SETTINGS_PROFILE);
-    }, [defaultText, defaultEmoji, currentUserClearAfter, draftClearAfter]);
-
-    useEffect(() => {
-        if (currentUserEmojiCode || currentUserClearAfter || draftClearAfter) return;
-        User.updateDraftCustomStatus({clearAfter: DateUtils.getEndOfToday()});
-
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [defaultText, defaultEmoji, currentUserClearAfter, draftClearAfter, isValidClearAfterDate]);
 
     const clearStatus = () => {
         User.clearCustomStatus();
@@ -87,7 +85,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
 
     const footerComponent = useMemo(
         () =>
-            hasDraftStatus && isValidClearAfterDate ? (
+            hasDraftStatus && isValidClearAfterDate() ? (
                 <Button
                     success
                     text={localize.translate('statusPage.save')}
@@ -97,8 +95,15 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
         [hasDraftStatus, localize, updateStatus, isValidClearAfterDate],
     );
 
-    const brickRoadIndicator = useMemo(() => (isValidClearAfterDate ? null : CONST.BRICK_INDICATOR.ERROR), [isValidClearAfterDate]);
-    useEffect(() => () => User.clearDraftCustomStatus(), []);
+    useEffect(() => setBrickRoadIndicator(isValidClearAfterDate() ? null : CONST.BRICK_INDICATOR.ERROR), [isValidClearAfterDate]);
+    useEffect(() => {
+        if (!currentUserEmojiCode && !currentUserClearAfter && !draftClearAfter) {
+            User.updateDraftCustomStatus({clearAfter: DateUtils.getEndOfToday()});
+        }
+
+        return () => User.clearDraftCustomStatus();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     return (
         <StaticHeaderPageLayout
