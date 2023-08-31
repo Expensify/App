@@ -3431,11 +3431,17 @@ function getParticipantsIDs(report) {
     if (!report) {
         return [];
     }
+
+    const participants = report.participantAccountIDs || [];
+
     // Build participants list for IOU/expense reports
     if (isMoneyRequestReport(report)) {
-        return _.compact([report.managerID, report.ownerAccountID]);
+        return _.chain([report.managerID, report.ownerAccountID, ...participants])
+            .compact()
+            .uniq()
+            .value();
     }
-    return report.participantAccountIDs || [];
+    return participants;
 }
 
 /**
