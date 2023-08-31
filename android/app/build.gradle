@@ -58,7 +58,7 @@ project.ext.envConfigFiles = [
     adhocRelease: ".env.adhoc",
     developmentRelease: ".env",
     developmentDebug: ".env",
-    e2eRelease: ".env.production"
+    e2eRelease: "tests/e2e/.env.e2e"
 ]
 
 /**
