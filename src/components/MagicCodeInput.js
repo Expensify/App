@@ -188,7 +188,7 @@ function MagicCodeInput(props) {
      */
     const onPress = (index) => {
         shouldFocusLast.current = false;
-        if (!Browser.isMobileChrome()) {
+        if (!Browser.isMobileChrome() && !Browser.isMobileSafari()) {
             inputRefs.current.focus();
         }
         setInput(TEXT_INPUT_EMPTY_STATE);
@@ -304,16 +304,7 @@ function MagicCodeInput(props) {
             <View style={[styles.magicCodeInputContainer]}>
                 <View style={[StyleSheet.absoluteFillObject, styles.w100, styles.invisibleOverlay]}>
                     <TapGestureHandler
-                        onActivated={(e) => {
-                            if (!Browser.isMobileSafari()) {
-                                return;
-                            }
-                            onPress(Math.floor(e.nativeEvent.x / (inputWidth.current / props.maxLength)));
-                        }}
                         onBegan={(e) => {
-                            if (Browser.isMobileSafari()) {
-                                return;
-                            }
                             onPress(Math.floor(e.nativeEvent.x / (inputWidth.current / props.maxLength)));
                         }}
                     >
