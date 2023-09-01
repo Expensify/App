@@ -1,20 +1,34 @@
 import PropTypes from 'prop-types';
+import {Platform} from 'react-native';
 import stylePropTypes from '../../styles/stylePropTypes';
 import RESIZE_MODES from './resizeModes';
 
-const imagePropTypes = {
-    /** Styles for the Image */
-    style: stylePropTypes,
-
-    /** The static asset or URI source of the image */
-    source: PropTypes.oneOfType([
+const sourceType = Platform.select({
+    native: [
         PropTypes.number,
         PropTypes.shape({
             uri: PropTypes.string.isRequired,
             // eslint-disable-next-line react/forbid-prop-types
             headers: PropTypes.object,
         }),
-    ]).isRequired,
+    ],
+    default: [
+        PropTypes.number,
+        PropTypes.shape({
+            uri: PropTypes.string.isRequired,
+            // eslint-disable-next-line react/forbid-prop-types
+            headers: PropTypes.object,
+        }),
+        PropTypes.string,
+    ],
+});
+
+const imagePropTypes = {
+    /** Styles for the Image */
+    style: stylePropTypes,
+
+    /** The static asset or URI source of the image */
+    source: PropTypes.oneOfType(sourceType).isRequired,
 
     /** Should an auth token be included in the image request */
     isAuthTokenRequired: PropTypes.bool,
