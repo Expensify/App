@@ -44,9 +44,11 @@ Onyx.connect({
 });
 
 let userAccountID = '';
+let currentUserEmail = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
+        currentUserEmail = lodashGet(val, 'email', '');
         userAccountID = lodashGet(val, 'accountID', '');
     },
 });
@@ -84,6 +86,7 @@ function resetMoneyRequestInfo(id = '') {
         created,
         receiptPath: '',
         receiptSource: '',
+        transactionID: '',
     });
 }
 
@@ -313,8 +316,8 @@ function buildOnyxDataForMoneyRequest(
  * @param {String} currency
  * @param {String} created
  * @param {String} merchant
- * @param {Number} payeeAccountID
- * @param {String} payeeEmail
+ * @param {Number} [payeeAccountID]
+ * @param {String} [payeeEmail]
  * @param {Object} [receipt]
  * @param {String} [existingTransactionID]
  * @param {String} [category]
@@ -340,8 +343,8 @@ function getMoneyRequestInformation(
     currency,
     created,
     merchant,
-    payeeAccountID,
-    payeeEmail,
+    payeeAccountID = userAccountID,
+    payeeEmail = currentUserEmail,
     receipt = undefined,
     existingTransactionID = null,
     category = undefined,
@@ -501,20 +504,14 @@ function getMoneyRequestInformation(
  * Requests money based on a distance (eg. mileage from a map)
  *
  * @param {Object} report
- * @param {String} payeeEmail
- * @param {Number} payeeAccountID
  * @param {Object} participant
  * @param {String} comment
- * @param {Object[]} waypoints
- * @param {String} waypoints[].address required and must be non empty
- * @param {String} [waypoints[].lat] optional
- * @param {String} [waypoints[].lng] optional
  * @param {String} created
  * @param {String} [transactionID]
  * @param {String} [category]
  */
-function createDistanceRequest(report, payeeEmail, payeeAccountID, participant, comment, waypoints, created, transactionID, category = undefined) {
-    const {payerEmail, iouReport, chatReport, transaction, iouAction, createdChatReportActionID, createdIOUReportActionID, reportPreviewAction, onyxData} = getMoneyRequestInformation(
+function createDistanceRequest(report, participant, comment, created, transactionID, category = undefined) {
+    const {iouReport, chatReport, transaction, iouAction, createdChatReportActionID, createdIOUReportActionID, reportPreviewAction, onyxData} = getMoneyRequestInformation(
         report,
         participant,
         comment,
@@ -522,17 +519,15 @@ function createDistanceRequest(report, payeeEmail, payeeAccountID, participant, 
         'USD',
         created,
         '',
-        payeeAccountID,
-        payeeEmail,
+        null,
+        null,
         null,
         transactionID,
         category,
     );
-
     API.write(
         'CreateDistanceRequest',
         {
-            debtorEmail: payerEmail,
             comment,
             iouReportID: iouReport.reportID,
             chatReportID: chatReport.reportID,
@@ -541,12 +536,14 @@ function createDistanceRequest(report, payeeEmail, payeeAccountID, participant, 
             createdChatReportActionID,
             createdIOUReportActionID,
             reportPreviewReportActionID: reportPreviewAction.reportActionID,
-            waypoints,
+            waypoints: JSON.stringify(transaction.comment.waypoints),
             created,
             category,
         },
         onyxData,
     );
+    Navigation.dismissModal(chatReport.reportID);
+    Report.notifyNewAction(chatReport.reportID, userAccountID);
 }
 
 /**
@@ -628,7 +625,7 @@ function requestMoney(report, amount, currency, created, merchant, payeeEmail, p
  * @return {Object}
  */
 function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, existingSplitChatReportID = '') {
-    const currentUserEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(currentUserLogin);
+    const currentUserEmailForIOUSplit = OptionsListUtils.addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = _.map(participants, (participant) => Number(participant.accountID));
     const existingSplitChatReport = existingSplitChatReportID
         ? allReports[`${ONYXKEYS.COLLECTION.REPORT}${existingSplitChatReportID}`]
@@ -653,7 +650,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
     );
 
     // Note: The created action must be optimistically generated before the IOU action so there's no chance that the created action appears after the IOU action in the chat
-    const splitCreatedReportAction = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
+    const splitCreatedReportAction = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmailForIOUSplit);
     const splitIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
         CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
         amount,
@@ -772,14 +769,14 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
 
     // Loop through participants creating individual chats, iouReports and reportActionIDs as needed
     const splitAmount = IOUUtils.calculateAmount(participants.length, amount, currency, false);
-    const splits = [{email: currentUserEmail, accountID: currentUserAccountID, amount: IOUUtils.calculateAmount(participants.length, amount, currency, true)}];
+    const splits = [{email: currentUserEmailForIOUSplit, accountID: currentUserAccountID, amount: IOUUtils.calculateAmount(participants.length, amount, currency, true)}];
 
     const hasMultipleParticipants = participants.length > 1;
     _.each(participants, (participant) => {
         // In case the participant is a worskapce, email & accountID should remain undefined and won't be used in the rest of this code
         const email = isOwnPolicyExpenseChat ? '' : OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login).toLowerCase();
         const accountID = isOwnPolicyExpenseChat ? 0 : Number(participant.accountID);
-        if (email === currentUserEmail) {
+        if (email === currentUserEmailForIOUSplit) {
             return;
         }
 
@@ -838,8 +835,8 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
         // 3. IOU action for the iouReport
         // 4. REPORTPREVIEW action for the chatReport
         // Note: The CREATED action for the IOU report must be optimistically generated before the IOU action so there's no chance that it appears after the IOU action in the chat
-        const oneOnOneCreatedActionForChat = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
-        const oneOnOneCreatedActionForIOU = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
+        const oneOnOneCreatedActionForChat = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmailForIOUSplit);
+        const oneOnOneCreatedActionForIOU = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmailForIOUSplit);
         const oneOnOneIOUAction = ReportUtils.buildOptimisticIOUReportAction(
             CONST.IOU.REPORT_ACTION_TYPE.CREATE,
             splitAmount,
@@ -1585,7 +1582,7 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
                 lastMessageText: optimisticIOUReportAction.message[0].text,
                 lastMessageHtml: optimisticIOUReportAction.message[0].html,
                 hasOutstandingIOU: false,
-                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS.REIMBURSED,
             },
         },
         {

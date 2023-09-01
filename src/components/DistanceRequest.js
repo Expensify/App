@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {ScrollView, View} from 'react-native';
 import lodashGet from 'lodash/get';
+import lodashHas from 'lodash/has';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -22,20 +23,28 @@ import useNetwork from '../hooks/useNetwork';
 import useLocalize from '../hooks/useLocalize';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
+import * as IOU from '../libs/actions/IOU';
+import reportPropTypes from '../pages/reportPropTypes';
 import transactionPropTypes from './transactionPropTypes';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import * as ErrorUtils from '../libs/ErrorUtils';
 import usePrevious from '../hooks/usePrevious';
+import {iouPropTypes} from '../pages/iou/propTypes';
 
 const MAX_WAYPOINTS = 25;
 const MAX_WAYPOINTS_TO_DISPLAY = 4;
 
-const MAP_PADDING = 50;
 const DEFAULT_ZOOM_LEVEL = 10;
 
 const propTypes = {
-    /** The transactionID of this request */
-    transactionID: PropTypes.string,
+    /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
+    iou: iouPropTypes,
+
+    /** Type of money request (i.e. IOU) */
+    iouType: PropTypes.oneOf(_.values(CONST.IOU.MONEY_REQUEST_TYPE)),
+
+    /** The report to which the distance request is associated */
+    report: reportPropTypes,
 
     /** The optimistic transaction for this request */
     transaction: transactionPropTypes,
@@ -51,31 +60,35 @@ const propTypes = {
 };
 
 const defaultProps = {
-    transactionID: '',
+    iou: {},
+    iouType: '',
+    report: {},
     transaction: {},
     mapboxAccessToken: {},
 };
 
-function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
+function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken}) {
     const [shouldShowGradient, setShouldShowGradient] = useState(false);
     const [scrollContainerHeight, setScrollContainerHeight] = useState(0);
     const [scrollContentHeight, setScrollContentHeight] = useState(0);
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
 
+    const reportID = lodashGet(report, 'reportID', '');
     const waypoints = lodashGet(transaction, 'comment.waypoints', {});
     const numberOfWaypoints = _.size(waypoints);
 
     const lastWaypointIndex = numberOfWaypoints - 1;
     const isLoadingRoute = lodashGet(transaction, 'comment.isLoading', false);
-    const hasRouteError = Boolean(lodashGet(transaction, 'errorFields.route'));
+    const hasRouteError = lodashHas(transaction, 'errorFields.route');
     const previousWaypoints = usePrevious(waypoints);
     const haveWaypointsChanged = !_.isEqual(previousWaypoints, waypoints);
-    const shouldFetchRoute = haveWaypointsChanged && !isOffline && !isLoadingRoute && TransactionUtils.validateWaypoints(waypoints);
+    const doesRouteExist = lodashHas(transaction, 'routes.route0.geometry.coordinates');
+    const shouldFetchRoute = (!doesRouteExist || haveWaypointsChanged) && !isLoadingRoute && TransactionUtils.validateWaypoints(waypoints);
 
     const waypointMarkers = _.filter(
         _.map(waypoints, (waypoint, key) => {
-            if (!waypoint || waypoint.lng === undefined || waypoint.lat === undefined) {
+            if (!waypoint || !lodashHas(waypoint, 'lat') || !lodashHas(waypoint, 'lng')) {
                 return;
             }
 
@@ -93,8 +106,8 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
                 coordinate: [waypoint.lng, waypoint.lat],
                 markerComponent: () => (
                     <MarkerComponent
-                        width={20}
-                        height={20}
+                        width={CONST.MAP_MARKER_SIZE}
+                        height={CONST.MAP_MARKER_SIZE}
                         fill={theme.icon}
                     />
                 ),
@@ -113,12 +126,12 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
     }, []);
 
     useEffect(() => {
-        if (!transactionID || !_.isEmpty(waypoints)) {
+        if (!iou.transactionID || !_.isEmpty(waypoints)) {
             return;
         }
         // Create the initial start and stop waypoints
-        Transaction.createInitialWaypoints(transactionID);
-    }, [transactionID, waypoints]);
+        Transaction.createInitialWaypoints(iou.transactionID);
+    }, [iou.transactionID, waypoints]);
 
     const updateGradientVisibility = (event = {}) => {
         // If a waypoint extends past the bottom of the visible area show the gradient, else hide it.
@@ -126,14 +139,13 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
         setShouldShowGradient(visibleAreaEnd < scrollContentHeight);
     };
 
-    // Handle fetching the route when there are at least 2 waypoints
     useEffect(() => {
-        if (!shouldFetchRoute) {
+        if (isOffline || !shouldFetchRoute) {
             return;
         }
 
-        Transaction.getRoute(transactionID, waypoints);
-    }, [shouldFetchRoute, transactionID, waypoints]);
+        Transaction.getRoute(iou.transactionID, waypoints);
+    }, [shouldFetchRoute, iou.transactionID, waypoints, isOffline]);
 
     useEffect(updateGradientVisibility, [scrollContainerHeight, scrollContentHeight]);
 
@@ -168,7 +180,6 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
                             <MenuItemWithTopDescription
                                 description={translate(descriptionKey)}
                                 title={lodashGet(waypoints, [`waypoint${index}`, 'address'], '')}
-                                icon={Expensicons.DragHandles}
                                 iconFill={theme.icon}
                                 secondaryIcon={waypointIcon}
                                 secondaryIconFill={theme.icon}
@@ -197,7 +208,7 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
                 <Button
                     small
                     icon={Expensicons.Plus}
-                    onPress={() => Transaction.addStop(transactionID)}
+                    onPress={() => Transaction.addStop(iou.transactionID)}
                     text={translate('distance.addStop')}
                     isDisabled={numberOfWaypoints === MAX_WAYPOINTS}
                     innerStyles={[styles.ph10]}
@@ -207,7 +218,7 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
                 {!isOffline && Boolean(mapboxAccessToken.token) ? (
                     <MapView
                         accessToken={mapboxAccessToken.token}
-                        mapPadding={MAP_PADDING}
+                        mapPadding={CONST.MAP_PADDING}
                         pitchEnabled={false}
                         initialState={{
                             location: CONST.SF_COORDINATES,
@@ -230,6 +241,14 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
                     </View>
                 )}
             </View>
+            <Button
+                success
+                style={[styles.w100, styles.mb4, styles.ph4, styles.flexShrink0]}
+                onPress={() => IOU.navigateToNextPage(iou, iouType, reportID, report)}
+                pressOnEnter
+                isDisabled={waypointMarkers.length < 2}
+                text={translate('common.next')}
+            />
         </>
     );
 }
@@ -239,7 +258,7 @@ DistanceRequest.propTypes = propTypes;
 DistanceRequest.defaultProps = defaultProps;
 export default withOnyx({
     transaction: {
-        key: (props) => `${ONYXKEYS.COLLECTION.TRANSACTION}${props.transactionID}`,
+        key: (props) => `${ONYXKEYS.COLLECTION.TRANSACTION}${props.iou.transactionID}`,
     },
     mapboxAccessToken: {
         key: ONYXKEYS.MAPBOX_ACCESS_TOKEN,

@@ -186,7 +186,7 @@ function ReportPreview(props) {
                     <View style={styles.reportPreviewBoxBody}>
                         <View style={styles.flexRow}>
                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh16]}>{getPreviewMessage()}</Text>
+                                <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh20]}>{getPreviewMessage()}</Text>
                             </View>
                             <Icon
                                 fill={StyleUtils.getIconFillColor(getButtonState(props.isHovered))}
@@ -209,7 +209,7 @@ function ReportPreview(props) {
                         {hasReceipts && !isScanning && (
                             <View style={styles.flexRow}>
                                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                    <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh16]}>{previewSubtitle || moneyRequestComment}</Text>
+                                    <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh20]}>{previewSubtitle || moneyRequestComment}</Text>
                                 </View>
                             </View>
                         )}
