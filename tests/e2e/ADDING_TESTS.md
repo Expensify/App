@@ -99,3 +99,8 @@ Done! When you now start the test runner, your new test will be executed as well
 To check your new test you can simply run `npm run test:e2e`, which uses the
 `--development` flag. This will run the tests on the branch you are currently on, runs fewer iterations and most importantly, it tries to reuse the existing APK and just patch into the new app bundle, instead of rebuilding the release app from scratch.
 
+## Debugging your test
+
+You can use regular console statements to debug your test. The output will be visible
+in logcat. I recommend opening the android studio logcat window and filter for `ReactNativeJS` to see the output you'd otherwise typically see in your metro bundler instance.
+
