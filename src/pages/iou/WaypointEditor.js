@@ -107,7 +107,7 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
 
         // If the user is online and they are trying to save a value without using the autocomplete, show an error message instructing them to use a selected address instead.
         // That enables us to save the address with coordinates when it is selected
-        if (!isOffline && waypointValue !== '') {
+        if (!isOffline && waypointValue !== '' && waypointAddress !== waypointValue) {
             errors[`waypoint${waypointIndex}`] = 'distance.errors.selectSuggestedAddress';
         }
 
@@ -126,6 +126,8 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
         // Therefore, we're going to save the waypoint as just the address, and the lat/long will be filled in on the backend
         if (isOffline && waypointValue) {
             const waypoint = {
+                lat: null,
+                lng: null,
                 address: waypointValue,
             };
 

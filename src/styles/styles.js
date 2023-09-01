@@ -1114,6 +1114,12 @@ const styles = {
         color: themeColors.textSupporting,
     },
 
+    textLabelError: {
+        fontFamily: fontFamily.EXP_NEUE,
+        fontSize: variables.fontSizeLabel,
+        color: themeColors.textError,
+    },
+
     textReceiptUpload: {
         ...headlineFont,
         fontSize: variables.fontSizeXLarge,
@@ -3872,6 +3878,11 @@ const styles = {
         flex: 1,
         borderRadius: 20,
         overflow: 'hidden',
+    },
+
+    confirmationListMapItem: {
+        ...spacing.m5,
+        height: 200,
     },
 
     mapDirection: {

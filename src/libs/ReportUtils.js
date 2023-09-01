@@ -820,6 +820,18 @@ function hasAutomatedExpensifyAccountIDs(accountIDs) {
 }
 
 /**
+ * @param {Object} report
+ * @param {Number} currentLoginAccountID
+ * @returns {Array}
+ */
+function getReportRecipientAccountIDs(report, currentLoginAccountID) {
+    const participantAccountIDs = isTaskReport(report) ? [report.managerID] : lodashGet(report, 'participantAccountIDs');
+    const reportParticipants = _.without(participantAccountIDs, currentLoginAccountID);
+    const participantsWithoutExpensifyAccountIDs = _.difference(reportParticipants, CONST.EXPENSIFY_ACCOUNT_IDS);
+    return participantsWithoutExpensifyAccountIDs;
+}
+
+/**
  * Whether the time row should be shown for a report.
  * @param {Array<Object>} personalDetails
  * @param {Object} report
@@ -827,10 +839,9 @@ function hasAutomatedExpensifyAccountIDs(accountIDs) {
  * @return {Boolean}
  */
 function canShowReportRecipientLocalTime(personalDetails, report, accountID) {
-    const reportParticipants = _.without(lodashGet(report, 'participantAccountIDs', []), accountID);
-    const participantsWithoutExpensifyAccountIDs = _.difference(reportParticipants, CONST.EXPENSIFY_ACCOUNT_IDS);
-    const hasMultipleParticipants = participantsWithoutExpensifyAccountIDs.length > 1;
-    const reportRecipient = personalDetails[participantsWithoutExpensifyAccountIDs[0]];
+    const reportRecipientAccountIDs = getReportRecipientAccountIDs(report, accountID);
+    const hasMultipleParticipants = reportRecipientAccountIDs.length > 1;
+    const reportRecipient = personalDetails[reportRecipientAccountIDs[0]];
     const reportRecipientTimezone = lodashGet(reportRecipient, 'timezone', CONST.DEFAULT_TIME_ZONE);
     const isReportParticipantValidated = lodashGet(reportRecipient, 'validated', false);
     return Boolean(
@@ -1427,6 +1438,17 @@ function areAllRequestsBeingSmartScanned(iouReportID, reportPreviewAction) {
 }
 
 /**
+ * Check if any of the transactions in the report has required missing fields
+ *
+ * @param {Object|null} iouReportID
+ * @returns {Boolean}
+ */
+function hasMissingSmartscanFields(iouReportID) {
+    const transactionsWithReceipts = getTransactionsWithReceipts(iouReportID);
+    return _.some(transactionsWithReceipts, (transaction) => TransactionUtils.hasMissingSmartscanFields(transaction));
+}
+
+/**
  * Given a parent IOU report action get report name for the LHN.
  *
  * @param {Object} reportAction
@@ -1698,7 +1720,7 @@ function getReportName(report, policy = undefined) {
  * @returns {Object}
  */
 function getRootReportAndWorkspaceName(report) {
-    if (isChildReport(report) && !isMoneyRequestReport(report)) {
+    if (isChildReport(report) && !isMoneyRequestReport(report) && !isTaskReport(report)) {
         const parentReport = lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`]);
         return getRootReportAndWorkspaceName(parentReport);
     }
@@ -3658,6 +3680,7 @@ export {
     shouldDisableSettings,
     shouldDisableRename,
     hasSingleParticipant,
+    getReportRecipientAccountIDs,
     isOneOnOneChat,
     getTransactionReportName,
     getTransactionDetails,
@@ -3669,4 +3692,5 @@ export {
     getTransactionsWithReceipts,
     getSortedTransactionsWithReceipts,
     getSortedMoneyRequestActions,
+    hasMissingSmartscanFields,
 };
