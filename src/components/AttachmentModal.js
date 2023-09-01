@@ -363,6 +363,7 @@ function AttachmentModal(props) {
                             onSelected: () => downloadAttachment(source),
                         },
                     ]}
+                    shouldOverlay
                 />
                 <View style={styles.imageModalImageCenterContainer}>
                     {!_.isEmpty(props.report) ? (
