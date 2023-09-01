@@ -91,4 +91,3 @@ Continue the connections by using Expensify Chat to keep your conference communi
 
 ## Conclusion
 Once you have completed the above steps you are ready to host your conference on Expensify Chat! Let your account manager know any questions you have over in your [new.expensify.com](https://new.expensify.com) #admins room and start driving activity in your Expensify Chat rooms. Once you’ve reviewed this doc you should have the foundations in place, so a great next step is to start training your speakers on how to use Expensify Chat for their sessions. Coordinate with your account manager to make sure everything goes smoothly!
-
