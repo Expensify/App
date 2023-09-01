@@ -1,4 +1,6 @@
-type FraudState = 'none' | 'domain' | 'individual';
+import {ValueOf} from 'type-fest';
+import CONST from '../../CONST';
+
 type State =
 3 /* OPEN */ |
 4 /* NOT_ACTIVATED */ |
@@ -7,16 +9,16 @@ type State =
 7 /* STATE_SUSPENDED */;
 
 type Card = {
-    cardID: number,
-    isVirtual: boolean,
-    domainName: string,
-    cardholderFirstName: string,
-    cardholderLastName: string,
-    fraud: FraudState,
-    bank: string,
+    cardID: number;
     state: State,
-    availableSpend: number,
-    maskedPan: string,
+    bank: string;
+    availableSpend: number;
+    domainName: string;
+    maskedPan: string;
+    isVirtual: boolean;
+    fraud: ValueOf<typeof CONST.EXPENSIFY_CARD.FRAUD_TYPES>;
+    cardholderFirstName: string;
+    cardholderLastName: string;
 };
 
 export default Card;
