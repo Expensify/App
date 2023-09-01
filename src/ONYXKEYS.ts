@@ -77,6 +77,9 @@ const ONYXKEYS = {
      * It is expected to provide a two-letter country code such as US for United States, and so on. */
     COUNTRY: 'country',
 
+    /** Represents current user's location error code, this error code comes from the geolocation api */
+    LOCATION_ERROR_CODE: 'locationErrorCode',
+
     /** Contains all the users settings for the Settings page and sub pages */
     USER: 'user',
 
@@ -142,11 +145,11 @@ const ONYXKEYS = {
     /** The user's bank accounts */
     BANK_ACCOUNT_LIST: 'bankAccountList',
 
-    /** The user's credit cards (renamed from cardList) */
+    /** The user's payment and P2P cards */
     FUND_LIST: 'fundList',
 
-    // The user's Expensify cards
-    CORPORATE_CARD_LIST: 'corporateCardList',
+    /** The user's cash card and imported cards (including the Expensify Card) */
+    CARD_LIST: 'cardList',
 
     /** Stores information about the user's saved statements */
     WALLET_STATEMENT: 'walletStatement',
@@ -227,6 +230,15 @@ const ONYXKEYS = {
     // Information on any active demos being run
     DEMO_INFO: 'demoInfo',
 
+    // Max area supported for HTML <canvas> element
+    MAX_CANVAS_AREA: 'maxCanvasArea',
+
+    // Max height supported for HTML <canvas> element
+    MAX_CANVAS_HEIGHT: 'maxCanvasHeight',
+
+    // Max width supported for HTML <canvas> element
+    MAX_CANVAS_WIDTH: 'maxCanvasWidth',
+
     /** Collection Keys */
     COLLECTION: {
         DOWNLOAD: 'download_',
@@ -278,6 +290,8 @@ const ONYXKEYS = {
         SETTINGS_STATUS_SET_FORM: 'settingsStatusSetForm',
         SETTINGS_STATUS_CLEAR_AFTER_FORM: 'settingsStatusClearAfterForm',
         SETTINGS_STATUS_SET_CLEAR_AFTER_FORM: 'settingsStatusSetClearAfterForm',
+        I_KNOW_A_TEACHER_FORM: 'iKnowTeacherForm',
+        INTRO_SCHOOL_PRINCIPAL_FORM: 'introSchoolPrincipalForm',
     },
 } as const;
 
@@ -309,6 +323,7 @@ type OnyxValues = {
     [ONYXKEYS.SCREEN_SHARE_REQUEST]: OnyxTypes.ScreenShareRequest;
     [ONYXKEYS.COUNTRY_CODE]: number;
     [ONYXKEYS.COUNTRY]: string;
+    [ONYXKEYS.LOCATION_ERROR_CODE]: number;
     [ONYXKEYS.USER]: OnyxTypes.User;
     [ONYXKEYS.LOGIN_LIST]: OnyxTypes.Login;
     [ONYXKEYS.SESSION]: OnyxTypes.Session;
@@ -330,7 +345,8 @@ type OnyxValues = {
     [ONYXKEYS.WALLET_ADDITIONAL_DETAILS]: OnyxTypes.WalletAdditionalDetails;
     [ONYXKEYS.WALLET_TERMS]: OnyxTypes.WalletTerms;
     [ONYXKEYS.BANK_ACCOUNT_LIST]: Record<string, OnyxTypes.BankAccount>;
-    [ONYXKEYS.FUND_LIST]: Record<string, OnyxTypes.Card>;
+    [ONYXKEYS.FUND_LIST]: Record<string, OnyxTypes.Fund>;
+    [ONYXKEYS.CARD_LIST]: Record<string, OnyxTypes.Card>;
     [ONYXKEYS.WALLET_STATEMENT]: OnyxTypes.WalletStatement;
     [ONYXKEYS.PERSONAL_BANK_ACCOUNT]: OnyxTypes.PersonalBankAccount;
     [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: OnyxTypes.ReimbursementAccount;
@@ -356,6 +372,9 @@ type OnyxValues = {
     [ONYXKEYS.MAPBOX_ACCESS_TOKEN]: OnyxTypes.MapboxAccessToken;
     [ONYXKEYS.ONYX_UPDATES_FROM_SERVER]: number;
     [ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT]: number;
+    [ONYXKEYS.MAX_CANVAS_AREA]: number;
+    [ONYXKEYS.MAX_CANVAS_HEIGHT]: number;
+    [ONYXKEYS.MAX_CANVAS_WIDTH]: number;
 
     // Collections
     [ONYXKEYS.COLLECTION.DOWNLOAD]: OnyxTypes.Download;

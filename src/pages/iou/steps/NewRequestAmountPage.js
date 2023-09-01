@@ -10,9 +10,7 @@ import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import * as CurrencyUtils from '../../../libs/CurrencyUtils';
-import CONST from '../../../CONST';
 import reportPropTypes from '../../reportPropTypes';
-import participantPropTypes from '../../../components/participantPropTypes';
 import * as IOU from '../../../libs/actions/IOU';
 import useLocalize from '../../../hooks/useLocalize';
 import MoneyRequestAmountForm from './MoneyRequestAmountForm';
@@ -21,6 +19,7 @@ import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotF
 import styles from '../../../styles/styles';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import ScreenWrapper from '../../../components/ScreenWrapper';
+import {iouPropTypes, iouDefaultProps} from '../propTypes';
 
 const propTypes = {
     /** React Navigation route */
@@ -42,33 +41,12 @@ const propTypes = {
     report: reportPropTypes,
 
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
-    iou: PropTypes.shape({
-        /** ID (iouType + reportID) of the request */
-        id: PropTypes.string,
-
-        /** Amount of the request */
-        amount: PropTypes.number,
-
-        /** Currency of the request */
-        currency: PropTypes.string,
-        merchant: PropTypes.string,
-        created: PropTypes.string,
-
-        /** List of the participants */
-        participants: PropTypes.arrayOf(participantPropTypes),
-    }),
+    iou: iouPropTypes,
 };
 
 const defaultProps = {
     report: {},
-    iou: {
-        id: '',
-        amount: 0,
-        created: '',
-        merchant: '',
-        currency: CONST.CURRENCY.USD,
-        participants: [],
-    },
+    iou: iouDefaultProps,
 };
 
 function NewRequestAmountPage({route, iou, report}) {
