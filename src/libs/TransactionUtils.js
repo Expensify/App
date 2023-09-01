@@ -248,7 +248,7 @@ function isReceiptBeingScanned(transaction) {
  * @returns {Boolean}
  */
 function hasMissingSmartscanFields(transaction) {
-    return hasReceipt(transaction) && !isReceiptBeingScanned(transaction) && !areRequiredFieldsPopulated(transaction);
+    return hasReceipt(transaction) && !isReceiptBeingScanned(transaction) && !areModifiedFieldsPopulated(transaction);
 }
 
 /**

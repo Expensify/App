@@ -120,12 +120,15 @@ function ReportPreview(props) {
     const lastThreeTransactionsWithReceipts = ReportUtils.getReportPreviewDisplayTransactions(props.action);
 
     const hasOnlyOneReceiptRequest = numberOfRequests === 1 && hasReceipts;
-    const previewSubtitle = hasOnlyOneReceiptRequest
-        ? transactionsWithReceipts[0].merchant
-        : props.translate('iou.requestCount', {
-              count: numberOfRequests,
-              scanningReceipts: numberOfScanningReceipts,
-          });
+    let previewSubtitle = '';
+    if (hasOnlyOneReceiptRequest) {
+        previewSubtitle = transactionsWithReceipts[0].modifiedMerchant || transactionsWithReceipts[0].merchant;
+    } else {
+        previewSubtitle = props.translate('iou.requestCount', {
+            count: numberOfRequests,
+            scanningReceipts: numberOfScanningReceipts,
+        });
+    }
 
     const getDisplayAmount = () => {
         if (reportTotal) {
