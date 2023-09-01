@@ -44,6 +44,9 @@ const propTypes = {
     /** Override the green headline copy */
     customHeadline: PropTypes.string,
 
+    /** Override the smaller hero body copy below the headline */
+    customHeroBody: PropTypes.string,
+
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
 };
@@ -51,6 +54,7 @@ const propTypes = {
 const defaultProps = {
     innerRef: () => {},
     customHeadline: '',
+    customHeroBody: '',
 };
 
 function SignInPageLayout(props) {
@@ -91,14 +95,20 @@ function SignInPageLayout(props) {
         <View style={containerStyles}>
             {!shouldShowSmallScreen ? (
                 <View style={contentContainerStyles}>
-                    <SignInPageContent
-                        welcomeHeader={props.welcomeHeader}
-                        welcomeText={props.welcomeText}
-                        shouldShowWelcomeText={props.shouldShowWelcomeText}
-                        shouldShowWelcomeHeader={props.shouldShowWelcomeHeader}
+                    <ScrollView
+                        keyboardShouldPersistTaps="handled"
+                        style={[styles.signInPageLeftContainerWide, styles.flex1]}
+                        contentContainerStyle={[styles.flex1]}
                     >
-                        {props.children}
-                    </SignInPageContent>
+                        <SignInPageContent
+                            welcomeHeader={props.welcomeHeader}
+                            welcomeText={props.welcomeText}
+                            shouldShowWelcomeText={props.shouldShowWelcomeText}
+                            shouldShowWelcomeHeader={props.shouldShowWelcomeHeader}
+                        >
+                            {props.children}
+                        </SignInPageContent>
+                    </ScrollView>
                     <ScrollView
                         style={[styles.flex1, StyleUtils.getBackgroundColorStyle(themeColors.signInPage)]}
                         contentContainerStyle={[styles.flex1]}
@@ -127,7 +137,10 @@ function SignInPageLayout(props) {
                                         props.isLargeScreenWidth ? styles.ph25 : {},
                                     ]}
                                 >
-                                    <SignInPageHero customHeadline={props.customHeadline} />
+                                    <SignInPageHero
+                                        customHeadline={props.customHeadline}
+                                        customHeroBody={props.customHeroBody}
+                                    />
                                     <Footer scrollPageToTop={scrollPageToTop} />
                                 </View>
                             </View>

@@ -834,6 +834,17 @@ function getMinimumHeight(minHeight) {
 }
 
 /**
+ * Get maximum height as style
+ * @param {Number} maxHeight
+ * @returns {Object}
+ */
+function getMaximumHeight(maxHeight) {
+    return {
+        maxHeight,
+    };
+}
+
+/**
  * Get maximum width as style
  * @param {Number} maxWidth
  * @returns {Object}
@@ -1370,6 +1381,7 @@ export {
     hasSafeAreas,
     getHeight,
     getMinimumHeight,
+    getMaximumHeight,
     getMaximumWidth,
     fade,
     getHorizontalStackedAvatarBorderStyle,

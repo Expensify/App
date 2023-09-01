@@ -153,11 +153,23 @@ export default {
         someone: 'Someone',
         total: 'Total',
         edit: 'Edit',
+        letsDoThis: `Let's do this!`,
+        letsStart: `Let's start`,
         showMore: 'Show more',
         merchant: 'Merchant',
         category: 'Category',
         receipt: 'Receipt',
         replace: 'Replace',
+        distance: 'Distance',
+        recent: 'Recent',
+        all: 'All',
+    },
+    location: {
+        useCurrent: 'Use current location',
+        notFound: 'We were unable to find your location, please try again or enter an address manually',
+        permissionDenied: 'It looks like you have denied permission to your location.',
+        allowPermission: 'allow location permission in settings',
+        tryAgain: 'and then try again.',
     },
     anonymousReportFooter: {
         logoTagline: 'Join the discussion.',
@@ -371,11 +383,11 @@ export default {
         draftedMessage: 'Drafted message',
         listOfChatMessages: 'List of chat messages',
         listOfChats: 'List of chats',
+        saveTheWorld: 'Save the world',
     },
     tabSelector: {
         manual: 'Manual',
         scan: 'Scan',
-        distance: 'Distance',
     },
     receipt: {
         upload: 'Upload receipt',
@@ -396,6 +408,8 @@ export default {
     },
     iou: {
         amount: 'Amount',
+        approve: 'Approve',
+        approved: 'Approved',
         cash: 'Cash',
         split: 'Split',
         request: 'Request',
@@ -426,6 +440,7 @@ export default {
         payerOwes: ({payer}) => `${payer} owes: `,
         payerPaidAmount: ({payer, amount}) => `${payer} paid ${amount}`,
         payerPaid: ({payer}) => `${payer} paid: `,
+        managerApproved: ({manager}) => `${manager} approved:`,
         payerSettled: ({amount}) => `paid ${amount}`,
         waitingOnBankAccount: ({submitterDisplayName}) => `started settling up, payment is held until ${submitterDisplayName} adds a bank account`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}) => `${submitterDisplayName} added a bank account. The ${amount} payment has been made.`,
@@ -510,14 +525,14 @@ export default {
         failedNewContact: 'Failed to add this contact method.',
         genericFailureMessages: {
             requestContactMethodValidateCode: 'Failed to send a new magic code. Please wait a bit and try again.',
-            validateSecondaryLogin: 'Failed to validate contact method with given magic code. Please request a new code and try again.',
+            validateSecondaryLogin: 'Incorrect or invalid magic code. Please try again or request a new code.',
             deleteContactMethod: 'Failed to delete contact method. Please reach out to Concierge for help.',
             setDefaultContactMethod: 'Failed to set a new default contact method. Please reach out to Concierge for help.',
             addContactMethod: 'Failed to add this contact method. Please reach out to Concierge for help.',
             enteredMethodIsAlreadySubmited: 'The Entered Contact Method already exists.',
             passwordRequired: 'password required.',
             contactMethodRequired: 'Contact method is required.',
-            invalidContactMethod: 'Invalid contact method.',
+            invalidContactMethod: 'Invalid contact method',
         },
         newContactMethod: 'New contact method',
     },
@@ -1610,10 +1625,34 @@ export default {
         levelTwoResult: 'Message hidden from channel, plus anonymous warning and message is reported for review.',
         levelThreeResult: 'Message removed from channel plus anonymous warning and message is reported for review.',
     },
+    teachersUnitePage: {
+        teachersUnite: 'Teachers unite!',
+        joinExpensifyOrg: 'Join Expensify.org in eliminating injustice around the world and help teachers split their expenses for classrooms in need!',
+        iKnowATeacher: 'I know a teacher',
+        iAmATeacher: 'I am a teacher',
+        getInTouch: 'Excellent! Please share their information so we can get in touch with them.',
+        introSchoolPrincipal: 'Intro to your school principal',
+        schoolPrincipalVerfiyExpense:
+            'Expensify.org splits the cost of essential school supplies so that students from low-income households can have a better learning experience. Your principal will be asked to verify your expenses.',
+        principalFirstName: 'Principal first name',
+        principalLastName: 'Principal last name',
+        principalWorkEmail: 'Principal work email',
+        updateYourEmail: 'Update your email address',
+        updateEmail: 'Update email address',
+        contactMethods: 'Contact methods.',
+        schoolMailAsDefault: 'Before you move forward, please make sure to set your school email as your default contact method. You can do so in Settings > Profile > ',
+        error: {
+            enterPhoneEmail: 'Enter a valid email or phone number',
+            enterEmail: 'Enter an email',
+            enterValidEmail: 'Enter a valid email',
+            tryDifferentEmail: 'Please try a different email',
+        },
+    },
     distance: {
         addStop: 'Add stop',
+        deleteWaypoint: 'Delete waypoint',
+        deleteWaypointConfirmation: 'Are you sure you want to delete this waypoint?',
         address: 'Address',
-        waypointEditor: 'Waypoint Editor',
         waypointDescription: {
             start: 'Start',
             finish: 'Finish',
@@ -1625,7 +1664,7 @@ export default {
             onlineSubtitle: 'One moment while we set up the map',
         },
         errors: {
-            selectSuggestedAddress: 'Please select a suggested address',
+            selectSuggestedAddress: 'Please select a suggested address or use current location',
         },
     },
     countrySelectorModal: {
@@ -1637,9 +1676,11 @@ export default {
     demos: {
         saastr: {
             signInWelcome: 'Welcome to SaaStr! Hop in to start networking now.',
+            heroBody: 'Use New Expensify for event updates, networking, social chatter, and to get paid back for lunch!',
         },
         sbe: {
             signInWelcome: 'Welcome to Small Business Expo! Get paid back for your ride.',
+            heroBody: 'Use New Expensify for event updates, networking, social chatter, and to get paid back for your ride to or from the show!',
         },
     },
 };

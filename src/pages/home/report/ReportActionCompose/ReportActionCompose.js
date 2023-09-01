@@ -178,12 +178,19 @@ function ReportActionCompose({
         return translate('reportActionCompose.writeSomething');
     }, [report, blockedFromConcierge, translate, conciergePlaceholderRandomIndex]);
 
+    const focus = () => {
+        if (composerRef === null || composerRef.current === null) {
+            return;
+        }
+        composerRef.current.focus(true);
+    };
+
     const isKeyboardVisibleWhenShowingModalRef = useRef(false);
     const restoreKeyboardState = useCallback(() => {
         if (!isKeyboardVisibleWhenShowingModalRef.current) {
             return;
         }
-        composerRef.current.focus(true);
+        focus();
         isKeyboardVisibleWhenShowingModalRef.current = false;
     }, []);
 
@@ -403,7 +410,7 @@ function ReportActionCompose({
                     {DeviceCapabilities.canUseTouchScreen() && isMediumScreenWidth ? null : (
                         <EmojiPickerButton
                             isDisabled={isBlockedFromConcierge || disabled}
-                            onModalHide={() => composerRef.current.focus(true)}
+                            onModalHide={focus}
                             onEmojiSelected={(...args) => composerRef.current.replaceSelectionWithText(...args)}
                             emojiPickerID={report.reportID}
                         />

@@ -166,6 +166,8 @@ function DebitCardPage(props) {
                         label={translate('addDebitCardPage.billingAddress')}
                         containerStyles={[styles.mt4]}
                         maxInputLength={CONST.FORM_CHARACTER_LIMIT}
+                        // Limit the address search only to the USA until we fully can support international debit cards
+                        isLimitedToUSA
                     />
                 </View>
                 <TextInput

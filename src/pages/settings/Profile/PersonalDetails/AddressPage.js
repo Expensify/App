@@ -155,7 +155,6 @@ function AddressPage({privatePersonalDetails, country}) {
                         inputID="addressLine1"
                         label={translate('common.addressLine', {lineNumber: 1})}
                         defaultValue={street1 || ''}
-                        isLimitedToUSA={false}
                         onValueChange={handleAddressChange}
                         renamedInputKeys={{
                             street: 'addressLine1',

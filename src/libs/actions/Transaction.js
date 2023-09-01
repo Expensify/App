@@ -1,9 +1,16 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import lodashHas from 'lodash/has';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as CollectionUtils from '../CollectionUtils';
 import * as API from '../API';
+
+let recentWaypoints = [];
+Onyx.connect({
+    key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
+    callback: (val) => (recentWaypoints = val || []),
+});
 
 const allTransactions = {};
 Onyx.connect({
@@ -87,6 +94,20 @@ function saveWaypoint(transactionID, index, waypoint) {
             },
         },
     });
+
+    // You can save offline waypoints without verifying the address (we will geocode it on the backend)
+    // We're going to prevent saving those addresses in the recent waypoints though since they could be invalid addresses
+    // However, in the backend once we verify the address, we will save the waypoint in the recent waypoints NVP
+    if (!lodashHas(waypoint, 'lat') || !lodashHas(waypoint, 'lng')) {
+        return;
+    }
+
+    const recentWaypointAlreadyExists = _.find(recentWaypoints, (recentWaypoint) => recentWaypoint.address === waypoint.address);
+    if (!recentWaypointAlreadyExists) {
+        const clonedWaypoints = _.clone(recentWaypoints);
+        clonedWaypoints.unshift(waypoint);
+        Onyx.merge(ONYXKEYS.NVP_RECENT_WAYPOINTS, clonedWaypoints.slice(0, 5));
+    }
 }
 
 function removeWaypoint(transactionID, currentIndex) {

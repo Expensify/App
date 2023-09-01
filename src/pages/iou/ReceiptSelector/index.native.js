@@ -5,7 +5,6 @@ import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import {launchImageLibrary} from 'react-native-image-picker';
 import {withOnyx} from 'react-native-onyx';
-import {useIsFocused} from '@react-navigation/native';
 import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
 import Icon from '../../../components/Icon';
 import * as Expensicons from '../../../components/Icon/Expensicons';
@@ -20,7 +19,8 @@ import Button from '../../../components/Button';
 import useLocalize from '../../../hooks/useLocalize';
 import ONYXKEYS from '../../../ONYXKEYS';
 import Log from '../../../libs/Log';
-import participantPropTypes from '../../../components/participantPropTypes';
+import {iouPropTypes, iouDefaultProps} from '../propTypes';
+import NavigationAwareCamera from './NavigationAwareCamera';
 
 const propTypes = {
     /** React Navigation route */
@@ -39,33 +39,12 @@ const propTypes = {
     report: reportPropTypes,
 
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
-    iou: PropTypes.shape({
-        /** ID (iouType + reportID) of the request */
-        id: PropTypes.string,
-
-        /** Amount of the request */
-        amount: PropTypes.number,
-
-        /** Description of the request */
-        comment: PropTypes.string,
-        created: PropTypes.string,
-        merchant: PropTypes.string,
-
-        /** List of the participants */
-        participants: PropTypes.arrayOf(participantPropTypes),
-    }),
+    iou: iouPropTypes,
 };
 
 const defaultProps = {
     report: {},
-    iou: {
-        id: '',
-        amount: 0,
-        merchant: '',
-        created: '',
-        currency: CONST.CURRENCY.USD,
-        participants: [],
-    },
+    iou: iouDefaultProps,
 };
 
 /**
@@ -94,7 +73,7 @@ function getImagePickerOptions(type) {
 }
 
 function ReceiptSelector(props) {
-    const devices = useCameraDevices();
+    const devices = useCameraDevices('wide-angle-camera');
     const device = devices.back;
 
     const camera = useRef(null);
@@ -104,10 +83,9 @@ function ReceiptSelector(props) {
 
     const iouType = lodashGet(props.route, 'params.iouType', '');
     const reportID = lodashGet(props.route, 'params.reportID', '');
+    const pageIndex = lodashGet(props.route, 'params.pageIndex', 1);
 
     const {translate} = useLocalize();
-    // Keep track of whether the camera is visible, when we navigate elsewhere, turn off the camera
-    const isFocused = useIsFocused();
 
     // We want to listen to if the app has come back from background and refresh the permissions status to show camera when permissions were granted
     useEffect(() => {
@@ -214,8 +192,9 @@ function ReceiptSelector(props) {
                 IOU.setMoneyRequestReceipt(`file://${photo.path}`, photo.path);
                 IOU.navigateToNextPage(props.iou, iouType, reportID, props.report);
             })
-            .catch(() => {
+            .catch((error) => {
                 showCameraAlert();
+                Log.warn('Error taking photo', error);
             });
     }, [flash, iouType, props.iou, props.report, reportID, translate]);
 
@@ -258,13 +237,13 @@ function ReceiptSelector(props) {
                 </View>
             )}
             {permissions === CONST.RECEIPT.PERMISSION_AUTHORIZED && device != null && (
-                <Camera
+                <NavigationAwareCamera
                     ref={camera}
                     device={device}
                     style={[styles.cameraView]}
                     zoom={device.neutralZoom}
-                    isActive={isFocused}
                     photo
+                    cameraTabIndex={pageIndex}
                 />
             )}
             <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>

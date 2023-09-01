@@ -19,7 +19,6 @@ import DistanceRequestPage from './DistanceRequestPage';
 import DragAndDropProvider from '../../components/DragAndDrop/Provider';
 import usePermissions from '../../hooks/usePermissions';
 import OnyxTabNavigator, {TopTab} from '../../libs/Navigation/OnyxTabNavigator';
-import participantPropTypes from '../../components/participantPropTypes';
 import NewRequestAmountPage from './steps/NewRequestAmountPage';
 
 const propTypes = {
@@ -35,32 +34,11 @@ const propTypes = {
         }),
     }).isRequired,
 
-    /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
-    iou: PropTypes.shape({
-        /** ID (iouType + reportID) of the request */
-        id: PropTypes.string,
-
-        /** Amount of the request */
-        amount: PropTypes.number,
-
-        /** Currency of the request */
-        currency: PropTypes.string,
-
-        /** List of the participants */
-        participants: PropTypes.arrayOf(participantPropTypes),
-    }),
-
     /** Which tab has been selected */
     selectedTab: PropTypes.string,
 };
 
 const defaultProps = {
-    iou: {
-        id: '',
-        amount: 0,
-        currency: CONST.CURRENCY.USD,
-        participants: [],
-    },
     selectedTab: CONST.TAB.MANUAL,
 };
 
@@ -88,7 +66,7 @@ function MoneyRequestSelectorPage(props) {
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType)}>
-                    <DragAndDropProvider isDisabled={props.selectedTab === CONST.TAB.MANUAL}>
+                    <DragAndDropProvider isDisabled={props.selectedTab !== CONST.TAB.SCAN}>
                         <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                             <HeaderWithBackButton
                                 title={title[iouType]}
@@ -97,11 +75,12 @@ function MoneyRequestSelectorPage(props) {
                             {(canUseScanReceipts || canUseDistanceRequests) && iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST ? (
                                 <OnyxTabNavigator
                                     id={CONST.TAB.RECEIPT_TAB_ID}
-                                    tabBar={({state, navigation}) => (
+                                    tabBar={({state, navigation, position}) => (
                                         <TabSelector
                                             state={state}
                                             navigation={navigation}
                                             onTabPress={resetMoneyRequestInfo}
+                                            position={position}
                                         />
                                     )}
                                 >
@@ -114,7 +93,7 @@ function MoneyRequestSelectorPage(props) {
                                         <TopTab.Screen
                                             name={CONST.TAB.SCAN}
                                             component={ReceiptSelector}
-                                            initialParams={{reportID, iouType}}
+                                            initialParams={{reportID, iouType, pageIndex: 1}}
                                         />
                                     )}
                                     {canUseDistanceRequests && (
