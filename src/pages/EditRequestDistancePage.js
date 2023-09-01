@@ -22,6 +22,7 @@ const propTypes = {
 function EditRequestDistancePage({transactionID, report}) {
     useEffect(() => {
         IOU.setDistanceRequestTransactionID(transactionID);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const transaction = TransactionUtils.getTransaction(transactionID);
@@ -37,10 +38,6 @@ function EditRequestDistancePage({transactionID, report}) {
             Navigation.dismissModal();
         }
     }, [isTransactionLoading, amount]);
-
-    
-    
-
 
     const {translate} = useLocalize();
     return (

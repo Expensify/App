@@ -1961,7 +1961,6 @@ function setDistanceRequestTransactionID(transactionID) {
  * @param {Object} report
  */
 function navigateToNextPage(iou, iouType, reportID, report) {
-    console.log('>>>> navigate to next page', {iou, iouType, reportID, report});
     const moneyRequestID = `${iouType}${reportID}`;
     const shouldReset = iou.id !== moneyRequestID;
 
