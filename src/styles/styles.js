@@ -3886,8 +3886,13 @@ const styles = {
     },
 
     mapDirection: {
-        width: 7,
-        color: Colors.green,
+        lineColor: Colors.green,
+        lineWidth: 7,
+    },
+
+    mapDirectionLayer: {
+        layout: {'line-join': 'round', 'line-cap': 'round'},
+        paint: {'line-color': Colors.green, 'line-width': 7},
     },
 
     mapPendingView: {
