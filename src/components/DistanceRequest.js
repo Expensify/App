@@ -145,6 +145,7 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
         <ScreenWrapper
             shouldEnableMaxHeight
             includePaddingTop={false}
+            includeSafeAreaPaddingBottom={false}
         >
             <View
                 style={styles.distanceRequestContainer(scrollContainerMaxHeight)}
