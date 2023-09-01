@@ -32,6 +32,7 @@ import PressableWithFeedback from '../Pressable/PressableWithoutFeedback';
 import * as ReceiptUtils from '../../libs/ReceiptUtils';
 import ReportActionItemImages from './ReportActionItemImages';
 import transactionPropTypes from '../transactionPropTypes';
+import colors from '../../styles/colors';
 
 const propTypes = {
     /** The active IOUReport, used for Onyx subscription */
@@ -150,6 +151,7 @@ function MoneyRequestPreview(props) {
     const description = requestComment;
     const hasReceipt = TransactionUtils.hasReceipt(props.transaction);
     const isScanning = hasReceipt && TransactionUtils.isReceiptBeingScanned(props.transaction);
+    const hasFieldErrors = TransactionUtils.hasMissingSmartscanFields(props.transaction);
     const isDistanceRequest = TransactionUtils.isDistanceRequest(props.transaction);
     const shouldShowMerchant = !_.isEmpty(requestMerchant) && !props.isBillSplit && (hasReceipt || isDistanceRequest);
     const shouldShowDescription = !_.isEmpty(description) && !shouldShowMerchant;
@@ -226,18 +228,26 @@ function MoneyRequestPreview(props) {
                         />
                     )}
                     <View style={styles.moneyRequestPreviewBoxText}>
-                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                            <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh20]}>{getPreviewHeaderText()}</Text>
-                            {Boolean(getSettledMessage()) && (
-                                <>
-                                    <Icon
-                                        src={Expensicons.DotIndicator}
-                                        width={4}
-                                        height={4}
-                                        additionalStyles={[styles.mr1, styles.ml1]}
-                                    />
-                                    <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh20]}>{getSettledMessage()}</Text>
-                                </>
+                        <View style={[styles.flexRow]}>
+                            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                                <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh20]}>{getPreviewHeaderText()}</Text>
+                                {Boolean(getSettledMessage()) && (
+                                    <>
+                                        <Icon
+                                            src={Expensicons.DotIndicator}
+                                            width={4}
+                                            height={4}
+                                            additionalStyles={[styles.mr1, styles.ml1]}
+                                        />
+                                        <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh20]}>{getSettledMessage()}</Text>
+                                    </>
+                                )}
+                            </View>
+                            {hasFieldErrors && (
+                                <Icon
+                                    src={Expensicons.DotIndicator}
+                                    fill={colors.red}
+                                />
                             )}
                         </View>
                         <View style={[styles.flexRow]}>
