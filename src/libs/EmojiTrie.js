@@ -20,7 +20,7 @@ function createTrie(lang = CONST.LOCALES.DEFAULT) {
 
         const defaultName = item.name;
         const preferredLanguageName = _.get(langEmojis, [item.code, 'name'], defaultName);
-        
+
         // Add the actual name of the emoji for the current language
         const node = trie.search(preferredLanguageName);
         if (!node) {
@@ -28,9 +28,9 @@ function createTrie(lang = CONST.LOCALES.DEFAULT) {
         } else {
             trie.update(preferredLanguageName, {code: item.code, types: item.types, name: preferredLanguageName, suggestions: node.metaData.suggestions});
         }
-        
+
         // Add keywords of both the current language and the default language, in case current language isn't the default.
-        const keywords = _.get(langEmojis, [item.code, 'keywords'], []).concat(isDefaultLocale ? [] : _.get(localeEmojis, [CONST.LOCALES.DEFAULT, item.code, 'keywords'], []));;
+        const keywords = _.get(langEmojis, [item.code, 'keywords'], []).concat(isDefaultLocale ? [] : _.get(localeEmojis, [CONST.LOCALES.DEFAULT, item.code, 'keywords'], []));
         for (let j = 0; j < keywords.length; j++) {
             const keywordNode = trie.search(keywords[j]);
             if (!keywordNode) {
@@ -59,7 +59,6 @@ function createTrie(lang = CONST.LOCALES.DEFAULT) {
 
     return trie;
 }
-
 
 const emojiTrie = _.reduce(supportedLanguages, (prev, cur) => ({...prev, [cur]: createTrie(cur)}), {});
 
