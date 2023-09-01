@@ -30,7 +30,7 @@ const propTypes = {
     onIconPress: PropTypes.func,
 
     /** Outer styles that get passed down to Modal */
-    outerStyle: PropTypes.oneOfType([PropTypes.array, PropTypes.object]),
+    outerStyle: PropTypes.object,
 
     /** menuItems that'll show up on toggle of the popup menu */
     menuItems: ThreeDotsMenuItemPropTypes.isRequired,

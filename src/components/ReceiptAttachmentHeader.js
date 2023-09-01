@@ -14,9 +14,16 @@ import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 const propTypes = {
     /** The report currently being looked at */
     report: PropTypes.shape({
+        reportID: PropTypes.string.isRequired,
         parentReportID: PropTypes.string.isRequired,
         parentReportActionID: PropTypes.string.isRequired,
     }).isRequired,
+
+    /** Method to trigger when pressing back button of the header */
+    onBackButtonPress: PropTypes.func.isRequired,
+
+    /** Method to trigger when pressing close button of the header */
+    onCloseButtonPress: PropTypes.func.isRequired,
 
     ...windowDimensionsPropTypes,
 };

@@ -28,7 +28,7 @@ const propTypes = {
     anchorRef: refPropTypes,
 
     /** Outer style of popover that passes down to Modal */
-    outerStyle: PropTypes.oneOf([PropTypes.array, PropTypes.object]),
+    outerStyle: PropTypes.object,
 
     /** Where the popover should be positioned relative to the anchor points. */
     anchorAlignment: PropTypes.shape({
