@@ -170,6 +170,13 @@ export default {
         recent: 'Reciente',
         all: 'Todo',
     },
+    location: {
+        useCurrent: 'Usar ubicación actual',
+        notFound: 'No pudimos encontrar tu ubicación, inténtalo de nuevo o introduce una dirección manualmente.',
+        permissionDenied: 'Parece que has denegado el permiso a tu ubicación.',
+        allowPermission: 'habilita el permiso de ubicación en la configuración',
+        tryAgain: 'e inténtalo de nuevo.',
+    },
     anonymousReportFooter: {
         logoTagline: 'Únete a la discusión.',
     },

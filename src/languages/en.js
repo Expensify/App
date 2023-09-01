@@ -171,6 +171,13 @@ export default {
         recent: 'Recent',
         all: 'All',
     },
+    location: {
+        useCurrent: 'Use current location',
+        notFound: 'We were unable to find your location, please try again or enter an address manually',
+        permissionDenied: 'It looks like you have denied permission to your location.',
+        allowPermission: 'allow location permission in settings',
+        tryAgain: 'and then try again.',
+    },
     anonymousReportFooter: {
         logoTagline: 'Join the discussion.',
     },
