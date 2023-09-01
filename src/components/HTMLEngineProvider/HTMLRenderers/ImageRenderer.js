@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {memo} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import Navigation from '../../../libs/Navigation/Navigation';
 import htmlRendererPropTypes from './htmlRendererPropTypes';
@@ -12,6 +12,7 @@ import * as ReportUtils from '../../../libs/ReportUtils';
 import ROUTES from '../../../ROUTES';
 import ONYXKEYS from '../../../ONYXKEYS';
 import useLocalize from '../../../hooks/useLocalize';
+import lodashGet from 'lodash/get';
 
 const propTypes = {...htmlRendererPropTypes};
 
@@ -98,4 +99,11 @@ export default withOnyx({
     user: {
         key: ONYXKEYS.USER,
     },
-})(ImageRenderer);
+})(
+    memo(
+        ImageRenderer,
+        (prevProps, nextProps) =>
+            lodashGet(prevProps, 'tnode.attributes') === lodashGet(nextProps, 'tnode.attributes') &&
+            lodashGet(prevProps, 'user.shouldUseStagingServer') === lodashGet(nextProps, 'user.shouldUseStagingServer'),
+    ),
+);
