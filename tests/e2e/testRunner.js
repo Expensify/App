@@ -117,6 +117,7 @@ const runTestsOnBranch = async (baselineOrCompare, branch) => {
         const tempDir = `${config.OUTPUT_DIR}/temp`;
         const tempBundlePath = `${tempDir}/index.android.bundle`;
         await execAsync(`rm -rf ${tempDir} && mkdir ${tempDir}`);
+        // TODO: test if that breaks support for the env file
         await execAsync(`E2E_TESTING=true npx react-native bundle --platform android --dev false --entry-file ${config.ENTRY_FILE} --bundle-output ${tempBundlePath}`);
 
         // Repackage the existing native app with the new bundle
@@ -127,7 +128,7 @@ const runTestsOnBranch = async (baselineOrCompare, branch) => {
 
     // Install app and reverse port
     let progressLog = Logger.progressInfo('Installing app and reversing port');
-    await installApp('android', appPath);
+    await installApp('android', config.APP_PACKAGE, appPath);
     await reversePort();
     progressLog.done();
 

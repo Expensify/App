@@ -1,4 +1,6 @@
 module.exports = {
+    APP_PACKAGE: 'com.expensify.chat.dev',
+
     WARM_UP_RUNS: 1,
     RUNS: 8,
     APP_PATHS: {
