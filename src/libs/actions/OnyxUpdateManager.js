@@ -27,6 +27,7 @@ function applyHTTPSOnyxUpdates({request, responseData}) {
     console.debug('[OnyxUpdateManager] Applying https update');
     // For most requests we can immediately update Onyx. For write requests we queue the updates and apply them after the sequential queue has flushed to prevent a replay effect in
     // the UI. See https://github.com/Expensify/App/issues/12775 for more info.
+    // 2023-08-31 - 
     const updateHandler = request.data.apiRequestType === CONST.API_REQUEST_TYPE.WRITE ? QueuedOnyxUpdates.queueOnyxUpdates : Onyx.update;
 
     // First apply any onyx data updates that are being sent back from the API. We wait for this to complete and then
@@ -105,11 +106,6 @@ export default () => {
                 return;
             }
 
-            // Since people will have migrations hapening in their accounts while they use the app, we don't want to trigger
-            // a full ReconnectApp and then trigger a GetOnyxUpdates. Let's use this as a control variable until we enable
-            // the beta to all users.
-            let isUserGettingReliableUpdatesForTheVeryFirstTime = false;
-
             const {lastUpdateIDFromServer, previousUpdateIDFromServer, updateParams} = val;
 
             // This can happen when a user has just started getting reliable updates from the server but they haven't
@@ -120,16 +116,13 @@ export default () => {
                 !lastUpdateIDAppliedToClient &&
                 previousUpdateIDFromServer > 0 &&
                 (updateParams.type === CONST.ONYX_UPDATE_TYPES.PUSHER ||
-                    (updateParams.type === CONST.ONYX_UPDATE_TYPES.HTTPS && (updateParams.data.request.command !== 'OpenApp' || updateParams.data.request.command !== 'ReconnectApp')))
+                    (updateParams.type === CONST.ONYX_UPDATE_TYPES.HTTPS && updateParams.data.request.command !== 'OpenApp' && updateParams.data.request.command !== 'ReconnectApp'))
             ) {
                 console.debug('[OnyxUpdateManager] Client has not gotten reliable updates before so reconnecting the app to start the process');
-                App.reconnectApp();
-                isUserGettingReliableUpdatesForTheVeryFirstTime = true;
-            }
-
-            // If the previous update from the server does not match the last update the client got, then the client is missing some updates.
-            // getMissingOnyxUpdates will fetch updates starting from the last update this client got and going to the last update the server sent.
-            if (!isUserGettingReliableUpdatesForTheVeryFirstTime && previousUpdateIDFromServer && lastUpdateIDAppliedToClient < previousUpdateIDFromServer) {
+                App.lastReconnectAppAfterActivatingReliableUpdates().finally(() => {
+                    applyOnyxUpdates(updateParams);
+                });
+            } else if (previousUpdateIDFromServer && lastUpdateIDAppliedToClient < previousUpdateIDFromServer) {
                 console.debug(`[OnyxUpdateManager] Client is behind the server by ${previousUpdateIDFromServer - lastUpdateIDAppliedToClient} so fetching incremental updates`);
                 Log.info('Gap detected in update IDs from server so fetching incremental updates', true, {
                     lastUpdateIDFromServer,
