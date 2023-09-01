@@ -208,6 +208,49 @@ function reconnectApp(updateIDFrom = 0) {
 }
 
 /**
+ * Fetches data when the app will call reconnectApp without params for the last time. This is a separate function
+ * because it will follow patterns that are not recommended so we can be sure we're not putting the app in a unusable
+ * state because of race conditions between reconnectApp and other pusher updates being applied at the same time.
+ * @return {Promise}
+ */
+function lastReconnectAppAfterActivatingReliableUpdates() {
+    console.debug(`[OnyxUpdates] Executing last reconnect app with promise`);
+    return getPolicyParamsForOpenOrReconnect().then((policyParams) => {
+        const params = {...policyParams};
+
+        // When the app reconnects we do a fast "sync" of the LHN and only return chats that have new messages. We achieve this by sending the most recent reportActionID.
+        // we have locally. And then only update the user about chats with messages that have occurred after that reportActionID.
+        //
+        // - Look through the local report actions and reports to find the most recently modified report action or report.
+        // - We send this to the server so that it can compute which new chats the user needs to see and return only those as an optimization.
+        Timing.start(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION);
+        params.mostRecentReportActionLastModified = ReportActionsUtils.getMostRecentReportActionLastModified();
+        Timing.end(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION, '', 500);
+
+        // Include the update IDs when reconnecting so that the server can send incremental updates if they are available.
+        // Otherwise, a full set of app data will be returned.
+        if (updateIDFrom) {
+            params.updateIDFrom = updateIDFrom;
+        }
+        
+        // It is SUPER BAD FORM to return promises from action methods.
+        // DO NOT FOLLOW THIS PATTERN!!!!!
+        // It was absolutely necessary in order to not break the app while migrating to the new reliable updates pattern. This method will be removed
+        // as soon as we have everyone migrated to it
+        // eslint-disable-next-line rulesdir/no-api-side-effects-method
+        return API.makeRequestWithSideEffects(
+            'ReconnectApp',
+            {
+                updateIDFrom,
+                updateIDTo,
+            },
+            getOnyxDataForOpenOrReconnect(),
+        );
+    });
+
+}
+
+/**
  * Fetches data when the client has discovered it missed some Onyx updates from the server
  * @param {Number} [updateIDFrom] the ID of the Onyx update that we want to start fetching from
  * @param {Number} [updateIDTo] the ID of the Onyx update that we want to fetch up to
@@ -435,4 +478,5 @@ export {
     beginDeepLinkRedirectAfterTransition,
     createWorkspaceAndNavigateToIt,
     getMissingOnyxUpdates,
+    lastReconnectAppAfterActivatingReliableUpdates,
 };
