@@ -393,6 +393,8 @@ function getLastVisibleMessage(reportID, actionsToMerge = {}) {
     if (isReportMessageAttachment(message)) {
         return {
             lastMessageTranslationKey: CONST.TRANSLATION_KEYS.ATTACHMENT,
+            lastMessageText: CONST.TRANSLATION_KEYS.ATTACHMENT,
+            lastMessageHtml: CONST.TRANSLATION_KEYS.ATTACHMENT,
         };
     }
 
@@ -585,6 +587,20 @@ function isSplitBillAction(reportAction) {
 }
 
 /**
+ *
+ * @param {*} reportAction
+ * @returns {Boolean}
+ */
+function isTaskAction(reportAction) {
+    const reportActionName = lodashGet(reportAction, 'actionName', '');
+    return (
+        reportActionName === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED ||
+        reportActionName === CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED ||
+        reportActionName === CONST.REPORT.ACTIONS.TYPE.TASKREOPENED
+    );
+}
+
+/**
  * @param {*} reportID
  * @returns {[Object]}
  */
@@ -627,5 +643,6 @@ export {
     getReportAction,
     getNumberOfMoneyRequests,
     isSplitBillAction,
+    isTaskAction,
     getAllReportActions,
 };

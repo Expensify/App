@@ -25,7 +25,6 @@ export default {
         return `bank-account/${stepToOpen}?policyID=${policyID}${backToParam}`;
     },
     HOME: '',
-    SAASTR_HOME: 'saastr',
     SETTINGS: 'settings',
     SETTINGS_PROFILE: 'settings/profile',
     SETTINGS_SHARE_CODE: 'settings/shareCode',
@@ -66,7 +65,7 @@ export default {
     NEW_CHAT: 'new/chat',
     NEW_TASK,
     REPORT,
-    REPORT_WITH_ID: 'r/:reportID?',
+    REPORT_WITH_ID: 'r/:reportID/:reportActionID?',
     EDIT_REQUEST: 'r/:threadReportID/edit/:field',
     getEditRequestRoute: (threadReportID, field) => `r/${threadReportID}/edit/${field}`,
     EDIT_CURRENCY_REQUEST: 'r/:threadReportID/edit/currency',
@@ -92,6 +91,7 @@ export default {
     MONEY_REQUEST_DATE: ':iouType/new/date/:reportID?',
     MONEY_REQUEST_CURRENCY: ':iouType/new/currency/:reportID?',
     MONEY_REQUEST_DESCRIPTION: ':iouType/new/description/:reportID?',
+    MONEY_REQUEST_CATEGORY: ':iouType/new/category/:reportID?',
     MONEY_REQUEST_MERCHANT: ':iouType/new/merchant/:reportID?',
     MONEY_REQUEST_MANUAL_TAB: ':iouType/new/:reportID?/manual',
     MONEY_REQUEST_SCAN_TAB: ':iouType/new/:reportID?/scan',
@@ -107,6 +107,7 @@ export default {
     getMoneyRequestCreatedRoute: (iouType, reportID = '') => `${iouType}/new/date/${reportID}`,
     getMoneyRequestCurrencyRoute: (iouType, reportID = '', currency, backTo) => `${iouType}/new/currency/${reportID}?currency=${currency}&backTo=${backTo}`,
     getMoneyRequestDescriptionRoute: (iouType, reportID = '') => `${iouType}/new/description/${reportID}`,
+    getMoneyRequestCategoryRoute: (iouType, reportID = '') => `${iouType}/new/category/${reportID}`,
     getMoneyRequestMerchantRoute: (iouType, reportID = '') => `${iouType}/new/merchant/${reportID}`,
     getMoneyRequestDistanceTabRoute: (iouType, reportID = '') => `${iouType}/new/${reportID}/distance`,
     getMoneyRequestWaypointRoute: (iouType, waypointIndex) => `${iouType}/new/waypoint/${waypointIndex}`,
@@ -128,10 +129,17 @@ export default {
     FLAG_COMMENT: `flag/:reportID/:reportActionID`,
     getFlagCommentRoute: (reportID, reportActionID) => `flag/${reportID}/${reportActionID}`,
     SEARCH: 'search',
+    SAVE_THE_WORLD: 'save-the-world',
+    I_KNOW_A_TEACHER: 'save-the-world/i-know-a-teacher',
+    INTRO_SCHOOL_PRINCIPAL: 'save-the-world/intro-school-principal',
+    I_AM_A_TEACHER: 'save-the-world/i-am-a-teacher',
     DETAILS: 'details',
     getDetailsRoute: (login) => `details?login=${encodeURIComponent(login)}`,
     PROFILE: 'a/:accountID',
-    getProfileRoute: (accountID) => `a/${accountID}`,
+    getProfileRoute: (accountID, backTo = '') => {
+        const backToParam = backTo ? `?backTo=${encodeURIComponent(backTo)}` : '';
+        return `a/${accountID}${backToParam}`;
+    },
     REPORT_PARTICIPANTS: 'r/:reportID/participants',
     getReportParticipantsRoute: (reportID) => `r/${reportID}/participants`,
     REPORT_WITH_ID_DETAILS: 'r/:reportID/details',
@@ -185,6 +193,10 @@ export default {
     getWorkspaceInvoicesRoute: (policyID) => `workspace/${policyID}/invoices`,
     getWorkspaceTravelRoute: (policyID) => `workspace/${policyID}/travel`,
     getWorkspaceMembersRoute: (policyID) => `workspace/${policyID}/members`,
+
+    // These are some on-off routes that will be removed once they're no longer needed (see GH issues for details)
+    SAASTR: 'saastr',
+    SBE: 'sbe',
 
     /**
      * @param {String} route

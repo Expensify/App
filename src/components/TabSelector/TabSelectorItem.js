@@ -1,10 +1,10 @@
-import {Text} from 'react-native';
+import {Animated} from 'react-native';
 import React from 'react';
 import PropTypes from 'prop-types';
-import Icon from '../Icon';
-import themeColors from '../../styles/themes/default';
 import styles from '../../styles/styles';
 import PressableWithFeedback from '../Pressable/PressableWithFeedback';
+import TabIcon from './TabIcon';
+import TabLabel from './TabLabel';
 
 const propTypes = {
     /** Function to call when onPress */
@@ -13,34 +13,52 @@ const propTypes = {
     /** Icon to display on tab */
     icon: PropTypes.func,
 
-    /** True if tab is the selected item */
-    isSelected: PropTypes.bool,
-
     /** Title of the tab */
     title: PropTypes.string,
+
+    /** Animated background color value for the tab button */
+    // eslint-disable-next-line
+    backgroundColor: PropTypes.any,
+
+    /** Animated opacity value while the label is inactive state */
+    // eslint-disable-next-line
+    inactiveOpacity: PropTypes.any,
+
+    /** Animated opacity value while the label is in active state */
+    // eslint-disable-next-line
+    activeOpacity: PropTypes.any,
 };
 
 const defaultProps = {
     onPress: () => {},
     icon: () => {},
-    isSelected: false,
     title: '',
+    backgroundColor: '',
+    inactiveOpacity: 1,
+    activeOpacity: 0,
 };
 
-function TabSelectorItem(props) {
+const AnimatedPressableWithFeedback = Animated.createAnimatedComponent(PressableWithFeedback);
+
+function TabSelectorItem({icon, title, onPress, backgroundColor, activeOpacity, inactiveOpacity}) {
     return (
-        <PressableWithFeedback
-            accessibilityLabel={props.title}
-            style={[styles.tabSelectorButton(props.isSelected)]}
+        <AnimatedPressableWithFeedback
+            accessibilityLabel={title}
+            style={[styles.tabSelectorButton, {backgroundColor}]}
             wrapperStyle={[styles.flex1]}
-            onPress={props.onPress}
+            onPress={onPress}
         >
-            <Icon
-                src={props.icon}
-                fill={props.isSelected ? themeColors.iconMenu : themeColors.icon}
+            <TabIcon
+                icon={icon}
+                activeOpacity={activeOpacity}
+                inactiveOpacity={inactiveOpacity}
             />
-            <Text style={styles.tabText(props.isSelected)}>{props.title}</Text>
-        </PressableWithFeedback>
+            <TabLabel
+                title={title}
+                activeOpacity={activeOpacity}
+                inactiveOpacity={inactiveOpacity}
+            />
+        </AnimatedPressableWithFeedback>
     );
 }
 
