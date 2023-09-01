@@ -1,4 +1,6 @@
+import {ValueOf} from 'type-fest';
 import * as OnyxCommon from './OnyxCommon';
+import CONST from '../../CONST';
 
 type Comment = {
     comment?: string;
@@ -17,6 +19,11 @@ type Transaction = {
     modifiedAmount?: number;
     modifiedCreated?: string;
     modifiedCurrency?: string;
+    receipt: {
+        receiptID?: number;
+        source?: string;
+        state?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>;
+    };
 };
 
 export default Transaction;

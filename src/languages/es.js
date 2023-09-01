@@ -162,6 +162,15 @@ export default {
         receipt: 'Recibo',
         replace: 'Sustituir',
         distance: 'Distancia',
+        recent: 'Reciente',
+        all: 'Todo',
+    },
+    location: {
+        useCurrent: 'Usar ubicación actual',
+        notFound: 'No pudimos encontrar su ubicación, inténtelo nuevamente o ingrese una dirección manualmente',
+        permissionDenied: 'Parece que has denegado el permiso a tu ubicación.',
+        allowPermission: 'permitir permiso de ubicación en la configuración',
+        tryAgain: 'y luego inténtalo de nuevo.',
     },
     anonymousReportFooter: {
         logoTagline: 'Únete a la discusión.',
@@ -2156,7 +2165,7 @@ export default {
             onlineSubtitle: 'Un momento mientras configuramos el mapa',
         },
         errors: {
-            selectSuggestedAddress: 'Por favor, selecciona una dirección sugerida',
+            selectSuggestedAddress: 'Por favor, selecciona una dirección sugerida o usa la ubicación actual.',
         },
     },
     countrySelectorModal: {
@@ -2168,9 +2177,12 @@ export default {
     demos: {
         saastr: {
             signInWelcome: '¡Bienvenido a SaaStr! Entra y empieza a establecer contactos.',
+            heroBody: 'Utiliza New Expensify para estar al día de los eventos, establecer contactos, charlar en las redes sociales, ¡y para que te devuelvan el dinero de la comida!',
         },
         sbe: {
             signInWelcome: '¡Bienvenido a Small Business Expo! Recupera el dinero de tu viaje.',
+            heroBody:
+                'Utiliza New Expensify para estar al día de los eventos, establecer contactos, charlar en las redes sociales y para que te paguen el viaje de ida y vuelta a la conferencia.',
         },
     },
 };
