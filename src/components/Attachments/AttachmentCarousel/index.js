@@ -156,7 +156,7 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, setDownl
                 file={item.file}
                 isAuthTokenRequired={item.isAuthTokenRequired}
                 isFocused={activeSource === item.source}
-                onPress={() => canUseTouchScreen && setShouldShowArrows(!shouldShowArrows)}
+                onPress={canUseTouchScreen ? () => setShouldShowArrows(!shouldShowArrows) : undefined}
                 isUsedInCarousel
             />
         ),
