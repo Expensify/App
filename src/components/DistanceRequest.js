@@ -18,35 +18,19 @@ import BlockingView from './BlockingViews/BlockingView';
 import useNetwork from '../hooks/useNetwork';
 import useLocalize from '../hooks/useLocalize';
 import Navigation from '../libs/Navigation/Navigation';
-import ROUTES from '../ROUTES';
 import reportPropTypes from '../pages/reportPropTypes';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import * as ErrorUtils from '../libs/ErrorUtils';
 import usePrevious from '../hooks/usePrevious';
 import theme from '../styles/themes/default';
 
-import transactionPropTypes from './transactionPropTypes';
-
-import useNetwork from '../hooks/useNetwork';
-import usePrevious from '../hooks/usePrevious';
-import useLocalize from '../hooks/useLocalize';
-
-import * as ErrorUtils from '../libs/ErrorUtils';
-import Navigation from '../libs/Navigation/Navigation';
-import * as MapboxToken from '../libs/actions/MapboxToken';
 import * as Transaction from '../libs/actions/Transaction';
 import * as TransactionUtils from '../libs/TransactionUtils';
 
 import Button from './Button';
 import MapView from './MapView';
-import LinearGradient from './LinearGradient';
 import * as Expensicons from './Icon/Expensicons';
-import BlockingView from './BlockingViews/BlockingView';
-import DotIndicatorMessage from './DotIndicatorMessage';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
-import {iouPropTypes} from '../pages/iou/propTypes';
-import reportPropTypes from '../pages/reportPropTypes';
-import * as IOU from '../libs/actions/IOU';
 
 const MAX_WAYPOINTS = 25;
 const MAX_WAYPOINTS_TO_DISPLAY = 4;
