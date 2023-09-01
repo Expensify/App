@@ -89,6 +89,8 @@ const runTestsOnBranch = async (baselineOrCompare, branch) => {
         const appExists = fs.existsSync(appPath);
         if (!appExists) {
             Logger.warn(`Build mode "${buildMode}" is not possible, because the app does not exist. Falling back to build mode "full".`);
+            Logger.note(`App path: ${appPath}`);
+
             buildMode = 'full';
         }
     }
