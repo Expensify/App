@@ -764,10 +764,8 @@ function getMinimumHeight(minHeight: number): ViewStyle | CSSProperties {
 
 /**
  * Get maximum height as style
- * @param {Number} maxHeight
- * @returns {Object}
  */
-function getMaximumHeight(maxHeight) {
+function getMaximumHeight(maxHeight: number): ViewStyle | CSSProperties {
     return {
         maxHeight,
     };
