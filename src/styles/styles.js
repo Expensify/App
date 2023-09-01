@@ -3132,8 +3132,8 @@ const styles = {
     }),
 
     threeDotsPopoverOffsetAttachmentModal: (windowWidth) => ({
-        ...getPopOverVerticalOffset(60),
-        horizontal: windowWidth - 120,
+        ...getPopOverVerticalOffset(80),
+        horizontal: windowWidth - 140,
     }),
 
     invert: {
