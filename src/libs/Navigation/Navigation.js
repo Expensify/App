@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import lodashGet from 'lodash/get';
 import {CommonActions, getPathFromState, StackActions} from '@react-navigation/native';
-import {getActionFromState} from '@react-navigation/core';
+import {getActionFromState, findFocusedRoute} from '@react-navigation/core';
 import Log from '../Log';
 import DomUtils from '../DomUtils';
 import linkTo from './linkTo';
@@ -70,6 +70,24 @@ const getActiveRouteIndex = function (route, index) {
     return index;
 };
 
+function getPathsForRoutesInRootNavigator() {
+    let currentState = navigationRef.getRootState();
+    const paths = [];
+
+    while (currentState.routes.length > 0) {
+        try {
+            const path = getPathFromState(currentState, linkingConfig.config);
+            if (path) {
+                paths.push(path.substring(1));
+            }
+        } catch (e) {
+            return paths;
+        }
+        currentState = {...currentState, routes: currentState.routes.slice(0, -1), index: currentState.index - 1};
+    }
+    return paths;
+}
+
 /**
  * Main navigation method for redirecting to a route.
  * @param {String} route
@@ -116,7 +134,6 @@ function goBack(fallbackRoute = ROUTES.HOME, shouldEnforceFallback = false, shou
     }
 
     const isFirstRouteInNavigator = !getActiveRouteIndex(navigationRef.current.getState());
-
     if (isFirstRouteInNavigator) {
         const rootState = navigationRef.getRootState();
         const lastRoute = _.last(rootState.routes);
@@ -129,6 +146,22 @@ function goBack(fallbackRoute = ROUTES.HOME, shouldEnforceFallback = false, shou
 
     if (shouldEnforceFallback || (isFirstRouteInNavigator && fallbackRoute)) {
         navigate(fallbackRoute, CONST.NAVIGATION.TYPE.UP);
+        return;
+    }
+
+    const isCentralPaneFocused = findFocusedRoute(navigationRef.current.getState()).name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR;
+    const pathsForRoutesInRootNavigator = getPathsForRoutesInRootNavigator();
+
+    // Allow CentralPane to use goBack with fallback route.
+    if (isCentralPaneFocused && fallbackRoute && !pathsForRoutesInRootNavigator.includes(fallbackRoute)) {
+        navigate(fallbackRoute, CONST.NAVIGATION.TYPE.FORCED_UP);
+        return;
+    }
+
+    // Add posibility to go back more than one screen in root navigator.
+    if (isCentralPaneFocused && fallbackRoute && pathsForRoutesInRootNavigator.indexOf(fallbackRoute) > 0) {
+        const popNumber = pathsForRoutesInRootNavigator.indexOf(fallbackRoute);
+        navigationRef.current.dispatch(StackActions.pop(popNumber));
         return;
     }
 
