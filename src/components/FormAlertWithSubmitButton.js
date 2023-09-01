@@ -49,6 +49,9 @@ const propTypes = {
 
     /** Style for the button */
     buttonStyle: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
+
+    /** Whether to use a smaller submit button size */
+    useSmallerSubmitButtonSize: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -61,6 +64,7 @@ const defaultProps = {
     enabledWhenOffline: false,
     disablePressOnEnter: false,
     isSubmitActionDangerous: false,
+    useSmallerSubmitButtonSize: false,
     footerContent: null,
     buttonStyle: {},
 };
@@ -85,6 +89,7 @@ function FormAlertWithSubmitButton(props) {
                             text={props.buttonText}
                             style={[buttonMarginStyle, props.buttonStyle]}
                             danger={props.isSubmitActionDangerous}
+                            medium={props.useSmallerSubmitButtonSize}
                         />
                     ) : (
                         <Button
@@ -96,6 +101,7 @@ function FormAlertWithSubmitButton(props) {
                             isDisabled={props.isDisabled}
                             isLoading={props.isLoading}
                             danger={props.isSubmitActionDangerous}
+                            medium={props.useSmallerSubmitButtonSize}
                         />
                     )}
                     {props.footerContent}

@@ -320,20 +320,13 @@ function getEndOfWeekFromNow() {
 }
 
 /**
- * @param {string} time
+ * @param {string} dateTime
  * @returns {string} example: 2023-05-16
  */
-function extractDate(time) {
-    return moment(time).format('YYYY-MM-DD');
+function extractDate(dateTime) {
+    return moment(dateTime).format('YYYY-MM-DD');
 }
 
-/**
- * @param {string} dateTimeString
- * @returns {string} example: 11:10
- */
-function extractTime(dateTimeString) {
-    return moment(dateTimeString).format('hh:mm');
-}
 /**
  * @param {string} dateTimeString
  * @returns {string} example: 11:10 PM
@@ -346,7 +339,7 @@ function extractTime12Hour(dateTimeString) {
  * @param {string} dateTimeString
  * @returns {string} example: 2023-05-16 11:10 PM
  */
-function formatDateTo12Hour(dateTimeString) {
+function formatDateTimeTo12Hour(dateTimeString) {
     if (!dateTimeString) return '';
     return moment(dateTimeString).format('YYYY-MM-DD hh:mm A');
 }
@@ -373,7 +366,7 @@ function getDateFromStatusType(type) {
 }
 
 /**
- * @param {string} data - one of the values from CONST.CUSTOM_STATUS_TYPES or data in format YYYY-MM-DD HH:mm
+ * @param {string} data - either a value from CONST.CUSTOM_STATUS_TYPES or a dateTime string in the format YYYY-MM-DD HH:mm
  * @returns {string} example: 2023-05-16 11:10 PM or 'Today'
  */
 function getLocalizedTimePeriodDescription(data) {
@@ -385,7 +378,7 @@ function getLocalizedTimePeriodDescription(data) {
         case '':
             return translateLocal('statusPage.timePeriods.never');
         default:
-            return formatDateTo12Hour(data);
+            return formatDateTimeTo12Hour(data);
     }
 }
 
@@ -423,15 +416,15 @@ function getStatusUntilDate(inputDate) {
 }
 
 /**
- * Update the hour and minute of a date.
+ * Update the time for a given date.
  *
- * @param {string} inputTime - Time in "hh:mm A" format (like "10:55 AM").
+ * @param {string} updatedTime - Time in "hh:mm A" format (like "10:55 AM").
  * @param {string} inputDateTime - Date in "YYYY-MM-DD HH:mm:ss" format.
  * @returns {string} - Date with updated time in "YYYY-MM-DD HH:mm:ss" format.
  */
-const combineDateAndTime = (inputTime, inputDateTime) => {
+const combineDateAndTime = (updatedTime, inputDateTime) => {
     // Parse the time from the input
-    const parsedTime = moment(inputTime, 'hh:mm A');
+    const parsedTime = moment(updatedTime, 'hh:mm A');
 
     // Create a moment object from the input date-time (or just date)
     const parsedDateTime = moment(inputDateTime, inputDateTime.includes(':') ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD');
@@ -446,19 +439,19 @@ const combineDateAndTime = (inputTime, inputDateTime) => {
 };
 
 /**
- * @param {String} time
+ * @param {String} dateTime // 'YYYY-MM-DD HH:mm:ss'
  * @returns {Object}
  * @example parseTimeTo12HourFormat('2023-08-29 11:10:00') // {hour: '11', minute: '10', period: 'AM'}
  */
-function parseTimeTo12HourFormat(time) {
-    if (!time) {
+function parseTimeTo12HourFormat(dateTime) {
+    if (!dateTime) {
         return {
             hour: '00',
             minute: '01',
             period: 'AM',
         };
     }
-    const parsedTime = moment(time, 'h:mm A');
+    const parsedTime = moment(dateTime, 'h:mm A');
 
     return {
         hour: parsedTime.format('hh'), // Hour in 12-hour format
@@ -468,34 +461,34 @@ function parseTimeTo12HourFormat(time) {
 }
 
 /**
- * @param {String} dateStr
+ * @param {String} timeString
  * @returns {String}
  * @example getTimePeriod('11:10 PM') // 'PM'
  */
-function getTimePeriod(dateStr) {
-    const formattedDateStr = `2023-08-29 ${dateStr}`; // Assuming a random date for formatting
-    return moment(formattedDateStr, 'YYYY-MM-DD h:mm A').format('A');
+function getTimePeriod(timeString) {
+    const formattedDateString = `2023-08-29 ${timeString}`; // Assuming a random date for formatting
+    return moment(formattedDateString, 'YYYY-MM-DD h:mm A').format('A');
 }
 
 /**
- * @param {String} dateParam1
- * @param {String} dateParam2
+ * @param {String} dateTimeStringFirst // YYYY-MM-DD HH:mm:ss
+ * @param {String} dateTimeStringSecond // YYYY-MM-DD HH:mm:ss
  * @returns {Boolean}
  */
-function areDatesIdentical(dateParam1, dateParam2) {
-    const date1 = moment(dateParam1);
-    const date2 = moment(dateParam2);
+function areDatesIdentical(dateTimeStringFirst, dateTimeStringSecond) {
+    const date1 = moment(dateTimeStringFirst);
+    const date2 = moment(dateTimeStringSecond);
 
     return date1.isSame(date2);
 }
 
 /**
- * @param {String} dateString
+ * @param {String} dateTimeString
  * @returns {Boolean}
  */
-function hasDateExpired(dateString) {
+function hasDateExpired(dateTimeString) {
     const validUntil = moment().add(1, 'minutes');
-    const dateToCheck = moment(dateString);
+    const dateToCheck = moment(dateTimeString);
     return dateToCheck.isBefore(validUntil);
 }
 
@@ -524,8 +517,7 @@ const DateUtils = {
     getDateFromStatusType,
     getOneHourFromNow,
     extractDate,
-    extractTime,
-    formatDateTo12Hour,
+    formatDateTimeTo12Hour,
     getStatusUntilDate,
     extractTime12Hour,
     parseTimeTo12HourFormat,

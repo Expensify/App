@@ -1,6 +1,5 @@
 import React, {useCallback} from 'react';
 import moment from 'moment';
-import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
@@ -18,20 +17,7 @@ import ONYXKEYS from '../../../../ONYXKEYS';
 import ROUTES from '../../../../ROUTES';
 
 const propTypes = {
-    /* Onyx Props */
-
-    /** User's private personal details */
-    privatePersonalDetails: PropTypes.shape({
-        dob: PropTypes.string,
-    }),
-
     ...withLocalizePropTypes,
-};
-
-const defaultProps = {
-    privatePersonalDetails: {
-        dob: '',
-    },
 };
 
 function CustomClearAfterPage({translate, customStatus}) {
@@ -45,7 +31,7 @@ function CustomClearAfterPage({translate, customStatus}) {
     const validate = useCallback((values) => {
         const requiredFields = ['dob'];
         const errors = ValidationUtils.getFieldRequiredErrors(values, requiredFields);
-        const dateError = ValidationUtils.isExpiredData(values.dob);
+        const dateError = ValidationUtils.getDatePassedError(values.dob);
 
         if (values.dob && dateError) {
             errors.dob = dateError;
@@ -81,7 +67,6 @@ function CustomClearAfterPage({translate, customStatus}) {
 }
 
 CustomClearAfterPage.propTypes = propTypes;
-CustomClearAfterPage.defaultProps = defaultProps;
 CustomClearAfterPage.displayName = 'CustomClearAfterPage';
 
 export default compose(

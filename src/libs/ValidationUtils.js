@@ -249,12 +249,12 @@ function getAgeRequirementError(date, minimumAge, maximumAge) {
 }
 
 /**
- * Validate that given date is not expired more than two minutes.
+ * Validate that given date is not in the past.
  *
  * @param {String} inputDate
- * @returns {String|Array}
+ * @returns {String}
  */
-function isExpiredData(inputDate) {
+function getDatePassedError(inputDate) {
     const currentDate = new Date();
     const parsedDate = new Date(`${inputDate}T00:00:00`); // set time to 00:00:00 for accurate comparison
 
@@ -481,6 +481,12 @@ function isValidAccountRoute(accountID) {
     return CONST.REGEX.NUMBER.test(accountID) && accountID > 0;
 }
 
+/**
+ * Checks if the time input is at least one minute in the future.
+ * @param {String} inputTime
+ * @param {String} inputDateTime
+ * @returns {Boolean}
+ * */
 const isTimeAtLeastOneMinuteInFuture = (inputTime = '', inputDateTime = '') => {
     if (!inputTime) return false;
     // Parse the hour and minute from the time input
@@ -545,6 +551,6 @@ export {
     doesContainReservedWord,
     isNumeric,
     isValidAccountRoute,
-    isExpiredData,
+    getDatePassedError,
     isTimeAtLeastOneMinuteInFuture,
 };

@@ -237,6 +237,10 @@ export default {
         marginBottom: 32,
     },
 
+    mb12: {
+        marginBottom: 48,
+    },
+
     mb15: {
         marginBottom: 60,
     },

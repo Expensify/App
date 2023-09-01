@@ -165,6 +165,8 @@ export default {
         distance: 'Distance',
         recent: 'Recent',
         all: 'All',
+        am: 'AM',
+        pm: 'PM',
     },
     location: {
         useCurrent: 'Use current location',
@@ -935,6 +937,7 @@ export default {
         date: 'Date',
         time: 'Time',
         clearAfter: 'Clear after',
+        whenClearStatus: 'When should we clear your status?',
     },
     stepCounter: ({step, total, text}) => {
         let result = `Step ${step}`;

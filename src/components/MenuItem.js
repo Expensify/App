@@ -92,6 +92,7 @@ const MenuItem = React.forwardRef((props, ref) => {
             props.interactive && props.disabled ? {...styles.userSelectNone} : undefined,
             styles.ltr,
             isDeleted ? styles.offlineFeedback.deleted : undefined,
+            props.titleTextStyle,
         ],
         props.titleStyle,
     );
@@ -317,7 +318,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                             {Boolean(props.errorText) && (
                                 <FormHelpMessage
                                     isError
-                                    withDot={false}
+                                    shouldShowRedDotIndicator={false}
                                     message={props.errorText}
                                     style={[styles.menuItemError]}
                                 />

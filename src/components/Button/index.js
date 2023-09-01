@@ -117,8 +117,9 @@ const propTypes = {
 
     /** Accessibility label for the component */
     accessibilityLabel: PropTypes.string,
+
     /** Whether the long press is disabled */
-    isDisabledLongPress: PropTypes.bool,
+    isLongPressDisabled: PropTypes.bool,
 
     /** A ref to forward the button */
     forwardedRef: refPropTypes,
@@ -157,7 +158,7 @@ const defaultProps = {
     nativeID: '',
     accessibilityLabel: '',
     forwardedRef: undefined,
-    isDisabledLongPress: false,
+    isLongPressDisabled: false,
 };
 
 class Button extends Component {
@@ -272,7 +273,7 @@ class Button extends Component {
                     return this.props.onPress(e);
                 }}
                 onLongPress={(e) => {
-                    if (this.props.isDisabledLongPress) return;
+                    if (this.props.isLongPressDisabled) return;
                     if (this.props.shouldEnableHapticFeedback) {
                         HapticFeedback.longPress();
                     }

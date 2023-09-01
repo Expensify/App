@@ -2,19 +2,20 @@ import React, {useEffect, useState, useCallback, useRef, useMemo} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
-import BigNumberPad from './BigNumberPad';
-import Button from './Button';
+import styles from '../styles/styles';
+import FormHelpMessage from './FormHelpMessage';
 import AmountTextInput from './AmountTextInput';
+import BigNumberPad from './BigNumberPad';
+import refPropTypes from './refPropTypes';
+import Button from './Button';
+import Text from './Text';
 import * as DeviceCapabilities from '../libs/DeviceCapabilities';
+import DateUtils from '../libs/DateUtils';
+import useWindowDimensions from '../hooks/useWindowDimensions';
+import useKeyboardShortcut from '../hooks/useKeyboardShortcut';
 import useLocalize from '../hooks/useLocalize';
 import CONST from '../CONST';
-import DateUtils from '../libs/DateUtils';
-import Text from './Text';
-import useKeyboardShortcut from '../hooks/useKeyboardShortcut';
-import FormHelpMessage from './FormHelpMessage';
-import refPropTypes from './refPropTypes';
 
 const propTypes = {
     /** Refs forwarded to the TextInputWithCurrencySymbol */
@@ -42,7 +43,7 @@ const NUM_PAD_CONTAINER_VIEW_ID = 'numPadContainerView';
 const NUM_PAD_VIEW_ID = 'numPadView';
 
 function formatHour(hourText) {
-    // // If the integer value of hour is greater than 12, return the second digit with a leading 0
+    // If the integer value of hour is greater than 12, return the second digit with a leading 0
 
     // return twoDigitHour;
     const hourNumber = parseInt(hourText, 10);
@@ -89,6 +90,8 @@ function replaceWithZeroAtPosition(originalString, position) {
 
 function TimePicker({forwardedRef, value, errorText, onInputChange}) {
     const {numberFormat} = useLocalize();
+    const {isExtraSmallScreenHeight} = useWindowDimensions();
+    const localize = useLocalize();
     const [hours, setHours] = useState(DateUtils.parseTimeTo12HourFormat(value).hour);
     const [minute, setMinute] = useState(DateUtils.parseTimeTo12HourFormat(value).minute);
     const [selectionHour, setSelectionHour] = useState({start: 0, end: 0});
@@ -311,11 +314,11 @@ function TimePicker({forwardedRef, value, errorText, onInputChange}) {
     }, [hours, minute, amPmValue]);
 
     return (
-        <>
+        <View style={styles.flex1}>
             <View style={[styles.flex1, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}>
                 <View
                     nativeID={AMOUNT_VIEW_ID}
-                    style={[styles.flexRow, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}
+                    style={[styles.flexRow, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter, styles.timeInputsContainer]}
                 >
                     <AmountTextInput
                         formattedAmount={hours}
@@ -376,7 +379,8 @@ function TimePicker({forwardedRef, value, errorText, onInputChange}) {
                     <Button
                         shouldEnableHapticFeedback
                         innerStyles={styleForAM}
-                        text="AM"
+                        medium={isExtraSmallScreenHeight}
+                        text={localize.translate('common.am')}
                         onLongPress={() => {}}
                         onPress={() => {
                             setAmPmValue(CONST.TIME_PERIOD.AM);
@@ -387,7 +391,8 @@ function TimePicker({forwardedRef, value, errorText, onInputChange}) {
                     <Button
                         shouldEnableHapticFeedback
                         innerStyles={styleForPM}
-                        text="PM"
+                        medium={isExtraSmallScreenHeight}
+                        text={localize.translate('common.pm')}
                         onLongPress={() => {}}
                         onPress={() => {
                             setAmPmValue(CONST.TIME_PERIOD.PM);
@@ -398,12 +403,12 @@ function TimePicker({forwardedRef, value, errorText, onInputChange}) {
                 </View>
             </View>
             <View
-                style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper]}
+                style={[styles.pageWrapper, styles.pb0, styles.mb12]}
                 nativeID={NUM_PAD_CONTAINER_VIEW_ID}
             >
                 {numberPad()}
             </View>
-        </>
+        </View>
     );
 }
 

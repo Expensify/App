@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
@@ -10,6 +9,7 @@ import ScreenWrapper from '../../../../components/ScreenWrapper';
 import TimePicker from '../../../../components/TimePicker';
 import Form from '../../../../components/Form';
 import usePrivatePersonalDetails from '../../../../hooks/usePrivatePersonalDetails';
+import useWindowDimensions from '../../../../hooks/useWindowDimensions';
 import useLocalize from '../../../../hooks/useLocalize';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import * as User from '../../../../libs/actions/User';
@@ -21,22 +21,12 @@ import ROUTES from '../../../../ROUTES';
 import styles from '../../../../styles/styles';
 
 const propTypes = {
-    /** User's private personal details */
-    privatePersonalDetails: PropTypes.shape({
-        dob: PropTypes.string,
-    }),
-
     ...withLocalizePropTypes,
-};
-
-const defaultProps = {
-    privatePersonalDetails: {
-        dob: '',
-    },
 };
 
 function SetTimePage({translate, privatePersonalDetails, customStatus}) {
     usePrivatePersonalDetails();
+    const {isExtraSmallScreenHeight} = useWindowDimensions();
     const localize = useLocalize();
     const customDateTemporary = lodashGet(customStatus, 'customDateTemporary', '');
 
@@ -65,29 +55,30 @@ function SetTimePage({translate, privatePersonalDetails, customStatus}) {
                 title={translate('statusPage.time')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_STATUS_CLEAR_AFTER)}
             />
-            <Form
-                style={[styles.flexGrow1]}
-                formID={ONYXKEYS.FORMS.SETTINGS_STATUS_SET_TIME_FORM}
-                onSubmit={onSubmit}
-                submitButtonText={translate('common.save')}
-                submitButtonContainerStyles={[styles.mt0, styles.flex0, styles.mh4]}
-                validate={validate}
-                enabledWhenOffline
-                shouldUseDefaultValue
-            >
-                <View style={styles.flex1}>
+            <View style={styles.flex1}>
+                <Form
+                    style={[styles.flexGrow1]}
+                    formID={ONYXKEYS.FORMS.SETTINGS_STATUS_SET_TIME_FORM}
+                    onSubmit={onSubmit}
+                    submitButtonText={translate('common.save')}
+                    submitButtonContainerStyles={[styles.mt0, styles.flex0, styles.mh4]}
+                    validate={validate}
+                    enabledWhenOffline
+                    shouldUseDefaultValue
+                    useSmallerSubmitButtonSize={isExtraSmallScreenHeight}
+                >
                     <TimePicker
                         inputID="timePicker"
                         defaultValue={DateUtils.extractTime12Hour(customDateTemporary)}
+                        style={styles.flexGrow1}
                     />
-                </View>
-            </Form>
+                </Form>
+            </View>
         </ScreenWrapper>
     );
 }
 
 SetTimePage.propTypes = propTypes;
-SetTimePage.defaultProps = defaultProps;
 SetTimePage.displayName = 'SetTimePage';
 
 export default compose(

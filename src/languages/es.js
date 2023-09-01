@@ -105,8 +105,8 @@ export default {
             fieldRequired: 'Este campo es obligatorio.',
             characterLimit: ({limit}) => `Supera el límite de ${limit} caracteres`,
             dateInvalid: 'Por favor, selecciona una fecha válida',
-            invalidDateShouldBeFuture: "Debe ser la fecha de hoy o una fecha futura.",
-            invalidTimeShouldBeFuture: "Debe ser al menos un minuto en el futuro.",
+            invalidDateShouldBeFuture: 'Debe ser la fecha de hoy o una fecha futura.',
+            invalidTimeShouldBeFuture: 'Debe ser al menos un minuto en el futuro.',
             invalidCharacter: 'Carácter invalido',
         },
         comma: 'la coma',
@@ -164,6 +164,8 @@ export default {
         distance: 'Distancia',
         recent: 'Reciente',
         all: 'Todo',
+        am: 'AM',
+        pm: 'PM',
     },
     location: {
         useCurrent: 'Usar ubicación actual',
@@ -954,6 +956,7 @@ export default {
         date: 'Fecha',
         time: 'Hora',
         clearAfter: 'Borrar después',
+        whenClearStatus: "¿Cuándo deberíamos borrar tu estado?",
     },
     stepCounter: ({step, total, text}) => {
         let result = `Paso ${step}`;

@@ -18,6 +18,7 @@ import stylePropTypes from '../styles/stylePropTypes';
 import {withNetwork} from './OnyxProvider';
 import networkPropTypes from './networkPropTypes';
 import Visibility from '../libs/Visibility';
+import * as StyleUtils from '../styles/StyleUtils';
 
 const propTypes = {
     /** A unique Onyx key identifying the form */
@@ -404,7 +405,8 @@ function Form(props) {
                         containerStyles={[styles.mh0, styles.mt5, styles.flex1, ...props.submitButtonContainerStyles]}
                         enabledWhenOffline={props.enabledWhenOffline}
                         isSubmitActionDangerous={props.isSubmitActionDangerous}
-                        buttonStyle={props.submitButtonStyle}
+                        buttonStyle={{...StyleUtils.parseStyleAsArray(props.submitButtonStyle)}}
+                        useSmallerSubmitButtonSize={props.useSmallerSubmitButtonSize}
                         disablePressOnEnter
                     />
                 )}
@@ -429,6 +431,7 @@ function Form(props) {
             props.isSubmitButtonVisible,
             props.submitButtonText,
             props.submitButtonStyle,
+            props.useSmallerSubmitButtonSize,
         ],
     );
 

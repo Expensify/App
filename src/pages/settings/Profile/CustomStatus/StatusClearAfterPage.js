@@ -37,10 +37,10 @@ const propTypes = {
 };
 
 /**
- * @param {string} data - one of the values from CONST.CUSTOM_STATUS_TYPES or data in format YYYY-MM-DD HH:mm
+ * @param {string} data -  either a value from CONST.CUSTOM_STATUS_TYPES or a dateTime string in the format YYYY-MM-DD HH:mm
  * @returns {string}
  */
-function getInitialDateBasedFromStatusType(data) {
+function getSelectedStatusType(data) {
     switch (data) {
         case DateUtils.getEndOfToday():
             return CONST.CUSTOM_STATUS_TYPES.AFTER_TODAY;
@@ -96,7 +96,7 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
     const clearAfter = lodashGet(currentUserPersonalDetails, 'status.clearAfter', '');
     const draftClearAfter = lodashGet(customStatus, 'clearAfter', '');
     const customDateTemporary = lodashGet(customStatus, 'customDateTemporary', '');
-    const [draftPeriod, setDraftPeriod] = useState(getInitialDateBasedFromStatusType(clearAfter || draftClearAfter));
+    const [draftPeriod, setDraftPeriod] = useState(getSelectedStatusType(clearAfter || draftClearAfter));
     const localesToThemes = useMemo(
         () =>
             _.map(CONST.CUSTOM_STATUS_TYPES, (value, key) => ({
@@ -110,10 +110,10 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
 
     const {customDateError, customTimeError, triggerValidation} = useValidateCustomDate(customDateTemporary);
 
-    const {brickDateIndicator, brickTimeIndicator} = useMemo(
+    const {redBrickDateIndicator, redBrickTimeIndicator} = useMemo(
         () => ({
-            brickDateIndicator: customDateError ? CONST.BRICK_INDICATOR.ERROR : null,
-            brickTimeIndicator: customTimeError ? CONST.BRICK_INDICATOR.ERROR : null,
+            redBrickDateIndicator: customDateError ? CONST.BRICK_INDICATOR.ERROR : null,
+            redBrickTimeIndicator: customTimeError ? CONST.BRICK_INDICATOR.ERROR : null,
         }),
         [customTimeError, customDateError],
     );
@@ -123,7 +123,6 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
         if (customDateError || customTimeError) return;
         let calculatedDraftDate = '';
         if (draftPeriod === CONST.CUSTOM_STATUS_TYPES.CUSTOM) {
-            // calculatedDraftDate = customDateTemporary || draftClearAfter;
             calculatedDraftDate = customDateTemporary;
         } else {
             const selectedRange = _.find(localesToThemes, (item) => item.isSelected);
@@ -173,8 +172,9 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
                 style={styles.flexGrow1}
                 scrollContextEnabled={false}
                 submitButtonStyle={styles.mh5}
+                enabledWhenOffline
             >
-                <View style={styles.flexGrow1}>
+                <View>
                     <SelectionList
                         sections={[{data: localesToThemes, indexOffset: 0}]}
                         onSelectRow={updateMode}
@@ -193,7 +193,8 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
                                 containerStyle={styles.pr2}
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS_CLEAR_AFTER_CUSTOM)}
                                 errorText={customDateError}
-                                brickRoadIndicator={brickDateIndicator}
+                                titleTextStyle={styles.flex1}
+                                brickRoadIndicator={redBrickDateIndicator}
                             />
                             <MenuItemWithTopDescription
                                 title={customStatusTime}
@@ -202,7 +203,8 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
                                 containerStyle={styles.pr2}
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS_CLEAR_AFTER_TIME)}
                                 errorText={customTimeError}
-                                brickRoadIndicator={brickTimeIndicator}
+                                titleTextStyle={styles.flex1}
+                                brickRoadIndicator={redBrickTimeIndicator}
                             />
                         </>
                     )}

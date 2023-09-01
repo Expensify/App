@@ -3902,7 +3902,9 @@ const styles = {
 
     timePickerInput: {
         fontSize: 69,
+        maxHeight: 70,
         minWidth: 56,
+        alignSelf: 'center',
     },
     timePickerWidth100: {
         width: 100,
@@ -3912,12 +3914,15 @@ const styles = {
     },
     timePickerSemiDot: {
         fontSize: 69,
+        maxHeight: 70,
+    },
+    timeInputsContainer: {
+        maxHeight: 70,
     },
     timePickerSwitcherContainer: {
         flexDirection: 'row',
         alignItems: 'flex-start',
         justifyContent: 'center',
-        marginTop: 40,
     },
     selectionListRadioSeparator: {
         height: StyleSheet.hairlineWidth,
@@ -3939,6 +3944,10 @@ const styles = {
 
     formHelperMessage: {
         height: 32,
+    },
+
+    timePickerInputExtraSmall: {
+        fontSize: 50,
     },
 };
 
