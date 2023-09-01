@@ -89,15 +89,8 @@ function hasReceipt(transaction) {
  * @param {Object} transaction
  * @returns {Boolean}
  */
-function areRequiredFieldsPopulated(transaction) {
-    return (
-        transaction.merchant !== CONST.TRANSACTION.DEFAULT_MERCHANT &&
-        transaction.modifiedMerchant !== CONST.TRANSACTION.DEFAULT_MERCHANT &&
-        transaction.amount !== 0 &&
-        transaction.modifiedAmount !== 0 &&
-        transaction.created !== '' &&
-        transaction.modifiedCreated !== ''
-    );
+function areModifiedFieldsPopulated(transaction) {
+    return transaction.modifiedMerchant !== CONST.TRANSACTION.UNKNOWN_MERCHANT && transaction.modifiedAmount !== 0 && transaction.modifiedCreated !== '';
 }
 
 /**
