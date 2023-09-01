@@ -16,7 +16,7 @@ function MoneyRequestHeaderStatusBar() {
                 styles.flexGrow1,
                 styles.overflowHidden,
                 styles.ph5,
-                styles.pv3,
+                styles.pb3,
                 styles.borderBottom,
                 styles.w100,
             ]}
