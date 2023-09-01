@@ -6,22 +6,24 @@ import * as DeviceCapabilities from '../../../../libs/DeviceCapabilities';
 import htmlRendererPropTypes from '../htmlRendererPropTypes';
 import BasePreRenderer from './BasePreRenderer';
 
-function PreRenderer({key, style, tnode, TDefaultRenderer}) {
+function PreRenderer(props) {
     const scrollViewRef = useRef();
 
     /**
-     * Check if user is scrolling vertically based on deltaX and deltaY. We debounce this
-     * method in the constructor to make sure it's called only for the first event.
+     * Checks if user is scrolling vertically based on deltaX and deltaY. We debounce this
+     * method in order to make sure it's called only for the first event.
      * @param {WheelEvent} event Wheel event
      * @returns {Boolean} true if user is scrolling vertically
      */
-    const isScrollingVertically = useCallback((event) => {
-        // Mark as vertical scrolling only when absolute value of deltaY is more than the double of absolute
-        // value of deltaX, so user can use trackpad scroll on the code block horizontally at a wide angle.
-        return Math.abs(event.deltaY) > Math.abs(event.deltaX) * 2;
-    }, []);
+    const isScrollingVertically = useCallback(
+        (event) =>
+            // Mark as vertical scrolling only when absolute value of deltaY is more than the double of absolute
+            // value of deltaX, so user can use trackpad scroll on the code block horizontally at a wide angle.
+            Math.abs(event.deltaY) > Math.abs(event.deltaX) * 2,
+        [],
+    );
 
-    const debouncedIsScrollingVertically = useCallback((event) => _.debounce(isScrollingVertically(event), 100, true), []);
+    const debouncedIsScrollingVertically = useCallback((event) => _.debounce(isScrollingVertically(event), 100, true), [isScrollingVertically]);
 
     /**
      * Manually scrolls the code block if code block horizontal scrollable, then prevents the event from being passed up to the parent.
@@ -29,7 +31,7 @@ function PreRenderer({key, style, tnode, TDefaultRenderer}) {
      */
     const scrollNode = useCallback(
         (event) => {
-            const node = scrollViewRef.getScrollableNode();
+            const node = scrollViewRef.current.getScrollableNode();
             const horizontalOverflow = node.scrollWidth > node.offsetWidth;
             if (event.currentTarget === node && horizontalOverflow && !debouncedIsScrollingVertically(event)) {
                 node.scrollLeft += event.deltaX;
@@ -41,25 +43,24 @@ function PreRenderer({key, style, tnode, TDefaultRenderer}) {
     );
 
     useEffect(() => {
-        if (!scrollViewRef) {
+        if (!scrollViewRef.current) {
             return;
         }
-        scrollViewRef.getScrollableNode().addEventListener('wheel', scrollNode);
+        scrollViewRef.current.getScrollableNode().addEventListener('wheel', scrollNode);
+        const eventListenerRefValue = scrollViewRef.current;
 
         return () => {
-            scrollViewRef.getScrollableNode().removeEventListener('wheel', scrollNode);
+            eventListenerRefValue.getScrollableNode().removeEventListener('wheel', scrollNode);
         };
     }, [scrollNode]);
 
     return (
         <BasePreRenderer
-            key={key}
-            style={style}
-            tnode={tnode}
-            TDefaultRenderer={TDefaultRenderer}
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
             ref={scrollViewRef}
             onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
-            onPressOut={() => ControlSelection.unblock()}
+            onPressOut={ControlSelection.unblock()}
         />
     );
 }
