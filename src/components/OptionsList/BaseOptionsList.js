@@ -21,6 +21,9 @@ const propTypes = {
     /** Callback executed on scroll. Only used for web/desktop component */
     onScroll: PropTypes.func,
 
+    /** List styles for SectionList */
+    listStyles: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
+
     ...optionsListPropTypes,
 };
 
@@ -28,6 +31,7 @@ const defaultProps = {
     keyboardDismissMode: 'none',
     onScrollBeginDrag: () => {},
     onScroll: () => {},
+    listStyles: [],
     ...optionsListDefaultProps,
 };
 
@@ -35,6 +39,7 @@ function BaseOptionsList({
     keyboardDismissMode,
     onScrollBeginDrag,
     onScroll,
+    listStyles,
     focusedIndex,
     selectedOptions,
     headerMessage,
@@ -219,6 +224,8 @@ function BaseOptionsList({
                     ) : null}
                     <SectionList
                         ref={innerRef}
+                        nestedScrollEnabled
+                        style={listStyles}
                         indicatorStyle="white"
                         keyboardShouldPersistTaps="always"
                         keyboardDismissMode={keyboardDismissMode}

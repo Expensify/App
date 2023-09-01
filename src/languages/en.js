@@ -164,6 +164,15 @@ export default {
         receipt: 'Receipt',
         replace: 'Replace',
         distance: 'Distance',
+        recent: 'Recent',
+        all: 'All',
+    },
+    location: {
+        useCurrent: 'Use current location',
+        notFound: 'We were unable to find your location, please try again or enter an address manually',
+        permissionDenied: 'It looks like you have denied permission to your location.',
+        allowPermission: 'allow location permission in settings',
+        tryAgain: 'and then try again.',
     },
     anonymousReportFooter: {
         logoTagline: 'Join the discussion.',
@@ -1659,7 +1668,7 @@ export default {
             onlineSubtitle: 'One moment while we set up the map',
         },
         errors: {
-            selectSuggestedAddress: 'Please select a suggested address',
+            selectSuggestedAddress: 'Please select a suggested address or use current location',
         },
     },
     countrySelectorModal: {
@@ -1671,9 +1680,11 @@ export default {
     demos: {
         saastr: {
             signInWelcome: 'Welcome to SaaStr! Hop in to start networking now.',
+            heroBody: 'Use New Expensify for event updates, networking, social chatter, and to get paid back for lunch!',
         },
         sbe: {
             signInWelcome: 'Welcome to Small Business Expo! Get paid back for your ride.',
+            heroBody: 'Use New Expensify for event updates, networking, social chatter, and to get paid back for your ride to or from the show!',
         },
     },
 };

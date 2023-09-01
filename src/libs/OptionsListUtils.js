@@ -598,6 +598,143 @@ function isCurrentUser(userDetails) {
 }
 
 /**
+ * Build the options for the category tree hierarchy via indents
+ *
+ * @param {Object[]} options - an initial strings array
+ * @param {Boolean} options[].enabled - a flag to enable/disable option in a list
+ * @param {String} options[].name - a name of an option
+ * @param {Boolean} [isOneLine] - a flag to determine if text should be one line
+ * @returns {Array<Object>}
+ */
+function getCategoryOptionTree(options, isOneLine = false) {
+    const optionCollection = {};
+
+    _.each(options, (option) => {
+        if (isOneLine) {
+            if (_.has(optionCollection, option.name)) {
+                return;
+            }
+
+            optionCollection[option.name] = {
+                text: option.name,
+                keyForList: option.name,
+                searchText: option.name,
+                tooltipText: option.name,
+                isDisabled: !option.enabled,
+            };
+
+            return;
+        }
+
+        option.name.split(CONST.PARENT_CHILD_SEPARATOR).forEach((optionName, index, array) => {
+            const indents = _.times(index, () => CONST.INDENTS).join('');
+            const isChild = array.length - 1 === index;
+
+            if (_.has(optionCollection, optionName)) {
+                return;
+            }
+
+            optionCollection[optionName] = {
+                text: `${indents}${optionName}`,
+                keyForList: optionName,
+                searchText: array.slice(0, index + 1).join(CONST.PARENT_CHILD_SEPARATOR),
+                tooltipText: optionName,
+                isDisabled: isChild ? !option.enabled : true,
+            };
+        });
+    });
+
+    return _.values(optionCollection);
+}
+
+/**
+ * Build the section list for categories
+ *
+ * @param {Object[]} categories
+ * @param {String} categories[].name
+ * @param {Boolean} categories[].enabled
+ * @param {Object[]} recentlyUsedCategories
+ * @param {String} recentlyUsedCategories[].name
+ * @param {Boolean} recentlyUsedCategories[].enabled
+ * @param {Object[]} selectedOptions
+ * @param {String} selectedOptions[].name
+ * @param {String} searchInputValue
+ * @param {Number} maxRecentReportsToShow
+ * @returns {Array<Object>}
+ */
+function getCategoryListSections(categories, recentlyUsedCategories, selectedOptions, searchInputValue, maxRecentReportsToShow) {
+    const categorySections = [];
+    const numberOfCategories = _.size(categories);
+    let indexOffset = 0;
+
+    if (!_.isEmpty(searchInputValue)) {
+        const searchCategories = _.filter(categories, (category) => category.name.toLowerCase().includes(searchInputValue.toLowerCase()));
+
+        categorySections.push({
+            // "Search" section
+            title: '',
+            shouldShow: false,
+            indexOffset,
+            data: getCategoryOptionTree(searchCategories, true),
+        });
+
+        return categorySections;
+    }
+
+    if (numberOfCategories < CONST.CATEGORY_LIST_THRESHOLD) {
+        categorySections.push({
+            // "All" section when items amount less than the threshold
+            title: '',
+            shouldShow: false,
+            indexOffset,
+            data: getCategoryOptionTree(categories),
+        });
+
+        return categorySections;
+    }
+
+    const selectedOptionNames = _.map(selectedOptions, (selectedOption) => selectedOption.name);
+    const filteredRecentlyUsedCategories = _.filter(recentlyUsedCategories, (category) => !_.includes(selectedOptionNames, category.name));
+    const filteredCategories = _.filter(categories, (category) => !_.includes(selectedOptionNames, category.name));
+
+    if (!_.isEmpty(selectedOptions)) {
+        categorySections.push({
+            // "Selected" section
+            title: '',
+            shouldShow: false,
+            indexOffset,
+            data: getCategoryOptionTree(selectedOptions, true),
+        });
+
+        indexOffset += selectedOptions.length;
+    }
+
+    if (!_.isEmpty(filteredRecentlyUsedCategories)) {
+        const cutRecentlyUsedCategories = filteredRecentlyUsedCategories.slice(0, maxRecentReportsToShow);
+
+        categorySections.push({
+            // "Recent" section
+            title: Localize.translateLocal('common.recent'),
+            shouldShow: true,
+            indexOffset,
+            data: getCategoryOptionTree(cutRecentlyUsedCategories, true),
+        });
+
+        indexOffset += filteredRecentlyUsedCategories.length;
+    }
+
+    categorySections.push({
+        // "All" section when items amount more than the threshold
+        title: Localize.translateLocal('common.all'),
+        shouldShow: true,
+        indexOffset,
+        data: getCategoryOptionTree(filteredCategories),
+    });
+
+    return categorySections;
+}
+
+/**
  * Build the options
  *
  * @param {Object} reports
@@ -630,15 +767,31 @@ function getOptions(
         includeMoneyRequests = false,
         excludeUnknownUsers = false,
         includeP2P = true,
+        includeCategories = false,
+        categories = {},
+        recentlyUsedCategories = [],
         canInviteUser = true,
     },
 ) {
+    if (includeCategories) {
+        const categoryOptions = getCategoryListSections(_.values(categories), recentlyUsedCategories, selectedOptions, searchInputValue, maxRecentReportsToShow);
+
+        return {
+            recentReports: [],
+            personalDetails: [],
+            userToInvite: null,
+            currentUserOption: null,
+            categoryOptions,
+        };
+    }
+
     if (!isPersonalDetailsReady(personalDetails)) {
         return {
             recentReports: [],
             personalDetails: [],
             userToInvite: null,
             currentUserOption: null,
+            categoryOptions: [],
         };
     }
 
@@ -888,6 +1041,7 @@ function getOptions(
         recentReports: recentReportOptions,
         userToInvite: canInviteUser ? userToInvite : null,
         currentUserOption,
+        categoryOptions: [],
     };
 }
 
@@ -969,6 +1123,9 @@ function getIOUConfirmationOptionsFromParticipants(participants, amountText) {
  * @param {Array} [excludeLogins]
  * @param {Boolean} [includeOwnedWorkspaceChats]
  * @param {boolean} [includeP2P]
+ * @param {boolean} [includeCategories]
+ * @param {Object} [categories]
+ * @param {Array<Object>} [recentlyUsedCategories]
  * @param {boolean} [canInviteUser]
  * @returns {Object}
  */
@@ -981,6 +1138,9 @@ function getNewChatOptions(
     excludeLogins = [],
     includeOwnedWorkspaceChats = false,
     includeP2P = true,
+    includeCategories = false,
+    categories = {},
+    recentlyUsedCategories = [],
     canInviteUser = true,
 ) {
     return getOptions(reports, personalDetails, {
@@ -993,6 +1153,9 @@ function getNewChatOptions(
         excludeLogins,
         includeOwnedWorkspaceChats,
         includeP2P,
+        includeCategories,
+        categories,
+        recentlyUsedCategories,
         canInviteUser,
     });
 }
@@ -1162,5 +1325,6 @@ export {
     isSearchStringMatch,
     shouldOptionShowTooltip,
     getLastMessageTextForReport,
+    getCategoryOptionTree,
     formatMemberForList,
 };
