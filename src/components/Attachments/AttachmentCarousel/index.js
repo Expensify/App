@@ -14,11 +14,11 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import withLocalize from '../../withLocalize';
 import compose from '../../../libs/compose';
 import useCarouselArrows from './useCarouselArrows';
-import useWindowDimensions from '../../../hooks/useWindowDimensions';
 import Navigation from '../../../libs/Navigation/Navigation';
 import BlockingView from '../../BlockingViews/BlockingView';
 import * as Illustrations from '../../Icon/Illustrations';
 import variables from '../../../styles/variables';
+import AttachmentCarouselCellRenderer from './AttachmentCarouselCellRenderer';
 
 const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
 const viewabilityConfig = {
@@ -29,8 +29,6 @@ const viewabilityConfig = {
 
 function AttachmentCarousel({report, reportActions, source, onNavigate, setDownloadButtonVisibility, translate}) {
     const scrollRef = useRef(null);
-
-    const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
 
     const [containerWidth, setContainerWidth] = useState(0);
     const [page, setPage] = useState(0);
@@ -118,29 +116,6 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, setDownl
     );
 
     /**
-     * Defines how a container for a single attachment should be rendered
-     * @param {Object} cellRendererProps
-     * @returns {JSX.Element}
-     */
-    const renderCell = useCallback(
-        (cellProps) => {
-            // Use window width instead of layout width to address the issue in https://github.com/Expensify/App/issues/17760
-            // considering horizontal margin and border width in centered modal
-            const modalStyles = styles.centeredModalStyles(isSmallScreenWidth, true);
-            const style = [cellProps.style, styles.h100, {width: PixelRatio.roundToNearestPixel(windowWidth - (modalStyles.marginHorizontal + modalStyles.borderWidth) * 2)}];
-
-            return (
-                <View
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...cellProps}
-                    style={style}
-                />
-            );
-        },
-        [isSmallScreenWidth, windowWidth],
-    );
-
-    /**
      * Defines how a single attachment should be rendered
      * @param {Object} item
      * @param {Boolean} item.isAuthTokenRequired
@@ -212,7 +187,7 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, setDownl
                             windowSize={5}
                             maxToRenderPerBatch={3}
                             data={attachments}
-                            CellRendererComponent={renderCell}
+                            CellRendererComponent={AttachmentCarouselCellRenderer}
                             renderItem={renderItem}
                             getItemLayout={getItemLayout}
                             keyExtractor={(item) => item.source}

@@ -1,5 +1,6 @@
-import React, {forwardRef, createContext, useState, useEffect} from 'react';
+import React, {forwardRef, createContext, useState, useEffect, useCallback} from 'react';
 import PropTypes from 'prop-types';
+import lodashDebounce from 'lodash/debounce';
 import {Dimensions} from 'react-native';
 import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
 import getComponentDisplayName from '../libs/getComponentDisplayName';
@@ -41,17 +42,18 @@ function WindowDimensionsProvider(props) {
         };
     });
 
+    const onDimensionChange = useCallback((newDimensions) => {
+        const {window} = newDimensions;
+        setWindowDimension({
+            windowHeight: window.height,
+            windowWidth: window.width,
+        });
+    }, []);
+
+    const onDimensionChangeDebounce = useCallback(lodashDebounce(onDimensionChange, 300), []);
+
     useEffect(() => {
-        const onDimensionChange = (newDimensions) => {
-            const {window} = newDimensions;
-
-            setWindowDimension({
-                windowHeight: window.height,
-                windowWidth: window.width,
-            });
-        };
-
-        const dimensionsEventListener = Dimensions.addEventListener('change', onDimensionChange);
+        const dimensionsEventListener = Dimensions.addEventListener('change', onDimensionChangeDebounce);
 
         return () => {
             if (!dimensionsEventListener) {
