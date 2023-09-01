@@ -108,13 +108,14 @@ export default () => {
 
             const {lastUpdateIDFromServer, previousUpdateIDFromServer, updateParams} = val;
 
-            // If we don't have a previousUpdateID from the request, or if we if it's the same as we currently have stored
+            // If we don't have a previousUpdateID from the request, or if we if it's the less or equal w we currently have stored
             // we can simply apply the updates and move on.
             if (!previousUpdateIDFromServer || lastUpdateIDAppliedToClient === previousUpdateIDFromServer) {
                 console.debug(`[OnyxUpdateManager] Client is in sync with the server, applying updates`);
                 applyOnyxUpdates(updateParams);
+            } else if (lastUpdateIDFromServer < lastUpdateIDAppliedToClient) { 
+                console.debug(`[OnyxUpdateManager] Client is more up to date than the update received, skipping processing`);
             } else {
-
                 // In cases where we received a previousUpdateID and it doesn't match our lastUpdateIDAppliedToClient
                 // we need to perform one of the 2 possible cases:
                 //
@@ -127,7 +128,6 @@ export default () => {
                 // applied in their correct and specific order. If this queue was not paused, then there would be a lot of 
                 // onyx data being applied while we are fetching the missing updates and that would put them all out of order.
                 SequentialQueue.pause();
-
                 let promise;
                 
                 // The flow below is setting the promise to a reconnect app to address flow (1) explained above.
@@ -137,7 +137,7 @@ export default () => {
                     console.debug('[OnyxUpdateManager] Client has not gotten reliable updates before so reconnecting the app to start the process');
                     Log.info('Client has not gotten reliable updates before so reconnecting the app to start the process');
                     promise = App.lastReconnectAppAfterActivatingReliableUpdates();
-                } else if (previousUpdateIDFromServer && lastUpdateIDAppliedToClient < previousUpdateIDFromServer) {
+                } else {
                     // The flow below is setting the promise to a getMissingOnyxUpdates to address flow (2) explained above.
                     console.debug(`[OnyxUpdateManager] Client is behind the server by ${previousUpdateIDFromServer - lastUpdateIDAppliedToClient} so fetching incremental updates`);
                     Log.info('Gap detected in update IDs from server so fetching incremental updates', true, {
