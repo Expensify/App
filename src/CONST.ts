@@ -234,7 +234,6 @@ const CONST = {
         PASSWORDLESS: 'passwordless',
         TASKS: 'tasks',
         THREADS: 'threads',
-        SCAN_RECEIPTS: 'scanReceipts',
         CUSTOM_STATUS: 'customStatus',
         DISTANCE_REQUESTS: 'distanceRequests',
     },
