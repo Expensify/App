@@ -117,8 +117,13 @@ function BankAccountStep(props) {
                         <Button
                             icon={Expensicons.Bank}
                             text={props.translate('bankAccount.connectOnlineWithPlaid')}
-                            onPress={() => BankAccounts.openPlaidView()}
-                            disabled={props.isPlaidDisabled || !props.user.validated}
+                            onPress={() => {
+                                if (props.isPlaidDisabled || !props.user.validated) {
+                                    return;
+                                }
+                                BankAccounts.openPlaidView();
+                            }}
+                            isDisabled={props.isPlaidDisabled || !props.user.validated}
                             style={[styles.mt4]}
                             iconStyles={[styles.buttonCTAIcon]}
                             shouldShowRightIcon
