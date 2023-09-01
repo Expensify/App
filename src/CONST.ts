@@ -1135,6 +1135,13 @@ const CONST = {
         MENTION_ICON: 'mention-icon',
         SMALL_NORMAL: 'small-normal',
     },
+    EXPENSIFY_CARD: {
+        FRAUD_TYPES: {
+            DOMAIN: 'domain',
+            INDIVIDUAL: 'individal',
+            NONE: 'none',
+        },
+    },
     AVATAR_ROW_SIZE: {
         DEFAULT: 4,
         LARGE_SCREEN: 8,
@@ -2606,7 +2613,9 @@ const CONST = {
             NAVIGATE: 'NAVIGATE',
         },
     },
-
+    INDENTS: '    ',
+    PARENT_CHILD_SEPARATOR: ': ',
+    CATEGORY_LIST_THRESHOLD: 8,
     DEMO_PAGES: {
         SAASTR: 'SaaStrDemoSetup',
         SBE: 'SbeDemoSetup',

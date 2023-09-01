@@ -2,6 +2,12 @@
 // any index.native.js files as they are using a react-native plugin. However, it is useful to mock this behavior so that we
 // can test the expected web behavior and see if a browser notification would be shown or not.
 
-export default {
+type LocalNotification = {
+    showCommentNotification: () => void;
+};
+
+const localNotification: LocalNotification = {
     showCommentNotification: jest.fn(),
 };
+
+export default localNotification;
