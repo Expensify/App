@@ -38,6 +38,7 @@ import useLocalize from '../../../../hooks/useLocalize';
 import getModalState from '../../../../libs/getModalState';
 import useWindowDimensions from '../../../../hooks/useWindowDimensions';
 import * as EmojiPickerActions from '../../../../libs/actions/EmojiPickerAction';
+import usePrevious from '../../../../hooks/usePrevious';
 
 const propTypes = {
     /** A method to call when the form is submitted */
@@ -108,6 +109,7 @@ function ReportActionCompose({
     reportActions,
     shouldShowComposeInput,
     isCommentEmpty: isCommentEmptyProp,
+    modalState,
 }) {
     const {translate} = useLocalize();
     const navigation = useNavigation();
@@ -193,7 +195,6 @@ function ReportActionCompose({
         focus();
         isKeyboardVisibleWhenShowingModalRef.current = false;
     }, []);
-
     const containerRef = useRef(null);
     const measureContainer = useCallback((callback) => {
         if (!containerRef.current) {
@@ -297,7 +298,6 @@ function ReportActionCompose({
         setMenuVisibility(true);
         return true;
     }, []);
-
     useEffect(() => {
         // Shows Popover Menu on Workspace Chat at first sign-in
         if (!disabled) {
@@ -322,6 +322,27 @@ function ReportActionCompose({
     const hasReportRecipient = _.isObject(reportRecipient) && !_.isEmpty(reportRecipient);
 
     const isSendDisabled = isCommentEmpty || isBlockedFromConcierge || disabled || hasExceededMaxCommentLength;
+    const prevIsVisible = usePrevious(modalState.isVisible);
+    const prevIsFocused = usePrevious(isFocused);
+
+    useEffect(() => {
+        if (modalState.isVisible) {
+            return;
+        }
+        if (!modalState.isVisible && modalState.willAlertModalBecomeVisible && isFocused) {
+            composerRef.current.blur();
+            setIsFocused(false);
+        }
+    }, [isFocused, modalState.isVisible, modalState.willAlertModalBecomeVisible]);
+
+    useEffect(() => {
+        if (modalState.isVisible) {
+            return;
+        }
+        if (!modalState.isVisible && prevIsVisible && !modalState.willAlertModalBecomeVisible && !isFocused && !prevIsFocused) {
+            focus();
+        }
+    }, [modalState.isVisible, prevIsVisible, modalState.willAlertModalBecomeVisible, isFocused, prevIsFocused]);
 
     return (
         <View
@@ -461,6 +482,9 @@ export default compose(
         },
         shouldShowComposeInput: {
             key: ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT,
+        },
+        modalState: {
+            key: ONYXKEYS.MODAL,
         },
     }),
 )(ReportActionCompose);
