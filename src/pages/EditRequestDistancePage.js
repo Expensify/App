@@ -24,21 +24,6 @@ function EditRequestDistancePage({transactionID, report}) {
         IOU.setDistanceRequestTransactionID(transactionID);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
-
-    const transaction = TransactionUtils.getTransaction(transactionID);
-
-    const isTransactionLoading = transaction.isLoading;
-    const previousIsTransactionLoading = usePrevious(isTransactionLoading);
-    const {amount} = ReportUtils.getTransactionDetails(transaction);
-    const previousAmount = usePrevious(amount);
-    useEffect(() => {
-        // If the transaction went from loading => not loading and the amount changed, 
-        // we finished successfully updating the transaction and can close out the modal.
-        if (previousIsTransactionLoading && !isTransactionLoading && amount !== previousAmount) {
-            Navigation.dismissModal();
-        }
-    }, [isTransactionLoading, amount]);
-
     const {translate} = useLocalize();
     return (
         <ScreenWrapper
