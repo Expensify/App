@@ -14,16 +14,16 @@ function MoneyRequestHeaderStatusBar() {
                 styles.flexRow,
                 styles.alignItemsCenter,
                 styles.flexGrow1,
-                styles.justifyContentBetween,
+                styles.justifyContentStart,
                 styles.overflowHidden,
                 styles.ph5,
-                styles.pv3,
+                styles.pb3,
                 styles.borderBottom,
                 styles.w100,
             ]}
         >
             <View style={[styles.moneyRequestHeaderStatusBarBadge]}>
-                <Text style={[styles.textStrong, styles.textLabel]}>{translate('iou.receiptStatusTitle')}</Text>
+                <Text style={[styles.textStrong, styles.textLabel, styles.textAlignCenter]}>{translate('iou.receiptStatusTitle')}</Text>
             </View>
             <View style={[styles.flexShrink1]}>
                 <Text style={[styles.textLabelSupporting]}>{translate('iou.receiptStatusText')}</Text>
