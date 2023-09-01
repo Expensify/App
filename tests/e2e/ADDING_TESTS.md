@@ -97,6 +97,5 @@ Done! When you now start the test runner, your new test will be executed as well
 ## Quickly test your test
 
 To check your new test you can simply run `npm run test:e2e`, which uses the
-`--development` flag. This will run the tests on the branch you are currently on
-and will do fewer iterations.
+`--development` flag. This will run the tests on the branch you are currently on, runs fewer iterations and most importantly, it tries to reuse the existing APK and just patch into the new app bundle, instead of rebuilding the release app from scratch.
 
