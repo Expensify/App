@@ -763,6 +763,17 @@ function getMinimumHeight(minHeight: number): ViewStyle | CSSProperties {
 }
 
 /**
+ * Get maximum height as style
+ * @param {Number} maxHeight
+ * @returns {Object}
+ */
+function getMaximumHeight(maxHeight) {
+    return {
+        maxHeight,
+    };
+}
+
+/**
  * Get maximum width as style
  */
 function getMaximumWidth(maxWidth: number): ViewStyle | CSSProperties {
@@ -1212,6 +1223,7 @@ export {
     hasSafeAreas,
     getHeight,
     getMinimumHeight,
+    getMaximumHeight,
     getMaximumWidth,
     fade,
     getHorizontalStackedAvatarBorderStyle,
