@@ -128,6 +128,8 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
         // Therefore, we're going to save the waypoint as just the address, and the lat/long will be filled in on the backend
         if (isOffline && waypointValue) {
             const waypoint = {
+                lat: null,
+                lng: null,
                 address: waypointValue,
             };
 
