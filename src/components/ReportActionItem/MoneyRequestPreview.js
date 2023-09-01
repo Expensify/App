@@ -153,7 +153,7 @@ function MoneyRequestPreview(props) {
     const isScanning = hasReceipt && TransactionUtils.isReceiptBeingScanned(props.transaction);
     const hasFieldErrors = TransactionUtils.hasMissingSmartscanFields(props.transaction);
     const isDistanceRequest = TransactionUtils.isDistanceRequest(props.transaction);
-    const shouldShowMerchant = !_.isEmpty(requestMerchant) && !props.isBillSplit && (hasReceipt || isDistanceRequest);
+    const shouldShowMerchant = !_.isEmpty(requestMerchant) && !props.isBillSplit && hasReceipt;
     const shouldShowDescription = !_.isEmpty(description) && !shouldShowMerchant;
 
     const getSettledMessage = () => {
