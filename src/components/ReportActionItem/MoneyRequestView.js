@@ -162,7 +162,7 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, trans
                     />
                 </OfflineWithFeedback>
             ) : (
-                    <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.merchant') || lodashGet(transaction, 'pendingAction')}>
+                <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.merchant') || lodashGet(transaction, 'pendingAction')}>
                     <MenuItemWithTopDescription
                         description={translate('common.merchant')}
                         title={transactionMerchant}
@@ -183,7 +183,9 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, trans
                     interactive={canEdit}
                     shouldShowRightIcon={canEdit}
                     titleStyle={styles.flex1}
-                    onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, isDistanceRequest ? CONST.EDIT_REQUEST_FIELD.DISTANCE : CONST.EDIT_REQUEST_FIELD.MERCHANT))}
+                    onPress={() =>
+                        Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, isDistanceRequest ? CONST.EDIT_REQUEST_FIELD.DISTANCE : CONST.EDIT_REQUEST_FIELD.MERCHANT))
+                    }
                     brickRoadIndicator={hasErrors && transactionMerchant === CONST.TRANSACTION.UNKNOWN_MERCHANT ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
                     subtitle={hasErrors && transactionMerchant === CONST.TRANSACTION.UNKNOWN_MERCHANT ? translate('common.error.enterMerchant') : ''}
                     subtitleTextStyle={styles.textLabelError}
