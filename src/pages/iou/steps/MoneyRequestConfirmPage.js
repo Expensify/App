@@ -143,14 +143,23 @@ function MoneyRequestConfirmPage(props) {
      * @param {String} trimmedComment
      */
     const createDistanceRequest = useCallback(
-        (selectedParticipants, trimmedComment) => {
-            IOU.createDistanceRequest(props.report, selectedParticipants[0], trimmedComment, props.iou.created, props.iou.transactionID);
+        (selectedParticipants, trimmedComment, distanceMerchant) => {
+            IOU.createDistanceRequest(
+                props.report,
+                selectedParticipants[0],
+                trimmedComment,
+                props.iou.created,
+                props.iou.transactionID,
+                props.iou.amount,
+                props.iou.currency,
+                distanceMerchant,
+            );
         },
-        [props.report, props.iou.created, props.iou.transactionID],
+        [props.report, props.iou.created, props.iou.transactionID, props.iou.amount, props.iou.currency],
     );
 
     const createTransaction = useCallback(
-        (selectedParticipants) => {
+        (selectedParticipants, distanceMerchant) => {
             const trimmedComment = props.iou.comment.trim();
 
             // IOUs created from a group report will have a reportID param in the route.
@@ -189,7 +198,7 @@ function MoneyRequestConfirmPage(props) {
             }
 
             if (isDistanceRequest) {
-                createDistanceRequest(selectedParticipants, trimmedComment);
+                createDistanceRequest(selectedParticipants, trimmedComment, distanceMerchant);
                 return;
             }
 
