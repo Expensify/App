@@ -78,6 +78,16 @@ function setIsSidebarLoadedReady() {
 // Define a cache object to store the memoized results
 const reportIDsCache = new Map();
 
+// Function to set a key-value pair while maintaining the maximum key limit
+function setWithLimit(map, key, value) {
+    if (map.size >= 5) {
+        // If the map has reached its limit, remove the first (oldest) key-value pair
+        const firstKey = map.keys().next().value;
+        map.delete(firstKey);
+    }
+    map.set(key, value);
+}
+
 /**
  * @param {String} currentReportId
  * @param {Object} allReportsDict
@@ -179,7 +189,7 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
     // Now that we have all the reports grouped and sorted, they must be flattened into an array and only return the reportID.
     // The order the arrays are concatenated in matters and will determine the order that the groups are displayed in the sidebar.
     const LHNReports = [].concat(pinnedReports, outstandingIOUReports, draftReports, nonArchivedReports, archivedReports).map((report) => report.reportID);
-    reportIDsCache.set(cachedReports, LHNReports);
+    setWithLimit(reportIDsCache, cachedReports, LHNReports);
     return LHNReports;
 }
 
