@@ -61,19 +61,16 @@ const progressInfo = (textParam) => {
 };
 
 const info = (...args) => {
-    console.debug('> ', ...args);
-    log(...args);
+    log('> ', ...args);
 };
 
 const warn = (...args) => {
     const lines = [`\n${COLOR_YELLOW}⚠️`, ...args, `${COLOR_RESET}\n`];
-    console.debug(...lines);
     log(...lines);
 };
 
 const note = (...args) => {
     const lines = [`\n💡${COLOR_DIM}`, ...args, `${COLOR_RESET}\n`];
-    console.debug(...lines);
     log(...lines);
 };
 
