@@ -302,7 +302,6 @@ type OnyxValues = {
     [ONYXKEYS.IS_SIDEBAR_LOADED]: boolean;
     [ONYXKEYS.SHOW_DOWNLOAD_APP_BANNER]: boolean;
     [ONYXKEYS.PERSISTED_REQUESTS]: OnyxTypes.Request[];
-    [ONYXKEYS.QUEUED_ONYX_UPDATES]: OnyxTypes.QueuedOnyxUpdates;
     [ONYXKEYS.CURRENT_DATE]: string;
     [ONYXKEYS.CREDENTIALS]: OnyxTypes.Credentials;
     [ONYXKEYS.IOU]: OnyxTypes.IOU;
