@@ -61,7 +61,10 @@ function UserCurrentLocationButton({onLocationFetched, isDisabled, translate}) {
 
         isFetchingLocation.current = true;
 
-        getCurrentPosition(onSuccess, onError);
+        getCurrentPosition(onSuccess, onError, {
+            maximumAge: 0, // no cache, always get fresh location info
+            timeout: 3000,
+        });
     };
 
     useEffect(() => {
