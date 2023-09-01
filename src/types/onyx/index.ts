@@ -23,7 +23,6 @@ import WalletOnfido from './WalletOnfido';
 import WalletAdditionalDetails from './WalletAdditionalDetails';
 import WalletTerms from './WalletTerms';
 import BankAccount from './BankAccount';
-import Fund from './Fund';
 import Card from './Card';
 import Fund from './Fund';
 import WalletStatement from './WalletStatement';
