@@ -23,6 +23,8 @@ import * as Transaction from '../../libs/actions/Transaction';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import ROUTES from '../../ROUTES';
 import transactionPropTypes from '../../components/transactionPropTypes';
+import * as User from '../../libs/actions/User';
+import UserCurrentLocationButton from '../../components/UserCurrentLocationButton';
 
 const propTypes = {
     /** The transactionID of the IOU */
@@ -109,7 +111,7 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
 
         // If the user is online and they are trying to save a value without using the autocomplete, show an error message instructing them to use a selected address instead.
         // That enables us to save the address with coordinates when it is selected
-        if (!isOffline && waypointValue !== '') {
+        if (!isOffline && waypointValue !== '' && waypointAddress !== waypointValue) {
             errors[`waypoint${waypointIndex}`] = 'distance.errors.selectSuggestedAddress';
         }
 
@@ -128,6 +130,8 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
         // Therefore, we're going to save the waypoint as just the address, and the lat/long will be filled in on the backend
         if (isOffline && waypointValue) {
             const waypoint = {
+                lat: null,
+                lng: null,
                 address: waypointValue,
             };
 
@@ -151,8 +155,26 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
             address: values.address,
         };
 
+        User.clearLocationError();
         Transaction.saveWaypoint(transactionID, waypointIndex, waypoint);
         Navigation.goBack(ROUTES.getMoneyRequestDistanceTabRoute(iouType));
+    };
+
+    /**
+     * sets user current location as a waypoint
+     * @param {Object} geolocationData
+     * @param {Object} geolocationData.coords.latitude
+     * @param {Object} geolocationData.coords.longitude
+     * @param {Object} geolocationData.timestamp
+     */
+    const selectWaypointFromCurrentLocation = (geolocationData) => {
+        const waypoint = {
+            lat: geolocationData.coords.latitude,
+            lng: geolocationData.coords.longitude,
+            address: 'Your Location',
+        };
+
+        selectWaypoint(waypoint);
     };
 
     return (
@@ -222,6 +244,7 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
                             predefinedPlaces={recentWaypoints}
                         />
                     </View>
+                    <UserCurrentLocationButton onLocationFetched={selectWaypointFromCurrentLocation} />
                 </Form>
             </FullPageNotFoundView>
         </ScreenWrapper>

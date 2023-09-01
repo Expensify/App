@@ -1,4 +1,6 @@
-export default {
+import CursorStyles from './types';
+
+const cursor: CursorStyles = {
     cursorDefault: {
         cursor: 'default',
     },
@@ -33,3 +35,5 @@ export default {
         cursor: 'text',
     },
 };
+
+export default cursor;

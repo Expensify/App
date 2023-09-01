@@ -97,6 +97,9 @@ const propTypes = {
     /** File source of the receipt */
     receiptSource: PropTypes.string,
 
+    /** List styles for OptionsSelector */
+    listStyles: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
+
     /* Onyx Props */
     /** Collection of categories attached to a policy */
     policyCategories: PropTypes.objectOf(categoryPropTypes),
@@ -120,6 +123,7 @@ const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
     receiptPath: '',
     receiptSource: '',
+    listStyles: [],
     policyCategories: {},
 };
 
@@ -344,6 +348,7 @@ function MoneyRequestConfirmationList(props) {
             shouldUseStyleForChildren={false}
             optionHoveredStyle={canModifyParticipants ? styles.hoveredComponentBG : {}}
             footerContent={footerContent}
+            listStyles={props.listStyles}
         >
             {!_.isEmpty(props.receiptPath) ? (
                 <Image
