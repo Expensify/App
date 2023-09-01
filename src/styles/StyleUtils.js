@@ -834,6 +834,17 @@ function getMinimumHeight(minHeight) {
 }
 
 /**
+ * Get maximum height as style
+ * @param {Number} maxHeight
+ * @returns {Object}
+ */
+function getMaximumHeight(maxHeight) {
+    return {
+        maxHeight,
+    };
+}
+
+/**
  * Get maximum width as style
  * @param {Number} maxWidth
  * @returns {Object}
@@ -1051,6 +1062,17 @@ function getAutoCompleteSuggestionItemStyle(highlightedEmojiIndex, rowHeight, ho
 }
 
 /**
+ * Gets the correct position for the base auto complete suggestion container
+ *
+ * @param {Object} parentContainerLayout
+ * @returns {Object}
+ */
+
+function getBaseAutoCompleteSuggestionContainerStyle({left, bottom, width}) {
+    return {position: 'fixed', bottom, left, width};
+}
+
+/**
  * Gets the correct position for auto complete suggestion container
  *
  * @param {Number} itemsHeight
@@ -1061,7 +1083,7 @@ function getAutoCompleteSuggestionContainerStyle(itemsHeight, shouldIncludeRepor
     'worklet';
 
     const optionalPadding = shouldIncludeReportRecipientLocalTimeHeight ? CONST.RECIPIENT_LOCAL_TIME_HEIGHT : 0;
-    const padding = CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_PADDING - optionalPadding;
+    const padding = CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_PADDING + optionalPadding;
     const borderWidth = 2;
     const height = itemsHeight + 2 * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_INNER_PADDING + borderWidth;
 
@@ -1302,6 +1324,22 @@ function getCheckboxContainerStyle(size, borderRadius) {
     };
 }
 
+/**
+ * Returns style object for the dropbutton height
+ * @param {String} buttonSize
+ * @returns {Object}
+ */
+function getDropDownButtonHeight(buttonSize) {
+    if (buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE) {
+        return {
+            height: variables.componentSizeLarge,
+        };
+    }
+    return {
+        height: variables.componentSizeNormal,
+    };
+}
+
 export {
     getAvatarSize,
     getAvatarWidthStyle,
@@ -1343,6 +1381,7 @@ export {
     hasSafeAreas,
     getHeight,
     getMinimumHeight,
+    getMaximumHeight,
     getMaximumWidth,
     fade,
     getHorizontalStackedAvatarBorderStyle,
@@ -1351,6 +1390,7 @@ export {
     getReportWelcomeBackgroundImageStyle,
     getReportWelcomeTopMarginStyle,
     getReportWelcomeContainerStyle,
+    getBaseAutoCompleteSuggestionContainerStyle,
     getAutoCompleteSuggestionItemStyle,
     getAutoCompleteSuggestionContainerStyle,
     getColoredBackgroundStyle,
@@ -1375,4 +1415,5 @@ export {
     getMenuItemTextContainerStyle,
     getDisabledLinkStyles,
     getCheckboxContainerStyle,
+    getDropDownButtonHeight,
 };

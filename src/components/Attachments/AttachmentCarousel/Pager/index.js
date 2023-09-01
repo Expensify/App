@@ -8,6 +8,7 @@ import PagerView from 'react-native-pager-view';
 import _ from 'underscore';
 import styles from '../../../../styles/styles';
 import AttachmentCarouselPagerContext from './AttachmentCarouselPagerContext';
+import refPropTypes from '../../../refPropTypes';
 
 const AnimatedPagerView = Animated.createAnimatedComponent(createNativeWrapper(PagerView));
 
@@ -50,7 +51,7 @@ const pagerPropTypes = {
     onSwipeSuccess: PropTypes.func,
     onSwipeDown: PropTypes.func,
     onPinchGestureChange: PropTypes.func,
-    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
+    forwardedRef: refPropTypes,
     containerWidth: PropTypes.number.isRequired,
     containerHeight: PropTypes.number.isRequired,
 };

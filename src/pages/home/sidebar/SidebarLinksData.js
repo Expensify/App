@@ -15,6 +15,7 @@ import CONST from '../../../CONST';
 import useLocalize from '../../../hooks/useLocalize';
 import styles from '../../../styles/styles';
 import withNavigationFocus from '../../../components/withNavigationFocus';
+import * as SessionUtils from '../../../libs/SessionUtils';
 
 const propTypes = {
     ...basePropTypes,
@@ -39,8 +40,8 @@ const propTypes = {
         ),
     ),
 
-    /** Whether the personal details are loading. When false it means they are ready to be used. */
-    isPersonalDetailsLoading: PropTypes.bool,
+    /** Whether the reports are loading. When false it means they are ready to be used. */
+    isLoadingReportData: PropTypes.bool,
 
     /** The chat priority mode */
     priorityMode: PropTypes.string,
@@ -56,26 +57,29 @@ const propTypes = {
 const defaultProps = {
     chatReports: {},
     allReportActions: {},
+    isLoadingReportData: true,
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
-    isPersonalDetailsLoading: true,
     betas: [],
     policies: [],
 };
 
-function SidebarLinksData({isFocused, allReportActions, betas, chatReports, currentReportID, insets, isPersonalDetailsLoading, isSmallScreenWidth, onLinkClick, policies, priorityMode}) {
+function SidebarLinksData({isFocused, allReportActions, betas, chatReports, currentReportID, insets, isLoadingReportData, isSmallScreenWidth, onLinkClick, policies, priorityMode}) {
     const {translate} = useLocalize();
 
-    const reportIDsRef = useRef([]);
+    const reportIDsRef = useRef(null);
+    const isLoading = SessionUtils.didUserLogInDuringSession() && isLoadingReportData;
     const optionListItems = useMemo(() => {
         const reportIDs = SidebarUtils.getOrderedReportIDs(currentReportID, chatReports, betas, policies, priorityMode, allReportActions);
         if (deepEqual(reportIDsRef.current, reportIDs)) {
             return reportIDsRef.current;
         }
-        reportIDsRef.current = reportIDs;
-        return reportIDs;
-    }, [allReportActions, betas, chatReports, currentReportID, policies, priorityMode]);
 
-    const isLoading = _.isEmpty(chatReports) || isPersonalDetailsLoading;
+        // We need to update existing reports only once while loading because they are updated several times during loading and causes this regression: https://github.com/Expensify/App/issues/24596#issuecomment-1681679531
+        if (!isLoading || !reportIDsRef.current || (_.isEmpty(reportIDsRef.current) && currentReportID)) {
+            reportIDsRef.current = reportIDs;
+        }
+        return reportIDsRef.current || [];
+    }, [allReportActions, betas, chatReports, currentReportID, policies, priorityMode, isLoading]);
 
     return (
         <View
@@ -114,6 +118,7 @@ const chatReportSelector = (report) =>
         participantAccountIDs: report.participantAccountIDs,
         hasDraft: report.hasDraft,
         isPinned: report.isPinned,
+        isHidden: report.isHidden,
         errorFields: {
             addWorkspaceRoom: report.errorFields && report.errorFields.addWorkspaceRoom,
         },
@@ -177,9 +182,8 @@ export default compose(
             key: ONYXKEYS.COLLECTION.REPORT,
             selector: chatReportSelector,
         },
-        isPersonalDetailsLoading: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            selector: _.isEmpty,
+        isLoadingReportData: {
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
         },
         priorityMode: {
             key: ONYXKEYS.NVP_PRIORITY_MODE,
