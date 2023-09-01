@@ -89,13 +89,17 @@ const reportIDsCache = new Map();
  */
 function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, priorityMode, allReportActions) {
     // Generate a unique cache key based on the function arguments
-    const cachedReports = JSON.stringify([currentReportId, allReportsDict, betas, policies, priorityMode, Object.values(allReportActions).length], (key, value) => {
-        // Exclude 'participantAccountIDs', 'participants' and 'lastMessageText' properties from all objects in the 'allReportsDict' array
-        if (key === 'participantAccountIDs' || key === 'participants' || key === 'lastMessageText') {
-            return undefined;
-        }
-        return value;
-    });
+    const cachedReports = JSON.stringify(
+        // eslint-disable-next-line es/no-optional-chaining
+        [currentReportId, allReportsDict, betas, policies, priorityMode, allReportActions[`reportActions_${currentReportId}`]?.length || 1],
+        (key, value) => {
+            // Exclude 'participantAccountIDs', 'participants' and 'lastMessageText' properties from all objects in the 'allReportsDict' array
+            if (key === 'participantAccountIDs' || key === 'participants' || key === 'lastMessageText') {
+                return undefined;
+            }
+            return value;
+        },
+    );
     // // Check if the result is already in the cache
     if (reportIDsCache.has(cachedReports)) {
         return reportIDsCache.get(cachedReports);
@@ -159,20 +163,17 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
     });
 
     // Sort each group of reports accordingly
-    pinnedReports.sort((a, b) => a.displayName.localeCompare(b.displayName));
-    outstandingIOUReports.sort((a, b) => b.iouReportAmount - a.iouReportAmount || a.displayName.localeCompare(b.displayName));
-    draftReports.sort((a, b) => a.displayName.localeCompare(b.displayName));
+    pinnedReports.sort((a, b) => a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()));
+    outstandingIOUReports.sort((a, b) => b.iouReportAmount - a.iouReportAmount || a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()));
+    draftReports.sort((a, b) => a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()));
     if (isInDefaultMode) {
-        nonArchivedReports.sort((a, b) => new Date(b.lastVisibleActionCreated) - new Date(a.lastVisibleActionCreated) || a.displayName.localeCompare(b.displayName));
-        archivedReports.sort((a, b) => new Date(b.lastVisibleActionCreated) - new Date(a.lastVisibleActionCreated));
+        nonArchivedReports.sort(
+            (a, b) => new Date(b.lastVisibleActionCreated) - new Date(a.lastVisibleActionCreated) || a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()),
+        );
+        archivedReports.sort((a, b) => new Date(a.lastVisibleActionCreated) - new Date(b.lastVisibleActionCreated));
     } else {
-        nonArchivedReports.sort((a, b) => a.displayName.localeCompare(b.displayName));
-        archivedReports.sort((a, b) => a.displayName.localeCompare(b.displayName));
-    }
-
-    // For archived reports ensure that most recent reports are at the top by reversing the order of the arrays because underscore will only sort them in ascending order
-    if (isInDefaultMode) {
-        archivedReports.reverse();
+        nonArchivedReports.sort((a, b) => a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()));
+        archivedReports.sort((a, b) => a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()));
     }
 
     // Now that we have all the reports grouped and sorted, they must be flattened into an array and only return the reportID.

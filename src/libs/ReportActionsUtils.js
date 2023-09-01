@@ -1,7 +1,7 @@
 /* eslint-disable rulesdir/prefer-underscore-method */
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
-import {max, parseISO} from 'date-fns';
+import {max, parseISO, isEqual} from 'date-fns';
 import lodashFindLast from 'lodash/findLast';
 import Onyx from 'react-native-onyx';
 import * as CollectionUtils from './CollectionUtils';
@@ -328,9 +328,9 @@ function shouldReportActionBeVisible(reportAction, key) {
 
     // Filter out any unsupported reportAction types
     if (
-        !_.has(CONST.REPORT.ACTIONS.TYPE, reportAction.actionName) &&
-        !_.contains(_.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG), reportAction.actionName) &&
-        !_.contains(_.values(CONST.REPORT.ACTIONS.TYPE.TASK), reportAction.actionName)
+        !Object.values(CONST.REPORT.ACTIONS.TYPE).includes(reportAction.actionName) &&
+        !Object.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG).includes(reportAction.actionName) &&
+        !Object.values(CONST.REPORT.ACTIONS.TYPE.TASK).includes(reportAction.actionName)
     ) {
         return false;
     }
@@ -346,7 +346,7 @@ function shouldReportActionBeVisible(reportAction, key) {
 
     // All other actions are displayed except thread parents, deleted, or non-pending actions
     const isDeleted = isDeletedAction(reportAction);
-    const isPending = !_.isEmpty(reportAction.pendingAction);
+    const isPending = !!reportAction.pendingAction;
     return !isDeleted || isPending || isDeletedParentAction(reportAction);
 }
 
@@ -381,7 +381,7 @@ function getLastVisibleAction(reportID, actionsToMerge = {}) {
         return {};
     }
     const maxDate = max(visibleActions.map((action) => parseISO(action.created)));
-    const maxAction = visibleActions.find((action) => parseISO(action.created).toString() === maxDate.toString());
+    const maxAction = visibleActions.find((action) => isEqual(parseISO(action.created), maxDate));
     return maxAction;
 }
 
