@@ -98,7 +98,7 @@ function saveWaypoint(transactionID, index, waypoint) {
     // You can save offline waypoints without verifying the address (we will geocode it on the backend)
     // We're going to prevent saving those addresses in the recent waypoints though since they could be invalid addresses
     // However, in the backend once we verify the address, we will save the waypoint in the recent waypoints NVP
-    if (!waypoint || (lodashHas(waypoint, 'lat') && waypoint.lat === 0) || (lodashHas(waypoint, 'lng') && waypoint.lng === 0)) {
+    if (!lodashHas(waypoint, 'lat') || !lodashHas(waypoint, 'lng')) {
         return;
     }
 
