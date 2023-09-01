@@ -21,7 +21,7 @@ import usePermissions from '../../hooks/usePermissions';
 import OnyxTabNavigator, {TopTab} from '../../libs/Navigation/OnyxTabNavigator';
 import NewRequestAmountPage from './steps/NewRequestAmountPage';
 import reportPropTypes from '../reportPropTypes';
-import * as ReportUtils from '../../libs/actions/Report';
+import * as ReportUtils from '../../libs/ReportUtils';
 
 const propTypes = {
     /** React Navigation route */
