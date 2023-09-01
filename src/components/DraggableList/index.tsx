@@ -2,7 +2,7 @@ import React, {useCallback} from 'react';
 import {DragDropContext, Droppable, Draggable, type OnDragEndResponder, type OnDragUpdateResponder} from 'react-beautiful-dnd';
 import {ScrollView} from 'react-native';
 import useDraggableInPortal from './useDraggableInPortal';
-import type {DraggableListProps, DefaultItemProps} from './types';
+import type {DraggableListProps} from './types';
 
 type ReorderParams<T> = {
     list: T[];
@@ -15,14 +15,14 @@ const reorder = <T,>({list, startIndex, endIndex}: ReorderParams<T>): T[] => {
     const result = Array.from(list);
     const [removed] = result.splice(startIndex, 1);
 
-    if (removed !== undefined) {
+    if (removed) {
         result.splice(endIndex, 0, removed);
     }
 
     return result;
 };
 
-export default function DraggableList<T extends DefaultItemProps>({
+function DraggableList<T>({
     data = [],
     renderItem,
     keyExtractor,
@@ -128,3 +128,7 @@ export default function DraggableList<T extends DefaultItemProps>({
         </DragDropContext>
     );
 }
+
+DraggableList.displayName = 'DraggableList';
+
+export default DraggableList;
