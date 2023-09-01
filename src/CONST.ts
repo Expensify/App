@@ -666,6 +666,7 @@ const CONST = {
     },
     TRANSACTION: {
         DEFAULT_MERCHANT: 'Request',
+        UNKNOWN_MERCHANT: 'Unknown Merchant',
         TYPE: {
             CUSTOM_UNIT: 'customUnit',
         },
@@ -1369,6 +1370,9 @@ const CONST = {
         WRITE: 'write',
         MAKE_REQUEST_WITH_SIDE_EFFECTS: 'makeRequestWithSideEffects',
     },
+
+    MAP_PADDING: 50,
+    MAP_MARKER_SIZE: 20,
 
     QUICK_REACTIONS: [
         {
