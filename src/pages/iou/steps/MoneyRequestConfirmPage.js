@@ -96,7 +96,7 @@ function MoneyRequestConfirmPage(props) {
             IOU.resetMoneyRequestInfo(moneyRequestId);
         }
 
-        if (_.isEmpty(props.iou.participants) || shouldReset) {
+        if (_.isEmpty(props.iou.participants) || (props.iou.amount === 0 && !props.iou.receiptPath && !isDistanceRequest) || shouldReset) {
             Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current), true);
         }
 

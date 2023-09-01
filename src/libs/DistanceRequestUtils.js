@@ -1,5 +1,6 @@
 import _ from 'underscore';
 import CONST from '../CONST';
+import * as CurrencyUtils from './CurrencyUtils';
 
 /**
  * Retrieves the default mileage rate based on a given policy.
@@ -8,10 +9,11 @@ import CONST from '../CONST';
  * @param {Object} [policy.customUnits] - Custom units defined in the policy.
  * @param {Object[]} [policy.customUnits.rates] - Rates used in the policy.
  * @param {Object} [policy.customUnits.attributes] - attributes on a custom unit
- * @param {'mi' | 'ki'} [policy.customUnits.attributes.unit] - unit of measurement for the distance
+ * @param {'mi' | 'km'} [policy.customUnits.attributes.unit] - unit of measurement for the distance
  *
  * @returns {Object|null} An object containing the rate and unit for the default mileage or null if not found.
  * @returns {Number} .rate - The default rate for the mileage.
+ * @returns {String} .currency - The currency associated with the rate.
  * @returns {String} .unit - The unit of measurement for the distance.
  */
 const getDefaultMileageRate = (policy) => {
@@ -31,6 +33,7 @@ const getDefaultMileageRate = (policy) => {
 
     return {
         rate: distanceRate.rate,
+        currency: distanceRate.currency,
         unit: distanceUnit.attributes.unit,
     };
 };
@@ -39,7 +42,7 @@ const getDefaultMileageRate = (policy) => {
  * Converts a given distance in meters to the specified unit (kilometers or miles).
  *
  * @param {Number} distanceInMeters - The distance in meters to be converted.
- * @param {'mi' | 'ki'} unit - The desired unit of conversion, either 'km' for kilometers or 'mi' for miles.
+ * @param {'mi' | 'km'} unit - The desired unit of conversion, either 'km' for kilometers or 'mi' for miles.
  *
  * @returns {Number} The converted distance in the specified unit.
  */
@@ -60,28 +63,29 @@ function convertDistanceUnit(distanceInMeters, unit) {
 /**
  *
  * @param {Number} distanceInMeters Distance traveled
- * @param {'mi' | 'ki'} unit Unit that should be used to display the distance
+ * @param {'mi' | 'km'} unit Unit that should be used to display the distance
  * @param {Number} rate Expensable amount allowed per unit
+ * @param {String} currency The currency associated with the rate
  * @param {Function} translate Translate function
  * @returns {String} A string that describes the distance travled and the rate used for expense calculation
  */
-const getDistanceString = (distanceInMeters, unit, rate, translate) => {
+const getDistanceMerchant = (distanceInMeters, unit, rate, currency, translate) => {
     const convertedDistance = convertDistanceUnit(distanceInMeters, unit);
-
     const distanceUnit = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.miles') : translate('common.kilometers');
     const singularDistanceUnit = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.mile') : translate('common.kilometer');
     const roundedDistance = convertedDistance.toFixed(2);
     const unitString = roundedDistance === 1 ? singularDistanceUnit : distanceUnit;
     const ratePerUnit = rate * 0.01;
+    const currencySymbol = CurrencyUtils.getCurrencySymbol(currency) || `${currency} `;
 
-    return `${roundedDistance} ${unitString} @ $${ratePerUnit} / ${singularDistanceUnit}`;
+    return `${roundedDistance} ${unitString} @ ${currencySymbol}${ratePerUnit} / ${singularDistanceUnit}`;
 };
 
 /**
  * Calculates the request amount based on distance, unit, and rate.
  *
  * @param {Number} distance - The distance traveled in meters
- * @param {'mi' | 'ki'} unit - The unit of measurement for the distance
+ * @param {'mi' | 'km'} unit - The unit of measurement for the distance
  * @param {Number} rate - Rate used for calculating the request amount
  * @returns {Number} The computed request amount.
  */
@@ -90,4 +94,4 @@ const getDistanceRequestAmount = (distance, unit, rate) => {
     return convertedDistance * rate;
 };
 
-export default {getDefaultMileageRate, getDistanceString, getDistanceRequestAmount};
+export default {getDefaultMileageRate, getDistanceMerchant, getDistanceRequestAmount};

@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {ScrollView, View} from 'react-native';
 import lodashGet from 'lodash/get';
+import lodashHas from 'lodash/has';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -36,7 +37,7 @@ const propTypes = {
     /** The transactionID of this request */
     transactionID: PropTypes.string,
 
-    /** The report to with which the distance request is associated */
+    /** The report to which the distance request is associated */
     report: reportPropTypes,
 
     /** Data about Mapbox token for calling Mapbox API */
@@ -75,14 +76,15 @@ function DistanceRequest({transactionID, report, mapboxAccessToken, isEditingReq
 
     const lastWaypointIndex = numberOfWaypoints - 1;
     const isLoadingRoute = lodashGet(transaction, 'comment.isLoading', false);
-    const hasRouteError = Boolean(lodashGet(transaction, 'errorFields.route'));
+    const hasRouteError = lodashHas(transaction, 'errorFields.route');
     const previousWaypoints = usePrevious(waypoints);
     const haveWaypointsChanged = !_.isEqual(previousWaypoints, waypoints);
-    const shouldFetchRoute = haveWaypointsChanged && !isOffline && !isLoadingRoute && TransactionUtils.validateWaypoints(waypoints);
+    const doesRouteExist = lodashHas(transaction, 'routes.route0.geometry.coordinates');
+    const shouldFetchRoute = (!doesRouteExist || haveWaypointsChanged) && !isLoadingRoute && TransactionUtils.validateWaypoints(waypoints);
 
     const waypointMarkers = _.filter(
         _.map(waypoints, (waypoint, key) => {
-            if (!waypoint || waypoint.lng === undefined || waypoint.lat === undefined) {
+            if (!waypoint || !lodashHas(waypoint, 'lat') || !lodashHas(waypoint, 'lng')) {
                 return;
             }
 
@@ -133,14 +135,13 @@ function DistanceRequest({transactionID, report, mapboxAccessToken, isEditingReq
         setShouldShowGradient(visibleAreaEnd < scrollContentHeight);
     };
 
-    // Handle fetching the route when there are at least 2 waypoints
     useEffect(() => {
-        if (!shouldFetchRoute) {
+        if (isOffline || !shouldFetchRoute) {
             return;
         }
 
         Transaction.getRoute(transactionID, waypoints);
-    }, [shouldFetchRoute, transactionID, waypoints]);
+    }, [shouldFetchRoute, transactionID, waypoints, isOffline]);
 
     useEffect(updateGradientVisibility, [scrollContainerHeight, scrollContentHeight]);
 
@@ -175,7 +176,6 @@ function DistanceRequest({transactionID, report, mapboxAccessToken, isEditingReq
                             <MenuItemWithTopDescription
                                 description={translate(descriptionKey)}
                                 title={lodashGet(waypoints, [`waypoint${index}`, 'address'], '')}
-                                icon={Expensicons.DragHandles}
                                 iconFill={theme.icon}
                                 secondaryIcon={waypointIcon}
                                 secondaryIconFill={theme.icon}

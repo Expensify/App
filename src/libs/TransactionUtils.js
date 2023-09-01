@@ -6,7 +6,6 @@ import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import DateUtils from './DateUtils';
 import * as NumberUtils from './NumberUtils';
-import * as ReportActionsUtils from './ReportActionsUtils';
 
 let allTransactions = {};
 Onyx.connect({
@@ -87,6 +86,14 @@ function hasReceipt(transaction) {
 }
 
 /**
+ * @param {Object} transaction
+ * @returns {Boolean}
+ */
+function areModifiedFieldsPopulated(transaction) {
+    return transaction.modifiedMerchant !== CONST.TRANSACTION.UNKNOWN_MERCHANT && transaction.modifiedAmount !== 0 && transaction.modifiedCreated !== '';
+}
+
+/**
  * Given the edit made to the money request, return an updated transaction object.
  *
  * @param {Object} transaction
@@ -132,6 +139,7 @@ function getUpdatedTransaction(transaction, transactionChanges, isFromExpenseRep
     if (shouldStopSmartscan && _.has(transaction, 'receipt') && !_.isEmpty(transaction.receipt) && lodashGet(transaction, 'receipt.state') !== CONST.IOU.RECEIPT_STATE.OPEN) {
         updatedTransaction.receipt.state = CONST.IOU.RECEIPT_STATE.OPEN;
     }
+
     updatedTransaction.pendingFields = {
         ...(_.has(transactionChanges, 'comment') && {comment: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
         ...(_.has(transactionChanges, 'created') && {created: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
@@ -245,6 +253,20 @@ function getCreated(transaction) {
     return '';
 }
 
+function isReceiptBeingScanned(transaction) {
+    return _.contains([CONST.IOU.RECEIPT_STATE.SCANREADY, CONST.IOU.RECEIPT_STATE.SCANNING], transaction.receipt.state);
+}
+
+/**
+ * Check if the transaction has a non-smartscanning receipt and is missing required fields
+ *
+ * @param {Object} transaction
+ * @returns {Boolean}
+ */
+function hasMissingSmartscanFields(transaction) {
+    return hasReceipt(transaction) && !isReceiptBeingScanned(transaction) && !areModifiedFieldsPopulated(transaction);
+}
+
 /**
  * Get the transactions related to a report preview with receipts
  * Get the details linked to the IOU reportAction
@@ -259,10 +281,6 @@ function getLinkedTransaction(reportAction = {}) {
 
 function getAllReportTransactions(reportID) {
     return _.filter(allTransactions, (transaction) => transaction.reportID === reportID);
-}
-
-function isReceiptBeingScanned(transaction) {
-    return transaction.receipt.state === CONST.IOU.RECEIPT_STATE.SCANREADY || transaction.receipt.state === CONST.IOU.RECEIPT_STATE.SCANNING;
 }
 
 /**
@@ -326,4 +344,5 @@ export {
     validateWaypoints,
     isDistanceRequest,
     getWaypoints,
+    hasMissingSmartscanFields,
 };
