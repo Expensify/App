@@ -94,7 +94,7 @@ function flush() {
                 isSequentialQueueRunning = false;
                 resolveIsReadyPromise();
                 currentRequest = null;
-                Onyx.update(QueuedOnyxUpdates.getQueuedUpdates()).then(QueuedOnyxUpdates.clear);
+                flushAndClearOnyxQueue();
             });
         },
     });
@@ -149,6 +149,17 @@ function waitForIdle() {
     return isReadyPromise;
 }
 
+
+/**
+ * Gets the current Onyx queued updates, apply them and clear the queue if the queue is not paused.
+ */
+function flushAndClearOnyxQueue() {
+    if (isQueuePaused) {
+        return;
+    }
+    Onyx.update(QueuedOnyxUpdates.getQueuedUpdates()).then(QueuedOnyxUpdates.clear);
+}
+
 /**
  * Puts the queue into a paused state so that no requests will be processed
  */
@@ -172,6 +183,10 @@ function unpause() {
     const numberOfPersistedRequests = PersistedRequests.getAll().length || 0;
     console.debug(`[SequentialQueue] Unpausing the queue and flushing ${numberOfPersistedRequests} requests`);
     isQueuePaused = false;
+
+    // Since the writes may happen async to the queue, in case we had any writes happen while the queue was paused 
+    // (because of race conditions), let's also apply the queued updates and clear them before continuing the queue.
+    flushAndClearOnyxQueue();
     flush();
 }
 
