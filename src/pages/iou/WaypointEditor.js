@@ -244,7 +244,10 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
                             predefinedPlaces={recentWaypoints}
                         />
                     </View>
-                    <UserCurrentLocationButton onLocationFetched={selectWaypointFromCurrentLocation} />
+                    <UserCurrentLocationButton
+                        isDisabled={isOffline}
+                        onLocationFetched={selectWaypointFromCurrentLocation}
+                    />
                 </Form>
             </FullPageNotFoundView>
         </ScreenWrapper>
