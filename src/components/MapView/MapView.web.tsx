@@ -59,7 +59,7 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(
         );
 
         return (
-            <View 
+            <View
                 style={style}
                 // eslint-disable-next-line
                 {...responder.panHandlers}

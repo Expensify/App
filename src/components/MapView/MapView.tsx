@@ -58,9 +58,7 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(({accessToken, style, ma
     };
 
     return (
-        <View
-            style={style}
-        >
+        <View style={style}>
             <Mapbox.MapView
                 style={{flex: 1}}
                 styleURL={styleURL}
