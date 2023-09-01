@@ -14,6 +14,8 @@ type DraggableListProps<T> = {
     renderClone?: DraggableChildrenFn;
     shouldUsePortal?: boolean;
     onContentSizeChange?: ((w: number, h: number) => void) | undefined;
+    // TODO: implement on web
+    onScrollOffsetChange?: (() => void) | undefined;
 } & DataType<T>;
 
 type RenderItemParams<T> = OriginalRenderItemParams<T>;

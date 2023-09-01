@@ -126,7 +126,8 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
     const updateGradientVisibility = (event = {}) => {
         // If a waypoint extends past the bottom of the visible area show the gradient, else hide it.
         const visibleAreaEnd = lodashGet(event, 'nativeEvent.contentOffset.y', 0) + scrollContainerHeight;
-        setShouldShowGradient(visibleAreaEnd < scrollContentHeight);
+        // TODO: Fix updating gradient visibility
+        setShouldShowGradient(visibleAreaEnd < scrollContentHeight && false);
     };
 
     // Handle fetching the route when there are at least 2 waypoints
@@ -141,7 +142,10 @@ function DistanceRequest({transactionID, transaction, mapboxAccessToken}) {
     useEffect(updateGradientVisibility, [scrollContainerHeight, scrollContentHeight]);
 
     return (
-        <ScreenWrapper shouldEnableMaxHeight>
+        <ScreenWrapper
+            shouldEnableMaxHeight
+            includePaddingTop={false}
+        >
             <View
                 style={styles.distanceRequestContainer(scrollContainerMaxHeight)}
                 onLayout={(event = {}) => setScrollContainerHeight(lodashGet(event, 'nativeEvent.layout.height', 0))}
