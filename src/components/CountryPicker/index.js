@@ -54,11 +54,11 @@ function CountryPicker({value, errorText, onInputChange, forwardedRef}) {
     };
     const closeModal = () => {
         hidePickerModal();
+
         // if its macOS app or desktop browser, dismiss the modal when you click on the backdrop
+        if (Browser.isMobile()) return;
         if (getPlatform() === CONST.PLATFORM.DESKTOP || getPlatform() === CONST.PLATFORM.WEB) {
-            if (!Browser.isMobile()) {
-                Navigation.dismissModal();
-            }
+            Navigation.dismissModal();
         }
     };
 
