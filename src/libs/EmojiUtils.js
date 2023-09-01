@@ -319,7 +319,14 @@ function replaceEmojis(text, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE, 
     }
     for (let i = 0; i < emojiData.length; i++) {
         const name = emojiData[i].slice(1, -1);
-        const checkEmoji = trie.search(name);
+        let checkEmoji = trie.search(name);
+        if ((!checkEmoji || !checkEmoji.metaData.code) && lang !== CONST.LOCALES.DEFAULT) {
+            const englishTrie = emojisTrie[CONST.LOCALES.DEFAULT];
+            if (englishTrie) {
+                const englishEmoji = englishTrie.search(name);
+                checkEmoji = englishEmoji;
+            }
+        }
         if (checkEmoji && checkEmoji.metaData.code) {
             let emojiReplacement = getEmojiCodeWithSkinColor(checkEmoji.metaData, preferredSkinTone);
             emojis.push({
