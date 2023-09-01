@@ -77,6 +77,9 @@ const ONYXKEYS = {
      * It is expected to provide a two-letter country code such as US for United States, and so on. */
     COUNTRY: 'country',
 
+    /** Represents current user's location error code, this error code comes from the geolocation api */
+    LOCATION_ERROR_CODE: 'locationErrorCode',
+
     /** Contains all the users settings for the Settings page and sub pages */
     USER: 'user',
 
@@ -320,6 +323,7 @@ type OnyxValues = {
     [ONYXKEYS.SCREEN_SHARE_REQUEST]: OnyxTypes.ScreenShareRequest;
     [ONYXKEYS.COUNTRY_CODE]: number;
     [ONYXKEYS.COUNTRY]: string;
+    [ONYXKEYS.LOCATION_ERROR_CODE]: number;
     [ONYXKEYS.USER]: OnyxTypes.User;
     [ONYXKEYS.LOGIN_LIST]: OnyxTypes.Login;
     [ONYXKEYS.SESSION]: OnyxTypes.Session;
