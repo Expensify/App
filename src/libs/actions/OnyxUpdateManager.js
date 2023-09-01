@@ -108,51 +108,51 @@ export default () => {
 
             const {lastUpdateIDFromServer, previousUpdateIDFromServer, updateParams} = val;
 
-            // This can happen when a user has just started getting reliable updates from the server but they haven't
-            // had an OpenApp or ReconnectApp call yet. This can result in never getting reliable updates because
-            // lastUpdateIDAppliedToClient will always be null. For this case, reconnectApp() will be triggered for them
-            // to kick start the reliable updates. We also filter OpenApp and ReconnectApp so we don't create a loop.
-            if (
-                !lastUpdateIDAppliedToClient &&
-                previousUpdateIDFromServer > 0 &&
-                (updateParams.type === CONST.ONYX_UPDATE_TYPES.PUSHER ||
-                    (updateParams.type === CONST.ONYX_UPDATE_TYPES.HTTPS && updateParams.data.request.command !== 'OpenApp' && updateParams.data.request.command !== 'ReconnectApp'))
-            ) {
-                console.debug('[OnyxUpdateManager] Client has not gotten reliable updates before so reconnecting the app to start the process');
-                App.lastReconnectAppAfterActivatingReliableUpdates().finally(() => {
-                    applyOnyxUpdates(updateParams);
-                });
-            } else if (previousUpdateIDFromServer && lastUpdateIDAppliedToClient < previousUpdateIDFromServer) {
-                console.debug(`[OnyxUpdateManager] Client is behind the server by ${previousUpdateIDFromServer - lastUpdateIDAppliedToClient} so fetching incremental updates`);
-                Log.info('Gap detected in update IDs from server so fetching incremental updates', true, {
-                    lastUpdateIDFromServer,
-                    previousUpdateIDFromServer,
-                    lastUpdateIDAppliedToClient,
-                });
+            // If we don't have a previousUpdateID from the request, or if we if it's the same as we currently have stored
+            // we can simply apply the updates and move on.
+            if (!previousUpdateIDFromServer || lastUpdateIDAppliedToClient === previousUpdateIDFromServer) {
+                console.debug(`[OnyxUpdateManager] Client is in sync with the server, applying updates`);
+                applyOnyxUpdates(updateParams);
+            } else {
 
-                // Pause the sequential queue while the missing Onyx updates are fetched from the server. This is important
-                // so that the updates are applied in their correct and specific order. If this queue was not paused, then
-                // there would be a lot of onyx data being applied while we are fetching the missing updates and that would
-                // put them all out of order.
+                // In cases where we received a previousUpdateID and it doesn't match our lastUpdateIDAppliedToClient
+                // we need to perform one of the 2 possible cases:
+                //
+                // 1. This is the first time we're receiving an lastUpdateID, so we need to do a final reconnectApp before
+                // fully migrating to the reliable updates mode;
+                // 2. This this client already has the reliable updates mode enabled, but it's missing some updates and it 
+                // needs to fech those.
+                //
+                // To to both of those, we need to pause the sequential queue. This is important so that the updates are 
+                // applied in their correct and specific order. If this queue was not paused, then there would be a lot of 
+                // onyx data being applied while we are fetching the missing updates and that would put them all out of order.
                 SequentialQueue.pause();
 
-                App.getMissingOnyxUpdates(lastUpdateIDAppliedToClient, lastUpdateIDFromServer).finally(() => {
-                    console.debug('[OnyxUpdateManager] Done Getting missing onyx updates');
-
-                    // The onyx update from the initial request could have been either from HTTPS or Pusher.
-                    // Now that the missing onyx updates have been applied, we can apply the original onyxUpdates from
-                    // the API request.
-                    applyOnyxUpdates(updateParams).then(() => {
-                        console.debug('[OnyxUpdateManager] Done applying all updates');
-
-                        // Finally, the missing updates were applied, the original update was applied, and now the
-                        // sequential queue is free to continue.
-                        SequentialQueue.unpause();
+                let promise;
+                
+                // The flow below is setting the promise to a reconnect app to address flow (1) explained above.
+                if (!lastUpdateIDAppliedToClient &&
+                    (updateParams.type === CONST.ONYX_UPDATE_TYPES.PUSHER || updateParams.data.request.command !== 'OpenApp' && updateParams.data.request.command !== 'ReconnectApp')
+                ) {
+                    console.debug('[OnyxUpdateManager] Client has not gotten reliable updates before so reconnecting the app to start the process');
+                    Log.info('Client has not gotten reliable updates before so reconnecting the app to start the process');
+                    promise = App.lastReconnectAppAfterActivatingReliableUpdates();
+                } else if (previousUpdateIDFromServer && lastUpdateIDAppliedToClient < previousUpdateIDFromServer) {
+                    // The flow below is setting the promise to a getMissingOnyxUpdates to address flow (2) explained above.
+                    console.debug(`[OnyxUpdateManager] Client is behind the server by ${previousUpdateIDFromServer - lastUpdateIDAppliedToClient} so fetching incremental updates`);
+                    Log.info('Gap detected in update IDs from server so fetching incremental updates', true, {
+                        lastUpdateIDFromServer,
+                        previousUpdateIDFromServer,
+                        lastUpdateIDAppliedToClient,
                     });
+                    promise = App.getMissingOnyxUpdates(lastUpdateIDAppliedToClient, lastUpdateIDFromServer);
+                }
+
+                promise.finally(() => {
+                    console.debug('[OnyxUpdateManager] Done applying all updates');
+                    applyOnyxUpdates(updateParams);
+                    SequentialQueue.unpause();
                 });
-            } else {
-                console.debug(`[OnyxUpdateManager] Client is in sync with the server`);
-                applyOnyxUpdates(updateParams);
             }
 
             if (lastUpdateIDFromServer > lastUpdateIDAppliedToClient) {
