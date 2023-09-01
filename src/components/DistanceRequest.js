@@ -3,6 +3,7 @@ import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import lodashHas from 'lodash/has';
+import PropTypes from 'prop-types';
 import _ from 'underscore';
 
 import CONST from '../CONST';
