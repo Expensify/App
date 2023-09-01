@@ -3874,6 +3874,11 @@ const styles = {
         overflow: 'hidden',
     },
 
+    confirmationListMapItem: {
+        ...spacing.m5,
+        height: 200,
+    },
+
     mapDirection: {
         lineColor: Colors.green,
         lineWidth: 7,

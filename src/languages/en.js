@@ -161,6 +161,10 @@ export default {
         receipt: 'Receipt',
         replace: 'Replace',
         distance: 'Distance',
+        mile: 'mile',
+        miles: 'miles',
+        kilometer: 'kilometer',
+        kilometers: 'kilometers',
         recent: 'Recent',
         all: 'All',
     },
@@ -1254,7 +1258,6 @@ export default {
             captureReceipts: 'Capture receipts',
             fastReimbursementsHappyMembers: 'Fast reimbursements = happy members!',
             kilometers: 'Kilometers',
-            miles: 'Miles',
             viewAllReceipts: 'View all receipts',
             reimburseReceipts: 'Reimburse receipts',
             trackDistance: 'Track distance',
@@ -1666,12 +1669,6 @@ export default {
         errors: {
             selectSuggestedAddress: 'Please select a suggested address or use current location',
         },
-    },
-    countrySelectorModal: {
-        placeholderText: 'Search to see options',
-    },
-    stateSelectorModal: {
-        placeholderText: 'Search to see options',
     },
     demos: {
         saastr: {
