@@ -233,7 +233,7 @@ function MoneyRequestPreview(props) {
                     <View style={styles.moneyRequestPreviewBoxText}>
                         <View style={[styles.flexRow]}>
                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh16]}>{getPreviewHeaderText()}</Text>
+                                <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh20]}>{getPreviewHeaderText()}</Text>
                                 {Boolean(getSettledMessage()) && (
                                     <>
                                         <Icon
@@ -242,7 +242,7 @@ function MoneyRequestPreview(props) {
                                             height={4}
                                             additionalStyles={[styles.mr1, styles.ml1]}
                                         />
-                                        <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh16]}>{getSettledMessage()}</Text>
+                                        <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh20]}>{getSettledMessage()}</Text>
                                     </>
                                 )}
                             </View>
@@ -277,7 +277,7 @@ function MoneyRequestPreview(props) {
                         </View>
                         {!props.isBillSplit && !_.isEmpty(requestMerchant) && (
                             <View style={[styles.flexRow]}>
-                                <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh16, styles.breakWord]}>{requestMerchant}</Text>
+                                <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh20, styles.breakWord]}>{requestMerchant}</Text>
                             </View>
                         )}
                         <View style={[styles.flexRow]}>
