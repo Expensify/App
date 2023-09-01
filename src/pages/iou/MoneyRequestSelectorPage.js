@@ -21,6 +21,7 @@ import usePermissions from '../../hooks/usePermissions';
 import OnyxTabNavigator, {TopTab} from '../../libs/Navigation/OnyxTabNavigator';
 import NewRequestAmountPage from './steps/NewRequestAmountPage';
 import reportPropTypes from '../reportPropTypes';
+import * as ReportUtils from '../../libs/actions/Report';
 
 const propTypes = {
     /** React Navigation route */
@@ -58,9 +59,9 @@ function MoneyRequestSelectorPage(props) {
         [CONST.IOU.MONEY_REQUEST_TYPE.SEND]: translate('iou.sendMoney'),
         [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT]: translate('iou.splitBill'),
     };
-    const isFromGlobalCreate = !props.route.params.reportID;
-    const isExpenseRequest = props.report.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT;
-    const shouldDisplayDistanceRequest = (canUseDistanceRequests && isExpenseRequest) || isFromGlobalCreate;
+    const isFromGlobalCreate = !reportID;
+    const isExpenseRequest = ReportUtils.isPolicyExpenseChat(props.report);
+    const shouldDisplayDistanceRequest = canUseDistanceRequests && (isExpenseRequest || isFromGlobalCreate);
 
     const resetMoneyRequestInfo = () => {
         const moneyRequestID = `${iouType}${reportID}`;
