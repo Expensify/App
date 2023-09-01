@@ -14,7 +14,6 @@ function MoneyRequestHeaderStatusBar() {
                 styles.flexRow,
                 styles.alignItemsCenter,
                 styles.flexGrow1,
-                styles.justifyContentBetween,
                 styles.overflowHidden,
                 styles.ph5,
                 styles.pv3,
