@@ -1,5 +1,6 @@
 import React, {memo} from 'react';
 import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import Navigation from '../../../libs/Navigation/Navigation';
 import htmlRendererPropTypes from './htmlRendererPropTypes';
 import styles from '../../../styles/styles';
@@ -12,7 +13,6 @@ import * as ReportUtils from '../../../libs/ReportUtils';
 import ROUTES from '../../../ROUTES';
 import ONYXKEYS from '../../../ONYXKEYS';
 import useLocalize from '../../../hooks/useLocalize';
-import lodashGet from 'lodash/get';
 
 const propTypes = {...htmlRendererPropTypes};
 
