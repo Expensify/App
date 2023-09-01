@@ -66,14 +66,14 @@ const useValidateCustomDate = (data) => {
 
         // Date validation
         if (inputData.isBefore(currentDate)) {
-            setCustomDateError(localize.translate('common.error.dateInvalid'));
+            setCustomDateError(localize.translate('common.error.invalidDateShouldBeFuture'));
         } else {
             setCustomDateError('');
         }
 
         // Time validation
         if (inputData.isBefore(currentDateTimePlus2)) {
-            setCustomTimeError(localize.translate('common.error.timeInvalid'));
+            setCustomTimeError(localize.translate('common.error.invalidTimeShouldBeFuture'));
         } else {
             setCustomTimeError('');
         }

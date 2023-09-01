@@ -50,7 +50,7 @@ function SetTimePage({translate, privatePersonalDetails, customStatus}) {
         const error = {};
 
         if (!ValidationUtils.isTimeAtLeastOneMinuteInFuture(v.timePicker, customDateTemporary)) {
-            error.timePicker = localize.translate('common.error.timeInvalid');
+            error.timePicker = localize.translate('common.error.invalidTimeShouldBeFuture');
         }
 
         return error;
