@@ -161,6 +161,12 @@ export default {
         receipt: 'Receipt',
         replace: 'Replace',
         distance: 'Distance',
+        mile: 'mile',
+        miles: 'miles',
+        kilometer: 'kilometer',
+        kilometers: 'kilometers',
+        recent: 'Recent',
+        all: 'All',
     },
     anonymousReportFooter: {
         logoTagline: 'Join the discussion.',
@@ -1245,7 +1251,6 @@ export default {
             captureReceipts: 'Capture receipts',
             fastReimbursementsHappyMembers: 'Fast reimbursements = happy members!',
             kilometers: 'Kilometers',
-            miles: 'Miles',
             viewAllReceipts: 'View all receipts',
             reimburseReceipts: 'Reimburse receipts',
             trackDistance: 'Track distance',
@@ -1658,18 +1663,14 @@ export default {
             selectSuggestedAddress: 'Please select a suggested address',
         },
     },
-    countrySelectorModal: {
-        placeholderText: 'Search to see options',
-    },
-    stateSelectorModal: {
-        placeholderText: 'Search to see options',
-    },
     demos: {
         saastr: {
             signInWelcome: 'Welcome to SaaStr! Hop in to start networking now.',
+            heroBody: 'Use New Expensify for event updates, networking, social chatter, and to get paid back for lunch!',
         },
         sbe: {
             signInWelcome: 'Welcome to Small Business Expo! Get paid back for your ride.',
+            heroBody: 'Use New Expensify for event updates, networking, social chatter, and to get paid back for your ride to or from the show!',
         },
     },
 };

@@ -149,7 +149,6 @@ function ReportActionCompose({
         () => _.without(lodashGet(report, 'participantAccountIDs', []), currentUserPersonalDetails.accountID),
         [currentUserPersonalDetails.accountID, report],
     );
-    const participantsWithoutExpensifyAccountIDs = useMemo(() => _.difference(reportParticipantIDs, CONST.EXPENSIFY_ACCOUNT_IDS), [reportParticipantIDs]);
 
     const shouldShowReportRecipientLocalTime = useMemo(
         () => ReportUtils.canShowReportRecipientLocalTime(personalDetails, report, currentUserPersonalDetails.accountID) && !isComposerFullSize,
@@ -316,7 +315,8 @@ function ReportActionCompose({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const reportRecipient = personalDetails[participantsWithoutExpensifyAccountIDs[0]];
+    const reportRecipientAcountIDs = ReportUtils.getReportRecipientAccountIDs(report, currentUserPersonalDetails.accountID);
+    const reportRecipient = personalDetails[reportRecipientAcountIDs[0]];
     const shouldUseFocusedColor = !isBlockedFromConcierge && !disabled && isFocused;
 
     const hasReportRecipient = _.isObject(reportRecipient) && !_.isEmpty(reportRecipient);

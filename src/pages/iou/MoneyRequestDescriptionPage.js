@@ -4,6 +4,7 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import {iouPropTypes, iouDefaultProps} from './propTypes';
 import TextInput from '../../components/TextInput';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
@@ -13,7 +14,6 @@ import styles from '../../styles/styles';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import * as IOU from '../../libs/actions/IOU';
-import optionPropTypes from '../../components/optionPropTypes';
 import CONST from '../../CONST';
 import useLocalize from '../../hooks/useLocalize';
 import focusAndUpdateMultilineInputRange from '../../libs/focusAndUpdateMultilineInputRange';
@@ -22,20 +22,7 @@ import * as Browser from '../../libs/Browser';
 const propTypes = {
     /** Onyx Props */
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
-    iou: PropTypes.shape({
-        /** ID (iouType + reportID) of the request */
-        id: PropTypes.string,
-
-        /** Amount of the request */
-        amount: PropTypes.number,
-
-        /** Description of the request */
-        comment: PropTypes.string,
-
-        /** List of the participants */
-        participants: PropTypes.arrayOf(optionPropTypes),
-        receiptPath: PropTypes.string,
-    }),
+    iou: iouPropTypes,
 
     /** Route from navigation */
     route: PropTypes.shape({
@@ -54,23 +41,21 @@ const propTypes = {
             threadReportID: PropTypes.string,
         }),
     }).isRequired,
+
+    /** The current tab we have navigated to in the request modal. String that corresponds to the request type. */
+    selectedTab: PropTypes.oneOf([CONST.TAB.DISTANCE, CONST.TAB.MANUAL, CONST.TAB.SCAN]).isRequired,
 };
 
 const defaultProps = {
-    iou: {
-        id: '',
-        amount: 0,
-        comment: '',
-        participants: [],
-        receiptPath: '',
-    },
+    iou: iouDefaultProps,
 };
 
-function MoneyRequestDescriptionPage({iou, route}) {
+function MoneyRequestDescriptionPage({iou, route, selectedTab}) {
     const {translate} = useLocalize();
     const inputRef = useRef(null);
     const iouType = lodashGet(route, 'params.iouType', '');
     const reportID = lodashGet(route, 'params.reportID', '');
+    const isDistanceRequest = selectedTab === CONST.TAB.DISTANCE;
 
     useEffect(() => {
         const moneyRequestId = `${iouType}${reportID}`;
@@ -79,10 +64,10 @@ function MoneyRequestDescriptionPage({iou, route}) {
             IOU.resetMoneyRequestInfo(moneyRequestId);
         }
 
-        if (_.isEmpty(iou.participants) || (iou.amount === 0 && !iou.receiptPath) || shouldReset) {
+        if (!isDistanceRequest && (_.isEmpty(iou.participants) || (iou.amount === 0 && !iou.receiptPath) || shouldReset)) {
             Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType, reportID), true);
         }
-    }, [iou.id, iou.participants, iou.amount, iou.receiptPath, iouType, reportID]);
+    }, [iou.id, iou.participants, iou.amount, iou.receiptPath, iouType, reportID, isDistanceRequest]);
 
     function navigateBack() {
         Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID));
@@ -142,5 +127,8 @@ MoneyRequestDescriptionPage.defaultProps = defaultProps;
 export default withOnyx({
     iou: {
         key: ONYXKEYS.IOU,
+    },
+    selectedTab: {
+        key: `${ONYXKEYS.SELECTED_TAB}_${CONST.TAB.RECEIPT_TAB_ID}`,
     },
 })(MoneyRequestDescriptionPage);
