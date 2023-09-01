@@ -264,7 +264,7 @@ function getLinkedTransaction(reportAction = {}) {
 }
 
 function getAllReportTransactions(reportID) {
-    return _.filter(allTransactions, (transaction) => transaction.reportID === reportID);
+    return _.filter(allTransactions, (transaction) => `${transaction.reportID}` === `${reportID}`);
 }
 
 /**
