@@ -149,15 +149,10 @@ function MoneyRequestPreview(props) {
     const isCurrentUserManager = managerID === sessionAccountID;
 
     const {amount: requestAmount, currency: requestCurrency, comment: requestComment, merchant: requestMerchant} = ReportUtils.getTransactionDetails(props.transaction);
-    let description = requestComment;
+    const description = requestComment;
     const hasReceipt = TransactionUtils.hasReceipt(props.transaction);
     const isScanning = hasReceipt && TransactionUtils.isReceiptBeingScanned(props.transaction);
     const isDistanceRequest = TransactionUtils.isDistanceRequest(props.transaction);
-
-    // On a distance request the merchant of the transaction will be used for the description since that's where it's stored in the database
-    if (isDistanceRequest) {
-        description = props.transaction.merchant;
-    }
 
     const getSettledMessage = () => {
         switch (lodashGet(props.action, 'originalMessage.paymentType', '')) {

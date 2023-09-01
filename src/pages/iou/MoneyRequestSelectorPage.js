@@ -20,6 +20,8 @@ import DragAndDropProvider from '../../components/DragAndDrop/Provider';
 import usePermissions from '../../hooks/usePermissions';
 import OnyxTabNavigator, {TopTab} from '../../libs/Navigation/OnyxTabNavigator';
 import NewRequestAmountPage from './steps/NewRequestAmountPage';
+import reportPropTypes from '../reportPropTypes';
+import * as ReportUtils from '../../libs/ReportUtils';
 
 const propTypes = {
     /** React Navigation route */
@@ -34,12 +36,16 @@ const propTypes = {
         }),
     }).isRequired,
 
+    /** Report on which the money request is being created */
+    report: reportPropTypes,
+
     /** Which tab has been selected */
     selectedTab: PropTypes.string,
 };
 
 const defaultProps = {
     selectedTab: CONST.TAB.MANUAL,
+    report: {},
 };
 
 function MoneyRequestSelectorPage(props) {
@@ -53,6 +59,9 @@ function MoneyRequestSelectorPage(props) {
         [CONST.IOU.MONEY_REQUEST_TYPE.SEND]: translate('iou.sendMoney'),
         [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT]: translate('iou.splitBill'),
     };
+    const isFromGlobalCreate = !reportID;
+    const isExpenseRequest = ReportUtils.isPolicyExpenseChat(props.report);
+    const shouldDisplayDistanceRequest = canUseDistanceRequests && (isExpenseRequest || isFromGlobalCreate);
 
     const resetMoneyRequestInfo = () => {
         const moneyRequestID = `${iouType}${reportID}`;
@@ -96,10 +105,11 @@ function MoneyRequestSelectorPage(props) {
                                             initialParams={{reportID, iouType, pageIndex: 1}}
                                         />
                                     )}
-                                    {canUseDistanceRequests && (
+                                    {shouldDisplayDistanceRequest && (
                                         <TopTab.Screen
                                             name={CONST.TAB.DISTANCE}
                                             component={DistanceRequestPage}
+                                            initialParams={{reportID, iouType}}
                                         />
                                     )}
                                 </OnyxTabNavigator>
@@ -119,6 +129,9 @@ MoneyRequestSelectorPage.defaultProps = defaultProps;
 MoneyRequestSelectorPage.displayName = 'MoneyRequestSelectorPage';
 
 export default withOnyx({
+    report: {
+        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
+    },
     selectedTab: {
         key: `${ONYXKEYS.SELECTED_TAB}_${CONST.TAB.RECEIPT_TAB_ID}`,
     },

@@ -1370,6 +1370,9 @@ const CONST = {
         MAKE_REQUEST_WITH_SIDE_EFFECTS: 'makeRequestWithSideEffects',
     },
 
+    MAP_PADDING: 50,
+    MAP_MARKER_SIZE: 20,
+
     QUICK_REACTIONS: [
         {
             name: '+1',

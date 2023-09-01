@@ -452,6 +452,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         shouldShowSubscript: false,
         isPolicyExpenseChat: false,
         isExpenseReport: false,
+        policyID: null,
     };
 
     const personalDetailMap = getPersonalDetailsForAccountIDs(accountIDs, personalDetails);
@@ -486,6 +487,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         result.tooltipText = ReportUtils.getReportParticipantsTitle(report.participantAccountIDs || []);
         result.hasOutstandingIOU = report.hasOutstandingIOU;
         result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
+        result.policyID = report.policyID;
 
         hasMultipleParticipants = personalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
         subtitle = ReportUtils.getChatRoomSubtitle(report);
@@ -952,7 +954,7 @@ function getOptions(
     }
 
     let currentUserOption = _.find(allPersonalDetailsOptions, (personalDetailsOption) => personalDetailsOption.login === currentUserLogin);
-    if (searchValue && !isSearchStringMatch(searchValue, currentUserOption.searchText)) {
+    if (searchValue && currentUserOption && !isSearchStringMatch(searchValue, currentUserOption.searchText)) {
         currentUserOption = null;
     }
 
