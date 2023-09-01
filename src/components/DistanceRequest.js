@@ -33,6 +33,9 @@ import * as Expensicons from './Icon/Expensicons';
 import BlockingView from './BlockingViews/BlockingView';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
+import {iouPropTypes} from '../pages/iou/propTypes';
+import reportPropTypes from '../pages/reportPropTypes';
+import * as IOU from '../libs/actions/IOU';
 
 const MAX_WAYPOINTS = 25;
 const MAX_WAYPOINTS_TO_DISPLAY = 4;
@@ -65,7 +68,9 @@ const defaultProps = {
     iouType: '',
     report: {},
     transaction: {},
-    mapboxAccessToken: {},
+    mapboxAccessToken: {
+        token: '',
+    },
 };
 
 function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken}) {
