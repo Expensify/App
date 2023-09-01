@@ -76,7 +76,7 @@ async function run() {
         message += `\n\nplatform | result\n---|---\n🤖 android 🤖|${androidResult}\n🖥 desktop 🖥|${desktopResult}`;
         message += `\n🍎 iOS 🍎|${iOSResult}\n🕸 web 🕸|${webResult}`;
 
-        if (deployVerb === 'Cherry-picked' && !/no qa/gi.test(prTitle)) {
+        if (deployVerb === 'Cherry-picked' && !/no ?qa/gi.test(prTitle)) {
             // eslint-disable-next-line max-len
             message +=
                 '\n\n@Expensify/applauseleads please QA this PR and check it off on the [deploy checklist](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3AStagingDeployCash) if it passes.';
