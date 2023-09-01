@@ -1671,7 +1671,7 @@ export default {
             onlineSubtitle: 'One moment while we set up the map',
         },
         errors: {
-            selectSuggestedAddress: 'Please select a suggested address',
+            selectSuggestedAddress: 'Please select a suggested address or use current location',
         },
     },
     demos: {

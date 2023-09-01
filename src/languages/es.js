@@ -2159,7 +2159,7 @@ export default {
             onlineSubtitle: 'Un momento mientras configuramos el mapa',
         },
         errors: {
-            selectSuggestedAddress: 'Por favor, selecciona una dirección sugerida',
+            selectSuggestedAddress: 'Por favor, selecciona una dirección sugerida o usa la ubicación actual.',
         },
     },
     demos: {
