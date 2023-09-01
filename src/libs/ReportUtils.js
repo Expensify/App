@@ -1371,6 +1371,17 @@ function areAllRequestsBeingSmartScanned(iouReportID, reportPreviewAction) {
 }
 
 /**
+ * Check if any of the transactions in the report has required missing fields
+ *
+ * @param {Object|null} iouReportID
+ * @returns {Boolean}
+ */
+function hasMissingSmartscanFields(iouReportID) {
+    const transactionsWithReceipts = getTransactionsWithReceipts(iouReportID);
+    return _.some(transactionsWithReceipts, (transaction) => TransactionUtils.hasMissingSmartscanFields(transaction));
+}
+
+/**
  * Given a parent IOU report action get report name for the LHN.
  *
  * @param {Object} reportAction
@@ -3593,4 +3604,5 @@ export {
     areAllRequestsBeingSmartScanned,
     getReportPreviewDisplayTransactions,
     getTransactionsWithReceipts,
+    hasMissingSmartscanFields,
 };

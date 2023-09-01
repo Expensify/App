@@ -34,6 +34,7 @@ import PressableWithFeedback from '../Pressable/PressableWithoutFeedback';
 import * as ReceiptUtils from '../../libs/ReceiptUtils';
 import ReportActionItemImages from './ReportActionItemImages';
 import transactionPropTypes from '../transactionPropTypes';
+import colors from '../../styles/colors';
 
 const propTypes = {
     /** The active IOUReport, used for Onyx subscription */
@@ -152,6 +153,7 @@ function MoneyRequestPreview(props) {
     const description = requestComment;
     const hasReceipt = TransactionUtils.hasReceipt(props.transaction);
     const isScanning = hasReceipt && TransactionUtils.isReceiptBeingScanned(props.transaction);
+    const hasFieldErrors = TransactionUtils.hasMissingSmartscanFields(props.transaction);
     const isDistanceRequest = TransactionUtils.isDistanceRequest(props.transaction);
 
     const getSettledMessage = () => {
@@ -241,6 +243,12 @@ function MoneyRequestPreview(props) {
                                     </>
                                 )}
                             </View>
+                            {hasFieldErrors && (
+                                <Icon
+                                    src={Expensicons.DotIndicator}
+                                    fill={colors.red}
+                                />
+                            )}
                             <Icon
                                 fill={StyleUtils.getIconFillColor(getButtonState(props.isHovered))}
                                 src={Expensicons.ArrowRight}

@@ -107,6 +107,9 @@ export default {
             characterLimit: ({limit}) => `Exceeds the maximum length of ${limit} characters`,
             dateInvalid: 'Please select a valid date',
             invalidCharacter: 'Invalid character',
+            enterMerchant: 'Enter a merchant name',
+            enterAmount: 'Enter an amount',
+            enterDate: 'Enter a date',
         },
         comma: 'comma',
         semicolon: 'semicolon',
@@ -454,6 +457,7 @@ export default {
             genericCreateFailureMessage: 'Unexpected error requesting money, please try again later',
             genericDeleteFailureMessage: 'Unexpected error deleting the money request, please try again later',
             genericEditFailureMessage: 'Unexpected error editing the money request, please try again later',
+            genericSmartscanFailureMessage: 'Transaction is missing fields',
         },
     },
     notificationPreferencesPage: {
