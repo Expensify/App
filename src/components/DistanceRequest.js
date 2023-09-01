@@ -43,7 +43,7 @@ const propTypes = {
     /** Type of money request (i.e. IOU) */
     iouType: PropTypes.oneOf(_.values(CONST.IOU.MONEY_REQUEST_TYPE)),
 
-    /** The report to with which the distance request is associated */
+    /** The report to which the distance request is associated */
     report: reportPropTypes,
 
     /** The optimistic transaction for this request */

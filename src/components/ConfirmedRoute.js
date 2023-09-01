@@ -66,8 +66,9 @@ const getWaypointMarkers = (waypoints) => {
 function ConfirmedRoute({mapboxToken, transaction}) {
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
-    const {route0: route} = transaction.routes;
+    const {route0: route} = transaction.routes || {};
     const waypoints = lodashGet(transaction, 'comment.waypoints', {});
+    const coordinates = lodashGet(route, 'geometry.coordinates', []);
     const waypointMarkers = getWaypointMarkers(waypoints);
 
     useEffect(() => {
@@ -82,7 +83,7 @@ function ConfirmedRoute({mapboxToken, transaction}) {
                     accessToken={mapboxToken}
                     mapPadding={CONST.MAP_PADDING}
                     pitchEnabled={false}
-                    directionCoordinates={route.geometry.coordinates}
+                    directionCoordinates={coordinates}
                     directionStyle={styles.mapDirection}
                     style={styles.mapView}
                     waypoints={waypointMarkers}

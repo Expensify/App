@@ -9,7 +9,7 @@ import * as CurrencyUtils from './CurrencyUtils';
  * @param {Object} [policy.customUnits] - Custom units defined in the policy.
  * @param {Object[]} [policy.customUnits.rates] - Rates used in the policy.
  * @param {Object} [policy.customUnits.attributes] - attributes on a custom unit
- * @param {'mi' | 'ki'} [policy.customUnits.attributes.unit] - unit of measurement for the distance
+ * @param {'mi' | 'km'} [policy.customUnits.attributes.unit] - unit of measurement for the distance
  *
  * @returns {Object|null} An object containing the rate and unit for the default mileage or null if not found.
  * @returns {Number} .rate - The default rate for the mileage.
@@ -42,7 +42,7 @@ const getDefaultMileageRate = (policy) => {
  * Converts a given distance in meters to the specified unit (kilometers or miles).
  *
  * @param {Number} distanceInMeters - The distance in meters to be converted.
- * @param {'mi' | 'ki'} unit - The desired unit of conversion, either 'km' for kilometers or 'mi' for miles.
+ * @param {'mi' | 'km'} unit - The desired unit of conversion, either 'km' for kilometers or 'mi' for miles.
  *
  * @returns {Number} The converted distance in the specified unit.
  */
@@ -63,7 +63,7 @@ function convertDistanceUnit(distanceInMeters, unit) {
 /**
  *
  * @param {Number} distanceInMeters Distance traveled
- * @param {'mi' | 'ki'} unit Unit that should be used to display the distance
+ * @param {'mi' | 'km'} unit Unit that should be used to display the distance
  * @param {Number} rate Expensable amount allowed per unit
  * @param {String} currency The currency associated with the rate
  * @param {Function} translate Translate function
@@ -85,7 +85,7 @@ const getDistanceMerchant = (distanceInMeters, unit, rate, currency, translate) 
  * Calculates the request amount based on distance, unit, and rate.
  *
  * @param {Number} distance - The distance traveled in meters
- * @param {'mi' | 'ki'} unit - The unit of measurement for the distance
+ * @param {'mi' | 'km'} unit - The unit of measurement for the distance
  * @param {Number} rate - Rate used for calculating the request amount
  * @returns {Number} The computed request amount.
  */
