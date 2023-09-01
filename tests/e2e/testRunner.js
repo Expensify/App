@@ -73,9 +73,9 @@ if (isDevMode) {
 
 const restartApp = async () => {
     Logger.log('Killing app …');
-    await killApp('android');
+    await killApp('android', config.APP_PACKAGE);
     Logger.log('Launching app …');
-    await launchApp('android');
+    await launchApp('android', config.APP_PACKAGE);
 };
 
 const runTestsOnBranch = async (baselineOrCompare, branch) => {
