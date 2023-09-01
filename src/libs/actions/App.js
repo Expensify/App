@@ -232,7 +232,7 @@ function lastReconnectAppAfterActivatingReliableUpdates() {
         if (updateIDFrom) {
             params.updateIDFrom = updateIDFrom;
         }
-        
+
         // It is SUPER BAD FORM to return promises from action methods.
         // DO NOT FOLLOW THIS PATTERN!!!!!
         // It was absolutely necessary in order to not break the app while migrating to the new reliable updates pattern. This method will be removed
@@ -247,7 +247,6 @@ function lastReconnectAppAfterActivatingReliableUpdates() {
             getOnyxDataForOpenOrReconnect(),
         );
     });
-
 }
 
 /**

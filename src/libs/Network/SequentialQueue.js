@@ -149,7 +149,6 @@ function waitForIdle() {
     return isReadyPromise;
 }
 
-
 /**
  * Gets the current Onyx queued updates, apply them and clear the queue if the queue is not paused.
  */
@@ -184,7 +183,7 @@ function unpause() {
     console.debug(`[SequentialQueue] Unpausing the queue and flushing ${numberOfPersistedRequests} requests`);
     isQueuePaused = false;
 
-    // Since the writes may happen async to the queue, in case we had any writes happen while the queue was paused 
+    // Since the writes may happen async to the queue, in case we had any writes happen while the queue was paused
     // (because of race conditions), let's also apply the queued updates and clear them before continuing the queue.
     flushAndClearOnyxQueue();
     flush();

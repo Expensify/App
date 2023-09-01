@@ -27,7 +27,7 @@ function applyHTTPSOnyxUpdates({request, responseData}) {
     console.debug('[OnyxUpdateManager] Applying https update');
     // For most requests we can immediately update Onyx. For write requests we queue the updates and apply them after the sequential queue has flushed to prevent a replay effect in
     // the UI. See https://github.com/Expensify/App/issues/12775 for more info.
-    // 2023-08-31 - 
+    // 2023-08-31 -
     const updateHandler = request.data.apiRequestType === CONST.API_REQUEST_TYPE.WRITE ? QueuedOnyxUpdates.queueOnyxUpdates : Onyx.update;
 
     // First apply any onyx data updates that are being sent back from the API. We wait for this to complete and then
@@ -113,7 +113,7 @@ export default () => {
             if (!previousUpdateIDFromServer || lastUpdateIDAppliedToClient === previousUpdateIDFromServer) {
                 console.debug(`[OnyxUpdateManager] Client is in sync with the server, applying updates`);
                 applyOnyxUpdates(updateParams);
-            } else if (lastUpdateIDFromServer < lastUpdateIDAppliedToClient) { 
+            } else if (lastUpdateIDFromServer < lastUpdateIDAppliedToClient) {
                 console.debug(`[OnyxUpdateManager] Client is more up to date than the update received, skipping processing`);
             } else {
                 // In cases where we received a previousUpdateID and it doesn't match our lastUpdateIDAppliedToClient
@@ -121,18 +121,19 @@ export default () => {
                 //
                 // 1. This is the first time we're receiving an lastUpdateID, so we need to do a final reconnectApp before
                 // fully migrating to the reliable updates mode;
-                // 2. This this client already has the reliable updates mode enabled, but it's missing some updates and it 
+                // 2. This this client already has the reliable updates mode enabled, but it's missing some updates and it
                 // needs to fech those.
                 //
-                // To to both of those, we need to pause the sequential queue. This is important so that the updates are 
-                // applied in their correct and specific order. If this queue was not paused, then there would be a lot of 
+                // To to both of those, we need to pause the sequential queue. This is important so that the updates are
+                // applied in their correct and specific order. If this queue was not paused, then there would be a lot of
                 // onyx data being applied while we are fetching the missing updates and that would put them all out of order.
                 SequentialQueue.pause();
                 let promise;
-                
+
                 // The flow below is setting the promise to a reconnect app to address flow (1) explained above.
-                if (!lastUpdateIDAppliedToClient &&
-                    (updateParams.type === CONST.ONYX_UPDATE_TYPES.PUSHER || updateParams.data.request.command !== 'OpenApp' && updateParams.data.request.command !== 'ReconnectApp')
+                if (
+                    !lastUpdateIDAppliedToClient &&
+                    (updateParams.type === CONST.ONYX_UPDATE_TYPES.PUSHER || (updateParams.data.request.command !== 'OpenApp' && updateParams.data.request.command !== 'ReconnectApp'))
                 ) {
                     console.debug('[OnyxUpdateManager] Client has not gotten reliable updates before so reconnecting the app to start the process');
                     Log.info('Client has not gotten reliable updates before so reconnecting the app to start the process');
