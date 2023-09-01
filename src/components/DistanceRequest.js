@@ -62,7 +62,6 @@ const defaultProps = {
     transactionID: '',
     report: {},
     isEditingRequest: false,
-    transaction: {},
     mapboxAccessToken: {
         token: '',
     },
@@ -76,7 +75,6 @@ function DistanceRequest({transactionID, report, mapboxAccessToken, isEditingReq
     const {translate} = useLocalize();
 
     const transaction = TransactionUtils.getTransaction(transactionID);
-    const reportID = lodashGet(report, 'reportID', '');
     const waypoints = useMemo(() => lodashGet(transaction, 'comment.waypoints', {}), [transaction]);
     const numberOfWaypoints = _.size(waypoints);
 
