@@ -87,8 +87,8 @@ function getChatType(report) {
  * @returns {Object}
  */
 function getPolicy(policyID) {
-    const policy = allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] || {};
-    return policy;
+    if (!allPolicies || !policyID) return {};
+    return allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
 }
 
 /**
@@ -256,8 +256,9 @@ function sortReportsByLastRead(reports) {
  * @returns {Boolean}
  */
 function isSettled(reportID) {
-    const report = allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] || {};
-    if (Object.keys(report).length === 0 || report.isWaitingOnBankAccount) {
+    if (!allReports) return false;
+    const report = allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    if ((report && Object.keys(report).length === 0) || report.isWaitingOnBankAccount) {
         return false;
     }
 

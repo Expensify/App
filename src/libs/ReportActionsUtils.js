@@ -330,7 +330,6 @@ function shouldReportActionBeVisible(reportAction, key) {
     if (
         !Object.values(CONST.REPORT.ACTIONS.TYPE).includes(reportAction.actionName) &&
         !Object.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG).includes(reportAction.actionName) &&
-        !Object.values(CONST.REPORT.ACTIONS.TYPE.TASK).includes(reportAction.actionName)
     ) {
         return false;
     }
