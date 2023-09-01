@@ -93,7 +93,7 @@ function MoneyRequestSelectorPage(props) {
                                         <TopTab.Screen
                                             name={CONST.TAB.SCAN}
                                             component={ReceiptSelector}
-                                            initialParams={{reportID, iouType}}
+                                            initialParams={{reportID, iouType, pageIndex: 1}}
                                         />
                                     )}
                                     {canUseDistanceRequests && (
