@@ -8,11 +8,6 @@
 import Performance from '../Performance';
 import * as Metrics from '../Metrics';
 
-// start the usual app
-Performance.markStart('regularAppStart');
-import '../../../index';
-Performance.markEnd('regularAppStart');
-
 import E2EConfig from '../../../tests/e2e/config';
 import E2EClient from './client';
 
@@ -67,3 +62,8 @@ E2EClient.getTestConfig()
     .catch((error) => {
         console.error("[E2E] Error while running test. Couldn't get test config!", error);
     });
+
+// start the usual app
+Performance.markStart('regularAppStart');
+import '../../../appIndex';
+Performance.markEnd('regularAppStart');
