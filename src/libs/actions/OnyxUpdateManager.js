@@ -111,7 +111,7 @@ export default () => {
 
             // If we don't have a previousUpdateID from the request, or if we if it's the less or equal w we currently have stored
             // we can simply apply the updates and move on.
-            if (!previousUpdateIDFromServer || lastUpdateIDAppliedToClient === previousUpdateIDFromServer) {
+            if (!previousUpdateIDFromServer || lastUpdateIDAppliedToClient === previousUpdateIDFromServer || (updateParams.type === CONST.ONYX_UPDATE_TYPES.HTTPS && (updateParams.data.request.command === 'OpenApp' || updateParams.data.request.command === 'ReconnectApp'))) {
                 console.debug(`[OnyxUpdateManager] Client is in sync with the server, applying updates`);
                 applyOnyxUpdates(updateParams);
             } else if (lastUpdateIDFromServer < lastUpdateIDAppliedToClient) {
@@ -132,10 +132,7 @@ export default () => {
                 let promise;
 
                 // The flow below is setting the promise to a reconnect app to address flow (1) explained above.
-                if (
-                    !lastUpdateIDAppliedToClient &&
-                    (updateParams.type === CONST.ONYX_UPDATE_TYPES.PUSHER || (updateParams.data.request.command !== 'OpenApp' && updateParams.data.request.command !== 'ReconnectApp'))
-                ) {
+                if (!lastUpdateIDAppliedToClient) {
                     console.debug('[OnyxUpdateManager] Client has not gotten reliable updates before so reconnecting the app to start the process');
                     Log.info('Client has not gotten reliable updates before so reconnecting the app to start the process');
                     promise = App.lastReconnectAppAfterActivatingReliableUpdates();

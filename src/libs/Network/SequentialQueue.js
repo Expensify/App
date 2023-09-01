@@ -62,6 +62,17 @@ function process() {
     return currentRequest;
 }
 
+
+/**
+ * Gets the current Onyx queued updates, apply them and clear the queue if the queue is not paused.
+ */
+function flushAndClearOnyxUpdatesQueue() {
+    if (isQueuePaused) {
+        return;
+    }
+    Onyx.update(QueuedOnyxUpdates.getQueuedUpdates()).then(QueuedOnyxUpdates.clear);
+}
+
 function flush() {
     // When the queue is paused, return early. This will keep an requests in the queue and they will get flushed again when the queue is unpaused
     if (isQueuePaused) {
@@ -147,16 +158,6 @@ function getCurrentRequest() {
  */
 function waitForIdle() {
     return isReadyPromise;
-}
-
-/**
- * Gets the current Onyx queued updates, apply them and clear the queue if the queue is not paused.
- */
-function flushAndClearOnyxUpdatesQueue() {
-    if (isQueuePaused) {
-        return;
-    }
-    Onyx.update(QueuedOnyxUpdates.getQueuedUpdates()).then(QueuedOnyxUpdates.clear);
 }
 
 /**
