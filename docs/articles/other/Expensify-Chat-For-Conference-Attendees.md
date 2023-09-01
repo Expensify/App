@@ -23,7 +23,7 @@ To get the most out of your experience at your conference and engage people in a
 - Share pictures of your travel before the event to hype everyone up, during the event if you met that person you’ve been meaning to see for years, or a fun pic from a party.
 - Try to create fun groups with your fellow attendees around common interests like touring a local sight, going for a morning run, or trying a famous restaurant.
 
-**Don't**
+**Don't:**
 - Pitch your services in public rooms like #social or speaking session rooms.
 - Start a first message with a stranger with a sales pitch.
 - Discuss controversial topics such as politics, religion, or anything you wouldn’t say on a first date.
