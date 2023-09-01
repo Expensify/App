@@ -114,7 +114,7 @@ export default () => {
             if (!previousUpdateIDFromServer || lastUpdateIDAppliedToClient === previousUpdateIDFromServer || (updateParams.type === CONST.ONYX_UPDATE_TYPES.HTTPS && (updateParams.data.request.command === 'OpenApp' || updateParams.data.request.command === 'ReconnectApp'))) {
                 console.debug(`[OnyxUpdateManager] Client is in sync with the server, applying updates`);
                 applyOnyxUpdates(updateParams);
-            } else if (lastUpdateIDFromServer < lastUpdateIDAppliedToClient) {
+            } else if (lastUpdateIDFromServer <= lastUpdateIDAppliedToClient) {
                 console.debug(`[OnyxUpdateManager] Client is more up to date than the update received, skipping processing`);
             } else {
                 // In cases where we received a previousUpdateID and it doesn't match our lastUpdateIDAppliedToClient
