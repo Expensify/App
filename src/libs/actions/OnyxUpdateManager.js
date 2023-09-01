@@ -21,9 +21,10 @@ import * as App from './App';
  * @param {Object} data
  * @param {Object} data.request
  * @param {Object} data.responseData
+ * @param {Boolean} data.unpauseQueue
  * @returns {Promise}
  */
-function applyHTTPSOnyxUpdates({request, responseData}) {
+function applyHTTPSOnyxUpdates({request, responseData, unpauseQueue}) {
     console.debug('[OnyxUpdateManager] Applying https update');
     // For most requests we can immediately update Onyx. For write requests we queue the updates and apply them after the sequential queue has flushed to prevent a replay effect in
     // the UI. See https://github.com/Expensify/App/issues/12775 for more info.
@@ -47,6 +48,9 @@ function applyHTTPSOnyxUpdates({request, responseData}) {
             return Promise.resolve();
         })
         .then(() => {
+            if (unpauseQueue) {
+                SequentialQueue.unpause();
+            }
             console.debug('[OnyxUpdateManager] Done applying HTTPS update');
         });
 }
@@ -54,9 +58,10 @@ function applyHTTPSOnyxUpdates({request, responseData}) {
 /**
  * @param {Object} data
  * @param {Object} data.updates
+ * @param {Boolean} data.unpauseQueue
  * @returns {Promise}
  */
-function applyPusherOnyxUpdates({updates}) {
+function applyPusherOnyxUpdates({updates, unpauseQueue}) {
     console.debug('[OnyxUpdateManager] Applying pusher update');
     const pusherEventPromises = _.reduce(
         updates,
@@ -67,6 +72,9 @@ function applyPusherOnyxUpdates({updates}) {
         [],
     );
     return Promise.all(pusherEventPromises).then(() => {
+        if (unpauseQueue) {
+            SequentialQueue.unpause();
+        }
         console.debug('[OnyxUpdateManager] Done applying Pusher update');
     });
 }
@@ -74,19 +82,20 @@ function applyPusherOnyxUpdates({updates}) {
 /**
  * @param {Object[]} updateParams
  * @param {String} updateParams.type
+ * @param {Boolean} updateParams.unpauseQueue
  * @param {Object} updateParams.data
  * @param {Object} [updateParams.data.request] Exists if updateParams.type === 'https'
  * @param {Object} [updateParams.data.response] Exists if updateParams.type === 'https'
  * @param {Object} [updateParams.data.updates] Exists if updateParams.type === 'pusher'
  * @returns {Promise}
  */
-function applyOnyxUpdates({type, data}) {
+function applyOnyxUpdates({type, data, unpauseQueue = false}) {
     console.debug(`[OnyxUpdateManager] Applying update type: ${type}`, data);
     if (type === CONST.ONYX_UPDATE_TYPES.HTTPS) {
-        return applyHTTPSOnyxUpdates(data);
+        return applyHTTPSOnyxUpdates({...data, unpauseQueue});
     }
     if (type === CONST.ONYX_UPDATE_TYPES.PUSHER) {
-        return applyPusherOnyxUpdates(data);
+        return applyPusherOnyxUpdates({...data, unpauseQueue});
     }
 }
 
@@ -151,8 +160,7 @@ export default () => {
 
                 promise.finally(() => {
                     console.debug('[OnyxUpdateManager] Done applying all updates');
-                    applyOnyxUpdates(updateParams);
-                    SequentialQueue.unpause();
+                    applyOnyxUpdates({...updateParams, unpauseQueue: true});
                 });
             }
 

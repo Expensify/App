@@ -94,7 +94,7 @@ function flush() {
                 isSequentialQueueRunning = false;
                 resolveIsReadyPromise();
                 currentRequest = null;
-                flushAndClearOnyxQueue();
+                flushAndClearOnyxUpdatesQueue();
             });
         },
     });
@@ -152,7 +152,7 @@ function waitForIdle() {
 /**
  * Gets the current Onyx queued updates, apply them and clear the queue if the queue is not paused.
  */
-function flushAndClearOnyxQueue() {
+function flushAndClearOnyxUpdatesQueue() {
     if (isQueuePaused) {
         return;
     }
@@ -185,7 +185,7 @@ function unpause() {
 
     // Since the writes may happen async to the queue, in case we had any writes happen while the queue was paused
     // (because of race conditions), let's also apply the queued updates and clear them before continuing the queue.
-    flushAndClearOnyxQueue();
+    flushAndClearOnyxUpdatesQueue();
     flush();
 }
 

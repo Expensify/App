@@ -227,25 +227,12 @@ function lastReconnectAppAfterActivatingReliableUpdates() {
         params.mostRecentReportActionLastModified = ReportActionsUtils.getMostRecentReportActionLastModified();
         Timing.end(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION, '', 500);
 
-        // Include the update IDs when reconnecting so that the server can send incremental updates if they are available.
-        // Otherwise, a full set of app data will be returned.
-        if (updateIDFrom) {
-            params.updateIDFrom = updateIDFrom;
-        }
-
         // It is SUPER BAD FORM to return promises from action methods.
         // DO NOT FOLLOW THIS PATTERN!!!!!
         // It was absolutely necessary in order to not break the app while migrating to the new reliable updates pattern. This method will be removed
         // as soon as we have everyone migrated to it
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        return API.makeRequestWithSideEffects(
-            'ReconnectApp',
-            {
-                updateIDFrom,
-                updateIDTo,
-            },
-            getOnyxDataForOpenOrReconnect(),
-        );
+        return API.makeRequestWithSideEffects('ReconnectApp', params, getOnyxDataForOpenOrReconnect());
     });
 }
 
