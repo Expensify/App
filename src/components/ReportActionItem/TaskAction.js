@@ -1,8 +1,8 @@
 import React from 'react';
-import {View} from 'react-native';
+import { View, TouchableOpacity } from 'react-native';
 import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+import { withOnyx } from 'react-native-onyx';
+import withLocalize, { withLocalizePropTypes } from '../withLocalize';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import Text from '../Text';
@@ -53,12 +53,23 @@ function TaskAction(props) {
             taskStatusText = props.translate('task.task');
     }
 
+    // Handle the onPress event
+    const handlePress = () => {
+            onPress: (closePopover, {reportAction, selection, reportID}) => {
+    const messageHtml = isTaskAction ? ReportActionsUtils.getTaskStatusMessageText(reportAction.actionName, reportID) : lodashGet(message, 'html', '');
+  // Other code for copying or using the copied text
+}
+
+    };
+
     return (
-        <>
+        <TouchableOpacity onPress={handlePress}>
             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                <Text style={[styles.chatItemMessage, styles.colorMuted]}>{`${taskStatusText} ${taskReportName}`}</Text>
+                <Text style={[styles.chatItemMessage, styles.colorMuted]}>
+                    {`${taskStatusText} ${taskReportName}`}
+                </Text>
             </View>
-        </>
+        </TouchableOpacity>
     );
 }
 
@@ -70,7 +81,7 @@ export default compose(
     withLocalize,
     withOnyx({
         taskReport: {
-            key: ({taskReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`,
+            key: ({ taskReportID }) => `${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`,
         },
     }),
 )(TaskAction);
