@@ -152,10 +152,10 @@ function MoneyRequestConfirmPage(props) {
                 props.iou.transactionID,
                 props.iou.amount,
                 props.iou.currency,
-                props.iou.merchat,
+                props.iou.merchant,
             );
         },
-        [props.report, props.iou.created, props.iou.transactionID, props.iou.amount, props.iou.currency, props.iou.merchat],
+        [props.report, props.iou.created, props.iou.transactionID, props.iou.amount, props.iou.currency, props.iou.merchant],
     );
 
     const createTransaction = useCallback(
