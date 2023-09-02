@@ -290,11 +290,10 @@ function MoneyRequestConfirmationList(props) {
         return [...selectedParticipants, OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetails)];
     }, [selectedParticipants, props.hasMultipleParticipants, payeePersonalDetails]);
 
-    const distanceMerchant = useMemo(() => DistanceRequestUtils.getDistanceMerchant(distance, unit, rate, currency, translate), [distance, unit, rate, currency, translate]);
-
     useEffect(() => {
+        const distanceMerchant = DistanceRequestUtils.getDistanceMerchant(distance, unit, rate, currency, translate);
         IOU.setMoneyRequestMerchant(distanceMerchant);
-    }, [distanceMerchant]);
+    }, [distance, unit, rate, currency, translate]);
 
     /**
      * @param {Object} option
@@ -463,7 +462,7 @@ function MoneyRequestConfirmationList(props) {
                     {props.isDistanceRequest ? (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly && isTypeRequest}
-                            title={distanceMerchant}
+                            title={props.iouMerchant}
                             description={translate('common.distance')}
                             style={[styles.moneyRequestMenuItem, styles.mb2]}
                             titleStyle={styles.flex1}
