@@ -279,19 +279,23 @@ function validateWaypoints(waypoints) {
         return false;
     }
 
-    const validWaypoints = _.reduce(waypointValues, (acc, currentWaypoint, index) => {
-        const previousWaypoint = waypointValues[index - 1];
-        // Check if the waypoint has a valid address
-        if (!currentWaypoint || !currentWaypoint.address || typeof currentWaypoint.address !== 'string' || currentWaypoint.address.trim() === '') {
-            return acc;
-        }
+    const validWaypoints = _.reduce(
+        waypointValues,
+        (acc, currentWaypoint, index) => {
+            const previousWaypoint = waypointValues[index - 1];
+            // Check if the waypoint has a valid address
+            if (!currentWaypoint || !currentWaypoint.address || typeof currentWaypoint.address !== 'string' || currentWaypoint.address.trim() === '') {
+                return acc;
+            }
 
-        // Check for adjacent waypoints with the same address
-        if (previousWaypoint && currentWaypoint.address === previousWaypoint.address) {
-            return acc;
-        }
-        return {...acc, [`waypoint${index}`]: currentWaypoint};
-    }, {});
+            // Check for adjacent waypoints with the same address
+            if (previousWaypoint && currentWaypoint.address === previousWaypoint.address) {
+                return acc;
+            }
+            return {...acc, [`waypoint${index}`]: currentWaypoint};
+        },
+        {},
+    );
 
     return validWaypoints;
 }
