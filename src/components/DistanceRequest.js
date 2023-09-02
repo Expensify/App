@@ -90,8 +90,8 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
     const previousWaypoints = usePrevious(waypoints);
     const haveWaypointsChanged = !_.isEqual(previousWaypoints, waypoints);
     const doesRouteExist = lodashHas(transaction, 'routes.route0.geometry.coordinates');
-    const shouldFetchRoute = (!doesRouteExist || haveWaypointsChanged) && !isLoadingRoute && TransactionUtils.validateWaypoints(waypoints);
-
+    const validatedWaypoints = TransactionUtils.validateWaypoints(waypoints);
+    const shouldFetchRoute = (!doesRouteExist || haveWaypointsChanged) && !isLoadingRoute && _.keys(validatedWaypoints).length > 1;
     const waypointMarkers = useMemo(
         () =>
             _.filter(
@@ -149,14 +149,13 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
         const visibleAreaEnd = lodashGet(event, 'nativeEvent.contentOffset.y', 0) + scrollContainerHeight;
         setShouldShowGradient(visibleAreaEnd < scrollContentHeight);
     };
-
     useEffect(() => {
         if (isOffline || !shouldFetchRoute) {
             return;
         }
 
-        Transaction.getRoute(iou.transactionID, waypoints);
-    }, [shouldFetchRoute, iou.transactionID, waypoints, isOffline]);
+        Transaction.getRoute(iou.transactionID, validatedWaypoints);
+    }, [shouldFetchRoute, iou.transactionID, validatedWaypoints, isOffline]);
 
     useEffect(updateGradientVisibility, [scrollContainerHeight, scrollContentHeight]);
 

@@ -274,28 +274,26 @@ function getAllReportTransactions(reportID) {
  */
 function validateWaypoints(waypoints) {
     const waypointValues = _.values(waypoints);
-
     // Ensure the number of waypoints is between 2 and 25
     if (waypointValues.length < 2 || waypointValues.length > 25) {
         return false;
     }
 
-    for (let i = 0; i < waypointValues.length; i++) {
-        const currentWaypoint = waypointValues[i];
-        const previousWaypoint = waypointValues[i - 1];
-
+    const validWaypoints = _.reduce(waypointValues, (acc, currentWaypoint, index) => {
+        const previousWaypoint = waypointValues[index - 1];
         // Check if the waypoint has a valid address
         if (!currentWaypoint || !currentWaypoint.address || typeof currentWaypoint.address !== 'string' || currentWaypoint.address.trim() === '') {
-            return false;
+            return acc;
         }
 
         // Check for adjacent waypoints with the same address
         if (previousWaypoint && currentWaypoint.address === previousWaypoint.address) {
-            return false;
+            return acc;
         }
-    }
+        return {...acc, [`waypoint${index}`]: currentWaypoint};
+    }, {});
 
-    return true;
+    return validWaypoints;
 }
 
 /*
