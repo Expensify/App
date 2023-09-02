@@ -28,43 +28,30 @@ const defaultProps = {
 function UserCurrentLocationButton({onLocationFetched, isDisabled, translate}) {
     const isFetchingLocation = useRef(false);
 
-    /**
-     * Handles error when failed to get user's current location
-     * @param {Object} errorData
-     * @param {Number} errorData.code
-     */
-    const onError = (errorData) => {
-        isFetchingLocation.current = false;
-
-        User.setLocationError(errorData.code);
-    };
-
-    /**
-     * Handles success after getting user's current location
-     * @param {Object} successData
-     * @param {Object} successData.coords
-     * @param {Number} successData.coords.longitude
-     * @param {Number} successData.coords.latitude
-     * @param {Number} successData.timestamp
-     */
-    const onSuccess = (successData) => {
-        isFetchingLocation.current = false;
-
-        User.clearLocationError();
-
-        onLocationFetched(successData);
-    };
-
     /** Gets the user's current location and registers success/error callbacks */
     const getUserLocation = () => {
         if (isFetchingLocation.current) return;
 
         isFetchingLocation.current = true;
 
-        getCurrentPosition(onSuccess, onError, {
-            maximumAge: 0, // No cache, always get fresh location info
-            timeout: 5000,
-        });
+        getCurrentPosition(
+            (successData) => {
+                isFetchingLocation.current = false;
+
+                User.clearLocationError();
+
+                onLocationFetched(successData);
+            },
+            (errorData) => {
+                isFetchingLocation.current = false;
+
+                User.setLocationError(errorData.code);
+            },
+            {
+                maximumAge: 0, // No cache, always get fresh location info
+                timeout: 5000,
+            },
+        );
     };
 
     useEffect(() => {
