@@ -63,7 +63,7 @@ function UserCurrentLocationButton({onLocationFetched, isDisabled, translate}) {
 
         getCurrentPosition(onSuccess, onError, {
             maximumAge: 0, // no cache, always get fresh location info
-            timeout: 3000,
+            timeout: 5000,
         });
     };
 
