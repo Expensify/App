@@ -4,7 +4,7 @@ import CONST from '../../CONST';
 import BaseLocationErrorMessage from './BaseLocationErrorMessage';
 
 function LocationErrorMessage() {
-    /** opens expensify help site in a new browser tab */
+    /** Opens expensify help site in a new browser tab */
     const navigateToExpensifyHelpSite = () => {
         Linking.openURL(CONST.NEWHELP_URL);
     };

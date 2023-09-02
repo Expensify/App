@@ -161,7 +161,7 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
     };
 
     /**
-     * sets user current location as a waypoint
+     * Sets user current location as a waypoint
      * @param {Object} geolocationData
      * @param {Object} geolocationData.coords.latitude
      * @param {Object} geolocationData.coords.longitude

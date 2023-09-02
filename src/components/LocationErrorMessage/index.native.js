@@ -3,7 +3,7 @@ import {Linking} from 'react-native';
 import BaseLocationErrorMessage from './BaseLocationErrorMessage';
 
 function LocationErrorMessage() {
-    /** opens app level settings from the system settings  */
+    /** Opens app level settings from the system settings  */
     const openAppSettings = () => {
         Linking.openSettings();
     };

@@ -29,7 +29,7 @@ function UserCurrentLocationButton({onLocationFetched, isDisabled, translate}) {
     const isFetchingLocation = useRef(false);
 
     /**
-     * handles error when failed to get user's current location
+     * Handles error when failed to get user's current location
      * @param {Object} errorData
      * @param {Number} errorData.code
      */
@@ -40,7 +40,7 @@ function UserCurrentLocationButton({onLocationFetched, isDisabled, translate}) {
     };
 
     /**
-     * handles success after getting user's current location
+     * Handles success after getting user's current location
      * @param {Object} successData
      * @param {Object} successData.coords
      * @param {Number} successData.coords.longitude
@@ -62,13 +62,13 @@ function UserCurrentLocationButton({onLocationFetched, isDisabled, translate}) {
         isFetchingLocation.current = true;
 
         getCurrentPosition(onSuccess, onError, {
-            maximumAge: 0, // no cache, always get fresh location info
+            maximumAge: 0, // No cache, always get fresh location info
             timeout: 5000,
         });
     };
 
     useEffect(() => {
-        // clear location errors on mount
+        // Clear location errors on mount
         User.clearLocationError();
     }, []);
 
