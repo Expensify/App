@@ -1797,6 +1797,7 @@ function buildOptimisticAddCommentReportAction(text, file) {
             attachmentInfo,
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             shouldShow: true,
+            childType: 'chat',
         },
     };
 }

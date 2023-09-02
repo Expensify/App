@@ -105,11 +105,18 @@ function isWhisperAction(action) {
 }
 
 /**
+ *
+ * Returns whether the comment is a thread parent message/the first message in a thread
+ *
  * @param {Object} reportAction
+ * @param {Number} reportID
  * @returns {Boolean}
  */
-function hasCommentThread(reportAction) {
-    return lodashGet(reportAction, 'childType', '') === CONST.REPORT.TYPE.CHAT && lodashGet(reportAction, 'childVisibleActionCount', 0) > 0;
+function isThreadParentMessage(reportAction, reportID) {
+    return (
+        lodashGet(reportAction, 'childType', '') === CONST.REPORT.TYPE.CHAT &&
+        (lodashGet(reportAction, 'childVisibleActionCount', 0) > 0 || (!_.isUndefined(reportAction.childReportID) && reportAction.childReportID.toString() === reportID))
+    );
 }
 
 /**
@@ -624,7 +631,7 @@ export {
     getLastClosedReportAction,
     getLatestReportActionFromOnyxData,
     isMoneyRequestAction,
-    hasCommentThread,
+    isThreadParentMessage,
     getLinkedTransactionID,
     getMostRecentReportActionLastModified,
     getReportPreviewAction,

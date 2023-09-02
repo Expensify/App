@@ -53,7 +53,7 @@ function ReportActionItemMessage(props) {
                         fragment={fragment}
                         isAttachment={props.action.isAttachment}
                         iouMessage={iouMessage}
-                        hasCommentThread={ReportActionsUtils.hasCommentThread(props.action)}
+                        isThreadParentMessage={ReportActionsUtils.isThreadParentMessage(props.action, props.reportID)}
                         attachmentInfo={props.action.attachmentInfo}
                         pendingAction={props.action.pendingAction}
                         source={lodashGet(props.action, 'originalMessage.source')}
