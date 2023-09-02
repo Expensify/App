@@ -84,7 +84,7 @@ function UserCurrentLocationButton({onLocationFetched, isDisabled, translate}) {
                     src={Expensicons.Location}
                     fill={colors.green}
                 />
-                <Text style={[styles.textLabel, styles.mh2]}>{translate('location.useCurrent')}</Text>
+                <Text style={[styles.textLabel, styles.mh2, isDisabled && styles.userSelectNone]}>{translate('location.useCurrent')}</Text>
             </PressableWithFeedback>
             <LocationErrorMessage />
         </>
