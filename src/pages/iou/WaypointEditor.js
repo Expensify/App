@@ -148,7 +148,7 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
         Navigation.goBack(ROUTES.getMoneyRequestDistanceTabRoute(iouType));
     };
 
-    const selectWaypoint = (values) => {
+    const selectWaypoint = (values, shouldAddToRecentWaypoints = true) => {
         const waypoint = {
             lat: values.lat,
             lng: values.lng,
@@ -156,7 +156,7 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
         };
 
         User.clearLocationError();
-        Transaction.saveWaypoint(transactionID, waypointIndex, waypoint);
+        Transaction.saveWaypoint(transactionID, waypointIndex, waypoint, shouldAddToRecentWaypoints);
         Navigation.goBack(ROUTES.getMoneyRequestDistanceTabRoute(iouType));
     };
 
@@ -174,7 +174,8 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
             address: 'Your Location',
         };
 
-        selectWaypoint(waypoint);
+        // We want to select current location waypoint without saving it as a recent waypoint
+        selectWaypoint(waypoint, false);
     };
 
     return (

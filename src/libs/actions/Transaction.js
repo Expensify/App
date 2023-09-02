@@ -72,8 +72,9 @@ function addStop(transactionID) {
  * @param {String} transactionID
  * @param {String} index
  * @param {Object} waypoint
+ * @param {Object} shouldAddToRecentWaypoints
  */
-function saveWaypoint(transactionID, index, waypoint) {
+function saveWaypoint(transactionID, index, waypoint, shouldAddToRecentWaypoints = true) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         comment: {
             waypoints: {
@@ -99,6 +100,12 @@ function saveWaypoint(transactionID, index, waypoint) {
     // We're going to prevent saving those addresses in the recent waypoints though since they could be invalid addresses
     // However, in the backend once we verify the address, we will save the waypoint in the recent waypoints NVP
     if (!lodashHas(waypoint, 'lat') || !lodashHas(waypoint, 'lng')) {
+        return;
+    }
+
+    // If current location is used, we would want to avoid saving it as a recent waypoint. This prevents the 'Your Location'
+    // text from showing up in the address search suggestions
+    if (!shouldAddToRecentWaypoints) {
         return;
     }
 
