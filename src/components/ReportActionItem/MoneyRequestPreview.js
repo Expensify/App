@@ -109,6 +109,9 @@ const propTypes = {
      */
     shouldShowPendingConversionMessage: PropTypes.bool,
 
+    /** Whether a message is a whisper */
+    isWhisper: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
@@ -127,6 +130,7 @@ const defaultProps = {
     },
     transaction: {},
     shouldShowPendingConversionMessage: false,
+    isWhisper: false,
 };
 
 function MoneyRequestPreview(props) {
@@ -220,7 +224,7 @@ function MoneyRequestPreview(props) {
                 errorRowStyles={[styles.mbn1]}
                 needsOffscreenAlphaCompositing
             >
-                <View style={[styles.moneyRequestPreviewBox, isScanning ? styles.reportPreviewBoxHoverBorder : undefined, ...props.containerStyles]}>
+                <View style={[styles.moneyRequestPreviewBox, isScanning || props.isWhisper ? styles.reportPreviewBoxHoverBorder : undefined, ...props.containerStyles]}>
                     {hasReceipt && (
                         <ReportActionItemImages
                             images={[ReceiptUtils.getThumbnailAndImageURIs(props.transaction.receipt.source, props.transaction.filename)]}

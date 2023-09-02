@@ -87,7 +87,7 @@ const propTypes = {
     /** Callback for updating context menu active state, used for showing context menu */
     checkIfContextMenuActive: PropTypes.func,
 
-    // TODO: Comment
+    /** Whether a message is a whisper */
     isWhisper: PropTypes.bool,
 
     ...withLocalizePropTypes,

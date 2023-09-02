@@ -274,6 +274,7 @@ function ReportActionItem(props) {
                     contextMenuAnchor={popoverAnchorRef}
                     checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                     style={props.displayAsGroup ? [] : [styles.mt2]}
+                    isWhisper={isWhisper}
                 />
             );
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW) {
