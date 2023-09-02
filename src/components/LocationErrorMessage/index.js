@@ -3,12 +3,12 @@ import {Linking} from 'react-native';
 import CONST from '../../CONST';
 import BaseLocationErrorMessage from './BaseLocationErrorMessage';
 
-function LocationErrorMessage() {
-    /** Opens expensify help site in a new browser tab */
-    const navigateToExpensifyHelpSite = () => {
-        Linking.openURL(CONST.NEWHELP_URL);
-    };
+/** Opens expensify help site in a new browser tab */
+const navigateToExpensifyHelpSite = () => {
+    Linking.openURL(CONST.NEWHELP_URL);
+};
 
+function LocationErrorMessage() {
     return <BaseLocationErrorMessage onAllowLocationLinkPress={navigateToExpensifyHelpSite} />;
 }
 

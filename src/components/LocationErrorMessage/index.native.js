@@ -2,12 +2,12 @@ import React from 'react';
 import {Linking} from 'react-native';
 import BaseLocationErrorMessage from './BaseLocationErrorMessage';
 
-function LocationErrorMessage() {
-    /** Opens app level settings from the system settings  */
-    const openAppSettings = () => {
-        Linking.openSettings();
-    };
+/** Opens app level settings from the native system settings  */
+const openAppSettings = () => {
+    Linking.openSettings();
+};
 
+function LocationErrorMessage() {
     return <BaseLocationErrorMessage onAllowLocationLinkPress={openAppSettings} />;
 }
 
