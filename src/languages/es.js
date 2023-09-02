@@ -106,6 +106,9 @@ export default {
             characterLimit: ({limit}) => `Supera el límite de ${limit} caracteres`,
             dateInvalid: 'Por favor, selecciona una fecha válida',
             invalidCharacter: 'Carácter invalido',
+            enterMerchant: 'Introduce un comerciante',
+            enterAmount: 'Introduce un importe',
+            enterDate: 'Introduce una fecha',
         },
         comma: 'la coma',
         semicolon: 'el punto y coma',
@@ -160,6 +163,10 @@ export default {
         receipt: 'Recibo',
         replace: 'Sustituir',
         distance: 'Distancia',
+        mile: 'milla',
+        miles: 'millas',
+        kilometer: 'kilómetro',
+        kilometers: 'kilómetros',
         recent: 'Reciente',
         all: 'Todo',
     },
@@ -449,6 +456,7 @@ export default {
             genericCreateFailureMessage: 'Error inesperado solicitando dinero, Por favor, inténtalo más tarde',
             genericDeleteFailureMessage: 'Error inesperado eliminando la solicitud de dinero. Por favor, inténtalo más tarde',
             genericEditFailureMessage: 'Error inesperado al guardar la solicitud de dinero. Por favor, inténtalo más tarde',
+            genericSmartscanFailureMessage: 'La transacción tiene campos vacíos',
         },
     },
     notificationPreferencesPage: {
@@ -1273,7 +1281,6 @@ export default {
             captureReceipts: 'Captura recibos',
             fastReimbursementsHappyMembers: '¡Reembolsos rápidos = miembros felices!',
             kilometers: 'Kilómetros',
-            miles: 'Millas',
             viewAllReceipts: 'Ver todos los recibos',
             reimburseReceipts: 'Reembolsar recibos',
             trackDistance: 'Medir distancia',
@@ -2148,18 +2155,15 @@ export default {
             selectSuggestedAddress: 'Por favor, selecciona una dirección sugerida',
         },
     },
-    countrySelectorModal: {
-        placeholderText: 'Buscar para ver opciones',
-    },
-    stateSelectorModal: {
-        placeholderText: 'Buscar para ver opciones',
-    },
     demos: {
         saastr: {
             signInWelcome: '¡Bienvenido a SaaStr! Entra y empieza a establecer contactos.',
+            heroBody: 'Utiliza New Expensify para estar al día de los eventos, establecer contactos, charlar en las redes sociales, ¡y para que te devuelvan el dinero de la comida!',
         },
         sbe: {
             signInWelcome: '¡Bienvenido a Small Business Expo! Recupera el dinero de tu viaje.',
+            heroBody:
+                'Utiliza New Expensify para estar al día de los eventos, establecer contactos, charlar en las redes sociales y para que te paguen el viaje de ida y vuelta a la conferencia.',
         },
     },
 };

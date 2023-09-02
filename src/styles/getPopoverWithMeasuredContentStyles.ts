@@ -5,12 +5,11 @@ import variables from './variables';
  * Compute the amount that the Context menu's Anchor needs to be horizontally shifted
  * in order to keep it from displaying in the gutters.
  *
- * @param {Number} anchorLeftEdge - Menu's anchor Left edge.
- * @param {Number} menuWidth - The width of the menu itself.
- * @param {Number} windowWidth - The width of the Window.
- * @returns {Number}
+ * @param anchorLeftEdge - Menu's anchor Left edge.
+ * @param menuWidth - The width of the menu itself.
+ * @param windowWidth - The width of the Window.
  */
-function computeHorizontalShift(anchorLeftEdge, menuWidth, windowWidth) {
+function computeHorizontalShift(anchorLeftEdge: number, menuWidth: number, windowWidth: number): number {
     const popoverRightEdge = anchorLeftEdge + menuWidth;
     if (anchorLeftEdge < variables.gutterWidth) {
         // Anchor is in left gutter, shift right by a multiple of four.
@@ -30,12 +29,11 @@ function computeHorizontalShift(anchorLeftEdge, menuWidth, windowWidth) {
  * Compute the amount that the Context menu's Anchor needs to be vertically shifted
  * in order to keep it from displaying in the window.
  *
- * @param {Number} anchorTopEdge - Menu's anchor Top edge.
- * @param {Number} menuHeight - The height of the menu itself.
- * @param {Number} windowHeight - The height of the Window.
- * @returns {Number}
+ * @param anchorTopEdge - Menu's anchor Top edge.
+ * @param menuHeight - The height of the menu itself.
+ * @param windowHeight - The height of the Window.
  */
-function computeVerticalShift(anchorTopEdge, menuHeight, windowHeight) {
+function computeVerticalShift(anchorTopEdge: number, menuHeight: number, windowHeight: number): number {
     const popoverBottomEdge = anchorTopEdge + menuHeight;
 
     if (anchorTopEdge < 0) {
