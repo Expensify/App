@@ -237,6 +237,20 @@ function getCreated(transaction) {
     return '';
 }
 
+/*
+ * @param {Object} transaction
+ * @param {Object} transaction.comment
+ * @param {String} transaction.comment.type
+ * @param {Object} [transaction.comment.customUnit]
+ * @param {String} [transaction.comment.customUnit.name]
+ * @returns {Boolean}
+ */
+function isDistanceRequest(transaction) {
+    const type = lodashGet(transaction, 'comment.type');
+    const customUnitName = lodashGet(transaction, 'comment.customUnit.name');
+    return type === CONST.TRANSACTION.TYPE.CUSTOM_UNIT && customUnitName === CONST.CUSTOM_UNITS.NAME_DISTANCE;
+}
+
 function isReceiptBeingScanned(transaction) {
     return _.contains([CONST.IOU.RECEIPT_STATE.SCANREADY, CONST.IOU.RECEIPT_STATE.SCANNING], transaction.receipt.state);
 }
@@ -248,7 +262,7 @@ function isReceiptBeingScanned(transaction) {
  * @returns {Boolean}
  */
 function hasMissingSmartscanFields(transaction) {
-    return hasReceipt(transaction) && !isReceiptBeingScanned(transaction) && !areModifiedFieldsPopulated(transaction);
+    return hasReceipt(transaction) && !isDistanceRequest(transaction) && !isReceiptBeingScanned(transaction) && !areModifiedFieldsPopulated(transaction);
 }
 
 /**
@@ -296,20 +310,6 @@ function validateWaypoints(waypoints) {
     }
 
     return true;
-}
-
-/*
- * @param {Object} transaction
- * @param {Object} transaction.comment
- * @param {String} transaction.comment.type
- * @param {Object} [transaction.comment.customUnit]
- * @param {String} [transaction.comment.customUnit.name]
- * @returns {Boolean}
- */
-function isDistanceRequest(transaction) {
-    const type = lodashGet(transaction, 'comment.type');
-    const customUnitName = lodashGet(transaction, 'comment.customUnit.name');
-    return type === CONST.TRANSACTION.TYPE.CUSTOM_UNIT && customUnitName === CONST.CUSTOM_UNITS.NAME_DISTANCE;
 }
 
 export {
