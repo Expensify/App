@@ -264,7 +264,10 @@ function getLinkedTransaction(reportAction = {}) {
 }
 
 function getAllReportTransactions(reportID) {
-    return _.filter(allTransactions, (transaction) => transaction.reportID === reportID);
+    // `reportID` from the `/CreateDistanceRequest` endpoint return's number instead of string for created `transaction`.
+    // For reference, https://github.com/Expensify/App/pull/26536#issuecomment-1703573277.
+    // We will update this in a follow-up Issue. According to this comment: https://github.com/Expensify/App/pull/26536#issuecomment-1703591019.
+    return _.filter(allTransactions, (transaction) => `${transaction.reportID}` === `${reportID}`);
 }
 
 /**

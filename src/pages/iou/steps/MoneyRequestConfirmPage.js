@@ -144,9 +144,18 @@ function MoneyRequestConfirmPage(props) {
      */
     const createDistanceRequest = useCallback(
         (selectedParticipants, trimmedComment) => {
-            IOU.createDistanceRequest(props.report, selectedParticipants[0], trimmedComment, props.iou.created, props.iou.transactionID);
+            IOU.createDistanceRequest(
+                props.report,
+                selectedParticipants[0],
+                trimmedComment,
+                props.iou.created,
+                props.iou.transactionID,
+                props.iou.amount,
+                props.iou.currency,
+                props.iou.merchant,
+            );
         },
-        [props.report, props.iou.created, props.iou.transactionID],
+        [props.report, props.iou.created, props.iou.transactionID, props.iou.amount, props.iou.currency, props.iou.merchant],
     );
 
     const createTransaction = useCallback(

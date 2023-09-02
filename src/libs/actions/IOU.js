@@ -504,16 +504,19 @@ function getMoneyRequestInformation(
  * @param {String} comment
  * @param {String} created
  * @param {String} [transactionID]
+ * @param {Number} amount
+ * @param {String} currency
+ * @param {String} merchant
  */
-function createDistanceRequest(report, participant, comment, created, transactionID) {
+function createDistanceRequest(report, participant, comment, created, transactionID, amount, currency, merchant) {
     const {iouReport, chatReport, transaction, iouAction, createdChatReportActionID, createdIOUReportActionID, reportPreviewAction, onyxData} = getMoneyRequestInformation(
         report,
         participant,
         comment,
-        0,
-        'USD',
+        amount,
+        currency,
         created,
-        '',
+        merchant,
         null,
         null,
         null,
