@@ -56,7 +56,7 @@ function UserCurrentLocationButton({onLocationFetched, isDisabled, translate}) {
     };
 
     /** Gets the user's current location and registers success/error callbacks */
-    const useCurrentLocation = () => {
+    const getUserLocation = () => {
         if (isFetchingLocation.current) return;
 
         isFetchingLocation.current = true;
@@ -76,7 +76,7 @@ function UserCurrentLocationButton({onLocationFetched, isDisabled, translate}) {
         <>
             <PressableWithFeedback
                 style={[styles.flexRow, styles.mt4, styles.alignSelfStart, isDisabled && styles.buttonOpacityDisabled]}
-                onPress={useCurrentLocation}
+                onPress={getUserLocation}
                 accessibilityLabel={translate('location.useCurrent')}
                 disabled={isDisabled}
             >
