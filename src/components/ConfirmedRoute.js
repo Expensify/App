@@ -1,7 +1,7 @@
 import React, {useEffect} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
-import MapView from 'react-native-x-maps';
+
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
@@ -15,18 +15,27 @@ import transactionPropTypes from './transactionPropTypes';
 import BlockingView from './BlockingViews/BlockingView';
 import useNetwork from '../hooks/useNetwork';
 import useLocalize from '../hooks/useLocalize';
+import MapView from './MapView';
 
 const propTypes = {
     /** Transaction that stores the distance request data */
     transaction: transactionPropTypes,
 
-    /** Token needed to render the map */
-    mapboxToken: PropTypes.string,
+    /** Data about Mapbox token for calling Mapbox API */
+    mapboxAccessToken: PropTypes.shape({
+        /** Temporary token for Mapbox API */
+        token: PropTypes.string,
+
+        /** Time when the token will expire in ISO 8601 */
+        expiration: PropTypes.string,
+    }),
 };
 
 const defaultProps = {
     transaction: {},
-    mapboxToken: '',
+    mapboxAccessToken: {
+        token: '',
+    },
 };
 
 const getWaypointMarkers = (waypoints) => {
@@ -49,6 +58,7 @@ const getWaypointMarkers = (waypoints) => {
             }
 
             return {
+                id: `${waypoint.lng},${waypoint.lat},${index}`,
                 coordinate: [waypoint.lng, waypoint.lat],
                 markerComponent: () => (
                     <MarkerComponent
@@ -63,7 +73,7 @@ const getWaypointMarkers = (waypoints) => {
     );
 };
 
-function ConfirmedRoute({mapboxToken, transaction}) {
+function ConfirmedRoute({mapboxAccessToken, transaction}) {
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const {route0: route} = transaction.routes || {};
@@ -78,16 +88,15 @@ function ConfirmedRoute({mapboxToken, transaction}) {
 
     return (
         <>
-            {!isOffline && mapboxToken ? (
+            {!isOffline && Boolean(mapboxAccessToken.token) ? (
                 <MapView
-                    accessToken={mapboxToken}
+                    accessToken={mapboxAccessToken.token}
                     mapPadding={CONST.MAP_PADDING}
                     pitchEnabled={false}
                     directionCoordinates={coordinates}
-                    directionStyle={styles.mapDirection}
                     style={styles.mapView}
                     waypoints={waypointMarkers}
-                    styleURL={CONST.MAPBOX_STYLE_URL}
+                    styleURL={CONST.MAPBOX.STYLE_URL}
                 />
             ) : (
                 <View style={[styles.mapPendingView]}>
@@ -107,9 +116,8 @@ export default withOnyx({
     transaction: {
         key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
     },
-    mapboxToken: {
+    mapboxAccessToken: {
         key: ONYXKEYS.MAPBOX_ACCESS_TOKEN,
-        selector: (mapboxAccessToken) => mapboxAccessToken && mapboxAccessToken.token,
     },
 })(ConfirmedRoute);
 
