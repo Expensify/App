@@ -791,6 +791,18 @@ function cancelTask(taskReportID, taskTitle, originalStateNum, originalStatusNum
                 [optimisticReportActionID]: optimisticCancelReportAction,
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`,
+            value: {
+                hasDraft: false,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${taskReportID}`,
+            value: null,
+        },
     ];
 
     const successData = [
