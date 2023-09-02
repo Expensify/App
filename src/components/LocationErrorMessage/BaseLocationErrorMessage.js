@@ -62,7 +62,7 @@ function BaseLocationErrorMessage({locationErrorCode, onAllowLocationLinkPress, 
                 */}
                 {isPermissionDenied ? (
                     <Text style={styles.offlineFeedback.text}>
-                        <Text>{`${translate('location.permissionDenied')} ${translate('common.please')}`}</Text>
+                        <Text>{`${translate('location.permissionDenied')} ${translate('location.please')}`}</Text>
                         <TextLink onPress={onAllowLocationLinkPress}>{` ${translate('location.allowPermission')} `}</TextLink>
                         <Text>{translate('location.tryAgain')}</Text>
                     </Text>
