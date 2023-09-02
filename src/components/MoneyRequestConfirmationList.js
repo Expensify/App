@@ -292,6 +292,10 @@ function MoneyRequestConfirmationList(props) {
 
     const distanceMerchant = useMemo(() => DistanceRequestUtils.getDistanceMerchant(distance, unit, rate, currency, translate), [distance, unit, rate, currency, translate]);
 
+    useEffect(() => {
+        IOU.setMoneyRequestMerchant(distanceMerchant);
+    }, [distanceMerchant]);
+
     /**
      * @param {Object} option
      */
@@ -339,10 +343,10 @@ function MoneyRequestConfirmationList(props) {
                 Log.info(`[IOU] Sending money via: ${paymentMethod}`);
                 onSendMoney(paymentMethod);
             } else {
-                onConfirm(selectedParticipants, distanceMerchant);
+                onConfirm(selectedParticipants);
             }
         },
-        [selectedParticipants, onSendMoney, onConfirm, props.iouType, distanceMerchant],
+        [selectedParticipants, onSendMoney, onConfirm, props.iouType],
     );
 
     const footerContent = useMemo(() => {
