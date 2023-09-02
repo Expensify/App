@@ -18,7 +18,7 @@ import CONST from '../../CONST';
 
 const propTypes = {
     /** The location error code from onyx */
-    locationErrorCode: PropTypes.oneOfType([PropTypes.number, PropTypes.oneOf([null])]),
+    locationErrorCode: PropTypes.number,
 
     /** A callback that runs when 'allow location permission' link is pressed */
     onAllowLocationLinkPress: PropTypes.func.isRequired,
