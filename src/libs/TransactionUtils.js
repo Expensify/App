@@ -294,7 +294,7 @@ function getValidWaypoints(waypoints, reArrangeIndexes = false) {
                 return acc;
             }
 
-            const lastIndex = Math.max(..._.map(_.keys(acc), (key => parseInt(key.replace('waypoint', ''), 10))));
+            const lastIndex = Math.max(..._.map(_.keys(acc), (key) => parseInt(key.replace('waypoint', ''), 10)));
             return {...acc, [`waypoint${reArrangeIndexes && lastIndex > -1 ? lastIndex + 1 : index}`]: currentWaypoint};
         },
         {},
