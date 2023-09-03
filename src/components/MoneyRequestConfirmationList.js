@@ -291,9 +291,12 @@ function MoneyRequestConfirmationList(props) {
     }, [selectedParticipants, props.hasMultipleParticipants, payeePersonalDetails]);
 
     useEffect(() => {
+        if (!props.isDistanceRequest) {
+            return;
+        }
         const distanceMerchant = DistanceRequestUtils.getDistanceMerchant(distance, unit, rate, currency, translate);
         IOU.setMoneyRequestMerchant(distanceMerchant);
-    }, [distance, unit, rate, currency, translate]);
+    }, [distance, unit, rate, currency, translate, props.isDistanceRequest]);
 
     /**
      * @param {Object} option
