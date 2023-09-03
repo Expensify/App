@@ -293,8 +293,11 @@ function MoneyRequestConfirmationList(props) {
     const distanceMerchant = useMemo(() => DistanceRequestUtils.getDistanceMerchant(distance, unit, rate, currency, translate), [distance, unit, rate, currency, translate]);
 
     useEffect(() => {
+        if (!props.isDistanceRequest) {
+            return;
+        }
         IOU.setMoneyRequestMerchant(distanceMerchant);
-    }, [distanceMerchant]);
+    }, [distanceMerchant, props.isDistanceRequest]);
 
     /**
      * @param {Object} option
