@@ -285,6 +285,18 @@ function getAllReportTransactions(reportID) {
 }
 
 /**
+ * Checks if a waypoint has a valid address
+ * @param {Object} waypoint
+ * @returns {Boolean} Returns true if the address is valid
+ */
+function waypointHasValidAddress(waypoint) {
+    if (!waypoint || !waypoint.address || typeof waypoint.address !== 'string' || waypoint.address.trim() === '') {
+        return false;
+    }
+    return true;
+}
+
+/**
  * Filters the waypoints which are valid and returns those
  * @param {Object} waypoints
  * @param {Boolean} reArrangeIndexes
@@ -304,7 +316,7 @@ function getValidWaypoints(waypoints, reArrangeIndexes = false) {
         (acc, currentWaypoint, index) => {
             const previousWaypoint = waypointValues[lastWaypointIndex];
             // Check if the waypoint has a valid address
-            if (!currentWaypoint || !currentWaypoint.address || typeof currentWaypoint.address !== 'string' || currentWaypoint.address.trim() === '') {
+            if (!waypointHasValidAddress(currentWaypoint)) {
                 return acc;
             }
 
