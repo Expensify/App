@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import lodashIsEmpty from 'lodash/isEmpty';
 import _ from 'underscore';
 import compose from '../../libs/compose';
 import styles from '../../styles/styles';
@@ -35,6 +36,7 @@ import * as ReceiptUtils from '../../libs/ReceiptUtils';
 import ReportActionItemImages from './ReportActionItemImages';
 import transactionPropTypes from '../transactionPropTypes';
 import colors from '../../styles/colors';
+import IOUSkeletonView from '../IOUSkeletonView';
 
 const propTypes = {
     /** The active IOUReport, used for Onyx subscription */
@@ -227,6 +229,9 @@ function MoneyRequestPreview(props) {
                             isHovered={isScanning}
                         />
                     )}
+                    {
+                        lodashIsEmpty(props.transaction)
+                        ? <IOUSkeletonView />  :
                     <View style={styles.moneyRequestPreviewBoxText}>
                         <View style={[styles.flexRow]}>
                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
@@ -302,6 +307,7 @@ function MoneyRequestPreview(props) {
                             )}
                         </View>
                     </View>
+}  
                 </View>
             </OfflineWithFeedback>
         </View>
