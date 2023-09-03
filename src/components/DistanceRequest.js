@@ -3,6 +3,7 @@ import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import lodashHas from 'lodash/has';
+import lodashIsNull from 'lodash/isNull';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 
@@ -96,7 +97,7 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
         () =>
             _.filter(
                 _.map(waypoints, (waypoint, key) => {
-                    if (!waypoint || !lodashHas(waypoint, 'lat') || !lodashHas(waypoint, 'lng')) {
+                    if (!waypoint || !lodashHas(waypoint, 'lat') || !lodashHas(waypoint, 'lng') || lodashIsNull(waypoint.lat) || lodashIsNull(waypoint.lng)) {
                         return;
                     }
 
