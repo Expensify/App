@@ -72,7 +72,7 @@ function addStop(transactionID) {
  * @param {String} transactionID
  * @param {String} index
  * @param {Object} waypoint
- * @param {Object} shouldAddToRecentWaypoints
+ * @param {Boolean} shouldAddToRecentWaypoints
  */
 function saveWaypoint(transactionID, index, waypoint, shouldAddToRecentWaypoints = true) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
