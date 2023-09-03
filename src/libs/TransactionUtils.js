@@ -280,10 +280,12 @@ function getValidWaypoints(waypoints, reArrangeIndexes = false) {
         return {};
     }
 
+    let lastWaypointIndex = -1;
+
     const validWaypoints = _.reduce(
         waypointValues,
         (acc, currentWaypoint, index) => {
-            const previousWaypoint = waypointValues[index - 1];
+            const previousWaypoint = waypointValues[lastWaypointIndex];
             // Check if the waypoint has a valid address
             if (!currentWaypoint || !currentWaypoint.address || typeof currentWaypoint.address !== 'string' || currentWaypoint.address.trim() === '') {
                 return acc;
@@ -294,8 +296,11 @@ function getValidWaypoints(waypoints, reArrangeIndexes = false) {
                 return acc;
             }
 
-            const lastIndex = Math.max(..._.map(_.keys(acc), (key) => parseInt(key.replace('waypoint', ''), 10)));
-            return {...acc, [`waypoint${reArrangeIndexes && lastIndex > -1 ? lastIndex + 1 : index}`]: currentWaypoint};
+            const validatedWaypoints = {...acc, [`waypoint${reArrangeIndexes ? lastWaypointIndex + 1 : index}`]: currentWaypoint};
+
+            lastWaypointIndex += 1;
+
+            return validatedWaypoints;
         },
         {},
     );
