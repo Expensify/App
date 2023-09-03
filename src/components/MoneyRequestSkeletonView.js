@@ -22,8 +22,7 @@ const defaultProps = {
 
 function MoneyRequestSkeletonView(props) {
     return (
-      <View
-      style={[styles.flex1, styles.overflowHidden]}>
+        <View style={[styles.flex1, styles.overflowHidden]}>
             <SkeletonViewContentLoader
                 animate={props.shouldAnimate}
                 width={styles.w100.width}
@@ -31,25 +30,25 @@ function MoneyRequestSkeletonView(props) {
                 backgroundColor={themeColors.borderLighter}
                 foregroundColor={themeColors.border}
             >
-                    <Rect
-                        x="16"
-                        y="20"
-                        width="40"
-                        height="8"
-                    />
-                    <Rect
-                        x="15"
-                        y="46"
-                        width="120"
-                        height="20"
-                    />
-                    <Rect
-                        x="16"
-                        y="78"
-                        width="80"
-                        height="8"
-                    />
-                </SkeletonViewContentLoader>
+                <Rect
+                    x="16"
+                    y="20"
+                    width="40"
+                    height="8"
+                />
+                <Rect
+                    x="15"
+                    y="46"
+                    width="120"
+                    height="20"
+                />
+                <Rect
+                    x="16"
+                    y="78"
+                    width="80"
+                    height="8"
+                />
+            </SkeletonViewContentLoader>
         </View>
     );
 }
