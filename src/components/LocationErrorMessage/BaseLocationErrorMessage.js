@@ -61,10 +61,15 @@ function BaseLocationErrorMessage({locationErrorCode, onAllowLocationLinkPress, 
                   - errorCode = 3 -> location fetch timeout  
                 */}
                 {isPermissionDenied ? (
-                    <Text style={styles.offlineFeedback.text}>
-                        <Text>{`${translate('location.permissionDenied')} ${translate('location.please')}`}</Text>
-                        <TextLink onPress={onAllowLocationLinkPress}>{` ${translate('location.allowPermission')} `}</TextLink>
-                        <Text>{translate('location.tryAgain')}</Text>
+                    <Text>
+                        <Text style={[styles.offlineFeedback.text]}>{`${translate('location.permissionDenied')} ${translate('location.please')}`}</Text>
+                        <TextLink
+                            onPress={onAllowLocationLinkPress}
+                            style={[styles.offlineFeedback.text, styles.textBlue]}
+                        >
+                            {` ${translate('location.allowPermission')} `}
+                        </TextLink>
+                        <Text style={[styles.offlineFeedback.text]}>{translate('location.tryAgain')}</Text>
                     </Text>
                 ) : (
                     <Text style={styles.offlineFeedback.text}>{translate('location.notFound')}</Text>
