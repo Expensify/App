@@ -3,7 +3,6 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import lodashIsEmpty from 'lodash/isEmpty';
 import _ from 'underscore';
 import compose from '../../libs/compose';
 import styles from '../../styles/styles';
@@ -229,7 +228,7 @@ function MoneyRequestPreview(props) {
                             isHovered={isScanning}
                         />
                     )}
-                    {lodashIsEmpty(props.transaction) ? (
+                    {_.isEmpty(props.transaction) ? (
                         <MoneyRequestSkeletonView />
                     ) : (
                         <View style={styles.moneyRequestPreviewBoxText}>
