@@ -100,7 +100,7 @@ function MoneyRequestAction({
         // If the childReportID is not present, we need to create a new thread
         const childReportID = lodashGet(action, 'childReportID', 0);
         if (!childReportID) {
-            const thread = ReportUtils.buildTransactionThread(action);
+            const thread = ReportUtils.buildTransactionThread(action, requestReportID);
             const userLogins = PersonalDetailsUtils.getLoginsByAccountIDs(thread.participantAccountIDs);
             Report.openReport(thread.reportID, userLogins, thread, action.reportActionID);
             Navigation.navigate(ROUTES.getReportRoute(thread.reportID));

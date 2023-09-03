@@ -86,6 +86,14 @@ function hasReceipt(transaction) {
 }
 
 /**
+ * @param {Object} transaction
+ * @returns {Boolean}
+ */
+function areModifiedFieldsPopulated(transaction) {
+    return transaction.modifiedMerchant !== CONST.TRANSACTION.UNKNOWN_MERCHANT && transaction.modifiedAmount !== 0 && transaction.modifiedCreated !== '';
+}
+
+/**
  * Given the edit made to the money request, return an updated transaction object.
  *
  * @param {Object} transaction
@@ -126,6 +134,7 @@ function getUpdatedTransaction(transaction, transactionChanges, isFromExpenseRep
     if (shouldStopSmartscan && _.has(transaction, 'receipt') && !_.isEmpty(transaction.receipt) && lodashGet(transaction, 'receipt.state') !== CONST.IOU.RECEIPT_STATE.OPEN) {
         updatedTransaction.receipt.state = CONST.IOU.RECEIPT_STATE.OPEN;
     }
+
     updatedTransaction.pendingFields = {
         ...(_.has(transactionChanges, 'comment') && {comment: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
         ...(_.has(transactionChanges, 'created') && {created: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
@@ -228,6 +237,34 @@ function getCreated(transaction) {
     return '';
 }
 
+/*
+ * @param {Object} transaction
+ * @param {Object} transaction.comment
+ * @param {String} transaction.comment.type
+ * @param {Object} [transaction.comment.customUnit]
+ * @param {String} [transaction.comment.customUnit.name]
+ * @returns {Boolean}
+ */
+function isDistanceRequest(transaction) {
+    const type = lodashGet(transaction, 'comment.type');
+    const customUnitName = lodashGet(transaction, 'comment.customUnit.name');
+    return type === CONST.TRANSACTION.TYPE.CUSTOM_UNIT && customUnitName === CONST.CUSTOM_UNITS.NAME_DISTANCE;
+}
+
+function isReceiptBeingScanned(transaction) {
+    return _.contains([CONST.IOU.RECEIPT_STATE.SCANREADY, CONST.IOU.RECEIPT_STATE.SCANNING], transaction.receipt.state);
+}
+
+/**
+ * Check if the transaction has a non-smartscanning receipt and is missing required fields
+ *
+ * @param {Object} transaction
+ * @returns {Boolean}
+ */
+function hasMissingSmartscanFields(transaction) {
+    return hasReceipt(transaction) && !isDistanceRequest(transaction) && !isReceiptBeingScanned(transaction) && !areModifiedFieldsPopulated(transaction);
+}
+
 /**
  * Get the transactions related to a report preview with receipts
  * Get the details linked to the IOU reportAction
@@ -241,11 +278,10 @@ function getLinkedTransaction(reportAction = {}) {
 }
 
 function getAllReportTransactions(reportID) {
-    return _.filter(allTransactions, (transaction) => transaction.reportID === reportID);
-}
-
-function isReceiptBeingScanned(transaction) {
-    return transaction.receipt.state === CONST.IOU.RECEIPT_STATE.SCANREADY || transaction.receipt.state === CONST.IOU.RECEIPT_STATE.SCANNING;
+    // `reportID` from the `/CreateDistanceRequest` endpoint return's number instead of string for created `transaction`.
+    // For reference, https://github.com/Expensify/App/pull/26536#issuecomment-1703573277.
+    // We will update this in a follow-up Issue. According to this comment: https://github.com/Expensify/App/pull/26536#issuecomment-1703591019.
+    return _.filter(allTransactions, (transaction) => `${transaction.reportID}` === `${reportID}`);
 }
 
 /**
@@ -279,20 +315,6 @@ function validateWaypoints(waypoints) {
     return true;
 }
 
-/*
- * @param {Object} transaction
- * @param {Object} transaction.comment
- * @param {String} transaction.comment.type
- * @param {Object} [transaction.comment.customUnit]
- * @param {String} [transaction.comment.customUnit.name]
- * @returns {Boolean}
- */
-function isDistanceRequest(transaction) {
-    const type = lodashGet(transaction, 'comment.type');
-    const customUnitName = lodashGet(transaction, 'comment.customUnit.name');
-    return type === CONST.TRANSACTION.TYPE.CUSTOM_UNIT && customUnitName === CONST.CUSTOM_UNITS.NAME_DISTANCE;
-}
-
 export {
     buildOptimisticTransaction,
     getUpdatedTransaction,
@@ -308,4 +330,5 @@ export {
     isReceiptBeingScanned,
     validateWaypoints,
     isDistanceRequest,
+    hasMissingSmartscanFields,
 };

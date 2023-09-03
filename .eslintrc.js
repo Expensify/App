@@ -163,5 +163,13 @@ module.exports = {
                 ],
             },
         },
+        {
+            files: ['tests/**/*.{js,jsx,ts,tsx}', '.github/**/*.{js,jsx,ts,tsx}'],
+            rules: {
+                '@lwc/lwc/no-async-await': 'off',
+                'no-await-in-loop': 'off',
+                'no-restricted-syntax': ['error', 'ForInStatement', 'LabeledStatement', 'WithStatement'],
+            },
+        },
     ],
 };

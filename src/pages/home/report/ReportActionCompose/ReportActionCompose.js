@@ -149,7 +149,6 @@ function ReportActionCompose({
         () => _.without(lodashGet(report, 'participantAccountIDs', []), currentUserPersonalDetails.accountID),
         [currentUserPersonalDetails.accountID, report],
     );
-    const participantsWithoutExpensifyAccountIDs = useMemo(() => _.difference(reportParticipantIDs, CONST.EXPENSIFY_ACCOUNT_IDS), [reportParticipantIDs]);
 
     const shouldShowReportRecipientLocalTime = useMemo(
         () => ReportUtils.canShowReportRecipientLocalTime(personalDetails, report, currentUserPersonalDetails.accountID) && !isComposerFullSize,
@@ -178,12 +177,19 @@ function ReportActionCompose({
         return translate('reportActionCompose.writeSomething');
     }, [report, blockedFromConcierge, translate, conciergePlaceholderRandomIndex]);
 
+    const focus = () => {
+        if (composerRef === null || composerRef.current === null) {
+            return;
+        }
+        composerRef.current.focus(true);
+    };
+
     const isKeyboardVisibleWhenShowingModalRef = useRef(false);
     const restoreKeyboardState = useCallback(() => {
         if (!isKeyboardVisibleWhenShowingModalRef.current) {
             return;
         }
-        composerRef.current.focus(true);
+        focus();
         isKeyboardVisibleWhenShowingModalRef.current = false;
     }, []);
 
@@ -309,7 +315,8 @@ function ReportActionCompose({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const reportRecipient = personalDetails[participantsWithoutExpensifyAccountIDs[0]];
+    const reportRecipientAcountIDs = ReportUtils.getReportRecipientAccountIDs(report, currentUserPersonalDetails.accountID);
+    const reportRecipient = personalDetails[reportRecipientAcountIDs[0]];
     const shouldUseFocusedColor = !isBlockedFromConcierge && !disabled && isFocused;
 
     const hasReportRecipient = _.isObject(reportRecipient) && !_.isEmpty(reportRecipient);
@@ -403,7 +410,7 @@ function ReportActionCompose({
                     {DeviceCapabilities.canUseTouchScreen() && isMediumScreenWidth ? null : (
                         <EmojiPickerButton
                             isDisabled={isBlockedFromConcierge || disabled}
-                            onModalHide={() => composerRef.current.focus(true)}
+                            onModalHide={focus}
                             onEmojiSelected={(...args) => composerRef.current.replaceSelectionWithText(...args)}
                             emojiPickerID={report.reportID}
                         />

@@ -27,11 +27,14 @@ import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import * as IOUUtils from '../../libs/IOUUtils';
 import * as ReportUtils from '../../libs/ReportUtils';
 import * as TransactionUtils from '../../libs/TransactionUtils';
+import * as StyleUtils from '../../styles/StyleUtils';
+import getButtonState from '../../libs/getButtonState';
 import refPropTypes from '../refPropTypes';
 import PressableWithFeedback from '../Pressable/PressableWithoutFeedback';
 import * as ReceiptUtils from '../../libs/ReceiptUtils';
 import ReportActionItemImages from './ReportActionItemImages';
 import transactionPropTypes from '../transactionPropTypes';
+import colors from '../../styles/colors';
 
 const propTypes = {
     /** The active IOUReport, used for Onyx subscription */
@@ -147,15 +150,11 @@ function MoneyRequestPreview(props) {
     const isCurrentUserManager = managerID === sessionAccountID;
 
     const {amount: requestAmount, currency: requestCurrency, comment: requestComment, merchant: requestMerchant} = ReportUtils.getTransactionDetails(props.transaction);
-    let description = requestComment;
+    const description = requestComment;
     const hasReceipt = TransactionUtils.hasReceipt(props.transaction);
     const isScanning = hasReceipt && TransactionUtils.isReceiptBeingScanned(props.transaction);
+    const hasFieldErrors = TransactionUtils.hasMissingSmartscanFields(props.transaction);
     const isDistanceRequest = TransactionUtils.isDistanceRequest(props.transaction);
-
-    // On a distance request the merchant of the transaction will be used for the description since that's where it's stored in the database
-    if (isDistanceRequest) {
-        description = props.transaction.merchant;
-    }
 
     const getSettledMessage = () => {
         switch (lodashGet(props.action, 'originalMessage.paymentType', '')) {
@@ -176,7 +175,7 @@ function MoneyRequestPreview(props) {
 
     const getPreviewHeaderText = () => {
         if (isDistanceRequest) {
-            return props.translate('tabSelector.distance');
+            return props.translate('common.distance');
         }
 
         if (isScanning) {
@@ -188,7 +187,9 @@ function MoneyRequestPreview(props) {
         }
 
         let message = props.translate('iou.cash');
-        if (props.iouReport.isWaitingOnBankAccount) {
+        if (ReportUtils.isControlPolicyExpenseReport(props.iouReport) && ReportUtils.isReportApproved(props.iouReport) && !ReportUtils.isSettled(props.iouReport)) {
+            message += ` • ${props.translate('iou.approved')}`;
+        } else if (props.iouReport.isWaitingOnBankAccount) {
             message += ` • ${props.translate('iou.pending')}`;
         } else if (ReportUtils.isSettled(props.iouReport.reportID)) {
             message += ` • ${props.translate('iou.settledExpensify')}`;
@@ -229,7 +230,7 @@ function MoneyRequestPreview(props) {
                     <View style={styles.moneyRequestPreviewBoxText}>
                         <View style={[styles.flexRow]}>
                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh16]}>{getPreviewHeaderText()}</Text>
+                                <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh20]}>{getPreviewHeaderText()}</Text>
                                 {Boolean(getSettledMessage()) && (
                                     <>
                                         <Icon
@@ -238,11 +239,20 @@ function MoneyRequestPreview(props) {
                                             height={4}
                                             additionalStyles={[styles.mr1, styles.ml1]}
                                         />
-                                        <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh16]}>{getSettledMessage()}</Text>
+                                        <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh20]}>{getSettledMessage()}</Text>
                                     </>
                                 )}
                             </View>
-                            <Icon src={Expensicons.ArrowRight} />
+                            {hasFieldErrors && (
+                                <Icon
+                                    src={Expensicons.DotIndicator}
+                                    fill={colors.red}
+                                />
+                            )}
+                            <Icon
+                                fill={StyleUtils.getIconFillColor(getButtonState(props.isHovered))}
+                                src={Expensicons.ArrowRight}
+                            />
                         </View>
                         <View style={[styles.flexRow]}>
                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
@@ -270,7 +280,7 @@ function MoneyRequestPreview(props) {
                         </View>
                         {!props.isBillSplit && !_.isEmpty(requestMerchant) && (
                             <View style={[styles.flexRow]}>
-                                <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh16]}>{requestMerchant}</Text>
+                                <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh20, styles.breakWord]}>{requestMerchant}</Text>
                             </View>
                         )}
                         <View style={[styles.flexRow]}>
