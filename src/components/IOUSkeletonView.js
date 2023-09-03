@@ -26,8 +26,8 @@ function IOUSkeletonView(props) {
       style={[styles.flex1, styles.overflowHidden]}>
             <SkeletonViewContentLoader
                 animate={props.shouldAnimate}
-                width={107}
-                height={variables.contentHeaderHeight}
+                width={styles.w100.width}
+                height={variables.moneyRequestSkeletonHeight}
                 backgroundColor={themeColors.borderLighter}
                 foregroundColor={themeColors.border}
             >
@@ -38,7 +38,7 @@ function IOUSkeletonView(props) {
                         height="8"
                     />
                     <Rect
-                        x="16"
+                        x="15"
                         y="46"
                         width="120"
                         height="20"
@@ -46,8 +46,8 @@ function IOUSkeletonView(props) {
                     <Rect
                         x="16"
                         y="78"
-                        width="120"
-                        height="20"
+                        width="80"
+                        height="8"
                     />
                 </SkeletonViewContentLoader>
         </View>
