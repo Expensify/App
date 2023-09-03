@@ -108,6 +108,7 @@
     "react-dom": "18.1.0",
     "react-map-gl": "^7.1.3",
     "react-native": "0.72.3",
+    "react-native-android-location-enabler": "^1.2.2",
     "react-native-blob-util": "^0.17.3",
     "react-native-collapsible": "^1.6.0",
     "react-native-config": "^1.4.5",
