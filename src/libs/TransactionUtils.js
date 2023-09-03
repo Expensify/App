@@ -270,13 +270,14 @@ function getAllReportTransactions(reportID) {
 /**
  * Filters the waypoints which are valid and returns those
  * @param {Object} waypoints
+ * @param {Boolean} reArrangeIndexes
  * @returns {Object} validated waypoints
  */
-function getValidWaypoints(waypoints) {
+function getValidWaypoints(waypoints, reArrangeIndexes = false) {
     const waypointValues = _.values(waypoints);
     // Ensure the number of waypoints is between 2 and 25
     if (waypointValues.length < 2 || waypointValues.length > 25) {
-        return false;
+        return {};
     }
 
     const validWaypoints = _.reduce(
@@ -292,7 +293,9 @@ function getValidWaypoints(waypoints) {
             if (previousWaypoint && currentWaypoint.address === previousWaypoint.address) {
                 return acc;
             }
-            return {...acc, [`waypoint${index}`]: currentWaypoint};
+
+            const lastIndex = Math.max(..._.map(_.keys(acc), (key => parseInt(key.replace('waypoint', ''), 10))));
+            return {...acc, [`waypoint${reArrangeIndexes && lastIndex > -1 ? lastIndex + 1 : index}`]: currentWaypoint};
         },
         {},
     );
