@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import lodashIsString from 'lodash/isString';
 import styles from '../../styles/styles';
 import Image from '../Image';
 import ThumbnailImage from '../ThumbnailImage';
@@ -72,7 +73,7 @@ function ReportActionItemImage({thumbnail, image, enablePreviewModal}) {
 
     return (
         <Image
-            source={{uri: image}}
+            source={lodashIsString(image)?{uri: image}:image}
             style={[styles.w100, styles.h100]}
         />
     );
