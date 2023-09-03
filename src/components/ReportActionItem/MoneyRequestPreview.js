@@ -223,7 +223,7 @@ function MoneyRequestPreview(props) {
                 <View style={[styles.moneyRequestPreviewBox, isScanning ? styles.reportPreviewBoxHoverBorder : undefined, ...props.containerStyles]}>
                     {hasReceipt && (
                         <ReportActionItemImages
-                            images={[ReceiptUtils.getThumbnailAndImageURIs(props.transaction.receipt.source, props.transaction.filename)]}
+                            images={[ReceiptUtils.getThumbnailAndImageURIs(props.transaction.receipt.source, props.transaction.filename || '')]}
                             isHovered={isScanning}
                         />
                     )}
