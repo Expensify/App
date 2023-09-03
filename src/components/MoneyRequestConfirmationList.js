@@ -294,7 +294,7 @@ function MoneyRequestConfirmationList(props) {
 
     useEffect(() => {
         if (!props.isDistanceRequest) {
-            return
+            return;
         }
         IOU.setMoneyRequestMerchant(distanceMerchant);
     }, [distanceMerchant, props.isDistanceRequest]);
