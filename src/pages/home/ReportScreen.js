@@ -284,6 +284,8 @@ function ReportScreen({
         ComposerActions.setShouldShowComposeInput(true);
     }, [route, report, errors, fetchReportIfNeeded, prevReport.reportID]);
 
+    console.log(report);
+
     return (
         <ReportScreenContext.Provider
             value={{
@@ -296,7 +298,7 @@ function ReportScreen({
                 shouldEnableKeyboardAvoidingView={isTopMostReportId}
             >
                 <FullPageNotFoundView
-                    shouldShow={(!report.reportID && !report.isLoadingReportActions && !isLoading) || shouldHideReport}
+                    shouldShow={(!_.isEmpty(report) && !report.reportID && !report.isLoadingReportActions && !isLoading) || shouldHideReport}
                     subtitleKey="notFound.noAccess"
                     shouldShowCloseButton={false}
                     shouldShowBackButton={isSmallScreenWidth}
