@@ -1,6 +1,5 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import lodashIsString from 'lodash/isString';
 import styles from '../../styles/styles';
 import Image from '../Image';
 import ThumbnailImage from '../ThumbnailImage';
@@ -16,7 +15,7 @@ const propTypes = {
     /** thumbnail URI for the image */
     thumbnail: PropTypes.string,
 
-    /** URI for the image and  localimage is number */
+    /** URI for the image or  local numeric reference for the image  */
     image: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
 
     /** whether or not to enable the image preview modal */
@@ -73,7 +72,7 @@ function ReportActionItemImage({thumbnail, image, enablePreviewModal}) {
 
     return (
         <Image
-            source={lodashIsString(image) ? {uri: image} : image}
+            source={{uri: image}}
             style={[styles.w100, styles.h100]}
         />
     );
