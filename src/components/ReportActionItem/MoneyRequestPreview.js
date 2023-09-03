@@ -36,7 +36,7 @@ import * as ReceiptUtils from '../../libs/ReceiptUtils';
 import ReportActionItemImages from './ReportActionItemImages';
 import transactionPropTypes from '../transactionPropTypes';
 import colors from '../../styles/colors';
-import IOUSkeletonView from '../IOUSkeletonView';
+import MoneyRequestSkeletonView from '../MoneyRequestSkeletonView';
 
 const propTypes = {
     /** The active IOUReport, used for Onyx subscription */
@@ -230,7 +230,7 @@ function MoneyRequestPreview(props) {
                         />
                     )}
                     {
-                        lodashIsEmpty(props.transaction) ? ( <IOUSkeletonView /> 
+                        lodashIsEmpty(props.transaction) ? ( <MoneyRequestSkeletonView /> 
                         ) : (
                             <View style={styles.moneyRequestPreviewBoxText}>
                                 <View style={[styles.flexRow]}>

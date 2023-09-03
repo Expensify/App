@@ -20,7 +20,7 @@ const defaultProps = {
     shouldAnimate: true,
 };
 
-function IOUSkeletonView(props) {
+function MoneyRequestSkeletonView(props) {
     return (
       <View
       style={[styles.flex1, styles.overflowHidden]}>
@@ -54,7 +54,7 @@ function IOUSkeletonView(props) {
     );
 }
 
-IOUSkeletonView.propTypes = propTypes;
-IOUSkeletonView.defaultProps = defaultProps;
-IOUSkeletonView.displayName = 'IOUSkeletonView';
-export default compose(withWindowDimensions, withLocalize)(IOUSkeletonView);
+MoneyRequestSkeletonView.propTypes = propTypes;
+MoneyRequestSkeletonView.defaultProps = defaultProps;
+MoneyRequestSkeletonView.displayName = 'IOUSkeletonView';
+export default compose(withWindowDimensions, withLocalize)(MoneyRequestSkeletonView);
