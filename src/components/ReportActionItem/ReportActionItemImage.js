@@ -17,7 +17,7 @@ const propTypes = {
     thumbnail: PropTypes.string,
 
     /** URI for the image and  localimage is number */
-    image:  PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+    image: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
 
     /** whether or not to enable the image preview modal */
     enablePreviewModal: PropTypes.bool,
@@ -73,7 +73,7 @@ function ReportActionItemImage({thumbnail, image, enablePreviewModal}) {
 
     return (
         <Image
-            source={lodashIsString(image)?{uri: image}:image}
+            source={lodashIsString(image) ? {uri: image} : image}
             style={[styles.w100, styles.h100]}
         />
     );
