@@ -284,8 +284,6 @@ function ReportScreen({
         ComposerActions.setShouldShowComposeInput(true);
     }, [route, report, errors, fetchReportIfNeeded, prevReport.reportID]);
 
-    console.log(report);
-
     return (
         <ReportScreenContext.Provider
             value={{
