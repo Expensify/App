@@ -84,7 +84,7 @@ function IOUCurrencySelection(props) {
             if (_.isEmpty(backTo) || props.navigation.getState().routes.length === 1) {
                 Navigation.goBack();
             } else {
-                Navigation.goBack(`${props.route.params.backTo}?currency=${option.currencyCode}`, true);
+                Navigation.navigate(`${props.route.params.backTo}?currency=${option.currencyCode}`);
             }
         },
         [props.route, props.navigation],

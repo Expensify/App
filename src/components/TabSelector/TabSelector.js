@@ -98,13 +98,17 @@ function TabSelector({state, navigation, onTabPress, position}) {
                 const isFocused = index === state.index;
 
                 const onPress = () => {
+                    if (isFocused) {
+                        return;
+                    }
+
                     const event = navigation.emit({
                         type: 'tabPress',
                         target: route.key,
                         canPreventDefault: true,
                     });
 
-                    if (!isFocused && !event.defaultPrevented) {
+                    if (!event.defaultPrevented) {
                         // The `merge: true` option makes sure that the params inside the tab screen are preserved
                         navigation.navigate({name: route.name, merge: true});
                     }
