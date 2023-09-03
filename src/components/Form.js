@@ -405,7 +405,7 @@ function Form(props) {
                         containerStyles={[styles.mh0, styles.mt5, styles.flex1, ...props.submitButtonContainerStyles]}
                         enabledWhenOffline={props.enabledWhenOffline}
                         isSubmitActionDangerous={props.isSubmitActionDangerous}
-                        buttonStyle={{...StyleUtils.parseStyleAsArray(props.submitButtonStyle)}}
+                        buttonStyle={props.submitButtonStyle}
                         useSmallerSubmitButtonSize={props.useSmallerSubmitButtonSize}
                         disablePressOnEnter
                     />

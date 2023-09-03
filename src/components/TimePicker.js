@@ -108,8 +108,11 @@ function TimePicker({forwardedRef, value, errorText, onInputChange}) {
         setSelectionMinute({start: 0, end: 0});
     }, []);
 
+    // This function receive value from hour input and validate it
+    // The valid format is HH(from 00 to 12). If the user input 9, it will be 09. If user try to change 09 to 19 it would skip the first character
     const handleHourChange = (text) => {
         let filteredText;
+        // Remove non-numeric characters and limit to 3 digits. The third digit will appear when input has 01 and you type 2 => 201
         if (selectionHour.start !== selectionHour.end) {
             filteredText = text.replace(/[^0-9]/g, '').slice(0, 2);
         } else {
@@ -117,16 +120,22 @@ function TimePicker({forwardedRef, value, errorText, onInputChange}) {
         }
         let newHour = hours;
         let newSelection = selectionHour.start;
+
+        // Case when user selects and replaces the text.
         if (selectionHour.start !== selectionHour.end) {
+            // If the first digit is <= 1, append 0 at the end.
             if (filteredText.length === 1 && filteredText <= 1) {
                 newHour = `${filteredText}0`;
                 newSelection = 1;
             } else {
+                // Format the hour and move focus to minute input.
                 newHour = `${formatHour(filteredText)}`;
                 newSelection = 2;
                 focusMinuteInputOnFirstCharacter();
             }
+            // Case when the cursor is at the start.
         } else if (selectionHour.start === 0) {
+            // Handle cases where the hour would be > 12.
             const formattedText = `${filteredText[0]}${filteredText[2] || 0}`;
             if (formattedText > 12) {
                 newHour = `0${formattedText[1]}`;
@@ -137,10 +146,12 @@ function TimePicker({forwardedRef, value, errorText, onInputChange}) {
                 newSelection = 1;
             }
         } else if (selectionHour.start === 1) {
-            // if we remove value
+            // Case when the cursor is at the second position.
             if (filteredText.length < 2) {
+                // If we remove a value, prepend 0.
                 newHour = `0${text}`;
                 newSelection = 0;
+                // If the second digit is > 2, replace the hour with 0 and the second digit.
             } else if (text[1] > 2) {
                 newHour = `0${text[1]}`;
                 newSelection = 2;
@@ -151,6 +162,7 @@ function TimePicker({forwardedRef, value, errorText, onInputChange}) {
                 focusMinuteInputOnFirstCharacter();
             }
         } else if (selectionHour.start === 2 && selectionHour.end === 2) {
+            // Case when the cursor is at the end and no text is selected.
             if (filteredText.length < 2) {
                 newHour = `${text}0`;
                 newSelection = 1;
@@ -163,15 +175,21 @@ function TimePicker({forwardedRef, value, errorText, onInputChange}) {
         setSelectionHour({start: newSelection, end: newSelection});
     };
 
+    // This function receive value from minute input and validate it
+    // The valid format is MM(from 00 to 59). If the user input 9, it will be 09. If user try to change 09 to 99 it would skip the character
     const handleMinutesChange = (text) => {
+        // Remove non-numeric characters.
         const filteredText = text.replace(/[^0-9]/g, '');
 
         let newMinute = minute;
         let newSelection = selectionMinute.start;
+        // Case when user selects and replaces the text.
         if (selectionMinute.start !== selectionMinute.end) {
+            // If the first digit is > 5, prepend 0.
             if (filteredText.length === 1 && filteredText > 5) {
                 newMinute = `0${filteredText}`;
                 newSelection = 2;
+                // If the first digit is <= 5, append 0 at the end.
             } else if (filteredText.length === 1 && filteredText <= 5) {
                 newMinute = `${filteredText}0`;
                 newSelection = 1;
@@ -180,6 +198,7 @@ function TimePicker({forwardedRef, value, errorText, onInputChange}) {
                 newSelection = 2;
             }
         } else if (selectionMinute.start === 0) {
+            // Case when the cursor is at the start.
             const formattedText = `${filteredText[0]}${filteredText[2] || 0}`;
             if (text[0] >= 6) {
                 newMinute = `0${formattedText[1]}`;
@@ -189,7 +208,8 @@ function TimePicker({forwardedRef, value, errorText, onInputChange}) {
                 newSelection = 1;
             }
         } else if (selectionMinute.start === 1) {
-            //   //if we remove value
+            // Case when the cursor is at the second position.
+            // If we remove a value, prepend 0.
             if (filteredText.length < 2) {
                 newMinute = `0${text}`;
                 newSelection = 0;
@@ -198,6 +218,7 @@ function TimePicker({forwardedRef, value, errorText, onInputChange}) {
                 newSelection = 2;
             }
         } else if (filteredText.length < 2) {
+            // Case when the cursor is at the end and no text is selected.
             newMinute = `${text}0`;
             newSelection = 1;
         }
@@ -318,7 +339,7 @@ function TimePicker({forwardedRef, value, errorText, onInputChange}) {
             <View style={[styles.flex1, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}>
                 <View
                     nativeID={AMOUNT_VIEW_ID}
-                    style={[styles.flexRow, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter, styles.timeInputsContainer]}
+                    style={[styles.flexRow, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}
                 >
                     <AmountTextInput
                         formattedAmount={hours}
@@ -341,7 +362,7 @@ function TimePicker({forwardedRef, value, errorText, onInputChange}) {
                         style={styles.timePickerInput}
                         containerStyles={[styles.timePickerHeight100]}
                     />
-                    <Text style={styles.timePickerSemiDot}>:</Text>
+                    <Text style={styles.timePickerSemiDot}>{CONST.COLON}</Text>
                     <AmountTextInput
                         onKeyPress={handleFocusOnBackspace}
                         autofocus

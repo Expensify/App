@@ -2627,6 +2627,7 @@ const CONST = {
     BRICK_INDICATOR: {
         ERROR: 'error',
     },
+    COLON: ':'
 } as const;
 
 export default CONST;

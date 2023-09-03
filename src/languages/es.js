@@ -956,7 +956,7 @@ export default {
         date: 'Fecha',
         time: 'Hora',
         clearAfter: 'Borrar después',
-        whenClearStatus: "¿Cuándo deberíamos borrar tu estado?",
+        whenClearStatus: '¿Cuándo deberíamos borrar tu estado?',
     },
     stepCounter: ({step, total, text}) => {
         let result = `Paso ${step}`;

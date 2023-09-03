@@ -3902,7 +3902,6 @@ const styles = {
 
     timePickerInput: {
         fontSize: 69,
-        maxHeight: 70,
         minWidth: 56,
         alignSelf: 'center',
     },
@@ -3914,10 +3913,6 @@ const styles = {
     },
     timePickerSemiDot: {
         fontSize: 69,
-        maxHeight: 70,
-    },
-    timeInputsContainer: {
-        maxHeight: 70,
     },
     timePickerSwitcherContainer: {
         flexDirection: 'row',
