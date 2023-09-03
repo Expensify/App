@@ -168,7 +168,7 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
         }
 
         scrollViewRef.current.scrollToEnd({animated: true});
-    }, [haveWaypointsChanged])
+    }, [numberOfPreviousWaypoints, numberOfWaypoints])
 
     return (
         <>

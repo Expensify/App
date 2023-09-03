@@ -103,7 +103,7 @@ function MoneyRequestSelectorPage(props) {
                                         component={ReceiptSelector}
                                         initialParams={{reportID, iouType, pageIndex: 1}}
                                     />
-                                    {shouldDisplayDistanceRequest && (
+                                    {true && (
                                         <TopTab.Screen
                                             name={CONST.TAB.DISTANCE}
                                             component={DistanceRequestPage}
