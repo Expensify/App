@@ -15,17 +15,7 @@
     <meta property="og:image" content="https://new.expensify.com/og-preview-image.png">
     <link rel="stylesheet" type="text/css" href="/css/fonts.css" />
     <link rel="stylesheet" type="text/css" href="/css/pdf.css" />
-    <meta http-equiv="Content-Security-Policy" content="
-    default-src 'self' https://assets.onfido.com;
-    script-src 'self' 'unsafe-inline' 'unsafe-eval' https://polyfill.io https://cdn.plaid.com https://www.woopra.com https://assets.onfido.com https://sentry.io https://*.sardine.ai/ https://appleid.cdn-apple.com;
-    style-src 'self' https://assets.onfido.com http://themes.googleusercontent.com;
-    style-src 'self' https://assets.onfido.com;
-    connect-src 'self' data: blob: *.onfido.com wss://*.onfido.com https://sentry.io;
-    img-src 'self' data: blob: https://assets.onfido.com/;
-    media-src blob: https://assets.onfido.com;
-    worker-src 'self' blob:;
-    object-src 'self' blob:;
-    frame-src 'self' data: blob: https://*.sardine.ai/;" />
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' 'unsafe-eval' https://polyfill.io https://cdn.plaid.com https://www.woopra.com https://assets.onfido.com https://sentry.io https://*.sardine.ai/ https://appleid.cdn-apple.com https://accounts.google.com">
     <!-- Do not index the staging site -->
     <% if (htmlWebpackPlugin.options.isStaging) { %>
         <meta name="robots" content="noindex, nofollow">
