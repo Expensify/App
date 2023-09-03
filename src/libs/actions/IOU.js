@@ -519,7 +519,6 @@ function createDistanceRequest(report, participant, comment, created, transactio
         null,
         transactionID,
     );
-    const validatedWaypoints = TransactionUtils.validateWaypoints(transaction.comment.waypoints);
     API.write(
         'CreateDistanceRequest',
         {
@@ -531,7 +530,7 @@ function createDistanceRequest(report, participant, comment, created, transactio
             createdChatReportActionID,
             createdIOUReportActionID,
             reportPreviewReportActionID: reportPreviewAction.reportActionID,
-            waypoints: JSON.stringify(validatedWaypoints),
+            waypoints: JSON.stringify(TransactionUtils.getValidWaypoints(transaction.comment.waypoints)),
             created,
         },
         onyxData,

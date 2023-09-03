@@ -268,11 +268,11 @@ function getAllReportTransactions(reportID) {
 }
 
 /**
- * Verifies that the provided waypoints are valid
+ * Filters the waypoints which are valid and returns those
  * @param {Object} waypoints
- * @returns {Boolean}
+ * @returns {Object} validated waypoints
  */
-function validateWaypoints(waypoints) {
+function getValidWaypoints(waypoints) {
     const waypointValues = _.values(waypoints);
     // Ensure the number of waypoints is between 2 and 25
     if (waypointValues.length < 2 || waypointValues.length > 25) {
@@ -327,7 +327,7 @@ export {
     getAllReportTransactions,
     hasReceipt,
     isReceiptBeingScanned,
-    validateWaypoints,
+    getValidWaypoints,
     isDistanceRequest,
     hasMissingSmartscanFields,
 };
