@@ -215,14 +215,14 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
                         colors={[theme.transparent, theme.modalBackground]}
                     />
                 )}
-                {hasRouteError && (
-                    <DotIndicatorMessage
-                        style={[styles.mh5, styles.mv3]}
-                        messages={ErrorUtils.getLatestErrorField(transaction, 'route')}
-                        type="error"
-                    />
-                )}
             </View>
+            {hasRouteError && (
+                <DotIndicatorMessage
+                    style={[styles.mh5, styles.mv3]}
+                    messages="asdsadasda"
+                    type="error"
+                />
+            )}
             <View style={[styles.flexRow, styles.justifyContentCenter, styles.pt1]}>
                 <Button
                     small
