@@ -141,6 +141,7 @@ function MoneyRequestPreview(props) {
     const managerID = props.iouReport.managerID || '';
     const ownerAccountID = props.iouReport.ownerAccountID || '';
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.chatReport);
+    const isIOUReport = ReportUtils.isIOUReport(props.iouReport);
 
     const participantAccountIDs = props.isBillSplit ? lodashGet(props.action, 'originalMessage.participantAccountIDs', []) : [managerID, ownerAccountID];
     const participantAvatars = OptionsListUtils.getAvatarsForAccountIDs(participantAccountIDs, props.personalDetails);
@@ -157,7 +158,9 @@ function MoneyRequestPreview(props) {
     const isScanning = hasReceipt && TransactionUtils.isReceiptBeingScanned(props.transaction);
     const hasFieldErrors = TransactionUtils.hasMissingSmartscanFields(props.transaction);
     const isDistanceRequest = TransactionUtils.isDistanceRequest(props.transaction);
-    const shouldShowMerchant = !_.isEmpty(requestMerchant) && !props.isBillSplit && hasReceipt;
+
+    // Only show the merchant for expense reports
+    const shouldShowMerchant = !_.isEmpty(requestMerchant) && !props.isBillSplit && !isIOUReport && requestMerchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     const shouldShowDescription = !_.isEmpty(description) && !shouldShowMerchant;
 
     const getSettledMessage = () => {
