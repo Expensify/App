@@ -159,7 +159,8 @@ function MoneyRequestPreview(props) {
     const isDistanceRequest = TransactionUtils.isDistanceRequest(props.transaction);
 
     // Only show the merchant for expense reports
-    const shouldShowMerchant = !_.isEmpty(requestMerchant) && !props.isBillSplit && requestMerchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && requestMerchant !== CONST.TRANSACTION.DEFAULT_MERCHANT;
+    const shouldShowMerchant =
+        !_.isEmpty(requestMerchant) && !props.isBillSplit && requestMerchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && requestMerchant !== CONST.TRANSACTION.DEFAULT_MERCHANT;
     const shouldShowDescription = !_.isEmpty(description) && !shouldShowMerchant;
 
     const getSettledMessage = () => {
