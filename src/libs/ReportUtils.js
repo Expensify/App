@@ -129,6 +129,7 @@ function getPolicyName(report, returnEmptyIfNotFound = false, policy = undefined
     // The SBE and SAASTR policies have the user name in its name, however, we do not want to show that
     if (lodashGet(finalPolicy, 'owner') === CONST.EMAIL.SBE || lodashGet(finalPolicy, 'owner') === CONST.EMAIL.SAASTR) {
         const policyNameParts = policyName.split(' ');
+        if (!Str.isValidEmail(policyNameParts[0])) return policyName;
         return policyNameParts.length > 1 ? policyNameParts.slice(1).join(' ') : policyName;
     }
     return policyName;
