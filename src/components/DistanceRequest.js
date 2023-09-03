@@ -255,7 +255,7 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
                 style={[styles.w100, styles.mb4, styles.ph4, styles.flexShrink0]}
                 onPress={() => IOU.navigateToNextPage(iou, iouType, reportID, report)}
                 pressOnEnter
-                isDisabled={waypointMarkers.length < 2}
+                isDisabled={_.keys(validatedWaypoints).length < 2}
                 text={translate('common.next')}
             />
         </>
