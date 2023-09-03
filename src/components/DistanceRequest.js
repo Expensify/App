@@ -85,7 +85,6 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
     const previousWaypoints = usePrevious(waypoints);
     const numberOfWaypoints = _.size(waypoints);
     const numberOfPreviousWaypoints = _.size(previousWaypoints);
-
     const scrollViewRef = useRef(null);
 
     const lastWaypointIndex = numberOfWaypoints - 1;
