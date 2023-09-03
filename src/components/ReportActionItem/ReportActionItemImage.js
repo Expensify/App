@@ -16,7 +16,7 @@ const propTypes = {
     /** thumbnail URI for the image */
     thumbnail: PropTypes.string,
 
-    /** URI for the image and  localimage is number*/
+    /** URI for the image and  localimage is number */
     image:  PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
 
     /** whether or not to enable the image preview modal */
