@@ -42,17 +42,17 @@ function WindowDimensionsProvider(props) {
         };
     });
 
-    const onDimensionChange = useCallback((newDimensions) => {
-        const {window} = newDimensions;
-        setWindowDimension({
-            windowHeight: window.height,
-            windowWidth: window.width,
-        });
-    }, []);
-
-    const onDimensionChangeDebounce = useCallback(lodashDebounce(onDimensionChange, 300), []);
-
     useEffect(() => {
+        const onDimensionChange = (newDimensions) => {
+            const {window} = newDimensions;
+            setWindowDimension({
+                windowHeight: window.height,
+                windowWidth: window.width,
+            });
+        };
+
+        const onDimensionChangeDebounce = lodashDebounce(onDimensionChange, 300);
+
         const dimensionsEventListener = Dimensions.addEventListener('change', onDimensionChangeDebounce);
 
         return () => {
