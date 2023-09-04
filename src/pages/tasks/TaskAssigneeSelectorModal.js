@@ -17,9 +17,13 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import compose from '../../libs/compose';
 import personalDetailsPropType from '../personalDetailsPropType';
 import reportPropTypes from '../reportPropTypes';
+import * as ReportUtils from '../../libs/ReportUtils';
 import ROUTES from '../../ROUTES';
 
 import * as Task from '../../libs/actions/Task';
+import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
+import withCurrentUserPersonalDetails from '../../components/withCurrentUserPersonalDetails';
+import withReportOrNotFound from '../home/report/withReportOrNotFound';
 
 const propTypes = {
     /** Beta features list */
@@ -188,10 +192,23 @@ function TaskAssigneeSelectorModal(props) {
         }
     };
 
+    const isOpen = ReportUtils.isOpenTaskReport(props.task.report);
+    const canModifyTask = Task.canModifyTask(props.task.report, props.currentUserPersonalDetails.accountID);
+    const disableState = ReportUtils.isTaskReport(props.task.report) && (!canModifyTask || !isOpen);
+    const getSubtitleKey = () => {
+        if (!canModifyTask) {
+            return 'task.messages.error';
+        }
+        return 'task.messages.notOpen';
+    };
+
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
-                <>
+                <FullPageNotFoundView
+                    shouldShow={disableState}
+                    subtitleKey={getSubtitleKey()}
+                >
                     <HeaderWithBackButton
                         title={props.translate('task.assignee')}
                         onBackButtonPress={() => (lodashGet(props.route.params, 'reportID') ? Navigation.dismissModal() : Navigation.goBack(ROUTES.NEW_TASK))}
@@ -209,7 +226,7 @@ function TaskAssigneeSelectorModal(props) {
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                         />
                     </View>
-                </>
+                </FullPageNotFoundView>
             )}
         </ScreenWrapper>
     );
@@ -221,6 +238,8 @@ TaskAssigneeSelectorModal.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
+    withCurrentUserPersonalDetails,
+    withReportOrNotFound,
     withOnyx({
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
