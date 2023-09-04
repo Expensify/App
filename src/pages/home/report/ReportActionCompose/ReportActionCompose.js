@@ -292,8 +292,8 @@ function ReportActionCompose({
                 return;
             }
             EmojiPickerActions.hideEmojiPicker();
-            // eslint-disable-next-line react-hooks/exhaustive-deps
         },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [],
     );
 
