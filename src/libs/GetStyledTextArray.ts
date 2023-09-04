@@ -1,12 +1,6 @@
 import Str from 'expensify-common/lib/str';
 
-/**
- * Render a suggestion menu item component.
- * @param {String} name
- * @param {String} prefix
- * @returns {Array}
- */
-const getStyledTextArray = (name, prefix) => {
+const getStyledTextArray = (name: string, prefix: string) => {
     const texts = [];
     const prefixLowercase = prefix.toLowerCase();
     const prefixLocation = name.toLowerCase().search(Str.escapeForRegExp(prefixLowercase));
