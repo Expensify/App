@@ -1,12 +1,18 @@
 import React from 'react';
 import DraggableFlatList from 'react-native-draggable-flatlist';
-import type {DraggableListProps} from './types';
+import {FlatList} from 'react-native-gesture-handler';
+import type {DraggableListProps, DraggableListType} from './types';
 
-function DraggableList<T>({renderClone, shouldUsePortal, ...viewProps}: DraggableListProps<T>) {
-    // eslint-disable-next-line react/jsx-props-no-spreading
-    return <DraggableFlatList {...viewProps} />;
+function DraggableList<T>({renderClone, shouldUsePortal, ...viewProps}: DraggableListProps<T>, ref: React.ForwardedRef<FlatList<T>>) {
+    return (
+        <DraggableFlatList
+            ref={ref}
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...viewProps}
+        />
+    );
 }
 
 DraggableList.displayName = 'DraggableList';
 
-export default DraggableList;
+export default React.forwardRef(DraggableList) as DraggableListType;

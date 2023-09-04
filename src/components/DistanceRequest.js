@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState, useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
@@ -88,7 +88,7 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
     const previousWaypoints = usePrevious(waypoints);
     const numberOfWaypoints = _.size(waypoints);
     const numberOfPreviousWaypoints = _.size(previousWaypoints);
-    // const scrollViewRef = useRef(null);
+    const scrollViewRef = useRef(null);
 
     const lastWaypointIndex = numberOfWaypoints - 1;
     const isLoadingRoute = lodashGet(transaction, 'comment.isLoading', false);
@@ -177,8 +177,7 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
                     shouldUsePortal
                     onContentSizeChange={(width, height) => {
                         if (scrollContentHeight < height && numberOfWaypoints > numberOfPreviousWaypoints) {
-                            // TODO: Fix refs
-                            // scrollViewRef.current.scrollToEnd({animated: true});
+                            scrollViewRef.current.scrollToEnd({animated: true});
                         }
                         setScrollContentHeight(height);
                     }}
@@ -191,7 +190,7 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
                     }}
                     onScroll={updateGradientVisibility}
                     // scrollEventThrottle={16}
-                    // ref={scrollViewRef}
+                    ref={scrollViewRef}
                     renderItem={({item, drag, getIndex}) => {
                         // key is of the form waypoint0, waypoint1, ...
                         const index = getIndex();

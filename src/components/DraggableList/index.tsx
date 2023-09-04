@@ -2,7 +2,7 @@ import React, {useCallback} from 'react';
 import {DragDropContext, Droppable, Draggable, type OnDragEndResponder, type OnDragUpdateResponder} from 'react-beautiful-dnd';
 import {ScrollView} from 'react-native';
 import useDraggableInPortal from './useDraggableInPortal';
-import type {DraggableListProps} from './types';
+import type {DraggableListProps, DraggableListType} from './types';
 
 type ReorderParams<T> = {
     list: T[];
@@ -22,17 +22,20 @@ const reorder = <T,>({list, startIndex, endIndex}: ReorderParams<T>): T[] => {
     return result;
 };
 
-function DraggableList<T>({
-    data = [],
-    renderItem,
-    keyExtractor,
-    onDragEnd: onDragEndCallback,
-    onDragBegin,
-    onPlaceholderIndexChange,
-    renderClone,
-    shouldUsePortal = false,
-    onContentSizeChange,
-}: DraggableListProps<T>) {
+function DraggableList<T>(
+    {
+        data = [],
+        renderItem,
+        keyExtractor,
+        onDragEnd: onDragEndCallback,
+        onDragBegin,
+        onPlaceholderIndexChange,
+        renderClone,
+        shouldUsePortal = false,
+        onContentSizeChange,
+    }: DraggableListProps<T>,
+    ref: React.ForwardedRef<ScrollView>,
+) {
     /**
      * Function to be called when the user finishes dragging an item
      * It will reorder the list and call the callback function
@@ -86,7 +89,10 @@ function DraggableList<T>({
             >
                 {(droppableProvided) => (
                     // We use ScrollView to match the native behavior of FlatList
-                    <ScrollView onContentSizeChange={onContentSizeChange}>
+                    <ScrollView
+                        onContentSizeChange={onContentSizeChange}
+                        ref={ref}
+                    >
                         {/* We can't use the react-native View here, because it doesn't support all props */}
                         <div
                             // eslint-disable-next-line react/jsx-props-no-spreading
@@ -131,4 +137,4 @@ function DraggableList<T>({
 
 DraggableList.displayName = 'DraggableList';
 
-export default DraggableList;
+export default React.forwardRef(DraggableList) as DraggableListType;

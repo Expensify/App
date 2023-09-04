@@ -1,5 +1,10 @@
 import type {DraggableChildrenFn} from 'react-beautiful-dnd';
+import {FlatList} from 'react-native-gesture-handler';
 import type {RenderItemParams as OriginalRenderItemParams} from 'react-native-draggable-flatlist';
+
+type RefType<T> = Pick<FlatList<T>, 'scrollToEnd'>;
+
+type DraggableListType = <T>(props: DraggableListProps<T> & {ref?: React.ForwardedRef<RefType<T>>}) => JSX.Element;
 
 type DataType<T> = {
     data: T[];
@@ -20,4 +25,4 @@ type DraggableListProps<T> = {
 
 type RenderItemParams<T> = OriginalRenderItemParams<T>;
 
-export type {DraggableListProps, RenderItemParams};
+export type {DraggableListProps, RenderItemParams, RefType, DraggableListType};
