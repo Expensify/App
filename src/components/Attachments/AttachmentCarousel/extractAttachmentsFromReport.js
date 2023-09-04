@@ -28,6 +28,7 @@ function extractAttachmentsFromReport(report, reportActions) {
             // By iterating actions in chronological order and prepending each attachment
             // we ensure correct order of attachments even across actions with multiple attachments.
             attachments.unshift({
+                reportActionID: attribs['data-id'],
                 source: tryResolveUrlFromApiRoot(expensifySource || attribs.src),
                 isAuthTokenRequired: Boolean(expensifySource),
                 file: {name: attribs[CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE]},
@@ -65,7 +66,7 @@ function extractAttachmentsFromReport(report, reportActions) {
 
         const decision = _.get(action, ['message', 0, 'moderationDecision', 'decision'], '');
         const hasBeenFlagged = decision === CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE || decision === CONST.MODERATION.MODERATOR_DECISION_HIDDEN;
-        const html = _.get(action, ['message', 0, 'html'], '').replace('/>', `data-flagged="${hasBeenFlagged}" />`);
+        const html = _.get(action, ['message', 0, 'html'], '').replace('/>', `data-flagged="${hasBeenFlagged}" data-id="${action.reportActionID}"/>`);
         htmlParser.write(html);
     });
     htmlParser.end();

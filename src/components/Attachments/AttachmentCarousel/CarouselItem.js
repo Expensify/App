@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useContext, useState} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import CONST from '../../../CONST';
@@ -9,10 +9,14 @@ import Text from '../../Text';
 import Button from '../../Button';
 import AttachmentView from '../AttachmentView';
 import SafeAreaConsumer from '../../SafeAreaConsumer';
+import ReportAttachmentsContext from '../../../pages/home/report/ReportAttachmentsContext';
 
 const propTypes = {
     /** Attachment required information such as the source and file name */
     item: PropTypes.shape({
+        /** Report action ID of the attachment */
+        reportActionID: PropTypes.string,
+
         /** Whether source URL requires authentication */
         isAuthTokenRequired: PropTypes.bool,
 
@@ -42,7 +46,11 @@ const defaultProps = {
 
 function CarouselItem({item, isFocused, onPress}) {
     const {translate} = useLocalize();
-    const [isHidden, setIsHidden] = useState(item.hasBeenFlagged);
+    const {isAttachmentHidden} = useContext(ReportAttachmentsContext);
+    const [isHidden, setIsHidden] = useState(() => {
+        const isAttachmentHiddenValue = isAttachmentHidden[item.reportActionID];
+        return isAttachmentHiddenValue === undefined ? item.hasBeenFlagged : isAttachmentHiddenValue;
+    });
 
     const renderButton = (style) => (
         <Button

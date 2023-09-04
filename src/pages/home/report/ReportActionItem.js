@@ -67,6 +67,7 @@ import * as BankAccounts from '../../../libs/actions/BankAccounts';
 import usePrevious from '../../../hooks/usePrevious';
 import ReportScreenContext from '../ReportScreenContext';
 import Permissions from '../../../libs/Permissions';
+import ReportAttachmentsContext from './ReportAttachmentsContext';
 
 const propTypes = {
     ...windowDimensionsPropTypes,
@@ -129,12 +130,22 @@ function ReportActionItem(props) {
     const [isHidden, setIsHidden] = useState(false);
     const [moderationDecision, setModerationDecision] = useState(CONST.MODERATION.MODERATOR_DECISION_APPROVED);
     const {reactionListRef} = useContext(ReportScreenContext);
+    const {isAttachmentHidden, updateIsAttachmentHidden} = useContext(ReportAttachmentsContext);
     const textInputRef = useRef();
     const popoverAnchorRef = useRef();
     const downloadedPreviews = useRef([]);
     const prevDraftMessage = usePrevious(props.draftMessage);
     const originalReportID = ReportUtils.getOriginalReportID(props.report.reportID, props.action);
     const originalReport = props.report.reportID === originalReportID ? props.report : ReportUtils.getReport(originalReportID);
+
+    useEffect(() => {
+        const isAttachment = ReportUtils.isReportMessageAttachment(_.last(props.action.message));
+        // To prevent unnecessary re-render, skip updating the state if the value is the same
+        if (!isAttachment || Boolean(isAttachmentHidden[props.action.reportActionID]) === isHidden) {
+            return;
+        }
+        updateIsAttachmentHidden(props.action.reportActionID, isHidden);
+    }, [props.action.reportActionID, props.action.message, isHidden, isAttachmentHidden, updateIsAttachmentHidden]);
 
     useEffect(
         () => () => {

@@ -143,6 +143,7 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, setDownl
     /**
      * Defines how a single attachment should be rendered
      * @param {Object} item
+     * @param {String} item.reportActionID
      * @param {Boolean} item.isAuthTokenRequired
      * @param {String} item.source
      * @param {Object} item.file
