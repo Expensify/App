@@ -279,7 +279,6 @@ const ONYXKEYS = {
         EDIT_TASK_FORM: 'editTaskForm',
         MONEY_REQUEST_DESCRIPTION_FORM: 'moneyRequestDescriptionForm',
         MONEY_REQUEST_MERCHANT_FORM: 'moneyRequestMerchantForm',
-        MONEY_REQUEST_CATEGORY_FORM: 'moneyRequestCategoryForm',
         MONEY_REQUEST_AMOUNT_FORM: 'moneyRequestAmountForm',
         MONEY_REQUEST_DATE_FORM: 'moneyRequestCreatedForm',
         NEW_CONTACT_METHOD_FORM: 'newContactMethodForm',
@@ -378,7 +377,7 @@ type OnyxValues = {
     [ONYXKEYS.COLLECTION.DOWNLOAD]: OnyxTypes.Download;
     [ONYXKEYS.COLLECTION.POLICY]: OnyxTypes.Policy;
     [ONYXKEYS.COLLECTION.POLICY_CATEGORIES]: Record<string, OnyxTypes.PolicyCategory>;
-    [ONYXKEYS.COLLECTION.RECENTLY_USED_POLICY_CATEGORIES]: string[];
+    [ONYXKEYS.COLLECTION.RECENTLY_USED_POLICY_CATEGORIES]: OnyxTypes.PolicyCategory[];
     [ONYXKEYS.COLLECTION.POLICY_MEMBERS]: OnyxTypes.PolicyMember;
     [ONYXKEYS.COLLECTION.DEPRECATED_POLICY_MEMBER_LIST]: OnyxTypes.PolicyMember;
     [ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT]: Record<string, number>;
