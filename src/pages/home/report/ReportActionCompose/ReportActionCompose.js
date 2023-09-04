@@ -333,16 +333,10 @@ function ReportActionCompose({
             composerRef.current.blur();
             setIsFocused(false);
         }
-    }, [isFocused, modalState.isVisible, modalState.willAlertModalBecomeVisible]);
-
-    useEffect(() => {
-        if (modalState.isVisible) {
-            return;
-        }
         if (!modalState.isVisible && prevIsVisible && !modalState.willAlertModalBecomeVisible && !isFocused && !prevIsFocused) {
             focus();
         }
-    }, [modalState.isVisible, prevIsVisible, modalState.willAlertModalBecomeVisible, isFocused, prevIsFocused]);
+    }, [isFocused, modalState.isVisible, modalState.willAlertModalBecomeVisible, prevIsFocused, prevIsVisible]);
 
     return (
         <View
