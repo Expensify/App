@@ -109,6 +109,9 @@ export default {
             invalidDateShouldBeFuture: "It should be today's date or a future date.",
             invalidTimeShouldBeFuture: 'It should be at least one minute in the future.',
             invalidCharacter: 'Invalid character',
+            enterMerchant: 'Enter a merchant name',
+            enterAmount: 'Enter an amount',
+            enterDate: 'Enter a date',
         },
         comma: 'comma',
         semicolon: 'semicolon',
@@ -163,17 +166,14 @@ export default {
         receipt: 'Receipt',
         replace: 'Replace',
         distance: 'Distance',
+        mile: 'mile',
+        miles: 'miles',
+        kilometer: 'kilometer',
+        kilometers: 'kilometers',
         recent: 'Recent',
         all: 'All',
         am: 'AM',
         pm: 'PM',
-    },
-    location: {
-        useCurrent: 'Use current location',
-        notFound: 'We were unable to find your location, please try again or enter an address manually',
-        permissionDenied: 'It looks like you have denied permission to your location.',
-        allowPermission: 'allow location permission in settings',
-        tryAgain: 'and then try again.',
     },
     anonymousReportFooter: {
         logoTagline: 'Join the discussion.',
@@ -461,6 +461,7 @@ export default {
             genericCreateFailureMessage: 'Unexpected error requesting money, please try again later',
             genericDeleteFailureMessage: 'Unexpected error deleting the money request, please try again later',
             genericEditFailureMessage: 'Unexpected error editing the money request, please try again later',
+            genericSmartscanFailureMessage: 'Transaction is missing fields',
         },
     },
     notificationPreferencesPage: {
@@ -1270,7 +1271,6 @@ export default {
             captureReceipts: 'Capture receipts',
             fastReimbursementsHappyMembers: 'Fast reimbursements = happy members!',
             kilometers: 'Kilometers',
-            miles: 'Miles',
             viewAllReceipts: 'View all receipts',
             reimburseReceipts: 'Reimburse receipts',
             trackDistance: 'Track distance',
@@ -1680,14 +1680,8 @@ export default {
             onlineSubtitle: 'One moment while we set up the map',
         },
         errors: {
-            selectSuggestedAddress: 'Please select a suggested address or use current location',
+            selectSuggestedAddress: 'Please select a suggested address',
         },
-    },
-    countrySelectorModal: {
-        placeholderText: 'Search to see options',
-    },
-    stateSelectorModal: {
-        placeholderText: 'Search to see options',
     },
     demos: {
         saastr: {
