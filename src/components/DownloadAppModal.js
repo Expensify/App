@@ -16,14 +16,17 @@ const propTypes = {
     /** ONYX PROP to hide banner for a user that has dismissed it */
     // eslint-disable-next-line react/forbid-prop-types
     showDownloadAppBanner: PropTypes.bool,
+
+    /** Whether the user is logged in */
+    isAuthenticated: PropTypes.bool.isRequired,
 };
 
 const defaultProps = {
     showDownloadAppBanner: true,
 };
 
-function DownloadAppModal({showDownloadAppBanner}) {
-    const [shouldShowBanner, setshouldShowBanner] = useState(Browser.isMobile() && showDownloadAppBanner);
+function DownloadAppModal({isAuthenticated, showDownloadAppBanner}) {
+    const [shouldShowBanner, setshouldShowBanner] = useState(Browser.isMobile() && isAuthenticated && showDownloadAppBanner);
 
     const {translate} = useLocalize();
 
