@@ -163,6 +163,8 @@ function MoneyRequestPreview(props) {
         !_.isEmpty(requestMerchant) && !props.isBillSplit && requestMerchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && requestMerchant !== CONST.TRANSACTION.DEFAULT_MERCHANT;
     const shouldShowDescription = !_.isEmpty(description) && !shouldShowMerchant;
 
+    const receiptImages = [ReceiptUtils.getThumbnailAndImageURIs(props.transaction.receipt.source, props.transaction.filename || props.transaction.receiptFilename || '')];
+
     const getSettledMessage = () => {
         switch (lodashGet(props.action, 'originalMessage.paymentType', '')) {
             case CONST.IOU.PAYMENT_TYPE.PAYPAL_ME:
@@ -230,7 +232,7 @@ function MoneyRequestPreview(props) {
                 <View style={[styles.moneyRequestPreviewBox, isScanning || props.isWhisper ? styles.reportPreviewBoxHoverBorder : undefined, ...props.containerStyles]}>
                     {hasReceipt && (
                         <ReportActionItemImages
-                            images={[ReceiptUtils.getThumbnailAndImageURIs(props.transaction.receipt.source, props.transaction.filename || '')]}
+                            images={receiptImages}
                             isHovered={isScanning}
                         />
                     )}
