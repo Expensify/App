@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
@@ -6,6 +6,7 @@ import MenuItemWithTopDescription from '../MenuItemWithTopDescription';
 import useLocalize from '../../hooks/useLocalize';
 import CountrySelectorModal from './CountrySelectorModal';
 import FormHelpMessage from '../FormHelpMessage';
+import refPropTypes from '../refPropTypes';
 
 const propTypes = {
     /** Form Error description */
@@ -18,7 +19,7 @@ const propTypes = {
     onInputChange: PropTypes.func,
 
     /** A ref to forward to MenuItemWithTopDescription */
-    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
+    forwardedRef: refPropTypes,
 };
 
 const defaultProps = {
@@ -31,14 +32,9 @@ const defaultProps = {
 function CountryPicker({value, errorText, onInputChange, forwardedRef}) {
     const {translate} = useLocalize();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
-    const [searchValue, setSearchValue] = useState(value ? translate(`allCountries.${value}`) : '');
-
-    useEffect(() => {
-        setSearchValue(value ? translate(`allCountries.${value}`) : '');
-    }, [value, translate]);
+    const [searchValue, setSearchValue] = useState('');
 
     const showPickerModal = () => {
-        setSearchValue(value ? translate(`allCountries.${value}`) : '');
         setIsPickerVisible(true);
     };
 

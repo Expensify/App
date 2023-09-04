@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import React, {useState, useEffect, useMemo, useCallback} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
@@ -78,13 +78,7 @@ function PronounsPage(props) {
      * Pronouns list filtered by searchValue needed for the OptionsSelector.
      * Empty array if the searchValue is empty.
      */
-    const filteredPronounsList = useMemo(() => {
-        const searchedValue = searchValue.trim();
-        if (searchedValue.length === 0) {
-            return [];
-        }
-        return _.filter(pronounsList, (pronous) => pronous.text.toLowerCase().indexOf(searchedValue.toLowerCase()) >= 0);
-    }, [pronounsList, searchValue]);
+    const filteredPronounsList = _.filter(pronounsList, (pronous) => pronous.text.toLowerCase().indexOf(searchValue.trim().toLowerCase()) >= 0);
 
     const headerMessage = searchValue.trim() && !filteredPronounsList.length ? props.translate('common.noResultsFound') : '';
 
@@ -104,16 +98,20 @@ function PronounsPage(props) {
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PROFILE)}
             />
             <Text style={[styles.ph5, styles.mb3]}>{props.translate('pronounsPage.isShownOnProfile')}</Text>
-            <SelectionList
-                headerMessage={headerMessage}
-                textInputLabel={props.translate('pronounsPage.pronouns')}
-                textInputPlaceholder={props.translate('pronounsPage.placeholderText')}
-                textInputValue={searchValue}
-                sections={[{data: filteredPronounsList, indexOffset: 0}]}
-                onSelectRow={updatePronouns}
-                onChangeText={onChangeText}
-                initiallyFocusedOptionKey={initiallyFocusedOption.keyForList}
-            />
+            {/* Only render pronouns if list was loaded (not filtered list), otherwise initially focused item will be empty */}
+            {pronounsList.length > 0 && (
+                <SelectionList
+                    headerMessage={headerMessage}
+                    textInputLabel={props.translate('pronounsPage.pronouns')}
+                    textInputPlaceholder={props.translate('pronounsPage.placeholderText')}
+                    textInputValue={searchValue}
+                    sections={[{data: filteredPronounsList, indexOffset: 0}]}
+                    onSelectRow={updatePronouns}
+                    onChangeText={onChangeText}
+                    initiallyFocusedOptionKey={initiallyFocusedOption.keyForList}
+                    shouldDelayFocus
+                />
+            )}
         </ScreenWrapper>
     );
 }

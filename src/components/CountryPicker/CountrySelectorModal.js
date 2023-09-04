@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {useMemo} from 'react';
+import React, {useMemo, useEffect} from 'react';
 import PropTypes from 'prop-types';
 import CONST from '../../CONST';
 import useLocalize from '../../hooks/useLocalize';
@@ -40,6 +40,13 @@ const defaultProps = {
 function CountrySelectorModal({currentCountry, isVisible, onClose, onCountrySelected, setSearchValue, searchValue}) {
     const {translate} = useLocalize();
 
+    useEffect(() => {
+        if (isVisible) {
+            return;
+        }
+        setSearchValue('');
+    }, [isVisible, setSearchValue]);
+
     const countries = useMemo(
         () =>
             _.map(_.keys(CONST.ALL_COUNTRIES), (countryISO) => {
@@ -79,7 +86,6 @@ function CountrySelectorModal({currentCountry, isVisible, onClose, onCountrySele
                 <SelectionList
                     headerMessage={headerMessage}
                     textInputLabel={translate('common.country')}
-                    textInputPlaceholder={translate('countrySelectorModal.placeholderText')}
                     textInputValue={searchValue}
                     sections={[{data: searchResults, indexOffset: 0}]}
                     onSelectRow={onCountrySelected}

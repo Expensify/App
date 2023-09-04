@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useRef} from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -55,6 +55,9 @@ const propTypes = {
         saastr: PropTypes.shape({
             isBeginningDemo: PropTypes.bool,
         }),
+        sbe: PropTypes.shape({
+            isBeginningDemo: PropTypes.bool,
+        }),
     }),
 };
 
@@ -95,6 +98,7 @@ function SignInPage({credentials, account, isInModal, demoInfo}) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const shouldShowSmallScreen = isSmallScreenWidth || isInModal;
     const safeAreaInsets = useSafeAreaInsets();
+    const signInPageLayoutRef = useRef();
 
     useEffect(() => Performance.measureTTI(), []);
     useEffect(() => {
@@ -114,7 +118,7 @@ function SignInPage({credentials, account, isInModal, demoInfo}) {
 
     let welcomeHeader = '';
     let welcomeText = '';
-    const customHeadline = DemoActions.getHeadlineKeyByDemoInfo(demoInfo);
+    const {customHeadline, customHeroBody} = DemoActions.getCustomTextForDemo(demoInfo);
     const headerText = customHeadline || translate('login.hero.header');
     if (shouldShowLoginForm) {
         welcomeHeader = isSmallScreenWidth ? headerText : translate('welcomeText.getStarted');
@@ -161,14 +165,17 @@ function SignInPage({credentials, account, isInModal, demoInfo}) {
                 welcomeText={welcomeText}
                 shouldShowWelcomeHeader={shouldShowWelcomeHeader || !isSmallScreenWidth || !isInModal}
                 shouldShowWelcomeText={shouldShowWelcomeText}
+                ref={signInPageLayoutRef}
                 isInModal={isInModal}
                 customHeadline={customHeadline}
+                customHeroBody={customHeroBody}
             >
                 {/* LoginForm must use the isVisible prop. This keeps it mounted, but visually hidden
                     so that password managers can access the values. Conditionally rendering this component will break this feature. */}
                 <LoginForm
                     isVisible={shouldShowLoginForm}
                     blurOnSubmit={account.validated === false}
+                    scrollPageToTop={signInPageLayoutRef.current && signInPageLayoutRef.current.scrollPageToTop}
                 />
                 {shouldShowValidateCodeForm && <ValidateCodeForm />}
                 {shouldShowUnlinkLoginForm && <UnlinkLoginForm />}
