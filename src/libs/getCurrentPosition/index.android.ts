@@ -1,3 +1,5 @@
+// https://github.com/Richou/react-native-android-location-enabler/issues/40
+// If we update our react native version, we need to test this file again
 import Geolocation from '@react-native-community/geolocation';
 import RNAndroidLocationEnabler from 'react-native-android-location-enabler';
 import {GeolocationErrorCode, GetCurrentPosition} from './getCurrentPosition.types';
@@ -16,7 +18,7 @@ const getCurrentPosition: GetCurrentPosition = (success, error, config) => {
         interval: 2000, // 2 seconds. This represents the time interval after which our app expects an
         // updated location. We don't depend on this here, but adding it here as its a required prop.
         fastInterval: 1, // 1 millisecond. This represents the shortest amount of time our app is willing
-        // to wait for location update from the library. Passing 0 here won't work, as the library internally 
+        // to wait for location update from the library. Passing 0 here won't work, as the library internally
         // uses a ternary that would short if we pass 0, and it will then use its default value.
     })
         .then((permissionState) => {
