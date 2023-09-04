@@ -52,7 +52,6 @@ function MoneyRequestSelectorPage(props) {
     const iouType = lodashGet(props.route, 'params.iouType', '');
     const reportID = lodashGet(props.route, 'params.reportID', '');
     const {translate} = useLocalize();
-    const {canUseDistanceRequests} = usePermissions();
 
     const title = {
         [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST]: translate('iou.requestMoney'),
@@ -61,7 +60,7 @@ function MoneyRequestSelectorPage(props) {
     };
     const isFromGlobalCreate = !reportID;
     const isExpenseRequest = ReportUtils.isPolicyExpenseChat(props.report);
-    const shouldDisplayDistanceRequest = canUseDistanceRequests && (isExpenseRequest || isFromGlobalCreate);
+    const shouldDisplayDistanceRequest = isExpenseRequest || isFromGlobalCreate;
 
     const resetMoneyRequestInfo = () => {
         const moneyRequestID = `${iouType}${reportID}`;
