@@ -59,7 +59,7 @@ function EditRequestAmountPage({defaultAmount, defaultCurrency, onSubmit, report
         >
             <HeaderWithBackButton
                 title={translate('iou.amount')}
-                onBackButtonPress={Navigation.goBack}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.HOME)}
             />
             <MoneyRequestAmountForm
                 isEditing

@@ -284,7 +284,7 @@ class ReimbursementAccountPage extends React.Component {
         const currentStep = achData.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
         const subStep = achData.subStep;
         const shouldShowOnfido = this.props.onfidoToken && !achData.isOnfidoSetupComplete;
-        const backTo = lodashGet(this.props.route.params, 'backTo');
+        const backTo = lodashGet(this.props.route.params, 'backTo', ROUTES.HOME);
         switch (currentStep) {
             case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
                 if (this.hasInProgressVBBA()) {
@@ -405,7 +405,7 @@ class ReimbursementAccountPage extends React.Component {
                     continue={this.continue}
                     policyName={policyName}
                     onBackButtonPress={() => {
-                        Navigation.goBack(lodashGet(this.props.route.params, 'backTo'));
+                        Navigation.goBack(lodashGet(this.props.route.params, 'backTo', ROUTES.HOME));
                     }}
                 />
             );
