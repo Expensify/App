@@ -15,4 +15,6 @@ function DraggableList<T>({renderClone, shouldUsePortal, ...viewProps}: Draggabl
 
 DraggableList.displayName = 'DraggableList';
 
+// We have to assert the type here because we use generic forwrded ref
+// https://fettblog.eu/typescript-react-generic-forward-refs/#option-1%3A-type-assertion
 export default React.forwardRef(DraggableList) as DraggableListType;
