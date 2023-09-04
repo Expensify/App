@@ -1,5 +1,6 @@
 import _ from 'underscore';
 import React from 'react';
+import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import * as Wallet from '../../libs/actions/Wallet';
@@ -9,6 +10,7 @@ import CONST from '../../CONST';
 import userWalletPropTypes from './userWalletPropTypes';
 import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../components/withCurrentUserPersonalDetails';
 
 // Steps
 import OnfidoStep from './OnfidoStep';
@@ -29,11 +31,17 @@ const propTypes = {
     /** The user's wallet */
     userWallet: userWalletPropTypes,
 
+    /** Indicates whether the app is loading initial data */
+    isLoadingReportData: PropTypes.bool,
+
     ...withLocalizePropTypes,
+    ...withCurrentUserPersonalDetailsPropTypes,
 };
 
 const defaultProps = {
     userWallet: {},
+    isLoadingReportData: true,
+    ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
 class EnablePaymentsPage extends React.Component {
@@ -50,7 +58,7 @@ class EnablePaymentsPage extends React.Component {
     }
 
     render() {
-        if (_.isEmpty(this.props.userWallet)) {
+        if (_.isEmpty(this.props.userWallet) || this.props.isLoadingReportData && _.isEmpty(this.props.personalDetails)) {
             return <FullScreenLoadingIndicator />;
         }
 
@@ -94,6 +102,7 @@ EnablePaymentsPage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
+    withCurrentUserPersonalDetails,
     withOnyx({
         userWallet: {
             key: ONYXKEYS.USER_WALLET,
@@ -101,6 +110,9 @@ export default compose(
             // We want to refresh the wallet each time the user attempts to activate the wallet so we won't use the
             // stored values here.
             initWithStoredValues: false,
+        },
+        isLoadingReportData: {
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
         },
     }),
     withNetwork(),
