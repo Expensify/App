@@ -1,6 +1,7 @@
-import {ActivityIndicator, Alert, AppState, Linking, Text, View} from 'react-native';
+import {ActivityIndicator, Alert, AppState, InteractionManager, Linking, Platform, Text, View} from 'react-native';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {Camera, useCameraDevices} from 'react-native-vision-camera';
+import {PERMISSIONS, request, RESULTS} from 'react-native-permissions';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import {launchImageLibrary} from 'react-native-image-picker';
@@ -87,11 +88,34 @@ function ReceiptSelector(props) {
 
     const {translate} = useLocalize();
 
+    const permissionType = Platform.select({
+        ios: PERMISSIONS.IOS.CAMERA,
+        android: PERMISSIONS.ANDROID.CAMERA,
+    });
+
+    const askForPermissions = () => {
+        if (permissions === CONST.RECEIPT.PERMISSION_BLOCKED) {
+            Linking.openSettings();
+            return;
+        }
+        request(permissionType).then((permission) => {
+            if (permission === RESULTS.BLOCKED) {
+                setPermissions(CONST.RECEIPT.PERMISSION_BLOCKED);
+            } else if (permission === RESULTS.GRANTED) {
+                setPermissions(CONST.RECEIPT.PERMISSION_AUTHORIZED);
+            } else if (permission === RESULTS.DENIED) {
+                setPermissions(CONST.RECEIPT.PERMISSION_DENIED);
+            }
+        });
+    };
     // We want to listen to if the app has come back from background and refresh the permissions status to show camera when permissions were granted
     useEffect(() => {
         const subscription = AppState.addEventListener('change', (nextAppState) => {
             if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
                 Camera.getCameraPermissionStatus().then((permissionStatus) => {
+                    if (permissionStatus !== CONST.RECEIPT.PERMISSION_AUTHORIZED) {
+                        return;
+                    }
                     setPermissions(permissionStatus);
                 });
             }
@@ -103,6 +127,26 @@ function ReceiptSelector(props) {
             subscription.remove();
         };
     }, []);
+
+    useEffect(() => {
+        InteractionManager.runAfterInteractions(() => {
+            Camera.getCameraPermissionStatus().then((permissionStatus) => {
+                if (permissionStatus === CONST.RECEIPT.PERMISSION_AUTHORIZED) {
+                    setPermissions(permissionStatus);
+                } else {
+                    askForPermissions();
+                }
+            });
+        });
+    }, []);
+
+    /**
+     * A generic handling when we don't know the exact reason for an error
+     *
+     */
+    const showGeneralAlert = () => {
+        Alert.alert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingAttachment'));
+    };
 
     /**
      * Inform the users when they need to grant camera access and guide them to settings
@@ -123,24 +167,6 @@ function ReceiptSelector(props) {
             ],
             {cancelable: false},
         );
-    };
-
-    /**
-     * A generic handling when we don't know the exact reason for an error
-     *
-     */
-    const showGeneralAlert = () => {
-        Alert.alert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingAttachment'));
-    };
-
-    const askForPermissions = () => {
-        if (permissions === 'not-determined') {
-            Camera.requestCameraPermission().then((permissionStatus) => {
-                setPermissions(permissionStatus);
-            });
-        } else {
-            Linking.openSettings();
-        }
     };
 
     /**
@@ -197,10 +223,6 @@ function ReceiptSelector(props) {
                 Log.warn('Error taking photo', error);
             });
     }, [flash, iouType, props.iou, props.report, reportID, translate]);
-
-    Camera.getCameraPermissionStatus().then((permissionStatus) => {
-        setPermissions(permissionStatus);
-    });
 
     return (
         <View style={styles.flex1}>

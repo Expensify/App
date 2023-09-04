@@ -454,6 +454,8 @@ const CONST = {
     RECEIPT: {
         ICON_SIZE: 164,
         PERMISSION_AUTHORIZED: 'authorized',
+        PERMISSION_DENIED: 'denied',
+        PERMISSION_BLOCKED: 'blocked',
         HAND_ICON_HEIGHT: 152,
         HAND_ICON_WIDTH: 200,
         SHUTTER_SIZE: 90,
