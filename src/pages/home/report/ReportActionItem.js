@@ -255,10 +255,11 @@ function ReportActionItem(props) {
     /**
      * Get the content of ReportActionItem
      * @param {Boolean} hovered whether the ReportActionItem is hovered
+     * @param {Boolean} isWhisper whether the report action is a whisper
      * @param {Boolean} hasErrors whether the report action has any errors
      * @returns {Object} child component(s)
      */
-    const renderItemContent = (hovered = false, hasErrors = false) => {
+    const renderItemContent = (hovered = false, isWhisper = false, hasErrors = false) => {
         let children;
         const originalMessage = lodashGet(props.action, 'originalMessage', {});
 
@@ -284,6 +285,7 @@ function ReportActionItem(props) {
                     contextMenuAnchor={popoverAnchorRef}
                     checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                     style={props.displayAsGroup ? [] : [styles.mt2]}
+                    isWhisper={isWhisper}
                 />
             );
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW) {
@@ -297,6 +299,7 @@ function ReportActionItem(props) {
                     isHovered={hovered}
                     contextMenuAnchor={popoverAnchorRef}
                     checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
+                    isWhisper={isWhisper}
                 />
             );
         } else if (
@@ -458,7 +461,7 @@ function ReportActionItem(props) {
      * @returns {Object} report action item
      */
     const renderReportActionItem = (hovered, isWhisper, hasErrors) => {
-        const content = renderItemContent(hovered || isContextMenuActive, hasErrors);
+        const content = renderItemContent(hovered || isContextMenuActive, isWhisper, hasErrors);
 
         if (props.draftMessage) {
             return <ReportActionItemDraft>{content}</ReportActionItemDraft>;

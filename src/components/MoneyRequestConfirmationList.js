@@ -164,7 +164,8 @@ function MoneyRequestConfirmationList(props) {
     const {translate} = useLocalize();
 
     // A flag and a toggler for showing the rest of the form fields
-    const [showAllFields, toggleShowAllFields] = useReducer((state) => !state, false);
+    const [shouldExpandFields, toggleShouldExpandFields] = useReducer((state) => !state, false);
+    const shouldShowAllFields = props.isDistanceRequest || shouldExpandFields;
     const isTypeRequest = props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST;
 
     const {unit, rate, currency} = props.mileageRate;
@@ -290,14 +291,13 @@ function MoneyRequestConfirmationList(props) {
         return [...selectedParticipants, OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetails)];
     }, [selectedParticipants, props.hasMultipleParticipants, payeePersonalDetails]);
 
-    const distanceMerchant = useMemo(() => DistanceRequestUtils.getDistanceMerchant(distance, unit, rate, currency, translate), [distance, unit, rate, currency, translate]);
-
     useEffect(() => {
         if (!props.isDistanceRequest) {
             return;
         }
+        const distanceMerchant = DistanceRequestUtils.getDistanceMerchant(distance, unit, rate, currency, translate);
         IOU.setMoneyRequestMerchant(distanceMerchant);
-    }, [distanceMerchant, props.isDistanceRequest]);
+    }, [distance, unit, rate, currency, translate, props.isDistanceRequest]);
 
     /**
      * @param {Object} option
@@ -437,12 +437,12 @@ function MoneyRequestConfirmationList(props) {
                 disabled={didConfirm || props.isReadOnly}
                 numberOfLinesTitle={2}
             />
-            {!showAllFields && (
+            {!shouldShowAllFields && (
                 <View style={[styles.flexRow, styles.justifyContentBetween, styles.mh3, styles.alignItemsCenter, styles.mb2]}>
                     <View style={[styles.shortTermsHorizontalRule, styles.flex1, styles.mr0]} />
                     <Button
                         small
-                        onPress={toggleShowAllFields}
+                        onPress={toggleShouldExpandFields}
                         text={translate('common.showMore')}
                         shouldShowRightIcon
                         iconRight={Expensicons.DownArrow}
@@ -452,7 +452,7 @@ function MoneyRequestConfirmationList(props) {
                     <View style={[styles.shortTermsHorizontalRule, styles.flex1, styles.ml0]} />
                 </View>
             )}
-            {showAllFields && (
+            {shouldShowAllFields && (
                 <>
                     <MenuItemWithTopDescription
                         shouldShowRightIcon={!props.isReadOnly && isTypeRequest}
@@ -466,7 +466,7 @@ function MoneyRequestConfirmationList(props) {
                     {props.isDistanceRequest ? (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly && isTypeRequest}
-                            title={distanceMerchant}
+                            title={props.iouMerchant}
                             description={translate('common.distance')}
                             style={[styles.moneyRequestMenuItem, styles.mb2]}
                             titleStyle={styles.flex1}
