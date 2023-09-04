@@ -32,7 +32,7 @@ describe('actions/IOU', () => {
     });
 
     describe('requestMoney', () => {
-        it.only('creates new chat if needed', () => {
+        it('creates new chat if needed', () => {
             const amount = 10000;
             const comment = 'Giv money plz';
             const merchant = 'KFC';
