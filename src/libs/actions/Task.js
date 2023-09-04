@@ -744,9 +744,9 @@ function getShareDestination(reportID, reports, personalDetails) {
     let subtitle = '';
     if (ReportUtils.isChatReport(report) && ReportUtils.isDM(report) && ReportUtils.hasSingleParticipant(report)) {
         const participantAccountID = lodashGet(report, 'participantAccountIDs[0]');
-        const phoneNumber = lodashGet(personalDetails, [participantAccountID, 'phoneNumber']);
+        const displayName = lodashGet(personalDetails, [participantAccountID, 'displayName']);
         const login = lodashGet(personalDetails, [participantAccountID, 'login']);
-        subtitle = LocalePhoneNumber.formatPhoneNumber(phoneNumber || login);
+        subtitle = LocalePhoneNumber.formatPhoneNumber(login || displayName);
     } else {
         subtitle = ReportUtils.getChatRoomSubtitle(report);
     }
