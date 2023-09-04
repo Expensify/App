@@ -17,6 +17,7 @@ import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as UserUtils from './UserUtils';
 import * as ReportActionUtils from './ReportActionsUtils';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
+import * as ErrorUtils from './ErrorUtils';
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
@@ -350,11 +351,20 @@ function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolic
 function getAllReportErrors(report, reportActions) {
     const reportErrors = report.errors || {};
     const reportErrorFields = report.errorFields || {};
-    const reportActionErrors = _.reduce(
-        reportActions,
-        (prevReportActionErrors, action) => (!action || _.isEmpty(action.errors) ? prevReportActionErrors : _.extend(prevReportActionErrors, action.errors)),
-        {},
-    );
+    const reportActionErrors = {};
+    _.each(reportActions, (action) => {
+        if (action && !_.isEmpty(action.errors)) {
+            _.extend(reportActionErrors, action.errors);
+        } else if (ReportActionUtils.isReportPreviewAction(action)) {
+            const iouReportID = ReportActionUtils.getIOUReportIDFromReportActionPreview(action);
+
+            // Instead of adding all Smartscan errors, let's just add a generic error if there are any. This
+            // will be more performant and provide the same result in the UI
+            if (ReportUtils.hasMissingSmartscanFields(iouReportID)) {
+                _.extend(reportActionErrors, {smartscan: ErrorUtils.getMicroSecondOnyxError('report.genericSmartscanFailureMessage')});
+            }
+        }
+    });
 
     // All error objects related to the report. Each object in the sources contains error messages keyed by microtime
     const errorSources = {

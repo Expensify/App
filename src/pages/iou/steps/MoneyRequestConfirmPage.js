@@ -154,9 +154,19 @@ function MoneyRequestConfirmPage(props) {
      */
     const createDistanceRequest = useCallback(
         (selectedParticipants, trimmedComment) => {
-            IOU.createDistanceRequest(props.report, selectedParticipants[0], trimmedComment, props.iou.created, props.iou.transactionID);
+            IOU.createDistanceRequest(
+                props.report,
+                selectedParticipants[0],
+                trimmedComment,
+                props.iou.created,
+                props.iou.transactionID,
+                undefined,
+                props.iou.amount,
+                props.iou.currency,
+                props.iou.merchant,
+            );
         },
-        [props.report, props.iou.created, props.iou.transactionID],
+        [props.report, props.iou.created, props.iou.transactionID, props.iou.amount, props.iou.currency, props.iou.merchant],
     );
 
     const createTransaction = useCallback(
@@ -260,7 +270,7 @@ function MoneyRequestConfirmPage(props) {
                      * VirtualizedList cannot be directly nested within ScrollViews of the same orientation.
                      * To work around this, we wrap the MoneyRequestConfirmationList component with a horizontal ScrollView.
                      */}
-                    <ScrollView>
+                    <ScrollView contentContainerStyle={[styles.flexGrow1]}>
                         <ScrollView
                             horizontal
                             contentContainerStyle={[styles.flex1, styles.flexColumn]}

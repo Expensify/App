@@ -509,16 +509,19 @@ function getMoneyRequestInformation(
  * @param {String} created
  * @param {String} [transactionID]
  * @param {String} [category]
+ * @param {Number} amount
+ * @param {String} currency
+ * @param {String} merchant
  */
-function createDistanceRequest(report, participant, comment, created, transactionID, category = undefined) {
+function createDistanceRequest(report, participant, comment, created, transactionID, category = undefined, amount, currency, merchant) {
     const {iouReport, chatReport, transaction, iouAction, createdChatReportActionID, createdIOUReportActionID, reportPreviewAction, onyxData} = getMoneyRequestInformation(
         report,
         participant,
         comment,
-        0,
-        'USD',
+        amount,
+        currency,
         created,
-        '',
+        merchant,
         null,
         null,
         null,
@@ -536,7 +539,7 @@ function createDistanceRequest(report, participant, comment, created, transactio
             createdChatReportActionID,
             createdIOUReportActionID,
             reportPreviewReportActionID: reportPreviewAction.reportActionID,
-            waypoints: JSON.stringify(transaction.comment.waypoints),
+            waypoints: JSON.stringify(TransactionUtils.getValidWaypoints(transaction.comment.waypoints, true)),
             created,
             category,
         },

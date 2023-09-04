@@ -1114,6 +1114,12 @@ const styles = {
         color: themeColors.textSupporting,
     },
 
+    textLabelError: {
+        fontFamily: fontFamily.EXP_NEUE,
+        fontSize: variables.fontSizeLabel,
+        color: themeColors.textError,
+    },
+
     textReceiptUpload: {
         ...headlineFont,
         fontSize: variables.fontSizeXLarge,
@@ -3784,6 +3790,8 @@ const styles = {
         borderColor: themeColors.cardBG,
         borderTopLeftRadius: variables.componentBorderRadiusLarge,
         borderTopRightRadius: variables.componentBorderRadiusLarge,
+        borderBottomLeftRadius: variables.componentBorderRadiusLarge,
+        borderBottomRightRadius: variables.componentBorderRadiusLarge,
         overflow: 'hidden',
         height: 200,
     },
@@ -3813,7 +3821,7 @@ const styles = {
     moneyRequestHeaderStatusBarBadge: {
         padding: 8,
         borderRadius: variables.componentBorderRadiusMedium,
-        marginRight: 16,
+        marginRight: 12,
         backgroundColor: themeColors.border,
     },
 
@@ -3864,7 +3872,7 @@ const styles = {
 
     distanceRequestContainer: (maxHeight) => ({
         ...flex.flexShrink2,
-        minHeight: variables.baseMenuItemHeight,
+        minHeight: variables.baseMenuItemHeight * 2,
         maxHeight,
     }),
 
@@ -3888,8 +3896,13 @@ const styles = {
     },
 
     mapDirection: {
-        width: 7,
-        color: Colors.green,
+        lineColor: Colors.green,
+        lineWidth: 7,
+    },
+
+    mapDirectionLayer: {
+        layout: {'line-join': 'round', 'line-cap': 'round'},
+        paint: {'line-color': Colors.green, 'line-width': 7},
     },
 
     mapPendingView: {
