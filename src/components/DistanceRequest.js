@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useState, useRef} from 'react';
+import React, {useEffect, useMemo, useState, useRef, useCallback} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
@@ -79,6 +79,8 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
     const [shouldShowGradient, setShouldShowGradient] = useState(false);
     const [scrollContainerHeight, setScrollContainerHeight] = useState(0);
     const [scrollContentHeight, setScrollContentHeight] = useState(0);
+    const [scrollContentOffset, setScrollContentOffset] = useState(0);
+
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
 
@@ -149,11 +151,11 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
         Transaction.createInitialWaypoints(iou.transactionID);
     }, [iou.transactionID, waypoints]);
 
-    const updateGradientVisibility = (event = {}) => {
+    const updateGradientVisibility = () => {
         // If a waypoint extends past the bottom of the visible area show the gradient, else hide it.
-        const visibleAreaEnd = lodashGet(event, 'nativeEvent.contentOffset.y', 0) + scrollContainerHeight;
+        const visibleAreaEnd = scrollContentOffset + scrollContainerHeight;
         // TODO: Fix updating gradient visibility
-        setShouldShowGradient(visibleAreaEnd < scrollContentHeight && false);
+        setShouldShowGradient(visibleAreaEnd < scrollContentHeight);
     };
     useEffect(() => {
         if (isOffline || !shouldFetchRoute) {
@@ -163,7 +165,7 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
         Transaction.getRoute(iou.transactionID, validatedWaypoints);
     }, [shouldFetchRoute, iou.transactionID, validatedWaypoints, isOffline]);
 
-    useEffect(updateGradientVisibility, [scrollContainerHeight, scrollContentHeight]);
+    useEffect(updateGradientVisibility, [scrollContainerHeight, scrollContentHeight, scrollContentOffset]);
 
     return (
         <>
@@ -188,8 +190,8 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
                         });
                         Transaction.updateWaypoints(iou.transactionID, newWaypoints);
                     }}
-                    onScroll={updateGradientVisibility}
-                    // scrollEventThrottle={16}
+                    onScrollOffsetChange={setScrollContentOffset}
+                    scrollEventThrottle={16}
                     ref={scrollViewRef}
                     renderItem={({item, drag, getIndex}) => {
                         // key is of the form waypoint0, waypoint1, ...

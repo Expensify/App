@@ -1,7 +1,7 @@
 import type {DraggableChildrenFn} from 'react-beautiful-dnd';
 import {FlatList} from 'react-native-gesture-handler';
 import type {RenderItemParams as OriginalRenderItemParams} from 'react-native-draggable-flatlist';
-import { ScrollView } from 'react-native';
+import {ScrollView} from 'react-native';
 
 type DraggableListType = <T>(props: DraggableListProps<T> & {ref?: React.ForwardedRef<FlatList<T> | ScrollView>}) => JSX.Element;
 
@@ -19,7 +19,8 @@ type DraggableListProps<T> = {
     shouldUsePortal?: boolean;
     onContentSizeChange?: ((w: number, h: number) => void) | undefined;
     // TODO: implement on web
-    onScrollOffsetChange?: (() => void) | undefined;
+    onScrollOffsetChange?: ((offset: number) => void) | undefined;
+    scrollEventThrottle?: number;
 } & DraggableListData<T>;
 
 type RenderItemParams<T> = OriginalRenderItemParams<T>;

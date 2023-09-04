@@ -33,6 +33,8 @@ function DraggableList<T>(
         renderClone,
         shouldUsePortal = false,
         onContentSizeChange,
+        onScrollOffsetChange,
+        scrollEventThrottle = 16,
     }: DraggableListProps<T>,
     ref: React.ForwardedRef<ScrollView>,
 ) {
@@ -91,6 +93,10 @@ function DraggableList<T>(
                     // We use ScrollView to match the native behavior of FlatList
                     <ScrollView
                         onContentSizeChange={onContentSizeChange}
+                        onScroll={(e) => {
+                            onScrollOffsetChange?.(e.nativeEvent.contentOffset.y);
+                        }}
+                        scrollEventThrottle={scrollEventThrottle}
                         ref={ref}
                     >
                         {/* We can't use the react-native View here, because it doesn't support all props */}
