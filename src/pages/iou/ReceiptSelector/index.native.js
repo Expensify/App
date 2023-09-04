@@ -41,11 +41,15 @@ const propTypes = {
 
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     iou: iouPropTypes,
+
+    /** Which tab has been selected */
+    selectedTab: PropTypes.string,
 };
 
 const defaultProps = {
     report: {},
     iou: iouDefaultProps,
+    selectedTab: CONST.TAB.MANUAL,
 };
 
 /**
@@ -130,8 +134,12 @@ function ReceiptSelector(props) {
 
     useEffect(() => {
         InteractionManager.runAfterInteractions(() => {
+            // dont ask for permission on other tabs
+            if (props.selectedTab !== CONST.TAB.SCAN) {
+                return;
+            }
             Camera.getCameraPermissionStatus().then((permissionStatus) => {
-                if (permissionStatus === CONST.RECEIPT.PERMISSION_AUTHORIZED) {
+                if (permissionStatus === CONST.RECEIPT.PERMISSION_AUTHORIZED || permissionStatus === CONST.RECEIPT.BLOCKED) {
                     setPermissions(permissionStatus);
                 } else {
                     askForPermissions();
@@ -331,5 +339,8 @@ export default withOnyx({
     },
     report: {
         key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '')}`,
+    },
+    selectedTab: {
+        key: `${ONYXKEYS.SELECTED_TAB}_${CONST.TAB.RECEIPT_TAB_ID}`,
     },
 })(ReceiptSelector);
