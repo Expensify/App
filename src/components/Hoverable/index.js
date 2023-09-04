@@ -13,7 +13,6 @@ class Hoverable extends Component {
         super(props);
 
         this.handleVisibilityChange = this.handleVisibilityChange.bind(this);
-        // this.checkHover = _.debounce(this.checkHover.bind(this), 100);
         this.checkHover = this.checkHover.bind(this);
 
         this.state = {
@@ -66,6 +65,12 @@ class Hoverable extends Component {
         this.setIsHovered(false);
     }
 
+    /**
+     * Checks the hover state of a component and updates it based on the event target.
+     * This is necessary to handle cases where the hover state might get stuck due to an unreliable mouseleave trigger,
+     * such as when an element is removed before the mouseleave event is triggered.
+     * @param {Event} e - The hover event object.
+     */
     checkHover = (e) => {
         if (!this.wrapperView || !this.state.isHovered) {
             return;
