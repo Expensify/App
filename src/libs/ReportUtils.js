@@ -124,7 +124,15 @@ function getPolicyName(report, returnEmptyIfNotFound = false, policy = undefined
 
     // Public rooms send back the policy name with the reportSummary,
     // since they can also be accessed by people who aren't in the workspace
-    return lodashGet(finalPolicy, 'name') || report.policyName || report.oldPolicyName || noPolicyFound;
+    const policyName = lodashGet(finalPolicy, 'name') || report.policyName || report.oldPolicyName || noPolicyFound;
+
+    // The SBE and SAASTR policies have the user name in its name, however, we do not want to show that
+    if (lodashGet(finalPolicy, 'owner') === CONST.EMAIL.SBE || lodashGet(finalPolicy, 'owner') === CONST.EMAIL.SAASTR) {
+        const policyNameParts = policyName.split(' ');
+        if (!Str.isValidEmail(policyNameParts[0])) return policyName;
+        return policyNameParts.length > 1 ? policyNameParts.slice(1).join(' ') : policyName;
+    }
+    return policyName;
 }
 
 /**
