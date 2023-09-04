@@ -55,7 +55,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    value: undefined,
+    value: '',
     name: '',
     autoFocus: true,
     errorText: '',

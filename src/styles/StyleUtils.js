@@ -834,6 +834,17 @@ function getMinimumHeight(minHeight) {
 }
 
 /**
+ * Get maximum height as style
+ * @param {Number} maxHeight
+ * @returns {Object}
+ */
+function getMaximumHeight(maxHeight) {
+    return {
+        maxHeight,
+    };
+}
+
+/**
  * Get maximum width as style
  * @param {Number} maxWidth
  * @returns {Object}
@@ -1072,7 +1083,7 @@ function getAutoCompleteSuggestionContainerStyle(itemsHeight, shouldIncludeRepor
     'worklet';
 
     const optionalPadding = shouldIncludeReportRecipientLocalTimeHeight ? CONST.RECIPIENT_LOCAL_TIME_HEIGHT : 0;
-    const padding = CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_PADDING - optionalPadding;
+    const padding = CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_PADDING + optionalPadding;
     const borderWidth = 2;
     const height = itemsHeight + 2 * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_INNER_PADDING + borderWidth;
 
@@ -1370,6 +1381,7 @@ export {
     hasSafeAreas,
     getHeight,
     getMinimumHeight,
+    getMaximumHeight,
     getMaximumWidth,
     fade,
     getHorizontalStackedAvatarBorderStyle,
