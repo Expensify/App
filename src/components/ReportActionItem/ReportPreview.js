@@ -179,7 +179,7 @@ function ReportPreview(props) {
                 <View style={[styles.reportPreviewBox, props.isHovered || isScanning ? styles.reportPreviewBoxHoverBorder : undefined]}>
                     {hasReceipts && (
                         <ReportActionItemImages
-                            images={_.map(lastThreeTransactionsWithReceipts, ({receipt, filename}) => ReceiptUtils.getThumbnailAndImageURIs(receipt.source, filename))}
+                            images={_.map(lastThreeTransactionsWithReceipts, ({receipt, filename}) => ReceiptUtils.getThumbnailAndImageURIs(receipt.source, filename || ''))}
                             size={3}
                             total={transactionsWithReceipts.length}
                             isHovered={props.isHovered || isScanning}
