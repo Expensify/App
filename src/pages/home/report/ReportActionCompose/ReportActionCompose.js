@@ -4,7 +4,6 @@ import {View} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
-import {useNavigation} from '@react-navigation/native';
 import {useAnimatedRef} from 'react-native-reanimated';
 import styles from '../../../../styles/styles';
 import ONYXKEYS from '../../../../ONYXKEYS';
@@ -110,7 +109,6 @@ function ReportActionCompose({
     isCommentEmpty: isCommentEmptyProp,
 }) {
     const {translate} = useLocalize();
-    const navigation = useNavigation();
     const {isMediumScreenWidth, isSmallScreenWidth} = useWindowDimensions();
     const animatedRef = useAnimatedRef();
     const actionButtonRef = useRef(null);
@@ -288,30 +286,11 @@ function ReportActionCompose({
         setIsFocused(true);
     }, []);
 
-    /**
-     * Used to show Popover menu on Workspace chat at first sign-in
-     * @returns {Boolean}
-     */
-    const showPopoverMenu = useCallback(() => {
-        setMenuVisibility(true);
-        return true;
-    }, []);
-
     useEffect(() => {
-        // Shows Popover Menu on Workspace Chat at first sign-in
-        if (!disabled) {
-            Welcome.show({
-                routes: lodashGet(navigation.getState(), 'routes', []),
-                showPopoverMenu,
-            });
+        if (!EmojiPickerActions.isActive(report.reportID)) {
+            return;
         }
-
-        return () => {
-            if (!EmojiPickerActions.isActive(report.reportID)) {
-                return;
-            }
-            EmojiPickerActions.hideEmojiPicker();
-        };
+        EmojiPickerActions.hideEmojiPicker();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
