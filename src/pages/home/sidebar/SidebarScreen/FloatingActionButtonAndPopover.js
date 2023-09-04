@@ -14,7 +14,7 @@ import * as Policy from '../../../../libs/actions/Policy';
 import * as PolicyUtils from '../../../../libs/PolicyUtils';
 import PopoverMenu from '../../../../components/PopoverMenu';
 import CONST from '../../../../CONST';
-import FloatingActionButton from '../../../../components/FloatingActionButton/FloatingActionButton';
+import FloatingActionButton from '../../../../components/FloatingActionButton';
 import compose from '../../../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import withWindowDimensions from '../../../../components/withWindowDimensions';

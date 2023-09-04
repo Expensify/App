@@ -11,6 +11,7 @@ import {withLocalizePropTypes} from '../withLocalize';
 import FABPlusIcon from './FABPlusIcon';
 
 const AnimatedPressable = Animated.createAnimatedComponent(PressableWithFeedback);
+AnimatedPressable.displayName = 'AnimatedPressable';
 
 const propTypes = {
     /* Callback to fire on request to toggle the FloatingActionButton */
@@ -25,6 +26,7 @@ const FloatingActionButton = React.forwardRef(({onPress, isActive, accessibility
     const {translate} = useLocalize();
     const fabPressable = useRef(null);
     const animatedValue = useSharedValue(isActive ? 1 : 0);
+    const buttonRef = ref;
 
     useEffect(() => {
         animatedValue.value = withTiming(isActive ? 1 : 0, {
@@ -48,9 +50,8 @@ const FloatingActionButton = React.forwardRef(({onPress, isActive, accessibility
                 <AnimatedPressable
                     ref={(el) => {
                         fabPressable.current = el;
-                        if (ref) {
-                            // eslint-disable-next-line no-param-reassign
-                            ref.current = el;
+                        if (buttonRef) {
+                            buttonRef.current = el;
                         }
                     }}
                     accessibilityLabel={accessibilityLabel}
