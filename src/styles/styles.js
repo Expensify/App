@@ -1114,6 +1114,12 @@ const styles = {
         color: themeColors.textSupporting,
     },
 
+    textLabelError: {
+        fontFamily: fontFamily.EXP_NEUE,
+        fontSize: variables.fontSizeLabel,
+        color: themeColors.textError,
+    },
+
     textReceiptUpload: {
         ...headlineFont,
         fontSize: variables.fontSizeXLarge,
@@ -3856,7 +3862,7 @@ const styles = {
 
     distanceRequestContainer: (maxHeight) => ({
         ...flex.flexShrink2,
-        minHeight: variables.baseMenuItemHeight,
+        minHeight: variables.baseMenuItemHeight * 2,
         maxHeight,
     }),
 
@@ -3874,9 +3880,19 @@ const styles = {
         overflow: 'hidden',
     },
 
+    confirmationListMapItem: {
+        ...spacing.m5,
+        height: 200,
+    },
+
     mapDirection: {
-        width: 7,
-        color: Colors.green,
+        lineColor: Colors.green,
+        lineWidth: 7,
+    },
+
+    mapDirectionLayer: {
+        layout: {'line-join': 'round', 'line-cap': 'round'},
+        paint: {'line-color': Colors.green, 'line-width': 7},
     },
 
     mapPendingView: {
