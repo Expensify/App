@@ -131,8 +131,8 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
     );
 
     // Show up to the max number of waypoints plus 1/2 of one to hint at scrolling
-    const halfMenuItemHeight = Math.floor(variables.baseMenuItemHeight / 2);
-    const scrollContainerMaxHeight = variables.baseMenuItemHeight * MAX_WAYPOINTS_TO_DISPLAY + halfMenuItemHeight;
+    const halfMenuItemHeight = Math.floor(variables.optionRowHeight / 2);
+    const scrollContainerMaxHeight = variables.optionRowHeight * MAX_WAYPOINTS_TO_DISPLAY + halfMenuItemHeight;
 
     useEffect(() => {
         MapboxToken.init();
@@ -176,7 +176,7 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
                         setScrollContentHeight(height);
                     }}
                     onScroll={updateGradientVisibility}
-                    scrollEventThrottle={16}
+                    scrollEventThrottle={variables.distanceScrollEventThrottle}
                     ref={scrollViewRef}
                 >
                     {_.map(waypoints, (waypoint, key) => {

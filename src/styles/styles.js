@@ -3868,7 +3868,7 @@ const styles = {
 
     distanceRequestContainer: (maxHeight) => ({
         ...flex.flexShrink2,
-        minHeight: variables.baseMenuItemHeight * 2,
+        minHeight: variables.optionRowHeight * 2,
         maxHeight,
     }),
 
