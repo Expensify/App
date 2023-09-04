@@ -65,13 +65,7 @@ function TaskTitlePage(props) {
     const inputRef = useRef(null);
     const isOpen = ReportUtils.isOpenTaskReport(props.report);
     const canModifyTask = Task.canModifyTask(props.report, props.currentUserPersonalDetails.accountID);
-    const disableState = ReportUtils.isTaskReport(props.report) && (!canModifyTask || !isOpen);
-    const getSubtitleKey = () => {
-        if (!canModifyTask) {
-            return 'task.messages.error';
-        }
-        return 'task.messages.notOpen';
-    };
+    const isTaskNonEditable = ReportUtils.isTaskReport(props.report) && (!canModifyTask || !isOpen);
 
     return (
         <ScreenWrapper
@@ -81,8 +75,8 @@ function TaskTitlePage(props) {
         >
             {({didScreenTransitionEnd}) => (
                 <FullPageNotFoundView
-                    shouldShow={disableState}
-                    subtitleKey={getSubtitleKey()}
+                    shouldShow={isTaskNonEditable}
+                    subtitleKey={canModifyTask ? 'task.messages.error' : 'task.messages.notOpen'}
                 >
                     <HeaderWithBackButton title={props.translate('task.task')} />
                     <Form

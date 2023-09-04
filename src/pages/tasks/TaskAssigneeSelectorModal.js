@@ -194,20 +194,14 @@ function TaskAssigneeSelectorModal(props) {
 
     const isOpen = ReportUtils.isOpenTaskReport(props.task.report);
     const canModifyTask = Task.canModifyTask(props.task.report, props.currentUserPersonalDetails.accountID);
-    const disableState = ReportUtils.isTaskReport(props.task.report) && (!canModifyTask || !isOpen);
-    const getSubtitleKey = () => {
-        if (!canModifyTask) {
-            return 'task.messages.error';
-        }
-        return 'task.messages.notOpen';
-    };
+    const isTaskNonEditable = ReportUtils.isTaskReport(props.task.report) && (!canModifyTask || !isOpen);
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView
-                    shouldShow={disableState}
-                    subtitleKey={getSubtitleKey()}
+                    shouldShow={isTaskNonEditable}
+                    subtitleKey={canModifyTask ? 'task.messages.error' : 'task.messages.notOpen'}
                 >
                     <HeaderWithBackButton
                         title={props.translate('task.assignee')}
