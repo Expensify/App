@@ -11,7 +11,7 @@ const propTypes = {
     isActive: PropTypes.bool.isRequired,
 };
 
-function FABPlusIcon({isActive}) {
+function FabPlusIcon({isActive}) {
     const animatedValue = useSharedValue(isActive ? 1 : 0);
 
     useEffect(() => {
@@ -41,7 +41,7 @@ function FABPlusIcon({isActive}) {
     );
 }
 
-FABPlusIcon.propTypes = propTypes;
-FABPlusIcon.displayName = 'FABPlusIcon';
+FabPlusIcon.propTypes = propTypes;
+FabPlusIcon.displayName = 'FabPlusIcon';
 
-export default FABPlusIcon;
+export default FabPlusIcon;

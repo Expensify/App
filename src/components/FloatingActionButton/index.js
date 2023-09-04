@@ -8,7 +8,7 @@ import Tooltip from '../Tooltip';
 import PressableWithFeedback from '../Pressable/PressableWithFeedback';
 import useLocalize from '../../hooks/useLocalize';
 import {withLocalizePropTypes} from '../withLocalize';
-import FABPlusIcon from './FABPlusIcon';
+import FabPlusIcon from './FabPlusIcon';
 
 const AnimatedPressable = Animated.createAnimatedComponent(PressableWithFeedback);
 AnimatedPressable.displayName = 'AnimatedPressable';
@@ -65,7 +65,7 @@ const FloatingActionButton = React.forwardRef(({onPress, isActive, accessibility
                     onLongPress={() => {}}
                     style={[styles.floatingActionButton, animatedStyle]}
                 >
-                    <FABPlusIcon isActive={isActive} />
+                    <FabPlusIcon isActive={isActive} />
                 </AnimatedPressable>
             </View>
         </Tooltip>
