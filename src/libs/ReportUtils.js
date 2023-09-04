@@ -1250,21 +1250,13 @@ function getMoneyRequestReportName(report, policy = undefined) {
 
     /* === Start - Check for Report Scan === */
 
-    // get lastReportActionTransaction
-    const reportActions = ReportActionsUtils.getAllReportActions(report.reportID);
-    const filteredReportActions = ReportActionsUtils.getFilteredSortedReportActionsForDisplay(reportActions);
-
-    const lastReportAction = _.first(filteredReportActions);
-    const lastReportActionTransaction = TransactionUtils.getLinkedTransaction(lastReportAction);
-
-    // get lastTransaction
     // eslint-disable-next-line no-use-before-define
-    const transactionsWithReceipts = getSortedTransactionsWithReceipts(report.reportID);
-    const lastTransaction = _.first(transactionsWithReceipts);
+    const moneyRequestreportActions = getSortedMoneyRequestActions(report.reportID);
 
-    const transactionIsLastReportAction = _.isEqual(lastReportActionTransaction, lastTransaction);
+    const firstReoprtAction = _.last(moneyRequestreportActions);
+    const firstReportActionTransaction = TransactionUtils.getLinkedTransaction(firstReoprtAction);
 
-    if (lastTransaction && transactionIsLastReportAction && TransactionUtils.isReceiptBeingScanned(lastTransaction)) {
+    if (!_.isEmpty(firstReportActionTransaction) && TransactionUtils.isReceiptBeingScanned(firstReportActionTransaction)) {
         return Localize.translateLocal('iou.receiptScanning');
     }
 
