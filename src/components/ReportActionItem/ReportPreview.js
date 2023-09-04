@@ -106,7 +106,7 @@ const defaultProps = {
 };
 
 function ReportPreview(props) {
-    const managerID = props.iouReport.managerID || props.action.actorAccountID || 0;
+    const managerID = props.iouReport.managerID || 0;
     const isCurrentUserManager = managerID === lodashGet(props.session, 'accountID');
     const reportTotal = ReportUtils.getMoneyRequestTotal(props.iouReport);
 
