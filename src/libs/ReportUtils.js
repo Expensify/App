@@ -261,7 +261,7 @@ function sortReportsByLastRead(reports) {
  */
 function isSettled(reportID) {
     if (!allReports) return false;
-    const report = allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    const report = allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] || {};
     if ((report && Object.keys(report).length === 0) || report.isWaitingOnBankAccount) {
         return false;
     }

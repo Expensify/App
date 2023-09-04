@@ -110,6 +110,7 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
             return value;
         },
     );
+
     // // Check if the result is already in the cache
     if (reportIDsCache.has(cachedReports)) {
         return reportIDsCache.get(cachedReports);
