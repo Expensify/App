@@ -1421,6 +1421,7 @@ export default {
             canceled: 'canceled task',
             reopened: 'reopened task',
             error: 'You do not have the permission to do the requested action.',
+            notOpen: 'Only open task can be editted',
         },
         markAsDone: 'Mark as done',
         markAsIncomplete: 'Mark as incomplete',
