@@ -358,7 +358,7 @@ function shouldReportActionBeVisible(reportAction, key) {
  * @returns {Boolean}
  */
 function shouldReportActionBeVisibleAsLastAction(reportAction) {
-    if (!reportAction) {
+    if (!reportAction || !_.isEmpty(reportAction.errors)) {
         return false;
     }
 
