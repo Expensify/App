@@ -3913,6 +3913,7 @@ const styles = {
     },
     timePickerSemiDot: {
         fontSize: 69,
+        height: 84,
     },
     timePickerSwitcherContainer: {
         flexDirection: 'row',
@@ -3945,8 +3946,11 @@ const styles = {
         fontSize: 50,
     },
     setTimeFormButtonContainer: {
-      minHeight: 54
-    }
+        minHeight: 54,
+    },
+    timePickerInputsContainer: {
+        maxHeight: 70,
+    },
 };
 
 export default styles;
