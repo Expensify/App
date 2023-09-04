@@ -58,7 +58,7 @@ class EnablePaymentsPage extends React.Component {
     }
 
     render() {
-        if (_.isEmpty(this.props.userWallet) || this.props.isLoadingReportData && _.isEmpty(this.props.personalDetails)) {
+        if (_.isEmpty(this.props.userWallet) || (this.props.isLoadingReportData && _.isEmpty(this.props.personalDetails))) {
             return <FullScreenLoadingIndicator />;
         }
 
