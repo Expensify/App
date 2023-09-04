@@ -1479,9 +1479,10 @@ function getTransactionReportName(reportAction) {
  *
  * @param {Object} report
  * @param {Object} [reportAction={}]
+ * @param {Boolean} [shouldConsiderReceiptBeingScanned=true]
  * @returns  {String}
  */
-function getReportPreviewMessage(report, reportAction = {}) {
+function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceiptBeingScanned = true) {
     const reportActionMessage = lodashGet(reportAction, 'message[0].html', '');
 
     if (_.isEmpty(report) || !report.reportID) {
@@ -1500,19 +1501,21 @@ function getReportPreviewMessage(report, reportAction = {}) {
 
     /* === Start - Check for Report Scan === */
 
-    const filteredIouReportActions = getSortedMoneyRequestActions(report.reportID);
-    const lastIouReportAction = _.first(filteredIouReportActions);
-    const lastIouReportActionTransaction = TransactionUtils.getLinkedTransaction(lastIouReportAction);
+    if (shouldConsiderReceiptBeingScanned) {
+        const filteredIouReportActions = getSortedMoneyRequestActions(report.reportID);
+        const lastIouReportAction = _.first(filteredIouReportActions);
+        const lastIouReportActionTransaction = TransactionUtils.getLinkedTransaction(lastIouReportAction);
 
-    // get lastTransaction
-    // eslint-disable-next-line no-use-before-define
-    const transactionsWithReceipts = getSortedTransactionsWithReceipts(report.reportID);
-    const lastTransaction = _.first(transactionsWithReceipts);
+        // get lastTransaction
+        // eslint-disable-next-line no-use-before-define
+        const transactionsWithReceipts = getSortedTransactionsWithReceipts(report.reportID);
+        const lastTransaction = _.first(transactionsWithReceipts);
 
-    const transactionIsLastReportAction = _.isEqual(lastIouReportActionTransaction, lastTransaction);
+        const transactionIsLastReportAction = _.isEqual(lastIouReportActionTransaction, lastTransaction);
 
-    if (lastTransaction && transactionIsLastReportAction && TransactionUtils.isReceiptBeingScanned(lastTransaction)) {
-        return Localize.translateLocal('iou.receiptScanning');
+        if (lastTransaction && transactionIsLastReportAction && TransactionUtils.isReceiptBeingScanned(lastTransaction)) {
+            return Localize.translateLocal('iou.receiptScanning');
+        }
     }
 
     /* === End - Check for Report Scan === */
