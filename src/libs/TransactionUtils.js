@@ -89,8 +89,14 @@ function hasReceipt(transaction) {
  * @param {Object} transaction
  * @returns {Boolean}
  */
-function areModifiedFieldsPopulated(transaction) {
-    return transaction.modifiedMerchant !== CONST.TRANSACTION.UNKNOWN_MERCHANT && transaction.modifiedAmount !== 0 && transaction.modifiedCreated !== '';
+function areRequiredFieldsEmpty(transaction) {
+    return (
+        transaction.modifiedMerchant === CONST.TRANSACTION.UNKNOWN_MERCHANT ||
+        (transaction.modifiedMerchant === '' &&
+            (transaction.merchant === CONST.TRANSACTION.UNKNOWN_MERCHANT || transaction.merchant === '' || transaction.merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT)) ||
+        (transaction.modifiedAmount === 0 && transaction.amount === 0) ||
+        (transaction.modifiedCreated === '' && transaction.created === '')
+    );
 }
 
 /**
@@ -262,7 +268,7 @@ function isReceiptBeingScanned(transaction) {
  * @returns {Boolean}
  */
 function hasMissingSmartscanFields(transaction) {
-    return hasReceipt(transaction) && !isDistanceRequest(transaction) && !isReceiptBeingScanned(transaction) && !areModifiedFieldsPopulated(transaction);
+    return hasReceipt(transaction) && !isDistanceRequest(transaction) && !isReceiptBeingScanned(transaction) && areRequiredFieldsEmpty(transaction);
 }
 
 /**
