@@ -1,16 +1,16 @@
 import React from 'react';
-import {View} from 'react-native';
 import {Rect} from 'react-native-svg';
 import SkeletonViewContentLoader from 'react-content-loader/native';
-import styles from '../styles/styles';
 import variables from '../styles/variables';
 import themeColors from '../styles/themes/default';
+import styles from '../styles/styles';
 
 function MoneyRequestSkeletonView() {
     return (
-        <View style={[styles.flex1, styles.overflowHidden]}>
+        
             <SkeletonViewContentLoader
                 animate
+                width={styles.w100.width}
                 height={variables.moneyRequestSkeletonHeight}
                 backgroundColor={themeColors.borderLighter}
                 foregroundColor={themeColors.border}
@@ -34,7 +34,7 @@ function MoneyRequestSkeletonView() {
                     height="8"
                 />
             </SkeletonViewContentLoader>
-        </View>
+        
     );
 }
 
