@@ -171,7 +171,7 @@ function MoneyRequestConfirmationList(props) {
     const {unit, rate, currency} = props.mileageRate;
     const distance = lodashGet(transaction, 'routes.route0.distance', 0);
     const shouldCalculateDistanceAmount = props.isDistanceRequest && props.iouAmount === 0;
-    const shouldCategoryEditable = !_.isEmpty(props.policyCategories) && !props.isDistanceRequest;
+    const shouldCategoryEditable = !_.isEmpty(props.policyCategories);
 
     const formattedAmount = CurrencyUtils.convertToDisplayString(
         shouldCalculateDistanceAmount ? DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate) : props.iouAmount,
