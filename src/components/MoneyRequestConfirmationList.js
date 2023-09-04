@@ -164,7 +164,8 @@ function MoneyRequestConfirmationList(props) {
     const {translate} = useLocalize();
 
     // A flag and a toggler for showing the rest of the form fields
-    const [showAllFields, toggleShowAllFields] = useReducer((state) => !state, false);
+    const [shouldExpandFields, toggleShouldExpandFields] = useReducer((state) => !state, false);
+    const shouldShowAllFields = props.isDistanceRequest || shouldExpandFields;
     const isTypeRequest = props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST;
 
     const {unit, rate, currency} = props.mileageRate;
@@ -437,12 +438,12 @@ function MoneyRequestConfirmationList(props) {
                 disabled={didConfirm || props.isReadOnly}
                 numberOfLinesTitle={2}
             />
-            {!showAllFields && (
+            {!shouldShowAllFields && (
                 <View style={[styles.flexRow, styles.justifyContentBetween, styles.mh3, styles.alignItemsCenter, styles.mb2]}>
                     <View style={[styles.shortTermsHorizontalRule, styles.flex1, styles.mr0]} />
                     <Button
                         small
-                        onPress={toggleShowAllFields}
+                        onPress={toggleShouldExpandFields}
                         text={translate('common.showMore')}
                         shouldShowRightIcon
                         iconRight={Expensicons.DownArrow}
@@ -452,7 +453,7 @@ function MoneyRequestConfirmationList(props) {
                     <View style={[styles.shortTermsHorizontalRule, styles.flex1, styles.ml0]} />
                 </View>
             )}
-            {showAllFields && (
+            {shouldShowAllFields && (
                 <>
                     <MenuItemWithTopDescription
                         shouldShowRightIcon={!props.isReadOnly && isTypeRequest}
