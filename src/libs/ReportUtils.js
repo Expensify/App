@@ -1256,22 +1256,6 @@ function getMoneyRequestReportName(report, policy = undefined) {
         amount: formattedAmount,
     });
 
-    /* === Start - Check for Report Scan === */
-
-    // eslint-disable-next-line no-use-before-define
-    const moneyRequestreportActions = getSortedMoneyRequestActions(report.reportID);
-
-    const firstReoprtAction = _.last(moneyRequestreportActions);
-    const firstReportActionTransaction = TransactionUtils.getLinkedTransaction(firstReoprtAction);
-
-    const thereAreFollowingManualIOURequests = getMoneyRequestTotal(report) > 0;
-
-    if (!thereAreFollowingManualIOURequests && !_.isEmpty(firstReportActionTransaction) && TransactionUtils.isReceiptBeingScanned(firstReportActionTransaction)) {
-        return Localize.translateLocal('iou.receiptScanning');
-    }
-
-    /* === End - Check for Report Scan === */
-
     if (report.isWaitingOnBankAccount) {
         return `${payerPaidAmountMesssage} • ${Localize.translateLocal('iou.pending')}`;
     }
