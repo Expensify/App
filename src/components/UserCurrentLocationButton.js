@@ -15,6 +15,12 @@ const propTypes = {
     /** Callback that runs when location data is fetched */
     onLocationFetched: PropTypes.func.isRequired,
 
+    /** Callback that runs when fetching location has errors */
+    onLocationError: PropTypes.func,
+
+    /** Callback that runs when location button is clicked */
+    onClick: PropTypes.func,
+
     /** Boolean to indicate if the button is clickable */
     isDisabled: PropTypes.bool,
 
@@ -23,9 +29,11 @@ const propTypes = {
 
 const defaultProps = {
     isDisabled: false,
+    onLocationError: () => {},
+    onClick: () => {},
 };
 
-function UserCurrentLocationButton({onLocationFetched, isDisabled, translate}) {
+function UserCurrentLocationButton({onLocationFetched, onLocationError, onClick, isDisabled, translate}) {
     const isFetchingLocation = useRef(false);
 
     /** Gets the user's current location and registers success/error callbacks */
@@ -33,6 +41,8 @@ function UserCurrentLocationButton({onLocationFetched, isDisabled, translate}) {
         if (isFetchingLocation.current) return;
 
         isFetchingLocation.current = true;
+
+        onClick();
 
         getCurrentPosition(
             (successData) => {
@@ -46,6 +56,8 @@ function UserCurrentLocationButton({onLocationFetched, isDisabled, translate}) {
                 isFetchingLocation.current = false;
 
                 User.setLocationError(errorData.code);
+
+                onLocationError(errorData);
             },
             {
                 maximumAge: 0, // No cache, always get fresh location info

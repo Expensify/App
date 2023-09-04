@@ -25,6 +25,7 @@ import ROUTES from '../../ROUTES';
 import transactionPropTypes from '../../components/transactionPropTypes';
 import * as User from '../../libs/actions/User';
 import UserCurrentLocationButton from '../../components/UserCurrentLocationButton';
+import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 
 const propTypes = {
     /** The transactionID of the IOU */
@@ -77,6 +78,7 @@ const defaultProps = {
 function WaypointEditor({transactionID, route: {params: {iouType = '', waypointIndex = ''} = {}} = {}, transaction, recentWaypoints}) {
     const {windowWidth} = useWindowDimensions();
     const [isDeleteStopModalOpen, setIsDeleteStopModalOpen] = useState(false);
+    const [isFetchingLocation, setIsFetchingLocation] = useState(false);
     const isFocused = useIsFocused();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -168,6 +170,8 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
      * @param {Object} geolocationData.timestamp
      */
     const selectWaypointFromCurrentLocation = (geolocationData) => {
+        setIsFetchingLocation(false);
+
         const waypoint = {
             lat: geolocationData.coords.latitude,
             lng: geolocationData.coords.longitude,
@@ -247,8 +251,11 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
                     </View>
                     <UserCurrentLocationButton
                         isDisabled={isOffline}
+                        onClick={() => setIsFetchingLocation(true)}
+                        onLocationError={() => setIsFetchingLocation(false)}
                         onLocationFetched={selectWaypointFromCurrentLocation}
                     />
+                    {isFetchingLocation && <FullScreenLoadingIndicator />}
                 </Form>
             </FullPageNotFoundView>
         </ScreenWrapper>
