@@ -1,5 +1,5 @@
 import React from 'react';
-import { View } from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import Navigation from '../../../libs/Navigation/Navigation';
@@ -24,7 +24,6 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import themeColors from '../../../styles/themes/default';
 
 const propTypes = {
-
     /** The session of the logged in person */
     session: PropTypes.shape({
         /** Email of the logged in person */
@@ -65,9 +64,12 @@ function LoungeAccessPage(props) {
     if (!props.user.hasLoungeAccess) {
         return <NotFoundPage />;
     }
-    
+
     const overlayContent = () => (
-        <LinearGradient colors={[`${themeColors.dark}00`, themeColors.dark]} style={[styles.pAbsolute, styles.w100, styles.h100]}>
+        <LinearGradient
+            colors={[`${themeColors.dark}00`, themeColors.dark]}
+            style={[styles.pAbsolute, styles.w100, styles.h100]}
+        >
             <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.pt5]}>
                 <Avatar
                     imageStyles={[styles.avatarLarge]}
@@ -120,5 +122,5 @@ export default compose(
         user: {
             key: ONYXKEYS.USER,
         },
-    })   
+    }),
 )(LoungeAccessPage);
