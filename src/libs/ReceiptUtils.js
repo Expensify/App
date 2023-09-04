@@ -42,11 +42,11 @@ function getThumbnailAndImageURIs(path, filename) {
 
     // For local files, we won't have a thumbnail yet
     if (isReceiptImage && (path.startsWith('blob:') || path.startsWith('file:'))) {
-        return {thumbnail: null, image: path};
+        return {thumbnail: null, image: {uri: path}};
     }
 
     if (isReceiptImage) {
-        return {thumbnail: `${path}.1024.jpg`, image: path};
+        return {thumbnail: `${path}.1024.jpg`, image: {uri: path}};
     }
 
     const {fileExtension} = FileUtils.splitExtensionFromFileName(filename);

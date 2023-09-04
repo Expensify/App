@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import lodashGet from 'lodash/get';
 import styles from '../../styles/styles';
 import Image from '../Image';
 import ThumbnailImage from '../ThumbnailImage';
@@ -10,13 +11,14 @@ import {ShowContextMenuContext} from '../ShowContextMenuContext';
 import Navigation from '../../libs/Navigation/Navigation';
 import PressableWithoutFocus from '../Pressable/PressableWithoutFocus';
 import useLocalize from '../../hooks/useLocalize';
+import sourcePropTypes from '../Image/sourcePropTypes';
 
 const propTypes = {
     /** thumbnail URI for the image */
     thumbnail: PropTypes.string,
 
     /** URI for the image or local numeric reference for the image  */
-    image: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+    image: sourcePropTypes.isRequired,
 
     /** whether or not to enable the image preview modal */
     enablePreviewModal: PropTypes.bool,
@@ -37,7 +39,7 @@ function ReportActionItemImage({thumbnail, image, enablePreviewModal}) {
     const {translate} = useLocalize();
 
     if (thumbnail) {
-        const imageSource = tryResolveUrlFromApiRoot(image);
+        const imageSource = tryResolveUrlFromApiRoot(lodashGet(image, 'uri', image));
         const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail);
         const thumbnailComponent = (
             <ThumbnailImage
@@ -72,7 +74,7 @@ function ReportActionItemImage({thumbnail, image, enablePreviewModal}) {
 
     return (
         <Image
-            source={{uri: image}}
+            source={image}
             style={[styles.w100, styles.h100]}
         />
     );
