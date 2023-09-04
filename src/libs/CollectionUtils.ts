@@ -1,4 +1,4 @@
-function lastItem(object: Record<string, unknown> = {}) {
+function lastItem<T>(object: Record<string, T> = {}): T {
     const lastKey = Object.keys(object).pop() ?? 0;
     return object[lastKey];
 }
