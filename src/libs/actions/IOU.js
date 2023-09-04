@@ -346,7 +346,7 @@ function getMoneyRequestInformation(
     receipt = undefined,
     existingTransactionID = null,
 ) {
-    const payerEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login);
+    const payerEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login || participant.text);
     const payerAccountID = Number(participant.accountID);
     const isPolicyExpenseChat = participant.isPolicyExpenseChat;
 
