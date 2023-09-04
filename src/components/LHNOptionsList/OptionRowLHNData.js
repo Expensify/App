@@ -81,7 +81,6 @@ function OptionRowLHNData({
     policies,
     receiptTransactions,
     parentReportActions,
-    lastIOUReportActions,
     ...propsToForward
 }) {
     const reportID = propsToForward.reportID;
@@ -95,26 +94,13 @@ function OptionRowLHNData({
 
     const optionItemRef = useRef();
 
-    /**
-     * If it is an IOU report, you get the last transaction with a receipt.
-     * Otherwise, if the last message is a reportPreview in a chat,
-     * you get the last transaction of the IOU report associated with that preview message.
-     */
-
     const lastTransaction = useMemo(() => {
         let reportIDLocal = fullReport.reportID;
-
-        // Check if reportIDLocal needs to be updated with the IOU report of the last report action, in case this report is a chat.
-        const filteredReportActions = ReportActionUtils.getFilteredSortedReportActionsForDisplay(reportActions);
-        const lastReportAction = _.first(filteredReportActions);
-        if (ReportActionUtils.isReportPreviewAction(lastReportAction)) {
-            reportIDLocal = ReportActionUtils.getIOUReportIDFromReportActionPreview(lastReportAction);
-        }
 
         const transactionsWithReceipts = ReportUtils.getSortedTransactionsWithReceipts(reportIDLocal);
         return _.first(transactionsWithReceipts);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [fullReport.reportID, receiptTransactions, reportActions, lastIOUReportActions]);
+    }, [fullReport.reportID, receiptTransactions, reportActions]);
 
     const memoizedLastTransaction = useDeepCompareMemo(lastTransaction);
 
@@ -221,20 +207,6 @@ export default React.memo(
             // This can lead to situations where `lastTransaction` doesn't update and retains the previous value.
             // However, performance overhead of this is minimized by using memos inside the component.
             receiptTransactions: {key: ONYXKEYS.COLLECTION.TRANSACTION},
-            lastIOUReportActions: {
-                key: ({fullReport, reportActions}) => {
-                    let reportIDLocal = fullReport.reportID;
-
-                    // Check if reportIDLocal needs to be updated with the IOU report of the last report action, in case this report is a chat.
-                    const filteredReportActions = ReportActionUtils.getFilteredSortedReportActionsForDisplay(reportActions);
-                    const lastReportAction = _.first(filteredReportActions);
-                    if (ReportActionUtils.isReportPreviewAction(lastReportAction)) {
-                        reportIDLocal = ReportActionUtils.getIOUReportIDFromReportActionPreview(lastReportAction);
-                    }
-                    return `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportIDLocal}`;
-                },
-                canEvict: false,
-            },
         }),
     )(OptionRowLHNData),
 );
