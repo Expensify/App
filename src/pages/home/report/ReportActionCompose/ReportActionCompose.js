@@ -285,13 +285,17 @@ function ReportActionCompose({
         setIsFocused(true);
     }, []);
 
-    useEffect(() => {
-        if (!EmojiPickerActions.isActive(report.reportID)) {
-            return;
-        }
-        EmojiPickerActions.hideEmojiPicker();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    // We are returning a callback here as we want to incoke the method on unmount only
+    useEffect(
+        () => () => {
+            if (!EmojiPickerActions.isActive(report.reportID)) {
+                return;
+            }
+            EmojiPickerActions.hideEmojiPicker();
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+        },
+        [],
+    );
 
     const reportRecipientAcountIDs = ReportUtils.getReportRecipientAccountIDs(report, currentUserPersonalDetails.accountID);
     const reportRecipient = personalDetails[reportRecipientAcountIDs[0]];
