@@ -1264,7 +1264,9 @@ function getMoneyRequestReportName(report, policy = undefined) {
     const firstReoprtAction = _.last(moneyRequestreportActions);
     const firstReportActionTransaction = TransactionUtils.getLinkedTransaction(firstReoprtAction);
 
-    if (!_.isEmpty(firstReportActionTransaction) && TransactionUtils.isReceiptBeingScanned(firstReportActionTransaction)) {
+    const thereAreFollowingManualIOURequests = getMoneyRequestTotal(report) > 0; 
+
+    if (!thereAreFollowingManualIOURequests && !_.isEmpty(firstReportActionTransaction) && TransactionUtils.isReceiptBeingScanned(firstReportActionTransaction)) {
         return Localize.translateLocal('iou.receiptScanning');
     }
 
