@@ -60,7 +60,7 @@ function PreRenderer(props) {
             {...props}
             ref={scrollViewRef}
             onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
-            onPressOut={ControlSelection.unblock()}
+            onPressOut={ControlSelection.unblock}
         />
     );
 }
