@@ -22,7 +22,7 @@ function MoneyRequestSkeletonView() {
                     height="8"
                 />
                 <Rect
-                    x="15"
+                    x="16"
                     y="46"
                     width="120"
                     height="20"
