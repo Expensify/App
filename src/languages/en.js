@@ -107,6 +107,9 @@ export default {
             characterLimit: ({limit}) => `Exceeds the maximum length of ${limit} characters`,
             dateInvalid: 'Please select a valid date',
             invalidCharacter: 'Invalid character',
+            enterMerchant: 'Enter a merchant name',
+            enterAmount: 'Enter an amount',
+            enterDate: 'Enter a date',
         },
         comma: 'comma',
         semicolon: 'semicolon',
@@ -161,6 +164,10 @@ export default {
         receipt: 'Receipt',
         replace: 'Replace',
         distance: 'Distance',
+        mile: 'mile',
+        miles: 'miles',
+        kilometer: 'kilometer',
+        kilometers: 'kilometers',
         recent: 'Recent',
         all: 'All',
     },
@@ -450,6 +457,7 @@ export default {
             genericCreateFailureMessage: 'Unexpected error requesting money, please try again later',
             genericDeleteFailureMessage: 'Unexpected error deleting the money request, please try again later',
             genericEditFailureMessage: 'Unexpected error editing the money request, please try again later',
+            genericSmartscanFailureMessage: 'Transaction is missing fields',
         },
     },
     notificationPreferencesPage: {
@@ -1247,7 +1255,6 @@ export default {
             captureReceipts: 'Capture receipts',
             fastReimbursementsHappyMembers: 'Fast reimbursements = happy members!',
             kilometers: 'Kilometers',
-            miles: 'Miles',
             viewAllReceipts: 'View all receipts',
             reimburseReceipts: 'Reimburse receipts',
             trackDistance: 'Track distance',
@@ -1660,18 +1667,14 @@ export default {
             selectSuggestedAddress: 'Please select a suggested address',
         },
     },
-    countrySelectorModal: {
-        placeholderText: 'Search to see options',
-    },
-    stateSelectorModal: {
-        placeholderText: 'Search to see options',
-    },
     demos: {
         saastr: {
             signInWelcome: 'Welcome to SaaStr! Hop in to start networking now.',
+            heroBody: 'Use New Expensify for event updates, networking, social chatter, and to get paid back for lunch!',
         },
         sbe: {
             signInWelcome: 'Welcome to Small Business Expo! Get paid back for your ride.',
+            heroBody: 'Use New Expensify for event updates, networking, social chatter, and to get paid back for your ride to or from the show!',
         },
     },
 };
