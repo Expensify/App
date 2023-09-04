@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useState, useRef, useCallback} from 'react';
+import React, {useEffect, useMemo, useState, useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
@@ -193,7 +193,7 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
                     onScrollOffsetChange={setScrollContentOffset}
                     scrollEventThrottle={16}
                     ref={scrollViewRef}
-                    renderItem={({item, drag, getIndex}) => {
+                    renderItem={({item, drag, getIndex, isActive}) => {
                         // key is of the form waypoint0, waypoint1, ...
                         const index = getIndex();
                         let descriptionKey = 'distance.waypointDescription.';
@@ -220,6 +220,7 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
                                 shouldShowRightIcon
                                 onPress={() => Navigation.navigate(ROUTES.getMoneyRequestWaypointRoute('request', index))}
                                 onSecondaryInteraction={drag}
+                                focused={isActive}
                                 key={item}
                             />
                         );
