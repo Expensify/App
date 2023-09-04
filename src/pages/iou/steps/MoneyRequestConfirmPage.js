@@ -59,9 +59,9 @@ const defaultProps = {
 
 function MoneyRequestConfirmPage(props) {
     const {windowHeight} = useWindowDimensions();
-    const isDistanceRequest = props.selectedTab === CONST.TAB.DISTANCE;
     const prevMoneyRequestId = useRef(props.iou.id);
     const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
+    const isDistanceRequest = iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST && props.selectedTab === CONST.TAB.DISTANCE;
     const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
     const participants = useMemo(
         () =>

@@ -48,7 +48,7 @@ function MoneyRequestParticipantsPage(props) {
     const prevMoneyRequestId = useRef(props.iou.id);
     const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
     const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
-    const isDistanceRequest = props.selectedTab === CONST.TAB.DISTANCE;
+    const isDistanceRequest = iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST && props.selectedTab === CONST.TAB.DISTANCE;
 
     const navigateToNextStep = () => {
         Navigation.navigate(ROUTES.getMoneyRequestConfirmationRoute(iouType.current, reportID.current));

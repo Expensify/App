@@ -51,7 +51,7 @@ function MoneyRequestDatePage({iou, route, selectedTab}) {
     const {translate} = useLocalize();
     const iouType = lodashGet(route, 'params.iouType', '');
     const reportID = lodashGet(route, 'params.reportID', '');
-    const isDistanceRequest = selectedTab === CONST.TAB.DISTANCE;
+    const isDistanceRequest = iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST && selectedTab === CONST.TAB.DISTANCE;
 
     useEffect(() => {
         const moneyRequestId = `${iouType}${reportID}`;
