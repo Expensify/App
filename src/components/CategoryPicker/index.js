@@ -50,6 +50,7 @@ function CategoryPicker({policyCategories, reportID, policyID, iouType, iou, rec
     );
 
     const headerMessage = OptionsListUtils.getHeaderMessage(lodashGet(sections, '[0].data.length', 0) > 0, false, searchValue);
+    const shouldShowTextInput = policyCategoriesAmount >= CONST.CATEGORY_LIST_THRESHOLD;
 
     const navigateBack = () => {
         Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID));
@@ -77,11 +78,11 @@ function CategoryPicker({policyCategories, reportID, policyID, iouType, iou, rec
             optionHoveredStyle={styles.hoveredComponentBG}
             sections={sections}
             selectedOptions={selectedOptions}
-            shouldShowTextInput={policyCategoriesAmount >= CONST.CATEGORY_LIST_THRESHOLD}
             value={searchValue}
-            headerMessage={headerMessage}
-            textInputLabel={translate('common.search')}
             initialFocusedIndex={initialFocusedIndex}
+            headerMessage={headerMessage}
+            shouldShowTextInput={shouldShowTextInput}
+            textInputLabel={translate('common.search')}
             boldStyle
             highlightSelectedOptions
             isRowMultilineSupported
