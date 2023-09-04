@@ -23,6 +23,13 @@ Onyx.connect({
 let cancellationController = new AbortController();
 
 /**
+ * API comamnds we need to calculate skew,
+ * Regex to get API command from the command
+ */
+const addSkewList = ['OpenReport', 'ReconnectApp', 'OpenApp'];
+const regex = /[?&]command=([^&]+)/;
+
+/**
  * Send an HTTP request, and attempt to resolve the json response.
  * If there is a network error, we'll set the application offline.
  *
@@ -33,12 +40,26 @@ let cancellationController = new AbortController();
  * @returns {Promise}
  */
 function processHTTPRequest(url, method = 'get', body = null, canCancel = true) {
+    const startTime = new Date();
+
     return fetch(url, {
         // We hook requests to the same Controller signal, so we can cancel them all at once
         signal: canCancel ? cancellationController.signal : undefined,
         method,
         body,
     })
+        .then((response) => {
+            const match = url.match(regex)[1];
+            if (addSkewList.includes(match)) {
+                const serverTime = new Date(response.headers.get('Date'));
+                const endTime = new Date();
+                const latency = (endTime.valueOf() - startTime.valueOf()) / 2;
+                const skew = serverTime.valueOf() - startTime.valueOf() + latency;
+                // eslint-disable-next-line rulesdir/prefer-actions-set-data
+                Onyx.merge(ONYXKEYS.NETWORK, {timeSkew: skew});
+            }
+            return response;
+        })
         .then((response) => {
             // Test mode where all requests will succeed in the server, but fail to return a response
             if (shouldFailAllRequests || shouldForceOffline) {

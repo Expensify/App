@@ -77,6 +77,12 @@ Onyx.connect({
     callback: (val) => (loginList = val),
 });
 
+let networkTimeSkew;
+Onyx.connect({
+    key: ONYXKEYS.NETWORK,
+    callback: (val) => (networkTimeSkew = lodashGet(val, 'timeSkew', 0)),
+});
+
 function getChatType(report) {
     return report ? report.chatType : '';
 }
@@ -1775,7 +1781,7 @@ function buildOptimisticAddCommentReportAction(text, file) {
 
     // Remove HTML from text when applying optimistic offline comment
     const textForNewComment = isAttachment ? CONST.ATTACHMENT_MESSAGE_TEXT : parser.htmlToText(htmlForNewComment);
-
+    const timestamp = new Date().valueOf() + networkTimeSkew;
     return {
         commentText,
         reportAction: {
@@ -1791,7 +1797,7 @@ function buildOptimisticAddCommentReportAction(text, file) {
             ],
             automatic: false,
             avatar: lodashGet(allPersonalDetails, [currentUserAccountID, 'avatar'], UserUtils.getDefaultAvatarURL(currentUserAccountID)),
-            created: DateUtils.getDBTime(),
+            created: DateUtils.getDBTime(timestamp),
             message: [
                 {
                     translationKey: isAttachment ? CONST.TRANSLATION_KEYS.ATTACHMENT : '',
