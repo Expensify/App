@@ -37,6 +37,7 @@ import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import {iouPropTypes} from '../pages/iou/propTypes';
 import reportPropTypes from '../pages/reportPropTypes';
 import * as IOU from '../libs/actions/IOU';
+import * as StyleUtils from '../styles/StyleUtils';
 
 const MAX_WAYPOINTS = 25;
 const MAX_WAYPOINTS_TO_DISPLAY = 4;
@@ -212,7 +213,7 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
                 {shouldShowGradient && (
                     <LinearGradient
                         style={[styles.pAbsolute, styles.b0, styles.l0, styles.r0, {height: halfMenuItemHeight}]}
-                        colors={[`${theme.modalBackground}00`, theme.modalBackground]}
+                        colors={[StyleUtils.getTransparentColor(theme.modalBackground), theme.modalBackground]}
                     />
                 )}
                 {hasRouteError && (
