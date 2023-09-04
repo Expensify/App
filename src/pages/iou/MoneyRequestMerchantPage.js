@@ -1,4 +1,4 @@
-import React, {useEffect, useRef} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -13,29 +13,14 @@ import styles from '../../styles/styles';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import * as IOU from '../../libs/actions/IOU';
-import optionPropTypes from '../../components/optionPropTypes';
 import CONST from '../../CONST';
 import useLocalize from '../../hooks/useLocalize';
+import {iouPropTypes, iouDefaultProps} from './propTypes';
 
 const propTypes = {
     /** Onyx Props */
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
-    iou: PropTypes.shape({
-        /** ID (iouType + reportID) of the request */
-        id: PropTypes.string,
-
-        /** Amount of the request */
-        amount: PropTypes.number,
-
-        /** Description of the request */
-        comment: PropTypes.string,
-        created: PropTypes.string,
-        merchant: PropTypes.string,
-
-        /** List of the participants */
-        participants: PropTypes.arrayOf(optionPropTypes),
-        receiptPath: PropTypes.string,
-    }),
+    iou: iouPropTypes,
 
     /** Route from navigation */
     route: PropTypes.shape({
@@ -57,14 +42,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    iou: {
-        id: '',
-        amount: 0,
-        comment: '',
-        merchant: '',
-        participants: [],
-        receiptPath: '',
-    },
+    iou: iouDefaultProps,
 };
 
 function MoneyRequestMerchantPage({iou, route}) {
@@ -88,6 +66,16 @@ function MoneyRequestMerchantPage({iou, route}) {
     function navigateBack() {
         Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID));
     }
+
+    const validate = useCallback((value) => {
+        const errors = {};
+
+        if (_.isEmpty(value.moneyRequestMerchant)) {
+            errors.moneyRequestMerchant = 'common.error.fieldRequired';
+        }
+
+        return errors;
+    }, []);
 
     /**
      * Sets the money request comment by saving it to Onyx.
@@ -114,6 +102,7 @@ function MoneyRequestMerchantPage({iou, route}) {
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM}
                 onSubmit={(value) => updateMerchant(value)}
+                validate={validate}
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
             >

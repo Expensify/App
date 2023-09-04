@@ -52,7 +52,6 @@ function parseAndLogRoute(state) {
 
 function NavigationRoot(props) {
     useFlipper(navigationRef);
-    const navigationStateRef = useRef(undefined);
     const firstRenderRef = useRef(true);
 
     const {updateCurrentReportID} = useCurrentReportID();
@@ -70,6 +69,14 @@ function NavigationRoot(props) {
             return;
         }
         Navigation.setShouldPopAllStateOnUP();
+    }, [isSmallScreenWidth]);
+
+    useEffect(() => {
+        if (!navigationRef.isReady()) {
+            return;
+        }
+        // We need to force state rehydration so the CustomRouter can add the CentralPaneNavigator route if necessary.
+        navigationRef.resetRoot(navigationRef.getRootState());
     }, [isSmallScreenWidth]);
 
     const prevStatusBarBackgroundColor = useRef(themeColors.appBG);
@@ -105,11 +112,10 @@ function NavigationRoot(props) {
         );
     };
 
-    const updateSavedNavigationStateAndLogRoute = (state) => {
+    const handleStateChange = (state) => {
         if (!state) {
             return;
         }
-        navigationStateRef.current = state;
         updateCurrentReportID(state);
         parseAndLogRoute(state);
         animateStatusBarBackgroundColor();
@@ -117,9 +123,7 @@ function NavigationRoot(props) {
 
     return (
         <NavigationContainer
-            key={isSmallScreenWidth ? 'small' : 'big'}
-            onStateChange={updateSavedNavigationStateAndLogRoute}
-            initialState={navigationStateRef.current}
+            onStateChange={handleStateChange}
             onReady={props.onReady}
             theme={navigationTheme}
             ref={navigationRef}
