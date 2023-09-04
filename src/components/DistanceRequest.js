@@ -1,8 +1,9 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState, useRef} from 'react';
 import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import lodashHas from 'lodash/has';
+import lodashIsNull from 'lodash/isNull';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 
@@ -82,21 +83,23 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
 
     const reportID = lodashGet(report, 'reportID', '');
     const waypoints = useMemo(() => lodashGet(transaction, 'comment.waypoints', {}), [transaction]);
+    const previousWaypoints = usePrevious(waypoints);
     const numberOfWaypoints = _.size(waypoints);
+    const numberOfPreviousWaypoints = _.size(previousWaypoints);
+    const scrollViewRef = useRef(null);
 
     const lastWaypointIndex = numberOfWaypoints - 1;
     const isLoadingRoute = lodashGet(transaction, 'comment.isLoading', false);
     const hasRouteError = lodashHas(transaction, 'errorFields.route');
-    const previousWaypoints = usePrevious(waypoints);
     const haveWaypointsChanged = !_.isEqual(previousWaypoints, waypoints);
     const doesRouteExist = lodashHas(transaction, 'routes.route0.geometry.coordinates');
-    const shouldFetchRoute = (!doesRouteExist || haveWaypointsChanged) && !isLoadingRoute && TransactionUtils.validateWaypoints(waypoints);
-
+    const validatedWaypoints = TransactionUtils.getValidWaypoints(waypoints);
+    const shouldFetchRoute = (!doesRouteExist || haveWaypointsChanged) && !isLoadingRoute && _.size(validatedWaypoints) > 1;
     const waypointMarkers = useMemo(
         () =>
             _.filter(
                 _.map(waypoints, (waypoint, key) => {
-                    if (!waypoint || !lodashHas(waypoint, 'lat') || !lodashHas(waypoint, 'lng')) {
+                    if (!waypoint || !lodashHas(waypoint, 'lat') || !lodashHas(waypoint, 'lng') || lodashIsNull(waypoint.lat) || lodashIsNull(waypoint.lng)) {
                         return;
                     }
 
@@ -149,14 +152,13 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
         const visibleAreaEnd = lodashGet(event, 'nativeEvent.contentOffset.y', 0) + scrollContainerHeight;
         setShouldShowGradient(visibleAreaEnd < scrollContentHeight);
     };
-
     useEffect(() => {
         if (isOffline || !shouldFetchRoute) {
             return;
         }
 
-        Transaction.getRoute(iou.transactionID, waypoints);
-    }, [shouldFetchRoute, iou.transactionID, waypoints, isOffline]);
+        Transaction.getRoute(iou.transactionID, validatedWaypoints);
+    }, [shouldFetchRoute, iou.transactionID, validatedWaypoints, isOffline]);
 
     useEffect(updateGradientVisibility, [scrollContainerHeight, scrollContentHeight]);
 
@@ -167,9 +169,15 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
                 onLayout={(event = {}) => setScrollContainerHeight(lodashGet(event, 'nativeEvent.layout.height', 0))}
             >
                 <ScrollView
-                    onContentSizeChange={(width, height) => setScrollContentHeight(height)}
+                    onContentSizeChange={(width, height) => {
+                        if (scrollContentHeight < height && numberOfWaypoints > numberOfPreviousWaypoints) {
+                            scrollViewRef.current.scrollToEnd({animated: true});
+                        }
+                        setScrollContentHeight(height);
+                    }}
                     onScroll={updateGradientVisibility}
                     scrollEventThrottle={16}
+                    ref={scrollViewRef}
                 >
                     {_.map(waypoints, (waypoint, key) => {
                         // key is of the form waypoint0, waypoint1, ...
@@ -255,7 +263,7 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
                 success
                 style={[styles.w100, styles.mb4, styles.ph4, styles.flexShrink0]}
                 onPress={() => IOU.navigateToNextPage(iou, iouType, reportID, report)}
-                isDisabled={waypointMarkers.length < 2}
+                isDisabled={_.size(validatedWaypoints) < 2}
                 text={translate('common.next')}
             />
         </>
