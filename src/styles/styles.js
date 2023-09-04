@@ -3811,7 +3811,7 @@ const styles = {
     moneyRequestHeaderStatusBarBadge: {
         padding: 8,
         borderRadius: variables.componentBorderRadiusMedium,
-        marginRight: 16,
+        marginRight: 12,
         backgroundColor: themeColors.border,
     },
 
