@@ -47,7 +47,7 @@ const defaultProps = {
     pressed: false,
 };
 
-function Icon({src, width, height, fill, small, inline, additionalStyles, hovered, pressed}) {
+const Icon = React.forwardRef(({src, width, height, fill, small, inline, additionalStyles, hovered, pressed}, ref) => {
     const effectiveWidth = small ? variables.iconSizeSmall : width;
     const effectiveHeight = small ? variables.iconSizeSmall : height;
     const iconStyles = [StyleUtils.getWidthAndHeightStyle(effectiveWidth, effectiveHeight), IconWrapperStyles, styles.pAbsolute, ...additionalStyles];
@@ -57,8 +57,9 @@ function Icon({src, width, height, fill, small, inline, additionalStyles, hovere
     if (inline) {
         return (
             <View
+                ref={ref}
                 testID={`${src.name} Icon`}
-                style={[StyleUtils.getWidthAndHeightStyle(effectiveWidth, effectiveHeight), styles.bgTransparent, styles.overflowVisible]}
+                style={[StyleUtils.getWidthAndHeightStyle(width, height), styles.bgTransparent, styles.overflowVisible]}
             >
                 <View style={iconStyles}>
                     <IconComponent
@@ -75,6 +76,7 @@ function Icon({src, width, height, fill, small, inline, additionalStyles, hovere
 
     return (
         <View
+            ref={ref}
             testID={`${src.name} Icon`}
             style={additionalStyles}
         >
@@ -87,7 +89,7 @@ function Icon({src, width, height, fill, small, inline, additionalStyles, hovere
             />
         </View>
     );
-}
+});
 
 Icon.propTypes = propTypes;
 Icon.defaultProps = defaultProps;

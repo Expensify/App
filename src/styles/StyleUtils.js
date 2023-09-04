@@ -514,18 +514,6 @@ function getIconFillColor(buttonState = CONST.BUTTON_STATES.DEFAULT, isMenuIcon 
 }
 
 /**
- * @param {Animated.Value} rotate
- * @param {Animated.Value} backgroundColor
- * @returns {Object}
- */
-function getAnimatedFABStyle(rotate, backgroundColor) {
-    return {
-        transform: [{rotate}],
-        backgroundColor,
-    };
-}
-
-/**
  * @param {Number} width
  * @param {Number | null} height
  * @returns {Object}
@@ -1325,7 +1313,6 @@ export {
     getBadgeColorStyle,
     getButtonBackgroundColorStyle,
     getIconFillColor,
-    getAnimatedFABStyle,
     getWidthAndHeightStyle,
     getModalPaddingStyles,
     getFontFamilyMonospace,

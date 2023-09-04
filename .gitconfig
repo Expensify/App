@@ -1,0 +1,8 @@
+[commit]
+    gpgsign = true
+[user]
+    email = 77965000+rayane-djouah@users.noreply.github.com
+    name = Rayane Djouah
+    signingkey = D23D62C4BF91F160
+[gpg]
+    program = gpg
