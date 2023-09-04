@@ -16,15 +16,6 @@ import PusherHelper from '../utils/PusherHelper';
 import Navigation from '../../src/libs/Navigation/Navigation';
 import ROUTES from '../../src/ROUTES';
 
-jest.mock('../../src/libs/actions/Report', () => {
-    const originalModule = jest.requireActual('../../src/libs/actions/Report');
-
-    return {
-        ...originalModule,
-        showReportActionNotification: jest.fn(),
-    };
-});
-
 jest.mock('../../src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     dismissModal: jest.fn(),
