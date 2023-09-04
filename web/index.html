@@ -15,7 +15,8 @@
     <meta property="og:image" content="https://new.expensify.com/og-preview-image.png">
     <link rel="stylesheet" type="text/css" href="/css/fonts.css" />
     <link rel="stylesheet" type="text/css" href="/css/pdf.css" />
-    <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' 'unsafe-eval' https://polyfill.io https://cdn.plaid.com https://www.woopra.com https://assets.onfido.com https://sentry.io https://*.sardine.ai/ https://appleid.cdn-apple.com https://accounts.google.com">
+    <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self' https://assets.onfido.com; script-src 'self' 'unsafe-eval'  'unsafe-inline'  https://polyfill.io https://cdn.plaid.com https://www.woopra.com https://assets.onfido.com https://sentry.io https://*.sardine.ai/ https://appleid.cdn-apple.com https://accounts.google.com/gsi/client; connect-src 'self' https://*.pusher.com wss://*.pusher.com https://*.pusherapp.com https://secure.expensify.com https://www.expensify.com https://accounts.google.com/gsi/ wss://sync.onfido.com https://telephony.onfido.com blob: *.onfido.com wss://*.onfido.com https://www.woopra.com https://sentry.io https://*.tiles.mapbox.com https://api.mapbox.com https://events.mapbox.com; img-src * blob: data:; style-src 'self' 'unsafe-inline' https://assets.onfido.com https://accounts.google.com/gsi/style; font-src https://new.expensify.com https://www.expensify.com; frame-src 'self' https://cdn.plaid.com https://www.expensify.com https://*.sardine.ai/ https://accounts.google.com/gsi/ new-expensify://new.expensify.com; worker-src 'self' blob:; child-src 'self' blob:; media-src blob: https://assets.onfido.com;">
     <!-- Do not index the staging site -->
     <% if (htmlWebpackPlugin.options.isStaging) { %>
         <meta name="robots" content="noindex, nofollow">
