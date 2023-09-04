@@ -6,14 +6,14 @@ type RefType<T> = Pick<FlatList<T>, 'scrollToEnd'>;
 
 type DraggableListType = <T>(props: DraggableListProps<T> & {ref?: React.ForwardedRef<RefType<T>>}) => JSX.Element;
 
-type DataType<T> = {
+type DraggableListData<T> = {
     data: T[];
 };
 
 type DraggableListProps<T> = {
     keyExtractor: (item: T, index: number) => string;
     renderItem: (params: RenderItemParams<T>) => React.ReactNode;
-    onDragEnd?: (params: DataType<T>) => void;
+    onDragEnd?: (params: DraggableListData<T>) => void;
     onDragBegin?: () => void;
     onPlaceholderIndexChange?: (placeholderIndex: number) => void;
     renderClone?: DraggableChildrenFn;
@@ -21,7 +21,7 @@ type DraggableListProps<T> = {
     onContentSizeChange?: ((w: number, h: number) => void) | undefined;
     // TODO: implement on web
     onScrollOffsetChange?: (() => void) | undefined;
-} & DataType<T>;
+} & DraggableListData<T>;
 
 type RenderItemParams<T> = OriginalRenderItemParams<T>;
 
