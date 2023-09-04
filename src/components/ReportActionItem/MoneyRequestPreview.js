@@ -32,6 +32,7 @@ import PressableWithFeedback from '../Pressable/PressableWithoutFeedback';
 import * as ReceiptUtils from '../../libs/ReceiptUtils';
 import ReportActionItemImages from './ReportActionItemImages';
 import transactionPropTypes from '../transactionPropTypes';
+import * as StyleUtils from '../../styles/StyleUtils';
 import colors from '../../styles/colors';
 import variables from '../../styles/variables';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
@@ -267,7 +268,7 @@ function MoneyRequestPreview(props) {
                                 <Text
                                     style={[
                                         styles.moneyRequestPreviewAmount,
-                                        StyleUtils.getAmountFontSizeAndLineHeight(variables.fontSizeXLarge, variables.lineHeightXXLarge, isSmallScreenWidth, windowWidth, requestAmount),
+                                        StyleUtils.getAmountFontSizeAndLineHeight(variables.fontSizeXLarge, variables.lineHeightXXLarge, isSmallScreenWidth, windowWidth),
                                     ]}
                                     numberOfLines={1}
                                 >

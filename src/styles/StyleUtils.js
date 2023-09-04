@@ -1347,26 +1347,22 @@ function getDropDownButtonHeight(buttonSize) {
  * @param {Number} baseLineHeight
  * @param {Boolean} isSmallScreenWidth
  * @param {Number} windowWidth
- * @param {Number} requestAmount
  * @returns {Object}
  */
-function getAmountFontSizeAndLineHeight(baseFontSize, baseLineHeight, isSmallScreenWidth, windowWidth, requestAmount) {
+function getAmountFontSizeAndLineHeight(baseFontSize, baseLineHeight, isSmallScreenWidth, windowWidth) {
     let toSubtract = 0;
-
-    // requestAmount also includes digits after ".", so "1,000,000.00" qualifies.
-    if (requestAmount >= 100000000) toSubtract = 2;
 
     if (isSmallScreenWidth) {
         const widthDifference = variables.mobileResponsiveWidthBreakpoint - windowWidth;
         switch (true) {
             case widthDifference > 450:
-                toSubtract += 9;
+                toSubtract = 11;
                 break;
             case widthDifference > 400:
-                toSubtract += 6;
+                toSubtract = 8;
                 break;
             case widthDifference > 350:
-                toSubtract += 2;
+                toSubtract = 4;
                 break;
             default:
                 break;
