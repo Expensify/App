@@ -35,6 +35,7 @@ const defaultProps = {
 
 function UserCurrentLocationButton({onLocationFetched, onLocationError, onClick, isDisabled, translate}) {
     const isFetchingLocation = useRef(false);
+    const shouldTriggerCallbacks = useRef(true);
 
     /** Gets the user's current location and registers success/error callbacks */
     const getUserLocation = () => {
@@ -47,16 +48,20 @@ function UserCurrentLocationButton({onLocationFetched, onLocationError, onClick,
         getCurrentPosition(
             (successData) => {
                 isFetchingLocation.current = false;
+                if (!shouldTriggerCallbacks.current) {
+                    return;
+                }
 
                 User.clearLocationError();
-
                 onLocationFetched(successData);
             },
             (errorData) => {
                 isFetchingLocation.current = false;
+                if (!shouldTriggerCallbacks.current) {
+                    return;
+                }
 
                 User.setLocationError(errorData.code);
-
                 onLocationError(errorData);
             },
             {
@@ -69,6 +74,11 @@ function UserCurrentLocationButton({onLocationFetched, onLocationError, onClick,
     useEffect(() => {
         // Clear location errors on mount
         User.clearLocationError();
+
+        return () => {
+            // If the component unmounts we don't want any of the callback for geolocation to run.
+            shouldTriggerCallbacks.current = false;
+        };
     }, []);
 
     return (

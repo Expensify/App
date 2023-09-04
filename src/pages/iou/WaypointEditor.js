@@ -83,7 +83,6 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const textInput = useRef(null);
-    const shouldUseCurrentLocationRef = useRef(true);
     const parsedWaypointIndex = parseInt(waypointIndex, 10);
     const allWaypoints = lodashGet(transaction, 'comment.waypoints', {});
     const waypointCount = _.keys(allWaypoints).length;
@@ -171,8 +170,6 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
      * @param {Object} geolocationData.timestamp
      */
     const selectWaypointFromCurrentLocation = (geolocationData) => {
-        if (!shouldUseCurrentLocationRef.current) return;
-
         setIsFetchingLocation(false);
 
         const waypoint = {
@@ -196,7 +193,6 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
                     title={translate(wayPointDescriptionKey)}
                     shouldShowBackButton
                     onBackButtonPress={() => {
-                        shouldUseCurrentLocationRef.current = false;
                         Navigation.goBack(ROUTES.getMoneyRequestDistanceTabRoute(iouType));
                     }}
                     shouldShowThreeDotsButton={shouldShowThreeDotsButton}
