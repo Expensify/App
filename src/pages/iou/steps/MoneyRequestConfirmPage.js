@@ -259,8 +259,7 @@ function MoneyRequestConfirmPage(props) {
                      * VirtualizedList cannot be directly nested within ScrollViews of the same orientation.
                      * To work around this, we wrap the MoneyRequestConfirmationList component with a horizontal ScrollView.
                      */}
-                    <ScrollView
-                            contentContainerStyle={[styles.flexGrow1]}>
+                    <ScrollView contentContainerStyle={[styles.flexGrow1]}>
                         <ScrollView
                             horizontal
                             contentContainerStyle={[styles.flex1, styles.flexColumn]}
