@@ -13,7 +13,6 @@ import OptionRowLHN, {propTypes as basePropTypes, defaultProps as baseDefaultPro
 import * as Report from '../../libs/actions/Report';
 import * as UserUtils from '../../libs/UserUtils';
 import * as ReportUtils from '../../libs/ReportUtils';
-import * as ReportActionUtils from '../../libs/ReportActionsUtils';
 
 import participantPropTypes from '../participantPropTypes';
 import CONST from '../../CONST';
@@ -95,9 +94,7 @@ function OptionRowLHNData({
     const optionItemRef = useRef();
 
     const lastTransaction = useMemo(() => {
-        let reportIDLocal = fullReport.reportID;
-
-        const transactionsWithReceipts = ReportUtils.getSortedTransactionsWithReceipts(reportIDLocal);
+        const transactionsWithReceipts = ReportUtils.getSortedTransactionsWithReceipts(fullReport.reportID);
         return _.first(transactionsWithReceipts);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [fullReport.reportID, receiptTransactions, reportActions]);
