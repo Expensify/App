@@ -9,6 +9,7 @@ type Comment = {
 type Transaction = {
     transactionID: string;
     amount: number;
+    category?: string;
     currency: string;
     reportID: string;
     comment: Comment;

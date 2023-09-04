@@ -13,6 +13,7 @@ import ROUTES from '../../ROUTES';
 import * as IOU from '../../libs/actions/IOU';
 import NewDatePicker from '../../components/NewDatePicker';
 import useLocalize from '../../hooks/useLocalize';
+import CONST from '../../CONST';
 import {iouPropTypes, iouDefaultProps} from './propTypes';
 
 const propTypes = {
@@ -37,16 +38,20 @@ const propTypes = {
             threadReportID: PropTypes.string,
         }),
     }).isRequired,
+
+    /** The current tab we have navigated to in the request modal. String that corresponds to the request type. */
+    selectedTab: PropTypes.oneOf([CONST.TAB.DISTANCE, CONST.TAB.MANUAL, CONST.TAB.SCAN]).isRequired,
 };
 
 const defaultProps = {
     iou: iouDefaultProps,
 };
 
-function MoneyRequestDatePage({iou, route}) {
+function MoneyRequestDatePage({iou, route, selectedTab}) {
     const {translate} = useLocalize();
     const iouType = lodashGet(route, 'params.iouType', '');
     const reportID = lodashGet(route, 'params.reportID', '');
+    const isDistanceRequest = selectedTab === CONST.TAB.DISTANCE;
 
     useEffect(() => {
         const moneyRequestId = `${iouType}${reportID}`;
@@ -55,10 +60,10 @@ function MoneyRequestDatePage({iou, route}) {
             IOU.resetMoneyRequestInfo(moneyRequestId);
         }
 
-        if (_.isEmpty(iou.participants) || (iou.amount === 0 && !iou.receiptPath) || shouldReset) {
+        if (!isDistanceRequest && (_.isEmpty(iou.participants) || (iou.amount === 0 && !iou.receiptPath) || shouldReset)) {
             Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType, reportID), true);
         }
-    }, [iou.id, iou.participants, iou.amount, iou.receiptPath, iouType, reportID]);
+    }, [iou.id, iou.participants, iou.amount, iou.receiptPath, iouType, reportID, isDistanceRequest]);
 
     function navigateBack() {
         Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID));
@@ -108,5 +113,8 @@ MoneyRequestDatePage.defaultProps = defaultProps;
 export default withOnyx({
     iou: {
         key: ONYXKEYS.IOU,
+    },
+    selectedTab: {
+        key: `${ONYXKEYS.SELECTED_TAB}_${CONST.TAB.RECEIPT_TAB_ID}`,
     },
 })(MoneyRequestDatePage);
