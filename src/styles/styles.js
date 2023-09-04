@@ -3782,6 +3782,8 @@ const styles = {
         borderColor: themeColors.cardBG,
         borderTopLeftRadius: variables.componentBorderRadiusLarge,
         borderTopRightRadius: variables.componentBorderRadiusLarge,
+        borderBottomLeftRadius: variables.componentBorderRadiusLarge,
+        borderBottomRightRadius: variables.componentBorderRadiusLarge,
         overflow: 'hidden',
         height: 200,
     },
@@ -3811,7 +3813,7 @@ const styles = {
     moneyRequestHeaderStatusBarBadge: {
         padding: 8,
         borderRadius: variables.componentBorderRadiusMedium,
-        marginRight: 16,
+        marginRight: 12,
         backgroundColor: themeColors.border,
     },
 
