@@ -27,7 +27,6 @@ import ExceededCommentLength from '../../../../components/ExceededCommentLength'
 import ReportDropUI from '../ReportDropUI';
 import reportPropTypes from '../../../reportPropTypes';
 import OfflineWithFeedback from '../../../../components/OfflineWithFeedback';
-import * as Welcome from '../../../../libs/actions/Welcome';
 import SendButton from './SendButton';
 import AttachmentPickerWithMenuItems from './AttachmentPickerWithMenuItems';
 import ComposerWithSuggestions from './ComposerWithSuggestions';
