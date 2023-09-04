@@ -1,6 +1,11 @@
 import Str from 'expensify-common/lib/str';
 
-const getStyledTextArray = (name: string, prefix: string) => {
+type StyledText = {
+    text: string;
+    isColored: boolean;
+};
+
+const getStyledTextArray = (name: string, prefix: string): StyledText[] => {
     const texts = [];
     const prefixLowercase = prefix.toLowerCase();
     const prefixLocation = name.toLowerCase().search(Str.escapeForRegExp(prefixLowercase));
