@@ -187,6 +187,8 @@ function createTaskAndNavigate(parentReportID, title, description, assigneeEmail
         value: {[optimisticAddCommentReport.reportAction.reportActionID]: {pendingAction: null}},
     });
 
+    clearOutTaskInfo();
+
     API.write(
         'CreateTask',
         {
