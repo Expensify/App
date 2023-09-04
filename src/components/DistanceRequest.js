@@ -212,7 +212,7 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
                 {shouldShowGradient && (
                     <LinearGradient
                         style={[styles.pAbsolute, styles.b0, styles.l0, styles.r0, {height: halfMenuItemHeight}]}
-                        colors={[theme.transparent, theme.modalBackground]}
+                        colors={[`${theme.modalBackground}00`, theme.modalBackground]}
                     />
                 )}
                 {hasRouteError && (
