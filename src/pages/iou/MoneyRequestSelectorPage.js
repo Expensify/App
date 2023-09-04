@@ -17,7 +17,6 @@ import ReceiptSelector from './ReceiptSelector';
 import * as IOU from '../../libs/actions/IOU';
 import DistanceRequestPage from './DistanceRequestPage';
 import DragAndDropProvider from '../../components/DragAndDrop/Provider';
-import usePermissions from '../../hooks/usePermissions';
 import OnyxTabNavigator, {TopTab} from '../../libs/Navigation/OnyxTabNavigator';
 import NewRequestAmountPage from './steps/NewRequestAmountPage';
 import reportPropTypes from '../reportPropTypes';
