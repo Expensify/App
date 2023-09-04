@@ -13,7 +13,8 @@ class Hoverable extends Component {
         super(props);
 
         this.handleVisibilityChange = this.handleVisibilityChange.bind(this);
-        this.checkHover = _.debounce(this.checkHover.bind(this), 100);
+        // this.checkHover = _.debounce(this.checkHover.bind(this), 100);
+        this.checkHover = this.checkHover.bind(this);
 
         this.state = {
             isHovered: false,
