@@ -885,26 +885,6 @@ function clearDraftCustomStatus() {
     Onyx.merge(ONYXKEYS.CUSTOM_STATUS_DRAFT, {text: '', emojiCode: '', clearAfter: ''});
 }
 
-/**
- * Sets the error code when trying to get user's current location. When
- * errorCode = -1 -> location not supported (web only)
- * errorCode 1 = location permission is not enabled
- * errorCode 2 = location is unavailable or there is some connection issue
- * errorCode 3 = location fetch timeout
- *
- * @param {Object} errorCode - indicates location error.
- */
-function setLocationError(errorCode) {
-    Onyx.set(ONYXKEYS.LOCATION_ERROR_CODE, errorCode);
-}
-
-/**
- * Clears the location error code
- */
-function clearLocationError() {
-    Onyx.set(ONYXKEYS.LOCATION_ERROR_CODE, null);
-}
-
 export {
     closeAccount,
     resendValidateCode,
@@ -934,6 +914,4 @@ export {
     clearCustomStatus,
     updateDraftCustomStatus,
     clearDraftCustomStatus,
-    setLocationError,
-    clearLocationError,
 };
