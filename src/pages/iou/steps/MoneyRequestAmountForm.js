@@ -1,5 +1,5 @@
 import React, {useEffect, useState, useCallback, useRef} from 'react';
-import {View} from 'react-native';
+import {ScrollView, View} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
@@ -200,7 +200,7 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
     const buttonText = isEditing ? translate('common.save') : translate('common.next');
 
     return (
-        <>
+        <ScrollView contentContainerStyle={styles.flexGrow1}>
             <View
                 nativeID={AMOUNT_VIEW_ID}
                 onMouseDown={(event) => onMouseDown(event, [AMOUNT_VIEW_ID])}
@@ -253,7 +253,7 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
                     text={buttonText}
                 />
             </View>
-        </>
+        </ScrollView>
     );
 }
 
