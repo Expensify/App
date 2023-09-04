@@ -309,7 +309,8 @@ function waypointHasValidAddress(waypoint) {
  * @returns {Object} validated waypoints
  */
 function getValidWaypoints(waypoints, reArrangeIndexes = false) {
-    const waypointValues = _.values(waypoints);
+    const sortedIndexes = _.map(waypoints, (_, key) => parseInt(key.replace('waypoint', ''), 10)).sort();
+    const waypointValues = _.map(sortedIndexes, (index) => waypoints[`waypoint${index}`]);
     // Ensure the number of waypoints is between 2 and 25
     if (waypointValues.length < 2 || waypointValues.length > 25) {
         return {};
@@ -339,7 +340,6 @@ function getValidWaypoints(waypoints, reArrangeIndexes = false) {
         },
         {},
     );
-
     return validWaypoints;
 }
 
