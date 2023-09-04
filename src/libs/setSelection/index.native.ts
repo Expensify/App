@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import SetSelection from './types';
 
 const setSelection: SetSelection = (textInput, start, end) => {
