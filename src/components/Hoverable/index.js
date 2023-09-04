@@ -73,7 +73,7 @@ class Hoverable extends Component {
         }
 
         this.setIsHovered(false);
-    };
+    }
 
     handleVisibilityChange() {
         if (document.visibilityState !== 'hidden') {
