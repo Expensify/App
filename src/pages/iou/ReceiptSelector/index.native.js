@@ -1,6 +1,6 @@
 import {ActivityIndicator, Alert, AppState, Linking, Text, View} from 'react-native';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {Camera, useCameraDevices} from 'react-native-vision-camera';
+import {useCameraDevices} from 'react-native-vision-camera';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import {launchImageLibrary} from 'react-native-image-picker';
