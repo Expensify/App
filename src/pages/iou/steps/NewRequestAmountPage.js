@@ -64,7 +64,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
     const reportID = lodashGet(route, 'params.reportID', '');
     const isEditing = lodashGet(route, 'path', '').includes('amount');
     const currentCurrency = lodashGet(route, 'params.currency', '');
-    const isDistanceRequestTab = iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST && selectedTab === CONST.TAB.DISTANCE;
+    const isDistanceRequestTab = iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST && selectedTab === CONST.TAB.DISTANCE;
 
     const currency = currentCurrency || iou.currency;
 
