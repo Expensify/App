@@ -424,7 +424,7 @@ function TimePicker({forwardedRef, value, errorText, onInputChange}) {
                 </View>
             </View>
             <View
-                style={[styles.pageWrapper, styles.pb0, styles.mb12]}
+                style={[styles.pageWrapper, styles.pb0]}
                 nativeID={NUM_PAD_CONTAINER_VIEW_ID}
             >
                 {numberPad()}

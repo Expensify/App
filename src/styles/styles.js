@@ -3944,6 +3944,9 @@ const styles = {
     timePickerInputExtraSmall: {
         fontSize: 50,
     },
+    setTimeFormButtonContainer: {
+      minHeight: 54
+    }
 };
 
 export default styles;
