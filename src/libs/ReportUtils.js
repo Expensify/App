@@ -1463,10 +1463,10 @@ function getTransactionReportName(reportAction) {
  *
  * @param {Object} report
  * @param {Object} [reportAction={}]
- * @param {Boolean} [shouldConsiderReceiptBeingScanned=true]
+ * @param {Boolean} [shouldConsiderReceiptBeingScanned=false]
  * @returns  {String}
  */
-function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceiptBeingScanned = true) {
+function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceiptBeingScanned) {
     const reportActionMessage = lodashGet(reportAction, 'message[0].html', '');
 
     if (_.isEmpty(report) || !report.reportID) {
