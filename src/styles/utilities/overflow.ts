@@ -1,4 +1,4 @@
-import {CSSProperties} from 'react';
+import {ViewStyle} from 'react-native';
 import overflowAuto from './overflowAuto';
 
 /**
@@ -24,4 +24,4 @@ export default {
     },
 
     overflowAuto,
-} satisfies Record<string, CSSProperties>;
+} satisfies Record<string, ViewStyle>;

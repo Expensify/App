@@ -1,4 +1,4 @@
-import {CSSProperties} from 'react';
+import {TextStyle, ViewStyle} from 'react-native';
 
 type CursorStylesKeys =
     | 'cursorDefault'
@@ -13,6 +13,6 @@ type CursorStylesKeys =
     | 'cursorInitial'
     | 'cursorText';
 
-type CursorStyles = Record<CursorStylesKeys, Partial<Pick<CSSProperties, 'cursor'>>>;
+type CursorStyles = Record<CursorStylesKeys, Pick<ViewStyle | TextStyle, 'cursor'>>;
 
 export default CursorStyles;

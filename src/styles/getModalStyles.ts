@@ -1,11 +1,10 @@
-import {CSSProperties} from 'react';
 import {ViewStyle} from 'react-native';
-import {ValueOf} from 'type-fest';
 import {ModalProps} from 'react-native-modal';
+import {ValueOf} from 'type-fest';
 import CONST from '../CONST';
-import variables from './variables';
-import themeColors from './themes/default';
 import styles from './styles';
+import themeColors from './themes/default';
+import variables from './variables';
 
 function getCenteredModalStyles(windowWidth: number, isSmallScreenWidth: boolean, isFullScreenWhenSmall = false): ViewStyle {
     return {
@@ -26,7 +25,7 @@ type WindowDimensions = {
 
 type GetModalStyles = {
     modalStyle: ViewStyle;
-    modalContainerStyle: ViewStyle | Pick<CSSProperties, 'boxShadow'>;
+    modalContainerStyle: ViewStyle;
     swipeDirection: ModalProps['swipeDirection'];
     animationIn: ModalProps['animationIn'];
     animationOut: ModalProps['animationOut'];

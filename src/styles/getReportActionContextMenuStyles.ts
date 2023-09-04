@@ -1,12 +1,11 @@
-import {CSSProperties} from 'react';
 import {ViewStyle} from 'react-native';
 import styles from './styles';
-import variables from './variables';
 import themeColors from './themes/default';
+import variables from './variables';
 
-type StylesArray = Array<ViewStyle | CSSProperties>;
+type StylesArray = ViewStyle[];
 
-const defaultWrapperStyle: ViewStyle | CSSProperties = {
+const defaultWrapperStyle: ViewStyle = {
     backgroundColor: themeColors.componentBG,
 };
 
@@ -18,7 +17,9 @@ const miniWrapperStyle: StylesArray = [
         borderWidth: 1,
         borderColor: themeColors.border,
         // In Safari, when welcome messages use a code block (triple backticks), they would overlap the context menu below when there is no scrollbar without the transform style.
-        transform: 'translateZ(0)',
+        // NOTE: asserting "transform" TS type to a valid type, because isn't possible
+        // to augment "transform".
+        transform: 'translateZ(0)' as unknown as ViewStyle['transform'],
     },
 ];
 
