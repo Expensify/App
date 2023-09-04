@@ -109,16 +109,22 @@ function getPolicyType(report, policies) {
  * @param {String} report.policyName
  * @param {Boolean} [returnEmptyIfNotFound]
  * @param {Object} [policy]
- * @returns {String}
+ * @returns {Object|String}
  */
 function getPolicyName(report, returnEmptyIfNotFound = false, policy = undefined) {
-    const noPolicyFound = returnEmptyIfNotFound ? '' : Localize.translateLocal('workspace.common.unavailable');
+    const noPolicyFound = returnEmptyIfNotFound
+        ? ''
+        : {
+              key: 'workspace.common.unavailable',
+          };
     if (_.isEmpty(report)) {
         return noPolicyFound;
     }
 
     if ((!allPolicies || _.size(allPolicies) === 0) && !report.policyName) {
-        return Localize.translateLocal('workspace.common.unavailable');
+        return {
+            key: 'workspace.common.unavailable',
+        };
     }
     const finalPolicy = policy || _.get(allPolicies, `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`);
 
