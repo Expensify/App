@@ -152,4 +152,6 @@ export default {
     qrShareHorizontalPadding: 32,
 
     baseMenuItemHeight: 64,
+
+    moneyRequestSkeletonHeight: 107,
 } as const;
