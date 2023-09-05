@@ -1775,6 +1775,7 @@ function buildOptimisticAddCommentReportAction(text, file) {
 
     // Remove HTML from text when applying optimistic offline comment
     const textForNewComment = isAttachment ? CONST.ATTACHMENT_MESSAGE_TEXT : parser.htmlToText(htmlForNewComment);
+
     return {
         commentText,
         reportAction: {

@@ -274,9 +274,8 @@ function getDBTime(timestamp = '') {
 }
 
 /**
- * Returns the current time in milliseconds in the format expected by the database
+ * Returns the current time plus skew in milliseconds in the format expected by the database
  *
- * @param {String|Number} [timestamp]
  * @returns {String}
  */
 function getDBTimeWithSkew() {
