@@ -67,6 +67,12 @@ const propTypes = {
     /** Overrides the icon for shouldShowRightIcon */
     iconRight: PropTypes.elementType,
 
+    /** Function to fire when right icon is pressed */
+    onIconRightPress: PropTypes.func,
+
+    /** accessibilityLabel for right icon (if it's pressable) */
+    iconRightAccessibilityLabel: PropTypes.string,
+
     /** A description text to show under the title */
     description: PropTypes.string,
 
