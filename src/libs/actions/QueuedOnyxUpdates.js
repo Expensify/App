@@ -11,14 +11,6 @@ Onyx.connect({
     callback: (val) => (queuedOnyxUpdates = val || []),
 });
 
-/**
- * @param {Array<Object>} updates Onyx updates to queue for later
- * @returns {Promise}
- */
-function queueOnyxUpdates(updates) {
-    return Onyx.set(ONYXKEYS.QUEUED_ONYX_UPDATES, [...queuedOnyxUpdates, ...updates]);
-}
-
 function clear() {
     Onyx.set(ONYXKEYS.QUEUED_ONYX_UPDATES, null);
 }
