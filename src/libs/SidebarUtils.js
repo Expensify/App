@@ -88,6 +88,9 @@ function setWithLimit(map, key, value) {
     map.set(key, value);
 }
 
+// Variable to verify initial ONYX actions
+let hasInitialReportActions = false;
+
 /**
  * @param {String} currentReportId
  * @param {Object} allReportsDict
@@ -112,9 +115,10 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
     );
 
     // // Check if the result is already in the cache
-    if (reportIDsCache.has(cachedReports)) {
+    if (reportIDsCache.has(cachedReports) && hasInitialReportActions) {
         return reportIDsCache.get(cachedReports);
     }
+    hasInitialReportActions = Object.values(lastReportActions).length > 0;
 
     const isInGSDMode = priorityMode === CONST.PRIORITY_MODE.GSD;
     const isInDefaultMode = !isInGSDMode;
