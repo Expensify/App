@@ -1,28 +1,25 @@
-import _ from 'underscore';
 import CONST from '../CONST';
 
 let requestWaitTime = 0;
 
-function clear() {
+function clear(): void {
     requestWaitTime = 0;
 }
 
-/**
- * @returns {Number} time to wait in ms
- */
+function getRandomInt(min: number, max: number): number {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
 function getRequestWaitTime() {
     if (requestWaitTime) {
         requestWaitTime = Math.min(requestWaitTime * 2, CONST.NETWORK.MAX_RETRY_WAIT_TIME_MS);
     } else {
-        requestWaitTime = _.random(CONST.NETWORK.MIN_RETRY_WAIT_TIME_MS, CONST.NETWORK.MAX_RANDOM_RETRY_WAIT_TIME_MS);
+        requestWaitTime = getRandomInt(CONST.NETWORK.MIN_RETRY_WAIT_TIME_MS, CONST.NETWORK.MAX_RANDOM_RETRY_WAIT_TIME_MS);
     }
     return requestWaitTime;
 }
 
-/**
- * @returns {Promise}
- */
-function sleep() {
+function sleep(): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, getRequestWaitTime()));
 }
 
