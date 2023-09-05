@@ -3817,10 +3817,14 @@ const styles = {
     },
 
     moneyRequestHeaderStatusBarBadge: {
-        padding: 8,
-        borderRadius: variables.componentBorderRadiusMedium,
-        marginRight: 12,
+        paddingHorizontal: 8,
+        borderRadius: variables.componentBorderRadiusSmall,
+        height: variables.inputHeightSmall,
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
         backgroundColor: themeColors.border,
+        marginRight: 12,
     },
 
     staticHeaderImage: {

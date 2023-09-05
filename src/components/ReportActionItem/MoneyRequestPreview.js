@@ -36,6 +36,7 @@ import * as StyleUtils from '../../styles/StyleUtils';
 import colors from '../../styles/colors';
 import variables from '../../styles/variables';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
+import MoneyRequestSkeletonView from '../MoneyRequestSkeletonView';
 
 const propTypes = {
     /** The active IOUReport, used for Onyx subscription */
@@ -240,85 +241,89 @@ function MoneyRequestPreview(props) {
                             isHovered={isScanning}
                         />
                     )}
-                    <View style={styles.moneyRequestPreviewBoxText}>
-                        <View style={[styles.flexRow]}>
-                            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh20]}>{getPreviewHeaderText()}</Text>
-                                {Boolean(getSettledMessage()) && (
-                                    <>
-                                        <Icon
-                                            src={Expensicons.DotIndicator}
-                                            width={4}
-                                            height={4}
-                                            additionalStyles={[styles.mr1, styles.ml1]}
-                                        />
-                                        <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh20]}>{getSettledMessage()}</Text>
-                                    </>
+                    {_.isEmpty(props.transaction) ? (
+                        <MoneyRequestSkeletonView />
+                    ) : (
+                        <View style={styles.moneyRequestPreviewBoxText}>
+                            <View style={[styles.flexRow]}>
+                                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                                    <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh20]}>{getPreviewHeaderText()}</Text>
+                                    {Boolean(getSettledMessage()) && (
+                                        <>
+                                            <Icon
+                                                src={Expensicons.DotIndicator}
+                                                width={4}
+                                                height={4}
+                                                additionalStyles={[styles.mr1, styles.ml1]}
+                                            />
+                                            <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh20]}>{getSettledMessage()}</Text>
+                                        </>
+                                    )}
+                                </View>
+                                {hasFieldErrors && (
+                                    <Icon
+                                        src={Expensicons.DotIndicator}
+                                        fill={colors.red}
+                                    />
                                 )}
                             </View>
-                            {hasFieldErrors && (
-                                <Icon
-                                    src={Expensicons.DotIndicator}
-                                    fill={colors.red}
-                                />
-                            )}
-                        </View>
-                        <View style={[styles.flexRow]}>
-                            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                <Text
-                                    style={[
-                                        styles.moneyRequestPreviewAmount,
-                                        StyleUtils.getAmountFontSizeAndLineHeight(variables.fontSizeXLarge, variables.lineHeightXXLarge, isSmallScreenWidth, windowWidth),
-                                    ]}
-                                    numberOfLines={1}
-                                >
-                                    {getDisplayAmountText()}
-                                </Text>
-                                {ReportUtils.isSettled(props.iouReport.reportID) && !props.isBillSplit && (
-                                    <View style={styles.defaultCheckmarkWrapper}>
-                                        <Icon
-                                            src={Expensicons.Checkmark}
-                                            fill={themeColors.iconSuccessFill}
+                            <View style={[styles.flexRow]}>
+                                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                                    <Text
+                                        style={[
+                                            styles.moneyRequestPreviewAmount,
+                                            StyleUtils.getAmountFontSizeAndLineHeight(variables.fontSizeXLarge, variables.lineHeightXXLarge, isSmallScreenWidth, windowWidth),
+                                        ]}
+                                        numberOfLines={1}
+                                    >
+                                        {getDisplayAmountText()}
+                                    </Text>
+                                    {ReportUtils.isSettled(props.iouReport.reportID) && !props.isBillSplit && (
+                                        <View style={styles.defaultCheckmarkWrapper}>
+                                            <Icon
+                                                src={Expensicons.Checkmark}
+                                                fill={themeColors.iconSuccessFill}
+                                            />
+                                        </View>
+                                    )}
+                                </View>
+                                {props.isBillSplit && (
+                                    <View style={styles.moneyRequestPreviewBoxAvatar}>
+                                        <MultipleAvatars
+                                            icons={participantAvatars}
+                                            shouldStackHorizontally
+                                            size="small"
+                                            isHovered={props.isHovered}
+                                            shouldUseCardBackground
                                         />
                                     </View>
                                 )}
                             </View>
-                            {props.isBillSplit && (
-                                <View style={styles.moneyRequestPreviewBoxAvatar}>
-                                    <MultipleAvatars
-                                        icons={participantAvatars}
-                                        shouldStackHorizontally
-                                        size="small"
-                                        isHovered={props.isHovered}
-                                        shouldUseCardBackground
-                                    />
+                            {shouldShowMerchant && (
+                                <View style={[styles.flexRow]}>
+                                    <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh20, styles.breakWord]}>{requestMerchant}</Text>
                                 </View>
                             )}
-                        </View>
-                        {shouldShowMerchant && (
                             <View style={[styles.flexRow]}>
-                                <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh20, styles.breakWord]}>{requestMerchant}</Text>
-                            </View>
-                        )}
-                        <View style={[styles.flexRow]}>
-                            <View style={[styles.flex1]}>
-                                {!isCurrentUserManager && props.shouldShowPendingConversionMessage && (
-                                    <Text style={[styles.textLabel, styles.colorMuted, styles.mt1]}>{props.translate('iou.pendingConversionMessage')}</Text>
+                                <View style={[styles.flex1]}>
+                                    {!isCurrentUserManager && props.shouldShowPendingConversionMessage && (
+                                        <Text style={[styles.textLabel, styles.colorMuted, styles.mt1]}>{props.translate('iou.pendingConversionMessage')}</Text>
+                                    )}
+                                    {shouldShowDescription && <Text style={[styles.mt1, styles.colorMuted]}>{description}</Text>}
+                                </View>
+                                {props.isBillSplit && !_.isEmpty(participantAccountIDs) && (
+                                    <Text style={[styles.textLabel, styles.colorMuted, styles.ml1]}>
+                                        {props.translate('iou.amountEach', {
+                                            amount: CurrencyUtils.convertToDisplayString(
+                                                IOUUtils.calculateAmount(isPolicyExpenseChat ? 1 : participantAccountIDs.length - 1, requestAmount, requestCurrency),
+                                                requestCurrency,
+                                            ),
+                                        })}
+                                    </Text>
                                 )}
-                                {shouldShowDescription && <Text style={[styles.mt1, styles.colorMuted]}>{description}</Text>}
                             </View>
-                            {props.isBillSplit && !_.isEmpty(participantAccountIDs) && (
-                                <Text style={[styles.textLabel, styles.colorMuted, styles.ml1]}>
-                                    {props.translate('iou.amountEach', {
-                                        amount: CurrencyUtils.convertToDisplayString(
-                                            IOUUtils.calculateAmount(isPolicyExpenseChat ? 1 : participantAccountIDs.length - 1, requestAmount, requestCurrency),
-                                            requestCurrency,
-                                        ),
-                                    })}
-                                </Text>
-                            )}
                         </View>
-                    </View>
+                    )}
                 </View>
             </OfflineWithFeedback>
         </View>
