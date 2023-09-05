@@ -304,52 +304,48 @@ function MagicCodeInput(props) {
     return (
         <>
             <View style={[styles.magicCodeInputContainer]}>
-                <View style={[StyleSheet.absoluteFillObject, styles.w100, styles.invisibleOverlay]}>
-                    <TapGestureHandler
-                        onBegan={(e) => {
-                            onPress(Math.floor(e.nativeEvent.x / (inputWidth.current / props.maxLength)));
-                        }}
+                <TapGestureHandler
+                    onBegan={(e) => {
+                        onPress(Math.floor(e.nativeEvent.x / (inputWidth.current / props.maxLength)));
+                    }}
+                >
+                    {/* Android does not handle touch on invisible Views so I created wrapper around inivisble TextInput just to handle taps */}
+                    <View
+                        style={[StyleSheet.absoluteFillObject, styles.w100, styles.h100, styles.invisibleOverlay]}
+                        collapsable={false}
                     >
-                        {/* Android does not handle touch on invisible Views so I created wrapper around inivisble View just to handle taps */}
-                        <View
-                            style={[styles.w100, styles.h100, styles.invisibleOverlay]}
-                            collapsable={false}
-                        >
-                            <View style={[styles.w100, styles.h100, styles.bgTransparent]}>
-                                <TextInput
-                                    onLayout={(e) => {
-                                        inputWidth.current = e.nativeEvent.layout.width;
-                                    }}
-                                    ref={(ref) => (inputRefs.current = ref)}
-                                    autoFocus={props.autoFocus}
-                                    inputMode="numeric"
-                                    textContentType="oneTimeCode"
-                                    name={props.name}
-                                    maxLength={props.maxLength}
-                                    value={input}
-                                    hideFocusedState
-                                    autoComplete={props.autoComplete}
-                                    keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                                    onChangeText={(value) => {
-                                        onChangeText(value);
-                                    }}
-                                    onKeyPress={onKeyPress}
-                                    onFocus={onFocus}
-                                    onBlur={() => {
-                                        shouldFocusLast.current = true;
-                                        lastFocusedIndex.current = focusedIndex;
-                                        setFocusedIndex(undefined);
-                                    }}
-                                    selectionColor="transparent"
-                                    inputStyle={[styles.inputTransparent]}
-                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                                    style={[styles.inputTransparent]}
-                                    textInputContainerStyles={[styles.borderNone]}
-                                />
-                            </View>
-                        </View>
-                    </TapGestureHandler>
-                </View>
+                        <TextInput
+                            onLayout={(e) => {
+                                inputWidth.current = e.nativeEvent.layout.width;
+                            }}
+                            ref={(ref) => (inputRefs.current = ref)}
+                            autoFocus={props.autoFocus}
+                            inputMode="numeric"
+                            textContentType="oneTimeCode"
+                            name={props.name}
+                            maxLength={props.maxLength}
+                            value={input}
+                            hideFocusedState
+                            autoComplete={props.autoComplete}
+                            keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                            onChangeText={(value) => {
+                                onChangeText(value);
+                            }}
+                            onKeyPress={onKeyPress}
+                            onFocus={onFocus}
+                            onBlur={() => {
+                                shouldFocusLast.current = true;
+                                lastFocusedIndex.current = focusedIndex;
+                                setFocusedIndex(undefined);
+                            }}
+                            selectionColor="transparent"
+                            inputStyle={[styles.inputTransparent]}
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            style={[styles.inputTransparent]}
+                            textInputContainerStyles={[styles.borderNone]}
+                        />
+                    </View>
+                </TapGestureHandler>
                 {_.map(getInputPlaceholderSlots(props.maxLength), (index) => (
                     <View
                         key={index}
