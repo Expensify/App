@@ -50,8 +50,10 @@ function SaveResponseInOnyx(response, request) {
         if (_.includes(requestsToIgnoreLastUpdateID, request.command) || !OnyxUpdates.needsToUpdateClient(Number(responseData.previousUpdateID || 0))) {
             return OnyxUpdates.applyOnyxUpdates({
                 type: CONST.ONYX_UPDATE_TYPES.HTTPS,
-                request: request,
-                responseData: responseData
+                data: {
+                    request,
+                    responseData,
+                },
             });
         }
 
