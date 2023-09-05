@@ -65,7 +65,7 @@ function TaskDescriptionPage(props) {
             {({didScreenTransitionEnd}) => (
                 <FullPageNotFoundView
                     shouldShow={isTaskNonEditable}
-                    subtitleKey={canModifyTask ? 'task.messages.error' : 'task.messages.notOpen'}
+                    subtitleKey={!canModifyTask ? 'task.messages.error' : 'task.messages.notOpen'}
                 >
                     <HeaderWithBackButton title={props.translate('task.task')} />
                     <Form
