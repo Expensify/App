@@ -194,7 +194,7 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
         // This is also why we have to use .website.js for our own web-specific files...
         // Because desktop also relies on "web-specific" module implementations
         // This also skips packing web only dependencies to desktop and vice versa
-        extensions: ['.web.js', platform === 'web' ? '.website.js' : '.desktop.js', '.js', '.jsx', '.web.ts', platform === 'web' ? '.website.ts' : '.desktop.ts', '.ts', '.tsx'],
+        extensions: ['.web.js', platform === 'web' ? '.website.js' : '.desktop.js', '.js', '.jsx', '.web.ts', platform === 'web' ? '.website.ts' : '.desktop.ts', '.ts', '.web.tsx', '.tsx'],
         fallback: {
             'process/browser': require.resolve('process/browser'),
         },
