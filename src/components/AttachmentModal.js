@@ -73,6 +73,9 @@ const propTypes = {
     /** The report that has this attachment */
     report: reportPropTypes,
 
+    /** Whether the attachment is a receipt image */
+    isReceipt: PropTypes.bool,
+
     ...withLocalizePropTypes,
 
     ...windowDimensionsPropTypes,
@@ -95,6 +98,7 @@ const defaultProps = {
     onModalHide: () => {},
     onCarouselAttachmentChange: () => {},
     isWorkspaceAvatar: false,
+    isReceipt: false,
 };
 
 function AttachmentModal(props) {
@@ -103,7 +107,6 @@ function AttachmentModal(props) {
     const [shouldLoadAttachment, setShouldLoadAttachment] = useState(false);
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
     const [isAuthTokenRequired, setIsAuthTokenRequired] = useState(props.isAuthTokenRequired);
-    const [isAttachmentReceipt, setIsAttachmentReceipt] = useState(false);
     const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState('');
     const [attachmentInvalidReason, setAttachmentInvalidReason] = useState(null);
     const [source, setSource] = useState(props.source);
@@ -126,13 +129,12 @@ function AttachmentModal(props) {
 
     /**
      * Keeps the attachment source in sync with the attachment displayed currently in the carousel.
-     * @param {{ source: String, isAuthTokenRequired: Boolean, file: { name: string }, isReceipt: Boolean }} attachment
+     * @param {{ source: String, isAuthTokenRequired: Boolean, file: { name: string } }} attachment
      */
     const onNavigate = useCallback(
         (attachment) => {
             setSource(attachment.source);
             setFile(attachment.file);
-            setIsAttachmentReceipt(attachment.isReceipt);
             setIsAuthTokenRequired(attachment.isAuthTokenRequired);
             onCarouselAttachmentChange(attachment);
         },
@@ -348,15 +350,15 @@ function AttachmentModal(props) {
             >
                 {props.isSmallScreenWidth && <HeaderGap />}
                 <HeaderWithBackButton
-                    title={props.headerTitle || translate(isAttachmentReceipt ? 'common.receipt' : 'common.attachment')}
+                    title={props.headerTitle || translate('common.attachment')}
                     shouldShowBorderBottom
-                    shouldShowDownloadButton={props.allowDownload && shouldShowDownloadButton && !isAttachmentReceipt}
+                    shouldShowDownloadButton={props.allowDownload && shouldShowDownloadButton && !props.isReceipt}
                     onDownloadButtonPress={() => downloadAttachment(source)}
                     shouldShowCloseButton={!props.isSmallScreenWidth}
                     shouldShowBackButton={props.isSmallScreenWidth}
                     onBackButtonPress={closeModal}
                     onCloseButtonPress={closeModal}
-                    shouldShowThreeDotsButton={isAttachmentReceipt}
+                    shouldShowThreeDotsButton={props.isReceipt}
                     threeDotsAnchorPosition={styles.threeDotsPopoverOffsetAttachmentModal(windowWidth)}
                     threeDotsMenuItems={[
                         {

@@ -4,12 +4,10 @@ import styles from '../../styles/styles';
 import Image from '../Image';
 import ThumbnailImage from '../ThumbnailImage';
 import tryResolveUrlFromApiRoot from '../../libs/tryResolveUrlFromApiRoot';
-import ROUTES from '../../ROUTES';
 import CONST from '../../CONST';
-import {ShowContextMenuContext} from '../ShowContextMenuContext';
-import Navigation from '../../libs/Navigation/Navigation';
 import PressableWithoutFocus from '../Pressable/PressableWithoutFocus';
 import useLocalize from '../../hooks/useLocalize';
+import AttachmentModal from '../AttachmentModal';
 
 const propTypes = {
     /** thumbnail URI for the image */
