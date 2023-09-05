@@ -54,6 +54,15 @@ export default {
     SETTINGS_PERSONAL_DETAILS_LEGAL_NAME: `${SETTINGS_PERSONAL_DETAILS}/legal-name`,
     SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH: `${SETTINGS_PERSONAL_DETAILS}/date-of-birth`,
     SETTINGS_PERSONAL_DETAILS_ADDRESS: `${SETTINGS_PERSONAL_DETAILS}/address`,
+    getPersonalDetailsAddressRoute: (country) => `${SETTINGS_PERSONAL_DETAILS}/address?country=${country}`,
+    SETTINGS_PERSONAL_DETAILS_ADDRESS_COUNTRY: `${SETTINGS_PERSONAL_DETAILS}/address/country`,
+    getCountryRoute: (country, backTo) => {
+        let route = `${SETTINGS_PERSONAL_DETAILS}/address/country?country=${country}`;
+        if (backTo) {
+            route += `&backTo=${backTo}`;
+        }
+        return route;
+    },
     SETTINGS_CONTACT_METHODS,
     SETTINGS_CONTACT_METHOD_DETAILS: `${SETTINGS_CONTACT_METHODS}/:contactMethod/details`,
     getEditContactMethodRoute: (contactMethod) => `${SETTINGS_CONTACT_METHODS}/${encodeURIComponent(contactMethod)}/details`,

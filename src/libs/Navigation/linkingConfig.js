@@ -153,6 +153,10 @@ export default {
                                 path: ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS,
                                 exact: true,
                             },
+                            Settings_PersonalDetails_Address_Country: {
+                                path: ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS_COUNTRY,
+                                exact: true,
+                            },
                             Settings_TwoFactorAuth: {
                                 path: ROUTES.SETTINGS_2FA,
                                 exact: true,
