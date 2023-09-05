@@ -63,6 +63,10 @@
                     {
                         "/": "/new/*",
                         "comment": "New Chat"
+                    },
+                    {
+                        "/": "/teachersunite/*",
+                        "comment": "Teachers Unite!"
                     }
                 ]
             }
