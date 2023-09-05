@@ -47,6 +47,9 @@ const propTypes = {
 
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     iou: iouPropTypes,
+
+    /** Callback to fire if we're replacing the existing receipt */
+    replaceReceipt: PropTypes.func,
 };
 
 const defaultProps = {
@@ -57,6 +60,7 @@ const defaultProps = {
     },
     report: {},
     iou: iouDefaultProps,
+    replaceReceipt: null,
 };
 
 function ReceiptSelector(props) {
@@ -83,6 +87,12 @@ function ReceiptSelector(props) {
 
         const filePath = URL.createObjectURL(file);
         IOU.setMoneyRequestReceipt(filePath, file.name);
+
+        if (props.replaceReceipt) {
+            props.replaceReceipt(file);
+            return;
+        }
+
         IOU.navigateToNextPage(iou, iouType, reportID, report);
     };
 

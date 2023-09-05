@@ -173,7 +173,7 @@ function EditRequestPage({report, route, parentReport, policy, session}) {
         return (
             <EditRequestReceiptPage
                 route={route}
-                replaceReceipt={(transactionID, file) => IOU.replaceReceipt(transactionID, file)}
+                replaceReceipt={(file) => IOU.replaceReceipt(transaction.transactionID, file)}
             />
         );
     }

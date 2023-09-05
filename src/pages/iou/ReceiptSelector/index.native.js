@@ -40,11 +40,15 @@ const propTypes = {
 
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     iou: iouPropTypes,
+
+    /** Callback to fire if we're replacing the existing receipt */
+    replaceReceipt: PropTypes.func,
 };
 
 const defaultProps = {
     report: {},
     iou: iouDefaultProps,
+    replaceReceipt: null,
 };
 
 /**
@@ -72,7 +76,7 @@ function getImagePickerOptions(type) {
     };
 }
 
-function ReceiptSelector(props) {
+function ReceiptSelector({route, report, iou, replaceReceipt}) {
     const devices = useCameraDevices('wide-angle-camera');
     const device = devices.back;
 
@@ -81,9 +85,9 @@ function ReceiptSelector(props) {
     const [permissions, setPermissions] = useState('authorized');
     const appState = useRef(AppState.currentState);
 
-    const iouType = lodashGet(props.route, 'params.iouType', '');
-    const reportID = lodashGet(props.route, 'params.reportID', '');
-    const pageIndex = lodashGet(props.route, 'params.pageIndex', 1);
+    const iouType = lodashGet(route, 'params.iouType', '');
+    const reportID = lodashGet(route, 'params.reportID', '');
+    const pageIndex = lodashGet(route, 'params.pageIndex', 1);
 
     const {translate} = useLocalize();
 
@@ -190,13 +194,19 @@ function ReceiptSelector(props) {
             })
             .then((photo) => {
                 IOU.setMoneyRequestReceipt(`file://${photo.path}`, photo.path);
-                IOU.navigateToNextPage(props.iou, iouType, reportID, props.report);
+
+                if (replaceReceipt) {
+                    replaceReceipt(photo);
+                    return;
+                }
+
+                IOU.navigateToNextPage(iou, iouType, reportID, report);
             })
             .catch((error) => {
                 showCameraAlert();
                 Log.warn('Error taking photo', error);
             });
-    }, [flash, iouType, props.iou, props.report, reportID, translate]);
+    }, [flash, iouType, iou, report, replaceReceipt, reportID, translate]);
 
     Camera.getCameraPermissionStatus().then((permissionStatus) => {
         setPermissions(permissionStatus);
@@ -255,7 +265,13 @@ function ReceiptSelector(props) {
                         showImagePicker(launchImageLibrary)
                             .then((receiptImage) => {
                                 IOU.setMoneyRequestReceipt(receiptImage[0].uri, receiptImage[0].fileName);
-                                IOU.navigateToNextPage(props.iou, iouType, reportID, props.report);
+
+                                if (replaceReceipt) {
+                                    replaceReceipt(receiptImage);
+                                    return;
+                                }
+
+                                IOU.navigateToNextPage(iou, iouType, reportID, report);
                             })
                             .catch(() => {
                                 Log.info('User did not select an image from gallery');

@@ -21,10 +21,10 @@ const propTypes = {
     }).isRequired,
 
     /** The callback fired when we confirm to replace the receipt */
-    onSubmit: PropTypes.func.isRequired,
+    replaceReceipt: PropTypes.func.isRequired,
 }
 
-function EditRequestReceiptPage({route, onSubmit}) {
+function EditRequestReceiptPage({route, replaceReceipt}) {
     const {translate} = useLocalize();
 
     return (
@@ -37,7 +37,7 @@ function EditRequestReceiptPage({route, onSubmit}) {
                 onBackButtonPress={Navigation.goBack}
             />
             <DragAndDropProvider>
-                <ReceiptSelector route={route} onSubmit={onSubmit} />
+                <ReceiptSelector route={route} replaceReceipt={replaceReceipt} />
             </DragAndDropProvider>
         </ScreenWrapper>
     );
