@@ -1366,10 +1366,10 @@ function getTransactionsWithReceipts(iouReportID) {
  */
 function getSortedTransactionsWithReceipts(iouReportID) {
     const reportActions = ReportActionsUtils.getAllReportActions(iouReportID);
-    const filteredSortedReportActions = ReportActionsUtils.getFilteredSortedReportActionsForDisplay(reportActions);
+    const sortedReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(reportActions);
 
     return _.reduce(
-        filteredSortedReportActions,
+        sortedReportActions,
         (transactions, action) => {
             if (ReportActionsUtils.isMoneyRequestAction(action)) {
                 const transaction = TransactionUtils.getLinkedTransaction(action);
@@ -1377,26 +1377,6 @@ function getSortedTransactionsWithReceipts(iouReportID) {
                     transactions.push(transaction);
                 }
             }
-            return transactions;
-        },
-        [],
-    );
-}
-
-/**
- * Gets all sorted money request reportActions
- *
- * @param {Object|null} iouReportID
- * @returns {[Object]}
- */
-function getSortedMoneyRequestActions(iouReportID) {
-    const reportActions = ReportActionsUtils.getAllReportActions(iouReportID);
-    const filteredSortedReportActions = ReportActionsUtils.getFilteredSortedReportActionsForDisplay(reportActions);
-
-    return _.reduce(
-        filteredSortedReportActions,
-        (transactions, action) => {
-            if (ReportActionsUtils.isMoneyRequestAction(action)) transactions.push(action);
             return transactions;
         },
         [],
@@ -3670,6 +3650,5 @@ export {
     getReportPreviewDisplayTransactions,
     getTransactionsWithReceipts,
     getSortedTransactionsWithReceipts,
-    getSortedMoneyRequestActions,
     hasMissingSmartscanFields,
 };
