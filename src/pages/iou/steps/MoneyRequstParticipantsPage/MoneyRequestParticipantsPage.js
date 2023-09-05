@@ -53,14 +53,10 @@ function MoneyRequestParticipantsPage(props) {
     const isDistanceRequest = MoneyRequestUtils.isDistanceRequest(iouType.current, props.selectedTab);
 
     const navigateToNextStep = (option) => {
-        if (reportID.current !== option.reportID) {
-            isNewReportIDSelectedLocally.current = true;
-        }
+        isNewReportIDSelectedLocally.current = true;
 
-        const correctReportID = reportID.current || option.reportID;
-
-        IOU.setMoneyRequestId(`${iouType.current}${correctReportID}`);
-        Navigation.navigate(ROUTES.getMoneyRequestConfirmationRoute(iouType.current, correctReportID));
+        IOU.setMoneyRequestId(`${iouType.current}${option.reportID}`);
+        Navigation.navigate(ROUTES.getMoneyRequestConfirmationRoute(iouType.current, option.reportID));
     };
 
     const navigateBack = (forceFallback = false) => {
