@@ -17,7 +17,7 @@ import compose from '../../../libs/compose';
 import * as ErrorUtils from '../../../libs/ErrorUtils';
 import ROUTES from '../../../ROUTES';
 import Navigation from '../../../libs/Navigation/Navigation';
-import useForm from '../../../hooks/form/useForm';
+import useForm from '../../../hooks/useForm';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -66,9 +66,7 @@ function DisplayNamePage(props) {
         return errors;
     };
 
-    // register input requires props spreading
-    /* eslint-disable react/jsx-props-no-spreading */
-    const {Form, registerInput} = useForm({validate});
+    const {Form, Input} = useForm();
 
     return (
         <ScreenWrapper
@@ -86,35 +84,38 @@ function DisplayNamePage(props) {
                 onSubmit={updateDisplayName}
                 submitButtonText={props.translate('common.save')}
                 enabledWhenOffline
+                shouldValidateOnBlur
+                shouldValidateOnChange
             >
                 <DummyComponentWithStateHook />
                 <Text style={[styles.mb6]}>{props.translate('displayNamePage.isShownOnProfile')}</Text>
                 <View style={styles.mb4}>
-                    <TextInput
-                        {...registerInput('firstName', {
-                            name: 'fname',
-                            label: props.translate('common.firstName'),
-                            accessibilityLabel: props.translate('common.firstName'),
-                            accessibilityRole: CONST.ACCESSIBILITY_ROLE.TEXT,
-                            defaultValue: lodashGet(currentUserDetails, 'firstName', ''),
-                            maxLength: CONST.DISPLAY_NAME.MAX_LENGTH,
-                            autoCapitalize: 'words',
-                            spellCheck: false,
-                        })}
+                    <Input
+                        RenderInput={TextInput}
+                        inputID="firstName"
+                        name="fname"
+                        key="iuadgbkj"
+                        label={props.translate('common.firstName')}
+                        accessibilityLabel={props.translate('common.firstName')}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        defaultValue={lodashGet(currentUserDetails, 'firstName', '')}
+                        maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
+                        autoCapitalize="words"
+                        spellCheck={false}
                     />
                 </View>
                 <View>
-                    <TextInput
-                        {...registerInput('lastName', {
-                            name: 'lname',
-                            label: props.translate('common.lastName'),
-                            accessibilityLabel: props.translate('common.lastName'),
-                            accessibilityRole: CONST.ACCESSIBILITY_ROLE.TEXT,
-                            defaultValue: lodashGet(currentUserDetails, 'lastName', ''),
-                            maxLength: CONST.DISPLAY_NAME.MAX_LENGTH,
-                            autoCapitalize: 'words',
-                            spellCheck: false,
-                        })}
+                    <Input
+                        RenderInput={TextInput}
+                        inputID="lastName"
+                        name="lname"
+                        label={props.translate('common.lastName')}
+                        accessibilityLabel={props.translate('common.lastName')}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        defaultValue={lodashGet(currentUserDetails, 'lastName', '')}
+                        maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
+                        autoCapitalize="words"
+                        spellCheck={false}
                     />
                 </View>
             </Form>

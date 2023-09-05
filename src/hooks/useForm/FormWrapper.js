@@ -191,7 +191,7 @@ function FormWrapper(props) {
     );
 }
 
-FormWrapper.displayName = 'Form';
+FormWrapper.displayName = 'FormWrapper';
 FormWrapper.propTypes = propTypes;
 FormWrapper.defaultProps = defaultProps;
 
