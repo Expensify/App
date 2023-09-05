@@ -781,6 +781,8 @@ const styles = {
         backgroundColor: themeColors.overlay,
         borderColor: themeColors.borderLighter,
         WebkitTextFillColor: themeColors.textSupporting,
+        WebkitOpacity: 1,
+        color: themeColors.textSupporting,
     },
 
     uploadReceiptView: (isSmallScreenWidth) => ({
