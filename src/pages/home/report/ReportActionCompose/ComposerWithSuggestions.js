@@ -353,9 +353,10 @@ function ComposerWithSuggestions({
      * @returns {Boolean}
      */
     const checkComposerVisibility = useCallback(() => {
-        const isComposerCoveredUp = EmojiPickerActions.isEmojiPickerVisible() || isMenuVisible || modal.isVisible;
+        // Checking weather the screen is focused or not, helps avoiding `modal.isVisible` false when popups are closed even modal is opened 
+        const isComposerCoveredUp = !isFocused || EmojiPickerActions.isEmojiPickerVisible() || isMenuVisible || modal.isVisible || modal.willAlertModalBecomeVisible;
         return !isComposerCoveredUp;
-    }, [isMenuVisible, modal.isVisible]);
+    }, [isMenuVisible, modal, isFocused]);
 
     const focusComposerOnKeyPress = useCallback(
         (e) => {
