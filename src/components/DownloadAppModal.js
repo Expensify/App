@@ -44,6 +44,8 @@ function DownloadAppModal({isAuthenticated, showDownloadAppBanner}) {
     }
 
     const handleOpenAppStore = () => {
+        setShowDownloadAppModal(false);
+        setshouldShowBanner(false);
         Link.openExternalLink(link, true);
     };
 
