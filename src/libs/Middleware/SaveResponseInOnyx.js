@@ -4,6 +4,9 @@ import ONYXKEYS from '../../ONYXKEYS';
 import * as MemoryOnlyKeys from '../actions/MemoryOnlyKeys/MemoryOnlyKeys';
 import * as OnyxUpdates from '../actions/OnyxUpdates';
 
+// If we're executing any of these requests, we don't need to trigger our OnyxUpdates flow to update the current data even if our current value is out of date.
+const requestsToIgnoreLastUpdateID = ['OpenApp', 'ReconnectApp', 'GetMissingOnyxMessages'];
+
 /**
  * @param {Promise} response
  * @param {Object} request
@@ -31,7 +34,7 @@ function SaveResponseInOnyx(response, request) {
         // Sometimes we call requests that are successfull but they don't have any response or any success/failure data to set. Let's return early since
         // we don't need to store anything here.
         if (!onyxUpdates && !request.successData && !request.failureData) {
-            return;
+            return Promise.resolve(responseData);
         }
 
         // If there is an OnyxUpdate for using memory only keys, enable them
@@ -43,6 +46,14 @@ function SaveResponseInOnyx(response, request) {
             MemoryOnlyKeys.enable();
             return true;
         });
+
+        if (_.includes(requestsToIgnoreLastUpdateID, request.command) || !OnyxUpdates.needsToUpdateClient(Number(responseData.previousUpdateID || 0))) {
+            return OnyxUpdates.applyOnyxUpdates({
+                type: CONST.ONYX_UPDATE_TYPES.HTTPS,
+                request: request,
+                responseData: responseData
+            });
+        }
 
         // Save the update IDs to Onyx so they can be used to fetch incremental updates if the client gets out of sync from the server
         OnyxUpdates.saveUpdateInformation(
@@ -57,7 +68,7 @@ function SaveResponseInOnyx(response, request) {
             Number(responseData.previousUpdateID || 0),
         );
 
-        return responseData;
+        return Promise.resolve(responseData);
     });
 }
 
