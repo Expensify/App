@@ -29,10 +29,14 @@ export default {
         workspaces: 'Espacios de trabajo',
         profile: 'Perfil',
         payments: 'Pagos',
+        wallet: 'Billetera',
         preferences: 'Preferencias',
         view: 'Ver',
         not: 'No',
         signIn: 'Conectarse',
+        signInWithGoogle: 'Iniciar sesión con Google',
+        signInWithApple: 'Iniciar sesión con Apple',
+        signInWith: 'Iniciar sesión con',
         continue: 'Continuar',
         firstName: 'Nombre',
         lastName: 'Apellidos',
@@ -102,6 +106,9 @@ export default {
             characterLimit: ({limit}) => `Supera el límite de ${limit} caracteres`,
             dateInvalid: 'Por favor, selecciona una fecha válida',
             invalidCharacter: 'Carácter invalido',
+            enterMerchant: 'Introduce un comerciante',
+            enterAmount: 'Introduce un importe',
+            enterDate: 'Introduce una fecha',
         },
         comma: 'la coma',
         semicolon: 'el punto y coma',
@@ -148,26 +155,38 @@ export default {
         someone: 'Alguien',
         total: 'Total',
         edit: 'Editar',
+        letsDoThis: '¡Hagámoslo!',
+        letsStart: 'Empecemos',
         showMore: 'Mostrar más',
         merchant: 'Comerciante',
+        category: 'Categoría',
+        receipt: 'Recibo',
+        replace: 'Sustituir',
+        distance: 'Distancia',
+        mile: 'milla',
+        miles: 'millas',
+        kilometer: 'kilómetro',
+        kilometers: 'kilómetros',
+        recent: 'Reciente',
+        all: 'Todo',
     },
     anonymousReportFooter: {
-        logoTagline: 'Únete a la discussion.',
+        logoTagline: 'Únete a la discusión.',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Permiso para acceder a la cámara',
-        expensifyDoesntHaveAccessToCamera: 'Expensify no puede tomar fotos sin acceso a tu cámara. Haz click en Configuración para actualizar los permisos.',
+        expensifyDoesntHaveAccessToCamera: 'Expensify no puede tomar fotos sin acceso a la cámara. Haz click en Configuración para actualizar los permisos.',
         attachmentError: 'Error al adjuntar archivo',
-        errorWhileSelectingAttachment: 'Ha ocurrido un error al seleccionar un adjunto. Por favor, inténtalo de nuevo',
-        errorWhileSelectingCorruptedImage: 'Ha ocurrido un error al seleccionar un adjunto corrupto. Por favor, inténtalo con otro archivo',
+        errorWhileSelectingAttachment: 'Ha ocurrido un error al seleccionar un archivo adjunto. Por favor, inténtalo de nuevo',
+        errorWhileSelectingCorruptedImage: 'Ha ocurrido un error al seleccionar un archivo adjunto corrupto. Por favor, inténtalo con otro archivo',
         takePhoto: 'Hacer una foto',
         chooseFromGallery: 'Elegir de la galería',
         chooseDocument: 'Elegir documento',
         attachmentTooLarge: 'Archivo adjunto demasiado grande',
         sizeExceeded: 'El archivo adjunto supera el límite de 24 MB.',
         attachmentTooSmall: 'Archivo adjunto demasiado pequeño',
-        sizeNotMet: 'El archivo adjunto debe ser mas grande que 240 bytes.',
-        wrongFileType: 'El tipo del archivo adjunto es incorrecto',
+        sizeNotMet: 'El archivo adjunto debe ser más grande que 240 bytes.',
+        wrongFileType: 'El tipo de archivo adjunto es incorrecto',
         notAllowedExtension: 'Este tipo de archivo no está permitido',
         folderNotAllowedMessage: 'Subir una carpeta no está permitido. Prueba con otro archivo.',
     },
@@ -190,6 +209,11 @@ export default {
         redirectedToDesktopApp: 'Te hemos redirigido a la aplicación de escritorio.',
         youCanAlso: 'También puedes',
         openLinkInBrowser: 'abrir este enlace en tu navegador',
+        loggedInAs: ({email}) => `Has iniciado sesión como ${email}. Haga clic en "Abrir enlace" en el aviso para iniciar sesión en la aplicación de escritorio con esta cuenta.`,
+        doNotSeePrompt: '¿No ves el aviso?',
+        tryAgain: 'Inténtalo de nuevo',
+        or: ', o',
+        continueInWeb: 'continuar en la web',
     },
     validateCodeModal: {
         successfulSignInTitle: 'Abracadabra,\n¡sesión iniciada!',
@@ -234,11 +258,25 @@ export default {
         newFaceEnterMagicCode: ({login}) => `¡Siempre es genial ver una cara nueva por aquí! Por favor ingresa el código mágico enviado a ${login}. Debería llegar en un par de minutos.`,
         welcomeEnterMagicCode: ({login}) => `Por favor, introduce el código mágico enviado a ${login}. Debería llegar en un par de minutos.`,
     },
+    DownloadAppModal: {
+        downloadTheApp: 'Descarga la aplicación',
+        keepTheConversationGoing: 'Mantén la conversación en New Expensify, descarga la aplicación para una experiencia mejorada.',
+        noThanks: 'No, gracias',
+    },
     login: {
         hero: {
             header: 'Divida las facturas, solicite pagos y chatee con sus amigos.',
             body: 'Bienvenido al futuro de Expensify, tu nuevo lugar de referencia para la colaboración financiera con amigos y compañeros de equipo por igual.',
         },
+    },
+    thirdPartySignIn: {
+        alreadySignedIn: ({email}) => `Ya has iniciado sesión con ${email}.`,
+        goBackMessage: ({provider}) => `No quieres iniciar sesión con ${provider}?`,
+        continueWithMyCurrentSession: 'Continuar con mi sesión actual',
+        redirectToDesktopMessage: 'Lo redirigiremos a la aplicación de escritorio una vez que termine de iniciar sesión.',
+        signInAgreementMessage: 'Al iniciar sesión, aceptas las',
+        termsOfService: 'Términos de servicio',
+        privacy: 'Privacidad',
     },
     reportActionCompose: {
         addAction: 'Acción',
@@ -272,7 +310,7 @@ export default {
         copyEmailToClipboard: 'Copiar email al portapapeles',
         markAsUnread: 'Marcar como no leído',
         markAsRead: 'Marcar como leído',
-        editComment: 'Editar comentario',
+        editAction: ({action}) => `Edit ${ReportActionsUtils.isMoneyRequestAction(action) ? 'pedido' : 'comentario'}`,
         deleteAction: ({action}) => `Eliminar ${ReportActionsUtils.isMoneyRequestAction(action) ? 'pedido' : 'comentario'}`,
         deleteConfirmation: ({action}) => `¿Estás seguro de que quieres eliminar este ${ReportActionsUtils.isMoneyRequestAction(action) ? 'pedido' : 'comentario'}`,
         onlyVisible: 'Visible sólo para',
@@ -290,8 +328,7 @@ export default {
         beginningOfChatHistoryDomainRoomPartTwo: ' para chatear con compañeros, compartir consejos o hacer una pregunta.',
         beginningOfChatHistoryAdminRoomPartOne: ({workspaceName}) => `Este es el lugar para que los administradores de ${workspaceName} colaboren! 🎉\nUsa `,
         beginningOfChatHistoryAdminRoomPartTwo: ' para chatear sobre temas como la configuración del espacio de trabajo y mas.',
-        beginningOfChatHistoryAdminOnlyPostingRoomPartOne: 'Utiliza ',
-        beginningOfChatHistoryAdminOnlyPostingRoomPartTwo: ({workspaceName}) => ` para enterarte de anuncios importantes relacionados con ${workspaceName}`,
+        beginningOfChatHistoryAdminOnlyPostingRoom: 'Solo los administradores pueden enviar mensajes en esta sala.',
         beginningOfChatHistoryAnnounceRoomPartOne: ({workspaceName}) => `Este es el lugar para que todos los miembros de ${workspaceName} colaboren! 🎉\nUsa `,
         beginningOfChatHistoryAnnounceRoomPartTwo: ({workspaceName}) => ` para chatear sobre cualquier cosa relacionada con ${workspaceName}.`,
         beginningOfChatHistoryUserRoomPartOne: 'Este es el lugar para colaborar! 🎉\nUsa este espacio para chatear sobre cualquier cosa relacionada con ',
@@ -302,6 +339,7 @@ export default {
         beginningOfChatHistoryPolicyExpenseChatPartThree: ' empieza aquí! 🎉 Este es el lugar donde chatear, pedir dinero y pagar.',
         chatWithAccountManager: 'Chatea con tu gestor de cuenta aquí',
         sayHello: '¡Saluda!',
+        welcomeToRoom: ({roomName}) => `¡Bienvenido a ${roomName}!`,
         usePlusButton: '\n\n¡También puedes usar el botón + de abajo para pedir dinero o asignar una tarea!',
     },
     reportAction: {
@@ -344,11 +382,11 @@ export default {
         draftedMessage: 'Mensaje borrador',
         listOfChatMessages: 'Lista de mensajes del chat',
         listOfChats: 'lista de chats',
+        saveTheWorld: 'Salvar el mundo',
     },
     tabSelector: {
         manual: 'Manual',
         scan: 'Escanear',
-        distance: 'Distancia',
     },
     receipt: {
         upload: 'Subir recibo',
@@ -369,6 +407,8 @@ export default {
     },
     iou: {
         amount: 'Importe',
+        approve: 'Aprobar',
+        approved: 'Aprobado',
         cash: 'Efectivo',
         split: 'Dividir',
         request: 'Solicitar',
@@ -379,6 +419,11 @@ export default {
         pay: 'Pagar',
         viewDetails: 'Ver detalles',
         pending: 'Pendiente',
+        deleteReceipt: 'Eliminar recibo',
+        receiptScanning: 'Escaneo de recibo en curso…',
+        receiptStatusTitle: 'Escaneando…',
+        receiptStatusText: 'Solo tú puedes ver este recibo cuando se está escaneando. Vuelve más tarde o introduce los detalles ahora.',
+        requestCount: ({count, scanningReceipts = 0}) => `${count} solicitudes${scanningReceipts > 0 ? `, ${scanningReceipts} escaneando` : ''}`,
         deleteRequest: 'Eliminar pedido',
         deleteConfirmation: '¿Estás seguro de que quieres eliminar este pedido?',
         settledExpensify: 'Pagado',
@@ -394,6 +439,7 @@ export default {
         payerOwes: ({payer}) => `${payer} debe: `,
         payerPaidAmount: ({payer, amount}) => `${payer} pagó ${amount}`,
         payerPaid: ({payer}) => `${payer} pagó: `,
+        managerApproved: ({manager}) => `${manager} aprobó:`,
         payerSettled: ({amount}) => `pagó ${amount}`,
         waitingOnBankAccount: ({submitterDisplayName}) => `inicio el pago, pero no se procesará hasta que ${submitterDisplayName} añada una cuenta bancaria`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}) => `${submitterDisplayName} añadió una cuenta bancaria. El pago de ${amount} se ha realizado.`,
@@ -404,12 +450,13 @@ export default {
         pendingConversionMessage: 'El total se actualizará cuando estés online',
         threadRequestReportName: ({formattedAmount, comment}) => `Solicitud de ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         threadSentMoneyReportName: ({formattedAmount, comment}) => `${formattedAmount} enviado${comment ? ` para ${comment}` : ''}`,
-        requestCount: ({count}) => `${count} solicitudes`,
         error: {
             invalidSplit: 'La suma de las partes no equivale al monto total',
             other: 'Error inesperado, por favor inténtalo más tarde',
             genericCreateFailureMessage: 'Error inesperado solicitando dinero, Por favor, inténtalo más tarde',
             genericDeleteFailureMessage: 'Error inesperado eliminando la solicitud de dinero. Por favor, inténtalo más tarde',
+            genericEditFailureMessage: 'Error inesperado al guardar la solicitud de dinero. Por favor, inténtalo más tarde',
+            genericSmartscanFailureMessage: 'La transacción tiene campos vacíos',
         },
     },
     notificationPreferencesPage: {
@@ -479,14 +526,14 @@ export default {
         failedNewContact: 'Hubo un error al añadir este método de contacto.',
         genericFailureMessages: {
             requestContactMethodValidateCode: 'No se ha podido enviar un nuevo código mágico. Espera un rato y vuelve a intentarlo.',
-            validateSecondaryLogin: 'No se ha podido validar el método de contacto con el código mágico provisto. Solicita un nuevo código y vuelve a intentarlo.',
+            validateSecondaryLogin: 'Código mágico incorrecto o no válido. Inténtalo de nuevo o solicita otro código.',
             deleteContactMethod: 'No se ha podido eliminar este método de contacto. Por favor, contacta con Concierge para obtener ayuda.',
             setDefaultContactMethod: 'No se pudo establecer un nuevo método de contacto predeterminado. Por favor contacta con Concierge para obtener ayuda.',
             addContactMethod: 'Hubo un error al añadir este método de contacto. Por favor, contacta con Concierge para obtener ayuda.',
             enteredMethodIsAlreadySubmited: 'El método de contacto ingresado ya existe.',
             passwordRequired: 'Se requiere contraseña',
             contactMethodRequired: 'Se requiere método de contacto.',
-            invalidContactMethod: 'Método de contacto no válido.',
+            invalidContactMethod: 'Método de contacto no válido',
         },
         newContactMethod: 'Nuevo método de contacto',
     },
@@ -646,7 +693,7 @@ export default {
             password: 'Por favor, introduce tu contraseña de Expensify',
         },
     },
-    paymentsPage: {
+    walletPage: {
         paymentMethodsTitle: 'Métodos de pago',
         setDefaultConfirmation: 'Marcar como método de pago predeterminado',
         setDefaultSuccess: 'Método de pago configurado',
@@ -673,8 +720,8 @@ export default {
         transferDetailBankAccount: 'Tu dinero debería llegar en 1-3 días laborables.',
         transferDetailDebitCard: 'Tu dinero debería llegar de inmediato.',
         failedTransfer: 'Tu saldo no se ha acreditado completamente. Por favor, transfiere los fondos a una cuenta bancaria.',
-        notHereSubTitle: 'Por favor, transfiere el saldo desde la página de pagos',
-        goToPayment: 'Ir a pagos',
+        notHereSubTitle: 'Por favor, transfiere el saldo desde la página de billetera',
+        goToWallet: 'Ir a billetera',
     },
     chooseTransferAccountPage: {
         chooseAccount: 'Elegir cuenta',
@@ -878,6 +925,23 @@ export default {
         clearStatus: 'Borrar estado',
         save: 'Guardar',
         message: 'Mensaje',
+        untilTomorrow: 'Hasta mañana',
+        untilTime: ({time}) => {
+            // Check for HH:MM AM/PM format and starts with '01:'
+            if (CONST.REGEX.TIME_STARTS_01.test(time)) {
+                return `Hasta la ${time}`;
+            }
+            // Check for any HH:MM AM/PM format not starting with '01:'
+            if (CONST.REGEX.TIME_FORMAT.test(time)) {
+                return `Hasta las ${time}`;
+            }
+            // Check for date-time format like "06-29 11:30 AM"
+            if (CONST.REGEX.DATE_TIME_FORMAT.test(time)) {
+                return `Hasta el día ${time}`;
+            }
+            // Default case
+            return `Hasta ${time}`;
+        },
     },
     stepCounter: ({step, total, text}) => {
         let result = `Paso ${step}`;
@@ -930,7 +994,7 @@ export default {
             routingAndAccountNumberCannotBeSame: 'El número de ruta y el número de cuenta no pueden ser iguales',
             companyType: 'Por favor, selecciona un tipo de compañía válido',
             tooManyAttempts:
-                'Debido a la gran cantidad de intentos de inicio de sesión, esta opción se ha desactivado temporalmente durante 24 horas. Vuelve a intentarlo más tarde o introduce los detalles manualmente.',
+                'Debido a la gran cantidad de intentos de inicio de sesión, esta opción ha sido desactivada temporalmente durante 24 horas. Por favor, inténtalo de nuevo más tarde.',
             address: 'Por favor, introduce una dirección válida',
             dob: 'Por favor, selecciona una fecha de nacimiento válida',
             age: 'Debe ser mayor de 18 años',
@@ -1217,7 +1281,6 @@ export default {
             captureReceipts: 'Captura recibos',
             fastReimbursementsHappyMembers: '¡Reembolsos rápidos = miembros felices!',
             kilometers: 'Kilómetros',
-            miles: 'Millas',
             viewAllReceipts: 'Ver todos los recibos',
             reimburseReceipts: 'Reembolsar recibos',
             trackDistance: 'Medir distancia',
@@ -2049,18 +2112,58 @@ export default {
         levelTwoResult: 'Mensaje ocultado del canal, más advertencia anónima y mensaje reportado para revisión.',
         levelThreeResult: 'Mensaje eliminado del canal, más advertencia anónima y mensaje reportado para revisión.',
     },
+    teachersUnitePage: {
+        teachersUnite: '¡Profesores unidos!',
+        joinExpensifyOrg: 'Únete a Expensify.org para eliminar la injusticia en todo el mundo y ayuda a los profesores a dividir sus gastos para las aulas más necesitadas.',
+        iKnowATeacher: 'Yo conozco a un profesor',
+        iAmATeacher: 'Soy profesor',
+        getInTouch: '¡Excelente! Por favor, comparte su información para que podamos ponernos en contacto con ellos.',
+        introSchoolPrincipal: 'Introducción al director del colegio',
+        schoolPrincipalVerfiyExpense:
+            'Expensify.org divide el coste del material escolar esencial para que los estudiantes de familias con bajos ingresos puedan tener una mejor experiencia de aprendizaje. Se pedirá a tu director que verifique tus gastos.',
+        principalFirstName: 'Nombre del director',
+        principalLastName: 'Apellido del director',
+        principalWorkEmail: 'Correo electrónico de trabajo del director',
+        updateYourEmail: 'Actualiza tu dirección de correo electrónico',
+        updateEmail: 'Actualización de la dirección de correo electrónico',
+        contactMethods: 'Métodos de contacto.',
+        schoolMailAsDefault:
+            'Antes de seguir adelante, asegúrate de establecer el correo electrónico de tu colegio como método de contacto predeterminado. Puede hacerlo en Configuración > Perfil > ',
+        error: {
+            enterPhoneEmail: 'Ingrese un correo electrónico o número de teléfono válido',
+            enterEmail: 'Introduce un correo electrónico',
+            enterValidEmail: 'Introduzca un correo electrónico válido',
+            tryDifferentEmail: 'Por favor intenta con un e-mail diferente',
+        },
+    },
     distance: {
         addStop: 'Agregar parada',
+        deleteWaypoint: 'Eliminar punto de ruta',
+        deleteWaypointConfirmation: '¿Estás seguro de que quieres eliminar este punto de ruta?',
+        address: 'Dirección',
         waypointDescription: {
             start: 'Comienzo',
             finish: 'Final',
             stop: 'Parada',
         },
+        mapPending: {
+            title: 'Mapa pendiente',
+            subtitle: 'El mapa se generará cuando vuelvas a estar en línea',
+            onlineSubtitle: 'Un momento mientras configuramos el mapa',
+        },
+        errors: {
+            selectSuggestedAddress: 'Por favor, selecciona una dirección sugerida',
+        },
     },
-    countrySelectorModal: {
-        placeholderText: 'Buscar para ver opciones',
-    },
-    stateSelectorModal: {
-        placeholderText: 'Buscar para ver opciones',
+    demos: {
+        saastr: {
+            signInWelcome: '¡Bienvenido a SaaStr! Entra y empieza a establecer contactos.',
+            heroBody: 'Utiliza New Expensify para estar al día de los eventos, establecer contactos, charlar en las redes sociales, ¡y para que te devuelvan el dinero de la comida!',
+        },
+        sbe: {
+            signInWelcome: '¡Bienvenido a Small Business Expo! Recupera el dinero de tu viaje.',
+            heroBody:
+                'Utiliza New Expensify para estar al día de los eventos, establecer contactos, charlar en las redes sociales y para que te paguen el viaje de ida y vuelta a la conferencia.',
+        },
     },
 };

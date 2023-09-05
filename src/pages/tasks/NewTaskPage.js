@@ -135,10 +135,11 @@ function NewTaskPage(props) {
     }
 
     return (
-        <ScreenWrapper>
+        <ScreenWrapper shouldEnableKeyboardAvoidingView={false}>
             <FullPageNotFoundView
                 shouldShow={!isAllowedToCreateTask}
                 onBackButtonPress={() => Task.dismissModalAndClearOutTaskInfo()}
+                shouldShowLink={false}
             >
                 <HeaderWithBackButton
                     title={props.translate('newTaskPage.confirmTask')}

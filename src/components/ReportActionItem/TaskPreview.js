@@ -22,10 +22,11 @@ import * as ReportUtils from '../../libs/ReportUtils';
 import RenderHTML from '../RenderHTML';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 import personalDetailsPropType from '../../pages/personalDetailsPropType';
+import * as Session from '../../libs/actions/Session';
 
 const propTypes = {
     /** All personal details asssociated with user */
-    personalDetailsList: personalDetailsPropType,
+    personalDetailsList: PropTypes.objectOf(personalDetailsPropType),
 
     /** The ID of the associated taskReport */
     taskReportID: PropTypes.string.isRequired,
@@ -86,13 +87,13 @@ function TaskPreview(props) {
                         containerStyle={[styles.taskCheckbox]}
                         isChecked={isTaskCompleted}
                         disabled={ReportUtils.isCanceledTaskReport(props.taskReport)}
-                        onPress={() => {
+                        onPress={Session.checkIfActionIsAllowed(() => {
                             if (isTaskCompleted) {
                                 Task.reopenTask(props.taskReport, taskTitle);
                             } else {
                                 Task.completeTask(props.taskReport, taskTitle);
                             }
-                        }}
+                        })}
                         accessibilityLabel={props.translate('task.task')}
                     />
                     <RenderHTML html={htmlForTaskPreview} />

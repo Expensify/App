@@ -42,10 +42,14 @@ const propTypes = {
 
     /** Show that we should include ReportRecipientLocalTime view height */
     shouldIncludeReportRecipientLocalTimeHeight: PropTypes.bool.isRequired,
+
+    /** Meaures the parent container's position and dimensions. */
+    measureParentContainer: PropTypes.func,
 };
 
 const defaultProps = {
     highlightedMentionIndex: 0,
+    measureParentContainer: () => {},
 };
 
 /**
@@ -122,6 +126,7 @@ function MentionSuggestions(props) {
             isSuggestionPickerLarge={props.isMentionPickerLarge}
             shouldIncludeReportRecipientLocalTimeHeight={props.shouldIncludeReportRecipientLocalTimeHeight}
             accessibilityLabelExtractor={keyExtractor}
+            measureParentContainer={props.measureParentContainer}
         />
     );
 }

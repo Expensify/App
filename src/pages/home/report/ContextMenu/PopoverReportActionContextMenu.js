@@ -21,7 +21,7 @@ class PopoverReportActionContextMenu extends React.Component {
 
         this.state = {
             reportID: '0',
-            reportAction: {},
+            reportActionID: '0',
             selection: '',
             reportActionDraftMessage: '',
             isPopoverVisible: false,
@@ -112,7 +112,7 @@ class PopoverReportActionContextMenu extends React.Component {
      * @return {Boolean}
      */
     isActiveReportAction(actionID) {
-        return Boolean(actionID) && this.state.reportAction.reportActionID === actionID;
+        return Boolean(actionID) && this.state.reportActionID === actionID;
     }
 
     /**
@@ -123,7 +123,7 @@ class PopoverReportActionContextMenu extends React.Component {
      * @param {String} [selection] - Copied content.
      * @param {Element} contextMenuAnchor - popoverAnchor
      * @param {String} reportID - Active Report Id
-     * @param {Object} reportAction - ReportAction for ContextMenu
+     * @param {Object} reportActionID - ReportAction for ContextMenu
      * @param {String} draftMessage - ReportAction Draftmessage
      * @param {Function} [onShow] - Run a callback when Menu is shown
      * @param {Function} [onHide] - Run a callback when Menu is hidden
@@ -138,7 +138,7 @@ class PopoverReportActionContextMenu extends React.Component {
         selection,
         contextMenuAnchor,
         reportID,
-        reportAction,
+        reportActionID,
         draftMessage,
         onShow = () => {},
         onHide = () => {},
@@ -170,7 +170,7 @@ class PopoverReportActionContextMenu extends React.Component {
                 },
                 type,
                 reportID,
-                reportAction,
+                reportActionID,
                 selection,
                 isPopoverVisible: true,
                 reportActionDraftMessage: draftMessage,
@@ -310,7 +310,7 @@ class PopoverReportActionContextMenu extends React.Component {
                         isVisible
                         type={this.state.type}
                         reportID={this.state.reportID}
-                        reportAction={this.state.reportAction}
+                        reportActionID={this.state.reportActionID}
                         draftMessage={this.state.reportActionDraftMessage}
                         selection={this.state.selection}
                         isArchivedRoom={this.state.isArchivedRoom}

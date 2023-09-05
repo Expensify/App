@@ -26,7 +26,7 @@ const propTypes = {
     /* Onyx Props */
 
     /** The personal details of the person who is logged in */
-    personalDetails: personalDetailsPropType,
+    personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
     /** The active report */
     report: reportPropTypes.isRequired,
@@ -55,7 +55,14 @@ const defaultProps = {
  * @return {Array}
  */
 const getAllParticipants = (report, personalDetails, translate) => {
-    const {participantAccountIDs} = report;
+    let participantAccountIDs = report.participantAccountIDs;
+
+    // Build participants list for IOU report - there is a possibility that participantAccountIDs may be undefined/empty
+    if (ReportUtils.isIOUReport(report)) {
+        const managerID = report.managerID || '';
+        const ownerAccountID = report.ownerAccountID || '';
+        participantAccountIDs = [managerID, ownerAccountID];
+    }
 
     return _.chain(participantAccountIDs)
         .map((accountID, index) => {
