@@ -4,10 +4,21 @@ import * as Expensicons from '../../../../components/Icon/Expensicons';
 import MenuItemWithTopDescription from '../../../../components/MenuItemWithTopDescription';
 import Clipboard from '../../../../libs/Clipboard';
 import useLocalize from '../../../../hooks/useLocalize';
-import cardDetailsPropTypes from './cardDetailsPropTypes';
 
 const propTypes = {
-    details: PropTypes.objectOf(cardDetailsPropTypes),
+    details: PropTypes.shape({
+        /** Card number */
+        pan: PropTypes.string,
+    
+        /** Card expiration date */
+        expiration: PropTypes.string,
+    
+        /** 3 digit code */
+        cvv: PropTypes.string,
+    
+        /** Card owner's address */
+        address: PropTypes.string,
+    })
 };
 
 const defaultProps = {
