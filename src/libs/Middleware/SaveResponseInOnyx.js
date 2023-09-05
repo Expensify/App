@@ -59,7 +59,10 @@ function SaveResponseInOnyx(response, request) {
             Number(responseData.previousUpdateID || 0),
         );
 
-        return Promise.resolve(responseData);
+        return Promise.resolve({
+            ...responseData,
+            pauseQueue: true
+        });
     });
 }
 
