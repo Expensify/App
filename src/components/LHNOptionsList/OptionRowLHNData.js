@@ -93,7 +93,7 @@ function OptionRowLHNData({
 
     const optionItemRef = useRef();
 
-    const lastTransaction = useMemo(() => {
+    const linkedTransaction = useMemo(() => {
         const sortedReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(reportActions);
         const lastReportAction = _.first(sortedReportActions);
         return TransactionUtils.getLinkedTransaction(lastReportAction);
@@ -110,7 +110,7 @@ function OptionRowLHNData({
         return item;
         // Listen parentReportAction to update title of thread report when parentReportAction changed
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [fullReport, lastTransaction, reportActions, personalDetails, preferredLocale, policy, parentReportAction]);
+    }, [fullReport, linkedTransaction, reportActions, personalDetails, preferredLocale, policy, parentReportAction]);
 
     useEffect(() => {
         if (!optionItem || optionItem.hasDraftComment || !comment || comment.length <= 0 || isFocused) {
