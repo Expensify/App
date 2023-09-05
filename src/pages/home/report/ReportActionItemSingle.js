@@ -141,7 +141,7 @@ function ReportActionItemSingle(props) {
         : props.action.person;
 
     const reportID = props.report && props.report.reportID;
-    const iouReportID = props.report && props.report.reportID;
+    const iouReportID = props.iouReport && props.iouReport.reportID;
 
     const showActorDetails = useCallback(() => {
         if (isWorkspaceActor) {
