@@ -90,6 +90,9 @@ const propTypes = {
     /** All of the personal details for everyone */
     personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
+    /** Onyx function that marks the component ready for hydration */
+    allowOnyxUpdates: PropTypes.func,
+
     ...windowDimensionsPropTypes,
     ...viewportOffsetTopPropTypes,
 };
@@ -109,6 +112,7 @@ const defaultProps = {
     policies: {},
     accountManagerReportID: null,
     personalDetails: {},
+    allowOnyxUpdates: null,
 };
 
 /**
@@ -131,6 +135,7 @@ function ReportScreen({
     reportActions,
     accountManagerReportID,
     personalDetails,
+    allowOnyxUpdates,
     policies,
     translate,
     network,
@@ -157,7 +162,7 @@ function ReportScreen({
 
     const shouldHideReport = !ReportUtils.canAccessReport(report, policies, betas);
 
-    const isLoading = !reportID || !isSidebarLoaded || _.isEmpty(personalDetails) || firstRenderRef.current;
+    const isLoading = !reportID || !isSidebarLoaded || _.isEmpty(personalDetails);
 
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
     const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(parentReportAction);
@@ -304,6 +309,14 @@ function ReportScreen({
         ComposerActions.setShouldShowComposeInput(true);
     }, [route, report, errors, fetchReportIfNeeded, prevReport.reportID]);
 
+    const onListLayout = useCallback(() => {
+        if (!allowOnyxUpdates) {
+            return;
+        }
+        allowOnyxUpdates();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     return (
         <ActionListContext.Provider value={flatListRef}>
             <ReactionListContext.Provider value={reactionListRef}>
@@ -336,7 +349,7 @@ function ReportScreen({
                                 </View>
                             )}
                         </OfflineWithFeedback>
-                        {Boolean(accountManagerReportID) && ReportUtils.isConciergeChatReport(report) && isBannerVisible && (
+                        {!!accountManagerReportID && ReportUtils.isConciergeChatReport(report) && isBannerVisible && (
                             <Banner
                                 containerStyles={[styles.mh4, styles.mt4, styles.p4, styles.bgDark]}
                                 textStyles={[styles.colorReversed]}
@@ -354,6 +367,7 @@ function ReportScreen({
                                 {isReportReadyForDisplay && !isLoadingInitialReportActions && !isLoading && (
                                     <ReportActionsView
                                         reportActions={reportActions}
+                                        onLayout={onListLayout}
                                         report={report}
                                         isLoadingReportActions={reportMetadata.isLoadingReportActions}
                                         isLoadingMoreReportActions={reportMetadata.isLoadingMoreReportActions}
@@ -403,35 +417,48 @@ export default compose(
     withLocalize,
     withWindowDimensions,
     withNetwork(),
-    withOnyx({
-        isSidebarLoaded: {
-            key: ONYXKEYS.IS_SIDEBAR_LOADED,
+    withOnyx(
+        {
+            isSidebarLoaded: {
+                key: ONYXKEYS.IS_SIDEBAR_LOADED,
+            },
+            reportActions: {
+                key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`,
+                canEvict: false,
+                selector: ReportActionsUtils.getSortedReportActionsForDisplay,
+            },
+            report: {
+                key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`,
+                allowStaleData: true,
+            },
+            reportMetadata: {
+                key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_METADATA}${getReportID(route)}`,
+                initialValue: {
+                    isLoadingReportActions: false,
+                    isLoadingMoreReportActions: false,
+                },
+            },
+            isComposerFullSize: {
+                key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${getReportID(route)}`,
+                initialValue: false,
+            },
+            betas: {
+                key: ONYXKEYS.BETAS,
+            },
+            policies: {
+                key: ONYXKEYS.COLLECTION.POLICY,
+                allowStaleData: true,
+            },
+            accountManagerReportID: {
+                key: ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID,
+                initialValue: null,
+            },
+            personalDetails: {
+                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            },
         },
-        reportActions: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`,
-            canEvict: false,
-            selector: ReportActionsUtils.getSortedReportActionsForDisplay,
+        {
+            delayUpdates: true,
         },
-        report: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`,
-        },
-        reportMetadata: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_METADATA}${getReportID(route)}`,
-        },
-        isComposerFullSize: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${getReportID(route)}`,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
-        policies: {
-            key: ONYXKEYS.COLLECTION.POLICY,
-        },
-        accountManagerReportID: {
-            key: ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID,
-        },
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        },
-    }),
+    ),
 )(ReportScreen);

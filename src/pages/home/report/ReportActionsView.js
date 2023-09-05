@@ -50,6 +50,9 @@ const propTypes = {
         avatar: PropTypes.string,
     }),
 
+    /** Used by parent component to tell Onyx when to hydrate data */
+    onLayout: PropTypes.func.isRequired,
+
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
 };
@@ -163,6 +166,8 @@ function ReportActionsView(props) {
      * Runs when the FlatList finishes laying out
      */
     const recordTimeToMeasureItemLayout = () => {
+        props.onLayout();
+
         if (didLayout.current) {
             return;
         }

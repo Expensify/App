@@ -119,6 +119,7 @@ function ReportActionsList({
     const scrollingVerticalOffset = useRef(0);
     const readActionSkipped = useRef(false);
     const reportActionSize = useRef(sortedReportActions.length);
+    const firstRenderRef = useRef(true);
 
     // This state is used to force a re-render when the user manually marks a message as unread
     // by using a timestamp you can force re-renders without having to worry about if another message was marked as unread before
@@ -286,6 +287,40 @@ function ReportActionsList({
     const hideComposer = ReportUtils.shouldDisableWriteActions(report);
     const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(personalDetailsList, report, currentUserPersonalDetails.accountID) && !isComposerFullSize;
 
+    const renderFooter = useCallback(() => {
+        if (firstRenderRef.current) {
+            firstRenderRef.current = false;
+            return null;
+        }
+
+        if (isLoadingMoreReportActions) {
+            return <ReportActionsSkeletonView containerHeight={CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT * 3} />;
+        }
+
+        // Make sure the oldest report action loaded is not the first. This is so we do not show the
+        // skeleton view above the created action in a newly generated optimistic chat or one with not
+        // that many comments.
+        const lastReportAction = _.last(sortedReportActions) || {};
+        if (isLoadingReportActions && lastReportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED) {
+            return (
+                <ReportActionsSkeletonView
+                    containerHeight={skeletonViewHeight}
+                    animate={!isOffline}
+                />
+            );
+        }
+
+        return null;
+    }, [isLoadingMoreReportActions, isLoadingReportActions, sortedReportActions, isOffline, skeletonViewHeight]);
+
+    const onLayoutInner = useCallback(
+        (event) => {
+            setSkeletonViewHeight(event.nativeEvent.layout.height);
+            onLayout(event);
+        },
+        [onLayout],
+    );
+
     return (
         <>
             <FloatingMessageCounter
@@ -304,31 +339,9 @@ function ReportActionsList({
                     initialNumToRender={initialNumToRender}
                     onEndReached={loadMoreChats}
                     onEndReachedThreshold={0.75}
-                    ListFooterComponent={() => {
-                        if (isLoadingMoreReportActions) {
-                            return <ReportActionsSkeletonView containerHeight={CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT * 3} />;
-                        }
-
-                        // Make sure the oldest report action loaded is not the first. This is so we do not show the
-                        // skeleton view above the created action in a newly generated optimistic chat or one with not
-                        // that many comments.
-                        const lastReportAction = _.last(sortedReportActions) || {};
-                        if (isLoadingReportActions && lastReportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED) {
-                            return (
-                                <ReportActionsSkeletonView
-                                    containerHeight={skeletonViewHeight}
-                                    animate={!isOffline}
-                                />
-                            );
-                        }
-
-                        return null;
-                    }}
+                    ListFooterComponent={renderFooter}
                     keyboardShouldPersistTaps="handled"
-                    onLayout={(event) => {
-                        setSkeletonViewHeight(event.nativeEvent.layout.height);
-                        onLayout(event);
-                    }}
+                    onLayout={onLayoutInner}
                     onScroll={trackVerticalScrolling}
                     extraData={extraData}
                 />

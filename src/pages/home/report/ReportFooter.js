@@ -102,5 +102,6 @@ export default compose(
     withWindowDimensions,
     withOnyx({
         shouldShowComposeInput: {key: ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT},
+        initialValue: false,
     }),
 )(ReportFooter);
