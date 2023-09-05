@@ -1,7 +1,7 @@
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as QueuedOnyxUpdates from './QueuedOnyxUpdates';
-import CONST from './CONST';
+import CONST from '../../CONST';
 
 // This key needs to be separate from ONYXKEYS.ONYX_UPDATES_FROM_SERVER so that it can be updated without triggering the callback when the server IDs are updated
 let lastUpdateIDAppliedToClient = 0;
