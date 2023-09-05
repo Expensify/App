@@ -5,14 +5,13 @@ import _ from 'underscore';
 import styles from '../../styles/styles';
 import Text from '../Text';
 import ReportActionItemImage from './ReportActionItemImage';
-import sourcePropTypes from '../Image/sourcePropTypes';
 
 const propTypes = {
     /** array of image and thumbnail URIs */
     images: PropTypes.arrayOf(
         PropTypes.shape({
             thumbnail: PropTypes.string,
-            image: sourcePropTypes,
+            image: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
         }),
     ).isRequired,
 
