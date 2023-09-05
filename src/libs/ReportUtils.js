@@ -1359,31 +1359,6 @@ function getTransactionsWithReceipts(iouReportID) {
 }
 
 /**
- * Gets all sorted transactions on an IOU report with a receipt and whose pending action is not delete
- *
- * @param {Object|null} iouReportID
- * @returns {[Object]}
- */
-function getSortedTransactionsWithReceipts(iouReportID) {
-    const reportActions = ReportActionsUtils.getAllReportActions(iouReportID);
-    const sortedReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(reportActions);
-
-    return _.reduce(
-        sortedReportActions,
-        (transactions, action) => {
-            if (ReportActionsUtils.isMoneyRequestAction(action)) {
-                const transaction = TransactionUtils.getLinkedTransaction(action);
-                if (TransactionUtils.hasReceipt(transaction)) {
-                    transactions.push(transaction);
-                }
-            }
-            return transactions;
-        },
-        [],
-    );
-}
-
-/**
  * For report previews, we display a "Receipt scan in progress" indicator
  * instead of the report total only when we have no report total ready to show. This is the case when
  * all requests are receipts that are being SmartScanned. As soon as we have a non-receipt request,
@@ -3650,6 +3625,5 @@ export {
     areAllRequestsBeingSmartScanned,
     getReportPreviewDisplayTransactions,
     getTransactionsWithReceipts,
-    getSortedTransactionsWithReceipts,
     hasMissingSmartscanFields,
 };

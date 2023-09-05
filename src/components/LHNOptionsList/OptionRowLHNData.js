@@ -12,7 +12,8 @@ import withCurrentReportID, {withCurrentReportIDPropTypes, withCurrentReportIDDe
 import OptionRowLHN, {propTypes as basePropTypes, defaultProps as baseDefaultProps} from './OptionRowLHN';
 import * as Report from '../../libs/actions/Report';
 import * as UserUtils from '../../libs/UserUtils';
-import * as ReportUtils from '../../libs/ReportUtils';
+import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
+import * as TransactionUtils from '../../libs/TransactionUtils';
 
 import participantPropTypes from '../participantPropTypes';
 import CONST from '../../CONST';
@@ -94,8 +95,9 @@ function OptionRowLHNData({
     const optionItemRef = useRef();
 
     const lastTransaction = useMemo(() => {
-        const transactionsWithReceipts = ReportUtils.getSortedTransactionsWithReceipts(fullReport.reportID);
-        return _.first(transactionsWithReceipts);
+        const sortedReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(reportActions);
+        const lastReportAction = _.first(sortedReportActions);
+        return TransactionUtils.getLinkedTransaction(lastReportAction);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [fullReport.reportID, receiptTransactions, reportActions]);
 
