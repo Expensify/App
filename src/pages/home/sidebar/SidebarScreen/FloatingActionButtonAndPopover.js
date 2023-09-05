@@ -177,7 +177,7 @@ function FloatingActionButtonAndPopover(props) {
             return;
         }
         Welcome.show({routes, showCreateMenu});
-    }, [props.shouldShowDownloadAppBanner, props.navigation, showCreateMenu]);
+    }, [props.shouldShowDownloadAppBanner, props.navigation, showCreateMenu, props.demoInfo]);
 
     useEffect(() => {
         if (!didScreenBecomeInactive()) {
