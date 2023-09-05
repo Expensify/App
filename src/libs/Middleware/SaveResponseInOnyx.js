@@ -37,7 +37,7 @@ function SaveResponseInOnyx(response, request) {
         });
 
         if (_.includes(requestsToIgnoreLastUpdateID, request.command) || !OnyxUpdates.needsToUpdateClient(Number(responseData.previousUpdateID || 0))) {
-            return OnyxUpdates.applyOnyxUpdates({
+            return OnyxUpdates.apply({
                 type: CONST.ONYX_UPDATE_TYPES.HTTPS,
                 data: {
                     request,

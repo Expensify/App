@@ -65,7 +65,7 @@ function applyPusherOnyxUpdates({updates}) {
  * @param {Object} [updateParams.data.updates] Exists if updateParams.type === 'pusher'
  * @returns {Promise}
  */
-function applyOnyxUpdates({type, data}) {
+function apply({type, data}) {
     console.debug(`[OnyxUpdateManager] Applying update type: ${type}`, data);
     if (type === CONST.ONYX_UPDATE_TYPES.HTTPS) {
         return applyHTTPSOnyxUpdates(data);
@@ -118,4 +118,4 @@ function needsToUpdateClient(previousUpdateID = 0) {
 }
 
 // eslint-disable-next-line import/prefer-default-export
-export {saveUpdateInformation, needsToUpdateClient, applyOnyxUpdates};
+export {saveUpdateInformation, needsToUpdateClient, apply};

@@ -68,7 +68,7 @@ export default () => {
 
             promise.finally(() => {
                 console.debug('[OnyxUpdateManager] Done applying all updates');
-                OnyxUpdates.applyOnyxUpdates(updateParams).finally(() => {
+                OnyxUpdates.apply(updateParams).finally(() => {
                     SequentialQueue.unpause();
                 });
             });
