@@ -1,6 +1,7 @@
 import Onyx from 'react-native-onyx';
 import {format, parseISO, isValid} from 'date-fns';
 import lodashGet from 'lodash/get';
+import lodashIsNil from 'lodash/isNil';
 import _ from 'underscore';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
@@ -272,6 +273,16 @@ function hasMissingSmartscanFields(transaction) {
 }
 
 /**
+ * Check if the transaction has a defined route
+ *
+ * @param {Object} transaction
+ * @returns {Boolean}
+ */
+function doesRouteExist(transaction) {
+    return !lodashIsNil(lodashGet(transaction, 'routes.route0.geometry.coordinates'))
+}
+
+/**
  * Get the transactions related to a report preview with receipts
  * Get the details linked to the IOU reportAction
  *
@@ -345,6 +356,7 @@ function getValidWaypoints(waypoints, reArrangeIndexes = false) {
 
 export {
     buildOptimisticTransaction,
+    doesRouteExist,
     getUpdatedTransaction,
     getTransaction,
     getDescription,

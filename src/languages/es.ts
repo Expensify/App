@@ -238,6 +238,7 @@ export default {
         kilometers: 'kilómetros',
         recent: 'Reciente',
         all: 'Todo',
+        tbd: 'A definir'
     },
     anonymousReportFooter: {
         logoTagline: 'Únete a la discusión.',

@@ -33,6 +33,7 @@ import ConfirmedRoute from './ConfirmedRoute';
 import transactionPropTypes from './transactionPropTypes';
 import DistanceRequestUtils from '../libs/DistanceRequestUtils';
 import * as IOU from '../libs/actions/IOU';
+import * as TransactionUtils from "../libs/TransactionUtils";
 
 const propTypes = {
     /** Callback to inform parent modal of success */
@@ -173,7 +174,8 @@ function MoneyRequestConfirmationList(props) {
     const shouldCalculateDistanceAmount = props.isDistanceRequest && props.iouAmount === 0;
     const shouldCategoryEditable = !_.isEmpty(props.policyCategories) && !props.isDistanceRequest;
 
-    const formattedAmount = CurrencyUtils.convertToDisplayString(
+    const doesRouteExist = TransactionUtils.doesRouteExist(transaction)
+    const formattedAmount = (props.isDistanceRequest && !doesRouteExist) ? translate('common.tbd') : CurrencyUtils.convertToDisplayString(
         shouldCalculateDistanceAmount ? DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate) : props.iouAmount,
         props.isDistanceRequest ? currency : props.iouCurrencyCode,
     );
@@ -466,7 +468,7 @@ function MoneyRequestConfirmationList(props) {
                     {props.isDistanceRequest ? (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly && isTypeRequest}
-                            title={props.iouMerchant}
+                            title={doesRouteExist ? props.iouMerchant : translate('common.tbd')}
                             description={translate('common.distance')}
                             style={[styles.moneyRequestMenuItem, styles.mb2]}
                             titleStyle={styles.flex1}
