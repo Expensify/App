@@ -189,7 +189,7 @@ function MagicCodeInput(props) {
     const onPress = (index) => {
         shouldFocusLast.current = false;
         // TapGestureHandler works differently on mobile web and native app
-        // On web gesture handelr doesn't block interactions with textInput below so there is no need to run `focus()` manually
+        // On web gesture handler doesn't block interactions with textInput below so there is no need to run `focus()` manually
         if (!Browser.isMobileChrome() && !Browser.isMobileSafari()) {
             inputRefs.current.focus();
         }
