@@ -4,12 +4,10 @@ import styles from '../../styles/styles';
 import Image from '../Image';
 import ThumbnailImage from '../ThumbnailImage';
 import tryResolveUrlFromApiRoot from '../../libs/tryResolveUrlFromApiRoot';
-import ROUTES from '../../ROUTES';
 import CONST from '../../CONST';
-import {ShowContextMenuContext} from '../ShowContextMenuContext';
-import Navigation from '../../libs/Navigation/Navigation';
 import PressableWithoutFocus from '../Pressable/PressableWithoutFocus';
 import useLocalize from '../../hooks/useLocalize';
+import AttachmentModal from '../AttachmentModal';
 
 const propTypes = {
     /** thumbnail URI for the image */
@@ -50,21 +48,25 @@ function ReportActionItemImage({thumbnail, image, enablePreviewModal}) {
 
         if (enablePreviewModal) {
             return (
-                <ShowContextMenuContext.Consumer>
-                    {({report}) => (
-                        <PressableWithoutFocus
-                            style={[styles.noOutline, styles.w100, styles.h100]}
-                            onPress={() => {
-                                const route = ROUTES.getReportAttachmentRoute(report.reportID, imageSource);
-                                Navigation.navigate(route);
-                            }}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
-                            accessibilityLabel={translate('accessibilityHints.viewAttachment')}
-                        >
-                            {thumbnailComponent}
-                        </PressableWithoutFocus>
-                    )}
-                </ShowContextMenuContext.Consumer>
+                <>
+                    <AttachmentModal
+                        headerTitle={translate('common.receipt')}
+                        source={imageSource}
+                        isAuthTokenRequired
+                        isReceipt
+                    >
+                        {({show}) => (
+                            <PressableWithoutFocus
+                                style={[styles.noOutline, styles.w100, styles.h100]}
+                                onPress={show}
+                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                                accessibilityLabel={translate('accessibilityHints.viewAttachment')}
+                            >
+                                {thumbnailComponent}
+                            </PressableWithoutFocus>
+                        )}
+                    </AttachmentModal>
+                </>
             );
         }
         return thumbnailComponent;
