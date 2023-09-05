@@ -5,6 +5,7 @@ type AddressComponent = {
     short_name: string;
     types: string[];
 };
+type FieldsToExtract = Record<string, Exclude<keyof AddressComponent, 'types'>>;
 
 /**
  * Finds an address component by type, and returns the value associated to key. Each address component object
@@ -15,7 +16,7 @@ type AddressComponent = {
  *   types: [ "locality", "political" ]
  * }]
  */
-function getAddressComponents(addressComponents: AddressComponent[], fieldsToExtract: Record<string, Exclude<keyof AddressComponent, 'types'>>): Record<string, string> {
+function getAddressComponents(addressComponents: AddressComponent[], fieldsToExtract: FieldsToExtract): Record<string, string> {
     const result: Record<string, string> = {};
     Object.keys(fieldsToExtract).forEach((key) => (result[key] = ''));
 
