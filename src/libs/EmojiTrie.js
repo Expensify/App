@@ -21,7 +21,6 @@ function createTrie(lang = CONST.LOCALES.DEFAULT) {
         const englishName = item.name;
         const localeName = _.get(langEmojis, [item.code, 'name'], englishName);
 
-        // Add the actual name of the emoji for the current language
         const node = trie.search(localeName);
         if (!node) {
             trie.add(localeName, {code: item.code, types: item.types, name: localeName, suggestions: []});
@@ -29,7 +28,7 @@ function createTrie(lang = CONST.LOCALES.DEFAULT) {
             trie.update(localeName, {code: item.code, types: item.types, name: localeName, suggestions: node.metaData.suggestions});
         }
 
-        // Add keywords of both the current language and the default language, in case current language isn't the default.
+        // Add keywords for both the locale language and English to enable users to search using either language.
         const keywords = _.get(langEmojis, [item.code, 'keywords'], []).concat(isDefaultLocale ? [] : _.get(localeEmojis, [CONST.LOCALES.DEFAULT, item.code, 'keywords'], []));
         for (let j = 0; j < keywords.length; j++) {
             const keywordNode = trie.search(keywords[j]);
@@ -44,6 +43,7 @@ function createTrie(lang = CONST.LOCALES.DEFAULT) {
         }
 
         // If current language isn't the default, prepend the English name of the emoji in the suggestions as well.
+        // We do this because when the user types the english name of the emoji, we want to show the emoji in the suggestions before all the others.
         if (!isDefaultLocale) {
             const englishNode = trie.search(englishName);
             if (!englishNode) {

@@ -320,7 +320,9 @@ function replaceEmojis(text, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE, 
     for (let i = 0; i < emojiData.length; i++) {
         const name = emojiData[i].slice(1, -1);
         let checkEmoji = trie.search(name);
-        if ((!checkEmoji || !checkEmoji.metaData.code) && lang !== CONST.LOCALES.DEFAULT) {
+        // If the user has selected a language other than English, and the emoji doesn't exist in that language,
+        // we will check if the emoji exists in English.
+        if (lang !== CONST.LOCALES.DEFAULT && (!checkEmoji || !checkEmoji.metaData.code)) {
             const englishTrie = emojisTrie[CONST.LOCALES.DEFAULT];
             if (englishTrie) {
                 const englishEmoji = englishTrie.search(name);
