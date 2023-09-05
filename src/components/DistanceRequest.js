@@ -163,7 +163,7 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
     useEffect(updateGradientVisibility, [scrollContainerHeight, scrollContentHeight]);
 
     return (
-        <>
+        <ScrollView contentContainerStyle={styles.flex1}>
             <View
                 style={styles.distanceRequestContainer(scrollContainerMaxHeight)}
                 onLayout={(event = {}) => setScrollContainerHeight(lodashGet(event, 'nativeEvent.layout.height', 0))}
@@ -266,7 +266,7 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
                 isDisabled={_.size(validatedWaypoints) < 2}
                 text={translate('common.next')}
             />
-        </>
+        </ScrollView>
     );
 }
 
