@@ -1840,7 +1840,7 @@ function setMoneyRequestCategory(category, policyID, recentlyUsedPolicyCategorie
     const uniqRecentlyUsedPolicyCategories = _.filter(recentlyUsedPolicyCategories, (recentlyUsedPolicyCategory) => recentlyUsedPolicyCategory.name !== category.name);
 
     Onyx.merge(ONYXKEYS.IOU, {category: category.name});
-    Onyx.merge(`${ONYXKEYS.COLLECTION.RECENTLY_USED_POLICY_CATEGORIES}${policyID}`, [category, ...uniqRecentlyUsedPolicyCategories]);
+    Onyx.merge(`${ONYXKEYS.RECENTLY_USED_POLICY_CATEGORIES}${policyID}`, [category, ...uniqRecentlyUsedPolicyCategories]);
 }
 
 function resetMoneyRequestCategory() {

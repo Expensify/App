@@ -101,7 +101,7 @@ export default withOnyx({
         key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
     },
     recentlyUsedPolicyCategories: {
-        key: ({policyID}) => `${ONYXKEYS.COLLECTION.RECENTLY_USED_POLICY_CATEGORIES}${policyID}`,
+        key: ({policyID}) => `${ONYXKEYS.RECENTLY_USED_POLICY_CATEGORIES}${policyID}`,
     },
     iou: {
         key: ONYXKEYS.IOU,

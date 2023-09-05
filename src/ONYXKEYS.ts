@@ -236,13 +236,15 @@ const ONYXKEYS = {
     // Max width supported for HTML <canvas> element
     MAX_CANVAS_WIDTH: 'maxCanvasWidth',
 
+    // A list of recently used categories of a policy
+    RECENTLY_USED_POLICY_CATEGORIES: 'recentlyUsedPolicyCategories_',
+
     /** Collection Keys */
     COLLECTION: {
         DOWNLOAD: 'download_',
         POLICY: 'policy_',
         POLICY_MEMBERS: 'policyMembers_',
         POLICY_CATEGORIES: 'policyCategories_',
-        RECENTLY_USED_POLICY_CATEGORIES: 'recentlyUsedPolicyCategories_',
         WORKSPACE_INVITE_MEMBERS_DRAFT: 'workspaceInviteMembersDraft_',
         REPORT: 'report_',
         REPORT_ACTIONS: 'reportActions_',
@@ -372,12 +374,12 @@ type OnyxValues = {
     [ONYXKEYS.MAX_CANVAS_AREA]: number;
     [ONYXKEYS.MAX_CANVAS_HEIGHT]: number;
     [ONYXKEYS.MAX_CANVAS_WIDTH]: number;
+    [ONYXKEYS.RECENTLY_USED_POLICY_CATEGORIES]: OnyxTypes.PolicyCategory[];
 
     // Collections
     [ONYXKEYS.COLLECTION.DOWNLOAD]: OnyxTypes.Download;
     [ONYXKEYS.COLLECTION.POLICY]: OnyxTypes.Policy;
-    [ONYXKEYS.COLLECTION.POLICY_CATEGORIES]: Record<string, OnyxTypes.PolicyCategory>;
-    [ONYXKEYS.COLLECTION.RECENTLY_USED_POLICY_CATEGORIES]: OnyxTypes.PolicyCategory[];
+    [ONYXKEYS.COLLECTION.POLICY_CATEGORIES]: OnyxTypes.PolicyCategory;
     [ONYXKEYS.COLLECTION.POLICY_MEMBERS]: OnyxTypes.PolicyMember;
     [ONYXKEYS.COLLECTION.DEPRECATED_POLICY_MEMBER_LIST]: OnyxTypes.PolicyMember;
     [ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT]: Record<string, number>;
