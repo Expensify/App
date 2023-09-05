@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -17,6 +17,13 @@ import KYCWall from './KYCWall';
 import withNavigation from './withNavigation';
 import * as Expensicons from './Icon/Expensicons';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
+
+// Creating a default array this way because objects ({}) and arrays ([]) are not stable types.
+// The "betas" array, "nvp_lastPaymentMethod" and "iouReport" object needs to be stable 
+// to prevent the "useMemo" hook from being recreated unnecessarily.
+// Freezing the array ensures that it cannot be unintentionally modified.
+const EMPTY_ARRAY = Object.freeze([]);
+const EMPTY_OBJECT = Object.freeze({});
 
 const propTypes = {
     /** Callback to execute when this button is pressed. Receives a single payment type argument. */
@@ -85,11 +92,11 @@ const defaultProps = {
     currency: CONST.CURRENCY.USD,
     shouldShowPaypal: false,
     chatReportID: '',
-    betas: [],
+    betas: EMPTY_ARRAY,
     shouldShowPaymentOptions: false,
-    nvp_lastPaymentMethod: {},
+    nvp_lastPaymentMethod: EMPTY_OBJECT,
     style: [],
-    iouReport: {},
+    iouReport: EMPTY_OBJECT,
     policyID: '',
     formattedAmount: '',
     buttonSize: CONST.DROPDOWN_BUTTON_SIZE.MEDIUM,
@@ -126,7 +133,7 @@ function SettlementButton({
         PaymentMethods.openWalletPage();
     }, []);
 
-    const getButtonOptionsFromProps = () => {
+    const getButtonOptionsFromProps = useMemo(() => {
         const buttonOptions = [];
         const isExpenseReport = ReportUtils.isExpenseReport(iouReport);
         const paymentMethods = {
@@ -198,7 +205,7 @@ function SettlementButton({
             return _.sortBy(buttonOptions, (method) => (method.value === paymentMethod ? 0 : 1));
         }
         return buttonOptions;
-    };
+    }, [betas, currency, formattedAmount, iouReport, nvp_lastPaymentMethod, policyID, shouldShowPaymentOptions, shouldShowPaypal, translate]);
 
     const selectPaymentType = (event, iouPaymentType, triggerKYCFlow) => {
         if (iouPaymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || iouPaymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
@@ -225,7 +232,7 @@ function SettlementButton({
                     isDisabled={isDisabled}
                     isLoading={isLoading}
                     onPress={(event, iouPaymentType) => selectPaymentType(event, iouPaymentType, triggerKYCFlow)}
-                    options={getButtonOptionsFromProps()}
+                    options={getButtonOptionsFromProps}
                     style={style}
                     buttonSize={buttonSize}
                     anchorAlignment={anchorAlignment}
