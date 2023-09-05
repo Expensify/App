@@ -1,39 +1,158 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/no-empty-interface */
 /* eslint-disable @typescript-eslint/consistent-type-definitions */
-import {CSSProperties} from 'react';
+import {CSSProperties, FocusEventHandler, KeyboardEventHandler, MouseEventHandler} from 'react';
 import 'react-native';
-import {Merge, MergeDeep, OverrideProperties} from 'type-fest';
 
 declare module 'react-native' {
-    // interface ViewStyle extends CSSProperties {}
-    // interface ViewProps {
-    //     style?: number; // Doesn't make any difference
-    //     onLayout?: number;
-    //     href?: string; // It appear new prop as suggestion
-    //     focusable?: string;
-    // }
+    // Extracted from react-native-web, packages/react-native-web/src/exports/View/types.js
     type NumberOrString = number | string;
+    type OverscrollBehaviorValue = 'auto' | 'contain' | 'none';
+    type idRef = string;
+    type idRefList = idRef | idRef[];
 
-    type AnimationDirection = 'alternate' | 'alternate-reverse' | 'normal' | 'reverse';
-    type AnimationFillMode = 'none' | 'forwards' | 'backwards' | 'both';
-    type AnimationIterationCount = number | 'infinite';
-    type AnimationKeyframes = string | object;
-    type AnimationPlayState = 'paused' | 'running';
+    // https://necolas.github.io/react-native-web/docs/accessibility/#accessibility-props-api
+    // Extracted from react-native-web, packages/react-native-web/src/exports/View/types.js
+    type AccessibilityProps = {
+        'aria-activedescendant'?: idRef;
+        'aria-atomic'?: boolean;
+        'aria-autocomplete'?: 'none' | 'list' | 'inline' | 'both';
+        'aria-busy'?: boolean;
+        'aria-checked'?: boolean | 'mixed';
+        'aria-colcount'?: number;
+        'aria-colindex'?: number;
+        'aria-colspan'?: number;
+        'aria-controls'?: idRef;
+        'aria-current'?: boolean | 'page' | 'step' | 'location' | 'date' | 'time';
+        'aria-describedby'?: idRef;
+        'aria-details'?: idRef;
+        'aria-disabled'?: boolean;
+        'aria-errormessage'?: idRef;
+        'aria-expanded'?: boolean;
+        'aria-flowto'?: idRef;
+        'aria-haspopup'?: 'dialog' | 'grid' | 'listbox' | 'menu' | 'tree' | false;
+        'aria-hidden'?: boolean;
+        'aria-invalid'?: boolean;
+        'aria-keyshortcuts'?: string[];
+        'aria-label'?: string;
+        'aria-labelledby'?: idRef;
+        'aria-level'?: number;
+        'aria-live'?: 'assertive' | 'none' | 'polite';
+        'aria-modal'?: boolean;
+        'aria-multiline'?: boolean;
+        'aria-multiselectable'?: boolean;
+        'aria-orientation'?: 'horizontal' | 'vertical';
+        'aria-owns'?: idRef;
+        'aria-placeholder'?: string;
+        'aria-posinset'?: number;
+        'aria-pressed'?: boolean | 'mixed';
+        'aria-readonly'?: boolean;
+        'aria-required'?: boolean;
+        'aria-roledescription'?: string;
+        'aria-rowcount'?: number;
+        'aria-rowindex'?: number;
+        'aria-rowspan'?: number;
+        'aria-selected'?: boolean;
+        'aria-setsize'?: number;
+        'aria-sort'?: 'ascending' | 'descending' | 'none' | 'other';
+        'aria-valuemax'?: number;
+        'aria-valuemin'?: number;
+        'aria-valuenow'?: number;
+        'aria-valuetext'?: string;
+        role?: string;
 
-    type AnimationStyles = {
-        animationDelay?: string | string[];
-        animationDirection?: AnimationDirection | AnimationDirection[];
-        animationDuration?: string | string[];
-        animationFillMode?: AnimationFillMode | AnimationFillMode[];
-        animationIterationCount?: AnimationIterationCount | AnimationIterationCount[];
-        animationKeyframes?: AnimationKeyframes | AnimationKeyframes[];
-        animationPlayState?: AnimationPlayState | AnimationPlayState[];
-        animationTimingFunction?: string | string[];
-        transitionDelay?: string | string[];
-        transitionDuration?: string | string[];
-        transitionProperty?: string | string[];
-        transitionTimingFunction?: string | string[];
+        // @deprecated
+        accessibilityActiveDescendant?: idRef;
+        accessibilityAtomic?: boolean;
+        accessibilityAutoComplete?: 'none' | 'list' | 'inline' | 'both';
+        accessibilityBusy?: boolean;
+        accessibilityChecked?: boolean | 'mixed';
+        accessibilityColumnCount?: number;
+        accessibilityColumnIndex?: number;
+        accessibilityColumnSpan?: number;
+        accessibilityControls?: idRefList;
+        accessibilityCurrent?: boolean | 'page' | 'step' | 'location' | 'date' | 'time';
+        accessibilityDescribedBy?: idRefList;
+        accessibilityDetails?: idRef;
+        accessibilityDisabled?: boolean;
+        accessibilityErrorMessage?: idRef;
+        accessibilityExpanded?: boolean;
+        accessibilityFlowTo?: idRefList;
+        accessibilityHasPopup?: 'dialog' | 'grid' | 'listbox' | 'menu' | 'tree' | false;
+        accessibilityHidden?: boolean;
+        accessibilityInvalid?: boolean;
+        accessibilityKeyShortcuts?: string[];
+        accessibilityLabel?: string;
+        accessibilityLabelledBy?: idRefList;
+        accessibilityLevel?: number;
+        accessibilityLiveRegion?: 'assertive' | 'none' | 'polite';
+        accessibilityModal?: boolean;
+        accessibilityMultiline?: boolean;
+        accessibilityMultiSelectable?: boolean;
+        accessibilityOrientation?: 'horizontal' | 'vertical';
+        accessibilityOwns?: idRefList;
+        accessibilityPlaceholder?: string;
+        accessibilityPosInSet?: number;
+        accessibilityPressed?: boolean | 'mixed';
+        accessibilityReadOnly?: boolean;
+        accessibilityRequired?: boolean;
+        accessibilityRole?: string;
+        accessibilityRoleDescription?: string;
+        accessibilityRowCount?: number;
+        accessibilityRowIndex?: number;
+        accessibilityRowSpan?: number;
+        accessibilitySelected?: boolean;
+        accessibilitySetSize?: number;
+        accessibilitySort?: 'ascending' | 'descending' | 'none' | 'other';
+        accessibilityValueMax?: number;
+        accessibilityValueMin?: number;
+        accessibilityValueNow?: number;
+        accessibilityValueText?: string;
     };
+
+    // https://necolas.github.io/react-native-web/docs/interactions/#pointerevent-props-api
+    // Extracted from react-native-web, packages/react-native-web/src/exports/View/types.js
+    // Extracted from @types/react, index.d.ts
+    type PointerProps = {
+        onClick?: MouseEventHandler;
+        onClickCapture?: MouseEventHandler;
+        onContextMenu?: MouseEventHandler;
+    };
+
+    // TODO: Confirm
+    type FocusProps = {
+        onBlur?: FocusEventHandler;
+        onFocus?: FocusEventHandler;
+    };
+
+    // TODO: Confirm
+    type KeyboardProps = {
+        onKeyDown?: KeyboardEventHandler;
+        onKeyDownCapture?: KeyboardEventHandler;
+        onKeyUp?: KeyboardEventHandler;
+        onKeyUpCapture?: KeyboardEventHandler;
+    };
+
+    // type AnimationDirection = 'alternate' | 'alternate-reverse' | 'normal' | 'reverse';
+    // type AnimationFillMode = 'none' | 'forwards' | 'backwards' | 'both';
+    // type AnimationIterationCount = number | 'infinite';
+    // type AnimationKeyframes = string | object;
+    // type AnimationPlayState = 'paused' | 'running';
+
+    // type AnimationStyles = {
+    //     animationDelay?: string | string[];
+    //     animationDirection?: AnimationDirection | AnimationDirection[];
+    //     animationDuration?: string | string[];
+    //     animationFillMode?: AnimationFillMode | AnimationFillMode[];
+    //     animationIterationCount?: AnimationIterationCount | AnimationIterationCount[];
+    //     animationKeyframes?: AnimationKeyframes | AnimationKeyframes[];
+    //     animationPlayState?: AnimationPlayState | AnimationPlayState[];
+    //     animationTimingFunction?: string | string[];
+    //     transitionDelay?: string | string[];
+    //     transitionDuration?: string | string[];
+    //     transitionProperty?: string | string[];
+    //     transitionTimingFunction?: string | string[];
+    // };
 
     /**
      * Image
@@ -90,7 +209,7 @@ declare module 'react-native' {
     /**
      * View
      */
-    interface WebViewProps {
+    interface WebViewProps extends AccessibilityProps, PointerProps, FocusProps, KeyboardProps {
         dataSet?: Record<string, unknown>;
         dir?: 'ltr' | 'rtl';
         href?: string;
@@ -122,27 +241,7 @@ declare module 'react-native' {
         overflowX?: CSSProperties['overflowX'];
     }
 
-    // interface FlexStyle {
-    //     overflow?: string;
-    // }
     interface ViewStyle extends WebStyle, WebViewStyle {}
     interface TextStyle extends WebStyle {}
     interface ImageStyle extends WebStyle {}
 }
-
-interface A {
-    overflow?: string;
-}
-
-interface B {
-    overflow?: number;
-}
-
-declare const a: A;
-
-// interface A extends B {}
-
-interface C extends Omit<A, 'overflow'> {
-    overflow?: number;
-}
-declare const a: C;
