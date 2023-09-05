@@ -49,52 +49,6 @@ function unpause() {
 }
 
 /**
- * Process any persisted requests, when online, one at a time until the queue is empty.
- *
- * If a request fails due to some kind of network error, such as a request being throttled or when our backend is down, then we retry it with an exponential back off process until a response
- * is successfully returned. The first time a request fails we set a random, small, initial wait time. After waiting, we retry the request. If there are subsequent failures the request wait
- * time is doubled creating an exponential back off in the frequency of requests hitting the server. Since the initial wait time is random and it increases exponentially, the load of
- * requests to our backend is evenly distributed and it gradually decreases with time, which helps the servers catch up.
- * @returns {Promise}
- */
-function process() {
-    // When the queue is paused, return early. This prevents any new requests from happening. The queue will be flushed again when the queue is unpaused.
-    if (isQueuePaused) {
-        return Promise.resolve();
-    }
-
-    const persistedRequests = PersistedRequests.getAll();
-    if (_.isEmpty(persistedRequests) || NetworkStore.isOffline()) {
-        return Promise.resolve();
-    }
-    const requestToProcess = persistedRequests[0];
-
-    // Set the current request to a promise awaiting its processing so that getCurrentRequest can be used to take some action after the current request has processed.
-    currentRequest = Request.processWithMiddleware(requestToProcess, true)
-        .then((responseData) => {
-            // A response might indicate that the queue should be paused. This happens when a gap in onyx updates is detected between the client and the server and
-            // that gap needs resolved before the queue can continue.
-            if (responseData.shouldPauseQueue) {
-                pause();
-            }
-            PersistedRequests.remove(requestToProcess);
-            RequestThrottle.clear();
-            return process();
-        })
-        .catch((error) => {
-            // On sign out we cancel any in flight requests from the user. Since that user is no longer signed in their requests should not be retried.
-            // Duplicate records don't need to be retried as they just mean the record already exists on the server
-            if (error.name === CONST.ERROR.REQUEST_CANCELLED || error.message === CONST.ERROR.DUPLICATE_RECORD) {
-                PersistedRequests.remove(requestToProcess);
-                RequestThrottle.clear();
-                return process();
-            }
-            return RequestThrottle.sleep().then(process);
-        });
-    return currentRequest;
-}
-
-/**
  * Gets the current Onyx queued updates, apply them and clear the queue if the queue is not paused.
  */
 function flushOnyxUpdatesQueue() {
@@ -142,6 +96,52 @@ function flush() {
             });
         },
     });
+}
+
+/**
+ * Process any persisted requests, when online, one at a time until the queue is empty.
+ *
+ * If a request fails due to some kind of network error, such as a request being throttled or when our backend is down, then we retry it with an exponential back off process until a response
+ * is successfully returned. The first time a request fails we set a random, small, initial wait time. After waiting, we retry the request. If there are subsequent failures the request wait
+ * time is doubled creating an exponential back off in the frequency of requests hitting the server. Since the initial wait time is random and it increases exponentially, the load of
+ * requests to our backend is evenly distributed and it gradually decreases with time, which helps the servers catch up.
+ * @returns {Promise}
+ */
+function process() {
+    // When the queue is paused, return early. This prevents any new requests from happening. The queue will be flushed again when the queue is unpaused.
+    if (isQueuePaused) {
+        return Promise.resolve();
+    }
+
+    const persistedRequests = PersistedRequests.getAll();
+    if (_.isEmpty(persistedRequests) || NetworkStore.isOffline()) {
+        return Promise.resolve();
+    }
+    const requestToProcess = persistedRequests[0];
+
+    // Set the current request to a promise awaiting its processing so that getCurrentRequest can be used to take some action after the current request has processed.
+    currentRequest = Request.processWithMiddleware(requestToProcess, true)
+        .then((responseData) => {
+            // A response might indicate that the queue should be paused. This happens when a gap in onyx updates is detected between the client and the server and
+            // that gap needs resolved before the queue can continue.
+            if (responseData.shouldPauseQueue) {
+                pause();
+            }
+            PersistedRequests.remove(requestToProcess);
+            RequestThrottle.clear();
+            return process();
+        })
+        .catch((error) => {
+            // On sign out we cancel any in flight requests from the user. Since that user is no longer signed in their requests should not be retried.
+            // Duplicate records don't need to be retried as they just mean the record already exists on the server
+            if (error.name === CONST.ERROR.REQUEST_CANCELLED || error.message === CONST.ERROR.DUPLICATE_RECORD) {
+                PersistedRequests.remove(requestToProcess);
+                RequestThrottle.clear();
+                return process();
+            }
+            return RequestThrottle.sleep().then(process);
+        });
+    return currentRequest;
 }
 
 /**

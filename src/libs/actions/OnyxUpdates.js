@@ -1,6 +1,6 @@
+import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import PusherUtils from '../PusherUtils';
-import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as QueuedOnyxUpdates from './QueuedOnyxUpdates';
 import CONST from '../../CONST';
@@ -117,6 +117,8 @@ function saveUpdateInformation(updateParams, lastUpdateID = 0, previousUpdateID 
 /**
  * This function will receive the previousUpdateID from any request/pusher update that has it, compare to our current app state
  * and return if an update is needed
+ * @param {Number} previousUpdateID The previousUpdateID contained in the response object
+ * @returns {Boolean}
  */
 function doesClientNeedToBeUpdated(previousUpdateID = 0) {
     // If no previousUpdateID is sent, this is not a WRITE request so we don't need to update our current state
