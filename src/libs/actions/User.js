@@ -567,8 +567,8 @@ function subscribeToUserEvents() {
                 updates: pushJSON.updates,
             },
         };
-        if (!OnyxUpdates.needsToUpdateClient(Number(responseData.previousUpdateID || 0))) {
-            OnyxUpdates.apply(responseToApply);
+        if (!OnyxUpdates.doesClientNeedToBeUpdated(Number(pushJSON.previousUpdateID || 0))) {
+            OnyxUpdates.apply(updates);
             return;
         }
 

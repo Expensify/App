@@ -213,7 +213,7 @@ function reconnectApp(updateIDFrom = 0) {
  * state because of race conditions between reconnectApp and other pusher updates being applied at the same time.
  * @return {Promise}
  */
-function lastReconnectAppAfterActivatingReliableUpdates() {
+function finalReconnectAppAfterActivatingReliableUpdates() {
     console.debug(`[OnyxUpdates] Executing last reconnect app with promise`);
     return getPolicyParamsForOpenOrReconnect().then((policyParams) => {
         const params = {...policyParams};
@@ -230,7 +230,7 @@ function lastReconnectAppAfterActivatingReliableUpdates() {
         // It is SUPER BAD FORM to return promises from action methods.
         // DO NOT FOLLOW THIS PATTERN!!!!!
         // It was absolutely necessary in order to not break the app while migrating to the new reliable updates pattern. This method will be removed
-        // as soon as we have everyone migrated to it
+        // as soon as we have everyone migrated to the reliableUpdate beta.
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
         return API.makeRequestWithSideEffects('ReconnectApp', params, getOnyxDataForOpenOrReconnect());
     });
@@ -471,5 +471,5 @@ export {
     beginDeepLinkRedirectAfterTransition,
     createWorkspaceAndNavigateToIt,
     getMissingOnyxUpdates,
-    lastReconnectAppAfterActivatingReliableUpdates,
+    finalReconnectAppAfterActivatingReliableUpdates,
 };

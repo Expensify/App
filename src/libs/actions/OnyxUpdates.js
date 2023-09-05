@@ -1,9 +1,12 @@
+import _ from 'underscore';
+import PusherUtils from '../PusherUtils';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as QueuedOnyxUpdates from './QueuedOnyxUpdates';
 import CONST from '../../CONST';
 
-// This key needs to be separate from ONYXKEYS.ONYX_UPDATES_FROM_SERVER so that it can be updated without triggering the callback when the server IDs are updated
+// This key needs to be separate from ONYXKEYS.ONYX_UPDATES_FROM_SERVER so that it can be updated without triggering the callback when the server IDs are updated. If that
+// callback were triggered it would lead to duplicate processing of server updates.
 let lastUpdateIDAppliedToClient = 0;
 Onyx.connect({
     key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
@@ -111,7 +114,11 @@ function saveUpdateInformation(updateParams, lastUpdateID = 0, previousUpdateID 
     });
 }
 
-function needsToUpdateClient(previousUpdateID = 0) {
+/**
+ * This function will receive the previousUpdateID from any request/pusher update that has it, compare to our current app state
+ * and return if an update is needed
+ */
+function doesClientNeedToBeUpdated(previousUpdateID = 0) {
     // If no previousUpdateID is sent, this is not a WRITE request so we don't need to update our current state
     if (!previousUpdateID) {
         return false;
@@ -126,4 +133,4 @@ function needsToUpdateClient(previousUpdateID = 0) {
 }
 
 // eslint-disable-next-line import/prefer-default-export
-export {saveUpdateInformation, needsToUpdateClient, apply};
+export {saveUpdateInformation, doesClientNeedToBeUpdated, apply};

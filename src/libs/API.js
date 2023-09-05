@@ -22,7 +22,7 @@ Request.use(Middleware.RecheckConnection);
 Request.use(Middleware.Reauthentication);
 
 // SaveResponseInOnyx - Merges either the successData or failureData into Onyx depending on if the call was successful or not. This needs to be the LAST middleware we use, don't add any
-// middlewares after this.
+// middlewares after this, because the SequentialQueue depends on the result of this middleware to pause the queue (if needed) to bring the app to an up-to-date state.
 Request.use(Middleware.SaveResponseInOnyx);
 
 /**
