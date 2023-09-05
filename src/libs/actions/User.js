@@ -546,8 +546,6 @@ function subscribeToUserEvents() {
     // Handles the mega multipleEvents from Pusher which contains an array of single events.
     // Each single event is passed to PusherUtils in order to trigger the callbacks for that event
     PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.MULTIPLE_EVENTS, currentUserAccountID, (pushJSON) => {
-        let updates;
-
         // The data for this push event comes in two different formats:
         // 1. Original format - this is what was sent before the RELIABLE_UPDATES project and will go away once RELIABLE_UPDATES is fully complete
         //     - The data is an array of objects, where each object is an onyx update
@@ -556,20 +554,29 @@ function subscribeToUserEvents() {
         //     - The data is an object, containing updateIDs from the server and an array of onyx updates (this array is the same format as the original format above)
         //       Example: {lastUpdateID: 1, previousUpdateID: 0, updates: [{onyxMethod: 'whatever', key: 'foo', value: 'bar'}]}
         if (_.isArray(pushJSON)) {
-            updates = pushJSON;
-            _.each(updates, (multipleEvent) => {
+            _.each(pushJSON, (multipleEvent) => {
                 PusherUtils.triggerMultiEventHandler(multipleEvent.eventType, multipleEvent.data);
             });
             return;
         }
 
-        OnyxUpdates.saveUpdateInformation(
-            {
-                type: CONST.ONYX_UPDATE_TYPES.PUSHER,
-                data: {
-                    updates: pushJSON.updates,
-                },
+        const updates = {
+            type: CONST.ONYX_UPDATE_TYPES.PUSHER,
+            lastUpdateID: Number(pushJSON.lastUpdateID || 0),
+            data: {
+                updates: pushJSON.updates,
             },
+        };
+        if (!OnyxUpdates.needsToUpdateClient(Number(responseData.previousUpdateID || 0))) {
+            OnyxUpdates.apply(responseToApply);
+            return;
+        }
+
+        // If we reached this point, we need to pause the queue while we prepare to fetch older OnyxUpdates. This needs to happen here since adding it on OnyxUpdates
+        // would cause a circular reference issue.
+        SequentialQueue.pause();
+        OnyxUpdates.saveUpdateInformation(
+            updates,
             Number(pushJSON.lastUpdateID || 0),
             Number(pushJSON.previousUpdateID || 0),
         );
