@@ -2,7 +2,6 @@ import isSelectorSupported from './isSelectorSupported';
 
 /**
  * Check the input is auto filled or not
- * @param input
  */
 export default function isInputAutoFilled(input: Element): boolean {
     if (!input?.matches) return false;
