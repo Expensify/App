@@ -1,5 +1,6 @@
 import React, {useMemo, useState, memo} from 'react';
 import {InteractionManager, View} from 'react-native';
+import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -134,8 +135,8 @@ export default compose(
     }),
 )(
     memo(BaseReportActionContextMenu, (prevProps, nextProps) => {
-        const prevReportAction = prevProps.reportActions[prevProps.reportActionID];
-        const nextReportAction = nextProps.reportActions[nextProps.reportActionID];
+        const prevReportAction = lodashGet(prevProps.reportActions, prevProps.reportActionID, '');
+        const nextReportAction = lodashGet(nextProps.reportActions, nextProps.reportActionID, '');
 
         if (prevReportAction !== nextReportAction) {
             return false;
