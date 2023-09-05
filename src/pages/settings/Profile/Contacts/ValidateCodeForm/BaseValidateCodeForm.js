@@ -76,7 +76,7 @@ function BaseValidateCodeForm(props) {
     const loginData = props.loginList[props.contactMethod];
     const inputValidateCodeRef = useRef();
     const validateLoginError = ErrorUtils.getEarliestErrorField(loginData, 'validateLogin');
-    const shouldDisableMagicCodeNotReceived = props.network.isOffline || props.account.isLoading;
+    const shouldDisableDidntReceiveMagicCode = props.network.isOffline || props.account.isLoading;
 
     useImperativeHandle(props.innerRef, () => ({
         focus() {
@@ -171,7 +171,7 @@ function BaseValidateCodeForm(props) {
             >
                 <View style={[styles.mt2, styles.dFlex, styles.flexColumn, styles.alignItemsStart]}>
                     <PressableWithFeedback
-                        disabled={shouldDisableMagicCodeNotReceived}
+                        disabled={shouldDisableDidntReceiveMagicCode}
                         style={[styles.mr1]}
                         onPress={resendValidateCode}
                         underlayColor={themeColors.componentBG}
@@ -180,7 +180,7 @@ function BaseValidateCodeForm(props) {
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         accessibilityLabel={props.translate('validateCodeForm.magicCodeNotReceived')}
                     >
-                        <Text style={[StyleUtils.getDisabledLinkStyles(shouldDisableMagicCodeNotReceived)]}>{props.translate('validateCodeForm.magicCodeNotReceived')}</Text>
+                        <Text style={[StyleUtils.getDisabledLinkStyles(shouldDisableDidntReceiveMagicCode)]}>{props.translate('validateCodeForm.magicCodeNotReceived')}</Text>
                     </PressableWithFeedback>
                     {props.hasMagicCodeBeenSent && (
                         <DotIndicatorMessage
