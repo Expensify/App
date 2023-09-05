@@ -3,6 +3,8 @@ import ONYXKEYS from '../../ONYXKEYS';
 
 // In this file we manage a queue of Onyx updates while the SequentialQueue is processing. There are functions to get the updates and clear the queue after saving the updates in Onyx.
 
+let isFlushing = false;
+let flushPromise;
 let queuedOnyxUpdates = [];
 Onyx.connect({
     key: ONYXKEYS.QUEUED_ONYX_UPDATES,
@@ -21,11 +23,25 @@ function clear() {
     Onyx.set(ONYXKEYS.QUEUED_ONYX_UPDATES, null);
 }
 
-/**
- * @returns {Array<Object>}
- */
-function getQueuedUpdates() {
-    return queuedOnyxUpdates;
+function internalFlush() {
+    const currentFlush = queuedOnyxUpdates;
+    queuedOnyxUpdates = [];
+
+    Onyx.update(queuedOnyxUpdates)
+    return Onyx.set(ONYXKEYS.QUEUED_ONYX_UPDATES, null).then(() => isFlushing = false);
 }
 
-export {queueOnyxUpdates, clear, getQueuedUpdates};
+/**
+ * @returns {Promise}
+ */
+function flushQueue() {
+
+    if(isFlushing) {
+        flushPromise.then(internalFlush);
+    }
+    isFlushing = true;
+    flushPromise = internalFlush();
+    return flushPromise;
+}
+
+export {queueOnyxUpdates, clear, flushQueue};
