@@ -18,15 +18,15 @@ function createTrie(lang = CONST.LOCALES.DEFAULT) {
             return;
         }
 
-        const defaultName = item.name;
-        const preferredLanguageName = _.get(langEmojis, [item.code, 'name'], defaultName);
+        const englishName = item.name;
+        const localeName = _.get(langEmojis, [item.code, 'name'], englishName);
 
         // Add the actual name of the emoji for the current language
-        const node = trie.search(preferredLanguageName);
+        const node = trie.search(localeName);
         if (!node) {
-            trie.add(preferredLanguageName, {code: item.code, types: item.types, name: preferredLanguageName, suggestions: []});
+            trie.add(localeName, {code: item.code, types: item.types, name: localeName, suggestions: []});
         } else {
-            trie.update(preferredLanguageName, {code: item.code, types: item.types, name: preferredLanguageName, suggestions: node.metaData.suggestions});
+            trie.update(localeName, {code: item.code, types: item.types, name: localeName, suggestions: node.metaData.suggestions});
         }
 
         // Add keywords of both the current language and the default language, in case current language isn't the default.
@@ -34,24 +34,24 @@ function createTrie(lang = CONST.LOCALES.DEFAULT) {
         for (let j = 0; j < keywords.length; j++) {
             const keywordNode = trie.search(keywords[j]);
             if (!keywordNode) {
-                trie.add(keywords[j], {suggestions: [{code: item.code, types: item.types, name: preferredLanguageName}]});
+                trie.add(keywords[j], {suggestions: [{code: item.code, types: item.types, name: localeName}]});
             } else {
                 trie.update(keywords[j], {
                     ...keywordNode.metaData,
-                    suggestions: [...keywordNode.metaData.suggestions, {code: item.code, types: item.types, name: preferredLanguageName}],
+                    suggestions: [...keywordNode.metaData.suggestions, {code: item.code, types: item.types, name: localeName}],
                 });
             }
         }
 
         // If current language isn't the default, prepend the English name of the emoji in the suggestions as well.
         if (!isDefaultLocale) {
-            const englishNode = trie.search(defaultName);
+            const englishNode = trie.search(englishName);
             if (!englishNode) {
-                trie.add(defaultName, {suggestions: [{code: item.code, types: item.types, name: preferredLanguageName}]});
+                trie.add(englishName, {suggestions: [{code: item.code, types: item.types, name: localeName}]});
             } else {
-                trie.update(defaultName, {
+                trie.update(englishName, {
                     ...englishNode.metaData,
-                    suggestions: [{code: item.code, types: item.types, name: preferredLanguageName}, ...englishNode.metaData.suggestions],
+                    suggestions: [{code: item.code, types: item.types, name: localeName}, ...englishNode.metaData.suggestions],
                 });
             }
         }
