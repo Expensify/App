@@ -142,11 +142,6 @@ function goBack(fallbackRoute = ROUTES.HOME, shouldEnforceFallback = false, shou
             navigationRef.current.goBack();
             return;
         }
-
-        if (lastRoute.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR) {
-            navigate(fallbackRoute, CONST.NAVIGATION.TYPE.FORCED_UP);
-            return;
-        }
     }
     
     if (shouldEnforceFallback || (isFirstRouteInNavigator && fallbackRoute)) {
