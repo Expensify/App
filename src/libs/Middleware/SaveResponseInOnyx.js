@@ -36,25 +36,22 @@ function SaveResponseInOnyx(response, request) {
             return true;
         });
 
+        const responseToApply = {                
+            type: CONST.ONYX_UPDATE_TYPES.HTTPS,
+            lastUpdateID: Number(responseData.lastUpdateID || 0),
+            data: {
+                request,
+                responseData,
+            },
+        };
+
         if (_.includes(requestsToIgnoreLastUpdateID, request.command) || !OnyxUpdates.needsToUpdateClient(Number(responseData.previousUpdateID || 0))) {
-            return OnyxUpdates.apply({
-                type: CONST.ONYX_UPDATE_TYPES.HTTPS,
-                data: {
-                    request,
-                    responseData,
-                },
-            });
+            return OnyxUpdates.apply(responseToApply);
         }
 
         // Save the update IDs to Onyx so they can be used to fetch incremental updates if the client gets out of sync from the server
         OnyxUpdates.saveUpdateInformation(
-            {
-                type: CONST.ONYX_UPDATE_TYPES.HTTPS,
-                data: {
-                    request,
-                    responseData,
-                },
-            },
+            responseToApply,
             Number(responseData.lastUpdateID || 0),
             Number(responseData.previousUpdateID || 0),
         );

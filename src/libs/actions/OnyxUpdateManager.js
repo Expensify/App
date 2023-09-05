@@ -42,7 +42,7 @@ export default () => {
             // 1. This is the first time we're receiving an lastUpdateID, so we need to do a final reconnectApp before
             // fully migrating to the reliable updates mode;
             // 2. This this client already has the reliable updates mode enabled, but it's missing some updates and it
-            // needs to fech those.
+            // needs to fetch those.
             //
             // To to both of those, we need to pause the sequential queue. This is important so that the updates are
             // applied in their correct and specific order. If this queue was not paused, then there would be a lot of
@@ -54,6 +54,8 @@ export default () => {
             if (!lastUpdateIDAppliedToClient) {
                 console.debug('[OnyxUpdateManager] Client has not gotten reliable updates before so reconnecting the app to start the process');
                 Log.info('Client has not gotten reliable updates before so reconnecting the app to start the process');
+
+                // Since this is a full reconnectApp, we'll not apply the updates we received - those will come in the reconnect app request.
                 promise = App.lastReconnectAppAfterActivatingReliableUpdates();
             } else {
                 // The flow below is setting the promise to a getMissingOnyxUpdates to address flow (2) explained above.
@@ -63,20 +65,17 @@ export default () => {
                     previousUpdateIDFromServer,
                     lastUpdateIDAppliedToClient,
                 });
-                promise = App.getMissingOnyxUpdates(lastUpdateIDAppliedToClient, lastUpdateIDFromServer);
+                promise = App.getMissingOnyxUpdates(lastUpdateIDAppliedToClient, lastUpdateIDFromServer).then(() => {
+                    OnyxUpdates.apply({...updateParams, lastUpdateID: lastUpdateIDFromServer}).finally(() => {
+                        console.debug('[OnyxUpdateManager] Done applying all updates');    
+                    });
+                });
             }
 
             promise.finally(() => {
-                console.debug('[OnyxUpdateManager] Done applying all updates');
-                OnyxUpdates.apply(updateParams).finally(() => {
-                    SequentialQueue.unpause();
-                });
+                SequentialQueue.unpause();
             });
 
-            if (lastUpdateIDFromServer > lastUpdateIDAppliedToClient) {
-                // Update this value so that it matches what was just received from the server
-                Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, lastUpdateIDFromServer || 0);
-            }
         },
     });
 };

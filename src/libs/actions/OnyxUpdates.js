@@ -3,6 +3,13 @@ import ONYXKEYS from '../../ONYXKEYS';
 import * as QueuedOnyxUpdates from './QueuedOnyxUpdates'
 
 
+// This key needs to be separate from ONYXKEYS.ONYX_UPDATES_FROM_SERVER so that it can be updated without triggering the callback when the server IDs are updated
+let lastUpdateIDAppliedToClient = 0;
+Onyx.connect({
+    key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
+    callback: (val) => (lastUpdateIDAppliedToClient = val),
+});
+
 /**
  * @param {Object} data
  * @param {Object} data.request
@@ -59,14 +66,18 @@ function applyPusherOnyxUpdates({updates}) {
 /**
  * @param {Object[]} updateParams
  * @param {String} updateParams.type
+ * @param {Number} updateParams.lastUpdateID
  * @param {Object} updateParams.data
  * @param {Object} [updateParams.data.request] Exists if updateParams.type === 'https'
  * @param {Object} [updateParams.data.response] Exists if updateParams.type === 'https'
  * @param {Object} [updateParams.data.updates] Exists if updateParams.type === 'pusher'
  * @returns {Promise}
  */
-function apply({type, data}) {
-    console.debug(`[OnyxUpdateManager] Applying update type: ${type}`, data);
+function apply({lastUpdateID, type, data}) {
+    console.debug(`[OnyxUpdateManager] Applying update type: ${type} with lastUpdateID: ${lastUpdateID}`, data);
+    if (lastUpdateID && lastUpdateID >  lastUpdateIDAppliedToClient) {
+        Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, lastUpdateID);
+    }
     if (type === CONST.ONYX_UPDATE_TYPES.HTTPS) {
         return applyHTTPSOnyxUpdates(data);
     }
@@ -93,14 +104,6 @@ function saveUpdateInformation(updateParams, lastUpdateID = 0, previousUpdateID 
         updateParams,
     });
 }
-
-// This key needs to be separate from ONYXKEYS.ONYX_UPDATES_FROM_SERVER so that it can be updated without triggering the callback when the server IDs are updated
-let lastUpdateIDAppliedToClient = 0;
-Onyx.connect({
-    key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
-    callback: (val) => (lastUpdateIDAppliedToClient = val),
-});
-
 
 function needsToUpdateClient(previousUpdateID = 0) {
     
