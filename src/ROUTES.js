@@ -129,7 +129,7 @@ export default {
     FLAG_COMMENT: `flag/:reportID/:reportActionID`,
     getFlagCommentRoute: (reportID, reportActionID) => `flag/${reportID}/${reportActionID}`,
     SEARCH: 'search',
-    SAVE_THE_WORLD: 'teachersunite',
+    TEACHERS_UNITE: 'teachersunite',
     I_KNOW_A_TEACHER: 'teachersunite/i-know-a-teacher',
     INTRO_SCHOOL_PRINCIPAL: 'teachersunite/intro-school-principal',
     I_AM_A_TEACHER: 'teachersunite/i-am-a-teacher',
