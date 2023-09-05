@@ -54,10 +54,12 @@ function ReportActionItemImages({images, size, total, isHovered}) {
         <View style={[styles.reportActionItemImages, hoverStyle]}>
             {_.map(shownImages, ({thumbnail, image}, index) => {
                 const isLastImage = index === numberOfShownImages - 1;
+                const shouldShowBorder = shownImages.length > 1 && index < shownImages.length - 1;
+                const borderStyle = shouldShowBorder ? styles.reportActionItemImageBorder : undefined;
                 return (
                     <View
                         key={`${index}-${image}`}
-                        style={[styles.reportActionItemImage, hoverStyle]}
+                        style={[styles.reportActionItemImage, borderStyle, hoverStyle]}
                     >
                         <ReportActionItemImage
                             thumbnail={thumbnail}
