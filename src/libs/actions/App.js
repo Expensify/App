@@ -453,6 +453,11 @@ function beginDeepLinkRedirect(shouldAuthenticateWithCurrentAccount = true) {
 
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
     API.makeRequestWithSideEffects('OpenOldDotLink', {shouldRetry: false}, {}).then((response) => {
+        if (!response) {
+            Log.alert('Trying to redirect via deep link, but the response is empty', {response}, true);
+            return;
+        }
+
         Browser.openRouteInDesktopApp(response.shortLivedAuthToken, currentUserEmail);
     });
 }
