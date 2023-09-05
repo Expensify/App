@@ -23,25 +23,11 @@ function clear() {
     Onyx.set(ONYXKEYS.QUEUED_ONYX_UPDATES, null);
 }
 
-function internalFlush() {
-    const currentFlush = queuedOnyxUpdates;
-    queuedOnyxUpdates = [];
-
-    Onyx.update(queuedOnyxUpdates)
-    return Onyx.set(ONYXKEYS.QUEUED_ONYX_UPDATES, null).then(() => isFlushing = false);
-}
-
 /**
  * @returns {Promise}
  */
 function flushQueue() {
-
-    if(isFlushing) {
-        flushPromise.then(internalFlush);
-    }
-    isFlushing = true;
-    flushPromise = internalFlush();
-    return flushPromise;
+    return Onyx.update(queuedOnyxUpdates).then(clear);
 }
 
-export {queueOnyxUpdates, clear, flushQueue};
+export {flushQueue};
