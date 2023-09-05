@@ -119,7 +119,6 @@ function goBack(fallbackRoute = ROUTES.HOME, shouldEnforceFallback = false, shou
     if (!canNavigate('goBack')) {
         return;
     }
-    debugger;
 
     const isFirstRouteInNavigator = !getActiveRouteIndex(navigationRef.current.getState());
     if (shouldPopToTop && !isFirstRouteInNavigator) {
