@@ -34,21 +34,6 @@ function pause() {
 }
 
 /**
- * Unpauses the queue and flushes all the requests that were in it or were added to it while paused
- */
-function unpause() {
-    if (!isQueuePaused) {
-        return;
-    }
-
-    const numberOfPersistedRequests = PersistedRequests.getAll().length || 0;
-    console.debug(`[SequentialQueue] Unpausing the queue and flushing ${numberOfPersistedRequests} requests`);
-    isQueuePaused = false;
-    flushOnyxUpdatesQueue();
-    flush();
-}
-
-/**
  * Gets the current Onyx queued updates, apply them and clear the queue if the queue is not paused.
  */
 function flushOnyxUpdatesQueue() {
@@ -58,44 +43,6 @@ function flushOnyxUpdatesQueue() {
         return;
     }
     QueuedOnyxUpdates.flushQueue();
-}
-
-function flush() {
-    // When the queue is paused, return early. This will keep an requests in the queue and they will get flushed again when the queue is unpaused
-    if (isQueuePaused) {
-        return;
-    }
-
-    if (isSequentialQueueRunning || _.isEmpty(PersistedRequests.getAll())) {
-        return;
-    }
-
-    // ONYXKEYS.PERSISTED_REQUESTS is shared across clients, thus every client/tab will have a copy
-    // It is very important to only process the queue from leader client otherwise requests will be duplicated.
-    if (!ActiveClientManager.isClientTheLeader()) {
-        return;
-    }
-
-    isSequentialQueueRunning = true;
-
-    // Reset the isReadyPromise so that the queue will be flushed as soon as the request is finished
-    isReadyPromise = new Promise((resolve) => {
-        resolveIsReadyPromise = resolve;
-    });
-
-    // Ensure persistedRequests are read from storage before proceeding with the queue
-    const connectionID = Onyx.connect({
-        key: ONYXKEYS.PERSISTED_REQUESTS,
-        callback: () => {
-            Onyx.disconnect(connectionID);
-            process().finally(() => {
-                isSequentialQueueRunning = false;
-                resolveIsReadyPromise();
-                currentRequest = null;
-                flushOnyxUpdatesQueue();
-            });
-        },
-    });
 }
 
 /**
@@ -142,6 +89,59 @@ function process() {
             return RequestThrottle.sleep().then(process);
         });
     return currentRequest;
+}
+
+function flush() {
+    // When the queue is paused, return early. This will keep an requests in the queue and they will get flushed again when the queue is unpaused
+    if (isQueuePaused) {
+        return;
+    }
+
+    if (isSequentialQueueRunning || _.isEmpty(PersistedRequests.getAll())) {
+        return;
+    }
+
+    // ONYXKEYS.PERSISTED_REQUESTS is shared across clients, thus every client/tab will have a copy
+    // It is very important to only process the queue from leader client otherwise requests will be duplicated.
+    if (!ActiveClientManager.isClientTheLeader()) {
+        return;
+    }
+
+    isSequentialQueueRunning = true;
+
+    // Reset the isReadyPromise so that the queue will be flushed as soon as the request is finished
+    isReadyPromise = new Promise((resolve) => {
+        resolveIsReadyPromise = resolve;
+    });
+
+    // Ensure persistedRequests are read from storage before proceeding with the queue
+    const connectionID = Onyx.connect({
+        key: ONYXKEYS.PERSISTED_REQUESTS,
+        callback: () => {
+            Onyx.disconnect(connectionID);
+            process().finally(() => {
+                isSequentialQueueRunning = false;
+                resolveIsReadyPromise();
+                currentRequest = null;
+                flushOnyxUpdatesQueue();
+            });
+        },
+    });
+}
+
+/**
+ * Unpauses the queue and flushes all the requests that were in it or were added to it while paused
+ */
+function unpause() {
+    if (!isQueuePaused) {
+        return;
+    }
+
+    const numberOfPersistedRequests = PersistedRequests.getAll().length || 0;
+    console.debug(`[SequentialQueue] Unpausing the queue and flushing ${numberOfPersistedRequests} requests`);
+    isQueuePaused = false;
+    flushOnyxUpdatesQueue();
+    flush();
 }
 
 /**
