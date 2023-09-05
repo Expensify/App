@@ -112,8 +112,8 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
 
     const {redBrickDateIndicator, redBrickTimeIndicator} = useMemo(
         () => ({
-            redBrickDateIndicator: customDateError ? CONST.BRICK_INDICATOR.ERROR : null,
-            redBrickTimeIndicator: customTimeError ? CONST.BRICK_INDICATOR.ERROR : null,
+            redBrickDateIndicator: customDateError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : null,
+            redBrickTimeIndicator: customTimeError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : null,
         }),
         [customTimeError, customDateError],
     );

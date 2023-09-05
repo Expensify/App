@@ -320,11 +320,11 @@ function getEndOfWeekFromNow() {
 }
 
 /**
- * @param {string} dateTime
+ * @param {string} dateTimeString
  * @returns {string} example: 2023-05-16
  */
-function extractDate(dateTime) {
-    return moment(dateTime).format('YYYY-MM-DD');
+function extractDate(dateTimeString) {
+    return moment(dateTimeString).format('YYYY-MM-DD');
 }
 
 /**
@@ -441,9 +441,9 @@ const combineDateAndTime = (updatedTime, inputDateTime) => {
 /**
  * @param {String} dateTime // 'YYYY-MM-DD HH:mm:ss'
  * @returns {Object}
- * @example parseTimeTo12HourFormat('2023-08-29 11:10:00') // {hour: '11', minute: '10', period: 'AM'}
+ * @example get12HourTimeObjectFromDate('2023-08-29 11:10:00') // {hour: '11', minute: '10', period: 'AM'}
  */
-function parseTimeTo12HourFormat(dateTime) {
+function get12HourTimeObjectFromDate(dateTime) {
     if (!dateTime) {
         return {
             hour: '00',
@@ -520,7 +520,7 @@ const DateUtils = {
     formatDateTimeTo12Hour,
     getStatusUntilDate,
     extractTime12Hour,
-    parseTimeTo12HourFormat,
+    get12HourTimeObjectFromDate,
     areDatesIdentical,
     getTimePeriod,
     getLocalizedTimePeriodDescription,

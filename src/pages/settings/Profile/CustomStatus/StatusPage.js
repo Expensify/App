@@ -59,7 +59,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
     const updateStatus = useCallback(() => {
         const clearAfterTime = draftClearAfter || currentUserClearAfter;
         if (DateUtils.hasDateExpired(clearAfterTime)) {
-            setBrickRoadIndicator(isValidClearAfterDate() ? null : CONST.BRICK_INDICATOR.ERROR);
+            setBrickRoadIndicator(isValidClearAfterDate() ? null : CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
             return;
         }
 
@@ -95,7 +95,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
         [hasDraftStatus, localize, updateStatus, isValidClearAfterDate],
     );
 
-    useEffect(() => setBrickRoadIndicator(isValidClearAfterDate() ? null : CONST.BRICK_INDICATOR.ERROR), [isValidClearAfterDate]);
+    useEffect(() => setBrickRoadIndicator(isValidClearAfterDate() ? null : CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR), [isValidClearAfterDate]);
     useEffect(() => {
         if (!currentUserEmojiCode && !currentUserClearAfter && !draftClearAfter) {
             User.updateDraftCustomStatus({clearAfter: DateUtils.getEndOfToday()});

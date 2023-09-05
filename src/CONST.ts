@@ -2627,9 +2627,6 @@ const CONST = {
         SAASTR: 'SaaStrDemoSetup',
         SBE: 'SbeDemoSetup',
     },
-    BRICK_INDICATOR: {
-        ERROR: 'error',
-    },
     COLON: ':',
     MAPBOX: {
         PADDING: 50,

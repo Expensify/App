@@ -92,8 +92,8 @@ function TimePicker({forwardedRef, value, errorText, onInputChange}) {
     const {numberFormat} = useLocalize();
     const {isExtraSmallScreenHeight} = useWindowDimensions();
     const localize = useLocalize();
-    const [hours, setHours] = useState(DateUtils.parseTimeTo12HourFormat(value).hour);
-    const [minute, setMinute] = useState(DateUtils.parseTimeTo12HourFormat(value).minute);
+    const [hours, setHours] = useState(DateUtils.get12HourTimeObjectFromDate(value).hour);
+    const [minute, setMinute] = useState(DateUtils.get12HourTimeObjectFromDate(value).minute);
     const [selectionHour, setSelectionHour] = useState({start: 0, end: 0});
     const [selectionMinute, setSelectionMinute] = useState({start: 2, end: 2}); // we focus it by default so need  to have selection on the end
 
