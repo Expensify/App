@@ -28,8 +28,6 @@ import reportPropTypes from '../pages/reportPropTypes';
 import tryResolveUrlFromApiRoot from '../libs/tryResolveUrlFromApiRoot';
 import * as Expensicons from './Icon/Expensicons';
 import useWindowDimensions from '../hooks/useWindowDimensions';
-import Navigation from '../libs/Navigation/Navigation';
-import ROUTES from '../ROUTES';
 
 /**
  * Modal render prop component that exposes modal launching triggers that can be used

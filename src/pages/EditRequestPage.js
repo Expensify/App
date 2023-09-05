@@ -172,7 +172,8 @@ function EditRequestPage({report, route, parentReport, policy, session}) {
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.RECEIPT) {
         return (
             <EditRequestReceiptPage
-                onSubmit={() => {}}
+                route={route}
+                replaceReceipt={(transactionID, file) => IOU.replaceReceipt(transactionID, file)}
             />
         );
     }

@@ -55,8 +55,7 @@ function ReportActionItemImage({thumbnail, image, enablePreviewModal}) {
                         <PressableWithoutFocus
                             style={[styles.noOutline, styles.w100, styles.h100]}
                             onPress={() => {
-                                // const route = ROUTES.getReportAttachmentRoute(report.reportID, imageSource);
-                                const route = ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.AMOUNT);
+                                const route = ROUTES.getReportAttachmentRoute(report.reportID, imageSource);
                                 Navigation.navigate(route);
                             }}
                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
