@@ -1,5 +1,3 @@
-import _ from 'underscore';
-
 type AddressComponent = {
     // eslint-disable-next-line @typescript-eslint/naming-convention
     long_name: string;
@@ -17,11 +15,13 @@ type AddressComponent = {
  *   types: [ "locality", "political" ]
  * }]
  */
-function getAddressComponents(addressComponents: AddressComponent[], fieldsToExtract: Record<string, keyof AddressComponent>) {
-    const result = _.mapObject(fieldsToExtract, () => '');
+function getAddressComponents(addressComponents: AddressComponent[], fieldsToExtract: Record<string, Exclude<keyof AddressComponent, 'types'>>): Record<string, string> {
+    const result: Record<string, string> = {};
+    Object.keys(fieldsToExtract).forEach((key) => (result[key] = ''));
+
     addressComponents.forEach((addressComponent) => {
         addressComponent.types.forEach((addressType) => {
-            if (!(addressType in fieldsToExtract) || addressType in result) {
+            if (!(addressType in fieldsToExtract) || !(addressType in result && result[addressType] === '')) {
                 return;
             }
             const value = addressComponent[fieldsToExtract[addressType]] ? addressComponent[fieldsToExtract[addressType]] : '';
@@ -31,25 +31,22 @@ function getAddressComponents(addressComponents: AddressComponent[], fieldsToExt
     return result;
 }
 
+type AddressTerm = {value: string};
+type GetPlaceAutocompleteTermsResultKeys = 'country' | 'state' | 'city' | 'street';
+type GetPlaceAutocompleteTermsResult = Partial<Record<GetPlaceAutocompleteTermsResultKeys, string>>;
+
 /**
  * Finds an address term by type, and returns the value associated to key. Note that each term in the address must
  * conform to the following ORDER: <street, city, state, country>
- *
- * @param {Array} addressTerms
- * @returns {Object}
  */
-function getPlaceAutocompleteTerms(addressTerms) {
+function getPlaceAutocompleteTerms(addressTerms: AddressTerm[]): GetPlaceAutocompleteTermsResult {
     const fieldsToExtract = ['country', 'state', 'city', 'street'];
-    const result = {};
-    _.each(fieldsToExtract, (fieldToExtract, index) => {
+    const result: GetPlaceAutocompleteTermsResult = {};
+    fieldsToExtract.forEach((fieldToExtract, index) => {
         const fieldTermIndex = addressTerms.length - (index + 1);
-        result[fieldToExtract] = fieldTermIndex >= 0 ? addressTerms[fieldTermIndex].value : '';
+        result[fieldToExtract as GetPlaceAutocompleteTermsResultKeys] = fieldTermIndex >= 0 ? addressTerms[fieldTermIndex].value : '';
     });
     return result;
 }
 
-export {
-    // eslint-disable-next-line import/prefer-default-export
-    getAddressComponents,
-    getPlaceAutocompleteTerms,
-};
+export {getAddressComponents, getPlaceAutocompleteTerms};
