@@ -18,7 +18,6 @@ import * as TransactionUtils from '../../libs/TransactionUtils';
 import participantPropTypes from '../participantPropTypes';
 import CONST from '../../CONST';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
-import useDeepCompareMemo from '../../hooks/useDeepCompareMemo';
 
 const propTypes = {
     /** If true will disable ever setting the OptionRowLHN to focused */
@@ -101,8 +100,6 @@ function OptionRowLHNData({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [fullReport.reportID, receiptTransactions, reportActions]);
 
-    const memoizedLastTransaction = useDeepCompareMemo(lastTransaction);
-
     const optionItem = useMemo(() => {
         // Note: ideally we'd have this as a dependent selector in onyx!
         const item = SidebarUtils.getOptionData(fullReport, reportActions, personalDetails, preferredLocale, policy);
@@ -113,7 +110,7 @@ function OptionRowLHNData({
         return item;
         // Listen parentReportAction to update title of thread report when parentReportAction changed
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [fullReport, memoizedLastTransaction, reportActions, personalDetails, preferredLocale, policy, parentReportAction]);
+    }, [fullReport, lastTransaction, reportActions, personalDetails, preferredLocale, policy, parentReportAction]);
 
     useEffect(() => {
         if (!optionItem || optionItem.hasDraftComment || !comment || comment.length <= 0 || isFocused) {
