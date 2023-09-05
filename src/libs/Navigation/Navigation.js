@@ -144,7 +144,7 @@ function goBack(fallbackRoute = ROUTES.HOME, shouldEnforceFallback = false, shou
         }
     }
 
-    if (shouldEnforceFallback || (isFirstRouteInNavigator && fallbackRoute)) {
+    if (shouldEnforceFallback || isFirstRouteInNavigator) {
         navigate(fallbackRoute, CONST.NAVIGATION.TYPE.UP);
         return;
     }
