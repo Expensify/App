@@ -279,13 +279,13 @@ function BaseValidateCodeForm(props) {
                                 style={[styles.mt2]}
                                 onPress={resendValidateCode}
                                 underlayColor={themeColors.componentBG}
-                                disabled={props.network.isOffline}
+                                disabled={props.network.isOffline || props.account.isLoading}
                                 hoverDimmingValue={1}
                                 pressDimmingValue={0.2}
                                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                 accessibilityLabel={props.translate('validateCodeForm.magicCodeNotReceived')}
                             >
-                                <Text style={[StyleUtils.getDisabledLinkStyles(props.network.isOffline)]}>
+                                <Text style={[StyleUtils.getDisabledLinkStyles(props.network.isOffline || props.account.isLoading)]}>
                                     {hasError ? props.translate('validateCodeForm.requestNewCodeAfterErrorOccurred') : props.translate('validateCodeForm.magicCodeNotReceived')}
                                 </Text>
                             </PressableWithFeedback>
