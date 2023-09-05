@@ -512,7 +512,6 @@ function getMoneyRequestInformation(
 function createDistanceRequest(report, participant, comment, created, transactionID, amount, currency, merchant) {
     const optimisticReceipt = {
         source: ReceiptRoutePending,
-        name: ReceiptRoutePending,
         state: CONST.IOU.RECEIPT_STATE.OPEN,
     };
     const {iouReport, chatReport, transaction, iouAction, createdChatReportActionID, createdIOUReportActionID, reportPreviewAction, onyxData} = getMoneyRequestInformation(
