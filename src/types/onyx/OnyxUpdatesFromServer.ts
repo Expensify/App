@@ -3,6 +3,7 @@ import Request from './Request';
 import Response from './Response';
 
 type OnyxUpdatesFromServerData = {
+    lastUpdateID: number | string;
     request?: Request;
     response?: Response;
     updates?: OnyxUpdate[];
