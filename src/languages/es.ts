@@ -1529,7 +1529,7 @@ export default {
             canceled: 'tarea cancelada',
             reopened: 'tarea reabrir',
             error: 'No tiene permiso para realizar la acción solicitada.',
-            notOpen: 'Sólo se pueden editar las tareas abiertas',
+            notOpen: 'Sólo se puede editar una tarea abierta',
         },
         markAsDone: 'Marcar como completada',
         markAsIncomplete: 'Marcar como incompleta',
