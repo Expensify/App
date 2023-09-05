@@ -1,28 +1,29 @@
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
+import {HapticFeedbackError, HapticFeedbackLongPress, HapticFeedbackPress, HapticFeedbackSuccess} from './types';
 
-function press() {
+const press: HapticFeedbackPress = () => {
     ReactNativeHapticFeedback.trigger('impactLight', {
         enableVibrateFallback: true,
     });
-}
+};
 
-function longPress() {
+const longPress: HapticFeedbackLongPress = () => {
     ReactNativeHapticFeedback.trigger('impactHeavy', {
         enableVibrateFallback: true,
     });
-}
+};
 
-function success() {
+const success: HapticFeedbackSuccess = () => {
     ReactNativeHapticFeedback.trigger('notificationSuccess', {
         enableVibrateFallback: true,
     });
-}
+};
 
-function error() {
+const error: HapticFeedbackError = () => {
     ReactNativeHapticFeedback.trigger('notificationError', {
         enableVibrateFallback: true,
     });
-}
+};
 
 export default {
     press,
