@@ -1,5 +1,74 @@
 import CONST from '../CONST';
 import * as ReportActionsUtils from '../libs/ReportActionsUtils';
+import type {
+    AddressLineParams,
+    CharacterLimitParams,
+    MaxParticipantsReachedParams,
+    ZipCodeExampleFormatParams,
+    LoggedInAsParams,
+    NewFaceEnterMagicCodeParams,
+    WelcomeEnterMagicCodeParams,
+    AlreadySignedInParams,
+    GoBackMessageParams,
+    LocalTimeParams,
+    EditActionParams,
+    DeleteActionParams,
+    DeleteConfirmationParams,
+    BeginningOfChatHistoryDomainRoomPartOneParams,
+    BeginningOfChatHistoryAdminRoomPartOneParams,
+    BeginningOfChatHistoryAnnounceRoomPartOneParams,
+    BeginningOfChatHistoryAnnounceRoomPartTwo,
+    WelcomeToRoomParams,
+    ReportArchiveReasonsClosedParams,
+    ReportArchiveReasonsMergedParams,
+    ReportArchiveReasonsRemovedFromPolicyParams,
+    ReportArchiveReasonsPolicyDeletedParams,
+    RequestCountParams,
+    SettleExpensifyCardParams,
+    SettlePaypalMeParams,
+    RequestAmountParams,
+    SplitAmountParams,
+    AmountEachParams,
+    PayerOwesAmountParams,
+    PayerOwesParams,
+    PayerPaidAmountParams,
+    PayerPaidParams,
+    PayerSettledParams,
+    WaitingOnBankAccountParams,
+    SettledAfterAddedBankAccountParams,
+    PaidElsewhereWithAmountParams,
+    PaidUsingPaypalWithAmountParams,
+    PaidUsingExpensifyWithAmountParams,
+    ThreadRequestReportNameParams,
+    ThreadSentMoneyReportNameParams,
+    SizeExceededParams,
+    ResolutionConstraintsParams,
+    NotAllowedExtensionParams,
+    EnterMagicCodeParams,
+    TransferParams,
+    InstantSummaryParams,
+    NotYouParams,
+    DateShouldBeBeforeParams,
+    DateShouldBeAfterParams,
+    IncorrectZipFormatParams,
+    WeSentYouMagicSignInLinkParams,
+    ToValidateLoginParams,
+    NoLongerHaveAccessParams,
+    OurEmailProviderParams,
+    ConfirmThatParams,
+    UntilTimeParams,
+    StepCounterParams,
+    UserIsAlreadyMemberOfWorkspaceParams,
+    GoToRoomParams,
+    WelcomeNoteParams,
+    RoomNameReservedErrorParams,
+    RenamedRoomActionParams,
+    RoomRenamedToParams,
+    OOOEventSummaryFullDayParams,
+    OOOEventSummaryPartialDayParams,
+    ParentNavigationSummaryParams,
+    ManagerApprovedParams,
+} from './types';
 
 /* eslint-disable max-len */
 export default {
@@ -72,7 +141,7 @@ export default {
         currentMonth: 'Mes actual',
         ssnLast4: 'Últimos 4 dígitos de su SSN',
         ssnFull9: 'Los 9 dígitos del SSN',
-        addressLine: ({lineNumber}) => `Dirección línea ${lineNumber}`,
+        addressLine: ({lineNumber}: AddressLineParams) => `Dirección línea ${lineNumber}`,
         personalAddress: 'Dirección física personal',
         companyAddress: 'Dirección física de la empresa',
         noPO: 'No se aceptan apartados ni direcciones postales',
@@ -103,7 +172,7 @@ export default {
             acceptTerms: 'Debes aceptar los Términos de Servicio para continuar',
             phoneNumber: `Introduce un teléfono válido, incluyendo el código del país (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER})`,
             fieldRequired: 'Este campo es obligatorio.',
-            characterLimit: ({limit}) => `Supera el límite de ${limit} caracteres`,
+            characterLimit: ({limit}: CharacterLimitParams) => `Supera el límite de ${limit} caracteres`,
             dateInvalid: 'Por favor, selecciona una fecha válida',
             invalidCharacter: 'Carácter invalido',
             enterMerchant: 'Introduce un comerciante',
@@ -136,14 +205,14 @@ export default {
         youAfterPreposition: 'ti',
         your: 'tu',
         conciergeHelp: 'Por favor, contacta con Concierge para obtener ayuda.',
-        maxParticipantsReached: ({count}) => `Has seleccionado el número máximo (${count}) de participantes.`,
+        maxParticipantsReached: ({count}: MaxParticipantsReachedParams) => `Has seleccionado el número máximo (${count}) de participantes.`,
         youAppearToBeOffline: 'Parece que estás desconectado.',
         thisFeatureRequiresInternet: 'Esta función requiere una conexión a Internet activa para ser utilizada.',
         areYouSure: '¿Estás seguro?',
         verify: 'Verifique',
         yesContinue: 'Sí, continuar',
         websiteExample: 'p. ej. https://www.expensify.com',
-        zipCodeExampleFormat: ({zipSampleFormat}) => (zipSampleFormat ? `p. ej. ${zipSampleFormat}` : ''),
+        zipCodeExampleFormat: ({zipSampleFormat}: ZipCodeExampleFormatParams) => (zipSampleFormat ? `p. ej. ${zipSampleFormat}` : ''),
         description: 'Descripción',
         with: 'con',
         shareCode: 'Compartir código',
@@ -209,7 +278,8 @@ export default {
         redirectedToDesktopApp: 'Te hemos redirigido a la aplicación de escritorio.',
         youCanAlso: 'También puedes',
         openLinkInBrowser: 'abrir este enlace en tu navegador',
-        loggedInAs: ({email}) => `Has iniciado sesión como ${email}. Haga clic en "Abrir enlace" en el aviso para iniciar sesión en la aplicación de escritorio con esta cuenta.`,
+        loggedInAs: ({email}: LoggedInAsParams) =>
+            `Has iniciado sesión como ${email}. Haga clic en "Abrir enlace" en el aviso para iniciar sesión en la aplicación de escritorio con esta cuenta.`,
         doNotSeePrompt: '¿No ves el aviso?',
         tryAgain: 'Inténtalo de nuevo',
         or: ', o',
@@ -255,8 +325,9 @@ export default {
         phrase2: 'El dinero habla. Y ahora que chat y pagos están en un mismo lugar, es también fácil.',
         phrase3: 'Tus pagos llegan tan rápido como tus mensajes.',
         enterPassword: 'Por favor, introduce tu contraseña',
-        newFaceEnterMagicCode: ({login}) => `¡Siempre es genial ver una cara nueva por aquí! Por favor ingresa el código mágico enviado a ${login}. Debería llegar en un par de minutos.`,
-        welcomeEnterMagicCode: ({login}) => `Por favor, introduce el código mágico enviado a ${login}. Debería llegar en un par de minutos.`,
+        newFaceEnterMagicCode: ({login}: NewFaceEnterMagicCodeParams) =>
+            `¡Siempre es genial ver una cara nueva por aquí! Por favor ingresa el código mágico enviado a ${login}. Debería llegar en un par de minutos.`,
+        welcomeEnterMagicCode: ({login}: WelcomeEnterMagicCodeParams) => `Por favor, introduce el código mágico enviado a ${login}. Debería llegar en un par de minutos.`,
     },
     DownloadAppModal: {
         downloadTheApp: 'Descarga la aplicación',
@@ -270,8 +341,8 @@ export default {
         },
     },
     thirdPartySignIn: {
-        alreadySignedIn: ({email}) => `Ya has iniciado sesión con ${email}.`,
-        goBackMessage: ({provider}) => `No quieres iniciar sesión con ${provider}?`,
+        alreadySignedIn: ({email}: AlreadySignedInParams) => `Ya has iniciado sesión con ${email}.`,
+        goBackMessage: ({provider}: GoBackMessageParams) => `No quieres iniciar sesión con ${provider}?`,
         continueWithMyCurrentSession: 'Continuar con mi sesión actual',
         redirectToDesktopMessage: 'Lo redirigiremos a la aplicación de escritorio una vez que termine de iniciar sesión.',
         signInAgreementMessage: 'Al iniciar sesión, aceptas las',
@@ -296,7 +367,7 @@ export default {
         ],
         blockedFromConcierge: 'Comunicación no permitida',
         fileUploadFailed: 'Subida fallida. El archivo no es compatible.',
-        localTime: ({user, time}) => `Son las ${time} para ${user}`,
+        localTime: ({user, time}: LocalTimeParams) => `Son las ${time} para ${user}`,
         edited: '(editado)',
         emoji: 'Emoji',
         collapse: 'Colapsar',
@@ -310,9 +381,9 @@ export default {
         copyEmailToClipboard: 'Copiar email al portapapeles',
         markAsUnread: 'Marcar como no leído',
         markAsRead: 'Marcar como leído',
-        editAction: ({action}) => `Edit ${ReportActionsUtils.isMoneyRequestAction(action) ? 'pedido' : 'comentario'}`,
-        deleteAction: ({action}) => `Eliminar ${ReportActionsUtils.isMoneyRequestAction(action) ? 'pedido' : 'comentario'}`,
-        deleteConfirmation: ({action}) => `¿Estás seguro de que quieres eliminar este ${ReportActionsUtils.isMoneyRequestAction(action) ? 'pedido' : 'comentario'}`,
+        editAction: ({action}: EditActionParams) => `Edit ${ReportActionsUtils.isMoneyRequestAction(action) ? 'pedido' : 'comentario'}`,
+        deleteAction: ({action}: DeleteActionParams) => `Eliminar ${ReportActionsUtils.isMoneyRequestAction(action) ? 'pedido' : 'comentario'}`,
+        deleteConfirmation: ({action}: DeleteConfirmationParams) => `¿Estás seguro de que quieres eliminar este ${ReportActionsUtils.isMoneyRequestAction(action) ? 'pedido' : 'comentario'}`,
         onlyVisible: 'Visible sólo para',
         replyInThread: 'Responder en el hilo',
         flagAsOffensive: 'Marcar como ofensivo',
@@ -324,13 +395,15 @@ export default {
     reportActionsView: {
         beginningOfArchivedRoomPartOne: 'Te perdiste la fiesta en ',
         beginningOfArchivedRoomPartTwo: ', no hay nada que ver aquí.',
-        beginningOfChatHistoryDomainRoomPartOne: ({domainRoom}) => `Colabora aquí con todos los participantes de ${domainRoom}! 🎉\nUtiliza `,
+        beginningOfChatHistoryDomainRoomPartOne: ({domainRoom}: BeginningOfChatHistoryDomainRoomPartOneParams) => `Colabora aquí con todos los participantes de ${domainRoom}! 🎉\nUtiliza `,
         beginningOfChatHistoryDomainRoomPartTwo: ' para chatear con compañeros, compartir consejos o hacer una pregunta.',
-        beginningOfChatHistoryAdminRoomPartOne: ({workspaceName}) => `Este es el lugar para que los administradores de ${workspaceName} colaboren! 🎉\nUsa `,
+        beginningOfChatHistoryAdminRoomPartOne: ({workspaceName}: BeginningOfChatHistoryAdminRoomPartOneParams) =>
+            `Este es el lugar para que los administradores de ${workspaceName} colaboren! 🎉\nUsa `,
         beginningOfChatHistoryAdminRoomPartTwo: ' para chatear sobre temas como la configuración del espacio de trabajo y mas.',
         beginningOfChatHistoryAdminOnlyPostingRoom: 'Solo los administradores pueden enviar mensajes en esta sala.',
-        beginningOfChatHistoryAnnounceRoomPartOne: ({workspaceName}) => `Este es el lugar para que todos los miembros de ${workspaceName} colaboren! 🎉\nUsa `,
-        beginningOfChatHistoryAnnounceRoomPartTwo: ({workspaceName}) => ` para chatear sobre cualquier cosa relacionada con ${workspaceName}.`,
+        beginningOfChatHistoryAnnounceRoomPartOne: ({workspaceName}: BeginningOfChatHistoryAnnounceRoomPartOneParams) =>
+            `Este es el lugar para que todos los miembros de ${workspaceName} colaboren! 🎉\nUsa `,
+        beginningOfChatHistoryAnnounceRoomPartTwo: ({workspaceName}: BeginningOfChatHistoryAnnounceRoomPartTwo) => ` para chatear sobre cualquier cosa relacionada con ${workspaceName}.`,
         beginningOfChatHistoryUserRoomPartOne: 'Este es el lugar para colaborar! 🎉\nUsa este espacio para chatear sobre cualquier cosa relacionada con ',
         beginningOfChatHistoryUserRoomPartTwo: '.',
         beginningOfChatHistory: 'Aquí comienzan tus conversaciones con ',
@@ -339,7 +412,7 @@ export default {
         beginningOfChatHistoryPolicyExpenseChatPartThree: ' empieza aquí! 🎉 Este es el lugar donde chatear, pedir dinero y pagar.',
         chatWithAccountManager: 'Chatea con tu gestor de cuenta aquí',
         sayHello: '¡Saluda!',
-        welcomeToRoom: ({roomName}) => `¡Bienvenido a ${roomName}!`,
+        welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `¡Bienvenido a ${roomName}!`,
         usePlusButton: '\n\n¡También puedes usar el botón + de abajo para pedir dinero o asignar una tarea!',
     },
     reportAction: {
@@ -356,12 +429,14 @@ export default {
     },
     reportArchiveReasons: {
         [CONST.REPORT.ARCHIVE_REASON.DEFAULT]: 'Esta sala de chat ha sido eliminada.',
-        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED]: ({displayName}) => `Este chat de espacio de trabajo esta desactivado porque ${displayName} ha cerrado su cuenta.`,
-        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED]: ({displayName, oldDisplayName}) =>
+        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED]: ({displayName}: ReportArchiveReasonsClosedParams) =>
+            `Este chat de espacio de trabajo esta desactivado porque ${displayName} ha cerrado su cuenta.`,
+        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED]: ({displayName, oldDisplayName}: ReportArchiveReasonsMergedParams) =>
             `Este chat de espacio de trabajo esta desactivado porque ${oldDisplayName} ha combinado su cuenta con ${displayName}.`,
-        [CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY]: ({displayName, policyName}) =>
+        [CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY]: ({displayName, policyName}: ReportArchiveReasonsRemovedFromPolicyParams) =>
             `Este chat de espacio de trabajo esta desactivado porque ${displayName} ha dejado de ser miembro del espacio de trabajo ${policyName}.`,
-        [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: ({policyName}) => `Este chat de espacio de trabajo esta desactivado porque el espacio de trabajo ${policyName} se ha eliminado.`,
+        [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: ({policyName}: ReportArchiveReasonsPolicyDeletedParams) =>
+            `Este chat de espacio de trabajo esta desactivado porque el espacio de trabajo ${policyName} se ha eliminado.`,
     },
     writeCapabilityPage: {
         label: 'Quién puede postear',
@@ -423,33 +498,34 @@ export default {
         receiptScanning: 'Escaneo de recibo en curso…',
         receiptStatusTitle: 'Escaneando…',
         receiptStatusText: 'Solo tú puedes ver este recibo cuando se está escaneando. Vuelve más tarde o introduce los detalles ahora.',
-        requestCount: ({count, scanningReceipts = 0}) => `${count} solicitudes${scanningReceipts > 0 ? `, ${scanningReceipts} escaneando` : ''}`,
+        requestCount: ({count, scanningReceipts = 0}: RequestCountParams) => `${count} solicitudes${scanningReceipts > 0 ? `, ${scanningReceipts} escaneando` : ''}`,
         deleteRequest: 'Eliminar pedido',
         deleteConfirmation: '¿Estás seguro de que quieres eliminar este pedido?',
         settledExpensify: 'Pagado',
         settledElsewhere: 'Pagado de otra forma',
         settledPaypalMe: 'Pagado con PayPal.me',
-        settleExpensify: ({formattedAmount}) => `Pagar ${formattedAmount} con Expensify`,
+        settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => `Pagar ${formattedAmount} con Expensify`,
         payElsewhere: 'Pagar de otra forma',
-        settlePaypalMe: ({formattedAmount}) => `Pagar ${formattedAmount} con PayPal.me`,
-        requestAmount: ({amount}) => `solicitar ${amount}`,
-        splitAmount: ({amount}) => `dividir ${amount}`,
-        amountEach: ({amount}) => `${amount} cada uno`,
-        payerOwesAmount: ({payer, amount}) => `${payer} debe ${amount}`,
-        payerOwes: ({payer}) => `${payer} debe: `,
-        payerPaidAmount: ({payer, amount}) => `${payer} pagó ${amount}`,
-        payerPaid: ({payer}) => `${payer} pagó: `,
-        managerApproved: ({manager}) => `${manager} aprobó:`,
-        payerSettled: ({amount}) => `pagó ${amount}`,
-        waitingOnBankAccount: ({submitterDisplayName}) => `inicio el pago, pero no se procesará hasta que ${submitterDisplayName} añada una cuenta bancaria`,
-        settledAfterAddedBankAccount: ({submitterDisplayName, amount}) => `${submitterDisplayName} añadió una cuenta bancaria. El pago de ${amount} se ha realizado.`,
-        paidElsewhereWithAmount: ({amount}) => `pagó ${amount} de otra forma`,
-        paidUsingPaypalWithAmount: ({amount}) => `pagó ${amount} con PayPal.me`,
-        paidUsingExpensifyWithAmount: ({amount}) => `pagó ${amount} con Expensify`,
+        settlePaypalMe: ({formattedAmount}: SettlePaypalMeParams) => `Pagar ${formattedAmount} con PayPal.me`,
+        requestAmount: ({amount}: RequestAmountParams) => `solicitar ${amount}`,
+        splitAmount: ({amount}: SplitAmountParams) => `dividir ${amount}`,
+        amountEach: ({amount}: AmountEachParams) => `${amount} cada uno`,
+        payerOwesAmount: ({payer, amount}: PayerOwesAmountParams) => `${payer} debe ${amount}`,
+        payerOwes: ({payer}: PayerOwesParams) => `${payer} debe: `,
+        payerPaidAmount: ({payer, amount}: PayerPaidAmountParams) => `${payer} pagó ${amount}`,
+        payerPaid: ({payer}: PayerPaidParams) => `${payer} pagó: `,
+        managerApproved: ({manager}: ManagerApprovedParams) => `${manager} aprobó:`,
+        payerSettled: ({amount}: PayerSettledParams) => `pagó ${amount}`,
+        waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `inicio el pago, pero no se procesará hasta que ${submitterDisplayName} añada una cuenta bancaria`,
+        settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
+            `${submitterDisplayName} añadió una cuenta bancaria. El pago de ${amount} se ha realizado.`,
+        paidElsewhereWithAmount: ({amount}: PaidElsewhereWithAmountParams) => `pagó ${amount} de otra forma`,
+        paidUsingPaypalWithAmount: ({amount}: PaidUsingPaypalWithAmountParams) => `pagó ${amount} con PayPal.me`,
+        paidUsingExpensifyWithAmount: ({amount}: PaidUsingExpensifyWithAmountParams) => `pagó ${amount} con Expensify`,
         noReimbursableExpenses: 'El importe de este informe no es válido',
         pendingConversionMessage: 'El total se actualizará cuando estés online',
-        threadRequestReportName: ({formattedAmount, comment}) => `Solicitud de ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
-        threadSentMoneyReportName: ({formattedAmount, comment}) => `${formattedAmount} enviado${comment ? ` para ${comment}` : ''}`,
+        threadRequestReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `Solicitud de ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
+        threadSentMoneyReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} enviado${comment ? ` para ${comment}` : ''}`,
         error: {
             invalidSplit: 'La suma de las partes no equivale al monto total',
             other: 'Error inesperado, por favor inténtalo más tarde',
@@ -477,10 +553,10 @@ export default {
         removePhoto: 'Eliminar foto',
         editImage: 'Editar foto',
         deleteWorkspaceError: 'Lo sentimos, hubo un problema eliminando el avatar de su espacio de trabajo.',
-        sizeExceeded: ({maxUploadSizeInMB}) => `La imagen supera el tamaño máximo de ${maxUploadSizeInMB}MB.`,
-        resolutionConstraints: ({minHeightInPx, minWidthInPx, maxHeightInPx, maxWidthInPx}) =>
+        sizeExceeded: ({maxUploadSizeInMB}: SizeExceededParams) => `La imagen supera el tamaño máximo de ${maxUploadSizeInMB}MB.`,
+        resolutionConstraints: ({minHeightInPx, minWidthInPx, maxHeightInPx, maxWidthInPx}: ResolutionConstraintsParams) =>
             `Por favor, elige una imagen más grande que ${minHeightInPx}x${minWidthInPx} píxeles y más pequeña que ${maxHeightInPx}x${maxWidthInPx} píxeles.`,
-        notAllowedExtension: ({allowedExtensions}) => `La foto de perfil debe ser de uno de los siguientes tipos: ${allowedExtensions.join(', ')}.`,
+        notAllowedExtension: ({allowedExtensions}: NotAllowedExtensionParams) => `La foto de perfil debe ser de uno de los siguientes tipos: ${allowedExtensions.join(', ')}.`,
     },
     profilePage: {
         profile: 'Perfil',
@@ -517,7 +593,7 @@ export default {
         helpTextAfterEmail: ' desde varias direcciones de correo electrónico.',
         pleaseVerify: 'Por favor, verifica este método de contacto',
         getInTouch: 'Utilizaremos este método de contacto cuando necesitemos contactarte.',
-        enterMagicCode: ({contactMethod}) => `Por favor, introduce el código mágico enviado a ${contactMethod}`,
+        enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Por favor, introduce el código mágico enviado a ${contactMethod}`,
         setAsDefault: 'Establecer como predeterminado',
         yourDefaultContactMethod:
             'Este es tu método de contacto predeterminado. No podrás eliminarlo hasta que añadas otro método de contacto y lo marques como predeterminado pulsando "Establecer como predeterminado".',
@@ -709,9 +785,9 @@ export default {
         addBankAccountFailure: 'Ocurrió un error inesperado al intentar añadir la cuenta bancaria. Inténtalo de nuevo.',
     },
     transferAmountPage: {
-        transfer: ({amount}) => `Transferir${amount ? ` ${amount}` : ''}`,
+        transfer: ({amount}: TransferParams) => `Transferir${amount ? ` ${amount}` : ''}`,
         instant: 'Instante',
-        instantSummary: ({rate, minAmount}) => `Tarifa del ${rate}% (${minAmount} mínimo)`,
+        instantSummary: ({rate, minAmount}: InstantSummaryParams) => `Tarifa del ${rate}% (${minAmount} mínimo)`,
         ach: '1-3 días laborales',
         achSummary: 'Sin cargo',
         whichAccount: '¿Qué cuenta?',
@@ -843,7 +919,7 @@ export default {
         },
         cannotGetAccountDetails: 'No se pudieron cargar los detalles de tu cuenta. Por favor, intenta iniciar sesión de nuevo.',
         loginForm: 'Formulario de inicio de sesión',
-        notYou: ({user}) => `¿No eres ${user}?`,
+        notYou: ({user}: NotYouParams) => `¿No eres ${user}?`,
     },
     personalDetails: {
         error: {
@@ -859,28 +935,30 @@ export default {
         legalLastName: 'Apellidos legales',
         homeAddress: 'Domicilio',
         error: {
-            dateShouldBeBefore: ({dateString}) => `La fecha debe ser anterior a ${dateString}.`,
-            dateShouldBeAfter: ({dateString}) => `La fecha debe ser posterior a ${dateString}.`,
-            incorrectZipFormat: ({zipFormat}) => `Formato de código postal incorrecto.${zipFormat ? ` Formato aceptable: ${zipFormat}` : ''}`,
+            dateShouldBeBefore: ({dateString}: DateShouldBeBeforeParams) => `La fecha debe ser anterior a ${dateString}.`,
+            dateShouldBeAfter: ({dateString}: DateShouldBeAfterParams) => `La fecha debe ser posterior a ${dateString}.`,
+            incorrectZipFormat: ({zipFormat}: IncorrectZipFormatParams) => `Formato de código postal incorrecto.${zipFormat ? ` Formato aceptable: ${zipFormat}` : ''}`,
             hasInvalidCharacter: 'El nombre sólo puede incluir letras.',
         },
     },
     resendValidationForm: {
         linkHasBeenResent: 'El enlace se ha reenviado',
-        weSentYouMagicSignInLink: ({login, loginType}) => `Te he enviado un hiperenlace mágico para iniciar sesión a ${login}. Por favor, revisa tu ${loginType}`,
+        weSentYouMagicSignInLink: ({login, loginType}: WeSentYouMagicSignInLinkParams) =>
+            `Te he enviado un hiperenlace mágico para iniciar sesión a ${login}. Por favor, revisa tu ${loginType}`,
         resendLink: 'Reenviar enlace',
     },
     unlinkLoginForm: {
-        toValidateLogin: ({primaryLogin, secondaryLogin}) => `Para validar ${secondaryLogin}, reenvía el código mágico desde la Configuración de la cuenta de ${primaryLogin}.`,
-        noLongerHaveAccess: ({primaryLogin}) => `Si ya no tienes acceso a ${primaryLogin} por favor, desvincula las cuentas.`,
+        toValidateLogin: ({primaryLogin, secondaryLogin}: ToValidateLoginParams) =>
+            `Para validar ${secondaryLogin}, reenvía el código mágico desde la Configuración de la cuenta de ${primaryLogin}.`,
+        noLongerHaveAccess: ({primaryLogin}: NoLongerHaveAccessParams) => `Si ya no tienes acceso a ${primaryLogin} por favor, desvincula las cuentas.`,
         unlink: 'Desvincular',
         linkSent: '¡Enlace enviado!',
         succesfullyUnlinkedLogin: '¡Nombre de usuario secundario desvinculado correctamente!',
     },
     emailDeliveryFailurePage: {
-        ourEmailProvider: ({login}) =>
+        ourEmailProvider: ({login}: OurEmailProviderParams) =>
             `Nuestro proveedor de correo electrónico ha suspendido temporalmente los correos electrónicos a ${login} debido a problemas de entrega. Para desbloquear el inicio de sesión, sigue estos pasos:`,
-        confirmThat: ({login}) => `Confirma que ${login} está escrito correctamente y que es una dirección de correo electrónico real que puede recibir correos. `,
+        confirmThat: ({login}: ConfirmThatParams) => `Confirma que ${login} está escrito correctamente y que es una dirección de correo electrónico real que puede recibir correos. `,
         emailAliases:
             'Los alias de correo electrónico como "expenses@domain.com" deben tener acceso a su propia bandeja de entrada de correo electrónico para que sea un inicio de sesión válido de Expensify.',
         ensureYourEmailClient: 'Asegúrese de que su cliente de correo electrónico permita correos electrónicos de expensify.com. ',
@@ -926,7 +1004,7 @@ export default {
         save: 'Guardar',
         message: 'Mensaje',
         untilTomorrow: 'Hasta mañana',
-        untilTime: ({time}) => {
+        untilTime: ({time}: UntilTimeParams) => {
             // Check for HH:MM AM/PM format and starts with '01:'
             if (CONST.REGEX.TIME_STARTS_01.test(time)) {
                 return `Hasta la ${time}`;
@@ -943,7 +1021,7 @@ export default {
             return `Hasta ${time}`;
         },
     },
-    stepCounter: ({step, total, text}) => {
+    stepCounter: ({step, total, text}: StepCounterParams) => {
         let result = `Paso ${step}`;
 
         if (total) {
@@ -1029,7 +1107,7 @@ export default {
     messages: {
         errorMessageInvalidPhone: `Por favor, introduce un número de teléfono válido sin paréntesis o guiones. Si reside fuera de Estados Unidos, por favor incluye el prefijo internacional (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
         errorMessageInvalidEmail: 'Email inválido',
-        userIsAlreadyMemberOfWorkspace: ({login, workspace}) => `${login} ya es miembro de ${workspace}`,
+        userIsAlreadyMemberOfWorkspace: ({login, workspace}: UserIsAlreadyMemberOfWorkspaceParams) => `${login} ya es miembro de ${workspace}`,
     },
     onfidoStep: {
         acceptTerms: 'Al continuar con la solicitud para activar su billetera Expensify, confirma que ha leído, comprende y acepta ',
@@ -1237,7 +1315,7 @@ export default {
             unavailable: 'Espacio de trabajo no disponible',
             memberNotFound: 'Miembro no encontrado. Para invitar a un nuevo miembro al espacio de trabajo, por favor, utiliza el botón Invitar que está arriba.',
             notAuthorized: `No tienes acceso a esta página. ¿Estás tratando de unirte al espacio de trabajo? Comunícate con el propietario de este espacio de trabajo para que pueda añadirte como miembro. ¿Necesitas algo más? Comunícate con ${CONST.EMAIL.CONCIERGE}`,
-            goToRoom: ({roomName}) => `Ir a la sala ${roomName}`,
+            goToRoom: ({roomName}: GoToRoomParams) => `Ir a la sala ${roomName}`,
         },
         emptyWorkspace: {
             title: 'Crear un nuevo espacio de trabajo',
@@ -1334,7 +1412,7 @@ export default {
             personalMessagePrompt: 'Mensaje',
             inviteNoMembersError: 'Por favor, selecciona al menos un miembro a invitar',
             genericFailureMessage: 'Se produjo un error al invitar al usuario al espacio de trabajo. Vuelva a intentarlo..',
-            welcomeNote: ({workspaceName}) =>
+            welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
                 `¡Has sido invitado a ${workspaceName}! Descargue la aplicación móvil Expensify en use.expensify.com/download para comenzar a rastrear sus gastos.`,
         },
         editor: {
@@ -1408,15 +1486,17 @@ export default {
         restrictedDescription: 'Sólo las personas en tu espacio de trabajo pueden encontrar esta sala',
         privateDescription: 'Sólo las personas que están invitadas a esta sala pueden encontrarla',
         publicDescription: 'Cualquier persona puede unirse a esta sala',
+        // eslint-disable-next-line @typescript-eslint/naming-convention
         public_announceDescription: 'Cualquier persona puede unirse a esta sala',
         createRoom: 'Crea una sala de chat',
         roomAlreadyExistsError: 'Ya existe una sala con este nombre',
-        roomNameReservedError: ({reservedName}) => `${reservedName} es el nombre una sala por defecto de todos los espacios de trabajo. Por favor, elige otro nombre.`,
+        roomNameReservedError: ({reservedName}: RoomNameReservedErrorParams) =>
+            `${reservedName} es el nombre una sala por defecto de todos los espacios de trabajo. Por favor, elige otro nombre.`,
         roomNameInvalidError: 'Los nombres de las salas solo pueden contener minúsculas, números y guiones',
         pleaseEnterRoomName: 'Por favor, escribe el nombre de una sala',
         pleaseSelectWorkspace: 'Por favor, selecciona un espacio de trabajo',
-        renamedRoomAction: ({oldName, newName}) => ` cambió el nombre de la sala de ${oldName} a ${newName}`,
-        roomRenamedTo: ({newName}) => `Sala renombrada a ${newName}`,
+        renamedRoomAction: ({oldName, newName}: RenamedRoomActionParams) => ` cambió el nombre de la sala de ${oldName} a ${newName}`,
+        roomRenamedTo: ({newName}: RoomRenamedToParams) => `Sala renombrada a ${newName}`,
         social: 'social',
         selectAWorkspace: 'Seleccionar un espacio de trabajo',
         growlMessageOnRenameError: 'No se ha podido cambiar el nombre del espacio de trabajo, por favor, comprueba tu conexión e inténtalo de nuevo.',
@@ -1424,6 +1504,7 @@ export default {
             restricted: 'Restringida',
             private: 'Privada',
             public: 'Público',
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             public_announce: 'Anuncio Público',
         },
     },
@@ -1567,8 +1648,8 @@ export default {
         noActivityYet: 'Sin actividad todavía',
     },
     chronos: {
-        oooEventSummaryFullDay: ({summary, dayCount, date}) => `${summary} por ${dayCount} ${dayCount === 1 ? 'día' : 'días'} hasta el ${date}`,
-        oooEventSummaryPartialDay: ({summary, timePeriod, date}) => `${summary} de ${timePeriod} del ${date}`,
+        oooEventSummaryFullDay: ({summary, dayCount, date}: OOOEventSummaryFullDayParams) => `${summary} por ${dayCount} ${dayCount === 1 ? 'día' : 'días'} hasta el ${date}`,
+        oooEventSummaryPartialDay: ({summary, timePeriod, date}: OOOEventSummaryPartialDayParams) => `${summary} de ${timePeriod} del ${date}`,
     },
     footer: {
         features: 'Características',
@@ -2084,7 +2165,7 @@ export default {
         reply: 'Respuesta',
         from: 'De',
         in: 'en',
-        parentNavigationSummary: ({rootReportName, workspaceName}) => `De ${rootReportName}${workspaceName ? ` en ${workspaceName}` : ''}`,
+        parentNavigationSummary: ({rootReportName, workspaceName}: ParentNavigationSummaryParams) => `De ${rootReportName}${workspaceName ? ` en ${workspaceName}` : ''}`,
     },
     qrCodes: {
         copyUrlToClipboard: 'Copiar URL al portapapeles',

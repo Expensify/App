@@ -17,7 +17,6 @@ import ReceiptSelector from './ReceiptSelector';
 import * as IOU from '../../libs/actions/IOU';
 import DistanceRequestPage from './DistanceRequestPage';
 import DragAndDropProvider from '../../components/DragAndDrop/Provider';
-import usePermissions from '../../hooks/usePermissions';
 import OnyxTabNavigator, {TopTab} from '../../libs/Navigation/OnyxTabNavigator';
 import NewRequestAmountPage from './steps/NewRequestAmountPage';
 import reportPropTypes from '../reportPropTypes';
@@ -52,7 +51,6 @@ function MoneyRequestSelectorPage(props) {
     const iouType = lodashGet(props.route, 'params.iouType', '');
     const reportID = lodashGet(props.route, 'params.reportID', '');
     const {translate} = useLocalize();
-    const {canUseScanReceipts, canUseDistanceRequests} = usePermissions();
 
     const title = {
         [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST]: translate('iou.requestMoney'),
@@ -61,7 +59,7 @@ function MoneyRequestSelectorPage(props) {
     };
     const isFromGlobalCreate = !reportID;
     const isExpenseRequest = ReportUtils.isPolicyExpenseChat(props.report);
-    const shouldDisplayDistanceRequest = canUseDistanceRequests && (isExpenseRequest || isFromGlobalCreate);
+    const shouldDisplayDistanceRequest = isExpenseRequest || isFromGlobalCreate;
 
     const resetMoneyRequestInfo = () => {
         const moneyRequestID = `${iouType}${reportID}`;
@@ -81,7 +79,7 @@ function MoneyRequestSelectorPage(props) {
                                 title={title[iouType]}
                                 onBackButtonPress={Navigation.dismissModal}
                             />
-                            {(canUseScanReceipts || canUseDistanceRequests) && iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST ? (
+                            {iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST ? (
                                 <OnyxTabNavigator
                                     id={CONST.TAB.RECEIPT_TAB_ID}
                                     tabBar={({state, navigation, position}) => (
@@ -98,13 +96,11 @@ function MoneyRequestSelectorPage(props) {
                                         component={NewRequestAmountPage}
                                         initialParams={{reportID, iouType}}
                                     />
-                                    {canUseScanReceipts && (
-                                        <TopTab.Screen
-                                            name={CONST.TAB.SCAN}
-                                            component={ReceiptSelector}
-                                            initialParams={{reportID, iouType, pageIndex: 1}}
-                                        />
-                                    )}
+                                    <TopTab.Screen
+                                        name={CONST.TAB.SCAN}
+                                        component={ReceiptSelector}
+                                        initialParams={{reportID, iouType, pageIndex: 1}}
+                                    />
                                     {shouldDisplayDistanceRequest && (
                                         <TopTab.Screen
                                             name={CONST.TAB.DISTANCE}
