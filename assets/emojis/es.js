@@ -7236,16 +7236,16 @@ const esEmojis = {
         keywords: ['bandera', 'bandera-zw'],
     },
     '🏴󠁧󠁢󠁥󠁮󠁧󠁿': {
-        name: 'bandera-inglaterra',
-        keywords: ['Bandera'],
+        name: 'inglaterra',
+        keywords: ['bandera', 'bandera-inglaterra'],
     },
     '🏴󠁧󠁢󠁳󠁣󠁴󠁿': {
-        name: 'bandera-escocia',
-        keywords: ['Bandera'],
+        name: 'escocia',
+        keywords: ['bandera', 'bandera-escocia'],
     },
     '🏴󠁧󠁢󠁷󠁬󠁳󠁿': {
-        name: 'bandera-gales',
-        keywords: ['Bandera'],
+        name: 'gales',
+        keywords: ['bandera', 'bandera-gales'],
     },
 };
 
