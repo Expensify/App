@@ -1,5 +1,5 @@
 import {withOnyx} from 'react-native-onyx';
-import {View} from 'react-native';
+import {ScrollView, View} from 'react-native';
 import React from 'react';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
@@ -79,39 +79,41 @@ function MoneyRequestSelectorPage(props) {
                                 title={title[iouType]}
                                 onBackButtonPress={Navigation.dismissModal}
                             />
-                            {iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST ? (
-                                <OnyxTabNavigator
-                                    id={CONST.TAB.RECEIPT_TAB_ID}
-                                    tabBar={({state, navigation, position}) => (
-                                        <TabSelector
-                                            state={state}
-                                            navigation={navigation}
-                                            onTabPress={resetMoneyRequestInfo}
-                                            position={position}
-                                        />
-                                    )}
-                                >
-                                    <TopTab.Screen
-                                        name={CONST.TAB.MANUAL}
-                                        component={NewRequestAmountPage}
-                                        initialParams={{reportID, iouType}}
-                                    />
-                                    <TopTab.Screen
-                                        name={CONST.TAB.SCAN}
-                                        component={ReceiptSelector}
-                                        initialParams={{reportID, iouType, pageIndex: 1}}
-                                    />
-                                    {shouldDisplayDistanceRequest && (
+                            <ScrollView contentContainerStyle={[styles.flexGrow1]}>
+                                {iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST ? (
+                                    <OnyxTabNavigator
+                                        id={CONST.TAB.RECEIPT_TAB_ID}
+                                        tabBar={({state, navigation, position}) => (
+                                            <TabSelector
+                                                state={state}
+                                                navigation={navigation}
+                                                onTabPress={resetMoneyRequestInfo}
+                                                position={position}
+                                            />
+                                        )}
+                                    >
                                         <TopTab.Screen
-                                            name={CONST.TAB.DISTANCE}
-                                            component={DistanceRequestPage}
+                                            name={CONST.TAB.MANUAL}
+                                            component={NewRequestAmountPage}
                                             initialParams={{reportID, iouType}}
                                         />
-                                    )}
-                                </OnyxTabNavigator>
-                            ) : (
-                                <NewRequestAmountPage route={props.route} />
-                            )}
+                                        <TopTab.Screen
+                                            name={CONST.TAB.SCAN}
+                                            component={ReceiptSelector}
+                                            initialParams={{reportID, iouType, pageIndex: 1}}
+                                        />
+                                        {shouldDisplayDistanceRequest && (
+                                            <TopTab.Screen
+                                                name={CONST.TAB.DISTANCE}
+                                                component={DistanceRequestPage}
+                                                initialParams={{reportID, iouType}}
+                                            />
+                                        )}
+                                    </OnyxTabNavigator>
+                                ) : (
+                                    <NewRequestAmountPage route={props.route} />
+                                )}
+                            </ScrollView>
                         </View>
                     </DragAndDropProvider>
                 </FullPageNotFoundView>
