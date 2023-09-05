@@ -53,6 +53,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    policy: {},
     chatReport: {},
     session: {
         email: null,
