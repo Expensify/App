@@ -360,10 +360,7 @@ function AttachmentModal(props) {
                             onSelected: () => {
                                 closeModal();
 
-                                // TODO: remove timeout
-                                setTimeout(() => {
-                                    Navigation.navigate(ROUTES.getEditRequestRoute(props.report.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT));
-                                }, 1000)
+                                // TODO: Navigate user to edit receipt page
                             },
                         },
                         {

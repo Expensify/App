@@ -5,6 +5,8 @@ import HeaderWithBackButton from '../components/HeaderWithBackButton';
 import Navigation from '../libs/Navigation/Navigation';
 import useLocalize from '../hooks/useLocalize';
 import ReceiptSelector from './iou/ReceiptSelector';
+import CONST from '../CONST';
+import DragAndDropProvider from '../components/DragAndDrop/Provider';
 
 const propTypes = {
     /** The callback fired when we confirm to replace the receipt */
@@ -23,7 +25,9 @@ function EditRequestReceiptPage() {
                 title={translate('common.receipt')}
                 onBackButtonPress={Navigation.goBack}
             />
-            <ReceiptSelector />
+            <DragAndDropProvider>
+                <ReceiptSelector />
+            </DragAndDropProvider>
         </ScreenWrapper>
     );
 }
