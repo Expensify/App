@@ -103,6 +103,7 @@ function BankAccountPlaidStep(props) {
                     }}
                     plaidData={plaidData}
                     onExitPlaid={() => BankAccounts.setBankAccountSubStep(null)}
+                    shouldResetStepOnBlur
                     receivedRedirectURI={receivedRedirectURI}
                     plaidLinkOAuthToken={plaidLinkOAuthToken}
                     allowDebit
