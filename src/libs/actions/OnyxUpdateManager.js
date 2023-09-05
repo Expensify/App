@@ -63,15 +63,14 @@ export default () => {
                     previousUpdateIDFromServer,
                     lastUpdateIDAppliedToClient,
                 });
-                promise = App.getMissingOnyxUpdates(lastUpdateIDAppliedToClient, lastUpdateIDFromServer).then(() => {
-                    OnyxUpdates.apply({...updateParams, lastUpdateID: lastUpdateIDFromServer}).finally(() => {
-                        console.debug('[OnyxUpdateManager] Done applying all updates');
-                    });
-                });
+                promise = App.getMissingOnyxUpdates(lastUpdateIDAppliedToClient, lastUpdateIDFromServer);
             }
 
             promise.finally(() => {
-                SequentialQueue.unpause();
+                OnyxUpdates.apply({...updateParams, lastUpdateID: lastUpdateIDFromServer}).finally(() => {
+                    console.debug('[OnyxUpdateManager] Done applying all updates');
+                    SequentialQueue.unpause();
+                });
             });
         },
     });
