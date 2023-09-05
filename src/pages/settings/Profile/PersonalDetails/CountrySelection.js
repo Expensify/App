@@ -14,9 +14,6 @@ import StringUtils from '../../../../libs/StringUtils';
 
 import useLocalize from '../../../../hooks/useLocalize';
 
-/**
- * IOU Currency selection for selecting currency
- */
 const propTypes = {
     /** Route from navigation */
     route: PropTypes.shape({
