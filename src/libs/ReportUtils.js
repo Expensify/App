@@ -1438,7 +1438,6 @@ function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceip
         return `approved ${formattedAmount}`;
     }
 
-    /* === Start - Check for Report Scan === */
 
     if (shouldConsiderReceiptBeingScanned && ReportActionsUtils.isMoneyRequestAction(reportAction)) {
         const linkedTransaction = TransactionUtils.getLinkedTransaction(reportAction);
