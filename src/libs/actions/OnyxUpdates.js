@@ -1,7 +1,7 @@
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
-import * as QueuedOnyxUpdates from './QueuedOnyxUpdates'
-
+import * as QueuedOnyxUpdates from './QueuedOnyxUpdates';
+import CONST from './CONST';
 
 // This key needs to be separate from ONYXKEYS.ONYX_UPDATES_FROM_SERVER so that it can be updated without triggering the callback when the server IDs are updated
 let lastUpdateIDAppliedToClient = 0;
@@ -76,7 +76,7 @@ function applyPusherOnyxUpdates({updates}) {
  */
 function apply({lastUpdateID, type, data}) {
     console.debug(`[OnyxUpdateManager] Applying update type: ${type} with lastUpdateID: ${lastUpdateID}`, data);
-    if (lastUpdateID && lastUpdateID >  lastUpdateIDAppliedToClient) {
+    if (lastUpdateID && lastUpdateID > lastUpdateIDAppliedToClient) {
         Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, lastUpdateID);
     }
     if (type === CONST.ONYX_UPDATE_TYPES.HTTPS) {
@@ -107,14 +107,13 @@ function saveUpdateInformation(updateParams, lastUpdateID = 0, previousUpdateID 
 }
 
 function needsToUpdateClient(previousUpdateID = 0) {
-    
     // If no previousUpdateID is sent, this is not a WRITE request so we don't need to update our current state
-    if(!previousUpdateID) {
+    if (!previousUpdateID) {
         return false;
     }
-    
+
     // If we don't have any value in lastUpdateIDAppliedToClient, this is the first time we're receiving anything, so we need to do a last reconnectApp
-    if(!lastUpdateIDAppliedToClient) {
+    if (!lastUpdateIDAppliedToClient) {
         return true;
     }
 

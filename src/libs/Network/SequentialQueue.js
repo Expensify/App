@@ -47,7 +47,7 @@ function process() {
         .then((responseData) => {
             // While processing the request, we might return the property to pause the queue if we notice that we're out of date. We're doing this here so we avoid
             // circular dependencies.
-            if(responseData.pauseQueue) {
+            if (responseData.pauseQueue) {
                 pause();
             }
             PersistedRequests.remove(requestToProcess);
@@ -66,7 +66,6 @@ function process() {
         });
     return currentRequest;
 }
-
 
 /**
  * Gets the current Onyx queued updates, apply them and clear the queue if the queue is not paused.

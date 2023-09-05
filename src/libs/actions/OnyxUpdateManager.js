@@ -5,7 +5,7 @@ import CONST from '../../CONST';
 import Log from '../Log';
 import * as SequentialQueue from '../Network/SequentialQueue';
 import * as App from './App';
-import * as OnyxUpdates from './OnyxUpdates'
+import * as OnyxUpdates from './OnyxUpdates';
 
 // This file is in charge of looking at the updateIDs coming from the server and comparing them to the last updateID that the client has.
 // If the client is behind the server, then we need to pause everything, get the missing updates from the server, apply those updates,
@@ -15,8 +15,6 @@ import * as OnyxUpdates from './OnyxUpdates'
 // is used as a pub/sub mechanism to break out of the circular dependencies.
 // The circular dependency happen because this file calls the API GetMissingOnyxUpdates which uses the SaveResponseInOnyx.js file
 // (as a middleware). Therefore, SaveResponseInOnyx.js can't import and use this file directly.
-
-
 
 // This key needs to be separate from ONYXKEYS.ONYX_UPDATES_FROM_SERVER so that it can be updated without triggering the callback when the server IDs are updated
 let lastUpdateIDAppliedToClient = 0;
@@ -67,7 +65,7 @@ export default () => {
                 });
                 promise = App.getMissingOnyxUpdates(lastUpdateIDAppliedToClient, lastUpdateIDFromServer).then(() => {
                     OnyxUpdates.apply({...updateParams, lastUpdateID: lastUpdateIDFromServer}).finally(() => {
-                        console.debug('[OnyxUpdateManager] Done applying all updates');    
+                        console.debug('[OnyxUpdateManager] Done applying all updates');
                     });
                 });
             }
@@ -75,7 +73,6 @@ export default () => {
             promise.finally(() => {
                 SequentialQueue.unpause();
             });
-
         },
     });
 };

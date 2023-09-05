@@ -36,7 +36,7 @@ function SaveResponseInOnyx(response, request) {
             return true;
         });
 
-        const responseToApply = {                
+        const responseToApply = {
             type: CONST.ONYX_UPDATE_TYPES.HTTPS,
             lastUpdateID: Number(responseData.lastUpdateID || 0),
             data: {
@@ -50,17 +50,13 @@ function SaveResponseInOnyx(response, request) {
         }
 
         // Save the update IDs to Onyx so they can be used to fetch incremental updates if the client gets out of sync from the server
-        OnyxUpdates.saveUpdateInformation(
-            responseToApply,
-            Number(responseData.lastUpdateID || 0),
-            Number(responseData.previousUpdateID || 0),
-        );
-        
-        // We'll add the pauseQueue property here to guarantee we're pausing the queue before we execute the next request. If we do it only on the trigger in 
+        OnyxUpdates.saveUpdateInformation(responseToApply, Number(responseData.lastUpdateID || 0), Number(responseData.previousUpdateID || 0));
+
+        // We'll add the pauseQueue property here to guarantee we're pausing the queue before we execute the next request. If we do it only on the trigger in
         // OnyxUpdateManager, then we might have already started another request while we wait.
         return Promise.resolve({
             ...responseData,
-            pauseQueue: true
+            pauseQueue: true,
         });
     });
 }
