@@ -164,9 +164,9 @@ class AuthScreens extends React.Component {
 
         // Check if we should be running any demos immediately after signing in.
         if (lodashGet(this.props.demoInfo, 'saastr.isBeginningDemo', false)) {
-            Navigation.navigate(ROUTES.SAASTR);
+            Navigation.navigate(ROUTES.SAASTR, CONST.NAVIGATION.TYPE.FORCED_UP);
         } else if (lodashGet(this.props.demoInfo, 'sbe.isBeginningDemo', false)) {
-            Navigation.navigate(ROUTES.SBE);
+            Navigation.navigate(ROUTES.SBE, CONST.NAVIGATION.TYPE.FORCED_UP);
         }
         if (this.props.lastOpenedPublicRoomID) {
             // Re-open the last opened public room if the user logged in from a public room link
