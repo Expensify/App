@@ -44,7 +44,12 @@ function process() {
 
     // Set the current request to a promise awaiting its processing so that getCurrentRequest can be used to take some action after the current request has processed.
     currentRequest = Request.processWithMiddleware(requestToProcess, true)
-        .then(() => {
+        .then((responseData) => {
+            // While processing the request, we might return the property to pause the queue if we notice that we're out of date. We're doing this here so we avoid
+            // circular dependencies.
+            if(responseData.pauseQueue) {
+                pause();
+            }
             PersistedRequests.remove(requestToProcess);
             RequestThrottle.clear();
             return process();
