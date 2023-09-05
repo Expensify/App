@@ -55,7 +55,9 @@ function SaveResponseInOnyx(response, request) {
             Number(responseData.lastUpdateID || 0),
             Number(responseData.previousUpdateID || 0),
         );
-
+        
+        // We'll add the pauseQueue property here to guarantee we're pausing the queue before we execute the next request. If we do it only on the trigger in 
+        // OnyxUpdateManager, then we might have already started another request while we wait.
         return Promise.resolve({
             ...responseData,
             pauseQueue: true
