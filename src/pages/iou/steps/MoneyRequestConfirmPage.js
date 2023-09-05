@@ -14,6 +14,7 @@ import * as IOU from '../../../libs/actions/IOU';
 import compose from '../../../libs/compose';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import * as OptionsListUtils from '../../../libs/OptionsListUtils';
+import * as MoneyRequestUtils from '../../../libs/MoneyRequestUtils';
 import withLocalize from '../../../components/withLocalize';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -59,9 +60,9 @@ const defaultProps = {
 
 function MoneyRequestConfirmPage(props) {
     const {windowHeight} = useWindowDimensions();
-    const isDistanceRequest = props.selectedTab === CONST.TAB.DISTANCE;
     const prevMoneyRequestId = useRef(props.iou.id);
     const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
+    const isDistanceRequest = MoneyRequestUtils.isDistanceRequest(iouType.current, props.selectedTab);
     const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
     const participants = useMemo(
         () =>

@@ -11,6 +11,7 @@ import styles from '../../styles/styles';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import * as IOU from '../../libs/actions/IOU';
+import * as MoneyRequestUtils from '../../libs/MoneyRequestUtils';
 import NewDatePicker from '../../components/NewDatePicker';
 import useLocalize from '../../hooks/useLocalize';
 import CONST from '../../CONST';
@@ -51,7 +52,7 @@ function MoneyRequestDatePage({iou, route, selectedTab}) {
     const {translate} = useLocalize();
     const iouType = lodashGet(route, 'params.iouType', '');
     const reportID = lodashGet(route, 'params.reportID', '');
-    const isDistanceRequest = selectedTab === CONST.TAB.DISTANCE;
+    const isDistanceRequest = MoneyRequestUtils.isDistanceRequest(iouType, selectedTab);
 
     useEffect(() => {
         const moneyRequestId = `${iouType}${reportID}`;
