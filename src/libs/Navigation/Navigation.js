@@ -120,7 +120,8 @@ function goBack(fallbackRoute = ROUTES.HOME, shouldEnforceFallback = false, shou
         return;
     }
 
-    if (shouldPopToTop) {
+    const isFirstRouteInNavigator = !getActiveRouteIndex(navigationRef.current.getState());
+    if (shouldPopToTop && !isFirstRouteInNavigator) {
         if (shouldPopAllStateOnUP) {
             shouldPopAllStateOnUP = false;
             navigationRef.current.dispatch(StackActions.popToTop());
@@ -133,7 +134,6 @@ function goBack(fallbackRoute = ROUTES.HOME, shouldEnforceFallback = false, shou
         return;
     }
 
-    const isFirstRouteInNavigator = !getActiveRouteIndex(navigationRef.current.getState());
     if (isFirstRouteInNavigator) {
         const rootState = navigationRef.getRootState();
         const lastRoute = _.last(rootState.routes);
