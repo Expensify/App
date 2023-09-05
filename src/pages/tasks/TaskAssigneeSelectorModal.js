@@ -199,10 +199,7 @@ function TaskAssigneeSelectorModal(props) {
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
-                <FullPageNotFoundView
-                    shouldShow={isTaskNonEditable}
-                    subtitleKey={!canModifyTask ? 'task.messages.error' : 'task.messages.notOpen'}
-                >
+                <FullPageNotFoundView shouldShow={isTaskNonEditable}>
                     <HeaderWithBackButton
                         title={props.translate('task.assignee')}
                         onBackButtonPress={() => (lodashGet(props.route.params, 'reportID') ? Navigation.dismissModal() : Navigation.goBack(ROUTES.NEW_TASK))}

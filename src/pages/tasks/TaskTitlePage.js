@@ -74,10 +74,7 @@ function TaskTitlePage(props) {
             shouldEnableMaxHeight
         >
             {({didScreenTransitionEnd}) => (
-                <FullPageNotFoundView
-                    shouldShow={isTaskNonEditable}
-                    subtitleKey={!canModifyTask ? 'task.messages.error' : 'task.messages.notOpen'}
-                >
+                <FullPageNotFoundView shouldShow={isTaskNonEditable}>
                     <HeaderWithBackButton title={props.translate('task.task')} />
                     <Form
                         style={[styles.flexGrow1, styles.ph5]}
