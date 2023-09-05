@@ -75,12 +75,10 @@ Onyx.connect({
 });
 
 let isNetworkOffline = false;
-let networkTimeSkew = 0;
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
     callback: (val) => {
         isNetworkOffline = lodashGet(val, 'isOffline', false);
-        networkTimeSkew = lodashGet(val, 'timeSkew', 0);
     },
 });
 
@@ -255,8 +253,7 @@ function addActions(reportID, text = '', file) {
 
     // Always prefer the file as the last action over text
     const lastAction = attachmentAction || reportCommentAction;
-    const timestamp = new Date().valueOf() + networkTimeSkew;
-    const currentTime = DateUtils.getDBTime(timestamp);
+    const currentTime = DateUtils.getDBTimeWithSkew();
     const lastCommentText = ReportUtils.formatReportLastMessageText(lastAction.message[0].text);
 
     const optimisticReport = {
