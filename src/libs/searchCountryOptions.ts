@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import StringUtils from './StringUtils';
 
 type CountryData = {
@@ -10,18 +9,26 @@ type CountryData = {
 };
 
 function searchCountryOptions(searchValue: string, countriesData: CountryData[]): CountryData[] {
-    if (_.isEmpty(searchValue)) {
+    if (!searchValue.trim()) {
         return countriesData;
     }
 
-    const trimmedSearchValue = StringUtils.sanitizeString(searchValue);
-    if (_.isEmpty(trimmedSearchValue)) {
+    const trimmedSearchValue = StringUtils.sanitizeString(searchValue.trim());
+    if (!trimmedSearchValue) {
         return [];
     }
 
     const filteredData = countriesData.filter((country) => country.searchValue.includes(trimmedSearchValue));
 
-    return _.sortBy(filteredData, (country) => (country.value.toLowerCase() === trimmedSearchValue ? -1 : 1));
+    return filteredData.sort((a, b) => {
+        if (a.value.toLowerCase() === trimmedSearchValue) {
+            return -1;
+        }
+        if (b.value.toLowerCase() === trimmedSearchValue) {
+            return 1;
+        }
+        return 0;
+    });
 }
 
 export default searchCountryOptions;
