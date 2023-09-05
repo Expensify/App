@@ -362,6 +362,10 @@ function shouldReportActionBeVisibleAsLastAction(reportAction) {
         return false;
     }
 
+    if (!_.isEmpty(reportAction.errors)) {
+        return false;
+    }
+
     return shouldReportActionBeVisible(reportAction, reportAction.reportActionID) && !isWhisperAction(reportAction) && !isDeletedAction(reportAction);
 }
 
