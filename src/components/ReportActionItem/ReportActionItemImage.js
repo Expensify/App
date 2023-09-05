@@ -23,7 +23,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    thumbnail: '',
+    thumbnail: null,
     enablePreviewModal: false,
 };
 
@@ -35,8 +35,8 @@ const defaultProps = {
 
 function ReportActionItemImage({thumbnail, image, enablePreviewModal}) {
     const {translate} = useLocalize();
-    const imageSource = tryResolveUrlFromApiRoot(image);
-    const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail);
+    const imageSource = tryResolveUrlFromApiRoot(image || '');
+    const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail || '');
 
     const receiptImageComponent = thumbnail ? (
         <ThumbnailImage
