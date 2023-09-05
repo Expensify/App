@@ -17,9 +17,8 @@ function createDemoWorkspaceAndNavigate(workspaceOwnerEmail, apiCommand) {
     // Try to navigate to existing demo workspace expense chat if it exists in Onyx
     const demoWorkspaceChatReportID = ReportUtils.getPolicyExpenseChatReportIDByOwner(workspaceOwnerEmail);
     if (demoWorkspaceChatReportID) {
-        // We must call goBack() to remove the demo route from nav history
-        Navigation.goBack();
-        Navigation.navigate(ROUTES.getReportRoute(demoWorkspaceChatReportID));
+        // Using FORCED_UP to ensure we remove the demo route from the stack
+        Navigation.navigate(ROUTES.getReportRoute(demoWorkspaceChatReportID), CONST.NAVIGATION.TYPE.FORCED_UP);
         return;
     }
 
@@ -39,7 +38,8 @@ function createDemoWorkspaceAndNavigate(workspaceOwnerEmail, apiCommand) {
         }
 
         // Navigate to the new policy expense chat report
-        Navigation.navigate(ROUTES.getReportRoute(policyExpenseChatReport.reportID));
+        // Using FORCED_UP to ensure we remove the demo route from the stack
+        Navigation.navigate(ROUTES.getReportRoute(policyExpenseChatReport.reportID), CONST.NAVIGATION.TYPE.FORCED_UP);
     });
 }
 

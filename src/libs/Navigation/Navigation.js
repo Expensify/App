@@ -119,6 +119,7 @@ function goBack(fallbackRoute = ROUTES.HOME, shouldEnforceFallback = false, shou
     if (!canNavigate('goBack')) {
         return;
     }
+    debugger;
 
     const isFirstRouteInNavigator = !getActiveRouteIndex(navigationRef.current.getState());
     if (shouldPopToTop && !isFirstRouteInNavigator) {
@@ -157,13 +158,13 @@ function goBack(fallbackRoute = ROUTES.HOME, shouldEnforceFallback = false, shou
     const pathsForRoutesInRootNavigator = getPathsForRoutesInRootNavigator();
 
     // Allow CentralPane to use goBack with fallback route.
-    if (isCentralPaneFocused && !pathsForRoutesInRootNavigator.includes(fallbackRoute)) {
+    if (isCentralPaneFocused && fallbackRoute && !pathsForRoutesInRootNavigator.includes(fallbackRoute)) {
         navigate(fallbackRoute, CONST.NAVIGATION.TYPE.FORCED_UP);
         return;
     }
 
     // Add posibility to go back more than one screen in root navigator.
-    if (isCentralPaneFocused && pathsForRoutesInRootNavigator.indexOf(fallbackRoute) > 0) {
+    if (isCentralPaneFocused && fallbackRoute && pathsForRoutesInRootNavigator.indexOf(fallbackRoute) > 0) {
         const popNumber = pathsForRoutesInRootNavigator.indexOf(fallbackRoute);
         navigationRef.current.dispatch(StackActions.pop(popNumber));
         return;
