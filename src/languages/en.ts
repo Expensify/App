@@ -808,13 +808,13 @@ export default {
         },
         addBankAccountFailure: 'An unexpected error occurred while trying to add your bank account. Please try again.',
         cardDetails: {
-            cardNumber: "Digital card number",
-            expiration: "Expiration",
-            cvv: "CVV",
-            address: "Address",
-            revealDetails: "Reveal details",
-            copyCardNumber: "Copy card number"
-        }
+            cardNumber: 'Digital card number',
+            expiration: 'Expiration',
+            cvv: 'CVV',
+            address: 'Address',
+            revealDetails: 'Reveal details',
+            copyCardNumber: 'Copy card number',
+        },
     },
     cardPage: {
         expensifyCard: 'Expensify Card',

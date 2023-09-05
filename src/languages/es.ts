@@ -803,13 +803,13 @@ export default {
         },
         addBankAccountFailure: 'Ocurrió un error inesperado al intentar añadir la cuenta bancaria. Inténtalo de nuevo.',
         cardDetails: {
-            cardNumber: "Número de tarjeta digital",
-            expiration: "Expiración",
-            cvv: "CVV",
-            address: "Dirección",
-            revealDetails: "Revelar detalles",
-            copyCardNumber: "Copiar número de la tarjeta"
-        }
+            cardNumber: 'Número de tarjeta digital',
+            expiration: 'Expiración',
+            cvv: 'CVV',
+            address: 'Dirección',
+            revealDetails: 'Revelar detalles',
+            copyCardNumber: 'Copiar número de la tarjeta',
+        },
     },
     cardPage: {
         expensifyCard: 'Tarjeta Expensify',
