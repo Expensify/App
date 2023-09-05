@@ -21,7 +21,7 @@ import * as ErrorUtils from '../ErrorUtils';
 import * as UserUtils from '../UserUtils';
 import * as Report from './Report';
 import * as NumberUtils from '../NumberUtils';
-import ReceiptRoutePending from '../../../assets/images/receipt-route-pending.png';
+import ReceiptGeneric from '../../../assets/images/receipt-generic.png';
 
 let allReports;
 Onyx.connect({
@@ -511,7 +511,7 @@ function getMoneyRequestInformation(
  */
 function createDistanceRequest(report, participant, comment, created, transactionID, amount, currency, merchant) {
     const optimisticReceipt = {
-        source: ReceiptRoutePending,
+        source: ReceiptGeneric,
         state: CONST.IOU.RECEIPT_STATE.OPEN,
     };
     const {iouReport, chatReport, transaction, iouAction, createdChatReportActionID, createdIOUReportActionID, reportPreviewAction, onyxData} = getMoneyRequestInformation(
