@@ -40,6 +40,7 @@ function applyHTTPSOnyxUpdates({request, responseData}) {
         })
         .then(() => {
             console.debug('[OnyxUpdateManager] Done applying HTTPS update');
+            return responseData;
         });
 }
 
