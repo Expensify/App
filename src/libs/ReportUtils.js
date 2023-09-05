@@ -1448,8 +1448,6 @@ function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceip
         }
     }
 
-    /* === End - Check for Report Scan === */
-
     if (isSettled(report.reportID)) {
         // A settled report preview message can come in three formats "paid ... using Paypal.me", "paid ... elsewhere" or "paid ... using Expensify"
         let translatePhraseKey = 'iou.paidElsewhereWithAmount';
