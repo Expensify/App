@@ -77,7 +77,7 @@ Onyx.connect({
     callback: (val) => (loginList = val),
 });
 
-let networkTimeSkew;
+let networkTimeSkew = 0;
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
     callback: (val) => (networkTimeSkew = lodashGet(val, 'timeSkew', 0)),

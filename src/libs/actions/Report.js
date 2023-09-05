@@ -75,7 +75,7 @@ Onyx.connect({
 });
 
 let isNetworkOffline = false;
-let networkTimeSkew;
+let networkTimeSkew = 0;
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
     callback: (val) => {

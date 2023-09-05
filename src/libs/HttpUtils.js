@@ -23,10 +23,13 @@ Onyx.connect({
 let cancellationController = new AbortController();
 
 /**
- * API comamnds we need to calculate skew,
- * Regex to get API command from the command
+ * The API commands that require the skew calculation
  */
 const addSkewList = ['OpenReport', 'ReconnectApp', 'OpenApp'];
+
+/**
+ * Regex to get API command from the command
+ */
 const regex = /[?&]command=([^&]+)/;
 
 /**
@@ -40,7 +43,7 @@ const regex = /[?&]command=([^&]+)/;
  * @returns {Promise}
  */
 function processHTTPRequest(url, method = 'get', body = null, canCancel = true) {
-    const startTime = new Date();
+    const startTime = new Date().valueOf();
 
     return fetch(url, {
         // We hook requests to the same Controller signal, so we can cancel them all at once
@@ -51,10 +54,10 @@ function processHTTPRequest(url, method = 'get', body = null, canCancel = true) 
         .then((response) => {
             const match = url.match(regex)[1];
             if (addSkewList.includes(match)) {
-                const serverTime = new Date(response.headers.get('Date'));
-                const endTime = new Date();
-                const latency = (endTime.valueOf() - startTime.valueOf()) / 2;
-                const skew = serverTime.valueOf() - startTime.valueOf() + latency;
+                const serverTime = new Date(response.headers.get('Date')).valueOf();
+                const endTime = new Date().valueOf();
+                const latency = (endTime - startTime) / 2;
+                const skew = serverTime - startTime + latency;
                 // eslint-disable-next-line rulesdir/prefer-actions-set-data
                 Onyx.merge(ONYXKEYS.NETWORK, {timeSkew: skew});
             }
