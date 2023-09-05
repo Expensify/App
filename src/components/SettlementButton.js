@@ -64,7 +64,7 @@ const propTypes = {
     /** Route for the Add Debit Card screen for a given navigation stack */
     addDebitCardRoute: PropTypes.string,
 
-    /** Should the confirmation button be disabled? */
+    /** Whether the button should be disabled? */
     isDisabled: PropTypes.bool,
 
     /** Whether we should show a loading state for the main button */
@@ -75,7 +75,6 @@ const propTypes = {
         horizontal: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL)),
         vertical: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL)),
     }),
-
 };
 
 const defaultProps = {
@@ -132,17 +131,17 @@ function SettlementButton({
         const isExpenseReport = ReportUtils.isExpenseReport(iouReport);
         const paymentMethods = {
             [CONST.IOU.PAYMENT_TYPE.EXPENSIFY]: {
-                text: translate('iou.settleExpensify', {formattedAmount: formattedAmount || ''}),
+                text: translate('iou.settleExpensify', {formattedAmount}),
                 icon: Expensicons.Wallet,
                 value: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
             },
             [CONST.IOU.PAYMENT_TYPE.VBBA]: {
-                text: translate('iou.settleExpensify', {formattedAmount: formattedAmount || ''}),
+                text: translate('iou.settleExpensify', {formattedAmount}),
                 icon: Expensicons.Wallet,
                 value: CONST.IOU.PAYMENT_TYPE.VBBA,
             },
             [CONST.IOU.PAYMENT_TYPE.PAYPAL_ME]: {
-                text: translate('iou.settlePaypalMe', {formattedAmount: formattedAmount || ''}),
+                text: translate('iou.settlePaypalMe', {formattedAmount}),
                 icon: Expensicons.PayPal,
                 value: CONST.IOU.PAYMENT_TYPE.PAYPAL_ME,
             },
@@ -151,7 +150,7 @@ function SettlementButton({
                 icon: Expensicons.Cash,
                 value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
             },
-        }
+        };
         const canUseWallet = !isExpenseReport && currency === CONST.CURRENCY.USD && Permissions.canUsePayWithExpensify(betas) && Permissions.canUseWallet(betas);
 
         // To achieve the one tap pay experience we need to choose the correct payment type as default,
@@ -199,11 +198,20 @@ function SettlementButton({
             return _.sortBy(buttonOptions, (method) => (method.value === paymentMethod ? 0 : 1));
         }
         return buttonOptions;
-    }
+    };
+
+    const selectPaymentType = (event, iouPaymentType, triggerKYCFlow) => {
+        if (iouPaymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || iouPaymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
+            triggerKYCFlow(event, iouPaymentType);
+            return;
+        }
+
+        onPress(iouPaymentType);
+    };
 
     return (
         <KYCWall
-            onSuccessfulKYC={(iouPaymentType) => onPress(iouPaymentType)}
+            onSuccessfulKYC={onPress}
             enablePaymentsRoute={enablePaymentsRoute}
             addBankAccountRoute={addBankAccountRoute}
             addDebitCardRoute={addDebitCardRoute}
@@ -216,14 +224,7 @@ function SettlementButton({
                     buttonRef={buttonRef}
                     isDisabled={isDisabled}
                     isLoading={isLoading}
-                    onPress={(event, iouPaymentType) => {
-                        if (iouPaymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || iouPaymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
-                            triggerKYCFlow(event, iouPaymentType);
-                            return;
-                        }
-
-                        onPress(iouPaymentType);
-                    }}
+                    onPress={(event, iouPaymentType) => selectPaymentType(event, iouPaymentType, triggerKYCFlow)}
                     options={getButtonOptionsFromProps()}
                     style={style}
                     buttonSize={buttonSize}
