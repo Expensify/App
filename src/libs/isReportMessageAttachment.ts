@@ -1,6 +1,6 @@
 import CONST from '../CONST';
 
-type IsReportMessageAttachmentArguments = {
+type IsReportMessageAttachmentParams = {
     text: string;
     html: string;
     translationKey: string;
@@ -12,7 +12,7 @@ type IsReportMessageAttachmentArguments = {
  *
  * @param reportActionMessage report action's message as text, html and translationKey
  */
-export default function isReportMessageAttachment({text, html, translationKey}: IsReportMessageAttachmentArguments): boolean {
+export default function isReportMessageAttachment({text, html, translationKey}: IsReportMessageAttachmentParams): boolean {
     if (translationKey) {
         return translationKey === CONST.TRANSLATION_KEYS.ATTACHMENT;
     }
