@@ -21,7 +21,8 @@ Request.use(Middleware.RecheckConnection);
 // Reauthentication - Handles jsonCode 407 which indicates an expired authToken. We need to reauthenticate and get a new authToken with our stored credentials.
 Request.use(Middleware.Reauthentication);
 
-// SaveResponseInOnyx - Merges either the successData or failureData into Onyx depending on if the call was successful or not
+// SaveResponseInOnyx - Merges either the successData or failureData into Onyx depending on if the call was successful or not. This needs to be the LAST middleware we use, don't add any
+// middlewares after this.
 Request.use(Middleware.SaveResponseInOnyx);
 
 /**
