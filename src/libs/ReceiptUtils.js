@@ -41,7 +41,7 @@ function getThumbnailAndImageURIs(path, filename) {
     const isReceiptImage = Str.isImage(filename);
 
     // For local files, we won't have a thumbnail yet
-    if (isReceiptImage && (path.startsWith('blob:') || path.startsWith('file:') || path.startsWith('/'))) {
+    if (isReceiptImage && (path.startsWith('blob:') || path.startsWith('file:'))) {
         return {thumbnail: null, image: path};
     }
 
