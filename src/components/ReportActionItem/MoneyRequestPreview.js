@@ -163,7 +163,7 @@ function MoneyRequestPreview(props) {
         !_.isEmpty(requestMerchant) && !props.isBillSplit && requestMerchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && requestMerchant !== CONST.TRANSACTION.DEFAULT_MERCHANT;
     const shouldShowDescription = !_.isEmpty(description) && !shouldShowMerchant;
 
-    const receiptImages = [ReceiptUtils.getThumbnailAndImageURIs(props.transaction.receipt.source, props.transaction.filename || props.transaction.receiptFilename || '')];
+    const receiptImages = hasReceipt ? [ReceiptUtils.getThumbnailAndImageURIs(props.transaction.receipt.source, props.transaction.filename || props.transaction.receiptFilename || '')] : [];
 
     const getSettledMessage = () => {
         switch (lodashGet(props.action, 'originalMessage.paymentType', '')) {
