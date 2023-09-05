@@ -103,7 +103,7 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
                         return;
                     }
 
-                    const index = Number(key.replace('waypoint', ''));
+                    const index = TransactionUtils.getWaypointIndex(key);
                     let MarkerComponent;
                     if (index === 0) {
                         MarkerComponent = Expensicons.DotIndicatorUnfilled;
@@ -181,7 +181,7 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
                 >
                     {_.map(waypoints, (waypoint, key) => {
                         // key is of the form waypoint0, waypoint1, ...
-                        const index = Number(key.replace('waypoint', ''));
+                        const index = TransactionUtils.getWaypointIndex(key);
                         let descriptionKey = 'distance.waypointDescription.';
                         let waypointIcon;
                         if (index === 0) {
