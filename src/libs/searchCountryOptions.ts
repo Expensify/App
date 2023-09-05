@@ -1,13 +1,15 @@
 import _ from 'lodash';
 import StringUtils from './StringUtils';
 
-/**
- * Searches the countries/states data and returns sorted results based on the search query
- * @param {String} searchValue
- * @param {Object[]} countriesData - An array of country data objects
- * @returns {Object[]} An array of countries/states sorted based on the search query
- */
-function searchCountryOptions(searchValue, countriesData) {
+type CountryData = {
+    value: string;
+    keyForList: string;
+    text: string;
+    isSelected: boolean;
+    searchValue: string;
+};
+
+function searchCountryOptions(searchValue: string, countriesData: CountryData[]): CountryData[] {
     if (_.isEmpty(searchValue)) {
         return countriesData;
     }
@@ -17,10 +19,9 @@ function searchCountryOptions(searchValue, countriesData) {
         return [];
     }
 
-    const filteredData = _.filter(countriesData, (country) => _.includes(country.searchValue, trimmedSearchValue));
+    const filteredData = countriesData.filter((country) => country.searchValue.includes(trimmedSearchValue));
 
-    // sort by country code
-    return _.sortBy(filteredData, (country) => (_.toLower(country.value) === trimmedSearchValue ? -1 : 1));
+    return _.sortBy(filteredData, (country) => (country.value.toLowerCase() === trimmedSearchValue ? -1 : 1));
 }
 
 export default searchCountryOptions;
