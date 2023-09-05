@@ -142,24 +142,28 @@ function goBack(fallbackRoute = ROUTES.HOME, shouldEnforceFallback = false, shou
             navigationRef.current.goBack();
             return;
         }
-    }
 
-    if (shouldEnforceFallback || isFirstRouteInNavigator) {
+        if (lastRoute.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR) {
+            navigate(fallbackRoute, CONST.NAVIGATION.TYPE.FORCED_UP);
+            return;
+        }
+    }
+    
+    if (shouldEnforceFallback || (isFirstRouteInNavigator && fallbackRoute)) {
         navigate(fallbackRoute, CONST.NAVIGATION.TYPE.UP);
         return;
     }
-
     const isCentralPaneFocused = findFocusedRoute(navigationRef.current.getState()).name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR;
     const pathsForRoutesInRootNavigator = getPathsForRoutesInRootNavigator();
 
     // Allow CentralPane to use goBack with fallback route.
-    if (isCentralPaneFocused && fallbackRoute && !pathsForRoutesInRootNavigator.includes(fallbackRoute)) {
+    if (isCentralPaneFocused && !pathsForRoutesInRootNavigator.includes(fallbackRoute)) {
         navigate(fallbackRoute, CONST.NAVIGATION.TYPE.FORCED_UP);
         return;
     }
 
     // Add posibility to go back more than one screen in root navigator.
-    if (isCentralPaneFocused && fallbackRoute && pathsForRoutesInRootNavigator.indexOf(fallbackRoute) > 0) {
+    if (isCentralPaneFocused && pathsForRoutesInRootNavigator.indexOf(fallbackRoute) > 0) {
         const popNumber = pathsForRoutesInRootNavigator.indexOf(fallbackRoute);
         navigationRef.current.dispatch(StackActions.pop(popNumber));
         return;

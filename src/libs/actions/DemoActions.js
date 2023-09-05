@@ -39,8 +39,6 @@ function createDemoWorkspaceAndNavigate(workspaceOwnerEmail, apiCommand) {
         }
 
         // Navigate to the new policy expense chat report
-        // Note: We must call goBack() to remove the demo route from history
-        Navigation.goBack();
         Navigation.navigate(ROUTES.getReportRoute(policyExpenseChatReport.reportID));
     });
 }
