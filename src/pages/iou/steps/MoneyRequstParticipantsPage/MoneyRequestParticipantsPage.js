@@ -49,10 +49,18 @@ function MoneyRequestParticipantsPage(props) {
     const prevMoneyRequestId = useRef(props.iou.id);
     const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
     const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
+    const isNewReportIDSelectedLocally = useRef(false);
     const isDistanceRequest = MoneyRequestUtils.isDistanceRequest(iouType.current, props.selectedTab);
 
-    const navigateToNextStep = () => {
-        Navigation.navigate(ROUTES.getMoneyRequestConfirmationRoute(iouType.current, reportID.current));
+    const navigateToNextStep = (option) => {
+        if (reportID.current !== option.reportID) {
+            isNewReportIDSelectedLocally.current = true;
+        }
+
+        const correctReportID = reportID.current || option.reportID;
+
+        IOU.setMoneyRequestId(`${iouType.current}${correctReportID}`);
+        Navigation.navigate(ROUTES.getMoneyRequestConfirmationRoute(iouType.current, correctReportID));
     };
 
     const navigateBack = (forceFallback = false) => {
@@ -63,7 +71,7 @@ function MoneyRequestParticipantsPage(props) {
         // ID in Onyx could change by initiating a new request in a separate browser tab or completing a request
         if (prevMoneyRequestId.current !== props.iou.id) {
             // The ID is cleared on completing a request. In that case, we will do nothing
-            if (!isDistanceRequest && props.iou.id) {
+            if (!isNewReportIDSelectedLocally.current && !isDistanceRequest && props.iou.id) {
                 navigateBack(true);
             }
             return;
@@ -71,7 +79,7 @@ function MoneyRequestParticipantsPage(props) {
 
         // Reset the money request Onyx if the ID in Onyx does not match the ID from params
         const moneyRequestId = `${iouType.current}${reportID.current}`;
-        const shouldReset = props.iou.id !== moneyRequestId;
+        const shouldReset = props.iou.id !== moneyRequestId && !isNewReportIDSelectedLocally.current;
         if (shouldReset) {
             IOU.resetMoneyRequestInfo(moneyRequestId);
         }
