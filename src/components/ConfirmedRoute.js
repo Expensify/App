@@ -93,6 +93,10 @@ function ConfirmedRoute({mapboxAccessToken, transaction}) {
                     accessToken={mapboxAccessToken.token}
                     mapPadding={CONST.MAP_PADDING}
                     pitchEnabled={false}
+                    initialState={{
+                        zoom: CONST.MAPBOX.DEFAULT_ZOOM,
+                        location: lodashGet(waypointMarkers, [0, 'coordinate'], CONST.MAPBOX.DEFAULT_COORDINATE),
+                    }}
                     directionCoordinates={coordinates}
                     style={styles.mapView}
                     waypoints={waypointMarkers}
