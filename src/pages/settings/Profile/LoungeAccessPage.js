@@ -20,8 +20,8 @@ import Avatar from '../../../components/Avatar';
 import Text from '../../../components/Text';
 import * as UserUtils from '../../../libs/UserUtils';
 import CONST from '../../../CONST';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import themeColors from '../../../styles/themes/default';
+import * as LocalePhoneNumber from '../../../libs/LocalePhoneNumber';
 
 const propTypes = {
     /** The session of the logged in person */
@@ -33,7 +33,6 @@ const propTypes = {
     /** Current user details, which will hold whether or not they have Lounge Access */
     user: userPropTypes,
 
-    ...withLocalizePropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
 };
 
@@ -80,13 +79,13 @@ function LoungeAccessPage(props) {
                     style={[styles.textHeadline, styles.pre, styles.mt2]}
                     numberOfLines={1}
                 >
-                    {props.currentUserPersonalDetails.displayName ? props.currentUserPersonalDetails.displayName : props.formatPhoneNumber(props.session.email)}
+                    {props.currentUserPersonalDetails.displayName ? props.currentUserPersonalDetails.displayName : LocalePhoneNumber.formatPhoneNumber(props.session.email)}
                 </Text>
                 <Text
                     style={[styles.textLabelSupporting, styles.mt1]}
                     numberOfLines={1}
                 >
-                    {props.formatPhoneNumber(props.session.email)}
+                    {LocalePhoneNumber.formatPhoneNumber(props.session.email)}
                 </Text>
             </View>
         </LinearGradient>
@@ -113,7 +112,6 @@ LoungeAccessPage.defaultProps = defaultProps;
 LoungeAccessPage.displayName = 'LoungeAccessPage';
 
 export default compose(
-    withLocalize,
     withCurrentUserPersonalDetails,
     withOnyx({
         session: {
