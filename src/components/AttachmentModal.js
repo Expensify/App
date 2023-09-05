@@ -362,7 +362,7 @@ function AttachmentModal(props) {
 
                                 // TODO: remove timeout
                                 setTimeout(() => {
-                                    Navigation.navigate(ROUTES.getEditRequestRoute(props.report.reportID, 'receipt'));
+                                    Navigation.navigate(ROUTES.getEditRequestRoute(props.report.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT));
                                 }, 1000)
                             },
                         },
