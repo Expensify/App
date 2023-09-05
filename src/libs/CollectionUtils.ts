@@ -1,13 +1,14 @@
-/* eslint-disable */
 import {OnyxCollectionKey} from '../ONYXKEYS';
 
 /**
  * Return the highest item in a numbered collection
  *
  * e.g. {1: '1', 2: '2', 3: '3'} -> '3'
+ *
+ * Use this only for collections that are numbered in other cases it will return the last item in the object not the highest
  */
-function lastItem<T>(object: Record<number, T> = {}): T | undefined {
-    const lastKey = +(Object.keys(object).pop() ?? 0);
+function lastItem<T>(object: Record<string, T> = {}): T | undefined {
+    const lastKey = Object.keys(object).pop() ?? 0;
     return object[lastKey];
 }
 
