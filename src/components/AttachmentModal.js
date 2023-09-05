@@ -111,6 +111,7 @@ function AttachmentModal(props) {
     const [confirmButtonFadeAnimation] = useState(new Animated.Value(1));
     const [shouldShowDownloadButton, setShouldShowDownloadButton] = React.useState(true);
     const {windowWidth} = useWindowDimensions();
+    const [isEditingReceipt, setIsEditingReceipt] = useState(false);
 
     const [file, setFile] = useState(
         props.originalFileName
@@ -359,6 +360,8 @@ function AttachmentModal(props) {
                             text: props.translate('common.replace'),
                             onSelected: () => {
                                 closeModal();
+
+                                // TODO: replace with actual edit receipt route
                                 Navigation.navigate(ROUTES.getEditRequestRoute(props.report.reportID, 'amount'));
                             },
                         },
