@@ -1182,14 +1182,8 @@ function getDropDownButtonHeight(buttonSize: ButtonSizeValue): ViewStyle | CSSPr
 
 /**
  * Returns fitting fontSize and lineHeight values in order to prevent large amounts from being cut off on small screen widths.
- *
- * @param {Number} baseFontSize
- * @param {Number} baseLineHeight
- * @param {Boolean} isSmallScreenWidth
- * @param {Number} windowWidth
- * @returns {Object}
  */
-function getAmountFontSizeAndLineHeight(baseFontSize, baseLineHeight, isSmallScreenWidth, windowWidth) {
+function getAmountFontSizeAndLineHeight(baseFontSize: number, baseLineHeight: number, isSmallScreenWidth: boolean, windowWidth: number): ViewStyle | CSSProperties {
     let toSubtract = 0;
 
     if (isSmallScreenWidth) {
