@@ -27,10 +27,10 @@ const propTypes = {
 
 const defaultProps = {};
 
-function CountrySelection(props) {
+function CountrySelection({route}) {
     const [searchValue, setSearchValue] = useState('');
     const {translate} = useLocalize();
-    const currentCountry = lodashGet(props, 'route.params.country');
+    const currentCountry = lodashGet(route, 'params.country');
 
     const countries = useMemo(
         () =>
@@ -50,11 +50,11 @@ function CountrySelection(props) {
     const selectCountry = useCallback(
         (option) => {
             const currentCountryInner = option.value;
-            const backTo = lodashGet(props.route, 'params.backTo', '');
+            const backTo = lodashGet(route, 'params.backTo', '');
             const backToRoute = backTo ? `${backTo}?country=${currentCountryInner}` : '';
             Navigation.goBack(backToRoute, true);
         },
-        [props.route],
+        [route],
     );
 
     return (
@@ -63,7 +63,7 @@ function CountrySelection(props) {
                 title={translate('common.country')}
                 shouldShowBackButton
                 onBackButtonPress={() => {
-                    const backTo = lodashGet(props.route, 'params.backTo', '');
+                    const backTo = lodashGet(route, 'params.backTo', '');
                     const backToRoute = backTo ? `${backTo}?country=${currentCountry}` : '';
                     Navigation.goBack(backToRoute);
                 }}
