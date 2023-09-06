@@ -47,4 +47,4 @@ export default function withLocalize(WrappedComponent) {
     return WithLocalize;
 }
 
-export {withLocalizePropTypes}
+export {withLocalizePropTypes};
