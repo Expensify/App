@@ -1504,7 +1504,7 @@ export default {
         markAsDone: 'Mark as done',
         markAsIncomplete: 'Mark as incomplete',
         assigneeError: 'There was an error assigning this task, please try another assignee.',
-        genericCreateTaskFailureMessage: 'Unexpected error create task, please try again later',
+        genericCreateTaskFailureMessage: 'Unexpected error create task, please try again later.',
     },
     statementPage: {
         generatingPDF: "We're generating your PDF right now. Please come back later!",
