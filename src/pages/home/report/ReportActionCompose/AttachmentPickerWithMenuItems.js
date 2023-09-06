@@ -122,6 +122,10 @@ function AttachmentPickerWithMenuItems({
      */
     const moneyRequestOptions = useMemo(() => {
         const options = {
+            [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT]: {
+                icon: Expensicons.Receipt,
+                text: translate('iou.splitBill'),
+            },
             [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST]: {
                 icon: Expensicons.MoneyCircle,
                 text: translate('iou.requestMoney'),
@@ -131,13 +135,6 @@ function AttachmentPickerWithMenuItems({
                 text: translate('iou.sendMoney'),
             },
         };
-
-        if (!ReportUtils.isChatRoom(report)) {
-            options[CONST.IOU.MONEY_REQUEST_TYPE.SPLIT] = {
-                icon: Expensicons.Receipt,
-                text: translate('iou.splitBill'),
-            };
-        }
 
         return _.map(ReportUtils.getMoneyRequestOptions(report, reportParticipantIDs, betas), (option) => ({
             ...options[option],
