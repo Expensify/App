@@ -18,7 +18,6 @@ import * as Session from './Session';
 import * as ReportActionsUtils from '../ReportActionsUtils';
 import Timing from './Timing';
 import * as Browser from '../Browser';
-import {inc} from 'semver';
 
 let currentUserAccountID;
 let currentUserEmail;
@@ -143,10 +142,10 @@ function getPolicyParamsForOpenOrReconnect() {
 
 /**
  * Returns the Onyx data that is used for both the OpenApp and ReconnectApp API commands.
- * @param {Object[]} An extra set of onyx updates that needs to be put into the successData so that it is immediately applied when the request finishes
+ * @param {Object[]} incomingOnyxUpdates An extra set of onyx updates that needs to be put into the successData so that it is immediately applied when the request finishes
  * @returns {Object}
  */
-function getOnyxDataForOpenOrReconnect(incomingOnyxUpdates) {
+function getOnyxDataForOpenOrReconnect(incomingOnyxUpdates = []) {
     return {
         optimisticData: [
             {
@@ -214,7 +213,7 @@ function reconnectApp(updateIDFrom = 0) {
  * Fetches data when the app will call reconnectApp without params for the last time. This is a separate function
  * because it will follow patterns that are not recommended so we can be sure we're not putting the app in a unusable
  * state because of race conditions between reconnectApp and other pusher updates being applied at the same time.
- * @param {Object[]} An array of onyxUpdates to apply in the success data
+ * @param {Object[]} incomingOnyxUpdates An array of onyxUpdates to apply in the success data
  * @return {Promise}
  */
 function finalReconnectAppAfterActivatingReliableUpdates(incomingOnyxUpdates) {
@@ -242,7 +241,7 @@ function finalReconnectAppAfterActivatingReliableUpdates(incomingOnyxUpdates) {
 
 /**
  * Fetches data when the client has discovered it missed some Onyx updates from the server
- * @param {Object[]} An array of onyxUpdates to apply in the success data
+ * @param {Object[]} incomingOnyxUpdates An array of onyxUpdates to apply in the success data
  * @param {Number} [updateIDFrom] the ID of the Onyx update that we want to start fetching from
  * @param {Number} [updateIDTo] the ID of the Onyx update that we want to fetch up to
  * @return {Promise}

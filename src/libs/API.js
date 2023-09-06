@@ -38,6 +38,7 @@ Request.use(Middleware.SaveResponseInOnyx);
  * @param {Object} [onyxData.successData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode === 200.
  * @param {Object} [onyxData.failureData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode !== 200.
  * @param {Boolean} [prioritizeRequest] Whether or not the request should be prioritized at the front of the queue or placed onto the back of the queue.
+ * @returns {Promise}
  */
 function write(command, apiCommandParameters = {}, onyxData = {}, prioritizeRequest = false) {
     Log.info('Called API write', false, {command, ...apiCommandParameters});
@@ -72,7 +73,7 @@ function write(command, apiCommandParameters = {}, onyxData = {}, prioritizeRequ
     };
 
     // Write commands can be saved and retried, so push it to the SequentialQueue
-    SequentialQueue.push(request, prioritizeRequest);
+    return SequentialQueue.push(request, prioritizeRequest);
 }
 
 /**

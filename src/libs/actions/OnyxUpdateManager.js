@@ -77,10 +77,7 @@ export default () => {
             }
 
             canUnpauseQueuePromise.finally(() => {
-                OnyxUpdates.apply({...updateParams, lastUpdateID: lastUpdateIDFromServer}).finally(() => {
-                    console.debug('[OnyxUpdateManager] Done applying all updates');
-                    SequentialQueue.unpause();
-                });
+                SequentialQueue.unpause();
             });
         },
     });
