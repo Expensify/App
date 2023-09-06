@@ -3069,6 +3069,7 @@ function hasIOUWaitingOnCurrentUserBankAccount(chatReport) {
 
 /**
  * Users can request money in policy expense chats only if they are in a role of a member in the chat (in other words, if it's their policy expense chat)
+ * Users can not request money in rooms.
  *
  * @param {Object} report
  * @returns {Boolean}
@@ -3078,7 +3079,7 @@ function canRequestMoney(report) {
     if (hasIOUWaitingOnCurrentUserBankAccount(report)) {
         return false;
     }
-    return !isPolicyExpenseChat(report) || report.isOwnPolicyExpenseChat;
+    return !isChatRoom(report) && !isPolicyExpenseChat(report) || report.isOwnPolicyExpenseChat;
 }
 
 /**
@@ -3108,11 +3109,9 @@ function getMoneyRequestOptions(report, reportParticipants, betas) {
         return [];
     }
 
-    // User created policy rooms and default rooms like #admins or #announce will always have the Split Bill option
-    // unless there are no participants at all (e.g. #admins room for a policy with only 1 admin)
+    // There is no Split Bill option for rooms or Workspace chats
     // DM chats will have the Split Bill option only when there are at least 3 people in the chat.
-    // There is no Split Bill option for Workspace chats
-    if (isChatRoom(report) || (hasMultipleParticipants && !isPolicyExpenseChat(report)) || isControlPolicyExpenseChat(report)) {
+    if (!isChatRoom(report) && !isPolicyExpenseChat(report) && hasMultipleParticipants) {
         return [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT];
     }
 
