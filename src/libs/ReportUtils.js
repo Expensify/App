@@ -3079,7 +3079,7 @@ function canRequestMoney(report) {
     if (hasIOUWaitingOnCurrentUserBankAccount(report)) {
         return false;
     }
-    return !isChatRoom(report) && !isPolicyExpenseChat(report) || report.isOwnPolicyExpenseChat;
+    return (!isChatRoom(report) && !isPolicyExpenseChat(report)) || report.isOwnPolicyExpenseChat;
 }
 
 /**
@@ -3098,7 +3098,6 @@ function getMoneyRequestOptions(report, reportParticipants, betas) {
 
     const hasExcludedIOUAccountIDs = lodashIntersection(reportParticipants, CONST.EXPENSIFY_ACCOUNT_IDS).length > 0;
     const hasSingleParticipantInReport = participants.length === 1;
-    const hasMultipleParticipants = participants.length > 1;
 
     if (hasExcludedIOUAccountIDs || (participants.length === 0 && !report.isOwnPolicyExpenseChat)) {
         return [];
@@ -3109,14 +3108,11 @@ function getMoneyRequestOptions(report, reportParticipants, betas) {
         return [];
     }
 
-    // There is no Split Bill option for rooms or Workspace chats, only groups or DMs
-    if (!isChatRoom(report) && !isPolicyExpenseChat(report) && hasMultipleParticipants || (isOneOnOneChat(report) && !isConciergeChatReport(report))) {
-        return [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT];
-    }
-
     // DM chats that only have 2 people will see the Send / Request money options.
     // Workspace chats should only see the Request money option, as "easy overages" is not available.
     return [
+        // Split bill is only available for groups / DMs
+        ...(isDM(report) && !isConciergeChatReport(report) ? [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT] : []),
         ...(canRequestMoney(report) ? [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST] : []),
 
         // Send money option should be visible only in DMs
