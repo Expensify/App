@@ -42,8 +42,7 @@ function SaveResponseInOnyx(response, request) {
             lastUpdateID: Number(responseData.lastUpdateID || 0),
             data: {
                 request,
-                response: responseData,
-                onyxUpdates: responseData.onyxData,
+                responseData,
             },
         };
 
