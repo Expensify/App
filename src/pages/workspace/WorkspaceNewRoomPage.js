@@ -146,9 +146,10 @@ function WorkspaceNewRoomPage(props) {
     return (
         <FullPageNotFoundView shouldShow={!Permissions.canUsePolicyRooms(props.betas) || !workspaceOptions.length}>
             <ScreenWrapper
+                shouldEnableKeyboardAvoidingView={false}
                 includeSafeAreaPaddingBottom={false}
                 includePaddingTop={false}
-                shouldEnableMaxHeight
+                shouldEnablePickerAvoiding={false}
             >
                 {({insets}) => (
                     <KeyboardAvoidingView
@@ -156,7 +157,7 @@ function WorkspaceNewRoomPage(props) {
                         behavior="height"
                         // Offset is needed as KeyboardAvoidingView in nested inside of TabNavigator instead of wrapping whole screen.
                         // This is because when wrapping whole screen the screen was freezing when changing Tabs.
-                        keyboardVerticalOffset={variables.contentHeaderHeight + variables.tabSelectorButtonHeight + insets.top}
+                        keyboardVerticalOffset={variables.contentHeaderHeight + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding + insets.top}
                     >
                             <Form
                                 formID={ONYXKEYS.FORMS.NEW_ROOM_FORM}
