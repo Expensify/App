@@ -75,8 +75,10 @@ function getImagePickerOptions(type) {
 }
 
 function ReceiptSelector(props) {
-    const devices = useCameraDevices('wide-angle-camera');
-    const device = devices.back;
+    const wideAngleCamera = useCameraDevices('wide-angle-camera');
+    const ultraWideAngleCamera = useCameraDevices('ultra-wide-angle-camera');
+    const telephotoCamera = useCameraDevices('telephoto-camera');
+    const device = wideAngleCamera.back || ultraWideAngleCamera.back || telephotoCamera.back;
 
     const camera = useRef(null);
     const [flash, setFlash] = useState(false);
