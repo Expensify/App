@@ -68,6 +68,7 @@ function GoogleSignIn({translate, isDesktopFlow}) {
         };
     }, [loadScript]);
 
+    // willChangeTransform is used to render google icon correctly in safari
     return isDesktopFlow ? (
         <View style={styles.googlePillButtonContainer}>
             <div
@@ -77,7 +78,7 @@ function GoogleSignIn({translate, isDesktopFlow}) {
             />
         </View>
     ) : (
-        <View style={styles.googleButtonContainer}>
+        <View style={[styles.googleButtonContainer, styles.willChangeTransform]}>
             <div
                 id={mainId}
                 role="button"
