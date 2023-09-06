@@ -1,4 +1,4 @@
-import {ValueOf, StringKeyOf} from 'type-fest';
+import {ValueOf} from 'type-fest';
 import CONST from '../../CONST';
 import * as OnyxCommon from './OnyxCommon';
 
