@@ -5,14 +5,15 @@ import lodashHas from 'lodash/has';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as CollectionUtils from '../CollectionUtils';
 import * as API from '../API';
+import {RecentWaypoints, Transaction} from '../../types/onyx';
 
-let recentWaypoints = [];
+let recentWaypoints: RecentWaypoints[] = [];
 Onyx.connect({
     key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
-    callback: (val) => (recentWaypoints = val || []),
+    callback: (val) => (recentWaypoints = val ?? []),
 });
 
-const allTransactions = {};
+const allTransactions: Record<string, Transaction> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION,
     callback: (transaction, key) => {
@@ -24,10 +25,7 @@ Onyx.connect({
     },
 });
 
-/**
- * @param {String} transactionID
- */
-function createInitialWaypoints(transactionID) {
+function createInitialWaypoints(transactionID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         comment: {
             waypoints: {
@@ -40,14 +38,11 @@ function createInitialWaypoints(transactionID) {
 
 /**
  * Add a stop to the transaction
- *
- * @param {String} transactionID
- * @param {Number} newLastIndex
  */
-function addStop(transactionID) {
-    const transaction = lodashGet(allTransactions, transactionID, {});
-    const existingWaypoints = lodashGet(transaction, 'comment.waypoints', {});
-    const newLastIndex = _.size(existingWaypoints);
+function addStop(transactionID: string) {
+    const transaction = allTransactions?.[transactionID] ?? {};
+    const existingWaypoints = transaction?.comment?.waypoints ?? {};
+    const newLastIndex = Object.keys(existingWaypoints).length;
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         comment: {
@@ -69,11 +64,8 @@ function addStop(transactionID) {
 
 /**
  * Saves the selected waypoint to the transaction
- * @param {String} transactionID
- * @param {String} index
- * @param {Object} waypoint
  */
-function saveWaypoint(transactionID, index, waypoint) {
+function saveWaypoint(transactionID: string, index: string, waypoint: RecentWaypoints) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         comment: {
             waypoints: {
@@ -82,7 +74,8 @@ function saveWaypoint(transactionID, index, waypoint) {
         },
         // Empty out errors when we're saving a new waypoint as this indicates the user is updating their input
         errorFields: {
-            route: null,
+            // TODO: check if its ok to put undefined
+            route: undefined,
         },
 
         // Clear the existing route so that we don't show an old route
@@ -102,20 +95,21 @@ function saveWaypoint(transactionID, index, waypoint) {
         return;
     }
 
-    const recentWaypointAlreadyExists = _.find(recentWaypoints, (recentWaypoint) => recentWaypoint.address === waypoint.address);
+    const recentWaypointAlreadyExists = recentWaypoints.find((recentWaypoint) => recentWaypoint.address === waypoint.address);
     if (!recentWaypointAlreadyExists) {
+        // TODO: Should we leave this?
         const clonedWaypoints = _.clone(recentWaypoints);
         clonedWaypoints.unshift(waypoint);
         Onyx.merge(ONYXKEYS.NVP_RECENT_WAYPOINTS, clonedWaypoints.slice(0, 5));
     }
 }
 
-function removeWaypoint(transactionID, currentIndex) {
+function removeWaypoint(transactionID: string, currentIndex: string) {
     // Index comes from the route params and is a string
     const index = Number(currentIndex);
-    const transaction = lodashGet(allTransactions, transactionID, {});
-    const existingWaypoints = lodashGet(transaction, 'comment.waypoints', {});
-    const totalWaypoints = _.size(existingWaypoints);
+    const transaction = allTransactions?.[transactionID] ?? {};
+    const existingWaypoints = transaction?.comment?.waypoints ?? {};
+    const totalWaypoints = Object.keys(existingWaypoints).length;
 
     // Prevents removing the starting or ending waypoint but clear the stored address only if there are only two waypoints
     if (totalWaypoints === 2 && (index === 0 || index === totalWaypoints - 1)) {
@@ -123,10 +117,10 @@ function removeWaypoint(transactionID, currentIndex) {
         return;
     }
 
-    const waypointValues = _.values(existingWaypoints);
+    const waypointValues = Object.values(existingWaypoints);
     waypointValues.splice(index, 1);
 
-    const reIndexedWaypoints = {};
+    const reIndexedWaypoints: Record<string, RecentWaypoints> = {};
     waypointValues.forEach((waypoint, idx) => {
         reIndexedWaypoints[`waypoint${idx}`] = waypoint;
     });
@@ -155,10 +149,8 @@ function removeWaypoint(transactionID, currentIndex) {
 /**
  * Gets the route for a set of waypoints
  * Used so we can generate a map view of the provided waypoints
- * @param {String} transactionID
- * @param {Object} waypoints
  */
-function getRoute(transactionID, waypoints) {
+function getRoute(transactionID: string, waypoints: RecentWaypoints) {
     API.read(
         'GetRoute',
         {
