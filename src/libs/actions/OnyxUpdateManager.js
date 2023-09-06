@@ -37,6 +37,12 @@ export default () => {
             }
 
             const {lastUpdateIDFromServer, previousUpdateIDFromServer, updateParams} = val;
+
+            if (lastUpdateIDFromServer < lastUpdateIDAppliedToClient) {
+                console.debug('[OnyxUpdateManager] Update received was older than current state, returning earlywithout applying the updates');
+                return;
+            }
+
             const incomingOnyxUpdates = lodashGet(updateParams, 'data.onyxUpdates', []);
 
             // In cases where we received a previousUpdateID and it doesn't match our lastUpdateIDAppliedToClient
