@@ -1,7 +1,7 @@
 import React, {useMemo, useRef, useState} from 'react';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import {View} from 'react-native';
+import {Keyboard, View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import {useIsFocused} from '@react-navigation/native';
@@ -252,7 +252,11 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
                     </View>
                     <UserCurrentLocationButton
                         isDisabled={isOffline}
-                        onClick={() => setIsFetchingLocation(true)}
+                        onClick={() => {
+                            Keyboard.dismiss();
+
+                            setIsFetchingLocation(true);
+                        }}
                         onLocationError={() => setIsFetchingLocation(false)}
                         onLocationFetched={selectWaypointFromCurrentLocation}
                     />
