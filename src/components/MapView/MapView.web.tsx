@@ -7,6 +7,7 @@ import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useState
 import {View} from 'react-native';
 import Map, {MapRef, Marker} from 'react-map-gl';
 
+import responder from './responder';
 import utils from './utils';
 
 import CONST from '../../CONST';
@@ -58,7 +59,11 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(
         );
 
         return (
-            <View style={style}>
+            <View
+                style={style}
+                // eslint-disable-next-line
+                {...responder.panHandlers}
+            >
                 <Map
                     ref={setRef}
                     mapboxAccessToken={accessToken}

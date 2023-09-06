@@ -3,6 +3,7 @@ import {useFocusEffect} from '@react-navigation/native';
 import Mapbox, {MapState, MarkerView, setAccessToken} from '@rnmapbox/maps';
 import {forwardRef, memo, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 
+import responder from './responder';
 import utils from './utils';
 import Direction from './Direction';
 import CONST from '../../CONST';
@@ -63,6 +64,8 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(({accessToken, style, ma
                 styleURL={styleURL}
                 onMapIdle={setMapIdle}
                 pitchEnabled={pitchEnabled}
+                // eslint-disable-next-line
+                {...responder.panHandlers}
             >
                 <Mapbox.Camera
                     ref={cameraRef}
