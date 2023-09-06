@@ -48,7 +48,7 @@ type Account = {
     errors?: OnyxCommon.Errors;
     success?: string;
     codesAreCopied?: boolean;
-    twoFactorAuthStep?: ValueOf<typeof CONST.TWO_FACTOR_AUTH_STEPS>;
+    twoFactorAuthStep?: ValueOf<typeof CONST.TWO_FACTOR_AUTH_STEPS> | '';
 };
 
 export default Account;

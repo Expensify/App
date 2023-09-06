@@ -8,7 +8,7 @@ import {Account} from '../../types/onyx';
  * Clear 2FA data if the flow is interrupted without finishing
  */
 function clearTwoFactorAuthData() {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {recoveryCodes: '', twoFactorAuthSecretKey: '', twoFactorAuthStep: undefined, codesAreCopied: false});
+    Onyx.merge(ONYXKEYS.ACCOUNT, {recoveryCodes: '', twoFactorAuthSecretKey: '', twoFactorAuthStep: '', codesAreCopied: false});
 }
 
 function setTwoFactorAuthStep(twoFactorAuthStep: Account['twoFactorAuthStep']) {
