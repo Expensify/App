@@ -23,6 +23,7 @@ function PlaidLink(props) {
         },
         onEvent: (event, metadata) => {
             Log.info('[PlaidLink] Event: ', false, {event, metadata});
+            props.onEvent(event, metadata);
         },
         onLoad: () => setIsPlaidLoaded(true),
 
