@@ -224,12 +224,12 @@ function ReportActionItem(props) {
                 popoverAnchorRef,
                 props.report.reportID,
                 props.action.reportActionID,
+                originalReportID,
                 props.draftMessage,
                 () => {},
                 toggleContextMenuFromActiveReportAction,
                 ReportUtils.isArchivedRoom(originalReport),
                 ReportUtils.chatIncludesChronos(originalReport),
-                originalReportID,
             );
         },
         [props.draftMessage, props.action, props.report.reportID, toggleContextMenuFromActiveReportAction, originalReport, originalReportID],

@@ -40,6 +40,7 @@ function hideContextMenu(shouldDelay, onHideCallback = () => {}) {
  * @param {Element} contextMenuAnchor - popoverAnchor
  * @param {String} reportID - Active Report Id
  * @param {String} reportActionID - ReportActionID for ContextMenu
+ * @param {String} originalReportID - The currrent Report Id of the reportAction
  * @param {String} draftMessage - ReportAction Draftmessage
  * @param {Function} [onShow=() => {}] - Run a callback when Menu is shown
  * @param {Function} [onHide=() => {}] - Run a callback when Menu is hidden
@@ -47,7 +48,6 @@ function hideContextMenu(shouldDelay, onHideCallback = () => {}) {
  * @param {Boolean} isChronosReport - Flag to check if the chat participant is Chronos
  * @param {Boolean} isPinnedChat - Flag to check if the chat is pinned in the LHN. Used for the Pin/Unpin action
  * @param {Boolean} isUnreadChat - Flag to check if the chat has unread messages in the LHN. Used for the Mark as Read/Unread action
- * @param {String} originalReportID - The currrent Report Id of the reportAction
  */
 function showContextMenu(
     type,
@@ -56,6 +56,7 @@ function showContextMenu(
     contextMenuAnchor,
     reportID = '0',
     reportActionID = '0',
+    originalReportID = '0',
     draftMessage = '',
     onShow = () => {},
     onHide = () => {},
@@ -63,7 +64,6 @@ function showContextMenu(
     isChronosReport = false,
     isPinnedChat = false,
     isUnreadChat = false,
-    originalReportID = '0',
 ) {
     if (!contextMenuRef.current) {
         return;
@@ -82,6 +82,7 @@ function showContextMenu(
         contextMenuAnchor,
         reportID,
         reportActionID,
+        originalReportID,
         draftMessage,
         onShow,
         onHide,
@@ -89,7 +90,6 @@ function showContextMenu(
         isChronosReport,
         isPinnedChat,
         isUnreadChat,
-        originalReportID,
     );
 }
 

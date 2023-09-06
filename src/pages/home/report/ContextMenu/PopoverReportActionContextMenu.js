@@ -125,6 +125,7 @@ class PopoverReportActionContextMenu extends React.Component {
      * @param {Element} contextMenuAnchor - popoverAnchor
      * @param {String} reportID - Active Report Id
      * @param {Object} reportActionID - ReportAction for ContextMenu
+     * @param {String} originalReportID - The currrent Report Id of the reportAction
      * @param {String} draftMessage - ReportAction Draftmessage
      * @param {Function} [onShow] - Run a callback when Menu is shown
      * @param {Function} [onHide] - Run a callback when Menu is hidden
@@ -132,7 +133,6 @@ class PopoverReportActionContextMenu extends React.Component {
      * @param {Boolean} isChronosReport - Flag to check if the chat participant is Chronos
      * @param {Boolean} isPinnedChat - Flag to check if the chat is pinned in the LHN. Used for the Pin/Unpin action
      * @param {Boolean} isUnreadChat - Flag to check if the chat is unread in the LHN. Used for the Mark as Read/Unread action
-     * @param {String} originalReportID - The currrent Report Id of the reportAction
      */
     showContextMenu(
         type,
@@ -141,6 +141,7 @@ class PopoverReportActionContextMenu extends React.Component {
         contextMenuAnchor,
         reportID,
         reportActionID,
+        originalReportID,
         draftMessage,
         onShow = () => {},
         onHide = () => {},
@@ -148,7 +149,6 @@ class PopoverReportActionContextMenu extends React.Component {
         isChronosReport = false,
         isPinnedChat = false,
         isUnreadChat = false,
-        originalReportID,
     ) {
         const nativeEvent = event.nativeEvent || {};
         this.contextMenuAnchor = contextMenuAnchor;
@@ -174,6 +174,7 @@ class PopoverReportActionContextMenu extends React.Component {
                 type,
                 reportID,
                 reportActionID,
+                originalReportID,
                 selection,
                 isPopoverVisible: true,
                 reportActionDraftMessage: draftMessage,
@@ -181,7 +182,6 @@ class PopoverReportActionContextMenu extends React.Component {
                 isChronosReport,
                 isPinnedChat,
                 isUnreadChat,
-                originalReportID,
             });
         });
     }
@@ -220,7 +220,7 @@ class PopoverReportActionContextMenu extends React.Component {
      * After Popover hides, call the registered onPopoverHide & onPopoverHideActionCallback callback and reset it
      */
     runAndResetOnPopoverHide() {
-        this.setState({reportID: '0', reportAction: {}}, () => {
+        this.setState({reportID: '0', reportActionID: '0', originalReportID: '0'}, () => {
             this.onPopoverHide = this.runAndResetCallback(this.onPopoverHide);
             this.onPopoverHideActionCallback = this.runAndResetCallback(this.onPopoverHideActionCallback);
         });
