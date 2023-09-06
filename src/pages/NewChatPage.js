@@ -12,11 +12,13 @@ import * as Report from '../libs/actions/Report';
 import CONST from '../CONST';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
 import ScreenWrapper from '../components/ScreenWrapper';
+import KeyboardAvoidingView from '../components/KeyboardAvoidingView';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import * as Browser from '../libs/Browser';
 import compose from '../libs/compose';
 import personalDetailsPropType from './personalDetailsPropType';
 import reportPropTypes from './reportPropTypes';
+import variables from '../styles/variables';
 
 const propTypes = {
     /** Beta features list */
@@ -169,29 +171,37 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate}) 
             includePaddingTop={false}
             shouldEnableMaxHeight
         >
-            {({safeAreaPaddingBottomStyle}) => (
-                <View style={[styles.flex1, styles.w100, styles.pRelative, selectedOptions.length > 0 ? safeAreaPaddingBottomStyle : {}]}>
-                    <OptionsSelector
-                        canSelectMultipleOptions
-                        shouldShowMultipleOptionSelectorAsButton
-                        multipleOptionSelectorButtonText={translate('newChatPage.addToGroup')}
-                        onAddToSelection={(option) => toggleOption(option)}
-                        sections={sections}
-                        selectedOptions={selectedOptions}
-                        value={searchTerm}
-                        onSelectRow={(option) => createChat(option)}
-                        onChangeText={setSearchTerm}
-                        headerMessage={headerMessage}
-                        boldStyle
-                        shouldFocusOnSelectRow={!Browser.isMobile()}
-                        shouldShowOptions={isOptionsDataReady}
-                        shouldShowConfirmButton
-                        confirmButtonText={selectedOptions.length > 1 ? translate('newChatPage.createGroup') : translate('newChatPage.createChat')}
-                        onConfirmSelection={createGroup}
-                        textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
-                        safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
-                    />
-                </View>
+            {({safeAreaPaddingBottomStyle, insets}) => (
+                <KeyboardAvoidingView
+                    style={{ height: '100%' }}
+                    behavior="padding"
+                    // Offset is needed as KeyboardAvoidingView in nested inside of TabNavigator instead of wrapping whole screen.
+                    // This is because when wrapping whole screen the screen was freezing when changing Tabs.
+                    keyboardVerticalOffset={variables.contentHeaderHeight + variables.tabSelectorButtonHeight + insets.top}
+                >
+                    <View style={[styles.flex1, styles.w100, styles.pRelative, selectedOptions.length > 0 ? safeAreaPaddingBottomStyle : {}]}>
+                        <OptionsSelector
+                            canSelectMultipleOptions
+                            shouldShowMultipleOptionSelectorAsButton
+                            multipleOptionSelectorButtonText={translate('newChatPage.addToGroup')}
+                            onAddToSelection={(option) => toggleOption(option)}
+                            sections={sections}
+                            selectedOptions={selectedOptions}
+                            value={searchTerm}
+                            onSelectRow={(option) => createChat(option)}
+                            onChangeText={setSearchTerm}
+                            headerMessage={headerMessage}
+                            boldStyle
+                            shouldFocusOnSelectRow={!Browser.isMobile()}
+                            shouldShowOptions={isOptionsDataReady}
+                            shouldShowConfirmButton
+                            confirmButtonText={selectedOptions.length > 1 ? translate('newChatPage.createGroup') : translate('newChatPage.createChat')}
+                            onConfirmSelection={createGroup}
+                            textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
+                            safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
+                        />
+                    </View>
+                </KeyboardAvoidingView>
             )}
         </ScreenWrapper>
     );
