@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
-import React, {useState, useCallback, useEffect, forwardRef} from 'react';
+import React, {useState, useCallback, useEffect} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
@@ -21,8 +21,7 @@ import ROUTES from '../../../../ROUTES';
 import useLocalize from '../../../../hooks/useLocalize';
 import usePrivatePersonalDetails from '../../../../hooks/usePrivatePersonalDetails';
 import FullscreenLoadingIndicator from '../../../../components/FullscreenLoadingIndicator';
-import MenuItemWithTopDescription from '../../../../components/MenuItemWithTopDescription';
-import FormHelpMessage from '../../../../components/FormHelpMessage';
+import CountryPickerMenuItem from '../../../../components/CountryPickerMenuItem';
 
 const propTypes = {
     /* Onyx Props */
@@ -190,7 +189,7 @@ function AddressPage({privatePersonalDetails, route}) {
                 />
                 <View style={styles.formSpaceVertical} />
                 <View style={styles.mhn5}>
-                    <CountryPicker
+                    <CountryPickerMenuItem
                         inputID="country"
                         value={currentCountry}
                     />
@@ -250,41 +249,3 @@ export default withOnyx({
         key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
     },
 })(AddressPage);
-
-const CountryPicker = React.memo(
-    forwardRef(({errorText, value}, ref) => {
-        const {translate} = useLocalize();
-        const getCountryFromCountryCode = (code) => translate('allCountries')[code];
-
-        const countryTitleDescStyle = value && value.length === 0 ? styles.textNormal : null;
-
-        return (
-            <View>
-                <MenuItemWithTopDescription
-                    shouldShowRightIcon
-                    title={getCountryFromCountryCode(value)}
-                    ref={ref}
-                    descriptionTextStyle={countryTitleDescStyle}
-                    description={translate('common.country')}
-                    onPress={() => {
-                        const activeRoute = Navigation.getActiveRoute().replace(/\?.*/, '');
-                        Navigation.navigate(ROUTES.getCountryRoute(value, activeRoute));
-                    }}
-                />
-                <View style={styles.ml5}>
-                    <FormHelpMessage message={errorText} />
-                </View>
-            </View>
-        );
-    }),
-);
-
-CountryPicker.propTypes = {
-    errorText: PropTypes.string,
-    value: PropTypes.string,
-};
-
-CountryPicker.defaultProps = {
-    errorText: '',
-    value: '',
-};
