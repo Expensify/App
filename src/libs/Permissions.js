@@ -87,14 +87,6 @@ function canUseCustomStatus(betas) {
 }
 
 /**
- * @param {Array<String>} betas
- * @returns {Boolean}
- */
-function canUseDistanceRequests(betas) {
-    return _.contains(betas, CONST.BETAS.DISTANCE_REQUESTS) || canUseAllBetas(betas);
-}
-
-/**
  * Link previews are temporarily disabled.
  * @returns {Boolean}
  */
@@ -112,6 +104,5 @@ export default {
     canUsePolicyRooms,
     canUseTasks,
     canUseCustomStatus,
-    canUseDistanceRequests,
     canUseLinkPreviews,
 };

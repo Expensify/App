@@ -16,6 +16,7 @@ import compose from '../../../../libs/compose';
 import * as DeviceCapabilities from '../../../../libs/DeviceCapabilities';
 import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 import * as IOU from '../../../../libs/actions/IOU';
+import * as MoneyRequestUtils from '../../../../libs/MoneyRequestUtils';
 import {iouPropTypes, iouDefaultProps} from '../../propTypes';
 
 const propTypes = {
@@ -48,7 +49,7 @@ function MoneyRequestParticipantsPage({iou, selectedTab, translate, route}) {
     const prevMoneyRequestId = useRef(iou.id);
     const iouType = useRef(lodashGet(route, 'params.iouType', ''));
     const reportID = useRef(lodashGet(route, 'params.reportID', ''));
-    const isDistanceRequest = selectedTab === CONST.TAB.DISTANCE;
+    const isDistanceRequest = MoneyRequestUtils.isDistanceRequest(iouType.current, selectedTab);
     const [headerTitle, setHeaderTitle] = useState();
 
     useEffect(() => {

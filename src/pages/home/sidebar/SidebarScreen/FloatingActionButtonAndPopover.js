@@ -66,6 +66,16 @@ const propTypes = {
 
     /** Forwarded ref to FloatingActionButtonAndPopover */
     innerRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
+
+    /** Information about any currently running demos */
+    demoInfo: PropTypes.shape({
+        saastr: PropTypes.shape({
+            isBeginningDemo: PropTypes.bool,
+        }),
+        sbe: PropTypes.shape({
+            isBeginningDemo: PropTypes.bool,
+        }),
+    }),
 };
 const defaultProps = {
     onHideCreateMenu: () => {},
@@ -75,6 +85,7 @@ const defaultProps = {
     isLoading: false,
     innerRef: null,
     shouldShowDownloadAppBanner: true,
+    demoInfo: {},
 };
 
 /**
@@ -161,8 +172,11 @@ function FloatingActionButtonAndPopover(props) {
         if (props.shouldShowDownloadAppBanner && Browser.isMobile()) {
             return;
         }
+        if (lodashGet(props.demoInfo, 'saastr.isBeginningDemo', false) || lodashGet(props.demoInfo, 'sbe.isBeginningDemo', false)) {
+            return;
+        }
         Welcome.show({routes, showCreateMenu});
-    }, [props.shouldShowDownloadAppBanner, props.navigation, showCreateMenu]);
+    }, [props.shouldShowDownloadAppBanner, props.navigation, showCreateMenu, props.demoInfo]);
 
     useEffect(() => {
         if (!didScreenBecomeInactive()) {
@@ -276,6 +290,9 @@ export default compose(
         },
         shouldShowDownloadAppBanner: {
             key: ONYXKEYS.SHOW_DOWNLOAD_APP_BANNER,
+        },
+        demoInfo: {
+            key: ONYXKEYS.DEMO_INFO,
         },
     }),
 )(
