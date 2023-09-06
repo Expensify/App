@@ -1,6 +1,8 @@
 import Onyx from 'react-native-onyx';
 import * as OnyxCommon from '../../types/onyx/OnyxCommon';
 import {OnyxKey, OnyxValues} from '../../ONYXKEYS';
+// TODO: Ask where to put this type
+type MapUnionToValue<T> = T extends keyof OnyxValues ? OnyxValues[T] : never;
 
 function setIsLoading(formID: OnyxKey, isLoading: boolean) {
     Onyx.merge(formID, {isLoading});
@@ -14,13 +16,9 @@ function setErrorFields(formID: OnyxKey, errorFields: OnyxCommon.ErrorFields) {
     Onyx.merge(formID, {errorFields});
 }
 
-type KeysWhichCouldBeDraft<T extends string> = T extends `${infer Prefix}Draft` ? Prefix : never;
-type MapUnionToValue<T> = T extends keyof OnyxValues ? OnyxValues[T] : never;
-type KeysWithDraftSuffix<T extends string> = T extends `${infer Prefix}Draft` ? T : never;
-
-function setDraftValues<T extends KeysWithDraftSuffix<OnyxKey>>(formID: KeysWhichCouldBeDraft<T>, draftValues: MapUnionToValue<T>) {
+function setDraftValues<T extends OnyxKey>(formID: T, draftValues: MapUnionToValue<T>) {
+    // TODO: Ask about what should we do here ?
     Onyx.merge(`${formID}Draft`, draftValues);
 }
-setDraftValues('', {});
 
 export {setIsLoading, setErrors, setErrorFields, setDraftValues};
