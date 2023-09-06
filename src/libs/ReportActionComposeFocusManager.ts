@@ -28,7 +28,7 @@ function onComposerFocus(callback: FocusCallback, isMainComposer = false) {
  */
 function focus() {
     if (typeof focusCallback !== 'function') {
-        if (typeof mainComposerFocusCallback !== 'function'){
+        if (typeof mainComposerFocusCallback !== 'function') {
             return;
         }
 
