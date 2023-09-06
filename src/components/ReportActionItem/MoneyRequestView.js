@@ -66,7 +66,8 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, trans
         comment: transactionDescription,
         merchant: transactionMerchant,
     } = ReportUtils.getTransactionDetails(transaction);
-    const isEmptyMerchant = transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.UNKNOWN_MERCHANT || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
+    const isEmptyMerchant =
+        transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.UNKNOWN_MERCHANT || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     const formattedTransactionAmount = transactionAmount && transactionCurrency && CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency);
 
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
