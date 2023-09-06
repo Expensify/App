@@ -74,7 +74,7 @@ function MentionUserRenderer(props) {
                         _.omit(props.style, 'color'),
                         StyleUtils.getMentionStyle(isOurMention),
                         {color: StyleUtils.getMentionTextColor(isOurMention)},
-                        _.isEmpty(navigationRoute) && styles.cursorDefault,
+                        _.isEmpty(navigationRoute) ? styles.cursorDefault : {},
                     ]}
                     href={_.isEmpty(navigationRoute) ? undefined : `/${navigationRoute}`}
                     onPress={_.isEmpty(navigationRoute) ? undefined : () => Navigation.navigate(navigationRoute)}
