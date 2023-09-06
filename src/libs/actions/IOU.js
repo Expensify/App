@@ -21,6 +21,7 @@ import * as ErrorUtils from '../ErrorUtils';
 import * as UserUtils from '../UserUtils';
 import * as Report from './Report';
 import * as NumberUtils from '../NumberUtils';
+import ReceiptGeneric from '../../../assets/images/receipt-generic.png';
 
 let allReports;
 Onyx.connect({
@@ -394,7 +395,7 @@ function getMoneyRequestInformation(
     let filename;
     if (receipt && receipt.source) {
         receiptObject.source = receipt.source;
-        receiptObject.state = CONST.IOU.RECEIPT_STATE.SCANREADY;
+        receiptObject.state = receipt.state || CONST.IOU.RECEIPT_STATE.SCANREADY;
         filename = receipt.name;
     }
     let optimisticTransaction = TransactionUtils.buildOptimisticTransaction(
@@ -509,6 +510,10 @@ function getMoneyRequestInformation(
  * @param {String} merchant
  */
 function createDistanceRequest(report, participant, comment, created, transactionID, amount, currency, merchant) {
+    const optimisticReceipt = {
+        source: ReceiptGeneric,
+        state: CONST.IOU.RECEIPT_STATE.OPEN,
+    };
     const {iouReport, chatReport, transaction, iouAction, createdChatReportActionID, createdIOUReportActionID, reportPreviewAction, onyxData} = getMoneyRequestInformation(
         report,
         participant,
@@ -519,7 +524,7 @@ function createDistanceRequest(report, participant, comment, created, transactio
         merchant,
         null,
         null,
-        null,
+        optimisticReceipt,
         transactionID,
     );
     API.write(

@@ -3785,8 +3785,8 @@ const styles = {
 
     reportActionItemImages: {
         flexDirection: 'row',
-        borderWidth: 2,
-        borderColor: themeColors.cardBG,
+        borderWidth: 4,
+        borderColor: themeColors.transparent,
         borderTopLeftRadius: variables.componentBorderRadiusLarge,
         borderTopRightRadius: variables.componentBorderRadiusLarge,
         borderBottomLeftRadius: variables.componentBorderRadiusLarge,
@@ -3796,14 +3796,17 @@ const styles = {
     },
 
     reportActionItemImage: {
-        borderWidth: 1,
-        borderColor: themeColors.cardBG,
         flex: 1,
         width: '100%',
         height: '100%',
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
+    },
+
+    reportActionItemImageBorder: {
+        borderRightWidth: 2,
+        borderColor: themeColors.cardBG,
     },
 
     reportActionItemImagesMore: {
