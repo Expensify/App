@@ -1,4 +1,5 @@
 import moment from 'moment-timezone';
+import 'moment/locale/es';
 import {AppState} from 'react-native';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
