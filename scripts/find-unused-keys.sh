@@ -7,30 +7,43 @@ UTILITIES_STYLES_FILE="src/styles/utilities"
 STYLES_KEYS_FILE="scripts/style_keys_list_temp.txt"
 UTILITY_STYLES_KEYS_FILE="scripts/utility_keys_list_temp.txt"
 REMOVAL_KEYS_FILE="scripts/removal_keys_list_temp.txt"
+
+# FILE_EXTENSIONS="-name '*.js' -o -name '*.jsx' -o -name '*.ts' -o -name '*.tsx'"
+FILE_EXTENSIONS=('-name' '*.js' '-o' '-name' '*.jsx' '-o' '-name' '*.ts' '-o' '-name' '*.tsx')
+
+# trap ctrl-c and call ctrl_c()
+trap ctrl_c INT
+
+function ctrl_c() {
+  find scripts -name "*keys_list_temp*" -type f -exec rm -f {} \;
+  exit 1
+}
   
+source scripts/shellUtils.sh
+
 # Create an empty temp file if it doesn't exist
-if [ ! -f "$REMOVAL_KEYS_FILE" ]; then
-    touch "$REMOVAL_KEYS_FILE"
-fi
+# if [ ! -f "$REMOVAL_KEYS_FILE" ]; then
+#     touch "$REMOVAL_KEYS_FILE"
+# fi
 
 # Read the style file with unused keys
 show_unused_style_keywords() {
   while IFS=: read -r key file line_number; do
-    line_count=$(wc -l < $STYLES_KEYS_FILE)
-    echo "Unused keys: $line_count"
-    echo "File: $file"
+    title "File: $file:$line_number"
     
     # Get lines before and after the error line
     lines_before=$((line_number - 3))
     lines_after=$((line_number + 3))
     
     # Print context of the error line
-    echo "Context around line $line_number:"
     sed -n "$lines_before,$lines_after p" "$file" | awk -v key="$key" '{gsub(key, "\033[1;31m"key"\033[0m"); print}'
     
-    echo "Unused key: $key"
+    error "Unused key: $key"
     echo "--------------------------------"
   done < "$STYLES_KEYS_FILE"
+
+  line_count=$(wc -l < $STYLES_KEYS_FILE)
+  error "Unused keys: $line_count"
 }
 
 # Function to remove a keyword from the temp file
@@ -39,6 +52,7 @@ remove_keyword() {
   if grep -q "$keyword" "$STYLES_KEYS_FILE"; then
     grep -v "$keyword" "$STYLES_KEYS_FILE" > "$REMOVAL_KEYS_FILE"
     mv "$REMOVAL_KEYS_FILE" "$STYLES_KEYS_FILE"
+
     return 0 # Keyword was removed
   else
     return 1 # Keyword was not found
@@ -47,7 +61,7 @@ remove_keyword() {
 
 lookfor_unused_keywords() {
   # Loop through all files in the src folder
-  find 'src' -type f -name "*.js" -o -name "*.jsx" -o -name "*.ts" -o -name "*.tsx" | while read -r file; do
+  find 'src' -type f \( "${FILE_EXTENSIONS[@]}" \) | while read -r file; do
 
     # Search for keywords starting with "styles"
     grep -E -o '\bstyles\.[a-zA-Z0-9_.]*' "$file" | grep -v '\/\/' | grep -vE '\/\*.*\*\/' | while IFS= read -r keyword; do
@@ -121,7 +135,7 @@ find_styles_and_store_keys() {
 
 find_utility_styles_store_prefix() {
   # Loop through all files in the src folder
-  find 'src/styles' -type f -name "*.js" -o -name "*.jsx" -o -name "*.ts" -o -name "*.tsx" | while read -r file; do
+  find 'src/styles' -type f \( "${FILE_EXTENSIONS[@]}" \) | while read -r file; do
 
     # Search for keywords starting with "styles"
     grep -E -o './utilities/[a-zA-Z0-9_-]+' "$file" | grep -v '\/\/' | grep -vE '\/\*.*\*\/' | while IFS= read -r keyword; do
@@ -137,7 +151,7 @@ find_utility_styles_store_prefix() {
 }
 
 find_utility_usage_as_styles() {
-  find $UTILITIES_STYLES_FILE -type f -name "*.js" -o -name "*.jsx" -o -name "*.ts" -o -name "*.tsx" | while read -r file; do
+  find $UTILITIES_STYLES_FILE -type f \( "${FILE_EXTENSIONS[@]}" \) | while read -r file; do
     if [ -d "$path" ]; then
       # Use the folder name as the root key
       root_key=$(basename "$path")
@@ -155,7 +169,7 @@ lookfor_unused_utilities() {
     original_keyword="$keyword"
 
     # Iterate through all files in "src/styles"
-    find 'src/styles' -type f -name "*.js" -o -name "*.jsx" -o -name "*.ts" -o -name "*.tsx" | while read -r file; do
+    find 'src/styles' -type f \( "${FILE_EXTENSIONS[@]}" \) | while read -r file; do
       # Find all words that match "$keyword.[a-zA-Z0-9_-]+"
       grep -E -o "$original_keyword\.[a-zA-Z0-9_-]+" "$file" | grep -v '\/\/' | grep -vE '\/\*.*\*\/' | while IFS= read -r match; do
         # Replace the utility prefix with "styles"
@@ -194,5 +208,5 @@ echo "Number of styles not being used: $line_count2"
 
 show_unused_style_keywords
 
-# Delete all files containing a specific pattern in their name
-find /scripts -name "*keys_list_temp*" -type f -exec rm -f {} \;
+# Delete all temo files
+find scripts -name "*keys_list_temp*" -type f -exec rm -f {} \;
