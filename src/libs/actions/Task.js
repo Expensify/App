@@ -184,7 +184,11 @@ function createTaskAndNavigate(parentReportID, title, description, assigneeEmail
     failureData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
-        value: {[optimisticAddCommentReport.reportAction.reportActionID]: {pendingAction: null}},
+        value: {
+            [optimisticAddCommentReport.reportAction.reportActionID]: {
+                errors: ErrorUtils.getMicroSecondOnyxError('task.genericCreateTaskFailureMessage'),
+            },
+        },
     });
 
     API.write(
