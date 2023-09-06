@@ -25,8 +25,6 @@ const propTypes = {
     }).isRequired,
 };
 
-const defaultProps = {};
-
 function CountrySelection({route}) {
     const [searchValue, setSearchValue] = useState('');
     const {translate} = useLocalize();
@@ -85,6 +83,5 @@ function CountrySelection({route}) {
 
 CountrySelection.displayName = 'CountrySelection';
 CountrySelection.propTypes = propTypes;
-CountrySelection.defaultProps = defaultProps;
 
 export default CountrySelection;
