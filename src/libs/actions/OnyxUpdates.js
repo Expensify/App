@@ -80,7 +80,7 @@ function applyPusherOnyxUpdates({updates}) {
 function apply({lastUpdateID, type, data}) {
     console.debug(`[OnyxUpdateManager] Applying update type: ${type} with lastUpdateID: ${lastUpdateID}`, data);
 
-    if (lastUpdateID < lastUpdateIDAppliedToClient) {
+    if (lastUpdateID && lastUpdateID < lastUpdateIDAppliedToClient) {
         console.debug('[OnyxUpdateManager] Update received was older than current state, returning without applying the updates');
         return Promise.resolve();
     }
