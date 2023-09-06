@@ -8,6 +8,13 @@ Timing.start(CONST.TIMING.TRIE_INITIALIZATION);
 
 const supportedLanguages = [CONST.LOCALES.DEFAULT, CONST.LOCALES.ES];
 
+/**
+ *
+ * @param {Trie} trie The Trie object.
+ * @param {Array<String>} keywords An array containing the keywords.
+ * @param {Object} item An object containing the properties of the emoji.
+ * @param {String} name The (localized) name of the emoji.
+ */
 function addKeywordsToTrie(trie, keywords, item, name) {
     _.forEach(keywords, (keyword) => {
         const keywordNode = trie.search(keyword);
