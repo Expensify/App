@@ -6,4 +6,6 @@ export default {
 
     /** Should this dropZone be disabled? */
     isDisabled: PropTypes.bool,
+
+    setIsDraggingOver: PropTypes.func,
 };

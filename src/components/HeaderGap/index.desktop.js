@@ -4,6 +4,7 @@ import styles from '../../styles/styles';
 
 export default class HeaderGap extends PureComponent {
     render() {
-        return <View style={styles.headerGap} />;
+        // eslint-disable-next-line react/prop-types
+        return <View style={[styles.headerGap, ...this.props.styles]} />;
     }
 }
