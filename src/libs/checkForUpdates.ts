@@ -1,11 +1,11 @@
 const UPDATE_INTERVAL = 1000 * 60 * 60 * 8;
 
-type CheckForUpdatesParams = {
+type PlatformSpecificUpdater = {
     update: () => void;
     init?: () => void;
 };
 
-function checkForUpdates(platformSpecificUpdater: CheckForUpdatesParams) {
+function checkForUpdates(platformSpecificUpdater: PlatformSpecificUpdater) {
     if (typeof platformSpecificUpdater.init === 'function') {
         platformSpecificUpdater.init();
     }
