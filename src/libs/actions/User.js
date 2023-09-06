@@ -564,7 +564,7 @@ function subscribeToUserEvents() {
             type: CONST.ONYX_UPDATE_TYPES.PUSHER,
             lastUpdateID: Number(pushJSON.lastUpdateID || 0),
             data: {
-                updates: pushJSON.updates,
+                onyxUpdates: pushJSON.updates,
             },
         };
         if (!OnyxUpdates.doesClientNeedToBeUpdated(Number(pushJSON.previousUpdateID || 0))) {
