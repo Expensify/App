@@ -1570,16 +1570,15 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
         },
         ...(optimisticReportPreviewAction
             ? [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
-                    value: {
-                        [optimisticReportPreviewAction.reportActionID]: optimisticReportPreviewAction,
-                    },
-                },
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+                      value: {
+                          [optimisticReportPreviewAction.reportActionID]: optimisticReportPreviewAction,
+                      },
+                  },
               ]
-            : []
-        ),
+            : []),
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
@@ -1622,18 +1621,17 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
         },
         ...(optimisticReportPreviewAction
             ? [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
-                    value: {
-                        [optimisticReportPreviewAction.reportActionID]: {
-                            created: optimisticReportPreviewAction.created,
-                        },
-                    },
-                },
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+                      value: {
+                          [optimisticReportPreviewAction.reportActionID]: {
+                              created: optimisticReportPreviewAction.created,
+                          },
+                      },
+                  },
               ]
-            : []
-        ),
+            : []),
     ];
 
     return {
