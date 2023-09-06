@@ -374,11 +374,9 @@ describe('ReportUtils', () => {
                 const moneyRequestOptions = ReportUtils.getMoneyRequestOptions({}, [currentUserAccountID], []);
                 expect(moneyRequestOptions.length).toBe(0);
             });
-        });
 
-        describe('return only iou split option if', () => {
             it('a chat room', () => {
-                const onlyHaveSplitOption = _.every(
+                const allEmpty = _.every(
                     [CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, CONST.REPORT.CHAT_TYPE.DOMAIN_ALL, CONST.REPORT.CHAT_TYPE.POLICY_ROOM],
                     (chatType) => {
                         const report = {
@@ -386,22 +384,26 @@ describe('ReportUtils', () => {
                             chatType,
                         };
                         const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, [currentUserAccountID, participantsAccountIDs[0]], []);
-                        return moneyRequestOptions.length === 1 && moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT);
+                        return moneyRequestOptions.length === 0;
                     },
                 );
-                expect(onlyHaveSplitOption).toBe(true);
+                expect(allEmpty).toBe(true);
             });
+        });
 
+        describe('return split and request if', () => {
             it('has multiple participants exclude self', () => {
                 const moneyRequestOptions = ReportUtils.getMoneyRequestOptions({}, [currentUserAccountID, ...participantsAccountIDs], []);
-                expect(moneyRequestOptions.length).toBe(1);
+                expect(moneyRequestOptions.length).toBe(2);
                 expect(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT)).toBe(true);
+                expect(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)).toBe(true);
             });
 
-            it(' does not have iou send permission', () => {
+            it('does not have iou send permission', () => {
                 const moneyRequestOptions = ReportUtils.getMoneyRequestOptions({}, [currentUserAccountID, ...participantsAccountIDs], []);
-                expect(moneyRequestOptions.length).toBe(1);
+                expect(moneyRequestOptions.length).toBe(2);
                 expect(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT)).toBe(true);
+                expect(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)).toBe(true);
             });
         });
 
@@ -418,9 +420,10 @@ describe('ReportUtils', () => {
             });
         });
 
-        it('return both iou send and request money in DM', () => {
+        it('return all options in DM on send beta', () => {
             const moneyRequestOptions = ReportUtils.getMoneyRequestOptions({type: 'chat'}, [currentUserAccountID, participantsAccountIDs[0]], [CONST.BETAS.IOU_SEND]);
-            expect(moneyRequestOptions.length).toBe(2);
+            expect(moneyRequestOptions.length).toBe(3);
+            expect(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT)).toBe(true);
             expect(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)).toBe(true);
             expect(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.SEND)).toBe(true);
         });
