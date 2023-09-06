@@ -4,6 +4,7 @@ import {View} from 'react-native';
 
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import lodashIsNil from "lodash/isNil";
 import _ from 'underscore';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
@@ -43,7 +44,7 @@ const getWaypointMarkers = (waypoints) => {
     const lastWaypointIndex = numberOfWaypoints - 1;
     return _.filter(
         _.map(waypoints, (waypoint, key) => {
-            if (!waypoint || waypoint.lng === undefined || waypoint.lat === undefined) {
+            if (!waypoint || lodashIsNil(waypoint.lng) || lodashIsNil(waypoint.lat)) {
                 return;
             }
 
