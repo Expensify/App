@@ -85,6 +85,10 @@ export default {
                                 path: ROUTES.SETTINGS_WALLET_CHOOSE_TRANSFER_ACCOUNT,
                                 exact: true,
                             },
+                            Settings_ReportCardLostOrDamaged: {
+                                path: ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED,
+                                exact: true,
+                            },
                             Settings_Add_Debit_Card: {
                                 path: ROUTES.SETTINGS_ADD_DEBIT_CARD,
                                 exact: true,
