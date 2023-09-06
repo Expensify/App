@@ -154,8 +154,8 @@ function ReportDetailsPage(props) {
                                     fullTitle={ReportUtils.getReportName(props.report)}
                                     displayNamesWithTooltips={displayNamesWithTooltips}
                                     tooltipEnabled
-                                    numberOfLines={isChatRoom ? 0 : 1}
-                                    textStyles={[styles.textHeadline, styles.textAlignCenter, isChatRoom ? undefined : styles.pre]}
+                                    numberOfLines={isChatRoom && !isThread ? 0 : 1}
+                                    textStyles={[styles.textHeadline, styles.textAlignCenter, isChatRoom && !isThread ? undefined : styles.pre]}
                                     shouldUseFullTitle={shouldUseFullTitle}
                                 />
                             </View>

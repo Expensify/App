@@ -55,6 +55,9 @@ const propTypes = {
         saastr: PropTypes.shape({
             isBeginningDemo: PropTypes.bool,
         }),
+        sbe: PropTypes.shape({
+            isBeginningDemo: PropTypes.bool,
+        }),
     }),
 };
 
@@ -115,7 +118,7 @@ function SignInPage({credentials, account, isInModal, demoInfo}) {
 
     let welcomeHeader = '';
     let welcomeText = '';
-    const customHeadline = DemoActions.getHeadlineKeyByDemoInfo(demoInfo);
+    const {customHeadline, customHeroBody} = DemoActions.getCustomTextForDemo(demoInfo);
     const headerText = customHeadline || translate('login.hero.header');
     if (shouldShowLoginForm) {
         welcomeHeader = isSmallScreenWidth ? headerText : translate('welcomeText.getStarted');
@@ -165,6 +168,7 @@ function SignInPage({credentials, account, isInModal, demoInfo}) {
                 ref={signInPageLayoutRef}
                 isInModal={isInModal}
                 customHeadline={customHeadline}
+                customHeroBody={customHeroBody}
             >
                 {/* LoginForm must use the isVisible prop. This keeps it mounted, but visually hidden
                     so that password managers can access the values. Conditionally rendering this component will break this feature. */}
