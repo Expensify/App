@@ -23,9 +23,12 @@ const propTypes = {
             backTo: PropTypes.string,
         }),
     }).isRequired,
+    navigation: PropTypes.shape({
+        getState: PropTypes.func.isRequired,
+    }).isRequired,
 };
 
-function CountrySelection({route}) {
+function CountrySelection({route, navigation}) {
     const [searchValue, setSearchValue] = useState('');
     const {translate} = useLocalize();
     const currentCountry = lodashGet(route, 'params.country');
@@ -47,12 +50,17 @@ function CountrySelection({route}) {
 
     const selectCountry = useCallback(
         (option) => {
-            const currentCountryInner = option.value;
             const backTo = lodashGet(route, 'params.backTo', '');
-            const backToRoute = backTo ? `${backTo}?country=${currentCountryInner}` : '';
-            Navigation.goBack(backToRoute, true);
+
+            if (navigation.getState().routes.length === 1 && _.isEmpty(backTo)) {
+                Navigation.goBack();
+            } else if (!_.isEmpty(backTo) && navigation.getState().routes.length === 1) {
+                Navigation.goBack(`${route.params.backTo}?country=${option.value}`);
+            } else {
+                Navigation.navigate(`${route.params.backTo}?country=${option.value}`);
+            }
         },
-        [route],
+        [route, navigation],
     );
 
     return (
