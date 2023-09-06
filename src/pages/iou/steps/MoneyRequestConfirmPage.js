@@ -257,7 +257,7 @@ function MoneyRequestConfirmPage(props) {
         }
 
         return props.translate('tabSelector.manual');
-    }
+    };
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>

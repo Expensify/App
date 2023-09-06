@@ -175,11 +175,13 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate}) 
         >
             {({safeAreaPaddingBottomStyle, insets}) => (
                 <KeyboardAvoidingView
-                    style={{ height: '100%' }}
+                    style={{height: '100%'}}
                     behavior="padding"
                     // Offset is needed as KeyboardAvoidingView in nested inside of TabNavigator instead of wrapping whole screen.
                     // This is because when wrapping whole screen the screen was freezing when changing Tabs.
-                    keyboardVerticalOffset={variables.contentHeaderHeight + insets.top + (Permissions.canUsePolicyRooms(betas) ? variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding : 0)}
+                    keyboardVerticalOffset={
+                        variables.contentHeaderHeight + insets.top + (Permissions.canUsePolicyRooms(betas) ? variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding : 0)
+                    }
                 >
                     <View style={[styles.flex1, styles.w100, styles.pRelative, selectedOptions.length > 0 ? safeAreaPaddingBottomStyle : {}]}>
                         <OptionsSelector

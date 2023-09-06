@@ -233,7 +233,7 @@ function BaseTextInput(props) {
             default:
                 throw new Error(`Prefix ${prefix} has no padding assigned.`);
         }
-    }
+    };
 
     // eslint-disable-next-line react/forbid-foreign-prop-types
     const inputProps = _.omit(props, _.keys(baseTextInputPropTypes.propTypes));

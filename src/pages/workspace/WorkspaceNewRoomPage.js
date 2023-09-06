@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import withNavigationFocus, { withNavigationFocusPropTypes } from '../../components/withNavigationFocus';
+import withNavigationFocus, {withNavigationFocusPropTypes} from '../../components/withNavigationFocus';
 import * as Report from '../../libs/actions/Report';
 import useLocalize from '../../hooks/useLocalize';
 import styles from '../../styles/styles';
@@ -58,7 +58,7 @@ const propTypes = {
     /** A collection of objects for all policies which key policy member objects by accountIDs */
     allPolicyMembers: PropTypes.objectOf(PropTypes.objectOf(policyMemberPropType)),
 
-    ...withNavigationFocusPropTypes
+    ...withNavigationFocusPropTypes,
 };
 const defaultProps = {
     betas: [],
@@ -153,54 +153,58 @@ function WorkspaceNewRoomPage(props) {
             >
                 {({insets}) => (
                     <KeyboardAvoidingView
-                        style={{ height: '100%' }}
+                        style={{height: '100%'}}
                         behavior="height"
                         // Offset is needed as KeyboardAvoidingView in nested inside of TabNavigator instead of wrapping whole screen.
                         // This is because when wrapping whole screen the screen was freezing when changing Tabs.
                         keyboardVerticalOffset={variables.contentHeaderHeight + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding + insets.top}
                     >
-                            <Form
-                                formID={ONYXKEYS.FORMS.NEW_ROOM_FORM}
-                                submitButtonText={translate('newRoomPage.createRoom')}
-                                scrollContextEnabled
-                                style={[styles.mh5, styles.flexGrow1]}
-                                validate={validate}
-                                onSubmit={submit}
-                                enabledWhenOffline
-                            >
-                                <View style={styles.mb5}>
-                                    <RoomNameInput inputID="roomName" isFocused={props.isFocused} autoFocus />
-                                </View>
+                        <Form
+                            formID={ONYXKEYS.FORMS.NEW_ROOM_FORM}
+                            submitButtonText={translate('newRoomPage.createRoom')}
+                            scrollContextEnabled
+                            style={[styles.mh5, styles.flexGrow1]}
+                            validate={validate}
+                            onSubmit={submit}
+                            enabledWhenOffline
+                        >
+                            <View style={styles.mb5}>
+                                <RoomNameInput
+                                    inputID="roomName"
+                                    isFocused={props.isFocused}
+                                    autoFocus
+                                />
+                            </View>
+                            <View style={styles.mb2}>
+                                <Picker
+                                    inputID="policyID"
+                                    label={translate('workspace.common.workspace')}
+                                    placeholder={{value: '', label: translate('newRoomPage.selectAWorkspace')}}
+                                    items={workspaceOptions}
+                                    onValueChange={setPolicyID}
+                                />
+                            </View>
+                            {isPolicyAdmin && (
                                 <View style={styles.mb2}>
                                     <Picker
-                                        inputID="policyID"
-                                        label={translate('workspace.common.workspace')}
-                                        placeholder={{value: '', label: translate('newRoomPage.selectAWorkspace')}}
-                                        items={workspaceOptions}
-                                        onValueChange={setPolicyID}
+                                        inputID="writeCapability"
+                                        label={translate('writeCapabilityPage.label')}
+                                        items={writeCapabilityOptions}
+                                        defaultValue={CONST.REPORT.WRITE_CAPABILITIES.ALL}
                                     />
                                 </View>
-                                {isPolicyAdmin && (
-                                    <View style={styles.mb2}>
-                                        <Picker
-                                            inputID="writeCapability"
-                                            label={translate('writeCapabilityPage.label')}
-                                            items={writeCapabilityOptions}
-                                            defaultValue={CONST.REPORT.WRITE_CAPABILITIES.ALL}
-                                        />
-                                    </View>
-                                )}
-                                <View style={styles.mb2}>
-                                    <Picker
-                                        inputID="visibility"
-                                        label={translate('newRoomPage.visibility')}
-                                        items={visibilityOptions}
-                                        onValueChange={setVisibility}
-                                        defaultValue={CONST.REPORT.VISIBILITY.RESTRICTED}
-                                    />
-                                </View>
-                                <Text style={[styles.textLabel, styles.colorMuted]}>{visibilityDescription}</Text>
-                            </Form>
+                            )}
+                            <View style={styles.mb2}>
+                                <Picker
+                                    inputID="visibility"
+                                    label={translate('newRoomPage.visibility')}
+                                    items={visibilityOptions}
+                                    onValueChange={setVisibility}
+                                    defaultValue={CONST.REPORT.VISIBILITY.RESTRICTED}
+                                />
+                            </View>
+                            <Text style={[styles.textLabel, styles.colorMuted]}>{visibilityDescription}</Text>
+                        </Form>
                     </KeyboardAvoidingView>
                 )}
             </ScreenWrapper>
@@ -227,5 +231,5 @@ export default compose(
         allPolicyMembers: {
             key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
         },
-    })
+    }),
 )(WorkspaceNewRoomPage);
