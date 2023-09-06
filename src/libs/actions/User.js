@@ -566,10 +566,7 @@ function subscribeToUserEvents() {
         // If the client doesn't need to be updated, then trigger the pusher multiple event handlers like normal
         // so that all the onyx updates are applied normally.
         if (!OnyxUpdates.doesClientNeedToBeUpdated(previousUpdateIDFromServer)) {
-            // @TODO rename this method
-            OnyxUpdates.apply({
-                lastUpdateID: lastUpdateIDFromServer,
-            });
+            OnyxUpdates.saveLastUpdateID(lastUpdateIDFromServer);
             _.each(pushJSON.updates, (multipleEvent) => {
                 PusherUtils.triggerMultiEventHandler(multipleEvent.eventType, multipleEvent.data);
             });

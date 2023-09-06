@@ -11,10 +11,9 @@ Onyx.connect({
 });
 
 /**
- * @param {Object[]} updateParams
- * @param {Number} updateParams.lastUpdateID
+ * @param {Number} lastUpdateID
  */
-function apply({lastUpdateID}) {
+function saveLastUpdateID(lastUpdateID) {
     if (!lastUpdateID || lastUpdateID <= lastUpdateIDAppliedToClient) {
         return;
     }
@@ -42,4 +41,4 @@ function doesClientNeedToBeUpdated(previousUpdateID = 0) {
 }
 
 // eslint-disable-next-line import/prefer-default-export
-export {doesClientNeedToBeUpdated, apply};
+export {doesClientNeedToBeUpdated, saveLastUpdateID};

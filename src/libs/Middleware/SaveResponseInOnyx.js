@@ -43,9 +43,7 @@ function SaveResponseInOnyx(response, request) {
 
         // If the client doesn't need to be updated, then trigger update onyx like normal
         if (_.includes(requestsToIgnoreLastUpdateID, request.command) || !OnyxUpdates.doesClientNeedToBeUpdated(previousUpdateIDFromServer)) {
-            OnyxUpdates.apply({
-                lastUpdateID: lastUpdateIDFromServer,
-            });
+            OnyxUpdates.saveLastUpdateID(lastUpdateIDFromServer);
 
             // For most requests we can immediately update Onyx. For write requests we queue the updates and apply them after the sequential queue has flushed to prevent a replay effect in
             // the UI. See https://github.com/Expensify/App/issues/12775 for more info.
