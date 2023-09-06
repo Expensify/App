@@ -1,4 +1,5 @@
 import ControlSelectionModule from './types';
+import CustomRefObject from '../../types/utils/CustomRefObject';
 
 /**
  * Block selection on the whole app
@@ -19,8 +20,8 @@ function unblock() {
 /**
  * Block selection on particular element
  */
-function blockElement(ref) {
-    if (ref === null) {
+function blockElement<T>(ref?: CustomRefObject<T> | null) {
+    if (!ref) {
         return;
     }
 
@@ -31,8 +32,8 @@ function blockElement(ref) {
 /**
  * Unblock selection on particular element
  */
-function unblockElement(ref) {
-    if (ref === null) {
+function unblockElement<T>(ref?: CustomRefObject<T> | null) {
+    if (!ref) {
         return;
     }
 
