@@ -349,7 +349,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                                     <PressableWithFeedback
                                         style={[styles.popoverMenuIcon, styles.pointerEventsAuto, props.disabled && styles.cursorDisabled]}
                                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                                        accessibilityLabel={props.iconRightAccessibilityLabel ? props.iconRightAccessibilityLabel.toString() : ''}
+                                        accessibilityLabel={props.iconRightAccessibilityLabel ? props.iconRightAccessibilityLabel : ''}
                                         accessible={!props.onIconRightPress}
                                         disabled={!props.onIconRightPress}
                                         onPress={props.onIconRightPress}
