@@ -3068,8 +3068,7 @@ function hasIOUWaitingOnCurrentUserBankAccount(chatReport) {
 }
 
 /**
- * Users can request money in policy expense chats only if they are in a role of a member in the chat (in other words, if it's their policy expense chat)
- * Users can not request money in rooms.
+ * Users can request money in DMs / groups or in their own policy expense chat
  *
  * @param {Object} report
  * @returns {Boolean}
@@ -3079,7 +3078,7 @@ function canRequestMoney(report) {
     if (hasIOUWaitingOnCurrentUserBankAccount(report)) {
         return false;
     }
-    return (!isChatRoom(report) && !isPolicyExpenseChat(report)) || report.isOwnPolicyExpenseChat;
+    return (isDM(report) && !isConciergeChatReport(report)) || report.isOwnPolicyExpenseChat;
 }
 
 /**
