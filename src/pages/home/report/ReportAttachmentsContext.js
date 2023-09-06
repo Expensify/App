@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import PropTypes from 'prop-types';
 import useCurrentReportID from '../../../hooks/useCurrentReportID';
 
@@ -19,16 +19,15 @@ function ReportAttachmentsProvider(props) {
         setIsAttachmentHidden({});
     }, [currentReportID]);
 
-    return (
-        <ReportAttachmentsContext.Provider
-            value={{
-                isAttachmentHidden,
-                updateIsAttachmentHidden: (reportActionID, value) => setIsAttachmentHidden({...isAttachmentHidden, [reportActionID]: value}),
-            }}
-        >
-            {props.children}
-        </ReportAttachmentsContext.Provider>
+    const contextValue = useMemo(
+        () => ({
+            isAttachmentHidden,
+            updateIsAttachmentHidden: (reportActionID, value) => setIsAttachmentHidden({...isAttachmentHidden, [reportActionID]: value}),
+        }),
+        [isAttachmentHidden],
     );
+
+    return <ReportAttachmentsContext.Provider value={contextValue}>{props.children}</ReportAttachmentsContext.Provider>;
 }
 
 ReportAttachmentsProvider.propTypes = propTypes;
