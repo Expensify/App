@@ -833,8 +833,36 @@ function hasAutomatedExpensifyAccountIDs(accountIDs) {
  * @returns {Array}
  */
 function getReportRecipientAccountIDs(report, currentLoginAccountID) {
-    const participantAccountIDs = isTaskReport(report) ? [report.managerID] : lodashGet(report, 'participantAccountIDs');
-    const reportParticipants = _.without(participantAccountIDs, currentLoginAccountID);
+    let finalReport = report;
+    // In 1:1 chat threads, the participants will be the same as parent report. If a report is specifically a 1:1 chat thread then we will
+    // get parent report and use its participants array.
+    if (isThread(report) && !(isTaskReport(report) || isMoneyRequestReport(report))) {
+        const parentReport = lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`]);
+        if (hasSingleParticipant(parentReport)) {
+            finalReport = parentReport;
+        }
+    }
+
+    // Most report types will have the same initial participants
+    const initialParticipantAccountIDs = lodashGet(finalReport, 'participantAccountIDs');
+
+    // Most reports like the money request and task reports don't add the `ownerAccountId` in `participantAccountIDs`, for those types of
+    // reports we will include `ownerAccountId` in the `finalParticipantAccountIDs` array.
+    let finalParticipantAccountIDs = initialParticipantAccountIDs;
+
+    // For money requests i.e the IOU (1:1 person) and Expense (1:* person) reports, use the full `initialParticipantAccountIDs` array
+    // and add the `ownerAccountId`.
+    if (isMoneyRequestReport(report)) {
+        finalParticipantAccountIDs = _.union(initialParticipantAccountIDs, [report.ownerAccountID]);
+    }
+
+    // Task reports `managerID` will change when assignee is changed, in that case the old `managerID` is still present in `participantAccountIDs`
+    // array along with the new one. We only need the `managerID` as a participant here.
+    if (isTaskReport(report)) {
+        finalParticipantAccountIDs = [report.managerID];
+    }
+
+    const reportParticipants = _.without(finalParticipantAccountIDs, currentLoginAccountID);
     const participantsWithoutExpensifyAccountIDs = _.difference(reportParticipants, CONST.EXPENSIFY_ACCOUNT_IDS);
     return participantsWithoutExpensifyAccountIDs;
 }
