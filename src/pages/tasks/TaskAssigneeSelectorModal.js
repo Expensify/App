@@ -23,7 +23,6 @@ import ROUTES from '../../ROUTES';
 import * as Task from '../../libs/actions/Task';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import withCurrentUserPersonalDetails from '../../components/withCurrentUserPersonalDetails';
-import withReportOrNotFound from '../home/report/withReportOrNotFound';
 
 const propTypes = {
     /** Beta features list */
@@ -194,7 +193,7 @@ function TaskAssigneeSelectorModal(props) {
 
     const isOpen = ReportUtils.isOpenTaskReport(props.task.report);
     const canModifyTask = Task.canModifyTask(props.task.report, props.currentUserPersonalDetails.accountID);
-    const isTaskNonEditable = ReportUtils.isTaskReport(props.task.report) && (!canModifyTask || !isOpen);
+    const isTaskNonEditable = report && ReportUtils.isTaskReport(props.task.report) && (!canModifyTask || !isOpen);
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -230,7 +229,6 @@ TaskAssigneeSelectorModal.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withCurrentUserPersonalDetails,
-    withReportOrNotFound,
     withOnyx({
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
