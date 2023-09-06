@@ -79,6 +79,7 @@ function KeyboardShortcutsModal({isShortcutsModalOpen = false, isSmallScreenWidt
             KeyboardShortcut.subscribe(arrowUpConfig.shortcutKey, () => {}, arrowUpConfig.descriptionKey, arrowUpConfig.modifiers, true),
             KeyboardShortcut.subscribe(arrowDownConfig.shortcutKey, () => {}, arrowDownConfig.descriptionKey, arrowDownConfig.modifiers, true),
         ];
+        setShortcurts(KeyboardShortcut.getDocumentedShortcuts());
     };
 
     /*
@@ -128,7 +129,6 @@ function KeyboardShortcutsModal({isShortcutsModalOpen = false, isSmallScreenWidt
         if (isShortcutsModalOpen) {
             // The modal started open, which can happen if you reload the page when the modal is open.
             subscribeOpenModalShortcuts();
-            setShortcurts(KeyboardShortcut.getDocumentedShortcuts());
         }
 
         return () => {
@@ -144,7 +144,6 @@ function KeyboardShortcutsModal({isShortcutsModalOpen = false, isSmallScreenWidt
     useEffect(() => {
         if (isShortcutsModalOpen) {
             subscribeOpenModalShortcuts();
-            setShortcurts(KeyboardShortcut.getDocumentedShortcuts());
         } else {
             // Modal is closing, remove keyboard shortcuts
             unsubscribeOpenModalShortcuts();
