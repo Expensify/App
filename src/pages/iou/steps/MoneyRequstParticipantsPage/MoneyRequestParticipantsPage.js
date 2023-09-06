@@ -16,7 +16,7 @@ import compose from '../../../../libs/compose';
 import * as DeviceCapabilities from '../../../../libs/DeviceCapabilities';
 import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 import * as IOU from '../../../../libs/actions/IOU';
-import participantPropTypes from '../../../../components/participantPropTypes';
+import {iouPropTypes, iouDefaultProps} from '../../propTypes';
 
 const propTypes = {
     /** React Navigation route */
@@ -32,36 +32,33 @@ const propTypes = {
     }).isRequired,
 
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
-    iou: PropTypes.shape({
-        /** ID (iouType + reportID) of the request */
-        id: PropTypes.string,
+    iou: iouPropTypes,
 
-        /** Amount of the request */
-        amount: PropTypes.number,
-
-        /** List of the participants */
-        participants: PropTypes.arrayOf(participantPropTypes),
-    }),
+    /** The current tab we have navigated to in the request modal. String that corresponds to the request type. */
+    selectedTab: PropTypes.oneOf([CONST.TAB.DISTANCE, CONST.TAB.MANUAL, CONST.TAB.SCAN]).isRequired,
 
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
-    iou: {
-        id: '',
-        amount: 0,
-        participants: [],
-    },
+    iou: iouDefaultProps,
 };
 
-function MoneyRequestParticipantsPage({iou, translate, route}) {
+function MoneyRequestParticipantsPage({iou, selectedTab, translate, route}) {
+    const prevMoneyRequestId = useRef(iou.id);
     const iouType = useRef(lodashGet(route, 'params.iouType', ''));
     const reportID = useRef(lodashGet(route, 'params.reportID', ''));
+    const isDistanceRequest = selectedTab === CONST.TAB.DISTANCE;
     const [headerTitle, setHeaderTitle] = useState();
 
     useEffect(() => {
+        if (isDistanceRequest) {
+            setHeaderTitle(translate('common.distance'));
+            return;
+        }
+
         setHeaderTitle(_.isEmpty(iou.participants) ? translate('tabSelector.manual') : translate('iou.split'));
-    }, [iou.participants, translate]);
+    }, [iou.participants, isDistanceRequest, translate]);
 
     const navigateToNextStep = (moneyRequestType) => {
         IOU.setMoneyRequestId(moneyRequestType);
@@ -71,6 +68,31 @@ function MoneyRequestParticipantsPage({iou, translate, route}) {
     const navigateBack = (forceFallback = false) => {
         Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current), forceFallback);
     };
+
+    useEffect(() => {
+        // ID in Onyx could change by initiating a new request in a separate browser tab or completing a request
+        if (prevMoneyRequestId.current !== iou.id) {
+            // The ID is cleared on completing a request. In that case, we will do nothing
+            if (!isDistanceRequest && iou.id) {
+                navigateBack(true);
+            }
+            return;
+        }
+
+        // Reset the money request Onyx if the ID in Onyx does not match the ID from params
+        const moneyRequestId = `${iouType.current}${reportID.current}`;
+        const shouldReset = iou.id !== moneyRequestId;
+        if (shouldReset) {
+            IOU.resetMoneyRequestInfo(moneyRequestId);
+        }
+        if (!isDistanceRequest && ((iou.amount === 0 && !iou.receiptPath) || shouldReset)) {
+            navigateBack(true);
+        }
+
+        return () => {
+            prevMoneyRequestId.current = iou.id;
+        };
+    }, [iou.amount, iou.id, iou.receiptPath, isDistanceRequest]);
 
     return (
         <ScreenWrapper
@@ -89,6 +111,8 @@ function MoneyRequestParticipantsPage({iou, translate, route}) {
                         navigateToRequest={() => navigateToNextStep(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)}
                         navigateToSplit={() => navigateToNextStep(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT)}
                         safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
+                        iouType={iouType.current}
+                        isDistanceRequest={isDistanceRequest}
                     />
                 </View>
             )}
@@ -104,5 +128,8 @@ export default compose(
     withLocalize,
     withOnyx({
         iou: {key: ONYXKEYS.IOU},
+        selectedTab: {
+            key: `${ONYXKEYS.SELECTED_TAB}_${CONST.TAB.RECEIPT_TAB_ID}`,
+        },
     }),
 )(MoneyRequestParticipantsPage);

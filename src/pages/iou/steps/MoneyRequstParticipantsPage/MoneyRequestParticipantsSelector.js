@@ -48,6 +48,12 @@ const propTypes = {
     /** padding bottom style of safe area */
     safeAreaPaddingBottomStyle: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
+    /** The type of IOU report, i.e. bill, request, send */
+    iouType: PropTypes.string.isRequired,
+
+    /** Whether the money request is a distance request or not */
+    isDistanceRequest: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
@@ -57,6 +63,7 @@ const defaultProps = {
     personalDetails: {},
     reports: {},
     betas: [],
+    isDistanceRequest: false,
 };
 
 function MoneyRequestParticipantsSplitSelector({
@@ -69,6 +76,8 @@ function MoneyRequestParticipantsSplitSelector({
     navigateToSplit,
     onAddParticipants,
     safeAreaPaddingBottomStyle,
+    iouType,
+    isDistanceRequest,
 }) {
     const [searchTerm, setSearchTerm] = useState('');
     const [newChatOptions, setNewChatOptions] = useState({
@@ -157,7 +166,21 @@ function MoneyRequestParticipantsSplitSelector({
 
             onAddParticipants(newSelectedOptions);
 
-            const chatOptions = OptionsListUtils.getNewChatOptions(reports, personalDetails, betas, isOptionInList ? searchTerm : '', newSelectedOptions, CONST.EXPENSIFY_EMAILS);
+            const chatOptions = OptionsListUtils.getNewChatOptions(
+                reports,
+                personalDetails,
+                betas,
+                isOptionInList ? searchTerm : '',
+                newSelectedOptions,
+                CONST.EXPENSIFY_EMAILS,
+    
+                // If we are using this component in the "Request money" flow then we pass the includeOwnedWorkspaceChats argument so that the current user
+                // sees the option to request money from their admin on their own Workspace Chat.
+                iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
+    
+                // We don't want to include any P2P options like personal details or reports that are not workspace chats for certain features.
+                !isDistanceRequest,
+            );
 
             setNewChatOptions({
                 recentReports: chatOptions.recentReports,
@@ -165,7 +188,7 @@ function MoneyRequestParticipantsSplitSelector({
                 userToInvite: chatOptions.userToInvite,
             });
         },
-        [searchTerm, participants, onAddParticipants, reports, personalDetails, betas, setNewChatOptions],
+        [participants, onAddParticipants, reports, personalDetails, betas, searchTerm, iouType, isDistanceRequest],
     );
 
     const headerMessage = OptionsListUtils.getHeaderMessage(
@@ -177,13 +200,27 @@ function MoneyRequestParticipantsSplitSelector({
     const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails);
 
     useEffect(() => {
-        const chatOptions = OptionsListUtils.getNewChatOptions(reports, personalDetails, betas, searchTerm, participants, CONST.EXPENSIFY_EMAILS);
+        const chatOptions = OptionsListUtils.getNewChatOptions(
+            reports,
+            personalDetails,
+            betas,
+            searchTerm,
+            participants,
+            CONST.EXPENSIFY_EMAILS,
+
+            // If we are using this component in the "Request money" flow then we pass the includeOwnedWorkspaceChats argument so that the current user
+            // sees the option to request money from their admin on their own Workspace Chat.
+            iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
+
+            // We don't want to include any P2P options like personal details or reports that are not workspace chats for certain features.
+            !isDistanceRequest,
+        );
         setNewChatOptions({
             recentReports: chatOptions.recentReports,
             personalDetails: chatOptions.personalDetails,
             userToInvite: chatOptions.userToInvite,
         });
-    }, [betas, reports, participants, personalDetails, translate, searchTerm, setNewChatOptions]);
+    }, [betas, reports, participants, personalDetails, translate, searchTerm, setNewChatOptions, iouType, isDistanceRequest]);
 
     return (
         <View style={[styles.flex1, styles.w100, participants.length > 0 ? safeAreaPaddingBottomStyle : {}]}>

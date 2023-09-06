@@ -4,6 +4,7 @@ import lodashGet from 'lodash/get';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import {useIsFocused} from '@react-navigation/native';
 import AddressSearch from '../../components/AddressSearch';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
@@ -74,6 +75,7 @@ const defaultProps = {
 function WaypointEditor({transactionID, route: {params: {iouType = '', waypointIndex = ''} = {}} = {}, transaction, recentWaypoints}) {
     const {windowWidth} = useWindowDimensions();
     const [isDeleteStopModalOpen, setIsDeleteStopModalOpen] = useState(false);
+    const isFocused = useIsFocused();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const textInput = useRef(null);
@@ -107,7 +109,7 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
 
         // If the user is online and they are trying to save a value without using the autocomplete, show an error message instructing them to use a selected address instead.
         // That enables us to save the address with coordinates when it is selected
-        if (!isOffline && waypointValue !== '') {
+        if (!isOffline && waypointValue !== '' && waypointAddress !== waypointValue) {
             errors[`waypoint${waypointIndex}`] = 'distance.errors.selectSuggestedAddress';
         }
 
@@ -126,6 +128,8 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
         // Therefore, we're going to save the waypoint as just the address, and the lat/long will be filled in on the backend
         if (isOffline && waypointValue) {
             const waypoint = {
+                lat: null,
+                lng: null,
                 address: waypointValue,
             };
 
@@ -159,7 +163,7 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
             onEntryTransitionEnd={() => textInput.current && textInput.current.focus()}
             shouldEnableMaxHeight
         >
-            <FullPageNotFoundView shouldShow={Number.isNaN(parsedWaypointIndex) || parsedWaypointIndex < 0 || parsedWaypointIndex > waypointCount - 1}>
+            <FullPageNotFoundView shouldShow={(Number.isNaN(parsedWaypointIndex) || parsedWaypointIndex < 0 || parsedWaypointIndex > waypointCount - 1) && isFocused}>
                 <HeaderWithBackButton
                     title={translate(wayPointDescriptionKey)}
                     shouldShowBackButton
