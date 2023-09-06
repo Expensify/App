@@ -2,7 +2,6 @@ import React, {useEffect, useMemo} from 'react';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import compose from '../libs/compose';
@@ -12,18 +11,10 @@ import useLocalize from '../hooks/useLocalize';
 import * as ReportUtils from '../libs/ReportUtils';
 import iouReportPropTypes from '../pages/iouReportPropTypes';
 import * as PaymentMethods from '../libs/actions/PaymentMethods';
-
 import KYCWall from './KYCWall';
 import withNavigation from './withNavigation';
 import * as Expensicons from './Icon/Expensicons';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
-
-// Creating a default array this way because objects ({}) and arrays ([]) are not stable types.
-// The "betas" array, "nvp_lastPaymentMethod" and "iouReport" object needs to be stable 
-// to prevent the "useMemo" hook from being recreated unnecessarily.
-// Freezing the array ensures that it cannot be unintentionally modified.
-const EMPTY_ARRAY = Object.freeze([]);
-const EMPTY_OBJECT = Object.freeze({});
 
 const propTypes = {
     /** Callback to execute when this button is pressed. Receives a single payment type argument. */
@@ -92,11 +83,11 @@ const defaultProps = {
     currency: CONST.CURRENCY.USD,
     shouldShowPaypal: false,
     chatReportID: '',
-    betas: EMPTY_ARRAY,
+    betas: CONST.EMPTY_ARRAY,
     shouldShowPaymentOptions: false,
-    nvp_lastPaymentMethod: EMPTY_OBJECT,
+    nvp_lastPaymentMethod: CONST.EMPTY_OBJECT,
     style: [],
-    iouReport: EMPTY_OBJECT,
+    iouReport: CONST.EMPTY_OBJECT,
     policyID: '',
     formattedAmount: '',
     buttonSize: CONST.DROPDOWN_BUTTON_SIZE.MEDIUM,
@@ -133,7 +124,7 @@ function SettlementButton({
         PaymentMethods.openWalletPage();
     }, []);
 
-    const getButtonOptionsFromProps = useMemo(() => {
+    const paymentButtonOptions = useMemo(() => {
         const buttonOptions = [];
         const isExpenseReport = ReportUtils.isExpenseReport(iouReport);
         const paymentMethods = {
@@ -232,7 +223,7 @@ function SettlementButton({
                     isDisabled={isDisabled}
                     isLoading={isLoading}
                     onPress={(event, iouPaymentType) => selectPaymentType(event, iouPaymentType, triggerKYCFlow)}
-                    options={getButtonOptionsFromProps}
+                    options={paymentButtonOptions}
                     style={style}
                     buttonSize={buttonSize}
                     anchorAlignment={anchorAlignment}
