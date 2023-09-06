@@ -15,17 +15,27 @@ const propTypes = {
     /** A headline translation key to show above the feature list. */
     headline: PropTypes.string.isRequired,
 
+    /** Headline's style - affects font-family, font-size and margins */
+    headlineType: PropTypes.oneOf(['h1', 'strong']),
+
     /** A description translation key to show below the headline and above the feature list. */
     description: PropTypes.string.isRequired,
 };
 
-function FeatureList({menuItems, headline, description}) {
+const defaultProps = {
+    headlineType: 'h1',
+}
+
+function FeatureList({menuItems, headline, headlineType, description}) {
     const {translate} = useLocalize();
+
+    const headlineStyle = headlineType === 'h1' ? [styles.textHeadline, styles.preWrap, styles.mb2] : [styles.textStrong, styles.preWrap, styles.mb1];
+
     return (
         <>
             <View style={[styles.w100, styles.ph5, styles.pb5]}>
                 <Text
-                    style={[styles.textHeadline, styles.preWrap, styles.mb2]}
+                    style={headlineStyle}
                     numberOfLines={2}
                 >
                     {translate(headline)}
@@ -48,6 +58,7 @@ function FeatureList({menuItems, headline, description}) {
 }
 
 FeatureList.propTypes = propTypes;
+FeatureList.defaultProps = defaultProps;
 FeatureList.displayName = 'FeatureList';
 
 export default FeatureList;

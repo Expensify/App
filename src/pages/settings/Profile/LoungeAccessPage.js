@@ -66,6 +66,7 @@ function LoungeAccessPage({user}) {
                 />
             </View>
             <FeatureList
+                headlineType="strong"
                 headline="loungeAccessPage.headline"
                 description="loungeAccessPage.description"
                 menuItems={menuItems}
