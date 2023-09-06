@@ -88,7 +88,7 @@ function setWithLimit(map, key, value) {
     map.set(key, value);
 }
 
-// Variable to verify initial ONYX actions
+// Variable to verify if ONYX actions are loaded
 let hasInitialReportActions = false;
 
 /**
@@ -102,7 +102,7 @@ let hasInitialReportActions = false;
  */
 function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, priorityMode, allReportActions) {
     // Generate a unique cache key based on the function arguments
-    const cachedReports = JSON.stringify(
+    const cachedReportsKey = JSON.stringify(
         // eslint-disable-next-line es/no-optional-chaining
         [currentReportId, allReportsDict, betas, policies, priorityMode, allReportActions[`reportActions_${currentReportId}`]?.length || 1],
         (key, value) => {
@@ -115,8 +115,8 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
     );
 
     // // Check if the result is already in the cache
-    if (reportIDsCache.has(cachedReports) && hasInitialReportActions) {
-        return reportIDsCache.get(cachedReports);
+    if (reportIDsCache.has(cachedReportsKey) && hasInitialReportActions) {
+        return reportIDsCache.get(cachedReportsKey);
     }
     hasInitialReportActions = Object.values(lastReportActions).length > 0;
 
@@ -194,7 +194,7 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
     // Now that we have all the reports grouped and sorted, they must be flattened into an array and only return the reportID.
     // The order the arrays are concatenated in matters and will determine the order that the groups are displayed in the sidebar.
     const LHNReports = [].concat(pinnedReports, outstandingIOUReports, draftReports, nonArchivedReports, archivedReports).map((report) => report.reportID);
-    setWithLimit(reportIDsCache, cachedReports, LHNReports);
+    setWithLimit(reportIDsCache, cachedReportsKey, LHNReports);
     return LHNReports;
 }
 
