@@ -196,10 +196,10 @@ function Expensify(props) {
         <DeeplinkWrapper isAuthenticated={isAuthenticated}>
             {shouldInit && (
                 <>
+                    <DownloadAppModal isAuthenticated={isAuthenticated} />
                     <KeyboardShortcutsModal />
                     <GrowlNotification ref={Growl.growlRef} />
                     <PopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />
-                    <DownloadAppModal />
                     <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
                     {/* We include the modal for showing a new update at the top level so the option is always present. */}
                     {props.updateAvailable ? <UpdateAppModal /> : null}
