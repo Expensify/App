@@ -96,6 +96,7 @@ const defaultProps = {
     report: {
         hasOutstandingIOU: false,
         isLoadingReportActions: false,
+        isLoadingNewerReportActions: false,
     },
     isComposerFullSize: false,
     betas: [],

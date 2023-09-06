@@ -143,6 +143,9 @@ class BaseInvertedFlatList extends Component {
                 // Commenting the line below as it breaks the unread indicator test
                 // we will look at fixing/reusing this after RN v0.72
                 // maintainVisibleContentPosition={{minIndexForVisible: 0, autoscrollToTopThreshold: 0}}
+                maintainVisibleContentPosition={{
+                    minIndexForVisible: 0,
+                }}
             />
         );
     }

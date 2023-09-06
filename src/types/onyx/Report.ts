@@ -13,7 +13,10 @@ type Report = {
     icons?: OnyxCommon.Icon[];
 
     /** Are we loading more report actions? */
-    isLoadingMoreReportActions?: boolean;
+    isLoadingOlderReportActions?: boolean;
+
+    /** Are we loading newer report actions? */
+    isLoadingNewerReportActions?: boolean;
 
     /** Flag to check if the report actions data are loading */
     isLoadingReportActions?: boolean;

@@ -59,6 +59,7 @@ function ReportActionsView(props) {
     useCopySelectionHelper();
 
     const didLayout = useRef(false);
+    const isFirstRender = useRef(true);
     const didSubscribeToReportTypingEvents = useRef(false);
     const hasCachedActions = useRef(_.size(props.reportActions) > 0);
 
@@ -136,7 +137,7 @@ function ReportActionsView(props) {
      * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
      * displaying.
      */
-    const loadMoreChats = () => {
+    const loadOlderChats = () => {
         // Only fetch more if we are not already fetching so that we don't initiate duplicate requests.
         if (props.report.isLoadingOlderReportActions) {
             return;
@@ -151,6 +152,21 @@ function ReportActionsView(props) {
 
         // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments
         Report.getOlderAction(reportID, oldestReportAction.reportActionID);
+    };
+
+    /**
+     * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
+     * displaying.
+     */
+    const loadNewerChats = () => {
+        // Only fetch more if we are not already fetching so that we don't initiate duplicate requests.
+        if (props.report.isLoadingNewerReportActions || isFirstRender.current || props.report.isLoadingReportActions || props.report.isLoadingOlderReportActions) {
+            isFirstRender.current = false;
+            return;
+        }
+        const newestReportAction = _.first(props.reportActions);
+
+        Report.getNewerAction(reportID, newestReportAction.reportActionID);
     };
 
     /**
@@ -185,8 +201,10 @@ function ReportActionsView(props) {
                 onLayout={recordTimeToMeasureItemLayout}
                 sortedReportActions={props.reportActions}
                 mostRecentIOUReportActionID={mostRecentIOUReportActionID.current}
-                isLoadingMoreReportActions={props.report.isLoadingOlderReportActions}
-                loadMoreChats={loadMoreChats}
+                isLoadingOlderReportActions={props.report.isLoadingOlderReportActions}
+                isLoadingNewerReportActions={props.report.isLoadingNewerReportActions}
+                loadOlderChats={loadOlderChats}
+                loadNewerChats={loadNewerChats}
                 policy={props.policy}
             />
             <PopoverReactionList ref={context.reactionListRef} />

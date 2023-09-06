@@ -14,7 +14,10 @@ export default PropTypes.shape({
     icons: PropTypes.arrayOf(avatarPropTypes),
 
     /** Are we loading more report actions? */
-    isLoadingMoreReportActions: PropTypes.bool,
+    isLoadingOlderReportActions: PropTypes.bool,
+
+    /** Are we loading newer report actions? */
+    isLoadingNewerReportActions: PropTypes.bool,
 
     /** Flag to check if the report actions data are loading */
     isLoadingReportActions: PropTypes.bool,

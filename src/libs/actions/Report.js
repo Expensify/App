@@ -408,7 +408,8 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
             ? {}
             : {
                   isLoadingReportActions: true,
-                  isLoadingMoreReportActions: false,
+                  isLoadingOlderReportActions: false,
+                  isLoadingNewerReportActions: false,
                   reportName: lodashGet(allReports, [reportID, 'reportName'], CONST.REPORT.DEFAULT_REPORT_NAME),
               },
     };
@@ -648,7 +649,8 @@ function reconnect(reportID) {
                     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                     value: {
                         isLoadingReportActions: true,
-                        isLoadingMoreReportActions: false,
+                        isLoadingNewerReportActions: false,
+                        isLoadingOlderReportActions: false,
                         reportName: lodashGet(allReports, [reportID, 'reportName'], CONST.REPORT.DEFAULT_REPORT_NAME),
                     },
                 },
@@ -695,7 +697,7 @@ function readOldestAction(reportID, reportActionID) {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                     value: {
-                        isLoadingMoreReportActions: true,
+                        isLoadingOlderReportActions: true,
                     },
                 },
             ],
@@ -704,7 +706,7 @@ function readOldestAction(reportID, reportActionID) {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                     value: {
-                        isLoadingMoreReportActions: false,
+                        isLoadingOlderReportActions: false,
                     },
                 },
             ],
@@ -713,7 +715,7 @@ function readOldestAction(reportID, reportActionID) {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                     value: {
-                        isLoadingMoreReportActions: false,
+                        isLoadingOlderReportActions: false,
                     },
                 },
             ],

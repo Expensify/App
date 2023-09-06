@@ -35,7 +35,7 @@ const propTypes = {
     mostRecentIOUReportActionID: PropTypes.string,
 
     /** Are we loading more report actions? */
-    isLoadingMoreReportActions: PropTypes.bool,
+    isLoadingOlderReportActions: PropTypes.bool,
 
     /** Callback executed on list layout */
     onLayout: PropTypes.func.isRequired,
@@ -44,7 +44,7 @@ const propTypes = {
     onScroll: PropTypes.func,
 
     /** Function to load more chats */
-    loadMoreChats: PropTypes.func.isRequired,
+    loadOlderChats: PropTypes.func.isRequired,
 
     /** The policy object for the current route */
     policy: PropTypes.shape({
@@ -63,7 +63,8 @@ const defaultProps = {
     personalDetails: {},
     onScroll: () => {},
     mostRecentIOUReportActionID: '',
-    isLoadingMoreReportActions: false,
+    isLoadingOlderReportActions: false,
+    isLoadingNewerReportActions: false,
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
@@ -100,7 +101,8 @@ function ReportActionsList({
     personalDetailsList,
     currentUserPersonalDetails,
     hasOutstandingIOU,
-    loadMoreChats,
+    loadNewerChats,
+    loadOlderChats,
     onLayout,
     isComposerFullSize,
 }) {
@@ -213,7 +215,7 @@ function ReportActionsList({
     const initialNumToRender = useMemo(() => {
         const minimumReportActionHeight = styles.chatItem.paddingTop + styles.chatItem.paddingBottom + variables.fontSizeNormalHeight;
         const availableHeight = windowHeight - (CONST.CHAT_FOOTER_MIN_HEIGHT + variables.contentHeaderHeight);
-        return Math.ceil(availableHeight / minimumReportActionHeight);
+        return Math.ceil(availableHeight / minimumReportActionHeight); //
     }, [windowHeight]);
 
     /**
@@ -297,10 +299,12 @@ function ReportActionsList({
                     keyExtractor={keyExtractor}
                     initialRowHeight={32}
                     initialNumToRender={initialNumToRender}
-                    onEndReached={loadMoreChats}
+                    onEndReached={loadOlderChats}
                     onEndReachedThreshold={0.75}
+                    onStartReached={loadNewerChats}
+                    onStartReachedThreshold={0.75}
                     ListFooterComponent={() => {
-                        if (report.isLoadingMoreReportActions) {
+                        if (report.isLoadingOlderReportActions) {
                             return <ReportActionsSkeletonView containerHeight={CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT * 3} />;
                         }
 
