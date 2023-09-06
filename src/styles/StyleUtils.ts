@@ -1181,7 +1181,7 @@ function getDropDownButtonHeight(buttonSize: ButtonSizeValue): ViewStyle | CSSPr
 }
 
 /**
- * Get transparent color by setting alpha value 0 of the passed color
+ * Get transparent color by setting alpha value 0 of the passed hex(#xxxxxx) color code
  */
 function getTransparentColor(color: string) {
     return `${color}00`;
