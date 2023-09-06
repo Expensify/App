@@ -15,11 +15,8 @@ const ORIGIN_PATTERN = new RegExp(`^(${ORIGINS_TO_REPLACE.join('|')})`);
  * - Similarly for prod or staging URLs we replace the `https://www.expensify`
  * or `https://staging.expensify` part, with `https://{API_ROOT}`
  * - Unmatched URLs (non expensify) are returned with no modifications
- *
- * @param {String} url
- * @returns {String}
  */
-export default function tryResolveUrlFromApiRoot(url) {
+export default function tryResolveUrlFromApiRoot(url: string): string {
     const apiRoot = ApiUtils.getApiRoot({shouldUseSecure: false});
     return url.replace(ORIGIN_PATTERN, apiRoot);
 }
