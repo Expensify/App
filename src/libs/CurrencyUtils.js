@@ -57,6 +57,16 @@ function getLocalizedCurrencySymbol(currencyCode) {
 }
 
 /**
+ * Get the currency symbol for a currency(ISO 4217) Code
+ *
+ * @param {String} currencyCode
+ * @returns {String|undefined}
+ */
+function getCurrencySymbol(currencyCode) {
+    return lodashGet(currencyList, [currencyCode, 'symbol']);
+}
+
+/**
  * Whether the currency symbol is left-to-right.
  *
  * @param {String} currencyCode
@@ -118,4 +128,4 @@ function convertToDisplayString(amountInCents, currency = CONST.CURRENCY.USD) {
     });
 }
 
-export {getCurrencyDecimals, getCurrencyUnit, getLocalizedCurrencySymbol, isCurrencySymbolLTR, convertToBackendAmount, convertToFrontendAmount, convertToDisplayString};
+export {getCurrencyDecimals, getCurrencyUnit, getLocalizedCurrencySymbol, getCurrencySymbol, isCurrencySymbolLTR, convertToBackendAmount, convertToFrontendAmount, convertToDisplayString};
