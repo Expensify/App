@@ -46,5 +46,6 @@ function CountryPickerMenuItem({errorText, value}, ref) {
 
 CountryPickerMenuItem.propTypes = propTypes;
 CountryPickerMenuItem.defaultProps = defaultProps;
+CountryPickerMenuItem.displayName = 'CountryPickerMenuItem';
 
 export default React.memo(React.forwardRef(CountryPickerMenuItem));
