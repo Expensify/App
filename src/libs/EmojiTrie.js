@@ -46,10 +46,7 @@ function createTrie(lang = CONST.LOCALES.DEFAULT) {
              * Allow searching based on parts of the name. This turns 'white_large_square' into ['large_square', 'square'].
              * We remove the first part because we already index the full name.
              */
-            const nameParts = nm
-                .split('_')
-                .map((_namePart, index, allNameParts) => allNameParts.slice(index).join('_'))
-                .slice(1);
+            const nameParts = _.map(nm.split('_'), (_namePart, index, allNameParts) => allNameParts.slice(index).join('_')).slice(1);
 
             addKeywordsToTrie(trie, nameParts, item, nm);
         });
