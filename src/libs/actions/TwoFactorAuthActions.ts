@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import ONYXKEYS from '../../ONYXKEYS';
+import ONYXKEYS, {OnyxValues} from '../../ONYXKEYS';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 
@@ -7,10 +7,10 @@ import ROUTES from '../../ROUTES';
  * Clear 2FA data if the flow is interrupted without finishing
  */
 function clearTwoFactorAuthData() {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {recoveryCodes: '', twoFactorAuthSecretKey: '', twoFactorAuthStep: '', codesAreCopied: false});
+    Onyx.merge(ONYXKEYS.ACCOUNT, {recoveryCodes: '', twoFactorAuthSecretKey: '', twoFactorAuthStep: undefined, codesAreCopied: false});
 }
 
-function setTwoFactorAuthStep(twoFactorAuthStep) {
+function setTwoFactorAuthStep(twoFactorAuthStep: OnyxValues[typeof ONYXKEYS.ACCOUNT]['twoFactorAuthStep']) {
     Onyx.merge(ONYXKEYS.ACCOUNT, {twoFactorAuthStep});
 }
 

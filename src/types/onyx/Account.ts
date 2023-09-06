@@ -1,4 +1,4 @@
-import {ValueOf} from 'type-fest';
+import {ValueOf, StringKeyOf} from 'type-fest';
 import CONST from '../../CONST';
 import * as OnyxCommon from './OnyxCommon';
 
@@ -47,6 +47,8 @@ type Account = {
 
     errors?: OnyxCommon.Errors;
     success?: string;
+    codesAreCopied?: boolean;
+    twoFactorAuthStep?: ValueOf<typeof CONST.TWO_FACTOR_AUTH_STEPS>;
 };
 
 export default Account;
