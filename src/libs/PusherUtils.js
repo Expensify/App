@@ -22,7 +22,7 @@ function subscribeToMultiEvent(eventType, callback) {
  */
 function triggerMultiEventHandler(eventType, data) {
     if (!multiEventCallbackMapping[eventType]) {
-        return new Promise().resolve();
+        return Promise.resolve();
     }
     return multiEventCallbackMapping[eventType](data);
 }

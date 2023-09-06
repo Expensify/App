@@ -82,7 +82,7 @@ function apply({lastUpdateID, type, data}) {
 
     if (lastUpdateID < lastUpdateIDAppliedToClient) {
         console.debug('[OnyxUpdateManager] Update received was older than current state, returning without applying the updates');
-        return new Promise().resolve();
+        return Promise.resolve();
     }
     if (lastUpdateID && lastUpdateID > lastUpdateIDAppliedToClient) {
         Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, lastUpdateID);
