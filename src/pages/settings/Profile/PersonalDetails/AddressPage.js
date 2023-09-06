@@ -41,7 +41,7 @@ const propTypes = {
     route: PropTypes.shape({
         /** Params from the route */
         params: PropTypes.shape({
-            /** Currently selected currency */
+            /** Currently selected country */
             country: PropTypes.string,
         }),
     }).isRequired,

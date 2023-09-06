@@ -9,7 +9,9 @@ import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import FormHelpMessage from './FormHelpMessage';
 
 const propTypes = {
+    /** Error text from form, e.g when no country is selected */
     errorText: PropTypes.string,
+    /** Current selected country  */
     value: PropTypes.string,
 };
 
