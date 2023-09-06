@@ -22,6 +22,7 @@ class PopoverReportActionContextMenu extends React.Component {
         this.state = {
             reportID: '0',
             reportActionID: '0',
+            originalReportID: '0',
             selection: '',
             reportActionDraftMessage: '',
             isPopoverVisible: false,
@@ -131,6 +132,7 @@ class PopoverReportActionContextMenu extends React.Component {
      * @param {Boolean} isChronosReport - Flag to check if the chat participant is Chronos
      * @param {Boolean} isPinnedChat - Flag to check if the chat is pinned in the LHN. Used for the Pin/Unpin action
      * @param {Boolean} isUnreadChat - Flag to check if the chat is unread in the LHN. Used for the Mark as Read/Unread action
+     * @param {String} originalReportID - The currrent Report Id of the reportAction
      */
     showContextMenu(
         type,
@@ -146,6 +148,7 @@ class PopoverReportActionContextMenu extends React.Component {
         isChronosReport = false,
         isPinnedChat = false,
         isUnreadChat = false,
+        originalReportID,
     ) {
         const nativeEvent = event.nativeEvent || {};
         this.contextMenuAnchor = contextMenuAnchor;
@@ -178,6 +181,7 @@ class PopoverReportActionContextMenu extends React.Component {
                 isChronosReport,
                 isPinnedChat,
                 isUnreadChat,
+                originalReportID,
             });
         });
     }
@@ -319,6 +323,7 @@ class PopoverReportActionContextMenu extends React.Component {
                         isUnreadChat={this.state.isUnreadChat}
                         anchor={this.contextMenuTargetNode}
                         contentRef={this.contentRef}
+                        originalReportID={this.state.originalReportID}
                     />
                 </PopoverWithMeasuredContent>
                 <ConfirmModal

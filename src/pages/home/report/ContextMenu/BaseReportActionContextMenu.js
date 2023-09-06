@@ -47,8 +47,9 @@ const defaultProps = {
 function BaseReportActionContextMenu(props) {
     const [shouldKeepOpen, setShouldKeepOpen] = useState(false);
     const wrapperStyle = getReportActionContextMenuStyles(props.isMini, props.isSmallScreenWidth);
+
     const reportAction = useMemo(() => {
-        if (_.isEmpty(props.reportActions) || _.isEmpty(props.reportActionID)) return {};
+        if (_.isEmpty(props.reportActions) || props.reportActionID === '0') return {};
         return props.reportActions[props.reportActionID];
     }, [props.reportActions, props.reportActionID]);
 
@@ -129,7 +130,7 @@ export default compose(
     withWindowDimensions,
     withOnyx({
         reportActions: {
-            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            key: ({originalReportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`,
             canEvict: false,
         },
     }),
