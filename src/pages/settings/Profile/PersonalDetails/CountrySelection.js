@@ -5,9 +5,6 @@ import lodashGet from 'lodash/get';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
-import compose from '../../../../libs/compose';
-import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
-import {withNetwork} from '../../../../components/OnyxProvider';
 import SelectionList from '../../../../components/SelectionList';
 import searchCountryOptions from '../../../../libs/searchCountryOptions';
 import StringUtils from '../../../../libs/StringUtils';
@@ -26,8 +23,6 @@ const propTypes = {
             backTo: PropTypes.string,
         }),
     }).isRequired,
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {};
@@ -92,8 +87,4 @@ CountrySelection.displayName = 'CountrySelection';
 CountrySelection.propTypes = propTypes;
 CountrySelection.defaultProps = defaultProps;
 
-export default compose(
-    withLocalize,
-
-    withNetwork(),
-)(CountrySelection);
+export default CountrySelection;
