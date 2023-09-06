@@ -20,7 +20,7 @@ function unblock() {
  * Block selection on particular element
  */
 function blockElement(ref) {
-    if (!ref) {
+    if (ref === null) {
         return;
     }
 
@@ -32,7 +32,7 @@ function blockElement(ref) {
  * Unblock selection on particular element
  */
 function unblockElement(ref) {
-    if (!ref) {
+    if (ref === null) {
         return;
     }
 
