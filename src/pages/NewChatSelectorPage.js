@@ -39,10 +39,11 @@ function NewChatSelectorPage(props) {
                 {Permissions.canUsePolicyRooms(props.betas) ? (
                     <OnyxTabNavigator
                         id={CONST.TAB.NEW_CHAT_TAB_ID}
-                        tabBar={({state, navigation}) => (
+                        tabBar={({state, navigation, position}) => (
                             <TabSelector
                                 state={state}
                                 navigation={navigation}
+                                position={position}
                             />
                         )}
                     >
