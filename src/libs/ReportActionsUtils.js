@@ -109,7 +109,7 @@ function isWhisperAction(action) {
  * Returns whether the comment is a thread parent message/the first message in a thread
  *
  * @param {Object} reportAction
- * @param {Number} reportID
+ * @param {String} reportID
  * @returns {Boolean}
  */
 function isThreadParentMessage(reportAction, reportID) {

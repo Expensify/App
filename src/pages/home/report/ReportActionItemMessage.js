@@ -23,6 +23,9 @@ const propTypes = {
     /** Whether or not the message is hidden by moderation */
     isHidden: PropTypes.bool,
 
+    /** The ID of the report */
+    reportID: PropTypes.string.isRequired,
+
     /** localization props */
     ...withLocalizePropTypes,
 };
