@@ -486,7 +486,7 @@ export default {
     loungeAccessPage: {
         checkIn: 'Registrarse',
         loungeAccess: 'Acceso a la sala vip',
-        headline: 'Podrás acceder a nuestras salas vip exclusivas.',
+        headline: 'TRANSLATION NEEDED',
         description:
             'La sala vip Expensify es el punto de encuentro entre una "sala vip de aeropuerto de alta gama" y un vibrante "espacio de co-working" optimizado para personas con ideas afines.',
         coffeePromo: 'Buen café y buenos cócteles',
