@@ -2,8 +2,7 @@ import React, {useEffect, useMemo, useState, useRef} from 'react';
 import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import lodashHas from 'lodash/has';
-import lodashIsNull from 'lodash/isNull';
+import lodashIsNil from 'lodash/isNil';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 
@@ -90,18 +89,17 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
 
     const lastWaypointIndex = numberOfWaypoints - 1;
     const isLoadingRoute = lodashGet(transaction, 'comment.isLoading', false);
-    const hasRouteError = !lodashIsNull(lodashGet(transaction, 'errorFields.route'));
+    const hasRouteError = !lodashIsNil(lodashGet(transaction, 'errorFields.route'));
     const haveWaypointsChanged = !_.isEqual(previousWaypoints, waypoints);
     const doesRouteExist = TransactionUtils.doesRouteExist(transaction)
     const validatedWaypoints = TransactionUtils.getValidWaypoints(waypoints);
-    const hasMultipleValidWaypoints = _.size(validatedWaypoints) > 1;
     const isRouteAbsentWithNoErrors = !hasRouteError && !doesRouteExist;
-    const shouldFetchRoute = (haveWaypointsChanged || isRouteAbsentWithNoErrors) && !isLoadingRoute && hasMultipleValidWaypoints;
+    const shouldFetchRoute = (haveWaypointsChanged || isRouteAbsentWithNoErrors) && !isLoadingRoute && _.size(validatedWaypoints) > 1;
     const waypointMarkers = useMemo(
         () =>
             _.filter(
                 _.map(waypoints, (waypoint, key) => {
-                    if (!waypoint || !lodashHas(waypoint, 'lat') || !lodashHas(waypoint, 'lng') || lodashIsNull(waypoint.lat) || lodashIsNull(waypoint.lng)) {
+                    if (!waypoint || lodashIsNil(lodashGet(waypoint, 'lng')) || lodashIsNil(lodashGet(waypoint, 'lat'))) {
                         return;
                     }
 
