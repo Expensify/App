@@ -18,6 +18,7 @@ import * as Session from './Session';
 import * as ReportActionsUtils from '../ReportActionsUtils';
 import Timing from './Timing';
 import * as Browser from '../Browser';
+import {inc} from 'semver';
 
 let currentUserAccountID;
 let currentUserEmail;
@@ -142,9 +143,10 @@ function getPolicyParamsForOpenOrReconnect() {
 
 /**
  * Returns the Onyx data that is used for both the OpenApp and ReconnectApp API commands.
+ * @param {Object[]} An extra set of onyx updates that needs to be put into the successData so that it is immediately applied when the request finishes
  * @returns {Object}
  */
-function getOnyxDataForOpenOrReconnect() {
+function getOnyxDataForOpenOrReconnect(incomingOnyxUpdates) {
     return {
         optimisticData: [
             {
@@ -154,6 +156,7 @@ function getOnyxDataForOpenOrReconnect() {
             },
         ],
         successData: [
+            ...incomingOnyxUpdates,
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.IS_LOADING_REPORT_DATA,
@@ -211,9 +214,10 @@ function reconnectApp(updateIDFrom = 0) {
  * Fetches data when the app will call reconnectApp without params for the last time. This is a separate function
  * because it will follow patterns that are not recommended so we can be sure we're not putting the app in a unusable
  * state because of race conditions between reconnectApp and other pusher updates being applied at the same time.
+ * @param {Object[]} An array of onyxUpdates to apply in the success data
  * @return {Promise}
  */
-function finalReconnectAppAfterActivatingReliableUpdates() {
+function finalReconnectAppAfterActivatingReliableUpdates(incomingOnyxUpdates) {
     console.debug(`[OnyxUpdates] Executing last reconnect app with promise`);
     return getPolicyParamsForOpenOrReconnect().then((policyParams) => {
         const params = {...policyParams};
@@ -232,17 +236,18 @@ function finalReconnectAppAfterActivatingReliableUpdates() {
         // It was absolutely necessary in order to not break the app while migrating to the new reliable updates pattern. This method will be removed
         // as soon as we have everyone migrated to the reliableUpdate beta.
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        return API.write('ReconnectApp', params, getOnyxDataForOpenOrReconnect(), true);
+        return API.write('ReconnectApp', params, getOnyxDataForOpenOrReconnect(incomingOnyxUpdates), true);
     });
 }
 
 /**
  * Fetches data when the client has discovered it missed some Onyx updates from the server
+ * @param {Object[]} An array of onyxUpdates to apply in the success data
  * @param {Number} [updateIDFrom] the ID of the Onyx update that we want to start fetching from
  * @param {Number} [updateIDTo] the ID of the Onyx update that we want to fetch up to
  * @return {Promise}
  */
-function getMissingOnyxUpdates(updateIDFrom = 0, updateIDTo = 0) {
+function getMissingOnyxUpdates(incomingOnyxUpdates, updateIDFrom = 0, updateIDTo = 0) {
     console.debug(`[OnyxUpdates] Fetching missing updates updateIDFrom: ${updateIDFrom} and updateIDTo: ${updateIDTo}`);
 
     // It is SUPER BAD FORM to return promises from action methods.
@@ -255,7 +260,7 @@ function getMissingOnyxUpdates(updateIDFrom = 0, updateIDTo = 0) {
             updateIDFrom,
             updateIDTo,
         },
-        getOnyxDataForOpenOrReconnect(),
+        getOnyxDataForOpenOrReconnect(incomingOnyxUpdates),
         true,
     );
 }

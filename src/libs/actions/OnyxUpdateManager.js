@@ -1,4 +1,5 @@
 import Onyx from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../ONYXKEYS';
 import Log from '../Log';
 import * as SequentialQueue from '../Network/SequentialQueue';
@@ -36,6 +37,7 @@ export default () => {
             }
 
             const {lastUpdateIDFromServer, previousUpdateIDFromServer, updateParams} = val;
+            const incomingOnyxUpdates = lodashGet(updateParams, 'data.onyxUpdates', []);
 
             // In cases where we received a previousUpdateID and it doesn't match our lastUpdateIDAppliedToClient
             // we need to perform one of the 2 possible cases:
@@ -56,7 +58,7 @@ export default () => {
                 Log.info('Client has not gotten reliable updates before so reconnecting the app to start the process');
 
                 // Since this is a full reconnectApp, we'll not apply the updates we received - those will come in the reconnect app request.
-                canUnpauseQueuePromise = App.finalReconnectAppAfterActivatingReliableUpdates();
+                canUnpauseQueuePromise = App.finalReconnectAppAfterActivatingReliableUpdates(incomingOnyxUpdates);
             } else {
                 // The flow below is setting the promise to a getMissingOnyxUpdates to address flow (2) explained above.
                 console.debug(`[OnyxUpdateManager] Client is behind the server by ${previousUpdateIDFromServer - lastUpdateIDAppliedToClient} so fetching incremental updates`);
@@ -65,7 +67,7 @@ export default () => {
                     previousUpdateIDFromServer,
                     lastUpdateIDAppliedToClient,
                 });
-                canUnpauseQueuePromise = App.getMissingOnyxUpdates(lastUpdateIDAppliedToClient, lastUpdateIDFromServer);
+                canUnpauseQueuePromise = App.getMissingOnyxUpdates(incomingOnyxUpdates, lastUpdateIDAppliedToClient, lastUpdateIDFromServer);
             }
 
             canUnpauseQueuePromise.finally(() => {
