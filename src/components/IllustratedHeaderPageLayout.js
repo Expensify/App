@@ -9,7 +9,6 @@ import ScreenWrapper from './ScreenWrapper';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
 import * as StyleUtils from '../styles/StyleUtils';
-import useWindowDimensions from '../hooks/useWindowDimensions';
 import FixedFooter from './FixedFooter';
 import useNetwork from '../hooks/useNetwork';
 
@@ -35,7 +34,6 @@ const defaultProps = {
 };
 
 function IllustratedHeaderPageLayout({backgroundColor, children, illustration, footer, ...propsToPassToHeader}) {
-    const {windowHeight} = useWindowDimensions();
     const {isOffline} = useNetwork();
     return (
         <ScreenWrapper
@@ -53,11 +51,15 @@ function IllustratedHeaderPageLayout({backgroundColor, children, illustration, f
                         iconFill={backgroundColor === themeColors.appBG ? undefined : themeColors.iconColorfulBackground}
                     />
                     <View style={[styles.flex1, StyleUtils.getBackgroundColorStyle(themeColors.appBG), !isOffline ? safeAreaPaddingBottomStyle : {}]}>
+                        {/* Safari on ios has a bug where overscrolling the page scrollview shows green the background color. This is a workaround to fix that. https://github.com/Expensify/App/issues/23422#issuecomment-1666890994 */}
+                        <View style={[styles.dualColorOverscrollSpacer]}>
+                            <View style={[styles.flex1, StyleUtils.getBackgroundColorStyle(backgroundColor)]} />
+                            <View style={[styles.flex1, StyleUtils.getBackgroundColorStyle(themeColors.appBG)]} />
+                        </View>
                         <ScrollView
                             contentContainerStyle={safeAreaPaddingBottomStyle}
                             showsVerticalScrollIndicator={false}
                         >
-                            <View style={styles.overscrollSpacer(backgroundColor, windowHeight)} />
                             <View style={[styles.alignItemsCenter, styles.justifyContentEnd, StyleUtils.getBackgroundColorStyle(backgroundColor)]}>
                                 <Lottie
                                     source={illustration}
@@ -66,9 +68,9 @@ function IllustratedHeaderPageLayout({backgroundColor, children, illustration, f
                                     loop
                                 />
                             </View>
-                            <View style={[styles.pt5]}>{children}</View>
+                            <View style={[styles.pt5, StyleUtils.getBackgroundColorStyle(themeColors.appBG)]}>{children}</View>
                         </ScrollView>
-                        {!_.isNull(footer) && <FixedFooter>{footer}</FixedFooter>}
+                        {!_.isNull(footer) && <FixedFooter style={[StyleUtils.getBackgroundColorStyle(themeColors.appBG)]}>{footer}</FixedFooter>}
                     </View>
                 </>
             )}
