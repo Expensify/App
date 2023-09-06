@@ -3109,9 +3109,8 @@ function getMoneyRequestOptions(report, reportParticipants, betas) {
         return [];
     }
 
-    // There is no Split Bill option for rooms or Workspace chats
-    // DM chats will have the Split Bill option only when there are at least 3 people in the chat.
-    if (!isChatRoom(report) && !isPolicyExpenseChat(report) && hasMultipleParticipants) {
+    // There is no Split Bill option for rooms or Workspace chats, only groups or DMs
+    if (!isChatRoom(report) && !isPolicyExpenseChat(report) && hasMultipleParticipants || (isOneOnOneChat(report) && !isConciergeChatReport(report))) {
         return [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT];
     }
 
