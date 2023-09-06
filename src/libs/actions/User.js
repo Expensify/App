@@ -560,22 +560,42 @@ function subscribeToUserEvents() {
             return;
         }
 
-        const updates = {
-            type: CONST.ONYX_UPDATE_TYPES.PUSHER,
-            lastUpdateID: Number(pushJSON.lastUpdateID || 0),
-            data: {
-                updates: pushJSON.updates,
-            },
-        };
-        if (!OnyxUpdates.doesClientNeedToBeUpdated(Number(pushJSON.previousUpdateID || 0))) {
-            OnyxUpdates.apply(updates);
+        const lastUpdateIDFromServer = Number(pushJSON.lastUpdateID || 0);
+        const previousUpdateIDFromServer = Number(pushJSON.previousUpdateID || 0);
+
+        // If the client doesn't need to be updated, then trigger the pusher multiple event handlers like normal
+        // so that all the onyx updates are applied normally.
+        if (!OnyxUpdates.doesClientNeedToBeUpdated(previousUpdateIDFromServer)) {
+            // @TODO rename this method
+            OnyxUpdates.apply({
+                lastUpdateID: lastUpdateIDFromServer,
+            });
+            _.each(pushJSON.updates, (multipleEvent) => {
+                PusherUtils.triggerMultiEventHandler(multipleEvent.eventType, multipleEvent.data);
+            });
             return;
         }
 
-        // If we reached this point, we need to pause the queue while we prepare to fetch older OnyxUpdates. This needs to happen here since adding it on OnyxUpdates
-        // would cause a circular reference issue.
-        SequentialQueue.pause();
-        OnyxUpdates.saveUpdateInformation(updates, Number(pushJSON.lastUpdateID || 0), Number(pushJSON.previousUpdateID || 0));
+        // There is a gap of onyx updates that the client is missing, so we need to gather all the onyx updates from the pusher events
+        // so that they can be applied once the gap is resolved
+        const incomingOnyxUpdates = _.reduce(
+            pushJSON.updates,
+            (result, multipleEvent) => {
+                if (multipleEvent.eventType === Pusher.TYPE.MULTIPLE_EVENT_TYPE.ONYX_API_UPDATE) {
+                    result.push(multipleEvent.data);
+                }
+                return result;
+            },
+            [],
+        );
+
+        // This triggers code in OnyxUpdateManager which will resolve the gap of updates
+        // Always use set() here so that the updateParams are never merged and always unique to the request that came in
+        Onyx.set(ONYXKEYS.ONYX_UPDATES_FROM_SERVER, {
+            lastUpdateIDFromServer,
+            previousUpdateIDFromServer,
+            incomingOnyxUpdates,
+        });
     });
 
     // Handles Onyx updates coming from Pusher through the mega multipleEvents.

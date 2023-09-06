@@ -161,8 +161,7 @@ NetworkStore.onReconnection(flush);
  */
 function push(request, front = false) {
     // Add request to Persisted Requests so that it can be retried if it fails
-    return PersistedRequests.save([request], front).then(()=>{
-
+    return PersistedRequests.save([request], front).then(() => {
         // If we are offline we don't need to trigger the queue to empty as it will happen when we come back online
         if (NetworkStore.isOffline()) {
             return;

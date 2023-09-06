@@ -36,14 +36,7 @@ export default () => {
                 return;
             }
 
-            const {lastUpdateIDFromServer, previousUpdateIDFromServer, updateParams} = val;
-
-            if (lastUpdateIDFromServer < lastUpdateIDAppliedToClient) {
-                console.debug('[OnyxUpdateManager] Update received was older than current state, returning earlywithout applying the updates');
-                return;
-            }
-
-            const incomingOnyxUpdates = lodashGet(updateParams, 'data.onyxUpdates', []);
+            const {lastUpdateIDFromServer, previousUpdateIDFromServer, incomingOnyxUpdates} = val;
 
             // In cases where we received a previousUpdateID and it doesn't match our lastUpdateIDAppliedToClient
             // we need to perform one of the 2 possible cases:
@@ -57,26 +50,26 @@ export default () => {
             // applied in their correct and specific order. If this queue was not paused, then there would be a lot of
             // onyx data being applied while we are fetching the missing updates and that would put them all out of order.
             SequentialQueue.pause();
-            let canUnpauseQueuePromise;
+            let gapResolvedPromise;
 
             // The flow below is setting the promise to a reconnect app to address flow (1) explained above.
             if (!lastUpdateIDAppliedToClient) {
-                Log.info('Client has not gotten reliable updates before so reconnecting the app to start the process');
+                Log.info('[OnyxUpdateManager] Client has not gotten reliable updates before so reconnecting the app to start the process');
 
                 // Since this is a full reconnectApp, we'll not apply the updates we received - those will come in the reconnect app request.
-                canUnpauseQueuePromise = App.finalReconnectAppAfterActivatingReliableUpdates(incomingOnyxUpdates);
+                gapResolvedPromise = App.finalReconnectAppAfterActivatingReliableUpdates(incomingOnyxUpdates);
             } else {
                 // The flow below is setting the promise to a getMissingOnyxUpdates to address flow (2) explained above.
-                console.debug(`[OnyxUpdateManager] Client is behind the server by ${previousUpdateIDFromServer - lastUpdateIDAppliedToClient} so fetching incremental updates`);
-                Log.info('Gap detected in update IDs from server so fetching incremental updates', true, {
+                Log.info('[OnyxUpdateManager] Client is behind the server so fetching incremental updates', true, {
                     lastUpdateIDFromServer,
                     previousUpdateIDFromServer,
                     lastUpdateIDAppliedToClient,
+                    gapSize: previousUpdateIDFromServer - lastUpdateIDAppliedToClient,
                 });
-                canUnpauseQueuePromise = App.getMissingOnyxUpdates(incomingOnyxUpdates, lastUpdateIDAppliedToClient, lastUpdateIDFromServer);
+                gapResolvedPromise = App.getMissingOnyxUpdates(incomingOnyxUpdates, lastUpdateIDAppliedToClient, lastUpdateIDFromServer);
             }
 
-            canUnpauseQueuePromise.finally(() => {
+            gapResolvedPromise.finally(() => {
                 SequentialQueue.unpause();
             });
         },

@@ -1,3 +1,4 @@
+import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -37,21 +38,47 @@ function SaveResponseInOnyx(response, request) {
             return true;
         });
 
-        const responseToApply = {
-            type: CONST.ONYX_UPDATE_TYPES.HTTPS,
-            lastUpdateID: Number(responseData.lastUpdateID || 0),
-            data: {
-                request,
-                responseData,
-            },
-        };
+        const lastUpdateIDFromServer = Number(responseData.lastUpdateID || 0);
+        const previousUpdateIDFromServer = Number(responseData.previousUpdateID || 0);
 
-        if (_.includes(requestsToIgnoreLastUpdateID, request.command) || !OnyxUpdates.doesClientNeedToBeUpdated(Number(responseData.previousUpdateID || 0))) {
-            return OnyxUpdates.apply(responseToApply);
+        // If the client doesn't need to be updated, then trigger update onyx like normal
+        if (_.includes(requestsToIgnoreLastUpdateID, request.command) || !OnyxUpdates.doesClientNeedToBeUpdated(previousUpdateIDFromServer)) {
+            OnyxUpdates.apply({
+                lastUpdateID: lastUpdateIDFromServer,
+            });
+
+            // For most requests we can immediately update Onyx. For write requests we queue the updates and apply them after the sequential queue has flushed to prevent a replay effect in
+            // the UI. See https://github.com/Expensify/App/issues/12775 for more info.
+            const updateHandler = request.data.apiRequestType === CONST.API_REQUEST_TYPE.WRITE ? QueuedOnyxUpdates.queueOnyxUpdates : Onyx.update;
+
+            // First apply any onyx data updates that are being sent back from the API. We wait for this to complete and then
+            // apply successData or failureData. This ensures that we do not update any pending, loading, or other UI states contained
+            // in successData/failureData until after the component has received and API data.
+            const onyxDataUpdatePromise = responseData.onyxData ? updateHandler(responseData.onyxData) : Promise.resolve();
+
+            return onyxDataUpdatePromise
+                .then(() => {
+                    // Handle the request's success/failure data (client-side data)
+                    if (response.jsonCode === 200 && request.successData) {
+                        return updateHandler(request.successData);
+                    }
+                    if (response.jsonCode !== 200 && request.failureData) {
+                        return updateHandler(request.failureData);
+                    }
+                    return Promise.resolve();
+                })
+                .then(() => {
+                    return response;
+                });
         }
 
-        // Save the update IDs to Onyx so they can be used to fetch incremental updates if the client gets out of sync from the server
-        OnyxUpdates.saveUpdateInformation(responseToApply, Number(responseData.lastUpdateID || 0), Number(responseData.previousUpdateID || 0));
+        // This triggers code in OnyxUpdateManager which will resolve the gap of updates
+        // Always use set() here so that the updateParams are never merged and always unique to the request that came in
+        Onyx.set(ONYXKEYS.ONYX_UPDATES_FROM_SERVER, {
+            lastUpdateIDFromServer,
+            previousUpdateIDFromServer,
+            incomingOnyxUpdates: responseData.onyxData,
+        });
 
         // Ensure the queue is paused while the client resolves the gap in onyx updates so that updates are guaranteed to happen in a specific order.
         return Promise.resolve({
