@@ -8,6 +8,7 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import userPropTypes from '../userPropTypes';
 import NotFoundPage from '../../ErrorPage/NotFoundPage';
 import useLocalize from '../../../hooks/useLocalize';
+import Text from '../../../components/Text';
 import Button from '../../../components/Button';
 import FeatureList from '../../../components/FeatureList';
 import * as Illustrations from '../../../components/Icon/Illustrations';
@@ -41,6 +42,8 @@ const menuItems = [
 
 function LoungeAccessPage({user}) {
     const {translate} = useLocalize();
+    const isCheckedIn = false;
+    const numberOfCheckInsLeft = 6;
 
     if (!user.hasLoungeAccess) {
         return <NotFoundPage />;
@@ -58,6 +61,22 @@ function LoungeAccessPage({user}) {
             illustration={LottieAnimations.ExpensifyLounge}
         >
             <View style={[styles.w100, styles.ph5, styles.pb8]}>
+                <Text style={[styles.textStrong, styles.mb4]}>{translate('loungeAccessPage.checkIn')}</Text>
+                <Text style={[styles.textLabelSupporting, styles.mb1]}>{translate('loungeAccessPage.addressLabel')}</Text>
+                <Text style={[styles.mb4]}>{translate('loungeAccessPage.address')}</Text>
+                <Text style={[styles.textLabelSupporting, styles.mb1]}>{translate('loungeAccessPage.nextCheckInLabel')}</Text>
+                <Text style={[styles.mb4]}>
+                    {isCheckedIn ? translate('loungeAccessPage.nextCheckInBeforeNumberCheckedIn') : translate('loungeAccessPage.nextCheckInBeforeNumberCheckIn')}
+                    {' '}
+                    {/* TODO: Localize numbers as well */}
+                    <Text style={[styles.textStrong]}>
+                        {numberOfCheckInsLeft}
+                        {' '}
+                        {numberOfCheckInsLeft === 1 ? translate('loungeAccessPage.nextCheckInNumberCountSingular') : translate('loungeAccessPage.nextCheckInNumberCountPlural')}
+                    </Text>
+                    {' '}
+                    {translate('loungeAccessPage.nextCheckInAfterNumber')}
+                </Text>
                 <Button
                     style={[styles.w100]}
                     text={translate('loungeAccessPage.checkIn')}
