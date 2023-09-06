@@ -8,6 +8,20 @@ Timing.start(CONST.TIMING.TRIE_INITIALIZATION);
 
 const supportedLanguages = [CONST.LOCALES.DEFAULT, CONST.LOCALES.ES];
 
+function addKeywordsToTrie(trie, keywords, item, name) {
+    _.forEach(keywords, (keyword) => {
+        const keywordNode = trie.search(keyword);
+        if (!keywordNode) {
+            trie.add(keyword, {suggestions: [{code: item.code, types: item.types, name}]});
+        } else {
+            trie.update(keyword, {
+                ...keywordNode.metaData,
+                suggestions: [...keywordNode.metaData.suggestions, {code: item.code, types: item.types, name}],
+            });
+        }
+    });
+}
+
 function createTrie(lang = CONST.LOCALES.DEFAULT) {
     const trie = new Trie();
     const langEmojis = localeEmojis[lang];
@@ -27,20 +41,21 @@ function createTrie(lang = CONST.LOCALES.DEFAULT) {
             } else {
                 trie.update(nm, {code: item.code, types: item.types, name: nm, suggestions: node.metaData.suggestions});
             }
+
+            /**
+             * Allow searching based on parts of the name. This turns 'white_large_square' into ['large_square', 'square'].
+             * We remove the first part because we already index the full name.
+             */
+            const nameParts = nm
+                .split('_')
+                .map((_namePart, index, allNameParts) => allNameParts.slice(index).join('_'))
+                .slice(1);
+
+            addKeywordsToTrie(trie, nameParts, item, nm);
         });
 
         const keywords = _.get(langEmojis, [item.code, 'keywords'], []).concat(isDefaultLocale ? [] : _.get(localeEmojis, [CONST.LOCALES.DEFAULT, item.code, 'keywords'], []));
-        for (let j = 0; j < keywords.length; j++) {
-            const keywordNode = trie.search(keywords[j]);
-            if (!keywordNode) {
-                trie.add(keywords[j], {suggestions: [{code: item.code, types: item.types, name}]});
-            } else {
-                trie.update(keywords[j], {
-                    ...keywordNode.metaData,
-                    suggestions: [...keywordNode.metaData.suggestions, {code: item.code, types: item.types, name}],
-                });
-            }
-        }
+        addKeywordsToTrie(trie, keywords, item, name);
     });
 
     return trie;
