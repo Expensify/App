@@ -113,10 +113,8 @@ function isWhisperAction(action) {
  * @returns {Boolean}
  */
 function isThreadParentMessage(reportAction, reportID) {
-    return (
-        lodashGet(reportAction, 'childType', '') === CONST.REPORT.TYPE.CHAT &&
-        (lodashGet(reportAction, 'childVisibleActionCount', 0) > 0 || (!_.isUndefined(reportAction.childReportID) && reportAction.childReportID.toString() === reportID))
-    );
+    const {childType, childVisibleActionCount = 0, childReportID} = reportAction;
+    return childType === CONST.REPORT.TYPE.CHAT && (childVisibleActionCount > 0 || String(childReportID) === reportID);
 }
 
 /**
