@@ -15,10 +15,11 @@ function clear() {
 
 /**
  * @param {Array} requestsToPersist
+ * @param {Boolean} [front] whether or not the request should go in the front of the queue
  */
-function save(requestsToPersist) {
+function save(requestsToPersist, front = false) {
     if (persistedRequests.length) {
-        persistedRequests = persistedRequests.concat(requestsToPersist);
+        persistedRequests = front ? persistedRequests.unshift(...requestsToPersist) : persistedRequests.concat(requestsToPersist);
     } else {
         persistedRequests = requestsToPersist;
     }
