@@ -1538,7 +1538,11 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
         true,
     );
 
-    const optimisticReportPreviewAction = ReportUtils.updateReportPreview(iouReport, ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID));
+    const optimisticReportPreviewAction = null;
+    const reportPreviewAction = ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID);
+    if (reportPreviewAction) {
+        optimisticReportPreviewAction = ReportUtils.updateReportPreview(iouReport, reportPreviewAction);
+    }
 
     const optimisticData = [
         {
@@ -1564,13 +1568,18 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
                 },
             },
         },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
-            value: {
-                [optimisticReportPreviewAction.reportActionID]: optimisticReportPreviewAction,
-            },
-        },
+        ...(optimisticReportPreviewAction
+            ? [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+                    value: {
+                        [optimisticReportPreviewAction.reportActionID]: optimisticReportPreviewAction,
+                    },
+                },
+              ]
+            : []
+        ),
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
@@ -1611,15 +1620,20 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
                 },
             },
         },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
-            value: {
-                [optimisticReportPreviewAction.reportActionID]: {
-                    created: optimisticReportPreviewAction.created,
+        ...(optimisticReportPreviewAction
+            ? [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+                    value: {
+                        [optimisticReportPreviewAction.reportActionID]: {
+                            created: optimisticReportPreviewAction.created,
+                        },
+                    },
                 },
-            },
-        },
+              ]
+            : []
+        ),
     ];
 
     return {
