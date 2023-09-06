@@ -3678,6 +3678,13 @@ const styles = (theme) => ({
         width: '100%',
     },
 
+    singleOptionSelectorRow: {
+        ...flex.flexRow,
+        ...flex.alignItemsCenter,
+        gap: 12,
+        marginBottom: 16,
+    },
+
     walletCard: {
         borderRadius: variables.componentBorderRadiusLarge,
         position: 'relative',
