@@ -22,7 +22,13 @@ function ReportAttachmentsProvider(props) {
     const contextValue = useMemo(
         () => ({
             isAttachmentHidden,
-            updateIsAttachmentHidden: (reportActionID, value) => setIsAttachmentHidden((state) => ({...state, [reportActionID]: value})),
+            updateIsAttachmentHidden: (reportActionID, value) => {
+                // To prevent unnecessary re-render, skip updating the state if the value is the same
+                if (Boolean(isAttachmentHidden[reportActionID]) === value) {
+                    return;
+                }
+                setIsAttachmentHidden((state) => ({...state, [reportActionID]: value}));
+            },
         }),
         [isAttachmentHidden],
     );

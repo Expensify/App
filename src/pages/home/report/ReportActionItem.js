@@ -130,7 +130,7 @@ function ReportActionItem(props) {
     const [isHidden, setIsHidden] = useState(false);
     const [moderationDecision, setModerationDecision] = useState(CONST.MODERATION.MODERATOR_DECISION_APPROVED);
     const {reactionListRef} = useContext(ReportScreenContext);
-    const {isAttachmentHidden, updateIsAttachmentHidden} = useContext(ReportAttachmentsContext);
+    const {updateIsAttachmentHidden} = useContext(ReportAttachmentsContext);
     const textInputRef = useRef();
     const popoverAnchorRef = useRef();
     const downloadedPreviews = useRef([]);
@@ -140,12 +140,11 @@ function ReportActionItem(props) {
 
     useEffect(() => {
         const isAttachment = ReportUtils.isReportMessageAttachment(_.last(props.action.message));
-        // To prevent unnecessary re-render, skip updating the state if the value is the same
-        if (!isAttachment || Boolean(isAttachmentHidden[props.action.reportActionID]) === isHidden) {
+        if (!isAttachment) {
             return;
         }
         updateIsAttachmentHidden(props.action.reportActionID, isHidden);
-    }, [props.action.reportActionID, props.action.message, isHidden, isAttachmentHidden, updateIsAttachmentHidden]);
+    }, [props.action.reportActionID, props.action.message, isHidden, updateIsAttachmentHidden]);
 
     useEffect(
         () => () => {
