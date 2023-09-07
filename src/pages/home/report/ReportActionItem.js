@@ -130,7 +130,7 @@ function ReportActionItem(props) {
     const [isHidden, setIsHidden] = useState(false);
     const [moderationDecision, setModerationDecision] = useState(CONST.MODERATION.MODERATOR_DECISION_APPROVED);
     const {reactionListRef} = useContext(ReportScreenContext);
-    const {updateIsAttachmentHidden} = useContext(ReportAttachmentsContext);
+    const {updateHiddenAttachments} = useContext(ReportAttachmentsContext);
     const textInputRef = useRef();
     const popoverAnchorRef = useRef();
     const downloadedPreviews = useRef([]);
@@ -143,8 +143,8 @@ function ReportActionItem(props) {
         if (!isAttachment) {
             return;
         }
-        updateIsAttachmentHidden(props.action.reportActionID, isHidden);
-    }, [props.action.reportActionID, props.action.message, isHidden, updateIsAttachmentHidden]);
+        updateHiddenAttachments(props.action.reportActionID, isHidden);
+    }, [props.action.reportActionID, props.action.message, isHidden, updateHiddenAttachments]);
 
     useEffect(
         () => () => {

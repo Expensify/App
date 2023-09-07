@@ -46,10 +46,10 @@ const defaultProps = {
 
 function CarouselItem({item, isFocused, onPress}) {
     const {translate} = useLocalize();
-    const {isAttachmentHidden} = useContext(ReportAttachmentsContext);
+    const {hiddenAttachments} = useContext(ReportAttachmentsContext);
     const [isHidden, setIsHidden] = useState(() => {
-        const isAttachmentHiddenValue = isAttachmentHidden[item.reportActionID];
-        return isAttachmentHiddenValue === undefined ? item.hasBeenFlagged : isAttachmentHiddenValue;
+        const isAttachmentHidden = hiddenAttachments[item.reportActionID];
+        return isAttachmentHidden === undefined ? item.hasBeenFlagged : isAttachmentHidden;
     });
 
     const renderButton = (style) => (
