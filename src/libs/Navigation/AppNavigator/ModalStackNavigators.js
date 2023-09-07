@@ -442,7 +442,7 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
-            const CountrySelectionPage = require('../../../pages/settings/Profile/PersonalDetails/CountrySelection').default;
+            const CountrySelectionPage = require('../../../pages/settings/Profile/PersonalDetails/CountrySelectionPage').default;
             return CountrySelectionPage;
         },
         name: 'Settings_PersonalDetails_Address_Country',
