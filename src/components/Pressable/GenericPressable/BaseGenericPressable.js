@@ -133,7 +133,8 @@ const GenericPressable = forwardRef((props, ref) => {
             onLayout={shouldUseAutoHitSlop ? onLayout : undefined}
             ref={ref}
             onPress={!isDisabled ? onPressHandler : undefined}
-            onLongPress={!isDisabled && onLongPress ? onLongPressHandler : undefined}
+            // In order to prevent haptic feedback, pass empty callback as onLongPress props. Please refer https://github.com/necolas/react-native-web/issues/2349#issuecomment-1195564240
+            onLongPress={!isDisabled && onLongPress ? onLongPressHandler : () => {}}
             onKeyPress={!isDisabled ? onKeyPressHandler : undefined}
             onKeyDown={!isDisabled ? onKeyDown : undefined}
             onPressIn={!isDisabled ? onPressIn : undefined}
