@@ -50,7 +50,7 @@ function TaskDescriptionPage(props) {
 
     if (!ReportUtils.isTaskReport(props.report)) {
         Navigation.isNavigationReady().then(() => {
-            Navigation.dismissModal();
+            Navigation.dismissModal(props.report.reportID);
         });
     }
     const inputRef = useRef(null);

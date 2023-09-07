@@ -62,7 +62,7 @@ function TaskTitlePage(props) {
 
     if (!ReportUtils.isTaskReport(props.report)) {
         Navigation.isNavigationReady().then(() => {
-            Navigation.dismissModal();
+            Navigation.dismissModal(props.report.reportID);
         });
     }
 
