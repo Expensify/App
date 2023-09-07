@@ -69,17 +69,29 @@ function SidebarLinksData({isFocused, allReportActions, betas, chatReports, curr
     const reportIDsRef = useRef(null);
     const isLoading = SessionUtils.didUserLogInDuringSession() && isLoadingReportData;
     const optionListItems = useMemo(() => {
-        const reportIDs = SidebarUtils.getOrderedReportIDs(currentReportID, chatReports, betas, policies, priorityMode, allReportActions);
+        const reportIDs = SidebarUtils.getOrderedReportIDs(null, chatReports, betas, policies, priorityMode, allReportActions);
         if (deepEqual(reportIDsRef.current, reportIDs)) {
             return reportIDsRef.current;
         }
 
         // We need to update existing reports only once while loading because they are updated several times during loading and causes this regression: https://github.com/Expensify/App/issues/24596#issuecomment-1681679531
-        if (!isLoading || !reportIDsRef.current || (_.isEmpty(reportIDsRef.current) && currentReportID)) {
+        if (!isLoading || !reportIDsRef.current) {
             reportIDsRef.current = reportIDs;
         }
         return reportIDsRef.current || [];
-    }, [allReportActions, betas, chatReports, currentReportID, policies, priorityMode, isLoading]);
+    }, [allReportActions, betas, chatReports, policies, priorityMode, isLoading]);
+
+    // We need to make sure the current report is in the list of reports, but we do not want
+    // to have to re-generate the list every time the currentReportID changes. To do that
+    // we first generate the list as if there was no current report, then here we check if
+    // the current report is missing from the list, which should very rarely happen. In this
+    // case we re-generate the list a 2nd time with the current report included.
+    const optionListItemsWithCurrentReport = useMemo(() => {
+        if (currentReportID && !_.contains(optionListItems, currentReportID)) {
+            return SidebarUtils.getOrderedReportIDs(currentReportID, chatReports, betas, policies, priorityMode, allReportActions);
+        }
+        return optionListItems;
+    }, [currentReportID, optionListItems, chatReports, betas, policies, priorityMode, allReportActions]);
 
     const currentReportIDRef = useRef(currentReportID);
     currentReportIDRef.current = currentReportID;
@@ -100,7 +112,7 @@ function SidebarLinksData({isFocused, allReportActions, betas, chatReports, curr
                 // Data props:
                 isActiveReport={isActiveReport}
                 isLoading={isLoading}
-                optionListItems={optionListItems}
+                optionListItems={optionListItemsWithCurrentReport}
             />
         </View>
     );
