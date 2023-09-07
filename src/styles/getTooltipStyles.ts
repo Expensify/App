@@ -62,11 +62,11 @@ function computeHorizontalShift(windowWidth: number, xOffset: number, componentW
  *                       |         |
  *                       |_ _ _ _ _|
  *
+ * @param tooltip - The reference to the tooltip's root element
  * @param xOffset - The distance between the left edge of the window
  *                           and the left edge of the wrapped component.
  * @param yOffset - The distance between the top edge of the window
  *                           and the top edge of the wrapped component.
- * @param [tooltip] - The reference to the tooltip's root element
  * @param tooltipTargetWidth - The width of the tooltip's target
  * @param tooltipTargetHeight - The height of the tooltip's target
  */
