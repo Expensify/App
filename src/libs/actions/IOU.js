@@ -252,6 +252,9 @@ function buildOnyxDataForMoneyRequest(
                           },
                       }
                     : {}),
+
+                // If the money request fails to create, reset the report total
+                ...(ReportUtils.isPolicyExpenseChat(chatReport) ? {total: iouReport.total - transaction.amount} : {}),
             },
         },
         {
@@ -339,12 +342,7 @@ function cleanUpFailedMoneyRequest(iouAction) {
         });
         Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, null);
         const lastMessageText = OptionsListUtils.getLastMessageTextFromActions(iouReport.reportID);
-
-        // Subtract the amount of the deleted request from the total (we actually add because totals are negative)
-        const newTotal = iouReport.total - -1 * iouAction.amount;
-        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, {lastMessageText, lastMessageHtml: lastMessageText, total: newTotal});
-
-        // Get the report with the updated total
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, {lastMessageText, lastMessageHtml: lastMessageText});
         const updatedIOUReport = allReports[iouReport.reportID] || {};
 
         // Update the preview action after clearing the failed request
