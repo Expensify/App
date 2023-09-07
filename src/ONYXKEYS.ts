@@ -236,6 +236,7 @@ const ONYXKEYS = {
     // Max width supported for HTML <canvas> element
     MAX_CANVAS_WIDTH: 'maxCanvasWidth',
 
+    // A list of recently used tags of a policy
     RECENTLY_USED_POLICY_TAGS: 'recentlyUsedPolicyTags_',
 
     /** Collection Keys */
