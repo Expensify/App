@@ -20,23 +20,24 @@ const defaultProps = {
     value: '',
 };
 
-function CountryPickerMenuItem({errorText, value}, ref) {
+function CountryPickerMenuItem({errorText, value: countryCode}, ref) {
     const {translate} = useLocalize();
-    const getCountryFromCountryCode = (code) => translate('allCountries')[code];
 
-    const countryTitleDescStyle = value && value.length === 0 ? styles.textNormal : null;
+    const countries = translate('allCountries');
+    const country = countries[countryCode] || '';
+    const countryTitleDescStyle = country.length === 0 ? styles.textNormal : null;
 
     return (
         <View>
             <MenuItemWithTopDescription
                 shouldShowRightIcon
-                title={getCountryFromCountryCode(value)}
+                title={country}
                 ref={ref}
                 descriptionTextStyle={countryTitleDescStyle}
                 description={translate('common.country')}
                 onPress={() => {
                     const activeRoute = Navigation.getActiveRoute().replace(/\?.*/, '');
-                    Navigation.navigate(ROUTES.getCountryRoute(value, activeRoute));
+                    Navigation.navigate(ROUTES.getCountryRoute(countryCode, activeRoute));
                 }}
             />
             <View style={styles.ml5}>

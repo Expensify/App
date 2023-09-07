@@ -25,6 +25,7 @@ const propTypes = {
     }).isRequired,
     /** Navigation from react-navigation */
     navigation: PropTypes.shape({
+        /** getState function retrieves the current navigation state from react-navigation's navigation property */
         getState: PropTypes.func.isRequired,
     }).isRequired,
 };
@@ -53,11 +54,15 @@ function CountrySelection({route, navigation}) {
         (option) => {
             const backTo = lodashGet(route, 'params.backTo', '');
 
+            // Check the navigation state and "backTo" parameter to decide navigation behavior
             if (navigation.getState().routes.length === 1 && _.isEmpty(backTo)) {
+                // If there is only one route and "backTo" is empty, go back in navigation
                 Navigation.goBack();
             } else if (!_.isEmpty(backTo) && navigation.getState().routes.length === 1) {
+                // If "backTo" is not empty and there is only one route, go back to the specific route defined in "backTo" with a country parameter
                 Navigation.goBack(`${route.params.backTo}?country=${option.value}`);
             } else {
+                // Otherwise, navigate to the specific route defined in "backTo" with a country parameter
                 Navigation.navigate(`${route.params.backTo}?country=${option.value}`);
             }
         },
