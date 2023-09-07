@@ -35,10 +35,10 @@ Onyx.connect({
     callback: (val) => (credentials = val || {}),
 });
 
-let preferredLocale;
+let nvpPreferredLocale;
 Onyx.connect({
     key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    callback: (val) => (preferredLocale = val),
+    callback: (val) => (nvpPreferredLocale = val),
 });
 
 /**
@@ -250,7 +250,7 @@ function beginSignIn(login) {
  */
 function beginAppleSignIn(idToken) {
     const {optimisticData, successData, failureData} = signInAttemptState();
-    API.write('SignInWithApple', {idToken, preferredLocale}, {optimisticData, successData, failureData});
+    API.write('SignInWithApple', {idToken, preferredLocale: nvpPreferredLocale}, {optimisticData, successData, failureData});
 }
 
 /**
@@ -261,7 +261,7 @@ function beginAppleSignIn(idToken) {
  */
 function beginGoogleSignIn(token) {
     const {optimisticData, successData, failureData} = signInAttemptState();
-    API.write('SignInWithGoogle', {token, preferredLocale}, {optimisticData, successData, failureData});
+    API.write('SignInWithGoogle', {token, preferredLocale: nvpPreferredLocale}, {optimisticData, successData, failureData});
 }
 
 /**
