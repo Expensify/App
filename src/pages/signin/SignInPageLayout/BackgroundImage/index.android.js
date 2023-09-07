@@ -15,7 +15,7 @@ function BackgroundImage(props) {
             width={props.width}
             style={styles.signInBackground}
         />
-    )
+    );
 }
 
 BackgroundImage.displayName = 'BackgroundImage';
