@@ -1,7 +1,7 @@
-import _ from 'underscore';
 import en from './en';
 import es from './es';
 import esES from './es-ES';
+import type {Translation, TranslationBaseValue, TranslationFlatObject} from './types';
 
 /**
  * Converts an object to it's flattened version.
@@ -9,33 +9,31 @@ import esES from './es-ES';
  * Ex:
  * Input: { common: { yes: "Yes", no: "No" }}
  * Output: { "common.yes": "Yes", "common.no": "No" }
- *
- * @param {Object} obj
- * @returns {Object}
  */
 // Necessary to export so that it is accessible to the unit tests
 // eslint-disable-next-line rulesdir/no-inline-named-export
-export function flattenObject(obj) {
-    const result = {};
+export function flattenObject(obj: Translation): TranslationFlatObject {
+    const result: TranslationFlatObject = {};
 
-    const recursive = (data, key) => {
-        // If the data is a function or not a object (eg. a string), it's
-        // the value of the key being built and no need for more recursion
-        if (_.isFunction(data) || _.isArray(data) || !_.isObject(data)) {
-            result[key] = data;
+    const recursive = (data: Translation, key: string): void => {
+        // If the data is a function or not a object (eg. a string or array),
+        // it's the final value for the key being built and there is no need
+        // for more recursion
+        if (typeof data === 'function' || Array.isArray(data) || !(typeof data === 'object' && !!data)) {
+            result[key] = data as TranslationBaseValue;
         } else {
             let isEmpty = true;
 
             // Recursive call to the keys and connect to the respective data
-            _.keys(data).forEach((k) => {
+            Object.keys(data).forEach((k) => {
                 isEmpty = false;
-                recursive(data[k], key ? `${key}.${k}` : k);
+                recursive(data[k] as Translation, key ? `${key}.${k}` : k);
             });
 
             // Check for when the object is empty but a key exists, so that
             // it defaults to an empty object
             if (isEmpty && key) {
-                result[key] = {};
+                result[key] = {} as TranslationBaseValue;
             }
         }
     };
@@ -47,5 +45,6 @@ export function flattenObject(obj) {
 export default {
     en: flattenObject(en),
     es: flattenObject(es),
+    // eslint-disable-next-line @typescript-eslint/naming-convention
     'es-ES': esES,
 };
