@@ -236,12 +236,15 @@ const ONYXKEYS = {
     // Max width supported for HTML <canvas> element
     MAX_CANVAS_WIDTH: 'maxCanvasWidth',
 
+    RECENTLY_USED_POLICY_TAGS: 'recentlyUsedPolicyTags_',
+
     /** Collection Keys */
     COLLECTION: {
         DOWNLOAD: 'download_',
         POLICY: 'policy_',
         POLICY_MEMBERS: 'policyMembers_',
         POLICY_CATEGORIES: 'policyCategories_',
+        POLICY_TAGS: 'policyTags_',
         WORKSPACE_INVITE_MEMBERS_DRAFT: 'workspaceInviteMembersDraft_',
         REPORT: 'report_',
         REPORT_ACTIONS: 'reportActions_',
