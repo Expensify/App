@@ -529,6 +529,7 @@ function editTaskAssigneeAndNavigate(report, ownerAccountID, assigneeEmail, assi
                 reportName,
                 managerID: assigneeAccountID || report.managerID,
                 managerEmail: assigneeEmail || report.managerEmail,
+                notificationPreference: [assigneeAccountID, ownerAccountID].includes(currentUserAccountID) ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
             },
         },
     ];
