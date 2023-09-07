@@ -13,10 +13,9 @@ readonly FILE_EXTENSIONS=('-name' '*.js' '-o' '-name' '*.jsx' '-o' '-name' '*.ts
 
 # Regex
 readonly OBJ_PROP_DECLARATION_REGEX="^[[:space:]]*(const|let|var)[[:space:]]+([a-zA-Z0-9_-]+)[[:space:]]*=[[:space:]]*\{|^[[:space:]]*([a-zA-Z0-9_-]+\.)?[a-zA-Z0-9_-]+:[[:space:]]*\{|^[[:space:]]*\}"
-readonly OBJ_PROP_FUNC_DEFINITION_REGEX="^[[:space:]]*(const|let|var)[[:space:]]+([a-zA-Z0-9_-]+)[[:space:]]*=[[:space:]]*\{|^[[:space:]]*([a-zA-Z0-9_-]+\.)?[a-zA-Z0-9_-]+:[[:space:]]*\{|^[[:space:]]*\} && ! [[:space:]]*([a-zA-Z0-9_-])+:[[:space:]]*\(.*\)[[:space:]]*'=>'[[:space:]]*\(\{"
 readonly OBJ_DEFINITION_REGEX="^[[:space:]]*(const|let|var)[[:space:]]+([a-zA-Z0-9_-]+)[[:space:]]*=[[:space:]]*\{"
-readonly CAPTURE_ARROW_FUNC_REGEX='^[[:space:]]*([a-zA-Z0-9_-])+:[[:space:]]*\(.*\)[[:space:]]*'=>'[[:space:]]*\(\{'
-readonly CAPTURE_OBJ_ARROW_FUNC_REGEX='^[[:space:]]*([a-zA-Z0-9_-]+\.)?[a-zA-Z0-9_-]+:[[:space:]]*\{|^[[:space:]]*([a-zA-Z0-9_-])+:[[:space:]]*\(.*\)[[:space:]]*'=>'[[:space:]]*\(\{'
+readonly CAPTURE_ARROW_FUNC_REGEX="^[[:space:]]*([a-zA-Z0-9_-])+:[[:space:]]*\(.*\)[[:space:]]*'=>'[[:space:]]*\(\{"
+readonly CAPTURE_OBJ_ARROW_FUNC_REGEX="^[[:space:]]*([a-zA-Z0-9_-]+\.)?[a-zA-Z0-9_-]+:[[:space:]]*\{|^[[:space:]]*([a-zA-Z0-9_-])+:[[:space:]]*\(.*\)[[:space:]]*'=>'[[:space:]]*\(\{"
 
 source scripts/shellUtils.sh
 
@@ -27,6 +26,7 @@ delete_temp_files() {
   find scripts -name "*keys_list_temp*" -type f -exec rm -f {} \;
 }
 
+# shellcheck disable=SC2317  # Don't warn about unreachable commands in this function
 ctrl_c() {
   delete_temp_files
   exit 1
@@ -34,7 +34,7 @@ ctrl_c() {
   
 count_lines() {
   local file=$1
-  wc -l < $file
+  wc -l < "$file"
 }
 
 # Read the style file with unused keys
@@ -100,7 +100,7 @@ lookfor_unused_keywords() {
           fi        
         fi
     done < <(grep -E -o '\bstyles\.[a-zA-Z0-9_.]*' "$file" | grep -v '\/\/' | grep -vE '\/\*.*\*\/')
-  done < <(find 'src' -type f \( "${FILE_EXTENSIONS[@]}" \))
+  done < <(find $SRC_DIR -type f \( "${FILE_EXTENSIONS[@]}" \))
 }
 
 
@@ -163,13 +163,13 @@ find_utility_styles_store_prefix() {
 
 find_utility_usage_as_styles() {
   while read -r file; do
-    if [ -d "$path" ]; then
+    if [ -d "$file" ]; then
       # Use the folder name as the root key
-      local root_key=$(basename "$path")
+      local root_key=$(basename "$file")
       echo "styles.$root_key:$path:0" >> "$STYLES_KEYS_FILE"
       continue
     fi
-    find_styles_and_store_keys $file
+    find_styles_and_store_keys "$file"
   done < <(find $UTILITIES_STYLES_FILE -type f \( "${FILE_EXTENSIONS[@]}" \))
 }
 
