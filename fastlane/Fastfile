@@ -228,7 +228,7 @@ platform :ios do
                       2. Navigate to https://account.proton.me/login, log into Proton Mail using 'appletest.expensify@proton.me' as email and the password associated with 'appletest.expensify@proton.me', provided above
                       3. Once logged into Proton Mail, navigate to your inbox and locate the email triggered in step 1. The email subject should be 'Your magic sign-in link for Expensify'
                       4. Open the email and copy the 6-digit sign-in code provided within
-                      5. Return to the Expensify app and enter the copied 6-digit code in the designated login field
+                      5. Return to the Expensify app and enter the copied 6-digit code in the designated login field"
           }
       )
     rescue Exception => e
