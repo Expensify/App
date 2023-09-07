@@ -1,12 +1,7 @@
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 
-/**
- *
- * @param {Number} [lastUpdateID]
- * @param {Number} [previousUpdateID]
- */
-function saveUpdateIDs(lastUpdateID = 0, previousUpdateID = 0) {
+function saveUpdateIDs(lastUpdateID = 0, previousUpdateID = 0): void {
     // Return early if there were no updateIDs
     if (!lastUpdateID) {
         return;
