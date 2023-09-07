@@ -1,12 +1,5 @@
-/* eslint-disable rulesdir/no-useless-compose */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/ban-types */
-
-import withWindowDimensions, {AvatarWithDisplayName, withInjected, withInjected2} from './test';
-
 /* eslint-disable import/export */
-type Func<T extends unknown[], R> = (...a: T) => R;
 
 /**
  * This is a utility function taken directly from Redux. (We don't want to add Redux as a dependency)
@@ -29,18 +22,35 @@ export default function compose(): <R>(a: R) => R;
 export default function compose<F extends Function>(f: F): F;
 
 /* two functions */
-export default function compose<A, T extends unknown[], R>(f1: (a: A) => R, f2: Func<T, A>): Func<T, R>;
+export default function compose<A extends unknown[], R1, R2>(f1: (...args: A) => R1, f2: (a: R1) => R2): (...args: A) => R2;
 
 /* three functions */
-export default function compose<A, B, T extends unknown[], R>(f1: (b: B) => R, f2: (a: A) => B, f3: Func<T, A>): Func<T, R>;
+export default function compose<A extends unknown[], R1, R2, R3>(f1: (...args: A) => R1, f2: (a: R1) => R2, f3: (a: R2) => R3): (...args: A) => R3;
 
 /* four functions */
-export default function compose<A, B, C, T extends unknown[], R>(f1: (c: C) => R, f2: (b: B) => C, f3: (a: A) => B, f4: Func<T, A>): Func<T, R>;
+export default function compose<A extends unknown[], R1, R2, R3, R4>(f1: (...args: A) => R1, f2: (a: R1) => R2, f3: (a: R2) => R3, f4: (a: R3) => R4): (...args: A) => R4;
+
+/* five functions */
+export default function compose<A extends unknown[], R1, R2, R3, R4, R5>(
+    f1: (...args: A) => R1,
+    f2: (a: R1) => R2,
+    f3: (a: R2) => R3,
+    f4: (a: R3) => R4,
+    f5: (a: R4) => R5,
+): (...args: A) => R5;
+
+/* six functions */
+export default function compose<A extends unknown[], R1, R2, R3, R4, R5, R6>(
+    f1: (...args: A) => R1,
+    f2: (a: R1) => R2,
+    f3: (a: R2) => R3,
+    f4: (a: R3) => R4,
+    f5: (a: R4) => R5,
+    f6: (a: R5) => R6,
+): (...args: A) => R6;
 
 /* rest */
 export default function compose<R>(f1: (a: unknown) => R, ...funcs: Function[]): (...args: unknown[]) => R;
-
-export default function compose<R>(...funcs: Function[]): (...args: unknown[]) => R;
 
 export default function compose(...funcs: Function[]): Function {
     if (funcs.length === 0) {
@@ -54,11 +64,8 @@ export default function compose(...funcs: Function[]): Function {
 
     return funcs.reduce(
         (a, b) =>
-            (...args: any) =>
+            (...args: unknown[]) =>
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-return
                 a(b(...args)),
     );
 }
-
-const composed = compose(withInjected, withInjected2);
-
-const y = composed(AvatarWithDisplayName);
