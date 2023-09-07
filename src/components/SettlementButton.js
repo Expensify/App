@@ -62,7 +62,7 @@ const propTypes = {
     /** Route for the Add Debit Card screen for a given navigation stack */
     addDebitCardRoute: PropTypes.string,
 
-    /** Whether the button should be disabled? */
+    /** Whether the button should be disabled */
     isDisabled: PropTypes.bool,
 
     /** Whether we should show a loading state for the main button */
@@ -83,11 +83,14 @@ const defaultProps = {
     currency: CONST.CURRENCY.USD,
     shouldShowPaypal: false,
     chatReportID: '',
+
+    // The "betas" array, "iouReport" and "nvp_lastPaymentMethod" objects needs to be stable to prevent the "useMemo" 
+    // hook from being recreated unnecessarily, hence the use of CONST.EMPTY_ARRAY
     betas: CONST.EMPTY_ARRAY,
-    shouldShowPaymentOptions: false,
-    nvp_lastPaymentMethod: CONST.EMPTY_OBJECT,
-    style: [],
     iouReport: CONST.EMPTY_OBJECT,
+    nvp_lastPaymentMethod: CONST.EMPTY_OBJECT,
+    shouldShowPaymentOptions: false,
+    style: [],
     policyID: '',
     formattedAmount: '',
     buttonSize: CONST.DROPDOWN_BUTTON_SIZE.MEDIUM,
