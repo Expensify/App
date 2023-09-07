@@ -98,7 +98,6 @@ function DisplayNamePage(props) {
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         defaultValue={lodashGet(currentUserDetails, 'firstName', '')}
                         maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
-                        autoCapitalize="words"
                         spellCheck={false}
                     />
                 </View>
@@ -112,7 +111,6 @@ function DisplayNamePage(props) {
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         defaultValue={lodashGet(currentUserDetails, 'lastName', '')}
                         maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
-                        autoCapitalize="words"
                         spellCheck={false}
                     />
                 </View>

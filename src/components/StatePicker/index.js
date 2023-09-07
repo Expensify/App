@@ -1,12 +1,12 @@
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
-import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
 import MenuItemWithTopDescription from '../MenuItemWithTopDescription';
 import useLocalize from '../../hooks/useLocalize';
 import FormHelpMessage from '../FormHelpMessage';
 import StateSelectorModal from './StateSelectorModal';
+import refPropTypes from '../refPropTypes';
 
 const propTypes = {
     /** Error text to display */
@@ -19,7 +19,7 @@ const propTypes = {
     onInputChange: PropTypes.func,
 
     /** A ref to forward to MenuItemWithTopDescription */
-    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
+    forwardedRef: refPropTypes,
 
     /** Label to display on field */
     label: PropTypes.string,
@@ -37,14 +37,9 @@ function StatePicker({value, errorText, onInputChange, forwardedRef, label}) {
     const {translate} = useLocalize();
     const allStates = translate('allStates');
     const [isPickerVisible, setIsPickerVisible] = useState(false);
-    const [searchValue, setSearchValue] = useState(lodashGet(allStates, `${value}.stateName`, ''));
-
-    useEffect(() => {
-        setSearchValue(lodashGet(allStates, `${value}.stateName`, ''));
-    }, [value, allStates]);
+    const [searchValue, setSearchValue] = useState('');
 
     const showPickerModal = () => {
-        setSearchValue(lodashGet(allStates, `${value}.stateName`, ''));
         setIsPickerVisible(true);
     };
 

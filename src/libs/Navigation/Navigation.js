@@ -161,7 +161,7 @@ function dismissModal(targetReportID) {
     const lastRoute = _.last(rootState.routes);
     switch (lastRoute.name) {
         case NAVIGATORS.RIGHT_MODAL_NAVIGATOR:
-        case NAVIGATORS.FULL_SCREEN_NAVIGATOR:
+        case SCREENS.NOT_FOUND:
         case SCREENS.REPORT_ATTACHMENTS:
             // if we are not in the target report, we need to navigate to it after dismissing the modal
             if (targetReportID && targetReportID !== getTopmostReportId(rootState)) {
