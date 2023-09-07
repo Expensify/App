@@ -187,7 +187,7 @@ function MoneyRequestConfirmationList(props) {
     const distance = lodashGet(transaction, 'routes.route0.distance', 0);
     const shouldCalculateDistanceAmount = props.isDistanceRequest && props.iouAmount === 0;
     const shouldCategoryEditable = !_.isEmpty(props.policyCategories) && !props.isDistanceRequest;
-    const shouldTagsBeEditable = !_.isEmpty(props.policyTags) && Permissions.canUseNewDotTags(props.betas);
+    const shouldTagBeEditable = !_.isEmpty(props.policyTags) && Permissions.canUseNewDotTags(props.betas);
 
     const formattedAmount = CurrencyUtils.convertToDisplayString(
         shouldCalculateDistanceAmount ? DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate) : props.iouAmount,
@@ -510,7 +510,7 @@ function MoneyRequestConfirmationList(props) {
                             disabled={didConfirm || props.isReadOnly}
                         />
                     )}
-                    {shouldTagsBeEditable && (
+                    {shouldTagBeEditable && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly}
                             title={props.iouTag}
