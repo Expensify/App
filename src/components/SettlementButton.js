@@ -84,7 +84,7 @@ const defaultProps = {
     shouldShowPaypal: false,
     chatReportID: '',
 
-    // The "betas" array, "iouReport" and "nvp_lastPaymentMethod" objects needs to be stable to prevent the "useMemo" 
+    // The "betas" array, "iouReport" and "nvp_lastPaymentMethod" objects needs to be stable to prevent the "useMemo"
     // hook from being recreated unnecessarily, hence the use of CONST.EMPTY_ARRAY and CONST.EMPTY_OBJECT
     betas: CONST.EMPTY_ARRAY,
     iouReport: CONST.EMPTY_OBJECT,
