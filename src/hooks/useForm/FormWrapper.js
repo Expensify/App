@@ -11,10 +11,8 @@ import SafeAreaConsumer from '../../components/SafeAreaConsumer';
 import ScrollViewWithContext from '../../components/ScrollViewWithContext';
 
 import stylePropTypes from '../../styles/stylePropTypes';
-import networkPropTypes from '../../components/networkPropTypes';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
-import {withNetwork} from '../../components/OnyxProvider';
 
 const propTypes = {
     /** A unique Onyx key identifying the form */
@@ -25,9 +23,6 @@ const propTypes = {
 
     /** Controls the submit button's visibility */
     isSubmitButtonVisible: PropTypes.bool,
-
-    /** Callback to validate the form */
-    validate: PropTypes.func,
 
     /** Callback to submit the form */
     onSubmit: PropTypes.func.isRequired,
@@ -66,9 +61,6 @@ const propTypes = {
     /** Custom content to display in the footer after submit button */
     footerContent: PropTypes.oneOfType([PropTypes.func, PropTypes.node]),
 
-    /** Information about the network */
-    network: networkPropTypes.isRequired,
-
     ...withLocalizePropTypes,
 };
 
@@ -82,7 +74,6 @@ const defaultProps = {
     scrollContextEnabled: false,
     footerContent: null,
     style: [],
-    validate: () => ({}),
 };
 
 function FormWrapper(props) {
@@ -91,7 +82,7 @@ function FormWrapper(props) {
     const {onSubmit, children, formState, errors, inputRefs, submitButtonText, footerContent, isSubmitButtonVisible, style, enabledWhenOffline, isSubmitActionDangerous, formID} = props;
 
     const errorMessage = useMemo(() => {
-        const latestErrorMessage = ErrorUtils.getLatestErrorMessage(props.formState);
+        const latestErrorMessage = ErrorUtils.getLatestErrorMessage(formState);
         return typeof latestErrorMessage === 'string' ? latestErrorMessage : '';
     }, [formState]);
 
@@ -148,19 +139,20 @@ function FormWrapper(props) {
             </FormSubmit>
         ),
         [
-            style,
-            onSubmit,
             children,
-            isSubmitButtonVisible,
-            submitButtonText,
-            errors,
+            enabledWhenOffline,
             errorMessage,
+            errors,
+            footerContent,
+            formID,
             formState.errorFields,
             formState.isLoading,
-            footerContent,
-            enabledWhenOffline,
-            isSubmitActionDangerous,
             inputRefs,
+            isSubmitActionDangerous,
+            isSubmitButtonVisible,
+            onSubmit,
+            style,
+            submitButtonText,
         ],
     );
 
@@ -197,7 +189,6 @@ FormWrapper.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
-    withNetwork(),
     withOnyx({
         formState: {
             key: (props) => props.formID,
