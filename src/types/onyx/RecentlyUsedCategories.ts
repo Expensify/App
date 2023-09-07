@@ -1,3 +1,3 @@
-type RecentlyUsedCategories = Array<typeof String>;
+type RecentlyUsedCategories = string[];
 
 export default RecentlyUsedCategories;
