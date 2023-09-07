@@ -443,7 +443,7 @@ function Composer({
             StyleSheet.flatten([style, {outline: 'none'}]),
             StyleUtils.getComposeTextAreaPadding(numberOfLinesProp, isComposerFullSize),
         ],
-        [style, maxLines, numberOfLinesProp, numberOfLines],
+        [style, maxLines, numberOfLinesProp, numberOfLines, isComposerFullSize],
     );
 
     return (
