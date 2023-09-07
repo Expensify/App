@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
-import {View} from 'react-native';
+import {ScrollView, View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -14,15 +14,18 @@ import * as IOU from '../../../libs/actions/IOU';
 import compose from '../../../libs/compose';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import * as OptionsListUtils from '../../../libs/OptionsListUtils';
+import * as MoneyRequestUtils from '../../../libs/MoneyRequestUtils';
 import withLocalize from '../../../components/withLocalize';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import ONYXKEYS from '../../../ONYXKEYS';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../../components/withCurrentUserPersonalDetails';
 import reportPropTypes from '../../reportPropTypes';
 import personalDetailsPropType from '../../personalDetailsPropType';
-import participantPropTypes from '../../../components/participantPropTypes';
 import * as FileUtils from '../../../libs/fileDownload/FileUtils';
 import * as Policy from '../../../libs/actions/Policy';
+import useWindowDimensions from '../../../hooks/useWindowDimensions';
+import * as StyleUtils from '../../../styles/StyleUtils';
+import {iouPropTypes, iouDefaultProps} from '../propTypes';
 
 const propTypes = {
     /** React Navigation route */
@@ -40,25 +43,7 @@ const propTypes = {
     report: reportPropTypes,
 
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
-    iou: PropTypes.shape({
-        /** ID (iouType + reportID) of the request */
-        id: PropTypes.string,
-
-        /** Amount of the request */
-        amount: PropTypes.number,
-
-        /** Description of the request */
-        comment: PropTypes.string,
-        created: PropTypes.string,
-
-        /** Currency of the request */
-        currency: PropTypes.string,
-        merchant: PropTypes.string,
-
-        /** List of the participants */
-        participants: PropTypes.arrayOf(participantPropTypes),
-        receiptPath: PropTypes.string,
-    }),
+    iou: iouPropTypes,
 
     /** Personal details of all users */
     personalDetails: personalDetailsPropType,
@@ -69,21 +54,15 @@ const propTypes = {
 const defaultProps = {
     report: {},
     personalDetails: {},
-    iou: {
-        id: '',
-        amount: 0,
-        currency: CONST.CURRENCY.USD,
-        comment: '',
-        merchant: '',
-        created: '',
-        participants: [],
-    },
+    iou: iouDefaultProps,
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
 function MoneyRequestConfirmPage(props) {
+    const {windowHeight} = useWindowDimensions();
     const prevMoneyRequestId = useRef(props.iou.id);
     const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
+    const isDistanceRequest = MoneyRequestUtils.isDistanceRequest(iouType.current, props.selectedTab);
     const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
     const participants = useMemo(
         () =>
@@ -103,7 +82,7 @@ function MoneyRequestConfirmPage(props) {
 
     useEffect(() => {
         // ID in Onyx could change by initiating a new request in a separate browser tab or completing a request
-        if (prevMoneyRequestId.current !== props.iou.id) {
+        if (!isDistanceRequest && prevMoneyRequestId.current !== props.iou.id) {
             // The ID is cleared on completing a request. In that case, we will do nothing.
             if (props.iou.id) {
                 Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current), true);
@@ -113,19 +92,19 @@ function MoneyRequestConfirmPage(props) {
 
         // Reset the money request Onyx if the ID in Onyx does not match the ID from params
         const moneyRequestId = `${iouType.current}${reportID.current}`;
-        const shouldReset = props.iou.id !== moneyRequestId;
+        const shouldReset = !isDistanceRequest && props.iou.id !== moneyRequestId;
         if (shouldReset) {
             IOU.resetMoneyRequestInfo(moneyRequestId);
         }
 
-        if (_.isEmpty(props.iou.participants) || (props.iou.amount === 0 && !props.iou.receiptPath) || shouldReset) {
+        if (_.isEmpty(props.iou.participants) || (props.iou.amount === 0 && !props.iou.receiptPath && !isDistanceRequest) || shouldReset) {
             Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current), true);
         }
 
         return () => {
             prevMoneyRequestId.current = props.iou.id;
         };
-    }, [props.iou.participants, props.iou.amount, props.iou.id, props.iou.receiptPath]);
+    }, [props.iou.participants, props.iou.amount, props.iou.id, props.iou.receiptPath, isDistanceRequest]);
 
     const navigateBack = () => {
         let fallback;
@@ -158,6 +137,26 @@ function MoneyRequestConfirmPage(props) {
             );
         },
         [props.report, props.iou.amount, props.iou.currency, props.iou.created, props.iou.merchant, props.currentUserPersonalDetails.login, props.currentUserPersonalDetails.accountID],
+    );
+
+    /**
+     * @param {Array} selectedParticipants
+     * @param {String} trimmedComment
+     */
+    const createDistanceRequest = useCallback(
+        (selectedParticipants, trimmedComment) => {
+            IOU.createDistanceRequest(
+                props.report,
+                selectedParticipants[0],
+                trimmedComment,
+                props.iou.created,
+                props.iou.transactionID,
+                props.iou.amount,
+                props.iou.currency,
+                props.iou.merchant,
+            );
+        },
+        [props.report, props.iou.created, props.iou.transactionID, props.iou.amount, props.iou.currency, props.iou.merchant],
     );
 
     const createTransaction = useCallback(
@@ -199,6 +198,11 @@ function MoneyRequestConfirmPage(props) {
                 return;
             }
 
+            if (isDistanceRequest) {
+                createDistanceRequest(selectedParticipants, trimmedComment);
+                return;
+            }
+
             requestMoney(selectedParticipants, trimmedComment);
         },
         [
@@ -209,7 +213,9 @@ function MoneyRequestConfirmPage(props) {
             props.iou.currency,
             props.iou.receiptPath,
             props.iou.receiptSource,
+            isDistanceRequest,
             requestMoney,
+            createDistanceRequest,
         ],
     );
 
@@ -246,41 +252,56 @@ function MoneyRequestConfirmPage(props) {
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                     <HeaderWithBackButton
-                        title={props.translate('iou.cash')}
+                        title={isDistanceRequest ? props.translate('common.distance') : props.translate('iou.cash')}
                         onBackButtonPress={navigateBack}
                     />
-                    <MoneyRequestConfirmationList
-                        hasMultipleParticipants={iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT}
-                        selectedParticipants={participants}
-                        iouAmount={props.iou.amount}
-                        iouComment={props.iou.comment}
-                        iouCurrencyCode={props.iou.currency}
-                        onConfirm={createTransaction}
-                        onSendMoney={sendMoney}
-                        onSelectParticipant={(option) => {
-                            const newParticipants = _.map(props.iou.participants, (participant) => {
-                                if (participant.accountID === option.accountID) {
-                                    return {...participant, selected: !participant.selected};
-                                }
-                                return participant;
-                            });
-                            IOU.setMoneyRequestParticipants(newParticipants);
-                        }}
-                        receiptPath={props.iou.receiptPath}
-                        receiptSource={props.iou.receiptSource}
-                        iouType={iouType.current}
-                        reportID={reportID.current}
-                        // The participants can only be modified when the action is initiated from directly within a group chat and not the floating-action-button.
-                        // This is because when there is a group of people, say they are on a trip, and you have some shared expenses with some of the people,
-                        // but not all of them (maybe someone skipped out on dinner). Then it's nice to be able to select/deselect people from the group chat bill
-                        // split rather than forcing the user to create a new group, just for that expense. The reportID is empty, when the action was initiated from
-                        // the floating-action-button (since it is something that exists outside the context of a report).
-                        canModifyParticipants={!_.isEmpty(reportID.current)}
-                        policyID={props.report.policyID}
-                        bankAccountRoute={ReportUtils.getBankAccountRoute(props.report)}
-                        iouMerchant={props.iou.merchant}
-                        iouCreated={props.iou.created}
-                    />
+                    {/*
+                     * The MoneyRequestConfirmationList component uses a SectionList which uses a VirtualizedList internally.
+                     * VirtualizedList cannot be directly nested within ScrollViews of the same orientation.
+                     * To work around this, we wrap the MoneyRequestConfirmationList component with a horizontal ScrollView.
+                     */}
+                    <ScrollView contentContainerStyle={[styles.flexGrow1]}>
+                        <ScrollView
+                            horizontal
+                            contentContainerStyle={[styles.flex1, styles.flexColumn]}
+                        >
+                            <MoneyRequestConfirmationList
+                                transactionID={props.iou.transactionID}
+                                hasMultipleParticipants={iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT}
+                                selectedParticipants={participants}
+                                iouAmount={props.iou.amount}
+                                iouComment={props.iou.comment}
+                                iouCurrencyCode={props.iou.currency}
+                                onConfirm={createTransaction}
+                                onSendMoney={sendMoney}
+                                onSelectParticipant={(option) => {
+                                    const newParticipants = _.map(props.iou.participants, (participant) => {
+                                        if (participant.accountID === option.accountID) {
+                                            return {...participant, selected: !participant.selected};
+                                        }
+                                        return participant;
+                                    });
+                                    IOU.setMoneyRequestParticipants(newParticipants);
+                                }}
+                                receiptPath={props.iou.receiptPath}
+                                receiptSource={props.iou.receiptSource}
+                                iouType={iouType.current}
+                                reportID={reportID.current}
+                                // The participants can only be modified when the action is initiated from directly within a group chat and not the floating-action-button.
+                                // This is because when there is a group of people, say they are on a trip, and you have some shared expenses with some of the people,
+                                // but not all of them (maybe someone skipped out on dinner). Then it's nice to be able to select/deselect people from the group chat bill
+                                // split rather than forcing the user to create a new group, just for that expense. The reportID is empty, when the action was initiated from
+                                // the floating-action-button (since it is something that exists outside the context of a report).
+                                canModifyParticipants={!_.isEmpty(reportID.current)}
+                                policyID={props.report.policyID}
+                                bankAccountRoute={ReportUtils.getBankAccountRoute(props.report)}
+                                iouMerchant={props.iou.merchant}
+                                iouCreated={props.iou.created}
+                                isDistanceRequest={isDistanceRequest}
+                                listStyles={[StyleUtils.getMaximumHeight(windowHeight / 3)]}
+                            />
+                        </ScrollView>
+                    </ScrollView>
                 </View>
             )}
         </ScreenWrapper>
@@ -295,14 +316,27 @@ export default compose(
     withCurrentUserPersonalDetails,
     withLocalize,
     withOnyx({
-        report: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '')}`,
-        },
         iou: {
             key: ONYXKEYS.IOU,
         },
+    }),
+    withOnyx({
+        report: {
+            key: ({route, iou}) => {
+                let reportID = lodashGet(route, 'params.reportID', '');
+                if (!reportID) {
+                    // When the money request creation flow is initialized on Global Create, the reportID is not passed as a navigation parameter.
+                    // Get the report id from the participants list on the IOU object stored in Onyx.
+                    reportID = lodashGet(iou, 'participants.0.reportID', '');
+                }
+                return `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
+            },
+        },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+        },
+        selectedTab: {
+            key: `${ONYXKEYS.SELECTED_TAB}_${CONST.TAB.RECEIPT_TAB_ID}`,
         },
     }),
 )(MoneyRequestConfirmPage);

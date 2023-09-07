@@ -362,6 +362,10 @@ function shouldReportActionBeVisibleAsLastAction(reportAction) {
         return false;
     }
 
+    if (!_.isEmpty(reportAction.errors)) {
+        return false;
+    }
+
     return shouldReportActionBeVisible(reportAction, reportAction.reportActionID) && !isWhisperAction(reportAction) && !isDeletedAction(reportAction);
 }
 
@@ -393,6 +397,8 @@ function getLastVisibleMessage(reportID, actionsToMerge = {}) {
     if (isReportMessageAttachment(message)) {
         return {
             lastMessageTranslationKey: CONST.TRANSLATION_KEYS.ATTACHMENT,
+            lastMessageText: CONST.TRANSLATION_KEYS.ATTACHMENT,
+            lastMessageHtml: CONST.TRANSLATION_KEYS.ATTACHMENT,
         };
     }
 
