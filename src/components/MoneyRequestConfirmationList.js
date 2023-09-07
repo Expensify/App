@@ -8,6 +8,7 @@ import lodashGet from 'lodash/get';
 import styles from '../styles/styles';
 import * as ReportUtils from '../libs/ReportUtils';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
+import Permissions from '../libs/Permissions';
 import OptionsSelector from './OptionsSelector';
 import ONYXKEYS from '../ONYXKEYS';
 import compose from '../libs/compose';
@@ -29,6 +30,7 @@ import Image from './Image';
 import useLocalize from '../hooks/useLocalize';
 import * as ReceiptUtils from '../libs/ReceiptUtils';
 import categoryPropTypes from './categoryPropTypes';
+import tagPropTypes from './tagPropTypes';
 import ConfirmedRoute from './ConfirmedRoute';
 import transactionPropTypes from './transactionPropTypes';
 import DistanceRequestUtils from '../libs/DistanceRequestUtils';
@@ -67,6 +69,9 @@ const propTypes = {
 
     /** IOU Category */
     iouCategory: PropTypes.string,
+
+    /** IOU Tag */
+    iouTag: PropTypes.string,
 
     /** Selected participants from MoneyRequestModal with login / accountID */
     selectedParticipants: PropTypes.arrayOf(optionPropTypes).isRequired,
@@ -108,6 +113,14 @@ const propTypes = {
     /* Onyx Props */
     /** Collection of categories attached to a policy */
     policyCategories: PropTypes.objectOf(categoryPropTypes),
+
+    /* Onyx Props */
+    /** Collection of tags attached to a policy */
+    policyTags: PropTypes.objectOf(tagPropTypes),
+
+    /* Onyx Props */
+    /* Beta features list */
+    betas: PropTypes.arrayOf(PropTypes.string),
 
     /** ID of the transaction that represents the money request */
     transactionID: PropTypes.string,
@@ -151,6 +164,8 @@ const defaultProps = {
     receiptSource: '',
     listStyles: [],
     policyCategories: {},
+    policyTags: {},
+    betas: [],
     transactionID: '',
     transaction: {},
     mileageRate: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, rate: 0, currency: 'USD'},
@@ -172,6 +187,7 @@ function MoneyRequestConfirmationList(props) {
     const distance = lodashGet(transaction, 'routes.route0.distance', 0);
     const shouldCalculateDistanceAmount = props.isDistanceRequest && props.iouAmount === 0;
     const shouldCategoryEditable = !_.isEmpty(props.policyCategories) && !props.isDistanceRequest;
+    const shouldTagsBeEditable = !_.isEmpty(props.policyTags) && Permissions.canUseNewDotTags(props.betas);
 
     const formattedAmount = CurrencyUtils.convertToDisplayString(
         shouldCalculateDistanceAmount ? DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate) : props.iouAmount,
@@ -494,6 +510,16 @@ function MoneyRequestConfirmationList(props) {
                             disabled={didConfirm || props.isReadOnly}
                         />
                     )}
+                    {shouldTagsBeEditable && (
+                        <MenuItemWithTopDescription
+                            shouldShowRightIcon={!props.isReadOnly}
+                            title={props.iouTag}
+                            description={translate('common.tag')}
+                            onPress={() => Navigation.navigate(ROUTES.getMoneyRequestTagRoute(props.iouType, props.reportID))}
+                            style={[styles.moneyRequestMenuItem, styles.mb2]}
+                            disabled={didConfirm || props.isReadOnly}
+                        />
+                    )}
                 </>
             )}
         </OptionsSelector>
@@ -509,8 +535,14 @@ export default compose(
         session: {
             key: ONYXKEYS.SESSION,
         },
+        betas: {
+            key: ONYXKEYS.BETAS,
+        },
         policyCategories: {
             key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+        },
+        policyTags: {
+            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
         },
         mileageRate: {
             key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,

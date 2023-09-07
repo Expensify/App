@@ -87,6 +87,14 @@ function canUseCustomStatus(betas) {
 }
 
 /**
+ * @param {Array<String>} betas
+ * @returns {Boolean}
+ */
+function canUseNewDotTags(betas) {
+    return _.contains(betas, CONST.BETAS.NEW_DOT_TAGS) || canUseAllBetas(betas);
+}
+
+/**
  * Link previews are temporarily disabled.
  * @returns {Boolean}
  */
@@ -104,5 +112,6 @@ export default {
     canUsePolicyRooms,
     canUseTasks,
     canUseCustomStatus,
+    canUseNewDotTags,
     canUseLinkPreviews,
 };
