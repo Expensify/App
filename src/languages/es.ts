@@ -238,7 +238,7 @@ export default {
         kilometers: 'kilómetros',
         recent: 'Reciente',
         all: 'Todo',
-        tbd: 'A definir'
+        tbd: 'Por determinar'
     },
     anonymousReportFooter: {
         logoTagline: 'Únete a la discusión.',
