@@ -12,7 +12,6 @@ import TextInput from '../../../components/TextInput';
 import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
 import * as PersonalDetails from '../../../libs/actions/PersonalDetails';
-import DummyComponentWithStateHook from '../../../components/DummyComponentWithStateHook';
 import compose from '../../../libs/compose';
 import * as ErrorUtils from '../../../libs/ErrorUtils';
 import ROUTES from '../../../ROUTES';
@@ -87,7 +86,6 @@ function DisplayNamePage(props) {
                 shouldValidateOnBlur
                 shouldValidateOnChange
             >
-                <DummyComponentWithStateHook />
                 <Text style={[styles.mb6]}>{props.translate('displayNamePage.isShownOnProfile')}</Text>
                 <View style={styles.mb4}>
                     <Input
