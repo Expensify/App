@@ -47,3 +47,10 @@
         height: 92% !important;
     }
 }
+
+/* 
+* Solves issue with above CSS not applying because of position.
+*/
+#onfido-mount {
+    height: 100%;
+}
