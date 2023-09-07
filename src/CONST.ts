@@ -452,7 +452,7 @@ const CONST = {
     },
     RECEIPT: {
         ICON_SIZE: 164,
-        PERMISSION_AUTHORIZED: 'authorized',
+        PERMISSION_GRANTED: 'granted',
         HAND_ICON_HEIGHT: 152,
         HAND_ICON_WIDTH: 200,
         SHUTTER_SIZE: 90,
