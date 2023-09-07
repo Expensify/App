@@ -1180,6 +1180,13 @@ function getDropDownButtonHeight(buttonSize: ButtonSizeValue): ViewStyle | CSSPr
     };
 }
 
+/**
+ * Get transparent color by setting alpha value 0 of the passed hex(#xxxxxx) color code
+ */
+function getTransparentColor(color: string) {
+    return `${color}00`;
+}
+
 export {
     getAvatarSize,
     getAvatarWidthStyle,
@@ -1256,4 +1263,5 @@ export {
     getDisabledLinkStyles,
     getCheckboxContainerStyle,
     getDropDownButtonHeight,
+    getTransparentColor,
 };
