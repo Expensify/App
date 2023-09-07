@@ -35,7 +35,7 @@ function BaseInvertedFlatList(props) {
     // once and is then referenced for the life of this component.
     // This is essential to getting FlatList inverted to work on web
     // and also enables more predictable scrolling on native platforms.
-    const sizeMap = useRef({}).current;
+    const sizeMap = useRef({});
 
     /**
      * Return default or previously cached height for
@@ -46,36 +46,33 @@ function BaseInvertedFlatList(props) {
      *
      * @return {Object}
      */
-    const getItemLayout = useCallback(
-        (data, index) => {
-            const size = sizeMap[index];
+    const getItemLayout = (data, index) => {
+        const size = sizeMap.current[index];
 
-            if (size) {
-                return {
-                    length: size.length,
-                    offset: size.offset,
-                    index,
-                };
-            }
-
-            // If we don't have a size yet means we haven't measured this
-            // item yet. However, we can still calculate the offset by looking
-            // at the last size we have recorded (if any)
-            const lastMeasuredItem = CollectionUtils.lastItem(sizeMap);
-
+        if (size) {
             return {
-                // We haven't measured this so we must return the minimum row height
-                length: initialRowHeight,
-
-                // Offset will either be based on the lastMeasuredItem or the index +
-                // initialRowHeight since we can only assume that all previous items
-                // have not yet been measured
-                offset: _.isUndefined(lastMeasuredItem) ? initialRowHeight * index : lastMeasuredItem.offset + initialRowHeight,
+                length: size.length,
+                offset: size.offset,
                 index,
             };
-        },
-        [initialRowHeight, sizeMap],
-    );
+        }
+
+        // If we don't have a size yet means we haven't measured this
+        // item yet. However, we can still calculate the offset by looking
+        // at the last size we have recorded (if any)
+        const lastMeasuredItem = CollectionUtils.lastItem(sizeMap.current);
+
+        return {
+            // We haven't measured this so we must return the minimum row height
+            length: initialRowHeight,
+
+            // Offset will either be based on the lastMeasuredItem or the index +
+            // initialRowHeight since we can only assume that all previous items
+            // have not yet been measured
+            offset: _.isUndefined(lastMeasuredItem) ? initialRowHeight * index : lastMeasuredItem.offset + initialRowHeight,
+            index,
+        };
+    };
 
     /**
      * Measure item and cache the returned length (a.k.a. height)
@@ -83,29 +80,26 @@ function BaseInvertedFlatList(props) {
      * @param {React.NativeSyntheticEvent} nativeEvent
      * @param {Number} index
      */
-    const measureItemLayout = useCallback(
-        (nativeEvent, index) => {
-            const computedHeight = nativeEvent.layout.height;
+    const measureItemLayout = useCallback((nativeEvent, index) => {
+        const computedHeight = nativeEvent.layout.height;
 
-            // We've already measured this item so we don't need to
-            // measure it again.
-            if (sizeMap[index]) {
-                return;
-            }
+        // We've already measured this item so we don't need to
+        // measure it again.
+        if (sizeMap.current[index]) {
+            return;
+        }
 
-            const previousItem = sizeMap[index - 1] || {};
+        const previousItem = sizeMap.current[index - 1] || {};
 
-            // If there is no previousItem this can mean we haven't yet measured
-            // the previous item or that we are at index 0 and there is no previousItem
-            const previousLength = previousItem.length || 0;
-            const previousOffset = previousItem.offset || 0;
-            sizeMap[index] = {
-                length: computedHeight,
-                offset: previousLength + previousOffset,
-            };
-        },
-        [sizeMap],
-    );
+        // If there is no previousItem this can mean we haven't yet measured
+        // the previous item or that we are at index 0 and there is no previousItem
+        const previousLength = previousItem.length || 0;
+        const previousOffset = previousItem.offset || 0;
+        sizeMap.current[index] = {
+            length: computedHeight,
+            offset: previousLength + previousOffset,
+        };
+    }, []);
 
     /**
      * Render item method wraps the prop renderItem to render in a
