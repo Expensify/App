@@ -91,7 +91,7 @@ lookfor_unused_keywords() {
         fi
         
         if ! remove_keyword "$clean_keyword" ; then
-          # In case of a leaf of the styles object is being used, it meas the parent objects is being used
+          # In case of a leaf of the styles object is being used, it means the parent objects is being used
           # we need to mark it as used.
           if [[ "$clean_keyword" =~ ^styles\.[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+$ ]]; then
             # Keyword has more than two words, remove words after the second word
