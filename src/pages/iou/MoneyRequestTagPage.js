@@ -13,7 +13,6 @@ import Text from '../../components/Text';
 import ONYXKEYS from '../../ONYXKEYS';
 import reportPropTypes from '../reportPropTypes';
 import styles from '../../styles/styles';
-import {iouPropTypes, iouDefaultProps} from './propTypes';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -30,15 +29,10 @@ const propTypes = {
 
     /** The report currently being used */
     report: reportPropTypes,
-
-    /* Onyx Props */
-    /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
-    iou: iouPropTypes,
 };
 
 const defaultProps = {
     report: {},
-    iou: iouDefaultProps,
 };
 
 function MoneyRequestTagPage({route, report}) {
