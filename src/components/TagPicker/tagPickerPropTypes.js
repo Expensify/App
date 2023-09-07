@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import tagPropTypes from '../tagPropTypes';
+import {iouPropTypes, iouDefaultProps} from '../../pages/iou/propTypes';
 
 const propTypes = {
     /** The report ID of the IOU */
@@ -24,16 +25,14 @@ const propTypes = {
 
     /* Onyx Props */
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
-    iou: PropTypes.shape({
-        tag: PropTypes.string,
-    }),
+    iou: iouPropTypes,
 };
 
 const defaultProps = {
     policyID: '',
     policyTags: {},
     recentlyUsedPolicyTags: [],
-    iou: {},
+    iou: iouDefaultProps,
 };
 
 export {propTypes, defaultProps};

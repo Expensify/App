@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
+import compose from '../../libs/compose';
 import ROUTES from '../../ROUTES';
 import Navigation from '../../libs/Navigation/Navigation';
 import useLocalize from '../../hooks/useLocalize';
@@ -12,6 +13,7 @@ import Text from '../../components/Text';
 import ONYXKEYS from '../../ONYXKEYS';
 import reportPropTypes from '../reportPropTypes';
 import styles from '../../styles/styles';
+import {iouPropTypes, iouDefaultProps} from './propTypes';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -28,20 +30,24 @@ const propTypes = {
 
     /** The report currently being used */
     report: reportPropTypes,
+
+    /* Onyx Props */
+    /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
+    iou: iouPropTypes,
 };
 
 const defaultProps = {
     report: {},
+    iou: iouDefaultProps,
 };
 
 function MoneyRequestTagPage({route, report}) {
     const {translate} = useLocalize();
 
-    const reportID = lodashGet(route, 'params.reportID', '');
     const iouType = lodashGet(route, 'params.iouType', '');
 
     const navigateBack = () => {
-        Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID));
+        Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType, report.reportID));
     };
 
     return (
@@ -56,7 +62,7 @@ function MoneyRequestTagPage({route, report}) {
             <Text style={[styles.ph5, styles.pv3]}>{translate('iou.tagSelection')}</Text>
             <TagPicker
                 policyID={report.policyID}
-                reportID={reportID}
+                reportID={report.reportID}
                 iouType={iouType}
             />
         </ScreenWrapper>
@@ -67,8 +73,16 @@ MoneyRequestTagPage.displayName = 'MoneyRequestTagPage';
 MoneyRequestTagPage.propTypes = propTypes;
 MoneyRequestTagPage.defaultProps = defaultProps;
 
-export default withOnyx({
-    report: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '')}`,
-    },
-})(MoneyRequestTagPage);
+export default compose(
+    withOnyx({
+        iou: {
+            key: ONYXKEYS.IOU,
+        },
+    }),
+    withOnyx({
+        report: {
+            // Fetch report ID from IOU participants if no report ID is set in route
+            key: ({route, iou}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '') || lodashGet(iou, 'participants.0.reportID', '')}`,
+        },
+    }),
+)(MoneyRequestTagPage);
