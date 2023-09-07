@@ -747,11 +747,16 @@ function clearDeleteMemberError(policyID, accountID) {
  * @param {Number} accountID
  */
 function clearAddMemberError(policyID, accountID) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`, {
+    Onyx.set(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
+        ...allPersonalDetails,
         [accountID]: null,
     });
-    Onyx.merge(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
-        [accountID]: null,
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`, {
+        [accountID]: {
+            pendingAction: null,
+            errors: null,
+        },
     });
 }
 
