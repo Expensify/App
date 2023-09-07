@@ -815,7 +815,7 @@ function getRoomWelcomeMessage(report, isUserPolicyAdmin) {
  * @returns {Boolean}
  */
 function chatIncludesConcierge(report) {
-    return report.participantAccountIDs && _.contains(report.participantAccountIDs, CONST.ACCOUNT_ID.CONCIERGE);
+    return !_.isEmpty(report.participantAccountIDs) && _.contains(report.participantAccountIDs, CONST.ACCOUNT_ID.CONCIERGE);
 }
 
 /**
