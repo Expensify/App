@@ -124,7 +124,7 @@ function TaskAssigneeSelectorModal(props) {
         return props.reports[`${ONYXKEYS.COLLECTION.REPORT}${props.route.params.reportID}`];
     }, [props.reports, props.route.params]);
 
-    if (!ReportUtils.isTaskReport(report)) {
+    if (report && !ReportUtils.isTaskReport(report)) {
         Navigation.isNavigationReady().then(() => {
             Navigation.dismissModal();
         });
