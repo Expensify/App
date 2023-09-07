@@ -40,7 +40,7 @@ function pasteAsPlainText(browserWindow) {
  * Initialize the right-click menu
  * See https://github.com/sindresorhus/electron-context-menu
  *
- * @param {string} preferredLocale - The current user language to be used for translating menu labels.
+ * @param {String} preferredLocale - The current user language to be used for translating menu labels.
  * @returns {Function} A dispose function to clean up the created context menu.
  */
 
