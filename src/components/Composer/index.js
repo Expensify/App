@@ -161,6 +161,7 @@ function Composer({
     checkComposerVisibility,
     selection: selectionProp,
     isReportActionCompose,
+    isComposerFullSize,
     ...props
 }) {
     const textRef = useRef(null);
@@ -440,7 +441,7 @@ function Composer({
             numberOfLines < maxLines ? styles.overflowHidden : {},
 
             StyleSheet.flatten([style, {outline: 'none'}]),
-            StyleUtils.getComposeTextAreaPadding(numberOfLinesProp),
+            StyleUtils.getComposeTextAreaPadding(numberOfLinesProp, isComposerFullSize),
         ],
         [style, maxLines, numberOfLinesProp, numberOfLines],
     );
