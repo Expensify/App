@@ -12,7 +12,7 @@ const CONST = require('../src/CONST').default;
 const Localize = require('../src/libs/Localize');
 
 const port = process.env.PORT || 8082;
-const {DESKTOP_SHORTCUT_ACCELERATOR} = CONST;
+const {DESKTOP_SHORTCUT_ACCELERATOR, LOCALES} = CONST;
 
 app.setName('New Expensify');
 
@@ -44,7 +44,7 @@ function pasteAsPlainText(browserWindow) {
  * @returns {Function} A dispose function to clean up the created context menu.
  */
 
-function createContextMenu(preferredLocale) {
+function createContextMenu(preferredLocale = LOCALES.DEFAULT) {
     return contextMenu({
         labels: {
             cut: Localize.translate(preferredLocale, 'desktopApplicationMenu.cut'),
@@ -69,7 +69,7 @@ function createContextMenu(preferredLocale) {
     });
 }
 
-let disposeContextMenu = createContextMenu(CONST.LOCALES.DEFAULT);
+let disposeContextMenu = createContextMenu();
 
 // Send all autoUpdater logs to a log file: ~/Library/Logs/new.expensify.desktop/main.log
 // See https://www.npmjs.com/package/electron-log
