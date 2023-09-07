@@ -47,8 +47,7 @@ function DisplayNamePage(props) {
      * @returns {Object} - An object containing the errors for each inputID
      */
     const validate = (values) => {
-        const requiredFields = ['firstName'];
-        const errors = ValidationUtils.getFieldRequiredErrors(values, requiredFields);
+        const errors = {};
 
         // First we validate the first name field
         if (!ValidationUtils.isValidDisplayName(values.firstName)) {
@@ -92,7 +91,6 @@ function DisplayNamePage(props) {
                         RenderInput={TextInput}
                         inputID="firstName"
                         name="fname"
-                        key="iuadgbkj"
                         label={props.translate('common.firstName')}
                         accessibilityLabel={props.translate('common.firstName')}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
