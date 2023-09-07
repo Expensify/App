@@ -139,7 +139,7 @@ function KeyboardShortcutsModal({isShortcutsModalOpen = false, isSmallScreenWidt
         };
         // We only want this to run on mount
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [KeyboardShortcut.getDocumentedShortcuts]);
+    }, []);
 
     useEffect(() => {
         if (isShortcutsModalOpen) {
@@ -150,7 +150,7 @@ function KeyboardShortcutsModal({isShortcutsModalOpen = false, isSmallScreenWidt
         }
         // subscribeOpenModalShortcuts and unsubscribeOpenModalShortcuts functions are not added as dependencies since they don't change between renders
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isShortcutsModalOpen, KeyboardShortcut.getDocumentedShortcuts]);
+    }, [isShortcutsModalOpen]);
 
     return (
         <Modal
