@@ -85,7 +85,7 @@ const defaultProps = {
     chatReportID: '',
 
     // The "betas" array, "iouReport" and "nvp_lastPaymentMethod" objects needs to be stable to prevent the "useMemo" 
-    // hook from being recreated unnecessarily, hence the use of CONST.EMPTY_ARRAY
+    // hook from being recreated unnecessarily, hence the use of CONST.EMPTY_ARRAY and CONST.EMPTY_ARRAY
     betas: CONST.EMPTY_ARRAY,
     iouReport: CONST.EMPTY_OBJECT,
     nvp_lastPaymentMethod: CONST.EMPTY_OBJECT,
