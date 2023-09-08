@@ -30,7 +30,7 @@ function createDemoWorkspaceAndNavigate(workspaceOwnerEmail, apiCommand) {
         const reportUpdate = _.find(response.onyxData, ({key}) => key === ONYXKEYS.COLLECTION.REPORT);
         if (!reportUpdate) {
             // If there's no related onyx data, navigate the user home so they're not stuck.
-            Navigation.goBack();
+            Navigation.goBack(ROUTES.HOME);
             Navigation.navigate(ROUTES.HOME);
             return;
         }
@@ -39,7 +39,7 @@ function createDemoWorkspaceAndNavigate(workspaceOwnerEmail, apiCommand) {
         const policyExpenseChatReport = _.find(reportUpdate.value, ({chatType}) => chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
         if (!policyExpenseChatReport) {
             // If there's no related onyx data, navigate the user home so they're not stuck.
-            Navigation.goBack();
+            Navigation.goBack(ROUTES.HOME);
             Navigation.navigate(ROUTES.HOME);
             return;
         }
