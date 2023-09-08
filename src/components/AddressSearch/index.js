@@ -134,6 +134,7 @@ const defaultProps = {
 // Reference: https://github.com/FaridSafi/react-native-google-places-autocomplete/issues/609#issuecomment-886133839
 function AddressSearch(props) {
     const [displayListViewBorder, setDisplayListViewBorder] = useState(false);
+    const [isTyping, setIsTyping] = useState(false);
     const containerRef = useRef();
     const query = useMemo(
         () => ({
@@ -287,12 +288,13 @@ function AddressSearch(props) {
                     enablePoweredByContainer={false}
                     predefinedPlaces={props.predefinedPlaces}
                     ListEmptyComponent={
-                        props.network.isOffline ? null : (
+                        props.network.isOffline || !isTyping ? null : (
                             <Text style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}>{props.translate('common.noResultsFound')}</Text>
                         )
                     }
                     onPress={(data, details) => {
                         saveLocationDetails(data, details);
+                        setIsTyping(false);
 
                         // After we select an option, we set displayListViewBorder to false to prevent UI flickering
                         setDisplayListViewBorder(false);
@@ -331,6 +333,7 @@ function AddressSearch(props) {
                         },
                         autoComplete: 'off',
                         onInputChange: (text) => {
+                            setIsTyping(true);
                             if (props.inputID) {
                                 props.onInputChange(text);
                             } else {
