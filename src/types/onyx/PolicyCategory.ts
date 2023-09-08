@@ -8,8 +8,8 @@ type PolicyCategory = {
     areCommentsRequired: boolean;
 
     // eslint-disable-next-line @typescript-eslint/naming-convention
-    "GL Code": string;
-    
+    'GL Code': string;
+
     externalID: string;
 
     origin: string;

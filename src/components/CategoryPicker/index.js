@@ -17,7 +17,8 @@ function CategoryPicker({policyCategories, reportID, policyID, iouType, iou, pol
     const {translate} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
 
-    const policyCategoriesAmount = _.size(policyCategories);
+    const policyCategoriesCount = _.size(policyCategories);
+    const isCategoriesCountBelowThreshold = policyCategoriesCount < CONST.CATEGORY_LIST_THRESHOLD;
 
     const selectedOptions = useMemo(() => {
         if (!iou.category) {
@@ -34,7 +35,7 @@ function CategoryPicker({policyCategories, reportID, policyID, iouType, iou, pol
     }, [iou.category]);
 
     const initialFocusedIndex = useMemo(() => {
-        if (policyCategoriesAmount < CONST.CATEGORY_LIST_THRESHOLD && selectedOptions.length > 0) {
+        if (isCategoriesCountBelowThreshold && selectedOptions.length > 0) {
             return _.chain(policyCategories)
                 .values()
                 .findIndex((category) => category.name === selectedOptions[0].name, true)
@@ -42,7 +43,7 @@ function CategoryPicker({policyCategories, reportID, policyID, iouType, iou, pol
         }
 
         return 0;
-    }, [policyCategories, policyCategoriesAmount, selectedOptions]);
+    }, [policyCategories, selectedOptions, isCategoriesCountBelowThreshold]);
 
     const sections = useMemo(
         () => OptionsListUtils.getNewChatOptions({}, {}, [], searchValue, selectedOptions, [], false, false, true, policyCategories, policyRecentlyUsedCategories, false).categoryOptions,
@@ -50,7 +51,7 @@ function CategoryPicker({policyCategories, reportID, policyID, iouType, iou, pol
     );
 
     const headerMessage = OptionsListUtils.getHeaderMessage(lodashGet(sections, '[0].data.length', 0) > 0, false, searchValue);
-    const shouldShowTextInput = policyCategoriesAmount >= CONST.CATEGORY_LIST_THRESHOLD;
+    const shouldShowTextInput = !isCategoriesCountBelowThreshold;
 
     const navigateBack = () => {
         Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID));
