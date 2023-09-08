@@ -1065,6 +1065,373 @@ describe('OptionsListUtils', () => {
         expect(largeWrongSearchResult.categoryOptions).toStrictEqual(largeWrongSearchResultList);
     });
 
+    it('getNewChatOptions() for tags', () => {
+        const search = 'ing';
+        const emptySearch = '';
+        const wrongSearch = 'bla bla';
+        const recentlyUsedTags = ['Engineering', 'HR'];
+
+        const selectedOptions = [
+            {
+                name: 'Medical',
+            },
+        ];
+        const smallTagsList = {
+            Engineering: {
+                enabled: false,
+                name: 'Engineering',
+            },
+            Medical: {
+                enabled: true,
+                name: 'Medical',
+            },
+            Accounting: {
+                enabled: true,
+                name: 'Accounting',
+            },
+            HR: {
+                enabled: true,
+                name: 'HR',
+            },
+        };
+        const smallResultList = [
+            {
+                title: '',
+                shouldShow: false,
+                indexOffset: 0,
+                data: [
+                    {
+                        text: 'Engineering',
+                        keyForList: 'Engineering',
+                        searchText: 'Engineering',
+                        tooltipText: 'Engineering',
+                        isDisabled: true,
+                    },
+                    {
+                        text: 'Medical',
+                        keyForList: 'Medical',
+                        searchText: 'Medical',
+                        tooltipText: 'Medical',
+                        isDisabled: false,
+                    },
+                    {
+                        text: 'Accounting',
+                        keyForList: 'Accounting',
+                        searchText: 'Accounting',
+                        tooltipText: 'Accounting',
+                        isDisabled: false,
+                    },
+                    {
+                        text: 'HR',
+                        keyForList: 'HR',
+                        searchText: 'HR',
+                        tooltipText: 'HR',
+                        isDisabled: false,
+                    },
+                ],
+            },
+        ];
+        const smallSearchResultList = [
+            {
+                title: '',
+                shouldShow: false,
+                indexOffset: 0,
+                data: [
+                    {
+                        text: 'Engineering',
+                        keyForList: 'Engineering',
+                        searchText: 'Engineering',
+                        tooltipText: 'Engineering',
+                        isDisabled: true,
+                    },
+                    {
+                        text: 'Accounting',
+                        keyForList: 'Accounting',
+                        searchText: 'Accounting',
+                        tooltipText: 'Accounting',
+                        isDisabled: false,
+                    },
+                ],
+            },
+        ];
+        const smallWrongSearchResultList = [
+            {
+                title: '',
+                shouldShow: false,
+                indexOffset: 0,
+                data: [],
+            },
+        ];
+        const largeTagsList = {
+            Engineering: {
+                enabled: false,
+                name: 'Engineering',
+            },
+            Medical: {
+                enabled: true,
+                name: 'Medical',
+            },
+            Accounting: {
+                enabled: true,
+                name: 'Accounting',
+            },
+            HR: {
+                enabled: true,
+                name: 'HR',
+            },
+            Food: {
+                enabled: true,
+                name: 'Food',
+            },
+            Traveling: {
+                enabled: false,
+                name: 'Traveling',
+            },
+            Cleaning: {
+                enabled: true,
+                name: 'Cleaning',
+            },
+            Software: {
+                enabled: true,
+                name: 'Software',
+            },
+            OfficeSupplies: {
+                enabled: false,
+                name: 'Office Supplies',
+            },
+            Taxes: {
+                enabled: true,
+                name: 'Taxes',
+            },
+            Benefits: {
+                enabled: true,
+                name: 'Benefits',
+            },
+        };
+        const largeResultList = [
+            {
+                title: '',
+                shouldShow: false,
+                indexOffset: 0,
+                data: [
+                    {
+                        text: 'Medical',
+                        keyForList: 'Medical',
+                        searchText: 'Medical',
+                        tooltipText: 'Medical',
+                        isDisabled: false,
+                    },
+                ],
+            },
+            {
+                title: 'Recent',
+                shouldShow: true,
+                indexOffset: 1,
+                data: [
+                    {
+                        text: 'Engineering',
+                        keyForList: 'Engineering',
+                        searchText: 'Engineering',
+                        tooltipText: 'Engineering',
+                        isDisabled: true,
+                    },
+                    {
+                        text: 'HR',
+                        keyForList: 'HR',
+                        searchText: 'HR',
+                        tooltipText: 'HR',
+                        isDisabled: false,
+                    },
+                ],
+            },
+            {
+                title: 'All',
+                shouldShow: true,
+                indexOffset: 3,
+                data: [
+                    {
+                        text: 'Engineering',
+                        keyForList: 'Engineering',
+                        searchText: 'Engineering',
+                        tooltipText: 'Engineering',
+                        isDisabled: true,
+                    },
+                    {
+                        text: 'Accounting',
+                        keyForList: 'Accounting',
+                        searchText: 'Accounting',
+                        tooltipText: 'Accounting',
+                        isDisabled: false,
+                    },
+                    {
+                        text: 'HR',
+                        keyForList: 'HR',
+                        searchText: 'HR',
+                        tooltipText: 'HR',
+                        isDisabled: false,
+                    },
+                    {
+                        text: 'Food',
+                        keyForList: 'Food',
+                        searchText: 'Food',
+                        tooltipText: 'Food',
+                        isDisabled: false,
+                    },
+                    {
+                        text: 'Traveling',
+                        keyForList: 'Traveling',
+                        searchText: 'Traveling',
+                        tooltipText: 'Traveling',
+                        isDisabled: true,
+                    },
+                    {
+                        text: 'Cleaning',
+                        keyForList: 'Cleaning',
+                        searchText: 'Cleaning',
+                        tooltipText: 'Cleaning',
+                        isDisabled: false,
+                    },
+                    {
+                        text: 'Software',
+                        keyForList: 'Software',
+                        searchText: 'Software',
+                        tooltipText: 'Software',
+                        isDisabled: false,
+                    },
+                    {
+                        text: 'Office Supplies',
+                        keyForList: 'Office Supplies',
+                        searchText: 'Office Supplies',
+                        tooltipText: 'Office Supplies',
+                        isDisabled: true,
+                    },
+                    {
+                        text: 'Taxes',
+                        keyForList: 'Taxes',
+                        searchText: 'Taxes',
+                        tooltipText: 'Taxes',
+                        isDisabled: false,
+                    },
+                    {
+                        text: 'Benefits',
+                        keyForList: 'Benefits',
+                        searchText: 'Benefits',
+                        tooltipText: 'Benefits',
+                        isDisabled: false,
+                    },
+                ],
+            },
+        ];
+        const largeSearchResultList = [
+            {
+                title: '',
+                shouldShow: false,
+                indexOffset: 0,
+                data: [
+                    {
+                        text: 'Engineering',
+                        keyForList: 'Engineering',
+                        searchText: 'Engineering',
+                        tooltipText: 'Engineering',
+                        isDisabled: true,
+                    },
+                    {
+                        text: 'Accounting',
+                        keyForList: 'Accounting',
+                        searchText: 'Accounting',
+                        tooltipText: 'Accounting',
+                        isDisabled: false,
+                    },
+                    {
+                        text: 'Traveling',
+                        keyForList: 'Traveling',
+                        searchText: 'Traveling',
+                        tooltipText: 'Traveling',
+                        isDisabled: true,
+                    },
+                    {
+                        text: 'Cleaning',
+                        keyForList: 'Cleaning',
+                        searchText: 'Cleaning',
+                        tooltipText: 'Cleaning',
+                        isDisabled: false,
+                    },
+                ],
+            },
+        ];
+        const largeWrongSearchResultList = [
+            {
+                title: '',
+                shouldShow: false,
+                indexOffset: 0,
+                data: [],
+            },
+        ];
+
+        const smallResult = OptionsListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, [], emptySearch, [], [], false, false, false, {}, [], true, smallTagsList);
+        expect(smallResult.tagOptions).toStrictEqual(smallResultList);
+
+        const smallSearchResult = OptionsListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, [], search, [], [], false, false, false, {}, [], true, smallTagsList);
+        expect(smallSearchResult.tagOptions).toStrictEqual(smallSearchResultList);
+
+        const smallWrongSearchResult = OptionsListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, [], wrongSearch, [], [], false, false, false, {}, [], true, smallTagsList);
+        expect(smallWrongSearchResult.tagOptions).toStrictEqual(smallWrongSearchResultList);
+
+        const largeResult = OptionsListUtils.getNewChatOptions(
+            REPORTS,
+            PERSONAL_DETAILS,
+            [],
+            emptySearch,
+            selectedOptions,
+            [],
+            false,
+            false,
+            false,
+            {},
+            [],
+            true,
+            largeTagsList,
+            recentlyUsedTags,
+        );
+        expect(largeResult.tagOptions).toStrictEqual(largeResultList);
+
+        const largeSearchResult = OptionsListUtils.getNewChatOptions(
+            REPORTS,
+            PERSONAL_DETAILS,
+            [],
+            search,
+            selectedOptions,
+            [],
+            false,
+            false,
+            false,
+            {},
+            [],
+            true,
+            largeTagsList,
+            recentlyUsedTags,
+        );
+        expect(largeSearchResult.tagOptions).toStrictEqual(largeSearchResultList);
+
+        const largeWrongSearchResult = OptionsListUtils.getNewChatOptions(
+            REPORTS,
+            PERSONAL_DETAILS,
+            [],
+            wrongSearch,
+            selectedOptions,
+            [],
+            false,
+            false,
+            false,
+            {},
+            [],
+            true,
+            largeTagsList,
+            recentlyUsedTags,
+        );
+        expect(largeWrongSearchResult.tagOptions).toStrictEqual(largeWrongSearchResultList);
+    });
+
     it('getCategoryOptionTree()', () => {
         const categories = {
             Taxi: {
