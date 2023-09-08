@@ -107,6 +107,7 @@ lookfor_unused_keywords() {
 # Function to find and store keys from a file
 find_styles_and_store_keys() {
   local file="$1"
+  local base_name="${2:-styles}" # Set styles as default
   local parent_keys=()
   local root_key=""
   local line_number=0
@@ -134,9 +135,9 @@ find_styles_and_store_keys() {
       fi
     
       if [[ "$key" == "styles."* ]]; then
-        echo "$key:$file:$line_number" >> "$STYLES_KEYS_FILE"
+        echo "${key}:${file}:${line_number}" >> "$STYLES_KEYS_FILE"
       else
-        echo "styles.$key:$file:$line_number" >> "$STYLES_KEYS_FILE"
+        echo "styles.${key}|${base_name}.${key}:${file}:${line_number}" >> "$STYLES_KEYS_FILE"
       fi
       parent_keys+=("$key")
     elif [[ "$line" =~ ^[[:space:]]*\} ]]; then
@@ -158,18 +159,24 @@ find_utility_styles_store_prefix() {
   done < <(find 'src/styles' -type f \( "${FILE_EXTENSIONS[@]}" \))
 
   # Sort and remove duplicates from the temporary file
-  sort -u -o "$UTILITY_STYLES_KEYS_FILE" "$UTILITY_STYLES_KEYS_FILE"
+  sort -u -o "${UTILITY_STYLES_KEYS_FILE}" "${UTILITY_STYLES_KEYS_FILE}"
 }
 
 find_utility_usage_as_styles() {
   while read -r file; do
-    if [ -d "$file" ]; then
-      # Use the folder name as the root key
-      local root_key=$(basename "$file")
-      echo "styles.$root_key:$path:0" >> "$STYLES_KEYS_FILE"
+    local folder_name
+    local root_key
+    local parent_dir
+
+    # Get the folder name, given this utility files are index.js
+    parent_dir=$(dirname "$file")
+    root_key=$(basename "${parent_dir}")
+
+    if [[ "${root_key}" == "utilities" ]]; then
       continue
     fi
-    find_styles_and_store_keys "$file"
+
+    find_styles_and_store_keys "${file}" "${root_key}"
   done < <(find $UTILITIES_STYLES_FILE -type f \( "${FILE_EXTENSIONS[@]}" \))
 }
 
@@ -177,7 +184,7 @@ lookfor_unused_utilities() {
   # Read each utility keyword from the file
   while read -r keyword; do
     # Creating a copy so later the replacement can reference it  
-    local original_keyword="$keyword"
+    local original_keyword="${keyword}"
 
     # Iterate through all files in "src/styles"
     while read -r file; do
@@ -185,9 +192,9 @@ lookfor_unused_utilities() {
       while IFS= read -r match; do
         # Replace the utility prefix with "styles"
         local variable="${match/#$original_keyword/styles}"
-
         # Call the remove_keyword function with the variable
-        remove_keyword "$variable"
+        remove_keyword "${variable}"
+        remove_keyword "${match}"
       done < <(grep -E -o "$original_keyword\.[a-zA-Z0-9_-]+" "$file" | grep -v '\/\/' | grep -vE '\/\*.*\*\/')
     done < <(find 'src/styles' -type f \( "${FILE_EXTENSIONS[@]}" \))
   done < "$UTILITY_STYLES_KEYS_FILE"
