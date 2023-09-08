@@ -296,7 +296,7 @@ function ReportActionCompose({
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [],
     );
-    
+
     const reportRecipientAcountIDs = ReportUtils.getReportRecipientAccountIDs(report, currentUserPersonalDetails.accountID);
     const reportRecipient = personalDetails[reportRecipientAcountIDs[0]];
     const shouldUseFocusedColor = !isBlockedFromConcierge && !disabled && isFocused;
