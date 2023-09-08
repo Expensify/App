@@ -43,9 +43,6 @@ const propTypes = {
     /** Whether or not the full size composer is available */
     isFullComposerAvailable: PropTypes.bool.isRequired,
 
-    /** Whether or not the text input is empty */
-    isCommentEmpty: PropTypes.bool.isRequired,
-
     /** Whether or not the composer is full size */
     isComposerFullSize: PropTypes.bool.isRequired,
 
@@ -104,7 +101,6 @@ function AttachmentPickerWithMenuItems({
     displayFileInModal,
     isFullComposerAvailable,
     isComposerFullSize,
-    isCommentEmpty,
     updateShouldShowSuggestionMenuToFalse,
     reportID,
     isBlockedFromConcierge,
@@ -197,7 +193,7 @@ function AttachmentPickerWithMenuItems({
                 return (
                     <>
                         <View style={[styles.dFlex, styles.flexColumn, isFullComposerAvailable || isComposerFullSize ? styles.justifyContentBetween : styles.justifyContentCenter]}>
-                            {isComposerFullSize && !isCommentEmpty && (
+                            {isComposerFullSize && (
                                 <Tooltip text={translate('reportActionCompose.collapse')}>
                                     <PressableWithFeedback
                                         onPress={(e) => {
@@ -216,7 +212,7 @@ function AttachmentPickerWithMenuItems({
                                     </PressableWithFeedback>
                                 </Tooltip>
                             )}
-                            {!isComposerFullSize && isFullComposerAvailable && !isCommentEmpty && (
+                            {!isComposerFullSize && isFullComposerAvailable && (
                                 <Tooltip text={translate('reportActionCompose.expand')}>
                                     <PressableWithFeedback
                                         onPress={(e) => {

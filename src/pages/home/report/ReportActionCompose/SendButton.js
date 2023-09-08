@@ -23,11 +23,14 @@ const propTypes = {
     /** Sets the isCommentEmpty flag to true */
     setIsCommentEmpty: PropTypes.func.isRequired,
 
+    /** Sets the isComposerFullSize to false */
+    resetFullComposerToFalse: PropTypes.func.isRequired,
+
     /** Submits the form */
     submitForm: PropTypes.func.isRequired,
 };
 
-function SendButton({isDisabled: isDisabledProp, animatedRef, setIsCommentEmpty, submitForm}) {
+function SendButton({isDisabled: isDisabledProp, animatedRef, setIsCommentEmpty, resetFullComposerToFalse, submitForm}) {
     const {translate} = useLocalize();
 
     const Tap = Gesture.Tap()
@@ -40,6 +43,7 @@ function SendButton({isDisabled: isDisabledProp, animatedRef, setIsCommentEmpty,
             const updates = {text: ''};
             // We are setting the isCommentEmpty flag to true so the status of it will be in sync of the native text input state
             runOnJS(setIsCommentEmpty)(true);
+            runOnJS(resetFullComposerToFalse)();
             updatePropsPaperWorklet(viewTag, viewName, updates); // clears native text input on the UI thread
             runOnJS(submitForm)();
         });
