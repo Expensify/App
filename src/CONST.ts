@@ -234,9 +234,7 @@ const CONST = {
         PASSWORDLESS: 'passwordless',
         TASKS: 'tasks',
         THREADS: 'threads',
-        SCAN_RECEIPTS: 'scanReceipts',
         CUSTOM_STATUS: 'customStatus',
-        DISTANCE_REQUESTS: 'distanceRequests',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -454,7 +452,7 @@ const CONST = {
     },
     RECEIPT: {
         ICON_SIZE: 164,
-        PERMISSION_AUTHORIZED: 'authorized',
+        PERMISSION_GRANTED: 'granted',
         HAND_ICON_HEIGHT: 152,
         HAND_ICON_WIDTH: 200,
         SHUTTER_SIZE: 90,
@@ -666,6 +664,8 @@ const CONST = {
     },
     TRANSACTION: {
         DEFAULT_MERCHANT: 'Request',
+        UNKNOWN_MERCHANT: 'Unknown Merchant',
+        PARTIAL_TRANSACTION_MERCHANT: '(none)',
         TYPE: {
             CUSTOM_UNIT: 'customUnit',
         },
@@ -1135,6 +1135,13 @@ const CONST = {
         MENTION_ICON: 'mention-icon',
         SMALL_NORMAL: 'small-normal',
     },
+    EXPENSIFY_CARD: {
+        FRAUD_TYPES: {
+            DOMAIN: 'domain',
+            INDIVIDUAL: 'individal',
+            NONE: 'none',
+        },
+    },
     AVATAR_ROW_SIZE: {
         DEFAULT: 4,
         LARGE_SCREEN: 8,
@@ -1362,6 +1369,9 @@ const CONST = {
         WRITE: 'write',
         MAKE_REQUEST_WITH_SIDE_EFFECTS: 'makeRequestWithSideEffects',
     },
+
+    MAP_PADDING: 50,
+    MAP_MARKER_SIZE: 20,
 
     QUICK_REACTIONS: [
         {
@@ -2594,7 +2604,6 @@ const CONST = {
 
     SF_COORDINATES: [-122.4194, 37.7749],
 
-    MAPBOX_STYLE_URL: 'mapbox://styles/expensify/cllcoiqds00cs01r80kp34tmq',
     NAVIGATION: {
         TYPE: {
             FORCED_UP: 'FORCED_UP',
@@ -2606,10 +2615,19 @@ const CONST = {
             NAVIGATE: 'NAVIGATE',
         },
     },
-
+    INDENTS: '    ',
+    PARENT_CHILD_SEPARATOR: ': ',
+    CATEGORY_LIST_THRESHOLD: 8,
     DEMO_PAGES: {
         SAASTR: 'SaaStrDemoSetup',
         SBE: 'SbeDemoSetup',
+    },
+
+    MAPBOX: {
+        PADDING: 50,
+        DEFAULT_ZOOM: 10,
+        DEFAULT_COORDINATE: [-122.4021, 37.7911],
+        STYLE_URL: 'mapbox://styles/expensify/cllcoiqds00cs01r80kp34tmq',
     },
 } as const;
 
