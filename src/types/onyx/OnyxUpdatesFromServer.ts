@@ -10,8 +10,8 @@ type OnyxUpdatesFromServerData = {
 };
 
 type OnyxUpdatesFromServer = {
-    lastUpdateID: number | string;
-    previousUpdateID: number | string;
+    lastUpdateIDFromServer: number | string;
+    previousUpdateIDFromServer: number | string;
     type: 'https' | 'pusher';
     data: OnyxUpdatesFromServerData;
 };
