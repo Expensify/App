@@ -17,6 +17,6 @@ class HeaderGap extends PureComponent {
 
 HeaderGap.propTypes = propTypes;
 HeaderGap.defaultProps = {
-    styles: [] 
+    styles: [],
 };
 export default HeaderGap;
