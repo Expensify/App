@@ -3,6 +3,7 @@ import _ from 'underscore';
 import CONST from '../CONST';
 import stylePropTypes from '../styles/stylePropTypes';
 import avatarPropTypes from './avatarPropTypes';
+import refPropTypes from './refPropTypes';
 
 const propTypes = {
     /** Text to be shown as badge near the right end. */
@@ -87,6 +88,9 @@ const propTypes = {
     /** A right-aligned subtitle for this menu option */
     subtitle: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 
+    /** Style for the subtitle */
+    subtitleTextStyle: stylePropTypes,
+
     /** Flag to choose between avatar image or an icon */
     iconType: PropTypes.oneOf([CONST.ICON_TYPE_AVATAR, CONST.ICON_TYPE_ICON, CONST.ICON_TYPE_WORKSPACE]),
 
@@ -118,7 +122,7 @@ const propTypes = {
     shouldBlockSelection: PropTypes.bool,
 
     /** The ref to the menu item */
-    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
+    forwardedRef: refPropTypes,
 
     /** Any adjustments to style when menu item is hovered or pressed */
     hoverAndPressStyle: PropTypes.arrayOf(PropTypes.object),

@@ -42,7 +42,7 @@ class WorkspaceRateAndUnitPage extends React.Component {
     getUnitItems() {
         return [
             {label: this.props.translate('workspace.reimburse.kilometers'), value: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS},
-            {label: this.props.translate('workspace.reimburse.miles'), value: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+            {label: this.props.translate('common.miles'), value: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
         ];
     }
 
@@ -93,8 +93,8 @@ class WorkspaceRateAndUnitPage extends React.Component {
     validate(values) {
         const errors = {};
         const decimalSeparator = this.props.toLocaleDigit('.');
-        const rateValueRegex = RegExp(String.raw`^\d{1,8}([${getPermittedDecimalSeparator(decimalSeparator)}]\d{1,3})?$`, 'i');
-        if (!rateValueRegex.test(values.rate)) {
+        const rateValueRegex = RegExp(String.raw`^\d{0,8}([${getPermittedDecimalSeparator(decimalSeparator)}]\d{1,3})?$`, 'i');
+        if (!rateValueRegex.test(values.rate) || values.rate === '') {
             errors.rate = 'workspace.reimburse.invalidRateError';
         }
         return errors;

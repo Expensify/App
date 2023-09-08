@@ -1,17 +1,27 @@
 import React, {useEffect, useState, useMemo} from 'react';
 import PropTypes from 'prop-types';
 import {debounce} from 'lodash';
+import {withOnyx} from 'react-native-onyx';
 import CONST from '../CONST';
 import * as ReportUtils from '../libs/ReportUtils';
 import Text from './Text';
 import styles from '../styles/styles';
+import ONYXKEYS from '../ONYXKEYS';
 
 const propTypes = {
+    /** Report ID to get the comment from (used in withOnyx) */
+    // eslint-disable-next-line react/no-unused-prop-types
+    reportID: PropTypes.string.isRequired,
+
     /** Text Comment */
-    comment: PropTypes.string.isRequired,
+    comment: PropTypes.string,
 
     /** Update UI on parent when comment length is exceeded */
     onExceededMaxCommentLength: PropTypes.func.isRequired,
+};
+
+const defaultProps = {
+    comment: '',
 };
 
 function ExceededCommentLength(props) {
@@ -38,5 +48,11 @@ function ExceededCommentLength(props) {
 }
 
 ExceededCommentLength.propTypes = propTypes;
+ExceededCommentLength.defaultProps = defaultProps;
+ExceededCommentLength.displayName = 'ExceededCommentLength';
 
-export default ExceededCommentLength;
+export default withOnyx({
+    comment: {
+        key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,
+    },
+})(ExceededCommentLength);
