@@ -33,7 +33,7 @@ import ConfirmedRoute from './ConfirmedRoute';
 import transactionPropTypes from './transactionPropTypes';
 import DistanceRequestUtils from '../libs/DistanceRequestUtils';
 import * as IOU from '../libs/actions/IOU';
-import * as TransactionUtils from "../libs/TransactionUtils";
+import * as TransactionUtils from '../libs/TransactionUtils';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
@@ -174,11 +174,14 @@ function MoneyRequestConfirmationList(props) {
     const shouldCalculateDistanceAmount = props.isDistanceRequest && props.iouAmount === 0;
     const shouldCategoryEditable = !_.isEmpty(props.policyCategories) && !props.isDistanceRequest;
 
-    const doesRouteExist = TransactionUtils.doesRouteExist(transaction)
-    const formattedAmount = (props.isDistanceRequest && !doesRouteExist) ? translate('common.tbd') : CurrencyUtils.convertToDisplayString(
-        shouldCalculateDistanceAmount ? DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate) : props.iouAmount,
-        props.isDistanceRequest ? currency : props.iouCurrencyCode,
-    );
+    const doesRouteExist = TransactionUtils.doesRouteExist(transaction);
+    const formattedAmount =
+        props.isDistanceRequest && !doesRouteExist
+            ? translate('common.tbd')
+            : CurrencyUtils.convertToDisplayString(
+                  shouldCalculateDistanceAmount ? DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate) : props.iouAmount,
+                  props.isDistanceRequest ? currency : props.iouCurrencyCode,
+              );
 
     useEffect(() => {
         if (!shouldCalculateDistanceAmount) {

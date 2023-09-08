@@ -279,7 +279,7 @@ function hasMissingSmartscanFields(transaction) {
  * @returns {Boolean}
  */
 function doesRouteExist(transaction) {
-    return !lodashIsNil(lodashGet(transaction, 'routes.route0.geometry.coordinates'))
+    return !lodashIsNil(lodashGet(transaction, 'routes.route0.geometry.coordinates'));
 }
 
 /**
