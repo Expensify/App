@@ -164,7 +164,6 @@ find_utility_styles_store_prefix() {
 
 find_utility_usage_as_styles() {
   while read -r file; do
-    local folder_name
     local root_key
     local parent_dir
 
