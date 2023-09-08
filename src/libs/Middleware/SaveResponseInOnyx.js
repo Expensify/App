@@ -14,17 +14,17 @@ const requestsToIgnoreLastUpdateID = ['OpenApp', 'ReconnectApp', 'GetMissingOnyx
  * @returns {Promise}
  */
 function SaveResponseInOnyx(response, request) {
-    return response.then((responseData) => {
-        // Make sure we have response data (i.e. response isn't a promise being passed down to us by a failed retry request and responseData undefined)
-        if (!responseData) {
+    return response.then((response) => {
+        // Make sure we have response data (i.e. response isn't a promise being passed down to us by a failed retry request and response undefined)
+        if (!response) {
             return;
         }
-        const onyxUpdates = responseData.onyxData;
+        const onyxUpdates = response.onyxData;
 
         // Sometimes we call requests that are successfull but they don't have any response or any success/failure data to set. Let's return early since
         // we don't need to store anything here.
         if (!onyxUpdates && !request.successData && !request.failureData) {
-            return Promise.resolve(responseData);
+            return Promise.resolve(response);
         }
 
         // If there is an OnyxUpdate for using memory only keys, enable them
@@ -39,23 +39,23 @@ function SaveResponseInOnyx(response, request) {
 
         const responseToApply = {
             type: CONST.ONYX_UPDATE_TYPES.HTTPS,
-            lastUpdateID: Number(responseData.lastUpdateID || 0),
+            lastUpdateID: Number(response.lastUpdateID || 0),
             data: {
                 request,
-                responseData,
+                response,
             },
         };
 
-        if (_.includes(requestsToIgnoreLastUpdateID, request.command) || !OnyxUpdates.doesClientNeedToBeUpdated(Number(responseData.previousUpdateID || 0))) {
+        if (_.includes(requestsToIgnoreLastUpdateID, request.command) || !OnyxUpdates.doesClientNeedToBeUpdated(Number(response.previousUpdateID || 0))) {
             return OnyxUpdates.apply(responseToApply);
         }
 
         // Save the update IDs to Onyx so they can be used to fetch incremental updates if the client gets out of sync from the server
-        OnyxUpdates.saveUpdateInformation(responseToApply, Number(responseData.lastUpdateID || 0), Number(responseData.previousUpdateID || 0));
+        OnyxUpdates.saveUpdateInformation(responseToApply, Number(response.lastUpdateID || 0), Number(response.previousUpdateID || 0));
 
         // Ensure the queue is paused while the client resolves the gap in onyx updates so that updates are guaranteed to happen in a specific order.
         return Promise.resolve({
-            ...responseData,
+            ...response,
             shouldPauseQueue: true,
         });
     });
