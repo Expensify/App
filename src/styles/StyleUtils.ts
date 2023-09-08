@@ -1209,6 +1209,13 @@ function getAmountFontSizeAndLineHeight(baseFontSize: number, baseLineHeight: nu
     };
 }
 
+/**
+ * Get transparent color by setting alpha value 0 of the passed hex(#xxxxxx) color code
+ */
+function getTransparentColor(color: string) {
+    return `${color}00`;
+}
+
 export {
     getAvatarSize,
     getAvatarWidthStyle,
@@ -1286,4 +1293,5 @@ export {
     getCheckboxContainerStyle,
     getDropDownButtonHeight,
     getAmountFontSizeAndLineHeight,
+    getTransparentColor,
 };
