@@ -81,8 +81,8 @@ export default withOnyx({
     policyTags: {
         key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
     },
-    recentlyUsedPolicyTags: {
-        key: ({policyID}) => `${ONYXKEYS.RECENTLY_USED_POLICY_TAGS}${policyID}`,
+    policyRecentlyUsedTags: {
+        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`,
     },
     iou: {
         key: ONYXKEYS.IOU,

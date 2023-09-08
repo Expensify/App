@@ -236,9 +236,6 @@ const ONYXKEYS = {
     // Max width supported for HTML <canvas> element
     MAX_CANVAS_WIDTH: 'maxCanvasWidth',
 
-    // A list of recently used tags of a policy
-    RECENTLY_USED_POLICY_TAGS: 'recentlyUsedPolicyTags_',
-
     /** Collection Keys */
     COLLECTION: {
         DOWNLOAD: 'download_',
@@ -257,6 +254,7 @@ const ONYXKEYS = {
         REPORT_USER_IS_TYPING: 'reportUserIsTyping_',
         SECURITY_GROUP: 'securityGroup_',
         TRANSACTION: 'transactions_',
+        POLICY_RECENTLY_USED_TAGS: 'policyRecentlyUsedTags_',
 
         /** This is deprecated, but needed for a migration, so we still need to include it here so that it will be initialized in Onyx.init */
         DEPRECATED_POLICY_MEMBER_LIST: 'policyMemberList_',
@@ -393,6 +391,7 @@ type OnyxValues = {
     [ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING]: boolean;
     [ONYXKEYS.COLLECTION.SECURITY_GROUP]: OnyxTypes.SecurityGroup;
     [ONYXKEYS.COLLECTION.TRANSACTION]: OnyxTypes.Transaction;
+    [ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS]: OnyxTypes.RecentlyUsedTags;
 
     // Forms
     [ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM]: OnyxTypes.AddDebitCardForm;

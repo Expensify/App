@@ -21,7 +21,7 @@ const propTypes = {
 
     /* Onyx Props */
     /** List of recently used tags */
-    recentlyUsedPolicyTags: PropTypes.arrayOf(PropTypes.string),
+    policyRecentlyUsedTags: PropTypes.arrayOf(PropTypes.string),
 
     /* Onyx Props */
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
@@ -31,7 +31,7 @@ const propTypes = {
 const defaultProps = {
     policyID: '',
     policyTags: {},
-    recentlyUsedPolicyTags: [],
+    policyRecentlyUsedTags: [],
     iou: iouDefaultProps,
 };
 
