@@ -44,6 +44,13 @@ Onyx.connect({
     },
 });
 
+let allRecentlyUsedCategories = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES,
+    waitForCollectionCallback: true,
+    callback: (val) => (allRecentlyUsedCategories = val),
+});
+
 let userAccountID = '';
 let currentUserEmail = '';
 Onyx.connect({
@@ -100,6 +107,7 @@ function buildOnyxDataForMoneyRequest(
     iouAction,
     optimisticPersonalDetailListAction,
     reportPreviewAction,
+    optimisticRecentlyUsedCategories,
     isNewChatReport,
     isNewIOUReport,
 ) {
@@ -148,6 +156,14 @@ function buildOnyxDataForMoneyRequest(
             },
         },
     ];
+
+    if (!_.isEmpty(optimisticRecentlyUsedCategories)) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${iouReport.policyID}`,
+            value: optimisticRecentlyUsedCategories,
+        });
+    }
 
     if (!_.isEmpty(optimisticPersonalDetailListAction)) {
         optimisticData.push({
@@ -347,7 +363,7 @@ function getMoneyRequestInformation(
     payeeAccountID = userAccountID,
     payeeEmail = currentUserEmail,
     receipt = undefined,
-    existingTransactionID = null,
+    existingTransactionID = undefined,
     category = undefined,
 ) {
     const payerEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login);
@@ -416,6 +432,14 @@ function getMoneyRequestInformation(
         category,
     );
 
+    const uniquePolicyRecentlyUsedCategories = allRecentlyUsedCategories
+        ? _.filter(
+              allRecentlyUsedCategories[`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${iouReport.policyID}`],
+              (recentlyUsedPolicyCategory) => recentlyUsedPolicyCategory !== category,
+          )
+        : [];
+    const optimisticPolicyRecentlyUsedCategories = [category, ...uniquePolicyRecentlyUsedCategories];
+
     // If there is an existing transaction (which is the case for distance requests), then the data from the existing transaction
     // needs to be manually merged into the optimistic transaction. This is because buildOnyxDataForMoneyRequest() uses `Onyx.set()` for the transaction
     // data. This is a big can of worms to change it to `Onyx.merge()` as explored in https://expensify.slack.com/archives/C05DWUDHVK7/p1692139468252109.
@@ -480,6 +504,7 @@ function getMoneyRequestInformation(
         iouAction,
         optimisticPersonalDetailListAction,
         reportPreviewAction,
+        optimisticPolicyRecentlyUsedCategories,
         isNewChatReport,
         isNewIOUReport,
     );
@@ -885,6 +910,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
             oneOnOneIOUAction,
             oneOnOnePersonalDetailListAction,
             oneOnOneReportPreviewAction,
+            [],
             isNewOneOnOneChatReport,
             shouldCreateNewOneOnOneIOUReport,
         );
@@ -1846,16 +1872,9 @@ function setMoneyRequestMerchant(merchant) {
  * @param {Object} category
  * @param {String} category.name
  * @param {Boolean} category.enabled
- * @param {String} policyID
- * @param {Object[]} policyRecentlyUsedCategories
- * @param {String} policyRecentlyUsedCategories[].name
- * @param {Boolean} policyRecentlyUsedCategories[].enabled
  */
-function setMoneyRequestCategory(category, policyID, policyRecentlyUsedCategories) {
-    const uniquePolicyRecentlyUsedCategories = _.filter(policyRecentlyUsedCategories, (recentlyUsedPolicyCategory) => recentlyUsedPolicyCategory.name !== category.name);
-
+function setMoneyRequestCategory(category) {
     Onyx.merge(ONYXKEYS.IOU, {category: category.name});
-    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`, [category, ...uniquePolicyRecentlyUsedCategories]);
 }
 
 function resetMoneyRequestCategory() {

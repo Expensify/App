@@ -13,7 +13,7 @@ import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import OptionsSelector from '../OptionsSelector';
 import useLocalize from '../../hooks/useLocalize';
 
-function CategoryPicker({policyCategories, reportID, policyID, iouType, iou, policyRecentlyUsedCategories}) {
+function CategoryPicker({policyCategories, reportID, iouType, iou, policyRecentlyUsedCategories}) {
     const {translate} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
 
@@ -61,14 +61,10 @@ function CategoryPicker({policyCategories, reportID, policyID, iouType, iou, pol
         if (category.searchText === iou.category) {
             IOU.resetMoneyRequestCategory();
         } else {
-            IOU.setMoneyRequestCategory(
-                {
-                    name: category.searchText,
-                    enabled: true,
-                },
-                policyID,
-                policyRecentlyUsedCategories,
-            );
+            IOU.setMoneyRequestCategory({
+                name: category.searchText,
+                enabled: true,
+            });
         }
 
         navigateBack();

@@ -696,7 +696,16 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
     }
 
     const selectedOptionNames = _.map(selectedOptions, (selectedOption) => selectedOption.name);
-    const filteredRecentlyUsedCategories = _.filter(recentlyUsedCategories, (category) => !_.includes(selectedOptionNames, category.name));
+    const filteredRecentlyUsedCategories = _.map(
+        _.filter(recentlyUsedCategories, (category) => !_.includes(selectedOptionNames, category)),
+        (category) => {
+            const categoryObject = _.find(categories, (c) => c.name === category);
+            return {
+                name: category,
+                enabled: categoryObject && categoryObject.enabled,
+            };
+        },
+    );
     const filteredCategories = _.filter(categories, (category) => !_.includes(selectedOptionNames, category.name));
 
     if (!_.isEmpty(selectedOptions)) {
