@@ -236,9 +236,6 @@ const ONYXKEYS = {
     // Max width supported for HTML <canvas> element
     MAX_CANVAS_WIDTH: 'maxCanvasWidth',
 
-    // A list of recently used categories of a policy
-    RECENTLY_USED_POLICY_CATEGORIES: 'recentlyUsedPolicyCategories_',
-
     /** Collection Keys */
     COLLECTION: {
         DOWNLOAD: 'download_',
@@ -375,7 +372,6 @@ type OnyxValues = {
     [ONYXKEYS.MAX_CANVAS_AREA]: number;
     [ONYXKEYS.MAX_CANVAS_HEIGHT]: number;
     [ONYXKEYS.MAX_CANVAS_WIDTH]: number;
-    [ONYXKEYS.RECENTLY_USED_POLICY_CATEGORIES]: OnyxTypes.PolicyCategory[];
 
     // Collections
     [ONYXKEYS.COLLECTION.DOWNLOAD]: OnyxTypes.Download;

@@ -1847,15 +1847,15 @@ function setMoneyRequestMerchant(merchant) {
  * @param {String} category.name
  * @param {Boolean} category.enabled
  * @param {String} policyID
- * @param {Object[]} recentlyUsedPolicyCategories
- * @param {String} recentlyUsedPolicyCategories[].name
- * @param {Boolean} recentlyUsedPolicyCategories[].enabled
+ * @param {Object[]} policyRecentlyUsedCategories
+ * @param {String} policyRecentlyUsedCategories[].name
+ * @param {Boolean} policyRecentlyUsedCategories[].enabled
  */
-function setMoneyRequestCategory(category, policyID, recentlyUsedPolicyCategories) {
-    const uniqueRecentlyUsedPolicyCategories = _.filter(recentlyUsedPolicyCategories, (recentlyUsedPolicyCategory) => recentlyUsedPolicyCategory.name !== category.name);
+function setMoneyRequestCategory(category, policyID, policyRecentlyUsedCategories) {
+    const uniquePolicyRecentlyUsedCategories = _.filter(policyRecentlyUsedCategories, (recentlyUsedPolicyCategory) => recentlyUsedPolicyCategory.name !== category.name);
 
     Onyx.merge(ONYXKEYS.IOU, {category: category.name});
-    Onyx.merge(`${ONYXKEYS.RECENTLY_USED_POLICY_CATEGORIES}${policyID}`, [category, ...uniqueRecentlyUsedPolicyCategories]);
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`, [category, ...uniquePolicyRecentlyUsedCategories]);
 }
 
 function resetMoneyRequestCategory() {

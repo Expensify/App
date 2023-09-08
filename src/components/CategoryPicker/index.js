@@ -13,7 +13,7 @@ import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import OptionsSelector from '../OptionsSelector';
 import useLocalize from '../../hooks/useLocalize';
 
-function CategoryPicker({policyCategories, reportID, policyID, iouType, iou, recentlyUsedPolicyCategories}) {
+function CategoryPicker({policyCategories, reportID, policyID, iouType, iou, policyRecentlyUsedCategories}) {
     const {translate} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
 
@@ -45,8 +45,8 @@ function CategoryPicker({policyCategories, reportID, policyID, iouType, iou, rec
     }, [policyCategories, policyCategoriesAmount, selectedOptions]);
 
     const sections = useMemo(
-        () => OptionsListUtils.getNewChatOptions({}, {}, [], searchValue, selectedOptions, [], false, false, true, policyCategories, recentlyUsedPolicyCategories, false).categoryOptions,
-        [policyCategories, recentlyUsedPolicyCategories, searchValue, selectedOptions],
+        () => OptionsListUtils.getNewChatOptions({}, {}, [], searchValue, selectedOptions, [], false, false, true, policyCategories, policyRecentlyUsedCategories, false).categoryOptions,
+        [policyCategories, policyRecentlyUsedCategories, searchValue, selectedOptions],
     );
 
     const headerMessage = OptionsListUtils.getHeaderMessage(lodashGet(sections, '[0].data.length', 0) > 0, false, searchValue);
@@ -66,7 +66,7 @@ function CategoryPicker({policyCategories, reportID, policyID, iouType, iou, rec
                     enabled: true,
                 },
                 policyID,
-                recentlyUsedPolicyCategories,
+                policyRecentlyUsedCategories,
             );
         }
 
@@ -100,8 +100,8 @@ export default withOnyx({
     policyCategories: {
         key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
     },
-    recentlyUsedPolicyCategories: {
-        key: ({policyID}) => `${ONYXKEYS.RECENTLY_USED_POLICY_CATEGORIES}${policyID}`,
+    policyRecentlyUsedCategories: {
+        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`,
     },
     iou: {
         key: ONYXKEYS.IOU,
