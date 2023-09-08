@@ -79,7 +79,7 @@ function MoneyRequestConfirmPage(props) {
         if (policyExpenseChat) {
             Policy.openDraftWorkspaceRequest(policyExpenseChat.policyID);
         }
-    }, [isOffline]);
+    }, [isOffline, participants]);
 
     useEffect(() => {
         // ID in Onyx could change by initiating a new request in a separate browser tab or completing a request
