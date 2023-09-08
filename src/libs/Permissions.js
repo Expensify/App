@@ -90,7 +90,7 @@ function canUseCustomStatus(betas) {
  * @param {Array<String>} betas
  * @returns {Boolean}
  */
-function canUseNewDotTags(betas) {
+function canUseTags(betas) {
     return _.contains(betas, CONST.BETAS.NEW_DOT_TAGS) || canUseAllBetas(betas);
 }
 
@@ -112,6 +112,6 @@ export default {
     canUsePolicyRooms,
     canUseTasks,
     canUseCustomStatus,
-    canUseNewDotTags,
+    canUseTags,
     canUseLinkPreviews,
 };
