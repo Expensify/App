@@ -65,7 +65,7 @@ function WindowDimensionsProvider(props) {
         <SafeAreaInsetsContext.Consumer>
             {(insets) => {
                 const isExtraSmallScreenWidth = windowDimension.windowWidth <= variables.extraSmallMobileResponsiveWidthBreakpoint;
-                const isSmallScreenWidth = !isExtraSmallScreenWidth;
+                const isSmallScreenWidth = true;
                 const isMediumScreenWidth = false;
                 const isLargeScreenWidth = false;
                 return (

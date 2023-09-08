@@ -9,7 +9,7 @@ import variables from '../../styles/variables';
 export default function () {
     const {width: windowWidth, height: windowHeight} = useWindowDimensions();
     const isExtraSmallScreenHeight = windowHeight <= variables.extraSmallMobileResponsiveHeightBreakpoint;
-    const isSmallScreenWidth = !isExtraSmallScreenHeight;
+    const isSmallScreenWidth = true;
     const isMediumScreenWidth = false;
     const isLargeScreenWidth = false;
     return {
