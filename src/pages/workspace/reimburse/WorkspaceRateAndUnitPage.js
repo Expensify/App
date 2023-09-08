@@ -97,7 +97,7 @@ class WorkspaceRateAndUnitPage extends React.Component {
         if (!rateValueRegex.test(values.rate) || values.rate === '') {
             errors.rate = 'workspace.reimburse.invalidRateError';
         } else if (parseFloat(values.rate) <= 0) {
-            errors.rate = 'workspace.reimburse.lowRateError'
+            errors.rate = 'workspace.reimburse.lowRateError';
         }
         return errors;
     }
