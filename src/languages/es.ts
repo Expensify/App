@@ -1359,7 +1359,6 @@ export default {
         reimburse: {
             captureReceipts: 'Captura recibos',
             fastReimbursementsHappyMembers: '¡Reembolsos rápidos = miembros felices!',
-            kilometers: 'Kilómetros',
             viewAllReceipts: 'Ver todos los recibos',
             reimburseReceipts: 'Reembolsar recibos',
             trackDistance: 'Medir distancia',
