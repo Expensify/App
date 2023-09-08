@@ -572,8 +572,7 @@ function subscribeToUserEvents() {
             return;
         }
 
-        // If we reached this point, we need to pause the queue while we prepare to fetch older OnyxUpdates. This needs to happen here since adding it on OnyxUpdates
-        // would cause a circular reference issue.
+        // If we reached this point, we need to pause the queue while we prepare to fetch older OnyxUpdates.
         SequentialQueue.pause();
         OnyxUpdates.saveUpdateInformation(updates, Number(pushJSON.lastUpdateID || 0), Number(pushJSON.previousUpdateID || 0));
     });
