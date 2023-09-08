@@ -1100,7 +1100,7 @@ function getMentionTextColor(isOurMention: boolean): string {
  */
 function getComposeTextAreaPadding(numberOfLines: number, isComposerFullSize: boolean): ViewStyle | CSSProperties {
     let paddingValue = 5;
-    // If isComposerFullSize paddingValue will always be 5
+    // Issue #26222: If isComposerFullSize paddingValue will always be 5 to prevent padding jumps when adding multiple lines.
     if (!isComposerFullSize) {
         if (numberOfLines === 1) {
             paddingValue = 9;

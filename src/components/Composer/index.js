@@ -83,6 +83,9 @@ const propTypes = {
     /** Whether this is the report action compose */
     isReportActionCompose: PropTypes.bool,
 
+    /** Whether the sull composer is open */
+    isComposerFullSize: PropTypes.bool,
+
     ...withLocalizePropTypes,
 
     ...windowDimensionsPropTypes,
@@ -111,6 +114,7 @@ const defaultProps = {
     shouldCalculateCaretPosition: false,
     checkComposerVisibility: () => false,
     isReportActionCompose: false,
+    isComposerFullSize: false,
 };
 
 /**
