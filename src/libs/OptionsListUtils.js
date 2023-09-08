@@ -655,9 +655,7 @@ function getCategoryOptionTree(options, isOneLine = false) {
  * @param {Object[]} categories
  * @param {String} categories[].name
  * @param {Boolean} categories[].enabled
- * @param {Object[]} recentlyUsedCategories
- * @param {String} recentlyUsedCategories[].name
- * @param {Boolean} recentlyUsedCategories[].enabled
+ * @param {String[]} recentlyUsedCategories
  * @param {Object[]} selectedOptions
  * @param {String} selectedOptions[].name
  * @param {String} searchInputValue
@@ -1136,7 +1134,7 @@ function getIOUConfirmationOptionsFromParticipants(participants, amountText) {
  * @param {boolean} [includeP2P]
  * @param {boolean} [includeCategories]
  * @param {Object} [categories]
- * @param {Array<Object>} [recentlyUsedCategories]
+ * @param {Array<String>} [recentlyUsedCategories]
  * @param {boolean} [canInviteUser]
  * @returns {Object}
  */
