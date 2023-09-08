@@ -143,7 +143,7 @@ function getUpdatedTransaction(transaction, transactionChanges, isFromExpenseRep
     }
 
     // Always copy over the category for now until we have a way to edit it (Will be implemented in https://github.com/Expensify/App/issues/24464)
-    updatedTransaction.category = transaction.category
+    updatedTransaction.category = transaction.category;
 
     updatedTransaction.pendingFields = {
         ...(_.has(transactionChanges, 'comment') && {comment: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
