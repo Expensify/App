@@ -51,6 +51,7 @@ function MoneyRequestCategoryPage({route, report}) {
                 title={translate('common.category')}
                 onBackButtonPress={navigateBack}
             />
+
             <CategoryPicker
                 policyID={report.policyID}
                 reportID={reportID}
