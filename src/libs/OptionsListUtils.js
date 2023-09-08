@@ -740,8 +740,8 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
  * Transforms the provided tags into objects with a specific structure.
  *
  * @param {Object[]} tags - an initial tag array
- * @param {Boolean} options[].enabled - a flag to enable/disable option in a list
- * @param {String} options[].name - a name of an option
+ * @param {Boolean} tags[].enabled - a flag to enable/disable option in a list
+ * @param {String} tags[].name - a name of an option
  * @returns {Array<Object>}
  */
 function getTagsOptions(tags) {
@@ -1273,6 +1273,9 @@ function getIOUConfirmationOptionsFromParticipants(participants, amountText) {
  * @param {boolean} [includeCategories]
  * @param {Object} [categories]
  * @param {Array<Object>} [recentlyUsedCategories]
+ * @param {boolean} [includeTags]
+ * @param {Object} [tags]
+ * @param {Array<String>} [recentlyUsedTags]
  * @param {boolean} [canInviteUser]
  * @returns {Object}
  */
