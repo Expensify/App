@@ -13,7 +13,6 @@ type IsReportMessageAttachmentParams = {
  * @param reportActionMessage report action's message as text, html and translationKey
  */
 export default function isReportMessageAttachment({text, html, translationKey}: IsReportMessageAttachmentParams): boolean {
-
     if (!text || !html) {
         return false;
     }
