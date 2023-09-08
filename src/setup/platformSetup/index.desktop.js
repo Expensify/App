@@ -4,6 +4,9 @@ import LocalNotification from '../../libs/Notification/LocalNotification';
 import * as KeyboardShortcuts from '../../libs/actions/KeyboardShortcuts';
 import DateUtils from '../../libs/DateUtils';
 import ELECTRON_EVENTS from '../../../desktop/ELECTRON_EVENTS';
+// load all chunk file map when online
+import 'react-map-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
 
 export default function () {
     AppRegistry.runApplication(Config.APP_NAME, {
