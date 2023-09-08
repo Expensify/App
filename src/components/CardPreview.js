@@ -2,12 +2,10 @@ import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-
 import styles from '../styles/styles';
 import Text from './Text';
 import usePrivatePersonalDetails from '../hooks/usePrivatePersonalDetails';
 import ONYXKEYS from '../ONYXKEYS';
-
 import ExpensifyCardImage from '../../assets/images/expensify-card.svg';
 
 const propTypes = {
@@ -32,12 +30,9 @@ const defaultProps = {
     },
 };
 
-function CardPreview(props) {
+function CardPreview({privatePersonalDetails: {legalFirstName, legalLastName}, session: {email}}) {
     usePrivatePersonalDetails();
-    const legalFirstName = props.privatePersonalDetails.legalFirstName || '';
-    const legalLastName = props.privatePersonalDetails.legalLastName || '';
-
-    const cardHolder = legalFirstName && legalLastName ? `${legalFirstName} ${legalLastName}` : props.session.email;
+    const cardHolder = legalFirstName && legalLastName ? `${legalFirstName} ${legalLastName}` : email;
 
     return (
         <View style={styles.walletCard}>
@@ -59,7 +54,7 @@ function CardPreview(props) {
 
 CardPreview.propTypes = propTypes;
 CardPreview.defaultProps = defaultProps;
-CardPreview.displayName = CardPreview;
+CardPreview.displayName = 'CardPreview';
 
 export default withOnyx({
     privatePersonalDetails: {

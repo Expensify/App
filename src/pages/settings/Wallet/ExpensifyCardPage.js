@@ -8,7 +8,6 @@ import Navigation from '../../../libs/Navigation/Navigation';
 import styles from '../../../styles/styles';
 import * as CurrencyUtils from '../../../libs/CurrencyUtils';
 import MenuItemWithTopDescription from '../../../components/MenuItemWithTopDescription';
-
 import CardPreview from '../../../components/CardPreview';
 import useLocalize from '../../../hooks/useLocalize';
 
@@ -55,6 +54,6 @@ function ExpensifyCardPage(props) {
 
 ExpensifyCardPage.propTypes = propTypes;
 ExpensifyCardPage.defaultProps = defaultProps;
-ExpensifyCardPage.displayName = ExpensifyCardPage;
+ExpensifyCardPage.displayName = 'ExpensifyCardPage';
 
 export default ExpensifyCardPage;
