@@ -9,7 +9,7 @@ import * as OnyxUpdates from '../actions/OnyxUpdates';
 const requestsToIgnoreLastUpdateID = ['OpenApp', 'ReconnectApp', 'GetMissingOnyxMessages'];
 
 /**
- * @param {Promise} response
+ * @param {Promise} requestResponse
  * @param {Object} request
  * @returns {Promise}
  */
