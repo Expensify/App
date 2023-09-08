@@ -40,10 +40,9 @@ function SaveResponseInOnyx(requestResponse, request) {
         const responseToApply = {
             type: CONST.ONYX_UPDATE_TYPES.HTTPS,
             lastUpdateID: Number(response.lastUpdateID || 0),
-            data: {
-                request,
-                response,
-            },
+            previousUpdateID: Number(response.previousUpdateID || 0),
+            request,
+            response,
         };
 
         if (_.includes(requestsToIgnoreLastUpdateID, request.command) || !OnyxUpdates.doesClientNeedToBeUpdated(Number(response.previousUpdateID || 0))) {
@@ -51,7 +50,7 @@ function SaveResponseInOnyx(requestResponse, request) {
         }
 
         // Save the update IDs to Onyx so they can be used to fetch incremental updates if the client gets out of sync from the server
-        OnyxUpdates.saveUpdateInformation(responseToApply, Number(response.lastUpdateID || 0), Number(response.previousUpdateID || 0));
+        OnyxUpdates.saveUpdateInformation(responseToApply);
 
         // Ensure the queue is paused while the client resolves the gap in onyx updates so that updates are guaranteed to happen in a specific order.
         return Promise.resolve({

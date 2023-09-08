@@ -563,9 +563,8 @@ function subscribeToUserEvents() {
         const updates = {
             type: CONST.ONYX_UPDATE_TYPES.PUSHER,
             lastUpdateID: Number(pushJSON.lastUpdateID || 0),
-            data: {
-                updates: pushJSON.updates,
-            },
+            updates: pushJSON.updates,
+            previousUpdateID: Number(pushJSON.previousUpdateID || 0),
         };
         if (!OnyxUpdates.doesClientNeedToBeUpdated(Number(pushJSON.previousUpdateID || 0))) {
             OnyxUpdates.apply(updates);
@@ -574,7 +573,7 @@ function subscribeToUserEvents() {
 
         // If we reached this point, we need to pause the queue while we prepare to fetch older OnyxUpdates.
         SequentialQueue.pause();
-        OnyxUpdates.saveUpdateInformation(updates, Number(pushJSON.lastUpdateID || 0), Number(pushJSON.previousUpdateID || 0));
+        OnyxUpdates.saveUpdateInformation(updates);
     });
 
     // Handles Onyx updates coming from Pusher through the mega multipleEvents.

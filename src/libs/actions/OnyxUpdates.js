@@ -14,12 +14,11 @@ Onyx.connect({
 });
 
 /**
- * @param {Object} data
- * @param {Object} data.request
- * @param {Object} data.response
+ * @param {Object} request
+ * @param {Object} response
  * @returns {Promise}
  */
-function applyHTTPSOnyxUpdates({request, response}) {
+function applyHTTPSOnyxUpdates(request, response) {
     console.debug('[OnyxUpdateManager] Applying https update');
     // For most requests we can immediately update Onyx. For write requests we queue the updates and apply them after the sequential queue has flushed to prevent a replay effect in
     // the UI. See https://github.com/Expensify/App/issues/12775 for more info.
@@ -48,11 +47,10 @@ function applyHTTPSOnyxUpdates({request, response}) {
 }
 
 /**
- * @param {Object} data
- * @param {Object} data.updates
+ * @param {Array} updates
  * @returns {Promise}
  */
-function applyPusherOnyxUpdates({updates}) {
+function applyPusherOnyxUpdates(updates) {
     console.debug('[OnyxUpdateManager] Applying pusher update');
     const pusherEventPromises = _.map(updates, (update) => PusherUtils.triggerMultiEventHandler(update.eventType, update.data));
     return Promise.all(pusherEventPromises).then(() => {
@@ -64,13 +62,12 @@ function applyPusherOnyxUpdates({updates}) {
  * @param {Object[]} updateParams
  * @param {String} updateParams.type
  * @param {Number} updateParams.lastUpdateID
- * @param {Object} updateParams.data
- * @param {Object} [updateParams.data.request] Exists if updateParams.type === 'https'
- * @param {Object} [updateParams.data.response] Exists if updateParams.type === 'https'
- * @param {Object} [updateParams.data.updates] Exists if updateParams.type === 'pusher'
+ * @param {Object} [updateParams.request] Exists if updateParams.type === 'https'
+ * @param {Object} [updateParams.response] Exists if updateParams.type === 'https'
+ * @param {Object} [updateParams.updates] Exists if updateParams.type === 'pusher'
  * @returns {Promise}
  */
-function apply({lastUpdateID, type, data}) {
+function apply({lastUpdateID, type, request, response, updates}) {
     console.debug(`[OnyxUpdateManager] Applying update type: ${type} with lastUpdateID: ${lastUpdateID}`, data);
 
     if (lastUpdateID && lastUpdateID < lastUpdateIDAppliedToClient) {
@@ -81,30 +78,25 @@ function apply({lastUpdateID, type, data}) {
         Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, lastUpdateID);
     }
     if (type === CONST.ONYX_UPDATE_TYPES.HTTPS) {
-        return applyHTTPSOnyxUpdates(data);
+        return applyHTTPSOnyxUpdates(request, response);
     }
     if (type === CONST.ONYX_UPDATE_TYPES.PUSHER) {
-        return applyPusherOnyxUpdates(data);
+        return applyPusherOnyxUpdates(updates);
     }
 }
 
 /**
  * @param {Object[]} updateParams
  * @param {String} updateParams.type
- * @param {Object} updateParams.data
- * @param {Object} [updateParams.data.request] Exists if updateParams.type === 'https'
- * @param {Object} [updateParams.data.response] Exists if updateParams.type === 'https'
- * @param {Object} [updateParams.data.updates] Exists if updateParams.type === 'pusher'
- * @param {Number} [lastUpdateID]
- * @param {Number} [previousUpdateID]
+ * @param {Object} [updateParams.request] Exists if updateParams.type === 'https'
+ * @param {Object} [updateParams.response] Exists if updateParams.type === 'https'
+ * @param {Object} [updateParams.updates] Exists if updateParams.type === 'pusher'
+ * @param {Number} [updateParams.lastUpdateID]
+ * @param {Number} [updateParams.previousUpdateID]
  */
-function saveUpdateInformation(updateParams, lastUpdateID = 0, previousUpdateID = 0) {
+function saveUpdateInformation(updateParams) {
     // Always use set() here so that the updateParams are never merged and always unique to the request that came in
-    Onyx.set(ONYXKEYS.ONYX_UPDATES_FROM_SERVER, {
-        lastUpdateIDFromServer: lastUpdateID,
-        previousUpdateIDFromServer: previousUpdateID,
-        updateParams,
-    });
+    Onyx.set(ONYXKEYS.ONYX_UPDATES_FROM_SERVER, updateParams);
 }
 
 /**

@@ -35,7 +35,9 @@ export default () => {
                 return;
             }
 
-            const {lastUpdateIDFromServer, previousUpdateIDFromServer, updateParams} = val;
+            const updateParams = val;
+            const lastUpdateIDFromServer = val.lastUpdateID;
+            const previousUpdateIDFromServer = val.previousUpdateID;
 
             // In cases where we received a previousUpdateID and it doesn't match our lastUpdateIDAppliedToClient
             // we need to perform one of the 2 possible cases:
@@ -69,7 +71,7 @@ export default () => {
             }
 
             canUnpauseQueuePromise.finally(() => {
-                OnyxUpdates.apply({...updateParams, lastUpdateID: lastUpdateIDFromServer}).finally(() => {
+                OnyxUpdates.apply(updateParams).finally(() => {
                     console.debug('[OnyxUpdateManager] Done applying all updates');
                     SequentialQueue.unpause();
                 });
