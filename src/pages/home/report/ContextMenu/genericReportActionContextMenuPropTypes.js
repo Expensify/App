@@ -4,7 +4,7 @@ const propTypes = {
     /** The ID of the report this report action is attached to. */
     reportID: PropTypes.string.isRequired,
 
-    /** The ID of report action this context menu is attached to. */
+    /** The ID of the report action this context menu is attached to. */
     reportActionID: PropTypes.string.isRequired,
 
     /** The ID of the current report of this report action is attached to. */
