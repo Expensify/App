@@ -19,6 +19,7 @@ import ROUTES from '../../ROUTES';
 import Navigation from '../../libs/Navigation/Navigation';
 import TeachersUnite from '../../libs/actions/TeachersUnite';
 import useLocalize from '../../hooks/useLocalize';
+import * as ValidationUtils from '../../libs/ValidationUtils';
 
 const propTypes = {
     /** Login list for the user that is signed in */
@@ -64,10 +65,14 @@ function KnowATeacherPage(props) {
             const phoneLogin = LoginUtils.getPhoneLogin(values.partnerUserID);
             const validateIfnumber = LoginUtils.validateNumber(phoneLogin);
 
-            if (_.isEmpty(values.firstName)) {
+            if (!ValidationUtils.isValidLegalName(values.firstName)) {
+                ErrorUtils.addErrorMessage(errors, 'firstName', translate('privatePersonalDetails.error.hasInvalidCharacter'));
+            } else if (_.isEmpty(values.firstName)) {
                 ErrorUtils.addErrorMessage(errors, 'firstName', translate('bankAccount.error.firstName'));
             }
-            if (_.isEmpty(values.lastName)) {
+            if (!ValidationUtils.isValidLegalName(values.lastName)) {
+                ErrorUtils.addErrorMessage(errors, 'lastName', translate('privatePersonalDetails.error.hasInvalidCharacter'));
+            } else if (_.isEmpty(values.lastName)) {
                 ErrorUtils.addErrorMessage(errors, 'lastName', translate('bankAccount.error.lastName'));
             }
             if (_.isEmpty(values.partnerUserID)) {
