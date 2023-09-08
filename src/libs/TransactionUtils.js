@@ -142,6 +142,9 @@ function getUpdatedTransaction(transaction, transactionChanges, isFromExpenseRep
         updatedTransaction.receipt.state = CONST.IOU.RECEIPT_STATE.OPEN;
     }
 
+    // Always copy over the category for now until we have a way to edit it (Will be implemented in https://github.com/Expensify/App/issues/24464)
+    updatedTransaction.category = transaction.category
+
     updatedTransaction.pendingFields = {
         ...(_.has(transactionChanges, 'comment') && {comment: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
         ...(_.has(transactionChanges, 'created') && {created: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
