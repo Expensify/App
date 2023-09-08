@@ -414,12 +414,10 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
-            value: reportActionsExist(reportID)
-                ? {}
-                : {
-                      isLoadingReportActions: true,
-                      isLoadingMoreReportActions: false,
-                  },
+            value: {
+                isLoadingReportActions: true,
+                isLoadingMoreReportActions: false,
+            },
         },
     ];
 
@@ -476,17 +474,17 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
     // If we open an exist report, but it is not present in Onyx yet, we should change the method to set for this report
     // and we need data to be available when we navigate to the chat page
     if (_.isEmpty(ReportUtils.getReport(reportID))) {
-        onyxData.optimisticReportData.onyxMethod = Onyx.METHOD.SET;
+        onyxData.optimisticData[0].onyxMethod = Onyx.METHOD.SET;
     }
 
     // If we are creating a new report, we need to add the optimistic report data and a report action
     if (!_.isEmpty(newReportObject)) {
         // Change the method to set for new reports because it doesn't exist yet, is faster,
         // and we need the data to be available when we navigate to the chat page
-        onyxData.optimisticReportData[0].onyxMethod = Onyx.METHOD.SET;
-        onyxData.optimisticReportData[0].value = {
+        onyxData.optimisticData[0].onyxMethod = Onyx.METHOD.SET;
+        onyxData.optimisticData[0].value = {
             reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
-            ...onyxData.optimisticReportData.value,
+            ...onyxData.optimisticData[0].value,
             ...newReportObject,
             pendingFields: {
                 createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
