@@ -1,4 +1,4 @@
-import React, {createRef, useCallback, useRef, useState} from 'react';
+import React, {createRef, useCallback, useMemo, useRef, useState} from 'react';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -11,6 +11,8 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import {withNetwork} from '../../components/OnyxProvider';
 import stylePropTypes from '../../styles/stylePropTypes';
 import networkPropTypes from '../../components/networkPropTypes';
+import * as ErrorUtils from '../../libs/ErrorUtils';
+import lodashGet from 'lodash/get';
 
 const propTypes = {
     /** A unique Onyx key identifying the form */
@@ -81,6 +83,19 @@ const defaultProps = {
     validate: () => ({}),
 };
 
+function getInitialValueByType(valueType) {
+    switch (valueType) {
+        case 'string':
+            return '';
+        case 'boolean':
+            return false;
+        case 'date':
+            return new Date();
+        default:
+            return '';
+    }
+}
+
 function FormProvider({validate, shouldValidateOnBlur, shouldValidateOnChange, children, formState, network, enabledWhenOffline, onSubmit, ...rest}) {
     const inputRefs = useRef({});
     const touchedInputs = useRef({});
@@ -134,7 +149,7 @@ function FormProvider({validate, shouldValidateOnBlur, shouldValidateOnChange, c
 
             // We want to initialize the input value if it's undefined
             if (_.isUndefined(inputValues[inputID])) {
-                inputValues[inputID] = propsToParse.defaultValue || '';
+                inputValues[inputID] = propsToParse.defaultValue || getInitialValueByType(propsToParse.valueType);
             }
 
             // We force the form to set the input value from the defaultValue props if there is a saved valid value
@@ -146,12 +161,22 @@ function FormProvider({validate, shouldValidateOnBlur, shouldValidateOnChange, c
                 inputValues[inputID] = propsToParse.value;
             }
 
+            const errorFields = lodashGet(formState, 'errorFields', {});
+            const fieldErrorMessage =
+                _.chain(errorFields[inputID])
+                    .keys()
+                    .sortBy()
+                    .reverse()
+                    .map((key) => errorFields[inputID][key])
+                    .first()
+                    .value() || '';
+
             return {
                 ...propsToParse,
                 ref: newRef,
                 inputID,
                 key: propsToParse.key || inputID,
-                errorText: errors[inputID],
+                errorText: errors[inputID] || fieldErrorMessage,
                 value: inputValues[inputID],
                 // As the text input is controlled, we never set the defaultValue prop
                 // as this is already happening by the value prop.
@@ -204,7 +229,7 @@ function FormProvider({validate, shouldValidateOnBlur, shouldValidateOnChange, c
                 },
             };
         },
-        [errors, inputValues, onValidate, setTouchedInput, shouldValidateOnBlur, shouldValidateOnChange],
+        [errors, formState, inputValues, onValidate, setTouchedInput, shouldValidateOnBlur, shouldValidateOnChange],
     );
 
     return (
