@@ -44,6 +44,7 @@ import SecurityGroup from './SecurityGroup';
 import Transaction from './Transaction';
 import Form, {AddDebitCardForm} from './Form';
 import RecentWaypoints from './RecentWaypoints';
+import RecentlyUsedCategories from './RecentlyUsedCategories';
 
 export type {
     Account,
@@ -93,4 +94,5 @@ export type {
     Form,
     AddDebitCardForm,
     RecentWaypoints,
+    RecentlyUsedCategories,
 };

@@ -43,7 +43,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    selectedTab: CONST.TAB.MANUAL,
+    selectedTab: CONST.TAB.SCAN,
     report: {},
 };
 
@@ -82,6 +82,7 @@ function MoneyRequestSelectorPage(props) {
                             {iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST ? (
                                 <OnyxTabNavigator
                                     id={CONST.TAB.RECEIPT_TAB_ID}
+                                    selectedTab={props.selectedTab}
                                     tabBar={({state, navigation, position}) => (
                                         <TabSelector
                                             state={state}
