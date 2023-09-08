@@ -7,7 +7,7 @@ const propTypes = {
     /** The ID of report action this context menu is attached to. */
     reportActionID: PropTypes.string.isRequired,
 
-    /** The ID of the current report of this report action is attached to. */
+    /** The ID of the original report from which the given reportAction is first created. */
     originalReportID: PropTypes.string.isRequired,
 
     /** If true, this component will be a small, row-oriented menu that displays icons but not text.
