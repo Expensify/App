@@ -68,10 +68,10 @@ function process() {
 
     // Set the current request to a promise awaiting its processing so that getCurrentRequest can be used to take some action after the current request has processed.
     currentRequest = Request.processWithMiddleware(requestToProcess, true)
-        .then((responseData) => {
+        .then((response) => {
             // A response might indicate that the queue should be paused. This happens when a gap in onyx updates is detected between the client and the server and
             // that gap needs resolved before the queue can continue.
-            if (responseData.shouldPauseQueue) {
+            if (response.shouldPauseQueue) {
                 pause();
             }
             PersistedRequests.remove(requestToProcess);

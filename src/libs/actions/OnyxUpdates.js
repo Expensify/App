@@ -54,7 +54,7 @@ function applyHTTPSOnyxUpdates({request, response}) {
  */
 function applyPusherOnyxUpdates({updates}) {
     console.debug('[OnyxUpdateManager] Applying pusher update');
-    const pusherEventPromises = _.map(updates, update => PusherUtils.triggerMultiEventHandler(update.eventType, update.data));
+    const pusherEventPromises = _.map(updates, (update) => PusherUtils.triggerMultiEventHandler(update.eventType, update.data));
     return Promise.all(pusherEventPromises).then(() => {
         console.debug('[OnyxUpdateManager] Done applying Pusher update');
     });

@@ -13,7 +13,7 @@ type OnyxUpdatesFromServer = {
     lastUpdateIDFromServer: number | string;
     previousUpdateIDFromServer: number | string;
     type: 'https' | 'pusher';
-    data: OnyxUpdatesFromServerData;
+    updateParams: OnyxUpdatesFromServerData;
 };
 
 export default OnyxUpdatesFromServer;
