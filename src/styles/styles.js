@@ -4000,6 +4000,9 @@ const styles = (theme) => ({
         left: 16,
         bottom: 16,
         width: 160,
+        color: themeColors.text,
+        fontSize: variables.fontSizeLabel,
+        lineHeight: variables.lineHeightLarge,
     },
 });
 
