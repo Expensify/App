@@ -2012,7 +2012,8 @@ function getIOUReportActionMessage(iouReportID, type, total, comment, currency, 
             paymentMethodMessage = ' elsewhere';
             break;
         case CONST.IOU.PAYMENT_TYPE.VBBA:
-            paymentMethodMessage = ' using Expensify';
+        case CONST.IOU.PAYMENT_TYPE.EXPENSIFY:
+            paymentMethodMessage = ' with Expensify';
             break;
         default:
             paymentMethodMessage = ` using ${paymentType}`;
