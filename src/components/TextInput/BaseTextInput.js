@@ -331,7 +331,7 @@ function BaseTextInput(props) {
 
                                     // Stop scrollbar flashing when breaking lines with autoGrowHeight enabled.
                                     props.autoGrowHeight && StyleUtils.getAutoGrowHeightInputStyle(textInputHeight, maxHeight),
-                                    // Remove border bottom when field is not editable.
+                                    // Add disabled color theme when field is not editable.
                                     props.disabled && styles.textInputDisabled,
                                 ]}
                                 multiline={isMultiline}
