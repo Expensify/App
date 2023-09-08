@@ -1,4 +1,4 @@
-import React, {useContext} from 'react';
+import {useContext} from 'react';
 import InputWrapper from './InputWrapper';
 import FormContext from './FormContext';
 import FormProvider from './FormProvider';

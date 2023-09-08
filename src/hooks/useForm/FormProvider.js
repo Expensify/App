@@ -1,4 +1,4 @@
-import React, {createRef, useCallback, useMemo, useRef, useState} from 'react';
+import React, {createRef, useCallback, useRef, useState} from 'react';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -11,7 +11,6 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import {withNetwork} from '../../components/OnyxProvider';
 import stylePropTypes from '../../styles/stylePropTypes';
 import networkPropTypes from '../../components/networkPropTypes';
-import * as ErrorUtils from '../../libs/ErrorUtils';
 import lodashGet from 'lodash/get';
 
 const propTypes = {
