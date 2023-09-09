@@ -139,6 +139,7 @@ export default compose(
         const prevReportAction = lodashGet(prevProps.reportActions, prevProps.reportActionID, '');
         const nextReportAction = lodashGet(nextProps.reportActions, nextProps.reportActionID, '');
 
+        // We only want to re-render when the report action that is attached to is changed
         if (prevReportAction !== nextReportAction) {
             return false;
         }
