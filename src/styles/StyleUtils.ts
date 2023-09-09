@@ -1098,11 +1098,18 @@ function getMentionTextColor(isOurMention: boolean): string {
 /**
  * Returns padding vertical based on number of lines
  */
-function getComposeTextAreaPadding(numberOfLines: number): ViewStyle | CSSProperties {
+function getComposeTextAreaPadding(numberOfLines: number, isComposerFullSize: boolean): ViewStyle | CSSProperties {
     let paddingValue = 5;
-    if (numberOfLines === 1) paddingValue = 9;
-    // In case numberOfLines = 3, there will be a Expand Icon appearing at the top left, so it has to be recalculated so that the textArea can be full height
-    if (numberOfLines === 3) paddingValue = 8;
+    // Issue #26222: If isComposerFullSize paddingValue will always be 5 to prevent padding jumps when adding multiple lines.
+    if (!isComposerFullSize) {
+        if (numberOfLines === 1) {
+            paddingValue = 9;
+        }
+        // In case numberOfLines = 3, there will be a Expand Icon appearing at the top left, so it has to be recalculated so that the textArea can be full height
+        else if (numberOfLines === 3) {
+            paddingValue = 8;
+        }
+    }
     return {
         paddingTop: paddingValue,
         paddingBottom: paddingValue,
