@@ -50,7 +50,7 @@ function BaseReportActionContextMenu(props) {
 
     const reportAction = useMemo(() => {
         if (_.isEmpty(props.reportActions) || props.reportActionID === '0') return {};
-        return props.reportActions[props.reportActionID];
+        return props.reportActions[props.reportActionID] || {};
     }, [props.reportActions, props.reportActionID]);
 
     const shouldShowFilter = (contextAction) =>
