@@ -2,6 +2,7 @@ import lodashGet from 'lodash/get';
 import React from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import _ from "lodash";
 import CONST from '../CONST';
 import Banner from './Banner';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
@@ -64,9 +65,9 @@ function ArchivedReportFooter(props) {
         <Banner
             containerStyles={[styles.archivedReportFooter]}
             text={props.translate(`reportArchiveReasons.${archiveReason}`, {
-                displayName: `<strong>${displayName}</strong>`,
-                oldDisplayName: `<strong>${oldDisplayName}</strong>`,
-                policyName: `<strong>${ReportUtils.getPolicyName(props.report)}</strong>`,
+                displayName: `<strong>${_.escape(displayName)}</strong>`,
+                oldDisplayName: `<strong>${_.escape(oldDisplayName)}</strong>`,
+                policyName: `<strong>${_.escape(ReportUtils.getPolicyName(props.report))}</strong>`,
             })}
             shouldRenderHTML={archiveReason !== CONST.REPORT.ARCHIVE_REASON.DEFAULT}
             shouldShowIcon
