@@ -42,7 +42,7 @@ function applyHTTPSOnyxUpdates(request, response) {
         })
         .then(() => {
             console.debug('[OnyxUpdateManager] Done applying HTTPS update');
-            return Promise.resolve(response);;
+            return Promise.resolve(response);
         });
 }
 
@@ -68,7 +68,7 @@ function applyPusherOnyxUpdates(updates) {
  * @returns {Promise}
  */
 function apply({lastUpdateID, type, request, response, updates}) {
-    console.debug(`[OnyxUpdateManager] Applying update type: ${type} with lastUpdateID: ${lastUpdateID}`, { request, response, updates } );
+    console.debug(`[OnyxUpdateManager] Applying update type: ${type} with lastUpdateID: ${lastUpdateID}`, {request, response, updates});
 
     if (lastUpdateID && lastUpdateID < lastUpdateIDAppliedToClient) {
         console.debug('[OnyxUpdateManager] Update received was older than current state, returning without applying the updates');
