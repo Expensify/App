@@ -36,6 +36,9 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Configure MapBox SDK
+        run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
+
       - uses: Expensify/App/.github/actions/composite/setupNode@main
 
       - uses: ruby/setup-ruby@eae47962baca661befdfd24e4d6c34ade04858f7
@@ -143,6 +146,9 @@ jobs:
     runs-on: macos-12-xl
     steps:
       - uses: actions/checkout@v3
+
+      - name: Configure MapBox SDK
+        run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
       - uses: Expensify/App/.github/actions/composite/setupNode@main
 

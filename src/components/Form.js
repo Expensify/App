@@ -89,7 +89,6 @@ const defaultProps = {
     isSubmitButtonVisible: true,
     formState: {
         isLoading: false,
-        errors: null,
     },
     draftValues: {},
     enabledWhenOffline: false,
@@ -109,6 +108,7 @@ function Form(props) {
     const formContentRef = useRef(null);
     const inputRefs = useRef({});
     const touchedInputs = useRef({});
+    const focusedInput = useRef(null);
     const isFirstRender = useRef(true);
 
     const {validate, onSubmit, children} = props;
@@ -306,6 +306,12 @@ function Form(props) {
                     // as this is already happening by the value prop.
                     defaultValue: undefined,
                     errorText: errors[inputID] || fieldErrorMessage,
+                    onFocus: (event) => {
+                        focusedInput.current = inputID;
+                        if (_.isFunction(child.props.onFocus)) {
+                            child.props.onFocus(event);
+                        }
+                    },
                     onBlur: (event) => {
                         // Only run validation when user proactively blurs the input.
                         if (Visibility.isVisible() && Visibility.hasFocus()) {
@@ -329,6 +335,11 @@ function Form(props) {
                     },
                     onInputChange: (value, key) => {
                         const inputKey = key || inputID;
+
+                        if (focusedInput.current && focusedInput.current !== inputKey) {
+                            setTouchedInput(focusedInput.current);
+                        }
+
                         setInputValues((prevState) => {
                             const newState = {
                                 ...prevState,

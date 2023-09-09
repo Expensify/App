@@ -64,6 +64,7 @@ import * as PersonalDetailsUtils from '../../../libs/PersonalDetailsUtils';
 import ReportActionItemBasicMessage from './ReportActionItemBasicMessage';
 import * as store from '../../../libs/actions/ReimbursementAccount/store';
 import * as BankAccounts from '../../../libs/actions/BankAccounts';
+import usePrevious from '../../../hooks/usePrevious';
 import ReportScreenContext from '../ReportScreenContext';
 import Permissions from '../../../libs/Permissions';
 
@@ -131,6 +132,9 @@ function ReportActionItem(props) {
     const textInputRef = useRef();
     const popoverAnchorRef = useRef();
     const downloadedPreviews = useRef([]);
+    const prevDraftMessage = usePrevious(props.draftMessage);
+    const originalReportID = ReportUtils.getOriginalReportID(props.report.reportID, props.action);
+    const originalReport = props.report.reportID === originalReportID ? props.report : ReportUtils.getReport(originalReportID);
 
     useEffect(
         () => () => {
@@ -140,7 +144,7 @@ function ReportActionItem(props) {
                 ReportActionContextMenu.hideContextMenu();
                 ReportActionContextMenu.hideDeleteModal();
             }
-            if (EmojiPickerAction.isActiveReportAction(props.action.reportActionID)) {
+            if (EmojiPickerAction.isActive(props.action.reportActionID)) {
                 EmojiPickerAction.hideEmojiPicker(true);
             }
             if (reactionListRef.current && reactionListRef.current.isActiveReportAction(props.action.reportActionID)) {
@@ -150,14 +154,13 @@ function ReportActionItem(props) {
         [props.action.reportActionID, reactionListRef],
     );
 
-    const isDraftEmpty = !props.draftMessage;
     useEffect(() => {
-        if (isDraftEmpty) {
+        if (prevDraftMessage || !props.draftMessage) {
             return;
         }
 
         focusTextInputAfterAnimation(textInputRef.current, 100);
-    }, [isDraftEmpty]);
+    }, [prevDraftMessage, props.draftMessage]);
 
     useEffect(() => {
         if (!Permissions.canUseLinkPreviews()) {
@@ -213,7 +216,6 @@ function ReportActionItem(props) {
             }
 
             setIsContextMenuActive(true);
-
             const selection = SelectionScraper.getCurrentSelection();
             ReportActionContextMenu.showContextMenu(
                 ContextMenuActions.CONTEXT_MENU_TYPES.REPORT_ACTION,
@@ -225,11 +227,11 @@ function ReportActionItem(props) {
                 props.draftMessage,
                 () => {},
                 toggleContextMenuFromActiveReportAction,
-                ReportUtils.isArchivedRoom(props.report),
-                ReportUtils.chatIncludesChronos(props.report),
+                ReportUtils.isArchivedRoom(originalReport),
+                ReportUtils.chatIncludesChronos(originalReport),
             );
         },
-        [props.draftMessage, props.action, props.report, toggleContextMenuFromActiveReportAction],
+        [props.draftMessage, props.action, props.report.reportID, toggleContextMenuFromActiveReportAction, originalReport],
     );
 
     const toggleReaction = useCallback(
@@ -242,16 +244,18 @@ function ReportActionItem(props) {
     /**
      * Get the content of ReportActionItem
      * @param {Boolean} hovered whether the ReportActionItem is hovered
+     * @param {Boolean} isWhisper whether the report action is a whisper
+     * @param {Boolean} hasErrors whether the report action has any errors
      * @returns {Object} child component(s)
      */
-    const renderItemContent = (hovered = false) => {
+    const renderItemContent = (hovered = false, isWhisper = false, hasErrors = false) => {
         let children;
         const originalMessage = lodashGet(props.action, 'originalMessage', {});
 
         // IOUDetails only exists when we are sending money
         const isSendingMoney = originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && _.has(originalMessage, 'IOUDetails');
 
-        // Show the IOUPreview for when request was created, bill was split or money was sent
+        // Show the MoneyRequestPreview for when request was created, bill was split or money was sent
         if (
             props.action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
             originalMessage &&
@@ -270,6 +274,7 @@ function ReportActionItem(props) {
                     contextMenuAnchor={popoverAnchorRef}
                     checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                     style={props.displayAsGroup ? [] : [styles.mt2]}
+                    isWhisper={isWhisper}
                 />
             );
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW) {
@@ -277,11 +282,13 @@ function ReportActionItem(props) {
                 <ReportPreview
                     iouReportID={ReportActionsUtils.getIOUReportIDFromReportActionPreview(props.action)}
                     chatReportID={props.report.reportID}
+                    policyID={props.report.policyID}
                     containerStyles={props.displayAsGroup ? [] : [styles.mt2]}
                     action={props.action}
                     isHovered={hovered}
                     contextMenuAnchor={popoverAnchorRef}
                     checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
+                    isWhisper={isWhisper}
                 />
             );
         } else if (
@@ -341,7 +348,10 @@ function ReportActionItem(props) {
                                 displayAsGroup={props.displayAsGroup}
                                 isHidden={isHidden}
                                 style={[
-                                    _.contains([..._.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG), CONST.REPORT.ACTIONS.TYPE.IOU], props.action.actionName)
+                                    _.contains(
+                                        [..._.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG), CONST.REPORT.ACTIONS.TYPE.IOU, CONST.REPORT.ACTIONS.TYPE.APPROVED],
+                                        props.action.actionName,
+                                    )
                                         ? styles.colorMuted
                                         : undefined,
                                 ]}
@@ -400,6 +410,7 @@ function ReportActionItem(props) {
                         <ReportActionItemEmojiReactions
                             reportActionID={props.action.reportActionID}
                             emojiReactions={props.emojiReactions}
+                            shouldBlockReactions={hasErrors}
                             toggleReaction={(emoji) => {
                                 if (Session.isAnonymousUser()) {
                                     hideContextMenu(false);
@@ -435,10 +446,11 @@ function ReportActionItem(props) {
      * Get ReportActionItem with a proper wrapper
      * @param {Boolean} hovered whether the ReportActionItem is hovered
      * @param {Boolean} isWhisper whether the ReportActionItem is a whisper
+     * @param {Boolean} hasErrors whether the report action has any errors
      * @returns {Object} report action item
      */
-    const renderReportActionItem = (hovered, isWhisper) => {
-        const content = renderItemContent(hovered || isContextMenuActive);
+    const renderReportActionItem = (hovered, isWhisper, hasErrors) => {
+        const content = renderItemContent(hovered || isContextMenuActive, isWhisper, hasErrors);
 
         if (props.draftMessage) {
             return <ReportActionItemDraft>{content}</ReportActionItemDraft>;
@@ -468,12 +480,21 @@ function ReportActionItem(props) {
         const parentReportAction = ReportActionsUtils.getParentReportAction(props.report);
         if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
             return (
-                <OfflineWithFeedback pendingAction={props.action.pendingAction}>
-                    <MoneyRequestView
-                        report={props.report}
-                        shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
-                    />
-                </OfflineWithFeedback>
+                <ShowContextMenuContext.Provider
+                    value={{
+                        anchor: popoverAnchorRef,
+                        report: props.report,
+                        action: props.action,
+                        checkIfContextMenuActive: toggleContextMenuFromActiveReportAction,
+                    }}
+                >
+                    <OfflineWithFeedback pendingAction={props.action.pendingAction}>
+                        <MoneyRequestView
+                            report={props.report}
+                            shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
+                        />
+                    </OfflineWithFeedback>
+                </ShowContextMenuContext.Provider>
             );
         }
         if (ReportUtils.isTaskReport(props.report)) {
@@ -540,11 +561,11 @@ function ReportActionItem(props) {
                         <MiniReportActionContextMenu
                             reportID={props.report.reportID}
                             reportAction={props.action}
-                            isArchivedRoom={ReportUtils.isArchivedRoom(props.report)}
+                            isArchivedRoom={ReportUtils.isArchivedRoom(originalReport)}
                             displayAsGroup={props.displayAsGroup}
                             isVisible={hovered && !props.draftMessage && !hasErrors}
                             draftMessage={props.draftMessage}
-                            isChronosReport={ReportUtils.chatIncludesChronos(props.report)}
+                            isChronosReport={ReportUtils.chatIncludesChronos(originalReport)}
                         />
                         <View
                             style={StyleUtils.getReportActionItemStyle(
@@ -582,7 +603,7 @@ function ReportActionItem(props) {
                                         />
                                     </View>
                                 )}
-                                {renderReportActionItem(hovered, isWhisper)}
+                                {renderReportActionItem(hovered, isWhisper, hasErrors)}
                             </OfflineWithFeedback>
                         </View>
                     </View>
@@ -607,8 +628,7 @@ export default compose(
     withReportActionsDrafts({
         propName: 'draftMessage',
         transformValue: (drafts, props) => {
-            const originalReportID = ReportUtils.getOriginalReportID(props.report.reportID, props.action);
-            const draftKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}_${props.action.reportActionID}`;
+            const draftKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${props.report.reportID}_${props.action.reportActionID}`;
             return lodashGet(drafts, draftKey, '');
         },
     }),
