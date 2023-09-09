@@ -285,7 +285,9 @@ function ReportActionCompose({
         setIsFocused(true);
     }, []);
 
-    const resetFullComposerToFalse = useCallback(() => {
+    // resets the composer to normal size when
+    // the send button is pressed.
+    const resetFullComposerSize = useCallback(() => {
         if (isComposerFullSize) {
             Report.setIsComposerFullSize(reportID, false);
         }
@@ -345,7 +347,7 @@ function ReportActionCompose({
                                     reportID={reportID}
                                     report={report}
                                     reportParticipantIDs={reportParticipantIDs}
-                                    isFullComposerAvailable={isFullComposerAvailable}
+                                    isFullComposerAvailable={isFullComposerAvailable && !isCommentEmpty}
                                     isComposerFullSize={isComposerFullSize}
                                     updateShouldShowSuggestionMenuToFalse={updateShouldShowSuggestionMenuToFalse}
                                     isBlockedFromConcierge={isBlockedFromConcierge}
@@ -407,7 +409,7 @@ function ReportActionCompose({
                     <SendButton
                         isDisabled={isSendDisabled}
                         setIsCommentEmpty={setIsCommentEmpty}
-                        resetFullComposerToFalse={resetFullComposerToFalse}
+                        resetFullComposerSize={resetFullComposerSize}
                         submitForm={submitForm}
                         animatedRef={animatedRef}
                     />
