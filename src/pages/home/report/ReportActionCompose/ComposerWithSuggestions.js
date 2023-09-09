@@ -243,8 +243,12 @@ function ComposerWithSuggestions({
 
         updateComment('');
         setTextInputShouldClear(true);
+        if (isComposerFullSize) {
+            Report.setIsComposerFullSize(reportID, false);
+        }
+        setIsFullComposerAvailable(false);
         return trimmedComment;
-    }, [updateComment, setTextInputShouldClear]);
+    }, [updateComment, setTextInputShouldClear, isComposerFullSize, setIsFullComposerAvailable, reportID]);
 
     /**
      * Callback to add whatever text is chosen into the main input (used f.e as callback for the emoji picker)
