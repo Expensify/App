@@ -292,12 +292,12 @@ function MoneyRequestPreview(props) {
                                     <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh20, styles.breakWord]}>{requestMerchant}</Text>
                                 </View>
                             )}
-                            <View style={[styles.flexRow]}>
+                            <View style={[styles.flexRow, styles.mt1]}>
                                 <View style={[styles.flex1]}>
                                     {!isCurrentUserManager && props.shouldShowPendingConversionMessage && (
-                                        <Text style={[styles.textLabel, styles.colorMuted, styles.mt1]}>{props.translate('iou.pendingConversionMessage')}</Text>
+                                        <Text style={[styles.textLabel, styles.colorMuted]}>{props.translate('iou.pendingConversionMessage')}</Text>
                                     )}
-                                    {shouldShowDescription && <Text style={[styles.mt1, styles.colorMuted]}>{description}</Text>}
+                                    {shouldShowDescription && <Text style={[styles.colorMuted]}>{description}</Text>}
                                 </View>
                                 {props.isBillSplit && !_.isEmpty(participantAccountIDs) && (
                                     <Text style={[styles.textLabel, styles.colorMuted, styles.ml1]}>
