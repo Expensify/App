@@ -491,8 +491,6 @@ function getIconFillColor(buttonState: ButtonStateName = CONST.BUTTON_STATES.DEF
     }
 }
 
-
-
 function getWidthAndHeightStyle(width: number, height: number | undefined = undefined): ViewStyle | CSSProperties {
     return {
         width,
