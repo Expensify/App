@@ -162,9 +162,10 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
     }, [shouldFetchRoute, iou.transactionID, validatedWaypoints, isOffline]);
 
     useEffect(() => {
-        if (numberOfWaypoints > numberOfPreviousWaypoints) {
-            scrollViewRef.current.scrollToEnd({animated: true});
+        if (numberOfWaypoints <= numberOfPreviousWaypoints) {
+            return;
         }
+        scrollViewRef.current.scrollToEnd({animated: true});
     }, [numberOfPreviousWaypoints, numberOfWaypoints]);
 
     useEffect(updateGradientVisibility, [scrollContainerHeight, scrollContentHeight]);
