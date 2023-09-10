@@ -36,6 +36,9 @@ const propTypes = {
     /** Whether to use the maxHeight (true) or use the 100% of the height (false) */
     shouldEnableMaxHeight: PropTypes.bool,
 
+    /** Array of additional styles for header gap */
+    headerGapStyles: PropTypes.arrayOf(PropTypes.object),
+
     ...windowDimensionsPropTypes,
 
     ...environmentPropTypes,
@@ -59,6 +62,7 @@ const defaultProps = {
     shouldEnablePickerAvoiding: true,
     shouldShowOfflineIndicator: true,
     offlineIndicatorStyle: [],
+    headerGapStyles: [],
 };
 
 export {propTypes, defaultProps};
