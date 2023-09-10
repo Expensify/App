@@ -38,7 +38,6 @@ import TaskHeaderActionButton from '../../components/TaskHeaderActionButton';
 import DragAndDropProvider from '../../components/DragAndDrop/Provider';
 import usePrevious from '../../hooks/usePrevious';
 import CONST from '../../CONST';
-import withReportOrNotFound from './report/withReportOrNotFound';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
