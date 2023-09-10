@@ -42,7 +42,7 @@ class WorkspaceRateAndUnitPage extends React.Component {
     getUnitItems() {
         return [
             {label: this.props.translate('workspace.reimburse.kilometers'), value: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS},
-            {label: this.props.translate('workspace.reimburse.miles'), value: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+            {label: this.props.translate('common.miles'), value: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
         ];
     }
 

@@ -135,8 +135,10 @@ function cherry_pick_pr {
 
   git switch staging
   git switch -c cherry-pick-staging
-  git cherry-pick -x --mainline 1 --strategy=recursive -Xtheirs "$PR_MERGE_COMMIT"
   git cherry-pick -x --mainline 1 "$VERSION_BUMP_COMMIT"
+  setup_git_as_human
+  git cherry-pick -x --mainline 1 --strategy=recursive -Xtheirs "$PR_MERGE_COMMIT"
+  setup_git_as_osbotify
 
   git switch staging
   git merge cherry-pick-staging --no-ff -m "Merge pull request #$(($1 + 1)) from Expensify/cherry-pick-staging"
