@@ -1298,10 +1298,6 @@ function updateWriteCapabilityAndNavigate(report, newValue) {
  */
 function navigateToConciergeChat() {
     if (!conciergeChatReportID) {
-        // In order not to delay the report life cycle, we first navigate to the unknown report
-        if (!Navigation.getTopmostReportId()) {
-            Navigation.navigate(ROUTES.REPORT);
-        }
         // In order to avoid creating concierge repeatedly,
         // we need to ensure that the server data has been successfully pulled
         Welcome.serverDataIsReadyPromise().then(() => {
