@@ -3778,23 +3778,28 @@ const styles = {
 
     reportActionItemImages: {
         flexDirection: 'row',
-        borderWidth: 2,
-        borderColor: themeColors.cardBG,
+        borderWidth: 4,
+        borderColor: themeColors.transparent,
         borderTopLeftRadius: variables.componentBorderRadiusLarge,
         borderTopRightRadius: variables.componentBorderRadiusLarge,
+        borderBottomLeftRadius: variables.componentBorderRadiusLarge,
+        borderBottomRightRadius: variables.componentBorderRadiusLarge,
         overflow: 'hidden',
         height: 200,
     },
 
     reportActionItemImage: {
-        borderWidth: 1,
-        borderColor: themeColors.cardBG,
         flex: 1,
         width: '100%',
         height: '100%',
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
+    },
+
+    reportActionItemImageBorder: {
+        borderRightWidth: 2,
+        borderColor: themeColors.cardBG,
     },
 
     reportActionItemImagesMore: {
@@ -3809,10 +3814,14 @@ const styles = {
     },
 
     moneyRequestHeaderStatusBarBadge: {
-        padding: 8,
-        borderRadius: variables.componentBorderRadiusMedium,
-        marginRight: 16,
+        paddingHorizontal: 8,
+        borderRadius: variables.componentBorderRadiusSmall,
+        height: variables.inputHeightSmall,
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
         backgroundColor: themeColors.border,
+        marginRight: 12,
     },
 
     staticHeaderImage: {
@@ -3862,7 +3871,7 @@ const styles = {
 
     distanceRequestContainer: (maxHeight) => ({
         ...flex.flexShrink2,
-        minHeight: variables.baseMenuItemHeight,
+        minHeight: variables.optionRowHeight * 2,
         maxHeight,
     }),
 

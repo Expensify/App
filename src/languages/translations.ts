@@ -5,5 +5,6 @@ import esES from './es-ES';
 export default {
     en,
     es,
+    // eslint-disable-next-line @typescript-eslint/naming-convention
     'es-ES': esES,
 };

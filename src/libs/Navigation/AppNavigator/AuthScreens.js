@@ -35,6 +35,7 @@ import styles from '../../../styles/styles';
 import * as SessionUtils from '../../SessionUtils';
 import NotFoundPage from '../../../pages/ErrorPage/NotFoundPage';
 import getRootNavigatorScreenOptions from './getRootNavigatorScreenOptions';
+import DemoSetupPage from '../../../pages/DemoSetupPage';
 
 let timezone;
 let currentAccountID;
@@ -164,9 +165,9 @@ class AuthScreens extends React.Component {
 
         // Check if we should be running any demos immediately after signing in.
         if (lodashGet(this.props.demoInfo, 'saastr.isBeginningDemo', false)) {
-            Navigation.navigate(ROUTES.SAASTR);
+            Navigation.navigate(ROUTES.SAASTR, CONST.NAVIGATION.TYPE.FORCED_UP);
         } else if (lodashGet(this.props.demoInfo, 'sbe.isBeginningDemo', false)) {
-            Navigation.navigate(ROUTES.SBE);
+            Navigation.navigate(ROUTES.SBE, CONST.NAVIGATION.TYPE.FORCED_UP);
         }
         if (this.props.lastOpenedPublicRoomID) {
             // Re-open the last opened public room if the user logged in from a public room link
@@ -281,6 +282,16 @@ class AuthScreens extends React.Component {
                             const ConciergePage = require('../../../pages/ConciergePage').default;
                             return ConciergePage;
                         }}
+                    />
+                    <RootStack.Screen
+                        name={CONST.DEMO_PAGES.SAASTR}
+                        options={defaultScreenOptions}
+                        component={DemoSetupPage}
+                    />
+                    <RootStack.Screen
+                        name={CONST.DEMO_PAGES.SBE}
+                        options={defaultScreenOptions}
+                        component={DemoSetupPage}
                     />
                     <RootStack.Screen
                         name={SCREENS.REPORT_ATTACHMENTS}
