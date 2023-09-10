@@ -11,7 +11,7 @@
     "postinstall": "scripts/postInstall.sh",
     "clean": "npx react-native clean-project-auto",
     "android": "scripts/set-pusher-suffix.sh && npx react-native run-android --variant=developmentDebug --appId=com.expensify.chat.dev",
-    "ios": "scripts/set-pusher-suffix.sh && npx react-native run-ios --configuration=\"Debug Development\" --scheme=\"New Expensify Dev\"",
+    "ios": "scripts/set-pusher-suffix.sh && npx react-native run-ios --list-devices --configuration=\"Debug Development\" --scheme=\"New Expensify Dev\"",
     "pod-install": "cd ios && bundle exec pod install",
     "ipad": "concurrently \"npx react-native run-ios --simulator=\\\"iPad Pro (12.9-inch) (6th generation)\\\" --configuration=\\\"Debug Development\\\" --scheme=\\\"New Expensify Dev\\\"\"",
     "ipad-sm": "concurrently \"npx react-native run-ios --simulator=\\\"iPad Pro (11-inch) (4th generation)\\\" --configuration=\\\"Debug Development\\\" --scheme=\\\"New Expensify Dev\\\"\"",
