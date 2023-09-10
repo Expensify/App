@@ -19,7 +19,6 @@ import OfflineWithFeedback from '../../../../components/OfflineWithFeedback';
 import DotIndicatorMessage from '../../../../components/DotIndicatorMessage';
 import ConfirmModal from '../../../../components/ConfirmModal';
 import * as User from '../../../../libs/actions/User';
-import CONST from '../../../../CONST';
 import * as ErrorUtils from '../../../../libs/ErrorUtils';
 import themeColors from '../../../../styles/themes/default';
 import ValidateCodeForm from './ValidateCodeForm';
