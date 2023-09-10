@@ -106,7 +106,7 @@
     "react-content-loader": "^6.1.0",
     "react-dom": "18.1.0",
     "react-map-gl": "^7.1.3",
-    "react-native": "0.72.3",
+    "react-native": "0.72.4",
     "react-native-blob-util": "^0.17.3",
     "react-native-collapsible": "^1.6.0",
     "react-native-config": "^1.4.5",
@@ -172,7 +172,7 @@
     "@octokit/plugin-paginate-rest": "3.1.0",
     "@octokit/plugin-throttling": "4.1.0",
     "@react-native-community/eslint-config": "3.0.0",
-    "@react-native/metro-config": "^0.72.9",
+    "@react-native/metro-config": "^0.72.11",
     "@react-navigation/devtools": "^6.0.10",
     "@storybook/addon-a11y": "^6.5.9",
     "@storybook/addon-essentials": "^7.0.0",
@@ -237,7 +237,7 @@
     "jest-circus": "29.4.1",
     "jest-cli": "29.4.1",
     "jest-environment-jsdom": "^29.4.1",
-    "metro-react-native-babel-preset": "0.76.7",
+    "metro-react-native-babel-preset": "0.76.8",
     "mock-fs": "^4.13.0",
     "onchange": "^7.1.0",
     "portfinder": "^1.0.28",
@@ -262,9 +262,6 @@
     "webpack-dev-server": "^4.9.3",
     "webpack-font-preload-plugin": "^1.5.0",
     "webpack-merge": "^5.8.0"
-  },
-  "overrides": {
-    "react-native": "$react-native"
   },
   "electronmon": {
     "patterns": [
