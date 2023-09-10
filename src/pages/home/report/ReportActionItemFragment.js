@@ -67,6 +67,9 @@ const propTypes = {
     /** icon */
     actorIcon: avatarPropTypes,
 
+    /** Whether the comment is a thread parent message/the first message in a thread */
+    isThreadParentMessage: PropTypes.bool,
+
     ...windowDimensionsPropTypes,
 
     /** localization props */
@@ -88,6 +91,7 @@ const defaultProps = {
     style: [],
     delegateAccountID: 0,
     actorIcon: {},
+    isThreadParentMessage: false,
 };
 
 function ReportActionItemFragment(props) {

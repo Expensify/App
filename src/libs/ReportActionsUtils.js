@@ -105,14 +105,13 @@ function isWhisperAction(action) {
 }
 
 /**
- *
  * Returns whether the comment is a thread parent message/the first message in a thread
  *
  * @param {Object} reportAction
  * @param {String} reportID
  * @returns {Boolean}
  */
-function isThreadParentMessage(reportAction, reportID) {
+function isThreadParentMessage(reportAction = {}, reportID) {
     const {childType, childVisibleActionCount = 0, childReportID} = reportAction;
     return childType === CONST.REPORT.TYPE.CHAT && (childVisibleActionCount > 0 || String(childReportID) === reportID);
 }
