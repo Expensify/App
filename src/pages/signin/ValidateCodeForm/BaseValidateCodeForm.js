@@ -224,6 +224,9 @@ function BaseValidateCodeForm(props) {
             return;
         }
         clearLocalSignInData();
+        // `clearLocalSignInData` is not required as a dependency, and adding it
+        // overcomplicates things requiring clearLocalSignInData function to use useCallback
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isLoadingResendValidationForm]);
 
     /**
