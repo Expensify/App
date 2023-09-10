@@ -112,8 +112,7 @@ function MoneyRequestDescriptionPage({iou, route, selectedTab}) {
                         role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         ref={(el) => (inputRef.current = el)}
                         autoGrowHeight
-                        containerStyles={[styles.autoGrowHeightMultilineInput]}
-                        textAlignVertical="top"
+                        containerStyles={[styles.autoGrowHeightMultilineInput, styles.verticalAlignTop]}
                         submitOnEnter={!Browser.isMobile()}
                     />
                 </View>

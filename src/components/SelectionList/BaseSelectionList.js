@@ -39,7 +39,7 @@ function BaseSelectionList({
     textInputPlaceholder = '',
     textInputValue = '',
     textInputMaxLength,
-    keyboardType = CONST.KEYBOARD_TYPE.DEFAULT,
+    inputMode = CONST.INPUT_MODE.TEXT,
     onChangeText,
     initiallyFocusedOptionKey = '',
     shouldDelayFocus = false,
@@ -322,7 +322,7 @@ function BaseSelectionList({
                                     placeholder={textInputPlaceholder}
                                     maxLength={textInputMaxLength}
                                     onChangeText={onChangeText}
-                                    keyboardType={keyboardType}
+                                    inputMode={inputMode}
                                     selectTextOnFocus
                                     spellCheck={false}
                                     onSubmitEditing={selectFocusedOption}

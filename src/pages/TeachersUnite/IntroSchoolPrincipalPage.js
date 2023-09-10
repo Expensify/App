@@ -123,7 +123,7 @@ function IntroSchoolPrincipalPage(props) {
                         label={translate('teachersUnitePage.principalWorkEmail')}
                         accessibilityLabel={translate('teachersUnitePage.principalWorkEmail')}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        keyboardType={CONST.KEYBOARD_TYPE.EMAIL_ADDRESS}
+                        inputMode={CONST.INPUT_MODE.EMAIL}
                         autoCapitalize="none"
                     />
                 </View>
