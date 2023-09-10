@@ -5,6 +5,7 @@ import Response from './Response';
 type OnyxUpdatesFromServer = {
     type: 'https' | 'pusher';
     lastUpdateID: number | string;
+    previousUpdateID: number | string;
     request?: Request;
     response?: Response;
     updates?: OnyxUpdate[];
