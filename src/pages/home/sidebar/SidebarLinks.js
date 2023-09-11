@@ -3,7 +3,6 @@ import React from 'react';
 import {View, InteractionManager} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
 import styles from '../../../styles/styles';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -52,22 +51,11 @@ const propTypes = {
 
     priorityMode: PropTypes.oneOf(_.values(CONST.PRIORITY_MODE)),
 
-    /** The top most report id */
-    currentReportID: PropTypes.string,
-
-    /* Onyx Props */
-    report: PropTypes.shape({
-        /** reportID (only present when there is a matching report) */
-        reportID: PropTypes.string,
-    }),
-
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
-    currentReportID: '',
-    report: {},
 };
 
 class SidebarLinks extends React.PureComponent {
@@ -151,7 +139,7 @@ class SidebarLinks extends React.PureComponent {
         // or when clicking the active LHN row
         // or when continuously clicking different LHNs, only apply to small screen
         // since getTopmostReportId always returns on other devices
-        if (this.props.isCreateMenuOpen || this.props.currentReportID === option.reportID || (this.props.isSmallScreenWidth && Navigation.getTopmostReportId())) {
+        if (this.props.isCreateMenuOpen || option.reportID === Navigation.getTopmostReportId() || (this.props.isSmallScreenWidth && Navigation.getTopmostReportId())) {
             return;
         }
         Navigation.navigate(ROUTES.getReportRoute(option.reportID));
@@ -210,10 +198,5 @@ SidebarLinks.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withWindowDimensions,
-    withOnyx({
-        report: {
-            key: ({currentReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${currentReportID}`,
-        },
-    }),
 )(SidebarLinks);
 export {basePropTypes};
