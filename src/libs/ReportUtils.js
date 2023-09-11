@@ -3103,8 +3103,8 @@ function getMoneyRequestOptions(report, reportParticipants, betas) {
         return [];
     }
 
-    // Additional requests should be blocked for money request reports
-    if (isMoneyRequestReport(report)) {
+    // Additional requests should be blocked for money request reports if it is approved or reimbursed
+    if (isMoneyRequestReport(report) && (isReportApproved(report) || isSettled(report.reportID))) {
         return [];
     }
 

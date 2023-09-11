@@ -562,8 +562,11 @@ function createDistanceRequest(report, participant, comment, created, transactio
  * @param {Object} [receipt]
  */
 function requestMoney(report, amount, currency, created, merchant, payeeEmail, payeeAccountID, participant, comment, receipt = undefined) {
+    // If the report is iou or expense report, we should get the chat report of this to pass to getMoneyRequestInformation function
+    const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report.reportID);
+    const currentReport = isMoneyRequestReport ? ReportUtils.getReport(report.chatReportID) : report;
     const {payerEmail, iouReport, chatReport, transaction, iouAction, createdChatReportActionID, createdIOUReportActionID, reportPreviewAction, onyxData} = getMoneyRequestInformation(
-        report,
+        currentReport,
         participant,
         comment,
         amount,
@@ -596,7 +599,7 @@ function requestMoney(report, amount, currency, created, merchant, payeeEmail, p
         onyxData,
     );
     resetMoneyRequestInfo();
-    Navigation.dismissModal(chatReport.reportID);
+    Navigation.dismissModal(isMoneyRequestReport ? report.reportID : chatReport.reportID);
     Report.notifyNewAction(chatReport.reportID, payeeAccountID);
 }
 
@@ -1872,12 +1875,14 @@ function navigateToNextPage(iou, iouType, reportID, report) {
 
     // If a request is initiated on a report, skip the participants selection step and navigate to the confirmation page.
     if (report.reportID) {
+        // If the report is iou or expense report, we should get the chat report to set participant for request money
+        const chatReport = ReportUtils.isMoneyRequestReport(report.reportID) ? ReportUtils.getReport(report.chatReportID) : report;
         // Reinitialize the participants when the money request ID in Onyx does not match the ID from params
         if (_.isEmpty(iou.participants) || shouldReset) {
             const currentUserAccountID = currentUserPersonalDetails.accountID;
-            const participants = ReportUtils.isPolicyExpenseChat(report)
-                ? [{reportID: report.reportID, isPolicyExpenseChat: true, selected: true}]
-                : _.chain(report.participantAccountIDs)
+            const participants = ReportUtils.isPolicyExpenseChat(chatReport)
+                ? [{reportID: chatReport.reportID, isPolicyExpenseChat: true, selected: true}]
+                : _.chain(chatReport.participantAccountIDs)
                       .filter((accountID) => currentUserAccountID !== accountID)
                       .map((accountID) => ({accountID, selected: true}))
                       .value();
