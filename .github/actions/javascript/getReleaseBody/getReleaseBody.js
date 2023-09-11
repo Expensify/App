@@ -1,4 +1,3 @@
-const _ = require('underscore');
 const core = require('@actions/core');
 const ActionUtils = require('../../../libs/ActionUtils');
 const GithubUtils = require('../../../libs/GithubUtils');

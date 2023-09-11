@@ -15,7 +15,7 @@ const CONST = __nccwpck_require__(4097);
 const GithubUtils = __nccwpck_require__(7999);
 const GitUtils = __nccwpck_require__(669);
 
-const run = async function () {
+async function run() {
     const newVersion = core.getInput('NPM_VERSION');
     console.log('New version found from action input:', newVersion);
 
@@ -77,6 +77,8 @@ const run = async function () {
                 repo: CONST.APP_REPO,
                 labels: CONST.LABELS.DEPLOY_BLOCKER,
             });
+
+            // First, make sure we include all current deploy blockers
             const deployBlockers = _.reduce(
                 openDeployBlockers,
                 (memo, deployBlocker) => {
@@ -92,6 +94,15 @@ const run = async function () {
                 },
                 [],
             );
+
+            // Then make sure we include any demoted or closed blockers as well, and just check them off automatically
+            for (const deployBlocker of currentChecklistData.deployBlockers) {
+                const isResolved = _.findIndex(deployBlockers, (openBlocker) => openBlocker.number === deployBlocker.number) < 0;
+                deployBlockers.push({
+                    ...deployBlocker,
+                    isResolved,
+                });
+            }
 
             const didVersionChange = newVersion ? newVersion !== currentChecklistData.tag : false;
             checklistBody = await GithubUtils.generateStagingDeployCashBody(
@@ -135,7 +146,7 @@ const run = async function () {
         console.error('An unknown error occurred!', err);
         core.setFailed(err);
     }
-};
+}
 
 if (require.main === require.cache[eval('__filename')]) {
     run();
@@ -196,7 +207,10 @@ function fetchTag(tag) {
         console.log(`Running command: ${command}`);
         execSync(command);
     } catch (e) {
-        console.error(e);
+        // This can happen if the tag was only created locally but does not exist in the remote. In this case, we'll fetch history of the staging branch instead
+        const command = `git fetch origin staging --no-tags --shallow-exclude=${previousPatchVersion}`;
+        console.log(`Running command: ${command}`);
+        execSync(command);
     }
 }
 
@@ -250,7 +264,7 @@ function getCommitHistoryAsJSON(fromTag, toTag) {
  * Parse merged PRs, excluding those from irrelevant branches.
  *
  * @param {Array<Object<{commit: String, subject: String, authorName: String}>>} commits
- * @returns {Array<String>}
+ * @returns {Array<Number>}
  */
 function getValidMergedPRs(commits) {
     const mergedPRs = new Set();
@@ -265,7 +279,7 @@ function getValidMergedPRs(commits) {
             return;
         }
 
-        const pr = match[1];
+        const pr = Number.parseInt(match[1], 10);
         if (mergedPRs.has(pr)) {
             // If a PR shows up in the log twice, that means that the PR was deployed in the previous checklist.
             // That also means that we don't want to include it in the current checklist, so we remove it now.
@@ -287,14 +301,13 @@ function getValidMergedPRs(commits) {
  * @returns {Promise<Array<Number>>} – Pull request numbers
  */
 function getPullRequestsMergedBetween(fromTag, toTag) {
-    console.log(`Looking for commits made between ${fromTag} and ${toTag}...`);
     return getCommitHistoryAsJSON(fromTag, toTag).then((commitList) => {
         console.log(`Commits made between ${fromTag} and ${toTag}:`, commitList);
 
         // Find which commit messages correspond to merged PR's
         const pullRequestNumbers = getValidMergedPRs(commitList);
         console.log(`List of pull requests merged between ${fromTag} and ${toTag}`, pullRequestNumbers);
-        return _.map(pullRequestNumbers, (prNum) => Number.parseInt(prNum, 10));
+        return pullRequestNumbers;
     });
 }
 
@@ -743,7 +756,7 @@ class GithubUtils {
     /**
      * Generate the well-formatted body of a production release.
      *
-     * @param {Array} pullRequests
+     * @param {Array<Number>} pullRequests
      * @returns {String}
      */
     static getReleaseBody(pullRequests) {

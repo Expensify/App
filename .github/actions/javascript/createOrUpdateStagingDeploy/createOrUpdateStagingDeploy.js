@@ -5,7 +5,7 @@ const CONST = require('../../../libs/CONST');
 const GithubUtils = require('../../../libs/GithubUtils');
 const GitUtils = require('../../../libs/GitUtils');
 
-const run = async function () {
+async function run() {
     const newVersion = core.getInput('NPM_VERSION');
     console.log('New version found from action input:', newVersion);
 
@@ -67,6 +67,8 @@ const run = async function () {
                 repo: CONST.APP_REPO,
                 labels: CONST.LABELS.DEPLOY_BLOCKER,
             });
+
+            // First, make sure we include all current deploy blockers
             const deployBlockers = _.reduce(
                 openDeployBlockers,
                 (memo, deployBlocker) => {
@@ -82,6 +84,15 @@ const run = async function () {
                 },
                 [],
             );
+
+            // Then make sure we include any demoted or closed blockers as well, and just check them off automatically
+            for (const deployBlocker of currentChecklistData.deployBlockers) {
+                const isResolved = _.findIndex(deployBlockers, (openBlocker) => openBlocker.number === deployBlocker.number) < 0;
+                deployBlockers.push({
+                    ...deployBlocker,
+                    isResolved,
+                });
+            }
 
             const didVersionChange = newVersion ? newVersion !== currentChecklistData.tag : false;
             checklistBody = await GithubUtils.generateStagingDeployCashBody(
@@ -125,7 +136,7 @@ const run = async function () {
         console.error('An unknown error occurred!', err);
         core.setFailed(err);
     }
-};
+}
 
 if (require.main === module) {
     run();

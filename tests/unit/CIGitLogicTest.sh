@@ -135,13 +135,10 @@ function cherry_pick_pr {
 
   git switch staging
   git switch -c cherry-pick-staging
-  echo '#!/bin/bash' >> .git/hooks/prepare-commit-msg
-  # shellcheck disable=SC2016
-  echo 'sed -i "" -E "s/(\(cherry picked from commit .*[^)])/\1 by humanDeployer/" $1' >> .git/hooks/prepare-commit-msg
-  chmod u+x .git/hooks/prepare-commit-msg
-  git cherry-pick -x --mainline 1 --strategy=recursive -Xtheirs "$PR_MERGE_COMMIT"
-  rm .git/hooks/prepare-commit-msg
   git cherry-pick -x --mainline 1 "$VERSION_BUMP_COMMIT"
+  setup_git_as_human
+  git cherry-pick -x --mainline 1 --strategy=recursive -Xtheirs "$PR_MERGE_COMMIT"
+  setup_git_as_osbotify
 
   git switch staging
   git merge cherry-pick-staging --no-ff -m "Merge pull request #$(($1 + 1)) from Expensify/cherry-pick-staging"
