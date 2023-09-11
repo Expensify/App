@@ -370,7 +370,7 @@ function shouldReportActionBeVisibleAsLastAction(reportAction) {
         return false;
     }
 
-    return shouldReportActionBeVisible(reportAction, reportAction.reportActionID) && !isWhisperAction(reportAction) && !isDeletedAction(reportAction);
+    return shouldReportActionBeVisible(reportAction, reportAction.reportActionID) && !(isWhisperAction(reportAction) && !isReportPreviewAction(reportAction)) && !isDeletedAction(reportAction);
 }
 
 /**
