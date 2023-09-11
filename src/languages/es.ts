@@ -1537,7 +1537,7 @@ export default {
         completed: 'Completada',
         messages: {
             completed: 'tarea completada',
-            canceled: 'tarea cancelada',
+            canceled: 'tarea eliminado',
             reopened: 'tarea reabrir',
             error: 'No tiene permiso para realizar la acción solicitada.',
         },
@@ -2169,6 +2169,7 @@ export default {
     parentReportAction: {
         deletedMessage: '[Mensaje eliminado]',
         deletedRequest: '[Pedido eliminado]',
+        deletedTask: '[Tarea eliminado]',
         hiddenMessage: '[Mensaje oculto]',
     },
     threads: {
