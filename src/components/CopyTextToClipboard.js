@@ -27,6 +27,7 @@ function CopyTextToClipboard(props) {
 
     return (
         <PressableWithDelayToggle
+            inline={false}
             text={props.text}
             tooltipText={props.translate('reportActionContextMenu.copyToClipboard')}
             tooltipTextChecked={props.translate('reportActionContextMenu.copied')}
