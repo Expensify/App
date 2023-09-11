@@ -24,6 +24,7 @@ import Log from '../../libs/Log';
 import OptionsListSkeletonView from '../OptionsListSkeletonView';
 import useActiveElement from '../../hooks/useActiveElement';
 import withNavigationFocus from '../withNavigationFocus';
+import compose from '../../libs/compose';
 
 const propTypes = {
     ...keyboardStatePropTypes,
