@@ -11,7 +11,7 @@ const propTypes = {
     images: PropTypes.arrayOf(
         PropTypes.shape({
             thumbnail: PropTypes.string,
-            image: PropTypes.string,
+            image: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
         }),
     ).isRequired,
 
