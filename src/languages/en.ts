@@ -73,6 +73,7 @@ import type {
     RequestedAmountMessageParams,
     TagSelectionParams,
     TranslationBase,
+    RequestedAmountMessageParams,
 } from './types';
 import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 

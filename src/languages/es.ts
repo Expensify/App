@@ -73,6 +73,7 @@ import type {
     RequestedAmountMessageParams,
     TagSelectionParams,
     EnglishTranslation,
+    RequestedAmountMessageParams,
 } from './types';
 
 /* eslint-disable max-len */
