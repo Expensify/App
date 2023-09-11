@@ -21,7 +21,8 @@ Request.use(Middleware.RecheckConnection);
 // Reauthentication - Handles jsonCode 407 which indicates an expired authToken. We need to reauthenticate and get a new authToken with our stored credentials.
 Request.use(Middleware.Reauthentication);
 
-// SaveResponseInOnyx - Merges either the successData or failureData into Onyx depending on if the call was successful or not
+// SaveResponseInOnyx - Merges either the successData or failureData into Onyx depending on if the call was successful or not. This needs to be the LAST middleware we use, don't add any
+// middlewares after this, because the SequentialQueue depends on the result of this middleware to pause the queue (if needed) to bring the app to an up-to-date state.
 Request.use(Middleware.SaveResponseInOnyx);
 
 /**
@@ -61,6 +62,10 @@ function write(command, apiCommandParameters = {}, onyxData = {}) {
         command,
         data: {
             ...data,
+
+            // This should be removed once we are no longer using deprecatedAPI https://github.com/Expensify/Expensify/issues/215650
+            shouldRetry: true,
+            canCancel: true,
         },
         ..._.omit(onyxData, 'optimisticData'),
     };

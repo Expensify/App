@@ -2,29 +2,29 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import MobileBackgroundImage from '../../../../../assets/images/home-background--mobile.svg';
 import DesktopBackgroundImage from '../../../../../assets/images/home-background--desktop.svg';
+import styles from '../../../../styles/styles';
 
 const defaultProps = {
     isSmallScreen: false,
-    style: [],
 };
 
 const propTypes = {
     isSmallScreen: PropTypes.bool,
     pointerEvents: PropTypes.string.isRequired,
     width: PropTypes.number.isRequired,
-    style: PropTypes.oneOfType([PropTypes.object, PropTypes.arrayOf(PropTypes.object)]),
 };
 function BackgroundImage(props) {
     return props.isSmallScreen ? (
         <MobileBackgroundImage
             pointerEvents={props.pointerEvents}
             width={props.width}
-            style={props.style}
+            style={styles.signInBackground}
         />
     ) : (
         <DesktopBackgroundImage
             pointerEvents={props.pointerEvents}
             width={props.width}
+            style={styles.signInBackground}
         />
     );
 }

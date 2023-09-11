@@ -74,14 +74,6 @@ function canUsePolicyRooms(betas) {
  * @param {Array<String>} betas
  * @returns {Boolean}
  */
-function canUsePolicyExpenseChat(betas) {
-    return _.contains(betas, CONST.BETAS.POLICY_EXPENSE_CHAT) || canUseAllBetas(betas);
-}
-
-/**
- * @param {Array<String>} betas
- * @returns {Boolean}
- */
 function canUseTasks(betas) {
     return _.contains(betas, CONST.BETAS.TASKS) || canUseAllBetas(betas);
 }
@@ -90,8 +82,16 @@ function canUseTasks(betas) {
  * @param {Array<String>} betas
  * @returns {Boolean}
  */
-function canUseScanReceipts(betas) {
-    return _.contains(betas, CONST.BETAS.SCAN_RECEIPTS) || canUseAllBetas(betas);
+function canUseCustomStatus(betas) {
+    return _.contains(betas, CONST.BETAS.CUSTOM_STATUS) || canUseAllBetas(betas);
+}
+
+/**
+ * Link previews are temporarily disabled.
+ * @returns {Boolean}
+ */
+function canUseLinkPreviews() {
+    return false;
 }
 
 export default {
@@ -102,7 +102,7 @@ export default {
     canUseWallet,
     canUseCommentLinking,
     canUsePolicyRooms,
-    canUsePolicyExpenseChat,
     canUseTasks,
-    canUseScanReceipts,
+    canUseCustomStatus,
+    canUseLinkPreviews,
 };
