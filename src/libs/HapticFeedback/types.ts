@@ -1,6 +1,8 @@
-type HapticFeedbackPress = () => void;
-type HapticFeedbackLongPress = () => void;
-type HapticFeedbackSuccess = () => void;
-type HapticFeedbackError = () => void;
+type HapticFeedback = {
+    press: () => void;
+    longPress: () => void;
+    success: () => void;
+    error: () => void;
+};
 
-export type {HapticFeedbackPress, HapticFeedbackLongPress, HapticFeedbackSuccess, HapticFeedbackError};
+export default HapticFeedback;
