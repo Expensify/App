@@ -24,6 +24,7 @@ import Log from '../../libs/Log';
 import OptionsListSkeletonView from '../OptionsListSkeletonView';
 import useActiveElement from '../../hooks/useActiveElement';
 import withNavigationFocus from '../withNavigationFocus';
+import withNavigationFallback from '../withNavigationFallback';
 import compose from '../../libs/compose';
 
 const propTypes = {
@@ -415,4 +416,4 @@ function BaseSelectionList({
 BaseSelectionList.displayName = 'BaseSelectionList';
 BaseSelectionList.propTypes = propTypes;
 
-export default compose(withKeyboardState, withNavigationFocus)(BaseSelectionList);
+export default compose(withKeyboardState, withNavigationFallback, withNavigationFocus)(BaseSelectionList);
