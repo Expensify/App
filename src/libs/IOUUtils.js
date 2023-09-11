@@ -29,41 +29,6 @@ function calculateAmount(numberOfParticipants, total, currency, isDefaultUser = 
 }
 
 /**
- * Edits the IOU total when a transaction is edited
- *
- * @param {Object} iouReport
- * @param {Object} initialTransaction
- * @param {Object} updatedTransaction
- * @param {Boolean} isExpenseReport
- * @returns {Object}
- */
-function editIOUTotal(iouReport, initialTransaction, updatedTransaction, isExpenseReport = false) {
-  if (initialTransaction.currency !== updatedTransaction.currency) {
-    return iouReport;
-  }
-
-  const initialAmount = TransactionUtils.getAmount(initialTransaction, false);
-  const updatedAmount = TransactionUtils.getAmount(updatedTransaction, false);
-
-  // Make a copy so we don't mutate the original object
-  const iouReportUpdate = {...iouReport};
-
-  iouReportUpdate.total += !isExpenseReport ? -initialAmount : initialAmount;
-  iouReportUpdate.total += !isExpenseReport ? updatedAmount : -updatedAmount;
-
-  if (iouReportUpdate.total < 0) {
-    // The total sign has changed and hence we need to flip the manager and owner of the report.
-    iouReportUpdate.ownerAccountID = iouReport.managerID;
-    iouReportUpdate.managerID = iouReport.ownerAccountID;
-    iouReportUpdate.total = -iouReportUpdate.total;
-  }
-
-  iouReportUpdate.hasOutstandingIOU = iouReportUpdate.total !== 0;
-
-  return iouReportUpdate;
-}
-
-/**
  * The owner of the IOU report is the account who is owed money and the manager is the one who owes money!
  * In case the owner/manager swap, we need to update the owner of the IOU report and the report total, since it is always positive.
  * For example: if user1 owes user2 $10, then we have: {ownerAccountID: user2, managerID: user1, total: $10 (a positive amount, owed to user2)}
@@ -100,6 +65,30 @@ function updateIOUOwnerAndTotal(iouReport, actorAccountID, amount, currency, isD
     iouReportUpdate.hasOutstandingIOU = iouReportUpdate.total !== 0;
 
     return iouReportUpdate;
+}
+
+/**
+ * Edits the IOU total when a transaction is edited
+ *
+ * @param {Object} iouReport
+ * @param {Number} actorAccountID
+ * @param {Object} initialTransaction
+ * @param {Object} updatedTransaction
+ * @param {Boolean} isExpenseReport
+ * @returns {Object}
+ */
+function editIOUTotal(iouReport, actorAccountID, initialTransaction, updatedTransaction, isExpenseReport = false) {
+  if (initialTransaction.currency !== updatedTransaction.currency) {
+    return iouReport;
+  }
+
+  const initialAmount = TransactionUtils.getAmount(initialTransaction, false);
+  const updatedAmount = TransactionUtils.getAmount(updatedTransaction, false);
+
+  let iouReportUpdate = updateIOUOwnerAndTotal(iouReport, actorAccountID, initialAmount, initialTransaction.currency, !isExpenseReport)
+  iouReportUpdate = updateIOUOwnerAndTotal(iouReportUpdate, actorAccountID, updatedAmount, initialTransaction.currency, isExpenseReport)
+
+  return iouReportUpdate;
 }
 
 /**

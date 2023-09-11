@@ -979,7 +979,7 @@ function editMoneyRequest(transactionID, transactionThreadReportID, transactionC
     const updatedReportAction = ReportUtils.buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges, isFromExpenseReport);
     const updatedTransaction = TransactionUtils.getUpdatedTransaction(transaction, transactionChanges, isFromExpenseReport);
     // STEP 3: Compute the IOU total and update the report preview message so LHN amount owed is correct
-    const updatedIOUReport = IOUUtils.editIOUTotal(iouReport, transaction, updatedTransaction, isFromExpenseReport);
+    const updatedIOUReport = IOUUtils.editIOUTotal(iouReport, updatedReportAction.actorAccountID, transaction, updatedTransaction, isFromExpenseReport);
     const reportPreviewAction = ReportActionsUtils.getReportPreviewAction(iouReport.chatReportID, iouReport.reportID);
     const updatedReportPreviewAction = {...reportPreviewAction};
     const messageText = Localize.translateLocal('iou.payerOwesAmount', {
