@@ -2,6 +2,7 @@ import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import {useIsFocused} from '@react-navigation/native';
 import SectionList from '../SectionList';
 import Text from '../Text';
 import styles from '../../styles/styles';
@@ -23,7 +24,6 @@ import useLocalize from '../../hooks/useLocalize';
 import Log from '../../libs/Log';
 import OptionsListSkeletonView from '../OptionsListSkeletonView';
 import useActiveElement from '../../hooks/useActiveElement';
-import withNavigationFocus from '../withNavigationFocus';
 import withNavigationFallback from '../withNavigationFallback';
 import compose from '../../libs/compose';
 
@@ -55,7 +55,6 @@ function BaseSelectionList({
     showLoadingPlaceholder = false,
     showConfirmButton = false,
     isKeyboardShown = false,
-    isFocused: isNavigationFocused,
 }) {
     const {translate} = useLocalize();
     const firstLayoutRef = useRef(true);
@@ -65,6 +64,7 @@ function BaseSelectionList({
     const shouldShowTextInput = Boolean(textInputLabel);
     const shouldShowSelectAll = Boolean(onSelectAll);
     const activeElement = useActiveElement();
+    const isNavigationFocused = useIsFocused();
 
     /**
      * Iterates through the sections and items inside each section, and builds 3 arrays along the way:
@@ -416,4 +416,4 @@ function BaseSelectionList({
 BaseSelectionList.displayName = 'BaseSelectionList';
 BaseSelectionList.propTypes = propTypes;
 
-export default compose(withKeyboardState, withNavigationFallback, withNavigationFocus)(BaseSelectionList);
+export default compose(withKeyboardState, withNavigationFallback)(BaseSelectionList);
