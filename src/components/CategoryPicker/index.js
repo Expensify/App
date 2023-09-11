@@ -61,10 +61,7 @@ function CategoryPicker({policyCategories, reportID, iouType, iou, policyRecentl
         if (category.searchText === iou.category) {
             IOU.resetMoneyRequestCategory();
         } else {
-            IOU.setMoneyRequestCategory({
-                name: category.searchText,
-                enabled: true,
-            });
+            IOU.setMoneyRequestCategory(category.searchText);
         }
 
         navigateBack();

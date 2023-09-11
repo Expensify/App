@@ -1869,12 +1869,10 @@ function setMoneyRequestMerchant(merchant) {
 }
 
 /**
- * @param {Object} category
- * @param {String} category.name
- * @param {Boolean} category.enabled
+ * @param {String} category
  */
 function setMoneyRequestCategory(category) {
-    Onyx.merge(ONYXKEYS.IOU, {category: category.name});
+    Onyx.merge(ONYXKEYS.IOU, {category});
 }
 
 function resetMoneyRequestCategory() {
