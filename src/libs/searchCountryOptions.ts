@@ -8,12 +8,17 @@ type CountryData = {
     searchValue: string;
 };
 
+/**
+ * Searches the countries/states data and returns sorted results based on the search query
+ * @param countriesData - An array of country data objects
+ * @returns An array of countries/states sorted based on the search query
+ */
 function searchCountryOptions(searchValue: string, countriesData: CountryData[]): CountryData[] {
-    if (!searchValue.trim()) {
+    if (!searchValue) {
         return countriesData;
     }
 
-    const trimmedSearchValue = StringUtils.sanitizeString(searchValue.trim());
+    const trimmedSearchValue = StringUtils.sanitizeString(searchValue);
     if (!trimmedSearchValue) {
         return [];
     }
