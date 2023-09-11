@@ -642,7 +642,7 @@ function isDM(report) {
  * @returns {Boolean}
  */
 function hasSingleParticipant(report) {
-    return report.participants && report.participants.length === 1;
+    return report.participantAccountIDs && report.participantAccountIDs.length === 1;
 }
 
 /**
@@ -815,7 +815,7 @@ function getRoomWelcomeMessage(report, isUserPolicyAdmin) {
  * @returns {Boolean}
  */
 function chatIncludesConcierge(report) {
-    return report.participantAccountIDs && _.contains(report.participantAccountIDs, CONST.ACCOUNT_ID.CONCIERGE);
+    return !_.isEmpty(report.participantAccountIDs) && _.contains(report.participantAccountIDs, CONST.ACCOUNT_ID.CONCIERGE);
 }
 
 /**
