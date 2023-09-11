@@ -843,23 +843,17 @@ function getReportRecipientAccountIDs(report, currentLoginAccountID) {
         }
     }
 
-    // Most report types will have the same initial participants
-    const initialParticipantAccountIDs = lodashGet(finalReport, 'participantAccountIDs');
-
-    // Most reports like the money request and task reports don't add the `ownerAccountId` in `participantAccountIDs`, for those types of
-    // reports we will include `ownerAccountId` in the `finalParticipantAccountIDs` array.
-    let finalParticipantAccountIDs = initialParticipantAccountIDs;
-
-    // For money requests i.e the IOU (1:1 person) and Expense (1:* person) reports, use the full `initialParticipantAccountIDs` array
-    // and add the `ownerAccountId`.
+    let finalParticipantAccountIDs = [];
     if (isMoneyRequestReport(report)) {
-        finalParticipantAccountIDs = _.union(initialParticipantAccountIDs, [report.ownerAccountID]);
-    }
-
-    // Task reports `managerID` will change when assignee is changed, in that case the old `managerID` is still present in `participantAccountIDs`
-    // array along with the new one. We only need the `managerID` as a participant here.
-    if (isTaskReport(report)) {
+        // For money requests i.e the IOU (1:1 person) and Expense (1:* person) reports, use the full `initialParticipantAccountIDs` array
+        // and add the `ownerAccountId`. Money request reports don't add `ownerAccountId` in `participantAccountIDs` array
+        finalParticipantAccountIDs = _.union(lodashGet(finalReport, 'participantAccountIDs'), [report.ownerAccountID]);
+    } else if (isTaskReport(report)) {
+        // Task reports `managerID` will change when assignee is changed, in that case the old `managerID` is still present in `participantAccountIDs`
+        // array along with the new one. We only need the `managerID` as a participant here.
         finalParticipantAccountIDs = [report.managerID];
+    } else {
+        finalParticipantAccountIDs = lodashGet(finalReport, 'participantAccountIDs');
     }
 
     const reportParticipants = _.without(finalParticipantAccountIDs, currentLoginAccountID);
