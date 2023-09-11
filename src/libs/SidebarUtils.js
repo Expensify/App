@@ -104,7 +104,7 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
     // Generate a unique cache key based on the function arguments
     const cachedReportsKey = JSON.stringify(
         // eslint-disable-next-line es/no-optional-chaining
-        [currentReportId, allReportsDict, betas, policies, priorityMode, allReportActions[`reportActions_${currentReportId}`]?.length || 1],
+        [currentReportId, allReportsDict, betas, policies, priorityMode, allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentReportId}`]?.length || 1],
         (key, value) => {
             // Exclude 'participantAccountIDs', 'participants' and 'lastMessageText' properties from all objects in the 'allReportsDict' array
             if (key === 'participantAccountIDs' || key === 'participants' || key === 'lastMessageText') {
@@ -114,7 +114,7 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
         },
     );
 
-    // // Check if the result is already in the cache
+    // Check if the result is already in the cache
     if (reportIDsCache.has(cachedReportsKey) && hasInitialReportActions) {
         return reportIDsCache.get(cachedReportsKey);
     }
@@ -122,15 +122,13 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
 
     const isInGSDMode = priorityMode === CONST.PRIORITY_MODE.GSD;
     const isInDefaultMode = !isInGSDMode;
-
+    const allReportsDictValues = Object.values(allReportsDict);
     // Filter out all the reports that shouldn't be displayed
-    const reportsToDisplay = Object.values(allReportsDict).filter((report) =>
-        ReportUtils.shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas, policies, allReportActions, true),
-    );
+    const reportsToDisplay = allReportsDictValues.filter((report) => ReportUtils.shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas, policies, allReportActions, true));
 
     if (reportsToDisplay.length === 0) {
         // Display Concierge chat report when there is no report to be displayed
-        const conciergeChatReport = Object.values(allReportsDict).find(ReportUtils.isConciergeChatReport);
+        const conciergeChatReport = allReportsDictValues.find(ReportUtils.isConciergeChatReport);
         if (conciergeChatReport) {
             reportsToDisplay.push(conciergeChatReport);
         }
