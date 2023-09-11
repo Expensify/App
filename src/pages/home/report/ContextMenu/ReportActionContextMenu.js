@@ -131,7 +131,7 @@ function clearActiveReportAction() {
     if (!contextMenuRef.current) {
         return;
     }
-    return contextMenuRef.current.clearActiveReportAction(actionID);
+    return contextMenuRef.current.clearActiveReportAction();
 }
 
 export {contextMenuRef, showContextMenu, hideContextMenu, isActiveReportAction, clearActiveReportAction, showDeleteModal, hideDeleteModal};

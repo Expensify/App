@@ -52,7 +52,7 @@ function clearActive() {
     if (!emojiPickerRef.current) {
         return;
     }
-    return emojiPickerRef.current.clearActive(id);
+    return emojiPickerRef.current.clearActive();
 }
 
 function isEmojiPickerVisible() {

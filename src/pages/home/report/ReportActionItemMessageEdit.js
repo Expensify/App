@@ -404,6 +404,8 @@ function ReportActionItemMessageEdit(props) {
                             onEmojiSelected={addEmojiToTextBox}
                             nativeID={emojiButtonID}
                             emojiPickerID={props.action.reportActionID}
+                            // Keep focus on the composer when emoji button is clicked.
+                            onMouseDown={(e) => e.preventDefault()}
                         />
                     </View>
 
