@@ -23,6 +23,9 @@ const propTypes = {
     /** Whether or not the message is hidden by moderation */
     isHidden: PropTypes.bool,
 
+    /** The ID of the report */
+    reportID: PropTypes.string.isRequired,
+
     /** localization props */
     ...withLocalizePropTypes,
 };
@@ -35,6 +38,15 @@ const defaultProps = {
 function ReportActionItemMessage(props) {
     const messages = _.compact(props.action.previousMessage || props.action.message);
     const isAttachment = ReportUtils.isReportMessageAttachment(_.last(messages));
+    const isIOUReport = ReportActionsUtils.isMoneyRequestAction(props.action);
+    let iouMessage;
+    if (isIOUReport) {
+        const iouReportID = lodashGet(props.action, 'originalMessage.IOUReportID');
+        if (iouReportID) {
+            iouMessage = ReportUtils.getReportPreviewMessage(ReportUtils.getReport(iouReportID), props.action);
+        }
+    }
+
     return (
         <View style={[styles.chatItemMessage, !props.displayAsGroup && isAttachment ? styles.mt2 : {}, ...props.style]}>
             {!props.isHidden ? (
@@ -43,7 +55,8 @@ function ReportActionItemMessage(props) {
                         key={`actionFragment-${props.action.reportActionID}-${index}`}
                         fragment={fragment}
                         isAttachment={props.action.isAttachment}
-                        hasCommentThread={ReportActionsUtils.hasCommentThread(props.action)}
+                        iouMessage={iouMessage}
+                        isThreadParentMessage={ReportActionsUtils.isThreadParentMessage(props.action, props.reportID)}
                         attachmentInfo={props.action.attachmentInfo}
                         pendingAction={props.action.pendingAction}
                         source={lodashGet(props.action, 'originalMessage.source')}
