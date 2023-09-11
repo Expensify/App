@@ -10,7 +10,6 @@ import MoneyRequestParticipantsSplitSelector from './MoneyRequestParticipantsSpl
 import MoneyRequestParticipantsSelector from './MoneyRequestParticipantsSelector';
 import styles from '../../../../styles/styles';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
-import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import compose from '../../../../libs/compose';
 import * as DeviceCapabilities from '../../../../libs/DeviceCapabilities';
@@ -18,6 +17,7 @@ import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 import * as IOU from '../../../../libs/actions/IOU';
 import * as MoneyRequestUtils from '../../../../libs/MoneyRequestUtils';
 import {iouPropTypes, iouDefaultProps} from '../../propTypes';
+import useLocalize from '../../../../hooks/useLocalize';
 
 const propTypes = {
     /** React Navigation route */
@@ -37,8 +37,6 @@ const propTypes = {
 
     /** The current tab we have navigated to in the request modal. String that corresponds to the request type. */
     selectedTab: PropTypes.oneOf([CONST.TAB.DISTANCE, CONST.TAB.MANUAL, CONST.TAB.SCAN]).isRequired,
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -46,6 +44,7 @@ const defaultProps = {
 };
 
 function MoneyRequestParticipantsPage(props) {
+    const {translate} = useLocalize();
     const prevMoneyRequestId = useRef(props.iou.id);
     const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
     const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
@@ -100,7 +99,7 @@ function MoneyRequestParticipantsPage(props) {
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={styles.flex1}>
                     <HeaderWithBackButton
-                        title={isDistanceRequest ? props.translate('common.distance') : props.translate('iou.cash')}
+                        title={isDistanceRequest ? translate('common.distance') : translate('iou.cash')}
                         onBackButtonPress={navigateBack}
                     />
                     {iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT ? (
@@ -130,7 +129,6 @@ MoneyRequestParticipantsPage.propTypes = propTypes;
 MoneyRequestParticipantsPage.defaultProps = defaultProps;
 
 export default compose(
-    withLocalize,
     withOnyx({
         iou: {key: ONYXKEYS.IOU},
         selectedTab: {
