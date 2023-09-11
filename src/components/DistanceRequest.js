@@ -37,6 +37,7 @@ import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import {iouPropTypes} from '../pages/iou/propTypes';
 import reportPropTypes from '../pages/reportPropTypes';
 import * as IOU from '../libs/actions/IOU';
+import * as StyleUtils from '../styles/StyleUtils';
 
 const MAX_WAYPOINTS = 25;
 const MAX_WAYPOINTS_TO_DISPLAY = 4;
@@ -131,8 +132,8 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
     );
 
     // Show up to the max number of waypoints plus 1/2 of one to hint at scrolling
-    const halfMenuItemHeight = Math.floor(variables.baseMenuItemHeight / 2);
-    const scrollContainerMaxHeight = variables.baseMenuItemHeight * MAX_WAYPOINTS_TO_DISPLAY + halfMenuItemHeight;
+    const halfMenuItemHeight = Math.floor(variables.optionRowHeight / 2);
+    const scrollContainerMaxHeight = variables.optionRowHeight * MAX_WAYPOINTS_TO_DISPLAY + halfMenuItemHeight;
 
     useEffect(() => {
         MapboxToken.init();
@@ -163,7 +164,7 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
     useEffect(updateGradientVisibility, [scrollContainerHeight, scrollContentHeight]);
 
     return (
-        <ScrollView contentContainerStyle={styles.flex1}>
+        <ScrollView contentContainerStyle={styles.flexGrow1}>
             <View
                 style={styles.distanceRequestContainer(scrollContainerMaxHeight)}
                 onLayout={(event = {}) => setScrollContainerHeight(lodashGet(event, 'nativeEvent.layout.height', 0))}
@@ -176,7 +177,7 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
                         setScrollContentHeight(height);
                     }}
                     onScroll={updateGradientVisibility}
-                    scrollEventThrottle={16}
+                    scrollEventThrottle={variables.distanceScrollEventThrottle}
                     ref={scrollViewRef}
                 >
                     {_.map(waypoints, (waypoint, key) => {
@@ -212,7 +213,7 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
                 {shouldShowGradient && (
                     <LinearGradient
                         style={[styles.pAbsolute, styles.b0, styles.l0, styles.r0, {height: halfMenuItemHeight}]}
-                        colors={[theme.transparent, theme.modalBackground]}
+                        colors={[StyleUtils.getTransparentColor(theme.modalBackground), theme.modalBackground]}
                     />
                 )}
                 {hasRouteError && (
