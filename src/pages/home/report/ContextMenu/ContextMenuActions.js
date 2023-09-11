@@ -206,11 +206,11 @@ export default [
                     const transaction = TransactionUtils.getTransaction(originalMessage.IOUTransactionID);
                     const {amount, currency, comment} = ReportUtils.getTransactionDetails(transaction);
                     const formattedAmount = CurrencyUtils.convertToDisplayString(amount, currency);
-                    const message = Localize.translateLocal('iou.requestedAmount', {
+                    const displaymessage = Localize.translateLocal('iou.requestedAmount', {
                         formattedAmount,
                         comment,
                     });
-                    Clipboard.setString(message);
+                    Clipboard.setString(displaymessage);
                 } else if (content) {
                     const parser = new ExpensiMark();
                     if (!Clipboard.canSetHtml()) {
