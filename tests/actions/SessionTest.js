@@ -7,6 +7,7 @@ import * as TestHelper from '../utils/TestHelper';
 import CONST from '../../src/CONST';
 import PushNotification from '../../src/libs/Notification/PushNotification';
 import * as App from '../../src/libs/actions/App';
+import OnyxUpdateManager from '../../src/libs/actions/OnyxUpdateManager';
 
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
 // eslint-disable-next-line no-unused-vars
@@ -24,6 +25,7 @@ Onyx.init({
     registerStorageEventListener: () => {},
 });
 
+OnyxUpdateManager();
 beforeEach(() => Onyx.clear().then(waitForPromisesToResolve));
 
 describe('Session', () => {
