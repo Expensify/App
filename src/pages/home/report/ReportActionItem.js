@@ -136,6 +136,12 @@ function ReportActionItem(props) {
     const originalReportID = ReportUtils.getOriginalReportID(props.report.reportID, props.action);
     const originalReport = props.report.reportID === originalReportID ? props.report : ReportUtils.getReport(originalReportID);
 
+    // When active action changes, we need to update the `isContextMenuActive` state
+    const isActiveReportActionForMenu = ReportActionContextMenu.isActiveReportAction(props.action.reportActionID);
+    useEffect(() => {
+        setIsContextMenuActive(isActiveReportActionForMenu);
+    }, [isActiveReportActionForMenu]);
+
     useEffect(
         () => () => {
             // ReportActionContextMenu, EmojiPicker and PopoverReactionList are global components,

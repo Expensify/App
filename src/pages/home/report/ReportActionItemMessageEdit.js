@@ -135,8 +135,8 @@ function ReportActionItemMessageEdit(props) {
                 return;
             }
 
-            if (EmojiPickerAction.isActiveReportAction(props.action.reportActionID)) {
-                EmojiPickerAction.clearActiveReportAction();
+            if (EmojiPickerAction.isActive(props.action.reportActionID)) {
+                EmojiPickerAction.clearActive();
             }
             if (ReportActionContextMenu.isActiveReportAction(props.action.reportActionID)) {
                 ReportActionContextMenu.clearActiveReportAction();
