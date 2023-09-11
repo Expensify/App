@@ -18,6 +18,10 @@ export default {
             [SCREENS.DESKTOP_SIGN_IN_REDIRECT]: ROUTES.DESKTOP_SIGN_IN_REDIRECT,
             [SCREENS.REPORT_ATTACHMENTS]: ROUTES.REPORT_ATTACHMENTS,
 
+            // Demo routes
+            [CONST.DEMO_PAGES.SAASTR]: ROUTES.SAASTR,
+            [CONST.DEMO_PAGES.SBE]: ROUTES.SBE,
+
             // Sidebar
             [SCREENS.HOME]: {
                 path: ROUTES.HOME,
@@ -26,8 +30,6 @@ export default {
             [NAVIGATORS.CENTRAL_PANE_NAVIGATOR]: {
                 screens: {
                     [SCREENS.REPORT]: ROUTES.REPORT_WITH_ID,
-                    [CONST.DEMO_PAGES.SAASTR]: ROUTES.SAASTR,
-                    [CONST.DEMO_PAGES.SBE]: ROUTES.SBE,
                 },
             },
             [SCREENS.NOT_FOUND]: '*',

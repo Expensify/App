@@ -21,6 +21,7 @@ import * as ErrorUtils from '../ErrorUtils';
 import * as UserUtils from '../UserUtils';
 import * as Report from './Report';
 import * as NumberUtils from '../NumberUtils';
+import ReceiptGeneric from '../../../assets/images/receipt-generic.png';
 
 let allReports;
 Onyx.connect({
@@ -394,7 +395,7 @@ function getMoneyRequestInformation(
     let filename;
     if (receipt && receipt.source) {
         receiptObject.source = receipt.source;
-        receiptObject.state = CONST.IOU.RECEIPT_STATE.SCANREADY;
+        receiptObject.state = receipt.state || CONST.IOU.RECEIPT_STATE.SCANREADY;
         filename = receipt.name;
     }
     let optimisticTransaction = TransactionUtils.buildOptimisticTransaction(
@@ -459,8 +460,8 @@ function getMoneyRequestInformation(
               [payerAccountID]: {
                   accountID: payerAccountID,
                   avatar: UserUtils.getDefaultAvatarURL(payerAccountID),
-                  displayName: participant.displayName || payerEmail,
-                  login: participant.login,
+                  displayName: participant.displayName || participant.login,
+                  login: payerEmail,
               },
           }
         : undefined;
@@ -504,19 +505,26 @@ function getMoneyRequestInformation(
  * @param {String} comment
  * @param {String} created
  * @param {String} [transactionID]
+ * @param {Number} amount
+ * @param {String} currency
+ * @param {String} merchant
  */
-function createDistanceRequest(report, participant, comment, created, transactionID) {
+function createDistanceRequest(report, participant, comment, created, transactionID, amount, currency, merchant) {
+    const optimisticReceipt = {
+        source: ReceiptGeneric,
+        state: CONST.IOU.RECEIPT_STATE.OPEN,
+    };
     const {iouReport, chatReport, transaction, iouAction, createdChatReportActionID, createdIOUReportActionID, reportPreviewAction, onyxData} = getMoneyRequestInformation(
         report,
         participant,
         comment,
-        0,
-        'USD',
+        amount,
+        currency,
         created,
-        '',
+        merchant,
         null,
         null,
-        null,
+        optimisticReceipt,
         transactionID,
     );
     API.write(
@@ -530,7 +538,7 @@ function createDistanceRequest(report, participant, comment, created, transactio
             createdChatReportActionID,
             createdIOUReportActionID,
             reportPreviewReportActionID: reportPreviewAction.reportActionID,
-            waypoints: JSON.stringify(transaction.comment.waypoints),
+            waypoints: JSON.stringify(TransactionUtils.getValidWaypoints(transaction.comment.waypoints, true)),
             created,
         },
         onyxData,
@@ -954,8 +962,8 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
                   [accountID]: {
                       accountID,
                       avatar: UserUtils.getDefaultAvatarURL(accountID),
-                      displayName: participant.displayName || email,
-                      login: participant.login,
+                      displayName: participant.displayName || participant.login,
+                      login: email,
                   },
               }
             : undefined;
@@ -1641,7 +1649,13 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
         true,
     );
 
-    const optimisticReportPreviewAction = ReportUtils.updateReportPreview(iouReport, ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID));
+    // In some instances, the report preview action might not be available to the payer (only whispered to the requestor)
+    // hence we need to make the updates to the action safely.
+    let optimisticReportPreviewAction = null;
+    const reportPreviewAction = ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID);
+    if (reportPreviewAction) {
+        optimisticReportPreviewAction = ReportUtils.updateReportPreview(iouReport, reportPreviewAction);
+    }
 
     const optimisticData = [
         {
@@ -1665,13 +1679,6 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
                     ...optimisticIOUReportAction,
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
-            value: {
-                [optimisticReportPreviewAction.reportActionID]: optimisticReportPreviewAction,
             },
         },
         {
@@ -1714,7 +1721,18 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
                 },
             },
         },
-        {
+    ];
+
+    // In case the report preview action is loaded locally, let's update it.
+    if (optimisticReportPreviewAction) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+            value: {
+                [optimisticReportPreviewAction.reportActionID]: optimisticReportPreviewAction,
+            },
+        });
+        failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
@@ -1722,8 +1740,8 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
                     created: optimisticReportPreviewAction.created,
                 },
             },
-        },
-    ];
+        });
+    }
 
     return {
         params: {

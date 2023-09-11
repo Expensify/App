@@ -66,6 +66,8 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, trans
         comment: transactionDescription,
         merchant: transactionMerchant,
     } = ReportUtils.getTransactionDetails(transaction);
+    const isEmptyMerchant =
+        transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.UNKNOWN_MERCHANT || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     const formattedTransactionAmount = transactionAmount && transactionCurrency && CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency);
 
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
@@ -150,6 +152,7 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, trans
                     subtitleTextStyle={styles.textLabelError}
                 />
             </OfflineWithFeedback>
+<<<<<<< HEAD
             {isDistanceRequest ? (
                 <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.waypoints') || lodashGet(transaction, 'pendingAction')}>
                     <MenuItemWithTopDescription
@@ -176,6 +179,21 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, trans
                     />
                 </OfflineWithFeedback>
             )}
+=======
+            <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.merchant') || lodashGet(transaction, 'pendingAction')}>
+                <MenuItemWithTopDescription
+                    description={isDistanceRequest ? translate('common.distance') : translate('common.merchant')}
+                    title={transactionMerchant}
+                    interactive={canEdit}
+                    shouldShowRightIcon={canEdit}
+                    titleStyle={styles.flex1}
+                    onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.MERCHANT))}
+                    brickRoadIndicator={hasErrors && isEmptyMerchant ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                    subtitle={hasErrors && isEmptyMerchant ? translate('common.error.enterMerchant') : ''}
+                    subtitleTextStyle={styles.textLabelError}
+                />
+            </OfflineWithFeedback>
+>>>>>>> 00ad8cf0e8ff2012140a4445ff8573a629af8483
             {shouldShowHorizontalRule && <View style={styles.reportHorizontalRule} />}
         </View>
     );
