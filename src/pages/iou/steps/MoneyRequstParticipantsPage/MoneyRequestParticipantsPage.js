@@ -128,11 +128,11 @@ MoneyRequestParticipantsPage.displayName = 'IOUParticipantsPage';
 MoneyRequestParticipantsPage.propTypes = propTypes;
 MoneyRequestParticipantsPage.defaultProps = defaultProps;
 
-export default compose(
-    withOnyx({
-        iou: {key: ONYXKEYS.IOU},
-        selectedTab: {
-            key: `${ONYXKEYS.SELECTED_TAB}_${CONST.TAB.RECEIPT_TAB_ID}`,
-        },
-    }),
-)(MoneyRequestParticipantsPage);
+export default withOnyx({
+    iou: {
+        key: ONYXKEYS.IOU,
+    },
+    selectedTab: {
+        key: `${ONYXKEYS.SELECTED_TAB}_${CONST.TAB.RECEIPT_TAB_ID}`,
+    },
+})(MoneyRequestParticipantsPage);
