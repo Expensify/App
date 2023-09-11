@@ -642,7 +642,7 @@ function isDM(report) {
  * @returns {Boolean}
  */
 function hasSingleParticipant(report) {
-    return report.participants && report.participants.length === 1;
+    return report.participantAccountIDs && report.participantAccountIDs.length === 1;
 }
 
 /**
@@ -815,7 +815,7 @@ function getRoomWelcomeMessage(report, isUserPolicyAdmin) {
  * @returns {Boolean}
  */
 function chatIncludesConcierge(report) {
-    return report.participantAccountIDs && _.contains(report.participantAccountIDs, CONST.ACCOUNT_ID.CONCIERGE);
+    return !_.isEmpty(report.participantAccountIDs) && _.contains(report.participantAccountIDs, CONST.ACCOUNT_ID.CONCIERGE);
 }
 
 /**
@@ -1418,9 +1418,10 @@ function getTransactionReportName(reportAction) {
  *
  * @param {Object} report
  * @param {Object} [reportAction={}]
+ * @param {Boolean} [shouldConsiderReceiptBeingScanned=false]
  * @returns  {String}
  */
-function getReportPreviewMessage(report, reportAction = {}) {
+function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceiptBeingScanned = false) {
     const reportActionMessage = lodashGet(reportAction, 'message[0].html', '');
 
     if (_.isEmpty(report) || !report.reportID) {
@@ -1435,6 +1436,14 @@ function getReportPreviewMessage(report, reportAction = {}) {
 
     if (isReportApproved(report) && getPolicyType(report, allPolicies) === CONST.POLICY.TYPE.CORPORATE) {
         return `approved ${formattedAmount}`;
+    }
+
+    if (shouldConsiderReceiptBeingScanned && ReportActionsUtils.isMoneyRequestAction(reportAction)) {
+        const linkedTransaction = TransactionUtils.getLinkedTransaction(reportAction);
+
+        if (!_.isEmpty(linkedTransaction) && TransactionUtils.hasReceipt(linkedTransaction) && TransactionUtils.isReceiptBeingScanned(linkedTransaction)) {
+            return Localize.translateLocal('iou.receiptScanning');
+        }
     }
 
     if (isSettled(report.reportID)) {
