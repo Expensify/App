@@ -652,9 +652,7 @@ function getCategoryOptionTree(options, isOneLine = false) {
 /**
  * Build the section list for categories
  *
- * @param {Object} categories
- * @param {String} categories.name
- * @param {Boolean} categories.enabled
+ * @param {Object<String, {name: String, enabled: Boolean}>} categories
  * @param {String[]} recentlyUsedCategories
  * @param {Object[]} selectedOptions
  * @param {String} selectedOptions[].name
