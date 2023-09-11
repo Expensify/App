@@ -99,7 +99,7 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
         () =>
             _.filter(
                 _.map(waypoints, (waypoint, key) => {
-                    if (!waypoint || !!waypoint.lat || !!waypoint.lng) {
+                    if (!waypoint || !waypoint.lat || !waypoint.lng) {
                         return;
                     }
 
@@ -252,8 +252,8 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
                     <View style={[styles.mapPendingView]}>
                         <BlockingView
                             icon={Expensicons.EmptyStateRoutePending}
-                            title={translate('distance.mapPending.title')}
-                            subtitle={isOffline ? translate('distance.mapPending.subtitle') : translate('distance.mapPending.onlineSubtitle')}
+                            iconWidth={100}
+                            iconHeight={100}
                             shouldShowLink={false}
                         />
                     </View>

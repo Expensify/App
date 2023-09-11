@@ -67,13 +67,13 @@ function convertDistanceUnit(distanceInMeters, unit) {
  * @param {Number} rate Expensable amount allowed per unit
  * @param {String} currency The currency associated with the rate
  * @param {Function} translate Translate function
- * @returns {String} A string that describes the distance travled and the rate used for expense calculation
+ * @returns {String} A string that describes the distance traveled and the rate used for expense calculation
  */
 const getDistanceMerchant = (distanceInMeters, unit, rate, currency, translate) => {
     const convertedDistance = convertDistanceUnit(distanceInMeters, unit);
     const distanceUnit = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.miles') : translate('common.kilometers');
     const singularDistanceUnit = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.mile') : translate('common.kilometer');
-    const roundedDistance = convertedDistance.toFixed(2);
+    const roundedDistance = convertedDistance === 0 ? translate('common.tbd') : convertedDistance.toFixed(2);
     const unitString = roundedDistance === 1 ? singularDistanceUnit : distanceUnit;
     const ratePerUnit = rate * 0.01;
     const currencySymbol = CurrencyUtils.getCurrencySymbol(currency) || `${currency} `;
