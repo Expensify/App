@@ -529,12 +529,12 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
             onyxData.optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${newReportObject.parentReportID}`,
-                value: {[parentReportActionID]: {childReportID: reportID}},
+                value: {[parentReportActionID]: {childReportID: reportID, childType: CONST.REPORT.TYPE.CHAT}},
             });
             onyxData.failureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${newReportObject.parentReportID}`,
-                value: {[parentReportActionID]: {childReportID: '0'}},
+                value: {[parentReportActionID]: {childReportID: '0', childType: ''}},
             });
         }
     }
@@ -1020,7 +1020,7 @@ function deleteReportComment(reportID, reportAction) {
             html: '',
             text: '',
             isEdited: true,
-            isDeletedParentAction: ReportActionsUtils.hasCommentThread(reportAction),
+            isDeletedParentAction: ReportActionsUtils.isThreadParentMessage(reportAction, reportID),
         },
     ];
     const optimisticReportActions = {
@@ -1392,10 +1392,6 @@ function updateWriteCapabilityAndNavigate(report, newValue) {
  */
 function navigateToConciergeChat() {
     if (!conciergeChatReportID) {
-        // In order not to delay the report life cycle, we first navigate to the unknown report
-        if (!Navigation.getTopmostReportId()) {
-            Navigation.navigate(ROUTES.REPORT);
-        }
         // In order to avoid creating concierge repeatedly,
         // we need to ensure that the server data has been successfully pulled
         Welcome.serverDataIsReadyPromise().then(() => {
