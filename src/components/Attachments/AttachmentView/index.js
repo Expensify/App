@@ -17,6 +17,11 @@ import AttachmentViewPdf from './AttachmentViewPdf';
 import addEncryptedAuthTokenToURL from '../../../libs/addEncryptedAuthTokenToURL';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import {attachmentViewPropTypes, attachmentViewDefaultProps} from './propTypes';
+import {useRoute} from '@react-navigation/native';
+import * as ReportUtils from '../../../libs/ReportUtils';
+import * as TransactionUtils from '../../../libs/TransactionUtils';
+import EReceipt from '../../EReceipt';
+import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 
 const propTypes = {
     ...attachmentViewPropTypes,
@@ -105,6 +110,21 @@ function AttachmentView({
                 onLoadComplete={() => !loadComplete && setLoadComplete(true)}
             />
         );
+    }
+
+    const currentRoute = useRoute();
+    const reportID = _.get(currentRoute, ['params', 'reportID']);
+    const report = ReportUtils.getReport(reportID);
+
+    // Get the money request transaction
+    const parentReportAction = ReportActionsUtils.getParentReportAction(report);
+    const transactionID = _.get(parentReportAction, ['originalMessage', 'IOUTransactionID'], 0);
+    const transaction = TransactionUtils.getTransaction(transactionID);
+    console.log('transaction', transaction);
+
+    const shouldShowEReceipt = TransactionUtils.isDistanceRequest(transaction);
+    if (shouldShowEReceipt) {
+        return <EReceipt transaction={transaction} />
     }
 
     // For this check we use both source and file.name since temporary file source is a blob
