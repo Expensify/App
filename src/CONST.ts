@@ -2630,6 +2630,10 @@ const CONST = {
         DEFAULT_COORDINATE: [-122.4021, 37.7911],
         STYLE_URL: 'mapbox://styles/expensify/cllcoiqds00cs01r80kp34tmq',
     },
+    ONYX_UPDATE_TYPES: {
+        HTTPS: 'https',
+        PUSHER: 'pusher',
+    },
 } as const;
 
 export default CONST;
