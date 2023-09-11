@@ -1,4 +1,5 @@
 import moment from 'moment-timezone';
+import 'moment/locale/es';
 import {AppState} from 'react-native';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
@@ -18,7 +19,6 @@ import * as Session from './Session';
 import * as ReportActionsUtils from '../ReportActionsUtils';
 import Timing from './Timing';
 import * as Browser from '../Browser';
-import * as SequentialQueue from '../Network/SequentialQueue';
 
 let currentUserAccountID;
 let currentUserEmail;
@@ -209,6 +209,35 @@ function reconnectApp(updateIDFrom = 0) {
 }
 
 /**
+ * Fetches data when the app will call reconnectApp without params for the last time. This is a separate function
+ * because it will follow patterns that are not recommended so we can be sure we're not putting the app in a unusable
+ * state because of race conditions between reconnectApp and other pusher updates being applied at the same time.
+ * @return {Promise}
+ */
+function finalReconnectAppAfterActivatingReliableUpdates() {
+    console.debug(`[OnyxUpdates] Executing last reconnect app with promise`);
+    return getPolicyParamsForOpenOrReconnect().then((policyParams) => {
+        const params = {...policyParams};
+
+        // When the app reconnects we do a fast "sync" of the LHN and only return chats that have new messages. We achieve this by sending the most recent reportActionID.
+        // we have locally. And then only update the user about chats with messages that have occurred after that reportActionID.
+        //
+        // - Look through the local report actions and reports to find the most recently modified report action or report.
+        // - We send this to the server so that it can compute which new chats the user needs to see and return only those as an optimization.
+        Timing.start(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION);
+        params.mostRecentReportActionLastModified = ReportActionsUtils.getMostRecentReportActionLastModified();
+        Timing.end(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION, '', 500);
+
+        // It is SUPER BAD FORM to return promises from action methods.
+        // DO NOT FOLLOW THIS PATTERN!!!!!
+        // It was absolutely necessary in order to not break the app while migrating to the new reliable updates pattern. This method will be removed
+        // as soon as we have everyone migrated to the reliableUpdate beta.
+        // eslint-disable-next-line rulesdir/no-api-side-effects-method
+        return API.makeRequestWithSideEffects('ReconnectApp', params, getOnyxDataForOpenOrReconnect());
+    });
+}
+
+/**
  * Fetches data when the client has discovered it missed some Onyx updates from the server
  * @param {Number} [updateIDFrom] the ID of the Onyx update that we want to start fetching from
  * @param {Number} [updateIDTo] the ID of the Onyx update that we want to fetch up to
@@ -230,48 +259,6 @@ function getMissingOnyxUpdates(updateIDFrom = 0, updateIDTo = 0) {
         getOnyxDataForOpenOrReconnect(),
     );
 }
-
-// The next 40ish lines of code are used for detecting when there is a gap of OnyxUpdates between what was last applied to the client and the updates the server has.
-// When a gap is detected, the missing updates are fetched from the API.
-
-// These key needs to be separate from ONYXKEYS.ONYX_UPDATES_FROM_SERVER so that it can be updated without triggering the callback when the server IDs are updated
-let lastUpdateIDAppliedToClient = 0;
-Onyx.connect({
-    key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
-    callback: (val) => (lastUpdateIDAppliedToClient = val),
-});
-
-Onyx.connect({
-    key: ONYXKEYS.ONYX_UPDATES_FROM_SERVER,
-    callback: (val) => {
-        if (!val) {
-            return;
-        }
-
-        const {lastUpdateIDFromServer, previousUpdateIDFromServer} = val;
-        console.debug('[OnyxUpdates] Received lastUpdateID from server', lastUpdateIDFromServer);
-        console.debug('[OnyxUpdates] Received previousUpdateID from server', previousUpdateIDFromServer);
-        console.debug('[OnyxUpdates] Last update ID applied to the client', lastUpdateIDAppliedToClient);
-
-        // If the previous update from the server does not match the last update the client got, then the client is missing some updates.
-        // getMissingOnyxUpdates will fetch updates starting from the last update this client got and going to the last update the server sent.
-        if (lastUpdateIDAppliedToClient && previousUpdateIDFromServer && lastUpdateIDAppliedToClient < previousUpdateIDFromServer) {
-            console.debug('[OnyxUpdates] Gap detected in update IDs so fetching incremental updates');
-            Log.info('Gap detected in update IDs from server so fetching incremental updates', true, {
-                lastUpdateIDFromServer,
-                previousUpdateIDFromServer,
-                lastUpdateIDAppliedToClient,
-            });
-            SequentialQueue.pause();
-            getMissingOnyxUpdates(lastUpdateIDAppliedToClient, lastUpdateIDFromServer).finally(SequentialQueue.unpause);
-        }
-
-        if (lastUpdateIDFromServer > lastUpdateIDAppliedToClient) {
-            // Update this value so that it matches what was just received from the server
-            Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, lastUpdateIDFromServer || 0);
-        }
-    },
-});
 
 /**
  * This promise is used so that deeplink component know when a transition is end.
@@ -484,4 +471,6 @@ export {
     beginDeepLinkRedirect,
     beginDeepLinkRedirectAfterTransition,
     createWorkspaceAndNavigateToIt,
+    getMissingOnyxUpdates,
+    finalReconnectAppAfterActivatingReliableUpdates,
 };

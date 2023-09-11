@@ -67,16 +67,6 @@ const propTypes = {
 
     /** Forwarded ref to FloatingActionButtonAndPopover */
     innerRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
-
-    /** Information about any currently running demos */
-    demoInfo: PropTypes.shape({
-        saastr: PropTypes.shape({
-            isBeginningDemo: PropTypes.bool,
-        }),
-        sbe: PropTypes.shape({
-            isBeginningDemo: PropTypes.bool,
-        }),
-    }),
 };
 const defaultProps = {
     onHideCreateMenu: () => {},
@@ -86,7 +76,6 @@ const defaultProps = {
     isLoading: false,
     innerRef: null,
     shouldShowDownloadAppBanner: true,
-    demoInfo: {},
 };
 
 /**
@@ -171,9 +160,6 @@ function FloatingActionButtonAndPopover(props) {
         }
         // Avoid rendering the create menu for first-time users until they have dismissed the download app banner (mWeb only).
         if (props.shouldShowDownloadAppBanner && Browser.isMobile()) {
-            return;
-        }
-        if (lodashGet(props.demoInfo, 'saastr.isBeginningDemo', false) || lodashGet(props.demoInfo, 'sbe.isBeginningDemo', false)) {
             return;
         }
         Welcome.show({routes, showCreateMenu});
@@ -307,9 +293,6 @@ export default compose(
         },
         shouldShowDownloadAppBanner: {
             key: ONYXKEYS.SHOW_DOWNLOAD_APP_BANNER,
-        },
-        demoInfo: {
-            key: ONYXKEYS.DEMO_INFO,
         },
     }),
 )(
