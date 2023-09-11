@@ -26,13 +26,13 @@ const defaultProps = {
 };
 
 function DownloadAppModal({isAuthenticated, showDownloadAppBanner}) {
-    const [shouldShowBanner, setshouldShowBanner] = useState(Browser.isMobile() && isAuthenticated && showDownloadAppBanner);
+    const [shouldShowBanner, setShouldShowBanner] = useState(Browser.isMobile() && isAuthenticated && showDownloadAppBanner);
 
     const {translate} = useLocalize();
 
     const handleCloseBanner = () => {
         setShowDownloadAppModal(false);
-        setshouldShowBanner(false);
+        setShouldShowBanner(false);
     };
 
     let link = '';
@@ -44,6 +44,8 @@ function DownloadAppModal({isAuthenticated, showDownloadAppBanner}) {
     }
 
     const handleOpenAppStore = () => {
+        setShowDownloadAppModal(false);
+        setShouldShowBanner(false);
         Link.openExternalLink(link, true);
     };
 
