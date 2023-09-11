@@ -2,6 +2,7 @@ import React, {createRef, useCallback, useRef, useState} from 'react';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
+import lodashGet from 'lodash/get';
 import Visibility from '../../libs/Visibility';
 import * as FormActions from '../../libs/actions/FormActions';
 import FormContext from './FormContext';
@@ -11,7 +12,6 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import {withNetwork} from '../../components/OnyxProvider';
 import stylePropTypes from '../../styles/stylePropTypes';
 import networkPropTypes from '../../components/networkPropTypes';
-import lodashGet from 'lodash/get';
 
 const propTypes = {
     /** A unique Onyx key identifying the form */

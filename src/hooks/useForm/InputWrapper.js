@@ -5,11 +5,13 @@ import FormContext from './FormContext';
 const propTypes = {
     RenderInput: PropTypes.node.isRequired,
     inputID: PropTypes.string.isRequired,
+    valueType: PropTypes.string,
     forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
 };
 
 const defaultProps = {
     forwardedRef: undefined,
+    valueType: 'string',
 };
 
 function InputWrapper(props) {
