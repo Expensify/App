@@ -109,10 +109,11 @@ class ContactMethodDetailsPage extends Component {
 
     componentDidMount() {
         const contactMethod = this.getContactMethod();
-        const loginData = this.props.loginList[contactMethod];
-        if (loginData) {
-            User.resetContactMethodValidateCodeSentState(contactMethod);
+        const loginData = lodashGet(this.props.loginList, contactMethod, {});
+        if (_.isEmpty(loginData)) {
+            return;
         }
+        User.resetContactMethodValidateCodeSentState(this.getContactMethod());
     }
 
     componentDidUpdate(prevProps) {
