@@ -1478,14 +1478,15 @@ function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceip
 function getProperSchemaForModifiedExpenseMessage(newValue, oldValue, valueName, valueInQuotes) {
     const newValueToDisplay = valueInQuotes ? `"${newValue}"` : newValue;
     const oldValueToDisplay = valueInQuotes ? `"${oldValue}"` : oldValue;
+    const displayValueName = valueName.toLowerCase();
 
     if (!oldValue) {
-        return `set the ${valueName} to ${newValueToDisplay}`;
+        return Localize.translateLocal('iou.setTheRequest', {valueName: displayValueName, newValueToDisplay});
     }
     if (!newValue) {
-        return `removed the ${valueName} (previously ${oldValueToDisplay})`;
+        return Localize.translateLocal('iou.removedTheRequest', {valueName: displayValueName, oldValueToDisplay});
     }
-    return `changed the ${valueName} to ${newValueToDisplay} (previously ${oldValueToDisplay})`;
+    return Localize.translateLocal('iou.updatedTheRequest', {valueName: displayValueName, newValueToDisplay, oldValueToDisplay});
 }
 
 /**
@@ -1497,7 +1498,7 @@ function getProperSchemaForModifiedExpenseMessage(newValue, oldValue, valueName,
 function getModifiedExpenseMessage(reportAction) {
     const reportActionOriginalMessage = lodashGet(reportAction, 'originalMessage', {});
     if (_.isEmpty(reportActionOriginalMessage)) {
-        return `changed the request`;
+        return Localize.translateLocal('iou.changedTheRequest');
     }
 
     const hasModifiedAmount =
@@ -1512,12 +1513,12 @@ function getModifiedExpenseMessage(reportAction) {
         const currency = reportActionOriginalMessage.currency;
         const amount = CurrencyUtils.convertToDisplayString(reportActionOriginalMessage.amount, currency);
 
-        return getProperSchemaForModifiedExpenseMessage(amount, oldAmount, 'amount', false);
+        return getProperSchemaForModifiedExpenseMessage(amount, oldAmount, Localize.translateLocal('iou.amount'), false);
     }
 
     const hasModifiedComment = _.has(reportActionOriginalMessage, 'oldComment') && _.has(reportActionOriginalMessage, 'newComment');
     if (hasModifiedComment) {
-        return getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.newComment, reportActionOriginalMessage.oldComment, 'description', true);
+        return getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.newComment, reportActionOriginalMessage.oldComment, Localize.translateLocal('common.description'), true);
     }
 
     const hasModifiedCreated = _.has(reportActionOriginalMessage, 'oldCreated') && _.has(reportActionOriginalMessage, 'created');
@@ -1525,12 +1526,12 @@ function getModifiedExpenseMessage(reportAction) {
         // Take only the YYYY-MM-DD value as the original date includes timestamp
         let formattedOldCreated = parseISO(reportActionOriginalMessage.oldCreated);
         formattedOldCreated = format(formattedOldCreated, CONST.DATE.FNS_FORMAT_STRING);
-        return getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.created, formattedOldCreated, 'date', false);
+        return getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.created, formattedOldCreated, Localize.translateLocal('common.date'), false);
     }
 
     const hasModifiedMerchant = _.has(reportActionOriginalMessage, 'oldMerchant') && _.has(reportActionOriginalMessage, 'merchant');
     if (hasModifiedMerchant) {
-        return getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.merchant, reportActionOriginalMessage.oldMerchant, 'merchant', true);
+        return getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage.merchant, reportActionOriginalMessage.oldMerchant, Localize.translateLocal('common.merchant'), true);
     }
 }
 

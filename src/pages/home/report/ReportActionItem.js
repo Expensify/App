@@ -223,7 +223,8 @@ function ReportActionItem(props) {
                 selection,
                 popoverAnchorRef,
                 props.report.reportID,
-                props.action,
+                props.action.reportActionID,
+                originalReportID,
                 props.draftMessage,
                 () => {},
                 toggleContextMenuFromActiveReportAction,
@@ -231,7 +232,7 @@ function ReportActionItem(props) {
                 ReportUtils.chatIncludesChronos(originalReport),
             );
         },
-        [props.draftMessage, props.action, props.report.reportID, toggleContextMenuFromActiveReportAction, originalReport],
+        [props.draftMessage, props.action, props.report.reportID, toggleContextMenuFromActiveReportAction, originalReport, originalReportID],
     );
 
     const toggleReaction = useCallback(
@@ -561,8 +562,9 @@ function ReportActionItem(props) {
                         {props.shouldDisplayNewMarker && <UnreadActionIndicator reportActionID={props.action.reportActionID} />}
                         <MiniReportActionContextMenu
                             reportID={props.report.reportID}
-                            reportAction={props.action}
-                            isArchivedRoom={ReportUtils.isArchivedRoom(originalReport)}
+                            reportActionID={props.action.reportActionID}
+                            originalReportID={originalReportID}
+                            isArchivedRoom={ReportUtils.isArchivedRoom(props.report)}
                             displayAsGroup={props.displayAsGroup}
                             isVisible={hovered && !props.draftMessage && !hasErrors}
                             draftMessage={props.draftMessage}
