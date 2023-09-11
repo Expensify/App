@@ -4,10 +4,10 @@ import StartupTimerStop from './types';
 /**
  * Stop the startup trace for the app.
  */
-const stop: StartupTimerStop = () => {
-    NativeModules.StartupTimer.stop();
+const startupTimer: StartupTimerStop = {
+    stop: () => {
+        NativeModules.StartupTimer.stop();
+    },
 };
 
-export default {
-    stop,
-};
+export default startupTimer;

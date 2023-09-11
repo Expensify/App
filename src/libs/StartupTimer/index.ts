@@ -4,8 +4,8 @@
 
 import StartupTimerStop from './types';
 
-const stop: StartupTimerStop = () => {};
-
-export default {
-    stop,
+const startupTimer: StartupTimerStop = {
+    stop: () => {},
 };
+
+export default startupTimer;

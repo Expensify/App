@@ -1,3 +1,5 @@
-type StartupTimerStop = () => void;
+type StartupTimerStop = {
+    stop: () => void;
+};
 
 export default StartupTimerStop;
