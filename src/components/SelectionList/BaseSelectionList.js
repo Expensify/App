@@ -2,6 +2,7 @@ import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import {useIsFocused} from '@react-navigation/native';
 import SectionList from '../SectionList';
 import Text from '../Text';
 import styles from '../../styles/styles';
@@ -61,6 +62,7 @@ function BaseSelectionList({
     const shouldShowTextInput = Boolean(textInputLabel);
     const shouldShowSelectAll = Boolean(onSelectAll);
     const activeElement = useActiveElement();
+    const isNavigationFocused = useIsFocused();
 
     /**
      * Iterates through the sections and items inside each section, and builds 3 arrays along the way:
@@ -268,6 +270,10 @@ function BaseSelectionList({
 
     /** Focuses the text input when the component mounts. If `props.shouldDelayFocus` is true, we wait for the animation to finish */
     useEffect(() => {
+        if (!isNavigationFocused) {
+            return;
+        }
+
         if (shouldShowTextInput) {
             if (shouldDelayFocus) {
                 focusTimeoutRef.current = setTimeout(() => textInputRef.current.focus(), CONST.ANIMATED_TRANSITION);
@@ -282,7 +288,7 @@ function BaseSelectionList({
             }
             clearTimeout(focusTimeoutRef.current);
         };
-    }, [shouldDelayFocus, shouldShowTextInput]);
+    }, [shouldDelayFocus, shouldShowTextInput, isNavigationFocused]);
 
     /** Selects row when pressing Enter */
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
