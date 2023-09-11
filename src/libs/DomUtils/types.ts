@@ -1,4 +1,4 @@
 type BlurActiveElement = () => void;
-type GetActiveElement = () => Element | null | undefined;
+type GetActiveElement = () => Element | null;
 
 export type {BlurActiveElement, GetActiveElement};
