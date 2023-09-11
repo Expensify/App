@@ -14,12 +14,11 @@ const propTypes = {
 };
 
 /*
- * This is a "utility page", that does this:
- *     - Looks at the current route
- *     - Determines if there's a demo command we need to call
- *     - If not, routes back to home
+ * This is a "utility page", that used to call specific actions depending on the
+ * route that led the user here. Now, it's just used to route the user home so we
+ * don't show them a "Hmm... It's not here" message (which looks broken).
  */
-function DemoSetupPage(props) {
+function DemoSetupPage() {
     useFocusEffect(() => {
         Navigation.isNavigationReady().then(() => {
             Navigation.goBack(ROUTES.HOME);
