@@ -232,7 +232,6 @@ function ReportActionItemMessageEdit(props) {
             }
         }
 
-
         // Scroll to the last comment after editing to make sure the whole comment is clearly visible in the report.
         if (props.index === 0) {
             const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {

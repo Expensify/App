@@ -45,9 +45,6 @@ function isActive(id) {
     return emojiPickerRef.current.isActive(id);
 }
 
-/**
- * Clear the active id
- */
 function clearActive() {
     if (!emojiPickerRef.current) {
         return;

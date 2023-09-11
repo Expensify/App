@@ -124,9 +124,6 @@ function isActiveReportAction(actionID) {
     return contextMenuRef.current.isActiveReportAction(actionID);
 }
 
-/**
- * Clear the active Report Action
- */
 function clearActiveReportAction() {
     if (!contextMenuRef.current) {
         return;

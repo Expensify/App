@@ -114,9 +114,6 @@ const EmojiPicker = forwardRef((props, ref) => {
      */
     const isActive = (id) => Boolean(id) && id === activeID;
 
-    /**
-     * Clear the active id
-     */
     const clearActive = () => setActiveID(null);
 
     const resetEmojiPopoverAnchor = () => (emojiPopoverAnchor.current = null);
