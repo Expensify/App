@@ -75,8 +75,8 @@ function createTrie(lang = CONST.LOCALES.DEFAULT) {
          * We do this because when the user types the english name of the emoji, we want to show the emoji in the suggestions before all the others.
          */
         if (!isDefaultLocale) {
-            const nameParts = getNameParts(englishName);
-            addKeywordsToTrie(trie, nameParts, item, localeName, true);
+            const englishNameParts = getNameParts(englishName);
+            addKeywordsToTrie(trie, englishNameParts, item, localeName, true);
         }
     });
 
