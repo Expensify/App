@@ -7,9 +7,12 @@ import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import Text from '../Text';
 import styles from '../../styles/styles';
-import getTaskReportActionMessage from '../../libs/getTaskReportActionMessage';
+import * as ReportActionUtils from '../../libs/ReportActionsUtils';
 
 const propTypes = {
+    /** Name of the reportAction action */
+    actionName: PropTypes.string.isRequired,
+
     /** The ID of the associated taskReport */
     // eslint-disable-next-line react/no-unused-prop-types -- This is used in the withOnyx HOC
     taskReportID: PropTypes.string.isRequired,
@@ -36,7 +39,7 @@ function TaskAction(props) {
     return (
         <>
             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                <Text style={[styles.chatItemMessage, styles.colorMuted]}>{getTaskReportActionMessage(props.reportAction, props.translate)}</Text>
+                <Text style={[styles.chatItemMessage, styles.colorMuted]}>{ReportActionUtils.getTaskReportActionMessage(props.actionName, props.taskReportID)}</Text>
             </View>
         </>
     );

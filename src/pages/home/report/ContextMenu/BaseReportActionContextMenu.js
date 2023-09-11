@@ -92,7 +92,6 @@ function BaseReportActionContextMenu(props) {
                         close: () => setShouldKeepOpen(false),
                         openContextMenu: () => setShouldKeepOpen(true),
                         interceptAnonymousUser,
-                        translate: props.translate,
                     };
 
                     if (contextAction.renderContent) {

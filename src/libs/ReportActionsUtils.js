@@ -9,6 +9,7 @@ import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import Log from './Log';
 import isReportMessageAttachment from './isReportMessageAttachment';
+import * as Localize from './Localize';
 
 const allReports = {};
 Onyx.connect({
@@ -612,6 +613,30 @@ function getAllReportActions(reportID) {
     return lodashGet(allReportActions, reportID, []);
 }
 
+/**
+ * @param {string} actionName
+ * @param {string} reportID
+ * @returns {string}
+ */
+function getTaskReportActionMessage(actionName, reportID) {
+    let taskStatusText = '';
+    switch (actionName) {
+        case CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED:
+            taskStatusText = Localize.translateLocal('task.messages.completed');
+            break;
+        case CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED:
+            taskStatusText = Localize.translateLocal('task.messages.canceled');
+            break;
+        case CONST.REPORT.ACTIONS.TYPE.TASKREOPENED:
+            taskStatusText = Localize.translateLocal('task.messages.reopened');
+            break;
+        default:
+            taskStatusText = Localize.translateLocal('task.task');
+    }
+
+    return `${taskStatusText} ${allReports[reportID].reportName}`;
+}
+
 export {
     getSortedReportActions,
     getLastVisibleAction,
@@ -649,4 +674,5 @@ export {
     isSplitBillAction,
     isTaskAction,
     getAllReportActions,
+    getTaskReportActionMessage,
 };

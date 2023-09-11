@@ -296,7 +296,12 @@ function ReportActionItem(props) {
             props.action.actionName === CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED ||
             props.action.actionName === CONST.REPORT.ACTIONS.TYPE.TASKREOPENED
         ) {
-            children = <TaskAction reportAction={props.action} />;
+            children = (
+                <TaskAction
+                    taskReportID={props.action.originalMessage.taskReportID.toString()}
+                    actionName={props.action.actionName}
+                />
+            );
         } else if (ReportActionsUtils.isCreatedTaskReportAction(props.action)) {
             children = (
                 <TaskPreview
