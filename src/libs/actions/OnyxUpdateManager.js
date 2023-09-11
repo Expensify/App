@@ -35,6 +35,11 @@ export default () => {
                 return;
             }
 
+            if (_.isNumber(val)) {
+                Onyx.set(ONYXKEYS.ONYX_UPDATES_FROM_SERVER, null);
+                return;
+            }
+
             const updateParams = val;
             const lastUpdateIDFromServer = val.lastUpdateID;
             const previousUpdateIDFromServer = val.previousUpdateID;
