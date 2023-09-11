@@ -1,12 +1,7 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import AndroidBackgroundImage from '../../../../../assets/images/home-background--android.svg';
 import styles from '../../../../styles/styles';
-
-const propTypes = {
-    pointerEvents: PropTypes.string.isRequired,
-    width: PropTypes.number.isRequired,
-};
+import defaultPropTypes from './defaultPropTypes';
 
 function BackgroundImage(props) {
     return (
@@ -19,6 +14,6 @@ function BackgroundImage(props) {
 }
 
 BackgroundImage.displayName = 'BackgroundImage';
-BackgroundImage.propTypes = propTypes;
+BackgroundImage.propTypes = defaultPropTypes;
 
 export default BackgroundImage;
