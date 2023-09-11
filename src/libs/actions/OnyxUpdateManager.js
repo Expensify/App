@@ -35,9 +35,14 @@ export default () => {
                 return;
             }
 
-            // Since we used the same key that used to store lastUpdateID, once we start watching this variable we need
-            // to confirm that the value is what we expect and not a number.
-            if (!_.isObject(val)) {
+            // Since we used the same key that used to store another object, let's confirm that the current object is
+            // following the new format before we proceed. If it isn't, then let's clera the object in Onyx.
+            if (
+                !_.isObject(val) ||
+                !val.hasOwnProperty('type') ||
+                !(val.type === CONST.ONYX_UPDATE_TYPES.HTTPS && val.hasOwnProperty('request') && val.hasOwnProperty('response')) ||
+                !(val.type === CONST.ONYX_UPDATE_TYPES.PUSHER && !val.hasOwnProperty('updates'))
+            ) {
                 Onyx.set(ONYXKEYS.ONYX_UPDATES_FROM_SERVER, null);
                 return;
             }
