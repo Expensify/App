@@ -15,7 +15,6 @@ import styles from '../styles/styles';
 import transactionPropTypes from './transactionPropTypes';
 import BlockingView from './BlockingViews/BlockingView';
 import useNetwork from '../hooks/useNetwork';
-import useLocalize from '../hooks/useLocalize';
 import MapView from './MapView';
 
 const propTypes = {
@@ -76,7 +75,6 @@ const getWaypointMarkers = (waypoints) => {
 
 function ConfirmedRoute({mapboxAccessToken, transaction}) {
     const {isOffline} = useNetwork();
-    const {translate} = useLocalize();
     const {route0: route} = transaction.routes || {};
     const waypoints = lodashGet(transaction, 'comment.waypoints', {});
     const coordinates = lodashGet(route, 'geometry.coordinates', []);
