@@ -760,7 +760,7 @@ const styles = {
     badgeText: {
         color: themeColors.text,
         fontSize: variables.fontSizeSmall,
-        lineHeight: variables.lineHeightNormal,
+        lineHeight: variables.lineHeightXSmall,
         ...whiteSpace.noWrap,
     },
 
