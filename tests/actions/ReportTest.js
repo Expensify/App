@@ -14,6 +14,7 @@ import * as PersistedRequests from '../../src/libs/actions/PersistedRequests';
 import * as User from '../../src/libs/actions/User';
 import * as ReportUtils from '../../src/libs/ReportUtils';
 import DateUtils from '../../src/libs/DateUtils';
+import * as SequentialQueue from '../../src/libs/Network/SequentialQueue';
 
 jest.mock('../../src/libs/actions/Report', () => {
     const originalModule = jest.requireActual('../../src/libs/actions/Report');
@@ -33,7 +34,11 @@ describe('actions/Report', () => {
         });
     });
 
-    beforeEach(() => Onyx.clear().then(waitForPromisesToResolve));
+    beforeEach(() => {
+        const promise = Onyx.clear().then(jest.useRealTimers)
+        waitForPromisesToResolve()
+        return promise
+    });
 
     afterEach(PusherHelper.teardown);
 
@@ -178,6 +183,8 @@ describe('actions/Report', () => {
     });
 
     it('should be updated correctly when new comments are added, deleted or marked as unread', () => {
+        jest.useFakeTimers()
+        global.fetch = TestHelper.getGlobalFetchMock();
         const REPORT_ID = '1';
         let report;
         let reportActionCreatedDate;
@@ -196,13 +203,16 @@ describe('actions/Report', () => {
         const USER_1_LOGIN = 'user@test.com';
         const USER_1_ACCOUNT_ID = 1;
         const USER_2_ACCOUNT_ID = 2;
-        return Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportName: 'Test', reportID: REPORT_ID})
+        const setPromise =  Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportName: 'Test', reportID: REPORT_ID})
             .then(() => TestHelper.signInWithTestUser(USER_1_ACCOUNT_ID, USER_1_LOGIN))
+            .then(waitForPromisesToResolve)
+            .then(waitForPromisesToResolve)
             .then(() => {
                 // Given a test user that is subscribed to Pusher events
                 User.subscribeToUserEvents();
                 return waitForPromisesToResolve();
             })
+            .then(waitForPromisesToResolve)
             .then(() => TestHelper.setPersonalDetails(USER_1_LOGIN, USER_1_ACCOUNT_ID))
             .then(() => {
                 // When a Pusher event is handled for a new report comment that includes a mention of the current user
@@ -241,6 +251,8 @@ describe('actions/Report', () => {
                 ]);
                 return waitForPromisesToResolve();
             })
+            .then(waitForPromisesToResolve)
+            .then(waitForPromisesToResolve)
             .then(() => {
                 // Then the report will be unread
                 expect(ReportUtils.isUnread(report)).toBe(true);
@@ -253,6 +265,7 @@ describe('actions/Report', () => {
                 currentTime = DateUtils.getDBTime();
                 Report.openReport(REPORT_ID);
                 Report.readNewestAction(REPORT_ID);
+                waitForPromisesToResolve()
                 return waitForPromisesToResolve();
             })
             .then(() => {
@@ -305,6 +318,9 @@ describe('actions/Report', () => {
                 Report.addComment(REPORT_ID, 'Current User Comment 3');
                 return waitForPromisesToResolve();
             })
+            .then(waitForPromisesToResolve)
+            .then(waitForPromisesToResolve)
+            .then(waitForPromisesToResolve)
             .then(() => {
                 // The report will be read and the lastReadTime updated
                 expect(ReportUtils.isUnread(report)).toBe(false);
@@ -367,13 +383,29 @@ describe('actions/Report', () => {
                     optimisticReportActions,
                 ]);
 
+                console.log('emmited update through pusher')
+        
                 return waitForPromisesToResolve();
             })
+            .then(() => {console.log("i;m here")})
+            //.then(SequentialQueue.getCurrentRequest)
+            .then(() => {console.log("i;m here 2")})
+            .then(waitForPromisesToResolve)
+            .then(waitForPromisesToResolve)
+            .then(() => {
+                expect(report.lastReadTime).toBe(reportActionCreatedDate);
+            })
+            .then(waitForPromisesToResolve)
+            .then(waitForPromisesToResolve)
             .then(() => {
                 // If the user deletes a comment that is before the last read
                 Report.deleteReportComment(REPORT_ID, {...reportActions[200]});
                 return waitForPromisesToResolve();
             })
+            .then(waitForPromisesToResolve)
+            .then(waitForPromisesToResolve)
+            .then(waitForPromisesToResolve)
+            .then(waitForPromisesToResolve)
             .then(() => {
                 // Then no change will occur
                 expect(report.lastReadTime).toBe(reportActionCreatedDate);
@@ -396,6 +428,8 @@ describe('actions/Report', () => {
                 expect(ReportUtils.isUnread(report)).toBe(false);
                 expect(report.lastMessageText).toBe('Current User Comment 2');
             });
+        waitForPromisesToResolve() // flushing onyx.set as it wull be batched
+        return setPromise
     });
 
     it('Should properly update comment with links', () => {
@@ -403,6 +437,8 @@ describe('actions/Report', () => {
          * We should generate a link when editing a message unless the link was
          * already in the comment and the user deleted it on purpose.
          */
+
+        global.fetch = TestHelper.getGlobalFetchMock();
 
         // User edits comment to add link
         // We should generate link
@@ -486,6 +522,7 @@ describe('actions/Report', () => {
 
         // Setup user and pusher listeners
         return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID)
+            .then(waitForPromisesToResolve)
             .then(() => {
                 User.subscribeToUserEvents();
                 return waitForPromisesToResolve();
@@ -502,7 +539,7 @@ describe('actions/Report', () => {
                         shouldNotify: true,
                     },
                 ]);
-                return waitForPromisesToResolve();
+                return SequentialQueue.getCurrentRequest().then(waitForPromisesToResolve);
             })
             .then(() => {
                 // Ensure we show a notification for this new report action

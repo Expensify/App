@@ -27,9 +27,17 @@ export default () => new Promise((outerResolve) => {
             innerResolve("Flush all micro tasks that pushed by using '.then' method");
         });
     }).then(() => {
-        setTimeout(outerResolve, 0);
+        if (usingFakeTimers()) {
+            jest.runOnlyPendingTimers()
+            outerResolve()
+            return 
+        }
+        setTimeout(() => { console.log('resolving waitForPromistesToResolve'); outerResolve()}, 0);
     });
 });
 
+const usingFakeTimers = () => {
+    return !!(global.setTimeout.mock||global.setTimeout.clock)
+}
 
 // export default () => new Promise((resolve) => setTimeout(resolve, 0));

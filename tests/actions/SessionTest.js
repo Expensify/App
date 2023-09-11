@@ -94,7 +94,7 @@ describe('Session', () => {
             });
     });
 
-    test('Push notifications are subscribed after signing in', () => TestHelper.signInWithTestUser().then(() => expect(PushNotification.register).toBeCalled()));
+    test('Push notifications are subscribed after signing in', () => TestHelper.signInWithTestUser().then(waitForPromisesToResolve).then(() => expect(PushNotification.register).toBeCalled()));
 
     test('Push notifications are unsubscribed after signing out', () =>
         TestHelper.signInWithTestUser()

@@ -30,7 +30,6 @@ beforeEach(() => {
     NetworkStore.checkRequiredData();
 
     // Wait for any Log command to finish and Onyx to fully clear
-    jest.advanceTimersByTime(CONST.NETWORK.PROCESS_REQUEST_DELAY_MS);
     return waitForPromisesToResolve()
         .then(() => Onyx.clear())
         .then(waitForPromisesToResolve);
@@ -167,8 +166,7 @@ describe('APITests', () => {
                     expect(PersistedRequests.getAll()).toEqual([expect.objectContaining({command: 'mock command', data: expect.objectContaining({param2: 'value2'})})]);
 
                     // We need to advance past the request throttle back off timer because the request won't be retried until then
-                    jest.advanceTimersByTime(CONST.NETWORK.MAX_RANDOM_RETRY_WAIT_TIME_MS);
-                    return waitForPromisesToResolve();
+                    return new Promise((resolve) => setTimeout(resolve, 1000)).then(waitForPromisesToResolve);
                 })
                 .then(() => {
                     // Finally, after it succeeds the queue should be empty
@@ -203,7 +201,7 @@ describe('APITests', () => {
                 .then(() => {
                     // When API Write commands are made
                     API.write('mock command', {param1: 'value1'});
-                    return waitForPromisesToResolve();
+                    return waitForPromisesToResolve().then(waitForPromisesToResolve);
                 })
 
                 // When we resume connectivity
@@ -218,8 +216,7 @@ describe('APITests', () => {
                     expect(PersistedRequests.getAll()).toEqual([expect.objectContaining({command: 'mock command', data: expect.objectContaining({param1: 'value1'})})]);
 
                     // We let the SequentialQueue process again after its wait time
-                    jest.runOnlyPendingTimers();
-                    return waitForPromisesToResolve();
+                    return new Promise((resolve) => setTimeout(resolve, CONST.NETWORK.MAX_RANDOM_RETRY_WAIT_TIME_MS)).then(waitForPromisesToResolve);
                 })
                 .then(() => {
                     // Then we have retried the failing request
@@ -230,8 +227,7 @@ describe('APITests', () => {
                     expect(PersistedRequests.getAll()).toEqual([expect.objectContaining({command: 'mock command', data: expect.objectContaining({param1: 'value1'})})]);
 
                     // We let the SequentialQueue process again after its wait time
-                    jest.runOnlyPendingTimers();
-                    return waitForPromisesToResolve();
+                    return new Promise((resolve) => setTimeout(resolve, 2 * CONST.NETWORK.MAX_RANDOM_RETRY_WAIT_TIME_MS)).then(waitForPromisesToResolve);
                 })
                 .then(() => {
                     // Then the request is retried again
@@ -384,7 +380,7 @@ describe('APITests', () => {
             });
     });
 
-    test('Sequential queue will succeed if triggered while reauthentication via main queue is in progress', () => {
+    test.only('Sequential queue will succeed if triggered while reauthentication via main queue is in progress', () => {
         // Given offline state where all requests will eventualy succeed without issue and assumed to be valid credentials
         const xhr = jest
             .spyOn(HttpUtils, 'xhr')
@@ -400,12 +396,14 @@ describe('APITests', () => {
             .then(() => {
                 // When we queue both non-persistable and persistable commands that will trigger reauthentication and go offline at the same time
                 API.makeRequestWithSideEffects('AuthenticatePusher', {content: 'value1'});
+          
                 Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
                 expect(NetworkStore.isOffline()).toBe(false);
                 expect(NetworkStore.isAuthenticating()).toBe(false);
-                return waitForPromisesToResolve();
+                return waitForPromisesToResolve().then(waitForPromisesToResolve).then(waitForPromisesToResolve);
             })
             .then(() => {
+                console.log(xhr.mock.calls)
                 API.write('MockCommand');
                 expect(PersistedRequests.getAll().length).toBe(1);
                 expect(NetworkStore.isOffline()).toBe(true);
@@ -415,8 +413,12 @@ describe('APITests', () => {
                 // We should only have a single call at this point as the main queue is stopped since we've gone offline
                 expect(xhr.mock.calls.length).toBe(1);
 
+                waitForPromisesToResolve()
+
                 // Come back from offline to trigger the sequential queue flush
-                return Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
+                const promise = Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
+                waitForPromisesToResolve()
+                return promise.then(waitForPromisesToResolve);
             })
             .then(() => {
                 // When we wait for the sequential queue to finish

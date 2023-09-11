@@ -153,8 +153,9 @@ function getGlobalFetchMock() {
     let isPaused = false;
     let shouldFail = false;
 
-    const getResponse = () =>
-        shouldFail
+    const getResponse = () => {
+        console.log('resolving getResponse')
+        return shouldFail
             ? {
                   ok: true,
                   json: () => Promise.resolve({jsonCode: 400}),
@@ -163,6 +164,7 @@ function getGlobalFetchMock() {
                   ok: true,
                   json: () => Promise.resolve({jsonCode: 200}),
               };
+    }
 
     const mockFetch = jest.fn().mockImplementation(() => {
         if (!isPaused) {
