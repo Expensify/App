@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useRef} from 'react';
 import PropTypes from 'prop-types';
 import useCurrentReportID from '../../../hooks/useCurrentReportID';
 
@@ -11,26 +11,25 @@ const propTypes = {
 
 function ReportAttachmentsProvider(props) {
     const currentReportID = useCurrentReportID();
-    const [hiddenAttachments, setHiddenAttachments] = useState({});
+    const hiddenAttachments = useRef({});
 
     useEffect(() => {
         // We only want to store the attachment visibility for the current report.
-        // If the current report ID changes, clear the state.
-        setHiddenAttachments({});
+        // If the current report ID changes, clear the ref.
+        hiddenAttachments.current = {};
     }, [currentReportID]);
 
     const contextValue = useMemo(
         () => ({
-            hiddenAttachments,
+            isAttachmentHidden: (reportActionID) => hiddenAttachments.current[reportActionID],
             updateHiddenAttachments: (reportActionID, value) => {
-                // To prevent unnecessary re-render, skip updating the state if the value is the same
-                if (Boolean(hiddenAttachments[reportActionID]) === value) {
-                    return;
-                }
-                setHiddenAttachments((state) => ({...state, [reportActionID]: value}));
+                hiddenAttachments.current = {
+                    ...hiddenAttachments.current,
+                    [reportActionID]: value,
+                };
             },
         }),
-        [hiddenAttachments],
+        [],
     );
 
     return <ReportAttachmentsContext.Provider value={contextValue}>{props.children}</ReportAttachmentsContext.Provider>;
