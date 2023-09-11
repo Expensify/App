@@ -28,7 +28,6 @@ import ExceededCommentLength from '../../../components/ExceededCommentLength';
 import CONST from '../../../CONST';
 import refPropTypes from '../../../components/refPropTypes';
 import * as ComposerUtils from '../../../libs/ComposerUtils';
-import * as ComposerActions from '../../../libs/actions/Composer';
 import * as User from '../../../libs/actions/User';
 import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
 import getButtonState from '../../../libs/getButtonState';
@@ -137,7 +136,7 @@ function ReportActionItemMessageEdit(props) {
 
             // Show the main composer when the focused message is deleted from another client
             // to prevent the main composer stays hidden until we swtich to another chat.
-            ComposerActions.setShouldShowComposeInput(true);
+            setShouldShowComposeInputKeyboardAware(true);
         };
     }, [props.action.reportActionID]);
 
@@ -211,7 +210,7 @@ function ReportActionItemMessageEdit(props) {
     const deleteDraft = useCallback(() => {
         debouncedSaveDraft.cancel();
         Report.saveReportActionDraft(props.reportID, props.action.reportActionID, '');
-        ComposerActions.setShouldShowComposeInput(true);
+        setShouldShowComposeInputKeyboardAware(true);
         ReportActionComposeFocusManager.clear();
         ReportActionComposeFocusManager.focus();
 
@@ -317,6 +316,8 @@ function ReportActionItemMessageEdit(props) {
                             pressDimmingValue={1}
                             hoverStyle={StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.ACTIVE)}
                             pressStyle={StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)}
+                            // Keep focus on the composer when cancel button is clicked.
+                            onMouseDown={(e) => e.preventDefault()}
                         >
                             {({hovered, pressed}) => (
                                 <Icon
@@ -353,17 +354,11 @@ function ReportActionItemMessageEdit(props) {
                             onFocus={() => {
                                 setIsFocused(true);
                                 reportScrollManager.scrollToIndex({animated: true, index: props.index}, true);
-                                ComposerActions.setShouldShowComposeInput(false);
+                                setShouldShowComposeInputKeyboardAware(false);
                             }}
                             onBlur={(event) => {
                                 setIsFocused(false);
                                 const relatedTargetId = lodashGet(event, 'nativeEvent.relatedTarget.id');
-
-                                // Return to prevent re-render when save/cancel button is pressed which cancels the onPress event by re-rendering
-                                if (_.contains([saveButtonID, cancelButtonID, emojiButtonID], relatedTargetId)) {
-                                    return;
-                                }
-
                                 if (messageEditInput === relatedTargetId) {
                                     return;
                                 }
@@ -397,6 +392,8 @@ function ReportActionItemMessageEdit(props) {
                                 accessibilityLabel={translate('common.saveChanges')}
                                 hoverDimmingValue={1}
                                 pressDimmingValue={0.2}
+                                // Keep focus on the composer when send button is clicked.
+                                onMouseDown={(e) => e.preventDefault()}
                             >
                                 <Icon
                                     src={Expensicons.Checkmark}

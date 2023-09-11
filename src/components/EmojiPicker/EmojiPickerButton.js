@@ -20,6 +20,9 @@ const propTypes = {
     /** Unique id for emoji picker */
     emojiPickerID: PropTypes.string,
 
+    /** MouseDown event handler */
+    onMouseDown: PropTypes.func,
+
     ...withLocalizePropTypes,
 };
 
@@ -27,6 +30,7 @@ const defaultProps = {
     isDisabled: false,
     nativeID: '',
     emojiPickerID: '',
+    onMouseDown: undefined,
 };
 
 function EmojiPickerButton(props) {
@@ -49,6 +53,7 @@ function EmojiPickerButton(props) {
                 }}
                 nativeID={props.nativeID}
                 accessibilityLabel={props.translate('reportActionCompose.emoji')}
+                onMouseDown={props.onMouseDown}
             >
                 {({hovered, pressed}) => (
                     <Icon
