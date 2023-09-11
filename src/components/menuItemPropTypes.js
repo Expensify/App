@@ -88,6 +88,9 @@ const propTypes = {
     /** A right-aligned subtitle for this menu option */
     subtitle: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 
+    /** Style for the subtitle */
+    subtitleTextStyle: stylePropTypes,
+
     /** Flag to choose between avatar image or an icon */
     iconType: PropTypes.oneOf([CONST.ICON_TYPE_AVATAR, CONST.ICON_TYPE_ICON, CONST.ICON_TYPE_WORKSPACE]),
 
