@@ -22,10 +22,10 @@ function clear() {
 }
 
 /**
- * @returns {Promise}
+ * @returns {Array<Object>}
  */
-function flushQueue() {
-    return Onyx.update(queuedOnyxUpdates).then(clear);
+function getQueuedUpdates() {
+    return queuedOnyxUpdates;
 }
 
-export {queueOnyxUpdates, flushQueue};
+export {queueOnyxUpdates, clear, getQueuedUpdates};
