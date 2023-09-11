@@ -12,6 +12,7 @@ import ReportTypingIndicator from '../ReportTypingIndicator';
 import AttachmentModal from '../../../../components/AttachmentModal';
 import compose from '../../../../libs/compose';
 import willBlurTextInputOnTapOutsideFunc from '../../../../libs/willBlurTextInputOnTapOutside';
+import isSelectionChangedOnFocus from '../../../../libs/isSelectionChangedOnFocus';
 import canFocusInputOnScreenFocus from '../../../../libs/canFocusInputOnScreenFocus';
 import CONST from '../../../../CONST';
 import * as ReportUtils from '../../../../libs/ReportUtils';
@@ -106,6 +107,7 @@ function ReportActionCompose({
     reportActions,
     shouldShowComposeInput,
     isCommentEmpty: isCommentEmptyProp,
+    modal,
 }) {
     const {translate} = useLocalize();
     const {isMediumScreenWidth, isSmallScreenWidth} = useWindowDimensions();
@@ -179,11 +181,17 @@ function ReportActionCompose({
             return;
         }
         composerRef.current.focus(true);
+
+        // Restore the suggestions if onSelectionChange is not called on focused
+        if (isSelectionChangedOnFocus || !suggestionsRef.current) {
+            return;
+        }
+        suggestionsRef.current.restoreSuggestions();
     };
 
     const isKeyboardVisibleWhenShowingModalRef = useRef(false);
     const restoreKeyboardState = useCallback(() => {
-        if (!isKeyboardVisibleWhenShowingModalRef.current) {
+        if (!isKeyboardVisibleWhenShowingModalRef.current || !shouldFocusInputOnScreenFocus) {
             return;
         }
         focus();
@@ -310,6 +318,12 @@ function ReportActionCompose({
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [],
     );
+
+    useEffect(() => {
+        if (!modal.isVisible) {
+            focus();
+        }
+    }, [modal.isVisible])
 
     const reportRecipientAcountIDs = ReportUtils.getReportRecipientAccountIDs(report, currentUserPersonalDetails.accountID);
     const reportRecipient = personalDetails[reportRecipientAcountIDs[0]];
@@ -459,6 +473,9 @@ export default compose(
         },
         shouldShowComposeInput: {
             key: ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT,
+        },
+        modal: {
+            key: ONYXKEYS.MODAL,
         },
     }),
 )(ReportActionCompose);

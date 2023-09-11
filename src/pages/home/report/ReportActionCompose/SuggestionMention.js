@@ -69,6 +69,8 @@ function SuggestionMention({
     // Used to decide whether to block the suggestions list from showing to prevent flickering
     const shouldBlockCalc = useRef(false);
 
+    const previousSuggestionValues = useRef(defaultSuggestionsValues);
+
     /**
      * Replace the code of mention and update selection
      * @param {Number} highlightedMentionIndex
@@ -97,7 +99,14 @@ function SuggestionMention({
      * Clean data related to suggestions
      */
     const resetSuggestions = useCallback(() => {
-        setSuggestionValues(defaultSuggestionsValues);
+        setSuggestionValues((prev) => {
+            previousSuggestionValues.current = prev;
+            return defaultSuggestionsValues;
+        });
+    }, []);
+
+    const restoreSuggestions = useCallback(() => {
+        setSuggestionValues(previousSuggestionValues.current);
     }, []);
 
     /**
@@ -262,6 +271,7 @@ function SuggestionMention({
         forwardedRef,
         () => ({
             resetSuggestions,
+            restoreSuggestions,
             onSelectionChange,
             triggerHotkeyActions,
             setShouldBlockSuggestionCalc,

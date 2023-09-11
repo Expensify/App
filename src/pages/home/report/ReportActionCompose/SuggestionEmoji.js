@@ -85,6 +85,7 @@ function SuggestionEmoji({
 
     // Used to decide whether to block the suggestions list from showing to prevent flickering
     const shouldBlockCalc = useRef(false);
+    const previousSuggestionValues = useRef(defaultSuggestionsValues);
 
     /**
      * Replace the code of emoji and update selection
@@ -119,7 +120,14 @@ function SuggestionEmoji({
      * Clean data related to suggestions
      */
     const resetSuggestions = useCallback(() => {
-        setSuggestionValues(defaultSuggestionsValues);
+        setSuggestionValues((prev) => {
+            previousSuggestionValues.current = prev;
+            return defaultSuggestionsValues;
+        });
+    }, []);
+
+    const restoreSuggestions = useCallback(() => {
+        setSuggestionValues(previousSuggestionValues.current);
     }, []);
 
     const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
@@ -216,6 +224,7 @@ function SuggestionEmoji({
         forwardedRef,
         () => ({
             resetSuggestions,
+            restoreSuggestions,
             onSelectionChange,
             triggerHotkeyActions,
             setShouldBlockSuggestionCalc,

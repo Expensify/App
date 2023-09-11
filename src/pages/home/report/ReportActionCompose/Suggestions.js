@@ -53,6 +53,11 @@ function Suggestions({
         suggestionMentionRef.current.resetSuggestions();
     }, []);
 
+    const restoreSuggestions = useCallback(() => {
+        suggestionEmojiRef.current.restoreSuggestions();
+        suggestionMentionRef.current.restoreSuggestions();
+    }, []);
+
     /**
      * Listens for keyboard shortcuts and applies the action
      *
@@ -84,6 +89,7 @@ function Suggestions({
         forwardedRef,
         () => ({
             resetSuggestions,
+            restoreSuggestions,
             onSelectionChange,
             triggerHotkeyActions,
             updateShouldShowSuggestionMenuToFalse,
