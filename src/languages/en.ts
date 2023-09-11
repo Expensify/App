@@ -68,6 +68,9 @@ import type {
     OOOEventSummaryPartialDayParams,
     ParentNavigationSummaryParams,
     ManagerApprovedParams,
+    SetTheRequestParams,
+    UpdatedTheRequestParams,
+    RemovedTheRequestParams,
 } from './types';
 import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 
