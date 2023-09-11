@@ -11,7 +11,6 @@ import MoneyRequestParticipantsSelector from './MoneyRequestParticipantsSelector
 import styles from '../../../../styles/styles';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import Navigation from '../../../../libs/Navigation/Navigation';
-import compose from '../../../../libs/compose';
 import * as DeviceCapabilities from '../../../../libs/DeviceCapabilities';
 import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 import * as IOU from '../../../../libs/actions/IOU';
