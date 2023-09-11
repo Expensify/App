@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useRef} from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -19,6 +19,7 @@ import * as StyleUtils from '../../styles/StyleUtils';
 import useLocalize from '../../hooks/useLocalize';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
 import Log from '../../libs/Log';
+import * as DemoActions from '../../libs/actions/DemoActions';
 
 const propTypes = {
     /** The details about the account that the user is signing in with */
@@ -49,15 +50,22 @@ const propTypes = {
     /** Whether or not the sign in page is being rendered in the RHP modal */
     isInModal: PropTypes.bool,
 
-    /** Override the green headline copy */
-    customHeadline: PropTypes.string,
+    /** Information about any currently running demos */
+    demoInfo: PropTypes.shape({
+        saastr: PropTypes.shape({
+            isBeginningDemo: PropTypes.bool,
+        }),
+        sbe: PropTypes.shape({
+            isBeginningDemo: PropTypes.bool,
+        }),
+    }),
 };
 
 const defaultProps = {
     account: {},
     credentials: {},
     isInModal: false,
-    customHeadline: '',
+    demoInfo: {},
 };
 
 /**
@@ -85,11 +93,12 @@ function getRenderOptions({hasLogin, hasValidateCode, hasAccount, isPrimaryLogin
     };
 }
 
-function SignInPage({credentials, account, isInModal, customHeadline}) {
+function SignInPage({credentials, account, isInModal, demoInfo}) {
     const {translate, formatPhoneNumber} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
     const shouldShowSmallScreen = isSmallScreenWidth || isInModal;
     const safeAreaInsets = useSafeAreaInsets();
+    const signInPageLayoutRef = useRef();
 
     useEffect(() => Performance.measureTTI(), []);
     useEffect(() => {
@@ -109,6 +118,7 @@ function SignInPage({credentials, account, isInModal, customHeadline}) {
 
     let welcomeHeader = '';
     let welcomeText = '';
+    const {customHeadline, customHeroBody} = DemoActions.getCustomTextForDemo(demoInfo);
     const headerText = customHeadline || translate('login.hero.header');
     if (shouldShowLoginForm) {
         welcomeHeader = isSmallScreenWidth ? headerText : translate('welcomeText.getStarted');
@@ -155,14 +165,17 @@ function SignInPage({credentials, account, isInModal, customHeadline}) {
                 welcomeText={welcomeText}
                 shouldShowWelcomeHeader={shouldShowWelcomeHeader || !isSmallScreenWidth || !isInModal}
                 shouldShowWelcomeText={shouldShowWelcomeText}
+                ref={signInPageLayoutRef}
                 isInModal={isInModal}
                 customHeadline={customHeadline}
+                customHeroBody={customHeroBody}
             >
                 {/* LoginForm must use the isVisible prop. This keeps it mounted, but visually hidden
                     so that password managers can access the values. Conditionally rendering this component will break this feature. */}
                 <LoginForm
                     isVisible={shouldShowLoginForm}
                     blurOnSubmit={account.validated === false}
+                    scrollPageToTop={signInPageLayoutRef.current && signInPageLayoutRef.current.scrollPageToTop}
                 />
                 {shouldShowValidateCodeForm && <ValidateCodeForm />}
                 {shouldShowUnlinkLoginForm && <UnlinkLoginForm />}
@@ -179,4 +192,5 @@ SignInPage.displayName = 'SignInPage';
 export default withOnyx({
     account: {key: ONYXKEYS.ACCOUNT},
     credentials: {key: ONYXKEYS.CREDENTIALS},
+    demoInfo: {key: ONYXKEYS.DEMO_INFO},
 })(SignInPage);

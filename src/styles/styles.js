@@ -1,4 +1,5 @@
 import {defaultStyles as defaultPickerStyles} from 'react-native-picker-select/src/styles';
+import {StyleSheet} from 'react-native';
 import lodashClamp from 'lodash/clamp';
 import fontFamily from './fontFamily';
 import addOutlineWidth from './addOutlineWidth';
@@ -228,6 +229,11 @@ const styles = {
 
     mentionSuggestionsHandle: {
         color: themeColors.textSupporting,
+    },
+
+    appIconBorderRadius: {
+        overflow: 'hidden',
+        borderRadius: 12,
     },
 
     unitCol: {
@@ -564,10 +570,9 @@ const styles = {
     },
 
     buttonDivider: {
-        width: 1,
-        alignSelf: 'stretch',
-        backgroundColor: themeColors.appBG,
-        marginVertical: 1,
+        height: variables.dropDownButtonDividerHeight,
+        borderWidth: 0.7,
+        borderColor: themeColors.text,
     },
 
     noBorderRadius: {
@@ -639,14 +644,14 @@ const styles = {
     },
 
     visuallyHidden: {
-        ...visibility('hidden'),
+        ...visibility.hidden,
         overflow: 'hidden',
         width: 0,
         height: 0,
     },
 
     visibilityHidden: {
-        ...visibility('hidden'),
+        ...visibility.hidden,
     },
 
     loadingVBAAnimation: {
@@ -1109,6 +1114,12 @@ const styles = {
         color: themeColors.textSupporting,
     },
 
+    textLabelError: {
+        fontFamily: fontFamily.EXP_NEUE,
+        fontSize: variables.fontSizeLabel,
+        color: themeColors.textError,
+    },
+
     textReceiptUpload: {
         ...headlineFont,
         fontSize: variables.fontSizeXLarge,
@@ -1333,13 +1344,12 @@ const styles = {
         textDecorationLine: 'none',
     },
 
-    leftPanelContainer: {
-        maxWidth: variables.sideBarWidth,
-    },
-
-    rightPanelContainer: {
-        width: variables.sideBarWidth,
-    },
+    RHPNavigatorContainer: (isSmallScreenWidth) => ({
+        width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
+        position: 'absolute',
+        right: 0,
+        height: '100%',
+    }),
 
     onlyEmojisText: {
         fontSize: variables.fontSizeOnlyEmojis,
@@ -1508,6 +1518,16 @@ const styles = {
     optionsListSectionHeader: {
         height: variables.optionsListSectionHeaderHeight,
     },
+
+    overlayStyles: (current) => ({
+        ...StyleSheet.absoluteFillObject,
+        backgroundColor: themeColors.overlay,
+        opacity: current.progress.interpolate({
+            inputRange: [0, 1],
+            outputRange: [0, variables.overlayOpacity],
+            extrapolate: 'clamp',
+        }),
+    }),
 
     appContent: {
         backgroundColor: themeColors.appBG,
@@ -2385,6 +2405,9 @@ const styles = {
         borderRadius: 88,
     },
 
+    rootNavigatorContainerStyles: (isSmallScreenWidth) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1}),
+    RHPNavigatorContainerNavigatorContainerStyles: (isSmallScreenWidth) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1}),
+
     avatarInnerTextChat: {
         color: themeColors.textLight,
         fontSize: variables.fontSizeXLarge,
@@ -2653,19 +2676,18 @@ const styles = {
         maxWidth: variables.sideBarWidth,
     },
 
-    iouPreviewBox: {
+    moneyRequestPreviewBox: {
         backgroundColor: themeColors.cardBG,
         borderRadius: variables.componentBorderRadiusLarge,
-        padding: 16,
         maxWidth: variables.sideBarWidth,
         width: '100%',
     },
 
-    iouPreviewBoxHover: {
-        backgroundColor: themeColors.border,
+    moneyRequestPreviewBoxText: {
+        padding: 16,
     },
 
-    iouPreviewBoxLoading: {
+    moneyRequestPreviewBoxLoading: {
         // When a new IOU request arrives it is very briefly in a loading state, so set the minimum height of the container to 94 to match the rendered height after loading.
         // Otherwise, the IOU request pay button will not be fully visible and the user will have to scroll up to reveal the entire IOU request container.
         // See https://github.com/Expensify/App/issues/10283.
@@ -2673,9 +2695,15 @@ const styles = {
         width: '100%',
     },
 
-    iouPreviewBoxAvatar: {
+    moneyRequestPreviewBoxAvatar: {
         marginRight: -10,
         marginBottom: 0,
+    },
+
+    moneyRequestPreviewAmount: {
+        ...headlineFont,
+        ...whiteSpace.preWrap,
+        color: themeColors.heading,
     },
 
     defaultCheckmarkWrapper: {
@@ -2913,7 +2941,7 @@ const styles = {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        ...spacing.pt2,
+        ...spacing.ph5,
     },
 
     peopleRowBorderBottom: {
@@ -3049,7 +3077,7 @@ const styles = {
         left: '50%',
         top: 0,
         zIndex: 100,
-        ...visibility('hidden'),
+        ...visibility.hidden,
     },
 
     floatingMessageCounterWrapperAndroid: {
@@ -3059,7 +3087,7 @@ const styles = {
         position: 'absolute',
         top: 0,
         zIndex: 100,
-        ...visibility('hidden'),
+        ...visibility.hidden,
     },
 
     floatingMessageCounterSubWrapperAndroid: {
@@ -3069,7 +3097,7 @@ const styles = {
 
     floatingMessageCounter: {
         left: '-50%',
-        ...visibility('visible'),
+        ...visibility.visible,
     },
 
     floatingMessageCounterTransformation: (translateY) => ({
@@ -3637,13 +3665,16 @@ const styles = {
     },
 
     googleButtonContainer: {
+        colorScheme: 'light',
         width: 40,
         height: 40,
         marginLeft: 12,
         alignItems: 'center',
+        overflow: 'hidden',
     },
 
     googlePillButtonContainer: {
+        colorScheme: 'light',
         height: 40,
         width: 219,
     },
@@ -3654,15 +3685,14 @@ const styles = {
         height: 450,
     },
 
-    tabSelectorButton: (isSelected) => ({
+    tabSelectorButton: {
         height: 40,
         padding: 12,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         borderRadius: variables.buttonBorderRadius,
-        backgroundColor: isSelected ? themeColors.midtone : themeColors.appBG,
-    }),
+    },
 
     tabSelector: {
         flexDirection: 'row',
@@ -3671,7 +3701,7 @@ const styles = {
     },
 
     tabText: (isSelected) => ({
-        marginHorizontal: 8,
+        marginLeft: 8,
         fontFamily: isSelected ? fontFamily.EXP_NEUE_BOLD : fontFamily.EXP_NEUE,
         fontWeight: isSelected ? fontWeightBold : 400,
         color: isSelected ? themeColors.textLight : themeColors.textSupporting,
@@ -3694,6 +3724,23 @@ const styles = {
 
     willChangeTransform: {
         willChange: 'transform',
+    },
+
+    dropDownButtonCartIconContainerPadding: {
+        paddingRight: 0,
+        paddingLeft: 0,
+    },
+
+    dropDownButtonArrowContain: {
+        marginLeft: 12,
+        marginRight: 14,
+    },
+
+    dropDownButtonCartIconView: {
+        borderTopRightRadius: variables.buttonBorderRadius,
+        borderBottomRightRadius: variables.buttonBorderRadius,
+        ...flex.flexRow,
+        ...flex.alignItemsCenter,
     },
 
     emojiPickerButtonDropdown: {
@@ -3719,6 +3766,70 @@ const styles = {
         margin: 20,
     },
 
+    reportPreviewBox: {
+        backgroundColor: themeColors.cardBG,
+        borderRadius: variables.componentBorderRadiusLarge,
+        maxWidth: variables.sideBarWidth,
+        width: '100%',
+    },
+
+    reportPreviewBoxHoverBorder: {
+        borderColor: themeColors.border,
+        backgroundColor: themeColors.border,
+    },
+
+    reportPreviewBoxBody: {
+        padding: 16,
+    },
+
+    reportActionItemImages: {
+        flexDirection: 'row',
+        borderWidth: 4,
+        borderColor: themeColors.transparent,
+        borderTopLeftRadius: variables.componentBorderRadiusLarge,
+        borderTopRightRadius: variables.componentBorderRadiusLarge,
+        borderBottomLeftRadius: variables.componentBorderRadiusLarge,
+        borderBottomRightRadius: variables.componentBorderRadiusLarge,
+        overflow: 'hidden',
+        height: 200,
+    },
+
+    reportActionItemImage: {
+        flex: 1,
+        width: '100%',
+        height: '100%',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+
+    reportActionItemImageBorder: {
+        borderRightWidth: 2,
+        borderColor: themeColors.cardBG,
+    },
+
+    reportActionItemImagesMore: {
+        position: 'absolute',
+        borderRadius: 18,
+        backgroundColor: themeColors.cardBG,
+        width: 36,
+        height: 36,
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+
+    moneyRequestHeaderStatusBarBadge: {
+        paddingHorizontal: 8,
+        borderRadius: variables.componentBorderRadiusSmall,
+        height: variables.inputHeightSmall,
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: themeColors.border,
+        marginRight: 12,
+    },
+
     staticHeaderImage: {
         minHeight: 240,
     },
@@ -3732,9 +3843,41 @@ const styles = {
         transform: [{rotate: '90deg'}],
     },
 
+    emojiStatusLHN: {
+        fontSize: 22,
+    },
+    sidebarStatusAvatarContainer: {
+        height: 44,
+        width: 84,
+        backgroundColor: themeColors.componentBG,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        borderRadius: 42,
+        paddingHorizontal: 2,
+        marginVertical: -2,
+        marginRight: -2,
+    },
+    sidebarStatusAvatar: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+
+    moneyRequestViewImage: {
+        ...spacing.mh5,
+        ...spacing.mv3,
+        overflow: 'hidden',
+        borderWidth: 2,
+        borderColor: themeColors.cardBG,
+        borderRadius: variables.componentBorderRadiusLarge,
+        height: 200,
+        maxWidth: 400,
+    },
+
     distanceRequestContainer: (maxHeight) => ({
         ...flex.flexShrink2,
-        minHeight: variables.baseMenuItemHeight,
+        minHeight: variables.optionRowHeight * 2,
         maxHeight,
     }),
 
@@ -3752,15 +3895,33 @@ const styles = {
         overflow: 'hidden',
     },
 
+    confirmationListMapItem: {
+        ...spacing.m5,
+        height: 200,
+    },
+
+    mapDirection: {
+        lineColor: Colors.green,
+        lineWidth: 7,
+    },
+
+    mapDirectionLayer: {
+        layout: {'line-join': 'round', 'line-cap': 'round'},
+        paint: {'line-color': Colors.green, 'line-width': 7},
+    },
+
     mapPendingView: {
         backgroundColor: themeColors.highlightBG,
         ...flex.flex1,
         borderRadius: variables.componentBorderRadiusLarge,
     },
-
     userReportStatusEmoji: {
         fontSize: variables.fontSizeNormal,
         marginRight: 4,
+    },
+    draggableTopBar: {
+        height: 30,
+        width: '100%',
     },
 };
 

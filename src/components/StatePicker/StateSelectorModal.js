@@ -1,10 +1,10 @@
 import _ from 'underscore';
-import React, {useMemo} from 'react';
+import React, {useMemo, useEffect} from 'react';
 import PropTypes from 'prop-types';
 import CONST from '../../CONST';
 import Modal from '../Modal';
 import HeaderWithBackButton from '../HeaderWithBackButton';
-import SelectionListRadio from '../SelectionListRadio';
+import SelectionList from '../SelectionList';
 import useLocalize from '../../hooks/useLocalize';
 import ScreenWrapper from '../ScreenWrapper';
 import styles from '../../styles/styles';
@@ -44,6 +44,13 @@ const defaultProps = {
 function StateSelectorModal({currentState, isVisible, onClose, onStateSelected, searchValue, setSearchValue, label}) {
     const {translate} = useLocalize();
 
+    useEffect(() => {
+        if (isVisible) {
+            return;
+        }
+        setSearchValue('');
+    }, [isVisible, setSearchValue]);
+
     const countryStates = useMemo(
         () =>
             _.map(translate('allStates'), (state) => ({
@@ -78,16 +85,13 @@ function StateSelectorModal({currentState, isVisible, onClose, onStateSelected, 
                     shouldShowBackButton
                     onBackButtonPress={onClose}
                 />
-                <SelectionListRadio
+                <SelectionList
                     headerMessage={headerMessage}
                     textInputLabel={label || translate('common.state')}
-                    textInputPlaceholder={translate('stateSelectorModal.placeholderText')}
                     textInputValue={searchValue}
                     sections={[{data: searchResults, indexOffset: 0}]}
                     onSelectRow={onStateSelected}
                     onChangeText={setSearchValue}
-                    shouldFocusOnSelectRow
-                    shouldHaveOptionSeparator
                     shouldDelayFocus
                     initiallyFocusedOptionKey={currentState}
                 />
