@@ -61,15 +61,25 @@ function ArchivedReportFooter(props) {
         oldDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(props.personalDetails, [oldAccountID, 'displayName']);
     }
 
+    const shouldRenderHTML = archiveReason !== CONST.REPORT.ARCHIVE_REASON.DEFAULT;
+
+    let policyName = ReportUtils.getPolicyName(props.report);
+
+    if (shouldRenderHTML) {
+        oldDisplayName = _.escape(oldDisplayName);
+        displayName = _.escape(displayName);
+        policyName = _.escape(policyName);
+    }
+
     return (
         <Banner
             containerStyles={[styles.archivedReportFooter]}
             text={props.translate(`reportArchiveReasons.${archiveReason}`, {
-                displayName: `<strong>${_.escape(displayName)}</strong>`,
-                oldDisplayName: `<strong>${_.escape(oldDisplayName)}</strong>`,
-                policyName: `<strong>${_.escape(ReportUtils.getPolicyName(props.report))}</strong>`,
+                displayName: `<strong>${displayName}</strong>`,
+                oldDisplayName: `<strong>${oldDisplayName}</strong>`,
+                policyName: `<strong>${policyName}</strong>`,
             })}
-            shouldRenderHTML={archiveReason !== CONST.REPORT.ARCHIVE_REASON.DEFAULT}
+            shouldRenderHTML={shouldRenderHTML}
             shouldShowIcon
         />
     );
