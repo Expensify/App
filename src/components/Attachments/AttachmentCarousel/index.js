@@ -102,7 +102,7 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, setDownl
             if (scrollRef.current) {
                 scrollRef.current.scrollToIndex({index: nextIndex, animated: canUseTouchScreen});
             } else {
-                updatePage.current({viewableItems: [{item: attachments[nextIndex], index: page}]})
+                updatePage.current({viewableItems: [{item: attachments[nextIndex], index: page}]});
             }
         },
         [attachments, page],
@@ -195,7 +195,7 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, setDownl
                         cancelAutoHideArrow={cancelAutoHideArrows}
                     />
 
-                    {(containerWidth > 0 && (Browser.isMobileChrome() || Browser.isMobileSafari())) && (
+                    {containerWidth > 0 && (Browser.isMobileChrome() || Browser.isMobileSafari()) && (
                         <FlatList
                             keyboardShouldPersistTaps="handled"
                             listKey="AttachmentCarousel"
@@ -228,7 +228,7 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, setDownl
                     )}
 
                     {!Browser.isMobileChrome() && !Browser.isMobileSafari() && (
-                        <Carousel 
+                        <Carousel
                             currentIndex={page}
                             renderItem={renderItem}
                             attachments={attachments}

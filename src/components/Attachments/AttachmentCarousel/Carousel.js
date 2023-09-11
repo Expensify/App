@@ -3,6 +3,7 @@ import React from 'react';
 import _ from 'underscore';
 import {View} from 'react-native';
 import * as AttachmentCarouselViewPropTypes from '../propTypes';
+import styles from '../../../styles/styles';
 
 const propTypes = {
     currentIndex: PropTypes.number.isRequired,
@@ -19,21 +20,24 @@ const defaultProps = {
 };
 
 function Carousel({attachments, renderItem, currentIndex, windowSize}) {
-    
-    const usableAttachments = attachments.slice(Math.max(currentIndex - 1 - Math.floor(windowSize/2), 0), Math.min(currentIndex + Math.ceil(windowSize/2), attachments.length));
-    
-    const Element = _.map(usableAttachments, ((item) => (<View key={item.source} style={{
-        opacity: attachments[currentIndex].source === item.source ? 1 : 0,
-        zIndex: attachments[currentIndex].source === item.source ? 1 : -1,
-        flex: 1, height: '100%', width: '100%', position: 'absolute'}}>
-        {renderItem({item})}
-    </View>)));
-    
-    return (
-        <View style={{flex: 1}}>
-            {Element}
+    const usableAttachments = attachments.slice(Math.max(currentIndex - 1 - Math.floor(windowSize / 2), 0), Math.min(currentIndex + Math.ceil(windowSize / 2), attachments.length));
+
+    const Element = _.map(usableAttachments, (item) => (
+        <View
+            key={item.source}
+            style={[
+                {
+                    opacity: attachments[currentIndex].source === item.source ? 1 : 0,
+                    zIndex: attachments[currentIndex].source === item.source ? 1 : -1,
+                },
+                styles.webCarousel,
+            ]}
+        >
+            {renderItem({item})}
         </View>
-    )
+    ));
+
+    return <View style={{flex: 1}}>{Element}</View>;
 }
 
 Carousel.propTypes = propTypes;
