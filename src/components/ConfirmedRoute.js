@@ -4,7 +4,6 @@ import {View} from 'react-native';
 
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import lodashIsNil from 'lodash/isNil';
 import _ from 'underscore';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
