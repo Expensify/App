@@ -1819,7 +1819,7 @@ function leaveRoom(reportID) {
             ],
         },
     );
-    Navigation.navigate(ROUTES.getReportRoute(report.parentReportID));
+    Navigation.dismissModal(report.parentReportID);
 }
 
 /**
