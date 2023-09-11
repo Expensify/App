@@ -106,7 +106,10 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
         // eslint-disable-next-line es/no-optional-chaining
         [currentReportId, allReportsDict, betas, policies, priorityMode, allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentReportId}`]?.length || 1],
         (key, value) => {
-            // Exclude 'participantAccountIDs', 'participants' and 'lastMessageText' properties from all objects in the 'allReportsDict' array
+            /**
+             *  Exclude 'participantAccountIDs', 'participants' and 'lastMessageText' not to overwhelm a cached key value with huge data,
+             *  which we don't need to store in a cacheKey
+             */
             if (key === 'participantAccountIDs' || key === 'participants' || key === 'lastMessageText') {
                 return undefined;
             }
@@ -118,6 +121,8 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
     if (reportIDsCache.has(cachedReportsKey) && hasInitialReportActions) {
         return reportIDsCache.get(cachedReportsKey);
     }
+
+    // This is needed to prevent caching when Onyx is empty for a second render
     hasInitialReportActions = Object.values(lastReportActions).length > 0;
 
     const isInGSDMode = priorityMode === CONST.PRIORITY_MODE.GSD;
