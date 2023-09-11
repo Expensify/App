@@ -48,6 +48,7 @@ describe('Session', () => {
 
         // When we sign in with the test user
         return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, 'Password1', TEST_INITIAL_AUTH_TOKEN)
+            .then(waitForPromisesToResolve)
             .then(() => {
                 // Then our re-authentication credentials should be generated and our session data
                 // have the correct information + initial authToken.

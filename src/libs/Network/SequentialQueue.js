@@ -83,6 +83,8 @@ function flush() {
 
     isSequentialQueueRunning = true;
 
+    console.log('flush()')
+
     // Reset the isReadyPromise so that the queue will be flushed as soon as the request is finished
     isReadyPromise = new Promise((resolve) => {
         resolveIsReadyPromise = resolve;

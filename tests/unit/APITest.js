@@ -380,7 +380,7 @@ describe('APITests', () => {
             });
     });
 
-    test.only('Sequential queue will succeed if triggered while reauthentication via main queue is in progress', () => {
+    test('Sequential queue will succeed if triggered while reauthentication via main queue is in progress', () => {
         // Given offline state where all requests will eventualy succeed without issue and assumed to be valid credentials
         const xhr = jest
             .spyOn(HttpUtils, 'xhr')
@@ -400,7 +400,7 @@ describe('APITests', () => {
                 Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
                 expect(NetworkStore.isOffline()).toBe(false);
                 expect(NetworkStore.isAuthenticating()).toBe(false);
-                return waitForPromisesToResolve().then(waitForPromisesToResolve).then(waitForPromisesToResolve);
+                return waitForPromisesToResolve();
             })
             .then(() => {
                 console.log(xhr.mock.calls)
@@ -416,12 +416,12 @@ describe('APITests', () => {
                 waitForPromisesToResolve()
 
                 // Come back from offline to trigger the sequential queue flush
-                const promise = Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
-                waitForPromisesToResolve()
-                return promise.then(waitForPromisesToResolve);
+                console.log('about to set isOffline false')
+                Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
             })
             .then(() => {
                 // When we wait for the sequential queue to finish
+                console.log('checking isRunning')
                 expect(SequentialQueue.isRunning()).toBe(true);
                 return waitForPromisesToResolve();
             })
