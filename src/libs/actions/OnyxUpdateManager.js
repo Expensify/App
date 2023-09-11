@@ -5,6 +5,7 @@ import Log from '../Log';
 import * as SequentialQueue from '../Network/SequentialQueue';
 import * as App from './App';
 import * as OnyxUpdates from './OnyxUpdates';
+import CONST from '../../CONST';
 
 // This file is in charge of looking at the updateIDs coming from the server and comparing them to the last updateID that the client has.
 // If the client is behind the server, then we need to
@@ -37,12 +38,13 @@ export default () => {
             }
 
             // Since we used the same key that used to store another object, let's confirm that the current object is
-            // following the new format before we proceed. If it isn't, then let's clera the object in Onyx.
+            // following the new format before we proceed. If it isn't, then let's clear the object in Onyx.
             if (
                 !_.isObject(val) ||
                 !val.hasOwnProperty('type') ||
-                !(val.type === CONST.ONYX_UPDATE_TYPES.HTTPS && val.hasOwnProperty('request') && val.hasOwnProperty('response')) ||
-                !(val.type === CONST.ONYX_UPDATE_TYPES.PUSHER && !val.hasOwnProperty('updates'))
+                
+                !(val.type === CONST.ONYX_UPDATE_TYPES.HTTPS && Object.prototype.hasOwnProperty.call(val, 'request') && Object.prototype.hasOwnProperty.call(val, 'response')) ||
+                !(val.type === CONST.ONYX_UPDATE_TYPES.PUSHER && Object.prototype.hasOwnProperty.call(val, 'updates'))
             ) {
                 Onyx.set(ONYXKEYS.ONYX_UPDATES_FROM_SERVER, null);
                 return;
