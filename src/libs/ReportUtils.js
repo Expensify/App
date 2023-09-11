@@ -1451,7 +1451,10 @@ function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceip
         let translatePhraseKey = 'iou.paidElsewhereWithAmount';
         if (reportAction.originalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.PAYPAL_ME || reportActionMessage.match(/ PayPal.me$/)) {
             translatePhraseKey = 'iou.paidUsingPaypalWithAmount';
-        } else if (_.contains([CONST.IOU.PAYMENT_TYPE.VBBA, CONST.IOU.PAYMENT_TYPE.EXPENSIFY], reportAction.originalMessage.paymentType) || reportActionMessage.match(/ (with Expensify|using Expensify)$/)) {
+        } else if (
+            _.contains([CONST.IOU.PAYMENT_TYPE.VBBA, CONST.IOU.PAYMENT_TYPE.EXPENSIFY], reportAction.originalMessage.paymentType) ||
+            reportActionMessage.match(/ (with Expensify|using Expensify)$/)
+        ) {
             translatePhraseKey = 'iou.paidWithExpensifyWithAmount';
         }
         return Localize.translateLocal(translatePhraseKey, {amount: formattedAmount});
