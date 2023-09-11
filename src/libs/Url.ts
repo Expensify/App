@@ -1,10 +1,9 @@
 import 'react-native-url-polyfill/auto';
+
 /**
  * Add / to the end of any URL if not present
- * @param {String} url
- * @returns {String}
  */
-function addTrailingForwardSlash(url) {
+function addTrailingForwardSlash(url: string): string {
     if (!url.endsWith('/')) {
         return `${url}/`;
     }
@@ -13,10 +12,8 @@ function addTrailingForwardSlash(url) {
 
 /**
  * Get path from URL string
- * @param {String} url
- * @returns {String}
  */
-function getPathFromURL(url) {
+function getPathFromURL(url: string): string {
     try {
         const parsedUrl = new URL(url);
         const path = parsedUrl.pathname + parsedUrl.search + parsedUrl.hash;
@@ -29,12 +26,9 @@ function getPathFromURL(url) {
 
 /**
  * Determine if two urls have the same origin
- * @param {String} url1
- * @param {String} url2
- * @returns {Boolean}
  */
-function hasSameExpensifyOrigin(url1, url2) {
-    const removeW3 = (host) => host.replace(/^www\./i, '');
+function hasSameExpensifyOrigin(url1: string, url2: string): boolean {
+    const removeW3 = (host: string) => host.replace(/^www\./i, '');
     try {
         const parsedUrl1 = new URL(url1);
         const parsedUrl2 = new URL(url2);
@@ -47,9 +41,4 @@ function hasSameExpensifyOrigin(url1, url2) {
     }
 }
 
-export {
-    // eslint-disable-next-line import/prefer-default-export
-    addTrailingForwardSlash,
-    hasSameExpensifyOrigin,
-    getPathFromURL,
-};
+export {addTrailingForwardSlash, hasSameExpensifyOrigin, getPathFromURL};

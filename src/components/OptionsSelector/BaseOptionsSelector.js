@@ -224,6 +224,14 @@ class BaseOptionsSelector extends Component {
         }
     }
 
+    focus() {
+        if (!this.textInput) {
+            return;
+        }
+
+        this.textInput.focus();
+    }
+
     /**
      * Flattens the sections into a single array of options.
      * Each object in this array is enhanced to have:

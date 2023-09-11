@@ -9,6 +9,7 @@ import _ from 'underscore';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import * as MapboxToken from '../libs/actions/MapboxToken';
+import * as TransactionUtils from '../libs/TransactionUtils';
 import * as Expensicons from './Icon/Expensicons';
 import theme from '../styles/themes/default';
 import styles from '../styles/styles';
@@ -48,7 +49,7 @@ const getWaypointMarkers = (waypoints) => {
                 return;
             }
 
-            const index = Number(key.replace('waypoint', ''));
+            const index = TransactionUtils.getWaypointIndex(key);
             let MarkerComponent;
             if (index === 0) {
                 MarkerComponent = Expensicons.DotIndicatorUnfilled;
