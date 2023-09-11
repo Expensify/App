@@ -5,6 +5,7 @@ import {format} from 'date-fns';
 import _ from 'underscore';
 import {View} from 'react-native';
 import lodashGet from 'lodash/get';
+import Text from './Text';
 import styles from '../styles/styles';
 import * as ReportUtils from '../libs/ReportUtils';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
@@ -29,6 +30,7 @@ import Image from './Image';
 import useLocalize from '../hooks/useLocalize';
 import * as ReceiptUtils from '../libs/ReceiptUtils';
 import categoryPropTypes from './categoryPropTypes';
+import Switch from './Switch';
 import ConfirmedRoute from './ConfirmedRoute';
 import transactionPropTypes from './transactionPropTypes';
 import DistanceRequestUtils from '../libs/DistanceRequestUtils';
@@ -494,6 +496,18 @@ function MoneyRequestConfirmationList(props) {
                             disabled={didConfirm || props.isReadOnly}
                         />
                     )}
+                    <View>
+                        <View style={[styles.flexRow, styles.mb4, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}>
+                            <Text color={!props.iouIsBillable ? themeColors.textSupporting : undefined}>{translate('common.billable')}</Text>
+                            <Switch
+                                accessibilityLabel={translate('common.billable')}
+                                isOn={props.iouIsBillable}
+                                onToggle={(val) => {
+                                    props.onToggleBillable(val);
+                                }}
+                            />
+                        </View>
+                    </View>
                 </>
             )}
         </OptionsSelector>

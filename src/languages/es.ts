@@ -232,6 +232,7 @@ export default {
         showMore: 'Mostrar más',
         merchant: 'Comerciante',
         category: 'Categoría',
+        billable: 'Facturable',
         receipt: 'Recibo',
         replace: 'Sustituir',
         distance: 'Distancia',

@@ -233,6 +233,7 @@ export default {
         showMore: 'Show more',
         merchant: 'Merchant',
         category: 'Category',
+        billable: 'Billable',
         receipt: 'Receipt',
         replace: 'Replace',
         distance: 'Distance',
