@@ -39,11 +39,11 @@ const propTypes = {
     /** Fired when the user exits the Plaid flow */
     onExitPlaid: PropTypes.func,
 
+    /** Fired when the screen is blurred */
+    onBlurPlaid: PropTypes.func,
+
     /** Fired when the user selects an account */
     onSelect: PropTypes.func,
-
-    /** Whether we should reset the step when the screen is blurred */
-    shouldResetStepOnBlur: PropTypes.bool,
 
     /** Additional text to display */
     text: PropTypes.string,
@@ -65,8 +65,8 @@ const defaultProps = {
     selectedPlaidAccountID: '',
     plaidLinkToken: '',
     onExitPlaid: () => {},
+    onBlurPlaid: () => {},
     onSelect: () => {},
-    shouldResetStepOnBlur: false,
     text: '',
     receivedRedirectURI: null,
     plaidLinkOAuthToken: '',
@@ -80,8 +80,8 @@ function AddPlaidBankAccount({
     selectedPlaidAccountID,
     plaidLinkToken,
     onExitPlaid,
+    onBlurPlaid,
     onSelect,
-    shouldResetStepOnBlur,
     text,
     receivedRedirectURI,
     plaidLinkOAuthToken,
@@ -164,11 +164,11 @@ function AddPlaidBankAccount({
     }, []);
 
     useEffect(() => {
-        if (isFocused || plaidBankAccounts.length || !shouldResetStepOnBlur) {
+        if (isFocused || plaidBankAccounts.length) {
             return;
         }
-        onExitPlaid();
-    }, [isFocused, onExitPlaid, plaidBankAccounts.length, shouldResetStepOnBlur]);
+        onBlurPlaid();
+    }, [isFocused, onBlurPlaid, plaidBankAccounts.length]);
 
     useEffect(() => {
         // If we are coming back from offline and we haven't authenticated with Plaid yet, we need to re-run our call to kick off Plaid
