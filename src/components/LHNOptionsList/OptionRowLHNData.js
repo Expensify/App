@@ -213,7 +213,7 @@ export default React.memo(
             transaction: {
                 key: ({fullReport, parentReportActions}) =>
                     `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(parentReportActions, [fullReport.parentReportActionID, 'originalMessage', 'IOUTransactionID'], '')}`,
-            }
+            },
         }),
     )(OptionRowLHNData),
 );
