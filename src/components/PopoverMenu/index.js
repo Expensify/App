@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {useState} from 'react';
+import React, {useRef} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import PopoverWithMeasuredContent from '../PopoverWithMeasuredContent';
@@ -48,13 +48,13 @@ const defaultProps = {
 
 function PopoverMenu(props) {
     const {isSmallScreenWidth} = useWindowDimensions();
-    const [selectedItemIndex, setSelectedItemIndex] = useState(null);
+    const selectedItemIndex = useRef(null);
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: -1, maxIndex: props.menuItems.length - 1, isActive: props.isVisible});
 
     const selectItem = (index) => {
         const selectedItem = props.menuItems[index];
         props.onItemSelected(selectedItem, index);
-        setSelectedItemIndex(index);
+        selectedItemIndex.current = index;
     };
 
     useKeyboardShortcut(
@@ -78,9 +78,9 @@ function PopoverMenu(props) {
             isVisible={props.isVisible}
             onModalHide={() => {
                 setFocusedIndex(-1);
-                if (selectedItemIndex !== null) {
-                    props.menuItems[selectedItemIndex].onSelected();
-                    setSelectedItemIndex(null);
+                if (selectedItemIndex.current !== null) {
+                    props.menuItems[selectedItemIndex.current].onSelected();
+                    selectedItemIndex.current = null;
                 }
             }}
             animationIn={props.animationIn}

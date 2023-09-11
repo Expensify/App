@@ -151,7 +151,7 @@ export default {
     pressDimValue: 0.8,
     qrShareHorizontalPadding: 32,
 
-    baseMenuItemHeight: 64,
-
     moneyRequestSkeletonHeight: 107,
+
+    distanceScrollEventThrottle: 16,
 } as const;
