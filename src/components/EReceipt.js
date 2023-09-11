@@ -16,6 +16,8 @@ import transactionPropTypes from './transactionPropTypes';
 import BlockingView from './BlockingViews/BlockingView';
 import useNetwork from '../hooks/useNetwork';
 import useLocalize from '../hooks/useLocalize';
+import * as ReceiptUtils from '../libs/ReceiptUtils';
+import Image from './Image';
 
 const propTypes = {
     /** The transaction for the eReceipt */
@@ -32,13 +34,19 @@ function EReceipt({transaction}) {
     const {translate} = useLocalize();
     const {route0: route} = transaction.routes || {};
 
-    useEffect(() => {
-        MapboxToken.init();
-        return MapboxToken.stop;
-    }, []);
-
+    const {thumbnail} = ReceiptUtils.getThumbnailAndImageURIs(transaction.receipt.source, transaction.filename);
     return (
         <>
+            <View
+                style={[styles.imageViewContainer, styles.overflowHidden]}
+            >
+                <Image
+                    source={{uri: thumbnail}}
+                    style={[styles.w100, styles.h100]}
+                    resizeMode={Image.resizeMode.contain}
+                    isAuthTokenRequired
+                />
+            </View>
         </>
     );
 }
