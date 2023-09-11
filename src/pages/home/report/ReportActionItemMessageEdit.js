@@ -14,7 +14,7 @@ import containerComposeStyles from '../../../styles/containerComposeStyles';
 import Composer from '../../../components/Composer';
 import * as Report from '../../../libs/actions/Report';
 import {withReportActionsDrafts} from '../../../components/OnyxProvider';
-import openReportActionComposeViewWhenClosingMessageEdit from '../../../libs/openReportActionComposeViewWhenClosingMessageEdit';
+import setShouldShowComposeInputKeyboardAware from '../../../libs/setShouldShowComposeInputKeyboardAware';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 import EmojiPickerButton from '../../../components/EmojiPicker/EmojiPickerButton';
 import Icon from '../../../components/Icon';
@@ -367,7 +367,7 @@ function ReportActionItemMessageEdit(props) {
                                 if (messageEditInput === relatedTargetId) {
                                     return;
                                 }
-                                openReportActionComposeViewWhenClosingMessageEdit();
+                                setShouldShowComposeInputKeyboardAware(true);
                             }}
                             selection={selection}
                             onSelectionChange={(e) => setSelection(e.nativeEvent.selection)}
