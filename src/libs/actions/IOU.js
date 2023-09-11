@@ -1780,8 +1780,8 @@ function payMoneyRequest(paymentType, chatReport, iouReport) {
 }
 
 /**
- * @param {String} transactionID 
- * @param {Object} receipt 
+ * @param {String} transactionID
+ * @param {Object} receipt
  */
 function replaceReceipt(transactionID, receipt) {
     const transaction = lodashGet(allTransactions, 'transactionID', {});

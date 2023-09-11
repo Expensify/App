@@ -22,7 +22,7 @@ const propTypes = {
 
     /** The callback fired when we confirm to replace the receipt */
     replaceReceipt: PropTypes.func.isRequired,
-}
+};
 
 function EditRequestReceiptPage({route, replaceReceipt}) {
     const {translate} = useLocalize();
@@ -37,7 +37,10 @@ function EditRequestReceiptPage({route, replaceReceipt}) {
                 onBackButtonPress={Navigation.goBack}
             />
             <DragAndDropProvider>
-                <ReceiptSelector route={route} replaceReceipt={replaceReceipt} />
+                <ReceiptSelector
+                    route={route}
+                    replaceReceipt={replaceReceipt}
+                />
             </DragAndDropProvider>
         </ScreenWrapper>
     );
