@@ -1,12 +1,16 @@
 #!/bin/bash
 
 # Configurations
-readonly SRC_DIR="src"
-readonly STYLES_FILE="src/styles/styles.js"
-readonly UTILITIES_STYLES_FILE="src/styles/utilities"
-readonly STYLES_KEYS_FILE="scripts/style_keys_list_temp.txt"
-readonly UTILITY_STYLES_KEYS_FILE="scripts/utility_keys_list_temp.txt"
-readonly REMOVAL_KEYS_FILE="scripts/removal_keys_list_temp.txt"
+declare LIB_PATH
+LIB_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && cd ../../ && pwd)"
+
+readonly SRC_DIR="${LIB_PATH}/src"
+readonly STYLES_DIR="${LIB_PATH}/src/styles"
+readonly STYLES_FILE="${LIB_PATH}/src/styles/styles.js"
+readonly UTILITIES_STYLES_FILE="${LIB_PATH}/src/styles/utilities"
+readonly STYLES_KEYS_FILE="${LIB_PATH}/scripts/style_keys_list_temp.txt"
+readonly UTILITY_STYLES_KEYS_FILE="${LIB_PATH}/scripts/utility_keys_list_temp.txt"
+readonly REMOVAL_KEYS_FILE="${LIB_PATH}/scripts/removal_keys_list_temp.txt"
 readonly AMOUNT_LINES_TO_SHOW=3
 
 readonly FILE_EXTENSIONS=('-name' '*.js' '-o' '-name' '*.jsx' '-o' '-name' '*.ts' '-o' '-name' '*.tsx')
@@ -23,7 +27,7 @@ source scripts/shellUtils.sh
 trap ctrl_c INT
 
 delete_temp_files() {
-  find scripts -name "*keys_list_temp*" -type f -exec rm -f {} \;
+  find "${LIB_PATH}/scripts" -name "*keys_list_temp*" -type f -exec rm -f {} \;
 }
 
 # shellcheck disable=SC2317  # Don't warn about unreachable commands in this function
@@ -156,7 +160,7 @@ find_utility_styles_store_prefix() {
           
         echo "$variable_trimmed" >> "$UTILITY_STYLES_KEYS_FILE"
     done < <(grep -E -o './utilities/[a-zA-Z0-9_-]+' "$file" | grep -v '\/\/' | grep -vE '\/\*.*\*\/')
-  done < <(find 'src/styles' -type f \( "${FILE_EXTENSIONS[@]}" \))
+  done < <(find $STYLES_DIR -type f \( "${FILE_EXTENSIONS[@]}" \))
 
   # Sort and remove duplicates from the temporary file
   sort -u -o "${UTILITY_STYLES_KEYS_FILE}" "${UTILITY_STYLES_KEYS_FILE}"
@@ -195,7 +199,7 @@ lookfor_unused_utilities() {
         remove_keyword "${variable}"
         remove_keyword "${match}"
       done < <(grep -E -o "$original_keyword\.[a-zA-Z0-9_-]+" "$file" | grep -v '\/\/' | grep -vE '\/\*.*\*\/')
-    done < <(find 'src/styles' -type f \( "${FILE_EXTENSIONS[@]}" \))
+    done < <(find $STYLES_DIR -type f \( "${FILE_EXTENSIONS[@]}" \))
   done < "$UTILITY_STYLES_KEYS_FILE"
 }
 

@@ -48,7 +48,7 @@
     "symbolicate:android": "npx metro-symbolicate android/app/build/generated/sourcemaps/react/release/index.android.bundle.map",
     "symbolicate:ios": "npx metro-symbolicate main.jsbundle.map",
     "test:e2e": "node tests/e2e/testRunner.js --development",
-    "find-missing-keys": "scripts/find-unused-keys.sh"
+    "gh-actions-unused-styles": "./.github/scripts/findUnusedKeys.sh"
   },
   "dependencies": {
     "@expensify/react-native-web": "0.18.15",
