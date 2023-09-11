@@ -20,6 +20,9 @@ function PlaidLink(props) {
             onSuccess: ({publicToken, metadata}) => {
                 props.onSuccess({publicToken, metadata});
             },
+            onEvent: (event, metadata) => {
+                props.onEvent(event, metadata);
+            },
             onExit: (exitError, metadata) => {
                 Log.info('[PlaidLink] Exit: ', false, {exitError, metadata});
                 props.onExit();

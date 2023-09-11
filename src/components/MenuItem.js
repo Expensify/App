@@ -54,6 +54,7 @@ const defaultProps = {
     disabled: false,
     isSelected: false,
     subtitle: undefined,
+    subtitleTextStyle: {},
     iconType: CONST.ICON_TYPE_ICON,
     onPress: () => {},
     onSecondaryInteraction: undefined,
@@ -133,7 +134,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                     disabled={props.disabled}
                     ref={ref}
                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.MENUITEM}
-                    accessibilityLabel={props.title}
+                    accessibilityLabel={props.title ? props.title.toString() : ''}
                 >
                     {({pressed}) => (
                         <>
@@ -278,7 +279,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                                 {/* Since subtitle can be of type number, we should allow 0 to be shown */}
                                 {(props.subtitle || props.subtitle === 0) && (
                                     <View style={[styles.justifyContentCenter, styles.mr1]}>
-                                        <Text style={[styles.textLabelSupporting, props.style]}>{props.subtitle}</Text>
+                                        <Text style={[props.subtitleTextStyle || styles.textLabelSupporting, props.style]}>{props.subtitle}</Text>
                                     </View>
                                 )}
                                 {!_.isEmpty(props.floatRightAvatars) && (
