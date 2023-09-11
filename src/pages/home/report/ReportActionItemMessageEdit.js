@@ -221,6 +221,9 @@ function ReportActionItemMessageEdit(props) {
 
         if (isFocusedRef.current || EmojiPickerAction.isActive(props.action.reportActionID) || ReportActionContextMenu.isActiveReportAction(props.action.reportActionID)) {
             setShouldShowComposeInputKeyboardAware(true);
+            isFocusedRef.current = true;
+            ReportActionComposeFocusManager.clear();
+            ReportActionComposeFocusManager.focus();
             if (EmojiPickerAction.isActive(props.action.reportActionID)) {
                 EmojiPickerAction.clearActive();
             }
@@ -229,8 +232,6 @@ function ReportActionItemMessageEdit(props) {
             }
         }
 
-        ReportActionComposeFocusManager.clear();
-        ReportActionComposeFocusManager.focus();
 
         // Scroll to the last comment after editing to make sure the whole comment is clearly visible in the report.
         if (props.index === 0) {
