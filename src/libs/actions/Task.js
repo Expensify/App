@@ -137,7 +137,7 @@ function createTaskAndNavigate(parentReportID, title, description, assigneeEmail
                 errorFields: {
                     createChat: ErrorUtils.getMicroSecondOnyxError('task.genericCreateTaskFailureMessage'),
                 },
-            }
+            },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
