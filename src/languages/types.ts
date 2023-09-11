@@ -102,6 +102,8 @@ type SettlePaypalMeParams = {formattedAmount: string};
 
 type RequestAmountParams = {amount: number};
 
+type RequestedAmountMessageParams = {formattedAmount: string; comment: string};
+
 type SplitAmountParams = {amount: number};
 
 type AmountEachParams = {amount: number};
@@ -217,6 +219,7 @@ export type {
     SettleExpensifyCardParams,
     SettlePaypalMeParams,
     RequestAmountParams,
+    RequestedAmountMessageParams,
     SplitAmountParams,
     AmountEachParams,
     PayerOwesAmountParams,

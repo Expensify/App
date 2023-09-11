@@ -71,6 +71,7 @@ import type {
     SetTheRequestParams,
     UpdatedTheRequestParams,
     RemovedTheRequestParams,
+    RequestedAmountMessageParams,
 } from './types';
 
 /* eslint-disable max-len */
@@ -511,6 +512,7 @@ export default {
         payElsewhere: 'Pagar de otra forma',
         settlePaypalMe: ({formattedAmount}: SettlePaypalMeParams) => `Pagar ${formattedAmount} con PayPal.me`,
         requestAmount: ({amount}: RequestAmountParams) => `solicitar ${amount}`,
+        requestedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `solicité ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `dividir ${amount}`,
         amountEach: ({amount}: AmountEachParams) => `${amount} cada uno`,
         payerOwesAmount: ({payer, amount}: PayerOwesAmountParams) => `${payer} debe ${amount}`,

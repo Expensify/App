@@ -71,6 +71,7 @@ import type {
     SetTheRequestParams,
     UpdatedTheRequestParams,
     RemovedTheRequestParams,
+    RequestedAmountMessageParams,
 } from './types';
 import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 
@@ -510,6 +511,7 @@ export default {
         payElsewhere: 'Pay elsewhere',
         settlePaypalMe: ({formattedAmount}: SettlePaypalMeParams) => `Pay ${formattedAmount} with PayPal.me`,
         requestAmount: ({amount}: RequestAmountParams) => `request ${amount}`,
+        requestedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `requested ${formattedAmount}${comment ? ` for ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `split ${amount}`,
         amountEach: ({amount}: AmountEachParams) => `${amount} each`,
         payerOwesAmount: ({payer, amount}: PayerOwesAmountParams) => `${payer} owes ${amount}`,
