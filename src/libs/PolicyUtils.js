@@ -6,6 +6,7 @@ import ONYXKEYS from '../ONYXKEYS';
 
 /**
  * Filter out the active policies, which will exclude policies with pending deletion
+ * These are policies that we can use to create reports with in NewDot.
  * @param {Object} policies
  * @returns {Array}
  */
