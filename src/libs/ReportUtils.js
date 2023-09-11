@@ -1419,6 +1419,7 @@ function getTransactionReportName(reportAction) {
  * @param {Object} report
  * @param {Object} [reportAction={}]
  * @param {Boolean} [shouldConsiderReceiptBeingScanned=false]
+ * @param {Boolean} [shouldShowEmailForSettledIOU=true]
  * @returns  {String}
  */
 function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceiptBeingScanned = false, shouldShowEmailForSettledIOU = true) {
