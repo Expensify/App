@@ -8,7 +8,7 @@ import variables from '../../styles/variables';
  */
 export default function () {
     const {width: windowWidth, height: windowHeight} = useWindowDimensions();
-    // On mWeb, when soft keyboard opens, window height changes. We use screen height instead.
+    // When the soft keyboard opens on mWeb, the window height changes. Use static screen height instead to get real screenHeight.
     const screenHeight = Dimensions.get('screen').height;
     const isExtraSmallScreenHeight = screenHeight <= variables.extraSmallMobileResponsiveHeightBreakpoint;
     const isSmallScreenWidth = windowWidth <= variables.mobileResponsiveWidthBreakpoint;
