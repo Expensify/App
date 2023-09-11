@@ -176,12 +176,6 @@ function ReportActionsList({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [report.lastReadTime]);
 
-    const scrollToBottomAndMarkReportAsRead = () => {
-        reportScrollManager.scrollToBottom();
-        readActionSkipped.current = false;
-        Report.readNewestAction(report.reportID);
-    };
-
     // In the component we are subscribing to the arrival of new actions.
     // As there is the possibility that there are multiple instances of a ReportScreen
     // for the same report, we only ever want one subscription to be active, as
@@ -207,7 +201,7 @@ function ReportActionsList({
             // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
             // they are now in the list.
             if (!isFromCurrentUser) return;
-            scrollToBottomAndMarkReportAsRead();
+            reportScrollManager.scrollToBottom();
         });
         const cleanup = () => {
             if (unsubscribe) {
@@ -222,7 +216,7 @@ function ReportActionsList({
             cleanup();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [report.reportID]);
+    }, [report.reportID, reportScrollManager]);
 
     /**
      * Show/hide the new floating message counter when user is scrolling back/forth in the history of messages.
@@ -245,6 +239,12 @@ function ReportActionsList({
         scrollingVerticalOffset.current = event.nativeEvent.contentOffset.y;
         handleUnreadFloatingButton();
         onScroll(event);
+    };
+
+    const scrollToBottomAndMarkReportAsRead = () => {
+        reportScrollManager.scrollToBottom();
+        readActionSkipped.current = false;
+        Report.readNewestAction(report.reportID);
     };
 
     /**
