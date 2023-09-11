@@ -1,10 +1,10 @@
 import {NativeModules} from 'react-native';
-import StartupTimerStop from './types';
+import StartupTimer from './types';
 
 /**
  * Stop the startup trace for the app.
  */
-const startupTimer: StartupTimerStop = {
+const startupTimer: StartupTimer = {
     stop: () => {
         NativeModules.StartupTimer.stop();
     },
