@@ -33,15 +33,15 @@ function getAddressComponents(addressComponents: AddressComponent[], fieldsToExt
 }
 
 type AddressTerm = {value: string};
-type GetPlaceAutocompleteTermsResultKeys = 'country' | 'state' | 'city' | 'street';
-type GetPlaceAutocompleteTermsResult = Partial<Record<GetPlaceAutocompleteTermsResultKeys, string>>;
+type GetPlaceAutocompleteTermsResultKey = 'country' | 'state' | 'city' | 'street';
+type GetPlaceAutocompleteTermsResult = Partial<Record<GetPlaceAutocompleteTermsResultKey, string>>;
 
 /**
  * Finds an address term by type, and returns the value associated to key. Note that each term in the address must
  * conform to the following ORDER: <street, city, state, country>
  */
 function getPlaceAutocompleteTerms(addressTerms: AddressTerm[]): GetPlaceAutocompleteTermsResult {
-    const fieldsToExtract: GetPlaceAutocompleteTermsResultKeys[] = ['country', 'state', 'city', 'street'];
+    const fieldsToExtract: GetPlaceAutocompleteTermsResultKey[] = ['country', 'state', 'city', 'street'];
     const result: GetPlaceAutocompleteTermsResult = {};
     fieldsToExtract.forEach((fieldToExtract, index) => {
         const fieldTermIndex = addressTerms.length - (index + 1);
