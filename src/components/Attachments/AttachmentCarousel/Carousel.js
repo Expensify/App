@@ -37,7 +37,7 @@ function Carousel({attachments, renderItem, currentIndex, windowSize}) {
         </View>
     ));
 
-    return <View style={{flex: 1}}>{Element}</View>;
+    return <View style={styles.flex1}>{Element}</View>;
 }
 
 Carousel.propTypes = propTypes;
