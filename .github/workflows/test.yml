@@ -42,7 +42,9 @@ jobs:
     name: Storybook tests
     steps:
       - uses: actions/checkout@v3
+
       - uses: Expensify/App/.github/actions/composite/setupNode@main
+
       - name: Storybook run
         run: npm run storybook -- --smoke-test --ci
 

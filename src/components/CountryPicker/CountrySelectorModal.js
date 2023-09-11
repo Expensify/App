@@ -1,10 +1,10 @@
 import _ from 'underscore';
-import React, {useMemo} from 'react';
+import React, {useMemo, useEffect} from 'react';
 import PropTypes from 'prop-types';
 import CONST from '../../CONST';
 import useLocalize from '../../hooks/useLocalize';
 import HeaderWithBackButton from '../HeaderWithBackButton';
-import SelectionListRadio from '../SelectionListRadio';
+import SelectionList from '../SelectionList';
 import Modal from '../Modal';
 import ScreenWrapper from '../ScreenWrapper';
 import styles from '../../styles/styles';
@@ -40,6 +40,13 @@ const defaultProps = {
 function CountrySelectorModal({currentCountry, isVisible, onClose, onCountrySelected, setSearchValue, searchValue}) {
     const {translate} = useLocalize();
 
+    useEffect(() => {
+        if (isVisible) {
+            return;
+        }
+        setSearchValue('');
+    }, [isVisible, setSearchValue]);
+
     const countries = useMemo(
         () =>
             _.map(translate('allCountries'), (countryName, countryISO) => ({
@@ -73,16 +80,13 @@ function CountrySelectorModal({currentCountry, isVisible, onClose, onCountrySele
                     title={translate('common.country')}
                     onBackButtonPress={onClose}
                 />
-                <SelectionListRadio
+                <SelectionList
                     headerMessage={headerMessage}
                     textInputLabel={translate('common.country')}
-                    textInputPlaceholder={translate('countrySelectorModal.placeholderText')}
                     textInputValue={searchValue}
                     sections={[{data: searchResults, indexOffset: 0}]}
                     onSelectRow={onCountrySelected}
                     onChangeText={setSearchValue}
-                    shouldFocusOnSelectRow
-                    shouldHaveOptionSeparator
                     shouldDelayFocus
                     initiallyFocusedOptionKey={currentCountry}
                 />

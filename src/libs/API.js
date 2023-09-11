@@ -21,7 +21,8 @@ Request.use(Middleware.RecheckConnection);
 // Reauthentication - Handles jsonCode 407 which indicates an expired authToken. We need to reauthenticate and get a new authToken with our stored credentials.
 Request.use(Middleware.Reauthentication);
 
-// SaveResponseInOnyx - Merges either the successData or failureData into Onyx depending on if the call was successful or not
+// SaveResponseInOnyx - Merges either the successData or failureData into Onyx depending on if the call was successful or not. This needs to be the LAST middleware we use, don't add any
+// middlewares after this, because the SequentialQueue depends on the result of this middleware to pause the queue (if needed) to bring the app to an up-to-date state.
 Request.use(Middleware.SaveResponseInOnyx);
 
 /**
@@ -36,9 +37,8 @@ Request.use(Middleware.SaveResponseInOnyx);
  * @param {Object} [onyxData.optimisticData] - Onyx instructions that will be passed to Onyx.update() before the request is made.
  * @param {Object} [onyxData.successData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode === 200.
  * @param {Object} [onyxData.failureData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode !== 200.
- * @param {Boolean} [prioritizeRequest] Whether or not the request should be prioritized at the front of the queue or placed onto the back of the queue
  */
-function write(command, apiCommandParameters = {}, onyxData = {}, prioritizeRequest = false) {
+function write(command, apiCommandParameters = {}, onyxData = {}) {
     Log.info('Called API write', false, {command, ...apiCommandParameters});
 
     // Optimistically update Onyx
@@ -71,7 +71,7 @@ function write(command, apiCommandParameters = {}, onyxData = {}, prioritizeRequ
     };
 
     // Write commands can be saved and retried, so push it to the SequentialQueue
-    SequentialQueue.push(request, prioritizeRequest);
+    SequentialQueue.push(request);
 }
 
 /**
