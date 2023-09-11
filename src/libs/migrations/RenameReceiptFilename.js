@@ -11,6 +11,7 @@ export default function () {
         // Go through each transaction and change the property name
         const connectionID = Onyx.connect({
             key: ONYXKEYS.COLLECTION.TRANSACTION,
+            waitForCollectionCallback: true,
             callback: (transactions) => {
                 Onyx.disconnect(connectionID);
 
@@ -19,24 +20,26 @@ export default function () {
                     return resolve();
                 }
 
-                if (!_.pluck(transactions, 'receiptFilename').length) {
+                if (!_.compact(_.pluck(transactions, 'receiptFilename')).length) {
                     Log.info('[Migrate Onyx] Skipped migration RenameReceiptFilename because there were no transactions with the receiptFilename property');
                     return resolve();
                 }
 
+                Log.info('[Migrate Onyx] Running  RenameReceiptFilename migration');
+
                 const dataToSave = _.reduce(
                     transactions,
-                    (dataToSaveToOnyx, transaction) => {
+                    (result, transaction) => {
                         // Do nothing if there is no receiptFilename property
                         if (!lodashHas(transaction, 'receiptFilename')) {
-                            return dataToSaveToOnyx;
+                            return result;
                         }
                         Log.info(`[Migrate Onyx] Renaming receiptFilename ${transaction.receiptFilename} to filename`);
                         return {
-                            ...dataToSaveToOnyx,
-                            [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transctionID}`]: {
-                                ..._.omit(transaction, 'receiptFilename'),
+                            ...result,
+                            [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: {
                                 filename: transaction.receiptFilename,
+                                receiptFilename: null,
                             },
                         };
                     },
@@ -44,7 +47,7 @@ export default function () {
                 );
 
                 // eslint-disable-next-line rulesdir/prefer-actions-set-data
-                Onyx.multiSet(dataToSave).then(() => {
+                Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, dataToSave).then(() => {
                     Log.info(`[Migrate Onyx] Ran migration RenameReceiptFilename and renamed ${_.size(dataToSave)} properties`);
                     resolve();
                 });
