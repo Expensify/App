@@ -1,5 +1,5 @@
 import React, {useRef, useCallback, useState, useEffect} from 'react';
-import {View, FlatList, PixelRatio, Keyboard} from 'react-native';
+import {View, Keyboard} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
@@ -15,26 +15,15 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import withLocalize from '../../withLocalize';
 import compose from '../../../libs/compose';
 import useCarouselArrows from './useCarouselArrows';
-import useWindowDimensions from '../../../hooks/useWindowDimensions';
 import Navigation from '../../../libs/Navigation/Navigation';
 import BlockingView from '../../BlockingViews/BlockingView';
 import * as Illustrations from '../../Icon/Illustrations';
 import variables from '../../../styles/variables';
-import * as Browser from '../../../libs/Browser';
 
 const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
-const viewabilityConfig = {
-    // To facilitate paging through the attachments, we want to consider an item "viewable" when it is
-    // more than 95% visible. When that happens we update the page index in the state.
-    itemVisiblePercentThreshold: 95,
-};
-
 function AttachmentCarousel({report, reportActions, source, onNavigate, setDownloadButtonVisibility, translate}) {
     const scrollRef = useRef(null);
 
-    const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
-
-    const [containerWidth, setContainerWidth] = useState(0);
     const [page, setPage] = useState(0);
     const [attachments, setAttachments] = useState([]);
     const [activeSource, setActiveSource] = useState(source);
@@ -109,44 +98,6 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, setDownl
     );
 
     /**
-     * Calculate items layout information to optimize scrolling performance
-     * @param {*} data
-     * @param {Number} index
-     * @returns {{offset: Number, length: Number, index: Number}}
-     */
-    const getItemLayout = useCallback(
-        (_data, index) => ({
-            length: containerWidth,
-            offset: containerWidth * index,
-            index,
-        }),
-        [containerWidth],
-    );
-
-    /**
-     * Defines how a container for a single attachment should be rendered
-     * @param {Object} cellRendererProps
-     * @returns {JSX.Element}
-     */
-    const renderCell = useCallback(
-        (cellProps) => {
-            // Use window width instead of layout width to address the issue in https://github.com/Expensify/App/issues/17760
-            // considering horizontal margin and border width in centered modal
-            const modalStyles = styles.centeredModalStyles(isSmallScreenWidth, true);
-            const style = [cellProps.style, styles.h100, {width: PixelRatio.roundToNearestPixel(windowWidth - (modalStyles.marginHorizontal + modalStyles.borderWidth) * 2)}];
-
-            return (
-                <View
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...cellProps}
-                    style={style}
-                />
-            );
-        },
-        [isSmallScreenWidth, windowWidth],
-    );
-
-    /**
      * Defines how a single attachment should be rendered
      * @param {Object} item
      * @param {Boolean} item.isAuthTokenRequired
@@ -172,7 +123,6 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, setDownl
     return (
         <View
             style={[styles.flex1, styles.attachmentCarouselContainer]}
-            onLayout={({nativeEvent}) => setContainerWidth(PixelRatio.roundToNearestPixel(nativeEvent.layout.width))}
             onMouseEnter={() => !canUseTouchScreen && setShouldShowArrows(true)}
             onMouseLeave={() => !canUseTouchScreen && setShouldShowArrows(false)}
         >
@@ -195,46 +145,12 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, setDownl
                         cancelAutoHideArrow={cancelAutoHideArrows}
                     />
 
-                    {containerWidth > 0 && (Browser.isMobileChrome() || Browser.isMobileSafari()) && (
-                        <FlatList
-                            keyboardShouldPersistTaps="handled"
-                            listKey="AttachmentCarousel"
-                            horizontal
-                            decelerationRate="fast"
-                            showsHorizontalScrollIndicator={false}
-                            bounces={false}
-                            // Scroll only one image at a time no matter how fast the user swipes
-                            disableIntervalMomentum
-                            pagingEnabled
-                            snapToAlignment="start"
-                            snapToInterval={containerWidth}
-                            // Enable scrolling by swiping on mobile (touch) devices only
-                            // disable scroll for desktop/browsers because they add their scrollbars
-                            // Enable scrolling FlatList only when PDF is not in a zoomed state
-                            scrollEnabled={canUseTouchScreen}
-                            ref={scrollRef}
-                            initialScrollIndex={page}
-                            initialNumToRender={3}
-                            windowSize={5}
-                            maxToRenderPerBatch={3}
-                            data={attachments}
-                            CellRendererComponent={renderCell}
-                            renderItem={renderItem}
-                            getItemLayout={getItemLayout}
-                            keyExtractor={(item) => item.source}
-                            viewabilityConfig={viewabilityConfig}
-                            onViewableItemsChanged={updatePage.current}
-                        />
-                    )}
-
-                    {!Browser.isMobileChrome() && !Browser.isMobileSafari() && (
-                        <Carousel
-                            currentIndex={page}
-                            renderItem={renderItem}
-                            attachments={attachments}
-                            windowSize={5}
-                        />
-                    )}
+                    <Carousel
+                        currentIndex={page}
+                        renderItem={renderItem}
+                        attachments={attachments}
+                        windowSize={5}
+                    />
 
                     <CarouselActions onCycleThroughAttachments={cycleThroughAttachments} />
                 </>
