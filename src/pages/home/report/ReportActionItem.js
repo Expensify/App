@@ -64,6 +64,7 @@ import * as PersonalDetailsUtils from '../../../libs/PersonalDetailsUtils';
 import ReportActionItemBasicMessage from './ReportActionItemBasicMessage';
 import * as store from '../../../libs/actions/ReimbursementAccount/store';
 import * as BankAccounts from '../../../libs/actions/BankAccounts';
+import usePrevious from '../../../hooks/usePrevious';
 import ReportScreenContext from '../ReportScreenContext';
 import Permissions from '../../../libs/Permissions';
 
@@ -131,6 +132,7 @@ function ReportActionItem(props) {
     const textInputRef = useRef();
     const popoverAnchorRef = useRef();
     const downloadedPreviews = useRef([]);
+    const prevDraftMessage = usePrevious(props.draftMessage);
     const originalReportID = ReportUtils.getOriginalReportID(props.report.reportID, props.action);
     const originalReport = props.report.reportID === originalReportID ? props.report : ReportUtils.getReport(originalReportID);
 
@@ -152,14 +154,13 @@ function ReportActionItem(props) {
         [props.action.reportActionID, reactionListRef],
     );
 
-    const isDraftEmpty = !props.draftMessage;
     useEffect(() => {
-        if (isDraftEmpty) {
+        if (prevDraftMessage || !props.draftMessage) {
             return;
         }
 
         focusTextInputAfterAnimation(textInputRef.current, 100);
-    }, [isDraftEmpty]);
+    }, [prevDraftMessage, props.draftMessage]);
 
     useEffect(() => {
         if (!Permissions.canUseLinkPreviews()) {
@@ -243,10 +244,11 @@ function ReportActionItem(props) {
     /**
      * Get the content of ReportActionItem
      * @param {Boolean} hovered whether the ReportActionItem is hovered
+     * @param {Boolean} isWhisper whether the report action is a whisper
      * @param {Boolean} hasErrors whether the report action has any errors
      * @returns {Object} child component(s)
      */
-    const renderItemContent = (hovered = false, hasErrors = false) => {
+    const renderItemContent = (hovered = false, isWhisper = false, hasErrors = false) => {
         let children;
         const originalMessage = lodashGet(props.action, 'originalMessage', {});
 
@@ -272,6 +274,7 @@ function ReportActionItem(props) {
                     contextMenuAnchor={popoverAnchorRef}
                     checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                     style={props.displayAsGroup ? [] : [styles.mt2]}
+                    isWhisper={isWhisper}
                 />
             );
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW) {
@@ -285,6 +288,7 @@ function ReportActionItem(props) {
                     isHovered={hovered}
                     contextMenuAnchor={popoverAnchorRef}
                     checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
+                    isWhisper={isWhisper}
                 />
             );
         } else if (
@@ -340,6 +344,7 @@ function ReportActionItem(props) {
                     {!props.draftMessage ? (
                         <View style={props.displayAsGroup && hasBeenFlagged ? styles.blockquote : {}}>
                             <ReportActionItemMessage
+                                reportID={props.report.reportID}
                                 action={props.action}
                                 displayAsGroup={props.displayAsGroup}
                                 isHidden={isHidden}
@@ -446,7 +451,7 @@ function ReportActionItem(props) {
      * @returns {Object} report action item
      */
     const renderReportActionItem = (hovered, isWhisper, hasErrors) => {
-        const content = renderItemContent(hovered || isContextMenuActive, hasErrors);
+        const content = renderItemContent(hovered || isContextMenuActive, isWhisper, hasErrors);
 
         if (props.draftMessage) {
             return <ReportActionItemDraft>{content}</ReportActionItemDraft>;
@@ -572,7 +577,7 @@ function ReportActionItem(props) {
                             <OfflineWithFeedback
                                 onClose={() => ReportActions.clearReportActionErrors(props.report.reportID, props.action)}
                                 pendingAction={props.draftMessage ? null : props.action.pendingAction}
-                                shouldHideOnDelete={!ReportActionsUtils.hasCommentThread(props.action)}
+                                shouldHideOnDelete={!ReportActionsUtils.isThreadParentMessage(props.action, props.report.reportID)}
                                 errors={props.action.errors}
                                 errorRowStyles={[styles.ml10, styles.mr2]}
                                 needsOffscreenAlphaCompositing={ReportActionsUtils.isMoneyRequestAction(props.action)}
