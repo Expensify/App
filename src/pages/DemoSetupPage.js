@@ -22,14 +22,16 @@ const propTypes = {
  */
 function DemoSetupPage(props) {
     useFocusEffect(() => {
-        // Depending on the route that the user hit to get here, run a specific demo flow
-        if (props.route.name === CONST.DEMO_PAGES.SAASTR) {
-            DemoActions.runSaastrDemo();
-        } else if (props.route.name === CONST.DEMO_PAGES.SBE) {
-            DemoActions.runSbeDemo();
-        } else {
-            Navigation.goBack();
-        }
+        Navigation.isNavigationReady().then(() => {
+            // Depending on the route that the user hit to get here, run a specific demo flow
+            if (props.route.name === CONST.DEMO_PAGES.SAASTR) {
+                DemoActions.runSaastrDemo();
+            } else if (props.route.name === CONST.DEMO_PAGES.SBE) {
+                DemoActions.runSbeDemo();
+            } else {
+                Navigation.goBack();
+            }
+        });
     });
 
     return <FullScreenLoadingIndicator />;
