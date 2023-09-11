@@ -76,7 +76,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    modal: {},
     report: {},
     blockedFromConcierge: {},
     personalDetails: {},
@@ -107,7 +106,6 @@ function ReportActionCompose({
     reportActions,
     shouldShowComposeInput,
     isCommentEmpty: isCommentEmptyProp,
-    modal,
 }) {
     const {translate} = useLocalize();
     const {isMediumScreenWidth, isSmallScreenWidth} = useWindowDimensions();
@@ -319,13 +317,6 @@ function ReportActionCompose({
         [],
     );
 
-    useEffect(() => {
-        if (modal.isVisible) {
-            return;
-        }
-        focus();
-    }, [modal.isVisible]);
-
     const reportRecipientAcountIDs = ReportUtils.getReportRecipientAccountIDs(report, currentUserPersonalDetails.accountID);
     const reportRecipient = personalDetails[reportRecipientAcountIDs[0]];
     const shouldUseFocusedColor = !isBlockedFromConcierge && !disabled && isFocused;
@@ -474,9 +465,6 @@ export default compose(
         },
         shouldShowComposeInput: {
             key: ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT,
-        },
-        modal: {
-            key: ONYXKEYS.MODAL,
         },
     }),
 )(ReportActionCompose);
