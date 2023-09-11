@@ -5,10 +5,7 @@ function triggerUpdateAvailable() {
     Onyx.set(ONYXKEYS.UPDATE_AVAILABLE, true);
 }
 
-/**
- * @param {Boolean} isBeta
- */
-function setIsAppInBeta(isBeta) {
+function setIsAppInBeta(isBeta: boolean) {
     Onyx.set(ONYXKEYS.IS_BETA, isBeta);
 }
 

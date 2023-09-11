@@ -1375,6 +1375,7 @@ export default {
             fastReimbursementsVBACopy: '¡Todo listo para reembolsar recibos desde tu cuenta bancaria!',
             updateCustomUnitError: 'Los cambios no han podido ser guardados. El espacio de trabajo ha sido modificado mientras estabas desconectado. Por favor, inténtalo de nuevo.',
             invalidRateError: 'Por favor, introduce una tarifa válida',
+            lowRateError: 'La tarifa debe ser mayor que 0',
         },
         bills: {
             manageYourBills: 'Gestiona tus facturas',

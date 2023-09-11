@@ -19,11 +19,9 @@ const propTypes = {
     /** Collection of tags attached to a policy */
     policyTags: PropTypes.objectOf(tagPropTypes),
 
-    /* Onyx Props */
     /** List of recently used tags */
     policyRecentlyUsedTags: PropTypes.arrayOf(PropTypes.string),
 
-    /* Onyx Props */
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     iou: iouPropTypes,
 };

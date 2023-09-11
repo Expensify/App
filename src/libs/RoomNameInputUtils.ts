@@ -2,11 +2,8 @@ import CONST from '../CONST';
 
 /**
  * Replaces spaces with dashes
- *
- * @param {String} roomName
- * @returns {String}
  */
-function modifyRoomName(roomName) {
+function modifyRoomName(roomName: string): string {
     const modifiedRoomNameWithoutHash = roomName
         .replace(/ /g, '-')
 
