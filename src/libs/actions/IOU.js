@@ -562,7 +562,7 @@ function createDistanceRequest(report, participant, comment, created, transactio
  * @param {Object} [receipt]
  */
 function requestMoney(report, amount, currency, created, merchant, payeeEmail, payeeAccountID, participant, comment, receipt = undefined) {
-    // If the report is iou or expense report, we should get the chat report of this to pass to getMoneyRequestInformation function
+    // If the report is iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
     const currentReport = isMoneyRequestReport ? ReportUtils.getReport(report.chatReportID) : report;
     const {payerEmail, iouReport, chatReport, transaction, iouAction, createdChatReportActionID, createdIOUReportActionID, reportPreviewAction, onyxData} = getMoneyRequestInformation(
