@@ -217,7 +217,7 @@ function isCanceledTaskReport(report = {}, parentReportAction = {}) {
 
 /**
  * Checks if a report is an open task report.
- * 
+ *
  * @param {Object} report
  * @param {Object} parentReportAction - The parent report action of the report (Used to check if the task has been canceled)
  * @returns {Boolean}

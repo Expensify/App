@@ -507,10 +507,10 @@ function ReportActionItem(props) {
                         showHeader={!props.draftMessage}
                         wrapperStyles={[styles.chatItem]}
                         report={props.report}
-                     >
+                    >
                         <RenderHTML html={`<comment>${props.translate('parentReportAction.deletedTask')}</comment>`} />
                     </ReportActionItemSingle>
-                )
+                );
             }
 
             return (

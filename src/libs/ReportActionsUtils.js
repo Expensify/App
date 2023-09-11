@@ -649,7 +649,6 @@ export {
     isWhisperAction,
     isPendingRemove,
     getReportAction,
-    getTaskCreatedReportActions,
     getNumberOfMoneyRequests,
     isSplitBillAction,
     isTaskAction,
