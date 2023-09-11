@@ -409,10 +409,11 @@ jobs:
       - uses: Expensify/App/.github/actions/composite/setupNode@main
 
       - name: Set version
+        id: getVersion
         run: echo "VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
 
       - name: Create or update staging deploy
         uses: Expensify/App/.github/actions/javascript/createOrUpdateStagingDeploy@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-          NPM_VERSION: ${{ needs.createNewVersion.outputs.NEW_VERSION }}
+          NPM_VERSION: ${{ steps.getVersion.outputs.VERSION }}
