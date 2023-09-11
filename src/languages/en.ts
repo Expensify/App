@@ -1755,14 +1755,4 @@ export default {
             selectSuggestedAddress: 'Please select a suggested address',
         },
     },
-    demos: {
-        saastr: {
-            signInWelcome: 'Welcome to SaaStr! Hop in to start networking now.',
-            heroBody: 'Use New Expensify for event updates, networking, social chatter, and to get paid back for lunch!',
-        },
-        sbe: {
-            signInWelcome: 'Welcome to Small Business Expo! Get paid back for your ride.',
-            heroBody: 'Use New Expensify for event updates, networking, social chatter, and to get paid back for your ride to or from the show!',
-        },
-    },
 } as const;
