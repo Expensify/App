@@ -19,7 +19,6 @@ import * as StyleUtils from '../../styles/StyleUtils';
 import useLocalize from '../../hooks/useLocalize';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
 import Log from '../../libs/Log';
-import * as DemoActions from '../../libs/actions/DemoActions';
 
 const propTypes = {
     /** The details about the account that the user is signing in with */
@@ -118,8 +117,7 @@ function SignInPage({credentials, account, isInModal, demoInfo}) {
 
     let welcomeHeader = '';
     let welcomeText = '';
-    const {customHeadline, customHeroBody} = DemoActions.getCustomTextForDemo(demoInfo);
-    const headerText = customHeadline || translate('login.hero.header');
+    const headerText = translate('login.hero.header');
     if (shouldShowLoginForm) {
         welcomeHeader = isSmallScreenWidth ? headerText : translate('welcomeText.getStarted');
         welcomeText = isSmallScreenWidth ? translate('welcomeText.getStarted') : '';
@@ -167,8 +165,6 @@ function SignInPage({credentials, account, isInModal, demoInfo}) {
                 shouldShowWelcomeText={shouldShowWelcomeText}
                 ref={signInPageLayoutRef}
                 isInModal={isInModal}
-                customHeadline={customHeadline}
-                customHeroBody={customHeroBody}
             >
                 {/* LoginForm must use the isVisible prop. This keeps it mounted, but visually hidden
                     so that password managers can access the values. Conditionally rendering this component will break this feature. */}
