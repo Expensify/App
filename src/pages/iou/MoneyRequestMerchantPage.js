@@ -1,4 +1,4 @@
-import React, {useEffect, useRef} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -67,6 +67,16 @@ function MoneyRequestMerchantPage({iou, route}) {
         Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID));
     }
 
+    const validate = useCallback((value) => {
+        const errors = {};
+
+        if (_.isEmpty(value.moneyRequestMerchant)) {
+            errors.moneyRequestMerchant = 'common.error.fieldRequired';
+        }
+
+        return errors;
+    }, []);
+
     /**
      * Sets the money request comment by saving it to Onyx.
      *
@@ -92,6 +102,7 @@ function MoneyRequestMerchantPage({iou, route}) {
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM}
                 onSubmit={(value) => updateMerchant(value)}
+                validate={validate}
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
             >
