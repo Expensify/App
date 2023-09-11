@@ -34,8 +34,8 @@ export default () => {
             if (!val) {
                 return;
             }
-            
-            // Since we used the same key that used to store lastUpdateID, once we start watching this variable we need 
+
+            // Since we used the same key that used to store lastUpdateID, once we start watching this variable we need
             // to confirm that the value is what we expect and not a number.
             if (_.isNumber(val)) {
                 Onyx.set(ONYXKEYS.ONYX_UPDATES_FROM_SERVER, null);
