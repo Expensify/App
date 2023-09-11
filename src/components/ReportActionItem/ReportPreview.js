@@ -106,7 +106,7 @@ const defaultProps = {
 };
 
 function ReportPreview(props) {
-    const managerID = props.iouReport.managerID || props.action.actorAccountID || 0;
+    const managerID = props.iouReport.managerID || 0;
     const isCurrentUserManager = managerID === lodashGet(props.session, 'accountID');
     const reportTotal = ReportUtils.getMoneyRequestTotal(props.iouReport);
 
@@ -120,6 +120,9 @@ function ReportPreview(props) {
     const isScanning = hasReceipts && ReportUtils.areAllRequestsBeingSmartScanned(props.iouReportID, props.action);
     const hasErrors = hasReceipts && ReportUtils.hasMissingSmartscanFields(props.iouReportID);
     const lastThreeTransactionsWithReceipts = ReportUtils.getReportPreviewDisplayTransactions(props.action);
+    const lastThreeReceipts = _.map(lastThreeTransactionsWithReceipts, ({receipt, filename, receiptFilename}) =>
+        ReceiptUtils.getThumbnailAndImageURIs(receipt.source, filename || receiptFilename || ''),
+    );
 
     const hasOnlyOneReceiptRequest = numberOfRequests === 1 && hasReceipts;
     const previewSubtitle = hasOnlyOneReceiptRequest
@@ -181,7 +184,7 @@ function ReportPreview(props) {
                 <View style={[styles.reportPreviewBox, props.isHovered || isScanning || props.isWhisper ? styles.reportPreviewBoxHoverBorder : undefined]}>
                     {hasReceipts && (
                         <ReportActionItemImages
-                            images={_.map(lastThreeTransactionsWithReceipts, ({receipt, filename}) => ReceiptUtils.getThumbnailAndImageURIs(receipt.source, filename || ''))}
+                            images={lastThreeReceipts}
                             size={3}
                             total={transactionsWithReceipts.length}
                             isHovered={props.isHovered || isScanning}
