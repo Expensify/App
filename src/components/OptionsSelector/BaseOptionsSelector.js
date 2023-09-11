@@ -30,6 +30,9 @@ const propTypes = {
     /** List container styles for OptionsList */
     listContainerStyles: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
+    /** List styles for OptionsList */
+    listStyles: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
+
     ...optionsSelectorPropTypes,
     ...withLocalizePropTypes,
     ...withNavigationFocusPropTypes,
@@ -40,6 +43,7 @@ const defaultProps = {
     safeAreaPaddingBottomStyle: {},
     contentContainerStyles: [],
     listContainerStyles: [styles.flex1],
+    listStyles: [],
     ...optionsSelectorDefaultProps,
 };
 
@@ -64,41 +68,20 @@ class BaseOptionsSelector extends Component {
     }
 
     componentDidMount() {
-        const enterConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
-        this.unsubscribeEnter = KeyboardShortcut.subscribe(
-            enterConfig.shortcutKey,
-            this.selectFocusedOption,
-            enterConfig.descriptionKey,
-            enterConfig.modifiers,
-            true,
-            () => !this.state.allOptions[this.state.focusedIndex],
-        );
-
-        const CTRLEnterConfig = CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER;
-        this.unsubscribeCTRLEnter = KeyboardShortcut.subscribe(
-            CTRLEnterConfig.shortcutKey,
-            () => {
-                if (this.props.canSelectMultipleOptions) {
-                    this.props.onConfirmSelection();
-                    return;
-                }
-
-                const focusedOption = this.state.allOptions[this.state.focusedIndex];
-                if (!focusedOption) {
-                    return;
-                }
-
-                this.selectRow(focusedOption);
-            },
-            CTRLEnterConfig.descriptionKey,
-            CTRLEnterConfig.modifiers,
-            true,
-        );
+        this.subscribeToKeyboardShortcut();
 
         this.scrollToIndex(this.props.selectedOptions.length ? 0 : this.state.focusedIndex, false);
     }
 
     componentDidUpdate(prevProps) {
+        if (prevProps.isFocused !== this.props.isFocused) {
+            if (this.props.isFocused) {
+                this.subscribeToKeyboardShortcut();
+            } else {
+                this.unSubscribeFromKeyboardShortcut();
+            }
+        }
+
         if (this.textInput && this.props.autoFocus && !prevProps.isFocused && this.props.isFocused) {
             InteractionManager.runAfterInteractions(() => {
                 // If we automatically focus on a text input when mounting a component,
@@ -148,13 +131,7 @@ class BaseOptionsSelector extends Component {
             clearTimeout(this.focusTimeout);
         }
 
-        if (this.unsubscribeEnter) {
-            this.unsubscribeEnter();
-        }
-
-        if (this.unsubscribeCTRLEnter) {
-            this.unsubscribeCTRLEnter();
-        }
+        this.unSubscribeFromKeyboardShortcut();
     }
 
     /**
@@ -177,6 +154,49 @@ class BaseOptionsSelector extends Component {
         }
 
         return defaultIndex;
+    }
+
+    subscribeToKeyboardShortcut() {
+        const enterConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
+        this.unsubscribeEnter = KeyboardShortcut.subscribe(
+            enterConfig.shortcutKey,
+            this.selectFocusedOption,
+            enterConfig.descriptionKey,
+            enterConfig.modifiers,
+            true,
+            () => !this.state.allOptions[this.state.focusedIndex],
+        );
+
+        const CTRLEnterConfig = CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER;
+        this.unsubscribeCTRLEnter = KeyboardShortcut.subscribe(
+            CTRLEnterConfig.shortcutKey,
+            () => {
+                if (this.props.canSelectMultipleOptions) {
+                    this.props.onConfirmSelection();
+                    return;
+                }
+
+                const focusedOption = this.state.allOptions[this.state.focusedIndex];
+                if (!focusedOption) {
+                    return;
+                }
+
+                this.selectRow(focusedOption);
+            },
+            CTRLEnterConfig.descriptionKey,
+            CTRLEnterConfig.modifiers,
+            true,
+        );
+    }
+
+    unSubscribeFromKeyboardShortcut() {
+        if (this.unsubscribeEnter) {
+            this.unsubscribeEnter();
+        }
+
+        if (this.unsubscribeCTRLEnter) {
+            this.unsubscribeCTRLEnter();
+        }
     }
 
     selectFocusedOption() {
@@ -202,6 +222,14 @@ class BaseOptionsSelector extends Component {
                 });
             }, 500);
         }
+    }
+
+    focus() {
+        if (!this.textInput) {
+            return;
+        }
+
+        this.textInput.focus();
     }
 
     /**
@@ -357,6 +385,7 @@ class BaseOptionsSelector extends Component {
                 }}
                 contentContainerStyles={[safeAreaPaddingBottomStyle, ...this.props.contentContainerStyles]}
                 listContainerStyles={this.props.listContainerStyles}
+                listStyles={this.props.listStyles}
                 isLoading={!this.props.shouldShowOptions}
                 showScrollIndicator={this.props.showScrollIndicator}
             />

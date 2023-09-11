@@ -95,6 +95,9 @@ const propTypes = {
     /** Maximum number of characters allowed in search input */
     maxInputLength: PropTypes.number,
 
+    /** The result types to return from the Google Places Autocomplete request */
+    resultTypes: PropTypes.string,
+
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
@@ -111,7 +114,7 @@ const defaultProps = {
     value: undefined,
     defaultValue: undefined,
     containerStyles: [],
-    isLimitedToUSA: true,
+    isLimitedToUSA: false,
     renamedInputKeys: {
         street: 'addressStreet',
         street2: 'addressStreet2',
@@ -123,6 +126,7 @@ const defaultProps = {
     },
     maxInputLength: undefined,
     predefinedPlaces: [],
+    resultTypes: 'address',
 };
 
 // Do not convert to class component! It's been tried before and presents more challenges than it's worth.
@@ -134,10 +138,10 @@ function AddressSearch(props) {
     const query = useMemo(
         () => ({
             language: props.preferredLocale,
-            types: 'address',
+            types: props.resultTypes,
             components: props.isLimitedToUSA ? 'country:us' : undefined,
         }),
-        [props.preferredLocale, props.isLimitedToUSA],
+        [props.preferredLocale, props.resultTypes, props.isLimitedToUSA],
     );
 
     const saveLocationDetails = (autocompleteData, details) => {
