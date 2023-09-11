@@ -5,22 +5,62 @@ home:
 
 # Hubs are comprised of sections and articles. Sections contain multiple related articles, but there can be standalone articles as well
 hubs:
-  - href: split-bills
-    title: Split bills
+  - href: account-settings
+    title: Account Settings
     description: With only a couple of clicks, split bills with your friends or coworkers.
     icon: /assets/images/paper-airplane.svg
 
-  - href: request-money
-    title: Request money
+  - href: bank-accounts-and-credit-cards
+    title: Bank Accounts & Credit Cards
     icon: /assets/images/money-case.svg
     description: Request money for work expenses, bills, or a night out with friends.
 
-  - href: playbooks
+  - href: billing-and-subscriptions
     title: Playbooks
     icon: /assets/images/playbook.svg
     description: Best practices for how to best deploy Expensify for your business
 
-  - href: other
+  - href: expense-and-report-settings
+    title: Other
+    description: Everything else you're looking for is right here.
+    icon: /assets/images/lightbulb.svg
+
+  - href: expensify-card
+    title: Request money
+    icon: /assets/images/money-case.svg
+    description: Request money for work expenses, bills, or a night out with friends.
+
+  - href: exports
+    title: Playbooks
+    icon: /assets/images/playbook.svg
+    description: Best practices for how to best deploy Expensify for your business
+
+  - href: get-paid-back
+    title: Other
+    description: Everything else you're looking for is right here.
+    icon: /assets/images/lightbulb.svg
+
+  - href: getting-started
+    title: Other
+    description: Everything else you're looking for is right here.
+    icon: /assets/images/lightbulb.svg
+
+  - href: integrations
+    title: Other
+    description: Everything else you're looking for is right here.
+    icon: /assets/images/lightbulb.svg
+
+  - href: manage-employees-and-reports
+    title: Other
+    description: Everything else you're looking for is right here.
+    icon: /assets/images/lightbulb.svg
+  
+  - href: policy-and-domain-settings
+    title: Other
+    description: Everything else you're looking for is right here.
+    icon: /assets/images/lightbulb.svg
+  
+  - href: send-payments
     title: Other
     description: Everything else you're looking for is right here.
     icon: /assets/images/lightbulb.svg
