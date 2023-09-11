@@ -1417,7 +1417,7 @@ function getTransactionReportName(reportAction) {
  * Get money request message for an IOU report
  *
  * @param {Object} report
- * @param {Object} [reportAction={}]
+ * @param {Object} [reportAction={}] This can be either a report preview action or the IOU action
  * @param {Boolean} [shouldConsiderReceiptBeingScanned=false]
  * @returns  {String}
  */
@@ -1449,9 +1449,9 @@ function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceip
     if (isSettled(report.reportID)) {
         // A settled report preview message can come in three formats "paid ... using Paypal.me", "paid ... elsewhere" or "paid ... with Expensify"
         let translatePhraseKey = 'iou.paidElsewhereWithAmount';
-        if (reportActionMessage.match(/ Paypal.me$/)) {
+        if (reportAction.originalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.PAYPAL_ME || reportActionMessage.match(/ PayPal.me$/)) {
             translatePhraseKey = 'iou.paidUsingPaypalWithAmount';
-        } else if (reportActionMessage.match(/ (with Expensify|using Expensify)$/)) {
+        } else if (_.contains([CONST.IOU.PAYMENT_TYPE.VBBA, CONST.IOU.PAYMENT_TYPE.EXPENSIFY], reportAction.originalMessage.paymentType) || reportActionMessage.match(/ (with Expensify|using Expensify)$/)) {
             translatePhraseKey = 'iou.paidWithExpensifyWithAmount';
         }
         return Localize.translateLocal(translatePhraseKey, {amount: formattedAmount});
