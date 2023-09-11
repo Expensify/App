@@ -45,6 +45,16 @@ function isActive(id) {
     return emojiPickerRef.current.isActive(id);
 }
 
+/**
+ * Clear the active id
+ */
+function clearActive() {
+    if (!emojiPickerRef.current) {
+        return;
+    }
+    return emojiPickerRef.current.clearActive(id);
+}
+
 function isEmojiPickerVisible() {
     if (!emojiPickerRef.current) {
         return;
@@ -59,4 +69,4 @@ function resetEmojiPopoverAnchor() {
     return emojiPickerRef.current.resetEmojiPopoverAnchor();
 }
 
-export {emojiPickerRef, showEmojiPicker, hideEmojiPicker, isActive, isEmojiPickerVisible, resetEmojiPopoverAnchor};
+export {emojiPickerRef, showEmojiPicker, hideEmojiPicker, isActive, clearActive, isEmojiPickerVisible, resetEmojiPopoverAnchor};

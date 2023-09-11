@@ -56,6 +56,7 @@ class PopoverReportActionContextMenu extends React.Component {
         this.runAndResetOnPopoverHide = this.runAndResetOnPopoverHide.bind(this);
         this.getContextMenuMeasuredLocation = this.getContextMenuMeasuredLocation.bind(this);
         this.isActiveReportAction = this.isActiveReportAction.bind(this);
+        this.clearActiveReportAction = this.clearActiveReportAction.bind(this);
 
         this.dimensionsEventListener = null;
 
@@ -113,6 +114,10 @@ class PopoverReportActionContextMenu extends React.Component {
      */
     isActiveReportAction(actionID) {
         return Boolean(actionID) && this.state.reportAction.reportActionID === actionID;
+    }
+
+    clearActiveReportAction() {
+        this.setState({reportID: '0', reportAction: {}});
     }
 
     /**
