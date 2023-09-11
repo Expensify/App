@@ -9,6 +9,7 @@ import DateUtils from '../../src/libs/DateUtils';
 import * as NumberUtils from '../../src/libs/NumberUtils';
 import * as ReportActions from '../../src/libs/actions/ReportActions';
 import * as Report from '../../src/libs/actions/Report';
+import OnyxUpdateManager from '../../src/libs/actions/OnyxUpdateManager';
 import * as ReportUtils from '../../src/libs/ReportUtils';
 import * as PersonalDetailsUtils from '../../src/libs/PersonalDetailsUtils';
 import * as User from '../../src/libs/actions/User';
@@ -31,6 +32,7 @@ const RORY_ACCOUNT_ID = 3;
 const VIT_EMAIL = 'vit@expensifail.com';
 const VIT_ACCOUNT_ID = 4;
 
+OnyxUpdateManager();
 describe('actions/IOU', () => {
     beforeAll(() => {
         Onyx.init({

@@ -15,6 +15,7 @@ import * as IOU from '../../../libs/actions/IOU';
 import useLocalize from '../../../hooks/useLocalize';
 import MoneyRequestAmountForm from './MoneyRequestAmountForm';
 import * as IOUUtils from '../../../libs/IOUUtils';
+import * as MoneyRequestUtils from '../../../libs/MoneyRequestUtils';
 import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
 import styles from '../../../styles/styles';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
@@ -64,7 +65,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
     const reportID = lodashGet(route, 'params.reportID', '');
     const isEditing = lodashGet(route, 'path', '').includes('amount');
     const currentCurrency = lodashGet(route, 'params.currency', '');
-    const isDistanceRequestTab = selectedTab === CONST.TAB.DISTANCE;
+    const isDistanceRequestTab = MoneyRequestUtils.isDistanceRequest(iouType, selectedTab);
 
     const currency = currentCurrency || iou.currency;
 
