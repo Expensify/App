@@ -460,8 +460,8 @@ function getMoneyRequestInformation(
               [payerAccountID]: {
                   accountID: payerAccountID,
                   avatar: UserUtils.getDefaultAvatarURL(payerAccountID),
-                  displayName: participant.displayName || payerEmail,
-                  login: participant.login,
+                  displayName: participant.displayName || participant.login,
+                  login: payerEmail,
               },
           }
         : undefined;
@@ -851,8 +851,8 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
                   [accountID]: {
                       accountID,
                       avatar: UserUtils.getDefaultAvatarURL(accountID),
-                      displayName: participant.displayName || email,
-                      login: participant.login,
+                      displayName: participant.displayName || participant.login,
+                      login: email,
                   },
               }
             : undefined;
