@@ -1,11 +1,15 @@
+import ControlSelectionModule from './types';
+
 function block() {}
 function unblock() {}
 function blockElement() {}
 function unblockElement() {}
 
-export default {
+const ControlSelection: ControlSelectionModule = {
     block,
     unblock,
     blockElement,
     unblockElement,
 };
+
+export default ControlSelection;
