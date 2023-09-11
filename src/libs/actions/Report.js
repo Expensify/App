@@ -1819,11 +1819,7 @@ function leaveRoom(reportID) {
             ],
         },
     );
-    Navigation.dismissModal();
-    if (Navigation.getTopmostReportId() === reportID) {
-        Navigation.goBack();
-    }
-    navigateToConciergeChat();
+    Navigation.navigate(ROUTES.getReportRoute(report.parentReportID));
 }
 
 /**
