@@ -72,12 +72,12 @@ function NavigationRoot(props) {
     }, [isSmallScreenWidth]);
 
     useEffect(() => {
-        if (!navigationRef.isReady()) {
+        if (!navigationRef.isReady() || !props.authenticated) {
             return;
         }
         // We need to force state rehydration so the CustomRouter can add the CentralPaneNavigator route if necessary.
         navigationRef.resetRoot(navigationRef.getRootState());
-    }, [isSmallScreenWidth]);
+    }, [isSmallScreenWidth, props.authenticated]);
 
     const prevStatusBarBackgroundColor = useRef(themeColors.appBG);
     const statusBarBackgroundColor = useRef(themeColors.appBG);
