@@ -14,6 +14,7 @@ import * as IOU from '../../../libs/actions/IOU';
 import compose from '../../../libs/compose';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import * as OptionsListUtils from '../../../libs/OptionsListUtils';
+import * as MoneyRequestUtils from '../../../libs/MoneyRequestUtils';
 import withLocalize from '../../../components/withLocalize';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -59,9 +60,9 @@ const defaultProps = {
 
 function MoneyRequestConfirmPage(props) {
     const {windowHeight} = useWindowDimensions();
-    const isDistanceRequest = props.selectedTab === CONST.TAB.DISTANCE;
     const prevMoneyRequestId = useRef(props.iou.id);
     const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
+    const isDistanceRequest = MoneyRequestUtils.isDistanceRequest(iouType.current, props.selectedTab);
     const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
     const participants = useMemo(
         () =>
@@ -144,9 +145,18 @@ function MoneyRequestConfirmPage(props) {
      */
     const createDistanceRequest = useCallback(
         (selectedParticipants, trimmedComment) => {
-            IOU.createDistanceRequest(props.report, selectedParticipants[0], trimmedComment, props.iou.created, props.iou.transactionID);
+            IOU.createDistanceRequest(
+                props.report,
+                selectedParticipants[0],
+                trimmedComment,
+                props.iou.created,
+                props.iou.transactionID,
+                props.iou.amount,
+                props.iou.currency,
+                props.iou.merchant,
+            );
         },
-        [props.report, props.iou.created, props.iou.transactionID],
+        [props.report, props.iou.created, props.iou.transactionID, props.iou.amount, props.iou.currency, props.iou.merchant],
     );
 
     const createTransaction = useCallback(
@@ -250,7 +260,7 @@ function MoneyRequestConfirmPage(props) {
                      * VirtualizedList cannot be directly nested within ScrollViews of the same orientation.
                      * To work around this, we wrap the MoneyRequestConfirmationList component with a horizontal ScrollView.
                      */}
-                    <ScrollView>
+                    <ScrollView contentContainerStyle={[styles.flexGrow1]}>
                         <ScrollView
                             horizontal
                             contentContainerStyle={[styles.flex1, styles.flexColumn]}
