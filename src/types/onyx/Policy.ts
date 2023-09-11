@@ -4,22 +4,22 @@ import * as OnyxCommon from './OnyxCommon';
 
 type Policy = {
     /** The ID of the policy */
-    id?: string;
+    id: string;
 
     /** The name of the policy */
-    name?: string;
+    name: string;
 
     /** The current user's role in the policy */
-    role?: ValueOf<typeof CONST.POLICY.ROLE>;
+    role: ValueOf<typeof CONST.POLICY.ROLE>;
 
     /** The policy type */
-    type?: ValueOf<typeof CONST.POLICY.TYPE>;
+    type: ValueOf<typeof CONST.POLICY.TYPE>;
 
     /** The email of the policy owner */
-    owner?: string;
+    owner: string;
 
     /** The output currency for the policy */
-    outputCurrency?: string;
+    outputCurrency: string;
 
     /** The URL for the policy avatar */
     avatar?: string;
@@ -33,9 +33,9 @@ type Policy = {
     lastModified?: string;
     customUnits?: Record<string, unknown>;
 
-    areChatRoomsEnabled?: boolean;
+    areChatRoomsEnabled: boolean;
 
-    isPolicyExpenseChatEnabled?: boolean;
+    isPolicyExpenseChatEnabled: boolean;
 };
 
 export default Policy;
