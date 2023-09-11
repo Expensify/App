@@ -6,9 +6,22 @@ type Comment = {
     comment?: string;
 };
 
+type Geometry = {
+    coordinates: number[][];
+    type: 'LineString';
+};
+
+type Route = {
+    distance: number;
+    geometry: Geometry;
+};
+
+type Routes = Record<string, Route>;
+
 type Transaction = {
     transactionID: string;
     amount: number;
+    category?: string;
     currency: string;
     reportID: string;
     comment: Comment;
@@ -24,6 +37,7 @@ type Transaction = {
         source?: string;
         state?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>;
     };
+    routes?: Routes;
 };
 
 export default Transaction;
