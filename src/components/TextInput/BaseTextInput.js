@@ -132,12 +132,6 @@ function BaseTextInput(props) {
             props.onBlur(event);
         }
         setIsFocused(false);
-
-        // If the text has been supplied by Chrome autofill, the value state is not synced with the value
-        // as Chrome doesn't trigger a change event. When there is autofill text, don't deactivate label.
-        if (!isInputAutoFilled(input.current)) {
-            deactivateLabel();
-        }
     };
 
     const onPress = (event) => {
@@ -190,7 +184,13 @@ function BaseTextInput(props) {
         // We can't use inputValue here directly, as it might contain
         // the defaultValue, which doesn't get updated when the text changes.
         // We can't use props.value either, as it might be undefined.
-        if (hasValueRef.current || isFocused || isInputAutoFilled(input.current)) {
+        if (
+            hasValueRef.current ||
+            isFocused ||
+            // If the text has been supplied by Chrome autofill, the value state is not synced with the value
+            // as Chrome doesn't trigger a change event. When there is autofill text, keep the label activated.
+            isInputAutoFilled(input.current)
+        ) {
             activateLabel();
         } else {
             deactivateLabel();

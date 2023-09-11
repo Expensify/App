@@ -18,7 +18,10 @@ function Image(props) {
     const {source, isAuthTokenRequired, session, ...rest} = props;
 
     let imageSource = source;
-    if (typeof source !== 'number' && isAuthTokenRequired) {
+    if (source && source.uri && typeof source.uri === 'number') {
+        imageSource = source.uri;
+    }
+    if (typeof imageSource !== 'number' && isAuthTokenRequired) {
         const authToken = lodashGet(props, 'session.encryptedAuthToken', null);
         imageSource = {
             ...source,
