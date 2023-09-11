@@ -7,9 +7,6 @@ import useLocalize from '../hooks/useLocalize';
 import DistanceRequest from '../components/DistanceRequest';
 import reportPropTypes from './reportPropTypes';
 import * as IOU from '../libs/actions/IOU';
-import * as TransactionUtils from '../libs/TransactionUtils';
-import * as ReportUtils from '../libs/ReportUtils';
-import usePrevious from '../hooks/usePrevious';
 
 const propTypes = {
     /** The transactionID we're currently editing */
