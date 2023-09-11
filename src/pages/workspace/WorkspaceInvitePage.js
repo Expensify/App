@@ -186,7 +186,7 @@ function WorkspaceInvitePage(props) {
     );
 
     const headerMessage = useMemo(() => {
-        const searchValue = searchTerm.trim();
+        const searchValue = searchTerm.trim().toLowerCase();
         if (!userToInvite && CONST.EXPENSIFY_EMAILS.includes(searchValue)) {
             return translate('messages.errorMessageInvalidEmail');
         }

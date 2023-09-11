@@ -38,6 +38,7 @@ import TaskHeaderActionButton from '../../components/TaskHeaderActionButton';
 import DragAndDropProvider from '../../components/DragAndDrop/Provider';
 import usePrevious from '../../hooks/usePrevious';
 import CONST from '../../CONST';
+import withCurrentReportID, {withCurrentReportIDPropTypes, withCurrentReportIDDefaultProps} from '../../components/withCurrentReportID';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -92,6 +93,7 @@ const propTypes = {
 
     ...windowDimensionsPropTypes,
     ...viewportOffsetTopPropTypes,
+    ...withCurrentReportIDPropTypes,
 };
 
 const defaultProps = {
@@ -107,6 +109,7 @@ const defaultProps = {
     accountManagerReportID: null,
     userLeavingStatus: false,
     personalDetails: {},
+    ...withCurrentReportIDDefaultProps,
 };
 
 /**
@@ -137,6 +140,7 @@ function ReportScreen({
     isComposerFullSize,
     errors,
     userLeavingStatus,
+    currentReportID,
 }) {
     const firstRenderRef = useRef(true);
     const flatListRef = useRef();
@@ -163,7 +167,7 @@ function ReportScreen({
 
     const policy = policies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
 
-    const isTopMostReportId = Navigation.getTopmostReportId() === getReportID(route);
+    const isTopMostReportId = currentReportID === getReportID(route);
     const didSubscribeToReportLeavingEvents = useRef(false);
 
     let headerView = (
@@ -434,6 +438,7 @@ export default compose(
     withLocalize,
     withWindowDimensions,
     withNetwork(),
+    withCurrentReportID,
     withOnyx({
         isSidebarLoaded: {
             key: ONYXKEYS.IS_SIDEBAR_LOADED,
