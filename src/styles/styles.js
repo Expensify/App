@@ -2700,6 +2700,12 @@ const styles = {
         marginBottom: 0,
     },
 
+    moneyRequestPreviewAmount: {
+        ...headlineFont,
+        ...whiteSpace.preWrap,
+        color: themeColors.heading,
+    },
+
     defaultCheckmarkWrapper: {
         marginLeft: 8,
         alignSelf: 'center',

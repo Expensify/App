@@ -68,6 +68,9 @@ import type {
     OOOEventSummaryPartialDayParams,
     ParentNavigationSummaryParams,
     ManagerApprovedParams,
+    SetTheRequestParams,
+    UpdatedTheRequestParams,
+    RemovedTheRequestParams,
 } from './types';
 import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 
@@ -523,6 +526,11 @@ export default {
         paidUsingExpensifyWithAmount: ({amount}: PaidUsingExpensifyWithAmountParams) => `paid ${amount} using Expensify`,
         noReimbursableExpenses: 'This report has an invalid amount',
         pendingConversionMessage: "Total will update when you're back online",
+        changedTheRequest: 'changed the request',
+        setTheRequest: ({valueName, newValueToDisplay}: SetTheRequestParams) => `set the ${valueName} to ${newValueToDisplay}`,
+        removedTheRequest: ({valueName, oldValueToDisplay}: RemovedTheRequestParams) => `removed the ${valueName} (previously ${oldValueToDisplay})`,
+        updatedTheRequest: ({valueName, newValueToDisplay, oldValueToDisplay}: UpdatedTheRequestParams) =>
+            `changed the ${valueName} to ${newValueToDisplay} (previously ${oldValueToDisplay})`,
         threadRequestReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${formattedAmount} request${comment ? ` for ${comment}` : ''}`,
         threadSentMoneyReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} sent${comment ? ` for ${comment}` : ''}`,
         error: {
@@ -1345,6 +1353,7 @@ export default {
             fastReimbursementsVBACopy: "You're all set to reimburse receipts from your bank account!",
             updateCustomUnitError: "Your changes couldn't be saved. The workspace was modified while you were offline, please try again.",
             invalidRateError: 'Please enter a valid rate',
+            lowRateError: 'Rate must be greater than 0',
         },
         bills: {
             manageYourBills: 'Manage your bills',
