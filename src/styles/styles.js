@@ -32,6 +32,8 @@ import Colors from './colors';
 // touchCallout is an iOS safari only property that controls the display of the callout information when you touch and hold a target
 const touchCalloutNone = Browser.isMobileSafari() ? {WebkitTouchCallout: 'none'} : {};
 
+const lineHeightBadgeSafari = Browser.isSafari() ? {lineHeight: variables.lineHeightXSmall} : {};
+
 const picker = {
     backgroundColor: themeColors.transparent,
     color: themeColors.text,
@@ -760,7 +762,8 @@ const styles = {
     badgeText: {
         color: themeColors.text,
         fontSize: variables.fontSizeSmall,
-        lineHeight: variables.lineHeightXSmall,
+        lineHeight: variables.lineHeightNormal,
+        ...lineHeightBadgeSafari,
         ...whiteSpace.noWrap,
     },
 
