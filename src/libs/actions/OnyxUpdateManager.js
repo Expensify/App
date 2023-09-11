@@ -41,8 +41,7 @@ export default () => {
             // following the new format before we proceed. If it isn't, then let's clear the object in Onyx.
             if (
                 !_.isObject(val) ||
-                !Object.prototype.hasOwnProperty.call(val,'type') ||
-                
+                !Object.prototype.hasOwnProperty.call(val, 'type') ||
                 !(val.type === CONST.ONYX_UPDATE_TYPES.HTTPS && Object.prototype.hasOwnProperty.call(val, 'request') && Object.prototype.hasOwnProperty.call(val, 'response')) ||
                 !(val.type === CONST.ONYX_UPDATE_TYPES.PUSHER && Object.prototype.hasOwnProperty.call(val, 'updates'))
             ) {
