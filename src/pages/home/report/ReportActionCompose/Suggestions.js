@@ -53,6 +53,9 @@ function Suggestions({
         suggestionMentionRef.current.resetSuggestions();
     }, []);
 
+    /**
+     * Restore the previous suggestions data
+     */
     const restoreSuggestions = useCallback(() => {
         suggestionEmojiRef.current.restoreSuggestions();
         suggestionMentionRef.current.restoreSuggestions();

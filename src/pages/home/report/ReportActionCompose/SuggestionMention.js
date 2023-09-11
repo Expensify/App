@@ -96,7 +96,7 @@ function SuggestionMention({
     );
 
     /**
-     * Clean data related to suggestions
+     * Store the data related to suggestions and clean them
      */
     const resetSuggestions = useCallback(() => {
         setSuggestionValues((prev) => {
@@ -105,6 +105,9 @@ function SuggestionMention({
         });
     }, []);
 
+    /**
+     * Restore the previous suggestions data
+     */
     const restoreSuggestions = useCallback(() => {
         setSuggestionValues(previousSuggestionValues.current);
     }, []);

@@ -117,7 +117,7 @@ function SuggestionEmoji({
     );
 
     /**
-     * Clean data related to suggestions
+     * Store the data related to suggestions and clean them
      */
     const resetSuggestions = useCallback(() => {
         setSuggestionValues((prev) => {
@@ -126,6 +126,9 @@ function SuggestionEmoji({
         });
     }, []);
 
+    /**
+     * Restore the previous suggestions data
+     */
     const restoreSuggestions = useCallback(() => {
         setSuggestionValues(previousSuggestionValues.current);
     }, []);
