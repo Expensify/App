@@ -387,6 +387,9 @@ describe('actions/Report', () => {
                 return waitForNetworkPromises();
             })
             .then(() => {
+                expect(report.lastReadTime).toBe(reportActionCreatedDate);
+            })
+            .then(() => {
                 // If the user deletes a comment that is before the last read
                 Report.deleteReportComment(REPORT_ID, {...reportActions[200]});
                 return waitForBatchedUpdates();
