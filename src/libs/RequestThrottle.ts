@@ -3,7 +3,7 @@ import {generateRandomInt} from './NumberUtils';
 
 let requestWaitTime = 0;
 
-function clear(): void {
+function clear() {
     requestWaitTime = 0;
 }
 
