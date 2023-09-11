@@ -124,7 +124,7 @@ function AttachmentView({
 
     const shouldShowEReceipt = TransactionUtils.isDistanceRequest(transaction);
     if (shouldShowEReceipt) {
-        return <EReceipt transaction={transaction} />
+        return <EReceipt transaction={transaction} />;
     }
 
     // For this check we use both source and file.name since temporary file source is a blob
