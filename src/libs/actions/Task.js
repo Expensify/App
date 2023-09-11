@@ -133,7 +133,11 @@ function createTaskAndNavigate(parentReportID, title, description, assigneeEmail
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticTaskReport.reportID}`,
-            value: null,
+            value: {
+                errorFields: {
+                    errors: ErrorUtils.getMicroSecondOnyxError('task.genericCreateTaskFailureMessage'),
+                },
+            }
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
