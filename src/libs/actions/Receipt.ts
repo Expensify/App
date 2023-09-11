@@ -3,12 +3,8 @@ import ONYXKEYS from '../../ONYXKEYS';
 
 /**
  * Sets the upload receipt error modal content when an invalid receipt is uploaded
- *
- * @param {Boolean} isAttachmentInvalid
- * @param {String} attachmentInvalidReasonTitle
- * @param {String} attachmentInvalidReason
  */
-function setUploadReceiptError(isAttachmentInvalid, attachmentInvalidReasonTitle, attachmentInvalidReason) {
+function setUploadReceiptError(isAttachmentInvalid: boolean, attachmentInvalidReasonTitle: string, attachmentInvalidReason: string) {
     Onyx.merge(ONYXKEYS.RECEIPT_MODAL, {
         isAttachmentInvalid,
         attachmentInvalidReasonTitle,

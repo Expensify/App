@@ -8,6 +8,18 @@ type Comment = {
     waypoints?: Record<string, RecentWaypoints>;
 };
 
+type Geometry = {
+    coordinates: number[][];
+    type: 'LineString';
+};
+
+type Route = {
+    distance: number;
+    geometry: Geometry;
+};
+
+type Routes = Record<string, Route>;
+
 type Transaction = {
     transactionID: string;
     amount: number;
@@ -27,9 +39,7 @@ type Transaction = {
         source?: string;
         state?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>;
     };
-    // TODO: fix unknown type
-    routes: Record<string, unknown>;
-    errorFields: OnyxCommon.ErrorFields;
+    routes?: Routes;
 };
 
 export default Transaction;
