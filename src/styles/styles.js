@@ -779,7 +779,7 @@ const styles = {
 
     textInputDisabled: {
         // Adding disabled color theme to indicate user that the field is not editable.
-        backgroundColor: themeColors.overlay,
+        backgroundColor: themeColors.highlightBG,
         borderBottomWidth: 2,
         borderColor: themeColors.borderLighter,
         // Adding browser specefic style to bring consistency between Safari and other platforms.
