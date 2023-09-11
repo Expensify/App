@@ -110,18 +110,6 @@ const propTypes = {
     /** List styles for OptionsSelector */
     listStyles: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
-    /* Onyx Props */
-    /** Collection of categories attached to a policy */
-    policyCategories: PropTypes.objectOf(categoryPropTypes),
-
-    /* Onyx Props */
-    /** Collection of tags attached to a policy */
-    policyTags: PropTypes.objectOf(tagPropTypes),
-
-    /* Onyx Props */
-    /* Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string),
-
     /** ID of the transaction that represents the money request */
     transactionID: PropTypes.string,
 
@@ -142,6 +130,16 @@ const propTypes = {
 
     /** Whether the money request is a distance request */
     isDistanceRequest: PropTypes.bool,
+
+    /* Onyx Props */
+    /** Collection of categories attached to a policy */
+    policyCategories: PropTypes.objectOf(categoryPropTypes),
+
+    /** Collection of tags attached to a policy */
+    policyTags: PropTypes.objectOf(tagPropTypes),
+
+    /* Beta features list */
+    betas: PropTypes.arrayOf(PropTypes.string),
 };
 
 const defaultProps = {

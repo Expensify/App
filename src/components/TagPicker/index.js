@@ -67,6 +67,7 @@ function TagPicker({policyTags, reportID, iouType, iou}) {
             headerMessage={headerMessage}
             textInputLabel={translate('common.search')}
             boldStyle
+            value={''}
             onSelectRow={updateTag}
             shouldShowTextInput={false}
         />
