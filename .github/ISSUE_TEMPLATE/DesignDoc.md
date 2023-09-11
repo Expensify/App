@@ -27,6 +27,7 @@ labels: Daily, NewFeature
 - [ ] Confirm that the doc has the minimum necessary number of reviews before proceeding
 - [ ] Email `strategy@expensify.com` one last time to let them know the Design Doc is moving into the implementation phase
 - [ ] Implement the changes
+- [ ] Add regression tests so that QA can test your feature with every deploy ([instructions](https://stackoverflowteams.com/c/expensify/questions/363))
 - [ ] Send out a follow up email to `strategy@expensify.com` once everything has been implemented and do a **Project Wrap-Up** retrospective that provides:
     - Summary of what we accomplished with this project
     - What went well?
