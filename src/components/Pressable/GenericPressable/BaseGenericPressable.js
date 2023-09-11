@@ -128,7 +128,7 @@ const GenericPressable = forwardRef((props, ref) => {
         return KeyboardShortcut.subscribe(shortcutKey, onPressHandler, descriptionKey, modifiers, true, false, 0, false);
     }, [keyboardShortcut, onPressHandler]);
 
-    const defaultLongPressHandler = Browser.isMobile() ? () => {} : undefined
+    const defaultLongPressHandler = Browser.isMobileChrome() ? () => {} : undefined;
     return (
         <Pressable
             hitSlop={shouldUseAutoHitSlop ? hitSlop : undefined}
