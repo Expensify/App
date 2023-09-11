@@ -1,7 +1,6 @@
-import _ from 'underscore';
 import Onyx from 'react-native-onyx';
-import lodashGet from 'lodash/get';
 import lodashHas from 'lodash/has';
+import lodashClone from 'lodash/clone';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as CollectionUtils from '../CollectionUtils';
 import * as API from '../API';
@@ -95,10 +94,9 @@ function saveWaypoint(transactionID: string, index: string, waypoint: RecentWayp
         return;
     }
 
-    const recentWaypointAlreadyExists = recentWaypoints.find((recentWaypoint) => recentWaypoint.address === waypoint.address);
+    const recentWaypointAlreadyExists = recentWaypoints.find((recentWaypoint) => recentWaypoint?.address === waypoint?.address);
     if (!recentWaypointAlreadyExists) {
-        // TODO: Should we leave this?
-        const clonedWaypoints = _.clone(recentWaypoints);
+        const clonedWaypoints = lodashClone(recentWaypoints);
         clonedWaypoints.unshift(waypoint);
         Onyx.merge(ONYXKEYS.NVP_RECENT_WAYPOINTS, clonedWaypoints.slice(0, 5));
     }
@@ -113,7 +111,7 @@ function removeWaypoint(transactionID: string, currentIndex: string) {
 
     // Prevents removing the starting or ending waypoint but clear the stored address only if there are only two waypoints
     if (totalWaypoints === 2 && (index === 0 || index === totalWaypoints - 1)) {
-        saveWaypoint(transactionID, index, null);
+        saveWaypoint(transactionID, index.toString(), null);
         return;
     }
 

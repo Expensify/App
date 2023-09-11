@@ -7,6 +7,6 @@ type RecentWaypoints = {
 
     /** The longitude of the waypoint */
     lng: number;
-};
+} | null;
 
 export default RecentWaypoints;
