@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Text from '../Text';
 import styles from '../../styles/styles';
-import * as ReportActionUtils from '../../libs/ReportActionsUtils';
+import * as Task from '../../libs/actions/Task';
 
 const propTypes = {
     /** Name of the reportAction action */
@@ -21,7 +21,7 @@ function TaskAction(props) {
     return (
         <>
             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                <Text style={[styles.chatItemMessage, styles.colorMuted]}>{ReportActionUtils.getTaskReportActionMessage(props.actionName, props.taskReportID)}</Text>
+                <Text style={[styles.chatItemMessage, styles.colorMuted]}>{Task.getTaskReportActionMessage(props.actionName, props.taskReportID)}</Text>
             </View>
         </>
     );

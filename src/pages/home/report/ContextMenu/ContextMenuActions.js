@@ -21,6 +21,7 @@ import QuickEmojiReactions from '../../../../components/Reactions/QuickEmojiReac
 import MiniQuickEmojiReactions from '../../../../components/Reactions/MiniQuickEmojiReactions';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../ROUTES';
+import * as Task from '../../../../libs/actions/Task';
 
 /**
  * Gets the HTML version of the message in an action.
@@ -186,7 +187,7 @@ export default [
             const isTaskAction = ReportActionsUtils.isTaskAction(reportAction);
             const isReportPreviewAction = ReportActionsUtils.isReportPreviewAction(reportAction);
             const message = _.last(lodashGet(reportAction, 'message', [{}]));
-            const messageHtml = isTaskAction ? ReportActionsUtils.getTaskReportActionMessage(reportAction.actionName, reportID) : lodashGet(message, 'html', '');
+            const messageHtml = isTaskAction ? Task.getTaskReportActionMessage(reportAction.actionName, reportID) : lodashGet(message, 'html', '');
 
             const isAttachment = _.has(reportAction, 'isAttachment') ? reportAction.isAttachment : ReportUtils.isReportMessageAttachment(message);
             if (!isAttachment) {
