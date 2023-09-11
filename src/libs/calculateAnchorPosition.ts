@@ -17,7 +17,7 @@ type AnchorPosition = {
 /**
  * Gets the x,y position of the passed in component for the purpose of anchoring another component to it.
  */
-export default function calculateAnchorPosition(anchorComponent: View, anchorOrigin: AnchorOrigin): Promise<AnchorPosition> {
+export default function calculateAnchorPosition(anchorComponent: View, anchorOrigin?: AnchorOrigin): Promise<AnchorPosition> {
     return new Promise((resolve) => {
         if (!anchorComponent) {
             return resolve({horizontal: 0, vertical: 0});
