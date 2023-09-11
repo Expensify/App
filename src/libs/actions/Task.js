@@ -774,7 +774,7 @@ function cancelTask(taskReportID, taskTitle, originalStateNum, originalStatusNum
 
     const optimisticReportActions = {
         [parentReportAction.reportActionID]: {
-            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
             previousMessage: parentReportAction.message,
             message: [
                 {
@@ -791,8 +791,6 @@ function cancelTask(taskReportID, taskTitle, originalStateNum, originalStatusNum
         },
     };
 
-    // TODO: Figure out some way to get the previous message to show in the LHN for the parent report
-
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -804,6 +802,14 @@ function cancelTask(taskReportID, taskTitle, originalStateNum, originalStatusNum
                 updateReportInLHN: true,
                 isDeletedParentAction: true,
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`,
+            value: {
+                lastMessageText: ReportActionsUtils.getLastVisibleMessage(parentReport.reportID, {[parentReportAction.reportActionID]: null}).lastMessageText,
+                lastVisibleActionCreated: ReportActionsUtils.getLastVisibleAction(parentReport.reportID, {[parentReportAction.reportActionID]: null}).created,
+            }
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
