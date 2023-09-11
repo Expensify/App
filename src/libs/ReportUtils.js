@@ -266,7 +266,7 @@ function sortReportsByLastRead(reports) {
 function isSettled(reportID) {
     if (!allReports) return false;
     const report = allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] || {};
-    if ((report && Object.keys(report).length === 0) || report.isWaitingOnBankAccount) {
+    if ((typeof report === 'object' && Object.keys(report).length === 0) || report.isWaitingOnBankAccount) {
         return false;
     }
 
@@ -280,6 +280,9 @@ function isSettled(reportID) {
  * @returns {Boolean}
  */
 function isCurrentUserSubmitter(reportID) {
+    if (!allReports) {
+        return false;
+    }
     const report = allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] || {};
     return report && report.ownerEmail === currentUserEmail;
 }
