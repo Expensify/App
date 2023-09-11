@@ -1,4 +1,5 @@
 import React from 'react';
+import _ from 'underscore';
 import BaseTextInputWithCurrencySymbol from './BaseTextInputWithCurrencySymbol';
 import * as textInputWithCurrencySymbolPropTypes from './textInputWithCurrencySymbolPropTypes';
 
@@ -6,7 +7,8 @@ function TextInputWithCurrencySymbol(props) {
     return (
         <BaseTextInputWithCurrencySymbol
             // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
+            {..._.omit(props, 'forwardedRef')}
+            ref={props.forwardedRef}
         />
     );
 }
