@@ -9,7 +9,7 @@ type Comment = {
 };
 
 type Geometry = {
-    coordinates: number[][];
+    coordinates: number[][] | null;
     type: 'LineString';
 };
 
