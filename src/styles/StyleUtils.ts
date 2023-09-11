@@ -1188,6 +1188,35 @@ function getDropDownButtonHeight(buttonSize: ButtonSizeValue): ViewStyle | CSSPr
 }
 
 /**
+ * Returns fitting fontSize and lineHeight values in order to prevent large amounts from being cut off on small screen widths.
+ */
+function getAmountFontSizeAndLineHeight(baseFontSize: number, baseLineHeight: number, isSmallScreenWidth: boolean, windowWidth: number): ViewStyle | CSSProperties {
+    let toSubtract = 0;
+
+    if (isSmallScreenWidth) {
+        const widthDifference = variables.mobileResponsiveWidthBreakpoint - windowWidth;
+        switch (true) {
+            case widthDifference > 450:
+                toSubtract = 11;
+                break;
+            case widthDifference > 400:
+                toSubtract = 8;
+                break;
+            case widthDifference > 350:
+                toSubtract = 4;
+                break;
+            default:
+                break;
+        }
+    }
+
+    return {
+        fontSize: baseFontSize - toSubtract,
+        lineHeight: baseLineHeight - toSubtract,
+    };
+}
+
+/**
  * Get transparent color by setting alpha value 0 of the passed hex(#xxxxxx) color code
  */
 function getTransparentColor(color: string) {
@@ -1270,5 +1299,6 @@ export {
     getDisabledLinkStyles,
     getCheckboxContainerStyle,
     getDropDownButtonHeight,
+    getAmountFontSizeAndLineHeight,
     getTransparentColor,
 };
