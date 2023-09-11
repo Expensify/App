@@ -230,7 +230,7 @@ function SuggestionEmoji({
             setShouldBlockSuggestionCalc,
             updateShouldShowSuggestionMenuToFalse,
         }),
-        [onSelectionChange, resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse],
+        [onSelectionChange, resetSuggestions, restoreSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse],
     );
 
     if (!isEmojiSuggestionsMenuVisible) {

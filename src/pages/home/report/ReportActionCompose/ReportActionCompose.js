@@ -320,10 +320,11 @@ function ReportActionCompose({
     );
 
     useEffect(() => {
-        if (!modal.isVisible) {
-            focus();
+        if (modal.isVisible) {
+            return;
         }
-    }, [modal.isVisible])
+        focus();
+    }, [modal.isVisible]);
 
     const reportRecipientAcountIDs = ReportUtils.getReportRecipientAccountIDs(report, currentUserPersonalDetails.accountID);
     const reportRecipient = personalDetails[reportRecipientAcountIDs[0]];

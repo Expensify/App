@@ -95,7 +95,7 @@ function Suggestions({
             updateShouldShowSuggestionMenuToFalse,
             setShouldBlockSuggestionCalc,
         }),
-        [onSelectionChange, resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse],
+        [onSelectionChange, resetSuggestions, restoreSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse],
     );
 
     const {windowHeight, isSmallScreenWidth} = useWindowDimensions();
