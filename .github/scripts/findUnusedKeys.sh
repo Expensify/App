@@ -104,7 +104,7 @@ lookfor_unused_keywords() {
           fi        
         fi
     done < <(grep -E -o '\bstyles\.[a-zA-Z0-9_.]*' "$file" | grep -v '\/\/' | grep -vE '\/\*.*\*\/')
-  done < <(find $SRC_DIR -type f \( "${FILE_EXTENSIONS[@]}" \))
+  done < <(find "${SRC_DIR}" -type f \( "${FILE_EXTENSIONS[@]}" \))
 }
 
 
@@ -160,7 +160,7 @@ find_utility_styles_store_prefix() {
           
         echo "$variable_trimmed" >> "$UTILITY_STYLES_KEYS_FILE"
     done < <(grep -E -o './utilities/[a-zA-Z0-9_-]+' "$file" | grep -v '\/\/' | grep -vE '\/\*.*\*\/')
-  done < <(find $STYLES_DIR -type f \( "${FILE_EXTENSIONS[@]}" \))
+  done < <(find "${STYLES_DIR}" -type f \( "${FILE_EXTENSIONS[@]}" \))
 
   # Sort and remove duplicates from the temporary file
   sort -u -o "${UTILITY_STYLES_KEYS_FILE}" "${UTILITY_STYLES_KEYS_FILE}"
@@ -180,7 +180,7 @@ find_utility_usage_as_styles() {
     fi
 
     find_styles_and_store_keys "${file}" "${root_key}"
-  done < <(find $UTILITIES_STYLES_FILE -type f \( "${FILE_EXTENSIONS[@]}" \))
+  done < <(find "${UTILITIES_STYLES_FILE}" -type f \( "${FILE_EXTENSIONS[@]}" \))
 }
 
 lookfor_unused_utilities() {
@@ -199,7 +199,7 @@ lookfor_unused_utilities() {
         remove_keyword "${variable}"
         remove_keyword "${match}"
       done < <(grep -E -o "$original_keyword\.[a-zA-Z0-9_-]+" "$file" | grep -v '\/\/' | grep -vE '\/\*.*\*\/')
-    done < <(find $STYLES_DIR -type f \( "${FILE_EXTENSIONS[@]}" \))
+    done < <(find "${STYLES_DIR}" -type f \( "${FILE_EXTENSIONS[@]}" \))
   done < "$UTILITY_STYLES_KEYS_FILE"
 }
 
