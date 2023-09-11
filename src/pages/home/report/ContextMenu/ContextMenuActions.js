@@ -21,6 +21,7 @@ import QuickEmojiReactions from '../../../../components/Reactions/QuickEmojiReac
 import MiniQuickEmojiReactions from '../../../../components/Reactions/MiniQuickEmojiReactions';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../ROUTES';
+import getTaskReportActionMessage from '../../../../libs/getTaskReportActionMessage';
 
 /**
  * Gets the HTML version of the message in an action.
@@ -182,12 +183,11 @@ export default [
         // If return value is true, we switch the `text` and `icon` on
         // `ContextMenuItem` with `successText` and `successIcon` which will fallback to
         // the `text` and `icon`
-        onPress: (closePopover, {reportAction, selection}) => {
+        onPress: (closePopover, {reportAction, selection, translate}) => {
             const isTaskAction = ReportActionsUtils.isTaskAction(reportAction);
             const isReportPreviewAction = ReportActionsUtils.isReportPreviewAction(reportAction);
             const message = _.last(lodashGet(reportAction, 'message', [{}]));
-            const originalMessage = _.get(reportAction, 'originalMessage', {});
-            const messageHtml = isTaskAction ? lodashGet(originalMessage, 'html', '') : lodashGet(message, 'html', '');
+            const messageHtml = isTaskAction ? getTaskReportActionMessage(reportAction, translate) : lodashGet(message, 'html', '');
 
             const isAttachment = _.has(reportAction, 'isAttachment') ? reportAction.isAttachment : ReportUtils.isReportMessageAttachment(message);
             if (!isAttachment) {
