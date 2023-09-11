@@ -1771,17 +1771,17 @@ function payMoneyRequest(paymentType, chatReport, iouReport) {
 function replaceReceipt(transactionID, receipt) {
     const transaction = lodashGet(allTransactions, 'transactionID', {});
     const oldReceipt = lodashGet(transaction, 'receipt', {});
-
+    const filePath = URL.createObjectURL(receipt);
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: {
                 receipt: {
-                    source: receipt.source,
+                    source: filePath,
                     state: CONST.IOU.RECEIPT_STATE.SCANREADY,
                 },
-                filename: receipt.filename,
+                filename: receipt.name,
             },
         },
     ];
