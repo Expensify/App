@@ -124,7 +124,15 @@ function getPolicyName(report, returnEmptyIfNotFound = false, policy = undefined
 
     // Public rooms send back the policy name with the reportSummary,
     // since they can also be accessed by people who aren't in the workspace
-    return lodashGet(finalPolicy, 'name') || report.policyName || report.oldPolicyName || noPolicyFound;
+    const policyName = lodashGet(finalPolicy, 'name') || report.policyName || report.oldPolicyName || noPolicyFound;
+
+    // The SBE and SAASTR policies have the user name in its name, however, we do not want to show that
+    if (lodashGet(finalPolicy, 'owner') === CONST.EMAIL.SBE || lodashGet(finalPolicy, 'owner') === CONST.EMAIL.SAASTR) {
+        const policyNameParts = policyName.split(' ');
+        if (!Str.isValidEmail(policyNameParts[0])) return policyName;
+        return policyNameParts.length > 1 ? policyNameParts.slice(1).join(' ') : policyName;
+    }
+    return policyName;
 }
 
 /**
@@ -634,7 +642,7 @@ function isDM(report) {
  * @returns {Boolean}
  */
 function hasSingleParticipant(report) {
-    return report.participants && report.participants.length === 1;
+    return report.participantAccountIDs && report.participantAccountIDs.length === 1;
 }
 
 /**
@@ -807,7 +815,7 @@ function getRoomWelcomeMessage(report, isUserPolicyAdmin) {
  * @returns {Boolean}
  */
 function chatIncludesConcierge(report) {
-    return report.participantAccountIDs && _.contains(report.participantAccountIDs, CONST.ACCOUNT_ID.CONCIERGE);
+    return !_.isEmpty(report.participantAccountIDs) && _.contains(report.participantAccountIDs, CONST.ACCOUNT_ID.CONCIERGE);
 }
 
 /**
@@ -1410,9 +1418,10 @@ function getTransactionReportName(reportAction) {
  *
  * @param {Object} report
  * @param {Object} [reportAction={}]
+ * @param {Boolean} [shouldConsiderReceiptBeingScanned=false]
  * @returns  {String}
  */
-function getReportPreviewMessage(report, reportAction = {}) {
+function getReportPreviewMessage(report, reportAction = {}, shouldConsiderReceiptBeingScanned = false) {
     const reportActionMessage = lodashGet(reportAction, 'message[0].html', '');
 
     if (_.isEmpty(report) || !report.reportID) {
@@ -1427,6 +1436,14 @@ function getReportPreviewMessage(report, reportAction = {}) {
 
     if (isReportApproved(report) && getPolicyType(report, allPolicies) === CONST.POLICY.TYPE.CORPORATE) {
         return `approved ${formattedAmount}`;
+    }
+
+    if (shouldConsiderReceiptBeingScanned && ReportActionsUtils.isMoneyRequestAction(reportAction)) {
+        const linkedTransaction = TransactionUtils.getLinkedTransaction(reportAction);
+
+        if (!_.isEmpty(linkedTransaction) && TransactionUtils.hasReceipt(linkedTransaction) && TransactionUtils.isReceiptBeingScanned(linkedTransaction)) {
+            return Localize.translateLocal('iou.receiptScanning');
+        }
     }
 
     if (isSettled(report.reportID)) {

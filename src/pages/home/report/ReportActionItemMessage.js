@@ -23,6 +23,9 @@ const propTypes = {
     /** Whether or not the message is hidden by moderation */
     isHidden: PropTypes.bool,
 
+    /** The ID of the report */
+    reportID: PropTypes.string.isRequired,
+
     /** localization props */
     ...withLocalizePropTypes,
 };
@@ -53,7 +56,7 @@ function ReportActionItemMessage(props) {
                         fragment={fragment}
                         isAttachment={props.action.isAttachment}
                         iouMessage={iouMessage}
-                        hasCommentThread={ReportActionsUtils.hasCommentThread(props.action)}
+                        isThreadParentMessage={ReportActionsUtils.isThreadParentMessage(props.action, props.reportID)}
                         attachmentInfo={props.action.attachmentInfo}
                         pendingAction={props.action.pendingAction}
                         source={lodashGet(props.action, 'originalMessage.source')}
