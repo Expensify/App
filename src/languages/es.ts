@@ -68,6 +68,9 @@ import type {
     OOOEventSummaryPartialDayParams,
     ParentNavigationSummaryParams,
     ManagerApprovedParams,
+    SetTheRequestParams,
+    UpdatedTheRequestParams,
+    RemovedTheRequestParams,
 } from './types';
 
 /* eslint-disable max-len */
@@ -525,6 +528,12 @@ export default {
         paidUsingExpensifyWithAmount: ({amount}: PaidUsingExpensifyWithAmountParams) => `pagó ${amount} con Expensify`,
         noReimbursableExpenses: 'El importe de este informe no es válido',
         pendingConversionMessage: 'El total se actualizará cuando estés online',
+        changedTheRequest: 'cambió la solicitud',
+        setTheRequest: ({valueName, newValueToDisplay}: SetTheRequestParams) => `estableció ${valueName === 'comerciante' ? 'el' : 'la'} ${valueName} a ${newValueToDisplay}`,
+        removedTheRequest: ({valueName, oldValueToDisplay}: RemovedTheRequestParams) =>
+            `eliminó ${valueName === 'comerciante' ? 'el' : 'la'} ${valueName} (previamente ${oldValueToDisplay})`,
+        updatedTheRequest: ({valueName, newValueToDisplay, oldValueToDisplay}: UpdatedTheRequestParams) =>
+            `cambío ${valueName === 'comerciante' ? 'el' : 'la'} ${valueName} a ${newValueToDisplay} (previamente ${oldValueToDisplay})`,
         threadRequestReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `Solicitud de ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         threadSentMoneyReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} enviado${comment ? ` para ${comment}` : ''}`,
         tagSelection: 'Seleccione una etiqueta para agregar una organización adicional a tu dinero.',
