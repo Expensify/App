@@ -52,7 +52,11 @@ function MoneyRequestParticipantsPage(props) {
     const isNewReportIDSelectedLocally = useRef(false);
     const isDistanceRequest = MoneyRequestUtils.isDistanceRequest(iouType.current, props.selectedTab);
 
-    const navigateToNextStep = (option) => {
+    const splitNavigateToNextStep = () => {
+        Navigation.navigate(ROUTES.getMoneyRequestConfirmationRoute(iouType.current, reportID.current));
+    };
+
+    const moneyRequestNavigateToNextStep = (option) => {
         isNewReportIDSelectedLocally.current = true;
 
         IOU.setMoneyRequestId(`${iouType.current}${option.reportID}`);
@@ -101,14 +105,14 @@ function MoneyRequestParticipantsPage(props) {
                     />
                     {iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT ? (
                         <MoneyRequestParticipantsSplitSelector
-                            onStepComplete={navigateToNextStep}
+                            onStepComplete={splitNavigateToNextStep}
                             participants={props.iou.participants}
                             onAddParticipants={IOU.setMoneyRequestParticipants}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                         />
                     ) : (
                         <MoneyRequestParticipantsSelector
-                            onStepComplete={navigateToNextStep}
+                            onStepComplete={moneyRequestNavigateToNextStep}
                             onAddParticipants={IOU.setMoneyRequestParticipants}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                             iouType={iouType.current}
