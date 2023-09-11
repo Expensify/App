@@ -539,7 +539,7 @@ function getMoneyRequestInformation(
  * @param {String} currency
  * @param {String} merchant
  */
-function createDistanceRequest(report, participant, comment, created, transactionID, category = undefined, amount, currency, merchant) {
+function createDistanceRequest(report, participant, comment, created, transactionID, category, amount, currency, merchant) {
     const optimisticReceipt = {
         source: ReceiptGeneric,
         state: CONST.IOU.RECEIPT_STATE.OPEN,
