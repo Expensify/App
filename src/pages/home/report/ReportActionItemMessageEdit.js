@@ -130,8 +130,16 @@ function ReportActionItemMessageEdit(props) {
         return () => {
             // Skip if this is not the focused message so the other edit composer stays focused.
             // In small screen devices, when EmojiPicker is shown, the current edit message will lose focus, we need to check this case as well.
-            if (!isFocusedRef.current && !EmojiPickerAction.isActive(props.action.reportActionID)) {
+            // When delete modal is opened, the current edit message will lose focus, we need to check this case as well
+            if (!isFocusedRef.current && !EmojiPickerAction.isActive(props.action.reportActionID) && !ReportActionContextMenu.isActiveReportAction(props.action.reportActionID)) {
                 return;
+            }
+
+            if (EmojiPickerAction.isActiveReportAction(props.action.reportActionID)) {
+                EmojiPickerAction.clearActiveReportAction();
+            }
+            if (ReportActionContextMenu.isActiveReportAction(props.action.reportActionID)) {
+                ReportActionContextMenu.clearActiveReportAction();
             }
 
             // Show the main composer when the focused message is deleted from another client
@@ -210,7 +218,17 @@ function ReportActionItemMessageEdit(props) {
     const deleteDraft = useCallback(() => {
         debouncedSaveDraft.cancel();
         Report.saveReportActionDraft(props.reportID, props.action.reportActionID, '');
-        setShouldShowComposeInputKeyboardAware(true);
+
+        if (isFocusedRef.current || EmojiPickerAction.isActive(props.action.reportActionID) || ReportActionContextMenu.isActiveReportAction(props.action.reportActionID)) {
+            setShouldShowComposeInputKeyboardAware(true);
+            if (EmojiPickerAction.isActive(props.action.reportActionID)) {
+                EmojiPickerAction.clearActive();
+            }
+            if (ReportActionContextMenu.isActiveReportAction(props.action.reportActionID)) {
+                ReportActionContextMenu.clearActiveReportAction();
+            }
+        }
+
         ReportActionComposeFocusManager.clear();
         ReportActionComposeFocusManager.focus();
 
@@ -355,6 +373,14 @@ function ReportActionItemMessageEdit(props) {
                                 setIsFocused(true);
                                 reportScrollManager.scrollToIndex({animated: true, index: props.index}, true);
                                 setShouldShowComposeInputKeyboardAware(false);
+
+                                // Clear active report action when another action gets focused
+                                if (!EmojiPickerAction.isActive(props.action.reportActionID)) {
+                                    EmojiPickerAction.clearActive();
+                                }
+                                if (!ReportActionContextMenu.isActiveReportAction(props.action.reportActionID)) {
+                                    ReportActionContextMenu.clearActiveReportAction();
+                                }
                             }}
                             onBlur={(event) => {
                                 setIsFocused(false);
