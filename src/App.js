@@ -22,9 +22,10 @@ import ThemeProvider from './styles/themes/ThemeProvider';
 import ThemeStylesProvider from './styles/ThemeStylesProvider';
 import {CurrentReportIDContextProvider} from './components/withCurrentReportID';
 import {EnvironmentProvider} from './components/withEnvironment';
+import {ReportAttachmentsProvider} from './pages/home/report/ReportAttachmentsContext';
 import * as Session from './libs/actions/Session';
 import useDefaultDragAndDrop from './hooks/useDefaultDragAndDrop';
-import {ReportAttachmentsProvider} from './pages/home/report/ReportAttachmentsContext';
+import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
 
 // For easier debugging and development, when we are in web we expose Onyx to the window, so you can more easily set data into Onyx
 if (window && Environment.isDevelopment()) {
@@ -43,6 +44,7 @@ const fill = {flex: 1};
 
 function App() {
     useDefaultDragAndDrop();
+    OnyxUpdateManager();
     return (
         <GestureHandlerRootView style={fill}>
             <ComposeProviders

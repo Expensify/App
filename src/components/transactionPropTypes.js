@@ -68,7 +68,7 @@ export default PropTypes.shape({
     /** The receipt object associated with the transaction */
     receipt: PropTypes.shape({
         receiptID: PropTypes.number,
-        source: PropTypes.string,
+        source: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
         state: PropTypes.string,
     }),
 
