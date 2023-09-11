@@ -137,12 +137,11 @@ class BaseInvertedFlatList extends Component {
                 // Web requires that items be measured or else crazy things happen when scrolling.
                 getItemLayout={this.props.shouldMeasureItems ? this.getItemLayout : undefined}
                 // We keep this property very low so that chat switching remains fast
-                maxToRenderPerBatch={1}
+                maxToRenderPerBatch={5}
                 windowSize={15}
 
                 // Commenting the line below as it breaks the unread indicator test
                 // we will look at fixing/reusing this after RN v0.72
-                // maintainVisibleContentPosition={{minIndexForVisible: 0, autoscrollToTopThreshold: 0}}
                 maintainVisibleContentPosition={{
                     minIndexForVisible: 0,
                 }}

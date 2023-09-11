@@ -133,29 +133,17 @@ function ReportActionsView(props) {
         }
     }, [props.report, didSubscribeToReportTypingEvents, reportID]);
 
-    const {oldestReportAction, newestReportAction} = useMemo(() => {
-        const lengthOfReportActions = props.reportActions.length;
-        if (lengthOfReportActions === 0) {
-          return {
-              oldestReportAction: null,
-              newestReportAction: null,
-          };
-        }
-        return {
-            oldestReportAction: props.reportActions[0],
-            newestReportAction: props.reportActions[lengthOfReportActions - 1],
-        };
-    }, [props.reportActions]);
-
     /**
      * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
      * displaying.
      */
-    const loadOlderChats = useCallback(() => {
+    const loadOlderChats = () => {
         // Only fetch more if we are not already fetching so that we don't initiate duplicate requests.
         if (props.report.isLoadingOlderReportActions) {
             return;
         }
+
+        const oldestReportAction = _.last(props.reportActions);
 
         // Don't load more chats if we're already at the beginning of the chat history
         if (oldestReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
@@ -163,21 +151,23 @@ function ReportActionsView(props) {
         }
         // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments
         Report.getOlderAction(reportID, oldestReportAction.reportActionID);
-    }, [props.report.isLoadingOlderReportActions, oldestReportAction]);
+    };
 
     /**
      * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
      * displaying.
      */
-    const loadNewerChats = useCallback(() => {
+    const loadNewerChats = () => {
         // Only fetch more if we are not already fetching so that we don't initiate duplicate requests.
         if (props.report.isLoadingNewerReportActions || isFirstRender.current || props.report.isLoadingReportActions || props.report.isLoadingOlderReportActions) {
             isFirstRender.current = false;
             return;
         }
 
+        const newestReportAction = _.first(props.reportActions);
+
         Report.getNewerAction(reportID, newestReportAction.reportActionID);
-    }, [props.report.isLoadingNewerReportActions, props.report.isLoadingReportActions, props.report.isLoadingOlderReportActions, props.reportActions, newestReportAction]);
+    };
 
     /**
      * Runs when the FlatList finishes laying out

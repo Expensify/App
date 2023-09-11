@@ -323,6 +323,13 @@ function ReportActionsList({
 
                         return null;
                     }}
+                    ListHeaderComponent={() => {
+                        if (report.isLoadingOlderReportActions) {
+                            return <ReportActionsSkeletonView containerHeight={CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT * 3} />;
+                        }
+
+                        return null;
+                    }}
                     keyboardShouldPersistTaps="handled"
                     onLayout={(event) => {
                         setSkeletonViewHeight(event.nativeEvent.layout.height);
