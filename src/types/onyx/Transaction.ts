@@ -8,13 +8,15 @@ type Comment = {
     waypoints?: Record<string, RecentWaypoints>;
 };
 
+type GeometryType = 'LineString' | '';
+
 type Geometry = {
     coordinates: number[][] | null;
-    type: 'LineString';
+    type: GeometryType;
 };
 
 type Route = {
-    distance: number;
+    distance: number | null;
     geometry: Geometry;
 };
 

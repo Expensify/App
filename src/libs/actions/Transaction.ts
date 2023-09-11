@@ -126,7 +126,7 @@ function removeWaypoint(transactionID: string, currentIndex: string) {
     // Onyx.merge won't remove the null nested object values, this is a workaround
     // to remove nested keys while also preserving other object keys
     // Doing a deep clone of the transaction to avoid mutating the original object and running into a cache issue when using Onyx.set
-    const newTransaction = {
+    const newTransaction: Transaction = {
         ...transaction,
         comment: {
             ...transaction.comment,
@@ -135,8 +135,10 @@ function removeWaypoint(transactionID: string, currentIndex: string) {
         // Clear the existing route so that we don't show an old route
         routes: {
             route0: {
+                distance: null,
                 geometry: {
                     coordinates: null,
+                    type: '',
                 },
             },
         },
