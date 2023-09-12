@@ -87,7 +87,6 @@ function CountrySelectorModal({currentCountry, isVisible, onClose, onCountrySele
                     sections={[{data: searchResults, indexOffset: 0}]}
                     onSelectRow={onCountrySelected}
                     onChangeText={setSearchValue}
-                    shouldDelayFocus
                     initiallyFocusedOptionKey={currentCountry}
                 />
             </ScreenWrapper>

@@ -37,6 +37,7 @@ import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import {iouPropTypes} from '../pages/iou/propTypes';
 import reportPropTypes from '../pages/reportPropTypes';
 import * as IOU from '../libs/actions/IOU';
+import * as StyleUtils from '../styles/StyleUtils';
 
 const MAX_WAYPOINTS = 25;
 const MAX_WAYPOINTS_TO_DISPLAY = 4;
@@ -90,7 +91,7 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
 
     const lastWaypointIndex = numberOfWaypoints - 1;
     const isLoadingRoute = lodashGet(transaction, 'comment.isLoading', false);
-    const hasRouteError = lodashHas(transaction, 'errorFields.route');
+    const hasRouteError = !!lodashGet(transaction, 'errorFields.route');
     const haveWaypointsChanged = !_.isEqual(previousWaypoints, waypoints);
     const doesRouteExist = lodashHas(transaction, 'routes.route0.geometry.coordinates');
     const validatedWaypoints = TransactionUtils.getValidWaypoints(waypoints);
@@ -103,7 +104,7 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
                         return;
                     }
 
-                    const index = Number(key.replace('waypoint', ''));
+                    const index = TransactionUtils.getWaypointIndex(key);
                     let MarkerComponent;
                     if (index === 0) {
                         MarkerComponent = Expensicons.DotIndicatorUnfilled;
@@ -131,8 +132,8 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
     );
 
     // Show up to the max number of waypoints plus 1/2 of one to hint at scrolling
-    const halfMenuItemHeight = Math.floor(variables.baseMenuItemHeight / 2);
-    const scrollContainerMaxHeight = variables.baseMenuItemHeight * MAX_WAYPOINTS_TO_DISPLAY + halfMenuItemHeight;
+    const halfMenuItemHeight = Math.floor(variables.optionRowHeight / 2);
+    const scrollContainerMaxHeight = variables.optionRowHeight * MAX_WAYPOINTS_TO_DISPLAY + halfMenuItemHeight;
 
     useEffect(() => {
         MapboxToken.init();
@@ -163,7 +164,7 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
     useEffect(updateGradientVisibility, [scrollContainerHeight, scrollContentHeight]);
 
     return (
-        <ScrollView contentContainerStyle={styles.flex1}>
+        <ScrollView contentContainerStyle={styles.flexGrow1}>
             <View
                 style={styles.distanceRequestContainer(scrollContainerMaxHeight)}
                 onLayout={(event = {}) => setScrollContainerHeight(lodashGet(event, 'nativeEvent.layout.height', 0))}
@@ -176,12 +177,12 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
                         setScrollContentHeight(height);
                     }}
                     onScroll={updateGradientVisibility}
-                    scrollEventThrottle={16}
+                    scrollEventThrottle={variables.distanceScrollEventThrottle}
                     ref={scrollViewRef}
                 >
                     {_.map(waypoints, (waypoint, key) => {
                         // key is of the form waypoint0, waypoint1, ...
-                        const index = Number(key.replace('waypoint', ''));
+                        const index = TransactionUtils.getWaypointIndex(key);
                         let descriptionKey = 'distance.waypointDescription.';
                         let waypointIcon;
                         if (index === 0) {
@@ -212,7 +213,7 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
                 {shouldShowGradient && (
                     <LinearGradient
                         style={[styles.pAbsolute, styles.b0, styles.l0, styles.r0, {height: halfMenuItemHeight}]}
-                        colors={[theme.transparent, theme.modalBackground]}
+                        colors={[StyleUtils.getTransparentColor(theme.modalBackground), theme.modalBackground]}
                     />
                 )}
                 {hasRouteError && (
@@ -263,7 +264,7 @@ function DistanceRequest({iou, iouType, report, transaction, mapboxAccessToken})
                 success
                 style={[styles.w100, styles.mb4, styles.ph4, styles.flexShrink0]}
                 onPress={() => IOU.navigateToNextPage(iou, iouType, reportID, report)}
-                isDisabled={_.size(validatedWaypoints) < 2}
+                isDisabled={_.size(validatedWaypoints) < 2 || hasRouteError || isOffline}
                 text={translate('common.next')}
             />
         </ScrollView>
