@@ -148,7 +148,7 @@ function ReportActionItemMessageEdit(props) {
             // to prevent the main composer stays hidden until we swtich to another chat.
             setShouldShowComposeInputKeyboardAware(true);
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps - this cleanup needs to be called only on unmount
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- this cleanup needs to be called only on unmount
     }, [props.action.reportActionID]);
 
     /**
@@ -223,15 +223,8 @@ function ReportActionItemMessageEdit(props) {
         Report.saveReportActionDraft(props.reportID, props.action.reportActionID, '');
 
         if (isActive()) {
-            setShouldShowComposeInputKeyboardAware(true);
             ReportActionComposeFocusManager.clear();
             ReportActionComposeFocusManager.focus();
-            if (EmojiPickerAction.isActive(props.action.reportActionID)) {
-                EmojiPickerAction.clearActive();
-            }
-            if (ReportActionContextMenu.isActiveReportAction(props.action.reportActionID)) {
-                ReportActionContextMenu.clearActiveReportAction();
-            }
         }
 
         // Scroll to the last comment after editing to make sure the whole comment is clearly visible in the report.
