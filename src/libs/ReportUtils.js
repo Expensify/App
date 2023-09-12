@@ -3481,7 +3481,7 @@ function navigateToPrivateNotesPage(report, accountID) {
     }
 
     // Default the accountID to current user's accountID in case it is empty
-    Navigation.navigate(ROUTES.getPrivateNotesRoute(report.reportID, _.isEmpty(accountID) ? currentUserAccountID : accountID));
+    Navigation.navigate(ROUTES.getPrivateNotesViewRoute(report.reportID, _.isEmpty(accountID) ? currentUserAccountID : accountID));
 }
 
 /**

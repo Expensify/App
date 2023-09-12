@@ -74,6 +74,7 @@ const defaultProps = {
     title: '',
     numberOfLinesTitle: 1,
     shouldGreyOutWhenDisabled: true,
+    shouldRenderAsHTML: false,
 };
 
 const MenuItem = React.forwardRef((props, ref) => {

@@ -218,8 +218,9 @@ export default {
                     },
                     Private_Notes: {
                         screens: {
-                            PrivateNotes_Root: ROUTES.PRIVATE_NOTES,
+                            PrivateNotes_View: ROUTES.PRIVATE_NOTES_VIEW,
                             PrivateNotes_List: ROUTES.PRIVATE_NOTES_LIST,
+                            PrivateNotes_Edit: ROUTES.PRIVATE_NOTES_EDIT,
                         },
                     },
                     Report_Details: {

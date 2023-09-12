@@ -766,10 +766,10 @@ const EditRequestStackNavigator = createModalStackNavigator([
 const PrivateNotesModalStackNavigator = createModalStackNavigator([
     {
         getComponent: () => {
-            const PrivateNotesPage = require('../../../pages/PrivateNotes/PrivateNotesPage').default;
+            const PrivateNotesPage = require('../../../pages/PrivateNotes/PrivateNotesViewPage').default;
             return PrivateNotesPage;
         },
-        name: 'PrivateNotes_Root',
+        name: 'PrivateNotes_View',
     },
     {
         getComponent: () => {

@@ -57,10 +57,9 @@ const defaultProps = {
     personalDetailsList: {},
 };
 
-function PrivateNotesPage({route, personalDetailsList, session, report}) {
+function PrivateNotesEditPage({route, personalDetailsList, session, report}) {
     const {translate} = useLocalize();
     const [privateNote, setPrivateNote] = useState(lodashGet(report, ['privateNotes', route.params.accountID, 'note'], ''));
-    const [editMode, setEditMode] = useState(_.isEmpty(privateNote));
     const isCurrentUserNote = Number(session.accountID) === Number(route.params.accountID);
 
     const savePrivateNote = () => {
@@ -77,28 +76,19 @@ function PrivateNotesPage({route, personalDetailsList, session, report}) {
         setEditMode(false);
     };
 
-    const switchToEditMode = () => {
-        if (!isCurrentUserNote) {
-            return;
-        }
-        // Every time we switch to edit mode we want to render the content in the markdown format
-        const parser = new ExpensiMark();
-        setPrivateNote(parser.htmlToMarkdown(privateNote).trim());
-        setEditMode(true);
-    };
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <FullPageNotFoundView
                 shouldShow={_.isEmpty(report) || _.isEmpty(report.privateNotes) || !_.has(report, ['privateNotes', route.params.accountID, 'note'])}
                 subtitleKey="privateNotes.notesUnavailable"
-                onBackButtonPress={() => Navigation.goBack(ROUTES.PRIVATE_NOTES_LIST)}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.PRIVATE_NOTES_VIEW)}
             >
                 <HeaderWithBackButton
                     title={translate('privateNotes.title')}
-                    subtitle={isCurrentUserNote ? 'My note' : `${lodashGet(personalDetailsList, [route.params.accountID, 'login'], '')} note`}
+                    subtitle="My note"
                     shouldShowBackButton
                     onCloseButtonPress={() => Navigation.dismissModal()}
-                    onBackButtonPress={() => Navigation.goBack()}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.PRIVATE_NOTES_VIEW)}
                 />
                 <View style={[styles.flexGrow1, styles.ph5]}>
                     <View style={[styles.mb5]}>
@@ -110,57 +100,38 @@ function PrivateNotesPage({route, personalDetailsList, session, report}) {
                             )}
                         </Text>
                     </View>
-
-                    {editMode ? (
-                        <Form
-                            formID={ONYXKEYS.FORMS.PRIVATE_NOTES_FORM}
-                            onSubmit={savePrivateNote}
-                            submitButtonText={translate('common.save')}
-                            enabledWhenOffline
-                        >
-                            <View style={[styles.mb3]}>
-                                <TextInput
-                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                                    inputID="privateNotes"
-                                    label={translate('privateNotes.composerLabel')}
-                                    accessibilityLabel={translate('privateNotes.title')}
-                                    autoCompleteType="off"
-                                    autoCorrect={false}
-                                    autoGrowHeight
-                                    textAlignVertical="top"
-                                    containerStyles={[styles.autoGrowHeightMultilineInput]}
-                                    defaultValue={privateNote}
-                                    value={privateNote}
-                                    onChangeText={(text) => setPrivateNote(text)}
-                                />
-                            </View>
-                        </Form>
-                    ) : (
-                        <PressableWithoutFeedback
-                            accessibilityLabel={translate('common.edit')}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.Button}
-                            onPress={switchToEditMode}
-                        >
-                            <OfflineWithFeedback
-                                errors={{
-                                    ...lodashGet(report, ['privateNotes', route.params.accountID, 'errors'], ''),
-                                }}
-                                pendingAction={lodashGet(report, ['privateNotes', route.params.accountID, 'pendingAction'], '')}
-                                onClose={() => Report.clearPrivateNotesError(report.reportID, route.params.accountID)}
-                            >
-                                <RenderHTML html={privateNote} />
-                            </OfflineWithFeedback>
-                        </PressableWithoutFeedback>
-                    )}
+                    <Form
+                        formID={ONYXKEYS.FORMS.PRIVATE_NOTES_FORM}
+                        onSubmit={savePrivateNote}
+                        submitButtonText={translate('common.save')}
+                        enabledWhenOffline
+                    >
+                        <View style={[styles.mb3]}>
+                            <TextInput
+                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                                inputID="privateNotes"
+                                label={translate('privateNotes.composerLabel')}
+                                accessibilityLabel={translate('privateNotes.title')}
+                                autoCompleteType="off"
+                                autoCorrect={false}
+                                autoGrowHeight
+                                textAlignVertical="top"
+                                containerStyles={[styles.autoGrowHeightMultilineInput]}
+                                defaultValue={privateNote}
+                                value={privateNote}
+                                onChangeText={(text) => setPrivateNote(text)}
+                            />
+                        </View>
+                    </Form>
                 </View>
             </FullPageNotFoundView>
         </ScreenWrapper>
     );
 }
 
-PrivateNotesPage.displayName = 'PrivateNotesPage';
-PrivateNotesPage.propTypes = propTypes;
-PrivateNotesPage.defaultProps = defaultProps;
+PrivateNotesEditPage.displayName = 'PrivateNotesEditPage';
+PrivateNotesEditPage.propTypes = propTypes;
+PrivateNotesEditPage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
@@ -175,4 +146,4 @@ export default compose(
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
     }),
-)(PrivateNotesPage);
+)(PrivateNotesEditPage);
