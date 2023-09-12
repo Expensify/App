@@ -19,7 +19,6 @@ import reportPropTypes from './reportPropTypes';
 import * as IOU from '../libs/actions/IOU';
 import * as CurrencyUtils from '../libs/CurrencyUtils';
 import EditRequestDistancePage from './EditRequestDistancePage';
-import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
 
 const propTypes = {
     /** Route from navigation */
@@ -183,7 +182,7 @@ function EditRequestPage({report, route, parentReport, policy, session}) {
         );
     }
 
-    return <FullPageNotFoundView shouldShow />;
+    return null;
 }
 
 EditRequestPage.displayName = 'EditRequestPage';
