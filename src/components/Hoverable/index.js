@@ -36,13 +36,20 @@ class Hoverable extends Component {
          */
         if (!this.scrollingListener && this.props.shouldHandleScroll) {
             this.scrollingListener = DeviceEventEmitter.addListener(CONST.EVENTS.SCROLLING, (scrolling) => {
-                this.isScrollingRef = scrolling;
                 /**
                  * If user has stopped scrolling and the isHoveredRef is true, then we should update the hover state. 
                  */
                 if (!scrolling && this.isHoveredRef) {
                     this.setState({isHovered: this.isHoveredRef}, this.props.onHoverIn);
+                } else if (scrolling && this.isHoveredRef) {
+                    /**
+                     * If the user has started scrolling and the isHoveredRef is true, then we should set the hover state to false.
+                     * This is to hide the existing hover and reaction bar.
+                     */
+                    this.isHoveredRef = false;
+                    this.setState({isHovered: false}, this.props.onHoverOut);
                 }
+                this.isScrollingRef = scrolling;
             });
         }
     }
@@ -80,6 +87,7 @@ class Hoverable extends Component {
          * We will use this to determine if we should update the hover state when the user has stopped scrolling.
          */
         this.isHoveredRef = isHovered;
+
         /**
          * If the isScrollingRef is true, then the user is scrolling and we should not update the hover state.
          */
