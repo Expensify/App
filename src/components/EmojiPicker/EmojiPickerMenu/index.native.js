@@ -20,6 +20,7 @@ import TextInput from '../../TextInput';
 import CategoryShortcutBar from '../CategoryShortcutBar';
 import * as ActionSheetAwareScrollView from '../../ActionSheetAwareScrollView';
 import * as StyleUtils from '../../../styles/StyleUtils';
+import useSingleExecution from '../../../hooks/useSingleExecution';
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
@@ -50,6 +51,7 @@ function EmojiPickerMenu({preferredLocale, onEmojiSelected, preferredSkinTone, t
     const [filteredEmojis, setFilteredEmojis] = useState(allEmojis);
     const [headerIndices, setHeaderIndices] = useState(headerRowIndices);
     const {windowWidth} = useWindowDimensions();
+    const {singleExecution} = useSingleExecution();
 
     useEffect(() => {
         setFilteredEmojis(allEmojis);
@@ -151,7 +153,7 @@ function EmojiPickerMenu({preferredLocale, onEmojiSelected, preferredSkinTone, t
 
         return (
             <EmojiPickerMenuItem
-                onPress={(emoji) => addToFrequentAndSelectEmoji(emoji, item)}
+                onPress={singleExecution((emoji) => addToFrequentAndSelectEmoji(emoji, item))}
                 emoji={emojiCode}
             />
         );

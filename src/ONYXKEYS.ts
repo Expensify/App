@@ -142,11 +142,11 @@ const ONYXKEYS = {
     /** The user's bank accounts */
     BANK_ACCOUNT_LIST: 'bankAccountList',
 
-    /** The user's credit cards (renamed from cardList) */
+    /** The user's payment and P2P cards */
     FUND_LIST: 'fundList',
 
-    // The user's Expensify cards
-    CORPORATE_CARD_LIST: 'corporateCardList',
+    /** The user's cash card and imported cards (including the Expensify Card) */
+    CARD_LIST: 'cardList',
 
     /** Stores information about the user's saved statements */
     WALLET_STATEMENT: 'walletStatement',
@@ -215,9 +215,6 @@ const ONYXKEYS = {
     // The last update ID that was applied to the client
     ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT: 'OnyxUpdatesLastUpdateIDAppliedToClient',
 
-    // Manual request tab selector
-    SELECTED_TAB: 'selectedTab',
-
     // Receipt upload modal
     RECEIPT_MODAL: 'receiptModal',
 
@@ -242,6 +239,7 @@ const ONYXKEYS = {
         POLICY: 'policy_',
         POLICY_MEMBERS: 'policyMembers_',
         POLICY_CATEGORIES: 'policyCategories_',
+        POLICY_RECENTLY_USED_CATEGORIES: 'policyRecentlyUsedCategories_',
         WORKSPACE_INVITE_MEMBERS_DRAFT: 'workspaceInviteMembersDraft_',
         REPORT: 'report_',
         REPORT_ACTIONS: 'reportActions_',
@@ -253,6 +251,9 @@ const ONYXKEYS = {
         REPORT_USER_IS_TYPING: 'reportUserIsTyping_',
         SECURITY_GROUP: 'securityGroup_',
         TRANSACTION: 'transactions_',
+
+        // Manual request tab selector
+        SELECTED_TAB: 'selectedTab_',
 
         /** This is deprecated, but needed for a migration, so we still need to include it here so that it will be initialized in Onyx.init */
         DEPRECATED_POLICY_MEMBER_LIST: 'policyMemberList_',
@@ -341,7 +342,8 @@ type OnyxValues = {
     [ONYXKEYS.WALLET_ADDITIONAL_DETAILS]: OnyxTypes.WalletAdditionalDetails;
     [ONYXKEYS.WALLET_TERMS]: OnyxTypes.WalletTerms;
     [ONYXKEYS.BANK_ACCOUNT_LIST]: Record<string, OnyxTypes.BankAccount>;
-    [ONYXKEYS.FUND_LIST]: Record<string, OnyxTypes.Card>;
+    [ONYXKEYS.FUND_LIST]: Record<string, OnyxTypes.Fund>;
+    [ONYXKEYS.CARD_LIST]: Record<string, OnyxTypes.Card>;
     [ONYXKEYS.WALLET_STATEMENT]: OnyxTypes.WalletStatement;
     [ONYXKEYS.PERSONAL_BANK_ACCOUNT]: OnyxTypes.PersonalBankAccount;
     [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: OnyxTypes.ReimbursementAccount;
@@ -362,10 +364,9 @@ type OnyxValues = {
     [ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID]: string;
     [ONYXKEYS.PREFERRED_THEME]: ValueOf<typeof CONST.THEME>;
     [ONYXKEYS.IS_USING_MEMORY_ONLY_KEYS]: boolean;
-    [ONYXKEYS.SELECTED_TAB]: string;
     [ONYXKEYS.RECEIPT_MODAL]: OnyxTypes.ReceiptModal;
     [ONYXKEYS.MAPBOX_ACCESS_TOKEN]: OnyxTypes.MapboxAccessToken;
-    [ONYXKEYS.ONYX_UPDATES_FROM_SERVER]: number;
+    [ONYXKEYS.ONYX_UPDATES_FROM_SERVER]: OnyxTypes.OnyxUpdatesFromServer;
     [ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT]: number;
     [ONYXKEYS.MAX_CANVAS_AREA]: number;
     [ONYXKEYS.MAX_CANVAS_HEIGHT]: number;
@@ -376,6 +377,7 @@ type OnyxValues = {
     [ONYXKEYS.COLLECTION.POLICY]: OnyxTypes.Policy;
     [ONYXKEYS.COLLECTION.POLICY_CATEGORIES]: unknown;
     [ONYXKEYS.COLLECTION.POLICY_MEMBERS]: OnyxTypes.PolicyMember;
+    [ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES]: OnyxTypes.RecentlyUsedCategories;
     [ONYXKEYS.COLLECTION.DEPRECATED_POLICY_MEMBER_LIST]: OnyxTypes.PolicyMember;
     [ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT]: Record<string, number>;
     [ONYXKEYS.COLLECTION.REPORT]: OnyxTypes.Report;
@@ -388,6 +390,7 @@ type OnyxValues = {
     [ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING]: boolean;
     [ONYXKEYS.COLLECTION.SECURITY_GROUP]: OnyxTypes.SecurityGroup;
     [ONYXKEYS.COLLECTION.TRANSACTION]: OnyxTypes.Transaction;
+    [ONYXKEYS.COLLECTION.SELECTED_TAB]: string;
 
     // Forms
     [ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM]: OnyxTypes.AddDebitCardForm;

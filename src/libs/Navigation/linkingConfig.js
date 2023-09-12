@@ -12,11 +12,15 @@ export default {
             ValidateLogin: ROUTES.VALIDATE_LOGIN,
             UnlinkLogin: ROUTES.UNLINK_LOGIN,
             [SCREENS.TRANSITION_BETWEEN_APPS]: ROUTES.TRANSITION_BETWEEN_APPS,
-            Concierge: ROUTES.CONCIERGE,
+            [SCREENS.CONCIERGE]: ROUTES.CONCIERGE,
             AppleSignInDesktop: ROUTES.APPLE_SIGN_IN,
             GoogleSignInDesktop: ROUTES.GOOGLE_SIGN_IN,
-            DesktopSignInRedirect: ROUTES.DESKTOP_SIGN_IN_REDIRECT,
+            [SCREENS.DESKTOP_SIGN_IN_REDIRECT]: ROUTES.DESKTOP_SIGN_IN_REDIRECT,
             [SCREENS.REPORT_ATTACHMENTS]: ROUTES.REPORT_ATTACHMENTS,
+
+            // Demo routes
+            [CONST.DEMO_PAGES.SAASTR]: ROUTES.SAASTR,
+            [CONST.DEMO_PAGES.SBE]: ROUTES.SBE,
 
             // Sidebar
             [SCREENS.HOME]: {
@@ -26,15 +30,9 @@ export default {
             [NAVIGATORS.CENTRAL_PANE_NAVIGATOR]: {
                 screens: {
                     [SCREENS.REPORT]: ROUTES.REPORT_WITH_ID,
-                    [CONST.DEMO_PAGES.SAASTR]: ROUTES.SAASTR,
-                    [CONST.DEMO_PAGES.SBE]: ROUTES.SBE,
                 },
             },
-            [NAVIGATORS.FULL_SCREEN_NAVIGATOR]: {
-                screens: {
-                    [SCREENS.NOT_FOUND]: '*',
-                },
-            },
+            [SCREENS.NOT_FOUND]: '*',
 
             [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: {
                 screens: {

@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import stylePropTypes from '../../styles/stylePropTypes';
+import sourcePropTypes from './sourcePropTypes';
 import RESIZE_MODES from './resizeModes';
 
 const imagePropTypes = {
@@ -7,14 +8,7 @@ const imagePropTypes = {
     style: stylePropTypes,
 
     /** The static asset or URI source of the image */
-    source: PropTypes.oneOfType([
-        PropTypes.number,
-        PropTypes.shape({
-            uri: PropTypes.string.isRequired,
-            // eslint-disable-next-line react/forbid-prop-types
-            headers: PropTypes.object,
-        }),
-    ]).isRequired,
+    source: sourcePropTypes.isRequired,
 
     /** Should an auth token be included in the image request */
     isAuthTokenRequired: PropTypes.bool,
