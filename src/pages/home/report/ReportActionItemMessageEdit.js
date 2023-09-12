@@ -223,12 +223,12 @@ function ReportActionItemMessageEdit(props) {
      * Delete the draft of the comment being edited. This will take the comment out of "edit mode" with the old content.
      */
     const deleteDraft = useCallback(() => {
+        console.log('delete-draft');
         debouncedSaveDraft.cancel();
         Report.saveReportActionDraft(props.reportID, props.action.reportActionID, '');
 
         if (isActive(props.action.reportActionID)) {
             setShouldShowComposeInputKeyboardAware(true);
-            isFocusedRef.current = true;
             ReportActionComposeFocusManager.clear();
             ReportActionComposeFocusManager.focus();
             if (EmojiPickerAction.isActive(props.action.reportActionID)) {
@@ -281,6 +281,7 @@ function ReportActionItemMessageEdit(props) {
 
         // When user tries to save the empty message, it will delete it. Prompt the user to confirm deleting.
         if (!trimmedNewDraft) {
+            textInputRef.current.blur();
             ReportActionContextMenu.showDeleteModal(props.reportID, props.action, false, deleteDraft, () => InteractionManager.runAfterInteractions(() => textInputRef.current.focus()));
             return;
         }
