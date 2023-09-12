@@ -23,7 +23,7 @@ const propTypes = {
         /** The source (URL) of the attachment */
         source: PropTypes.string,
 
-        /** File additional information of the attachment */
+        /** Additional information about the attachment file */
         file: PropTypes.shape({
             /** File name of the attachment */
             name: PropTypes.string,
