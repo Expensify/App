@@ -106,7 +106,6 @@ function PrivateNotesEditPage({route, personalDetailsList, session, report}) {
                             errors={{
                                 ...lodashGet(report, ['privateNotes', route.params.accountID, 'errors'], ''),
                             }}
-                            pendingAction={lodashGet(report, ['privateNotes', route.params.accountID, 'pendingAction'], null)}
                             onClose={() => Report.clearPrivateNotesError(report.reportID, route.params.accountID)}
                             style={[styles.mb3]}
                         >

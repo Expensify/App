@@ -69,7 +69,7 @@ function PrivateNotesViewPage({route, personalDetailsList, session, report}) {
                     onCloseButtonPress={() => Navigation.dismissModal()}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.getPrivateNotesListRoute(report.reportID))}
                 />
-                <ScrollView style={[styles.flexGrow1, styles.ph5]}>
+                <ScrollView style={[styles.flexGrow1]}>
                     <OfflineWithFeedback pendingAction={lodashGet(report, ['privateNotes', route.params.accountID, 'pendingAction'], null)}>
                         <MenuItemWithTopDescription
                             description={translate('privateNotes.composerLabel')}
