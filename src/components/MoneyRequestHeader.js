@@ -25,9 +25,6 @@ const propTypes = {
     /** The report currently being looked at */
     report: iouReportPropTypes.isRequired,
 
-    /** The expense report or iou report (only will have a value if this is a transaction thread) */
-    parentReport: iouReportPropTypes,
-
     /** The policy which the report is tied to */
     policy: PropTypes.shape({
         /** Name of the policy */
@@ -37,10 +34,20 @@ const propTypes = {
     /** Personal details so we can get the ones for the report participants */
     personalDetails: PropTypes.objectOf(participantPropTypes).isRequired,
 
+    /** Onyx Props */
     /** Session info for the currently logged in user. */
     session: PropTypes.shape({
         /** Currently logged in user email */
         email: PropTypes.string,
+    }),
+
+    /** The expense report or iou report (only will have a value if this is a transaction thread) */
+    parentReport: iouReportPropTypes,
+
+    /** The transaction from the parent report action */
+    transaction: PropTypes.shape({
+        /** The ID of the transaction */
+        transactionID: PropTypes.string,
     }),
 
     ...windowDimensionsPropTypes,
@@ -51,6 +58,7 @@ const defaultProps = {
         email: null,
     },
     parentReport: {},
+    transaction: {},
 };
 
 function MoneyRequestHeader(props) {
@@ -72,8 +80,7 @@ function MoneyRequestHeader(props) {
         setIsDeleteModalVisible(false);
     }, [parentReportAction, setIsDeleteModalVisible]);
 
-    const transaction = TransactionUtils.getLinkedTransaction(parentReportAction);
-    const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
+    const isScanning = TransactionUtils.hasReceipt(props.transaction) && TransactionUtils.isReceiptBeingScanned(props.transaction);
 
     return (
         <>
@@ -124,6 +131,16 @@ export default compose(
         },
         parentReport: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`,
+        },
+        parentReportActions: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
+            canEvict: false,
+        },
+    }),
+    withOnyx({
+        transaction: {
+            key: ({report, parentReportActions}) =>
+                `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(parentReportActions, [report.parentReportActionID, 'originalMessage', 'IOUTransactionID'], '')}`,
         },
     }),
 )(MoneyRequestHeader);
