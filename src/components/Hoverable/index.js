@@ -22,7 +22,6 @@ function Hoverable({disabled, onHoverIn, onHoverOut, children}) {
     const wrapperView = useRef(null);
 
     useEffect(() => {
-        // For now, listener is quite simple so we don't need to extract its declaration from effect
         const onVisibilityChange = () => document.visibilityState === 'hidden' && setIsHovered(false);
 
         document.addEventListener('visibilitychange', onVisibilityChange);
