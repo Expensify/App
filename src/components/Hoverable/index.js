@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {useEffect, useCallback, useState, useRef, useMemo} from 'react';
+import React, {useEffect, useCallback, useState, useRef, useMemo, useImperativeHandle} from 'react';
 import {propTypes, defaultProps} from './hoverablePropTypes';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 
@@ -17,9 +17,9 @@ function mapChildren(children, callbackParam) {
  * parent. https://github.com/necolas/react-native-web/issues/1875
  */
 
-function InnerHoverable({disabled, onHoverIn, onHoverOut, children}, ref) {
+function InnerHoverable({disabled, onHoverIn, onHoverOut, children}, outerRef) {
     const [isHovered, setIsHovered] = useState(false);
-    const wrapperView = useRef(null);
+    const ref = useRef(null);
 
     useEffect(() => {
         const onVisibilityChange = () => document.visibilityState === 'hidden' && setIsHovered(false);
@@ -39,19 +39,9 @@ function InnerHoverable({disabled, onHoverIn, onHoverOut, children}, ref) {
         if (onHoverOut && !isHovered) return onHoverOut();
     }, [disabled, isHovered, onHoverIn, onHoverOut]);
 
+    useImperativeHandle(outerRef, () => ref.current, []);
+
     const child = useMemo(() => React.Children.only(mapChildren(children, isHovered)), [children, isHovered]);
-
-    const refCallback = useCallback(
-        (el) => {
-            wrapperView.current = el;
-
-            if (!ref) return;
-            if (_.isFunction(ref)) return ref(el);
-            // eslint-disable-next-line no-param-reassign
-            if (_.has(ref, 'current')) return (ref.current = wrapperView.current);
-        },
-        [ref],
-    );
 
     const onMouseEnter = useCallback(
         (el) => {
@@ -75,7 +65,7 @@ function InnerHoverable({disabled, onHoverIn, onHoverOut, children}, ref) {
         (el) => {
             // Check if the blur event occurred due to clicking outside the element
             // and the wrapperView contains the element that caused the blur and reset isHovered
-            if (!wrapperView.current.contains(el.target) && !wrapperView.current.contains(el.relatedTarget)) {
+            if (!ref.current.contains(el.target) && !ref.current.contains(el.relatedTarget)) {
                 setIsHovered(false);
             }
 
@@ -87,7 +77,7 @@ function InnerHoverable({disabled, onHoverIn, onHoverOut, children}, ref) {
     if (!DeviceCapabilities.hasHoverSupport()) return child;
 
     return React.cloneElement(child, {
-        ref: refCallback,
+        ref,
         onMouseEnter,
         onMouseLeave,
         onBlur,
