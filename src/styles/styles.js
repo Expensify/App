@@ -1472,7 +1472,7 @@ const styles = {
 
     optionDisplayName: {
         fontFamily: fontFamily.EXP_NEUE,
-        height: variables.alternateTextHeight,
+        minHeight: variables.alternateTextHeight,
         lineHeight: variables.lineHeightXLarge,
         ...whiteSpace.noWrap,
     },
@@ -1507,6 +1507,14 @@ const styles = {
         minHeight: variables.optionRowHeight,
         paddingTop: 12,
         paddingBottom: 12,
+    },
+
+    optionRowSelected: {
+        backgroundColor: themeColors.activeComponentBG,
+    },
+
+    optionRowDisabled: {
+        color: themeColors.textSupporting,
     },
 
     optionRowCompact: {
@@ -2543,6 +2551,13 @@ const styles = {
     attachmentArrow: {
         zIndex: 23,
         position: 'absolute',
+    },
+
+    attachmentRevealButtonContainer: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        ...spacing.ph4,
     },
 
     arrowIcon: {
