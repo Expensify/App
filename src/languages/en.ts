@@ -481,6 +481,7 @@ export default {
         flash: 'flash',
         shutter: 'shutter',
         gallery: 'gallery',
+        addReceipt: 'Add receipt',
     },
     iou: {
         amount: 'Amount',

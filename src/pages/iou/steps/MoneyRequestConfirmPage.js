@@ -28,7 +28,6 @@ import * as StyleUtils from '../../../styles/StyleUtils';
 import {iouPropTypes, iouDefaultProps} from '../propTypes';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import AttachmentPicker from '../../../components/AttachmentPicker';
-import * as ReceiptUtils from '../../../libs/ReceiptUtils';
 
 const propTypes = {
     /** React Navigation route */
@@ -262,22 +261,9 @@ function MoneyRequestConfirmPage(props) {
                                 shouldShowThreeDotsButton={!isDistanceRequest}
                                 threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
                                 threeDotsMenuItems={[{
-                                    icon: Expensicons.Camera,
-                                    text: props.translate('receipt.takePhoto'),
+                                    icon: Expensicons.Receipt,
+                                    text: props.translate('receipt.addReceipt'),
                                     onSelected: () => {},
-                                }, {
-                                    icon: Expensicons.Gallery,
-                                    text: props.translate('attachmentPicker.chooseFromGallery'),
-                                    onSelected: () => openPicker({
-                                        onPicked: (file) => {
-                                            if (!ReceiptUtils.validateReceipt(file)) {
-                                                return;
-                                            }
-
-                                            const filePath = URL.createObjectURL(file);
-                                            IOU.setMoneyRequestReceipt(filePath, file.name);
-                                        },
-                                    }),
                                 }]}
                             />
                         )}

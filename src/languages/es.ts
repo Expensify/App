@@ -482,6 +482,7 @@ export default {
         flash: 'flash',
         shutter: 'obturador',
         gallery: 'galería',
+        addReceipt: 'Añadir recibo',
     },
     iou: {
         amount: 'Importe',
