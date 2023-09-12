@@ -27,6 +27,7 @@ import useWindowDimensions from '../../../hooks/useWindowDimensions';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import {iouPropTypes, iouDefaultProps} from '../propTypes';
 import * as Expensicons from '../../../components/Icon/Expensicons';
+import AttachmentPicker from '../../../components/AttachmentPicker';
 
 const propTypes = {
     /** React Navigation route */
@@ -252,20 +253,26 @@ function MoneyRequestConfirmPage(props) {
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
-                    <HeaderWithBackButton
-                        title={isDistanceRequest ? props.translate('common.distance') : props.translate('iou.cash')}
-                        onBackButtonPress={navigateBack}
-                        shouldShowThreeDotsButton={!isDistanceRequest}
-                        threeDotsMenuItems={[{
-                            icon: Expensicons.Camera,
-                            text: props.translate('receipt.takePhoto'),
-                            onSelected: () => {},
-                        }, {
-                            icon: Expensicons.Gallery,
-                            text: props.translate('attachmentPicker.chooseFromGallery'),
-                            onSelected: () => {},
-                        }]}
-                    />
+                    <AttachmentPicker>
+                        {({openPicker}) => (
+                            <HeaderWithBackButton
+                                title={isDistanceRequest ? props.translate('common.distance') : props.translate('iou.cash')}
+                                onBackButtonPress={navigateBack}
+                                shouldShowThreeDotsButton={!isDistanceRequest}
+                                threeDotsMenuItems={[{
+                                    icon: Expensicons.Camera,
+                                    text: props.translate('receipt.takePhoto'),
+                                    onSelected: () => {},
+                                }, {
+                                    icon: Expensicons.Gallery,
+                                    text: props.translate('attachmentPicker.chooseFromGallery'),
+                                    onSelected: () => openPicker({
+                                        onPicked: (file) => {},
+                                    }),
+                                }]}
+                            />
+                        )}
+                    </AttachmentPicker>
                     {/*
                      * The MoneyRequestConfirmationList component uses a SectionList which uses a VirtualizedList internally.
                      * VirtualizedList cannot be directly nested within ScrollViews of the same orientation.
