@@ -21,6 +21,7 @@ import isReportMessageAttachment from './isReportMessageAttachment';
 import * as defaultWorkspaceAvatars from '../components/Icon/WorkspaceDefaultAvatars';
 import * as CurrencyUtils from './CurrencyUtils';
 import * as UserUtils from './UserUtils';
+import {isDeletedAction} from './ReportActionsUtils';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -1314,7 +1315,7 @@ function canEditMoneyRequest(reportAction) {
     const isReportSettled = isSettled(moneyRequestReport.reportID);
     const isAdmin = isExpenseReport(moneyRequestReport) && lodashGet(getPolicy(moneyRequestReport.policyID), 'role', '') === CONST.POLICY.ROLE.ADMIN;
     const isRequestor = currentUserAccountID === reportAction.actorAccountID;
-    return !isReportSettled && (isAdmin || isRequestor);
+    return !isReportSettled && !isDeletedAction(reportAction) && (isAdmin || isRequestor);
 }
 
 /**
@@ -2622,7 +2623,7 @@ function buildTransactionThread(reportAction, moneyRequestReportID) {
         participantAccountIDs,
         getTransactionReportName(reportAction),
         '',
-        lodashGet(getReport(reportAction.reportID), 'policyID', CONST.POLICY.OWNER_EMAIL_FAKE),
+        lodashGet(getReport(moneyRequestReportID), 'policyID', CONST.POLICY.OWNER_EMAIL_FAKE),
         CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
         false,
         '',
