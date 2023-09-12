@@ -80,7 +80,6 @@ function PronounsPage({currentUserPersonalDetails}) {
                 onSelectRow={updatePronouns}
                 onChangeText={setSearchValue}
                 initiallyFocusedOptionKey={currentPronounsKey}
-                shouldDelayFocus
             />
         </ScreenWrapper>
     );
