@@ -1,6 +1,5 @@
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
-import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
 import MenuItemWithTopDescription from '../MenuItemWithTopDescription';
@@ -38,14 +37,9 @@ function StatePicker({value, errorText, onInputChange, forwardedRef, label}) {
     const {translate} = useLocalize();
     const allStates = translate('allStates');
     const [isPickerVisible, setIsPickerVisible] = useState(false);
-    const [searchValue, setSearchValue] = useState(lodashGet(allStates, `${value}.stateName`, ''));
-
-    useEffect(() => {
-        setSearchValue(lodashGet(allStates, `${value}.stateName`, ''));
-    }, [value, allStates]);
+    const [searchValue, setSearchValue] = useState('');
 
     const showPickerModal = () => {
-        setSearchValue(lodashGet(allStates, `${value}.stateName`, ''));
         setIsPickerVisible(true);
     };
 

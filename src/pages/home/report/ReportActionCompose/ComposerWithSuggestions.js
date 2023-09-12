@@ -1,5 +1,5 @@
 import React, {useEffect, useCallback, useState, useRef, useMemo, useImperativeHandle} from 'react';
-import {View, InteractionManager, NativeModules, findNodeHandle} from 'react-native';
+import {View, NativeModules, findNodeHandle} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -22,6 +22,7 @@ import usePrevious from '../../../../hooks/usePrevious';
 import * as EmojiUtils from '../../../../libs/EmojiUtils';
 import * as User from '../../../../libs/actions/User';
 import * as ReportUtils from '../../../../libs/ReportUtils';
+import * as ReportActionsUtils from '../../../../libs/ReportActionsUtils';
 import canFocusInputOnScreenFocus from '../../../../libs/canFocusInputOnScreenFocus';
 import debouncedSaveReportComment from '../../../../libs/ComposerUtils/debouncedSaveReportComment';
 import SilentCommentUpdater from './SilentCommentUpdater';
@@ -31,6 +32,7 @@ import useLocalize from '../../../../hooks/useLocalize';
 import compose from '../../../../libs/compose';
 import withKeyboardState from '../../../../components/withKeyboardState';
 import {propTypes, defaultProps} from './composerWithSuggestionsProps';
+import focusWithDelay from '../../../../libs/focusWithDelay';
 
 const {RNTextInputReset} = NativeModules;
 
@@ -109,7 +111,8 @@ function ComposerWithSuggestions({
     const maxComposerLines = isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
 
     const isEmptyChat = useMemo(() => _.size(reportActions) === 1, [reportActions]);
-    const shouldAutoFocus = !modal.isVisible && (shouldFocusInputOnScreenFocus || isEmptyChat) && shouldShowComposeInput;
+    const parentAction = ReportActionsUtils.getParentReportAction(report);
+    const shouldAutoFocus = !modal.isVisible && (shouldFocusInputOnScreenFocus || (isEmptyChat && !ReportActionsUtils.isTransactionThread(parentAction))) && shouldShowComposeInput;
 
     const valueRef = useRef(value);
     valueRef.current = value;
@@ -289,9 +292,11 @@ function ComposerWithSuggestions({
 
                 const parentReportActionID = lodashGet(report, 'parentReportActionID', '');
                 const parentReportAction = lodashGet(parentReportActions, [parentReportActionID], {});
-                const lastReportAction = _.find([...reportActions, parentReportAction], (action) => ReportUtils.canEditReportAction(action));
-
-                if (lastReportAction !== -1 && lastReportAction) {
+                const lastReportAction = _.find(
+                    [...reportActions, parentReportAction],
+                    (action) => ReportUtils.canEditReportAction(action) && !ReportActionsUtils.isMoneyRequestAction(action),
+                );
+                if (lastReportAction) {
                     Report.saveReportActionDraft(reportID, lastReportAction.reportActionID, _.last(lastReportAction.message).html);
                 }
             }
@@ -330,23 +335,7 @@ function ComposerWithSuggestions({
      * @memberof ReportActionCompose
      */
     const focus = useCallback((shouldDelay = false) => {
-        // There could be other animations running while we trigger manual focus.
-        // This prevents focus from making those animations janky.
-        InteractionManager.runAfterInteractions(() => {
-            if (!textInputRef.current) {
-                return;
-            }
-
-            if (!shouldDelay) {
-                textInputRef.current.focus();
-            } else {
-                // Keyboard is not opened after Emoji Picker is closed
-                // SetTimeout is used as a workaround
-                // https://github.com/react-native-modal/react-native-modal/issues/114
-                // We carefully choose a delay. 100ms is found enough for keyboard to open.
-                setTimeout(() => textInputRef.current.focus(), 100);
-            }
-        });
+        focusWithDelay(textInputRef.current)(shouldDelay);
     }, []);
 
     const setUpComposeFocusManager = useCallback(() => {
@@ -365,9 +354,10 @@ function ComposerWithSuggestions({
      * @returns {Boolean}
      */
     const checkComposerVisibility = useCallback(() => {
-        const isComposerCoveredUp = EmojiPickerActions.isEmojiPickerVisible() || isMenuVisible || modal.isVisible;
+        // Checking whether the screen is focused or not, helps avoid `modal.isVisible` false when popups are closed, even if the modal is opened.
+        const isComposerCoveredUp = !isFocused || EmojiPickerActions.isEmojiPickerVisible() || isMenuVisible || modal.isVisible || modal.willAlertModalBecomeVisible;
         return !isComposerCoveredUp;
-    }, [isMenuVisible, modal.isVisible]);
+    }, [isMenuVisible, modal, isFocused]);
 
     const focusComposerOnKeyPress = useCallback(
         (e) => {
