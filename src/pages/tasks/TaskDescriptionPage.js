@@ -15,6 +15,8 @@ import * as Task from '../../libs/actions/Task';
 import CONST from '../../CONST';
 import focusAndUpdateMultilineInputRange from '../../libs/focusAndUpdateMultilineInputRange';
 import * as Browser from '../../libs/Browser';
+import * as ReportUtils from '../../libs/ReportUtils';
+import Navigation from '../../libs/Navigation/Navigation';
 
 const propTypes = {
     /** Current user session */
@@ -46,6 +48,11 @@ function TaskDescriptionPage(props) {
         [props],
     );
 
+    if (!ReportUtils.isTaskReport(props.report)) {
+        Navigation.isNavigationReady().then(() => {
+            Navigation.dismissModal(props.report.reportID);
+        });
+    }
     const inputRef = useRef(null);
 
     return (

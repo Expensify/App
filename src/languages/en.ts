@@ -987,7 +987,7 @@ export default {
         notHere: "Hmm... it's not here",
         pageNotFound: 'Oops, this page cannot be found',
         noAccess: "You don't have access to this chat",
-        goBackHome: 'Go back to Home page',
+        goBackHome: 'Go back to home page',
     },
     setPasswordPage: {
         enterPassword: 'Enter a password',
@@ -1753,16 +1753,6 @@ export default {
         },
         errors: {
             selectSuggestedAddress: 'Please select a suggested address',
-        },
-    },
-    demos: {
-        saastr: {
-            signInWelcome: 'Welcome to SaaStr! Hop in to start networking now.',
-            heroBody: 'Use New Expensify for event updates, networking, social chatter, and to get paid back for lunch!',
-        },
-        sbe: {
-            signInWelcome: 'Welcome to Small Business Expo! Get paid back for your ride.',
-            heroBody: 'Use New Expensify for event updates, networking, social chatter, and to get paid back for your ride to or from the show!',
         },
     },
 } as const;
