@@ -1,10 +1,7 @@
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 
-/**
- * @param {Boolean} shouldShowComposeInput
- */
-function setShouldShowComposeInput(shouldShowComposeInput) {
+function setShouldShowComposeInput(shouldShowComposeInput: boolean) {
     Onyx.set(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT, shouldShowComposeInput);
 }
 
