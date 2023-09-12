@@ -1,3 +1,5 @@
+import {CSSProperties} from 'react';
+import {TextStyle, View, ViewStyle} from 'react-native';
 import spacing from './utilities/spacing';
 import styles from './styles';
 import colors from './colors';
@@ -6,30 +8,29 @@ import fontFamily from './fontFamily';
 import variables from './variables';
 import roundToNearestMultipleOfFour from './roundToNearestMultipleOfFour';
 
-// This defines the proximity with the edge of the window in which tooltips should not be displayed.
-// If a tooltip is too close to the edge of the screen, we'll shift it towards the center.
+/** This defines the proximity with the edge of the window in which tooltips should not be displayed.
+ * If a tooltip is too close to the edge of the screen, we'll shift it towards the center. */
 const GUTTER_WIDTH = variables.gutterWidth;
 
-// The height of a tooltip pointer
+/** The height of a tooltip pointer */
 const POINTER_HEIGHT = 4;
 
-// The width of a tooltip pointer
+/** The width of a tooltip pointer */
 const POINTER_WIDTH = 12;
 
 /**
  * Compute the amount the tooltip needs to be horizontally shifted in order to keep it from displaying in the gutters.
  *
- * @param {Number} windowWidth - The width of the window.
- * @param {Number} xOffset - The distance between the left edge of the window
+ * @param windowWidth - The width of the window.
+ * @param xOffset - The distance between the left edge of the window
  *                           and the left edge of the wrapped component.
- * @param {Number} componentWidth - The width of the wrapped component.
- * @param {Number} tooltipWidth - The width of the tooltip itself.
- * @param {Number} [manualShiftHorizontal] - Any additional amount to manually shift the tooltip to the left or right.
+ * @param componentWidth - The width of the wrapped component.
+ * @param tooltipWidth - The width of the tooltip itself.
+ * @param [manualShiftHorizontal] - Any additional amount to manually shift the tooltip to the left or right.
  *                                         A positive value shifts it to the right,
  *                                         and a negative value shifts it to the left.
- * @returns {Number}
  */
-function computeHorizontalShift(windowWidth, xOffset, componentWidth, tooltipWidth, manualShiftHorizontal) {
+function computeHorizontalShift(windowWidth: number, xOffset: number, componentWidth: number, tooltipWidth: number, manualShiftHorizontal: number): number {
     // First find the left and right edges of the tooltip (by default, it is centered on the component).
     const componentCenter = xOffset + componentWidth / 2 + manualShiftHorizontal;
     const tooltipLeftEdge = componentCenter - tooltipWidth / 2;
@@ -61,16 +62,15 @@ function computeHorizontalShift(windowWidth, xOffset, componentWidth, tooltipWid
  *                       |         |
  *                       |_ _ _ _ _|
  *
- * @param {Number} xOffset - The distance between the left edge of the window
+ * @param tooltip - The reference to the tooltip's root element
+ * @param xOffset - The distance between the left edge of the window
  *                           and the left edge of the wrapped component.
- * @param {Number} yOffset - The distance between the top edge of the window
+ * @param yOffset - The distance between the top edge of the window
  *                           and the top edge of the wrapped component.
- * @param {Element} [tooltip] - The reference to the tooltip's root element
- * @param {Number} tooltipTargetWidth - The width of the tooltip's target
- * @param {Number} tooltipTargetHeight - The height of the tooltip's target
- * @returns {Boolean}
+ * @param tooltipTargetWidth - The width of the tooltip's target
+ * @param tooltipTargetHeight - The height of the tooltip's target
  */
-function isOverlappingAtTop(xOffset, yOffset, tooltip, tooltipTargetWidth, tooltipTargetHeight) {
+function isOverlappingAtTop(tooltip: View | HTMLDivElement, xOffset: number, yOffset: number, tooltipTargetWidth: number, tooltipTargetHeight: number) {
     if (typeof document.elementFromPoint !== 'function') {
         return false;
     }
@@ -79,10 +79,9 @@ function isOverlappingAtTop(xOffset, yOffset, tooltip, tooltipTargetWidth, toolt
     // in case the target has a border radius or is a multiline text.
     const targetCenterX = xOffset + tooltipTargetWidth / 2;
     const elementAtTargetCenterX = document.elementFromPoint(targetCenterX, yOffset);
-    const tooltipRef = (tooltip && tooltip.current) || tooltip;
 
     // Ensure it's not the already rendered element of this very tooltip, so the tooltip doesn't try to "avoid" itself
-    if (!elementAtTargetCenterX || (tooltipRef && tooltipRef.contains(elementAtTargetCenterX))) {
+    if (!elementAtTargetCenterX || ('contains' in tooltip && tooltip.contains(elementAtTargetCenterX))) {
         return false;
     }
 
@@ -95,42 +94,49 @@ function isOverlappingAtTop(xOffset, yOffset, tooltip, tooltipTargetWidth, toolt
     return isOverlappingAtTargetCenterX;
 }
 
+type TooltipStyles = {
+    animationStyle: ViewStyle;
+    rootWrapperStyle: ViewStyle | CSSProperties;
+    textStyle: TextStyle;
+    pointerWrapperStyle: ViewStyle | CSSProperties;
+    pointerStyle: ViewStyle;
+};
+
 /**
  * Generate styles for the tooltip component.
  *
- * @param {Number} currentSize - The current size of the tooltip used in the scaling animation.
- * @param {Number} windowWidth - The width of the window.
- * @param {Number} xOffset - The distance between the left edge of the window
+ * @param tooltip - The reference to the tooltip's root element
+ * @param currentSize - The current size of the tooltip used in the scaling animation.
+ * @param windowWidth - The width of the window.
+ * @param xOffset - The distance between the left edge of the window
  *                           and the left edge of the wrapped component.
- * @param {Number} yOffset - The distance between the top edge of the window
+ * @param yOffset - The distance between the top edge of the window
  *                           and the top edge of the wrapped component.
- * @param {Number} tooltipTargetWidth - The width of the tooltip's target
- * @param {Number} tooltipTargetHeight - The height of the tooltip's target
- * @param {Number} maxWidth - The tooltip's max width.
- * @param {Number} tooltipContentWidth - The tooltip's inner content measured width.
- * @param {Number} tooltipWrapperHeight - The tooltip's wrapper measured height.
- * @param {Number} [manualShiftHorizontal] - Any additional amount to manually shift the tooltip to the left or right.
+ * @param tooltipTargetWidth - The width of the tooltip's target
+ * @param tooltipTargetHeight - The height of the tooltip's target
+ * @param maxWidth - The tooltip's max width.
+ * @param tooltipContentWidth - The tooltip's inner content measured width.
+ * @param tooltipWrapperHeight - The tooltip's wrapper measured height.
+ * @param [manualShiftHorizontal] - Any additional amount to manually shift the tooltip to the left or right.
  *                                         A positive value shifts it to the right,
  *                                         and a negative value shifts it to the left.
- * @param {Number} [manualShiftVertical] - Any additional amount to manually shift the tooltip up or down.
+ * @param [manualShiftVertical] - Any additional amount to manually shift the tooltip up or down.
  *                                       A positive value shifts it down, and a negative value shifts it up.
- * @param {Element} tooltip - The reference to the tooltip's root element
- * @returns {Object}
  */
 export default function getTooltipStyles(
-    currentSize,
-    windowWidth,
-    xOffset,
-    yOffset,
-    tooltipTargetWidth,
-    tooltipTargetHeight,
-    maxWidth,
-    tooltipContentWidth,
-    tooltipWrapperHeight,
+    tooltip: View | HTMLDivElement,
+    currentSize: number,
+    windowWidth: number,
+    xOffset: number,
+    yOffset: number,
+    tooltipTargetWidth: number,
+    tooltipTargetHeight: number,
+    maxWidth: number,
+    tooltipContentWidth: number,
+    tooltipWrapperHeight: number,
     manualShiftHorizontal = 0,
     manualShiftVertical = 0,
-    tooltip,
-) {
+): TooltipStyles {
     const tooltipVerticalPadding = spacing.pv1;
 
     // We calculate tooltip width based on the tooltip's content width
@@ -141,7 +147,7 @@ export default function getTooltipStyles(
 
     const isTooltipSizeReady = tooltipWidth !== undefined && tooltipHeight !== undefined;
 
-    // Set the scale to 1 to be able to measure the toolip size correctly when it's not ready yet.
+    // Set the scale to 1 to be able to measure the tooltip size correctly when it's not ready yet.
     let scale = 1;
     let shouldShowBelow = false;
     let horizontalShift = 0;
@@ -157,7 +163,7 @@ export default function getTooltipStyles(
         // If either a tooltip will try to render within GUTTER_WIDTH logical pixels of the top of the screen,
         // Or the wrapped component is overlapping at top-center with another element
         // we'll display it beneath its wrapped component rather than above it as usual.
-        shouldShowBelow = yOffset - tooltipHeight < GUTTER_WIDTH || isOverlappingAtTop(xOffset, yOffset, tooltip, tooltipTargetWidth, tooltipTargetHeight);
+        shouldShowBelow = yOffset - tooltipHeight < GUTTER_WIDTH || isOverlappingAtTop(tooltip, xOffset, yOffset, tooltipTargetWidth, tooltipTargetHeight);
 
         // When the tooltip size is ready, we can start animating the scale.
         scale = currentSize;

@@ -27,14 +27,18 @@ const propTypes = {
 
     /** A fixed footer to display at the bottom of the page. */
     footer: PropTypes.node,
+
+    /** Overlay content to display on top of animation */
+    overlayContent: PropTypes.func,
 };
 
 const defaultProps = {
     backgroundColor: themeColors.appBG,
     footer: null,
+    overlayContent: null,
 };
 
-function IllustratedHeaderPageLayout({backgroundColor, children, illustration, footer, ...propsToPassToHeader}) {
+function IllustratedHeaderPageLayout({backgroundColor, children, illustration, footer, overlayContent, ...propsToPassToHeader}) {
     const {windowHeight} = useWindowDimensions();
     const {isOffline} = useNetwork();
     return (
@@ -65,6 +69,7 @@ function IllustratedHeaderPageLayout({backgroundColor, children, illustration, f
                                     autoPlay
                                     loop
                                 />
+                                {overlayContent && overlayContent()}
                             </View>
                             <View style={[styles.pt5]}>{children}</View>
                         </ScrollView>

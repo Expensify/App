@@ -18,7 +18,7 @@ import compose from '../../libs/compose';
 import personalDetailsPropType from '../personalDetailsPropType';
 import reportPropTypes from '../reportPropTypes';
 import ROUTES from '../../ROUTES';
-
+import * as ReportUtils from '../../libs/ReportUtils';
 import * as Task from '../../libs/actions/Task';
 
 const propTypes = {
@@ -123,6 +123,12 @@ function TaskAssigneeSelectorModal(props) {
         }
         return props.reports[`${ONYXKEYS.COLLECTION.REPORT}${props.route.params.reportID}`];
     }, [props.reports, props.route.params]);
+
+    if (report && !ReportUtils.isTaskReport(report)) {
+        Navigation.isNavigationReady().then(() => {
+            Navigation.dismissModal(report.reportID);
+        });
+    }
 
     const sections = useMemo(() => {
         const sectionsList = [];
