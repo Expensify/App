@@ -232,7 +232,7 @@ function getMerchant(transaction) {
  * Return the category from the transaction. The "created" field has no "modified" complement.
  *
  * @param {Object} transaction
- * @return {*}
+ * @return {String}
  */
 function getCategory(transaction) {
     return lodashGet(transaction, 'category', '');
