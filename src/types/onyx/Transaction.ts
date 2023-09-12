@@ -26,7 +26,7 @@ type Transaction = {
     currency: string;
     errors: OnyxCommon.Errors;
     // The name of the file used for a receipt (formerly receiptFilename)
-    filename: string;
+    filename?: string;
     merchant: string;
     modifiedAmount?: number;
     modifiedCreated?: string;
