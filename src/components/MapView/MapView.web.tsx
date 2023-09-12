@@ -66,6 +66,7 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(
             >
                 <Map
                     ref={setRef}
+                    mapLib={import('mapbox-gl')}
                     mapboxAccessToken={accessToken}
                     initialViewState={{
                         longitude: initialState.location[0],
