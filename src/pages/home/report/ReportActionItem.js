@@ -601,7 +601,7 @@ function ReportActionItem(props) {
                                             displayNamesWithTooltips={displayNamesWithTooltips}
                                             tooltipEnabled
                                             numberOfLines={1}
-                                            textStyles={[styles.chatItemMessageHeaderTimestamp]}
+                                            textStyles={[styles.chatItemMessageHeaderTimestamp, styles.flex1]}
                                             shouldUseFullTitle={isWhisperOnlyVisibleByUser}
                                         />
                                     </View>
