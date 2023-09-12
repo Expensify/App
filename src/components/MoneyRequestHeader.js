@@ -71,10 +71,10 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
 
     // Only the requestor can take delete the request, admins can only edit it.
-    const isActionOwner = lodashGet(props, 'parentReportAction.actorAccountID') === lodashGet(session, 'accountID', null);
+    const isActionOwner = lodashGet(parentReportAction, 'actorAccountID') === lodashGet(session, 'accountID', null);
 
     const deleteTransaction = useCallback(() => {
-        IOU.deleteMoneyRequest(lodashGet(props, 'parentReportAction.originalMessage.IOUTransactionID'), parentReportAction, true);
+        IOU.deleteMoneyRequest(lodashGet(parentReportAction, 'originalMessage.IOUTransactionID'), parentReportAction, true);
         setIsDeleteModalVisible(false);
     }, [parentReportAction, setIsDeleteModalVisible]);
 
