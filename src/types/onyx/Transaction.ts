@@ -1,11 +1,12 @@
 import {ValueOf} from 'type-fest';
 import * as OnyxCommon from './OnyxCommon';
 import CONST from '../../CONST';
-import RecentWaypoints from './RecentWaypoints';
+import RecentWaypoint from './RecentWaypoint';
 
+type WaypointCollection = Record<string, RecentWaypoint | null>;
 type Comment = {
     comment?: string;
-    waypoints?: Record<string, RecentWaypoints>;
+    waypoints?: WaypointCollection;
 };
 
 type GeometryType = 'LineString' | '';
@@ -46,3 +47,4 @@ type Transaction = {
 };
 
 export default Transaction;
+export type {WaypointCollection};

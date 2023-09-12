@@ -43,7 +43,7 @@ import ReportActionReactions from './ReportActionReactions';
 import SecurityGroup from './SecurityGroup';
 import Transaction from './Transaction';
 import Form, {AddDebitCardForm} from './Form';
-import RecentWaypoints from './RecentWaypoints';
+import RecentWaypoint from './RecentWaypoint';
 import RecentlyUsedCategories from './RecentlyUsedCategories';
 
 export type {
@@ -93,6 +93,6 @@ export type {
     Form,
     AddDebitCardForm,
     OnyxUpdatesFromServer,
-    RecentWaypoints,
+    RecentWaypoint,
     RecentlyUsedCategories,
 };

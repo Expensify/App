@@ -4,9 +4,10 @@ import lodashClone from 'lodash/clone';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as CollectionUtils from '../CollectionUtils';
 import * as API from '../API';
-import {RecentWaypoints, Transaction} from '../../types/onyx';
+import {RecentWaypoint, Transaction} from '../../types/onyx';
+import {WaypointCollection} from '../../types/onyx/Transaction';
 
-let recentWaypoints: RecentWaypoints[] = [];
+let recentWaypoints: RecentWaypoint[] = [];
 Onyx.connect({
     key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
     callback: (val) => (recentWaypoints = val ?? []),
@@ -64,7 +65,7 @@ function addStop(transactionID: string) {
 /**
  * Saves the selected waypoint to the transaction
  */
-function saveWaypoint(transactionID: string, index: string, waypoint: RecentWaypoints) {
+function saveWaypoint(transactionID: string, index: string, waypoint: RecentWaypoint | null) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         comment: {
             waypoints: {
@@ -117,7 +118,7 @@ function removeWaypoint(transactionID: string, currentIndex: string) {
     const waypointValues = Object.values(existingWaypoints);
     waypointValues.splice(index, 1);
 
-    const reIndexedWaypoints: Record<string, RecentWaypoints> = {};
+    const reIndexedWaypoints: WaypointCollection = {};
     waypointValues.forEach((waypoint, idx) => {
         reIndexedWaypoints[`waypoint${idx}`] = waypoint;
     });
@@ -149,7 +150,7 @@ function removeWaypoint(transactionID: string, currentIndex: string) {
  * Gets the route for a set of waypoints
  * Used so we can generate a map view of the provided waypoints
  */
-function getRoute(transactionID: string, waypoints: Record<string, RecentWaypoints>) {
+function getRoute(transactionID: string, waypoints: WaypointCollection) {
     API.read(
         'GetRoute',
         {
