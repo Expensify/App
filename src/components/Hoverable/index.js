@@ -63,7 +63,7 @@ function Hoverable({disabled, onHoverIn, onHoverOut, children}) {
 
             if (_.isFunction(child.props.onMouseEnter)) child.props.onMouseEnter(el);
         },
-        [child],
+        [child.props],
     );
 
     const onMouseLeave = useCallback(
@@ -72,7 +72,7 @@ function Hoverable({disabled, onHoverIn, onHoverOut, children}) {
 
             if (_.isFunction(child.props.onMouseLeave)) child.props.onMouseLeave(el);
         },
-        [child],
+        [child.props],
     );
 
     const onBlur = useCallback(
@@ -85,7 +85,7 @@ function Hoverable({disabled, onHoverIn, onHoverOut, children}) {
 
             if (_.isFunction(child.props.onBlur)) child.props.onBlur(el);
         },
-        [child],
+        [child.props],
     );
 
     if (!DeviceCapabilities.hasHoverSupport()) return child;
