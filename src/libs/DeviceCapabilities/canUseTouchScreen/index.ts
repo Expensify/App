@@ -1,16 +1,16 @@
+import CanUseTouchScreen from './types';
+
 /**
  * Allows us to identify whether the platform has a touchscreen.
  *
  * https://developer.mozilla.org/en-US/docs/Web/HTTP/Browser_detection_using_the_user_agent
- *
- * @returns {Boolean}
  */
-function canUseTouchScreen() {
+const canUseTouchScreen: CanUseTouchScreen = () => {
     let hasTouchScreen = false;
     if ('maxTouchPoints' in navigator) {
         hasTouchScreen = navigator.maxTouchPoints > 0;
     } else if ('msMaxTouchPoints' in navigator) {
-        hasTouchScreen = navigator.msMaxTouchPoints > 0;
+        hasTouchScreen = (navigator as Navigator)?.msMaxTouchPoints > 0;
     } else {
         const mQ = window.matchMedia && matchMedia('(pointer:coarse)');
         if (mQ && mQ.media === '(pointer:coarse)') {
@@ -24,6 +24,6 @@ function canUseTouchScreen() {
         }
     }
     return hasTouchScreen;
-}
+};
 
 export default canUseTouchScreen;
