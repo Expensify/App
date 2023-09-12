@@ -1756,4 +1756,4 @@ export default {
             selectSuggestedAddress: 'Please select a suggested address',
         },
     },
-} as Translation;
+} satisfies Translation;

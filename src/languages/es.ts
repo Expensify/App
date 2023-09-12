@@ -1,6 +1,7 @@
 import CONST from '../CONST';
 import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 import type {
+    Translation,
     AddressLineParams,
     CharacterLimitParams,
     MaxParticipantsReachedParams,
@@ -2247,4 +2248,4 @@ export default {
             selectSuggestedAddress: 'Por favor, selecciona una dirección sugerida',
         },
     },
-};
+} satisfies Translation;

@@ -1,3 +1,5 @@
+import en from './en';
+
 type AddressLineParams = {
     lineNumber: number;
 };
@@ -190,16 +192,40 @@ type RemovedTheRequestParams = {valueName: string; oldValueToDisplay: string};
 
 type UpdatedTheRequestParams = {valueName: string; newValueToDisplay: string; oldValueToDisplay: string};
 
+/* Translation Object types */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type TranslationBaseValue = string | string[] | ((args: any) => string);
+type TranslationBaseValue = string | string[] | ((...args: any[]) => string);
 
 type Translation = {[key: string]: TranslationBaseValue | Translation};
 
-type TranslationFlatObject = Record<string, TranslationBaseValue>;
+/* Flat Translation Object types */
+// Flattens an object and returns concatenations of all the keys of nested objects
+type FlattenObject<T, Prefix extends string = ''> = {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    [K in keyof T]: T[K] extends (...args: any[]) => any
+        ? `${Prefix}${K & string}`
+        : // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        T[K] extends any[]
+        ? `${Prefix}${K & string}`
+        : // eslint-disable-next-line @typescript-eslint/ban-types
+        T[K] extends object
+        ? FlattenObject<T[K], `${Prefix}${K & string}.`>
+        : `${Prefix}${K & string}`;
+}[keyof T];
+
+// Retrieves a type for a given key path (calculated from the type above)
+type TranslateType<T, Path extends string> = Path extends keyof T ? T[Path] : Path extends `${infer K}.${infer Rest}` ? (K extends keyof T ? TranslateType<T[K], Rest> : never) : never;
+
+type TranslationsType = typeof en;
+
+type TranslationPaths = FlattenObject<TranslationsType>;
+
+type TranslationFlatObject = {
+    [K in TranslationPaths]: TranslateType<TranslationsType, K>;
+};
 
 export type {
     Translation,
-    TranslationBaseValue,
     TranslationFlatObject,
     AddressLineParams,
     CharacterLimitParams,
