@@ -43,7 +43,7 @@ const defaultProps = {
 // This component is responsible for getting the transactionID from the IOU key, or creating the transaction if it doesn't exist yet, and then passing the transactionID.
 // You can't use Onyx props in the withOnyx mapping, so we need to set up and access the transactionID here, and then pass it down so that DistanceRequest can subscribe to the transaction.
 function NewDistanceRequestPage({iou, report, route}) {
-    const iouType = lodashGet(route, 'params.iouType', '');
+    const iouType = route.params?.iouType || '';
 
     useEffect(() => {
         if (iou.transactionID) {
@@ -56,7 +56,9 @@ function NewDistanceRequestPage({iou, report, route}) {
         <DistanceRequest
             report={report}
             transactionID={iou.transactionID}
-            onSubmit={() => IOU.navigateToNextPage(iou, iouType, report.reportID, report)}
+            onSubmit={() => {
+                IOU.navigateToNextPage(iou, iouType, report.reportID, report);
+            }}
         />
     );
 }
@@ -69,6 +71,6 @@ export default withOnyx({
     // because withOnyx returns null until all the keys are defined
     iou: {key: ONYXKEYS.IOU},
     report: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '')}`,
+        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID')}`,
     },
 })(NewDistanceRequestPage);
