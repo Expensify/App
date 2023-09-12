@@ -285,6 +285,15 @@ function ReportActionCompose({
         setIsFocused(true);
     }, []);
 
+    // resets the composer to normal size when
+    // the send button is pressed.
+    const resetFullComposerSize = useCallback(() => {
+        if (isComposerFullSize) {
+            Report.setIsComposerFullSize(reportID, false);
+        }
+        setIsFullComposerAvailable(false);
+    }, [isComposerFullSize, reportID]);
+
     // We are returning a callback here as we want to incoke the method on unmount only
     useEffect(
         () => () => {
@@ -338,7 +347,7 @@ function ReportActionCompose({
                                     reportID={reportID}
                                     report={report}
                                     reportParticipantIDs={reportParticipantIDs}
-                                    isFullComposerAvailable={isFullComposerAvailable}
+                                    isFullComposerAvailable={isFullComposerAvailable && !isCommentEmpty}
                                     isComposerFullSize={isComposerFullSize}
                                     updateShouldShowSuggestionMenuToFalse={updateShouldShowSuggestionMenuToFalse}
                                     isBlockedFromConcierge={isBlockedFromConcierge}
@@ -400,6 +409,7 @@ function ReportActionCompose({
                     <SendButton
                         isDisabled={isSendDisabled}
                         setIsCommentEmpty={setIsCommentEmpty}
+                        resetFullComposerSize={resetFullComposerSize}
                         submitForm={submitForm}
                         animatedRef={animatedRef}
                     />
