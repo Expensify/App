@@ -128,9 +128,9 @@ export default {
         });
     },
 
-    pushModifiedExpenseNotification({report, reportAction, onClick}) {
+    pushModifiedExpenseNotification({reportAction, onClick}) {
         push({
-            title: report.reportName,
+            title: _.map(reportAction.person, (f) => f.text).join(),
             body: ReportUtils.getModifiedExpenseMessage(reportAction),
             delay: 0,
             onClick,
