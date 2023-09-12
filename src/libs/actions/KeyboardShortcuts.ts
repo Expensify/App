@@ -11,7 +11,7 @@ Onyx.connect({
 /**
  * Set keyboard shortcuts flag to show modal
  */
-function showKeyboardShortcutModal(): void {
+function showKeyboardShortcutModal() {
     if (isShortcutsModalOpen) {
         return;
     }
@@ -21,7 +21,7 @@ function showKeyboardShortcutModal(): void {
 /**
  * Unset keyboard shortcuts flag to hide modal
  */
-function hideKeyboardShortcutModal(): void {
+function hideKeyboardShortcutModal() {
     if (!isShortcutsModalOpen) {
         return;
     }
