@@ -12,7 +12,6 @@ import ReportTypingIndicator from '../ReportTypingIndicator';
 import AttachmentModal from '../../../../components/AttachmentModal';
 import compose from '../../../../libs/compose';
 import willBlurTextInputOnTapOutsideFunc from '../../../../libs/willBlurTextInputOnTapOutside';
-import isSelectionChangedOnFocus from '../../../../libs/isSelectionChangedOnFocus';
 import canFocusInputOnScreenFocus from '../../../../libs/canFocusInputOnScreenFocus';
 import CONST from '../../../../CONST';
 import * as ReportUtils from '../../../../libs/ReportUtils';
@@ -179,17 +178,11 @@ function ReportActionCompose({
             return;
         }
         composerRef.current.focus(true);
-
-        // Restore the suggestions if onSelectionChange is not called on focused
-        if (isSelectionChangedOnFocus || !suggestionsRef.current) {
-            return;
-        }
-        suggestionsRef.current.restoreSuggestions();
     };
 
     const isKeyboardVisibleWhenShowingModalRef = useRef(false);
     const restoreKeyboardState = useCallback(() => {
-        if (!isKeyboardVisibleWhenShowingModalRef.current || !shouldFocusInputOnScreenFocus) {
+        if (!isKeyboardVisibleWhenShowingModalRef.current) {
             return;
         }
         focus();

@@ -54,14 +54,6 @@ function Suggestions({
     }, []);
 
     /**
-     * Restore the previous suggestions data
-     */
-    const restoreSuggestions = useCallback(() => {
-        suggestionEmojiRef.current.restoreSuggestions();
-        suggestionMentionRef.current.restoreSuggestions();
-    }, []);
-
-    /**
      * Listens for keyboard shortcuts and applies the action
      *
      * @param {Object} e
@@ -92,13 +84,12 @@ function Suggestions({
         forwardedRef,
         () => ({
             resetSuggestions,
-            restoreSuggestions,
             onSelectionChange,
             triggerHotkeyActions,
             updateShouldShowSuggestionMenuToFalse,
             setShouldBlockSuggestionCalc,
         }),
-        [onSelectionChange, resetSuggestions, restoreSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse],
+        [onSelectionChange, resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse],
     );
 
     const {windowHeight, isSmallScreenWidth} = useWindowDimensions();
