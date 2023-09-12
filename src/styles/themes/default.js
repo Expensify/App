@@ -87,6 +87,7 @@ darkTheme.PAGE_BACKGROUND_COLORS = {
     [SCREENS.SETTINGS.PREFERENCES]: colors.blue500,
     [SCREENS.SETTINGS.WORKSPACES]: colors.pink800,
     [ROUTES.I_KNOW_A_TEACHER]: colors.orange800,
+    [ROUTES.SETTINGS_SECURITY]: colors.ice500,
 };
 
 const oldTheme = {

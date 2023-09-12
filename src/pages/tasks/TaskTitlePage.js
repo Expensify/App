@@ -14,6 +14,8 @@ import reportPropTypes from '../reportPropTypes';
 import compose from '../../libs/compose';
 import * as Task from '../../libs/actions/Task';
 import CONST from '../../CONST';
+import * as ReportUtils from '../../libs/ReportUtils';
+import Navigation from '../../libs/Navigation/Navigation';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -57,6 +59,12 @@ function TaskTitlePage(props) {
         },
         [props],
     );
+
+    if (!ReportUtils.isTaskReport(props.report)) {
+        Navigation.isNavigationReady().then(() => {
+            Navigation.dismissModal(props.report.reportID);
+        });
+    }
 
     const inputRef = useRef(null);
 
