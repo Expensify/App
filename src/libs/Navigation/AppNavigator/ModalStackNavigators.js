@@ -127,7 +127,7 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
-            const EditRequestReceiptPage = require('../../../pages/iou/EditRequestReceiptPage').default;
+            const EditRequestReceiptPage = require('../../../pages/EditRequestReceiptPage').default;
             return EditRequestReceiptPage;
         },
         name: 'Money_Request_Receipt',
