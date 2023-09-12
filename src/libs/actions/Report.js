@@ -1820,8 +1820,11 @@ function leaveRoom(reportID) {
         },
     );
     Navigation.dismissModal();
+    if (Navigation.getTopmostReportId() === reportID) {
+        Navigation.goBack();
+    }
     if (report.parentReportID) {
-        Navigation.navigate(ROUTES.getReportRoute(report.parentReportID), CONST.NAVIGATION.TYPE.UP);
+        Navigation.navigate(ROUTES.getReportRoute(report.parentReportID), CONST.NAVIGATION.TYPE.FORCED_UP);
         return;
     }
     navigateToConciergeChat();
