@@ -101,7 +101,7 @@ function SidebarLinksData({isFocused, allReportActions, betas, chatReports, curr
         <View
             accessibilityElementsHidden={!isFocused}
             accessibilityLabel={translate('sidebarScreen.listOfChats')}
-            style={[styles.flex1, styles.h100, styles.flexRow]}
+            style={[styles.flex1, styles.h100]}
         >
             <SidebarLinks
                 // Forwarded props:

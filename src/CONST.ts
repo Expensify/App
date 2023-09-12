@@ -2652,18 +2652,26 @@ const CONST = {
         DEFAULT_COORDINATE: [-122.4021, 37.7911],
         STYLE_URL: 'mapbox://styles/expensify/cllcoiqds00cs01r80kp34tmq',
     },
+
     ONYX_UPDATE_TYPES: {
         HTTPS: 'https',
         PUSHER: 'pusher',
     },
+
     EVENTS: {
         SCROLLING: 'scrolling',
     },
+
     HORIZONTAL_SPACER: {
         DEFAULT_BORDER_BOTTOM_WIDTH: 1,
         DEFAULT_MARGIN_VERTICAL: 8,
         HIDDEN_MARGIN_VERTICAL: 0,
         HIDDEN_BORDER_BOTTOM_WIDTH: 0,
+    },
+
+    SIDEBAR_MENU_OPTIONS: {
+        CHATS: 'chats',
+        EXPENSES: 'expenses',
     },
 } as const;
 
