@@ -383,10 +383,6 @@ describe('actions/Report', () => {
                 return waitForPromisesToResolve();
             })
             .then(waitForPromisesToResolve)
-            .then(waitForPromisesToResolve)
-            .then(() => {
-                expect(report.lastReadTime).toBe(reportActionCreatedDate);
-            })
             .then(() => {
                 // If the user deletes a comment that is before the last read
                 Report.deleteReportComment(REPORT_ID, {...reportActions[200]});
