@@ -1,47 +1,36 @@
-import lodashGet from 'lodash/get';
-import _ from 'underscore';
+import {ValueOf} from 'type-fest';
 import CONST from '../CONST';
 
 /**
  * Strip comma from the amount
- *
- * @param {String} amount
- * @returns {String}
  */
-function stripCommaFromAmount(amount) {
+function stripCommaFromAmount(amount: string) {
     return amount.replace(/,/g, '');
 }
 
 /**
  * Strip spaces from the amount
- *
- * @param {String} amount
- * @returns {String}
  */
-function stripSpacesFromAmount(amount) {
+function stripSpacesFromAmount(amount: string) {
     return amount.replace(/\s+/g, '');
 }
 
 /**
  * Adds a leading zero to the amount if user entered just the decimal separator
  *
- * @param {String} amount - Changed amount from user input
- * @returns {String}
+ * @param amount - Changed amount from user input
  */
-function addLeadingZero(amount) {
+function addLeadingZero(amount: string) {
     return amount === '.' ? '0.' : amount;
 }
 
 /**
  * Calculate the length of the amount with leading zeroes
- *
- * @param {String} amount
- * @returns {Number}
  */
-function calculateAmountLength(amount) {
+function calculateAmountLength(amount: string) {
     const leadingZeroes = amount.match(/^0+/);
-    const leadingZeroesLength = lodashGet(leadingZeroes, '[0].length', 0);
-    const absAmount = parseFloat((stripCommaFromAmount(amount) * 100).toFixed(2)).toString();
+    const leadingZeroesLength = leadingZeroes?.[0]?.length ?? 0;
+    const absAmount = parseFloat((Number(stripCommaFromAmount(amount)) * 100).toFixed(2)).toString();
 
     if (/\D/.test(absAmount)) {
         return CONST.IOU.AMOUNT_MAX_LENGTH + 1;
@@ -52,11 +41,8 @@ function calculateAmountLength(amount) {
 
 /**
  * Check if amount is a decimal up to 3 digits
- *
- * @param {String} amount
- * @returns {Boolean}
  */
-function validateAmount(amount) {
+function validateAmount(amount: string) {
     const decimalNumberRegex = new RegExp(/^\d+(,\d+)*(\.\d{0,2})?$/, 'i');
     return amount === '' || (decimalNumberRegex.test(amount) && calculateAmountLength(amount) <= CONST.IOU.AMOUNT_MAX_LENGTH);
 }
@@ -64,13 +50,10 @@ function validateAmount(amount) {
 /**
  * Replaces each character by calling `convertFn`. If `convertFn` throws an error, then
  * the original character will be preserved.
- *
- * @param {String} text
- * @param {Function} convertFn - `fromLocaleDigit` or `toLocaleDigit`
- * @returns {String}
  */
-function replaceAllDigits(text, convertFn) {
-    return _.chain([...text])
+function replaceAllDigits(text: string, convertFn: (char: string) => string) {
+    return text
+        .split('')
         .map((char) => {
             try {
                 return convertFn(char);
@@ -78,18 +61,13 @@ function replaceAllDigits(text, convertFn) {
                 return char;
             }
         })
-        .join('')
-        .value();
+        .join('');
 }
 
 /**
  * Check if distance request or not
- *
- * @param {String} iouType - `send` | `split` | `request`
- * @param {String} selectedTab - `manual` | `scan` | `distance`
- * @returns {Boolean}
  */
-function isDistanceRequest(iouType, selectedTab) {
+function isDistanceRequest(iouType: ValueOf<typeof CONST.IOU.MONEY_REQUEST_TYPE>, selectedTab: ValueOf<typeof CONST.TAB>) {
     return iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST && selectedTab === CONST.TAB.DISTANCE;
 }
 
