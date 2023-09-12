@@ -35,6 +35,11 @@ jest.mock('../../src/components/withKeyboardState', () => (Component) => (props)
     />
 ));
 
+jest.mock('@react-navigation/native', () => ({
+    useFocusEffect: () => {},
+    createNavigationContainerRef: jest.fn(),
+}));
+
 function SelectionListWrapper(args) {
     const [selectedIds, setSelectedIds] = useState([]);
 
