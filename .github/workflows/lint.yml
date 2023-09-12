@@ -15,7 +15,7 @@ jobs:
 
       - uses: Expensify/App/.github/actions/composite/setupNode@main
 
-      - name: Lint JavaScript with ESLint
+      - name: Lint JavaScript and Typescript with ESLint
         run: npm run lint
         env:
           CI: true
