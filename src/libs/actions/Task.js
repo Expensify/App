@@ -270,12 +270,6 @@ function completeTask(taskReport, taskTitle) {
         },
     ];
 
-    // Update optimistic data for parent report action
-    const optimisticDataForParentReportAction = ReportUtils.getOptimisticDataForParentReportAction(taskReportID, completedTaskReportAction.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-    if (!_.isEmpty(optimisticDataForParentReportAction)) {
-        optimisticData.push(optimisticDataForParentReportAction);
-    }
-
     // Multiple report actions can link to the same child. Both share destination (task parent) and assignee report link to the same report action.
     // We need to find and update the other parent report action (in assignee report). More info https://github.com/Expensify/App/issues/23920#issuecomment-1663092717
     const assigneeReportAction = ReportUtils.getTaskParentReportActionIDInAssigneeReport(taskReport);
@@ -362,12 +356,6 @@ function reopenTask(taskReport, taskTitle) {
             },
         },
     ];
-
-    // Update optimistic data for parent report action
-    const optimisticDataForParentReportAction = ReportUtils.getOptimisticDataForParentReportAction(taskReportID, reopenedTaskReportAction.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-    if (!_.isEmpty(optimisticDataForParentReportAction)) {
-        optimisticData.push(optimisticDataForParentReportAction);
-    }
 
     // Multiple report actions can link to the same child. Both share destination (task parent) and assignee report link to the same report action.
     // We need to find and update the other parent report action (in assignee report). More info https://github.com/Expensify/App/issues/23920#issuecomment-1663092717
@@ -743,7 +731,10 @@ function getShareDestination(reportID, reports, personalDetails) {
     const report = lodashGet(reports, `report_${reportID}`, {});
     let subtitle = '';
     if (ReportUtils.isChatReport(report) && ReportUtils.isDM(report) && ReportUtils.hasSingleParticipant(report)) {
-        subtitle = LocalePhoneNumber.formatPhoneNumber(report.participants[0]);
+        const participantAccountID = lodashGet(report, 'participantAccountIDs[0]');
+        const displayName = lodashGet(personalDetails, [participantAccountID, 'displayName']);
+        const login = lodashGet(personalDetails, [participantAccountID, 'login']);
+        subtitle = LocalePhoneNumber.formatPhoneNumber(login || displayName);
     } else {
         subtitle = ReportUtils.getChatRoomSubtitle(report);
     }

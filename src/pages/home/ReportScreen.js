@@ -38,6 +38,7 @@ import {ActionListContext, ReactionListContext} from './ReportScreenContext';
 import TaskHeaderActionButton from '../../components/TaskHeaderActionButton';
 import DragAndDropProvider from '../../components/DragAndDrop/Provider';
 import usePrevious from '../../hooks/usePrevious';
+import withCurrentReportID, {withCurrentReportIDPropTypes, withCurrentReportIDDefaultProps} from '../../components/withCurrentReportID';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -91,10 +92,11 @@ const propTypes = {
     personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
     /** Onyx function that marks the component ready for hydration */
-    allowOnyxUpdates: PropTypes.func,
+    markReadyForHydration: PropTypes.func,
 
     ...windowDimensionsPropTypes,
     ...viewportOffsetTopPropTypes,
+    ...withCurrentReportIDPropTypes,
 };
 
 const defaultProps = {
@@ -112,7 +114,8 @@ const defaultProps = {
     policies: {},
     accountManagerReportID: null,
     personalDetails: {},
-    allowOnyxUpdates: null,
+    markReadyForHydration: null,
+    ...withCurrentReportIDDefaultProps,
 };
 
 /**
@@ -135,7 +138,7 @@ function ReportScreen({
     reportActions,
     accountManagerReportID,
     personalDetails,
-    allowOnyxUpdates,
+    markReadyForHydration,
     policies,
     translate,
     network,
@@ -144,6 +147,7 @@ function ReportScreen({
     viewportOffsetTop,
     isComposerFullSize,
     errors,
+    currentReportID,
 }) {
     const firstRenderRef = useRef(true);
     const flatListRef = useRef();
@@ -170,7 +174,7 @@ function ReportScreen({
 
     const policy = policies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
 
-    const isTopMostReportId = Navigation.getTopmostReportId() === getReportID(route);
+    const isTopMostReportId = currentReportID === getReportID(route);
 
     let headerView = (
         <HeaderView
@@ -310,10 +314,10 @@ function ReportScreen({
     }, [route, report, errors, fetchReportIfNeeded, prevReport.reportID]);
 
     const onListLayout = useCallback(() => {
-        if (!allowOnyxUpdates) {
+        if (!markReadyForHydration) {
             return;
         }
-        allowOnyxUpdates();
+        markReadyForHydration();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -417,6 +421,7 @@ export default compose(
     withLocalize,
     withWindowDimensions,
     withNetwork(),
+    withCurrentReportID,
     withOnyx(
         {
             isSidebarLoaded: {

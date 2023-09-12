@@ -20,6 +20,11 @@ const ORIGIN_PATTERN = new RegExp(`^(${ORIGINS_TO_REPLACE.join('|')})`);
  * @returns {String}
  */
 export default function tryResolveUrlFromApiRoot(url) {
+    // in native, when we import an image asset, it will have a number representation which can be used in `source` of Image
+    // in this case we can skip the url resolving
+    if (typeof url === 'number') {
+        return url;
+    }
     const apiRoot = ApiUtils.getApiRoot({shouldUseSecure: false});
     return url.replace(ORIGIN_PATTERN, apiRoot);
 }
