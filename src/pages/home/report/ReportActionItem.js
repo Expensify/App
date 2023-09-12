@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import React, {useState, useRef, useEffect, memo, useCallback, useContext} from 'react';
+import React, {useState, useRef, useEffect, memo, useCallback, useContext, useMemo} from 'react';
 import {InteractionManager, View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -67,6 +67,8 @@ import * as BankAccounts from '../../../libs/actions/BankAccounts';
 import usePrevious from '../../../hooks/usePrevious';
 import ReportScreenContext from '../ReportScreenContext';
 import Permissions from '../../../libs/Permissions';
+import themeColors from '../../../styles/themes/default';
+import withRoute from '../../../components/withRoute';
 
 const propTypes = {
     ...windowDimensionsPropTypes,
@@ -135,6 +137,11 @@ function ReportActionItem(props) {
     const prevDraftMessage = usePrevious(props.draftMessage);
     const originalReportID = ReportUtils.getOriginalReportID(props.report.reportID, props.action);
     const originalReport = props.report.reportID === originalReportID ? props.report : ReportUtils.getReport(originalReportID);
+    const reportActionID = lodashGet(props.route, 'params.reportActionID');
+
+    const highlightedBackgroundColorIfNeeded = useMemo(() => {
+        return reportActionID === props.action.reportActionID ? {backgroundColor: themeColors.highlightBG} : {};
+    }, [reportActionID]);
 
     useEffect(
         () => () => {
@@ -557,7 +564,7 @@ function ReportActionItem(props) {
         >
             <Hoverable disabled={Boolean(props.draftMessage)}>
                 {(hovered) => (
-                    <View>
+                    <View style={highlightedBackgroundColorIfNeeded}>
                         {props.shouldDisplayNewMarker && <UnreadActionIndicator reportActionID={props.action.reportActionID} />}
                         <MiniReportActionContextMenu
                             reportID={props.report.reportID}
@@ -644,6 +651,7 @@ export default compose(
             key: ({action}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${action.reportActionID}`,
         },
     }),
+    withRoute,
 )(
     memo(
         ReportActionItem,
