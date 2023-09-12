@@ -35,8 +35,8 @@ function Hoverable({disabled, onHoverIn, onHoverOut, children}) {
 
     useEffect(() => {
         if (disabled) return;
-        if (isHovered) return onHoverIn();
-        onHoverOut();
+        if (onHoverIn && isHovered) return onHoverIn();
+        if (onHoverOut && !isHovered) return onHoverOut();
     }, [disabled, isHovered, onHoverIn, onHoverOut]);
 
     const child = useMemo(() => React.Children.only(mapChildren(children, isHovered)), [children, isHovered]);
