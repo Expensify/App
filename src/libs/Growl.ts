@@ -11,7 +11,7 @@ const isReadyPromise = new Promise((resolve) => {
     resolveIsReadyPromise = resolve;
 });
 
-function setIsReady(): void {
+function setIsReady() {
     if (!resolveIsReadyPromise) return;
     resolveIsReadyPromise();
 }
@@ -19,7 +19,7 @@ function setIsReady(): void {
 /**
  * Show the growl notification
  */
-function show(bodyText: string, type: string, duration: number = CONST.GROWL.DURATION): void {
+function show(bodyText: string, type: string, duration: number = CONST.GROWL.DURATION) {
     isReadyPromise.then(() => {
         if (!growlRef?.current?.show) return;
         growlRef.current.show(bodyText, type, duration);
@@ -29,14 +29,14 @@ function show(bodyText: string, type: string, duration: number = CONST.GROWL.DUR
 /**
  * Show error growl
  */
-function error(bodyText: string, duration: number = CONST.GROWL.DURATION): void {
+function error(bodyText: string, duration: number = CONST.GROWL.DURATION) {
     show(bodyText, CONST.GROWL.ERROR, duration);
 }
 
 /**
  * Show success growl
  */
-function success(bodyText: string, duration: number = CONST.GROWL.DURATION): void {
+function success(bodyText: string, duration: number = CONST.GROWL.DURATION) {
     show(bodyText, CONST.GROWL.SUCCESS, duration);
 }
 
