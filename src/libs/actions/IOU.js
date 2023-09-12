@@ -1863,8 +1863,9 @@ function createEmptyTransaction() {
  * @param {String} iouType
  * @param {String} reportID
  * @param {Object} report
+ * @param {Object} route
  */
-function navigateToNextPage(iou, iouType, reportID, report) {
+function navigateToNextPage(iou, iouType, reportID, report, route = '') {
     const moneyRequestID = `${iouType}${reportID}`;
     const shouldReset = iou.id !== moneyRequestID;
 
@@ -1872,6 +1873,12 @@ function navigateToNextPage(iou, iouType, reportID, report) {
     // with the ID from params. We need to clear the participants in case the new request is initiated from FAB.
     if (shouldReset) {
         resetMoneyRequestInfo(moneyRequestID);
+    }
+
+    // If we're adding a receipt, that means the user came from the confirmation page and we navigate back to it.
+    if (route.slice(1) === ROUTES.getMoneyRequestReceiptRoute(iouType, reportID)) {
+        Navigation.navigate(ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID));
+        return;
     }
 
     // If a request is initiated on a report, skip the participants selection step and navigate to the confirmation page.
