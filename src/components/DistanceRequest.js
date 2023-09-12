@@ -71,22 +71,21 @@ const defaultProps = {
     },
 };
 
-function DistanceRequest({transactionID, report, mapboxAccessToken, isEditingRequest, onSubmit}) {
+function DistanceRequest({transactionID, report, mapboxAccessToken, isEditingRequest, onSubmit, transaction}) {
     const [shouldShowGradient, setShouldShowGradient] = useState(false);
     const [scrollContainerHeight, setScrollContainerHeight] = useState(0);
     const [scrollContentHeight, setScrollContentHeight] = useState(0);
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
 
-    const transaction = TransactionUtils.getTransaction(transactionID);
-    const waypoints = useMemo(() => lodashGet(transaction, 'comment.waypoints', {}), [transaction]);
+    const waypoints = transaction?.comment?.waypoints || {};
     const previousWaypoints = usePrevious(waypoints);
     const numberOfWaypoints = _.size(waypoints);
     const numberOfPreviousWaypoints = _.size(previousWaypoints);
     const scrollViewRef = useRef(null);
 
     const lastWaypointIndex = numberOfWaypoints - 1;
-    const isLoadingRoute = lodashGet(transaction, 'comment.isLoading', false);
+    const isLoadingRoute = transaction?.comment?.isLoading || false;
     const hasRouteError = !!lodashGet(transaction, 'errorFields.route');
     const haveWaypointsChanged = !_.isEqual(previousWaypoints, waypoints);
     const doesRouteExist = lodashHas(transaction, 'routes.route0.geometry.coordinates');
@@ -263,7 +262,7 @@ function DistanceRequest({transactionID, report, mapboxAccessToken, isEditingReq
                 )}
             </View>
             <Button
-                isLoading={transaction.isLoading}
+                isLoading={transaction?.isLoading}
                 success
                 style={[styles.w100, styles.mb4, styles.ph4, styles.flexShrink0]}
                 onPress={() => onSubmit(waypoints)}
