@@ -54,7 +54,6 @@ function NewDistanceRequestPage({iou, report, route}) {
 
     return (
         <DistanceRequest
-            iouType={iouType}
             report={report}
             transactionID={iou.transactionID}
             onSubmit={() => IOU.navigateToNextPage(iou, iouType, report.reportID, report)}

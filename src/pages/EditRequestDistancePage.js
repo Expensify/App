@@ -34,8 +34,8 @@ function EditRequestDistancePage({transactionID, report}) {
             <DistanceRequest
                 report={report}
                 transactionID={transactionID}
-                isEditingRequest
                 onSubmit={(waypoints) => IOU.updateDistanceRequest(transactionID, report.reportID, {waypoints})}
+                isEditingRequest
             />
         </ScreenWrapper>
     );
