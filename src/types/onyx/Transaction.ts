@@ -33,7 +33,7 @@ type Transaction = {
     created: string;
     pendingAction: OnyxCommon.PendingAction;
     errors: OnyxCommon.Errors;
-    errorFields: OnyxCommon.ErrorFields;
+    errorFields?: OnyxCommon.ErrorFields;
     modifiedAmount?: number;
     modifiedCreated?: string;
     modifiedCurrency?: string;

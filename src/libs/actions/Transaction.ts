@@ -73,8 +73,7 @@ function saveWaypoint(transactionID: string, index: string, waypoint: RecentWayp
         },
         // Empty out errors when we're saving a new waypoint as this indicates the user is updating their input
         errorFields: {
-            // TODO: check if its ok to put undefined
-            route: undefined,
+            route: null,
         },
 
         // Clear the existing route so that we don't show an old route
@@ -150,7 +149,7 @@ function removeWaypoint(transactionID: string, currentIndex: string) {
  * Gets the route for a set of waypoints
  * Used so we can generate a map view of the provided waypoints
  */
-function getRoute(transactionID: string, waypoints: RecentWaypoints) {
+function getRoute(transactionID: string, waypoints: Record<string, RecentWaypoints>) {
     API.read(
         'GetRoute',
         {
