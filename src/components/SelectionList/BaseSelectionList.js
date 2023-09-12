@@ -167,15 +167,13 @@ function BaseSelectionList({
         listRef.current.scrollToLocation({sectionIndex: adjustedSectionIndex, itemIndex, animated, viewOffset: variables.contentHeaderHeight});
     };
 
-    const selectRow = (item, index) => {
+    const selectRow = (item) => {
         // In single-selection lists we don't care about updating the focused index, because the list is closed after selecting an item
         if (canSelectMultiple) {
-            if (sections.length === 1) {
-                // If the list has only 1 section (e.g. Workspace Members list), we always focus the next available item
-                const nextAvailableIndex = _.findIndex(flattenedSections.allOptions, (option, i) => i > index && !option.isDisabled);
-                setFocusedIndex(nextAvailableIndex);
-            } else {
-                // If the list has multiple sections (e.g. Workspace Invite list), we focus the first one after all the selected (selected items are always at the top)
+            if (sections.length > 1) {
+                // If the list has only 1 section (e.g. Workspace Members list), we do nothing.
+                // If the list has multiple sections (e.g. Workspace Invite list), we focus the first one after all the selected (selected items are always at the top).
+
                 const selectedOptionsCount = item.isSelected ? flattenedSections.selectedOptions.length - 1 : flattenedSections.selectedOptions.length + 1;
                 setFocusedIndex(selectedOptionsCount);
 
@@ -196,7 +194,7 @@ function BaseSelectionList({
             return;
         }
 
-        selectRow(focusedOption, focusedIndex);
+        selectRow(focusedOption);
     };
 
     /**
@@ -250,7 +248,7 @@ function BaseSelectionList({
                 <CheckboxListItem
                     item={item}
                     isFocused={isFocused}
-                    onSelectRow={() => selectRow(item, index)}
+                    onSelectRow={() => selectRow(item)}
                     onDismissError={onDismissError}
                 />
             );
@@ -261,7 +259,7 @@ function BaseSelectionList({
                 item={item}
                 isFocused={isFocused}
                 isDisabled={isDisabled}
-                onSelectRow={() => selectRow(item, index)}
+                onSelectRow={() => selectRow(item)}
             />
         );
     };
