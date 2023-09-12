@@ -1,4 +1,5 @@
 import React from 'react';
+import _ from 'underscore';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
@@ -25,9 +26,6 @@ const propTypes = {
 
             /** The report ID of the IOU */
             reportID: PropTypes.string,
-
-            /** The tag name of the IOU */
-            tag: PropTypes.string,
         }),
     }).isRequired,
 
@@ -53,8 +51,11 @@ function MoneyRequestTagPage({route, report, policyTags}) {
     const {translate} = useLocalize();
 
     const iouType = lodashGet(route, 'params.iouType', '');
-    const tag = lodashGet(route, 'params.tag', '');
-    const tagName = lodashGet(policyTags, [tag, 'name'], '');
+
+    // Fetches the first tag list of the policy
+    const tagListKey = _.first(_.keys(policyTags));
+    const tagList = lodashGet(policyTags, tagListKey, {});
+    const tagListName = lodashGet(tagList, 'name', '');
 
     const navigateBack = () => {
         Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType, lodashGet(report, 'reportID', '')));
@@ -66,14 +67,14 @@ function MoneyRequestTagPage({route, report, policyTags}) {
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
-                title={tagName || translate('common.tag')}
+                title={tagListName || translate('common.tag')}
                 onBackButtonPress={navigateBack}
             />
-            <Text style={[styles.ph5, styles.pv3]}>{translate('iou.tagSelection', {tagName} || translate('common.tag'))}</Text>
+            <Text style={[styles.ph5, styles.pv3]}>{translate('iou.tagSelection', {tagListName} || translate('common.tag'))}</Text>
             <TagPicker
                 policyID={report.policyID}
                 reportID={report.reportID}
-                tag={tag}
+                tag={tagListKey}
                 iouType={iouType}
             />
         </ScreenWrapper>

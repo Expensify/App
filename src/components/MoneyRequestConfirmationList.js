@@ -139,6 +139,7 @@ const propTypes = {
     policyTags: PropTypes.objectOf(
         PropTypes.shape({
             name: PropTypes.string,
+            required: PropTypes.bool,
             tags: PropTypes.objectOf(tagPropTypes),
         }),
     ),
@@ -192,9 +193,10 @@ function MoneyRequestConfirmationList(props) {
     const shouldCalculateDistanceAmount = props.isDistanceRequest && props.iouAmount === 0;
     const shouldCategoryEditable = !_.isEmpty(props.policyCategories) && !props.isDistanceRequest;
 
-    // Fetches the first tag of the policy
-    const tagKey = _.first(_.keys(props.policyTags));
-    const tag = lodashGet(props.policyTags, tagKey, {});
+    // Fetches the first tag list of the policy
+    const tagListKey = _.first(_.keys(props.policyTags));
+    const tagList = lodashGet(props.policyTags, [tagListKey, 'tags'], []);
+    const tagListName = lodashGet(props.policyTags, [tagListKey, 'name'], '');
     const canUseTags = Permissions.canUseTags(props.betas);
 
     const formattedAmount = CurrencyUtils.convertToDisplayString(
@@ -518,12 +520,12 @@ function MoneyRequestConfirmationList(props) {
                             disabled={didConfirm || props.isReadOnly}
                         />
                     )}
-                    {canUseTags && tag.tags ? (
+                    {canUseTags && tagList ? (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly}
                             title={props.iouTag}
-                            description={lodashGet(tag, 'name', '') || translate('common.tag')}
-                            onPress={() => Navigation.navigate(ROUTES.getMoneyRequestTagRoute(props.iouType, props.reportID, tagKey))}
+                            description={tagListName || translate('common.tag')}
+                            onPress={() => Navigation.navigate(ROUTES.getMoneyRequestTagRoute(props.iouType, props.reportID, tagListKey))}
                             style={[styles.moneyRequestMenuItem, styles.mb2]}
                             disabled={didConfirm || props.isReadOnly}
                         />

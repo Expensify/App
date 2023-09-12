@@ -9,7 +9,7 @@ const propTypes = {
     /** The policyID we are getting tags for */
     policyID: PropTypes.string.isRequired,
 
-    /** The policyID we are getting tags for */
+    /** The tag list we are getting tags for */
     tag: PropTypes.string.isRequired,
 
     /** The type of IOU report, i.e. bill, request, send */
