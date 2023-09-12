@@ -154,6 +154,12 @@ const assertIOSJobExecuted = (workflowResult, ref = '', didExecute = true, fails
             ],
             [],
         ),
+        utils.createStepAssertion('Cache Pod dependencies', true, null, 'IOS', 'Cache Pod dependencies', [
+            {key: 'path', value: 'ios/Pods'},
+            {key: 'key', value: 'Linux-pods-cache-'},
+            {key: 'restore-keys', value: 'Linux-pods-cache-'},
+        ]),
+        utils.createStepAssertion('Compare Podfile.lock and Manifest.lock', true, null, 'IOS', 'Compare Podfile.lock and Manifest.lock'),
         utils.createStepAssertion(
             'Install cocoapods',
             true,

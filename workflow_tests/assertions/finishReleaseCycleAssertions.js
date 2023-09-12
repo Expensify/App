@@ -178,64 +178,9 @@ const assertUpdateStagingJobExecuted = (workflowResult, didExecute = true, isSuc
     });
 };
 
-const assertCreateNewStagingDeployCashJobExecuted = (workflowResult, newVersion = '', didExecute = true, isSuccessful = true) => {
-    const steps = [
-        utils.createStepAssertion(
-            'Checkout',
-            true,
-            null,
-            'CREATENEWSTAGINGDEPLOYCASH',
-            'Checkout',
-            [
-                {key: 'ref', value: 'staging'},
-                {key: 'token', value: '***'},
-            ],
-            [],
-        ),
-        utils.createStepAssertion('Tag version', true, null, 'CREATENEWSTAGINGDEPLOYCASH', 'Tagging version', [], []),
-        utils.createStepAssertion(
-            'Create new StagingDeployCash',
-            true,
-            null,
-            'CREATENEWSTAGINGDEPLOYCASH',
-            'Creating new StagingDeployCash',
-            [
-                {key: 'GITHUB_TOKEN', value: '***'},
-                {key: 'NPM_VERSION', value: newVersion},
-            ],
-            [],
-        ),
-    ];
-
-    if (!isSuccessful) {
-        steps[2].status = 1;
-    }
-
-    steps.forEach((expectedStep) => {
-        if (didExecute) {
-            expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
-        } else {
-            expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
-        }
-    });
-
-    const failProdSteps = [
-        utils.createStepAssertion('Announce failed workflow in Slack', true, null, 'CREATENEWSTAGINGDEPLOYCASH', 'Announcing failed workflow', [{key: 'SLACK_WEBHOOK', value: '***'}], []),
-    ];
-
-    failProdSteps.forEach((expectedStep) => {
-        if (didExecute && !isSuccessful) {
-            expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
-        } else {
-            expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
-        }
-    });
-};
-
 module.exports = {
     assertValidateJobExecuted,
     assertUpdateProductionJobExecuted,
     assertCreateNewPatchVersionJobExecuted,
     assertUpdateStagingJobExecuted,
-    assertCreateNewStagingDeployCashJobExecuted,
 };

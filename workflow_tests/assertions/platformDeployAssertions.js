@@ -12,6 +12,26 @@ const assertVerifyActorJobExecuted = (workflowResult, username, didExecute = tru
     });
 };
 
+const assertDeployChecklistJobExecuted = (workflowResult, didExecute = true) => {
+    const steps = [
+        utils.createStepAssertion('Checkout', true, null, 'DEPLOY_CHECKLIST', 'Checkout'),
+        utils.createStepAssertion('Setup Node', true, null, 'DEPLOY_CHECKLIST', 'Setup Node'),
+        utils.createStepAssertion('Set version', true, null, 'DEPLOY_CHECKLIST', 'Set version'),
+        utils.createStepAssertion('Create or update staging deploy', true, null, 'DEPLOY_CHECKLIST', 'Create or update staging deploy', [
+            {key: 'GITHUB_TOKEN', value: '***'},
+            {key: 'NPM_VERSION', value: '1.2.3'},
+        ]),
+    ];
+
+    steps.forEach((expectedStep) => {
+        if (didExecute) {
+            expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
+        } else {
+            expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
+        }
+    });
+};
+
 const assertAndroidJobExecuted = (workflowResult, didExecute = true, isProduction = true, isSuccessful = true) => {
     const steps = [
         utils.createStepAssertion('Checkout', true, null, 'ANDROID', 'Checking out'),
@@ -131,6 +151,12 @@ const assertIOSJobExecuted = (workflowResult, didExecute = true, isProduction = 
             {key: 'ruby-version', value: '2.7'},
             {key: 'bundler-cache', value: 'true'},
         ]),
+        utils.createStepAssertion('Cache Pod dependencies', true, null, 'IOS', 'Cache Pod dependencies', [
+            {key: 'path', value: 'ios/Pods'},
+            {key: 'key', value: 'Linux-pods-cache-'},
+            {key: 'restore-keys', value: 'Linux-pods-cache-'},
+        ]),
+        utils.createStepAssertion('Compare Podfile.lock and Manifest.lock', true, null, 'IOS', 'Compare Podfile.lock and Manifest.lock'),
         utils.createStepAssertion('Install cocoapods', true, null, 'IOS', 'Installing cocoapods', [
             {key: 'timeout_minutes', value: '10'},
             {key: 'max_attempts', value: '5'},
@@ -334,6 +360,7 @@ const assertPostGithubCommentJobExecuted = (workflowResult, didExecute = true, i
 
 module.exports = {
     assertVerifyActorJobExecuted,
+    assertDeployChecklistJobExecuted,
     assertAndroidJobExecuted,
     assertDesktopJobExecuted,
     assertIOSJobExecuted,

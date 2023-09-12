@@ -20,6 +20,23 @@ const PLATFORM_DEPLOY__VALIDATE_ACTOR__CHECK_USER_DEPLOYER__OUTSIDER__STEP_MOCK 
 const PLATFORM_DEPLOY__VALIDATE_ACTOR__TEAM_MEMBER__STEP_MOCKS = [PLATFORM_DEPLOY__VALIDATE_ACTOR__CHECK_USER_DEPLOYER__TEAM_MEMBER__STEP_MOCK];
 const PLATFORM_DEPLOY__VALIDATE_ACTOR__OUTSIDER__STEP_MOCKS = [PLATFORM_DEPLOY__VALIDATE_ACTOR__CHECK_USER_DEPLOYER__OUTSIDER__STEP_MOCK];
 
+// deployChecklist
+const PLATFORM_DEPLOY__DEPLOY_CHECKLIST__CHECKOUT__STEP_MOCK = utils.createMockStep('Checkout', 'Checkout', 'DEPLOY_CHECKLIST');
+const PLATFORM_DEPLOY__DEPLOY_CHECKLIST__SETUP_NODE__STEP_MOCK = utils.createMockStep('Setup Node', 'Setup Node', 'DEPLOY_CHECKLIST');
+const PLATFORM_DEPLOY__DEPLOY_CHECKLIST__SET_VERSION__STEP_MOCK = utils.createMockStep('Set version', 'Set version', 'DEPLOY_CHECKLIST', [], [], {VERSION: '1.2.3'});
+const PLATFORM_DEPLOY__DEPLOY_CHECKLIST__CREATE_OR_UPDATE_STAGING_DEPLOY__STEP_MOCK = utils.createMockStep(
+    'Create or update staging deploy',
+    'Create or update staging deploy',
+    'DEPLOY_CHECKLIST',
+    ['GITHUB_TOKEN', 'NPM_VERSION'],
+);
+const PLATFORM_DEPLOY__DEPLOY_CHECKLIST__STEP_MOCKS = [
+    PLATFORM_DEPLOY__DEPLOY_CHECKLIST__CHECKOUT__STEP_MOCK,
+    PLATFORM_DEPLOY__DEPLOY_CHECKLIST__SETUP_NODE__STEP_MOCK,
+    PLATFORM_DEPLOY__DEPLOY_CHECKLIST__SET_VERSION__STEP_MOCK,
+    PLATFORM_DEPLOY__DEPLOY_CHECKLIST__CREATE_OR_UPDATE_STAGING_DEPLOY__STEP_MOCK,
+];
+
 // android
 const PLATFORM_DEPLOY__ANDROID__CHECKOUT__STEP_MOCK = utils.createMockStep('Checkout', 'Checking out', 'ANDROID');
 const PLATFORM_DEPLOY__ANDROID__CONFIGURE_MAPBOX_SDK__STEP_MOCK = utils.createMockStep('Configure MapBox SDK', 'Configure MapBox SDK', 'ANDROID');
@@ -98,6 +115,17 @@ const PLATFORM_DEPLOY__IOS__CHECKOUT__STEP_MOCK = utils.createMockStep('Checkout
 const PLATFORM_DEPLOY__IOS__CONFIGURE_MAPBOX_SDK__STEP_MOCK = utils.createMockStep('Configure MapBox SDK', 'Configure MapBox SDK', 'IOS');
 const PLATFORM_DEPLOY__IOS__SETUP_NODE__STEP_MOCK = utils.createMockStep('Setup Node', 'Setting up Node', 'IOS');
 const PLATFORM_DEPLOY__IOS__SETUP_RUBY__STEP_MOCK = utils.createMockStep('Setup Ruby', 'Setting up Ruby', 'IOS', ['ruby-version', 'bundler-cache']);
+const PLATFORM_DEPLOY__IOS__CACHE_POD_DEPENDENCIES__STEP_MOCK = utils.createMockStep('Cache Pod dependencies', 'Cache Pod dependencies', 'IOS', ['path', 'key', 'restore-keys'], [], {
+    'cache-hit': false,
+});
+const PLATFORM_DEPLOY__IOS__COMPARE_PODFILE_AND_MANIFEST__STEP_MOCK = utils.createMockStep(
+    'Compare Podfile.lock and Manifest.lock',
+    'Compare Podfile.lock and Manifest.lock',
+    'IOS',
+    [],
+    [],
+    {IS_PODFILE_SAME_AS_MANIFEST: false},
+);
 const PLATFORM_DEPLOY__IOS__COCOAPODS__STEP_MOCK = utils.createMockStep('Install cocoapods', 'Installing cocoapods', 'IOS', ['timeout_minutes', 'max_attempts', 'command']);
 const PLATFORM_DEPLOY__IOS__DECRYPT_PROFILE__STEP_MOCK = utils.createMockStep('Decrypt profile', 'Decrypting profile', 'IOS', null, ['LARGE_SECRET_PASSPHRASE']);
 const PLATFORM_DEPLOY__IOS__DECRYPT_CERTIFICATE__STEP_MOCK = utils.createMockStep('Decrypt certificate', 'Decrypting certificate', 'IOS', null, ['LARGE_SECRET_PASSPHRASE']);
@@ -126,6 +154,8 @@ const PLATFORM_DEPLOY__IOS__STEP_MOCKS = [
     PLATFORM_DEPLOY__IOS__CONFIGURE_MAPBOX_SDK__STEP_MOCK,
     PLATFORM_DEPLOY__IOS__SETUP_NODE__STEP_MOCK,
     PLATFORM_DEPLOY__IOS__SETUP_RUBY__STEP_MOCK,
+    PLATFORM_DEPLOY__IOS__CACHE_POD_DEPENDENCIES__STEP_MOCK,
+    PLATFORM_DEPLOY__IOS__COMPARE_PODFILE_AND_MANIFEST__STEP_MOCK,
     PLATFORM_DEPLOY__IOS__COCOAPODS__STEP_MOCK,
     PLATFORM_DEPLOY__IOS__DECRYPT_PROFILE__STEP_MOCK,
     PLATFORM_DEPLOY__IOS__DECRYPT_CERTIFICATE__STEP_MOCK,
@@ -247,4 +277,5 @@ module.exports = {
     PLATFORM_DEPLOY__POST_SLACK_FAIL__STEP_MOCKS,
     PLATFORM_DEPLOY__POST_SLACK_SUCCESS__STEP_MOCKS,
     PLATFORM_DEPLOY__POST_GITHUB_COMMENT__STEP_MOCKS,
+    PLATFORM_DEPLOY__DEPLOY_CHECKLIST__STEP_MOCKS,
 };

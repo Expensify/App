@@ -77,20 +77,12 @@ const RUN_TURNSTYLE_MOCK_STEP = utils.createMockStep('Run turnstyle', 'Running t
 const CHECKOUT_MAIN_MOCK_STEP = utils.createMockStep('Checkout main', 'Checkout main', 'UPDATE_STAGING', ['ref', 'token']);
 const SETUP_GIT_FOR_OSBOTIFY_MOCK_STEP = utils.createMockStep('Setup Git for OSBotify', 'Setup Git for OSBotify', 'UPDATE_STAGING', ['GPG_PASSPHRASE']);
 const UPDATE_STAGING_BRANCH_FROM_MAIN_MOCK_STEP = utils.createMockStep('Update staging branch from main', 'Update staging branch from main', 'UPDATE_STAGING');
-const TAG_STAGING_MOCK_STEP = utils.createMockStep('Tag staging', 'Tagging staging', 'UPDATE_STAGING');
-const UPDATE_STAGINGDEPLOYCASH_MOCK_STEP = utils.createMockStep('Update StagingDeployCash', 'Updating StagingDeployCash', 'UPDATE_STAGING', ['GITHUB_TOKEN', 'NPM_VERSION']);
-const FIND_OPEN_STAGINGDEPLOYCASH_MOCK_STEP = utils.createMockStep('Find open StagingDeployCash', 'Finding open StagingDeployCash', 'UPDATE_STAGING', null, ['GITHUB_TOKEN'], {
-    STAGING_DEPLOY_CASH: '1234',
-});
 const ANNOUNCE_FAILED_WORKFLOW_IN_SLACK_MOCK_STEP = utils.createMockStep('Announce failed workflow in Slack', 'Announcing failed workflow in Slack', 'UPDATE_STAGING', ['SLACK_WEBHOOK']);
 const UPDATE_STAGING_JOB_MOCK_STEPS = [
     RUN_TURNSTYLE_MOCK_STEP,
     CHECKOUT_MAIN_MOCK_STEP,
     SETUP_GIT_FOR_OSBOTIFY_MOCK_STEP,
     UPDATE_STAGING_BRANCH_FROM_MAIN_MOCK_STEP,
-    TAG_STAGING_MOCK_STEP,
-    UPDATE_STAGINGDEPLOYCASH_MOCK_STEP,
-    FIND_OPEN_STAGINGDEPLOYCASH_MOCK_STEP,
     ANNOUNCE_FAILED_WORKFLOW_IN_SLACK_MOCK_STEP,
 ];
 

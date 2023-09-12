@@ -180,12 +180,6 @@ const assertUpdateStagingJobExecuted = (workflowResult, didExecute = true) => {
         ]),
         utils.createStepAssertion('Setup Git for OSBotify', true, null, 'UPDATE_STAGING', 'Setup Git for OSBotify', [{key: 'GPG_PASSPHRASE', value: '***'}]),
         utils.createStepAssertion('Update staging branch from main', true, null, 'UPDATE_STAGING', 'Update staging branch from main'),
-        utils.createStepAssertion('Tag staging', true, null, 'UPDATE_STAGING', 'Tagging staging'),
-        utils.createStepAssertion('Update StagingDeployCash', true, null, 'UPDATE_STAGING', 'Updating StagingDeployCash', [
-            {key: 'GITHUB_TOKEN', value: '***'},
-            {key: 'NPM_VERSION', value: '1.2.3'},
-        ]),
-        utils.createStepAssertion('Find open StagingDeployCash', true, null, 'UPDATE_STAGING', 'Finding open StagingDeployCash', null, [{key: 'GITHUB_TOKEN', value: '***'}]),
     ];
 
     steps.forEach((expectedStep) => {

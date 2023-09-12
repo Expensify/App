@@ -90,6 +90,7 @@ describe('test workflow platformDeploy', () => {
                 );
                 const testMockSteps = {
                     validateActor: mocks.PLATFORM_DEPLOY__VALIDATE_ACTOR__TEAM_MEMBER__STEP_MOCKS,
+                    deployChecklist: mocks.PLATFORM_DEPLOY__DEPLOY_CHECKLIST__STEP_MOCKS,
                     android: mocks.PLATFORM_DEPLOY__ANDROID__STEP_MOCKS,
                     desktop: mocks.PLATFORM_DEPLOY__DESKTOP__STEP_MOCKS,
                     iOS: mocks.PLATFORM_DEPLOY__IOS__STEP_MOCKS,
@@ -106,6 +107,7 @@ describe('test workflow platformDeploy', () => {
                 });
 
                 assertions.assertVerifyActorJobExecuted(result, 'Dummy Author');
+                assertions.assertDeployChecklistJobExecuted(result, true);
                 assertions.assertAndroidJobExecuted(result, true, false, true);
                 assertions.assertDesktopJobExecuted(result, true, false);
                 assertions.assertIOSJobExecuted(result, true, false, true);
@@ -164,6 +166,7 @@ describe('test workflow platformDeploy', () => {
                 );
                 const testMockSteps = {
                     validateActor: mocks.PLATFORM_DEPLOY__VALIDATE_ACTOR__OUTSIDER__STEP_MOCKS,
+                    deployChecklist: mocks.PLATFORM_DEPLOY__DEPLOY_CHECKLIST__STEP_MOCKS,
                     android: mocks.PLATFORM_DEPLOY__ANDROID__STEP_MOCKS,
                     desktop: mocks.PLATFORM_DEPLOY__DESKTOP__STEP_MOCKS,
                     iOS: mocks.PLATFORM_DEPLOY__IOS__STEP_MOCKS,
@@ -180,6 +183,7 @@ describe('test workflow platformDeploy', () => {
                 });
 
                 assertions.assertVerifyActorJobExecuted(result, 'OSBotify');
+                assertions.assertDeployChecklistJobExecuted(result, true);
                 assertions.assertAndroidJobExecuted(result, true, false, true);
                 assertions.assertDesktopJobExecuted(result, true, false);
                 assertions.assertIOSJobExecuted(result, true, false, true);
@@ -238,6 +242,7 @@ describe('test workflow platformDeploy', () => {
                 );
                 const testMockSteps = {
                     validateActor: mocks.PLATFORM_DEPLOY__VALIDATE_ACTOR__OUTSIDER__STEP_MOCKS,
+                    deployChecklist: mocks.PLATFORM_DEPLOY__DEPLOY_CHECKLIST__STEP_MOCKS,
                     android: mocks.PLATFORM_DEPLOY__ANDROID__STEP_MOCKS,
                     desktop: mocks.PLATFORM_DEPLOY__DESKTOP__STEP_MOCKS,
                     iOS: mocks.PLATFORM_DEPLOY__IOS__STEP_MOCKS,
@@ -254,6 +259,7 @@ describe('test workflow platformDeploy', () => {
                 });
 
                 assertions.assertVerifyActorJobExecuted(result, 'Dummy Author');
+                assertions.assertDeployChecklistJobExecuted(result, true);
                 assertions.assertAndroidJobExecuted(result, false);
                 assertions.assertDesktopJobExecuted(result, false);
                 assertions.assertIOSJobExecuted(result, false);

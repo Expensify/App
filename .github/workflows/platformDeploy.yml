@@ -36,8 +36,10 @@ jobs:
     if: ${{ github.event_name != 'release' }}
     needs: validateActor
     steps:
-      - uses: actions/checkout@v3
-      - uses: Expensify/App/.github/actions/composite/setupNode@main
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup Node
+        uses: Expensify/App/.github/actions/composite/setupNode@main
 
       - name: Set version
         id: getVersion
