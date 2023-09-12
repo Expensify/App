@@ -1568,6 +1568,7 @@ function shouldShowReportActionNotification(reportID, action = null, isRemote = 
 
     // Only show notifications for supported types of report actions
     if (action && !_.contains([CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT, CONST.REPORT.ACTIONS.TYPE.IOU, CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE], action.actionName)) {
+        Log.info(`${tag} No notification because this action type is not supported`, false, {actionName: action.actionName});
         return false;
     }
 
