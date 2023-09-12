@@ -190,6 +190,8 @@ type RemovedTheRequestParams = {valueName: string; oldValueToDisplay: string};
 
 type UpdatedTheRequestParams = {valueName: string; newValueToDisplay: string; oldValueToDisplay: string};
 
+type TagSelectionParams = {tagName: string};
+
 export type {
     AddressLineParams,
     CharacterLimitParams,
@@ -261,4 +263,5 @@ export type {
     SetTheRequestParams,
     UpdatedTheRequestParams,
     RemovedTheRequestParams,
+    TagSelectionParams,
 };

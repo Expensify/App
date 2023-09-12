@@ -11,33 +11,32 @@ import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import OptionsSelector from '../OptionsSelector';
 import {propTypes, defaultProps} from './tagPickerPropTypes';
 
-function TagPicker({policyTags, reportID, iouType, iou}) {
+function TagPicker({policyTags, reportID, tag, iouType, iou}) {
     const {translate} = useLocalize();
 
     const selectedOptions = useMemo(() => {
-        if (!iou.tag) {
+        if (!iou.tags || !iou.tags[tag]) {
             return [];
         }
 
         return [
             {
-                name: iou.tag,
+                name: iou.tags[tag],
                 enabled: true,
-                accountID: null,
             },
         ];
-    }, [iou.tag]);
+    }, [iou.tags, tag]);
 
     // Only shows one section, which will be the default behavior if there are
     // less than 8 policy tags
     // TODO: support sections with search
     const sections = useMemo(() => {
-        const tagList = _.chain(policyTags)
+        const tagList = _.chain(lodashGet(policyTags, [tag, 'tags'], {}))
             .values()
-            .map((tag) => ({
-                text: tag.name,
-                keyForList: tag.name,
-                tooltipText: tag.name,
+            .map((t) => ({
+                text: t.name,
+                keyForList: t.name,
+                tooltipText: t.name,
             }))
             .value();
 
@@ -46,7 +45,7 @@ function TagPicker({policyTags, reportID, iouType, iou}) {
                 data: tagList,
             },
         ];
-    }, [policyTags]);
+    }, [policyTags, tag]);
 
     const headerMessage = OptionsListUtils.getHeaderMessage(lodashGet(sections, '[0].data.length', 0) > 0, false, '');
 
