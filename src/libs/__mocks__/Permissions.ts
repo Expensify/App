@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import CONST from '../../CONST';
 
 /**
@@ -10,8 +9,8 @@ import CONST from '../../CONST';
 
 export default {
     ...jest.requireActual('../Permissions'),
-    canUseDefaultRooms: (betas) => _.contains(betas, CONST.BETAS.DEFAULT_ROOMS),
-    canUsePolicyRooms: (betas) => _.contains(betas, CONST.BETAS.POLICY_ROOMS),
-    canUseIOUSend: (betas) => _.contains(betas, CONST.BETAS.IOU_SEND),
-    canUseCustomStatus: (betas) => _.contains(betas, CONST.BETAS.CUSTOM_STATUS),
+    canUseDefaultRooms: (betas: string[]) => betas.includes(CONST.BETAS.DEFAULT_ROOMS),
+    canUsePolicyRooms: (betas: string[]) => betas.includes(CONST.BETAS.POLICY_ROOMS),
+    canUseIOUSend: (betas: string[]) => betas.includes(CONST.BETAS.IOU_SEND),
+    canUseCustomStatus: (betas: string[]) => betas.includes(CONST.BETAS.CUSTOM_STATUS),
 };
