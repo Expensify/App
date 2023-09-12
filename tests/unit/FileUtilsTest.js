@@ -2,7 +2,7 @@ import CONST from '../../src/CONST';
 import DateUtils from '../../src/libs/DateUtils';
 import * as FileUtils from '../../src/libs/fileDownload/FileUtils';
 
-jest.useFakeTimers()
+jest.useFakeTimers();
 
 describe('FileUtils', () => {
     describe('splitExtensionFromFileName', () => {

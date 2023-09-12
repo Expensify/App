@@ -217,7 +217,7 @@ describe('APITests', () => {
                     expect(PersistedRequests.getAll()).toEqual([expect.objectContaining({command: 'mock command', data: expect.objectContaining({param1: 'value1'})})]);
 
                     // We let the SequentialQueue process again after its wait time
-                    return new Promise((resolve) => setTimeout(resolve, RequestThrottle.getLastRequestWaitTime()))
+                    return new Promise((resolve) => setTimeout(resolve, RequestThrottle.getLastRequestWaitTime()));
                 })
                 .then(() => {
                     // Then we have retried the failing request
@@ -397,7 +397,7 @@ describe('APITests', () => {
             .then(() => {
                 // When we queue both non-persistable and persistable commands that will trigger reauthentication and go offline at the same time
                 API.makeRequestWithSideEffects('AuthenticatePusher', {content: 'value1'});
-          
+
                 Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
                 expect(NetworkStore.isOffline()).toBe(false);
                 expect(NetworkStore.isAuthenticating()).toBe(false);
@@ -413,7 +413,7 @@ describe('APITests', () => {
                 // We should only have a single call at this point as the main queue is stopped since we've gone offline
                 expect(xhr.mock.calls.length).toBe(1);
 
-                waitForPromisesToResolve()
+                waitForPromisesToResolve();
 
                 // Come back from offline to trigger the sequential queue flush
                 Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
@@ -534,7 +534,7 @@ describe('APITests', () => {
                 expect(secondRequestCommandName).toBe('MockCommandThree');
 
                 // WHEN we advance the main queue timer and wait for promises
-                return new Promise((resolve) => setTimeout(resolve, CONST.NETWORK.PROCESS_REQUEST_DELAY_MS))
+                return new Promise((resolve) => setTimeout(resolve, CONST.NETWORK.PROCESS_REQUEST_DELAY_MS));
             })
             .then(() => {
                 // THEN we should see that our third (non-persistable) request has run last
