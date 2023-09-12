@@ -1,0 +1,11 @@
+diff --git a/node_modules/react-native-reanimated/src/reanimated2/PlatformChecker.ts b/node_modules/react-native-reanimated/src/reanimated2/PlatformChecker.ts
+index 4df2481..cca7f1a 100644
+--- a/node_modules/react-native-reanimated/src/reanimated2/PlatformChecker.ts
++++ b/node_modules/react-native-reanimated/src/reanimated2/PlatformChecker.ts
+@@ -40,5 +40,5 @@ export function isReducedMotion() {
+     ? isWindowAvailable()
+       ? !window.matchMedia('(prefers-reduced-motion: no-preference)').matches
+       : false
+-    : global._REANIMATED_IS_REDUCED_MOTION ?? false;
++    : (global as any)._REANIMATED_IS_REDUCED_MOTION ?? false;
+ }
