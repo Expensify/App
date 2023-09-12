@@ -159,7 +159,7 @@ function ReportScreen({
     const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(parentReportAction);
     const isSingleTransactionView = ReportUtils.isMoneyRequest(report);
 
-    const policy = policies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+    const policy = policies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] || {};
 
     const isTopMostReportId = currentReportID === getReportID(route);
 
