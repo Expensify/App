@@ -20,10 +20,17 @@ function getRequestWaitTime() {
 }
 
 /**
+ * @returns {Number} time to wait in ms
+ */
+function getRequestWaitTimeForTests() {
+    return requestWaitTime;
+}
+
+/**
  * @returns {Promise}
  */
 function sleep() {
     return new Promise((resolve) => setTimeout(resolve, getRequestWaitTime()));
 }
 
-export {clear, getRequestWaitTime, sleep};
+export {clear, getRequestWaitTime, sleep, getRequestWaitTimeForTests};

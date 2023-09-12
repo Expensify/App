@@ -1,3 +1,5 @@
+const usingFakeTimers = () => !!(global.setTimeout.mock||global.setTimeout.clock)
+
 /**
  * Method which waits for all asynchronous JS to stop executing before proceeding. This helps test things like actions
  * that expect some Onyx value to be available. This way we do not have to explicitly wait for an action to finish
@@ -35,7 +37,3 @@ export default () => new Promise((outerResolve) => {
         setTimeout(outerResolve, 0);
     });
 });
-
-const usingFakeTimers = () => {
-    return !!(global.setTimeout.mock||global.setTimeout.clock)
-}

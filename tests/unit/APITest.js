@@ -12,6 +12,7 @@ import * as MainQueue from '../../src/libs/Network/MainQueue';
 import * as API from '../../src/libs/API';
 import * as SequentialQueue from '../../src/libs/Network/SequentialQueue';
 import * as Request from '../../src/libs/Request';
+import * as RequestThrottle from '../../src/libs/RequestThrottle';
 
 jest.mock('../../src/libs/Log');
 
@@ -216,7 +217,7 @@ describe('APITests', () => {
                     expect(PersistedRequests.getAll()).toEqual([expect.objectContaining({command: 'mock command', data: expect.objectContaining({param1: 'value1'})})]);
 
                     // We let the SequentialQueue process again after its wait time
-                    return new Promise((resolve) => setTimeout(resolve, CONST.NETWORK.MAX_RANDOM_RETRY_WAIT_TIME_MS)).then(waitForPromisesToResolve);
+                    return new Promise((resolve) => setTimeout(resolve, RequestThrottle.getRequestWaitTimeForTests()))
                 })
                 .then(() => {
                     // Then we have retried the failing request
@@ -227,7 +228,7 @@ describe('APITests', () => {
                     expect(PersistedRequests.getAll()).toEqual([expect.objectContaining({command: 'mock command', data: expect.objectContaining({param1: 'value1'})})]);
 
                     // We let the SequentialQueue process again after its wait time
-                    return new Promise((resolve) => setTimeout(resolve, 2 * CONST.NETWORK.MAX_RANDOM_RETRY_WAIT_TIME_MS)).then(waitForPromisesToResolve);
+                    return new Promise((resolve) => setTimeout(resolve, RequestThrottle.getRequestWaitTimeForTests())).then(waitForPromisesToResolve);
                 })
                 .then(() => {
                     // Then the request is retried again
@@ -533,8 +534,7 @@ describe('APITests', () => {
                 expect(secondRequestCommandName).toBe('MockCommandThree');
 
                 // WHEN we advance the main queue timer and wait for promises
-                jest.advanceTimersByTime(CONST.NETWORK.PROCESS_REQUEST_DELAY_MS);
-                return waitForPromisesToResolve();
+                return new Promise((resolve) => setTimeout(resolve, CONST.NETWORK.PROCESS_REQUEST_DELAY_MS))
             })
             .then(() => {
                 // THEN we should see that our third (non-persistable) request has run last
