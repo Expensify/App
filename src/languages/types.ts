@@ -200,28 +200,28 @@ type Translation = {[key: string]: TranslationBaseValue | Translation};
 
 /* Flat Translation Object types */
 // Flattens an object and returns concatenations of all the keys of nested objects
-type FlattenObject<T, Prefix extends string = ''> = {
+type FlattenObject<TObject, TPrefix extends string = ''> = {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    [K in keyof T]: T[K] extends (...args: any[]) => any
-        ? `${Prefix}${K & string}`
+    [TKey in keyof TObject]: TObject[TKey] extends (...args: any[]) => any
+        ? `${TPrefix}${TKey & string}`
         : // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        T[K] extends any[]
-        ? `${Prefix}${K & string}`
+        TObject[TKey] extends any[]
+        ? `${TPrefix}${TKey & string}`
         : // eslint-disable-next-line @typescript-eslint/ban-types
-        T[K] extends object
-        ? FlattenObject<T[K], `${Prefix}${K & string}.`>
-        : `${Prefix}${K & string}`;
-}[keyof T];
+        TObject[TKey] extends object
+        ? FlattenObject<TObject[TKey], `${TPrefix}${TKey & string}.`>
+        : `${TPrefix}${TKey & string}`;
+}[keyof TObject];
 
 // Retrieves a type for a given key path (calculated from the type above)
-type TranslateType<T, Path extends string> = Path extends keyof T ? T[Path] : Path extends `${infer K}.${infer Rest}` ? (K extends keyof T ? TranslateType<T[K], Rest> : never) : never;
+type TranslateType<TObject, TPath extends string> = TPath extends keyof TObject ? TObject[TPath] : TPath extends `${infer TKey}.${infer TRest}` ? (TKey extends keyof TObject ? TranslateType<TObject[TKey], TRest> : never) : never;
 
 type TranslationsType = typeof en;
 
 type TranslationPaths = FlattenObject<TranslationsType>;
 
 type TranslationFlatObject = {
-    [K in TranslationPaths]: TranslateType<TranslationsType, K>;
+    [TKey in TranslationPaths]: TranslateType<TranslationsType, TKey>;
 };
 
 export type {
