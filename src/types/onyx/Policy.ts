@@ -27,14 +27,25 @@ type Policy = {
     /** Error objects keyed by field name containing errors keyed by microtime */
     errorFields?: OnyxCommon.ErrorFields;
 
+    /** Indicates the type of change made to the policy that hasn't been synced with the server yet  */
     pendingAction?: OnyxCommon.PendingAction;
+
+    /** A list of errors keyed by microtime */
     errors: OnyxCommon.Errors;
+
+    /** Whether this policy was loaded from a policy summary, or loaded completely with all of its values */
     isFromFullPolicy?: boolean;
+
+    /** When this policy was last modified */
     lastModified?: string;
+
+    /** The custom units data for this policy */
     customUnits?: Record<string, unknown>;
 
+    /** Whether chat rooms can be created and used on this policy. Enabled manually by CQ/JS snippet. */
     areChatRoomsEnabled: boolean;
 
+    /** Whether policy expense chats can be created and used on this policy. Enabled manually by CQ/JS snippet. */
     isPolicyExpenseChatEnabled: boolean;
 };
 
