@@ -49,7 +49,6 @@ function BaseWalletPage(props) {
         selectedPaymentMethodType: null,
     });
     const addPaymentMethodAnchorRef = useRef(null);
-    const deletePaymentMethodAnchorRef = useRef(null);
     const paymentMethodButtonRef = useRef(null);
     const [anchorPosition, setAnchorPosition] = useState({
         anchorPositionHorizontal: 0,
@@ -102,19 +101,15 @@ function BaseWalletPage(props) {
     }, [paymentMethod.selectedPaymentMethod.bankAccountID, paymentMethod.selectedPaymentMethod.fundID, paymentMethod.selectedPaymentMethodType]);
 
     const resetSelectedPaymentMethodData = useCallback(() => {
-        // The below state values are used by payment method modals and we reset them while closing the modals.
-        // We should only reset the values when the modal animation is completed and so using InteractionManager.runAfterInteractions which fires after all animaitons are complete
-        InteractionManager.runAfterInteractions(() => {
-            // Reset to same values as in the constructor
-            setPaymentMethod({
-                isSelectedPaymentMethodDefault: false,
-                selectedPaymentMethod: {},
-                formattedSelectedPaymentMethod: {
-                    title: '',
-                },
-                methodID: null,
-                selectedPaymentMethodType: null,
-            });
+        // Reset to same values as in the constructor
+        setPaymentMethod({
+            isSelectedPaymentMethodDefault: false,
+            selectedPaymentMethod: {},
+            formattedSelectedPaymentMethod: {
+                title: '',
+            },
+            methodID: null,
+            selectedPaymentMethodType: null,
         });
     }, [setPaymentMethod]);
 
@@ -130,6 +125,11 @@ function BaseWalletPage(props) {
     const paymentMethodPressed = (nativeEvent, accountType, account, isDefault, methodID) => {
         if (shouldShowAddPaymentMenu) {
             setShouldShowAddPaymentMenu(false);
+            return;
+        }
+
+        if (shouldShowDefaultDeleteMenu) {
+            setShouldShowDefaultDeleteMenu(false);
             return;
         }
 
@@ -212,18 +212,12 @@ function BaseWalletPage(props) {
      * Hide the default / delete modal
      * @param {boolean} shouldClearSelectedData - Clear selected payment method data if true
      */
-    const hideDefaultDeleteMenu = useCallback(
-        (shouldClearSelectedData = true) => {
-            setShouldShowDefaultDeleteMenu(false);
-            InteractionManager.runAfterInteractions(() => {
-                setShowConfirmDeleteContent(false);
-                if (shouldClearSelectedData) {
-                    resetSelectedPaymentMethodData();
-                }
-            });
-        },
-        [setShouldShowDefaultDeleteMenu, setShowConfirmDeleteContent, resetSelectedPaymentMethodData],
-    );
+    const hideDefaultDeleteMenu = useCallback(() => {
+        setShouldShowDefaultDeleteMenu(false);
+        InteractionManager.runAfterInteractions(() => {
+            setShowConfirmDeleteContent(false);
+        });
+    }, [setShouldShowDefaultDeleteMenu, setShowConfirmDeleteContent]);
 
     const makeDefaultPaymentMethod = useCallback(() => {
         const paymentCardList = props.fundList || {};
@@ -237,7 +231,6 @@ function BaseWalletPage(props) {
         } else if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
             PaymentMethods.makeDefaultPaymentMethod(null, paymentMethod.selectedPaymentMethod.fundID, previousPaymentMethod, currentPaymentMethod);
         }
-        resetSelectedPaymentMethodData();
     }, [
         paymentMethod.methodID,
         paymentMethod.selectedPaymentMethod.bankAccountID,
@@ -245,7 +238,6 @@ function BaseWalletPage(props) {
         paymentMethod.selectedPaymentMethodType,
         props.bankAccountList,
         props.fundList,
-        resetSelectedPaymentMethodData,
     ]);
 
     const deletePaymentMethod = useCallback(() => {
@@ -256,8 +248,7 @@ function BaseWalletPage(props) {
         } else if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
             PaymentMethods.deletePaymentCard(paymentMethod.selectedPaymentMethod.fundID);
         }
-        resetSelectedPaymentMethodData();
-    }, [paymentMethod.selectedPaymentMethod.bankAccountID, paymentMethod.selectedPaymentMethod.fundID, paymentMethod.selectedPaymentMethodType, resetSelectedPaymentMethodData]);
+    }, [paymentMethod.selectedPaymentMethod.bankAccountID, paymentMethod.selectedPaymentMethod.fundID, paymentMethod.selectedPaymentMethodType]);
 
     const navigateToTransferBalancePage = () => {
         Navigation.navigate(ROUTES.SETTINGS_WALLET_TRANSFER_BALANCE);
@@ -424,7 +415,8 @@ function BaseWalletPage(props) {
                     right: anchorPosition.anchorPositionRight,
                 }}
                 withoutOverlay
-                anchorRef={deletePaymentMethodAnchorRef}
+                anchorRef={paymentMethodButtonRef}
+                onModalHide={resetSelectedPaymentMethodData}
             >
                 {!showConfirmDeleteContent ? (
                     <View style={[styles.m5, !isSmallScreenWidth ? styles.sidebarPopover : '']}>
@@ -440,8 +432,8 @@ function BaseWalletPage(props) {
                         {shouldShowMakeDefaultButton && (
                             <Button
                                 onPress={() => {
-                                    setShouldShowDefaultDeleteMenu(false);
                                     makeDefaultPaymentMethod();
+                                    setShouldShowDefaultDeleteMenu(false);
                                 }}
                                 text={translate('walletPage.setDefaultConfirmation')}
                             />
@@ -461,14 +453,13 @@ function BaseWalletPage(props) {
                             style={[shouldShowMakeDefaultButton ? styles.mt4 : {}]}
                             text={translate('common.delete')}
                             danger
-                            ref={deletePaymentMethodAnchorRef}
                         />
                     </View>
                 ) : (
                     <ConfirmContent
                         onConfirm={() => {
-                            hideDefaultDeleteMenu(false);
                             deletePaymentMethod();
+                            hideDefaultDeleteMenu();
                         }}
                         onCancel={hideDefaultDeleteMenu}
                         contentStyles={!isSmallScreenWidth ? [styles.sidebarPopover, styles.willChangeTransform] : undefined}
