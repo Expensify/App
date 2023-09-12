@@ -61,7 +61,7 @@ const defaultProps = {
 };
 
 function MoneyRequestConfirmPage(props) {
-    const {windowHeight} = useWindowDimensions();
+    const {windowHeight, windowWidth} = useWindowDimensions();
     const prevMoneyRequestId = useRef(props.iou.id);
     const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
     const isDistanceRequest = MoneyRequestUtils.isDistanceRequest(iouType.current, props.selectedTab);
@@ -259,6 +259,7 @@ function MoneyRequestConfirmPage(props) {
                                 title={isDistanceRequest ? props.translate('common.distance') : props.translate('iou.cash')}
                                 onBackButtonPress={navigateBack}
                                 shouldShowThreeDotsButton={!isDistanceRequest}
+                                threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
                                 threeDotsMenuItems={[{
                                     icon: Expensicons.Camera,
                                     text: props.translate('receipt.takePhoto'),
