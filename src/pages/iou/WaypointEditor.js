@@ -1,7 +1,7 @@
 import React, {useMemo, useRef, useState} from 'react';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import {View} from 'react-native';
+import {View, Keyboard} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import {useIsFocused} from '@react-navigation/native';
@@ -179,6 +179,7 @@ function WaypointEditor({transactionID, route: {params: {iouType = '', waypointI
                             onSelected: () => setIsDeleteStopModalOpen(true),
                         },
                     ]}
+                    onThreeDotsButtonPress={() => Keyboard.dismiss()}
                 />
                 <ConfirmModal
                     title={translate('distance.deleteWaypoint')}
