@@ -34,7 +34,7 @@ const propTypes = {
     onBlur: PropTypes.func,
 
     /** Error text to display */
-    errorText: PropTypes.string,
+    errorText: PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.object]))]),
 
     /** Hint text to display */
     hint: PropTypes.string,
