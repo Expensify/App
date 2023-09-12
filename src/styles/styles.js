@@ -3923,6 +3923,9 @@ const styles = {
         height: 30,
         width: '100%',
     },
+    versionTextColor: {
+        color: `${Colors.ivory}cc`,
+    }
 };
 
 export default styles;

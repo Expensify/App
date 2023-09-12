@@ -2,7 +2,6 @@ import _ from 'underscore';
 import React from 'react';
 import {ScrollView, View} from 'react-native';
 import DeviceInfo from 'react-native-device-info';
-import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import styles from '../../../styles/styles';
@@ -10,7 +9,6 @@ import Text from '../../../components/Text';
 import TextLink from '../../../components/TextLink';
 import CONST from '../../../CONST';
 import * as Expensicons from '../../../components/Icon/Expensicons';
-import ScreenWrapper from '../../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import MenuItem from '../../../components/MenuItem';
@@ -23,6 +21,9 @@ import * as ReportActionContextMenu from '../../home/report/ContextMenu/ReportAc
 import {CONTEXT_MENU_TYPES} from '../../home/report/ContextMenu/ContextMenuActions';
 import * as KeyboardShortcuts from '../../../libs/actions/KeyboardShortcuts';
 import * as Environment from '../../../libs/Environment/Environment';
+import IllustratedHeaderPageLayout from '../../../components/IllustratedHeaderPageLayout';
+import themeColors from '../../../styles/themes/default';
+import * as LottieAnimations from '../../../components/LottieAnimations';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -80,73 +81,70 @@ function AboutPage(props) {
         },
     ];
 
+    const overlayContent = () => (
+        <View style={[styles.pAbsolute, styles.w100, styles.h100, styles.justifyContentEnd, styles.pb1]}>
+            <Text
+                selectable
+                style={[styles.textLabel, styles.versionTextColor, styles.alignSelfCenter]}
+            >
+                v{Environment.isInternalTestBuild() ? `${pkg.version} PR:${CONST.PULL_REQUEST_NUMBER}${getFlavor()}` : `${pkg.version}${getFlavor()}`}
+            </Text>
+        </View>
+    );
+
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-            {({safeAreaPaddingBottomStyle}) => (
-                <>
-                    <HeaderWithBackButton
-                        title={props.translate('initialSettingsPage.about')}
-                        onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
-                    />
-                    <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexColumn, styles.justifyContentBetween, safeAreaPaddingBottomStyle]}>
-                        <View style={[styles.flex1]}>
-                            <View style={styles.pageWrapper}>
-                                <View style={[styles.settingsPageBody, styles.mb6, styles.alignItemsCenter]}>
-                                    <Logo
-                                        height={80}
-                                        width={80}
-                                    />
-                                    <Text
-                                        selectable
-                                        style={[styles.textLabel, styles.alignSelfCenter, styles.mt6, styles.mb2, styles.colorMuted]}
-                                    >
-                                        v{Environment.isInternalTestBuild() ? `${pkg.version} PR:${CONST.PULL_REQUEST_NUMBER}${getFlavor()}` : `${pkg.version}${getFlavor()}`}
-                                    </Text>
-                                    <Text style={[styles.baseFontStyle, styles.mv5]}>{props.translate('initialSettingsPage.aboutPage.description')}</Text>
-                                </View>
-                            </View>
-                            {_.map(menuItems, (item) => (
-                                <MenuItem
-                                    key={item.translationKey}
-                                    title={props.translate(item.translationKey)}
-                                    icon={item.icon}
-                                    iconRight={item.iconRight}
-                                    onPress={() => item.action()}
-                                    shouldBlockSelection={Boolean(item.link)}
-                                    onSecondaryInteraction={
-                                        !_.isEmpty(item.link) ? (e) => ReportActionContextMenu.showContextMenu(CONTEXT_MENU_TYPES.LINK, e, item.link, popoverAnchor) : undefined
-                                    }
-                                    ref={(el) => (popoverAnchor = el)}
-                                    shouldShowRightIcon
-                                />
-                            ))}
-                        </View>
-                        <View style={[styles.sidebarFooter]}>
-                            <Text
-                                style={[styles.chatItemMessageHeaderTimestamp]}
-                                numberOfLines={1}
-                            >
-                                {props.translate('initialSettingsPage.readTheTermsAndPrivacy.phrase1')}{' '}
-                                <TextLink
-                                    style={[styles.textMicroSupporting, styles.link]}
-                                    href={CONST.TERMS_URL}
-                                >
-                                    {props.translate('initialSettingsPage.readTheTermsAndPrivacy.phrase2')}
-                                </TextLink>{' '}
-                                {props.translate('initialSettingsPage.readTheTermsAndPrivacy.phrase3')}{' '}
-                                <TextLink
-                                    style={[styles.textMicroSupporting, styles.link]}
-                                    href={CONST.PRIVACY_URL}
-                                >
-                                    {props.translate('initialSettingsPage.readTheTermsAndPrivacy.phrase4')}
-                                </TextLink>
-                                .
-                            </Text>
-                        </View>
-                    </ScrollView>
-                </>
-            )}
-        </ScreenWrapper>
+        <IllustratedHeaderPageLayout
+            title={props.translate('initialSettingsPage.about')}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
+            illustration={LottieAnimations.Coin}
+            backgroundColor={themeColors.PAGE_BACKGROUND_COLORS[ROUTES.SETTINGS_ABOUT]}
+            overlayContent={overlayContent}
+        >
+            <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexColumn, styles.justifyContentBetween]}>
+                <View style={[styles.flex1]}>
+                    <View style={[styles.settingsPageBody, styles.mb6, styles.alignItemsCenter, styles.ph5]}>
+                        <Text style={[styles.baseFontStyle]}>{props.translate('initialSettingsPage.aboutPage.description')}</Text>
+                    </View>
+                    {_.map(menuItems, (item) => (
+                        <MenuItem
+                            key={item.translationKey}
+                            title={props.translate(item.translationKey)}
+                            icon={item.icon}
+                            iconRight={item.iconRight}
+                            onPress={() => item.action()}
+                            shouldBlockSelection={Boolean(item.link)}
+                            onSecondaryInteraction={
+                                !_.isEmpty(item.link) ? (e) => ReportActionContextMenu.showContextMenu(CONTEXT_MENU_TYPES.LINK, e, item.link, popoverAnchor) : undefined
+                            }
+                            ref={(el) => (popoverAnchor = el)}
+                            shouldShowRightIcon
+                        />
+                    ))}
+                </View>
+                <View style={[styles.sidebarFooter]}>
+                    <Text
+                        style={[styles.chatItemMessageHeaderTimestamp]}
+                        numberOfLines={1}
+                    >
+                        {props.translate('initialSettingsPage.readTheTermsAndPrivacy.phrase1')}{' '}
+                        <TextLink
+                            style={[styles.textMicroSupporting, styles.link]}
+                            href={CONST.TERMS_URL}
+                        >
+                            {props.translate('initialSettingsPage.readTheTermsAndPrivacy.phrase2')}
+                        </TextLink>{' '}
+                        {props.translate('initialSettingsPage.readTheTermsAndPrivacy.phrase3')}{' '}
+                        <TextLink
+                            style={[styles.textMicroSupporting, styles.link]}
+                            href={CONST.PRIVACY_URL}
+                        >
+                            {props.translate('initialSettingsPage.readTheTermsAndPrivacy.phrase4')}
+                        </TextLink>
+                        .
+                    </Text>
+                </View>
+            </ScrollView>
+        </IllustratedHeaderPageLayout>
     );
 }
 
