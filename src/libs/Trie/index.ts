@@ -1,19 +1,23 @@
-import _ from 'underscore';
-import TrieNode from './TrieNode';
+import TrieNode, {MetaData} from './TrieNode';
 
-class Trie {
+type Word<TMetaData extends MetaData> = {
+    name: string;
+    metaData: Partial<TMetaData>;
+};
+
+class Trie<TMetaData extends MetaData> {
+    root: TrieNode<TMetaData>;
+
     constructor() {
         this.root = new TrieNode();
     }
 
     /**
      * Add a word to the Trie
-     * @param {String} word
-     * @param {Object} [metaData] - attach additional data to the word
-     * @param {TrieNode} [node]
-     * @param {Boolean} [allowEmptyWords] - empty word doesn't have any char, you shouldn't pass a true value for it because we are disallowing adding an empty word
+     * @param [metaData] - attach additional data to the word
+     * @param [allowEmptyWords] - empty word doesn't have any char, you shouldn't pass a true value for it because we are disallowing adding an empty word
      */
-    add(word, metaData = {}, node = this.root, allowEmptyWords = false) {
+    add(word: string, metaData: Partial<TMetaData> = {}, node = this.root, allowEmptyWords = false) {
         const newWord = word.toLowerCase();
         const newNode = node;
         if (newWord.length === 0 && !allowEmptyWords) {
@@ -33,10 +37,9 @@ class Trie {
 
     /**
      * Search for a word in the Trie.
-     * @param {String} word
-     * @returns {Object|null} – the node for the word if it's found, or null if it's not found
+     * @returns - the node for the word if it's found, or null if it's not found
      */
-    search(word) {
+    search(word: string): TrieNode<TMetaData> | null {
         let newWord = word.toLowerCase();
         let node = this.root;
         while (newWord.length > 1) {
@@ -52,10 +55,8 @@ class Trie {
 
     /**
      * Update a word data in the Trie.
-     * @param {String} word
-     * @param {Object} metaData
      */
-    update(word, metaData) {
+    update(word: string, metaData: TMetaData) {
         let newWord = word.toLowerCase();
         let node = this.root;
         while (newWord.length > 1) {
@@ -70,33 +71,26 @@ class Trie {
 
     /**
      * Find all leaf nodes starting with a substring.
-     * @param {String} substr
-     * @param {Number} [limit] - matching words limit
-     * @returns {Array}
+     * @param [limit] - matching words limit
      */
-    getAllMatchingWords(substr, limit = 5) {
+    getAllMatchingWords(substr: string, limit = 5): Array<Word<TMetaData>> {
         const newSubstr = substr.toLowerCase();
         let node = this.root;
         let prefix = '';
-        for (let i = 0; i < newSubstr.length; i++) {
-            prefix += newSubstr[i];
-            if (!node.children[newSubstr[i]]) {
+        for (const char of newSubstr) {
+            prefix += char;
+            if (!node.children[char]) {
                 return [];
             }
-            node = node.children[newSubstr[i]];
+            node = node.children[char];
         }
         return this.getChildMatching(node, prefix, limit, []);
     }
 
     /**
      * Find all leaf nodes that are descendants of a given child node.
-     * @param {TrieNode} node
-     * @param {String} prefix
-     * @param {Number} limit
-     * @param {Array} [words]
-     * @returns {Array}
      */
-    getChildMatching(node, prefix, limit, words = []) {
+    getChildMatching(node: TrieNode<TMetaData>, prefix: string, limit: number, words: Array<Word<TMetaData>> = []): Array<Word<TMetaData>> {
         const matching = words;
         if (matching.length >= limit) {
             return matching;
@@ -104,9 +98,9 @@ class Trie {
         if (node.isEndOfWord) {
             matching.push({name: prefix, metaData: node.metaData});
         }
-        const children = _.keys(node.children);
-        for (let i = 0; i < children.length; i++) {
-            this.getChildMatching(node.children[children[i]], prefix + children[i], limit, matching);
+        const children = Object.keys(node.children);
+        for (const child of children) {
+            this.getChildMatching(node.children[child], prefix + child, limit, matching);
         }
         return matching;
     }
