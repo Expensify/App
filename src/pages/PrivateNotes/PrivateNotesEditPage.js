@@ -21,8 +21,6 @@ import Form from '../../components/Form';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import reportPropTypes from '../reportPropTypes';
 import personalDetailsPropType from '../personalDetailsPropType';
-import RenderHTML from '../../components/RenderHTML';
-import PressableWithoutFeedback from '../../components/Pressable/PressableWithoutFeedback';
 import * as Report from '../../libs/actions/Report';
 import useLocalize from '../../hooks/useLocalize';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
@@ -63,32 +61,25 @@ function PrivateNotesEditPage({route, personalDetailsList, session, report}) {
     const isCurrentUserNote = Number(session.accountID) === Number(route.params.accountID);
 
     const savePrivateNote = () => {
-        if (_.isEmpty(privateNote)) {
-            return;
-        }
         const parser = new ExpensiMark();
         const editedNote = parser.replace(privateNote);
         Report.updatePrivateNotes(report.reportID, route.params.accountID, editedNote);
         Keyboard.dismiss();
-
-        // Enable the view mode once we have saved the updated note
-        setPrivateNote(editedNote);
-        setEditMode(false);
     };
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <FullPageNotFoundView
-                shouldShow={_.isEmpty(report) || _.isEmpty(report.privateNotes) || !_.has(report, ['privateNotes', route.params.accountID, 'note'])}
+                shouldShow={_.isEmpty(report) || _.isEmpty(report.privateNotes) || !_.has(report, ['privateNotes', route.params.accountID, 'note']) || !isCurrentUserNote}
                 subtitleKey="privateNotes.notesUnavailable"
-                onBackButtonPress={() => Navigation.goBack(ROUTES.PRIVATE_NOTES_VIEW)}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.getPrivateNotesViewRoute(report.reportID, route.params.accountID))}
             >
                 <HeaderWithBackButton
                     title={translate('privateNotes.title')}
                     subtitle="My note"
                     shouldShowBackButton
                     onCloseButtonPress={() => Navigation.dismissModal()}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.PRIVATE_NOTES_VIEW)}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.getPrivateNotesViewRoute(report.reportID, route.params.accountID))}
                 />
                 <View style={[styles.flexGrow1, styles.ph5]}>
                     <View style={[styles.mb5]}>
@@ -106,7 +97,14 @@ function PrivateNotesEditPage({route, personalDetailsList, session, report}) {
                         submitButtonText={translate('common.save')}
                         enabledWhenOffline
                     >
-                        <View style={[styles.mb3]}>
+                        <OfflineWithFeedback
+                            errors={{
+                                ...lodashGet(report, ['privateNotes', route.params.accountID, 'errors'], ''),
+                            }}
+                            pendingAction={lodashGet(report, ['privateNotes', route.params.accountID, 'pendingAction'], '')}
+                            onClose={() => Report.clearPrivateNotesError(report.reportID, route.params.accountID)}
+                            style={[styles.mb3]}
+                        >
                             <TextInput
                                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                                 inputID="privateNotes"
@@ -121,7 +119,7 @@ function PrivateNotesEditPage({route, personalDetailsList, session, report}) {
                                 value={privateNote}
                                 onChangeText={(text) => setPrivateNote(text)}
                             />
-                        </View>
+                        </OfflineWithFeedback>
                     </Form>
                 </View>
             </FullPageNotFoundView>
