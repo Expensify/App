@@ -93,9 +93,8 @@ function saveWaypoint(transactionID: string, index: string, waypoint: RecentWayp
     if (!lodashHas(waypoint, 'lat') || !lodashHas(waypoint, 'lng')) {
         return;
     }
-
     const recentWaypointAlreadyExists = recentWaypoints.find((recentWaypoint) => recentWaypoint?.address === waypoint?.address);
-    if (!recentWaypointAlreadyExists) {
+    if (!recentWaypointAlreadyExists && waypoint !== null) {
         const clonedWaypoints = lodashClone(recentWaypoints);
         clonedWaypoints.unshift(waypoint);
         Onyx.merge(ONYXKEYS.NVP_RECENT_WAYPOINTS, clonedWaypoints.slice(0, 5));
@@ -108,7 +107,6 @@ function removeWaypoint(transactionID: string, currentIndex: string) {
     const transaction = allTransactions?.[transactionID] ?? {};
     const existingWaypoints = transaction?.comment?.waypoints ?? {};
     const totalWaypoints = Object.keys(existingWaypoints).length;
-
     // Prevents removing the starting or ending waypoint but clear the stored address only if there are only two waypoints
     if (totalWaypoints === 2 && (index === 0 || index === totalWaypoints - 1)) {
         saveWaypoint(transactionID, index.toString(), null);
