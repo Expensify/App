@@ -7,6 +7,7 @@ import styles from '../styles/styles';
 import CONST from '../CONST';
 import Text from './Text';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
 
 const propTypes = {
     options: PropTypes.arrayOf(
@@ -17,6 +18,7 @@ const propTypes = {
     ),
     selectedOptionKey: PropTypes.string,
     onSelectOption: PropTypes.func,
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -25,7 +27,7 @@ const defaultProps = {
     onSelectOption: () => {},
 };
 
-function SingleOptionSelector({options, selectedOptionKey, onSelectOption}) {
+function SingleOptionSelector({options, selectedOptionKey, onSelectOption, translate}) {
     return (
         <View style={styles.pt4}>
             {_.map(options, (option) => (
@@ -39,7 +41,7 @@ function SingleOptionSelector({options, selectedOptionKey, onSelectOption}) {
                     accessibilityLabel={option.label}
                 >
                     <SelectCircle isChecked={selectedOptionKey === option.key} />
-                    <Text>{option.label}</Text>
+                    <Text>{translate(option.label)}</Text>
                 </PressableWithoutFeedback>
             ))}
         </View>
@@ -50,4 +52,4 @@ SingleOptionSelector.propTypes = propTypes;
 SingleOptionSelector.defaultProps = defaultProps;
 SingleOptionSelector.displayName = 'SingleOptionSelector';
 
-export default SingleOptionSelector;
+export default withLocalize(SingleOptionSelector);
