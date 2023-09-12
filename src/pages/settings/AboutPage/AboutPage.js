@@ -12,7 +12,6 @@ import * as Expensicons from '../../../components/Icon/Expensicons';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import MenuItem from '../../../components/MenuItem';
-import Logo from '../../../../assets/images/new-expensify.svg';
 import pkg from '../../../../package.json';
 import * as Report from '../../../libs/actions/Report';
 import * as Link from '../../../libs/actions/Link';
@@ -113,9 +112,7 @@ function AboutPage(props) {
                             iconRight={item.iconRight}
                             onPress={() => item.action()}
                             shouldBlockSelection={Boolean(item.link)}
-                            onSecondaryInteraction={
-                                !_.isEmpty(item.link) ? (e) => ReportActionContextMenu.showContextMenu(CONTEXT_MENU_TYPES.LINK, e, item.link, popoverAnchor) : undefined
-                            }
+                            onSecondaryInteraction={!_.isEmpty(item.link) ? (e) => ReportActionContextMenu.showContextMenu(CONTEXT_MENU_TYPES.LINK, e, item.link, popoverAnchor) : undefined}
                             ref={(el) => (popoverAnchor = el)}
                             shouldShowRightIcon
                         />

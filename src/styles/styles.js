@@ -3925,7 +3925,7 @@ const styles = {
     },
     versionTextColor: {
         color: `${Colors.ivory}cc`,
-    }
+    },
 };
 
 export default styles;
