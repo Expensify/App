@@ -46,4 +46,11 @@
          spacing makes room for the header without cutting off the bottom of the Onfido window. */
         height: 92% !important;
     }
+
+    /* 
+    * Solves issue with height not working for `onfido-sdk-ui-Modal-inner` container when device width is in between 490 - 600pixels.
+    */
+    #onfido-mount {
+        height: 100%;
+    }
 }

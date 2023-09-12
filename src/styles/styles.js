@@ -1472,7 +1472,7 @@ const styles = {
 
     optionDisplayName: {
         fontFamily: fontFamily.EXP_NEUE,
-        height: variables.alternateTextHeight,
+        minHeight: variables.alternateTextHeight,
         lineHeight: variables.lineHeightXLarge,
         ...whiteSpace.noWrap,
     },
@@ -1507,6 +1507,14 @@ const styles = {
         minHeight: variables.optionRowHeight,
         paddingTop: 12,
         paddingBottom: 12,
+    },
+
+    optionRowSelected: {
+        backgroundColor: themeColors.activeComponentBG,
+    },
+
+    optionRowDisabled: {
+        color: themeColors.textSupporting,
     },
 
     optionRowCompact: {
@@ -2545,6 +2553,13 @@ const styles = {
         position: 'absolute',
     },
 
+    attachmentRevealButtonContainer: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        ...spacing.ph4,
+    },
+
     arrowIcon: {
         height: 40,
         width: 40,
@@ -2698,6 +2713,12 @@ const styles = {
     moneyRequestPreviewBoxAvatar: {
         marginRight: -10,
         marginBottom: 0,
+    },
+
+    moneyRequestPreviewAmount: {
+        ...headlineFont,
+        ...whiteSpace.preWrap,
+        color: themeColors.heading,
     },
 
     defaultCheckmarkWrapper: {
@@ -3778,8 +3799,8 @@ const styles = {
 
     reportActionItemImages: {
         flexDirection: 'row',
-        borderWidth: 2,
-        borderColor: themeColors.cardBG,
+        borderWidth: 4,
+        borderColor: themeColors.transparent,
         borderTopLeftRadius: variables.componentBorderRadiusLarge,
         borderTopRightRadius: variables.componentBorderRadiusLarge,
         borderBottomLeftRadius: variables.componentBorderRadiusLarge,
@@ -3789,14 +3810,17 @@ const styles = {
     },
 
     reportActionItemImage: {
-        borderWidth: 1,
-        borderColor: themeColors.cardBG,
         flex: 1,
         width: '100%',
         height: '100%',
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
+    },
+
+    reportActionItemImageBorder: {
+        borderRightWidth: 2,
+        borderColor: themeColors.cardBG,
     },
 
     reportActionItemImagesMore: {
@@ -3868,7 +3892,7 @@ const styles = {
 
     distanceRequestContainer: (maxHeight) => ({
         ...flex.flexShrink2,
-        minHeight: variables.baseMenuItemHeight * 2,
+        minHeight: variables.optionRowHeight * 2,
         maxHeight,
     }),
 

@@ -33,6 +33,7 @@ Onyx.connect({
  * @param {Object} [receipt]
  * @param {String} [filename]
  * @param {String} [existingTransactionID] When creating a distance request, an empty transaction has already been created with a transactionID. In that case, the transaction here needs to have it's transactionID match what was already generated.
+ * @param {String} [category]
  * @returns {Object}
  */
 function buildOptimisticTransaction(
@@ -47,6 +48,7 @@ function buildOptimisticTransaction(
     receipt = {},
     filename = '',
     existingTransactionID = null,
+    category = '',
 ) {
     // transactionIDs are random, positive, 64-bit numeric strings.
     // Because JS can only handle 53-bit numbers, transactionIDs are strings in the front-end (just like reportActionID)
@@ -74,6 +76,7 @@ function buildOptimisticTransaction(
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         receipt,
         filename,
+        category,
     };
 }
 
@@ -92,6 +95,7 @@ function hasReceipt(transaction) {
 function areRequiredFieldsEmpty(transaction) {
     return (
         transaction.modifiedMerchant === CONST.TRANSACTION.UNKNOWN_MERCHANT ||
+        transaction.modifiedMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT ||
         (transaction.modifiedMerchant === '' &&
             (transaction.merchant === CONST.TRANSACTION.UNKNOWN_MERCHANT || transaction.merchant === '' || transaction.merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT)) ||
         (transaction.modifiedAmount === 0 && transaction.amount === 0) ||
@@ -303,13 +307,23 @@ function waypointHasValidAddress(waypoint) {
 }
 
 /**
+ * Converts the key of a waypoint to its index
+ * @param {String} key
+ * @returns {Number} waypoint index
+ */
+function getWaypointIndex(key) {
+    return Number(key.replace('waypoint', ''));
+}
+
+/**
  * Filters the waypoints which are valid and returns those
  * @param {Object} waypoints
  * @param {Boolean} reArrangeIndexes
  * @returns {Object} validated waypoints
  */
 function getValidWaypoints(waypoints, reArrangeIndexes = false) {
-    const waypointValues = _.values(waypoints);
+    const sortedIndexes = _.map(_.keys(waypoints), (key) => getWaypointIndex(key)).sort();
+    const waypointValues = _.map(sortedIndexes, (index) => waypoints[`waypoint${index}`]);
     // Ensure the number of waypoints is between 2 and 25
     if (waypointValues.length < 2 || waypointValues.length > 25) {
         return {};
@@ -339,7 +353,6 @@ function getValidWaypoints(waypoints, reArrangeIndexes = false) {
         },
         {},
     );
-
     return validWaypoints;
 }
 
@@ -359,4 +372,5 @@ export {
     getValidWaypoints,
     isDistanceRequest,
     hasMissingSmartscanFields,
+    getWaypointIndex,
 };
