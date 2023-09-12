@@ -61,7 +61,7 @@ function PronounsPage({currentUserPersonalDetails}) {
     const headerMessage = searchValue.trim() && filteredPronounsList.length === 0 ? translate('common.noResultsFound') : '';
 
     const updatePronouns = (selectedPronouns) => {
-        PersonalDetails.updatePronouns(selectedPronouns.keyForList === currentPronouns.keyForList ? '' : lodashGet(selectedPronouns, 'value', ''));
+        PersonalDetails.updatePronouns(selectedPronouns.keyForList === currentPronounsKey ? '' : lodashGet(selectedPronouns, 'value', ''));
     };
 
     return (
@@ -80,7 +80,6 @@ function PronounsPage({currentUserPersonalDetails}) {
                 onSelectRow={updatePronouns}
                 onChangeText={setSearchValue}
                 initiallyFocusedOptionKey={currentPronounsKey}
-                shouldDelayFocus
             />
         </ScreenWrapper>
     );
