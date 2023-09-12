@@ -7,7 +7,7 @@ let onModalClose: null | (() => void);
 /**
  * Allows other parts of the app to call modal close function
  */
-function setCloseModal(onClose: () => void): void {
+function setCloseModal(onClose: () => void) {
     closeModal = onClose;
 }
 
@@ -38,7 +38,7 @@ function onModalDidClose() {
 /**
  * Allows other parts of the app to know when a modal has been opened or closed
  */
-function setModalVisibility(isVisible: boolean): void {
+function setModalVisibility(isVisible: boolean) {
     Onyx.merge(ONYXKEYS.MODAL, {isVisible});
 }
 
@@ -46,7 +46,7 @@ function setModalVisibility(isVisible: boolean): void {
  * Allows other parts of app to know that an alert modal is about to open.
  * This will trigger as soon as a modal is opened but not yet visible while animation is running.
  */
-function willAlertModalBecomeVisible(isVisible: boolean): void {
+function willAlertModalBecomeVisible(isVisible: boolean) {
     Onyx.merge(ONYXKEYS.MODAL, {willAlertModalBecomeVisible: isVisible});
 }
 
