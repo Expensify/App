@@ -32,7 +32,7 @@ jobs:
   deployChecklist:
     name: Create or update deploy checklist
     runs-on: ubuntu-latest
-    if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'false' }}
+    if: ${{ github.event_name != 'release' }}
     needs: validateActor
     steps:
       - uses: actions/checkout@v3
