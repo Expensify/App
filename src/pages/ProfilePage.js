@@ -243,7 +243,7 @@ function ProfilePage(props) {
                                 titleStyle={styles.flex1}
                                 icon={Expensicons.Pencil}
                                 onPress={() => {
-                                    ReportUtils.navigateToPrivateNotesPage(chatReportWithCurrentUser, Number(lodashGet(props.session, 'accountID')));
+                                    ReportUtils.navigateToPrivateNotesPage(chatReportWithCurrentUser);
                                 }}
                                 wrapperStyle={styles.breakAll}
                                 shouldShowRightIcon

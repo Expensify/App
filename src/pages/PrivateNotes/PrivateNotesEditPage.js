@@ -57,14 +57,19 @@ const defaultProps = {
 
 function PrivateNotesEditPage({route, personalDetailsList, session, report}) {
     const {translate} = useLocalize();
-    const [privateNote, setPrivateNote] = useState(lodashGet(report, ['privateNotes', route.params.accountID, 'note'], ''));
+
+    // We need to edit the note in markdown format, but display it in HTML format
+    const parser = new ExpensiMark();
+    const [privateNote, setPrivateNote] = useState(parser.htmlToMarkdown(lodashGet(report, ['privateNotes', route.params.accountID, 'note'], '')).trim());
     const isCurrentUserNote = Number(session.accountID) === Number(route.params.accountID);
 
     const savePrivateNote = () => {
-        const parser = new ExpensiMark();
         const editedNote = parser.replace(privateNote);
         Report.updatePrivateNotes(report.reportID, route.params.accountID, editedNote);
         Keyboard.dismiss();
+
+        // Navigate back to the private notes view page
+        Navigation.goBack(ROUTES.getPrivateNotesViewRoute(report.reportID, route.params.accountID));
     };
 
     return (
@@ -101,7 +106,7 @@ function PrivateNotesEditPage({route, personalDetailsList, session, report}) {
                             errors={{
                                 ...lodashGet(report, ['privateNotes', route.params.accountID, 'errors'], ''),
                             }}
-                            pendingAction={lodashGet(report, ['privateNotes', route.params.accountID, 'pendingAction'], '')}
+                            pendingAction={lodashGet(report, ['privateNotes', route.params.accountID, 'pendingAction'], null)}
                             onClose={() => Report.clearPrivateNotesError(report.reportID, route.params.accountID)}
                             style={[styles.mb3]}
                         >

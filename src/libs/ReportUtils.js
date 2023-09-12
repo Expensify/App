@@ -3475,8 +3475,15 @@ function navigateToPrivateNotesPage(report, accountID) {
     const privateNotes = lodashGet(report, 'privateNotes', {});
 
     // Redirect the user to privateNotesList page in case there are multiple notes and accountID is not set
+    // We will also redirect to the privateNotesList page if privateNotes is empty since we load the private notes on that page.
     if ((_.isEmpty(accountID) && _.keys(privateNotes).length > 1) || _.isEmpty(privateNotes)) {
         Navigation.navigate(ROUTES.getPrivateNotesListRoute(report.reportID));
+        return;
+    }
+
+    // If the privateNotes is empty, then we will redirect the user to the privateNotesEdit page
+    if (_.isEmpty(lodashGet(privateNotes[_.isEmpty(accountID) ? currentUserAccountID : accountID], 'note', ''))) {
+        Navigation.navigate(ROUTES.getPrivateNotesEditRoute(report.reportID, _.isEmpty(accountID) ? currentUserAccountID : accountID));
         return;
     }
 

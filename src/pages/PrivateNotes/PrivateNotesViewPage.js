@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View} from 'react-native';
+import {ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
@@ -69,8 +69,8 @@ function PrivateNotesViewPage({route, personalDetailsList, session, report}) {
                     onCloseButtonPress={() => Navigation.dismissModal()}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.getPrivateNotesListRoute(report.reportID))}
                 />
-                <View style={[styles.flexGrow1, styles.ph5]}>
-                    <OfflineWithFeedback pendingAction={lodashGet(report, ['privateNotes', route.params.accountID, 'pendingAction'], '')}>
+                <ScrollView style={[styles.flexGrow1, styles.ph5]}>
+                    <OfflineWithFeedback pendingAction={lodashGet(report, ['privateNotes', route.params.accountID, 'pendingAction'], null)}>
                         <MenuItemWithTopDescription
                             description={translate('privateNotes.composerLabel')}
                             title={privateNote}
@@ -79,9 +79,11 @@ function PrivateNotesViewPage({route, personalDetailsList, session, report}) {
                             numberOfLinesTitle={0}
                             shouldRenderAsHTML
                             brickRoadIndicator={!_.isEmpty(lodashGet(report, ['privateNotes', route.params.accountID, 'errors'], '')) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                            disabled={!isCurrentUserNote}
+                            shouldGreyOutWhenDisabled={false}
                         />
                     </OfflineWithFeedback>
-                </View>
+                </ScrollView>
             </FullPageNotFoundView>
         </ScreenWrapper>
     );
