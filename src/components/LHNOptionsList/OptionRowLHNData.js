@@ -12,6 +12,9 @@ import withCurrentReportID, {withCurrentReportIDPropTypes, withCurrentReportIDDe
 import OptionRowLHN, {propTypes as basePropTypes, defaultProps as baseDefaultProps} from './OptionRowLHN';
 import * as Report from '../../libs/actions/Report';
 import * as UserUtils from '../../libs/UserUtils';
+import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
+import * as TransactionUtils from '../../libs/TransactionUtils';
+
 import participantPropTypes from '../participantPropTypes';
 import CONST from '../../CONST';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
@@ -75,6 +78,7 @@ function OptionRowLHNData({
     preferredLocale,
     comment,
     policies,
+    receiptTransactions,
     parentReportActions,
     ...propsToForward
 }) {
@@ -88,6 +92,14 @@ function OptionRowLHNData({
     const parentReportAction = parentReportActions[fullReport.parentReportActionID];
 
     const optionItemRef = useRef();
+
+    const linkedTransaction = useMemo(() => {
+        const sortedReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(reportActions);
+        const lastReportAction = _.first(sortedReportActions);
+        return TransactionUtils.getLinkedTransaction(lastReportAction);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [fullReport.reportID, receiptTransactions, reportActions]);
+
     const optionItem = useMemo(() => {
         // Note: ideally we'd have this as a dependent selector in onyx!
         const item = SidebarUtils.getOptionData(fullReport, reportActions, personalDetails, preferredLocale, policy);
@@ -98,7 +110,7 @@ function OptionRowLHNData({
         return item;
         // Listen parentReportAction to update title of thread report when parentReportAction changed
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [fullReport, reportActions, personalDetails, preferredLocale, policy, parentReportAction]);
+    }, [fullReport, linkedTransaction, reportActions, personalDetails, preferredLocale, policy, parentReportAction]);
 
     useEffect(() => {
         if (!optionItem || optionItem.hasDraftComment || !comment || comment.length <= 0 || isFocused) {
@@ -186,6 +198,11 @@ export default React.memo(
                 key: ({fullReport}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fullReport.parentReportID}`,
                 canEvict: false,
             },
+            // Ideally, we aim to access only the last transaction for the current report by listening to changes in reportActions.
+            // In some scenarios, a transaction might be created after reportActions have been modified.
+            // This can lead to situations where `lastTransaction` doesn't update and retains the previous value.
+            // However, performance overhead of this is minimized by using memos inside the component.
+            receiptTransactions: {key: ONYXKEYS.COLLECTION.TRANSACTION},
         }),
     )(OptionRowLHNData),
 );
